@@ -1,3 +1,3 @@
 @AGENTS.md
 
-PLAN.md governs this repo; read its Section 2b protocol and Work log/ledger before acting.
+PLAN.md (science) and plan/PROTOCOL.md (process) govern this repo; resume from plan/LEDGER.md's STATE line before acting.

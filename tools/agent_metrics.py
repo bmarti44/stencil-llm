@@ -85,12 +85,12 @@ def main(argv: list[str] | None = None) -> int:
 
     root = Path(subprocess.check_output(
         ["git", "rev-parse", "--show-toplevel"], text=True, timeout=10).strip())
-    reviews = [p for p in sorted((root / "docs" / "reviews").rglob("*.md"))
+    reviews = [p for p in sorted((root / "plan" / "reviews").rglob("*.md"))
                if not p.name.endswith(".rejected.md") and p.name != "tiebreaks.md"]
     report = {"threshold": args.threshold, "topics": {}, "gate_commits": gate_commits(root)}
 
     for path in reviews:
-        rel = str(path.relative_to(root / "docs" / "reviews"))
+        rel = str(path.relative_to(root / "plan" / "reviews"))
         info = parse_review(path)
         accepted_round = None
         for r in info["rounds"]:

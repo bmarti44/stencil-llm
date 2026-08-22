@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Gate acceptance check (PLAN.md 2b): exact-artifact validation (v1.16).
-# Sol reviews are files in docs/reviews/<phase>/ whose frontmatter declares
+# Sol reviews are files in plan/reviews/<phase>/ whose frontmatter declares
 # "**Reviewer model:** codex/"; kimi cross-reviews declare kimi/. Any other
 # file in the directory (except *.rejected.md sidecars) is a layout violation.
 # Thresholds hardcoded; not parameterizable.
 set -euo pipefail
 PHASE="$1"
 ROOT="$(git rev-parse --show-toplevel)"
-DIR="$ROOT/docs/reviews/$PHASE"
+DIR="$ROOT/plan/reviews/$PHASE"
 fail=0; sol=0; kimi=0
 for f in "$DIR"/*.md; do
     [ -e "$f" ] || { echo "FAIL: no reviews in $DIR"; exit 1; }

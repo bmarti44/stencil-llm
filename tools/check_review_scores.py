@@ -4,8 +4,8 @@ The current score is the first match (top of file); round-log entries are
 preserved verbatim below it. Exit code 0 if score >= threshold, 1 otherwise.
 
 Usage:
-    python3 tools/check_review_scores.py --file docs/reviews/plan/science.md --min 90
-    python3 tools/check_review_scores.py --files "docs/reviews/plan/*.md" --min 90
+    python3 tools/check_review_scores.py --file plan/reviews/plan/science.md --min 90
+    python3 tools/check_review_scores.py --files "plan/reviews/plan/*.md" --min 90
 """
 from __future__ import annotations
 

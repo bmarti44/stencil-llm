@@ -12,6 +12,6 @@ Cross-check every number against every other number, and every named artifact ag
 - Config schema (Appendix A) completeness vs everything Phases 0–6 need to configure.
 - The discretization equations in 5.2 vs the stated continuous system (is the IMEX/symplectic claim correct as written?).
 - Every named test in Phases 0–4: is it implementable exactly as specified (inputs, fixtures, tolerances, fp32/fp64), or would a coding agent have to guess?
-- Repo layout / Makefile / results policy vs what the phases actually produce, including Section 2b tooling and docs/reviews/.
+- Repo layout / Makefile / results policy vs what the phases actually produce, including Section 2b tooling and plan/reviews/.
 
 Flag every contradiction, every underspecified decision a coder would have to invent, and every place two parts of the file disagree. Cite exact section names and quote the text.

@@ -8,9 +8,17 @@ short, imperative, and evidence-linked; prune entries that stop paying rent.
 
 ## Working rules distilled so far
 
-- PLAN.md is the single source of truth. Read the Section 2b protocol and the
-  Work log and ledger section before doing anything; append ledger entries
-  (write-ahead for long-running work) as you go.
+- North star (Brian, 2026-08-22): agents work efficiently, quickly, accurately,
+  and autonomously on PLAN.md. Burden test for any new rule/file/process step:
+  does it change what an agent would do in a concrete situation, and does it
+  make execution faster or more accurate? If not, cut it.
+- Layout: PLAN.md (root) = governing science spec. plan/ = working directory:
+  PROTOCOL.md (process rules), LEDGER.md (resume from its STATE line),
+  AMENDMENTS.md, reviews/, retros/, tiebreaks/.
+
+- PLAN.md (science) and plan/PROTOCOL.md (process) govern together; plan/LEDGER.md
+  is operational state. Read PROTOCOL.md and the LEDGER STATE line before doing
+  anything; append ledger entries (write-ahead for long-running work) as you go.
 - Never edit repo files while a review/coder wrapper is running — the wrapper
   hard-fails on uncontained drift, and its restorer can clobber your edits.
   Wrappers serialize on `.review.lock`; respect it.
@@ -24,7 +32,7 @@ short, imperative, and evidence-linked; prune entries that stop paying rent.
   acceptance mechanically blocks on open high/critical (check_review_scores.py).
   Do not negotiate severities; fix or refute with evidence.
 - When a spec is ambiguous, take the most conservative reading, record the
-  choice in the PLAN.md ledger, and flag it for the next review round.
+  choice in plan/LEDGER.md, and flag it for the next review round.
 
 - Background or queued shell commands must use absolute paths — the shell's
   working directory is not guaranteed between commands (a relative-path launch
@@ -42,4 +50,4 @@ short, imperative, and evidence-linked; prune entries that stop paying rent.
 ## Retrospective log pointers
 
 (none yet — first entry lands at the end of Phase 0; full retros live in
-docs/retros/<phase>.md)
+plan/retros/<phase>.md)

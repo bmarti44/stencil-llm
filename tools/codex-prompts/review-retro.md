@@ -1,6 +1,6 @@
 # Review topic: a phase retrospective (honesty audit)
 
-Read the retrospective named by the wrapper context (docs/retros/<phase>.md), the phase's review files under docs/reviews/, results/agent_metrics.json, the PLAN.md ledger entries for the phase, and AGENTS.md.
+Read the retrospective named by the wrapper context (plan/retros/<phase>.md), the phase's review files under plan/reviews/, results/agent_metrics.json, the plan/LEDGER.md entries for the phase, and AGENTS.md.
 
 One rubric question governs: does the retro assign blame where the evidence points? Specifically:
 

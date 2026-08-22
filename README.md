@@ -2,7 +2,7 @@
 
 A separate wire for an AI model's sense of its current task, with proofs instead of benchmarks.
 
-This README explains the project in plain language and maps every part of the repository to that explanation. PLAN.md is the authoritative specification. This file explains, PLAN.md governs.
+This README explains the project in plain language and maps every part of the repository to that explanation. PLAN.md (science) and plan/PROTOCOL.md (process) are the authoritative specifications; plan/LEDGER.md carries live state. This file explains, they govern.
 
 ## The idea in plain language
 
@@ -40,7 +40,7 @@ Anyone who has used an AI assistant on a long job has watched it lose the thread
 | a bigger model is not made worse | Phase 6 configs plus `src/stencil/evaluate.py` | Gate G6, ordinary language ability within 1 percent of the plain model at 125M parameters |
 | predictions written down first | PLAN.md Appendix C and its amendment log | every pass bar was frozen before any experiment ran, and later edits are dated and logged |
 | the receipts | `results/` (data_samples.md, params.md, summary.md, mechanism.md, tradeoff.md, REPORT.md, and POSTMORTEM.md if the project dies) | generated tables and figures, ending in a report with its own plain-language section |
-| all work is adversarially reviewed | `tools/` codex wrappers, `docs/reviews/` | PLAN.md Section 2b: code written and reviewed by independent model runs; no work accepted with an open high or critical finding |
+| all work is adversarially reviewed | `tools/` codex wrappers, `plan/reviews/` | PLAN.md Section 2b: code written and reviewed by independent model runs; no work accepted with an open high or critical finding |
 
 ## Project stages and status
 
@@ -63,4 +63,4 @@ This is a proof of concept. The models are tiny and the tasks are simple puzzles
 
 ## Where the details live
 
-PLAN.md holds the full specification, every architecture decision, every threshold, and every pass or fail rule, together with the prior-art map that scopes what is and is not new here. If this file and PLAN.md ever disagree, PLAN.md wins and this file has a bug.
+PLAN.md holds the full science specification (process rules live in plan/PROTOCOL.md), every architecture decision, every threshold, and every pass or fail rule, together with the prior-art map that scopes what is and is not new here. If this file and PLAN.md ever disagree, PLAN.md wins and this file has a bug.

@@ -9,7 +9,7 @@
 #   topic      e.g. security, determinism, contract, corpus, code-quality, test-inventory, sft-quality
 #   threshold  minimum acceptable score (e.g. 90)
 #
-# Reads the existing review file at docs/reviews/{phase}/{topic}.md (if any)
+# Reads the existing review file at plan/reviews/{phase}/{topic}.md (if any)
 # so the prompt can reference prior round logs. Invokes codex with the prompt
 # fragment from tools/codex-prompts/review-{topic}.md plus the common header.
 # Codex is instructed (via the prompt) to update the same file path in place
@@ -18,7 +18,7 @@
 # Env overrides:
 #   CODEX_BIN   path to codex binary (default: codex on PATH)
 #   CODEX_MODEL model id (default: gpt-5)
-#   REVIEW_DIR  directory for review files (default: docs/reviews)
+#   REVIEW_DIR  directory for review files (default: plan/reviews)
 #   PROMPTS_DIR directory of prompt fragments (default: tools/codex-prompts)
 #   CODEX_TIMEOUT_SEC timeout in seconds (default: 1800)
 
@@ -38,7 +38,7 @@ CODEX_BIN="${CODEX_BIN:-codex}"
 # Override via CODEX_MODEL=o3 (etc.) for explicit selection. Setting to empty
 # string ("") uses the codex CLI's compiled-in default.
 CODEX_MODEL="${CODEX_MODEL-gpt-5.6-sol}"
-REVIEW_DIR="${REVIEW_DIR:-docs/reviews}"
+REVIEW_DIR="${REVIEW_DIR:-plan/reviews}"
 PROMPTS_DIR="${PROMPTS_DIR:-tools/codex-prompts}"
 CODEX_TIMEOUT_SEC="${CODEX_TIMEOUT_SEC:-3600}"
 LOG_DIR_DEFAULT="results/logs"
@@ -109,11 +109,11 @@ if [ "$THRESHOLD" -lt "$MIN_T" ] 2>/dev/null; then
 fi
 validate_slug "phase" "$PHASE"
 validate_slug "topic" "$TOPIC"
-REVIEW_DIR="$(resolve_safe_dir "REVIEW_DIR" "$REVIEW_DIR" "docs/reviews")"
+REVIEW_DIR="$(resolve_safe_dir "REVIEW_DIR" "$REVIEW_DIR" "plan/reviews")"
 PROMPTS_DIR="$(resolve_safe_dir "PROMPTS_DIR" "$PROMPTS_DIR" "tools/codex-prompts")"
 
 # Canonical layout (docs/plans Phase 0 reorg): per-phase subdirs under
-# docs/reviews. Codex/kimi scripts previously wrote dash-form
+# plan/reviews. Codex/kimi scripts previously wrote dash-form
 # `${REVIEW_DIR}/${PHASE}-${TOPIC}.md` while the canonical files live at
 # `${REVIEW_DIR}/${PHASE}/${TOPIC}.md` — the silent path mismatch caused
 # every codex round to "succeed" (exit 0) without materialising a review
@@ -180,7 +180,7 @@ TODAY=$(date -u +%Y-%m-%d)
 LOG_DIR="$ROOT/${LOG_DIR_DEFAULT}"
 mkdir -p "$LOG_DIR"
 CODEX_LOG="$LOG_DIR/codex-${PHASE}-${TOPIC}.log"
-SESSION_DIR="$ROOT/docs/reviews/.sessions"
+SESSION_DIR="$ROOT/plan/reviews/.sessions"
 mkdir -p "$SESSION_DIR"
 SESSION_FILE="$SESSION_DIR/${PHASE}-${TOPIC}"
 SID=""
@@ -328,7 +328,7 @@ echo "$PROMPT" | timeout "$CODEX_TIMEOUT_SEC" \
         while IFS= read -r path; do
             [ -z "$path" ] && continue
             [ "$path" = "$REVIEW_REL" ] && continue
-            case "$path" in results/logs/*|docs/reviews/.sessions/*) continue ;; esac
+            case "$path" in results/logs/*|plan/reviews/.sessions/*) continue ;; esac
             if [ -f "$WRAPPER_PRE_DIR/$path" ]; then
                 cp "$WRAPPER_PRE_DIR/$path" "$ROOT/$path"
             elif git -C "$ROOT" ls-files --error-unmatch "$path" >/dev/null 2>&1; then
@@ -398,14 +398,14 @@ while IFS= read -r path; do
     full="$ROOT/$path"
     # Never restore OTHER reviewers' canonical review files. Parallel
     # reviewer wrappers write their own Round-N entries to sibling
-    # docs/reviews/<phase>/<topic>.md (slash-form per Phase 0 reorg)
-    # OR docs/reviews/<phase>-<topic>.md (legacy dash-form) paths;
+    # plan/reviews/<phase>/<topic>.md (slash-form per Phase 0 reorg)
+    # OR plan/reviews/<phase>-<topic>.md (legacy dash-form) paths;
     # restoring those here from this wrapper's pre-codex snapshot
     # reverts their in-flight work. The original glob was
-    # `docs/reviews/*.md` which only matched the flat-layout dash-form;
+    # `plan/reviews/*.md` which only matched the flat-layout dash-form;
     # code-auditor round 4 #1 caught that nested slash-form sibling
     # reviews were not exempted. Match both layouts:
-    case "$path" in results/logs/*|docs/reviews/.sessions/*) continue ;; esac
+    case "$path" in results/logs/*|plan/reviews/.sessions/*) continue ;; esac
     if [ -f "$WRAPPER_PRE_DIR/$path" ]; then
         # Was dirty before codex ran — restore the captured pre-codex content.
         cp "$WRAPPER_PRE_DIR/$path" "$full"

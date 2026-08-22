@@ -3,7 +3,7 @@
 
 Mirrors run_codex_review.sh in shape but calls the ollama REST API with the
 whole (small) repo inlined as context — kimi has no tool access. Writes to
-docs/reviews/{phase}/{topic}-kimi.md, enforces the same append-only round
+plan/reviews/{phase}/{topic}-kimi.md, enforces the same append-only round
 history (tools/review_round_tracking.py) and severity-aware score gate
 (tools/check_review_scores.py), and serializes under the same .review.lock
 as the sol wrappers so their drift checks never see it mid-flight.
@@ -42,11 +42,11 @@ SLUG_RE = re.compile(r"^[a-z0-9-]+$")
 # governing docs, code, and gate artifacts come first and bulky review
 # history last (v1.14).
 CONTEXT_GLOBS = [
-    "PLAN.md", "README.md", "AGENTS.md", ".gitignore", "Makefile", "pyproject.toml",
-    "results/*.md", "docs/retros/*.md",
+    "PLAN.md", "plan/PROTOCOL.md", "plan/LEDGER.md", "plan/AMENDMENTS.md", "README.md", "AGENTS.md", ".gitignore", "Makefile", "pyproject.toml",
+    "results/*.md", "plan/retros/*.md",
     "src/**/*.py", "tests/**/*.py", "scripts/*.py", "configs/*.json",
     "tools/*.sh", "tools/*.py", "tools/codex-prompts/*.md",
-    "docs/reviews/**/*.md",
+    "plan/reviews/**/*.md",
 ]
 
 
@@ -123,7 +123,7 @@ def main() -> int:
     timeout_sec = int(os.environ.get("KIMI_TIMEOUT_SEC", "1800"))
     ctx_max = int(os.environ.get("KIMI_CONTEXT_MAX", "400000"))
 
-    review_file = root / "docs" / "reviews" / phase / f"{topic}-kimi.md"
+    review_file = root / "plan" / "reviews" / phase / f"{topic}-kimi.md"
     prompt_file = root / "tools" / "codex-prompts" / f"review-{topic}.md"
     # Coverage backstop (PLAN 2b, v1.15): kimi ALWAYS reviews phase-style
     # topics through the generic lens, regardless of bespoke sol fragments.
