@@ -8,7 +8,7 @@ This README explains the project in plain language and maps every part of the re
 
 A new theory about the brain says knowledge and focus live in different mechanisms. The brain stores what it knows in its wiring, while slow electrical waves sweep across that wiring and decide which circuits are switched on at any given moment. Knowledge in one place, what am I doing right now in another.
 
-Today's AI models do not have that split. What a model knows and what job it is currently doing share the same limited memory and compete for space. That is why an assistant on a long job slowly forgets its instructions or drifts out of character. The instructions get crowded out.
+Today's AI models do not have that split. What a model knows and what job it is currently doing share the same limited memory and compete for space. That competition may be part of why an assistant on a long job slowly forgets its instructions or drifts out of character — that is the motivating hunch, not something this project proves about deployed assistants.
 
 This project builds the split. A tiny separate wire runs alongside the model and carries only the job description, nothing else.
 

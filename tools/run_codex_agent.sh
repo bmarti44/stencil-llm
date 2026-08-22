@@ -34,6 +34,13 @@ if [ ! -f "$BRIEF" ]; then
     exit 2
 fi
 
+# Serialize with reviewers/coders (PLAN.md 2b rule 7).
+exec 9>"$ROOT/.review.lock"
+if ! flock -w 7200 9; then
+    echo "ERROR: could not acquire $ROOT/.review.lock within 2h" >&2
+    exit 6
+fi
+
 LOG="/tmp/codex-agent-${AGENT}.log"
 echo "[$(date -u +%H:%M:%S)] codex agent ${AGENT} starting (timeout ${TIMEOUT}s)" >&2
 
@@ -49,4 +56,6 @@ cat "$BRIEF" | timeout "$TIMEOUT" \
 
 ec=$?
 echo "[$(date -u +%H:%M:%S)] codex agent ${AGENT} exited with $ec; log: $LOG" >&2
+echo "--- post-run repo diff (audit against the brief's scope) ---" >&2
+(cd "$ROOT" && git status --porcelain=v1) >&2
 exit $ec

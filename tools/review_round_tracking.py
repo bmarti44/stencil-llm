@@ -99,6 +99,31 @@ def validate(prior_text: str, candidate_text: str, *, round_number: int) -> dict
         findings.append(
             f"candidate deleted prior round block(s) {missing}; round history is append-only"
         )
+    # Prior rounds' recorded scores are immutable: each prior round block's
+    # `- Score: N / 100` line must appear unchanged in the candidate's block
+    # for the same round.
+    for rn in sorted(prior_rounds & cand_rounds, key=int):
+        pblock = _parse_round_block(prior_text, int(rn)) or ""
+        cblock = _parse_round_block(candidate_text, int(rn)) or ""
+        pscore = re.search(r"-\s*Score:\s*\d+\s*/\s*100", pblock)
+        if pscore and pscore.group(0) not in cblock:
+            findings.append(
+                f"prior round {rn} score line was altered or removed; round history is immutable"
+            )
+    # Prior high/critical findings may be closed but never vanish: every
+    # numbered Critical/High entry in the prior ## Findings must appear with
+    # the same number (open or resolved/refuted) in the candidate.
+    def _hc_numbers(text: str) -> set[str]:
+        m = re.search(r"^## Findings\s*$(.*?)(?=^## |\Z)", text, re.MULTILINE | re.DOTALL)
+        if not m:
+            return set()
+        return set(re.findall(r"^(\d+)\.\s+\*\*(?:Critical|High)\b", m.group(1), re.MULTILINE | re.IGNORECASE))
+    missing_hc = sorted(_hc_numbers(prior_text) - _hc_numbers(candidate_text), key=int)
+    if missing_hc:
+        findings.append(
+            f"prior high/critical finding number(s) {missing_hc} vanished from ## Findings; "
+            "close them with (resolved/refuted) markers instead of deleting"
+        )
     has_prior = bool(prior_rounds)
     ok, prog_findings = _round_records_progress(block, has_prior=has_prior)
     findings.extend(prog_findings)

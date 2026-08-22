@@ -164,8 +164,14 @@ done < <(cd "$ROOT" && {
 ROUND_HINT=$(awk '/^### Round [0-9]+/{n=$3; gsub(/[^0-9]/,"",n); if(n+0>m)m=n} END{print (m?m+1:1)}' "$REVIEW_FILE" 2>/dev/null || echo 1)
 TODAY=$(date -u +%Y-%m-%d)
 
+RESUME_NOTE=""
+if [ -n "${SID:-}" ]; then
+    RECENT_GIT="$(cd "$ROOT" && git log --oneline -8 2>/dev/null)"
+    RESUME_NOTE=$'\n## RESUMED REVIEW SESSION\n\nYou are the same reviewer who wrote the prior rounds of this review; your session context is intact. The repository has changed since your last round. Recent commits:\n\n'"$RECENT_GIT"$'\n\nRe-read the changed files, re-verify each of YOUR open findings against the current state, and mark genuinely fixed/refuted ones with (resolved DATE: how) / (refuted DATE: why) markers per the closure protocol. Anti-churn rule: add new findings ONLY for regressions introduced by the fixes or clear in-scope misses from your original review; do not expand scope round-over-round.\n'
+fi
 PROMPT=$(cat <<EOF
 $(cat "$COMMON_HEADER_ABS")
+$RESUME_NOTE
 
 ---
 
@@ -217,7 +223,10 @@ echo "[$(date -u +%H:%M:%S)] codex review starting: $PHASE/$TOPIC -> $REVIEW_FIL
 # Codex's bubblewrap sandbox needs unprivileged user namespaces; on hosts
 # where they're disabled (some DGX configs, CI runners), operators may set
 # CODEX_BYPASS_SANDBOX=1 explicitly. The default is sandboxed workspace-write.
-CODEX_ARGS=(exec --skip-git-repo-check -C "$ROOT" -c "model_reasoning_effort=\"$CODEX_EFFORT\"")
+SESSION_DIR="$ROOT/docs/reviews/.sessions"
+mkdir -p "$SESSION_DIR"
+SESSION_FILE="$SESSION_DIR/${PHASE}-${TOPIC}"
+CODEX_ARGS=(exec --skip-git-repo-check -C "$ROOT" --json -c "model_reasoning_effort=\"$CODEX_EFFORT\"")
 if [ "${CODEX_BYPASS_SANDBOX:-0}" == "1" ]; then
     CODEX_ARGS+=(--dangerously-bypass-approvals-and-sandbox)
 else
@@ -225,6 +234,17 @@ else
 fi
 if [ -n "$CODEX_MODEL" ]; then
     CODEX_ARGS+=(--model "$CODEX_MODEL")
+fi
+# Review-session continuity (PLAN.md 2b): one review = one reviewer session
+# across all its rounds. Round 1 records the codex thread id; later rounds
+# resume it so the reviewer keeps its original context instead of
+# re-litigating from scratch. New review (new phase/topic) = new session.
+SID=""
+if [ -f "$SESSION_FILE" ]; then
+    SID="$(head -c 64 "$SESSION_FILE" | tr -cd 'a-f0-9-')"
+fi
+if [ -n "$SID" ]; then
+    CODEX_ARGS+=(resume "$SID")
 fi
 CODEX_ARGS+=(-)
 
@@ -267,7 +287,11 @@ echo "$PROMPT" | timeout "$CODEX_TIMEOUT_SEC" \
         exit "$ec"
     }
 
-echo "[$(date -u +%H:%M:%S)] codex review finished: $PHASE/$TOPIC" >&2
+TID="$(grep -m1 '"type":"thread.started"' "/tmp/codex-${PHASE}-${TOPIC}.log" 2>/dev/null | sed 's/.*"thread_id":"\([a-f0-9-]*\)".*/\1/')"
+if [ -n "$TID" ]; then
+    printf '%s\n' "$TID" > "$SESSION_FILE"
+fi
+echo "[$(date -u +%H:%M:%S)] codex review finished: $PHASE/$TOPIC (session ${TID:-unknown})" >&2
 
 # Verify the file was written and check the score.
 if [ ! -f "$REVIEW_FILE" ]; then

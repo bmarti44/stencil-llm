@@ -27,7 +27,9 @@ def open_high_critical(path: Path) -> list[str]:
     text = path.read_text(encoding="utf-8")
     m = re.search(r"^## Findings\s*$(.*?)(?=^## |\Z)", text, re.MULTILINE | re.DOTALL)
     if not m:
-        return []
+        # A review with no Findings section is malformed, not clean: treat as
+        # one synthetic blocker so deleting the section cannot yield a PASS.
+        return ["<missing '## Findings' section — malformed review>"]
     return [ln.strip()[:120] for ln in m.group(1).splitlines() if OPEN_HC_RE.match(ln.strip())]
 
 
