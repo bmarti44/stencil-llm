@@ -8,6 +8,8 @@ PLAN.md and the `plan/` working directory govern together (v1.17): this file is 
 
 Abbreviated one-liners for orientation only; the full prose per version lives in `plan/AMENDMENTS.md` and the authoritative history in git (`amend(vX.Y)` commits).
 
+- v1.19 (2026-08-22): tools/amend.sh commit gate (mechanical closure of the amendment-log slip class); tie-break verdict validation; retro AGENTS diffs kimi-audited.
+- v1.18 (2026-08-22): round-15 lows + provenance honesty; coder provenance in brief handoff; canonical lens slugs; continuity-loss ledger duty. (Index line added retroactively by v1.19 — second occurrence of the slip; see amend.sh.)
 - v1.17 (2026-08-22): restructure — plan/ working directory; PROTOCOL/LEDGER/AMENDMENTS extracted; north star: agent execution efficiency.
 - v1.16 (2026-08-22): human adjudication 2 (partial concession to sol): exact-artifact acceptance validation; pre-commit amendment review binding.
 - v1.15 (2026-08-22): round-11 scraps; kimi generic-lens backstop made mechanical; tie-break runner refuses uncommitted prompts.

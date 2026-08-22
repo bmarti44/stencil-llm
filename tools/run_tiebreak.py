@@ -29,6 +29,11 @@ def main():
         data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=1800) as r:
         out = json.loads(r.read())["response"].strip()
+    if "Verdict:" not in out and "VERDICT" not in out.upper():
+        print("ERROR: arbiter response contains no Verdict line; not recording as a ruling", file=sys.stderr)
+        rej = sys.argv[2] + ".rejected"
+        open(rej, "a", encoding="utf-8").write(out + "\n")
+        return 4
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     with open(sys.argv[2], "a", encoding="utf-8") as f:
         f.write(f"\n\n# Tie-break — {stamp} ({body['model']})\n\n## Prompt (verbatim)\n\n"
