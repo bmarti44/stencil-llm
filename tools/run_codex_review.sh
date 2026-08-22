@@ -177,6 +177,12 @@ done < <(cd "$ROOT" && {
 ROUND_HINT=$(awk '/^### Round [0-9]+/{n=$3; gsub(/[^0-9]/,"",n); if(n+0>m)m=n} END{print (m?m+1:1)}' "$REVIEW_FILE" 2>/dev/null || echo 1)
 TODAY=$(date -u +%Y-%m-%d)
 
+LOG_DIR="$ROOT/${LOG_DIR_DEFAULT}"
+mkdir -p "$LOG_DIR"
+CODEX_LOG="$LOG_DIR/codex-${PHASE}-${TOPIC}.log"
+SESSION_DIR="$ROOT/docs/reviews/.sessions"
+mkdir -p "$SESSION_DIR"
+SESSION_FILE="$SESSION_DIR/${PHASE}-${TOPIC}"
 SID=""
 if [ -f "$SESSION_FILE" ]; then
     SID="$(head -c 64 "$SESSION_FILE" | tr -cd 'a-f0-9-')"
@@ -240,12 +246,6 @@ echo "[$(date -u +%H:%M:%S)] codex review starting: $PHASE/$TOPIC -> $REVIEW_FIL
 # Codex's bubblewrap sandbox needs unprivileged user namespaces; on hosts
 # where they're disabled (some DGX configs, CI runners), operators may set
 # CODEX_BYPASS_SANDBOX=1 explicitly. The default is sandboxed workspace-write.
-LOG_DIR="$ROOT/${LOG_DIR_DEFAULT}"
-mkdir -p "$LOG_DIR"
-CODEX_LOG="$LOG_DIR/codex-${PHASE}-${TOPIC}.log"
-SESSION_DIR="$ROOT/docs/reviews/.sessions"
-mkdir -p "$SESSION_DIR"
-SESSION_FILE="$SESSION_DIR/${PHASE}-${TOPIC}"
 CODEX_ARGS=(exec --skip-git-repo-check -C "$ROOT" --json -c "model_reasoning_effort=\"$CODEX_EFFORT\"")
 if [ "${CODEX_BYPASS_SANDBOX:-0}" == "1" ]; then
     CODEX_ARGS+=(--dangerously-bypass-approvals-and-sandbox)
