@@ -6,6 +6,8 @@ PLAN.md and the `plan/` working directory govern together (v1.17): this file is 
 
 ## Amendment log
 
+- v1.23 (2026-08-22): HUMAN RULING (Adjudication 3) — de-spiral: threat model registered, review stop-loss installed, process/amendment accepted by ruling, PLAN ACCEPTED. v1.22 landed under the same ruling.
+
 Abbreviated one-liners for orientation only; the full prose per version lives in `plan/AMENDMENTS.md` and the authoritative history in git (`amend(vX.Y)` commits).
 
 - v1.22 (2026-08-22): batch-4 tie-break VACATED (strawman prompt — verbatim-text rule adopted); four mediums fixed on their merits, #29 deferred-open per batch-5 UPHOLD; coder-delta scope semantics; runner/manifest/acceptance hardening.

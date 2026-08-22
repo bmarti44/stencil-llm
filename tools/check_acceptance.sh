@@ -9,6 +9,9 @@ PHASE="$1"
 ROOT="$(git rev-parse --show-toplevel)"
 DIR="$ROOT/plan/reviews/$PHASE"
 fail=0; sol=0; kimi=0
+# Human-acceptance override (Adjudication 3): a committed ACCEPTED-BY-HUMAN
+# file lists topics accepted by ruling; they skip the 90-bar (H/C still checked).
+OVERRIDE="$DIR/ACCEPTED-BY-HUMAN"
 # Topic manifest (v1.22): the write-ahead-registered sol topics for this
 # phase. Acceptance requires exactly these codex reviews to exist and pass —
 # "any scored codex file" no longer counts.
@@ -31,7 +34,11 @@ for f in "$DIR"/*.md; do
         base="$(basename "$f" .md)"
         grep -Eq "^${base}( kimi)?$" "$MANIFEST" || { echo "FAIL: codex review '$base' is not in the topic manifest"; fail=1; }
         sol=$((sol+1))
-        python3 "$ROOT/tools/check_review_scores.py" --file "$f" --min 90 || fail=1
+        if [ -f "$OVERRIDE" ] && grep -qx "$base" "$OVERRIDE"; then
+            python3 "$ROOT/tools/check_review_scores.py" --file "$f" --min 0 || fail=1
+        else
+            python3 "$ROOT/tools/check_review_scores.py" --file "$f" --min 90 || fail=1
+        fi
     elif grep -q '^\*\*Reviewer model:\*\* kimi/' "$f"; then
         kimi=$((kimi+1))
     else

@@ -33,9 +33,6 @@ def main():
         print(f"ERROR: prompt {rel} is not a tracked file", file=sys.stderr); return 3
     dirty = subprocess.run(["git", "-C", root, "status", "--porcelain", "--", rel],
                            capture_output=True, text=True, check=True).stdout.strip()
-    # Output path is derived, not caller-chosen: the phase tie-break file
-    # beside the prompt (plan/tiebreaks/<phase>.md). argv[2] must match.
-    expected_out = os.path.join(os.path.dirname(sys.argv[1]), os.path.basename(os.path.dirname(sys.argv[1])) + ".md") if False else None
     if dirty:
         print(f"ERROR: {sys.argv[1]} is not committed clean; commit the prompt "
               "BEFORE running the tie-break (auditability rule)", file=sys.stderr)

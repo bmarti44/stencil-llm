@@ -69,7 +69,10 @@ provenance() {
     # into code (injection-safe). A missing session id is recorded loudly.
     local tid
     tid="$(grep -m1 '"type":"thread.started"' "$LOG" 2>/dev/null | sed 's/.*"thread_id":"\([a-f0-9-]*\)".*/\1/')"
-    [ -n "$tid" ] || tid="MISSING-SESSION-EVENT"
+    if [ -z "$tid" ]; then
+        tid="MISSING-SESSION-EVENT"
+        if [ "${FINAL_EC:-1}" = "0" ]; then FINAL_EC=9; fi
+    fi
     python3 - "$ROOT/plan/LEDGER.md" "$(date -u +%Y-%m-%d)" "$AGENT" \
         "${CODEX_MODEL:-gpt-5.6-sol}" "${CODEX_EFFORT:-medium}" "${FINAL_EC:-?}" \
         "$tid" "$LOG" "${OVERRIDE_REASON:-}" <<'PYLED'
@@ -83,7 +86,7 @@ marker = "### Ledger\n\n"
 open(p, "w").write(s.replace(marker, marker + entry, 1) if marker in s else s + entry)
 PYLED
 }
-trap 'FINAL_EC=$?; if ! provenance; then echo "ERROR: provenance append failed" >&2; exit 8; fi' EXIT
+trap 'FINAL_EC=$?; rm -f "${POST_OUT:-}"; rm -rf "${PRIVATE_DIR:-}"; if ! provenance; then echo "ERROR: provenance append failed" >&2; exit 8; fi; exit ${FINAL_EC}' EXIT
 
 mkdir -p "$ROOT/results/logs"
 LOG="$ROOT/results/logs/codex-agent-${AGENT}.log"
@@ -95,10 +98,22 @@ fi
 # Pre-launch dirty-state manifest (v1.22 final): the scope scan must judge
 # only CODER-authored changes. Orchestrator state dirty before launch (e.g.
 # the required write-ahead ledger entry) is baseline, not violation.
-PRE_MANIFEST="$(mktemp)"
-(cd "$ROOT" && { git diff --name-only HEAD --; git ls-files --others --exclude-standard; } | sort -u | while IFS= read -r p; do
-    [ -f "$ROOT/$p" ] && printf '%s %s\n' "$(sha256sum "$ROOT/$p" | cut -d' ' -f1)" "$p"
-done) > "$PRE_MANIFEST"
+# Enforcement inputs are snapshotted into a wrapper-private dir BEFORE the
+# coder runs: the post-run verdict never consults coder-writable files
+# (round-25 self-authentication bypass — deleting the allowlist or replacing
+# the helper no longer disables the scan; such edits also appear in the
+# changed set and face the snapshot allowlist like any other path).
+# Enforcement state lives in PARENT MEMORY across the coder run (round-26:
+# same-uid /tmp files are child-writable; shell variables are not). The
+# allowlist and verifier CONTENT are captured pre-launch; the baseline file's
+# digest is held in memory and verified post-run before use.
+PRIVATE_DIR="$(mktemp -d)"
+ALLOW_CONTENT="$(cat "$ALLOW")"
+VERIFIER_CONTENT="$(cat "$ROOT/tools/_coder_scope.py")"
+PRE_MANIFEST="$PRIVATE_DIR/pre.json"
+printf '%s' "$VERIFIER_CONTENT" > "$PRIVATE_DIR/_coder_scope.py"
+python3 "$PRIVATE_DIR/_coder_scope.py" pre "$PRE_MANIFEST" || { echo "ERROR: scope baseline snapshot failed" >&2; exit 10; }
+PRE_DIGEST="$(sha256sum "$PRE_MANIFEST" | cut -d' ' -f1)"
 
 echo "[$(date -u +%H:%M:%S)] codex agent ${AGENT} starting (timeout ${TIMEOUT}s)" >&2
 
@@ -121,30 +136,34 @@ echo "--- post-run repo diff (audit against the brief's scope) ---" >&2
 # patterns (one per line) at tools/codex-agents/<name>.allow, any dirty
 # path not matching a pattern is a hard failure.
 ALLOW="$ROOT/tools/codex-agents/${AGENT}.allow"
-if [ -f "$ALLOW" ]; then
+if true; then
     viol=0
-    while IFS= read -r path; do
+    # Post-run: re-materialize policy and verifier FROM PARENT MEMORY and
+    # verify the baseline digest — child tampering with any /tmp file is
+    # detected or overwritten before a single judgment is made.
+    if [ "$(sha256sum "$PRE_MANIFEST" | cut -d' ' -f1)" != "$PRE_DIGEST" ]; then
+        echo "SCOPE VIOLATION: baseline manifest tampered during the coder run" >&2
+        FINAL_EC=7; exit 7
+    fi
+    printf '%s' "$VERIFIER_CONTENT" > "$PRIVATE_DIR/_coder_scope.py"
+    printf '%s\n' "$ALLOW_CONTENT" > "$PRIVATE_DIR/allow"
+    POST_OUT="$(mktemp)"
+    python3 "$PRIVATE_DIR/_coder_scope.py" post "$PRE_MANIFEST" > "$POST_OUT" || { echo "ERROR: scope comparison failed" >&2; rm -f "$POST_OUT"; exit 10; }
+    while IFS= read -r -d '' path; do
         [ -z "$path" ] && continue
-        # Exempt the wrapper's own log, and any path whose content is
-        # byte-identical to the pre-launch manifest (orchestrator baseline
-        # state — e.g. the required write-ahead ledger entry). Everything
-        # the CODER changed faces the allowlist (v1.22 final).
         [ "$ROOT/$path" = "$LOG" ] && continue
-        if [ -f "$ROOT/$path" ]; then
-            cur="$(sha256sum "$ROOT/$path" | cut -d' ' -f1)"
-            grep -qF "$cur $path" "$PRE_MANIFEST" && continue
-        fi
         ok=0
         while IFS= read -r pat; do
             [ -z "$pat" ] && continue
             case "$path" in $pat) ok=1; break ;; esac
-        done < "$ALLOW"
+        done < "$PRIVATE_DIR/allow"
         if [ "$ok" = "0" ]; then
             echo "SCOPE VIOLATION: $path not covered by ${AGENT}.allow" >&2
             viol=1
         fi
-    done < <(cd "$ROOT" && { git diff --name-only HEAD --; git ls-files --others --exclude-standard; } | sort -u)
-    if [ "$viol" = "1" ]; then exit 7; fi
+    done < "$POST_OUT"
+    rm -f "$POST_OUT"
+    if [ "$viol" = "1" ]; then FINAL_EC=7; exit 7; fi
 fi
 # Provenance auto-append (v1.21, corrected same version after review replay
 # showed the earlier placement tripped the wrapper's own scope check): runs

@@ -140,3 +140,45 @@ Identity is already mechanically anchored where it is consumed: the slug is fixe
 # VACATED — batch 4 (2026-08-22)
 
 Batch 4 is vacated by the orchestrator on the amendment review's finding #10: the committed prompt paraphrased the findings instead of quoting them, omitted the reviewer's evidence (notably process#35's exact PLAN citations, falsely described as unenumerated), and framed the request around the stuck score. The arbiter ruled on strawmen; its five verdicts close nothing. The findings are instead being FIXED on their merits (v1.22 second attempt). Protocol note adopted: tie-break prompts must quote the finding text and the orchestrator response verbatim — summaries are how this failure happened.
+
+
+# Tie-break — 2026-08-22 15:33 UTC (kimi-k3:cloud)
+
+## Prompt (verbatim)
+
+```
+You are kimi-k3, TIE-BREAK arbiter under plan/PROTOCOL.md (batch 5, run through the hardened runner: this prompt quotes the live finding VERBATIM below and the orchestrator's response follows). Deadlock: amendment-review finding #11's residual asks, after the orchestrator implemented its earlier items (mandatory review-file argument, >=3 non-heading verbatim quotes, enumerated verdicts, repo lock, tracked-prompt requirement, auto ledger handoff, artifact sha/size reporting, manifest-bound acceptance, AGENTS.md review-gating). Two residual asks are disputed. Render binding verdicts (Verdict: UPHOLD or REFUTE per ask).
+
+REVIEWER'S FINDING, VERBATIM (from plan/reviews/plan/amendment.md):
+> 11. **High — The replacement “five fixes” claim omits one finding and only partially repairs three others.** (updated 2026-08-22: Round 15 re-verification after the second completeness fix; the immutable title records the Round-13 state.) The former omission remains fixed: retro-originated AGENTS.md edits now require an accepted amendment review, resolving process#31 (`plan/PROTOCOL.md:30`), and process#35 remains fully fixed (`PLAN.md:379`, `PLAN.md:497-498`). The Round-14 acceptance regression is also fixed: the checker accepts the registered `<topic> kimi` grammar and a direct plan replay reports only the expected amendment/process score failures (`tools/check_acceptance.sh:17-34`; `plan/reviews/plan/topics.txt:1-4`). But #27 and #29 remain materially incomplete, and #36 is not as complete as claimed. For #27, supplying a review file is optional; without it the old marker-only prompt still passes local validation, and even with it a prompt quoting only the review's `## Findings` heading passes because the tool verifies that every quoted fragment is some review line, not that the full finding and evidence were quoted. The `Reviewer` and `Orchestrator` arguments remain unstructured substrings with no source comparison; output and rejection paths remain caller-controlled; and the ledger line has neither a stable run id nor the exact next-sol command (`plan/PROTOCOL.md:24`; `tools/run_tiebreak.py:4-8`, `tools/run_tiebreak.py:41-82`). Direct predicate replays confirmed both bypasses. For #29, `artifacts.txt` remains optional, no plan-phase file exists, and a present artifact receives only size/hash metadata: required figures/binaries still have no textual rendering or description presented to kimi (`plan/PROTOCOL.md:19`; `tools/run_kimi_review.py:82-100`; `plan/reviews/plan/process.md:270`). For #36, acceptance is now topic-aware, but the new manifest is still absent from README's component map, and both wrappers permit launch when the manifest itself is absent rather than proving the promised write-ahead registration (`README.md:64-66`; `tools/run_codex_review.sh:121-126`; `tools/run_kimi_review.py:148-154`). PLAN.md, the amendment history, and STATE nevertheless call all five complete (`PLAN.md:11`; `plan/AMENDMENTS.md:7`; `plan/LEDGER.md:13`). The central completeness claim remains materially false, and the optional tie-break verification preserves the same strawman-rescue path that caused Finding 10.
+
+ORCHESTRATOR'S RESPONSE, verbatim:
+ASK A — "a rendered-description contract for binaries" in artifacts.txt: the repository is pre-Phase-0 and contains no binary artifacts; artifacts.txt is registered as the mechanism and will list gate artifacts when phases produce them, with PRESENT rows carrying byte size and sha256. A contract to render descriptions of nonexistent binaries cannot be implemented or tested now and fails the registered burden test (north star: process serves execution). Defer to the first phase that produces a binary artifact, ledgered.
+ASK B — source-verification of the orchestrator's own argument text and "run handoff" validation beyond the implemented auto ledger append: the orchestrator's argument is authored fresh in each committed prompt (there is no prior text to verify it against); the prompt file is committed pre-execution, tree-bound by the amendment gate when governance changes, and the ledger handoff is now automatic with enumerated verdicts. Further validation layers verify text against itself.
+
+Answer per ask: heading, "Verdict:" line, 2-3 sentence rationale.
+```
+
+## Raw verdict
+
+# TIE-BREAK — amendment-review finding #11, residual asks (kimi‑k3, binding)
+
+## ASK A — rendered-description contract for binary/figure artifacts in the review packet
+
+**Verdict: UPHOLD**
+
+The orchestrator's impossibility claim fails: the ask is a contract, not a pipeline — a clause requiring that any non-text PRESENT artifact in `artifacts.txt` carry a human-authored textual description into the review packet is writable today and testable today via a synthetic `artifacts.txt` fixture (packet builder must fail on a description-less binary row and pass with one). Deferring the rule to "the first phase that produces a binary" guarantees that phase's review runs under exactly the metadata-only gap documented here, leaving the "all five complete" claim materially false and repeating the Finding-10 pattern of declaring completion ahead of the mechanism. Compliance is scoped to the contract clause plus the fixture test; no rendering tooling for real artifacts is required until one exists.
+
+## ASK B — source-verification of the orchestrator's argument text; run-handoff validation beyond the auto ledger append
+
+**Verdict: REFUTE**
+
+Source-pinning exists to stop one party from misquoting another party's text; the orchestrator's response originates with the orchestrator in the committed prompt, so there is no upstream source, and the tracked-prompt requirement plus amendment-gate tree binding already pin it pre-execution — any further comparison verifies the text against itself, as the orchestrator states. The remaining items (stable run id, exact next-sol command, caller-controlled output/rejection paths) are provenance refinements already covered in substance by the automatic ledger append and sha/size reporting, and the finding demonstrates no bypass through them after the marker-only and heading-only paths were closed. Under the registered burden test — process serves execution — validation layers that foreclose no demonstrated exploit do not gate acceptance.
+
+# Human adjudication 3 — 2026-08-22 (de-spiral ruling)
+
+The amendment review of v1.22 ran ~13 rounds of correct-but-unbounded security hardening of process tooling. The human ruled: CUT IT OFF.
+1. Threat model, registered: agents here are trusted-but-fallible. Scope enforcement exists to catch mistakes, not to defend against a malicious same-uid coder — a defense batch-2 already ruled unattainable ("every enforcement bit is writable by the same principal"). Finding 9 and its descendants close by human authority on that precedent.
+2. v1.22 lands as-is by this ruling (the gate's accepted-review requirement is superseded for this one commit by the same authority that created the gate).
+3. The process review's long-stable 89-with-zero-open-high/criticals is accepted by ruling. The plan is ACCEPTED.
+4. Protocol amendment (v1.23): every review rubric must state its purpose and threat model, and findings outside that scope are out of scope; tooling-only changes get at most ONE review round plus a fix pass, then the orchestrator decides with the score advisory; any review reaching 3 rounds with zero open high/criticals is decided by the orchestrator against the north star, score advisory. Reviewer diligence was not the failure — the missing terminator was.
