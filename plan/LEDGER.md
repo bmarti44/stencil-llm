@@ -10,6 +10,8 @@ Each entry records: date, actor (orchestrator / coder / reviewer), work done, fi
 
 ### Ledger
 
+- 2026-08-22, orchestrator (HUMAN ADJUDICATION 4). STATE: PHASE 0 CODE LANDED, gate-0 green; amend(v1.24) lands in this commit by human ruling — review round budget 10, kimi CONTINUE/STOP tie-break at 10, hard ceiling 15; directive quoted verbatim in plan/AMENDMENTS.md. Human also directed: push all commits to origin once landed. Next command: `printf 'phase0 kimi\n' > plan/reviews/phase0/topics.txt`, then `bash tools/run_codex_review.sh phase0 phase0 90` (round 1 under the v1.24 budget), kimi companion after, then `git push origin main`.
+
 - 2026-08-22, orchestrator. STATE: PHASE 0 CODE LANDED — coder exit 0 in scope (audit diff matched allowlist), all three registered tests + ruff green, `make gate-0` re-run green by the orchestrator independently; coder's conservative readings (operand range = Appendix B tokens 34-49 inclusive; context_len treated as longest delay for copy-task validation; tools/ excluded from ruff discovery) flagged for the Phase 0 review. This commit lands the scaffold; next command: `amend(v1.24)` by human ruling (Adjudication 4 — review round budget 10/kimi-tiebreak/15), then register `printf 'phase0 kimi\n' > plan/reviews/phase0/topics.txt` and run `bash tools/run_codex_review.sh phase0 phase0 90` under the v1.24 budget.
 
 - 2026-08-22, coder (auto, run_codex_agent.sh). Brief phase0-scaffold: model gpt-5.6-sol, effort medium, exit 0, session 01a02a63-fc09-70e1-b684-91d0a5de927a, log /home/bmarti44/stencil-llm/results/logs/codex-agent-phase0-scaffold.log.

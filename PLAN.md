@@ -6,6 +6,7 @@ PLAN.md and the `plan/` working directory govern together (v1.17): this file is 
 
 ## Amendment log
 
+- v1.24 (2026-08-22): HUMAN RULING (Adjudication 4) — review round budget: 10 rounds max per review; at 10 without acceptance, kimi tie-break decides CONTINUE (extends to a hard ceiling of 15) or STOP; supersedes v1.23's one-round cap for tooling-only changes; the 3-rounds/zero-H-C early exit stands.
 - v1.23 (2026-08-22): HUMAN RULING (Adjudication 3) — de-spiral: threat model registered, review stop-loss installed, process/amendment accepted by ruling, PLAN ACCEPTED. v1.22 landed under the same ruling.
 
 Abbreviated one-liners for orientation only; the full prose per version lives in `plan/AMENDMENTS.md` and the authoritative history in git (`amend(vX.Y)` commits).
