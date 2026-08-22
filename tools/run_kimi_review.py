@@ -38,11 +38,15 @@ from pathlib import Path
 
 SLUG_RE = re.compile(r"^[a-z0-9-]+$")
 # Tracked text files inlined as review context, in priority order.
+# Priority order matters: the context cap truncates from the END, so the
+# governing docs, code, and gate artifacts come first and bulky review
+# history last (v1.14).
 CONTEXT_GLOBS = [
-    "PLAN.md", "README.md", ".gitignore", "Makefile", "pyproject.toml",
-    "tools/*.sh", "tools/*.py", "tools/codex-prompts/*.md",
+    "PLAN.md", "README.md", "AGENTS.md", ".gitignore", "Makefile", "pyproject.toml",
+    "results/*.md", "docs/retros/*.md",
     "src/**/*.py", "tests/**/*.py", "scripts/*.py", "configs/*.json",
-    "docs/reviews/**/*.md", "results/*.md", "docs/retros/*.md",
+    "tools/*.sh", "tools/*.py", "tools/codex-prompts/*.md",
+    "docs/reviews/**/*.md",
 ]
 
 

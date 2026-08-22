@@ -41,6 +41,14 @@ if ! flock -w 7200 9; then
     exit 6
 fi
 
+# Brief contract validation (PLAN 2b, v1.14): the five required sections.
+for h in "Objective" "Allowlist" "Tests first" "Acceptance" "Ledger handoff"; do
+    if ! grep -qi "^#\+.*$h" "$BRIEF"; then
+        echo "ERROR: brief $BRIEF missing required section: $h" >&2
+        exit 2
+    fi
+done
+
 LOG="/tmp/codex-agent-${AGENT}.log"
 echo "[$(date -u +%H:%M:%S)] codex agent ${AGENT} starting (timeout ${TIMEOUT}s)" >&2
 
