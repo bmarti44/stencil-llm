@@ -177,6 +177,10 @@ done < <(cd "$ROOT" && {
 ROUND_HINT=$(awk '/^### Round [0-9]+/{n=$3; gsub(/[^0-9]/,"",n); if(n+0>m)m=n} END{print (m?m+1:1)}' "$REVIEW_FILE" 2>/dev/null || echo 1)
 TODAY=$(date -u +%Y-%m-%d)
 
+SID=""
+if [ -f "$SESSION_FILE" ]; then
+    SID="$(head -c 64 "$SESSION_FILE" | tr -cd 'a-f0-9-')"
+fi
 RESUME_NOTE=""
 if [ -n "${SID:-}" ]; then
     RECENT_GIT="$(cd "$ROOT" && git log --oneline -8 2>/dev/null)"
@@ -255,10 +259,6 @@ fi
 # across all its rounds. Round 1 records the codex thread id; later rounds
 # resume it so the reviewer keeps its original context instead of
 # re-litigating from scratch. New review (new phase/topic) = new session.
-SID=""
-if [ -f "$SESSION_FILE" ]; then
-    SID="$(head -c 64 "$SESSION_FILE" | tr -cd 'a-f0-9-')"
-fi
 if [ -n "$SID" ]; then
     CODEX_ARGS+=(resume "$SID")
 fi
@@ -321,11 +321,18 @@ echo "$PROMPT" | timeout "$CODEX_TIMEOUT_SEC" \
         if [ "$ec" != "0" ]; then
         echo "ERROR: codex exec failed with exit $ec; see $CODEX_LOG" >&2
         # v1.10: restore pre-codex dirty content on the failure path too —
-        # previously a failed run exited with unrestored drift.
+        # previously a failed run exited with unrestored drift. v1.11: also
+        # delete files the failed run newly created (not in the snapshot),
+        # sparing the canonical review file and logs.
+        REVIEW_REL="$(realpath --relative-to="$ROOT" "$REVIEW_FILE_ABS" 2>/dev/null || echo __none__)"
         while IFS= read -r path; do
             [ -z "$path" ] && continue
+            [ "$path" = "$REVIEW_REL" ] && continue
+            case "$path" in results/logs/*|docs/reviews/*) continue ;; esac
             if [ -f "$WRAPPER_PRE_DIR/$path" ]; then
                 cp "$WRAPPER_PRE_DIR/$path" "$ROOT/$path"
+            elif ! git -C "$ROOT" ls-files --error-unmatch "$path" >/dev/null 2>&1; then
+                rm -f "$ROOT/$path"
             fi
         done < <(cd "$ROOT" && { git diff --name-only HEAD --; git ls-files --others --exclude-standard; } | sort -u)
         rm -f "$REVIEW_DIFF_BASELINE"

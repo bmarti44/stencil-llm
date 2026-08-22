@@ -11,7 +11,7 @@ Read the existing file at the canonical path (if present); the prior round log i
 
 **Score:** N / 100
 **Verdict:** PASS (≥90) / CONDITIONAL PASS (75–89) / FAIL (<75)
-**Reviewer model:** {codex|kimi}-{model-id}
+**Reviewer model:** {codex|kimi}/{model-id}
 **Date:** YYYY-MM-DD
 
 ## Round log
@@ -21,7 +21,7 @@ Read the existing file at the canonical path (if present); the prior round log i
 - Addressed since prior round: <bullet list of issues that were fixed>
 - New or remaining: <bullet list of issues still open>
 
-### Round K-1 — ... (previous rounds, oldest at bottom; preserve verbatim)
+### Round K-1 — ... (previous rounds, oldest at bottom; headings, scores, and finding titles immutable; any other edit carries a dated "(updated ...)" annotation)
 
 ## Findings
 
@@ -48,6 +48,6 @@ Be blunt. False positives waste cycles; false negatives cost real money downstre
 ## Anti-instructions
 
 - Do NOT create new files. Update only the canonical review file path the wrapper specifies.
-- Do NOT delete prior round log entries; the round log is append-only and chronological.
+- Do NOT delete prior round log entries or rewrite finding titles; close findings with dated (resolved/refuted) markers; any other prior-content edit carries a dated "(updated ...)" annotation.
 - Do NOT score on a curve. The same finding scores the same regardless of how many rounds have already happened.
 - Do NOT include tool-call commentary or your reasoning trace in the output file. Only the structure above.

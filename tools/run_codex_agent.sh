@@ -62,6 +62,11 @@ echo "--- post-run repo diff (audit against the brief's scope) ---" >&2
 # patterns (one per line) at tools/codex-agents/<name>.allow, any dirty
 # path not matching a pattern is a hard failure.
 ALLOW="$ROOT/tools/codex-agents/${AGENT}.allow"
+# Mandatory per tie-break batch 2 (2026-08-22): every brief ships an allowlist.
+if [ ! -f "$ALLOW" ]; then
+    echo "ERROR: missing scope allowlist $ALLOW (mandatory per PLAN 2b / tie-break batch 2)" >&2
+    exit 2
+fi
 if [ -f "$ALLOW" ]; then
     viol=0
     while IFS= read -r path; do
