@@ -42,7 +42,7 @@ CONTEXT_GLOBS = [
     "PLAN.md", "README.md", ".gitignore", "Makefile", "pyproject.toml",
     "tools/*.sh", "tools/*.py", "tools/codex-prompts/*.md",
     "src/**/*.py", "tests/**/*.py", "scripts/*.py", "configs/*.json",
-    "docs/reviews/**/*.md",
+    "docs/reviews/**/*.md", "results/*.md", "docs/retros/*.md",
 ]
 
 
@@ -58,7 +58,7 @@ def build_context(root: Path, review_file: Path, max_bytes: int) -> str:
     seen = set()
     for pattern in CONTEXT_GLOBS:
         for p in sorted(root.glob(pattern)):
-            if not p.is_file() or p in seen or p == review_file:
+            if not p.is_file() or p in seen or p == review_file or p.name.endswith(".rejected.md"):
                 continue
             seen.add(p)
             try:
@@ -140,7 +140,13 @@ def main() -> int:
     round_n = (max(rounds) + 1) if rounds else 1
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
+    churn = ("" if round_n == 1 else
+        "0. ANTI-CHURN (binding, PLAN 2b): this is round %d of YOUR review — re-verify "
+        "your existing findings against the current files first; add new findings ONLY "
+        "for regressions introduced by fixes or clear in-scope misses from your round 1. "
+        "Do not expand scope.\n" % round_n)
     parts = [
+        churn,
         "# KIMI CROSS-MODEL REVIEWER — IMPORTANT (overrides conflicting text below)\n\n"
         "1. You have NO TOOL ACCESS. The only repository content you can see is the "
         "REPOSITORY CONTEXT block below. If something you need is not visible, score "

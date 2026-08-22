@@ -328,10 +328,12 @@ echo "$PROMPT" | timeout "$CODEX_TIMEOUT_SEC" \
         while IFS= read -r path; do
             [ -z "$path" ] && continue
             [ "$path" = "$REVIEW_REL" ] && continue
-            case "$path" in results/logs/*|docs/reviews/*) continue ;; esac
+            case "$path" in results/logs/*|docs/reviews/.sessions/*) continue ;; esac
             if [ -f "$WRAPPER_PRE_DIR/$path" ]; then
                 cp "$WRAPPER_PRE_DIR/$path" "$ROOT/$path"
-            elif ! git -C "$ROOT" ls-files --error-unmatch "$path" >/dev/null 2>&1; then
+            elif git -C "$ROOT" ls-files --error-unmatch "$path" >/dev/null 2>&1; then
+                git -C "$ROOT" checkout -- "$path"
+            else
                 rm -f "$ROOT/$path"
             fi
         done < <(cd "$ROOT" && { git diff --name-only HEAD --; git ls-files --others --exclude-standard; } | sort -u)
@@ -403,12 +405,18 @@ while IFS= read -r path; do
     # `docs/reviews/*.md` which only matched the flat-layout dash-form;
     # code-auditor round 4 #1 caught that nested slash-form sibling
     # reviews were not exempted. Match both layouts:
-    if [[ "$path" == docs/reviews/*.md || "$path" == docs/reviews/*/*.md ]]; then
-        continue
-    fi
+    case "$path" in results/logs/*|docs/reviews/.sessions/*) continue ;; esac
     if [ -f "$WRAPPER_PRE_DIR/$path" ]; then
         # Was dirty before codex ran — restore the captured pre-codex content.
         cp "$WRAPPER_PRE_DIR/$path" "$full"
+        RESTORED=$((RESTORED + 1))
+    elif git -C "$ROOT" ls-files --error-unmatch "$path" >/dev/null 2>&1; then
+        # Tracked and clean pre-run: codex modified it — revert (v1.13; the
+        # sibling-review exemption is obsolete under lock serialization).
+        git -C "$ROOT" checkout -- "$path"
+        RESTORED=$((RESTORED + 1))
+    else
+        rm -f "$full"
         RESTORED=$((RESTORED + 1))
     fi
     # If the file was NOT in the wrapper's pre-codex snapshot, do NOT
