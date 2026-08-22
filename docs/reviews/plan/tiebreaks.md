@@ -47,3 +47,41 @@ All four findings are hereby disposed. The process-review score hold at 74 is re
 # Human adjudication — 2026-08-22
 
 Sol's process round 8 disputed the executed batch-2 tie-breaks. Under Autonomy-policy touchpoint (1) the human (Brian Martin) ruled: OVERRULE SOL. Process findings #1, #2, #4, #9 close as `(refuted 2026-08-22: human override — trust-model constants of a single-user repo; detection via git history and resumed reviewer sessions is the registered control; see tie-break batch 2)`. This adjudication is final for these four findings; subsequent rounds re-score on the remaining substance.
+
+
+# Tie-break — 2026-08-22 12:26 UTC (kimi-k3:cloud)
+
+## Prompt (verbatim)
+
+```
+You are kimi-k3 acting as TIE-BREAK arbiter under PLAN.md Section 2b of the Stencil project (batch 3). Two long-standing orchestrator declines are the process review's explicitly named remaining promotion blockers (score capped at 89, zero open high/critical findings, ~6 rounds of exchange). Render binding verdicts: UPHOLD (orchestrator implements) or REFUTE (closes as refuted).
+
+DECLINE A: Atomic gate-acceptance enforcement. Reviewer's ask: one mechanical transaction that verifies gate tests, review scores, kimi presence, ledger entry, and README row before a gate commit can exist (e.g., enforced pre-commit hook). Orchestrator's rationale: the checklist is registered procedure whose every item leaves git-visible evidence; check_acceptance.sh mechanizes the review-score item (hardcoded thresholds); a hook enforcing the rest must parse prose artifacts (ledger, README) and would be gameable by the same principal that runs it, adding brittleness without adding trust; violations are detectable post-hoc by reviewers, which is this protocol's general trust model (cf. batch-2 finding-1 REFUTE: "mechanical impossibility is unattainable when every enforcement bit is writable by the same principal").
+
+DECLINE B: The initial-loop amendment-sequencing exception. Rule: amendments take effect only after an accepted amendment review. Exception (ledger-recorded, rule-7 conservative interpretation): while the plan itself is still in its acceptance loop, each amendment batch is reviewed by the very next round of the same held reviewer sessions — the loop IS the review — and requiring pre-commit acceptance would deadlock (reviewers review committed state). The exception self-extinguishes at plan acceptance, after which the pre-commit rule binds unconditionally. Reviewer holds each batch "again took effect before the mandatory review."
+
+Answer in markdown: per decline, heading, verdict, 2-4 sentence rationale.
+
+```
+
+## Raw verdict
+
+# TIE-BREAK RULINGS — Stencil Batch 3 (PLAN.md §2b)
+
+Arbiter: kimi-k3. Verdicts are binding; both rulings close their respective findings.
+
+## Decline A — Atomic Gate-Acceptance Enforcement
+
+**Verdict: REFUTE** (finding closed; decline stands)
+
+The proposed hook is not an independent control: every enforcement bit — the hook itself, its prose-parsing heuristics, and the artifacts it inspects — is writable by the same principal it constrains, and git offers trivial bypass (`--no-verify`), so it adds friction and brittleness without adding assurance. This was settled as process precedent in batch-2 finding-1 ("mechanical impossibility is unattainable when every enforcement bit is writable by the same principal"), and no distinguishing factor has been shown here. The one mechanically decidable item — review scores against thresholds — is already enforced by check_acceptance.sh, while the remainder (ledger prose, README rows) is satisfiable by pattern-matching without substance. The protocol's actual control remains post-hoc reviewer audit of git-visible evidence, and that control is intact; the finding therefore does not identify implementable assurance.
+
+## Decline B — Initial-Loop Amendment-Sequencing Exception
+
+**Verdict: REFUTE** (finding closed; decline stands)
+
+Applied to the bootstrap phase, the unqualified rule deadlocks: reviewers review committed state, so no amendment could ever reach an accepted review without first taking effect — the exception is the minimal reading that preserves reviewability rather than evading it. It is tightly scoped: ledger-recorded, grounded in a rule-7 conservative interpretation, confined to the plan's own acceptance loop, and self-extinguishing at acceptance, after which the pre-commit rule binds without exception. Substantively, no amendment escaped review — each batch was examined by the very next round of the same held sessions, and the acceptance gate guarantees that nothing attains accepted status without cumulative reviewer assent, which is the invariant the sequencing rule exists to protect. The objection is formal sequencing with no showing of unreviewed or harmful substance, and is closed as refuted.
+
+---
+
+**Promotion status:** Both named blockers are closed by binding refutation. The score cap's basis is removed; the orchestrator may proceed under Section 2b with the ledger updated to record these two rulings.
