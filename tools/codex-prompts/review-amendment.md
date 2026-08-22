@@ -9,4 +9,6 @@ Read PLAN.md in full, the amendment's diff (git log / git diff, or the draft tex
 - Consistency: does the amended text contradict any other part of PLAN.md, README.md, or the tooling?
 - Completeness: does it update every dependent passage (Appendix C, phase specs, README component map) in the same change?
 
+Artifact binding (mandatory): run `bash tools/amend.sh --tree-id` (read-only) and quote its output verbatim in your new round's bullet list as `- Reviewed tree: <id>`. The commit gate refuses to land any tree whose id differs from the one you quote — your review is bound to exactly the content you inspected.
+
 Score the amendment, not the whole plan. Findings use the standard severity scale.
