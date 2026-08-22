@@ -98,7 +98,7 @@ If Gate G3 fails after one pass through the root-cause tree in Appendix D, stop.
 
 ## 2b. Execution toolchain and adversarial review protocol
 
-Moved to `plan/PROTOCOL.md` (v1.17, content unchanged): roles (sol coder/reviewer, kimi cross-reviewer and tie-break), review protocol with held sessions and adaptive lenses, finding closure, gate acceptance checklist, autonomy policy, retrospectives and agent evals. Every reference to "Section 2b" means that file. Read it before doing any process work; for implementing the science below, the operating rules above plus AGENTS.md suffice.
+Moved to `plan/PROTOCOL.md` (v1.17, substance unchanged; self-references re-scoped): roles (sol coder/reviewer, kimi cross-reviewer and tie-break), review protocol with held sessions and adaptive lenses, finding closure, gate acceptance checklist, autonomy policy, retrospectives and agent evals. Every reference to "Section 2b" means that file. Read it before doing any process work; for implementing the science below, the operating rules above plus AGENTS.md suffice.
 
 ---
 

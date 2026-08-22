@@ -46,7 +46,7 @@ All four findings are hereby disposed. The process-review score hold at 74 is re
 
 # Human adjudication — 2026-08-22
 
-Sol's process round 8 disputed the executed batch-2 tie-breaks. Under Autonomy-policy touchpoint (1) the human (Brian Martin) ruled: OVERRULE SOL. Process findings #1, #2, #4, #9 close as `(refuted 2026-08-22: human override — trust-model constants of a single-user repo; detection via git history and resumed reviewer sessions is the registered control; see tie-break batch 2)`. This adjudication is final for these four findings; subsequent rounds re-score on the remaining substance.
+Sol's process round 8 disputed the executed batch-2 tie-breaks. Under Autonomy-policy touchpoint (1) the human (Brian Martin) ruled: OVERRULE SOL. Process findings #1, #2, #4, #9 close as `(refuted 2026-08-22: human override — trust-model constants of a single-user repo; detection via git history and resumed reviewer sessions is the registered control; see tie-break batch 2 above in this file)`. This adjudication is final for these four findings; subsequent rounds re-score on the remaining substance.
 
 
 # Tie-break — 2026-08-22 12:26 UTC (kimi-k3:cloud)
@@ -89,6 +89,6 @@ Applied to the bootstrap phase, the unqualified rule deadlocks: reviewers review
 # Human adjudication 2 — 2026-08-22 (batch-3 dispute)
 
 Sol's process round 13 disputed both batch-3 refutations. The human ruled: PARTIAL CONCESSION.
-- Conceded, with credit to the reviewer: (1) finding #38's demonstrated failure class — tie-break artifacts moved to docs/tiebreaks/, and check_acceptance.sh now validates the exact registered artifact layout (frontmatter-declared reviewer identity; unexpected files are violations, not skips). (2) The batch-3 deadlock premise on sequencing was FALSE — review-amendment.md reviews a draft or working-tree diff, so pre-commit amendment review was always operationally possible. Pre-commit amendment review is binding from this ruling forward, mechanism: working-tree diff review before the amendment commit lands.
+- Conceded, with credit to the reviewer: (1) finding #38's demonstrated failure class — tie-break artifacts moved to plan/tiebreaks/, and check_acceptance.sh now validates the exact registered artifact layout (frontmatter-declared reviewer identity; unexpected files are violations, not skips). (2) The batch-3 deadlock premise on sequencing was FALSE — review-amendment.md reviews a draft or working-tree diff, so pre-commit amendment review was always operationally possible. Pre-commit amendment review is binding from this ruling forward, mechanism: working-tree diff review before the amendment commit lands.
 - Declined: re-litigation of the already-run initial loop (its substance was reviewed round-by-round; no unreviewed amendment reached accepted status), and the full atomic evidence-parsing transaction beyond the exact-artifact validation now implemented.
 This adjudication is final. Process findings #17/#22 close as (resolved 2026-08-22: partial concession implemented — exact-artifact acceptance validation + binding pre-commit amendment review) rather than refuted, reflecting that the reviewer was substantially right.

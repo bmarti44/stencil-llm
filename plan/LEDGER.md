@@ -1,6 +1,6 @@
 # Stencil — work log and ledger
 
-Moved from PLAN.md in v1.17 (the in-PLAN ledger was pre-registered to migrate once it outgrew the file). Same rules: topmost entry carries STATE (phase, gate states, scores, exact next command); write-ahead entries before launching long-running work; append-only within a day, newest first. A cold-started session reads this file top down, then reconciles logs (results/logs/) and git status.
+Migrated from PLAN.md in v1.17 per its own pre-registration. Rules (restated here as the operative copy): topmost entry carries STATE (phase, gate states, scores, exact next command); write-ahead entries before launching long-running work; append-only within a day, newest first. A cold-started session reads this file top down, then reconciles logs (results/logs/) and git status.
 
 ## Work log and ledger (added v1.3)
 
