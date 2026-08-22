@@ -72,8 +72,8 @@ def build_context(root: Path, review_file: Path, max_bytes: int) -> str:
             rel = p.relative_to(root)
             block = f"\n\n===== FILE: {rel} =====\n{text}"
             if total + len(block) > max_bytes:
-                parts.append(f"\n\n===== TRUNCATED: context cap reached before {rel} =====")
-                return "".join(parts)
+                parts.append(f"\n\n===== SKIPPED (cap): {rel} ({len(text)} bytes) =====")
+                continue
             parts.append(block)
             total += len(block)
     return "".join(parts)
