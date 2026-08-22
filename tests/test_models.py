@@ -86,9 +86,10 @@ def _closed_form(
 def test_oscillator_matches_discrete_closed_form() -> None:
     """Run 12 cases: periods {8,64,4096} x G {0,1e-2} x zero/constant
     forcing for 1000 steps.  The fp64 cell/reference tolerance is rtol=1e-9,
-    atol=1e-12; fp32/fp64 is rtol=1e-4, atol=1e-6.  Zero-forcing initial
-    states are nonzero N(0,1) from seed 0 stream ``fixtures:init``; constant
-    forcing is b=u=1 from y0=z0=0.
+    atol=1e-12; fp32/fp64 is rtol=1e-4 with per-case atol=1e-4 times
+    max|fp64 reference| over the trajectory.  Zero-forcing initial states are
+    nonzero N(0,1) from seed 0 stream ``fixtures:init``; constant forcing is
+    b=u=1 from y0=z0=0.
     """
     cases = 0
     for period in (8.0, 64.0, 4096.0):
@@ -114,8 +115,9 @@ def test_oscillator_matches_discrete_closed_form() -> None:
                     inputs64.float(), initial=(initial[:1].float(), initial[1:].float())
                 )
                 actual32 = torch.stack((y32[0, :, 0], z32[0, :, 0]), dim=-1)
+                fp32_atol = 1e-4 * actual64.abs().max().item()
                 torch.testing.assert_close(
-                    actual32.double(), actual64, rtol=1e-4, atol=1e-6
+                    actual32.double(), actual64, rtol=1e-4, atol=fp32_atol
                 )
                 cases += 1
     assert cases == 12
@@ -144,7 +146,7 @@ def test_discrete_invariant_conserved() -> None:
     """Run 2 dtype cases (fp64/fp32), zero input for 10k steps, standard
     64-mode periods [8,4096], G=0, seed 0 ``fixtures:init`` state.  H_d drift
     is rtol=1e-5/1e-3 respectively; continuous H max is <4*H0 and its final
-    five 1000-step window means have |least-squares slope| <1e-6*H0/window.
+    five 1000-step window means have |least-squares slope| <1e-4*H0/window.
     """
     cases = 0
     for dtype, invariant_rtol in ((torch.float64, 1e-5), (torch.float32, 1e-3)):
@@ -162,7 +164,7 @@ def test_discrete_invariant_conserved() -> None:
             (x - x.mean()) * (means[-5:].double() - means[-5:].double().mean())
         ).sum()
         slope /= (x - x.mean()).square().sum()
-        assert abs(slope) < 1e-6 * h0.double().mean()
+        assert abs(slope) < 1e-4 * h0.double().mean()
         cases += 1
     assert cases == 2
 

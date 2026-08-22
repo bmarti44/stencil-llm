@@ -390,9 +390,15 @@ class StencilTransformer(nn.Module):
                     gates = x.new_ones(x.shape[0], x.shape[1], self.config.n_heads)
                 else:
                     assert control is not None and self.gate_bias is not None
+                    control_rms = torch.sqrt(
+                        control.square().mean(dim=-1, keepdim=True) + 1e-8
+                    )
+                    normalized_control = control / control_rms
                     gates = 2 * torch.sigmoid(
                         torch.einsum(
-                            "btc,hc->bth", control, self.gate_weight[layer_index]
+                            "btc,hc->bth",
+                            normalized_control,
+                            self.gate_weight[layer_index],
                         )
                         + self.gate_bias[layer_index]
                     )
