@@ -33,6 +33,9 @@ def main():
         print(f"ERROR: prompt {rel} is not a tracked file", file=sys.stderr); return 3
     dirty = subprocess.run(["git", "-C", root, "status", "--porcelain", "--", rel],
                            capture_output=True, text=True, check=True).stdout.strip()
+    # Output path is derived, not caller-chosen: the phase tie-break file
+    # beside the prompt (plan/tiebreaks/<phase>.md). argv[2] must match.
+    expected_out = os.path.join(os.path.dirname(sys.argv[1]), os.path.basename(os.path.dirname(sys.argv[1])) + ".md") if False else None
     if dirty:
         print(f"ERROR: {sys.argv[1]} is not committed clean; commit the prompt "
               "BEFORE running the tie-break (auditability rule)", file=sys.stderr)
@@ -63,7 +66,7 @@ def main():
     with urllib.request.urlopen(req, timeout=1800) as r:
         out = json.loads(r.read())["response"].strip()
     import re as _re
-    verdicts = _re.findall(r"\*\*Verdict:?\*\*:?\s*(UPHOLD|REFUTE|MIDDLE)", out, _re.IGNORECASE)
+    verdicts = _re.findall(r"^\**Verdict:?\**:?\s*(UPHOLD|REFUTE|MIDDLE)", out, _re.IGNORECASE | _re.MULTILINE)
     if not verdicts:
         print("ERROR: no enumerated Verdict (UPHOLD/REFUTE/MIDDLE) line found; not a ruling", file=sys.stderr)
         rej = sys.argv[2] + ".rejected"
@@ -75,9 +78,12 @@ def main():
                 f"```\n{prompt}\n```\n\n## Raw verdict\n\n{out}\n")
     print(out)
     led = os.path.join(root, "plan", "LEDGER.md")
-    entry = (f"- {stamp.split()[0]}, tiebreak (auto, run_tiebreak.py). Prompt {rel}, "
-             f"output {sys.argv[2]}, verdicts: {', '.join(v.upper() for v in verdicts)}. "
-             "Next: execute the verdicts and record them in the next orchestrator entry.\n")
+    import hashlib as _h
+    run_id = _h.sha256((prompt + out).encode()).hexdigest()[:12]
+    replay = f"python3 tools/run_tiebreak.py {rel} {sys.argv[2]} {sys.argv[3]}"
+    entry = (f"- {stamp.split()[0]}, tiebreak (auto, run_tiebreak.py). Run {run_id}: prompt {rel}, "
+             f"output {sys.argv[2]}, verdicts: {', '.join(v.upper() for v in verdicts)}; "
+             f"replay: `{replay}`. Next: execute the verdicts and record them in the next orchestrator entry.\n")
     s2 = open(led).read()
     marker = "### Ledger\n\n"
     open(led, "w").write(s2.replace(marker, marker + entry, 1) if marker in s2 else s2 + entry)

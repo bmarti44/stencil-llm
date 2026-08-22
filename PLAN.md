@@ -8,7 +8,7 @@ PLAN.md and the `plan/` working directory govern together (v1.17): this file is 
 
 Abbreviated one-liners for orientation only; the full prose per version lives in `plan/AMENDMENTS.md` and the authoritative history in git (`amend(vX.Y)` commits).
 
-- v1.22 (2026-08-22): batch-4 tie-break VACATED (strawman prompt — verbatim-text rule adopted); the five mediums fixed on their merits; coder-delta scope semantics; runner/manifest/acceptance hardening.
+- v1.22 (2026-08-22): batch-4 tie-break VACATED (strawman prompt — verbatim-text rule adopted); four mediums fixed on their merits, #29 deferred-open per batch-5 UPHOLD; coder-delta scope semantics; runner/manifest/acceptance hardening.
 - v1.21 (2026-08-22): declared-intent STATE (freshness by construction); coder provenance auto-appended by the wrapper; amend.sh version syntax check.
 - v1.20 (2026-08-22): amend.sh hardened (review-chain validation, lock, exact next-command STATE check); sequencing violation on v1.18/v1.19 acknowledged and ledgered.
 - v1.19 (2026-08-22): tools/amend.sh commit gate (mechanical closure of the amendment-log slip class); tie-break verdict validation; retro AGENTS diffs kimi-audited.

@@ -1,0 +1,13 @@
+**TIE-BREAK RULING — kimi-k3, batch 5 (finding #11 residuals; all other items stand as implemented)**
+
+**ASK A — Rendered-description contract for binaries in `artifacts.txt`**
+
+Verdict: UPHOLD
+
+The ask is for a contract clause, and the orchestrator's burden-test rebuttal only defeats a demand nobody made — building and testing renderers now — while this repository's native mode is precisely pre-execution specification (`plan/PROTOCOL.md` governs phases that have not run). The offered deferral itself omits the requirement: it re-commits PRESENT rows to byte size and sha256 only, which is exactly the deficiency the reviewer replayed, so it preserves the gap at the moment the first binary lands. Registry is cheap and checkable today: add the schema clause now (PRESENT binary rows must carry a prose description sufficient for content review; hash+size alone do not satisfy presentation), bind enforcement to the first PRESENT binary row, and correct `PLAN.md:11` / `plan/LEDGER.md:13` to record #29 as deferred-open, not complete.
+
+**ASK B — Source-verification of the orchestrator argument; run-handoff validation beyond auto ledger append**
+
+Verdict: UPHOLD
+
+The "no prior text to verify against" claim contradicts the orchestrator's own tracked-prompt control: the prompt carrying the verbatim response is committed pre-execution (this run is the proof), so a mechanical equality check between the runner's argument and the committed prompt's response section is feasible and closes the substitution path the direct replays demonstrated — that is verification against a distinct committed artifact, not "text against itself." "Automatic handoff with enumerated verdicts" does not answer the run-handoff residual: without a stable run id and the exact next-invocation command, the ledger line is not replay-auditable, and both fields are trivial and testable. Implement prompt-source comparison plus run id and command stamping in `tools/run_tiebreak.py`; the caller-controlled output/rejection paths remain open and must either be fixed-path or justification-logged in the same line.
