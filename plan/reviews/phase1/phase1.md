@@ -1,11 +1,22 @@
 # Phase1 Review — phase1
 
-**Score:** 84 / 100
-**Verdict:** CONDITIONAL PASS (75–89)
+**Score:** 95 / 100
+**Verdict:** PASS (≥90)
 **Reviewer model:** codex/gpt-5.6-sol
 **Date:** 2026-08-22
 
 ## Round log
+
+### Round 2 — 2026-08-22 (codex/gpt-5.6-sol)
+- Score: 95 / 100 (delta vs prior round: +11)
+- Addressed since prior round:
+  - Commit `ae807a9` changed the governed Phase 1 row to `in progress` at `README.md:50` and recorded both the original lens omission and the generic-lens fallback rationale at `plan/LEDGER.md:16`, closing findings 1 and 4.
+  - Commit `1384ab1` moved Task A's independent production draws into the helper actually called by `task_a` at `src/stencil/data.py:134-177`; `tests/test_data.py:93-143` now exercises that helper with real seeded streams and pins the production path at registered N=128, closing finding 2.
+  - Commit `1384ab1` added exact in-memory structure validation and stale-file checking at `scripts/make_data_samples.py:74-156`, tests it at `tests/test_data.py:352-364`, and binds both check and regeneration to G1 at `Makefile:10-15`, closing finding 3.
+  - Commit `1384ab1` narrowed Ruff's exclusion to `tools` at `pyproject.toml:23-25`, corrected both executable fixture-provenance programs, and preserved the pre-implementation Task A and Task M fixture hashes exactly, closing finding 5.
+  - The fix pass also added the independently authored Task B fixture assertion at `tests/test_data.py:231-285` and loader-validation coverage at `tests/test_config.py:70-157`. Independent replay matched every token, mask bit, metadata field, and the cue-redraw case in both Task B fixture sequences without importing the production generator.
+- New or remaining:
+  - No open Phase 1 findings. The remaining work is the governed acceptance/gate transition after the companion review is current, not a Phase 1 implementation defect.
 
 ### Round 1 — 2026-08-22 (codex/gpt-5.6-sol)
 - Score: 84 / 100 (delta vs prior round: +84)
@@ -23,33 +34,25 @@
 
 ## Findings
 
-1. **Medium — The governed status table never entered Phase 1.** `README.md:50` still says `not started`, while `plan/LEDGER.md:16` records the Phase 1 launch and `plan/LEDGER.md:13` records landed code. This violates the explicit state-transition rule at `PLAN.md:98` and the README's own explanation at `README.md:58`. The eventual green gate commit cannot retroactively make the required in-progress state truthful during the phase.
+1. **Medium (resolved 2026-08-22: the status row now records Phase 1 as in progress) — The governed status table never entered Phase 1.** `README.md:50` now says `in progress`, consistent with the state-transition rule at `PLAN.md:98` and the explanation at `README.md:58`; `plan/LEDGER.md:16` also records the correction and its recurrence. The late update cannot reconstruct the historical interval, but the governed current state is no longer false and the miss is auditable.
 
-2. **Medium — The distractor-independence regression guard bypasses the production Task A sampler.** `tests/test_data.py:90-110` creates its own `cues` generator and feeds a fixed list into `make_task_a_example`; it never calls `task_a` or `generate`. The production stream creation and joint cue/operand/distractor sampling it is meant to protect live separately at `src/stencil/data.py:134-156`. The N=8 exact fixture at `tests/test_data.py:38-56` limits a second guard to four miniature sequences, so a regression that couples distractors to the cue only on registered N values 128/512/2048 would leave every G1 test green while invalidating the construction claim. The current implementation is correct by inspection; the permanent gate is not testing that fact on the scientific grid.
+2. **Medium (resolved 2026-08-22: the guard now exercises the shared production helper and a registered-grid production stream) — The distractor-independence regression guard bypasses the production Task A sampler.** `_sample_task_a_example` owns cue, operand, and distractor sampling at `src/stencil/data.py:134-156`, and `task_a` calls it with the three named generators at `src/stencil/data.py:159-177`. `tests/test_data.py:93-120` drives that same helper for the fixed-distractor frequency check, while `tests/test_data.py:123-143` calls the public production stream at N=128 and independently replays all three named streams. The original N-dependent coupling escape no longer passes G1.
 
-3. **Medium — Gate G1 does not bind its required generated artifact.** `PLAN.md:346` makes generated `results/data_samples.md` part of G1, and `scripts/make_data_samples.py:67-104` is the only code that renders it. `Makefile:10-12` runs only the nine tests and Ruff: it remains green if the artifact is absent, stale, hand-edited, or contains the wrong number of sections. The committed `results/data_samples.md:1-83` is currently reproducible and contains three samples for Task A, Task B, and both Task M placements, but the gate does not preserve that property.
+3. **Medium (resolved 2026-08-22: G1 now validates, regenerates, and diff-checks the required artifact) — Gate G1 does not bind its required generated artifact.** `scripts/make_data_samples.py:74-137` renders the four exact sections and enforces samples 1–3 in each; its `--check` path compares the committed bytes to the deterministic rendering at `scripts/make_data_samples.py:140-156`. `Makefile:10-15` runs that check, regenerates, and rejects a diff, while `tests/test_data.py:352-364` separately guards the section/sample cardinality. An absent, stale, hand-edited, or structurally incomplete `results/data_samples.md` now fails G1.
 
-4. **Low — The Phase 1 review launch omits the required lens decision and rationale.** `plan/PROTOCOL.md:19` requires the write-ahead entry to name the chosen adaptive lens and rationale, explicitly identifying distributional/leakage review as the natural generator lens. `plan/LEDGER.md:13` records commands, paths, and the fixture hand-check but neither a bespoke lens nor a rationale for using the generic fallback at `tools/codex-prompts/review-phase.md:1-11`. This round covered the missing distributional checks directly, so the omission is procedural rather than an uncovered scientific defect.
+4. **Low (resolved 2026-08-22: the omission, selected fallback, and rationale are now recorded) — The Phase 1 review launch omits the required lens decision and rationale.** `plan/LEDGER.md:16` explicitly confesses the first-launch omission, identifies distributional/leakage as the natural bespoke lens, records that Round 1 covered that ground, and fixes the generic lens for this continuing review; `plan/LEDGER.md:13` carries that decision into Round 2. This restores an auditable decision consistent with the continuity requirement at `plan/PROTOCOL.md:19`.
 
-5. **Low — Ruff passes by excluding Phase 1's executable fixture provenance.** `pyproject.toml:23-25` excludes the entire `tests/fixtures` directory after the coder encountered violations in the newly committed `tests/fixtures/hand_execution.py`, including the overlong seed derivation at `tests/fixtures/hand_execution.py:37` and unqualified `zip` at `tests/fixtures/hand_execution.py:89`. The script is not production code and its output was independently verified, but `ruff check .` no longer means all Phase 1 Python artifacts were checked and future executable fixture tooling in that directory will also be silently skipped.
+5. **Low (resolved 2026-08-22: Ruff now includes the fixture programs and they pass without changing fixture bytes) — Ruff passes by excluding Phase 1's executable fixture provenance.** `pyproject.toml:23-25` now excludes only `tools`, so both Python programs under `tests/fixtures` are in the advertised repository lint run. The prior violations are corrected at `tests/fixtures/hand_execution.py:37-39` and `tests/fixtures/hand_execution.py:91`; the Task A and Task M JSON SHA-256 values remain exactly `4d7cde28…` and `b338f8bb…`, respectively.
 
 ## Recommendations
 
-1. Change `README.md:50` to `in progress` in the fix commit; only change it to green in the accepted `gate(G1)` commit, preserving the state sequence required by `PLAN.md:98`.
-
-2. Refactor the cue/distractor draw step at `src/stencil/data.py:145-156` into the real helper used by `task_a`, and drive that helper with real seeded generators plus fixed distractor draws in `tests/test_data.py:90-110`. Add a registered-grid production-stream assertion so an N-dependent coupling cannot hide behind the N=8 fixture.
-
-3. Add a check mode to `scripts/make_data_samples.py:67-104` that renders in memory and compares against `results/data_samples.md`, including exactly three samples in each of the four required sections; invoke it from `Makefile:10-12`.
-
-4. Record the generic-lens omission and fallback rationale in `plan/LEDGER.md`; retain the already-selected lens for this topic, and use a purpose-built distributional/leakage rubric at the first launch of future generator reviews as required by `plan/PROTOCOL.md:19`.
-
-5. Fix `tests/fixtures/hand_execution.py:37-89` and remove the broad `tests/fixtures` exclusion at `pyproject.toml:24`, or narrow the exclusion to non-Python generated fixture formats.
+1. Make no further Phase 1 implementation changes before acceptance. Once the required companion review is current and acceptance passes, follow `plan/PROTOCOL.md:20` and the queued transition at `plan/LEDGER.md:13`: land the `gate(G1)` commit and change `README.md:50` from `in progress` to green in that same commit.
 
 ## Evidence consulted
 
 - `PLAN.md` in full, especially Sections 1–6, Phase 1, Appendix B, Appendix C, and Appendix G; `plan/PROTOCOL.md`, the topmost `plan/LEDGER.md` state, `AGENTS.md`, and `README.md`.
-- Phase 1 source and artifacts line by line: `src/stencil/data.py`, `scripts/make_data_samples.py`, `tests/test_data.py`, `tests/fixtures/hand_execution.py`, both committed JSON fixtures, `results/data_samples.md`, `configs/test_tiny.json`, `Makefile`, `pyproject.toml`, and the Phase 1 topic/artifact manifests.
-- Read-only git history and diffs for commits `68b9d92` and `701833f`; fixture hashes were identical across the two commits, and neither generator source nor data tests existed in the fixture commit.
-- `results/logs/codex-agent-phase1-generators.log`: each registered test was added before its corresponding implementation, observed failing, then observed passing; final `make gate-1` and `make gate-0` runs were green.
-- Independent fixture audit using only the registered SHA-256 seed derivation and raw Torch generators: exact reconstruction of two Latin rows, four Task A sequences, and four Task M sequences.
-- Independent read-only replay: `16 passed in 3.23s`, `ruff check --no-cache .` passed, `git diff --check` passed, and the worktree was clean before the canonical review file update.
+- The complete current Phase 1 surface: `src/stencil/data.py`, `scripts/make_data_samples.py`, `tests/test_data.py`, `tests/test_config.py`, both executable fixture-provenance programs, all three JSON fixtures, `results/data_samples.md`, `configs/test_tiny.json`, `Makefile`, `pyproject.toml`, and the Phase 1 topic/artifact manifests.
+- Read-only git history and diffs through commits `ae807a9` and `1384ab1`, including the fix allowlist/brief and fixture history. The Task A and Task M fixture hashes are byte-identical to commit `68b9d92`; the Task B fixture hash is `ce0df859…`.
+- `results/logs/codex-agent-phase1-fixes.log`: production-path and artifact tests were observed failing before implementation; the loader-validation tests passed immediately and were honestly identified as missing coverage rather than implementation defects; a corrupted artifact failed `--check`; final G1 and G0 runs were green with 32 total tests.
+- Independent Task B fixture audit using only PLAN/ledger conventions, SHA-256 stream derivation, and raw Torch generators: exact reconstruction of both sequences, including every token, loss-mask bit, metadata field, and the single consecutive-cue redraw.
+- Independent read-only replay: all 12 Phase 1 data tests passed, `scripts/make_data_samples.py --check` passed, `ruff check --no-cache .` passed, `git diff --check` passed, and the worktree was clean before this canonical review-file update.
