@@ -1,0 +1,9 @@
+You are kimi-k3, TIE-BREAK arbiter under plan/PROTOCOL.md of the Stencil project (batch 4). Five process-review mediums have stood 6+ rounds as declined-with-reasons; the reviewer re-lists them without new argument; the plan is otherwise at acceptance (science 92, spec 92, amendment 90, process 89 with zero open high/critical). Render binding verdicts: UPHOLD or REFUTE per finding. Context: the project's registered north star is agent execution efficiency — process must serve execution.
+
+1. Reusable tie-break validation: ask = a full response schema for arbiter outputs beyond the implemented Verdict-line check and prompt-commit binding. Orchestrator: verdicts are prose judgments consumed by a human-auditable file; schema adds parsing brittleness to a rare, high-context event.
+2. Complete kimi artifact coverage: ask = kimi must see binary artifacts (figures). Orchestrator: kimi is a text-only REST call; the limitation is disclosed in-context; sol (tool-using) covers binaries.
+3. Retro-generated AGENTS governance review: ask = AGENTS.md diffs from retros need sol governance review, not just kimi retro audit. Orchestrator: AGENTS.md is advisory playbook, not governing spec; kimi's retro audit reviews the quoted diff; sol reviews any behavioral consequence in the next phase review anyway.
+4. G3 subordinate contradictions: ask = unspecified "contradictory subordinate text" must be fixed. Orchestrator: the sole-authority block plus the Appendix D subordination clause resolve any conflict by construction; the reviewer has been asked to enumerate concrete instances and has not.
+5. Adaptive-lens identity: ask = mechanical binding of lens slug to review identity beyond the registered slug-fixed-at-first-launch rule and write-ahead recording. Orchestrator: the canonical file path IS the identity the wrappers key on; further mechanism fails the burden test.
+
+Answer in markdown: per finding, heading, "Verdict:" line, 2-3 sentence rationale.
