@@ -55,6 +55,7 @@ PYID
 }
 if [ "${1:-}" = "--tree-id" ]; then tree_id; exit 0; fi
 V="$1"; MSG="$2"
+echo "$V" | grep -Eq '^v[0-9]+\.[0-9]+$' || { echo "FAIL: '$V' is not a vX.Y version"; exit 2; }
 exec 9>"$ROOT/.review.lock"
 flock -w 600 9 || { echo "FAIL: could not take repo lock"; exit 6; }
 fail=0
@@ -73,12 +74,14 @@ TODAY="$(date -u +%Y-%m-%d)"
 TOP_ENTRY="$(awk '/^- /{print; exit}' "$ROOT/plan/LEDGER.md")"
 echo "$TOP_ENTRY" | grep -q "STATE:" || { echo "FAIL: topmost ledger entry carries no STATE:"; fail=1; }
 echo "$TOP_ENTRY" | grep -q "$TODAY" || { echo "FAIL: topmost ledger entry not dated today"; fail=1; }
-# First occurrence, non-greedy, then exact anchored prefix equality.
+# Declared-intent freshness (v1.21, closes the structural staleness of
+# next-command consumption): the reviewed tree's topmost STATE declares that
+# THIS amendment lands in THIS commit and names the post-commit next command,
+# so the committed STATE is fresh by construction.
+echo "$TOP_ENTRY" | grep -q "amend($V) lands in this commit" || { echo "FAIL: topmost STATE does not declare 'amend($V) lands in this commit'"; fail=1; }
 FIRST_NEXT="$(printf '%s' "$TOP_ENTRY" | awk -F'next command: `' 'NF>1{split($2,a,"`"); print a[1]; exit}')"
-case "$FIRST_NEXT" in
-    "bash tools/amend.sh $V "*|"bash tools/amend.sh $V") : ;;
-    *) echo "FAIL: topmost STATE's first next command is '$FIRST_NEXT', not the exact amend.sh $V invocation"; fail=1 ;;
-esac
+[ -n "$FIRST_NEXT" ] || { echo "FAIL: topmost STATE names no post-commit next command"; fail=1; }
+case "$FIRST_NEXT" in *amend.sh*) echo "FAIL: post-commit next command still names amend.sh — declare the action AFTER this commit"; fail=1 ;; *) : ;; esac
 [ "$fail" = "0" ] || exit 1
 git -C "$ROOT" add -A
 git -C "$ROOT" commit -m "amend($V): $MSG

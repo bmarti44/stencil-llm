@@ -56,13 +56,49 @@ for h in "Objective" "Allowlist" "Tests first" "Acceptance" "Ledger handoff"; do
     fi
 done
 
-LOG="/tmp/codex-agent-${AGENT}.log"
+ALLOW="$ROOT/tools/codex-agents/${AGENT}.allow"
+# Mandatory per tie-break batch 2 (2026-08-22): every brief ships an allowlist.
+if [ ! -f "$ALLOW" ]; then
+    echo "ERROR: missing scope allowlist $ALLOW (mandatory per PLAN 2b / tie-break batch 2)" >&2
+    exit 2
+fi
+
+provenance() {
+    # Runs on EVERY exit path (trap): records the run whether it succeeded,
+    # violated scope, or died. Strings passed as argv — never interpolated
+    # into code (injection-safe). A missing session id is recorded loudly.
+    local tid
+    tid="$(grep -m1 '"type":"thread.started"' "$LOG" 2>/dev/null | sed 's/.*"thread_id":"\([a-f0-9-]*\)".*/\1/')"
+    [ -n "$tid" ] || tid="MISSING-SESSION-EVENT"
+    python3 - "$ROOT/plan/LEDGER.md" "$(date -u +%Y-%m-%d)" "$AGENT" \
+        "${CODEX_MODEL:-gpt-5.6-sol}" "${CODEX_EFFORT:-medium}" "${FINAL_EC:-?}" \
+        "$tid" "$LOG" "${OVERRIDE_REASON:-}" <<'PYLED'
+import sys
+p, date, agent, model, effort, ec, tid, log, why = sys.argv[1:10]
+entry = (f"- {date}, coder (auto, run_codex_agent.sh). Brief {agent}: model {model}, "
+         f"effort {effort}, exit {ec}, session {tid}, log {log}."
+         + (f" Override reason: {why}." if why else "") + "\n")
+s = open(p).read()
+marker = "### Ledger\n\n"
+open(p, "w").write(s.replace(marker, marker + entry, 1) if marker in s else s + entry)
+PYLED
+}
+trap 'FINAL_EC=$?; provenance' EXIT
+
+mkdir -p "$ROOT/results/logs"
+LOG="$ROOT/results/logs/codex-agent-${AGENT}.log"
+# Overrides require a ledgered reason (PROTOCOL brief contract).
+if { [ -n "${CODEX_MODEL:-}" ] || [ -n "${CODEX_EFFORT:-}" ]; } && [ -z "${OVERRIDE_REASON:-}" ]; then
+    echo "ERROR: CODEX_MODEL/CODEX_EFFORT override without OVERRIDE_REASON" >&2
+    exit 2
+fi
 echo "[$(date -u +%H:%M:%S)] codex agent ${AGENT} starting (timeout ${TIMEOUT}s)" >&2
 
 cat "$BRIEF" | timeout "$TIMEOUT" \
     codex exec \
         --skip-git-repo-check \
         --dangerously-bypass-approvals-and-sandbox \
+        --json \
         --model "${CODEX_MODEL:-gpt-5.6-sol}" \
         -c "model_reasoning_effort=\"${CODEX_EFFORT:-medium}\"" \
         -C "$ROOT" \
@@ -77,15 +113,11 @@ echo "--- post-run repo diff (audit against the brief's scope) ---" >&2
 # patterns (one per line) at tools/codex-agents/<name>.allow, any dirty
 # path not matching a pattern is a hard failure.
 ALLOW="$ROOT/tools/codex-agents/${AGENT}.allow"
-# Mandatory per tie-break batch 2 (2026-08-22): every brief ships an allowlist.
-if [ ! -f "$ALLOW" ]; then
-    echo "ERROR: missing scope allowlist $ALLOW (mandatory per PLAN 2b / tie-break batch 2)" >&2
-    exit 2
-fi
 if [ -f "$ALLOW" ]; then
     viol=0
     while IFS= read -r path; do
         [ -z "$path" ] && continue
+        case "$path" in plan/LEDGER.md|results/logs/*) continue ;; esac
         ok=0
         while IFS= read -r pat; do
             [ -z "$pat" ] && continue
@@ -98,4 +130,8 @@ if [ -f "$ALLOW" ]; then
     done < <(cd "$ROOT" && { git diff --name-only HEAD --; git ls-files --others --exclude-standard; } | sort -u)
     if [ "$viol" = "1" ]; then exit 7; fi
 fi
+# Provenance auto-append (v1.21, corrected same version after review replay
+# showed the earlier placement tripped the wrapper's own scope check): runs
+# AFTER the allowlist scan, inserts newest-first under the ### Ledger header,
+# records the codex session id from the --json log, and the override reason.
 exit $ec
