@@ -1,3 +1,4 @@
+import importlib.util
 import json
 from dataclasses import replace
 from pathlib import Path
@@ -8,12 +9,14 @@ from stencil import determinism
 from stencil.config import load_config
 from stencil.data import (
     VOCAB_RANGES,
+    _sample_task_a_example,
     cue_blind_bayes,
     generate,
-    make_task_a_example,
     make_task_b_example,
     receptive_field,
     rule_table,
+    task_a,
+    task_b,
 )
 
 ROOT = Path(__file__).parents[1]
@@ -91,23 +94,53 @@ def test_distractor_rule_independence() -> None:
     config = _config("a", task_N=8, task_k=8)
     fixed_distractors = [3, 1, 4, 1, 5, 9, 2, 6]
     cues = determinism.named_generator(config.seed_data, "cues")
+    operands = determinism.named_generator(config.seed_data, "operands")
+    distractors = determinism.named_generator(config.seed_data, "distractors")
+    rules = rule_table(config)
     counts = [0] * config.task_k
     sample_count = 10_000
     for _ in range(sample_count):
-        cue = int(torch.randint(0, config.task_k, (1,), generator=cues))
-        tokens, _, metadata = make_task_a_example(
-            config, cue, operand_index=0, distractor_draws=fixed_distractors
+        tokens, _, metadata = _sample_task_a_example(
+            config,
+            rules,
+            cues,
+            operands,
+            distractors,
+            distractor_draws=fixed_distractors,
         )
         assert metadata["distractor_draws"] == fixed_distractors
         assert tokens[1 : 1 + config.task_N].tolist() == [
             50 + draw for draw in fixed_distractors
         ]
-        counts[cue] += 1
+        counts[metadata["cue_index"]] += 1
 
     expected = sample_count / config.task_k
     sigma = (sample_count * (1 / config.task_k) * (1 - 1 / config.task_k)) ** 0.5
     assert sum(counts) == sample_count
     assert all(abs(count - expected) <= 5 * sigma for count in counts)
+
+
+def test_task_a_registered_grid_uses_independent_production_streams() -> None:
+    config = _config("a", task_N=128, task_k=8)
+    tokens, loss_mask, metadata = next(task_a(config))
+    cues = determinism.named_generator(config.seed_data, "cues")
+    operands = determinism.named_generator(config.seed_data, "operands")
+    distractors = determinism.named_generator(config.seed_data, "distractors")
+    expected_cue = int(torch.randint(0, config.task_k, (1,), generator=cues))
+    expected_operand = int(torch.randint(0, 16, (1,), generator=operands))
+    expected_distractors = [
+        int(torch.randint(0, 14, (1,), generator=distractors))
+        for _ in range(config.task_N)
+    ]
+
+    assert metadata["cue_index"] == expected_cue
+    assert metadata["operand_index"] == expected_operand
+    assert metadata["distractor_draws"] == expected_distractors
+    assert tokens[0].item() == 1 + expected_cue
+    assert tokens[1 : config.task_N + 1].tolist() == [
+        50 + draw for draw in expected_distractors
+    ]
+    assert torch.nonzero(loss_mask).flatten().tolist() == [config.task_N + 2]
 
 
 def test_rules_latin_rectangle() -> None:
@@ -195,6 +228,63 @@ def test_task_b_active_rule_tracking() -> None:
     assert decision_index == config.task_R
 
 
+def test_task_b_exact_output() -> None:
+    fixture = json.loads(
+        (ROOT / "tests/fixtures/task_b_r2_k8_seed0.json").read_text()
+    )
+    config = _config(
+        "b",
+        task_k=fixture["k"],
+        task_R=fixture["R"],
+        task_delay_min=fixture["delay_min"],
+        task_delay_max=fixture["delay_max"],
+    )
+    stream = task_b(config)
+    cue_draws = determinism.named_generator(config.seed_data, "cues")
+    rules = rule_table(config)
+    actual_sequences = []
+    redraw_cases = 0
+    for _expected in fixture["sequences"]:
+        tokens, loss_mask, metadata = next(stream)
+        actual_segments = []
+        previous_cue = None
+        for cue, operand, delay in zip(
+            metadata["cue_indices"],
+            metadata["operand_indices"],
+            metadata["delay_lengths"],
+            strict=True,
+        ):
+            drawn_cue = int(torch.randint(0, config.task_k, (1,), generator=cue_draws))
+            redraws = 0
+            while drawn_cue == previous_cue:
+                drawn_cue = int(
+                    torch.randint(0, config.task_k, (1,), generator=cue_draws)
+                )
+                redraws += 1
+            assert cue == drawn_cue
+            actual_segments.append(
+                {
+                    "cue_index": cue,
+                    "operand_index": operand,
+                    "delay": delay,
+                    "cue_redraws": redraws,
+                    "answer_index": rules[cue][operand],
+                }
+            )
+            previous_cue = cue
+            redraw_cases += redraws
+        actual_sequences.append(
+            {
+                "tokens": tokens.tolist(),
+                "loss_mask": loss_mask.tolist(),
+                "segments": actual_segments,
+            }
+        )
+
+    assert actual_sequences == fixture["sequences"]
+    assert redraw_cases == 1
+
+
 def test_task_m_bindings() -> None:
     fixture = json.loads(
         (ROOT / "tests/fixtures/task_m_p4_q2_seed0.json").read_text()
@@ -257,3 +347,18 @@ def test_task_m_gap_exceeds_receptive_field() -> None:
     assert len(decision_positions) == config.task_queries
     assert len(distances) == config.task_P * config.task_queries
     assert min(distances) > field
+
+
+def test_data_samples_have_three_samples_per_task_and_placement() -> None:
+    script_path = ROOT / "scripts/make_data_samples.py"
+    spec = importlib.util.spec_from_file_location("make_data_samples", script_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    rendered = module.render_document()
+    module.validate_document(rendered)
+    assert rendered.count("## Task A ") == 1
+    assert rendered.count("## Task B ") == 1
+    assert rendered.count("## Task M ") == 2
+    assert rendered.count("### Sample ") == 12

@@ -9,4 +9,7 @@ gate-0:
 
 gate-1:
 	uv run pytest -q tests/test_data.py
+	uv run python scripts/make_data_samples.py --check
+	uv run python scripts/make_data_samples.py
+	git diff --exit-code -- results/data_samples.md
 	uv run ruff check .

@@ -1,7 +1,8 @@
 """Orchestrator hand-execution of a Task B pinning fixture (kimi#6, Phase 1 round 1).
 
 Derived INDEPENDENTLY of src/stencil/data.py (not read for this script) from:
-- PLAN.md Section 6 Task B: R segments [cue][delay ~ U{32..256} distractors][QRY][x][answer];
+- PLAN.md Section 6 Task B: R segments with a cue, delay drawn uniformly from
+  32 through 256 distractors, query, operand, and answer;
   k=8 rules via the Task A Latin construction from seed_rules; consecutive segment
   cues must differ (resample on repeat); operands uniform, independent per segment.
 - The coder's LEDGERED residual schedule (plan/LEDGER.md, coder handoff): per
@@ -21,7 +22,8 @@ QRY = 33
 
 def gen(seed: int, name: str) -> torch.Generator:
     g = torch.Generator(device="cpu")
-    g.manual_seed(int.from_bytes(hashlib.sha256(f"{seed}:{name}".encode()).digest()[:8], "big") >> 1)
+    digest = hashlib.sha256(f"{seed}:{name}".encode()).digest()
+    g.manual_seed(int.from_bytes(digest[:8], "big") >> 1)
     return g
 
 
@@ -33,10 +35,18 @@ def rule_table(k: int) -> list[list[int]]:
     return [[pi[(sigma[i] + tau[j]) % 16] for j in range(16)] for i in range(16)][:k]
 
 
-def task_b_fixture(R: int = 2, k: int = 8, n_seq: int = 2,
-                   delay_min: int = 32, delay_max: int = 256) -> dict:
+def task_b_fixture(
+    R: int = 2,
+    k: int = 8,
+    n_seq: int = 2,
+    delay_min: int = 32,
+    delay_max: int = 256,
+) -> dict:
     rules = rule_table(k)
-    g_c, g_o, g_de, g_di = gen(0, "cues"), gen(0, "operands"), gen(0, "delays"), gen(0, "distractors")
+    g_c = gen(0, "cues")
+    g_o = gen(0, "operands")
+    g_de = gen(0, "delays")
+    g_di = gen(0, "distractors")
     seqs = []
     for _ in range(n_seq):
         tokens, mask_pos, meta = [], [], []

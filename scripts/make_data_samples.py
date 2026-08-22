@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 from dataclasses import replace
 from pathlib import Path
 
@@ -9,6 +10,12 @@ from stencil.config import Config, load_config
 from stencil.data import generate
 
 ROOT = Path(__file__).parents[1]
+SECTION_TITLES = (
+    "Task A — cued rule application (N=8 miniature)",
+    "Task B — switching (R=3 miniature)",
+    "Task M — in-window (P=4, queries=2 miniature)",
+    "Task M — beyond-window (P=4, queries=2 miniature)",
+)
 
 
 def task_config(task: str, **overrides: object) -> Config:
@@ -64,7 +71,8 @@ def render_section(title: str, config: Config) -> list[str]:
     return lines
 
 
-def main() -> None:
+def render_document() -> str:
+    """Render the complete deterministic G1 sample artifact."""
     sections = [
         (
             "Task A — cued rule application (N=8 miniature)",
@@ -101,7 +109,51 @@ def main() -> None:
     ]
     for title, config in sections:
         lines.extend(render_section(title, config))
-    (ROOT / "results/data_samples.md").write_text("\n".join(lines), encoding="utf-8")
+    return "\n".join(lines)
+
+
+def validate_document(content: str) -> None:
+    """Require exactly three samples in each registered artifact section."""
+    headings = [
+        line.removeprefix("## ")
+        for line in content.splitlines()
+        if line.startswith("## ")
+    ]
+    if headings != list(SECTION_TITLES):
+        raise ValueError(f"expected sections {list(SECTION_TITLES)}, found {headings}")
+    for index, title in enumerate(SECTION_TITLES):
+        start = content.index(f"## {title}")
+        stop = (
+            content.index(f"## {SECTION_TITLES[index + 1]}")
+            if index + 1 < len(SECTION_TITLES)
+            else len(content)
+        )
+        sample_headings = [
+            line
+            for line in content[start:stop].splitlines()
+            if line.startswith("### Sample ")
+        ]
+        if sample_headings != ["### Sample 1", "### Sample 2", "### Sample 3"]:
+            raise ValueError(f"section {title!r} does not contain exactly 3 samples")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--check", action="store_true")
+    args = parser.parse_args()
+    output_path = ROOT / "results/data_samples.md"
+    rendered = render_document()
+    validate_document(rendered)
+    if args.check:
+        current = (
+            output_path.read_text(encoding="utf-8")
+            if output_path.exists()
+            else None
+        )
+        if current != rendered:
+            raise SystemExit(f"{output_path.relative_to(ROOT)} is stale; regenerate it")
+        return
+    output_path.write_text(rendered, encoding="utf-8")
 
 
 if __name__ == "__main__":

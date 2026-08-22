@@ -131,6 +131,31 @@ def _make_task_a_example(
     )
 
 
+def _sample_task_a_example(
+    config: Config,
+    rules: list[list[int]],
+    cues: torch.Generator,
+    operands: torch.Generator,
+    distractors: torch.Generator,
+    *,
+    distractor_draws: list[int] | None = None,
+) -> Example:
+    """Sample one Task A example from its independent production streams."""
+    if config.task_N is None or config.task_k is None:
+        raise ValueError("Task A requires task_N and task_k")
+    cue = int(torch.randint(0, config.task_k, (1,), generator=cues))
+    operand = int(torch.randint(0, 16, (1,), generator=operands))
+    draws = (
+        [
+            int(torch.randint(0, 14, (1,), generator=distractors))
+            for _ in range(config.task_N)
+        ]
+        if distractor_draws is None
+        else list(distractor_draws)
+    )
+    return _make_task_a_example(config, rules, cue, operand, draws)
+
+
 def task_a(config: Config) -> Iterator[Example]:
     """Yield the configured Task A stream."""
     if config.task_N is None or config.task_k is None:
@@ -147,13 +172,9 @@ def task_a(config: Config) -> Iterator[Example]:
     operands = determinism.named_generator(config.seed_data, "operands")
     distractors = determinism.named_generator(config.seed_data, "distractors")
     while True:
-        cue = int(torch.randint(0, config.task_k, (1,), generator=cues))
-        operand = int(torch.randint(0, 16, (1,), generator=operands))
-        draws = [
-            int(torch.randint(0, 14, (1,), generator=distractors))
-            for _ in range(config.task_N)
-        ]
-        yield _make_task_a_example(config, rules, cue, operand, draws)
+        yield _sample_task_a_example(
+            config, rules, cues, operands, distractors
+        )
 
 
 def make_task_b_example(

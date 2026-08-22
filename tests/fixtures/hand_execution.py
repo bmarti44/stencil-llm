@@ -2,7 +2,8 @@
 
 Written BEFORE any generator exists (TDD-conform protocol, PLAN.md v1.6 /
 Phase 1 test list). Implements ONLY registered spec text:
-- Section 3: stream_seed(seed, name) = int.from_bytes(sha256(f"{s}:{name}")[:8], big) >> 1
+- Section 3: stream_seed(seed, name) derives a big-endian integer from the
+  first eight bytes of sha256(f"{s}:{name}"), then shifts it right once.
 - Section 6 Task A: cyclic square C[i][j]=(i+j)%16; three consecutive
   randperm(16) on the seed_rules 'rules' stream: sigma (rows), tau (cols),
   pi (symbols); L[i][j] = pi[C[sigma[i]][tau[j]]]; rules = first k rows.
@@ -34,7 +35,8 @@ SEED_DATA = 0
 
 
 def stream_seed(seed: int, name: str) -> int:
-    return int.from_bytes(hashlib.sha256(f"{seed}:{name}".encode()).digest()[:8], "big") >> 1
+    digest = hashlib.sha256(f"{seed}:{name}".encode()).digest()
+    return int.from_bytes(digest[:8], "big") >> 1
 
 
 def gen(seed: int, name: str) -> torch.Generator:
@@ -86,7 +88,7 @@ def task_m_fixture(P: int = 4, n_queries: int = 2, n_seq: int = 4) -> dict:
         q_perm = torch.randperm(P, generator=g_qry).tolist()
         queries = q_perm[:n_queries]
         tokens = []
-        for ki, vi in zip(keys, vals):
+        for ki, vi in zip(keys, vals, strict=False):
             tokens += [1 + ki, 34 + vi]
         tokens.append(QRY)  # gap = 0 (in-window miniature)
         for q in queries:
