@@ -51,4 +51,15 @@ for f in "$DIR"/*.md; do
 done
 [ "$sol" -ge 1 ] || { echo "FAIL: no sol review exists for $PHASE"; fail=1; }
 [ "$kimi" -ge 1 ] || { echo "FAIL: no kimi cross-review for $PHASE"; fail=1; }
+# v1.25: governed status-row check (README-row flip missed in two consecutive
+# phases; PLAN rule 5). For phaseN acceptance the README row must have left
+# "not started" — the launch should have flipped it to in progress.
+if [[ "$PHASE" =~ ^phase([0-9]+)$ ]]; then
+    ROW="$(grep -E "^\| Phase ${BASH_REMATCH[1]} \|" "$ROOT/README.md" || true)"
+    if [ -z "$ROW" ]; then
+        echo "FAIL: README.md has no status row for Phase ${BASH_REMATCH[1]}"; fail=1
+    elif printf '%s' "$ROW" | grep -q "not started"; then
+        echo "FAIL: README.md Phase ${BASH_REMATCH[1]} row still says 'not started' at acceptance (rule 5: launch flips it to in progress)"; fail=1
+    fi
+fi
 exit $fail

@@ -150,6 +150,28 @@ PROMPT_FILE_ABS="$(realpath "$PROMPT_FILE")"
 COMMON_HEADER_ABS="$(realpath "$COMMON_HEADER")"
 REVIEW_FILE_ABS="$(realpath -m "$REVIEW_FILE")"
 
+# v1.25: mechanized review-launch write-ahead (retro lesson — hand-written
+# entries recurred incomplete: plan round 5, phase0 round 1). Appended BEFORE
+# the drift baseline snapshots below so the entry is part of the pre-codex
+# baseline and survives the restorer. Line-number splice, not marker
+# string-replace (AGENTS.md heredoc lesson). Records the lens (prompt
+# fragment); a bespoke lens rationale stays the orchestrator's job when it
+# deviates from fragment routing.
+WA_ROUND=$(awk '/^### Round [0-9]+/{n=$3; gsub(/[^0-9]/,"",n); if(n+0>m)m=n} END{print (m?m+1:1)}' "$REVIEW_FILE" 2>/dev/null || echo 1)
+WA_SESSION="fresh"
+if [ -f "$ROOT/plan/reviews/.sessions/${PHASE}-${TOPIC}" ]; then
+    WA_SESSION="resume $(head -c 64 "$ROOT/plan/reviews/.sessions/${PHASE}-${TOPIC}" | tr -cd 'a-f0-9-')"
+fi
+WA_ENTRY="- $(date -u +%Y-%m-%d), reviewer-launch (auto, run_codex_review.sh). Topic ${PHASE}/${TOPIC} round ${WA_ROUND}: command \`bash tools/run_codex_review.sh ${PHASE} ${TOPIC} ${THRESHOLD}\`, log ${LOG_DIR_DEFAULT}/codex-${PHASE}-${TOPIC}.log, canonical plan/reviews/${PHASE}/${TOPIC}.md, lens $(basename "$PROMPT_FILE"), session ${WA_SESSION}."
+python3 - "$ROOT/plan/LEDGER.md" "$WA_ENTRY" <<'PYWA'
+import sys
+path, entry = sys.argv[1], sys.argv[2]
+lines = open(path, encoding="utf-8").read().splitlines(keepends=True)
+idx = next(i for i, l in enumerate(lines) if l.startswith("### Ledger")) + 1
+lines.insert(idx, "\n" + entry + "\n")
+open(path, "w", encoding="utf-8").writelines(lines)
+PYWA
+
 PRIOR_BLOCK=""
 PRIOR_SNAPSHOT=""
 if [ -f "$REVIEW_FILE" ]; then

@@ -71,8 +71,11 @@ echo "$LATEST" | grep -q "$TID" || { echo "FAIL: latest review round does not qu
 grep -q "^- $V " "$ROOT/PLAN.md" || { echo "FAIL: PLAN.md index line for $V missing"; fail=1; }
 grep -q "^- $V," "$ROOT/plan/AMENDMENTS.md" || { echo "FAIL: plan/AMENDMENTS.md entry for $V missing"; fail=1; }
 TODAY="$(date -u +%Y-%m-%d)"
-TOP_ENTRY="$(awk '/^- /{print; exit}' "$ROOT/plan/LEDGER.md")"
-echo "$TOP_ENTRY" | grep -q "STATE:" || { echo "FAIL: topmost ledger entry carries no STATE:"; fail=1; }
+# v1.25: the reviewer/coder wrappers auto-append non-STATE provenance and
+# launch bullets above the orchestrator's STATE entry; the governing entry is
+# the TOPMOST bullet that carries STATE:, not the literal first bullet.
+TOP_ENTRY="$(awk '/^- /{ if ($0 ~ /STATE:/) { print; exit } }' "$ROOT/plan/LEDGER.md")"
+[ -n "$TOP_ENTRY" ] || { echo "FAIL: no ledger entry carries STATE:"; fail=1; }
 echo "$TOP_ENTRY" | grep -q "$TODAY" || { echo "FAIL: topmost ledger entry not dated today"; fail=1; }
 # Declared-intent freshness (v1.21, closes the structural staleness of
 # next-command consumption): the reviewed tree's topmost STATE declares that

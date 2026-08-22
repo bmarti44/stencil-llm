@@ -6,6 +6,7 @@ PLAN.md and the `plan/` working directory govern together (v1.17): this file is 
 
 ## Amendment log
 
+- v1.25 (2026-08-22): retro-driven bundle — reviewer auto-write-ahead in run_codex_review.sh (with lens field); two AGENTS.md lessons (consumer-semantics testing; orchestrator-as-terminator) plus the retro-log pointers; check_acceptance README-row check (rule-5 flip missed two phases running).
 - v1.24 (2026-08-22): HUMAN RULING (Adjudication 4) — review round budget: 10 rounds max per review; at 10 without acceptance, kimi tie-break decides CONTINUE (extends to a hard ceiling of 15) or STOP; supersedes v1.23's one-round cap for tooling-only changes; the 3-rounds/zero-H-C early exit stands.
 - v1.23 (2026-08-22): HUMAN RULING (Adjudication 3) — de-spiral: threat model registered, review stop-loss installed, process/amendment accepted by ruling, PLAN ACCEPTED. v1.22 landed under the same ruling.
 
@@ -112,7 +113,7 @@ Moved to `plan/PROTOCOL.md` (v1.17, substance unchanged; self-references re-scop
 
 ## Work log and ledger
 
-Moved to `plan/LEDGER.md` (v1.17). A restarted session resumes from that file's topmost STATE entry. Update triggers and entry schema are defined there and in plan/PROTOCOL.md.
+Moved to `plan/LEDGER.md` (v1.17). A restarted session resumes from that file's topmost STATE-carrying entry (wrapper auto-appended bullets without STATE may sit above it, v1.25). Update triggers and entry schema are defined there and in plan/PROTOCOL.md.
 
 ---
 

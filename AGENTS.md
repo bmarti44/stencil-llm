@@ -46,8 +46,19 @@ short, imperative, and evidence-linked; prune entries that stop paying rent.
   variable-ordering slip killed a full review round silently (2026-08-22).
 - Serialized background chains need per-command failure visibility; a trailing
   echo sentinel masks upstream failures. Read the raw log, not the exit code.
+- Test the consumer's semantics, not the producer's output: a validator must be
+  exercised through the exact code path that consumes it (a `tr`-based check
+  passed while the real `read -d ''` consumer dropped the final path, 2026-08-22).
+- The orchestrator is the terminator: flagging an absurd loop without acting is
+  not acting. Apply the burden test and the registered stop-loss mechanically —
+  in the amendment spiral, "one more fix" repeatedly beat "stop" until a human
+  intervened.
 
 ## Retrospective log pointers
 
-(none yet — first entry lands at the end of Phase 0; full retros live in
-plan/retros/<phase>.md)
+- plan/retros/plan.md (2026-08-22) — acceptance loop; the amendment spiral is
+  the centerpiece; corrections appended after its kimi review.
+- plan/retros/phase0.md (2026-08-22) — first implementation phase; 2-round
+  convergence; corrections appended after its kimi review.
+- plan/retros/phase1.md (2026-08-22) — generators pinned by three-way
+  independent agreement; README-row recurrence drove mechanization.
