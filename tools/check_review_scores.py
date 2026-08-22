@@ -22,6 +22,24 @@ SCORE_RE = re.compile(r"^\*\*Score:\*\*\s*(\d{1,3})\s*/\s*100\s*$", re.MULTILINE
 OPEN_HC_RE = re.compile(r"^\d+\.\s+\*\*(?:Critical|High)\b(?![^\n]*\((?:resolved|refuted))", re.MULTILINE | re.IGNORECASE)
 
 
+VERDICT_RE = re.compile(r"^\*\*Verdict:\*\*\s*(PASS|CONDITIONAL PASS|CONDITIONAL|FAIL)\b", re.MULTILINE | re.IGNORECASE)
+
+
+def verdict_mismatch(path: Path, score: int) -> str | None:
+    """Return a message when the Verdict line disagrees with the score bands
+    (>=90 PASS, 75-89 CONDITIONAL, <75 FAIL) or the score is out of range."""
+    if not 0 <= score <= 100:
+        return f"score {score} out of range 0-100"
+    m = VERDICT_RE.search(path.read_text(encoding="utf-8"))
+    if not m:
+        return "missing **Verdict:** line"
+    v = m.group(1).upper()
+    expected = "PASS" if score >= 90 else ("CONDITIONAL" if score >= 75 else "FAIL")
+    if not v.startswith(expected):
+        return f"verdict '{v}' inconsistent with score {score} (expected {expected})"
+    return None
+
+
 def open_high_critical(path: Path) -> list[str]:
     """Return first-lines of open High/Critical findings in the ## Findings section."""
     text = path.read_text(encoding="utf-8")
@@ -71,7 +89,11 @@ def main(argv: list[str] | None = None) -> int:
             failed += 1
             continue
         open_hc = open_high_critical(path)
-        if score < args.threshold:
+        vm = verdict_mismatch(path, score)
+        if vm:
+            print(f"FAIL  {path}: {vm}")
+            failed += 1
+        elif score < args.threshold:
             print(f"FAIL  {path}: {score}/100 (need >={args.threshold})")
             failed += 1
         elif open_hc:

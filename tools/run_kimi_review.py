@@ -8,6 +8,9 @@ history (tools/review_round_tracking.py) and severity-aware score gate
 (tools/check_review_scores.py), and serializes under the same .review.lock
 as the sol wrappers so their drift checks never see it mid-flight.
 
+A candidate failing the round-tracking contract is saved to the sidecar
+<topic>-kimi.rejected.md (never to the canonical path) for diagnosis.
+
 Role per PLAN.md Section 2b: kimi is the cross-model second reviewer and
 deadlock tie-breaker. Its findings are advisory — confirmed ones are fed
 into the sol reviewer-of-record's next round for adjudication.

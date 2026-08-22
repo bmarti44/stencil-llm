@@ -41,6 +41,7 @@ CODEX_MODEL="${CODEX_MODEL-gpt-5.6-sol}"
 REVIEW_DIR="${REVIEW_DIR:-docs/reviews}"
 PROMPTS_DIR="${PROMPTS_DIR:-tools/codex-prompts}"
 CODEX_TIMEOUT_SEC="${CODEX_TIMEOUT_SEC:-3600}"
+LOG_DIR_DEFAULT="results/logs"
 CODEX_EFFORT="${CODEX_EFFORT:-xhigh}"
 
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
@@ -223,6 +224,9 @@ echo "[$(date -u +%H:%M:%S)] codex review starting: $PHASE/$TOPIC -> $REVIEW_FIL
 # Codex's bubblewrap sandbox needs unprivileged user namespaces; on hosts
 # where they're disabled (some DGX configs, CI runners), operators may set
 # CODEX_BYPASS_SANDBOX=1 explicitly. The default is sandboxed workspace-write.
+LOG_DIR="$ROOT/${LOG_DIR_DEFAULT}"
+mkdir -p "$LOG_DIR"
+CODEX_LOG="$LOG_DIR/codex-${PHASE}-${TOPIC}.log"
 SESSION_DIR="$ROOT/docs/reviews/.sessions"
 mkdir -p "$SESSION_DIR"
 SESSION_FILE="$SESSION_DIR/${PHASE}-${TOPIC}"
@@ -279,15 +283,38 @@ done
 echo "$PROMPT" | timeout "$CODEX_TIMEOUT_SEC" \
     "${CLEAN_CODEX_ENV[@]}" \
     "$CODEX_BIN" "${CODEX_ARGS[@]}" \
-    >/tmp/codex-${PHASE}-${TOPIC}.log 2>&1 || {
+    >"$CODEX_LOG" 2>&1 || {
         ec=$?
-        echo "ERROR: codex exec failed with exit $ec; see /tmp/codex-${PHASE}-${TOPIC}.log" >&2
+        # Session-continuity fallback (PLAN.md 2b): if this was a resume attempt,
+        # drop the stored session and retry once with a fresh session.
+        if [ -n "${SID:-}" ]; then
+            echo "WARN: resume of session $SID failed (exit $ec); retrying with fresh session" >&2
+            rm -f "$SESSION_FILE"
+            FRESH_ARGS=()
+            skip_next=0
+            for a in "${CODEX_ARGS[@]}"; do
+                if [ "$skip_next" = "1" ]; then skip_next=0; continue; fi
+                if [ "$a" = "resume" ]; then skip_next=1; continue; fi
+                FRESH_ARGS+=("$a")
+            done
+            if echo "$PROMPT" | timeout "$CODEX_TIMEOUT_SEC" \
+                "${CLEAN_CODEX_ENV[@]}" \
+                "$CODEX_BIN" "${FRESH_ARGS[@]}" \
+                >"$CODEX_LOG" 2>&1; then
+                ec=0
+            else
+                ec=$?
+            fi
+        fi
+        if [ "$ec" != "0" ]; then
+        echo "ERROR: codex exec failed with exit $ec; see $CODEX_LOG" >&2
         rm -f "$REVIEW_DIFF_BASELINE"
         rm -rf "$WRAPPER_PRE_DIR"
         exit "$ec"
+        fi
     }
 
-TID="$(grep -m1 '"type":"thread.started"' "/tmp/codex-${PHASE}-${TOPIC}.log" 2>/dev/null | sed 's/.*"thread_id":"\([a-f0-9-]*\)".*/\1/')"
+TID="$(grep -m1 '"type":"thread.started"' "$CODEX_LOG" 2>/dev/null | sed 's/.*"thread_id":"\([a-f0-9-]*\)".*/\1/')"
 if [ -n "$TID" ]; then
     printf '%s\n' "$TID" > "$SESSION_FILE"
 fi
