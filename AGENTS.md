@@ -34,6 +34,11 @@ short, imperative, and evidence-linked; prune entries that stop paying rent.
 - A practical threshold grades magnitude; it can never decide whether evidence
   exists. Existence questions get a registered statistical test.
 
+- Smoke-invoke any edited `set -u` shell script before committing — a
+  variable-ordering slip killed a full review round silently (2026-08-22).
+- Serialized background chains need per-command failure visibility; a trailing
+  echo sentinel masks upstream failures. Read the raw log, not the exit code.
+
 ## Retrospective log pointers
 
 (none yet — first entry lands at the end of Phase 0; full retros live in
