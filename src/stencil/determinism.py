@@ -1,10 +1,14 @@
 # ruff: noqa: E402, I001
-"""Shared deterministic execution and named random-number streams."""
+"""Shared deterministic execution and named random-number streams.
+
+Every entrypoint must import this module before importing torch so the registered
+cuBLAS workspace configuration is in force when torch initializes CUDA.
+"""
 
 import hashlib
 import os
 
-os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
+os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
 
 import torch
 

@@ -5,6 +5,8 @@ from __future__ import annotations
 import dataclasses
 import hashlib
 import json
+import os
+import stat
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -175,14 +177,33 @@ class GitIdentity:
 def git_identity(repo: str | Path = ".") -> GitIdentity:
     root = Path(repo)
     git_sha = _git(root, "rev-parse", "HEAD").decode().strip()
-    diff = _git(root, "diff", "HEAD", "--no-ext-diff", "--binary")
+    diff = _git(
+        root,
+        "diff",
+        "--binary",
+        "--full-index",
+        "--no-textconv",
+        "--no-ext-diff",
+        "HEAD",
+    )
     untracked_paths = _git(
         root, "ls-files", "--others", "--exclude-standard", "-z"
     ).split(b"\0")
     records = bytearray()
     for encoded_path in sorted(path for path in untracked_paths if path):
         path = encoded_path.decode("utf-8")
-        content = (root / path).read_bytes()
+        file_path = root / path
+        mode = file_path.lstat().st_mode
+        if stat.S_ISLNK(mode):
+            target = os.readlink(file_path).encode("utf-8", "surrogateescape")
+            content = (
+                b"L\0"
+                + str(len(target)).encode("ascii")
+                + b"\0"
+                + target
+            )
+        else:
+            content = file_path.read_bytes()
         records.extend(encoded_path)
         records.extend(b"\0")
         records.extend(str(len(content)).encode("ascii"))

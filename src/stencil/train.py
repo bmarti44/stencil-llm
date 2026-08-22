@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -186,6 +187,7 @@ def _environment(identity: GitIdentity) -> dict[str, object]:
         "git_diff_sha256": identity.git_diff_sha256,
         "untracked_sha256": identity.untracked_sha256,
         "dirty": identity.dirty,
+        "CUBLAS_WORKSPACE_CONFIG": os.environ["CUBLAS_WORKSPACE_CONFIG"],
         "torch_version": torch.__version__,
         "gpu_name": gpu_name,
         "driver": driver,
