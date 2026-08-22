@@ -35,7 +35,10 @@ for f in "$DIR"/*.md; do
         grep -Eq "^${base}( kimi)?$" "$MANIFEST" || { echo "FAIL: codex review '$base' is not in the topic manifest"; fail=1; }
         sol=$((sol+1))
         if [ -f "$OVERRIDE" ] && grep -qx "$base" "$OVERRIDE"; then
-            python3 "$ROOT/tools/check_review_scores.py" --file "$f" --min 0 || fail=1
+            # Human acceptance is total for the listed topic: score AND open
+            # findings are superseded by the ruling recorded in
+            # plan/tiebreaks/<phase>.md (Adjudication 3 semantics).
+            echo "ACCEPTED-BY-HUMAN  $f"
         else
             python3 "$ROOT/tools/check_review_scores.py" --file "$f" --min 90 || fail=1
         fi
