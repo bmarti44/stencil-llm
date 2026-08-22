@@ -14,6 +14,13 @@ from datetime import datetime, timezone
 def main():
     if len(sys.argv) != 3:
         print(__doc__, file=sys.stderr); return 2
+    import subprocess
+    dirty = subprocess.run(["git", "status", "--porcelain", "--", sys.argv[1]],
+                           capture_output=True, text=True).stdout.strip()
+    if dirty:
+        print(f"ERROR: {sys.argv[1]} is not committed clean; commit the prompt "
+              "BEFORE running the tie-break (auditability rule)", file=sys.stderr)
+        return 3
     prompt = open(sys.argv[1], encoding="utf-8").read()
     body = {"model": os.environ.get("KIMI_MODEL", "kimi-k3:cloud"),
             "prompt": prompt, "stream": False, "think": True}

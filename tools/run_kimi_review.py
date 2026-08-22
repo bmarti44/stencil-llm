@@ -125,7 +125,9 @@ def main() -> int:
 
     review_file = root / "docs" / "reviews" / phase / f"{topic}-kimi.md"
     prompt_file = root / "tools" / "codex-prompts" / f"review-{topic}.md"
-    if not prompt_file.exists() and (topic.startswith("phase") or topic in ("tradeoff", "report")):
+    # Coverage backstop (PLAN 2b, v1.15): kimi ALWAYS reviews phase-style
+    # topics through the generic lens, regardless of bespoke sol fragments.
+    if topic.startswith("phase") or topic in ("tradeoff", "report"):
         prompt_file = root / "tools" / "codex-prompts" / "review-phase.md"
     header = root / "tools" / "codex-prompts" / "_common-header.md"
     for f in (prompt_file, header):

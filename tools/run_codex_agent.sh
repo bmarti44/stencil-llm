@@ -47,6 +47,13 @@ for h in "Objective" "Allowlist" "Tests first" "Acceptance" "Ledger handoff"; do
         echo "ERROR: brief $BRIEF missing required section: $h" >&2
         exit 2
     fi
+    # Section must have non-empty body content (v1.15).
+    if ! awk -v h="$h" 'BEGIN{IGNORECASE=1; insec=0}
+        /^#+/{ if (insec) exit; if ($0 ~ h) insec=1; next }
+        insec && NF { found=1; exit } END{ exit !found }' "$BRIEF"; then
+        echo "ERROR: brief $BRIEF section \"$h\" is empty" >&2
+        exit 2
+    fi
 done
 
 LOG="/tmp/codex-agent-${AGENT}.log"

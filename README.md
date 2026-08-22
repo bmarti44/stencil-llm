@@ -55,7 +55,7 @@ Anyone who has used an AI assistant on a long job has watched it lose the thread
 | Phase 6 | scale up, confirm no harm | G6 | not started |
 | Phase 7 | write the report, decide what is next | REPORT.md | not started |
 
-Every green gate flips its row in this table in the same commit, per PLAN.md rule 5.
+Rows update on every state change per PLAN.md rule 5: entering a phase flips its row to in progress; gate results record as `green[+qualifications]`, red, or killed; Phase 5/7 rows flip on their reviewed-artifact commits.
 
 ## What this does not show
 
