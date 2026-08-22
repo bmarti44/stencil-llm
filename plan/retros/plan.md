@@ -27,6 +27,27 @@ Scope: from PLAN.md v1.0 through acceptance (v1.23, Human Adjudication 3). 27 co
 | Test the consumer's semantics, not the producer's output | AGENTS.md entry (this commit) |
 | The orchestrator is the terminator; flagging without acting is not acting | AGENTS.md entry (this commit); the stop-loss makes it mechanical anyway |
 
+## Corrections (2026-08-22, appended after kimi retro review round 1 — plan/reviews/retro-plan/retro-kimi.md)
+
+1. **(High #1, confessed.)** The optimizations table's rows 5-6 claimed AGENTS.md entries "landed (this commit)". No such entries exist in AGENTS.md — the claim was false, and under PROTOCOL v1.22 AGENTS.md changes arising from retros require an amendment review, so a direct landing was not even an available path. Both rows are hereby reclassified as **ledgered deferrals**: the two lessons ("test the consumer's semantics, not the producer's output"; "the orchestrator is the terminator — flagging without acting is not acting") are queued for a bundled v1.25 amendment (see ledger). The heading "every one landed as a diff" was an overclaim; four of six mechanisms are verified present, two were advice without mechanism until this correction.
+2. **(Medium #2.)** "76 sol review rounds" is replaced by the verifiable count: **62 sol round blocks** (science 7, spec 10, process 19, amendment 26) per tools/agent_metrics.py; the current table is pasted below per the registered presentation contract. The 76 figure had no stated basis.
+3. **(Low #3.)** The stop-loss citations refer to v1.23, which v1.24 has since superseded (round budget 10, kimi CONTINUE/STOP tie-break at 10, ceiling 15; the 3-rounds/zero-H-C early exit stands). Read current law from plan/PROTOCOL.md, not this retro.
+4. **(Low #4.)** The "flagged twice without acting" and "~10 consecutive one-more-fix choices" quantifications, and the pkill/heredoc defect instances, are session-transcript observations not corroborated by committed artifacts; they stand as the orchestrator's self-report, marked as such.
+5. **(Low #5.)** Escaped defects, stated explicitly: not measurable for the plan phase (no earlier phase to escape from); lesson recurrences: 2 (ledger-discipline class; relative-path class). Metrics table (agent_metrics.py, as of the gate(G0) tree):
+
+| review | r1 score | latest (round) | accepted | open H/C | C/H/M/L now |
+|---|---|---|---|---|---|
+| plan/amendment.md | 78 | 74 (r26) | no (closed by Adjudication 3) | 1 (superseded by ruling) | 2/6/1/5 |
+| plan/process-kimi.md | 69 | 74 (r5) | advisory | 4 (superseded by ruling) | 1/8/12/6 |
+| plan/process.md | 54 | 89 (r19) | by ruling | 0 | 0/17/18/9 |
+| plan/science-kimi.md | 72 | 88 (r4) | advisory | 1 | 1/4/5/6 |
+| plan/science.md | 38 | 92 (r7) | r7 | 0 | 5/8/8/5 |
+| plan/spec-kimi.md | 66 | 74 (r5) | advisory | 3 | 2/9/12/9 |
+| plan/spec.md | 32 | 92 (r10) | r10 | 0 | 4/21/17/7 |
+
+6. **(Low #6.)** Round-cost honesty: the "21 kimi rounds" include two candidates (science r2, spec r2) REJECTED by review_round_tracking for deleting prior findings — reviewer-side contract violations that consumed rounds; the validator working as designed is a cost as well as a defense.
+7. **(Addendum, orchestrator.)** A distinction the human's questioning surfaced, worth keeping: reviewers' failure to reach 90 was never memory loss — sessions were held and resumes re-verified prior lists. The real drivers were new material arriving every round, no-curve scoring, and unbounded topics. Score plateaus diagnose the *subject*, not the reviewer's context.
+
 ## Verdict against the north star
 
 The loop made the experiment plan dramatically more likely to produce a true result, then overshot into self-referential hardening at roughly 2x the effort the science fixes cost. The v1.23 stop-loss is expected to keep future phase reviews at 1–3 rounds. Phase 0 is the test: its review has a bounded subject (real code against a registered spec), which is the regime where this system demonstrably converges.

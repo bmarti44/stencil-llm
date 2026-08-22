@@ -23,6 +23,14 @@ Scope: Phase 0 launch through gate(G0) commit `cadd715`. Two coder runs (scaffol
 | Brief handoffs must ask for residual choices, not just ambiguities | Landed in the Phase 1 brief template (this commit): handoff section requires "residual choices exercised (v1.10)" alongside conservative readings. Briefs are per-phase working files, not governed fragments. |
 | Sol round-2 low (loss-anchor doesn't prove optimizer stepped) | Carried forward: Phase 1/2 test suites use state_dict-vs-init comparison as the non-vacuity anchor. Recorded here and in the gate ledger entry. |
 
+## Corrections (2026-08-22, appended after kimi retro review round 1 — plan/reviews/retro-phase0/retro-kimi.md, 80/PASS advisory)
+
+1. **(Medium #1.)** Optimization row 2's "Landed in the Phase 1 brief template (this commit)" was wrong at commit time — no Phase 1 brief existed yet. The true disposition is the third registered form: a **ledgered forward binding** (the STATE line requires the phase1-generators.md handoff section to demand residual choices exercised). Relabeled as such; the binding discharges when that brief lands.
+2. **(Medium #2, decision.)** The deferral trigger for mechanizing review-launch write-aheads was already met project-wide (plan-phase round 5 launched with no write-ahead; Phase 0 round 1 launched with an incomplete one). Decision, explicit and not resting on recurrence arithmetic: **mechanize** — run_codex_review.sh will auto-append its write-ahead (command, log path, canonical artifact, session) the way run_codex_agent.sh appends provenance. Tooling change, amendment-gated: queued for the bundled v1.25 amendment (see ledger) together with the AGENTS.md items.
+3. **(Low #3.)** The "~35 minutes" wall clock is a session observation, not verifiable from committed artifacts (logs are gitignored, ledger entries carry no timestamps); it stands as self-report, marked as such.
+4. **(Low #4.)** Went-poorly omission repaired: a third orchestrator process slip belongs on the record — the governed README Phase 0 row still said "not started" after launch (rule 5 trigger missed), caught only by both reviewers (sol#3/kimi#3) and fixed in the round-1 commit. Same discipline class as item 1; further weight behind the mechanization decision above.
+5. **(Low #5.)** AGENTS.md's retrospective-log pointer ("none yet") went stale when the retros landed; pointer update queued into v1.25 (AGENTS.md is amendment-gated).
+
 ## Verdict against the north star
 
 This is what the system was built to do: autonomous coder → adversarial convergent review → verified fix → mechanical acceptance → gate, in ~35 minutes with one round-trip and no human in the loop. The plan phase bought this; Phase 0 is the first repayment. Watch item: keep review budgets honest under v1.24 (10 rounds, kimi CONTINUE/STOP at 10, ceiling 15) — Phase 0 never came close.
