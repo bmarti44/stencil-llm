@@ -42,8 +42,8 @@ def main():
         review_lines = set(l.strip() for l in open(sys.argv[3], encoding="utf-8").read().splitlines() if l.strip())
         quoted = [l[2:].strip() for l in prompt.splitlines()
                   if l.startswith("> ") and not l[2:].lstrip().startswith("#")]
-        if len(quoted) < 3:
-            print("ERROR: at least 3 non-heading verbatim '> ' quotes from the review file are required", file=sys.stderr)
+        if not quoted or sum(len(q) for q in quoted) < 200:
+            print("ERROR: at least 200 characters of non-heading verbatim '> ' quotes from the review file are required", file=sys.stderr)
             return 3
         fake = [q for q in quoted if q not in review_lines]
         if fake:
