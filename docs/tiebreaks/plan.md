@@ -85,3 +85,10 @@ Applied to the bootstrap phase, the unqualified rule deadlocks: reviewers review
 ---
 
 **Promotion status:** Both named blockers are closed by binding refutation. The score cap's basis is removed; the orchestrator may proceed under Section 2b with the ledger updated to record these two rulings.
+
+# Human adjudication 2 — 2026-08-22 (batch-3 dispute)
+
+Sol's process round 13 disputed both batch-3 refutations. The human ruled: PARTIAL CONCESSION.
+- Conceded, with credit to the reviewer: (1) finding #38's demonstrated failure class — tie-break artifacts moved to docs/tiebreaks/, and check_acceptance.sh now validates the exact registered artifact layout (frontmatter-declared reviewer identity; unexpected files are violations, not skips). (2) The batch-3 deadlock premise on sequencing was FALSE — review-amendment.md reviews a draft or working-tree diff, so pre-commit amendment review was always operationally possible. Pre-commit amendment review is binding from this ruling forward, mechanism: working-tree diff review before the amendment commit lands.
+- Declined: re-litigation of the already-run initial loop (its substance was reviewed round-by-round; no unreviewed amendment reached accepted status), and the full atomic evidence-parsing transaction beyond the exact-artifact validation now implemented.
+This adjudication is final. Process findings #17/#22 close as (resolved 2026-08-22: partial concession implemented — exact-artifact acceptance validation + binding pre-commit amendment review) rather than refuted, reflecting that the reviewer was substantially right.
