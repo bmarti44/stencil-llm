@@ -102,6 +102,11 @@ resolve_safe_dir() {
     esac
 }
 
+MIN_T=90; case "$TOPIC" in retro*|*-retro) MIN_T=75 ;; esac
+if [ "$THRESHOLD" -lt "$MIN_T" ] 2>/dev/null; then
+    echo "ERROR: threshold $THRESHOLD below the registered floor $MIN_T for topic $TOPIC" >&2
+    exit 2
+fi
 validate_slug "phase" "$PHASE"
 validate_slug "topic" "$TOPIC"
 REVIEW_DIR="$(resolve_safe_dir "REVIEW_DIR" "$REVIEW_DIR" "docs/reviews")"

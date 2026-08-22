@@ -19,7 +19,7 @@ SCORE_RE = re.compile(r"^\*\*Score:\*\*\s*(\d{1,3})\s*/\s*100\s*$", re.MULTILINE
 # An open high/critical finding: numbered entry in ## Findings whose first line
 # declares severity Critical or High and carries no (resolved ...) / (refuted ...)
 # closure marker authored by a reviewer round.
-OPEN_HC_RE = re.compile(r"^\d+\.\s+\*\*(?:Critical|High)\b(?![^\n]*\((?:resolved|refuted))", re.MULTILINE | re.IGNORECASE)
+OPEN_HC_RE = re.compile(r"^\d+\.\s+\*\*(?:Critical|High)\b(?![^\n]*\((?:resolved|refuted)\s+20\d\d-\d\d-\d\d:)", re.MULTILINE | re.IGNORECASE)
 
 
 VERDICT_RE = re.compile(r"^\*\*Verdict:\*\*\s*(PASS|CONDITIONAL PASS|CONDITIONAL|FAIL)\b", re.MULTILINE | re.IGNORECASE)

@@ -101,6 +101,10 @@ def main() -> int:
             print(f"ERROR: invalid {label}: must match [a-z0-9-]+", file=sys.stderr)
             return 2
     threshold = int(threshold_s)
+    floor = 75 if "retro" in topic else 90
+    if threshold < floor:
+        print(f"ERROR: threshold {threshold} below registered floor {floor} for topic {topic}", file=sys.stderr)
+        return 2
     if not 0 <= threshold <= 100:
         print("ERROR: threshold must be 0-100", file=sys.stderr)
         return 2
@@ -117,6 +121,8 @@ def main() -> int:
 
     review_file = root / "docs" / "reviews" / phase / f"{topic}-kimi.md"
     prompt_file = root / "tools" / "codex-prompts" / f"review-{topic}.md"
+    if not prompt_file.exists() and (topic.startswith("phase") or topic in ("tradeoff", "report")):
+        prompt_file = root / "tools" / "codex-prompts" / "review-phase.md"
     header = root / "tools" / "codex-prompts" / "_common-header.md"
     for f in (prompt_file, header):
         if not f.exists():
