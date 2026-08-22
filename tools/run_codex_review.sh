@@ -119,6 +119,11 @@ PROMPTS_DIR="$(resolve_safe_dir "PROMPTS_DIR" "$PROMPTS_DIR" "tools/codex-prompt
 # every codex round to "succeed" (exit 0) without materialising a review
 # file, wasting GPU time. Fixed 2026-05-15.
 REVIEW_FILE="${REVIEW_DIR}/${PHASE}/${TOPIC}.md"
+TOPICS_MANIFEST="${REVIEW_DIR}/${PHASE}/topics.txt"
+if [ -f "$TOPICS_MANIFEST" ] && ! grep -Eq "^${TOPIC}( kimi)?$" "$TOPICS_MANIFEST"; then
+    echo "ERROR: topic '$TOPIC' is not in $TOPICS_MANIFEST (register it in the write-ahead entry first)" >&2
+    exit 2
+fi
 PROMPT_FILE="${PROMPTS_DIR}/review-${TOPIC}.md"
 # Routing fallback (PLAN 2b cadence): phase-style topics without a specific
 # fragment use the generic per-phase rubric.

@@ -59,6 +59,7 @@ def find_root() -> Path:
 
 def build_context(root: Path, review_file: Path, max_bytes: int) -> str:
     parts, total = [], 0
+    included, skipped = [], []
     seen = set()
     for pattern in CONTEXT_GLOBS:
         for p in sorted(root.glob(pattern)):
@@ -73,10 +74,31 @@ def build_context(root: Path, review_file: Path, max_bytes: int) -> str:
             block = f"\n\n===== FILE: {rel} =====\n{text}"
             if total + len(block) > max_bytes:
                 parts.append(f"\n\n===== SKIPPED (cap): {rel} ({len(text)} bytes) =====")
+                skipped.append(str(rel))
                 continue
             parts.append(block)
+            included.append(str(rel))
             total += len(block)
-    return "".join(parts)
+    art = review_file.parent / "artifacts.txt"
+    art_lines = ""
+    if art.exists():
+        rows = []
+        for a in art.read_text().splitlines():
+            a = a.strip()
+            if a:
+                fp = root / a
+                if fp.exists():
+                    import hashlib as _hl
+                    d = fp.read_bytes()
+                    rows.append(f"{a}: PRESENT ({len(d)} bytes, sha256 {_hl.sha256(d).hexdigest()[:16]})")
+                else:
+                    rows.append(f"{a}: ABSENT")
+        art_lines = "required gate artifacts: " + "; ".join(rows) + "\n"
+    manifest = ("\n===== CONTEXT MANIFEST =====\n" + art_lines +
+                f"included ({len(included)}): " + ", ".join(included) + "\n"
+                f"skipped-by-cap ({len(skipped)}): " + (", ".join(skipped) or "none") + "\n"
+                "not-representable: binary artifacts (figures, npz) — reviewed by sol only\n")
+    return manifest + "".join(parts)
 
 
 def call_ollama(host: str, model: str, prompt: str, timeout_sec: int) -> str:
@@ -124,6 +146,12 @@ def main() -> int:
     ctx_max = int(os.environ.get("KIMI_CONTEXT_MAX", "400000"))
 
     review_file = root / "plan" / "reviews" / phase / f"{topic}-kimi.md"
+    manifest = root / "plan" / "reviews" / phase / "topics.txt"
+    if manifest.exists():
+        listed = {ln.split()[0] for ln in manifest.read_text().splitlines() if ln.strip()}
+        if topic not in listed:
+            print(f"ERROR: topic '{topic}' not in {manifest}", file=sys.stderr)
+            return 2
     prompt_file = root / "tools" / "codex-prompts" / f"review-{topic}.md"
     # Coverage backstop (PLAN 2b, v1.15): kimi ALWAYS reviews phase-style
     # topics through the generic lens, regardless of bespoke sol fragments.

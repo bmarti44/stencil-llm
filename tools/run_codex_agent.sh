@@ -7,7 +7,7 @@
 # Reads tools/codex-agents/<agent-name>.md as the agent's brief. Codex runs
 # with sandbox bypass (the host blocks unprivileged user namespaces, so
 # bubblewrap fails) and gpt-5.6-sol at medium reasoning effort (override via
-# CODEX_MODEL / CODEX_EFFORT). Streams output to /tmp/codex-agent-<name>.log.
+# CODEX_MODEL / CODEX_EFFORT + OVERRIDE_REASON). Log: results/logs/codex-agent-<name>.log.
 #
 # The agent is expected to:
 #   1. Read the brief.
@@ -83,7 +83,7 @@ marker = "### Ledger\n\n"
 open(p, "w").write(s.replace(marker, marker + entry, 1) if marker in s else s + entry)
 PYLED
 }
-trap 'FINAL_EC=$?; provenance' EXIT
+trap 'FINAL_EC=$?; if ! provenance; then echo "ERROR: provenance append failed" >&2; exit 8; fi' EXIT
 
 mkdir -p "$ROOT/results/logs"
 LOG="$ROOT/results/logs/codex-agent-${AGENT}.log"
@@ -92,6 +92,14 @@ if { [ -n "${CODEX_MODEL:-}" ] || [ -n "${CODEX_EFFORT:-}" ]; } && [ -z "${OVERR
     echo "ERROR: CODEX_MODEL/CODEX_EFFORT override without OVERRIDE_REASON" >&2
     exit 2
 fi
+# Pre-launch dirty-state manifest (v1.22 final): the scope scan must judge
+# only CODER-authored changes. Orchestrator state dirty before launch (e.g.
+# the required write-ahead ledger entry) is baseline, not violation.
+PRE_MANIFEST="$(mktemp)"
+(cd "$ROOT" && { git diff --name-only HEAD --; git ls-files --others --exclude-standard; } | sort -u | while IFS= read -r p; do
+    [ -f "$ROOT/$p" ] && printf '%s %s\n' "$(sha256sum "$ROOT/$p" | cut -d' ' -f1)" "$p"
+done) > "$PRE_MANIFEST"
+
 echo "[$(date -u +%H:%M:%S)] codex agent ${AGENT} starting (timeout ${TIMEOUT}s)" >&2
 
 cat "$BRIEF" | timeout "$TIMEOUT" \
@@ -117,7 +125,15 @@ if [ -f "$ALLOW" ]; then
     viol=0
     while IFS= read -r path; do
         [ -z "$path" ] && continue
-        case "$path" in plan/LEDGER.md|results/logs/*) continue ;; esac
+        # Exempt the wrapper's own log, and any path whose content is
+        # byte-identical to the pre-launch manifest (orchestrator baseline
+        # state — e.g. the required write-ahead ledger entry). Everything
+        # the CODER changed faces the allowlist (v1.22 final).
+        [ "$ROOT/$path" = "$LOG" ] && continue
+        if [ -f "$ROOT/$path" ]; then
+            cur="$(sha256sum "$ROOT/$path" | cut -d' ' -f1)"
+            grep -qF "$cur $path" "$PRE_MANIFEST" && continue
+        fi
         ok=0
         while IFS= read -r pat; do
             [ -z "$pat" ] && continue
