@@ -1,0 +1,29 @@
+[project]
+name = "stencil"
+version = "0.1.0"
+description = "Deterministic experiments for the Stencil research plan"
+requires-python = ">=3.11"
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "pytest",
+    "ruff",
+    "torch",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers"
+markers = ["determinism: bitwise determinism checks"]
+pythonpath = ["src"]
+
+[tool.ruff]
+extend-exclude = ["tools"]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
