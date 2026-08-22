@@ -320,6 +320,14 @@ echo "$PROMPT" | timeout "$CODEX_TIMEOUT_SEC" \
         fi
         if [ "$ec" != "0" ]; then
         echo "ERROR: codex exec failed with exit $ec; see $CODEX_LOG" >&2
+        # v1.10: restore pre-codex dirty content on the failure path too —
+        # previously a failed run exited with unrestored drift.
+        while IFS= read -r path; do
+            [ -z "$path" ] && continue
+            if [ -f "$WRAPPER_PRE_DIR/$path" ]; then
+                cp "$WRAPPER_PRE_DIR/$path" "$ROOT/$path"
+            fi
+        done < <(cd "$ROOT" && { git diff --name-only HEAD --; git ls-files --others --exclude-standard; } | sort -u)
         rm -f "$REVIEW_DIFF_BASELINE"
         rm -rf "$WRAPPER_PRE_DIR"
         exit "$ec"

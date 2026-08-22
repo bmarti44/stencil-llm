@@ -113,6 +113,22 @@ def validate(prior_text: str, candidate_text: str, *, round_number: int) -> dict
     # Prior high/critical findings may be closed but never vanish: every
     # numbered Critical/High entry in the prior ## Findings must appear with
     # the same number (open or resolved/refuted) in the candidate.
+    def _hc_titles(text: str) -> dict[str, str]:
+        m = re.search(r"^## Findings\s*$(.*?)(?=^## |\Z)", text, re.MULTILINE | re.DOTALL)
+        if not m:
+            return {}
+        out = {}
+        for num, rest in re.findall(r"^(\d+)\.\s+\*\*(?:Critical|High)\b[^\n]*?—\s*([^.\n]{10,80})", m.group(1), re.MULTILINE | re.IGNORECASE):
+            out[num] = rest.strip()
+        return out
+    prior_titles = _hc_titles(prior_text)
+    cand_body = candidate_text
+    for num, title in prior_titles.items():
+        if title[:40] not in cand_body:
+            findings.append(
+                f"prior high/critical finding {num}'s title text was replaced ('{title[:40]}...'); "
+                "titles are immutable — close findings with markers, never rewrite them"
+            )
     def _hc_numbers(text: str) -> set[str]:
         m = re.search(r"^## Findings\s*$(.*?)(?=^## |\Z)", text, re.MULTILINE | re.DOTALL)
         if not m:
