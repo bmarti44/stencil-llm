@@ -46,7 +46,7 @@ Anyone who has used an AI assistant on a long job has watched it lose the thread
 
 | stage | plain meaning | gate | status |
 |---|---|---|---|
-| Phase 0 | build the lab bench, prove reruns are identical | G0 | not started |
+| Phase 0 | build the lab bench, prove reruns are identical | G0 | in progress |
 | Phase 1 | build the puzzle generators, prove them exact | G1 | not started |
 | Phase 2 | build the models, prove the doorless room and the inert wire | G2 | not started |
 | Phase 3 | the main event, the wire crosses where nothing else can | G3 | not started |
