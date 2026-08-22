@@ -143,11 +143,17 @@ def main() -> int:
         "2. Your only output is the entire updated review markdown, starting with the "
         f"`# {topic.title()} Review (kimi) — {phase}` header line and ending with the "
         "Evidence section. No preamble, no code fences around the document.\n"
-        "3. You are the SECOND, independent reviewer; a sol (codex) review of the same "
+        "3. ROUND CONTRACT, mechanically enforced — violations are rejected: never "
+        "delete a prior finding; a prior Critical/High finding keeps its number and "
+        "is closed only by marking its first line with (resolved DATE: how) or "
+        "(refuted DATE: why). Your new round block MUST contain the three bullets "
+        "`- Score:` (with delta), `- Addressed since prior round:`, and "
+        "`- New or remaining:`. Preserve every prior round block.\n"
+        "4. You are the SECOND, independent reviewer; a sol (codex) review of the same "
         "material may appear in the context. Do not defer to it: your value is finding "
         "what it missed and disputing what it got wrong. Explicitly list any sol "
         "findings you believe are wrong, with reasons.\n"
-        f"4. Round number: Round {round_n}. Threshold: {threshold} / 100. "
+        f"5. Round number: Round {round_n}. Threshold: {threshold} / 100. "
         f"Reviewer model: kimi/{model}. Date: {today}.\n\n---\n\n",
         header.read_text(encoding="utf-8"),
         "\n\n---\n\n## TOPIC RUBRIC\n\n",

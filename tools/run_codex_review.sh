@@ -115,6 +115,13 @@ PROMPTS_DIR="$(resolve_safe_dir "PROMPTS_DIR" "$PROMPTS_DIR" "tools/codex-prompt
 # file, wasting GPU time. Fixed 2026-05-15.
 REVIEW_FILE="${REVIEW_DIR}/${PHASE}/${TOPIC}.md"
 PROMPT_FILE="${PROMPTS_DIR}/review-${TOPIC}.md"
+# Routing fallback (PLAN 2b cadence): phase-style topics without a specific
+# fragment use the generic per-phase rubric.
+if [ ! -f "$PROMPT_FILE" ]; then
+    case "$TOPIC" in
+        phase*|tradeoff|report) PROMPT_FILE="${PROMPTS_DIR}/review-phase.md" ;;
+    esac
+fi
 COMMON_HEADER="${PROMPTS_DIR}/_common-header.md"
 
 if [ ! -f "$PROMPT_FILE" ]; then

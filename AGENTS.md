@@ -26,6 +26,14 @@ short, imperative, and evidence-linked; prune entries that stop paying rent.
 - When a spec is ambiguous, take the most conservative reading, record the
   choice in the PLAN.md ledger, and flag it for the next review round.
 
+- Background or queued shell commands must use absolute paths — the shell's
+  working directory is not guaranteed between commands (a relative-path launch
+  silently no-opped a whole review round on 2026-08-22).
+- Reviewers: never delete a prior finding — close it with (resolved/refuted)
+  markers; the validator rejects candidates that drop high/critical numbers.
+- A practical threshold grades magnitude; it can never decide whether evidence
+  exists. Existence questions get a registered statistical test.
+
 ## Retrospective log pointers
 
 (none yet — first entry lands at the end of Phase 0; full retros live in

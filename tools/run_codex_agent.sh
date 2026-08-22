@@ -58,4 +58,24 @@ ec=$?
 echo "[$(date -u +%H:%M:%S)] codex agent ${AGENT} exited with $ec; log: $LOG" >&2
 echo "--- post-run repo diff (audit against the brief's scope) ---" >&2
 (cd "$ROOT" && git status --porcelain=v1) >&2
+# Scope enforcement (PLAN 2b): if the brief ships an allowlist of glob
+# patterns (one per line) at tools/codex-agents/<name>.allow, any dirty
+# path not matching a pattern is a hard failure.
+ALLOW="$ROOT/tools/codex-agents/${AGENT}.allow"
+if [ -f "$ALLOW" ]; then
+    viol=0
+    while IFS= read -r path; do
+        [ -z "$path" ] && continue
+        ok=0
+        while IFS= read -r pat; do
+            [ -z "$pat" ] && continue
+            case "$path" in $pat) ok=1; break ;; esac
+        done < "$ALLOW"
+        if [ "$ok" = "0" ]; then
+            echo "SCOPE VIOLATION: $path not covered by ${AGENT}.allow" >&2
+            viol=1
+        fi
+    done < <(cd "$ROOT" && { git diff --name-only HEAD --; git ls-files --others --exclude-standard; } | sort -u)
+    if [ "$viol" = "1" ]; then exit 7; fi
+fi
 exit $ec
