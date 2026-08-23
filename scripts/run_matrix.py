@@ -186,7 +186,9 @@ def filter_cells(cells: Sequence[MatrixCell], only: str | None) -> list[MatrixCe
     return selected
 
 
-def _subprocess_launcher(root: Path, allow_dirty: bool) -> Launcher:
+def _subprocess_launcher(
+    root: Path, allow_dirty: bool, use_compiled_scan: bool
+) -> Launcher:
     def launch(cell: MatrixCell, run_dir: Path, timeout: float) -> None:
         if cell.config is None:
             raise ValueError("matrix cell has no config")
@@ -195,6 +197,8 @@ def _subprocess_launcher(root: Path, allow_dirty: bool) -> Launcher:
         command = [sys.executable, "-m", "stencil.train", str(config_path)]
         if allow_dirty:
             command.append("--allow-dirty")
+        if use_compiled_scan:
+            command.append("--compiled-scan")
         try:
             subprocess.run(command, cwd=root, check=True, timeout=timeout)
         finally:
@@ -213,6 +217,7 @@ def main() -> None:
         "--jobs", type=int, default=1, help="maximum concurrent run processes"
     )
     parser.add_argument("--allow-dirty", action="store_true")
+    parser.add_argument("--compiled-scan", action="store_true")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     identity = git_identity(root)
@@ -222,7 +227,7 @@ def main() -> None:
     summary = execute_pending(
         cells,
         root / "results",
-        _subprocess_launcher(root, args.allow_dirty),
+        _subprocess_launcher(root, args.allow_dirty, args.compiled_scan),
         timeout=args.timeout,
         jobs=args.jobs,
     )

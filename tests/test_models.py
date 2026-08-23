@@ -322,6 +322,99 @@ def test_scan_equals_sequential() -> None:
     assert cases == 3
 
 
+def test_compiled_scan_equals_oracle() -> None:
+    """Compiled oscillator/decay scans match the registered sequential cases."""
+    inputs = _draw(0, "fixtures:input", (4, 512, 64), dtype=torch.float32)
+
+    oscillator = OscillatorCell(
+        64,
+        64,
+        8,
+        4096,
+        True,
+        generator=named_generator(0, "fixtures:b"),
+    )
+    compiled_y, compiled_z = oscillator(inputs, use_compiled_scan=True)
+    sequential_y, sequential_z = oscillator(inputs, use_scan=False)
+    torch.testing.assert_close(compiled_y, sequential_y, rtol=1e-5, atol=1e-8)
+    torch.testing.assert_close(compiled_z, sequential_z, rtol=1e-5, atol=1e-8)
+
+    decay = DecayCell(64, 64, generator=named_generator(0, "fixtures:b"))
+    compiled_states = decay(inputs, use_compiled_scan=True)
+    sequential_states = decay(inputs, use_scan=False)
+    torch.testing.assert_close(
+        compiled_states, sequential_states, rtol=1e-5, atol=1e-8
+    )
+
+
+def test_compiled_scan_deterministic() -> None:
+    """Two in-process compiled scan invocations are bitwise identical."""
+    inputs = _draw(0, "fixtures:input", (4, 512, 64), dtype=torch.float32)
+    oscillator = OscillatorCell(
+        64,
+        64,
+        8,
+        4096,
+        True,
+        generator=named_generator(0, "fixtures:b"),
+    )
+    first_y, first_z = oscillator(inputs, use_compiled_scan=True)
+    second_y, second_z = oscillator(inputs, use_compiled_scan=True)
+    assert torch.equal(first_y, second_y)
+    assert torch.equal(first_z, second_z)
+
+    decay = DecayCell(64, 64, generator=named_generator(0, "fixtures:b"))
+    first_states = decay(inputs, use_compiled_scan=True)
+    second_states = decay(inputs, use_compiled_scan=True)
+    assert torch.equal(first_states, second_states)
+
+    assert torch._inductor.config.deterministic is True
+    assert torch._inductor.config.max_autotune is False
+    assert torch._inductor.config.coordinate_descent_tuning is False
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA graph requires CUDA")
+def test_compiled_scan_cuda_graph_capture() -> None:
+    """A warmed compiled scan and its backward are capturable and replayable."""
+    device = torch.device("cuda")
+    cell = OscillatorCell(
+        2,
+        2,
+        8,
+        64,
+        True,
+        generator=named_generator(0, "fixtures:b"),
+        use_compiled_scan=True,
+    ).to(device)
+    inputs = _draw(0, "fixtures:input", (1, 8, 2), dtype=torch.float32).to(device)
+    capture_stream = torch.cuda.Stream(device=device)
+    capture_stream.wait_stream(torch.cuda.current_stream(device))
+    with torch.cuda.stream(capture_stream):
+        for _ in range(3):
+            cell.zero_grad(set_to_none=True)
+            warm_y, warm_z = cell(inputs)
+            (warm_y.sum() + warm_z.sum()).backward()
+    torch.cuda.current_stream(device).wait_stream(capture_stream)
+    del warm_y, warm_z
+
+    cell.zero_grad(set_to_none=False)
+    graph = torch.cuda.CUDAGraph()
+    torch.autograd.graph.set_override_stale_capture_stream(True)
+    try:
+        with torch.cuda.graph(graph, stream=capture_stream):
+            captured_y, captured_z = cell(inputs)
+            (captured_y.sum() + captured_z.sum()).backward()
+    finally:
+        torch.autograd.graph.set_override_stale_capture_stream(False)
+
+    graph.replay()
+    first_y = captured_y.clone()
+    first_z = captured_z.clone()
+    graph.replay()
+    assert torch.equal(first_y, captured_y)
+    assert torch.equal(first_z, captured_z)
+
+
 def test_banded_equals_masked_attention() -> None:
     """Run 8 fp32 equality cases: B0-local/B1/M1/B4 at batch 4 and
     lengths 512/2051 on nonzero N(0,1) ``fixtures:input`` seed-0 inputs.

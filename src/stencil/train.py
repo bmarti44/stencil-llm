@@ -15,6 +15,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+os.environ["TORCHINDUCTOR_DETERMINISTIC"] = "1"
+
 from stencil import determinism as _determinism  # noqa: F401
 
 import torch
@@ -293,6 +295,7 @@ def train_model(
     on_step: Callable[[int, float, float], None] | None = None,
     use_cuda_graph: bool = False,
     use_prefetch: bool = True,
+    use_compiled_scan: bool = False,
 ) -> tuple[StencilTransformer, list[float]]:
     """Train one real variant using fresh generator data at every step."""
     if config.task not in {"a", "b", "m"}:
@@ -302,7 +305,9 @@ def train_model(
     if config.steps < 1 or config.batch < 1:
         raise ValueError("steps and batch must be positive")
     execution_device = _training_device(device)
-    model = StencilTransformer(config).to(device=execution_device, dtype=torch.float32)
+    model = StencilTransformer(
+        config, use_compiled_scan=use_compiled_scan
+    ).to(device=execution_device, dtype=torch.float32)
     stream = generate(config)
     # AdamW itself has no draws; instantiation still pins the registered stream.
     named_generator(config.seed_train, "train")
@@ -371,9 +376,15 @@ def train_model_losses(
     *,
     device: str | torch.device | None = None,
     use_prefetch: bool = True,
+    use_compiled_scan: bool = False,
 ) -> list[float]:
     """Convenience surface for the full-model determinism contract."""
-    model, losses = train_model(config, device=device, use_prefetch=use_prefetch)
+    model, losses = train_model(
+        config,
+        device=device,
+        use_prefetch=use_prefetch,
+        use_compiled_scan=use_compiled_scan,
+    )
     del model
     return losses
 
@@ -438,6 +449,7 @@ def run(
     allow_dirty: bool = False,
     use_cuda_graph: bool = False,
     use_prefetch: bool = True,
+    use_compiled_scan: bool = False,
 ) -> Path:
     root = Path(repo).resolve()
     identity = git_identity(root)
@@ -471,6 +483,7 @@ def run(
             on_step=record,
             use_cuda_graph=use_cuda_graph,
             use_prefetch=use_prefetch,
+            use_compiled_scan=use_compiled_scan,
         )
     if config.variant in {"m1", "m1b"}:
         assert_stable(model)
@@ -536,6 +549,7 @@ def main() -> None:
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--allow-dirty", action="store_true")
     parser.add_argument("--cuda-graph", action="store_true")
+    parser.add_argument("--compiled-scan", action="store_true")
     parser.add_argument(
         "--no-prefetch", action="store_false", dest="use_prefetch", default=True
     )
@@ -548,6 +562,7 @@ def main() -> None:
             allow_dirty=args.allow_dirty,
             use_cuda_graph=args.cuda_graph,
             use_prefetch=args.use_prefetch,
+            use_compiled_scan=args.compiled_scan,
         )
     )
 

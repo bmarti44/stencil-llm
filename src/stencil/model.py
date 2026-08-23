@@ -285,7 +285,7 @@ class Block(nn.Module):
 class StencilTransformer(nn.Module):
     """One shared decoder-only transformer assembled into all eight variants."""
 
-    def __init__(self, config: Config) -> None:
+    def __init__(self, config: Config, *, use_compiled_scan: bool = False) -> None:
         super().__init__()
         if config.variant not in {
             "b0_full",
@@ -314,10 +314,17 @@ class StencilTransformer(nn.Module):
         self.gate_bias: nn.Parameter | None = None
         self.b1_weight: nn.Parameter | None = None
         if config.variant in {"m1", "m1b"}:
-            self.controller = OscillatorController(config, pathway_generator)
+            self.controller = OscillatorController(
+                config,
+                pathway_generator,
+                use_compiled_scan=use_compiled_scan,
+            )
         elif config.variant == "b2":
             self.controller = DecayCell(
-                config.d_model, 128, generator=pathway_generator
+                config.d_model,
+                128,
+                generator=pathway_generator,
+                use_compiled_scan=use_compiled_scan,
             )
         elif config.variant == "b3":
             self.controller = CueLatch(config.d_model, 128, generator=pathway_generator)

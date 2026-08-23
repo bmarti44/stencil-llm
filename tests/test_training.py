@@ -146,8 +146,8 @@ def test_train_two_runs_bitwise_short() -> None:
     """Run two 50-step real M1 Task-A (2048,8) trainings in process."""
     config = replace(build_matched_configs()["m1"], steps=50)
 
-    first = train_model_losses(config)
-    second = train_model_losses(config)
+    first = train_model_losses(config, use_compiled_scan=True)
+    second = train_model_losses(config, use_compiled_scan=True)
 
     assert len(first) == len(second) == 50
     assert first == second

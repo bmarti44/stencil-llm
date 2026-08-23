@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Callable
 
 import torch
 from torch import nn
@@ -11,6 +12,13 @@ from torch.nn import functional as F
 from stencil.config import Config
 
 _SCAN_BLOCK_SIZE = 256
+
+
+def _configure_inductor_for_determinism() -> None:
+    """Pin every Inductor tuning switch used by the compiled scan path."""
+    torch._inductor.config.deterministic = True
+    torch._inductor.config.max_autotune = False
+    torch._inductor.config.coordinate_descent_tuning = False
 
 
 def _inverse_softplus(value: torch.Tensor) -> torch.Tensor:
@@ -135,6 +143,7 @@ class OscillatorCell(nn.Module):
         generator: torch.Generator,
         dtype: torch.dtype = torch.float32,
         dt: float = 1.0,
+        use_compiled_scan: bool = False,
     ) -> None:
         super().__init__()
         if input_dim < 1 or pairs < 1:
@@ -146,6 +155,10 @@ class OscillatorCell(nn.Module):
         self.dt = dt
         self.damping_learnable = damping_learnable
         self._use_scan = True
+        self._use_compiled_scan = use_compiled_scan
+        self._compiled_scan: Callable[..., tuple[torch.Tensor, torch.Tensor]] | None = (
+            None
+        )
         periods = torch.logspace(
             math.log10(period_min),
             math.log10(period_max),
@@ -295,10 +308,25 @@ class OscillatorCell(nn.Module):
         initial: tuple[torch.Tensor, torch.Tensor] | None = None,
         zero_damping: bool = False,
         use_scan: bool | None = None,
+        use_compiled_scan: bool | None = None,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         if use_scan is None:
             use_scan = self._use_scan
-        implementation = self._forward_scan if use_scan else self._forward_sequential
+        if use_compiled_scan is None:
+            use_compiled_scan = self._use_compiled_scan
+        if not use_scan:
+            implementation = self._forward_sequential
+        elif use_compiled_scan:
+            if self._compiled_scan is None:
+                _configure_inductor_for_determinism()
+                self._compiled_scan = torch.compile(
+                    self._forward_scan,
+                    fullgraph=True,
+                    dynamic=False,
+                )
+            implementation = self._compiled_scan
+        else:
+            implementation = self._forward_scan
         return implementation(
             inputs, initial=initial, zero_damping=zero_damping
         )
@@ -314,11 +342,14 @@ class DecayCell(nn.Module):
         *,
         generator: torch.Generator,
         dtype: torch.dtype = torch.float32,
+        use_compiled_scan: bool = False,
     ) -> None:
         super().__init__()
         self.input_dim = input_dim
         self.state_dim = state_dim
         self._use_scan = True
+        self._use_compiled_scan = use_compiled_scan
+        self._compiled_scan: Callable[..., torch.Tensor] | None = None
         raw = math.log(0.999 / 0.001)
         self.raw = nn.Parameter(torch.full((state_dim,), raw, dtype=dtype))
         self.B = nn.Parameter(torch.empty(state_dim, input_dim, dtype=dtype))
@@ -392,10 +423,25 @@ class DecayCell(nn.Module):
         *,
         initial: torch.Tensor | None = None,
         use_scan: bool | None = None,
+        use_compiled_scan: bool | None = None,
     ) -> torch.Tensor:
         if use_scan is None:
             use_scan = self._use_scan
-        implementation = self._forward_scan if use_scan else self._forward_sequential
+        if use_compiled_scan is None:
+            use_compiled_scan = self._use_compiled_scan
+        if not use_scan:
+            implementation = self._forward_sequential
+        elif use_compiled_scan:
+            if self._compiled_scan is None:
+                _configure_inductor_for_determinism()
+                self._compiled_scan = torch.compile(
+                    self._forward_scan,
+                    fullgraph=True,
+                    dynamic=False,
+                )
+            implementation = self._compiled_scan
+        else:
+            implementation = self._forward_scan
         return implementation(inputs, initial=initial)
 
 
@@ -435,7 +481,13 @@ class CueLatch(nn.Module):
 
 
 class OscillatorController(nn.Module):
-    def __init__(self, config: Config, generator: torch.Generator) -> None:
+    def __init__(
+        self,
+        config: Config,
+        generator: torch.Generator,
+        *,
+        use_compiled_scan: bool = False,
+    ) -> None:
         super().__init__()
         if config.osc_pairs is None or config.osc_cells != 2:
             raise ValueError("oscillator variants require exactly two configured cells")
@@ -451,6 +503,7 @@ class OscillatorController(nn.Module):
                     config.period_max,
                     learnable,
                     generator=generator,
+                    use_compiled_scan=use_compiled_scan,
                 ),
                 OscillatorCell(
                     config.osc_pairs,
@@ -459,6 +512,7 @@ class OscillatorController(nn.Module):
                     config.period_max,
                     learnable,
                     generator=generator,
+                    use_compiled_scan=use_compiled_scan,
                 ),
             ]
         )
