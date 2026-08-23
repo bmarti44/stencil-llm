@@ -1,4 +1,6 @@
-.PHONY: verify gate-0 gate-1 gate-2
+.PHONY: verify gate-0 gate-1 gate-2 pilot
+
+RUN_TIMEOUT ?= 86400
 
 verify:
 	uv run python scripts/verify_determinism.py
@@ -18,3 +20,6 @@ gate-2:
 	uv run pytest -q tests/test_models.py
 	uv run python scripts/make_params.py --check
 	uv run ruff check .
+
+pilot:
+	uv run python scripts/run_matrix.py --only a:m1:N2048:k8:s0 --timeout $(RUN_TIMEOUT)
