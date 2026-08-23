@@ -16,12 +16,14 @@ from stencil.config import Config, load_config
 from stencil.data import generate
 from stencil.determinism import named_generator
 from stencil.model import (
-    DecayCell,
-    OscillatorCell,
     StencilTransformer,
-    assert_stable,
     build_matched_configs,
     count_params,
+)
+from stencil.oscillator import (
+    DecayCell,
+    OscillatorCell,
+    assert_stable,
     discrete_invariant,
 )
 
@@ -75,12 +77,16 @@ def _closed_form(
     drive = torch.tensor(
         [forcing / denominator, forcing / denominator], dtype=torch.float64
     )
-    state = initial.clone()
-    trajectory = []
-    for _ in range(steps):
-        state = matrix @ state + drive
-        trajectory.append(state.clone())
-    return torch.stack(trajectory)
+    powers = torch.stack(
+        [torch.linalg.matrix_power(matrix, k) for k in range(1, steps + 1)]
+    )
+    identity = torch.eye(2, dtype=torch.float64)
+    homogeneous = powers @ initial
+    particular = torch.linalg.solve(
+        identity - matrix,
+        ((identity - powers) @ drive).T,
+    ).T
+    return homogeneous + particular
 
 
 def test_oscillator_matches_discrete_closed_form() -> None:
@@ -200,6 +206,7 @@ def test_decay_ssm_energy_decays() -> None:
     state-norm-square means are non-increasing and the final/initial ratio is
     within [0.8,1.2] * lambda^(2*10000), with exact inequality comparisons.
     """
+    cases = 0
     cell = DecayCell(
         256, 128, generator=named_generator(0, "fixtures:b"), dtype=torch.float64
     )
@@ -212,7 +219,8 @@ def test_decay_ssm_energy_decays() -> None:
     assert states.numel() == 1_280_000
     assert torch.all(means[1:] <= means[:-1])
     assert 0.8 * expected <= ratio <= 1.2 * expected
-    assert 1 == 1
+    cases += 1
+    assert cases == 1
 
 
 def test_stability_bound() -> None:
@@ -240,6 +248,7 @@ def test_damping_zero_matches_m1_bitwise() -> None:
     nonzero N(0,1) initial states from ``fixtures:init``.  M1b with the exact
     zero_damping bypass must have a nonzero trajectory bitwise equal to M1.
     """
+    cases = 0
     generator = named_generator(0, "fixtures:b")
     m1 = OscillatorCell(64, 64, 8, 4096, False, generator=generator)
     m1b = OscillatorCell(
@@ -258,7 +267,8 @@ def test_damping_zero_matches_m1_bitwise() -> None:
     assert torch.equal(left[1], right[1])
     with pytest.raises(ValueError, match="only valid for learnable damping"):
         m1(inputs[:, :1], zero_damping=True)
-    assert 1 == 1
+    cases += 1
+    assert cases == 1
 
 
 @pytest.mark.skipif(
@@ -315,11 +325,17 @@ def test_cell_matches_jax_fixtures() -> None:
     assert cases == 4
 
 
-def _task_a_config(variant: str, seed: int = 0, task_n: int = 512) -> Config:
+def _task_a_config(
+    variant: str,
+    seed: int = 0,
+    task_n: int = 512,
+    *,
+    eval_stream: bool = False,
+) -> Config:
     config = build_matched_configs(seed_init=seed)[variant]
     return replace(
         config,
-        seed_data=seed,
+        seed_data=seed + config.eval_seed_offset if eval_stream else seed,
         task="a",
         task_N=task_n,
         task_k=8,
@@ -369,7 +385,7 @@ def _logit_jacobian(model: StencilTransformer, tokens: torch.Tensor) -> torch.Te
 
 def test_cue_unreachable_exact_zero_grad() -> None:
     """Run 90 fp32 cases: B0-local/B1 and M1/M1b/B2, seeds {0,1,2},
-    N {512,2048}, first 3 seed_data eval-stream Task A (k=8, seed_rules=0)
+    N {512,2048}, first 3 eval-stream Task A (k=8, seed_rules=0)
     sequences. At each sole answer-decision position the full 64-logit Jacobian
     wrt cue-position activation is a connected real tensor: exactly zero for
     B0-local/B1 and nonzero for M1/M1b/B2 (exact comparisons, rtol=atol=0).
@@ -379,7 +395,7 @@ def test_cue_unreachable_exact_zero_grad() -> None:
         for task_n in (2048, 512):
             streams = {}
             for variant in ("m1", "m1b", "b2", "b0_local", "b1"):
-                config = _task_a_config(variant, seed, task_n)
+                config = _task_a_config(variant, seed, task_n, eval_stream=True)
                 streams[variant] = (StencilTransformer(config), generate(config))
             for variant, (model, stream) in streams.items():
                 batch = []

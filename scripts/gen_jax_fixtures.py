@@ -2,8 +2,8 @@
 
 This script requires network access.  It checks out the registered upstream
 commits into a temporary directory, builds the registered tensors from Stencil's
-named torch streams, and evaluates the governing IMEX equations with JAX 0.4.35
-in an isolated uv environment.  No upstream source is copied into ``src``.
+named torch streams, and executes the pinned upstream IMEX recurrences with JAX
+0.4.35 in an isolated uv environment.  No upstream source is copied into ``src``.
 """
 
 from __future__ import annotations
@@ -30,22 +30,162 @@ DAMPED = (
 )
 
 WORKER = r"""import json, sys
+from pathlib import Path
+from types import SimpleNamespace
+
 import jax
 jax.config.update("jax_enable_x64", True)
 import jax.numpy as jnp
 import numpy as np
 
 source = np.load(sys.argv[1], allow_pickle=False)
+linoss_checkout = Path(sys.argv[3])
+damped_checkout = Path(sys.argv[4])
+
+# Execute code from the verified pinned checkouts, not a local transcription.
+sys.path.insert(0, str(linoss_checkout))
+from models.LinOSS import apply_linoss_imex, binary_operator as linoss_operator
+
+sys.path.insert(0, str(damped_checkout / "src"))
+from damped_linoss.models.LinOSS import (
+    DampedIMEX1Layer,
+    binary_operator as damped_operator,
+)
+
 result = {}
 
-def cell(inputs, B, a, initial_y, initial_z, damping):
+REGISTERED_EQUATIONS = '''Stencil PLAN Section 5.2 (state order z,y):
+z[k+1] = (z[k] + dt*(-A*y[k] + B@u[k])) / (1 + dt*G)
+y[k+1] = y[k] + dt*z[k+1]'''
+UPSTREAM_UNDAMPED_EQUATIONS = '''tk-rusch/linoss apply_linoss_imex (state order z,y):
+z[k+1] = z[k] - dt*A*y[k] + dt*B@u[k]
+y[k+1] = y[k] + dt*z[k+1]'''
+UPSTREAM_DAMPED_EQUATIONS = (
+    "jaredbmit/damped-linoss DampedIMEX1Layer (state order z,y):\n"
+    "z[k+1] = (z[k] - dt*A*y[k] + dt*B@u[k]) / (1 + dt*G)\n"
+    "y[k+1] = y[k] + dt*z[k+1]"
+)
+
+
+def registered_zero_initial(inputs, B, a, damping, dt=1.0):
     def step(state, u):
         y, z = state
-        z = (z - a * y + B @ u) / (1 + damping)
-        y = y + z
+        z = (z + dt * (-a * y + B @ u)) / (1 + dt * damping)
+        y = y + dt * z
         return (y, z), (y, z)
-    (_, _), (ys, zs) = jax.lax.scan(step, (initial_y, initial_z), inputs)
+
+    initial = (jnp.zeros_like(a), jnp.zeros_like(a))
+    (_, _), (ys, zs) = jax.lax.scan(step, initial, inputs)
     return ys, zs
+
+
+def upstream_undamped_zero_initial(inputs, B, a, dt=1.0):
+    steps = jnp.full_like(a, dt)
+    identity_readout = jnp.eye(a.shape[0], dtype=jnp.complex128)
+    ys = apply_linoss_imex(
+        a,
+        B.astype(jnp.complex128),
+        identity_readout,
+        inputs,
+        steps,
+    )
+    previous = jnp.concatenate((jnp.zeros_like(ys[:1]), ys[:-1]), axis=0)
+    return ys, (ys - previous) / steps
+
+
+def upstream_damped_zero_initial(inputs, B, a, damping, dt=1.0):
+    steps = jnp.full_like(a, dt)
+    projected = jax.vmap(lambda u: B @ u)(inputs).astype(jnp.complex128)
+    layer = SimpleNamespace(state_dim=a.shape[0])
+    ys = DampedIMEX1Layer._recurrence(layer, a, damping, steps, projected).real
+    previous = jnp.concatenate((jnp.zeros_like(ys[:1]), ys[:-1]), axis=0)
+    return ys, (ys - previous) / steps
+
+
+def fail_discrepancy(upstream_equations, upstream, registered):
+    errors = [
+        float(jnp.max(jnp.abs(left - right)))
+        for left, right in zip(upstream, registered)
+    ]
+    print("MATERIAL UPSTREAM/REGISTERED EQUATION DISCREPANCY", file=sys.stderr)
+    print(upstream_equations, file=sys.stderr)
+    print("--- versus ---", file=sys.stderr)
+    print(REGISTERED_EQUATIONS, file=sys.stderr)
+    print(f"max_abs_error(y,z)={errors}", file=sys.stderr)
+    raise SystemExit(2)
+
+
+def verify_upstream_equations():
+    inputs = jnp.array([[0.3, -0.2], [0.7, 0.5], [-0.4, 0.9]], dtype=jnp.float64)
+    B = jnp.array([[0.2, -0.6], [0.8, 0.1]], dtype=jnp.float64)
+    a = jnp.array([0.17, 0.43], dtype=jnp.float64)
+    for damping, upstream_equations, upstream, operator in (
+        (
+            jnp.zeros_like(a),
+            UPSTREAM_UNDAMPED_EQUATIONS,
+            upstream_undamped_zero_initial(inputs, B, a),
+            linoss_operator,
+        ),
+        (
+            jnp.array([0.01, 0.03], dtype=jnp.float64),
+            UPSTREAM_DAMPED_EQUATIONS,
+            upstream_damped_zero_initial(
+                inputs,
+                B,
+                a,
+                jnp.array([0.01, 0.03], dtype=jnp.float64),
+            ),
+            damped_operator,
+        ),
+    ):
+        registered = registered_zero_initial(inputs, B, a, damping)
+        adapted = upstream_state_scan(
+            operator,
+            inputs,
+            B,
+            a,
+            jnp.zeros_like(a),
+            jnp.zeros_like(a),
+            damping,
+        )
+        if not all(
+            bool(jnp.allclose(left, right, rtol=1e-12, atol=1e-12))
+            for actual in (registered, adapted)
+            for left, right in zip(upstream, actual)
+        ):
+            fail_discrepancy(upstream_equations, upstream, registered)
+
+
+def upstream_state_scan(operator, inputs, B, a, initial_y, initial_z, damping):
+    # Seed the upstream affine scan with its unsupported nonzero initial state.
+    dt = jnp.ones_like(a)
+    denominator = 1 + dt * damping
+    m11 = 1 / denominator
+    m12 = -dt * a / denominator
+    m21 = dt / denominator
+    m22 = 1 - dt**2 * a / denominator
+    transition = jnp.concatenate((m11, m12, m21, m22))
+    transitions = jnp.repeat(transition[None], inputs.shape[0], axis=0)
+
+    projected = jax.vmap(lambda u: B @ u)(inputs)
+    forcing = jnp.concatenate(
+        (dt * projected / denominator, dt**2 * projected / denominator), axis=1
+    )
+    identity = jnp.concatenate(
+        (jnp.ones_like(a), jnp.zeros_like(a), jnp.zeros_like(a), jnp.ones_like(a))
+    )
+    seeded_transitions = jnp.concatenate((identity[None], transitions), axis=0)
+    seeded_forcing = jnp.concatenate(
+        (jnp.concatenate((initial_z, initial_y))[None], forcing), axis=0
+    )
+    _, states = jax.lax.associative_scan(
+        operator, (seeded_transitions, seeded_forcing)
+    )
+    states = states[1:]
+    return states[:, a.shape[0]:], states[:, :a.shape[0]]
+
+
+verify_upstream_equations()
 
 for seed in (0, 1):
     inputs = jnp.asarray(source[f"seed{seed}_inputs"])
@@ -59,9 +199,15 @@ for seed in (0, 1):
     for name in ("A", "B1", "B2", "Wa", "Wb", "initial"):
         result[f"seed{seed}_{name}"] = source[f"seed{seed}_{name}"]
     for label, damping in (("undamped", 0.0), ("damped", 1e-2)):
-        y1, z1 = cell(inputs, B1, a, initial[0], initial[1], damping)
+        operator = linoss_operator if damping == 0 else damped_operator
+        damping_vector = jnp.full_like(a, damping)
+        y1, z1 = upstream_state_scan(
+            operator, inputs, B1, a, initial[0], initial[1], damping_vector
+        )
         glu = (y1 @ Wa.T) * jax.nn.sigmoid(y1 @ Wb.T)
-        y2, z2 = cell(glu, B2, a, initial[2], initial[3], damping)
+        y2, z2 = upstream_state_scan(
+            operator, glu, B2, a, initial[2], initial[3], damping_vector
+        )
         for state_name, value in (("y1", y1), ("z1", z1), ("y2", y2), ("z2", z2)):
             result[f"seed{seed}_{label}_{state_name}"] = np.asarray(value)
 metadata = json.loads(str(source["metadata"]))
@@ -162,11 +308,17 @@ def main() -> None:
                 "--with",
                 "jax==0.4.35",
                 "--with",
+                "equinox==0.11.10",
+                "--with",
+                "sympy",
+                "--with",
                 "numpy",
                 "python",
                 str(worker),
                 str(source),
                 str(OUTPUT),
+                str(temp / "linoss"),
+                str(temp / "damped-linoss"),
             ],
             check=True,
         )
