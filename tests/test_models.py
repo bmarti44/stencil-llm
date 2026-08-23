@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+from copy import deepcopy
 from dataclasses import replace
 from pathlib import Path
 
@@ -378,6 +379,86 @@ def test_banded_equals_masked_attention() -> None:
     lag = indices[:, None] - indices[None, :]
     oracle = (lag >= 0)[None] & ((lag < attention.window)[None] | cue_mask[:, None, :])
     assert torch.equal(reconstructed, oracle)
+
+
+@pytest.mark.skipif(
+    not torch.cuda.is_available(), reason="truncation gate targets CUDA"
+)
+def test_truncated_equals_full() -> None:
+    configs = build_matched_configs()
+    cases = 0
+    for variant in ("b0_local", "m1"):
+        seed = {"b0_local": 1, "m1": 7}[variant]
+        config = configs[variant]
+        cone = config.n_layers * (config.window - 1) + 1
+        length = cone + 16
+        tokens = torch.randint(
+            34,
+            config.vocab,
+            (1, length),
+            generator=named_generator(seed, f"x:{variant}"),
+        ).cuda()
+        decisions = torch.tensor([[length - 2]], device="cuda")
+        full_model = StencilTransformer(config).cuda()
+        truncated_model = deepcopy(full_model)
+
+        full = full_model(
+            tokens, decision_positions=decisions, use_truncation=False
+        )
+        truncated = truncated_model(
+            tokens,
+            decision_positions=decisions,
+            use_truncation=True,
+            truncation_start=length - 2 - config.n_layers * (config.window - 1),
+        )
+        torch.testing.assert_close(truncated, full, rtol=1e-5, atol=1e-7)
+
+        target = torch.tensor([17], device="cuda")
+        (F.cross_entropy(full.flatten(0, 1), target) / 8).backward()
+        (F.cross_entropy(truncated.flatten(0, 1), target) / 8).backward()
+        for (full_name, full_parameter), (truncated_name, truncated_parameter) in zip(
+            full_model.named_parameters(),
+            truncated_model.named_parameters(),
+            strict=True,
+        ):
+            assert full_name == truncated_name
+            assert full_parameter.grad is not None
+            assert truncated_parameter.grad is not None
+            torch.testing.assert_close(
+                truncated_parameter.grad,
+                full_parameter.grad,
+                rtol=1e-5,
+                atol=1e-7,
+            )
+        cases += 1
+    assert cases == 2
+
+    config = configs["b0_local"]
+    cone = config.n_layers * (config.window - 1) + 1
+    tokens = torch.randint(
+        34,
+        config.vocab,
+        (1, cone + 16),
+        generator=named_generator(0, "fixtures:truncate:structure"),
+    ).cuda()
+    decisions = torch.tensor([[tokens.shape[1] - 2]], device="cuda")
+    changed = tokens.clone()
+    outside = tokens.shape[1] - 2 - (cone - 1)
+    changed[:, :outside] = torch.randint(
+        1,
+        config.vocab,
+        changed[:, :outside].shape,
+        generator=named_generator(1, "fixtures:truncate:structure"),
+    ).cuda()
+    model = StencilTransformer(config).cuda()
+    with torch.no_grad():
+        original = model(
+            tokens, decision_positions=decisions, use_truncation=False
+        )
+        randomized = model(
+            changed, decision_positions=decisions, use_truncation=False
+        )
+    assert torch.equal(original, randomized)
 
 
 @pytest.mark.skipif(

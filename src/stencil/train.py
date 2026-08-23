@@ -80,6 +80,10 @@ def train_losses(config: Config) -> list[float]:
 class Batch:
     tokens: torch.Tensor
     loss_mask: torch.Tensor
+    decision_positions: torch.Tensor
+    targets: torch.Tensor
+    cue_positions: torch.Tensor
+    cue_valid: torch.Tensor
     metadata: list[dict[str, Any]]
 
 
@@ -93,6 +97,8 @@ def next_examples(stream: Iterator[Example], batch_size: int) -> Batch:
     length = max(tokens.numel() for tokens, _, _ in examples)
     tokens = torch.zeros(batch_size, length, dtype=torch.long)
     loss_mask = torch.zeros(batch_size, length, dtype=torch.bool)
+    decision_rows: list[torch.Tensor] = []
+    cue_rows: list[torch.Tensor] = []
     metadata: list[dict[str, Any]] = []
     for row, (example_tokens, example_mask, example_metadata) in enumerate(examples):
         if example_tokens.ndim != 1 or example_mask.shape != example_tokens.shape:
@@ -102,26 +108,45 @@ def next_examples(stream: Iterator[Example], batch_size: int) -> Batch:
         size = example_tokens.numel()
         tokens[row, :size] = example_tokens
         loss_mask[row, :size] = example_mask
+        decision_rows.append(torch.nonzero(example_mask[:-1], as_tuple=False).flatten())
+        cue_rows.append(
+            torch.nonzero(
+                (example_tokens >= 1) & (example_tokens <= 32), as_tuple=False
+            ).flatten()
+        )
         metadata.append(example_metadata)
-    return Batch(tokens=tokens, loss_mask=loss_mask, metadata=metadata)
+    decision_count = decision_rows[0].numel()
+    if decision_count < 1 or any(
+        row.numel() != decision_count for row in decision_rows
+    ):
+        raise ValueError("batch examples must have a fixed decision count")
+    decision_positions = torch.stack(decision_rows)
+    row_indices = torch.arange(batch_size)[:, None]
+    targets = tokens[row_indices, decision_positions + 1]
+    cue_count = max(row.numel() for row in cue_rows)
+    cue_positions = torch.zeros(batch_size, cue_count, dtype=torch.long)
+    cue_valid = torch.zeros(batch_size, cue_count, dtype=torch.bool)
+    for row, positions in enumerate(cue_rows):
+        cue_positions[row, : positions.numel()] = positions
+        cue_valid[row, : positions.numel()] = True
+    return Batch(
+        tokens=tokens,
+        loss_mask=loss_mask,
+        decision_positions=decision_positions,
+        targets=targets,
+        cue_positions=cue_positions,
+        cue_valid=cue_valid,
+        metadata=metadata,
+    )
 
 
-def masked_answer_loss(
-    logits: torch.Tensor, tokens: torch.Tensor, loss_mask: torch.Tensor
-) -> torch.Tensor:
-    """Return causal cross-entropy only at registered answer decisions."""
-    if logits.ndim != 3 or tokens.shape != loss_mask.shape:
-        raise ValueError("logits, tokens, and loss_mask have incompatible shapes")
-    if logits.shape[:2] != tokens.shape or loss_mask.dtype != torch.bool:
-        raise ValueError("logits, tokens, and loss_mask have incompatible shapes")
-    decisions = loss_mask[:, :-1]
-    if not torch.any(decisions):
-        raise ValueError("batch has no answer-decision positions")
-    selected_logits = logits[:, :-1][decisions]
-    targets = tokens[:, 1:][decisions]
-    if selected_logits.shape[0] != targets.numel() or targets.numel() < 1:
-        raise RuntimeError("answer selection was vacuous")
-    return F.cross_entropy(selected_logits, targets)
+def masked_answer_loss(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+    """Return causal cross-entropy for statically gathered decision rows."""
+    if logits.ndim != 3 or targets.ndim != 2 or logits.shape[:2] != targets.shape:
+        raise ValueError("decision logits and targets have incompatible shapes")
+    if targets.dtype != torch.long or targets.numel() < 1:
+        raise ValueError("targets must be a nonempty integer tensor")
+    return F.cross_entropy(logits.flatten(0, 1), targets.flatten())
 
 
 def _optimizer(model: StencilTransformer, config: Config) -> torch.optim.AdamW:
@@ -159,11 +184,89 @@ def _training_device(device: str | torch.device | None) -> torch.device:
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
+class _CudaGraphStep:
+    """Capture deterministic forward+backward while leaving updates eager."""
+
+    def __init__(
+        self,
+        model: StencilTransformer,
+        optimizer: torch.optim.AdamW,
+        batch: Batch,
+        device: torch.device,
+    ) -> None:
+        if device.type != "cuda":
+            raise ValueError("CUDA graph execution requires a CUDA device")
+        self.model = model
+        self.optimizer = optimizer
+        self.tokens = torch.empty_like(batch.tokens, device=device)
+        self.decision_positions = torch.empty_like(
+            batch.decision_positions, device=device
+        )
+        self.targets = torch.empty_like(batch.targets, device=device)
+        self.cue_positions = torch.empty_like(batch.cue_positions, device=device)
+        self.cue_valid = torch.empty_like(batch.cue_valid, device=device)
+        self.truncation_start = max(
+            0,
+            int(batch.decision_positions.min()) - model.receptive_field(),
+        )
+        self._copy_batch(batch)
+
+        capture_stream = torch.cuda.Stream(device=device)
+        capture_stream.wait_stream(torch.cuda.current_stream(device))
+        with torch.cuda.stream(capture_stream):
+            for _ in range(3):
+                optimizer.zero_grad(set_to_none=True)
+                warmup_loss = self._loss()
+                warmup_loss.backward()
+        torch.cuda.current_stream(device).wait_stream(capture_stream)
+        del warmup_loss
+
+        optimizer.zero_grad(set_to_none=False)
+        self.graph = torch.cuda.CUDAGraph()
+        torch.autograd.graph.set_override_stale_capture_stream(True)
+        try:
+            with torch.cuda.graph(self.graph, stream=capture_stream):
+                self.loss = self._loss()
+                self.loss.backward()
+        finally:
+            torch.autograd.graph.set_override_stale_capture_stream(False)
+
+    def _copy_batch(self, batch: Batch) -> None:
+        tensors = (
+            (self.tokens, batch.tokens),
+            (self.decision_positions, batch.decision_positions),
+            (self.targets, batch.targets),
+            (self.cue_positions, batch.cue_positions),
+            (self.cue_valid, batch.cue_valid),
+        )
+        for destination, source in tensors:
+            if destination.shape != source.shape:
+                raise ValueError("CUDA graph batches must have fixed tensor shapes")
+            destination.copy_(source, non_blocking=True)
+
+    def _loss(self) -> torch.Tensor:
+        logits = self.model(
+            self.tokens,
+            decision_positions=self.decision_positions,
+            cue_positions=self.cue_positions,
+            cue_valid=self.cue_valid,
+            truncation_start=self.truncation_start,
+        )
+        return masked_answer_loss(logits, self.targets)
+
+    def forward_backward(self, batch: Batch) -> torch.Tensor:
+        self._copy_batch(batch)
+        self.optimizer.zero_grad(set_to_none=False)
+        self.graph.replay()
+        return self.loss.detach().clone()
+
+
 def train_model(
     config: Config,
     *,
     device: str | torch.device | None = None,
     on_step: Callable[[int, float, float], None] | None = None,
+    use_cuda_graph: bool = False,
 ) -> tuple[StencilTransformer, list[float]]:
     """Train one real variant using fresh generator data at every step."""
     if config.task not in {"a", "b", "m"}:
@@ -178,24 +281,60 @@ def train_model(
     # AdamW itself has no draws; instantiation still pins the registered stream.
     named_generator(config.seed_train, "train")
     optimizer = _optimizer(model, config)
+    graph_step: _CudaGraphStep | None = None
     losses: list[float] = []
+    pending_losses: list[torch.Tensor] = []
+    pending_steps: list[tuple[int, float]] = []
+
+    def flush_losses() -> None:
+        if not pending_losses:
+            return
+        values = torch.stack(pending_losses).cpu().tolist()
+        losses.extend(values)
+        if on_step is not None:
+            for (recorded_step, recorded_lr), value in zip(
+                pending_steps, values, strict=True
+            ):
+                on_step(recorded_step, value, recorded_lr)
+        pending_losses.clear()
+        pending_steps.clear()
+
     model.train()
     for step in range(config.steps):
         lr = _learning_rate(config, step)
         for group in optimizer.param_groups:
             group["lr"] = lr
         batch = next_examples(stream, config.batch)
-        tokens = batch.tokens.to(execution_device)
-        loss_mask = batch.loss_mask.to(execution_device)
-        optimizer.zero_grad(set_to_none=True)
-        loss = masked_answer_loss(model(tokens), tokens, loss_mask)
-        loss.backward()
+        if use_cuda_graph:
+            if graph_step is None:
+                graph_step = _CudaGraphStep(model, optimizer, batch, execution_device)
+            loss = graph_step.forward_backward(batch)
+        else:
+            tokens = batch.tokens.to(execution_device)
+            decision_positions = batch.decision_positions.to(execution_device)
+            targets = batch.targets.to(execution_device)
+            cue_positions = batch.cue_positions.to(execution_device)
+            cue_valid = batch.cue_valid.to(execution_device)
+            optimizer.zero_grad(set_to_none=True)
+            logits = model(
+                tokens,
+                decision_positions=decision_positions,
+                cue_positions=cue_positions,
+                cue_valid=cue_valid,
+                truncation_start=max(
+                    0,
+                    int(batch.decision_positions.min()) - model.receptive_field(),
+                ),
+            )
+            loss = masked_answer_loss(logits, targets)
+            loss.backward()
         nn.utils.clip_grad_norm_(model.parameters(), config.clip)
         optimizer.step()
-        value = float(loss.detach())
-        losses.append(value)
-        if on_step is not None:
-            on_step(step, value, lr)
+        pending_losses.append(loss.detach())
+        pending_steps.append((step, lr))
+        if len(pending_losses) == 50:
+            flush_losses()
+    flush_losses()
     return model, losses
 
 
@@ -266,6 +405,7 @@ def run(
     repo: str | Path = ".",
     force: bool = False,
     allow_dirty: bool = False,
+    use_cuda_graph: bool = False,
 ) -> Path:
     root = Path(repo).resolve()
     identity = git_identity(root)
@@ -293,9 +433,10 @@ def run(
     with (run_dir / "metrics.jsonl").open("w", encoding="utf-8") as handle:
         def record(step: int, loss: float, lr: float) -> None:
             handle.write(json.dumps({"step": step, "loss": loss, "lr": lr}) + "\n")
-            handle.flush()
 
-        model, _ = train_model(config, on_step=record)
+        model, _ = train_model(
+            config, on_step=record, use_cuda_graph=use_cuda_graph
+        )
     if config.variant in {"m1", "m1b"}:
         assert_stable(model)
     checkpoint = run_dir / "final.pt"
@@ -359,9 +500,17 @@ def main() -> None:
     parser.add_argument("config", type=Path)
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--allow-dirty", action="store_true")
+    parser.add_argument("--cuda-graph", action="store_true")
     args = parser.parse_args()
     config = load_config(args.config)
-    print(run(config, force=args.force, allow_dirty=args.allow_dirty))
+    print(
+        run(
+            config,
+            force=args.force,
+            allow_dirty=args.allow_dirty,
+            use_cuda_graph=args.cuda_graph,
+        )
+    )
 
 
 if __name__ == "__main__":

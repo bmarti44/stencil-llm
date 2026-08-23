@@ -144,7 +144,7 @@ def evaluate_model(model: StencilTransformer, config: Config) -> dict[str, Any]:
             batch = next_examples(stream, count)
             tokens = batch.tokens.to(device)
             loss_mask = batch.loss_mask.to(device)
-            logits = model(tokens)
+            logits = model(tokens, use_truncation=False)
             scored = exact_match_from_logits(logits, tokens, loss_mask)
             n_answers += scored.n_answers
             n_correct += scored.n_correct
