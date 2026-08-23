@@ -25,6 +25,8 @@ class Attention(nn.Module):
         if self.head_dim % 2:
             raise ValueError("RoPE head dimension must be even")
         self.window = None if config.variant == "b0_full" else config.window
+        self._use_banded = self.window is not None
+        self._banded_block_size = None if self.window is None else 8 * self.window
         self.rope_theta = config.rope_theta
         self.layer_index = layer_index
         self.q = nn.Linear(config.d_model, config.d_model, bias=False)
@@ -49,11 +51,126 @@ class Attention(nn.Module):
             (even * cosine - odd * sine, even * sine + odd * cosine), dim=-1
         ).flatten(-2)
 
+    def _banded_layout(
+        self,
+        length: int,
+        cue_mask: torch.Tensor | None,
+        device: torch.device,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Return gathered key positions and their validity mask.
+
+        Positions within each row are ordered as old global cues followed by
+        the chronological local window.  A cue already in the local window is
+        excluded from the global portion, so every allowed key occurs once.
+        """
+        assert self.window is not None
+        queries = torch.arange(length, device=device)
+        local_positions = (
+            queries[:, None] + torch.arange(1 - self.window, 1, device=device)[None]
+        )
+        local_valid = local_positions >= 0
+        local_positions = local_positions.clamp_min(0)
+        if cue_mask is None:
+            return local_positions[None], local_valid[None]
+
+        max_cues = int(cue_mask.sum(dim=1).max().item())
+        if max_cues:
+            all_positions = queries[None].expand(cue_mask.shape[0], -1)
+            global_positions = torch.where(cue_mask, all_positions, length)
+            global_positions = global_positions.sort(dim=1).values[:, :max_cues]
+            global_positions = global_positions[:, None].expand(-1, length, -1)
+            global_valid = global_positions <= queries[None, :, None] - self.window
+            global_positions = global_positions.clamp_max(length - 1)
+        else:
+            global_positions = queries.new_empty(cue_mask.shape[0], length, 0)
+            global_valid = cue_mask.new_empty(cue_mask.shape[0], length, 0)
+        batch = cue_mask.shape[0]
+        return (
+            torch.cat(
+                (global_positions, local_positions[None].expand(batch, -1, -1)),
+                dim=-1,
+            ),
+            torch.cat(
+                (global_valid, local_valid[None].expand(batch, -1, -1)),
+                dim=-1,
+            ),
+        )
+
+    def _forward_banded(
+        self,
+        q: torch.Tensor,
+        k: torch.Tensor,
+        v: torch.Tensor,
+        cue_mask: torch.Tensor | None,
+    ) -> torch.Tensor:
+        """Compute exact causal-window attention in O(T * (window + cues))."""
+        assert self.window is not None
+        batch, _, length, _ = q.shape
+        queries = torch.arange(length, device=q.device)
+        global_k = None
+        global_v = None
+        global_positions = None
+        if cue_mask is not None:
+            max_cues = int(cue_mask.sum(dim=1).max().item())
+            if max_cues:
+                all_positions = queries[None].expand(batch, -1)
+                global_positions = torch.where(cue_mask, all_positions, length)
+                global_positions = global_positions.sort(dim=1).values[:, :max_cues]
+                gather_positions = global_positions.clamp_max(length - 1)
+                gather_index = gather_positions[:, None, :, None].expand(
+                    -1, self.n_heads, -1, self.head_dim
+                )
+                global_k = torch.gather(k, 2, gather_index)
+                global_v = torch.gather(v, 2, gather_index)
+
+        chunks: list[torch.Tensor] = []
+        assert self._banded_block_size is not None
+        query_block = self._banded_block_size
+        for start in range(0, length, query_block):
+            end = min(start + query_block, length)
+            key_start = max(0, start - self.window + 1)
+            query_positions = queries[start:end]
+            local_positions = queries[key_start:end]
+            lag = query_positions[:, None] - local_positions[None]
+            local_valid = (lag >= 0) & (lag < self.window)
+            block_k = k[:, :, key_start:end]
+            block_v = v[:, :, key_start:end]
+
+            if global_positions is not None:
+                assert global_k is not None and global_v is not None
+                global_valid = (
+                    global_positions[:, None]
+                    <= query_positions[None, :, None] - self.window
+                )
+                valid = torch.cat(
+                    (
+                        global_valid,
+                        local_valid[None].expand(batch, -1, -1),
+                    ),
+                    dim=-1,
+                )
+                block_k = torch.cat((global_k, block_k), dim=2)
+                block_v = torch.cat((global_v, block_v), dim=2)
+            else:
+                valid = local_valid
+
+            chunks.append(
+                F.scaled_dot_product_attention(
+                    q[:, :, start:end],
+                    block_k,
+                    block_v,
+                    attn_mask=valid[:, None] if valid.ndim == 3 else valid,
+                )
+            )
+        return torch.cat(chunks, dim=2)
+
     def forward(
         self,
         x: torch.Tensor,
         gates: torch.Tensor | None,
         cue_mask: torch.Tensor | None = None,
+        *,
+        use_banded: bool | None = None,
     ) -> torch.Tensor:
         batch, length, _ = x.shape
 
@@ -65,22 +182,34 @@ class Attention(nn.Module):
         q = self._rope(reshape(self.q(x)))
         k = self._rope(reshape(self.k(x)))
         v = reshape(self.v(x))
-        positions = torch.arange(length, device=x.device)
-        lag = positions[:, None] - positions[None, :]
-        mask = lag >= 0
-        if self.window is not None:
-            local = lag < self.window
-            if cue_mask is not None:
-                if cue_mask.shape != (batch, length) or cue_mask.dtype != torch.bool:
-                    raise ValueError(
-                        "cue_mask must be boolean with shape (batch, length)"
+        if cue_mask is not None and (
+            cue_mask.shape != (batch, length) or cue_mask.dtype != torch.bool
+        ):
+            raise ValueError("cue_mask must be boolean with shape (batch, length)")
+        if use_banded is None:
+            use_banded = self._use_banded
+        if use_banded and self.window is not None:
+            heads = self._forward_banded(q, k, v, cue_mask)
+        else:
+            positions = torch.arange(length, device=x.device)
+            lag = positions[:, None] - positions[None, :]
+            mask = lag >= 0
+            if self.window is not None:
+                local = lag < self.window
+                if cue_mask is not None:
+                    if (
+                        cue_mask.shape != (batch, length)
+                        or cue_mask.dtype != torch.bool
+                    ):
+                        raise ValueError(
+                            "cue_mask must be boolean with shape (batch, length)"
+                        )
+                    mask = mask[None, None] & (
+                        local[None, None] | cue_mask[:, None, None, :]
                     )
-                mask = mask[None, None] & (
-                    local[None, None] | cue_mask[:, None, None, :]
-                )
-            else:
-                mask = mask & local
-        heads = F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+                else:
+                    mask = mask & local
+            heads = F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
         if gates is not None:
             heads = apply_headwise_gate(heads, gates)
         merged = heads.transpose(1, 2).contiguous().view(batch, length, self.d_model)
@@ -145,9 +274,7 @@ class StencilTransformer(nn.Module):
                 config.d_model, 128, generator=pathway_generator
             )
         elif config.variant == "b3":
-            self.controller = CueLatch(
-                config.d_model, 128, generator=pathway_generator
-            )
+            self.controller = CueLatch(config.d_model, 128, generator=pathway_generator)
         if config.variant in {"m1", "m1b", "b2", "b3"}:
             self.gate_weight = nn.Parameter(
                 torch.empty(config.n_layers, config.n_heads, 128)
@@ -232,9 +359,7 @@ class StencilTransformer(nn.Module):
                     gates = x.new_ones(x.shape[0], x.shape[1], self.config.n_heads)
                 else:
                     assert self.b1_weight is not None
-                    gates = project_b1_gate(
-                        normalized, self.b1_weight[layer_index]
-                    )
+                    gates = project_b1_gate(normalized, self.b1_weight[layer_index])
             elif self.gate_weight is not None:
                 if gate_identity:
                     gates = x.new_ones(x.shape[0], x.shape[1], self.config.n_heads)

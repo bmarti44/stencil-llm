@@ -15,11 +15,7 @@ from torch.nn import functional as F
 from stencil.config import Config, load_config
 from stencil.data import generate
 from stencil.determinism import named_generator
-from stencil.model import (
-    StencilTransformer,
-    build_matched_configs,
-    count_params,
-)
+from stencil.model import StencilTransformer, build_matched_configs, count_params
 from stencil.oscillator import (
     CueLatch,
     DecayCell,
@@ -279,9 +275,7 @@ def test_scan_equals_sequential() -> None:
     vectorized cue latch is exactly equal to a per-position loop oracle.
     """
     cases = 0
-    inputs = _draw(
-        0, "fixtures:input", (4, 512, 64), dtype=torch.float32
-    )
+    inputs = _draw(0, "fixtures:input", (4, 512, 64), dtype=torch.float32)
     assert torch.count_nonzero(inputs) == inputs.numel()
 
     oscillator = OscillatorCell(
@@ -300,15 +294,11 @@ def test_scan_equals_sequential() -> None:
     torch.testing.assert_close(scan_z, sequential_z, rtol=1e-5, atol=1e-8)
     cases += 1
 
-    decay = DecayCell(
-        64, 64, generator=named_generator(0, "fixtures:b")
-    )
+    decay = DecayCell(64, 64, generator=named_generator(0, "fixtures:b"))
     scan_states = decay(inputs, use_scan=True)
     sequential_states = decay(inputs, use_scan=False)
     assert torch.count_nonzero(sequential_states) > 0
-    torch.testing.assert_close(
-        scan_states, sequential_states, rtol=1e-5, atol=1e-8
-    )
+    torch.testing.assert_close(scan_states, sequential_states, rtol=1e-5, atol=1e-8)
     cases += 1
 
     latch = CueLatch(64, 64, generator=named_generator(0, "fixtures:b"))
@@ -321,15 +311,73 @@ def test_scan_equals_sequential() -> None:
     state = torch.zeros((4, 64), dtype=torch.float32)
     loop_states = []
     for position in range(512):
-        state = torch.where(
-            cue_mask[:, position, None], candidates[:, position], state
-        )
+        state = torch.where(cue_mask[:, position, None], candidates[:, position], state)
         loop_states.append(state)
     loop = torch.stack(loop_states, dim=1)
     assert torch.count_nonzero(loop) > 0
     assert torch.equal(vectorized, loop)
     cases += 1
     assert cases == 3
+
+
+def test_banded_equals_masked_attention() -> None:
+    """Run 8 fp32 equality cases: B0-local/B1/M1/B4 at batch 4 and
+    lengths 512/2051 on nonzero N(0,1) ``fixtures:input`` seed-0 inputs.
+    Banded attention must match the permanent full-mask oracle at rtol=1e-5,
+    atol=1e-7.  A small B4 case additionally reconstructs the banded key set
+    and proves it equals the oracle mask exactly, row for row.
+    """
+    configs = build_matched_configs()
+    generator = named_generator(0, "fixtures:input")
+    cases = 0
+    for length in (512, 2051):
+        for variant in ("b0_local", "b1", "m1", "b4"):
+            config = configs[variant]
+            attention = StencilTransformer(config).blocks[0].attention
+            x = torch.randn(
+                (4, length, config.d_model),
+                generator=generator,
+                dtype=torch.float32,
+            )
+            gate_input = torch.randn(
+                (4, length, config.n_heads),
+                generator=generator,
+                dtype=torch.float32,
+            )
+            gates = None
+            if variant == "b1":
+                gates = torch.sigmoid(gate_input)
+            elif variant == "m1":
+                gates = 2 * torch.sigmoid(gate_input)
+            cue_mask = None
+            if variant == "b4":
+                cue_mask = torch.zeros((4, length), dtype=torch.bool)
+                cue_mask[0, (0, length // 2)] = True
+                cue_mask[1, (1, length - 1)] = True
+                cue_mask[2, length // 3] = True
+                cue_mask[3, (0, 2, length - 2)] = True
+            with torch.no_grad():
+                banded = attention(x, gates, cue_mask, use_banded=True)
+                masked = attention(x, gates, cue_mask, use_banded=False)
+            assert torch.count_nonzero(x) > 0
+            assert torch.count_nonzero(banded) > 0
+            assert torch.count_nonzero(masked) > 0
+            torch.testing.assert_close(banded, masked, rtol=1e-5, atol=1e-7)
+            cases += 1
+    assert cases == 8
+
+    length = 11
+    cue_mask = torch.zeros((2, length), dtype=torch.bool)
+    cue_mask[0, (0, 5, 10)] = True
+    cue_mask[1, (2, 7)] = True
+    attention = StencilTransformer(replace(configs["b4"], window=4)).blocks[0].attention
+    positions, valid = attention._banded_layout(length, cue_mask, torch.device("cpu"))
+    reconstructed = torch.zeros((2, length, length), dtype=torch.bool)
+    reconstructed.scatter_(2, positions, valid)
+    indices = torch.arange(length)
+    lag = indices[:, None] - indices[None, :]
+    oracle = (lag >= 0)[None] & ((lag < attention.window)[None] | cue_mask[:, None, :])
+    assert torch.equal(reconstructed, oracle)
 
 
 @pytest.mark.skipif(
@@ -408,9 +456,7 @@ def test_cell_matches_jax_fixtures() -> None:
                     atol=1e-8,
                 )
             cases += 1
-        np.testing.assert_array_equal(
-            archive[f"seed{seed}_initial"], initial.numpy()
-        )
+        np.testing.assert_array_equal(archive[f"seed{seed}_initial"], initial.numpy())
     assert metadata["streams"] == [
         "fixtures:input",
         "fixtures:a",
