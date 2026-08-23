@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import replace
+from pathlib import Path
 
 import pytest
 import torch
@@ -86,6 +88,57 @@ def test_graph_step_bitwise_equals_eager() -> None:
         eager_model.parameters(), graph_model.parameters(), strict=True
     ):
         assert torch.equal(eager, graphed)
+
+
+@pytest.mark.parametrize(
+    ("device", "use_cuda_graph"),
+    [
+        ("cpu", False),
+        pytest.param(
+            "cuda",
+            True,
+            marks=pytest.mark.skipif(
+                not torch.cuda.is_available(), reason="CUDA graph requires CUDA"
+            ),
+        ),
+    ],
+)
+def test_prefetch_bitwise_equals_sync(
+    tmp_path: Path, device: str, use_cuda_graph: bool
+) -> None:
+    config = replace(
+        build_matched_configs()["b0_local"],
+        batch=2,
+        steps=4,
+        warmup=1,
+        task_N=8,
+        context_len=12,
+    )
+
+    def train(prefetch: bool) -> tuple[StencilTransformer, list[float], bytes]:
+        metrics_path = tmp_path / str(prefetch) / "metrics.jsonl"
+        metrics_path.parent.mkdir()
+        with metrics_path.open("w", encoding="utf-8") as handle:
+            model, losses = train_model(
+                config,
+                device=device,
+                use_cuda_graph=use_cuda_graph,
+                use_prefetch=prefetch,
+                on_step=lambda step, loss, lr: handle.write(
+                    json.dumps({"step": step, "loss": loss, "lr": lr}) + "\n"
+                ),
+            )
+        return model, losses, metrics_path.read_bytes()
+
+    sync_model, sync_losses, sync_metrics = train(False)
+    prefetch_model, prefetch_losses, prefetch_metrics = train(True)
+
+    assert sync_losses == prefetch_losses
+    for sync, prefetched in zip(
+        sync_model.parameters(), prefetch_model.parameters(), strict=True
+    ):
+        assert torch.equal(sync, prefetched)
+    assert sync_metrics == prefetch_metrics
 
 
 @pytest.mark.determinism

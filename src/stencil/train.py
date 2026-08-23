@@ -10,6 +10,7 @@ import os
 import shutil
 import subprocess
 from collections.abc import Callable, Iterator
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -140,6 +141,30 @@ def next_examples(stream: Iterator[Example], batch_size: int) -> Batch:
     )
 
 
+def _training_batches(
+    stream: Iterator[Example],
+    batch_size: int,
+    steps: int,
+    *,
+    prefetch: bool,
+) -> Iterator[Batch]:
+    """Yield batches synchronously or one batch ahead on a single worker."""
+    if not prefetch:
+        for _ in range(steps):
+            yield next_examples(stream, batch_size)
+        return
+
+    with ThreadPoolExecutor(
+        max_workers=1, thread_name_prefix="stencil-data"
+    ) as worker:
+        pending = worker.submit(next_examples, stream, batch_size)
+        for step in range(steps):
+            batch = pending.result()
+            if step + 1 < steps:
+                pending = worker.submit(next_examples, stream, batch_size)
+            yield batch
+
+
 def masked_answer_loss(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
     """Return causal cross-entropy for statically gathered decision rows."""
     if logits.ndim != 3 or targets.ndim != 2 or logits.shape[:2] != targets.shape:
@@ -267,6 +292,7 @@ def train_model(
     device: str | torch.device | None = None,
     on_step: Callable[[int, float, float], None] | None = None,
     use_cuda_graph: bool = False,
+    use_prefetch: bool = True,
 ) -> tuple[StencilTransformer, list[float]]:
     """Train one real variant using fresh generator data at every step."""
     if config.task not in {"a", "b", "m"}:
@@ -300,11 +326,13 @@ def train_model(
         pending_steps.clear()
 
     model.train()
-    for step in range(config.steps):
+    batches = _training_batches(
+        stream, config.batch, config.steps, prefetch=use_prefetch
+    )
+    for step, batch in enumerate(batches):
         lr = _learning_rate(config, step)
         for group in optimizer.param_groups:
             group["lr"] = lr
-        batch = next_examples(stream, config.batch)
         if use_cuda_graph:
             if graph_step is None:
                 graph_step = _CudaGraphStep(model, optimizer, batch, execution_device)
@@ -339,10 +367,13 @@ def train_model(
 
 
 def train_model_losses(
-    config: Config, *, device: str | torch.device | None = None
+    config: Config,
+    *,
+    device: str | torch.device | None = None,
+    use_prefetch: bool = True,
 ) -> list[float]:
     """Convenience surface for the full-model determinism contract."""
-    model, losses = train_model(config, device=device)
+    model, losses = train_model(config, device=device, use_prefetch=use_prefetch)
     del model
     return losses
 
@@ -406,6 +437,7 @@ def run(
     force: bool = False,
     allow_dirty: bool = False,
     use_cuda_graph: bool = False,
+    use_prefetch: bool = True,
 ) -> Path:
     root = Path(repo).resolve()
     identity = git_identity(root)
@@ -435,7 +467,10 @@ def run(
             handle.write(json.dumps({"step": step, "loss": loss, "lr": lr}) + "\n")
 
         model, _ = train_model(
-            config, on_step=record, use_cuda_graph=use_cuda_graph
+            config,
+            on_step=record,
+            use_cuda_graph=use_cuda_graph,
+            use_prefetch=use_prefetch,
         )
     if config.variant in {"m1", "m1b"}:
         assert_stable(model)
@@ -501,6 +536,9 @@ def main() -> None:
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--allow-dirty", action="store_true")
     parser.add_argument("--cuda-graph", action="store_true")
+    parser.add_argument(
+        "--no-prefetch", action="store_false", dest="use_prefetch", default=True
+    )
     args = parser.parse_args()
     config = load_config(args.config)
     print(
@@ -509,6 +547,7 @@ def main() -> None:
             force=args.force,
             allow_dirty=args.allow_dirty,
             use_cuda_graph=args.cuda_graph,
+            use_prefetch=args.use_prefetch,
         )
     )
 
