@@ -33,24 +33,44 @@ class Attention(nn.Module):
         self.k = nn.Linear(config.d_model, config.d_model, bias=False)
         self.v = nn.Linear(config.d_model, config.d_model, bias=False)
         self.o = nn.Linear(config.d_model, config.d_model, bias=False)
+        self.register_buffer("rope_cosine", torch.empty(0), persistent=False)
+        self.register_buffer("rope_sine", torch.empty(0), persistent=False)
+        self._rope_cache_key: tuple[torch.device, torch.dtype] | None = None
+
+    def _rope_cache(
+        self, value: torch.Tensor, required_length: int
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        key = (value.device, value.dtype)
+        if self._rope_cache_key != key or self.rope_cosine.shape[0] < required_length:
+            frequency = self.rope_theta ** (
+                -torch.arange(
+                    0,
+                    self.head_dim,
+                    2,
+                    device=value.device,
+                    dtype=value.dtype,
+                )
+                / self.head_dim
+            )
+            angle = (
+                torch.arange(
+                    required_length,
+                    device=value.device,
+                    dtype=value.dtype,
+                )[:, None]
+                * frequency[None]
+            )
+            self.rope_cosine = angle.cos()
+            self.rope_sine = angle.sin()
+            self._rope_cache_key = key
+        return self.rope_cosine, self.rope_sine
 
     def _rope(self, value: torch.Tensor, position_offset: int = 0) -> torch.Tensor:
         length = value.shape[2]
-        frequency = self.rope_theta ** (
-            -torch.arange(0, self.head_dim, 2, device=value.device, dtype=value.dtype)
-            / self.head_dim
-        )
-        angle = (
-            torch.arange(
-                position_offset,
-                position_offset + length,
-                device=value.device,
-                dtype=value.dtype,
-            )[:, None]
-            * frequency[None]
-        )
-        cosine = angle.cos()[None, None]
-        sine = angle.sin()[None, None]
+        end = position_offset + length
+        cosine, sine = self._rope_cache(value, end)
+        cosine = cosine[position_offset:end][None, None]
+        sine = sine[position_offset:end][None, None]
         even, odd = value[..., 0::2], value[..., 1::2]
         return torch.stack(
             (even * cosine - odd * sine, even * sine + odd * cosine), dim=-1

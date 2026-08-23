@@ -7,6 +7,7 @@ import math
 from copy import deepcopy
 from dataclasses import replace
 from pathlib import Path
+from types import MethodType
 
 import numpy as np
 import pytest
@@ -379,6 +380,82 @@ def test_banded_equals_masked_attention() -> None:
     lag = indices[:, None] - indices[None, :]
     oracle = (lag >= 0)[None] & ((lag < attention.window)[None] | cue_mask[:, None, :])
     assert torch.equal(reconstructed, oracle)
+
+
+def test_rope_cache_buffers_preserve_logits_bitwise() -> None:
+    """Cached target-device RoPE values exactly preserve decision logits."""
+    config = replace(BASE_CONFIG, context_len=48)
+
+    def legacy_rope(
+        attention, value: torch.Tensor, position_offset: int = 0
+    ) -> torch.Tensor:
+        length = value.shape[2]
+        frequency = attention.rope_theta ** (
+            -torch.arange(
+                0,
+                attention.head_dim,
+                2,
+                device=value.device,
+                dtype=value.dtype,
+            )
+            / attention.head_dim
+        )
+        angle = (
+            torch.arange(
+                position_offset,
+                position_offset + length,
+                device=value.device,
+                dtype=value.dtype,
+            )[:, None]
+            * frequency[None]
+        )
+        cosine = angle.cos()[None, None]
+        sine = angle.sin()[None, None]
+        even, odd = value[..., 0::2], value[..., 1::2]
+        return torch.stack(
+            (even * cosine - odd * sine, even * sine + odd * cosine), dim=-1
+        ).flatten(-2)
+
+    cpu_tokens = torch.randint(
+        0,
+        config.vocab,
+        (2, config.context_len),
+        generator=named_generator(0, "fixtures:rope-cache"),
+    )
+    cpu_decisions = torch.tensor([[31, 46], [30, 45]])
+    devices = [torch.device("cpu")]
+    if torch.cuda.is_available():
+        devices.append(torch.device("cuda"))
+    for device in devices:
+        cached = StencilTransformer(config).to(device)
+        legacy = deepcopy(cached)
+        for block in legacy.blocks:
+            block.attention._rope = MethodType(legacy_rope, block.attention)
+        tokens = cpu_tokens.to(device)
+        decisions = cpu_decisions.to(device)
+        with torch.no_grad():
+            cached_logits = cached(
+                tokens,
+                decision_positions=decisions,
+                use_truncation=True,
+                truncation_start=1,
+            )
+            legacy_logits = legacy(
+                tokens,
+                decision_positions=decisions,
+                use_truncation=True,
+                truncation_start=1,
+            )
+
+        for block in cached.blocks:
+            attention = block.attention
+            buffers = dict(attention.named_buffers())
+            expected = (config.context_len, config.d_model // 4)
+            assert buffers["rope_cosine"].shape == expected
+            assert buffers["rope_sine"].shape == expected
+            assert "rope_cosine" not in attention.state_dict()
+            assert "rope_sine" not in attention.state_dict()
+        assert torch.equal(cached_logits, legacy_logits)
 
 
 @pytest.mark.skipif(

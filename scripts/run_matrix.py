@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import sys
 from collections.abc import Callable, Sequence
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -125,13 +126,16 @@ def execute_pending(
     launcher: Launcher,
     *,
     timeout: float,
+    jobs: int = 1,
 ) -> dict[str, int]:
     """Skip DONE runs and recreate interrupted run directories before launch."""
     if timeout <= 0:
         raise ValueError("timeout must be positive")
+    if jobs < 1:
+        raise ValueError("jobs must be positive")
     results_dir.mkdir(parents=True, exist_ok=True)
     skipped = 0
-    launched = 0
+    pending: list[tuple[MatrixCell, Path]] = []
     for cell in cells:
         if not cell.run_id:
             raise ValueError(f"cell {cell.key!r} has no resolved run_id")
@@ -142,14 +146,28 @@ def execute_pending(
             continue
         if done.exists():
             raise RuntimeError(f"DONE marker is not a file: {done}")
+
+        pending.append((cell, run_dir))
+
+    def launch_pending(cell: MatrixCell, run_dir: Path) -> None:
         if run_dir.exists():
             safe_child = run_dir.parent.resolve() == results_dir.resolve()
             if not run_dir.is_dir() or not safe_child:
                 raise RuntimeError(f"unsafe interrupted run path: {run_dir}")
             shutil.rmtree(run_dir)
         launcher(cell, run_dir, timeout)
-        launched += 1
-    return {"skipped": skipped, "launched": launched}
+
+    if jobs == 1:
+        for cell, run_dir in pending:
+            launch_pending(cell, run_dir)
+    else:
+        with ThreadPoolExecutor(max_workers=jobs) as pool:
+            futures = [
+                pool.submit(launch_pending, cell, run_dir) for cell, run_dir in pending
+            ]
+            for future in futures:
+                future.result()
+    return {"skipped": skipped, "launched": len(pending)}
 
 
 def filter_cells(cells: Sequence[MatrixCell], only: str | None) -> list[MatrixCell]:
@@ -191,6 +209,9 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--only", help="comma-separated exact or glob cell keys")
     parser.add_argument("--timeout", type=float, required=True, help="seconds per run")
+    parser.add_argument(
+        "--jobs", type=int, default=1, help="maximum concurrent run processes"
+    )
     parser.add_argument("--allow-dirty", action="store_true")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
@@ -203,6 +224,7 @@ def main() -> None:
         root / "results",
         _subprocess_launcher(root, args.allow_dirty),
         timeout=args.timeout,
+        jobs=args.jobs,
     )
     print(f"launched={summary['launched']} skipped={summary['skipped']}")
 

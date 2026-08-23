@@ -11,11 +11,20 @@ from torch.nn import functional as F
 from stencil.data import generate
 from stencil.model import StencilTransformer, build_matched_configs
 from stencil.train import (
+    _optimizer,
     masked_answer_loss,
     next_examples,
     train_model,
     train_model_losses,
 )
+
+
+def test_adamw_uses_foreach() -> None:
+    config = build_matched_configs()["b0_local"]
+    optimizer = _optimizer(StencilTransformer(config), config)
+
+    assert optimizer.defaults["foreach"] is True
+    assert optimizer.defaults["fused"] is False
 
 
 def test_static_decision_loss_and_selected_head_are_bitwise() -> None:
