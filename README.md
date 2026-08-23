@@ -48,7 +48,7 @@ Anyone who has used an AI assistant on a long job has watched it lose the thread
 |---|---|---|---|
 | Phase 0 | build the lab bench, prove reruns are identical | G0 | green (2026-08-22) |
 | Phase 1 | build the puzzle generators, prove them exact | G1 | green (2026-08-22) |
-| Phase 2 | build the models, prove the doorless room and the inert wire | G2 | in progress |
+| Phase 2 | build the models, prove the doorless room and the inert wire | G2 | green (2026-08-23) |
 | Phase 3 | the main event, the wire crosses where nothing else can | G3 | not started |
 | Phase 4 | read the dial, turn the dial | G4 | not started |
 | Phase 5 | map how the wire's memory should fade | tradeoff.md | not started |
