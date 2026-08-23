@@ -165,6 +165,41 @@ class DecayCell(nn.Module):
         return torch.stack(states, dim=1)
 
 
+class CueLatch(nn.Module):
+    """Event-driven register that replaces its state only at cue positions."""
+
+    def __init__(
+        self,
+        input_dim: int,
+        state_dim: int,
+        *,
+        generator: torch.Generator,
+        dtype: torch.dtype = torch.float32,
+    ) -> None:
+        super().__init__()
+        self.input_dim = input_dim
+        self.state_dim = state_dim
+        self.W_e = nn.Parameter(torch.empty(state_dim, input_dim, dtype=dtype))
+        nn.init.normal_(self.W_e, mean=0.0, std=0.02, generator=generator)
+
+    def forward(
+        self, embeddings: torch.Tensor, cue_mask: torch.Tensor
+    ) -> torch.Tensor:
+        if embeddings.ndim != 3 or embeddings.shape[-1] != self.input_dim:
+            raise ValueError("embeddings must have shape (batch, length, input_dim)")
+        if cue_mask.shape != embeddings.shape[:2] or cue_mask.dtype != torch.bool:
+            raise ValueError("cue_mask must be boolean with shape (batch, length)")
+        candidates = F.linear(embeddings, self.W_e)
+        positions = torch.arange(embeddings.shape[1], device=embeddings.device)
+        cue_indices = torch.where(cue_mask, positions[None], -1)
+        latest_cue = torch.cummax(cue_indices, dim=1).values
+        gather_index = latest_cue.clamp_min(0)[..., None].expand(
+            -1, -1, self.state_dim
+        )
+        latched = torch.gather(candidates, dim=1, index=gather_index)
+        return torch.where(latest_cue[..., None] >= 0, latched, 0.0)
+
+
 class OscillatorController(nn.Module):
     def __init__(self, config: Config, generator: torch.Generator) -> None:
         super().__init__()

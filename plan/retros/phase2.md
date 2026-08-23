@@ -25,6 +25,24 @@ Scope: Phase 2 launch through gate(G2) commit `fda006f`, plus the v1.26/v1.27 am
 | Deception-shaped fixes need extensional briefs | Applied in phase2-fixes3 (landed clean); phrasing carried into future fix-brief practice via this retro |
 | STATE-template/parser mismatches recur | Ride-along candidate for the next tooling amendment: a `tools/state_entry.sh` template emitter; deferred with reason — burden test: two incidents, both caught pre-commit by the gate itself |
 
+## Corrections (2026-08-23, appended after kimi retro review round 1 — plan/reviews/retro-phase2/retro-kimi.md, 74)
+
+1. **(#1.)** Went-well 2 overstated: ONE round caught the adapter (sol round 2, orchestrator-confirmed), not two; kimi contributed nothing to that catch — its only mid-thrash round aborted on the 502 before reviewing anything. The two-reviewer credit is withdrawn.
+2. **(#2.)** Blame completed: the oracle thrash was brief AND coder. Two consecutive passes produced compliance-shaped noncompliance — artifacts satisfying the brief's letter while violating its substance — and the coder never raised the zero-initial-state constraint the way the phase2-models coder raised the v1.26 contradictions. The operative safety net was adversarial review of execution semantics; extensional briefs reduce the attack surface but did not and cannot replace it.
+3. **(#3.)** Lesson-recurrence count corrected to **3**: the false provenance claim was a recurrence of the EXISTING consumer-semantics lesson (as item 1's own parenthetical said), not a new lesson. The target-zero metric moved the wrong way this phase; Optimizations row 1's "new entry" framing is withdrawn — the question is whether the existing entry needs strengthening, decided at the next amendment.
+4. **(#4.)** Row 1's disposition is now a proper ledgered forward binding (see the post-correction STATE entry), not a claim living only in this document.
+5. **(#5.)** Scope span corrected: the amendment cycle ran rounds 30-37 (v1.26: 30-31; v1.27: 32-37). Metrics table pasted:
+
+| review | r1 score | latest (round) | accepted | open H/C | C/H/M/L now |
+|---|---|---|---|---|---|
+| phase2/phase2.md | 58 | 93 (r3) | r3 | 0 | 0/3/2/4 |
+| phase2/phase2-kimi.md | 73 | 94 (r2) | r2 | 0 | 0/1/2/3 |
+| plan/amendment.md (v1.26-27 span) | 52 (r30) | 94 (r35) / re-quotes 36-37 | r37 | 0 open (2 Low residues) | — |
+
+6. **(#6.)** Omitted events restored to the record: the kimi 502 abort/retry (wrapper failure); the phase2-fixes exit-124 timeout mid-confirmation; the fixes2 coder's unregistered equinox==0.11.4 pin against the registered jax==0.4.35 (a coder dependency-discipline defect distinct from the adapter, orchestrator-corrected and round-2-audited); the acceptance tooling correctly forcing the sidecar out of the review dir (tooling went-well). The "~2 extra hours" figure is session self-report, unverifiable from committed artifacts.
+7. **(#7.)** Adjudication 5 was a **prudent escalation outside the enumerated five touchpoints, ratified and precedent-registered by the ruling** — not "exactly the registered touchpoint." The stronger honest claim replaces the overclaim.
+8. **(#8.)** The phase1 retro never received its registered kimi review (launch entries exist for plan and phase0 only; no deferral was ledgered). Discharged now: manifest registered and the review launched alongside this correction's round 2 (see STATE).
+
 ## Verdict against the north star
 
 The hardest phase so far: three spec repairs, one human ruling, an orchestrator false claim, and a three-pass fix cycle — and every failure was caught by the system's own machinery, on the record, before any of it could touch gate evidence. Phase reviews: 58/73 → 93/94 in 3 rounds (budget 10). The proofs that Phase 3's science rests on (zero-influence, inert wire, upstream-verified cell) are now as strong as the protocol knows how to make them.

@@ -73,6 +73,19 @@ def test_load_config_rejects_unknown_fields(tmp_path: Path) -> None:
         load_config(path)
 
 
+@pytest.mark.parametrize("variant", ["b3", "b4"])
+def test_load_config_accepts_registered_comparators(
+    tmp_path: Path, variant: str
+) -> None:
+    config = load_config(_write_config(tmp_path, _raw_config(variant=variant)))
+    assert config.variant == variant
+    assert config.osc_pairs is None
+    assert config.osc_cells is None
+    assert config.period_min is None
+    assert config.period_max is None
+    assert config.damping_learnable is None
+
+
 @pytest.mark.parametrize(
     ("variant", "damping_learnable"),
     [("m1", True), ("m1b", False)],
@@ -93,10 +106,11 @@ def test_load_config_rejects_inconsistent_damping(
         load_config(path)
 
 
-def test_load_config_rejects_oscillator_fields_for_non_oscillatory(
-    tmp_path: Path,
+@pytest.mark.parametrize("variant", ["b3", "b4"])
+def test_load_config_rejects_oscillator_fields_for_registered_comparators(
+    tmp_path: Path, variant: str
 ) -> None:
-    path = _write_config(tmp_path, _raw_config(osc_pairs=8))
+    path = _write_config(tmp_path, _raw_config(variant=variant, osc_pairs=8))
     with pytest.raises(ValueError, match="oscillator fields must be null"):
         load_config(path)
 

@@ -11,7 +11,7 @@ from torch.nn import functional as F
 from stencil.config import Config
 from stencil.determinism import named_generator
 from stencil.gates import apply_headwise_gate, project_b1_gate, project_control_gate
-from stencil.oscillator import DecayCell, OscillatorController
+from stencil.oscillator import CueLatch, DecayCell, OscillatorController
 
 
 class Attention(nn.Module):
@@ -49,7 +49,12 @@ class Attention(nn.Module):
             (even * cosine - odd * sine, even * sine + odd * cosine), dim=-1
         ).flatten(-2)
 
-    def forward(self, x: torch.Tensor, gates: torch.Tensor | None) -> torch.Tensor:
+    def forward(
+        self,
+        x: torch.Tensor,
+        gates: torch.Tensor | None,
+        cue_mask: torch.Tensor | None = None,
+    ) -> torch.Tensor:
         batch, length, _ = x.shape
 
         def reshape(value: torch.Tensor) -> torch.Tensor:
@@ -64,7 +69,17 @@ class Attention(nn.Module):
         lag = positions[:, None] - positions[None, :]
         mask = lag >= 0
         if self.window is not None:
-            mask = mask & (lag < self.window)
+            local = lag < self.window
+            if cue_mask is not None:
+                if cue_mask.shape != (batch, length) or cue_mask.dtype != torch.bool:
+                    raise ValueError(
+                        "cue_mask must be boolean with shape (batch, length)"
+                    )
+                mask = mask[None, None] & (
+                    local[None, None] | cue_mask[:, None, None, :]
+                )
+            else:
+                mask = mask & local
         heads = F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
         if gates is not None:
             heads = apply_headwise_gate(heads, gates)
@@ -81,18 +96,32 @@ class Block(nn.Module):
         self.up = nn.Linear(config.d_model, config.d_ff, bias=False)
         self.down = nn.Linear(config.d_ff, config.d_model, bias=False)
 
-    def forward(self, x: torch.Tensor, gates: torch.Tensor | None) -> torch.Tensor:
-        x = x + self.attention(self.attention_norm(x), gates)
+    def forward(
+        self,
+        x: torch.Tensor,
+        gates: torch.Tensor | None,
+        cue_mask: torch.Tensor | None = None,
+    ) -> torch.Tensor:
+        x = x + self.attention(self.attention_norm(x), gates, cue_mask)
         x = x + self.down(F.gelu(self.up(self.mlp_norm(x))))
         return x
 
 
 class StencilTransformer(nn.Module):
-    """One shared decoder-only transformer assembled into all six variants."""
+    """One shared decoder-only transformer assembled into all eight variants."""
 
     def __init__(self, config: Config) -> None:
         super().__init__()
-        if config.variant not in {"b0_full", "b0_local", "b1", "b2", "m1", "m1b"}:
+        if config.variant not in {
+            "b0_full",
+            "b0_local",
+            "b1",
+            "b2",
+            "m1",
+            "m1b",
+            "b3",
+            "b4",
+        }:
             raise ValueError("unknown model variant")
         self.config = config
         self.token_embedding = nn.Embedding(config.vocab, config.d_model)
@@ -115,7 +144,11 @@ class StencilTransformer(nn.Module):
             self.controller = DecayCell(
                 config.d_model, 128, generator=pathway_generator
             )
-        if config.variant in {"m1", "m1b", "b2"}:
+        elif config.variant == "b3":
+            self.controller = CueLatch(
+                config.d_model, 128, generator=pathway_generator
+            )
+        if config.variant in {"m1", "m1b", "b2", "b3"}:
             self.gate_weight = nn.Parameter(
                 torch.empty(config.n_layers, config.n_heads, 128)
             )
@@ -166,17 +199,30 @@ class StencilTransformer(nn.Module):
         self, tokens: torch.Tensor, *, gate_identity: bool = False
     ) -> torch.Tensor:
         return self.forward_embeddings(
-            self.token_embedding(tokens), gate_identity=gate_identity
+            self.token_embedding(tokens),
+            gate_identity=gate_identity,
+            cue_mask=(tokens >= 1) & (tokens <= 32),
         )
 
     def forward_embeddings(
-        self, embeddings: torch.Tensor, *, gate_identity: bool = False
+        self,
+        embeddings: torch.Tensor,
+        *,
+        gate_identity: bool = False,
+        cue_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
         if gate_identity and self.config.variant in {"b0_full", "b0_local"}:
             raise ValueError("baseline has no gate to bypass")
         control = None
-        if self.controller is not None:
+        if self.config.variant == "b3":
+            if cue_mask is None:
+                raise ValueError("b3 embedding forwards require a cue_mask")
+            assert isinstance(self.controller, CueLatch)
+            control = self.controller(embeddings, cue_mask)
+        elif self.controller is not None:
             control = self.controller(embeddings)
+        if self.config.variant == "b4" and cue_mask is None:
+            raise ValueError("b4 embedding forwards require a cue_mask")
         x = embeddings
         for layer_index, block in enumerate(self.blocks):
             normalized = block.attention_norm(x)
@@ -199,7 +245,8 @@ class StencilTransformer(nn.Module):
                         self.gate_weight[layer_index],
                         self.gate_bias[layer_index],
                     )
-            x = x + block.attention(normalized, gates)
+            attention_cue_mask = cue_mask if self.config.variant == "b4" else None
+            x = x + block.attention(normalized, gates, attention_cue_mask)
             x = x + block.down(F.gelu(block.up(block.mlp_norm(x))))
         return self.lm_head(self.final_norm(x))
 
@@ -224,6 +271,8 @@ def _config_param_count(config: Config) -> int:
         return base + config.n_layers * config.n_heads * d
     if config.variant == "b2":
         return base + 128 * d + 128 + gates
+    if config.variant == "b3":
+        return base + 128 * d + gates
     if config.variant in {"m1", "m1b"}:
         assert config.osc_pairs is not None
         m = config.osc_pairs
@@ -279,7 +328,7 @@ def _base_config(variant: str, d_ff: int, seed_init: int) -> Config:
 
 def build_matched_configs(seed_init: int = 0) -> OrderedDict[str, Config]:
     """Choose the first d_ff multiple of eight within 1% of M1b's count."""
-    order = ("b0_full", "b0_local", "b1", "b2", "m1", "m1b")
+    order = ("b0_full", "b0_local", "b1", "b2", "m1", "m1b", "b3", "b4")
     fixed = {
         variant: _base_config(variant, 1024, seed_init) for variant in ("m1", "m1b")
     }
@@ -288,6 +337,11 @@ def build_matched_configs(seed_init: int = 0) -> OrderedDict[str, Config]:
     for variant in order:
         if variant in fixed:
             configs[variant] = fixed[variant]
+            continue
+        if variant == "b4":
+            configs[variant] = _base_config(
+                variant, configs["b0_local"].d_ff, seed_init
+            )
             continue
         for width in range(8, 4097, 8):
             candidate = _base_config(variant, width, seed_init)

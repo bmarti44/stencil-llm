@@ -95,7 +95,7 @@ def load_config(path: str | Path) -> Config:
 
 
 def _validate(config: Config) -> None:
-    variants = {"b0_full", "b0_local", "b1", "b2", "m1", "m1b"}
+    variants = {"b0_full", "b0_local", "b1", "b2", "m1", "m1b", "b3", "b4"}
     tasks = {"a", "b", "m", "copy"}
     if config.variant not in variants:
         raise ValueError(f"invalid variant: {config.variant}")

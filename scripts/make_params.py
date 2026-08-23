@@ -15,17 +15,18 @@ def render() -> str:
     rows = []
     for variant, config in build_matched_configs().items():
         count = count_params(StencilTransformer(config))
-        rows.append(f"| {variant} | {config.d_ff} | {count:,} |")
+        note = "mask-only; same count as B0-local" if variant == "b4" else ""
+        rows.append(f"| {variant} | {config.d_ff} | {count:,} | {note} |")
     return "\n".join(
         [
-            "# Phase 2 parameter matching",
+            "# Phase 2/3 parameter matching",
             "",
             "Trainable parameters only; frozen buffers are excluded and embeddings "
             "are included.",
             "Widths are the first multiples of 8 within 1% of the M1b count.",
             "",
-            "| variant | d_ff | trainable parameters |",
-            "|---|---:|---:|",
+            "| variant | d_ff | trainable parameters | note |",
+            "|---|---:|---:|---|",
             *rows,
             "",
         ]

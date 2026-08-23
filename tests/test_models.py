@@ -379,33 +379,36 @@ def _task_a_config(
 
 
 def test_gate_identity_recovers_baseline_bitwise() -> None:
-    """Run 2 fp32 cases (M1 and B1): same seed_init=0 shared base init,
+    """Run 3 fp32 cases (M1, B1, and B3): same seed_init=0 shared base init,
     identity-bypass gates exactly 1, one Task A (N=512,k=8,seed_rules=0,
-    seed_data=0) batch of 8.  Nonzero logits must be bitwise equal to B0-local.
+    seed_data=0) batch of 8. Nonzero logits must be bitwise equal to B0-local
+    with the comparator's matched d_ff (identical shared-base shapes).
     """
     base_config = _task_a_config("b0_local")
     stream = generate(base_config)
     tokens = torch.stack([next(stream)[0] for _ in range(8)])
-    with torch.no_grad():
-        baseline = StencilTransformer(base_config)(tokens)
     cases = 0
-    for variant in ("m1", "b1"):
-        model = StencilTransformer(_task_a_config(variant))
+    for variant in ("m1", "b1", "b3"):
+        variant_config = _task_a_config(variant)
+        matched_base = replace(base_config, d_ff=variant_config.d_ff)
+        model = StencilTransformer(variant_config)
         with torch.no_grad():
+            baseline = StencilTransformer(matched_base)(tokens)
             logits = model(tokens, gate_identity=True)
         assert torch.count_nonzero(logits) > 0
         assert torch.equal(logits, baseline)
         cases += 1
     with pytest.raises(ValueError, match="has no gate"):
         StencilTransformer(base_config)(tokens, gate_identity=True)
-    assert cases == 2
+    assert cases == 3
 
 
 def _logit_jacobian(model: StencilTransformer, tokens: torch.Tensor) -> torch.Tensor:
     embeddings = model.token_embedding(tokens).detach()
     cue = embeddings[:, 0, :].clone().requires_grad_(True)
     injected = torch.cat((cue[:, None, :], embeddings[:, 1:, :]), dim=1)
-    logits = model.forward_embeddings(injected)[:, -1, :].reshape(-1)
+    cue_mask = (tokens >= 1) & (tokens <= 32)
+    logits = model.forward_embeddings(injected, cue_mask=cue_mask)[:, -1, :].reshape(-1)
     gradient = torch.autograd.grad(
         logits,
         cue,
@@ -419,17 +422,19 @@ def _logit_jacobian(model: StencilTransformer, tokens: torch.Tensor) -> torch.Te
 
 
 def test_cue_unreachable_exact_zero_grad() -> None:
-    """Run 90 fp32 cases: B0-local/B1 and M1/M1b/B2, seeds {0,1,2},
+    """Run 126 fp32 cases: B0-local/B1 and M1/M1b/B2/B3/B4, seeds {0,1,2},
     N {512,2048}, first 3 eval-stream Task A (k=8, seed_rules=0)
     sequences. At each sole answer-decision position the full 64-logit Jacobian
     wrt cue-position activation is a connected real tensor: exactly zero for
-    B0-local/B1 and nonzero for M1/M1b/B2 (exact comparisons, rtol=atol=0).
+    B0-local/B1 and nonzero for M1/M1b/B2/B3/B4 (exact comparisons,
+    rtol=atol=0). B3 reaches the cue through its latch; B4 reaches the cue
+    through its globally attendable cue-position mask.
     """
     cases = 0
     for seed in (0, 1, 2):
         for task_n in (2048, 512):
             streams = {}
-            for variant in ("m1", "m1b", "b2", "b0_local", "b1"):
+            for variant in ("m1", "m1b", "b2", "b3", "b4", "b0_local", "b1"):
                 config = _task_a_config(variant, seed, task_n, eval_stream=True)
                 streams[variant] = (StencilTransformer(config), generate(config))
             for variant, (model, stream) in streams.items():
@@ -452,35 +457,45 @@ def test_cue_unreachable_exact_zero_grad() -> None:
                             f"N={task_n}, sample={sample}"
                         )
                     cases += 1
-    assert cases == 90
+    assert cases == 126
 
 
 def test_cue_reachable_when_close() -> None:
-    """Run 3 fp32 B0-local cases, seeds {0,1,2}, with cue-to-answer-decision
+    """Run 6 fp32 B0-local/B4 cases, seeds {0,1,2}, with cue-to-answer-decision
     distance exactly model.receptive_field(); the connected full-vocab-logit
     Jacobian wrt cue activation is nonzero (exact comparison, rtol=atol=0).
     """
     cases = 0
     for seed in (0, 1, 2):
-        config = _task_a_config("b0_local", seed, task_n=250)
-        model = StencilTransformer(config)
-        distance = model.receptive_field()
-        tokens = torch.full((1, distance + 1), 50, dtype=torch.long)
-        tokens[0, 0] = 1
-        jacobian = _logit_jacobian(model, tokens)
-        assert torch.count_nonzero(jacobian) > 0
-        cases += 1
-    assert cases == 3
+        for variant in ("b0_local", "b4"):
+            config = _task_a_config(variant, seed, task_n=250)
+            model = StencilTransformer(config)
+            distance = model.receptive_field()
+            tokens = torch.full((1, distance + 1), 50, dtype=torch.long)
+            tokens[0, 0] = 1
+            jacobian = _logit_jacobian(model, tokens)
+            assert torch.count_nonzero(jacobian) > 0
+            cases += 1
+    assert cases == 6
 
 
 def test_param_match_within_1pct() -> None:
-    """Run 15 pairwise cases over configs for all six variants. Trainable
+    """Run 28 pairwise cases over configs for all eight variants. Trainable
     counts (buffers excluded, embeddings included) must differ by <=1% of the
     larger count (rtol=0.01, atol=0); M1/M1b both use d_ff=1024 and remaining
     d_ff widths are the lexicographically first multiples of 8 satisfying it.
     """
     configs = build_matched_configs()
-    assert list(configs) == ["b0_full", "b0_local", "b1", "b2", "m1", "m1b"]
+    assert list(configs) == [
+        "b0_full",
+        "b0_local",
+        "b1",
+        "b2",
+        "m1",
+        "m1b",
+        "b3",
+        "b4",
+    ]
     models = {name: StencilTransformer(config) for name, config in configs.items()}
     counts = {name: count_params(model) for name, model in models.items()}
     assert configs["m1"].d_ff == configs["m1b"].d_ff == 1024
@@ -492,4 +507,5 @@ def test_param_match_within_1pct() -> None:
                 counts[left], counts[right]
             )
             cases += 1
-    assert cases == 15
+    assert counts["b4"] == counts["b0_local"]
+    assert cases == 28
