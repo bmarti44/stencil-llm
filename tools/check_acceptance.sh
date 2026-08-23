@@ -51,6 +51,31 @@ for f in "$DIR"/*.md; do
 done
 [ "$sol" -ge 1 ] || { echo "FAIL: no sol review exists for $PHASE"; fail=1; }
 [ "$kimi" -ge 1 ] || { echo "FAIL: no kimi cross-review for $PHASE"; fail=1; }
+# v1.27: binary gate artifacts require a prose description sidecar at
+# results/<slug>-description.md (batch-5 presentation contract, formalized).
+ART="$DIR/artifacts.txt"
+if [ -f "$ART" ]; then
+    while IFS= read -r a; do
+        a="$(echo "$a" | tr -d ' ')"
+        [ -z "$a" ] && continue
+        # Binary = exists and fails grep's text heuristic (-I); text files and
+        # absent artifacts (reported PRESENT/ABSENT elsewhere) are exempt.
+        if [ -f "$ROOT/$a" ] && ! grep -qI . "$ROOT/$a" 2>/dev/null; then
+            slug="$(basename "$a" | tr '._' '--')"
+            SIDE="$ROOT/results/${slug}-description.md"
+            if [ ! -f "$SIDE" ]; then
+                echo "FAIL: binary artifact $a has no results/${slug}-description.md sidecar"; fail=1
+            else
+                # v1.27 (round-33 #24): the sidecar must record the artifact's
+                # CURRENT sha256 — a stale description is a presentation failure.
+                CUR="$(sha256sum "$ROOT/$a" | cut -c1-64)"
+                if ! grep -q "$CUR" "$SIDE"; then
+                    echo "FAIL: sidecar results/${slug}-description.md does not contain the artifact's current sha256 ($CUR) — stale description"; fail=1
+                fi
+            fi
+        fi
+    done < "$ART"
+fi
 # v1.25: governed status-row check (README-row flip missed in two consecutive
 # phases; PLAN rule 5). For phaseN acceptance the README row must have left
 # "not started" — the launch should have flipped it to in progress.

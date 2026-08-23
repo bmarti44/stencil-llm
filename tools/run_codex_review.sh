@@ -162,7 +162,7 @@ WA_SESSION="fresh"
 if [ -f "$ROOT/plan/reviews/.sessions/${PHASE}-${TOPIC}" ]; then
     WA_SESSION="resume $(head -c 64 "$ROOT/plan/reviews/.sessions/${PHASE}-${TOPIC}" | tr -cd 'a-f0-9-')"
 fi
-WA_ENTRY="- $(date -u +%Y-%m-%d), reviewer-launch (auto, run_codex_review.sh). Topic ${PHASE}/${TOPIC} round ${WA_ROUND}: command \`bash tools/run_codex_review.sh ${PHASE} ${TOPIC} ${THRESHOLD}\`, log ${LOG_DIR_DEFAULT}/codex-${PHASE}-${TOPIC}.log, canonical plan/reviews/${PHASE}/${TOPIC}.md, lens $(basename "$PROMPT_FILE"), session ${WA_SESSION}."
+WA_ENTRY="- $(date -u +%Y-%m-%d), reviewer-launch (auto, run_codex_review.sh). Topic ${PHASE}/${TOPIC} round ${WA_ROUND}: command \`bash tools/run_codex_review.sh ${PHASE} ${TOPIC} ${THRESHOLD}\`, log ${LOG_DIR_DEFAULT}/codex-${PHASE}-${TOPIC}.log, canonical plan/reviews/${PHASE}/${TOPIC}.md, lens $(basename "$PROMPT_FILE")${LENS_RATIONALE:+ (rationale: ${LENS_RATIONALE})}, session ${WA_SESSION}."
 python3 - "$ROOT/plan/LEDGER.md" "$WA_ENTRY" <<'PYWA'
 import sys
 path, entry = sys.argv[1], sys.argv[2]
