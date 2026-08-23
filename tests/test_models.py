@@ -284,14 +284,43 @@ def test_cell_matches_jax_fixtures() -> None:
     archive = np.load(JAX_FIXTURE, allow_pickle=False)
     metadata = json.loads(str(archive["metadata"]))
     assert metadata["jax"] == "0.4.35"
+    assert isinstance(metadata["numpy"], str) and metadata["numpy"]
     assert metadata["linoss_commit"] == "05a835355439ee5500b2c8f891132c53adf020c0"
     assert (
         metadata["damped_linoss_commit"] == "450b546f693918fe7cfe44082e88538fb29fbd64"
     )
+    assert metadata["seeds"] == [0, 1]
+    assert metadata["length"] == 512
+    assert metadata["pairs"] == 64
+    assert metadata["dtype"] == "float64"
+    assert metadata["shape_inputs"] == [512, 256]
     cases = 0
     for seed in (0, 1):
+        inputs = _draw(seed, "fixtures:input", (512, 256))
+        b_stream = named_generator(seed, "fixtures:b")
+        b1 = torch.randn((64, 256), generator=b_stream, dtype=torch.float64) * 0.02
+        b2 = torch.randn((64, 64), generator=b_stream, dtype=torch.float64) * 0.02
+        glu_stream = named_generator(seed, "fixtures:glu")
+        wa = torch.randn((64, 64), generator=glu_stream, dtype=torch.float64) * 0.02
+        wb = torch.randn((64, 64), generator=glu_stream, dtype=torch.float64) * 0.02
+        periods = torch.logspace(
+            math.log10(8.0), math.log10(4096.0), 64, dtype=torch.float64
+        )
+        ordering = torch.randperm(64, generator=named_generator(seed, "fixtures:a"))
+        a = (2 * torch.pi / periods[ordering]).square()
+        initial = torch.zeros((4, 64), dtype=torch.float64)
+        for name, expected in (
+            ("inputs", inputs),
+            ("A", a),
+            ("B1", b1),
+            ("B2", b2),
+            ("Wa", wa),
+            ("Wb", wb),
+        ):
+            np.testing.assert_array_equal(
+                archive[f"seed{seed}_{name}"], expected.numpy()
+            )
         for label, damping in (("undamped", 0.0), ("damped", 1e-2)):
-            inputs = torch.from_numpy(archive[f"seed{seed}_inputs"])[None]
             b_stream = named_generator(seed, "fixtures:b")
             first = OscillatorCell(
                 256, 64, 8, 4096, damping != 0, generator=b_stream, dtype=torch.float64
@@ -300,18 +329,14 @@ def test_cell_matches_jax_fixtures() -> None:
                 64, 64, 8, 4096, damping != 0, generator=b_stream, dtype=torch.float64
             )
             with torch.no_grad():
-                a = torch.from_numpy(archive[f"seed{seed}_A"])
                 first.a_raw.copy_(torch.log(torch.expm1(a)))
                 second.a_raw.copy_(torch.log(torch.expm1(a)))
-                first.B.copy_(torch.from_numpy(archive[f"seed{seed}_B1"]))
-                second.B.copy_(torch.from_numpy(archive[f"seed{seed}_B2"]))
+                first.B.copy_(b1)
+                second.B.copy_(b2)
                 if damping:
                     first.g_raw.fill_(math.log(math.expm1(damping)))
                     second.g_raw.fill_(math.log(math.expm1(damping)))
-            initial = torch.from_numpy(archive[f"seed{seed}_initial"])
-            y1, z1 = first(inputs, initial=(initial[0], initial[1]))
-            wa = torch.from_numpy(archive[f"seed{seed}_Wa"])
-            wb = torch.from_numpy(archive[f"seed{seed}_Wb"])
+            y1, z1 = first(inputs[None], initial=(initial[0], initial[1]))
             glu = F.linear(y1, wa) * torch.sigmoid(F.linear(y1, wb))
             y2, z2 = second(glu, initial=(initial[2], initial[3]))
             for state_name, actual in (("y1", y1), ("z1", z1), ("y2", y2), ("z2", z2)):
@@ -322,6 +347,16 @@ def test_cell_matches_jax_fixtures() -> None:
                     atol=1e-8,
                 )
             cases += 1
+        np.testing.assert_array_equal(
+            archive[f"seed{seed}_initial"], initial.numpy()
+        )
+    assert metadata["streams"] == [
+        "fixtures:input",
+        "fixtures:a",
+        "fixtures:b",
+        "fixtures:glu",
+    ]
+    assert metadata["initial_state"] == "zeros"
     assert cases == 4
 
 

@@ -13,14 +13,17 @@ reference trajectories `seed{s}_{label}_{y1,z1,y2,z2}` (each 512 x 64). `metadat
 a JSON string recording pinned commits (tk-rusch/linoss @ 05a8353…, jaredbmit/
 damped-linoss @ 450b546…), jax/numpy versions, shapes, seeds, dtype.
 
-PROVENANCE (corrected after round 1's sol#2/kimi#1 High): current npz sha256
-707c5d231984082015f8cc647f4c172f8ff81cd2aa33fbf68b1a56a54756a6ce, generated
-2026-08-23 by EXECUTING the pinned checkouts (worker sys.paths the cloned repos and
-calls their cell implementations: LinOSS-IMEX from tk-rusch/linoss, damped from
-jaredbmit/damped-linoss; equinox pin bumped 0.11.4→0.11.10 by the orchestrator —
-0.11.4 is incompatible with the REGISTERED jax==0.4.35, ledgered). The round-1
-fixtures (hand-written transcription, b4d9f7aa…) are superseded. Result: no
-material equation discrepancy — the upstream implementations reproduce the
-registered Section 5.2 update; test 4 passes against the upstream-generated
-trajectories. Consumer: tests/test_models.py::test_cell_matches_jax_fixtures
+PROVENANCE (final, after sol round-2 #10/#11): current npz sha256
+41208bb72da558721d2c9ae11a220ed17f7ab62f2a5f6f2276e580b2df6cfd6d, generated
+2026-08-23 with the FULL 512-step cases executed by the genuine upstream pipelines
+(`apply_linoss_imex` from tk-rusch/linoss; `DampedIMEX1Layer._recurrence` from
+jaredbmit/damped-linoss; z recovered via the exact identity z_{k+1}=(y_{k+1}-y_k)/dt;
+the round-2 affine adapter is deleted). Initial states are explicit zeros —
+unregistered in the fixture spec, and production cells initialize to zeros, so this
+is the conservative reading; nonzero-initial coverage lives in test 1's closed form.
+Equinox pin 0.11.10 (0.11.4 incompatible with the registered jax==0.4.35).
+Supersedes b4d9f7aa… (hand transcription, round 1) and 707c5d23… (adapter, round 2).
+Result: no material equation discrepancy; test 4 passes against upstream-generated
+trajectories AND reconstructs every input/parameter from the registered named
+streams in-test, asserting exact archive equality before the trajectory compare. Consumer: tests/test_models.py::test_cell_matches_jax_fixtures
 (rtol 1e-5, atol 1e-8, all four state trajectories, both dampings, both seeds).

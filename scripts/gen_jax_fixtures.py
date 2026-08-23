@@ -44,13 +44,10 @@ damped_checkout = Path(sys.argv[4])
 
 # Execute code from the verified pinned checkouts, not a local transcription.
 sys.path.insert(0, str(linoss_checkout))
-from models.LinOSS import apply_linoss_imex, binary_operator as linoss_operator
+from models.LinOSS import apply_linoss_imex
 
 sys.path.insert(0, str(damped_checkout / "src"))
-from damped_linoss.models.LinOSS import (
-    DampedIMEX1Layer,
-    binary_operator as damped_operator,
-)
+from damped_linoss.models.LinOSS import DampedIMEX1Layer
 
 result = {}
 
@@ -89,6 +86,8 @@ def upstream_undamped_zero_initial(inputs, B, a, dt=1.0):
         inputs,
         steps,
     )
+    # Exact update identity, not a finite-difference approximation:
+    # y[k+1] = y[k] + dt*z[k+1], with the upstream zero y[0].
     previous = jnp.concatenate((jnp.zeros_like(ys[:1]), ys[:-1]), axis=0)
     return ys, (ys - previous) / steps
 
@@ -98,6 +97,8 @@ def upstream_damped_zero_initial(inputs, B, a, damping, dt=1.0):
     projected = jax.vmap(lambda u: B @ u)(inputs).astype(jnp.complex128)
     layer = SimpleNamespace(state_dim=a.shape[0])
     ys = DampedIMEX1Layer._recurrence(layer, a, damping, steps, projected).real
+    # Exact update identity, not a finite-difference approximation:
+    # y[k+1] = y[k] + dt*z[k+1], with the upstream zero y[0].
     previous = jnp.concatenate((jnp.zeros_like(ys[:1]), ys[:-1]), axis=0)
     return ys, (ys - previous) / steps
 
@@ -119,12 +120,11 @@ def verify_upstream_equations():
     inputs = jnp.array([[0.3, -0.2], [0.7, 0.5], [-0.4, 0.9]], dtype=jnp.float64)
     B = jnp.array([[0.2, -0.6], [0.8, 0.1]], dtype=jnp.float64)
     a = jnp.array([0.17, 0.43], dtype=jnp.float64)
-    for damping, upstream_equations, upstream, operator in (
+    for damping, upstream_equations, upstream in (
         (
             jnp.zeros_like(a),
             UPSTREAM_UNDAMPED_EQUATIONS,
             upstream_undamped_zero_initial(inputs, B, a),
-            linoss_operator,
         ),
         (
             jnp.array([0.01, 0.03], dtype=jnp.float64),
@@ -135,54 +135,14 @@ def verify_upstream_equations():
                 a,
                 jnp.array([0.01, 0.03], dtype=jnp.float64),
             ),
-            damped_operator,
         ),
     ):
         registered = registered_zero_initial(inputs, B, a, damping)
-        adapted = upstream_state_scan(
-            operator,
-            inputs,
-            B,
-            a,
-            jnp.zeros_like(a),
-            jnp.zeros_like(a),
-            damping,
-        )
         if not all(
             bool(jnp.allclose(left, right, rtol=1e-12, atol=1e-12))
-            for actual in (registered, adapted)
-            for left, right in zip(upstream, actual)
+            for left, right in zip(upstream, registered)
         ):
             fail_discrepancy(upstream_equations, upstream, registered)
-
-
-def upstream_state_scan(operator, inputs, B, a, initial_y, initial_z, damping):
-    # Seed the upstream affine scan with its unsupported nonzero initial state.
-    dt = jnp.ones_like(a)
-    denominator = 1 + dt * damping
-    m11 = 1 / denominator
-    m12 = -dt * a / denominator
-    m21 = dt / denominator
-    m22 = 1 - dt**2 * a / denominator
-    transition = jnp.concatenate((m11, m12, m21, m22))
-    transitions = jnp.repeat(transition[None], inputs.shape[0], axis=0)
-
-    projected = jax.vmap(lambda u: B @ u)(inputs)
-    forcing = jnp.concatenate(
-        (dt * projected / denominator, dt**2 * projected / denominator), axis=1
-    )
-    identity = jnp.concatenate(
-        (jnp.ones_like(a), jnp.zeros_like(a), jnp.zeros_like(a), jnp.ones_like(a))
-    )
-    seeded_transitions = jnp.concatenate((identity[None], transitions), axis=0)
-    seeded_forcing = jnp.concatenate(
-        (jnp.concatenate((initial_z, initial_y))[None], forcing), axis=0
-    )
-    _, states = jax.lax.associative_scan(
-        operator, (seeded_transitions, seeded_forcing)
-    )
-    states = states[1:]
-    return states[:, a.shape[0]:], states[:, :a.shape[0]]
 
 
 verify_upstream_equations()
@@ -194,20 +154,22 @@ for seed in (0, 1):
     Wa = jnp.asarray(source[f"seed{seed}_Wa"])
     Wb = jnp.asarray(source[f"seed{seed}_Wb"])
     a = jnp.asarray(source[f"seed{seed}_A"])
-    initial = jnp.asarray(source[f"seed{seed}_initial"])
     result[f"seed{seed}_inputs"] = np.asarray(inputs)
     for name in ("A", "B1", "B2", "Wa", "Wb", "initial"):
         result[f"seed{seed}_{name}"] = source[f"seed{seed}_{name}"]
     for label, damping in (("undamped", 0.0), ("damped", 1e-2)):
-        operator = linoss_operator if damping == 0 else damped_operator
         damping_vector = jnp.full_like(a, damping)
-        y1, z1 = upstream_state_scan(
-            operator, inputs, B1, a, initial[0], initial[1], damping_vector
-        )
+        if damping == 0:
+            y1, z1 = upstream_undamped_zero_initial(inputs, B1, a)
+        else:
+            y1, z1 = upstream_damped_zero_initial(
+                inputs, B1, a, damping_vector
+            )
         glu = (y1 @ Wa.T) * jax.nn.sigmoid(y1 @ Wb.T)
-        y2, z2 = upstream_state_scan(
-            operator, glu, B2, a, initial[2], initial[3], damping_vector
-        )
+        if damping == 0:
+            y2, z2 = upstream_undamped_zero_initial(glu, B2, a)
+        else:
+            y2, z2 = upstream_damped_zero_initial(glu, B2, a, damping_vector)
         for state_name, value in (("y1", y1), ("z1", z1), ("y2", y2), ("z2", z2)):
             result[f"seed{seed}_{label}_{state_name}"] = np.asarray(value)
 metadata = json.loads(str(source["metadata"]))
@@ -252,11 +214,7 @@ def _source_arrays() -> dict[str, np.ndarray]:
         )
         ordering = torch.randperm(64, generator=named_generator(seed, "fixtures:a"))
         a = (2 * torch.pi / periods[ordering]).square()
-        initial = torch.randn(
-            (4, 64),
-            generator=named_generator(seed, "fixtures:init"),
-            dtype=torch.float64,
-        )
+        initial = torch.zeros((4, 64), dtype=torch.float64)
         for name, tensor in (
             ("inputs", inputs),
             ("A", a),
@@ -277,12 +235,12 @@ def _source_arrays() -> dict[str, np.ndarray]:
                 "pairs": 64,
                 "dtype": "float64",
                 "streams": [
-                    "fixtures:init",
                     "fixtures:input",
                     "fixtures:a",
                     "fixtures:b",
                     "fixtures:glu",
                 ],
+                "initial_state": "zeros",
                 "shape_inputs": [512, 256],
             },
             sort_keys=True,
