@@ -21,6 +21,7 @@ from stencil.model import (
     count_params,
 )
 from stencil.oscillator import (
+    CueLatch,
     DecayCell,
     OscillatorCell,
     assert_stable,
@@ -269,6 +270,66 @@ def test_damping_zero_matches_m1_bitwise() -> None:
         m1(inputs[:, :1], zero_damping=True)
     cases += 1
     assert cases == 1
+
+
+def test_scan_equals_sequential() -> None:
+    """Run 3 fp32 cases at batch 4, length 512, m=64 on nonzero N(0,1)
+    ``fixtures:input`` seed-0 inputs: oscillator and decay scan trajectories
+    match their permanent sequential oracles at rtol=1e-5, atol=1e-8, and the
+    vectorized cue latch is exactly equal to a per-position loop oracle.
+    """
+    cases = 0
+    inputs = _draw(
+        0, "fixtures:input", (4, 512, 64), dtype=torch.float32
+    )
+    assert torch.count_nonzero(inputs) == inputs.numel()
+
+    oscillator = OscillatorCell(
+        64,
+        64,
+        8,
+        4096,
+        True,
+        generator=named_generator(0, "fixtures:b"),
+    )
+    scan_y, scan_z = oscillator(inputs, use_scan=True)
+    sequential_y, sequential_z = oscillator(inputs, use_scan=False)
+    assert torch.count_nonzero(sequential_y) > 0
+    assert torch.count_nonzero(sequential_z) > 0
+    torch.testing.assert_close(scan_y, sequential_y, rtol=1e-5, atol=1e-8)
+    torch.testing.assert_close(scan_z, sequential_z, rtol=1e-5, atol=1e-8)
+    cases += 1
+
+    decay = DecayCell(
+        64, 64, generator=named_generator(0, "fixtures:b")
+    )
+    scan_states = decay(inputs, use_scan=True)
+    sequential_states = decay(inputs, use_scan=False)
+    assert torch.count_nonzero(sequential_states) > 0
+    torch.testing.assert_close(
+        scan_states, sequential_states, rtol=1e-5, atol=1e-8
+    )
+    cases += 1
+
+    latch = CueLatch(64, 64, generator=named_generator(0, "fixtures:b"))
+    cue_mask = torch.zeros((4, 512), dtype=torch.bool)
+    cue_mask[0, (0, 127, 511)] = True
+    cue_mask[1, (31, 32)] = True
+    cue_mask[2, 255] = True
+    vectorized = latch(inputs, cue_mask)
+    candidates = F.linear(inputs, latch.W_e)
+    state = torch.zeros((4, 64), dtype=torch.float32)
+    loop_states = []
+    for position in range(512):
+        state = torch.where(
+            cue_mask[:, position, None], candidates[:, position], state
+        )
+        loop_states.append(state)
+    loop = torch.stack(loop_states, dim=1)
+    assert torch.count_nonzero(loop) > 0
+    assert torch.equal(vectorized, loop)
+    cases += 1
+    assert cases == 3
 
 
 @pytest.mark.skipif(
