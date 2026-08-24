@@ -8,10 +8,13 @@ import fnmatch
 import shutil
 import subprocess
 import sys
+import time
+from collections import deque
 from collections.abc import Callable, Sequence
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from dataclasses import dataclass, replace
 from pathlib import Path
+from typing import Protocol
 
 from stencil import determinism as _determinism  # noqa: F401
 from stencil.config import Config, GitIdentity, canonical_json, git_identity, run_id
@@ -25,7 +28,21 @@ class MatrixCell:
     config: Config | None
 
 
-Launcher = Callable[[MatrixCell, Path, float], None]
+Launcher = Callable[[MatrixCell, Path, float, float], None]
+
+
+class ChildProcess(Protocol):
+    def poll(self) -> int | None: ...
+
+    def terminate(self) -> None: ...
+
+    def wait(self, timeout: float | None = None) -> int | None: ...
+
+    def kill(self) -> None: ...
+
+
+class StalledRun(RuntimeError):
+    """A child stopped growing its metrics file and was terminated."""
 
 
 def _seeded(config: Config, seed: int) -> Config:
@@ -127,12 +144,18 @@ def execute_pending(
     *,
     timeout: float,
     jobs: int = 1,
+    stagger: float = 120.0,
+    stall_timeout: float = 1200.0,
 ) -> dict[str, int]:
     """Skip DONE runs and recreate interrupted run directories before launch."""
     if timeout <= 0:
         raise ValueError("timeout must be positive")
     if jobs < 1:
         raise ValueError("jobs must be positive")
+    if stagger < 0:
+        raise ValueError("stagger must be nonnegative")
+    if stall_timeout <= 0:
+        raise ValueError("stall_timeout must be positive")
     results_dir.mkdir(parents=True, exist_ok=True)
     skipped = 0
     pending: list[tuple[MatrixCell, Path]] = []
@@ -155,18 +178,71 @@ def execute_pending(
             if not run_dir.is_dir() or not safe_child:
                 raise RuntimeError(f"unsafe interrupted run path: {run_dir}")
             shutil.rmtree(run_dir)
-        launcher(cell, run_dir, timeout)
+        launcher(cell, run_dir, timeout, stall_timeout)
+
+    def handle_result(
+        future: Future[None], item: tuple[MatrixCell, Path]
+    ) -> None:
+        try:
+            future.result()
+        except StalledRun:
+            cell, _ = item
+            print(f"STALLED {cell.key}; requeued at back", flush=True)
+            queue.append(item)
 
     if jobs == 1:
-        for cell, run_dir in pending:
-            launch_pending(cell, run_dir)
+        queue = deque(pending)
+        while queue:
+            item = queue.popleft()
+            cell, run_dir = item
+            try:
+                launch_pending(cell, run_dir)
+            except StalledRun:
+                print(f"STALLED {cell.key}; requeued at back", flush=True)
+                queue.append(item)
     else:
+        queue = deque(pending)
+        in_flight: dict[Future[None], tuple[MatrixCell, Path]] = {}
+        last_launch: float | None = None
         with ThreadPoolExecutor(max_workers=jobs) as pool:
-            futures = [
-                pool.submit(launch_pending, cell, run_dir) for cell, run_dir in pending
-            ]
-            for future in futures:
-                future.result()
+            while queue or in_flight:
+                while queue and len(in_flight) < jobs:
+                    now = time.monotonic()
+                    launch_delay = (
+                        0.0
+                        if last_launch is None
+                        else max(0.0, stagger - (now - last_launch))
+                    )
+                    if launch_delay > 0:
+                        break
+                    item = queue.popleft()
+                    future = pool.submit(launch_pending, *item)
+                    in_flight[future] = item
+                    last_launch = time.monotonic()
+
+                if queue and len(in_flight) < jobs:
+                    assert last_launch is not None
+                    launch_delay = max(
+                        0.0, stagger - (time.monotonic() - last_launch)
+                    )
+                    if not in_flight:
+                        time.sleep(launch_delay)
+                        continue
+                    done, _ = wait(
+                        in_flight,
+                        timeout=launch_delay,
+                        return_when=FIRST_COMPLETED,
+                    )
+                    for future in done:
+                        item = in_flight.pop(future)
+                        handle_result(future, item)
+                    continue
+
+                if in_flight:
+                    done, _ = wait(in_flight, return_when=FIRST_COMPLETED)
+                    for future in done:
+                        item = in_flight.pop(future)
+                        handle_result(future, item)
     return {"skipped": skipped, "launched": len(pending)}
 
 
@@ -186,10 +262,53 @@ def filter_cells(cells: Sequence[MatrixCell], only: str | None) -> list[MatrixCe
     return selected
 
 
+def _stop_process(process: ChildProcess) -> None:
+    process.terminate()
+    try:
+        process.wait(timeout=10.0)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait()
+
+
+def _watch_process(
+    process: ChildProcess,
+    metrics_path: Path,
+    *,
+    timeout: float,
+    stall_timeout: float,
+    poll_interval: float = 1.0,
+) -> int:
+    """Wait for a child while enforcing total-runtime and metrics-growth limits."""
+    started = time.monotonic()
+    last_growth = started
+    last_size = metrics_path.stat().st_size if metrics_path.is_file() else 0
+    while (returncode := process.poll()) is None:
+        now = time.monotonic()
+        size = metrics_path.stat().st_size if metrics_path.is_file() else 0
+        if size > last_size:
+            last_size = size
+            last_growth = now
+        if now - last_growth >= stall_timeout:
+            _stop_process(process)
+            raise StalledRun(f"metrics did not grow: {metrics_path}")
+        if now - started >= timeout:
+            _stop_process(process)
+            raise subprocess.TimeoutExpired(str(metrics_path), timeout)
+        remaining = min(timeout - (now - started), stall_timeout - (now - last_growth))
+        time.sleep(min(poll_interval, max(0.0, remaining)))
+    return returncode
+
+
 def _subprocess_launcher(
     root: Path, allow_dirty: bool, use_compiled_scan: bool
 ) -> Launcher:
-    def launch(cell: MatrixCell, run_dir: Path, timeout: float) -> None:
+    def launch(
+        cell: MatrixCell,
+        run_dir: Path,
+        timeout: float,
+        stall_timeout: float,
+    ) -> None:
         if cell.config is None:
             raise ValueError("matrix cell has no config")
         config_path = root / "results" / f".matrix-{cell.run_id}.json"
@@ -199,9 +318,20 @@ def _subprocess_launcher(
             command.append("--allow-dirty")
         if use_compiled_scan:
             command.append("--compiled-scan")
+        process: subprocess.Popen[bytes] | None = None
         try:
-            subprocess.run(command, cwd=root, check=True, timeout=timeout)
+            process = subprocess.Popen(command, cwd=root)
+            returncode = _watch_process(
+                process,
+                run_dir / "metrics.jsonl",
+                timeout=timeout,
+                stall_timeout=stall_timeout,
+            )
+            if returncode:
+                raise subprocess.CalledProcessError(returncode, command)
         finally:
+            if process is not None and process.poll() is None:
+                _stop_process(process)
             config_path.unlink(missing_ok=True)
         if not (run_dir / "DONE").is_file():
             raise RuntimeError(f"run returned without DONE marker: {cell.key}")
@@ -215,6 +345,15 @@ def main() -> None:
     parser.add_argument("--timeout", type=float, required=True, help="seconds per run")
     parser.add_argument(
         "--jobs", type=int, default=1, help="maximum concurrent run processes"
+    )
+    parser.add_argument(
+        "--stagger", type=float, default=120.0, help="seconds between child launches"
+    )
+    parser.add_argument(
+        "--stall-timeout",
+        type=float,
+        default=1200.0,
+        help="seconds without metrics.jsonl growth before requeue",
     )
     parser.add_argument("--allow-dirty", action="store_true")
     parser.add_argument("--compiled-scan", action="store_true")
@@ -230,6 +369,8 @@ def main() -> None:
         _subprocess_launcher(root, args.allow_dirty, args.compiled_scan),
         timeout=args.timeout,
         jobs=args.jobs,
+        stagger=args.stagger,
+        stall_timeout=args.stall_timeout,
     )
     print(f"launched={summary['launched']} skipped={summary['skipped']}")
 
