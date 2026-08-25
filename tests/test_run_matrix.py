@@ -8,8 +8,10 @@ from pathlib import Path
 
 import pytest
 
+import scripts.run_matrix as run_matrix
 from scripts.run_matrix import (
     MatrixCell,
+    RunTimeout,
     _watch_process,
     execute_pending,
     matrix_cells,
@@ -43,7 +45,7 @@ def test_run_matrix_resume(tmp_path: Path) -> None:
 
     summary = execute_pending(cells, tmp_path, launcher, timeout=17.0)
 
-    assert summary == {"skipped": 1, "launched": 1}
+    assert summary == {"skipped": 1, "launched": 1, "failed": []}
     assert launched == ["interrupted"]
     assert (done / "keep").read_text(encoding="utf-8") == "complete"
     assert not (interrupted / "partial").exists()
@@ -68,6 +70,8 @@ def test_run_matrix_rejects_nonpositive_timeout(tmp_path: Path) -> None:
         execute_pending([], tmp_path, lambda *_: None, timeout=1.0, stagger=-1.0)
     with pytest.raises(ValueError, match="stall_timeout"):
         execute_pending([], tmp_path, lambda *_: None, timeout=1.0, stall_timeout=0.0)
+    with pytest.raises(ValueError, match="max_attempts"):
+        execute_pending([], tmp_path, lambda *_: None, timeout=1.0, max_attempts=0)
 
 
 def test_run_matrix_bounded_pool_queues_and_completes(tmp_path: Path) -> None:
@@ -111,7 +115,7 @@ def test_run_matrix_bounded_pool_queues_and_completes(tmp_path: Path) -> None:
         stagger=0.0,
     )
 
-    assert summary == {"skipped": 0, "launched": 3}
+    assert summary == {"skipped": 0, "launched": 3, "failed": []}
     assert peak_active == 2
     assert third_saw_completed
     assert set(completed) == {cell.key for cell in cells}
@@ -141,8 +145,156 @@ def test_run_matrix_staggers_concurrent_launches(tmp_path: Path) -> None:
         stagger=0.05,
     )
 
-    assert summary == {"skipped": 0, "launched": 2}
+    assert summary == {"skipped": 0, "launched": 2, "failed": []}
     assert launched_at[1] - launched_at[0] >= 0.04
+
+
+@pytest.mark.parametrize("jobs", [1, 2])
+def test_run_matrix_failure_retries_to_cap_without_stopping_pool(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], jobs: int
+) -> None:
+    """A permanently bad cell gives up only after every sibling gets a turn."""
+    cells = [
+        MatrixCell(key="bad", run_id="bad-id", config=None),
+        MatrixCell(key="healthy-1", run_id="healthy-1-id", config=None),
+        MatrixCell(key="healthy-2", run_id="healthy-2-id", config=None),
+    ]
+    attempts: dict[str, int] = {cell.key: 0 for cell in cells}
+
+    def launcher(
+        cell: MatrixCell, run_dir: Path, timeout: float, stall_timeout: float
+    ) -> None:
+        attempts[cell.key] += 1
+        if cell.key == "bad":
+            raise RuntimeError("always broken")
+        run_dir.mkdir()
+        (run_dir / "DONE").touch()
+
+    summary = execute_pending(
+        cells,
+        tmp_path,
+        launcher,
+        timeout=1.0,
+        jobs=jobs,
+        stagger=0.0,
+        max_attempts=3,
+    )
+
+    assert summary == {"skipped": 0, "launched": 3, "failed": ["bad"]}
+    assert attempts == {"bad": 3, "healthy-1": 1, "healthy-2": 1}
+    output = capsys.readouterr().out
+    assert output.count("FAILED bad: RuntimeError('always broken')") == 3
+    assert "GIVING UP bad after 3 attempts" in output
+
+
+def test_run_matrix_timeout_is_distinct_and_retried(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    class NeverCompletes:
+        def __init__(self) -> None:
+            self.terminated = False
+
+        def poll(self) -> None:
+            return None
+
+        def terminate(self) -> None:
+            self.terminated = True
+
+        def wait(self, timeout: float | None = None) -> int:
+            return 0
+
+        def kill(self) -> None:
+            raise AssertionError("terminate should be sufficient")
+
+    cell = MatrixCell(key="timeout-cell", run_id="timeout-id", config=None)
+    launches = 0
+    timed_out_process: NeverCompletes | None = None
+    timeout_error: RunTimeout | None = None
+
+    def launcher(
+        cell: MatrixCell, run_dir: Path, timeout: float, stall_timeout: float
+    ) -> None:
+        nonlocal launches, timed_out_process, timeout_error
+        launches += 1
+        run_dir.mkdir()
+        if launches == 1:
+            (run_dir / "metrics.jsonl").write_text(
+                '{"step": 7, "loss": 1.0}\n', encoding="utf-8"
+            )
+            timed_out_process = NeverCompletes()
+            try:
+                _watch_process(
+                    timed_out_process,
+                    run_dir / "metrics.jsonl",
+                    cell_key=cell.key,
+                    timeout=0.005,
+                    stall_timeout=1.0,
+                    poll_interval=0.001,
+                )
+            except RunTimeout as exc:
+                timeout_error = exc
+                raise
+        (run_dir / "DONE").touch()
+
+    summary = execute_pending(
+        [cell],
+        tmp_path,
+        launcher,
+        timeout=1.0,
+        max_attempts=2,
+    )
+
+    assert summary == {"skipped": 0, "launched": 1, "failed": []}
+    assert launches == 2
+    assert timed_out_process is not None and timed_out_process.terminated
+    assert timeout_error is not None
+    assert timeout_error.cell_key == "timeout-cell"
+    assert timeout_error.elapsed >= 0.005
+    assert timeout_error.last_step == 7
+    output = capsys.readouterr().out
+    assert "FAILED timeout-cell: RunTimeout(" in output
+    assert "last_step=7" in output
+
+
+@pytest.mark.parametrize(
+    ("failed", "expected_status", "expected_summary"),
+    [
+        (["bad", "worse"], 1, "failed cells: bad, worse"),
+        ([], 0, "all cells completed"),
+    ],
+)
+def test_run_matrix_cli_reports_final_failures_and_exit_status(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    failed: list[str],
+    expected_status: int,
+    expected_summary: str,
+) -> None:
+    captured: dict[str, object] = {}
+
+    monkeypatch.setattr(
+        run_matrix,
+        "git_identity",
+        lambda root: type("Identity", (), {"dirty": False})(),
+    )
+    monkeypatch.setattr(run_matrix, "matrix_cells", lambda identity: [])
+    monkeypatch.setattr(run_matrix, "filter_cells", lambda cells, only: [])
+    monkeypatch.setattr(run_matrix, "_subprocess_launcher", lambda *args: None)
+
+    def fake_execute(*args: object, **kwargs: object) -> dict[str, object]:
+        captured.update(kwargs)
+        return {"skipped": 0, "launched": 2, "failed": failed}
+
+    monkeypatch.setattr(run_matrix, "execute_pending", fake_execute)
+    monkeypatch.setattr(
+        run_matrix.sys,
+        "argv",
+        ["run_matrix.py", "--timeout", "1", "--max-attempts", "4"],
+    )
+
+    assert run_matrix.main() == expected_status
+    assert captured["max_attempts"] == 4
+    assert expected_summary in capsys.readouterr().out
 
 
 def test_run_matrix_watchdog_kills_and_requeues_stall_at_back(
@@ -199,6 +351,7 @@ def test_run_matrix_watchdog_kills_and_requeues_stall_at_back(
             _watch_process(
                 stalled_process,
                 run_dir / "metrics.jsonl",
+                cell_key=cell.key,
                 timeout=timeout,
                 stall_timeout=stall_timeout,
                 poll_interval=0.001,
@@ -209,6 +362,7 @@ def test_run_matrix_watchdog_kills_and_requeues_stall_at_back(
                 _watch_process(
                     normal_process,
                     run_dir / "metrics.jsonl",
+                    cell_key=cell.key,
                     timeout=timeout,
                     stall_timeout=stall_timeout,
                     poll_interval=0.001,
@@ -226,7 +380,7 @@ def test_run_matrix_watchdog_kills_and_requeues_stall_at_back(
         stall_timeout=0.01,
     )
 
-    assert summary == {"skipped": 0, "launched": 2}
+    assert summary == {"skipped": 0, "launched": 2, "failed": []}
     assert launches == ["stall", "normal", "stall"]
     assert stalled_process is not None
     assert stalled_process.terminated

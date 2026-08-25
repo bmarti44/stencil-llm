@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import fnmatch
+import json
 import shutil
 import subprocess
 import sys
@@ -43,6 +44,19 @@ class ChildProcess(Protocol):
 
 class StalledRun(RuntimeError):
     """A child stopped growing its metrics file and was terminated."""
+
+
+class RunTimeout(RuntimeError):
+    """A child exceeded its total runtime limit and was terminated."""
+
+    def __init__(self, cell_key: str, elapsed: float, last_step: int | None) -> None:
+        self.cell_key = cell_key
+        self.elapsed = elapsed
+        self.last_step = last_step
+        super().__init__(
+            f"{cell_key} exceeded total timeout after {elapsed:.3f}s; "
+            f"last_step={last_step!r}"
+        )
 
 
 def _seeded(config: Config, seed: int) -> Config:
@@ -146,7 +160,8 @@ def execute_pending(
     jobs: int = 1,
     stagger: float = 120.0,
     stall_timeout: float = 1200.0,
-) -> dict[str, int]:
+    max_attempts: int = 3,
+) -> dict[str, int | list[str]]:
     """Skip DONE runs and recreate interrupted run directories before launch."""
     if timeout <= 0:
         raise ValueError("timeout must be positive")
@@ -156,6 +171,8 @@ def execute_pending(
         raise ValueError("stagger must be nonnegative")
     if stall_timeout <= 0:
         raise ValueError("stall_timeout must be positive")
+    if max_attempts < 1:
+        raise ValueError("max_attempts must be positive")
     results_dir.mkdir(parents=True, exist_ok=True)
     skipped = 0
     pending: list[tuple[MatrixCell, Path]] = []
@@ -180,26 +197,44 @@ def execute_pending(
             shutil.rmtree(run_dir)
         launcher(cell, run_dir, timeout, stall_timeout)
 
+    attempts = {cell.key: 0 for cell, _ in pending}
+    failed: list[str] = []
+
+    def handle_failure(
+        item: tuple[MatrixCell, Path], exc: Exception
+    ) -> None:
+        cell, _ = item
+        will_retry = attempts[cell.key] < max_attempts
+        if isinstance(exc, StalledRun) and will_retry:
+            print(f"STALLED {cell.key}; requeued at back", flush=True)
+        print(f"FAILED {cell.key}: {exc!r}", flush=True)
+        if will_retry:
+            queue.append(item)
+        else:
+            failed.append(cell.key)
+            print(
+                f"GIVING UP {cell.key} after {attempts[cell.key]} attempts",
+                flush=True,
+            )
+
     def handle_result(
         future: Future[None], item: tuple[MatrixCell, Path]
     ) -> None:
         try:
             future.result()
-        except StalledRun:
-            cell, _ = item
-            print(f"STALLED {cell.key}; requeued at back", flush=True)
-            queue.append(item)
+        except Exception as exc:
+            handle_failure(item, exc)
 
     if jobs == 1:
         queue = deque(pending)
         while queue:
             item = queue.popleft()
             cell, run_dir = item
+            attempts[cell.key] += 1
             try:
                 launch_pending(cell, run_dir)
-            except StalledRun:
-                print(f"STALLED {cell.key}; requeued at back", flush=True)
-                queue.append(item)
+            except Exception as exc:
+                handle_failure(item, exc)
     else:
         queue = deque(pending)
         in_flight: dict[Future[None], tuple[MatrixCell, Path]] = {}
@@ -216,6 +251,7 @@ def execute_pending(
                     if launch_delay > 0:
                         break
                     item = queue.popleft()
+                    attempts[item[0].key] += 1
                     future = pool.submit(launch_pending, *item)
                     in_flight[future] = item
                     last_launch = time.monotonic()
@@ -243,7 +279,7 @@ def execute_pending(
                     for future in done:
                         item = in_flight.pop(future)
                         handle_result(future, item)
-    return {"skipped": skipped, "launched": len(pending)}
+    return {"skipped": skipped, "launched": len(pending), "failed": failed}
 
 
 def filter_cells(cells: Sequence[MatrixCell], only: str | None) -> list[MatrixCell]:
@@ -275,6 +311,7 @@ def _watch_process(
     process: ChildProcess,
     metrics_path: Path,
     *,
+    cell_key: str,
     timeout: float,
     stall_timeout: float,
     poll_interval: float = 1.0,
@@ -294,7 +331,20 @@ def _watch_process(
             raise StalledRun(f"metrics did not grow: {metrics_path}")
         if now - started >= timeout:
             _stop_process(process)
-            raise subprocess.TimeoutExpired(str(metrics_path), timeout)
+            last_step: int | None = None
+            try:
+                lines = metrics_path.read_text(encoding="utf-8").splitlines()
+            except (OSError, UnicodeError):
+                lines = []
+            for line in reversed(lines):
+                try:
+                    candidate = json.loads(line).get("step")
+                except (AttributeError, json.JSONDecodeError):
+                    continue
+                if type(candidate) is int:
+                    last_step = candidate
+                    break
+            raise RunTimeout(cell_key, now - started, last_step)
         remaining = min(timeout - (now - started), stall_timeout - (now - last_growth))
         time.sleep(min(poll_interval, max(0.0, remaining)))
     return returncode
@@ -324,6 +374,7 @@ def _subprocess_launcher(
             returncode = _watch_process(
                 process,
                 run_dir / "metrics.jsonl",
+                cell_key=cell.key,
                 timeout=timeout,
                 stall_timeout=stall_timeout,
             )
@@ -339,7 +390,7 @@ def _subprocess_launcher(
     return launch
 
 
-def main() -> None:
+def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--only", help="comma-separated exact or glob cell keys")
     parser.add_argument("--timeout", type=float, required=True, help="seconds per run")
@@ -354,6 +405,12 @@ def main() -> None:
         type=float,
         default=1200.0,
         help="seconds without metrics.jsonl growth before requeue",
+    )
+    parser.add_argument(
+        "--max-attempts",
+        type=int,
+        default=3,
+        help="maximum launch attempts per cell before giving up",
     )
     parser.add_argument("--allow-dirty", action="store_true")
     parser.add_argument("--compiled-scan", action="store_true")
@@ -371,9 +428,18 @@ def main() -> None:
         jobs=args.jobs,
         stagger=args.stagger,
         stall_timeout=args.stall_timeout,
+        max_attempts=args.max_attempts,
     )
-    print(f"launched={summary['launched']} skipped={summary['skipped']}")
+    failed = summary["failed"]
+    if not isinstance(failed, list):
+        raise RuntimeError("execute_pending returned an invalid failed list")
+    outcome = f"failed cells: {', '.join(failed)}" if failed else "all cells completed"
+    print(
+        f"launched={summary['launched']} skipped={summary['skipped']}; {outcome}",
+        flush=True,
+    )
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
