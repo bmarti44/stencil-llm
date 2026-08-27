@@ -55,9 +55,37 @@ class Config:
     eval_examples: int = 10_000
     eval_seed_offset: int = 1_000_000
     precision: str = "fp32"
+    task_d_slots: int | None = None
+    task_d_core_len: int | None = None
+    task_d_updates: int | None = None
+    task_d_queries: int | None = None
+    task_d_family: str | None = None
+    task_d_reinsert: str | None = None
+    task_d_gap_min: int | None = None
+    task_d_gap_max: int | None = None
+    task_d_burst_start_min: int | None = None
+    task_d_burst_start_max: int | None = None
+    task_d_burst_intra_min: int | None = None
+    task_d_burst_intra_max: int | None = None
+    task_d_burst_inter_min: int | None = None
+    task_d_burst_inter_max: int | None = None
+    task_d_curriculum_start: int | None = None
+    task_d_curriculum_end: int | None = None
+    task_d_curriculum_gap_min: int | None = None
+    task_d_curriculum_gap_max: int | None = None
+    task_d_schedule_offset: int | None = None
+    task_d_sequence_index: int | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return dataclasses.asdict(self)
+
+    @property
+    def task_d_validation_offset(self) -> int:
+        return self.eval_seed_offset
+
+    @property
+    def task_d_final_offset(self) -> int:
+        return self.eval_seed_offset * 2 + 1
 
 
 def canonical_json(value: Any) -> bytes:
@@ -95,8 +123,10 @@ def load_config(path: str | Path) -> Config:
 
 
 def _validate(config: Config) -> None:
-    variants = {"b0_full", "b0_local", "b1", "b2", "m1", "m1b", "b3", "b4"}
-    tasks = {"a", "b", "m", "copy"}
+    variants = {
+        "b0_full", "b0_local", "b1", "b2", "m1", "m1b", "b3", "b3k", "b4"
+    }
+    tasks = {"a", "b", "d", "m", "copy"}
     if config.variant not in variants:
         raise ValueError(f"invalid variant: {config.variant}")
     if config.task not in tasks:
@@ -128,6 +158,29 @@ def _validate(config: Config) -> None:
     required_by_task = {
         "a": {"task_N", "task_k"},
         "b": {"task_k", "task_R", "task_delay_min", "task_delay_max"},
+        "d": {
+            "task_k",
+            "task_d_slots",
+            "task_d_core_len",
+            "task_d_updates",
+            "task_d_queries",
+            "task_d_family",
+            "task_d_reinsert",
+            "task_d_gap_min",
+            "task_d_gap_max",
+            "task_d_burst_start_min",
+            "task_d_burst_start_max",
+            "task_d_burst_intra_min",
+            "task_d_burst_intra_max",
+            "task_d_burst_inter_min",
+            "task_d_burst_inter_max",
+            "task_d_curriculum_start",
+            "task_d_curriculum_end",
+            "task_d_curriculum_gap_min",
+            "task_d_curriculum_gap_max",
+            "task_d_schedule_offset",
+            "task_d_sequence_index",
+        },
         "m": {"task_P", "task_queries", "task_placement"},
         "copy": set(),
     }
@@ -140,6 +193,26 @@ def _validate(config: Config) -> None:
         "task_P",
         "task_queries",
         "task_placement",
+        "task_d_slots",
+        "task_d_core_len",
+        "task_d_updates",
+        "task_d_queries",
+        "task_d_family",
+        "task_d_reinsert",
+        "task_d_gap_min",
+        "task_d_gap_max",
+        "task_d_burst_start_min",
+        "task_d_burst_start_max",
+        "task_d_burst_intra_min",
+        "task_d_burst_intra_max",
+        "task_d_burst_inter_min",
+        "task_d_burst_inter_max",
+        "task_d_curriculum_start",
+        "task_d_curriculum_end",
+        "task_d_curriculum_gap_min",
+        "task_d_curriculum_gap_max",
+        "task_d_schedule_offset",
+        "task_d_sequence_index",
     }
     required = required_by_task[config.task]
     missing = sorted(name for name in required if getattr(config, name) is None)
@@ -154,6 +227,64 @@ def _validate(config: Config) -> None:
         raise ValueError(f"inactive task fields must be null: {inactive}")
     if config.task_placement not in {None, "in_window", "beyond_window"}:
         raise ValueError(f"invalid task_placement: {config.task_placement}")
+    if config.task == "d":
+        _validate_task_d(config)
+
+
+def _validate_task_d(config: Config) -> None:
+    if config.task_d_slots != 4:
+        raise ValueError("Task D slots must equal 4")
+    if config.task_k != 8:
+        raise ValueError("Task D requires k=8")
+    if config.task_d_core_len != 3848 or config.context_len != 4096:
+        raise ValueError("Task D core/context lengths must be 3848/4096")
+    if config.task_d_queries != 16:
+        raise ValueError("Task D queries must equal 16")
+    expected_updates = {"train": 12, "id-control": 12, "drought": 3, "burst": 8}
+    if config.task_d_family not in expected_updates:
+        raise ValueError("invalid Task D family")
+    if config.task_d_updates != expected_updates[config.task_d_family]:
+        raise ValueError("invalid Task D updates for family")
+    if config.task_d_reinsert not in {"none", "every-128", "prequery"}:
+        raise ValueError("invalid Task D reinsert policy")
+    bounds = (
+        (config.task_d_gap_min, config.task_d_gap_max),
+        (config.task_d_burst_start_min, config.task_d_burst_start_max),
+        (config.task_d_burst_intra_min, config.task_d_burst_intra_max),
+        (config.task_d_burst_inter_min, config.task_d_burst_inter_max),
+    )
+    if any(lo is None or hi is None or lo < 0 or lo > hi for lo, hi in bounds):
+        raise ValueError("invalid Task D gap bounds")
+    if config.task_d_family in {"train", "id-control"} and (
+        config.task_d_gap_min != 64 or config.task_d_gap_max != 320
+    ):
+        raise ValueError("Task D train gap bounds must be 64..320")
+    if config.task_d_family == "drought" and (
+        config.task_d_gap_min != 768 or config.task_d_gap_max != 1280
+    ):
+        raise ValueError("Task D drought gap bounds must be 768..1280")
+    if (
+        config.task_d_burst_start_min != 64
+        or config.task_d_burst_start_max != 512
+        or config.task_d_burst_intra_min != 8
+        or config.task_d_burst_intra_max != 32
+        or config.task_d_burst_inter_min != 640
+        or config.task_d_burst_inter_max != 1200
+    ):
+        raise ValueError("invalid Task D burst gap bounds")
+    if (
+        config.task_d_curriculum_start != 8000
+        or config.task_d_curriculum_end != 12000
+        or config.task_d_curriculum_gap_min != 32
+        or config.task_d_curriculum_gap_max != 128
+    ):
+        raise ValueError("invalid Task D curriculum bounds")
+    if config.task_d_schedule_offset is None or config.task_d_schedule_offset < 0:
+        raise ValueError("Task D schedule offset must be non-negative")
+    if config.task_d_sequence_index is None or config.task_d_sequence_index < 0:
+        raise ValueError("Task D sequence index must be non-negative")
+    if config.eval_seed_offset < 1:
+        raise ValueError("Task D eval seed offset must be positive")
 
 
 def _longest_delay(config: Config) -> int:

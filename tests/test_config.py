@@ -73,7 +73,7 @@ def test_load_config_rejects_unknown_fields(tmp_path: Path) -> None:
         load_config(path)
 
 
-@pytest.mark.parametrize("variant", ["b3", "b4"])
+@pytest.mark.parametrize("variant", ["b3", "b3k", "b4"])
 def test_load_config_accepts_registered_comparators(
     tmp_path: Path, variant: str
 ) -> None:
@@ -106,7 +106,7 @@ def test_load_config_rejects_inconsistent_damping(
         load_config(path)
 
 
-@pytest.mark.parametrize("variant", ["b3", "b4"])
+@pytest.mark.parametrize("variant", ["b3", "b3k", "b4"])
 def test_load_config_rejects_oscillator_fields_for_registered_comparators(
     tmp_path: Path, variant: str
 ) -> None:

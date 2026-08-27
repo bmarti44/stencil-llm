@@ -838,7 +838,7 @@ def test_cue_reachable_when_close() -> None:
 
 
 def test_param_match_within_1pct() -> None:
-    """Run 28 pairwise cases over configs for all eight variants. Trainable
+    """Run 36 pairwise cases over configs for all nine variants. Trainable
     counts (buffers excluded, embeddings included) must differ by <=1% of the
     larger count (rtol=0.01, atol=0); M1/M1b both use d_ff=1024 and remaining
     d_ff widths are the lexicographically first multiples of 8 satisfying it.
@@ -852,6 +852,7 @@ def test_param_match_within_1pct() -> None:
         "m1",
         "m1b",
         "b3",
+        "b3k",
         "b4",
     ]
     models = {name: StencilTransformer(config) for name, config in configs.items()}
@@ -866,4 +867,4 @@ def test_param_match_within_1pct() -> None:
             )
             cases += 1
     assert counts["b4"] == counts["b0_local"]
-    assert cases == 28
+    assert cases == 36

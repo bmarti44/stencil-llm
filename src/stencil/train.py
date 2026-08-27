@@ -102,6 +102,8 @@ def next_examples(stream: Iterator[Example], batch_size: int) -> Batch:
     loss_mask = torch.zeros(batch_size, length, dtype=torch.bool)
     decision_rows: list[torch.Tensor] = []
     cue_rows: list[torch.Tensor] = []
+    cue_valid_rows: list[torch.Tensor] = []
+    separate_target_rows: list[torch.Tensor | None] = []
     metadata: list[dict[str, Any]] = []
     for row, (example_tokens, example_mask, example_metadata) in enumerate(examples):
         if example_tokens.ndim != 1 or example_mask.shape != example_tokens.shape:
@@ -112,11 +114,34 @@ def next_examples(stream: Iterator[Example], batch_size: int) -> Batch:
         tokens[row, :size] = example_tokens
         loss_mask[row, :size] = example_mask
         decision_rows.append(torch.nonzero(example_mask[:-1], as_tuple=False).flatten())
-        cue_rows.append(
-            torch.nonzero(
+        if "cue_positions" in example_metadata or "cue_valid" in example_metadata:
+            positions = example_metadata.get("cue_positions")
+            valid = example_metadata.get("cue_valid")
+            if (
+                not isinstance(positions, torch.Tensor)
+                or not isinstance(valid, torch.Tensor)
+                or positions.shape != valid.shape
+                or positions.ndim != 1
+                or positions.dtype != torch.long
+                or valid.dtype != torch.bool
+            ):
+                raise ValueError("metadata cue tensors are incompatible")
+            cue_rows.append(positions)
+            cue_valid_rows.append(valid)
+        else:
+            positions = torch.nonzero(
                 (example_tokens >= 1) & (example_tokens <= 32), as_tuple=False
             ).flatten()
-        )
+            cue_rows.append(positions)
+            cue_valid_rows.append(torch.ones_like(positions, dtype=torch.bool))
+        separate_targets = example_metadata.get("targets")
+        if separate_targets is not None and (
+            not isinstance(separate_targets, torch.Tensor)
+            or separate_targets.shape != example_tokens.shape
+            or separate_targets.dtype != torch.long
+        ):
+            raise ValueError("metadata targets must align with example tokens")
+        separate_target_rows.append(separate_targets)
         metadata.append(example_metadata)
     decision_count = decision_rows[0].numel()
     if decision_count < 1 or any(
@@ -125,13 +150,30 @@ def next_examples(stream: Iterator[Example], batch_size: int) -> Batch:
         raise ValueError("batch examples must have a fixed decision count")
     decision_positions = torch.stack(decision_rows)
     row_indices = torch.arange(batch_size)[:, None]
-    targets = tokens[row_indices, decision_positions + 1]
+    if all(row is not None for row in separate_target_rows):
+        targets = torch.stack(
+            [
+                row[positions]
+                for row, positions in zip(
+                    separate_target_rows, decision_rows, strict=True
+                )
+                if row is not None
+            ]
+        )
+        if torch.any(targets < 0):
+            raise ValueError("separate targets are missing at decision positions")
+    elif any(row is not None for row in separate_target_rows):
+        raise ValueError("a batch cannot mix separate and shifted targets")
+    else:
+        targets = tokens[row_indices, decision_positions + 1]
     cue_count = max(row.numel() for row in cue_rows)
     cue_positions = torch.zeros(batch_size, cue_count, dtype=torch.long)
     cue_valid = torch.zeros(batch_size, cue_count, dtype=torch.bool)
-    for row, positions in enumerate(cue_rows):
+    for row, (positions, valid) in enumerate(
+        zip(cue_rows, cue_valid_rows, strict=True)
+    ):
         cue_positions[row, : positions.numel()] = positions
-        cue_valid[row, : positions.numel()] = True
+        cue_valid[row, : positions.numel()] = valid
     return Batch(
         tokens=tokens,
         loss_mask=loss_mask,

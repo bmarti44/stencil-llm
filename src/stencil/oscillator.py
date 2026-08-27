@@ -480,6 +480,54 @@ class CueLatch(nn.Module):
         return torch.where(latest_cue[..., None] >= 0, latched, 0.0)
 
 
+class KeyedCueLatch(nn.Module):
+    """Four keyed registers written only by adjacent ``[USLOT][CUE]`` events."""
+
+    def __init__(
+        self,
+        input_dim: int,
+        *,
+        slots: int = 4,
+        register_dim: int = 32,
+        generator: torch.Generator,
+        dtype: torch.dtype = torch.float32,
+    ) -> None:
+        super().__init__()
+        if slots < 1 or register_dim < 1:
+            raise ValueError("slots and register_dim must be positive")
+        self.input_dim = input_dim
+        self.slots = slots
+        self.register_dim = register_dim
+        self.state_dim = slots * register_dim
+        self.W_e = nn.Parameter(
+            torch.empty(slots, register_dim, input_dim, dtype=dtype)
+        )
+        nn.init.normal_(self.W_e, mean=0.0, std=0.02, generator=generator)
+
+    def forward(self, embeddings: torch.Tensor, tokens: torch.Tensor) -> torch.Tensor:
+        if embeddings.ndim != 3 or embeddings.shape[-1] != self.input_dim:
+            raise ValueError("embeddings must have shape (batch, length, input_dim)")
+        if tokens.shape != embeddings.shape[:2] or tokens.dtype != torch.long:
+            raise ValueError("tokens must be long with shape (batch, length)")
+        batch, length, _ = embeddings.shape
+        candidates = torch.einsum("btd,srd->btsr", embeddings, self.W_e)
+        positions = torch.arange(length, device=tokens.device)
+        states = []
+        previous = F.pad(tokens[:, :-1], (1, 0))
+        cue = (tokens >= 1) & (tokens <= 8)
+        for slot_index in range(self.slots):
+            event = cue & (previous == 29 + slot_index)
+            event_indices = torch.where(event, positions[None], -1)
+            latest = torch.cummax(event_indices, dim=1).values
+            gather_index = latest.clamp_min(0)[..., None, None].expand(
+                batch, length, 1, self.register_dim
+            )
+            slot_candidates = candidates[:, :, slot_index : slot_index + 1]
+            latched = torch.gather(slot_candidates, 1, gather_index).squeeze(2)
+            states.append(torch.where(latest[..., None] >= 0, latched, 0.0))
+        return torch.cat(states, dim=-1)
+
+
 class OscillatorController(nn.Module):
     def __init__(
         self,

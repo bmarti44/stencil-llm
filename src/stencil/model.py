@@ -11,7 +11,7 @@ from torch.nn import functional as F
 from stencil.config import Config
 from stencil.determinism import named_generator
 from stencil.gates import apply_headwise_gate, project_b1_gate, project_control_gate
-from stencil.oscillator import CueLatch, DecayCell, OscillatorController
+from stencil.oscillator import CueLatch, DecayCell, KeyedCueLatch, OscillatorController
 
 
 class Attention(nn.Module):
@@ -283,7 +283,7 @@ class Block(nn.Module):
 
 
 class StencilTransformer(nn.Module):
-    """One shared decoder-only transformer assembled into all eight variants."""
+    """One shared decoder-only transformer assembled into all variants."""
 
     def __init__(self, config: Config, *, use_compiled_scan: bool = False) -> None:
         super().__init__()
@@ -295,6 +295,7 @@ class StencilTransformer(nn.Module):
             "m1",
             "m1b",
             "b3",
+            "b3k",
             "b4",
         }:
             raise ValueError("unknown model variant")
@@ -328,7 +329,9 @@ class StencilTransformer(nn.Module):
             )
         elif config.variant == "b3":
             self.controller = CueLatch(config.d_model, 128, generator=pathway_generator)
-        if config.variant in {"m1", "m1b", "b2", "b3"}:
+        elif config.variant == "b3k":
+            self.controller = KeyedCueLatch(config.d_model, generator=pathway_generator)
+        if config.variant in {"m1", "m1b", "b2", "b3", "b3k"}:
             self.gate_weight = nn.Parameter(
                 torch.empty(config.n_layers, config.n_heads, 128)
             )
@@ -388,6 +391,7 @@ class StencilTransformer(nn.Module):
     ) -> torch.Tensor:
         return self.forward_embeddings(
             self.token_embedding(tokens),
+            tokens=tokens,
             gate_identity=gate_identity,
             cue_mask=(tokens >= 1) & (tokens <= 32),
             decision_positions=decision_positions,
@@ -401,6 +405,7 @@ class StencilTransformer(nn.Module):
         self,
         embeddings: torch.Tensor,
         *,
+        tokens: torch.Tensor | None = None,
         gate_identity: bool = False,
         cue_mask: torch.Tensor | None = None,
         decision_positions: torch.Tensor | None = None,
@@ -417,6 +422,11 @@ class StencilTransformer(nn.Module):
                 raise ValueError("b3 embedding forwards require a cue_mask")
             assert isinstance(self.controller, CueLatch)
             control = self.controller(embeddings, cue_mask)
+        elif self.config.variant == "b3k":
+            if tokens is None:
+                raise ValueError("b3k embedding forwards require tokens")
+            assert isinstance(self.controller, KeyedCueLatch)
+            control = self.controller(embeddings, tokens)
         elif self.controller is not None:
             control = self.controller(embeddings)
         if self.config.variant == "b4" and cue_mask is None:
@@ -522,7 +532,7 @@ def _config_param_count(config: Config) -> int:
         return base + config.n_layers * config.n_heads * d
     if config.variant == "b2":
         return base + 128 * d + 128 + gates
-    if config.variant == "b3":
+    if config.variant in {"b3", "b3k"}:
         return base + 128 * d + gates
     if config.variant in {"m1", "m1b"}:
         assert config.osc_pairs is not None
@@ -579,7 +589,17 @@ def _base_config(variant: str, d_ff: int, seed_init: int) -> Config:
 
 def build_matched_configs(seed_init: int = 0) -> OrderedDict[str, Config]:
     """Choose the first d_ff multiple of eight within 1% of M1b's count."""
-    order = ("b0_full", "b0_local", "b1", "b2", "m1", "m1b", "b3", "b4")
+    order = (
+        "b0_full",
+        "b0_local",
+        "b1",
+        "b2",
+        "m1",
+        "m1b",
+        "b3",
+        "b3k",
+        "b4",
+    )
     fixed = {
         variant: _base_config(variant, 1024, seed_init) for variant in ("m1", "m1b")
     }
