@@ -175,9 +175,7 @@ def task_a(config: Config) -> Iterator[Example]:
     operands = determinism.named_generator(config.seed_data, "operands")
     distractors = determinism.named_generator(config.seed_data, "distractors")
     while True:
-        yield _sample_task_a_example(
-            config, rules, cues, operands, distractors
-        )
+        yield _sample_task_a_example(config, rules, cues, operands, distractors)
 
 
 def make_task_b_example(
@@ -199,8 +197,7 @@ def make_task_b_example(
     if any(not 0 <= cue < 8 for cue in cue_indices):
         raise ValueError("Task B cue indices must be in [0, 8)")
     if any(
-        left == right
-        for left, right in zip(cue_indices, cue_indices[1:], strict=False)
+        left == right for left, right in zip(cue_indices, cue_indices[1:], strict=False)
     ):
         raise ValueError("consecutive Task B cues must differ")
     if any(not 0 <= operand < 16 for operand in operand_indices):
@@ -288,9 +285,7 @@ def task_b(config: Config) -> Iterator[Example]:
             operand_indices.append(operand)
             all_distractors.append(draws)
             previous_cue = cue
-        yield make_task_b_example(
-            config, cue_indices, operand_indices, all_distractors
-        )
+        yield make_task_b_example(config, cue_indices, operand_indices, all_distractors)
 
 
 def task_m(config: Config) -> Iterator[Example]:
@@ -326,9 +321,7 @@ def task_m(config: Config) -> Iterator[Example]:
         ]
         token_values.extend(DISTRACTOR_START + draw for draw in gap_draws)
         token_values.append(QUERY_TOKEN)
-        mask = [False] * (
-            2 * config.task_P + gap_length + 1 + 2 * config.task_queries
-        )
+        mask = [False] * (2 * config.task_P + gap_length + 1 + 2 * config.task_queries)
         for query_index, pair_position in enumerate(queries):
             token_values.extend(
                 [
@@ -336,9 +329,7 @@ def task_m(config: Config) -> Iterator[Example]:
                     OPERAND_START + values[pair_position],
                 ]
             )
-            decision_position = (
-                2 * config.task_P + gap_length + 1 + 2 * query_index
-            )
+            decision_position = 2 * config.task_P + gap_length + 1 + 2 * query_index
             mask[decision_position] = True
         metadata = {
             "key_indices": keys,
@@ -395,7 +386,12 @@ def task_d_curriculum_bounds(config: Config, step: int) -> tuple[int, int]:
     )
 
 
-def _task_d_gap_vector(config: Config, delays: torch.Generator) -> list[int]:
+def _task_d_gap_vector(
+    config: Config,
+    delays: torch.Generator,
+    *,
+    training_bounds: tuple[int, int] | None = None,
+) -> list[int]:
     assert config.task_d_updates is not None
     family = config.task_d_family
     if family == "burst":
@@ -413,6 +409,8 @@ def _task_d_gap_vector(config: Config, delays: torch.Generator) -> list[int]:
                 bounds.append(
                     (config.task_d_burst_intra_min, config.task_d_burst_intra_max)
                 )
+    elif training_bounds is not None:
+        bounds = [training_bounds] * config.task_d_updates
     else:
         bounds = [
             (config.task_d_gap_min, config.task_d_gap_max)
@@ -475,7 +473,11 @@ def _task_d_expand(
         for core_position, (token, target) in enumerate(
             zip(core_tokens, core_targets, strict=True)
         ):
-            if next_multiple is not None and len(out) == next_multiple - 8:
+            insert_here = next_multiple is not None and len(out) == next_multiple - 8
+            if core_position in query_starts and next_multiple is not None:
+                query_offset = next_multiple - 8 - len(out)
+                insert_here = 0 <= query_offset < 4
+            if insert_here:
                 refresh_starts.append(len(out))
                 refresh = _task_d_refresh(updates, core_position, config.task_d_slots)
                 out.extend(refresh)
@@ -546,6 +548,8 @@ def _assemble_task_d(
     fallback_count: int = 0,
     seed_data: int | None = None,
     sequence_index: int | None = None,
+    curriculum_step: int | None = None,
+    curriculum_bounds: tuple[int, int] | None = None,
 ) -> Example:
     assert config.task_d_core_len is not None and config.task_d_slots is not None
     core_tokens: list[int | None] = [None] * config.task_d_core_len
@@ -638,6 +642,9 @@ def _assemble_task_d(
     }
     if seed_data is not None:
         metadata["seed_data"] = seed_data
+    if curriculum_step is not None:
+        metadata["curriculum_step"] = curriculum_step
+        metadata["curriculum_bounds"] = list(curriculum_bounds or ())
     if config.task_d_reinsert == "miniature-64":
         metadata["reinsert64_tokens"] = _task_d_miniature_reinsert(
             concrete_core, updates, config.task_d_slots
@@ -674,7 +681,7 @@ def make_task_d_example(
     )
 
 
-def task_d(config: Config) -> Iterator[Example]:
+def task_d(config: Config, *, curriculum_batch: int | None = None) -> Iterator[Example]:
     """Yield the frozen Task D common-core schedule and policy expansion."""
     required = (
         config.task_d_slots,
@@ -695,8 +702,18 @@ def task_d(config: Config) -> Iterator[Example]:
     distractors = determinism.named_generator(stream_seed, "distractors")
     rules = rule_table(config)
     requested_sequence_index = config.task_d_sequence_index or 0
+    if curriculum_batch is not None and curriculum_batch < 1:
+        raise ValueError("Task D curriculum batch must be positive")
     sequence_index = 0
     while True:
+        curriculum_step = (
+            sequence_index // curriculum_batch if curriculum_batch is not None else None
+        )
+        curriculum_bounds = (
+            task_d_curriculum_bounds(config, curriculum_step)
+            if curriculum_step is not None
+            else None
+        )
         updates: list[list[int]] = []
         active: dict[int, int] = {}
         for slot in range(1, config.task_d_slots + 1):
@@ -708,7 +725,7 @@ def task_d(config: Config) -> Iterator[Example]:
         fallback_count = 0
         redraw_count = 0
         for attempt in range(64):
-            gaps = _task_d_gap_vector(config, delays)
+            gaps = _task_d_gap_vector(config, delays, training_bounds=curriculum_bounds)
             starts = _task_d_update_starts(config.task_d_slots, gaps)
             if (
                 starts[-1] + 2 + config.task_d_queries * 4
@@ -785,7 +802,16 @@ def task_d(config: Config) -> Iterator[Example]:
             fallback_count=fallback_count,
             seed_data=stream_seed,
             sequence_index=sequence_index,
+            curriculum_step=curriculum_step,
+            curriculum_bounds=curriculum_bounds,
         )
         if sequence_index >= requested_sequence_index:
             yield example
         sequence_index += 1
+
+
+def task_d_training_stream(config: Config) -> Iterator[Example]:
+    """Yield Task D with one frozen curriculum bound pair per training batch."""
+    if config.task != "d" or config.task_d_family != "train":
+        raise ValueError("Task D training stream requires the train family")
+    yield from task_d(config, curriculum_batch=config.batch)

@@ -15,6 +15,7 @@ from scripts.run_matrix import (
     _watch_process,
     execute_pending,
     matrix_cells,
+    task_d_cells,
 )
 
 
@@ -52,13 +53,30 @@ def test_run_matrix_resume(tmp_path: Path) -> None:
     assert (interrupted / "fresh").is_file()
 
 
-def test_registered_matrix_has_114_unique_runs() -> None:
+def test_registered_matrix_has_138_unique_runs() -> None:
     cells = matrix_cells()
 
-    assert len(cells) == 114
-    assert len({cell.key for cell in cells}) == 114
+    assert len(cells) == 138
+    assert len({cell.key for cell in cells}) == 138
     assert sum(cell.config.task == "a" for cell in cells) == 84
     assert sum(cell.config.task == "m" for cell in cells) == 30
+    assert sum(cell.config.task == "d" for cell in cells) == 24
+
+
+def test_task_d_matrix_has_24_exact_cells() -> None:
+    cells = task_d_cells()
+    contenders = ("m1", "m1b", "b2", "b3k", "b3", "b4", "reinsert128", "prequery")
+    expected = {
+        f"d:{contender}:s{seed}" for contender in contenders for seed in (0, 1, 2)
+    }
+
+    assert len(cells) == 24
+    assert {cell.key for cell in cells} == expected
+    by_contender = {cell.key.split(":")[1]: cell.config for cell in cells}
+    assert by_contender["reinsert128"].variant == "b0_local"
+    assert by_contender["reinsert128"].task_d_reinsert == "every-128"
+    assert by_contender["prequery"].variant == "b0_local"
+    assert by_contender["prequery"].task_d_reinsert == "prequery"
 
 
 def test_run_matrix_rejects_nonpositive_timeout(tmp_path: Path) -> None:

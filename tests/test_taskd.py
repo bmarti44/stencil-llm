@@ -135,10 +135,24 @@ def test_task_d_fixed_shapes(family: str, updates: int, policy: str) -> None:
 def test_task_d_reinsert_positions() -> None:
     _, _, periodic = next(task_d(_d_config(task_d_reinsert="every-128")))
     starts = periodic["refresh_block_starts"]
-    assert starts == [multiple - 8 for multiple in range(128, 3969, 128)]
     assert len(starts) == 31
-    for start in starts:
-        assert periodic["core_position_by_final"][start + 8] is not None
+    displaced = []
+    for multiple, start in zip(range(128, 3969, 128), starts, strict=True):
+        query = next(
+            (
+                query
+                for query in periodic["queries"]
+                if query["final_start"] <= multiple < query["final_start"] + 4
+            ),
+            None,
+        )
+        if query is None:
+            assert start == multiple - 8
+            assert periodic["core_position_by_final"][start + 8] is not None
+        else:
+            displaced.append(multiple)
+            assert start + 8 == query["final_start"]
+    assert len(starts) == len(range(128, 3969, 128))
 
     tokens, _, prequery = next(task_d(_d_config(task_d_reinsert="prequery")))
     assert len(prequery["refresh_block_starts"]) == 16
@@ -148,17 +162,20 @@ def test_task_d_reinsert_positions() -> None:
     for start in prequery["refresh_block_starts"]:
         assert tokens[start : start + 8].tolist()[::2] == [29, 30, 31, 32]
 
-    periodic_tokens, _, split = next(
+    periodic_tokens, _, unsplit = next(
         task_d(_d_config(task_d_reinsert="every-128", task_d_sequence_index=4))
     )
-    split_queries = [
-        query
-        for query in split["queries"]
-        if query["final_positions"]
-        != list(range(query["final_start"], query["final_start"] + 4))
-    ]
-    assert split_queries
-    for query in split["queries"]:
+    assert all(
+        query["final_positions"]
+        == list(range(query["final_start"], query["final_start"] + 4))
+        for query in unsplit["queries"]
+    )
+    assert any(
+        start + 8 == query["final_start"]
+        for start in unsplit["refresh_block_starts"]
+        for query in unsplit["queries"]
+    )
+    for query in unsplit["queries"]:
         positions = query["final_positions"]
         assert [int(periodic_tokens[position]) for position in positions] == [
             33,
@@ -239,15 +256,11 @@ def test_task_d_registered_family_gap_construction() -> None:
     assert len(drought["gaps"]) == 3
     assert all(768 <= gap <= 1280 for gap in drought["gaps"])
 
-    _, _, burst = next(
-        task_d(_d_config(task_d_family="burst", task_d_updates=8))
-    )
+    _, _, burst = next(task_d(_d_config(task_d_family="burst", task_d_updates=8)))
     assert len(burst["gaps"]) == 8
     assert 64 <= burst["gaps"][0] <= 512
     assert all(640 <= burst["gaps"][index] <= 1200 for index in (3, 6))
-    assert all(
-        8 <= burst["gaps"][index] <= 32 for index in (1, 2, 4, 5, 7)
-    )
+    assert all(8 <= burst["gaps"][index] <= 32 for index in (1, 2, 4, 5, 7))
 
 
 def test_task_d_active_rule_resolution() -> None:

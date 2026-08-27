@@ -9,6 +9,7 @@ import math
 import os
 import shutil
 import subprocess
+import time
 from collections.abc import Callable, Iterator
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
@@ -32,7 +33,7 @@ from stencil.config import (
 )
 from stencil.config import run_id as make_run_id
 from stencil.determinism import named_generator
-from stencil.data import Example, generate
+from stencil.data import Example, generate, task_d_training_stream
 from stencil.model import StencilTransformer
 from stencil.oscillator import assert_stable
 
@@ -40,9 +41,7 @@ from stencil.oscillator import assert_stable
 class CopyModel(nn.Module):
     def __init__(self, config: Config) -> None:
         super().__init__()
-        self.embedding_weight = nn.Parameter(
-            torch.empty(config.vocab, config.d_model)
-        )
+        self.embedding_weight = nn.Parameter(torch.empty(config.vocab, config.d_model))
         self.head_weight = nn.Parameter(torch.empty(config.vocab, config.d_model))
         self.head_bias = nn.Parameter(torch.empty(config.vocab))
 
@@ -198,9 +197,7 @@ def _training_batches(
             yield next_examples(stream, batch_size)
         return
 
-    with ThreadPoolExecutor(
-        max_workers=1, thread_name_prefix="stencil-data"
-    ) as worker:
+    with ThreadPoolExecutor(max_workers=1, thread_name_prefix="stencil-data") as worker:
         pending = worker.submit(next_examples, stream, batch_size)
         for step in range(steps):
             batch = pending.result()
@@ -216,6 +213,31 @@ def masked_answer_loss(logits: torch.Tensor, targets: torch.Tensor) -> torch.Ten
     if targets.dtype != torch.long or targets.numel() < 1:
         raise ValueError("targets must be a nonempty integer tensor")
     return F.cross_entropy(logits.flatten(0, 1), targets.flatten())
+
+
+def task_d_answer_loss(
+    logits: torch.Tensor,
+    targets: torch.Tensor,
+    input_tokens: torch.Tensor,
+    *,
+    batch_size: int,
+) -> torch.Tensor:
+    """Score Task D's separate targets with binding non-vacuity assertions."""
+    _assert_task_d_targets(targets, input_tokens, batch_size=batch_size)
+    return masked_answer_loss(logits, targets)
+
+
+def _assert_task_d_targets(
+    targets: torch.Tensor, input_tokens: torch.Tensor, *, batch_size: int
+) -> None:
+    """Reject vacuous Task D masks before eager execution or graph replay."""
+    expected = 16 * batch_size
+    if targets.numel() != expected:
+        raise AssertionError(f"Task D loss requires exactly {expected} targets")
+    if input_tokens.shape != targets.shape:
+        raise AssertionError("Task D inputs and targets must align")
+    if not torch.all(targets != input_tokens):
+        raise AssertionError("Task D targets must differ from input tokens")
 
 
 def _optimizer(model: StencilTransformer, config: Config) -> torch.optim.AdamW:
@@ -274,10 +296,7 @@ class _CudaGraphStep:
         self.targets = torch.empty_like(batch.targets, device=device)
         self.cue_positions = torch.empty_like(batch.cue_positions, device=device)
         self.cue_valid = torch.empty_like(batch.cue_valid, device=device)
-        self.truncation_start = max(
-            0,
-            int(batch.decision_positions.min()) - model.receptive_field(),
-        )
+        self.truncation_start = _truncation_start(model, batch)
         self._copy_batch(batch)
 
         capture_stream = torch.cuda.Stream(device=device)
@@ -301,6 +320,13 @@ class _CudaGraphStep:
             torch.autograd.graph.set_override_stale_capture_stream(False)
 
     def _copy_batch(self, batch: Batch) -> None:
+        if self.model.config.task == "d":
+            rows = torch.arange(batch.tokens.shape[0])[:, None]
+            _assert_task_d_targets(
+                batch.targets,
+                batch.tokens[rows, batch.decision_positions],
+                batch_size=batch.tokens.shape[0],
+            )
         tensors = (
             (self.tokens, batch.tokens),
             (self.decision_positions, batch.decision_positions),
@@ -340,17 +366,17 @@ def train_model(
     use_compiled_scan: bool = False,
 ) -> tuple[StencilTransformer, list[float]]:
     """Train one real variant using fresh generator data at every step."""
-    if config.task not in {"a", "b", "m"}:
-        raise ValueError("full-variant training requires task a, b, or m")
+    if config.task not in {"a", "b", "d", "m"}:
+        raise ValueError("full-variant training requires task a, b, d, or m")
     if config.precision != "fp32":
         raise ValueError("toy-phase training requires fp32")
     if config.steps < 1 or config.batch < 1:
         raise ValueError("steps and batch must be positive")
     execution_device = _training_device(device)
-    model = StencilTransformer(
-        config, use_compiled_scan=use_compiled_scan
-    ).to(device=execution_device, dtype=torch.float32)
-    stream = generate(config)
+    model = StencilTransformer(config, use_compiled_scan=use_compiled_scan).to(
+        device=execution_device, dtype=torch.float32
+    )
+    stream = task_d_training_stream(config) if config.task == "d" else generate(config)
     # AdamW itself has no draws; instantiation still pins the registered stream.
     named_generator(config.seed_train, "train")
     optimizer = _optimizer(model, config)
@@ -385,6 +411,13 @@ def train_model(
                 graph_step = _CudaGraphStep(model, optimizer, batch, execution_device)
             loss = graph_step.forward_backward(batch)
         else:
+            if config.task == "d":
+                rows = torch.arange(batch.tokens.shape[0])[:, None]
+                _assert_task_d_targets(
+                    batch.targets,
+                    batch.tokens[rows, batch.decision_positions],
+                    batch_size=config.batch,
+                )
             tokens = batch.tokens.to(execution_device)
             decision_positions = batch.decision_positions.to(execution_device)
             targets = batch.targets.to(execution_device)
@@ -396,10 +429,7 @@ def train_model(
                 decision_positions=decision_positions,
                 cue_positions=cue_positions,
                 cue_valid=cue_valid,
-                truncation_start=max(
-                    0,
-                    int(batch.decision_positions.min()) - model.receptive_field(),
-                ),
+                truncation_start=_truncation_start(model, batch),
             )
             loss = masked_answer_loss(logits, targets)
             loss.backward()
@@ -411,6 +441,16 @@ def train_model(
             flush_losses()
     flush_losses()
     return model, losses
+
+
+def _truncation_start(model: StencilTransformer, batch: Batch) -> int:
+    """Keep Task D's variable query positions graph-static without dropping queries."""
+    if model.config.task == "d":
+        return 0
+    return max(
+        0,
+        int(batch.decision_positions.min()) - model.receptive_field(),
+    )
 
 
 def train_model_losses(
@@ -507,19 +547,17 @@ def run(
     if config.task == "copy":
         losses, learning_rates = _train(config)
         with (run_dir / "metrics.jsonl").open("w", encoding="utf-8") as handle:
-            for step, (loss, lr) in enumerate(
-                zip(losses, learning_rates, strict=True)
-            ):
-                handle.write(
-                    json.dumps({"step": step, "loss": loss, "lr": lr}) + "\n"
-                )
+            for step, (loss, lr) in enumerate(zip(losses, learning_rates, strict=True)):
+                handle.write(json.dumps({"step": step, "loss": loss, "lr": lr}) + "\n")
         (run_dir / "DONE").touch()
         return run_dir
 
     with (run_dir / "metrics.jsonl").open("w", encoding="utf-8") as handle:
+
         def record(step: int, loss: float, lr: float) -> None:
             handle.write(json.dumps({"step": step, "loss": loss, "lr": lr}) + "\n")
 
+        train_started = time.perf_counter()
         model, _ = train_model(
             config,
             on_step=record,
@@ -527,21 +565,30 @@ def run(
             use_prefetch=use_prefetch,
             use_compiled_scan=use_compiled_scan,
         )
+        train_wall_seconds = time.perf_counter() - train_started
     if config.variant in {"m1", "m1b"}:
         assert_stable(model)
     checkpoint = run_dir / "final.pt"
     torch.save({"step": config.steps, "model": model.state_dict()}, checkpoint)
     from stencil.evaluate import evaluate_model  # Avoid an entrypoint cycle.
 
-    result = evaluate_model(model, config)
+    eval_started = time.perf_counter()
+    result = evaluate_model(model, config, repo=root)
+    eval_wall_seconds = time.perf_counter() - eval_started
+    result["cost"] = {
+        "train_wall_seconds": train_wall_seconds,
+        "eval_wall_seconds": eval_wall_seconds,
+    }
+    if config.task == "d":
+        from stencil.evaluate import merge_task_d_evaluations
+
+        result = merge_task_d_evaluations(None, result)
     (run_dir / "eval.json").write_bytes(canonical_json(result) + b"\n")
     (run_dir / "DONE").touch()
     return run_dir
 
 
-def _prepare_run_dir(
-    run_dir: Path, identity: GitIdentity, force: bool
-) -> None:
+def _prepare_run_dir(run_dir: Path, identity: GitIdentity, force: bool) -> None:
     if run_dir.exists():
         if not force:
             raise FileExistsError(f"run directory already exists: {run_dir}")

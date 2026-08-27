@@ -16,9 +16,49 @@ from stencil.train import (
     _optimizer,
     masked_answer_loss,
     next_examples,
+    task_d_answer_loss,
+    task_d_training_stream,
     train_model,
     train_model_losses,
 )
+
+
+def _tiny_task_d_config():
+    return replace(
+        build_matched_configs()["b0_local"],
+        task="d",
+        task_N=None,
+        task_k=8,
+        context_len=4096,
+        task_d_slots=4,
+        task_d_core_len=3848,
+        task_d_updates=12,
+        task_d_queries=16,
+        task_d_family="train",
+        task_d_reinsert="none",
+        task_d_gap_min=64,
+        task_d_gap_max=320,
+        task_d_burst_start_min=64,
+        task_d_burst_start_max=512,
+        task_d_burst_intra_min=8,
+        task_d_burst_intra_max=32,
+        task_d_burst_inter_min=640,
+        task_d_burst_inter_max=1200,
+        task_d_curriculum_start=8000,
+        task_d_curriculum_end=12000,
+        task_d_curriculum_gap_min=32,
+        task_d_curriculum_gap_max=128,
+        task_d_schedule_offset=0,
+        task_d_sequence_index=0,
+        d_model=16,
+        n_layers=1,
+        n_heads=1,
+        d_ff=32,
+        window=4,
+        batch=1,
+        steps=2,
+        warmup=1,
+    )
 
 
 def test_adamw_uses_foreach() -> None:
@@ -67,21 +107,54 @@ def test_static_decision_loss_and_selected_head_are_bitwise() -> None:
     assert torch.count_nonzero(hidden_grad[~selected]) == 0
 
 
+def test_task_d_loss_is_separate_target_and_nonvacuous() -> None:
+    logits = torch.randn(2, 16, 64, generator=torch.Generator().manual_seed(3))
+    targets = torch.full((2, 16), 41, dtype=torch.long)
+    inputs = torch.zeros(2, 16, dtype=torch.long)
+
+    actual = task_d_answer_loss(logits, targets, inputs, batch_size=2)
+    expected = F.cross_entropy(logits.flatten(0, 1), targets.flatten())
+
+    assert torch.equal(actual, expected)
+    with pytest.raises(AssertionError, match="differ"):
+        task_d_answer_loss(logits, targets, targets.clone(), batch_size=2)
+    with pytest.raises(AssertionError, match="32"):
+        task_d_answer_loss(
+            logits[:, :-1], targets[:, :-1], inputs[:, :-1], batch_size=2
+        )
+
+
+def test_task_d_training_stream_applies_curriculum_per_step_only() -> None:
+    config = _tiny_task_d_config()
+    stream = task_d_training_stream(config)
+    first = [next(stream)[2] for _ in range(config.batch)]
+    second = [next(stream)[2] for _ in range(config.batch)]
+
+    assert {row["curriculum_step"] for row in first} == {0}
+    assert {tuple(row["curriculum_bounds"]) for row in first} == {(32, 128)}
+    assert {row["curriculum_step"] for row in second} == {1}
+    assert {tuple(row["curriculum_bounds"]) for row in second} == {(32, 128)}
+    assert all(len(row["updates"]) == 16 for row in first + second)
+
+
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA graph requires CUDA")
-def test_graph_step_bitwise_equals_eager() -> None:
-    config = replace(
-        build_matched_configs()["b0_local"],
-        batch=2,
-        steps=3,
-        warmup=1,
-        task_N=8,
-        context_len=12,
+@pytest.mark.parametrize("task", ["a", "d"])
+def test_graph_step_bitwise_equals_eager(task: str) -> None:
+    config = (
+        replace(
+            build_matched_configs()["b0_local"],
+            batch=2,
+            steps=3,
+            warmup=1,
+            task_N=8,
+            context_len=12,
+        )
+        if task == "a"
+        else _tiny_task_d_config()
     )
 
     eager_model, eager_losses = train_model(config, device="cuda")
-    graph_model, graph_losses = train_model(
-        config, device="cuda", use_cuda_graph=True
-    )
+    graph_model, graph_losses = train_model(config, device="cuda", use_cuda_graph=True)
 
     assert eager_losses == graph_losses
     for eager, graphed in zip(
@@ -142,14 +215,21 @@ def test_prefetch_bitwise_equals_sync(
 
 
 @pytest.mark.determinism
-def test_train_two_runs_bitwise_short() -> None:
-    """Run two 50-step real M1 Task-A (2048,8) trainings in process."""
-    config = replace(build_matched_configs()["m1"], steps=50)
+@pytest.mark.parametrize(
+    "config",
+    [
+        replace(build_matched_configs()["m1"], steps=50),
+        _tiny_task_d_config(),
+    ],
+    ids=["task-a", "task-d"],
+)
+def test_train_two_runs_bitwise_short(config) -> None:
+    """Run two short real trainings in process, including separate-target Task D."""
 
     first = train_model_losses(config, use_compiled_scan=True)
     second = train_model_losses(config, use_compiled_scan=True)
 
-    assert len(first) == len(second) == 50
+    assert len(first) == len(second) == config.steps
     assert first == second
     assert all(loss > 0.0 for loss in first)
 

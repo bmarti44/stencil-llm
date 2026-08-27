@@ -107,11 +107,84 @@ def _task_m(config: Config, placement: str, seed: int) -> Config:
     )
 
 
+def _task_d(contender: str, seed: int) -> Config:
+    policy = {
+        "reinsert128": "every-128",
+        "prequery": "prequery",
+    }.get(contender, "none")
+    variant = "b0_local" if policy != "none" else contender
+    base = _seeded(build_matched_configs()[variant], seed)
+    return replace(
+        base,
+        task="d",
+        task_N=None,
+        task_k=8,
+        task_R=None,
+        task_delay_min=None,
+        task_delay_max=None,
+        task_P=None,
+        task_queries=None,
+        task_placement=None,
+        context_len=4096,
+        period_max=8192.0 if variant in {"m1", "m1b"} else None,
+        steps=30_000,
+        batch=64,
+        task_d_slots=4,
+        task_d_core_len=3848,
+        task_d_updates=12,
+        task_d_queries=16,
+        task_d_family="train",
+        task_d_reinsert=policy,
+        task_d_gap_min=64,
+        task_d_gap_max=320,
+        task_d_burst_start_min=64,
+        task_d_burst_start_max=512,
+        task_d_burst_intra_min=8,
+        task_d_burst_intra_max=32,
+        task_d_burst_inter_min=640,
+        task_d_burst_inter_max=1200,
+        task_d_curriculum_start=8000,
+        task_d_curriculum_end=12000,
+        task_d_curriculum_gap_min=32,
+        task_d_curriculum_gap_max=128,
+        task_d_schedule_offset=0,
+        task_d_sequence_index=0,
+    )
+
+
+def task_d_cells(identity: GitIdentity | None = None) -> list[MatrixCell]:
+    """Materialize the registered eight-contender, three-seed Task D fleet."""
+    contenders = (
+        "m1",
+        "m1b",
+        "b2",
+        "b3k",
+        "b3",
+        "b4",
+        "reinsert128",
+        "prequery",
+    )
+    cells = []
+    for contender in contenders:
+        for seed in (0, 1, 2):
+            config = _task_d(contender, seed)
+            cells.append(
+                MatrixCell(
+                    key=f"d:{contender}:s{seed}",
+                    run_id=run_id(config, identity) if identity else "",
+                    config=config,
+                )
+            )
+    if len(cells) != 24 or len({cell.key for cell in cells}) != 24:
+        raise RuntimeError("registered Task D matrix is not 24 unique runs")
+    return cells
+
+
 def matrix_cells(identity: GitIdentity | None = None) -> list[MatrixCell]:
-    """Materialize the registered 84 Task-A plus 30 Task-M runs."""
+    """Materialize the legacy 114 cells plus the 24-run Task D fleet."""
     matched = build_matched_configs()
     cells: list[MatrixCell] = []
-    for variant in matched:
+    for variant in (name for name in matched if name != "b3k"):
         for seed in (0, 1, 2):
             for n, k in ((512, 8), (2048, 8), (2048, 32)):
                 config = _task_a(matched[variant], n, k, seed)
@@ -146,8 +219,9 @@ def matrix_cells(identity: GitIdentity | None = None) -> list[MatrixCell]:
                         config=config,
                     )
                 )
-    if len(cells) != 114 or len({cell.key for cell in cells}) != 114:
-        raise RuntimeError("registered matrix construction is not 114 unique runs")
+    cells.extend(task_d_cells(identity))
+    if len(cells) != 138 or len({cell.key for cell in cells}) != 138:
+        raise RuntimeError("registered matrix construction is not 138 unique runs")
     return cells
 
 
@@ -200,9 +274,7 @@ def execute_pending(
     attempts = {cell.key: 0 for cell, _ in pending}
     failed: list[str] = []
 
-    def handle_failure(
-        item: tuple[MatrixCell, Path], exc: Exception
-    ) -> None:
+    def handle_failure(item: tuple[MatrixCell, Path], exc: Exception) -> None:
         cell, _ = item
         will_retry = attempts[cell.key] < max_attempts
         if isinstance(exc, StalledRun) and will_retry:
@@ -217,9 +289,7 @@ def execute_pending(
                 flush=True,
             )
 
-    def handle_result(
-        future: Future[None], item: tuple[MatrixCell, Path]
-    ) -> None:
+    def handle_result(future: Future[None], item: tuple[MatrixCell, Path]) -> None:
         try:
             future.result()
         except Exception as exc:
@@ -258,9 +328,7 @@ def execute_pending(
 
                 if queue and len(in_flight) < jobs:
                     assert last_launch is not None
-                    launch_delay = max(
-                        0.0, stagger - (time.monotonic() - last_launch)
-                    )
+                    launch_delay = max(0.0, stagger - (time.monotonic() - last_launch))
                     if not in_flight:
                         time.sleep(launch_delay)
                         continue
