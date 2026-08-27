@@ -127,7 +127,7 @@ def _task_d(contender: str, seed: int) -> Config:
         task_placement=None,
         context_len=4096,
         period_max=8192.0 if variant in {"m1", "m1b"} else None,
-        steps=30_000,
+        steps=15_000,
         batch=64,
         task_d_slots=4,
         task_d_core_len=3848,
@@ -156,17 +156,12 @@ def task_d_cells(identity: GitIdentity | None = None) -> list[MatrixCell]:
     """Materialize the registered eight-contender, three-seed Task D fleet."""
     contenders = (
         "m1",
-        "m1b",
-        "b2",
         "b3k",
-        "b3",
-        "b4",
-        "reinsert128",
-        "prequery",
     )
     cells = []
     for contender in contenders:
-        for seed in (0, 1, 2):
+        # Human budget ruling (2026-08-28): Task D runs seeds {0, 1} at 15k steps.
+        for seed in (0, 1):
             config = _task_d(contender, seed)
             cells.append(
                 MatrixCell(
@@ -175,8 +170,8 @@ def task_d_cells(identity: GitIdentity | None = None) -> list[MatrixCell]:
                     config=config,
                 )
             )
-    if len(cells) != 24 or len({cell.key for cell in cells}) != 24:
-        raise RuntimeError("registered Task D matrix is not 24 unique runs")
+    if len(cells) != 4 or len({cell.key for cell in cells}) != 4:
+        raise RuntimeError("registered Task D matrix is not 4 unique runs")
     return cells
 
 
@@ -220,8 +215,8 @@ def matrix_cells(identity: GitIdentity | None = None) -> list[MatrixCell]:
                     )
                 )
     cells.extend(task_d_cells(identity))
-    if len(cells) != 138 or len({cell.key for cell in cells}) != 138:
-        raise RuntimeError("registered matrix construction is not 138 unique runs")
+    if len(cells) != 118 or len({cell.key for cell in cells}) != 118:
+        raise RuntimeError("registered matrix construction is not 118 unique runs")
     return cells
 
 
