@@ -116,8 +116,16 @@ def test_task_d_loss_is_separate_target_and_nonvacuous() -> None:
     expected = F.cross_entropy(logits.flatten(0, 1), targets.flatten())
 
     assert torch.equal(actual, expected)
-    with pytest.raises(AssertionError, match="differ"):
+    # Latin-square fixed points make target==input legitimate at ~1/16 of
+    # positions; the guard fires only on degenerate wiring (>=50% equal) or
+    # out-of-alphabet targets.
+    with pytest.raises(AssertionError, match="mask wiring"):
         task_d_answer_loss(logits, targets, targets.clone(), batch_size=2)
+    with pytest.raises(AssertionError, match="answer alphabet"):
+        task_d_answer_loss(logits, torch.zeros_like(targets), inputs, batch_size=2)
+    fixed_point_inputs = inputs.clone()
+    fixed_point_inputs[0, 0] = 41  # one legitimate fixed point must NOT raise
+    task_d_answer_loss(logits, targets, fixed_point_inputs, batch_size=2)
     with pytest.raises(AssertionError, match="32"):
         task_d_answer_loss(
             logits[:, :-1], targets[:, :-1], inputs[:, :-1], batch_size=2

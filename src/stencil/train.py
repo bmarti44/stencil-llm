@@ -236,8 +236,18 @@ def _assert_task_d_targets(
         raise AssertionError(f"Task D loss requires exactly {expected} targets")
     if input_tokens.shape != targets.shape:
         raise AssertionError("Task D inputs and targets must align")
-    if not torch.all(targets != input_tokens):
-        raise AssertionError("Task D targets must differ from input tokens")
+    # Latin-square rules have legitimate fixed points (rule(x) == x, ~1/16 of
+    # queries), so per-position inequality is NOT required. Vacuity is the
+    # degenerate case: targets outside the answer alphabet, or the whole batch
+    # collapsing to target==input (loss would reward copying the operand).
+    if not torch.all((targets >= 34) & (targets <= 49)):
+        raise AssertionError("Task D targets must lie in the answer alphabet")
+    differing = (targets != input_tokens).float().mean().item()
+    if differing < 0.5:
+        raise AssertionError(
+            f"Task D targets equal inputs at {1 - differing:.0%} of masked "
+            "positions — fixed-point rate should be ~6%; mask wiring is broken"
+        )
 
 
 def _optimizer(model: StencilTransformer, config: Config) -> torch.optim.AdamW:
