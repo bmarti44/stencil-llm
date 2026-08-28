@@ -1,3 +1,3 @@
 @AGENTS.md
 
-PLAN.md (science) and plan/PROTOCOL.md (process) govern this repo; resume from plan/LEDGER.md's STATE line before acting.
+GPT2-PLAN.md governs; resume from WORKLOG.md. The toy-phase program and its governance are archived untouched in archive/.
