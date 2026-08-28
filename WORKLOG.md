@@ -157,3 +157,25 @@
   acc >50% by step ~100-250 or the oscillator encoding verdict stands
   (upgraded to "cannot superpose four rules under exact routing" if slot
   asymmetry appears).
+- 2026-08-28, fable results review — THIRD correction, the instrument was
+  blind, not the oscillator: ridge probe on the EXACT code the aux head
+  reads, at the EXACT statement-end positions, under the trained hard gate:
+  slot-0 = 93% (chance 6.25%); the aux head's chance-level r-ce is a CE +
+  weight-decay conditioning artifact (answer signal is 1-2% of the unit-
+  normalized code; frozen-code head replication reproduces r-ce 2.806 vs
+  logged 2.78-2.83; wd-free lr 1e-2 head crawls to only 9% in 3000 steps
+  while closed-form ridge reads 93%). v7 routing is effectively EXACT:
+  0.42% leak, all post-statement slot words in query lines; pre-statement
+  leaked forcing mass exactly 0. sal_filler_p90<0.1 criterion RETIRED
+  (unmeetable by construction for linear salience — same token, different
+  label by position). THE REAL NEGATIVE: superposition — slots 1-3 at
+  25/19/11% with within-class >= between-class variance; the 128-d linear
+  resonator writes rule 1 deterministically and destroys concurrent rules.
+  Gate 1 revalidated at unit-RMS (4/4 rank 1). Verdict: proceed to focus
+  cache (keyed slots are precisely the superposition fix) WITH instrument
+  fixes: ridge probe as capture metric of record + instrument non-vacuity
+  precheck, aux heads exempt from weight decay, writer separation O(1) not
+  O(0.01) (don't norm the signal away), adversarial filler (quoted slot
+  words) for the no-write test. Analysis scripts: scripts/review/.
+  osc-v7 left running: its beyond-window phase-2 readout is now live
+  evidence for single-slot end-to-end.
