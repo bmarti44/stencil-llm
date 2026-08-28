@@ -113,3 +113,21 @@ def test_training_determinism_bitwise() -> None:
     l2, p2 = one()
     assert all(torch.equal(a, b) for a, b in zip(l1, l2, strict=True))
     assert all(torch.equal(a, b) for a, b in zip(p1, p2, strict=True))
+
+
+@needs_weights
+def test_lora_inert_and_pathway_classified() -> None:
+    """LoRA at init (B=0) must be bitwise inert; its params must be
+    PATHWAY (trainable), never trunk (frozen)."""
+    vanilla = _load("vanilla", window=64)
+    lora = GatedGPT2("osc", window=64, lora_rank=4)
+    sd = torch.load(WEIGHTS, map_location="cpu")
+    lora.load_state_dict(sd, strict=False)
+    lora.eval()
+    toks = torch.randint(0, 50257, (2, 128), generator=torch.Generator().manual_seed(5))
+    with torch.no_grad():
+        assert torch.equal(lora(toks, gate_bypass=True), vanilla(toks))
+    trunk_ids = {id(p) for p in lora.trunk_parameters()}
+    lora_params = [p for n, p in lora.named_parameters() if "lora" in n]
+    assert len(lora_params) == 24  # 12 layers x (A, B)
+    assert all(id(p) not in trunk_ids for p in lora_params), "LoRA frozen as trunk!"

@@ -83,6 +83,7 @@ class _Block(nn.Module):
         x: torch.Tensor,
         mask: torch.Tensor,
         gates: torch.Tensor | None,
+        lora: tuple[nn.Linear, nn.Linear] | None = None,
     ) -> torch.Tensor:
         c = GPT2Config
         b, t, _ = x.shape
@@ -98,7 +99,10 @@ class _Block(nn.Module):
             # outputs BEFORE the output projection (the registered gate site).
             out = out * gates.permute(0, 2, 1).unsqueeze(-1)
         out = out.transpose(1, 2).reshape(b, t, c.d_model)
-        x = x + self.attn_proj(out)
+        proj = self.attn_proj(out)
+        if lora is not None:
+            proj = proj + lora[1](lora[0](out))
+        x = x + proj
         h = self.ln_2(x)
         x = x + self.mlp_proj(F.gelu(self.mlp_fc(h), approximate="tanh"))
         return x
@@ -138,6 +142,7 @@ class GatedGPT2(nn.Module):
         window: int | None = None,
         seed_init: int = 0,
         osc_periods: tuple[float, float] = (8.0, 2048.0),
+        lora_rank: int = 0,
     ) -> None:
         super().__init__()
         if arm not in {"vanilla", "base", "osc"}:
@@ -152,6 +157,24 @@ class GatedGPT2(nn.Module):
         # lm_head is tied to wte (GPT-2 convention).
         self.controller: nn.Module | None = None
         self.gate_source: GateSource | None = None
+        self.lora_a: nn.ModuleList | None = None
+        self.lora_b: nn.ModuleList | None = None
+        if lora_rank > 0:
+            # Top-level (NOT under blocks.) so trunk_parameters() never
+            # classifies LoRA as frozen trunk. B starts at zero => the adapter
+            # is bitwise inert until trained.
+            self.lora_a = nn.ModuleList(
+                nn.Linear(c.d_model, lora_rank, bias=False) for _ in range(c.n_layer)
+            )
+            self.lora_b = nn.ModuleList(
+                nn.Linear(lora_rank, c.d_model, bias=False) for _ in range(c.n_layer)
+            )
+            from .determinism import named_generator
+
+            lg = named_generator(seed_init, "train")
+            for a, bmod in zip(self.lora_a, self.lora_b, strict=True):
+                nn.init.normal_(a.weight, std=0.02, generator=lg)
+                nn.init.zeros_(bmod.weight)
         if arm != "vanilla":
             from .determinism import named_generator
 
@@ -219,6 +242,11 @@ class GatedGPT2(nn.Module):
         mask = self._mask(t, tokens.device)
         for index, block in enumerate(self.blocks):
             layer_gates = None if gates is None else gates[:, :, index, :]
-            x = block(x, mask, layer_gates)
+            lora = (
+                (self.lora_a[index], self.lora_b[index])
+                if self.lora_a is not None
+                else None
+            )
+            x = block(x, mask, layer_gates, lora)
         x = self.ln_f(x)
         return x @ self.wte.weight.T

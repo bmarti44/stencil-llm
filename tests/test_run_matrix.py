@@ -15,7 +15,6 @@ from scripts.run_matrix import (
     _watch_process,
     execute_pending,
     matrix_cells,
-    task_d_cells,
 )
 
 

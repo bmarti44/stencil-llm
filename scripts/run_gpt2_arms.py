@@ -34,10 +34,15 @@ TRAIN_SPACE = 0
 VAL_SPACE = 1_000_000
 FINAL_SPACE = 2_000_000
 DEV = "cuda" if torch.cuda.is_available() else "cpu"
+LORA_RANK = 4  # symmetric adapter, both arms (post-flatline iteration)
+
+
+def tag(arm: str, seed: int) -> str:
+    return f"{arm}-lora-s{seed}" if LORA_RANK else f"{arm}-s{seed}"
 
 
 def build(arm: str, seed: int) -> GatedGPT2:
-    model = GatedGPT2(arm, window=64, seed_init=seed)
+    model = GatedGPT2(arm, window=64, seed_init=seed, lora_rank=LORA_RANK)
     sd = torch.load(ROOT / "models" / "gpt2-small.pt", map_location="cpu")
     missing, unexpected = model.load_state_dict(sd, strict=False)
     assert not unexpected
@@ -105,7 +110,7 @@ def train(arm: str, seed: int) -> None:
             history.append({"step": step, "loss": float(loss)})
             print(f"[{arm} s{seed}] step {step} loss {float(loss):.4f}", flush=True)
             OUT.mkdir(parents=True, exist_ok=True)
-            (OUT / f"{arm}-s{seed}-progress.json").write_text(json.dumps({
+            (OUT / f"{tag(arm, seed)}-progress.json").write_text(json.dumps({
                 "arm": arm, "seed": seed, "step": step, "of": STEPS,
                 "elapsed_sec": time.time() - t0, "history": history,
             }, indent=1))
@@ -115,9 +120,9 @@ def train(arm: str, seed: int) -> None:
     torch.save(
         {"pathway": {n: p for n, p in model.state_dict().items() if not n.startswith(("wte", "wpe", "blocks", "ln_f"))},
          "logit_bias": model.logit_bias.detach().cpu()},
-        OUT / f"{arm}-s{seed}.pt",
+        OUT / f"{tag(arm, seed)}.pt",
     )
-    (OUT / f"{arm}-s{seed}.json").write_text(json.dumps({
+    (OUT / f"{tag(arm, seed)}.json").write_text(json.dumps({
         "arm": arm, "seed": seed, "steps": STEPS, "batch": BATCH,
         "trainable_params": n_train, "wall_sec": wall,
         "history": history, "validation": val,
@@ -127,7 +132,7 @@ def train(arm: str, seed: int) -> None:
 
 def load_trained(arm: str, seed: int) -> GatedGPT2:
     model = build(arm, seed)
-    saved = torch.load(OUT / f"{arm}-s{seed}.pt", map_location=DEV)
+    saved = torch.load(OUT / f"{tag(arm, seed)}.pt", map_location=DEV)
     model.load_state_dict(saved["pathway"], strict=False)
     model.logit_bias.data = saved["logit_bias"].to(DEV)
     return model.eval()
@@ -138,7 +143,7 @@ def final(arm: str, seed: int) -> None:
         raise SystemExit("REFUSED: sealed final eval requires results/GPT2-FLEET-FROZEN")
     model = load_trained(arm, seed)
     res = evaluate(model, BPE(), FINAL_SPACE, seed, n=256)
-    path = OUT / f"{arm}-s{seed}-final.json"
+    path = OUT / f"{tag(arm, seed)}-final.json"
     if path.exists():
         raise SystemExit("REFUSED: final eval already recorded (single-shot)")
     path.write_text(json.dumps(res, indent=1))
