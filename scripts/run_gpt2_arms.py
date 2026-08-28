@@ -104,6 +104,11 @@ def train(arm: str, seed: int) -> None:
         if step % 200 == 0 or step == STEPS - 1:
             history.append({"step": step, "loss": float(loss)})
             print(f"[{arm} s{seed}] step {step} loss {float(loss):.4f}", flush=True)
+            OUT.mkdir(parents=True, exist_ok=True)
+            (OUT / f"{arm}-s{seed}-progress.json").write_text(json.dumps({
+                "arm": arm, "seed": seed, "step": step, "of": STEPS,
+                "elapsed_sec": time.time() - t0, "history": history,
+            }, indent=1))
     wall = time.time() - t0
     val = evaluate(model, bpe, VAL_SPACE, seed, n=64)
     OUT.mkdir(parents=True, exist_ok=True)
