@@ -164,9 +164,11 @@ def dial(arm: str, seed: int) -> None:
         if slot == 0:
             xs.append(st)
             ys.append(ANSWER_WORDS.index(ans))
-    X = torch.stack(xs); y = torch.tensor(ys)
+    X = torch.stack(xs)
+    y = torch.tensor(ys)
     k = X.shape[0] * 3 // 4
-    Y = torch.zeros(k, 16); Y[torch.arange(k), y[:k]] = 1
+    Y = torch.zeros(k, 16)
+    Y[torch.arange(k), y[:k]] = 1
     W = torch.linalg.solve(X[:k].T @ X[:k] + 1e-3 * torch.eye(X.shape[1]), X[:k].T @ Y)
     acc = float((torch.argmax(X[k:] @ W, 1) == y[k:]).float().mean())
     print(f"READ: slot-0 answer decoded from wire at {acc:.1%} (chance 6.2%), n_test={len(y)-k}")
@@ -174,7 +176,7 @@ def dial(arm: str, seed: int) -> None:
     # TURN: transplant donor wire trajectory; expect donor's slot-0 answer
     flips = tried = shuffle_flips = 0
     with torch.no_grad():
-        for (tA, sA, cA), (tB, sB, cB) in itertools.pairwise(metas[:64]):
+        for (tA, sA, _cA), (_tB, sB, cB) in itertools.pairwise(metas[:64]):
             if 0 not in sA.query_slots or 0 not in sB.query_slots:
                 continue
             pa = sA.query_positions[sA.query_slots.index(0)]
@@ -182,7 +184,6 @@ def dial(arm: str, seed: int) -> None:
             ansA = sA.active_answer[sA.query_slots.index(0)]
             if ansA == ansB:
                 continue
-            lg = logits_of(model.eval(), tA.to(DEV)) if False else None
             out = model(tA.to(DEV), control_override=cB) + model.logit_bias
             pred = int(out[0, pa].argmax())
             want = bpe.encode(" " + ansB)[0]
