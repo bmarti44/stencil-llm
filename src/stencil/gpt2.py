@@ -98,6 +98,7 @@ class _Block(nn.Module):
         mask: torch.Tensor,
         gates: torch.Tensor | None,
         lora: nn.ModuleDict | None = None,
+        inj: torch.Tensor | None = None,
     ) -> torch.Tensor:
         c = GPT2Config
         b, t, _ = x.shape
@@ -120,6 +121,8 @@ class _Block(nn.Module):
         if lora is not None:
             proj = proj + lora["attn_proj"](out)
         x = x + proj
+        if inj is not None:
+            x = x + inj
         h = self.ln_2(x)
         inner = self.mlp_fc(h)
         if lora is not None:
@@ -159,6 +162,8 @@ class GatedGPT2(nn.Module):
     must be bitwise identical to "vanilla".
     """
 
+    INJ_LAYERS = (8, 9, 10, 11)
+
     def __init__(
         self,
         arm: str = "vanilla",
@@ -181,6 +186,8 @@ class GatedGPT2(nn.Module):
         # lm_head is tied to wte (GPT-2 convention).
         self.controller: nn.Module | None = None
         self.gate_source: GateSource | None = None
+        self.control_proj: nn.Linear | None = None
+        self.inject: nn.ModuleList | None = None
         self.lora: nn.ModuleList | None = None
         if lora_rank > 0:
             # Top-level (NOT under blocks.) so trunk_parameters() never
@@ -210,6 +217,22 @@ class GatedGPT2(nn.Module):
             else:
                 control_dim = c.d_model  # current-token embedding, stateless
             self.gate_source = GateSource(control_dim, pathway)
+            # Iteration 3: additive residual injection (last 4 blocks). The
+            # wire writes a 768-d vector into the residual stream; zero-init
+            # keeps the graft bitwise inert until trained. Base arm gets the
+            # identical stack fed by a stateless 768->128 projector, so the
+            # doorless-room proof is preserved.
+            self.control_proj = (
+                None if arm == "osc" else nn.Linear(c.d_model, 128)
+            )
+            if self.control_proj is not None:
+                nn.init.normal_(self.control_proj.weight, std=0.02, generator=pathway)
+                nn.init.zeros_(self.control_proj.bias)
+            self.inject = nn.ModuleList(
+                nn.Linear(128, c.d_model, bias=False) for _ in self.INJ_LAYERS
+            )
+            for lin in self.inject:
+                nn.init.zeros_(lin.weight)
 
     def trunk_parameters(self) -> list[nn.Parameter]:
         names = ("wte", "wpe", "blocks", "ln_f")
@@ -238,6 +261,23 @@ class GatedGPT2(nn.Module):
             return self.controller(emb)
         return emb
 
+    def _norm(self, v: torch.Tensor) -> torch.Tensor:
+        return v * torch.rsqrt(v.pow(2).mean(-1, keepdim=True) + 1e-8)
+
+    def injection_code(
+        self, tokens: torch.Tensor, control_override: torch.Tensor | None = None
+    ) -> torch.Tensor:
+        """The 128-d normalized code that drives injection (and aux loss)."""
+        control = (
+            control_override
+            if control_override is not None
+            else self.control_states(tokens)
+        )
+        control = self._norm(control)
+        if self.control_proj is not None:
+            control = self.control_proj(control)
+        return self._norm(control)
+
     def forward(
         self,
         tokens: torch.Tensor,
@@ -251,21 +291,25 @@ class GatedGPT2(nn.Module):
         pos = torch.arange(t, device=tokens.device)
         x = self.wte(tokens) + self.wpe(pos)
         gates = None
+        code = None
         if self.arm != "vanilla" and not gate_bypass:
             control = (
                 control_override
                 if control_override is not None
                 else self.control_states(tokens)
             )
-            control = control * torch.rsqrt(
-                control.pow(2).mean(-1, keepdim=True) + 1e-8
-            )
+            control = self._norm(control)
             all_gates = self.gate_source(control)  # (b,t,L*H)
             gates = all_gates.view(b, t, GPT2Config.n_layer, GPT2Config.n_head)
+            code = control if self.control_proj is None else self.control_proj(control)
+            code = self._norm(code)
         mask = self._mask(t, tokens.device)
         for index, block in enumerate(self.blocks):
             layer_gates = None if gates is None else gates[:, :, index, :]
             lora = None if self.lora is None else self.lora[index]
-            x = block(x, mask, layer_gates, lora)
+            inj = None
+            if code is not None and index in self.INJ_LAYERS:
+                inj = self.inject[self.INJ_LAYERS.index(index)](code)
+            x = block(x, mask, layer_gates, lora, inj)
         x = self.ln_f(x)
         return x @ self.wte.weight.T

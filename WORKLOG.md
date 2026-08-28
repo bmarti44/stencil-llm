@@ -53,3 +53,10 @@
   (designed, awaiting go): zero-init additive residual injection (symmetric,
   doorless room preserved), auxiliary wire-readout supervision, near-replay +
   distance-rung curriculum; Qwen3-1.7B ruled next rung after GPT-2 resolves.
+- 2026-08-28, iteration 3 built (Brian: "do it"): additive residual injection
+  (zero-init 128->768 into blocks 8-11, gate_bypass disables it; base arm
+  gets identical stack via stateless 768->128 projector — doorless room
+  preserved, reach tests green), auxiliary wire-readout head (train-only,
+  outside the model, weight 0.3), 25% near-replay in phase 2. TDD red->green
+  (test_injection_inert_and_bypassable, test_batch_mixed_families); 16 tests
+  green; smoke-run verified incl. replay branch. Outputs <arm>-v3-s<seed>.*.

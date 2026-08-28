@@ -128,3 +128,20 @@ def test_near_family_in_window() -> None:
             assert 0 < d <= 250, f"near-family distance {d} not near"
     a, b = generate(3, family="near"), generate(3, family="near")
     assert a.tokens == b.tokens and a.targets == b.targets
+
+
+@needs_tok
+def test_batch_mixed_families() -> None:
+    """Iteration 3 replay: batch() accepts per-item families."""
+    from stencil.nl_task import batch
+    toks, tgts, seqs = batch([11, 12, 13, 14], family=["near", "train", "near", "train"])
+    assert toks.shape[0] == 4
+    for idx in (0, 2):
+        s = seqs[idx]
+        for p, slot in zip(s.query_positions, s.query_slots, strict=True):
+            assert p - s.rule_statement_pos[slot] <= 250
+    long_ds = [
+        p - seqs[1].rule_statement_pos[slot]
+        for p, slot in zip(seqs[1].query_positions, seqs[1].query_slots, strict=True)
+    ]
+    assert max(long_ds) > 250

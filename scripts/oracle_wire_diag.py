@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """Sol diagnostic 5: can ANY wire state make the trained osc model emit the
 right beyond-window answer? Freezes everything; optimizes control_override."""
 import sys

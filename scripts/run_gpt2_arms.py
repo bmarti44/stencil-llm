@@ -25,7 +25,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from stencil import determinism  # noqa: F401,E402
 from stencil.gpt2 import GatedGPT2  # noqa: E402
-from stencil.nl_task import BPE, batch  # noqa: E402
+from stencil.nl_task import ANSWER_WORDS, BPE, batch  # noqa: E402
 
 OUT = ROOT / "results" / "gpt2"
 STEPS = 4000
@@ -36,10 +36,12 @@ VAL_SPACE = 1_000_000
 FINAL_SPACE = 2_000_000
 DEV = "cuda" if torch.cuda.is_available() else "cpu"
 LORA_RANK = 8  # full-matrix symmetric adapter, both arms (iteration 2)
+AUX_WEIGHT = 0.3  # iteration 3: auxiliary wire-readout supervision (train only)
+REPLAY_EVERY = 4  # iteration 3: 1 in 4 phase-2 items replays the near family
 
 
 def tag(arm: str, seed: int) -> str:
-    return f"{arm}-lora8-s{seed}" if LORA_RANK else f"{arm}-s{seed}"
+    return f"{arm}-v3-s{seed}"
 
 
 def build(arm: str, seed: int) -> GatedGPT2:
@@ -111,7 +113,11 @@ def train(arm: str, seed: int) -> None:
         p.requires_grad_(False)
     trainable = [p for p in model.parameters() if p.requires_grad]
     n_train = sum(p.numel() for p in trainable)
-    opt = torch.optim.AdamW(trainable, lr=3e-4, weight_decay=0.01)
+    # Aux head reads the active answer straight off the injection code at
+    # query positions (train-time only; lives OUTSIDE the model so the eval
+    # path cannot see it).
+    aux_head = torch.nn.Linear(128, len(ANSWER_WORDS)).to(DEV)
+    opt = torch.optim.AdamW(trainable + list(aux_head.parameters()), lr=3e-4, weight_decay=0.01)
     history = []
     split_history: list[dict] = []
     evals: list[dict] = []
@@ -119,11 +125,25 @@ def train(arm: str, seed: int) -> None:
     model.train()
     for step in range(STEPS):
         seeds = [TRAIN_SPACE + seed * 100_000 + step * BATCH + i for i in range(BATCH)]
-        fam = "near" if step < CURRICULUM_STEPS else "train"
+        if step < CURRICULUM_STEPS:
+            fam: str | list[str] = "near"
+        else:
+            fam = ["near" if i % REPLAY_EVERY == 0 else "train" for i in range(BATCH)]
         toks, tgts, seqs = batch(seeds, family=fam, bpe=bpe)
         toks_d, tgts_d = toks.to(DEV), tgts.to(DEV)
         logits = logits_of(model, toks_d)
         loss = loss_fn(logits, tgts_d)
+        code = model.injection_code(toks_d)
+        aux_states, aux_targets = [], []
+        for b, s in enumerate(seqs):
+            for p, ans in zip(s.query_positions, s.active_answer, strict=True):
+                aux_states.append(code[b, p])
+                aux_targets.append(ANSWER_WORDS.index(ans))
+        aux_ce = F.cross_entropy(
+            aux_head(torch.stack(aux_states)),
+            torch.tensor(aux_targets, device=DEV),
+        )
+        loss = loss + AUX_WEIGHT * aux_ce
         if step % 100 == 0 or step == STEPS - 1:
             # sol MI-review finding 4: split real-query vs demo metrics live.
             with torch.no_grad():
@@ -139,6 +159,11 @@ def train(arm: str, seed: int) -> None:
                     "query_acc": float((det[qmask].argmax(-1) == tgts_d[qmask]).float().mean()),
                     "demo_ce": float(F.cross_entropy(det[dmask], tgts_d[dmask])),
                     "demo_acc": float((det[dmask].argmax(-1) == tgts_d[dmask]).float().mean()),
+                    "aux_ce": float(aux_ce.detach()),
+                    "aux_acc": float(
+                        (aux_head(torch.stack(aux_states)).argmax(-1)
+                         == torch.tensor(aux_targets, device=DEV)).float().mean()
+                    ),
                 }
             split_history.append(m)
         loss.backward()
@@ -150,7 +175,8 @@ def train(arm: str, seed: int) -> None:
             print(
                 f"[{arm} s{seed}] step {step} loss {float(loss.detach()):.4f} "
                 f"query ce {m['query_ce']:.3f} acc {m['query_acc']:.2f} "
-                f"demo ce {m['demo_ce']:.3f} acc {m['demo_acc']:.2f}",
+                f"demo ce {m['demo_ce']:.3f} acc {m['demo_acc']:.2f} "
+                f"aux ce {m['aux_ce']:.3f} acc {m['aux_acc']:.2f}",
                 flush=True,
             )
         if step > 0 and (step % 500 == 0 or step == CURRICULUM_STEPS - 1):

@@ -22,7 +22,10 @@ def _load(arm: str, window: int | None = None) -> GatedGPT2:
     sd = torch.load(WEIGHTS, map_location="cpu")
     missing, unexpected = model.load_state_dict(sd, strict=False)
     assert not unexpected
-    assert all(m.startswith(("controller.", "gate_source.")) for m in missing)
+    assert all(
+        m.startswith(("controller.", "gate_source.", "control_proj.", "inject.", "lora."))
+        for m in missing
+    )
     return model.eval()
 
 
@@ -131,3 +134,37 @@ def test_lora_inert_and_pathway_classified() -> None:
     lora_params = [p for n, p in lora.named_parameters() if "lora" in n]
     assert len(lora_params) == 96  # 12 layers x 4 sites x (down, up)
     assert all(id(p) not in trunk_ids for p in lora_params), "LoRA frozen as trunk!"
+
+
+@needs_weights
+def test_injection_inert_and_bypassable() -> None:
+    """Iteration 3: additive residual injection. Zero-init => bitwise inert;
+    params classify as pathway; gate_bypass disables it even after training
+    perturbs it; base arm carries the symmetric 768->128 control projector."""
+    vanilla = _load("vanilla", window=64)
+    toks = torch.randint(0, 50257, (2, 128), generator=torch.Generator().manual_seed(9))
+    sd = torch.load(WEIGHTS, map_location="cpu")
+    for arm in ("base", "osc"):
+        m = GatedGPT2(arm, window=64, lora_rank=8)
+        m.load_state_dict(sd, strict=False)
+        m.eval()
+        inj = [(n, p) for n, p in m.named_parameters() if n.startswith("inject")]
+        assert len(inj) == 4, f"{arm}: expected 4 injection layers, got {len(inj)}"
+        assert all(torch.equal(p, torch.zeros_like(p)) for _, p in inj)
+        trunk_ids = {id(p) for p in m.trunk_parameters()}
+        assert all(id(p) not in trunk_ids for _, p in inj)
+        with torch.no_grad():
+            assert torch.equal(m(toks, gate_bypass=True), vanilla(toks))
+            # perturb the injection: bypass must STILL be bitwise vanilla,
+            # non-bypass must now differ through the injection channel.
+            for _, p in inj:
+                p.add_(0.01)
+            assert torch.equal(m(toks, gate_bypass=True), vanilla(toks))
+            assert not torch.equal(m(toks), vanilla(toks))
+    base = GatedGPT2("base", window=64)
+    assert base.control_proj is not None
+    osc = GatedGPT2("osc", window=64)
+    assert osc.control_proj is None
+    code = osc.injection_code(toks)
+    assert code.shape == (2, 128, 128)
+    assert base.injection_code(toks).shape == (2, 128, 128)

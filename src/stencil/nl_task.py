@@ -221,10 +221,12 @@ def generate(
 
 
 def batch(
-    seeds: list[int], *, family: str = "train", n_updates: int = 3, bpe: BPE | None = None
+    seeds: list[int], *, family: str | list[str] = "train", n_updates: int = 3, bpe: BPE | None = None
 ) -> tuple[torch.Tensor, torch.Tensor, list[NLSequence]]:
     bpe = bpe or BPE()
-    seqs = [generate(s, family=family, n_updates=n_updates, bpe=bpe) for s in seeds]
+    fams = [family] * len(seeds) if isinstance(family, str) else family
+    assert len(fams) == len(seeds)
+    seqs = [generate(s, family=f, n_updates=n_updates, bpe=bpe) for s, f in zip(seeds, fams, strict=True)]
     toks = torch.tensor([s.tokens for s in seqs], dtype=torch.long)
     tgts = torch.tensor([s.targets for s in seqs], dtype=torch.long)
     return toks, tgts, seqs
