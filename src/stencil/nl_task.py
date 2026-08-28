@@ -96,6 +96,7 @@ class NLSequence:
     active_answer: list[str]
     rule_statement_pos: list[int]   # last statement token-position per slot
     updates_absorbed: list[int]
+    rule_spans: list[tuple[int, int]]  # (start, end) of every statement (v5)
 
 
 def _rule_text(slot_word: str, answer: str, update: bool) -> str:
@@ -128,6 +129,7 @@ def generate(
     stmt_pos: dict[int, int] = {}
     events: list[tuple[int, int]] = []  # (token_pos, slot)
     near = family == "near"
+    rule_spans: list[tuple[int, int]] = []
     for s in range(len(SLOT_WORDS)):
         a = choice(16, g_c)
         while a in used:
@@ -139,6 +141,7 @@ def generate(
             text = _rule_text(w, active[s], update=False) + " "
             stmt_pos[s] = len(toks)
             toks += bpe.encode(text)
+            rule_spans.append((stmt_pos[s], len(toks)))
             events.append((stmt_pos[s], s))
 
     gap_bounds = {"train": (2, 6), "drought": (8, 14), "burst": (1, 2), "near": (2, 6)}[family]
@@ -157,6 +160,7 @@ def generate(
         for s, w in enumerate(SLOT_WORDS):
             stmt_pos[s] = len(toks)
             toks += bpe.encode(_rule_text(w, active[s], update=False) + " ")
+            rule_spans.append((stmt_pos[s], len(toks)))
             events.append((stmt_pos[s], s))
         n_updates = 0
     for _ in range(n_updates):
@@ -170,6 +174,7 @@ def generate(
         active[s] = ANSWER_WORDS[a]
         stmt_pos[s] = len(toks)
         toks += bpe.encode(_rule_text(SLOT_WORDS[s], active[s], update=True) + " ")
+        rule_spans.append((stmt_pos[s], len(toks)))
         events.append((stmt_pos[s], s))
         updates_done += 1
     filler_until(middle_end)
@@ -179,7 +184,9 @@ def generate(
     # '->' position — format supervision, no rule leakage (disjoint pools).
     targets = [-1] * seq_len
     for w, a in DEMO_PAIRS:
-        head = bpe.encode(f'New rule: reply to "{w}" with "{a}". {w} ->')
+        stmt = bpe.encode(f'New rule: reply to "{w}" with "{a}".')
+        rule_spans.append((len(toks), len(toks) + len(stmt)))
+        head = stmt + bpe.encode(f" {w} ->")
         demo_p = len(toks) + len(head) - 1
         toks += head
         ans_id = bpe.encode(" " + a)
@@ -217,6 +224,7 @@ def generate(
         active_answer=answers,
         rule_statement_pos=[stmt_pos[s] for s in range(4)],
         updates_absorbed=[updates_done] * len(qpos),
+        rule_spans=[(a, min(b, seq_len)) for a, b in rule_spans if a < seq_len],
     )
 
 

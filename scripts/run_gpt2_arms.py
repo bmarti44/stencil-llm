@@ -36,12 +36,13 @@ VAL_SPACE = 1_000_000
 FINAL_SPACE = 2_000_000
 DEV = "cuda" if torch.cuda.is_available() else "cpu"
 LORA_RANK = 8  # full-matrix symmetric adapter, both arms (iteration 2)
+SALIENCE_WEIGHT = 1.0  # v5: balanced BCE on salience logits (sol prescription)
 AUX_WEIGHT = 0.3  # iteration 3: auxiliary wire-readout supervision (train only)
 REPLAY_EVERY = 4  # iteration 3: 1 in 4 phase-2 items replays the near family
 
 
 def tag(arm: str, seed: int) -> str:
-    return f"{arm}-v4-s{seed}"
+    return f"{arm}-v5-s{seed}"
 
 
 def build(arm: str, seed: int) -> GatedGPT2:
@@ -121,7 +122,16 @@ def train(arm: str, seed: int) -> None:
     # query positions (train-time only; lives OUTSIDE the model so the eval
     # path cannot see it).
     aux_head = torch.nn.Linear(128, 4 * len(ANSWER_WORDS)).to(DEV)  # per-slot heads (sol audit finding 6)
-    opt = torch.optim.AdamW(trainable + list(aux_head.parameters()), lr=3e-4, weight_decay=0.01)
+    salience_params = list(model.salience.parameters())
+    salience_ids = {id(p) for p in salience_params}
+    other_params = [p for p in trainable if id(p) not in salience_ids]
+    opt = torch.optim.AdamW(
+        [
+            {"params": other_params + list(aux_head.parameters()), "lr": 3e-4},
+            {"params": salience_params, "lr": 3e-3, "weight_decay": 0.0},
+        ],
+        weight_decay=0.01,
+    )
     history = []
     split_history: list[dict] = []
     evals: list[dict] = []
@@ -148,7 +158,19 @@ def train(arm: str, seed: int) -> None:
         aux_sel = aux_logits[torch.arange(len(aux_slots), device=DEV), torch.tensor(aux_slots, device=DEV)]
         aux_tgt = torch.tensor(aux_targets, device=DEV)
         aux_ce = F.cross_entropy(aux_sel, aux_tgt)
-        loss = loss + AUX_WEIGHT * aux_ce
+        # v5: direct balanced supervision on the salience logits — rule/update
+        # statement spans open, everything else closed. Train-time only; eval
+        # computes salience from embeddings with no span information.
+        sal_logits = model.salience(model.wte(toks_d)).squeeze(-1)
+        rule_mask = torch.zeros_like(toks_d, dtype=torch.bool)
+        for b, s in enumerate(seqs):
+            for lo, hi in s.rule_spans:
+                rule_mask[b, lo:hi] = True
+        sal_loss = 0.5 * (
+            F.softplus(-sal_logits[rule_mask]).mean()
+            + F.softplus(sal_logits[~rule_mask]).mean()
+        )
+        loss = loss + AUX_WEIGHT * aux_ce + SALIENCE_WEIGHT * sal_loss
         if step % 100 == 0 or step == STEPS - 1:
             # sol MI-review finding 4: split real-query vs demo metrics live.
             with torch.no_grad():
@@ -166,6 +188,9 @@ def train(arm: str, seed: int) -> None:
                     "demo_acc": float((det[dmask].argmax(-1) == tgts_d[dmask]).float().mean()),
                     "aux_ce": float(aux_ce.detach()),
                     "aux_acc": float((aux_sel.detach().argmax(-1) == aux_tgt).float().mean()),
+                    "sal_loss": float(sal_loss.detach()),
+                    "sal_rule_med": float(torch.sigmoid(sal_logits.detach()[rule_mask]).median()),
+                    "sal_filler_p90": float(torch.quantile(torch.sigmoid(sal_logits.detach()[~rule_mask]), 0.9)),
                 }
             split_history.append(m)
         loss.backward()
@@ -178,7 +203,8 @@ def train(arm: str, seed: int) -> None:
                 f"[{arm} s{seed}] step {step} loss {float(loss.detach()):.4f} "
                 f"query ce {m['query_ce']:.3f} acc {m['query_acc']:.2f} "
                 f"demo ce {m['demo_ce']:.3f} acc {m['demo_acc']:.2f} "
-                f"aux ce {m['aux_ce']:.3f} acc {m['aux_acc']:.2f}",
+                f"aux ce {m['aux_ce']:.3f} acc {m['aux_acc']:.2f} "
+                f"sal loss {m['sal_loss']:.3f} rule-med {m['sal_rule_med']:.2f} filler-p90 {m['sal_filler_p90']:.3f}",
                 flush=True,
             )
         if step > 0 and (step % 500 == 0 or step == CURRICULUM_STEPS - 1):

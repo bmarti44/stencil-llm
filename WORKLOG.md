@@ -80,3 +80,19 @@
   (test_injection_and_controller_connectivity — green on v3 code, confirming
   audit), salience quantiles logged at evals. 18 tests green; smoke-run
   verified. Outputs <arm>-v4-s<seed>.*.
+- 2026-08-28, salience stall diagnosed + v5 (Brian: review, fix, rerun): sol
+  gradient audit on osc-v4 ckpt-500 (results/gpt2-salience-review.md):
+  hypothesis CONFIRMED — filler gradients on the shared salience weight are
+  22-320x rule gradients and rule gradients point the WRONG (closing) way
+  68-79% of the time; the task loss cannot teach the gate (critical/high).
+  v5 per prescription: rule_spans recorded in NLSequence (statements,
+  updates, demo statements), balanced-BCE salience loss weight 1.0 (train-
+  only; eval computes salience from embeddings — honest, claim narrowed to
+  supervised cue detector + oscillator carrier), bias init -3 (~5% open),
+  salience optimizer group lr 3e-3 wd 0, rule-med/filler-p90 logging with
+  sol stop criteria (separation by step 200; held-out aux CE <2.5 by 500).
+  Preflight: standalone 769-param classifier AUC 0.985 after 100 minibatches
+  — gate learnable. 18 tests green; smoke verified. Rerunning osc only
+  (osc-v5-s0) per Brian; base-v5 deferred until osc shows life. Sol note:
+  base-arm salience is norm-cancelled (medium) — base salience stats are not
+  evidence; fine, its wire is a dead end by design.

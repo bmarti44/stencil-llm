@@ -225,7 +225,9 @@ class GatedGPT2(nn.Module):
             # structure in both arms.
             self.salience = nn.Linear(c.d_model, 1)
             nn.init.normal_(self.salience.weight, std=0.02, generator=pathway)
-            nn.init.zeros_(self.salience.bias)
+            # ~5% open at init; the balanced-BCE salience loss (v5) supplies
+            # strong correctly-signed opening gradients despite the low start.
+            nn.init.constant_(self.salience.bias, -3.0)
             # Iteration 3: additive residual injection (last 4 blocks). The
             # wire writes a 768-d vector into the residual stream; zero-init
             # keeps the graft bitwise inert until trained. Base arm gets the
