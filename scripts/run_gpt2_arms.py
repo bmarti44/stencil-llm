@@ -56,8 +56,8 @@ def build(arm: str, seed: int) -> GatedGPT2:
     return model.to(DEV)
 
 
-def logits_of(model: GatedGPT2, toks: torch.Tensor) -> torch.Tensor:
-    return model(toks) + model.logit_bias
+def logits_of(model: GatedGPT2, toks: torch.Tensor, **kw) -> torch.Tensor:
+    return model(toks, **kw) + model.logit_bias
 
 
 def loss_fn(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
@@ -69,6 +69,7 @@ def loss_fn(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
 def evaluate(
     model: GatedGPT2, bpe: BPE, space: int, seed: int, n: int = 64,
     families: tuple[str, ...] = ("train", "drought", "burst"),
+    zero_code: bool = False,
 ) -> dict:
     model.eval()
     out: dict = {}
@@ -80,7 +81,10 @@ def evaluate(
             for start in range(0, n, BATCH):
                 seeds = list(range(base + start, base + min(start + BATCH, n)))
                 toks, tgts, seqs = batch(seeds, family=family, bpe=bpe)
-                lg = logits_of(model, toks.to(DEV))
+                kw = {}
+                if zero_code:
+                    kw["code_override"] = torch.zeros(toks.shape[0], toks.shape[1], 128, device=DEV)
+                lg = logits_of(model, toks.to(DEV), **kw)
                 for b, s in enumerate(seqs):
                     for p, slot in zip(s.query_positions, s.query_slots, strict=True):
                         d = p - s.rule_statement_pos[slot]
@@ -120,20 +124,31 @@ def instrument_precheck() -> None:
     print(f"instrument precheck: ridge {acc:.2%} on separable synthetic codes")
 
 
-def cache_masks(seqs: list, t_len: int, dev: str) -> tuple[torch.Tensor, torch.Tensor, list]:
+def cache_masks(seqs: list, t_len: int, dev: str) -> tuple[torch.Tensor, torch.Tensor, list, torch.Tensor]:
     """Teacher masks from ground truth: salience over statement spans, commit
-    at statement ends; labels (batch, pos, slot, answer) per commit."""
+    at statement ends, teacher slot ids (rules 0-3, demo statements 4+);
+    labels (batch, pos, slot, answer) per rule commit."""
     b = len(seqs)
     sal = torch.zeros(b, t_len, dtype=torch.bool, device=dev)
     com = torch.zeros(b, t_len, dtype=torch.bool, device=dev)
+    slot_ov = torch.full((b, t_len), -1, dtype=torch.long, device=dev)
     labels = []
     for i, s in enumerate(seqs):
+        event_pos = {pos: slot for pos, slot, _ in s.rule_events}
+        demo_id = 4
         for lo, hi in s.rule_spans:
+            if hi - 1 >= t_len:
+                continue
             sal[i, lo:hi] = True
             com[i, hi - 1] = True
+            if hi - 1 in event_pos:
+                slot_ov[i, hi - 1] = event_pos[hi - 1]
+            else:
+                slot_ov[i, hi - 1] = demo_id
+                demo_id += 1
         for pos, slot, ans in s.rule_events:
             labels.append((i, pos, slot, ANSWER_WORDS.index(ans)))
-    return sal, com, labels
+    return sal, com, labels, slot_ov
 
 
 def train_cache(arm: str, seed: int) -> None:
@@ -174,14 +189,16 @@ def train_cache(arm: str, seed: int) -> None:
             fam = ["near" if i % REPLAY_EVERY == 0 else "train" for i in range(BATCH)]
         toks, tgts, seqs = batch(seeds, family=fam, bpe=bpe)
         toks_d, tgts_d = toks.to(DEV), tgts.to(DEV)
-        sal_m, com_m, labels = cache_masks(seqs, toks.shape[1], DEV)
+        sal_m, com_m, labels, slot_ov = cache_masks(seqs, toks.shape[1], DEV)
         # teacher-forced forward (training only)
         pos_emb = torch.arange(toks.shape[1], device=DEV)
         x = model.wte(toks_d) + model.wpe(pos_emb)
         mask = model._mask(toks.shape[1], toks_d.device)
         for index in range(model.INJ_LAYERS[0]):
             x = model.blocks[index](x, mask, None, model.lora[index], None)
-        code, states, internals = model.cache(x, sal_override=sal_m, commit_override=com_m)
+        code, states, internals = model.cache(
+            x, sal_override=sal_m, commit_override=com_m, slot_override=slot_ov
+        )
         for index in range(model.INJ_LAYERS[0], 12):
             inj = model.inject[model.INJ_LAYERS.index(index)](code)
             x = model.blocks[index](x, mask, None, model.lora[index], inj)
@@ -191,8 +208,23 @@ def train_cache(arm: str, seed: int) -> None:
         sl, cl = internals["sal_logits"], internals["commit_logits"]
         sal_loss = 0.5 * (F.softplus(-sl[sal_m]).mean() + F.softplus(sl[~sal_m]).mean())
         com_loss = 0.5 * (F.softplus(-cl[com_m]).mean() + F.softplus(cl[~com_m]).mean())
+        # key-binding margin loss (R1): same-slot keys cohere, cross-slot
+        # keys separate, so LEARNED addressing matches the taught slots.
+        ckeys = [(slot, key) for _i, _p, _v, key, slot in internals["commits"]]
+        key_loss = torch.zeros((), device=DEV)
+        n_pairs = 0
+        for a in range(len(ckeys)):
+            for bb in range(a + 1, len(ckeys)):
+                cs = F.cosine_similarity(ckeys[a][1], ckeys[bb][1], dim=0)
+                if ckeys[a][0] == ckeys[bb][0]:
+                    key_loss = key_loss + F.relu(0.8 - cs)
+                else:
+                    key_loss = key_loss + F.relu(cs - 0.5)
+                n_pairs += 1
+        if n_pairs:
+            key_loss = key_loss / n_pairs
         # capture aux: per-slot heads on committed VALUES (wd-free)
-        by_pos = {(i, p): v for i, p, v in internals["commits"]}
+        by_pos = {(i, p): v for i, p, v, _k, _s in internals["commits"]}
         v_states, v_slots, v_tgts = [], [], []
         for i, pos, slot, ans in labels:
             v = by_pos.get((i, pos))
@@ -215,7 +247,7 @@ def train_cache(arm: str, seed: int) -> None:
         q_sel = q_logits[torch.arange(len(q_slots), device=DEV), torch.tensor(q_slots, device=DEV)]
         q_tgt_t = torch.tensor(q_tgts, device=DEV)
         aux_q_ce = F.cross_entropy(q_sel, q_tgt_t)
-        loss = loss + sal_loss + com_loss + AUX_WEIGHT * (aux_v_ce + aux_q_ce)
+        loss = loss + sal_loss + com_loss + key_loss + AUX_WEIGHT * (aux_v_ce + aux_q_ce)
         if step % 100 == 0 or step == STEPS - 1:
             with torch.no_grad():
                 qmask = torch.zeros_like(tgts_d, dtype=torch.bool)
@@ -233,6 +265,7 @@ def train_cache(arm: str, seed: int) -> None:
                     "read_acc": float((q_sel.detach().argmax(-1) == q_tgt_t).float().mean()),
                     "sal_loss": float(sal_loss.detach()),
                     "com_loss": float(com_loss.detach()),
+                    "key_loss": float(key_loss.detach()),
                 })
         loss.backward()
         opt.step()
@@ -245,23 +278,30 @@ def train_cache(arm: str, seed: int) -> None:
                 f"query ce {m['query_ce']:.3f} acc {m['query_acc']:.2f} "
                 f"CAPTURE ce {m['capture_ce']:.3f} acc {m['capture_acc']:.2f} "
                 f"READ ce {m['read_ce']:.3f} acc {m['read_acc']:.2f} "
-                f"sal {m['sal_loss']:.3f} com {m['com_loss']:.3f}",
+                f"sal {m['sal_loss']:.3f} com {m['com_loss']:.3f} key {m['key_loss']:.3f}",
                 flush=True,
             )
         if step > 0 and (step % 500 == 0 or step == CURRICULUM_STEPS - 1):
             mid = evaluate(model, bpe, VAL_SPACE, seed, n=32, families=("near", "train"))
+            mid_zero = evaluate(model, bpe, VAL_SPACE, seed, n=32, families=("train",), zero_code=True)
             ridge = ridge_capture(model, bpe, seed)
-            evals.append({"step": step, "eval": mid, "ridge_capture": ridge})
+            evals.append({
+                "step": step, "eval": mid, "zero_code_train": mid_zero["train"],
+                "ridge": ridge,
+            })
             torch.save(
                 {"pathway": {n_: p_ for n_, p_ in model.state_dict().items() if not n_.startswith(("wte", "wpe", "blocks", "ln_f"))},
                  "logit_bias": model.logit_bias.detach().cpu(), "step": step,
                  "aux_q": aux_q.state_dict(), "aux_v": aux_v.state_dict()},
                 OUT / f"{tag(arm, seed)}-ckpt.pt",
             )
+            bz = mid_zero["train"]["beyond"]["acc"]
             print(
                 f"[{arm} s{seed}] step {step} EVAL near-within {mid['near']['within']['acc']} "
                 f"train within {mid['train']['within']['acc']} beyond {mid['train']['beyond']['acc']} "
-                f"RIDGE-capture per-slot {ridge}",
+                f"beyond-ZEROCODE {bz} RIDGE cap {ridge['capture']} read {ridge['read']} "
+                f"salPR {ridge['sal_pr']} comPR {ridge['com_pr']} occ {ridge['mean_occupancy']} "
+                f"advWrites {ridge['adversarial_writes']}",
                 flush=True,
             )
         if step % 200 == 0 or step == STEPS - 1:
@@ -289,39 +329,86 @@ def train_cache(arm: str, seed: int) -> None:
     print(json.dumps(val, indent=1))
 
 
-def ridge_capture(model: GatedGPT2, bpe: BPE, seed: int, n: int = 48) -> list:
-    """Metric of record: closed-form per-slot ridge on TEACHER-committed
-    values from held-out sequences (learned-gate quality is judged by the
-    standard evaluate() path instead)."""
+def ridge_capture(model: GatedGPT2, bpe: BPE, seed: int, n: int = 48) -> dict:
+    """Metrics of record (closed-form ridge, teacher-forced gates):
+    - capture: per-slot on committed values (writer quality);
+    - read: per-slot on the READ code at query positions (store+addressing —
+      overwritten/collided slots FAIL here; R2 fix);
+    plus learned-gate precision/recall vs teacher masks (R5) and an
+    adversarial no-write count on slot-word-bearing filler (R6)."""
     model.eval()
-    per_slot: dict[int, tuple[list, list]] = {s: ([], []) for s in range(4)}
+    cap: dict[int, tuple[list, list]] = {s: ([], []) for s in range(4)}
+    red: dict[int, tuple[list, list]] = {s: ([], []) for s in range(4)}
+    pr = {"sal_tp": 0, "sal_fp": 0, "sal_fn": 0, "com_tp": 0, "com_fp": 0, "com_fn": 0}
+    occupancy: list[int] = []
     with torch.no_grad():
         for i in range(n):
             toks, _, seqs = batch([VAL_SPACE + 700_000 + seed * 10_000 + i], bpe=bpe)
             s = seqs[0]
             toks_d = toks.to(DEV)
-            sal_m, com_m, labels = cache_masks(seqs, toks.shape[1], DEV)
+            sal_m, com_m, labels, slot_ov = cache_masks(seqs, toks.shape[1], DEV)
             pos_emb = torch.arange(toks.shape[1], device=DEV)
             x = model.wte(toks_d) + model.wpe(pos_emb)
             mask = model._mask(toks.shape[1], toks_d.device)
             for index in range(model.INJ_LAYERS[0]):
                 x = model.blocks[index](x, mask, None, model.lora[index], None)
-            _, _, internals = model.cache(x, sal_override=sal_m, commit_override=com_m)
-            by_pos = {(bi, p): v for bi, p, v in internals["commits"]}
+            code, states, internals = model.cache(
+                x, sal_override=sal_m, commit_override=com_m, slot_override=slot_ov
+            )
+            occupancy.append(len(states[0].slots))
+            by_pos = {(bi, p): v for bi, p, v, _k, _s in internals["commits"]}
             for bi, pos, slot, ans in labels:
                 v = by_pos.get((bi, pos))
                 if v is not None:
-                    per_slot[slot][0].append(v.float().cpu())
-                    per_slot[slot][1].append(ans)
+                    cap[slot][0].append(v.float().cpu())
+                    cap[slot][1].append(ans)
+            for pq, slot, ans in zip(s.query_positions, s.query_slots, s.active_answer, strict=True):
+                red[slot][0].append(code[0, pq].float().cpu())
+                red[slot][1].append(ANSWER_WORDS.index(ans))
+            # learned-gate PR on the same hidden states
+            sal_l = (torch.sigmoid(internals["sal_logits"]) > 0.5)
+            com_l = (torch.sigmoid(internals["commit_logits"]) > 0.5)
+            pr["sal_tp"] += int((sal_l & sal_m).sum())
+            pr["sal_fp"] += int((sal_l & ~sal_m).sum())
+            pr["sal_fn"] += int((~sal_l & sal_m).sum())
+            pr["com_tp"] += int((com_l & com_m).sum())
+            pr["com_fp"] += int((com_l & ~com_m).sum())
+            pr["com_fn"] += int((~com_l & com_m).sum())
+    # R6: adversarial filler with quoted slot words, LEARNED gates: count writes
+    adv = 'The word "cat" was mentioned near the "king" and the "sun" today. '
+    adv_toks = torch.tensor([ (bpe.encode(adv * 12))[:512] ], device=DEV)
+    with torch.no_grad():
+        pos_emb = torch.arange(adv_toks.shape[1], device=DEV)
+        x = model.wte(adv_toks) + model.wpe(pos_emb)
+        mask = model._mask(adv_toks.shape[1], DEV)
+        for index in range(model.INJ_LAYERS[0]):
+            x = model.blocks[index](x, mask, None, model.lora[index], None)
+        _, adv_states, _ = model.cache(x)
     model.train()
-    out = []
-    for s in range(4):
-        xs, ys = per_slot[s]
-        if len(ys) < 24:
-            out.append(None)
-            continue
-        out.append(round(ridge_acc(torch.stack(xs), torch.tensor(ys)), 3))
-    return out
+
+    def probe(d: dict) -> list:
+        out = []
+        for s2 in range(4):
+            xs, ys = d[s2]
+            if len(ys) < 24:
+                out.append(None)
+                continue
+            out.append(round(ridge_acc(torch.stack(xs), torch.tensor(ys)), 3))
+        return out
+
+    def prf(tp: int, fp: int, fn: int) -> list:
+        prec = tp / (tp + fp) if tp + fp else 0.0
+        rec = tp / (tp + fn) if tp + fn else 0.0
+        return [round(prec, 3), round(rec, 3)]
+
+    return {
+        "capture": probe(cap),
+        "read": probe(red),
+        "sal_pr": prf(pr["sal_tp"], pr["sal_fp"], pr["sal_fn"]),
+        "com_pr": prf(pr["com_tp"], pr["com_fp"], pr["com_fn"]),
+        "mean_occupancy": round(sum(occupancy) / len(occupancy), 2),
+        "adversarial_writes": len(adv_states[0].slots),
+    }
 
 
 def gate_stats(model: GatedGPT2, bpe: BPE) -> dict:

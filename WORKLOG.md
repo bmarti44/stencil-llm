@@ -192,3 +192,22 @@
   by construction (oscillator ceiling was 0.25 on slots 1-3 fully trained).
   Launching cache-v8-s0. Registered gates (sol): capture >50% by step 100,
   read/near >50% by 250, beyond-window >=15-20% by 500, else close the era.
+- 2026-08-28, fable review #3 (v7 trend + v8 code) — CORRECTIONS + fixes:
+  (1) My ceiling attribution to Brian was WRONG: v7's beyond-window climb
+  (13.9% pooled, p=4e-8) survives with the wire ZEROED (12.1% zero-code
+  control) — ~87% of it is a trunk/LoRA elimination strategy, not memory.
+  Wire-attributable: slot-0 only (+5.2 pts; query-position ridge 23/7/4/6%,
+  retention decay 93%->23% statement->query). Conditioned v7 ceiling
+  ~14-17%, not 25-35%. (2) v8 CRITICAL addressing bug found before launch:
+  whole-span keys collapse the store (rules merge at cos 0.95-0.98; updates
+  miss their own rule at 0.42-0.50) — fixed: slot-id store, teacher-forced
+  addressing in training, key-binding margin loss; smoke occupancy 6.0.
+  (3) New metrics of record: per-slot ridge on the READ code at queries
+  (addressing-blind capture metric alone is insufficient), learned-gate
+  precision/recall, slot occupancy, adversarial no-write count, and a
+  ZERO-CODE differential eval. RE-REGISTERED v8 gates: capture ridge >50%
+  by step 100; READ ridge >50% by step 500; DIFFERENTIAL beyond (learned -
+  zero-code) clearly positive by step 1500 (500 after the phase-2
+  transition) and >=8 pts at the final n>=128 eval, else close the era.
+  Raw beyond comparisons vs v7 are dishonest (shared ~12% non-memory
+  floor); teacher-forced-writes advantage must be disclosed in any writeup.

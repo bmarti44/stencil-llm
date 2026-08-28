@@ -25,16 +25,26 @@ from torch import nn
 
 @dataclass
 class CacheState:
-    """Per-sequence slot store. Tensors are graph-connected during training;
-    call detached() before carrying across chunks."""
+    """Per-sequence slot store keyed by explicit slot id (R1 fix: ids allow
+    teacher-forced addressing during training). Tensors are graph-connected
+    during training; call detached() before carrying across chunks."""
 
-    keys: list[torch.Tensor] = field(default_factory=list)    # each (d_key,)
-    vals: list[torch.Tensor] = field(default_factory=list)    # each (d_val,)
+    slots: dict[int, tuple[torch.Tensor, torch.Tensor]] = field(default_factory=dict)
+
+    @property
+    def keys(self) -> list[torch.Tensor]:
+        return [self.slots[i][0] for i in sorted(self.slots)]
+
+    @property
+    def vals(self) -> list[torch.Tensor]:
+        return [self.slots[i][1] for i in sorted(self.slots)]
 
     def detached(self) -> CacheState:
         return CacheState(
-            keys=[k.detach().clone() for k in self.keys],
-            vals=[v.detach().clone() for v in self.vals],
+            slots={
+                i: (k.detach().clone(), v.detach().clone())
+                for i, (k, v) in self.slots.items()
+            }
         )
 
 
@@ -78,8 +88,9 @@ class FocusCache(nn.Module):
         h: torch.Tensor,  # (b, t, d_model) contextual states from blocks 0-7
         *,
         states: list[CacheState] | None = None,
-        sal_override: torch.Tensor | None = None,     # (b, t) bool, tests only
-        commit_override: torch.Tensor | None = None,  # (b, t) bool, tests only
+        sal_override: torch.Tensor | None = None,     # (b, t) bool, teacher/tests
+        commit_override: torch.Tensor | None = None,  # (b, t) bool, teacher/tests
+        slot_override: torch.Tensor | None = None,    # (b, t) long, -1 = learned
     ) -> tuple[torch.Tensor, list[CacheState], dict]:
         b, t, _ = h.shape
         sal_logits = self.salience(h).squeeze(-1)
@@ -99,13 +110,13 @@ class FocusCache(nn.Module):
         w = self.writer(h)  # (b, t, 256)
         states = [CacheState() for _ in range(b)] if states is None else states
         code = h.new_zeros(b, t, self.d_val)
-        commit_records: list[tuple[int, int, torch.Tensor]] = []  # (batch, pos, val)
+        commit_records: list[tuple[int, int, torch.Tensor, torch.Tensor, int]] = []  # (batch, pos, val, key, slot_id)
         for i in range(b):
             st = states[i]
             # Writes: replay commits left to right, snapshotting the state at
             # each boundary so reads use the state as of each segment start.
             boundaries: list[int] = []
-            snapshots: list[CacheState] = [CacheState(keys=list(st.keys), vals=list(st.vals))]
+            snapshots: list[CacheState] = [CacheState(slots=dict(st.slots))]
             prev = -1
             for p in [int(x) for x in torch.nonzero(com[i]).flatten()]:
                 span = [q for q in range(prev + 1, p + 1) if bool(sal[i, q])]
@@ -115,16 +126,14 @@ class FocusCache(nn.Module):
                 enc = w[i, span].mean(dim=0)
                 key = self.key_mlp(enc)
                 val = self.val_mlp(enc)
-                slot = self._address(st, key)
-                if slot == len(st.keys):
-                    st.keys.append(key)
-                    st.vals.append(val)
+                if slot_override is not None and int(slot_override[i, p]) >= 0:
+                    slot = int(slot_override[i, p])  # teacher-forced addressing
                 else:
-                    st.keys[slot] = key
-                    st.vals[slot] = val
+                    slot = self._address(st, key)
+                st.slots[slot] = (key, val)
                 boundaries.append(p)
-                snapshots.append(CacheState(keys=list(st.keys), vals=list(st.vals)))
-                commit_records.append((i, p, val))
+                snapshots.append(CacheState(slots=dict(st.slots)))
+                commit_records.append((i, p, val, key, slot))
             # Piecewise reads: a commit at p becomes readable from p+1 on.
             starts = [0] + [p + 1 for p in boundaries]
             ends = [*[p + 1 for p in boundaries], t]
@@ -132,7 +141,7 @@ class FocusCache(nn.Module):
                 if s0 >= s1:
                     continue
                 snap = snapshots[seg_idx]
-                if not snap.keys:
+                if not snap.slots:
                     continue
                 K = torch.stack(snap.keys)          # (n, d_key)
                 V = torch.stack(snap.vals)          # (n, d_val)
@@ -147,13 +156,15 @@ class FocusCache(nn.Module):
 
     def _address(self, st: CacheState, key: torch.Tensor) -> int:
         """Same-key overwrite above MATCH_THRESHOLD cosine, else allocate
-        (oldest-slot replacement when full). Hard, deterministic."""
-        if st.keys:
-            K = torch.stack([k.detach() for k in st.keys])
+        (lowest-id replacement when full). Hard, deterministic. The key-margin
+        loss (train_cache) shapes key_mlp so this matches the taught slots."""
+        ids = sorted(st.slots)
+        if ids:
+            K = torch.stack([st.slots[i][0].detach() for i in ids])
             sims = F.cosine_similarity(K, key.detach().unsqueeze(0), dim=-1)
             best = int(sims.argmax())
             if float(sims[best]) > self.MATCH_THRESHOLD:
-                return best
-        if len(st.keys) >= self.n_slots:
-            return 0  # oldest slot (append order) is replaced
-        return len(st.keys)
+                return ids[best]
+        if len(ids) >= self.n_slots:
+            return ids[0]
+        return (max(ids) + 1) if ids else 0
