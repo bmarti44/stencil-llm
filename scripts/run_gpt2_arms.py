@@ -42,7 +42,7 @@ REPLAY_EVERY = 4  # iteration 3: 1 in 4 phase-2 items replays the near family
 
 
 def tag(arm: str, seed: int) -> str:
-    return f"{arm}-v5-s{seed}"
+    return f"{arm}-v6-s{seed}"
 
 
 def build(arm: str, seed: int) -> GatedGPT2:
@@ -149,8 +149,17 @@ def train(arm: str, seed: int) -> None:
         loss = loss_fn(logits, tgts_d)
         code = model.injection_code(toks_d)
         aux_states, aux_targets, aux_slots = [], [], []
+        n_query_aux = 0
         for b, s in enumerate(seqs):
             for p, slot, ans in zip(s.query_positions, s.query_slots, s.active_answer, strict=True):
+                aux_states.append(code[b, p])
+                aux_targets.append(ANSWER_WORDS.index(ans))
+                aux_slots.append(slot)
+                n_query_aux += 1
+        # v6: capture supervision — read the just-stated answer off the wire
+        # at every statement end (retention supervision above stays).
+        for b, s in enumerate(seqs):
+            for p, slot, ans in s.rule_events:
                 aux_states.append(code[b, p])
                 aux_targets.append(ANSWER_WORDS.index(ans))
                 aux_slots.append(slot)
@@ -187,6 +196,8 @@ def train(arm: str, seed: int) -> None:
                     "demo_ce": float(F.cross_entropy(det[dmask], tgts_d[dmask])),
                     "demo_acc": float((det[dmask].argmax(-1) == tgts_d[dmask]).float().mean()),
                     "aux_ce": float(aux_ce.detach()),
+                    "aux_q_ce": float(F.cross_entropy(aux_sel.detach()[:n_query_aux], aux_tgt[:n_query_aux])),
+                    "aux_r_ce": float(F.cross_entropy(aux_sel.detach()[n_query_aux:], aux_tgt[n_query_aux:])),
                     "aux_acc": float((aux_sel.detach().argmax(-1) == aux_tgt).float().mean()),
                     "sal_loss": float(sal_loss.detach()),
                     "sal_rule_med": float(torch.sigmoid(sal_logits.detach()[rule_mask]).median()),
@@ -203,7 +214,7 @@ def train(arm: str, seed: int) -> None:
                 f"[{arm} s{seed}] step {step} loss {float(loss.detach()):.4f} "
                 f"query ce {m['query_ce']:.3f} acc {m['query_acc']:.2f} "
                 f"demo ce {m['demo_ce']:.3f} acc {m['demo_acc']:.2f} "
-                f"aux ce {m['aux_ce']:.3f} acc {m['aux_acc']:.2f} "
+                f"aux q-ce {m['aux_q_ce']:.3f} r-ce {m['aux_r_ce']:.3f} acc {m['aux_acc']:.2f} "
                 f"sal loss {m['sal_loss']:.3f} rule-med {m['sal_rule_med']:.2f} filler-p90 {m['sal_filler_p90']:.3f}",
                 flush=True,
             )

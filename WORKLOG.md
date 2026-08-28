@@ -96,3 +96,14 @@
   (osc-v5-s0) per Brian; base-v5 deferred until osc shows life. Sol note:
   base-arm salience is norm-cancelled (medium) — base salience stats are not
   evidence; fine, its wire is a dead end by design.
+- 2026-08-28, v5 result + v6: osc-v5 salience gate SOLVED (bimodal quantiles
+  [0.0009..0.995], rule-med 0.99, sal loss 1.54->0.07; near 100% at step
+  999) but aux stayed at chance 400+ steps post-separation -> sol's branch:
+  capture/retention is the blocker, not routing. Stopped at 1000. v6 adds
+  capture supervision: rule_events (last_pos, slot, answer) recorded at
+  every slot statement/update; aux head now also reads the just-stated
+  answer at statement ends; logs split aux q-ce (retention) vs r-ce
+  (capture). TDD red->green (test_rule_events_recorded); 19 tests green;
+  smoke verified. Rerunning osc (osc-v6-s0). Key discriminator: r-ce falling
+  with q-ce flat = capture works, retention fails (oscillator decay/
+  interference); both falling = storage works, watch beyond-window.

@@ -145,3 +145,17 @@ def test_batch_mixed_families() -> None:
         for p, slot in zip(seqs[1].query_positions, seqs[1].query_slots, strict=True)
     ]
     assert max(long_ds) > 250
+
+
+@needs_tok
+def test_rule_events_recorded() -> None:
+    """v6: every slot rule/update statement records (last_pos, slot, answer)
+    for capture supervision; positions sit inside a recorded span."""
+    for seed in (0, 3):
+        for fam in ("train", "near"):
+            s = generate(seed, family=fam)
+            assert len(s.rule_events) >= 4
+            for pos, slot, ans in s.rule_events:
+                assert 0 <= slot < 4
+                assert ans in ANSWER_WORDS
+                assert any(lo <= pos < hi for lo, hi in s.rule_spans)
