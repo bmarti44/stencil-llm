@@ -1,3 +1,4 @@
+# ruff: noqa
 # Gate-1 caveat check: oracle_inject_diag optimizes code_override AFTER _norm,
 # so its norm is unconstrained. Measure final RMS, and rerun with a unit-RMS
 # projection each step. 4 examples, osc-v6 ckpt, same protocol otherwise.

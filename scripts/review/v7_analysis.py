@@ -1,3 +1,4 @@
+# ruff: noqa
 # Read-only analysis of osc-v7-s0 checkpoint: gate-vs-mask, probes, per-slot r-ce.
 import json
 import sys

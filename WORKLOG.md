@@ -179,3 +179,16 @@
   words) for the no-write test. Analysis scripts: scripts/review/.
   osc-v7 left running: its beyond-window phase-2 readout is now live
   evidence for single-slot end-to-end.
+- 2026-08-28, v8 focus cache built (Brian: "do it"): src/stencil/focus_cache.py
+  (keyed slots, contextual writer off blocks 0-7, hard detached BCE-taught
+  sal/commit gates zero-init exactly closed, hard same-key overwrite, state
+  carryable across chunks) + "cache" arm in GatedGPT2 (reuses validated
+  blocks-8-11 injection; bypass bitwise-vanilla). Deterministic pre-tests
+  green (adversarial-filler zero-write, write isolation, overwrite, chunked
+  == continuous). Runner train_cache: teacher-forced writes, BCE gate
+  teachers, wd-free per-slot aux heads, RIDGE capture metric of record with
+  instrument non-vacuity precheck. Smoke: ridge per-slot capture
+  [0.84/0.72/0.84/0.64] after TWO steps — keyed slots abolish superposition
+  by construction (oscillator ceiling was 0.25 on slots 1-3 fully trained).
+  Launching cache-v8-s0. Registered gates (sol): capture >50% by step 100,
+  read/near >50% by 250, beyond-window >=15-20% by 500, else close the era.

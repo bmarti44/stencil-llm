@@ -43,7 +43,7 @@ REPLAY_EVERY = 4  # iteration 3: 1 in 4 phase-2 items replays the near family
 
 
 def tag(arm: str, seed: int) -> str:
-    return f"{arm}-v7-s{seed}"
+    return f"{arm}-v8-s{seed}"
 
 
 def build(arm: str, seed: int) -> GatedGPT2:
@@ -93,6 +93,234 @@ def evaluate(
                 for k, (c, t) in hits.items()
             }
     model.train()
+    return out
+
+
+def ridge_acc(X: torch.Tensor, y: torch.Tensor, classes: int = 16) -> float:
+    """Closed-form ridge probe — the capture metric of record (fable fix:
+    CE-trained heads cannot amplify small-scale signals; ridge can)."""
+    n = X.shape[0]
+    k = n * 3 // 4
+    Y = torch.zeros(k, classes)
+    Y[torch.arange(k), y[:k]] = 1
+    W = torch.linalg.solve(
+        X[:k].T @ X[:k] + 1e-3 * torch.eye(X.shape[1]), X[:k].T @ Y
+    )
+    return float((torch.argmax(X[k:] @ W, 1) == y[k:]).float().mean())
+
+
+def instrument_precheck() -> None:
+    """The instrument must pass on codes KNOWN separable (non-vacuity)."""
+    g = torch.Generator().manual_seed(0)
+    means = torch.randn(16, 128, generator=g)
+    y = torch.arange(320) % 16
+    X = means[y] + 0.1 * torch.randn(320, 128, generator=g)
+    acc = ridge_acc(X, y)
+    assert acc > 0.9, f"ridge instrument vacuous: {acc}"
+    print(f"instrument precheck: ridge {acc:.2%} on separable synthetic codes")
+
+
+def cache_masks(seqs: list, t_len: int, dev: str) -> tuple[torch.Tensor, torch.Tensor, list]:
+    """Teacher masks from ground truth: salience over statement spans, commit
+    at statement ends; labels (batch, pos, slot, answer) per commit."""
+    b = len(seqs)
+    sal = torch.zeros(b, t_len, dtype=torch.bool, device=dev)
+    com = torch.zeros(b, t_len, dtype=torch.bool, device=dev)
+    labels = []
+    for i, s in enumerate(seqs):
+        for lo, hi in s.rule_spans:
+            sal[i, lo:hi] = True
+            com[i, hi - 1] = True
+        for pos, slot, ans in s.rule_events:
+            labels.append((i, pos, slot, ANSWER_WORDS.index(ans)))
+    return sal, com, labels
+
+
+def train_cache(arm: str, seed: int) -> None:
+    """v8 focus-cache pilot. Teacher-forced writes during training (gates
+    trained by BCE in parallel); evaluation uses the LEARNED gates only."""
+    assert arm == "cache"
+    instrument_precheck()
+    torch.manual_seed(seed)
+    bpe = BPE()
+    model = build(arm, seed)
+    for p in model.trunk_parameters():
+        p.requires_grad_(False)
+    trainable = [p for p in model.parameters() if p.requires_grad]
+    gate_params = list(model.cache.salience.parameters()) + list(model.cache.commit.parameters())
+    gate_ids = {id(p) for p in gate_params}
+    other = [p for p in trainable if id(p) not in gate_ids]
+    aux_q = torch.nn.Linear(128, 4 * len(ANSWER_WORDS)).to(DEV)
+    aux_v = torch.nn.Linear(128, 4 * len(ANSWER_WORDS)).to(DEV)
+    opt = torch.optim.AdamW(
+        [
+            {"params": other, "lr": 3e-4},
+            {"params": list(aux_q.parameters()) + list(aux_v.parameters()), "lr": 3e-4, "weight_decay": 0.0},
+            {"params": gate_params, "lr": 3e-3, "weight_decay": 0.0},
+        ],
+        weight_decay=0.01,
+    )
+    n_train = sum(p.numel() for p in trainable)
+    history: list[dict] = []
+    split_history: list[dict] = []
+    evals: list[dict] = []
+    t0 = time.time()
+    model.train()
+    for step in range(STEPS):
+        seeds = [TRAIN_SPACE + seed * 100_000 + step * BATCH + i for i in range(BATCH)]
+        if step < CURRICULUM_STEPS:
+            fam: str | list[str] = "near"
+        else:
+            fam = ["near" if i % REPLAY_EVERY == 0 else "train" for i in range(BATCH)]
+        toks, tgts, seqs = batch(seeds, family=fam, bpe=bpe)
+        toks_d, tgts_d = toks.to(DEV), tgts.to(DEV)
+        sal_m, com_m, labels = cache_masks(seqs, toks.shape[1], DEV)
+        # teacher-forced forward (training only)
+        pos_emb = torch.arange(toks.shape[1], device=DEV)
+        x = model.wte(toks_d) + model.wpe(pos_emb)
+        mask = model._mask(toks.shape[1], toks_d.device)
+        for index in range(model.INJ_LAYERS[0]):
+            x = model.blocks[index](x, mask, None, model.lora[index], None)
+        code, states, internals = model.cache(x, sal_override=sal_m, commit_override=com_m)
+        for index in range(model.INJ_LAYERS[0], 12):
+            inj = model.inject[model.INJ_LAYERS.index(index)](code)
+            x = model.blocks[index](x, mask, None, model.lora[index], inj)
+        logits = model.ln_f(x) @ model.wte.weight.T + model.logit_bias
+        loss = loss_fn(logits, tgts_d)
+        # gate teachers (balanced BCE, targets from ground truth)
+        sl, cl = internals["sal_logits"], internals["commit_logits"]
+        sal_loss = 0.5 * (F.softplus(-sl[sal_m]).mean() + F.softplus(sl[~sal_m]).mean())
+        com_loss = 0.5 * (F.softplus(-cl[com_m]).mean() + F.softplus(cl[~com_m]).mean())
+        # capture aux: per-slot heads on committed VALUES (wd-free)
+        by_pos = {(i, p): v for i, p, v in internals["commits"]}
+        v_states, v_slots, v_tgts = [], [], []
+        for i, pos, slot, ans in labels:
+            v = by_pos.get((i, pos))
+            if v is not None:
+                v_states.append(v)
+                v_slots.append(slot)
+                v_tgts.append(ans)
+        v_logits = aux_v(torch.stack(v_states)).view(-1, 4, len(ANSWER_WORDS))
+        v_sel = v_logits[torch.arange(len(v_slots), device=DEV), torch.tensor(v_slots, device=DEV)]
+        v_tgt_t = torch.tensor(v_tgts, device=DEV)
+        aux_v_ce = F.cross_entropy(v_sel, v_tgt_t)
+        # retention aux: per-slot heads on the READ code at query positions
+        q_states, q_slots, q_tgts = [], [], []
+        for i, s in enumerate(seqs):
+            for pq, slot, ans in zip(s.query_positions, s.query_slots, s.active_answer, strict=True):
+                q_states.append(code[i, pq])
+                q_slots.append(slot)
+                q_tgts.append(ANSWER_WORDS.index(ans))
+        q_logits = aux_q(torch.stack(q_states)).view(-1, 4, len(ANSWER_WORDS))
+        q_sel = q_logits[torch.arange(len(q_slots), device=DEV), torch.tensor(q_slots, device=DEV)]
+        q_tgt_t = torch.tensor(q_tgts, device=DEV)
+        aux_q_ce = F.cross_entropy(q_sel, q_tgt_t)
+        loss = loss + sal_loss + com_loss + AUX_WEIGHT * (aux_v_ce + aux_q_ce)
+        if step % 100 == 0 or step == STEPS - 1:
+            with torch.no_grad():
+                qmask = torch.zeros_like(tgts_d, dtype=torch.bool)
+                for bqi, s in enumerate(seqs):
+                    for pq in s.query_positions:
+                        qmask[bqi, pq] = True
+                det = logits.detach()
+                split_history.append({
+                    "step": step,
+                    "query_ce": float(F.cross_entropy(det[qmask], tgts_d[qmask])),
+                    "query_acc": float((det[qmask].argmax(-1) == tgts_d[qmask]).float().mean()),
+                    "capture_ce": float(aux_v_ce.detach()),
+                    "capture_acc": float((v_sel.detach().argmax(-1) == v_tgt_t).float().mean()),
+                    "read_ce": float(aux_q_ce.detach()),
+                    "read_acc": float((q_sel.detach().argmax(-1) == q_tgt_t).float().mean()),
+                    "sal_loss": float(sal_loss.detach()),
+                    "com_loss": float(com_loss.detach()),
+                })
+        loss.backward()
+        opt.step()
+        opt.zero_grad()
+        if step % 200 == 0 or step == STEPS - 1:
+            history.append({"step": step, "loss": float(loss.detach())})
+            m = split_history[-1]
+            print(
+                f"[{arm} s{seed}] step {step} loss {float(loss.detach()):.4f} "
+                f"query ce {m['query_ce']:.3f} acc {m['query_acc']:.2f} "
+                f"CAPTURE ce {m['capture_ce']:.3f} acc {m['capture_acc']:.2f} "
+                f"READ ce {m['read_ce']:.3f} acc {m['read_acc']:.2f} "
+                f"sal {m['sal_loss']:.3f} com {m['com_loss']:.3f}",
+                flush=True,
+            )
+        if step > 0 and (step % 500 == 0 or step == CURRICULUM_STEPS - 1):
+            mid = evaluate(model, bpe, VAL_SPACE, seed, n=32, families=("near", "train"))
+            ridge = ridge_capture(model, bpe, seed)
+            evals.append({"step": step, "eval": mid, "ridge_capture": ridge})
+            torch.save(
+                {"pathway": {n_: p_ for n_, p_ in model.state_dict().items() if not n_.startswith(("wte", "wpe", "blocks", "ln_f"))},
+                 "logit_bias": model.logit_bias.detach().cpu(), "step": step,
+                 "aux_q": aux_q.state_dict(), "aux_v": aux_v.state_dict()},
+                OUT / f"{tag(arm, seed)}-ckpt.pt",
+            )
+            print(
+                f"[{arm} s{seed}] step {step} EVAL near-within {mid['near']['within']['acc']} "
+                f"train within {mid['train']['within']['acc']} beyond {mid['train']['beyond']['acc']} "
+                f"RIDGE-capture per-slot {ridge}",
+                flush=True,
+            )
+        if step % 200 == 0 or step == STEPS - 1:
+            OUT.mkdir(parents=True, exist_ok=True)
+            (OUT / f"{tag(arm, seed)}-progress.json").write_text(json.dumps({
+                "arm": arm, "seed": seed, "step": step, "of": STEPS,
+                "elapsed_sec": time.time() - t0, "history": history,
+                "split_history": split_history, "evals": evals,
+            }, indent=1))
+    wall = time.time() - t0
+    val = evaluate(model, bpe, VAL_SPACE, seed, n=64)
+    OUT.mkdir(parents=True, exist_ok=True)
+    torch.save(
+        {"pathway": {n_: p_ for n_, p_ in model.state_dict().items() if not n_.startswith(("wte", "wpe", "blocks", "ln_f"))},
+         "logit_bias": model.logit_bias.detach().cpu(),
+         "aux_q": aux_q.state_dict(), "aux_v": aux_v.state_dict()},
+        OUT / f"{tag(arm, seed)}.pt",
+    )
+    (OUT / f"{tag(arm, seed)}.json").write_text(json.dumps({
+        "arm": arm, "seed": seed, "steps": STEPS, "batch": BATCH,
+        "trainable_params": n_train, "wall_sec": wall,
+        "history": history, "split_history": split_history, "evals": evals,
+        "validation": val,
+    }, indent=1))
+    print(json.dumps(val, indent=1))
+
+
+def ridge_capture(model: GatedGPT2, bpe: BPE, seed: int, n: int = 48) -> list:
+    """Metric of record: closed-form per-slot ridge on TEACHER-committed
+    values from held-out sequences (learned-gate quality is judged by the
+    standard evaluate() path instead)."""
+    model.eval()
+    per_slot: dict[int, tuple[list, list]] = {s: ([], []) for s in range(4)}
+    with torch.no_grad():
+        for i in range(n):
+            toks, _, seqs = batch([VAL_SPACE + 700_000 + seed * 10_000 + i], bpe=bpe)
+            s = seqs[0]
+            toks_d = toks.to(DEV)
+            sal_m, com_m, labels = cache_masks(seqs, toks.shape[1], DEV)
+            pos_emb = torch.arange(toks.shape[1], device=DEV)
+            x = model.wte(toks_d) + model.wpe(pos_emb)
+            mask = model._mask(toks.shape[1], toks_d.device)
+            for index in range(model.INJ_LAYERS[0]):
+                x = model.blocks[index](x, mask, None, model.lora[index], None)
+            _, _, internals = model.cache(x, sal_override=sal_m, commit_override=com_m)
+            by_pos = {(bi, p): v for bi, p, v in internals["commits"]}
+            for bi, pos, slot, ans in labels:
+                v = by_pos.get((bi, pos))
+                if v is not None:
+                    per_slot[slot][0].append(v.float().cpu())
+                    per_slot[slot][1].append(ans)
+    model.train()
+    out = []
+    for s in range(4):
+        xs, ys = per_slot[s]
+        if len(ys) < 24:
+            out.append(None)
+            continue
+        out.append(round(ridge_acc(torch.stack(xs), torch.tensor(ys)), 3))
     return out
 
 
@@ -339,4 +567,7 @@ def dial(arm: str, seed: int) -> None:
 
 if __name__ == "__main__":
     cmd, arm, seed = sys.argv[1], sys.argv[2], int(sys.argv[3])
-    {"train": train, "final": final, "dial": dial}[cmd](arm, seed)
+    if cmd == "train" and arm == "cache":
+        train_cache(arm, seed)
+    else:
+        {"train": train, "final": final, "dial": dial}[cmd](arm, seed)

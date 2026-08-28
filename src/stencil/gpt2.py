@@ -175,8 +175,8 @@ class GatedGPT2(nn.Module):
         hard_salience: bool = False,
     ) -> None:
         super().__init__()
-        if arm not in {"vanilla", "base", "osc"}:
-            raise ValueError("arm must be vanilla, base, or osc")
+        if arm not in {"vanilla", "base", "osc", "cache"}:
+            raise ValueError("arm must be vanilla, base, osc, or cache")
         c = GPT2Config
         self.arm = arm
         self.window = window
@@ -191,6 +191,7 @@ class GatedGPT2(nn.Module):
         self.salience: nn.Linear | None = None
         self.control_proj: nn.Linear | None = None
         self.inject: nn.ModuleList | None = None
+        self.cache: nn.Module | None = None
         self.lora: nn.ModuleList | None = None
         if lora_rank > 0:
             # Top-level (NOT under blocks.) so trunk_parameters() never
@@ -208,7 +209,18 @@ class GatedGPT2(nn.Module):
                 })
                 for _ in range(c.n_layer)
             )
-        if arm != "vanilla":
+        if arm == "cache":
+            from .determinism import named_generator
+            from .focus_cache import FocusCache
+
+            pathway = named_generator(seed_init, "pathway")
+            self.cache = FocusCache(c.d_model, generator=pathway)
+            self.inject = nn.ModuleList(
+                nn.Linear(128, c.d_model, bias=False) for _ in self.INJ_LAYERS
+            )
+            for lin in self.inject:
+                nn.init.zeros_(lin.weight)
+        elif arm != "vanilla":
             from .determinism import named_generator
 
             pathway = named_generator(seed_init, "pathway")
@@ -307,6 +319,7 @@ class GatedGPT2(nn.Module):
         gate_bypass: bool = False,
         control_override: torch.Tensor | None = None,
         code_override: torch.Tensor | None = None,
+        cache_states: list | None = None,
     ) -> torch.Tensor:
         b, t = tokens.shape
         if t > GPT2Config.n_ctx:
@@ -315,7 +328,7 @@ class GatedGPT2(nn.Module):
         x = self.wte(tokens) + self.wpe(pos)
         gates = None
         code = None
-        if self.arm != "vanilla" and not gate_bypass:
+        if self.arm in ("base", "osc") and not gate_bypass:
             control = (
                 control_override
                 if control_override is not None
@@ -329,7 +342,21 @@ class GatedGPT2(nn.Module):
             if code_override is not None:
                 code = code_override.to(code.dtype)
         mask = self._mask(t, tokens.device)
+        self.cache_internals: dict | None = None
+        self.cache_states = None
         for index, block in enumerate(self.blocks):
+            if (
+                self.arm == "cache"
+                and index == self.INJ_LAYERS[0]
+                and not gate_bypass
+            ):
+                # Contextual writer: blocks 0-7 states feed the cache; the
+                # read code drives the additive injection below.
+                code, self.cache_states, self.cache_internals = self.cache(
+                    x, states=cache_states
+                )
+                if code_override is not None:
+                    code = code_override.to(code.dtype)
             layer_gates = None if gates is None else gates[:, :, index, :]
             lora = None if self.lora is None else self.lora[index]
             inj = None

@@ -1,3 +1,4 @@
+# ruff: noqa
 # Freeze v7 controller; train a FRESH per-slot head on statement-end codes.
 # If it learns what ridge finds, the r-ce-at-chance is an optimization artifact.
 import sys

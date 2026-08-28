@@ -236,3 +236,69 @@ def test_code_override_and_hard_salience() -> None:
         manual = hard.controller(emb * (s > 0.5).float())
         assert torch.equal(hard.control_states(toks), manual)
         assert (s > 0.5).float().sum() < s.numel()  # some tokens actually closed
+
+
+@needs_weights
+def test_focus_cache_deterministic_properties() -> None:
+    """v8 pre-tests (sol + fable): bypass bitwise-vanilla; closed gates =>
+    zero state and zero code on adversarial filler (quoted slot words);
+    write isolation; same-key overwrite; chunk carry-over equals continuous."""
+    import sys
+    sys.path.insert(0, str(ROOT / "src"))
+    from stencil.focus_cache import CacheState  # noqa: F401
+
+    vanilla = _load("vanilla", window=64)
+    m = GatedGPT2("cache", window=64, lora_rank=8)
+    sd = torch.load(WEIGHTS, map_location="cpu")
+    m.load_state_dict(sd, strict=False)
+    m.eval()
+    toks = torch.randint(0, 50257, (1, 128), generator=torch.Generator().manual_seed(41))
+    with torch.no_grad():
+        # 1. bypass is bitwise vanilla even with live injection weights
+        for lin in m.inject:
+            lin.weight.add_(0.01)
+        assert torch.equal(m(toks, gate_bypass=True), vanilla(toks))
+        # 2. gates closed at init: adversarial filler writes NOTHING
+        m(toks)
+        assert m.cache_states is not None
+        assert all(len(s.keys) == 0 for s in m.cache_states)
+        assert not m.cache_internals["commits"]
+        # 3. forced write isolation + overwrite via test hooks
+        h = torch.randn(1, 32, 768, generator=torch.Generator().manual_seed(42))
+        sal = torch.zeros(1, 32, dtype=torch.bool)
+        com = torch.zeros(1, 32, dtype=torch.bool)
+        sal[0, 2:6] = True
+        com[0, 5] = True
+        sal[0, 10:14] = True
+        com[0, 13] = True
+        code, states, _ = m.cache(h, sal_override=sal, commit_override=com)
+        n_after_two = len(states[0].keys)
+        assert 1 <= n_after_two <= 2
+        keys_before = [k.clone() for k in states[0].keys]
+        vals_before = [v.clone() for v in states[0].vals]
+        # repeat the SAME first span later: must overwrite its slot, not grow
+        h2 = h.clone()
+        h2[0, 20:24] = h[0, 2:6]
+        sal2 = sal.clone()
+        com2 = com.clone()
+        sal2[0, 20:24] = True
+        com2[0, 23] = True
+        _, states2, _ = m.cache(h2, sal_override=sal2, commit_override=com2)
+        assert len(states2[0].keys) == n_after_two, "same content grew a new slot"
+        # 4. code is zero before the first commit, nonzero after
+        assert torch.equal(code[0, :5], torch.zeros(5, 128))
+        assert not torch.equal(code[0, 6:], torch.zeros(26, 128))
+        # 5. chunk carry-over: state after full pass == state after chunked
+        code_a, st_a, _ = m.cache(h, sal_override=sal, commit_override=com)
+        st_b1 = None
+        _, st_b1, _ = m.cache(h[:, :8], sal_override=sal[:, :8], commit_override=com[:, :8])
+        _, st_b2, _ = m.cache(
+            h[:, 8:], states=[s.detached() for s in st_b1],
+            sal_override=sal[:, 8:], commit_override=com[:, 8:],
+        )
+        assert len(st_a[0].keys) == len(st_b2[0].keys)
+        for ka, kb in zip(st_a[0].keys, st_b2[0].keys, strict=True):
+            assert torch.equal(ka, kb), "chunked key differs from continuous"
+        for va, vb in zip(st_a[0].vals, st_b2[0].vals, strict=True):
+            assert torch.equal(va, vb), "chunked value differs from continuous"
+        del keys_before, vals_before
