@@ -117,3 +117,19 @@
   by supervised salience; (4) ENCODING -> open; controller replacement is a
   scope decision for Brian (latch keyed by salience / damped cells / gated
   cell), since it changes what "the wire" is.
+- 2026-08-28, strategic review (Brian-requested, goal-anchored): sol
+  recommends D (~85% confidence, results/gpt2-goal-review.md): (1) close the
+  undamped-oscillator branch as a written negative (the autopsy is the
+  valuable product — do NOT overclaim "oscillators can't work"); (2) build a
+  FOCUS CACHE: event-gated keyed memory — contextual writer off blocks 0-7
+  hidden states (not static embeddings), salience-accumulated span encoding
+  committed by a hard/straight-through write, 4-8 keyed slots with exact
+  no-write on filler (bitwise-zero state change over 10k filler tokens as a
+  registered test), same-key overwrite for updates, query-conditioned read
+  feeding the VALIDATED blocks-8-11 injection; compaction carry-over test
+  (chunked==continuous) as a deliverable; hard step gates: capture CE<1.5 by
+  100, near-aux>50% by 250, beyond-window >=15-20% by 500 — else close the
+  GPT-2 era, no v8. Oscillator honestly demoted: optional timing/recency
+  role only, on a benchmark where timing matters (none here — decorative).
+  B (damped osc) only as a cheap controller-only comparator. Toy latch
+  as-is judged insufficient (single-token overwrite; hard-coded token IDs).
