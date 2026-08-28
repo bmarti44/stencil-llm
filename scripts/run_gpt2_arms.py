@@ -62,13 +62,17 @@ def loss_fn(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
     return F.cross_entropy(logits[mask], targets[mask])
 
 
-def evaluate(model: GatedGPT2, bpe: BPE, space: int, seed: int, n: int = 64) -> dict:
+def evaluate(
+    model: GatedGPT2, bpe: BPE, space: int, seed: int, n: int = 64,
+    families: tuple[str, ...] = ("train", "drought", "burst"),
+) -> dict:
     model.eval()
     out: dict = {}
+    offs = {"train": 0, "drought": 30_000, "burst": 60_000, "near": 90_000}
     with torch.no_grad():
-        for family in ("train", "drought", "burst"):
+        for family in families:
             hits = {"within": [0, 0], "beyond": [0, 0]}
-            base = space + seed * 100_000 + {"train": 0, "drought": 30_000, "burst": 60_000}[family]
+            base = space + seed * 100_000 + offs[family]
             for start in range(0, n, BATCH):
                 seeds = list(range(base + start, base + min(start + BATCH, n)))
                 toks, tgts, seqs = batch(seeds, family=family, bpe=bpe)
@@ -88,6 +92,17 @@ def evaluate(model: GatedGPT2, bpe: BPE, space: int, seed: int, n: int = 64) -> 
     return out
 
 
+def gate_stats(model: GatedGPT2, bpe: BPE) -> list[float]:
+    """Quantiles of the 144 gates over one sequence (saturation check)."""
+    with torch.no_grad():
+        toks, _, _ = batch([VAL_SPACE + 999_000], bpe=bpe)
+        control = model.control_states(toks.to(DEV))
+        control = control * torch.rsqrt(control.pow(2).mean(-1, keepdim=True) + 1e-8)
+        g = model.gate_source(control).flatten().float().cpu()
+    qs = torch.tensor([0.01, 0.25, 0.5, 0.75, 0.99])
+    return [round(float(v), 4) for v in torch.quantile(g, qs)]
+
+
 def train(arm: str, seed: int) -> None:
     torch.manual_seed(seed)
     bpe = BPE()
@@ -98,23 +113,69 @@ def train(arm: str, seed: int) -> None:
     n_train = sum(p.numel() for p in trainable)
     opt = torch.optim.AdamW(trainable, lr=3e-4, weight_decay=0.01)
     history = []
+    split_history: list[dict] = []
+    evals: list[dict] = []
     t0 = time.time()
     model.train()
     for step in range(STEPS):
         seeds = [TRAIN_SPACE + seed * 100_000 + step * BATCH + i for i in range(BATCH)]
         fam = "near" if step < CURRICULUM_STEPS else "train"
-        toks, tgts, _ = batch(seeds, family=fam, bpe=bpe)
-        loss = loss_fn(logits_of(model, toks.to(DEV)), tgts.to(DEV))
+        toks, tgts, seqs = batch(seeds, family=fam, bpe=bpe)
+        toks_d, tgts_d = toks.to(DEV), tgts.to(DEV)
+        logits = logits_of(model, toks_d)
+        loss = loss_fn(logits, tgts_d)
+        if step % 100 == 0 or step == STEPS - 1:
+            # sol MI-review finding 4: split real-query vs demo metrics live.
+            with torch.no_grad():
+                qmask = torch.zeros_like(tgts_d, dtype=torch.bool)
+                for b, s in enumerate(seqs):
+                    for p in s.query_positions:
+                        qmask[b, p] = True
+                dmask = (tgts_d >= 0) & ~qmask
+                det = logits.detach()
+                m = {
+                    "step": step, "family": fam,
+                    "query_ce": float(F.cross_entropy(det[qmask], tgts_d[qmask])),
+                    "query_acc": float((det[qmask].argmax(-1) == tgts_d[qmask]).float().mean()),
+                    "demo_ce": float(F.cross_entropy(det[dmask], tgts_d[dmask])),
+                    "demo_acc": float((det[dmask].argmax(-1) == tgts_d[dmask]).float().mean()),
+                }
+            split_history.append(m)
         loss.backward()
         opt.step()
         opt.zero_grad()
         if step % 200 == 0 or step == STEPS - 1:
-            history.append({"step": step, "loss": float(loss)})
-            print(f"[{arm} s{seed}] step {step} loss {float(loss):.4f}", flush=True)
+            history.append({"step": step, "loss": float(loss.detach())})
+            m = split_history[-1]
+            print(
+                f"[{arm} s{seed}] step {step} loss {float(loss.detach()):.4f} "
+                f"query ce {m['query_ce']:.3f} acc {m['query_acc']:.2f} "
+                f"demo ce {m['demo_ce']:.3f} acc {m['demo_acc']:.2f}",
+                flush=True,
+            )
+        if step > 0 and (step % 500 == 0 or step == CURRICULUM_STEPS - 1):
+            mid = evaluate(model, bpe, VAL_SPACE, seed, n=32, families=("near", "train"))
+            gq = gate_stats(model, bpe)
+            evals.append({"step": step, "eval": mid, "gate_quantiles": gq})
+            torch.save(
+                {"pathway": {n_: p_ for n_, p_ in model.state_dict().items() if not n_.startswith(("wte", "wpe", "blocks", "ln_f"))},
+                 "logit_bias": model.logit_bias.detach().cpu(), "step": step},
+                OUT / f"{tag(arm, seed)}-ckpt.pt",
+            )
+            near_w = mid["near"]["within"]["acc"]
+            tr = mid["train"]
+            print(
+                f"[{arm} s{seed}] step {step} EVAL near-within {near_w} "
+                f"train within {tr['within']['acc']} beyond {tr['beyond']['acc']} "
+                f"gates {gq}",
+                flush=True,
+            )
+        if step % 200 == 0 or step == STEPS - 1:
             OUT.mkdir(parents=True, exist_ok=True)
             (OUT / f"{tag(arm, seed)}-progress.json").write_text(json.dumps({
                 "arm": arm, "seed": seed, "step": step, "of": STEPS,
                 "elapsed_sec": time.time() - t0, "history": history,
+                "split_history": split_history, "evals": evals,
             }, indent=1))
     wall = time.time() - t0
     val = evaluate(model, bpe, VAL_SPACE, seed, n=64)
@@ -127,7 +188,8 @@ def train(arm: str, seed: int) -> None:
     (OUT / f"{tag(arm, seed)}.json").write_text(json.dumps({
         "arm": arm, "seed": seed, "steps": STEPS, "batch": BATCH,
         "trainable_params": n_train, "wall_sec": wall,
-        "history": history, "validation": val,
+        "history": history, "split_history": split_history, "evals": evals,
+        "validation": val,
     }, indent=1))
     print(json.dumps(val, indent=1))
 

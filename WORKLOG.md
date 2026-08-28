@@ -27,3 +27,15 @@
   (no lora_rank), then GREEN; all 5 gpt2 verifications green. Runner writes
   <arm>-lora-s<seed>.* so the gate-only negatives stay untouched. Launching
   pilot pair base-lora s0 then osc-lora s0 (~70 min each).
+- 2026-08-28, iteration 2 + sol MI review: Brian approved full-matrix rank-8
+  LoRA + demo supervision + near curriculum; killed iteration-1 osc run and
+  launched iteration 2. BREAKTHROUGH: base-lora8 near-curriculum loss 14.5 ->
+  0.001 by step 600 — frozen trunk + full LoRA now APPLIES rules (old blocker
+  falsified). Sol xhigh mechanistic review (results/gpt2-mi-review.md, session
+  01a04889): remaining blocker is the ACTUATOR (144 post-softmax volume-knob
+  gates can't inject content); wire already carries weak rule info (probe
+  14.5% vs 6.25% chance on the FAILED run); runner hid results -> instrumented
+  per sol finding 4 (query/demo split, near+train eval every 500 steps, gate
+  quantiles, checkpoints; smoke-tested). Decision rule adopted: if osc beyond-
+  window flat ~500 steps after the step-1000 transition, switch to additive
+  residual wire injection; no more seeds until then.
