@@ -41,7 +41,7 @@ REPLAY_EVERY = 4  # iteration 3: 1 in 4 phase-2 items replays the near family
 
 
 def tag(arm: str, seed: int) -> str:
-    return f"{arm}-v3-s{seed}"
+    return f"{arm}-v4-s{seed}"
 
 
 def build(arm: str, seed: int) -> GatedGPT2:
@@ -94,15 +94,19 @@ def evaluate(
     return out
 
 
-def gate_stats(model: GatedGPT2, bpe: BPE) -> list[float]:
-    """Quantiles of the 144 gates over one sequence (saturation check)."""
+def gate_stats(model: GatedGPT2, bpe: BPE) -> dict:
+    """Quantiles of the gates and the salience gate over one sequence."""
+    qs = torch.tensor([0.01, 0.25, 0.5, 0.75, 0.99])
     with torch.no_grad():
         toks, _, _ = batch([VAL_SPACE + 999_000], bpe=bpe)
         control = model.control_states(toks.to(DEV))
         control = control * torch.rsqrt(control.pow(2).mean(-1, keepdim=True) + 1e-8)
         g = model.gate_source(control).flatten().float().cpu()
-    qs = torch.tensor([0.01, 0.25, 0.5, 0.75, 0.99])
-    return [round(float(v), 4) for v in torch.quantile(g, qs)]
+        sal = torch.sigmoid(model.salience(model.wte(toks.to(DEV)))).flatten().float().cpu()
+    return {
+        "gates": [round(float(v), 4) for v in torch.quantile(g, qs)],
+        "salience": [round(float(v), 4) for v in torch.quantile(sal, qs)],
+    }
 
 
 def train(arm: str, seed: int) -> None:
@@ -116,7 +120,7 @@ def train(arm: str, seed: int) -> None:
     # Aux head reads the active answer straight off the injection code at
     # query positions (train-time only; lives OUTSIDE the model so the eval
     # path cannot see it).
-    aux_head = torch.nn.Linear(128, len(ANSWER_WORDS)).to(DEV)
+    aux_head = torch.nn.Linear(128, 4 * len(ANSWER_WORDS)).to(DEV)  # per-slot heads (sol audit finding 6)
     opt = torch.optim.AdamW(trainable + list(aux_head.parameters()), lr=3e-4, weight_decay=0.01)
     history = []
     split_history: list[dict] = []
@@ -134,15 +138,16 @@ def train(arm: str, seed: int) -> None:
         logits = logits_of(model, toks_d)
         loss = loss_fn(logits, tgts_d)
         code = model.injection_code(toks_d)
-        aux_states, aux_targets = [], []
+        aux_states, aux_targets, aux_slots = [], [], []
         for b, s in enumerate(seqs):
-            for p, ans in zip(s.query_positions, s.active_answer, strict=True):
+            for p, slot, ans in zip(s.query_positions, s.query_slots, s.active_answer, strict=True):
                 aux_states.append(code[b, p])
                 aux_targets.append(ANSWER_WORDS.index(ans))
-        aux_ce = F.cross_entropy(
-            aux_head(torch.stack(aux_states)),
-            torch.tensor(aux_targets, device=DEV),
-        )
+                aux_slots.append(slot)
+        aux_logits = aux_head(torch.stack(aux_states)).view(-1, 4, len(ANSWER_WORDS))
+        aux_sel = aux_logits[torch.arange(len(aux_slots), device=DEV), torch.tensor(aux_slots, device=DEV)]
+        aux_tgt = torch.tensor(aux_targets, device=DEV)
+        aux_ce = F.cross_entropy(aux_sel, aux_tgt)
         loss = loss + AUX_WEIGHT * aux_ce
         if step % 100 == 0 or step == STEPS - 1:
             # sol MI-review finding 4: split real-query vs demo metrics live.
@@ -160,10 +165,7 @@ def train(arm: str, seed: int) -> None:
                     "demo_ce": float(F.cross_entropy(det[dmask], tgts_d[dmask])),
                     "demo_acc": float((det[dmask].argmax(-1) == tgts_d[dmask]).float().mean()),
                     "aux_ce": float(aux_ce.detach()),
-                    "aux_acc": float(
-                        (aux_head(torch.stack(aux_states)).argmax(-1)
-                         == torch.tensor(aux_targets, device=DEV)).float().mean()
-                    ),
+                    "aux_acc": float((aux_sel.detach().argmax(-1) == aux_tgt).float().mean()),
                 }
             split_history.append(m)
         loss.backward()
@@ -185,7 +187,8 @@ def train(arm: str, seed: int) -> None:
             evals.append({"step": step, "eval": mid, "gate_quantiles": gq})
             torch.save(
                 {"pathway": {n_: p_ for n_, p_ in model.state_dict().items() if not n_.startswith(("wte", "wpe", "blocks", "ln_f"))},
-                 "logit_bias": model.logit_bias.detach().cpu(), "step": step},
+                 "logit_bias": model.logit_bias.detach().cpu(), "step": step,
+                 "aux_head": aux_head.state_dict()},
                 OUT / f"{tag(arm, seed)}-ckpt.pt",
             )
             near_w = mid["near"]["within"]["acc"]
@@ -193,7 +196,7 @@ def train(arm: str, seed: int) -> None:
             print(
                 f"[{arm} s{seed}] step {step} EVAL near-within {near_w} "
                 f"train within {tr['within']['acc']} beyond {tr['beyond']['acc']} "
-                f"gates {gq}",
+                f"gates {gq['gates']} salience {gq['salience']}",
                 flush=True,
             )
         if step % 200 == 0 or step == STEPS - 1:
@@ -208,7 +211,8 @@ def train(arm: str, seed: int) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     torch.save(
         {"pathway": {n: p for n, p in model.state_dict().items() if not n.startswith(("wte", "wpe", "blocks", "ln_f"))},
-         "logit_bias": model.logit_bias.detach().cpu()},
+         "logit_bias": model.logit_bias.detach().cpu(),
+         "aux_head": aux_head.state_dict()},
         OUT / f"{tag(arm, seed)}.pt",
     )
     (OUT / f"{tag(arm, seed)}.json").write_text(json.dumps({

@@ -186,6 +186,7 @@ class GatedGPT2(nn.Module):
         # lm_head is tied to wte (GPT-2 convention).
         self.controller: nn.Module | None = None
         self.gate_source: GateSource | None = None
+        self.salience: nn.Linear | None = None
         self.control_proj: nn.Linear | None = None
         self.inject: nn.ModuleList | None = None
         self.lora: nn.ModuleList | None = None
@@ -217,6 +218,14 @@ class GatedGPT2(nn.Module):
             else:
                 control_dim = c.d_model  # current-token embedding, stateless
             self.gate_source = GateSource(control_dim, pathway)
+            # Iteration 4: learned salience gate on the controller's input
+            # forcing — the wire learns WHICH tokens may enter memory (the
+            # cue-masking diagnostic proved the encoder works when filler is
+            # excluded). No oracle span information anywhere; identical
+            # structure in both arms.
+            self.salience = nn.Linear(c.d_model, 1)
+            nn.init.normal_(self.salience.weight, std=0.02, generator=pathway)
+            nn.init.zeros_(self.salience.bias)
             # Iteration 3: additive residual injection (last 4 blocks). The
             # wire writes a 768-d vector into the residual stream; zero-init
             # keeps the graft bitwise inert until trained. Base arm gets the
@@ -256,6 +265,8 @@ class GatedGPT2(nn.Module):
     def control_states(self, tokens: torch.Tensor) -> torch.Tensor:
         """The wire trajectory (b, t, control_dim) for probing/transplants."""
         emb = self.wte(tokens)
+        if self.salience is not None:
+            emb = emb * torch.sigmoid(self.salience(emb))
         if self.arm == "osc":
             assert self.controller is not None
             return self.controller(emb)

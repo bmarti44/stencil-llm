@@ -23,7 +23,7 @@ def _load(arm: str, window: int | None = None) -> GatedGPT2:
     missing, unexpected = model.load_state_dict(sd, strict=False)
     assert not unexpected
     assert all(
-        m.startswith(("controller.", "gate_source.", "control_proj.", "inject.", "lora."))
+        m.startswith(("controller.", "gate_source.", "salience.", "control_proj.", "inject.", "lora."))
         for m in missing
     )
     return model.eval()
@@ -168,3 +168,46 @@ def test_injection_inert_and_bypassable() -> None:
     code = osc.injection_code(toks)
     assert code.shape == (2, 128, 128)
     assert base.injection_code(toks).shape == (2, 128, 128)
+
+
+@needs_weights
+def test_salience_gate_wired() -> None:
+    """Iteration 4: a learned scalar gate on the controller's input forcing.
+    Present in both non-vanilla arms, pathway-classified, and actually in the
+    control path (closing it must change the wire state)."""
+    for arm in ("base", "osc"):
+        m = GatedGPT2(arm, window=64)
+        assert m.salience is not None
+        trunk_ids = {id(p) for p in m.trunk_parameters()}
+        assert all(id(p) not in trunk_ids for p in m.salience.parameters())
+        toks = torch.randint(0, 50257, (1, 64), generator=torch.Generator().manual_seed(21))
+        with torch.no_grad():
+            open_state = m.control_states(toks)
+            m.salience.bias.fill_(-30.0)  # gate ~0: forcing silenced
+            closed_state = m.control_states(toks)
+        assert not torch.equal(open_state, closed_state), f"{arm}: salience not in path"
+        if arm == "osc":
+            assert closed_state.abs().max() < 1e-3, "closed gate should silence the wire"
+    v = GatedGPT2("vanilla", window=64)
+    assert v.salience is None
+
+
+@needs_weights
+def test_injection_and_controller_connectivity() -> None:
+    """Sol audit finding 8: (a) injection perturbation must change output with
+    gates held fixed; (b) an aux-style loss on injection_code must produce a
+    nonzero gradient in EVERY controller parameter."""
+    m = _load("osc", window=64)
+    toks = torch.randint(0, 50257, (1, 96), generator=torch.Generator().manual_seed(23))
+    with torch.no_grad():
+        before = m(toks)
+        for lin in m.inject:
+            lin.weight.add_(0.01)
+        after = m(toks)
+    assert not torch.equal(before, after), "injection ignored by forward"
+    code = m.injection_code(toks)
+    loss = code[0, -1].pow(2).sum()
+    loss.backward()
+    for n, p in m.named_parameters():
+        if n.startswith("controller."):
+            assert p.grad is not None and float(p.grad.abs().sum()) > 0, f"dead grad: {n}"

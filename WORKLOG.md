@@ -72,3 +72,11 @@
   CONFIRMED, encoder viable. Iteration 4 = learned salience gate on
   controller input (+ sol mediums: per-slot aux heads, aux in ckpt,
   tightened injection test). Pending go.
+- 2026-08-28, iteration 4 built (Brian: "do it"): learned salience gate
+  sigmoid(w.emb+b) on the controller's input forcing (both arms, no oracle
+  spans; TDD red->green test_salience_gate_wired incl. closed-gate silences
+  wire) + sol audit mediums: per-slot aux heads (Linear 128->64, slot-
+  gathered CE), aux head saved in ckpt/final, connectivity test
+  (test_injection_and_controller_connectivity — green on v3 code, confirming
+  audit), salience quantiles logged at evals. 18 tests green; smoke-run
+  verified. Outputs <arm>-v4-s<seed>.*.
