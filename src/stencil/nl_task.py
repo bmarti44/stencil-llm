@@ -127,18 +127,21 @@ def generate(
     toks: list[int] = []
     stmt_pos: dict[int, int] = {}
     events: list[tuple[int, int]] = []  # (token_pos, slot)
-    for s, w in enumerate(SLOT_WORDS):
+    near = family == "near"
+    for s in range(len(SLOT_WORDS)):
         a = choice(16, g_c)
         while a in used:
             a = (a + 1) % 16
         used.add(a)
         active[s] = ANSWER_WORDS[a]
-        text = _rule_text(w, active[s], update=False) + " "
-        stmt_pos[s] = len(toks)
-        toks += bpe.encode(text)
-        events.append((stmt_pos[s], s))
+    if not near:
+        for s, w in enumerate(SLOT_WORDS):
+            text = _rule_text(w, active[s], update=False) + " "
+            stmt_pos[s] = len(toks)
+            toks += bpe.encode(text)
+            events.append((stmt_pos[s], s))
 
-    gap_bounds = {"train": (2, 6), "drought": (8, 14), "burst": (1, 2)}[family]
+    gap_bounds = {"train": (2, 6), "drought": (8, 14), "burst": (1, 2), "near": (2, 6)}[family]
 
     def filler_until(target_len: int) -> None:
         while len(toks) < target_len:
@@ -147,6 +150,15 @@ def generate(
     # updates spread through the middle zone
     updates_done = 0
     middle_end = seq_len - 220
+    if near:
+        # curriculum family: pure filler, then every rule stated right before
+        # the demo/query zone — all distances well inside the receptive field.
+        filler_until(middle_end - 80)
+        for s, w in enumerate(SLOT_WORDS):
+            stmt_pos[s] = len(toks)
+            toks += bpe.encode(_rule_text(w, active[s], update=False) + " ")
+            events.append((stmt_pos[s], s))
+        n_updates = 0
     for _ in range(n_updates):
         gap_sentences = choice(gap_bounds[1] - gap_bounds[0] + 1, g_d) + gap_bounds[0]
         for _ in range(gap_sentences):
@@ -163,12 +175,21 @@ def generate(
     filler_until(middle_end)
 
     # demo zone: throwaway rules + worked examples (format teaching, in-window)
+    # The demo answer IS written (worked example) and also carries loss at the
+    # '->' position — format supervision, no rule leakage (disjoint pools).
+    targets = [-1] * seq_len
     for w, a in DEMO_PAIRS:
-        toks += bpe.encode(f'New rule: reply to "{w}" with "{a}". {w} -> {a}.\n')
+        head = bpe.encode(f'New rule: reply to "{w}" with "{a}". {w} ->')
+        demo_p = len(toks) + len(head) - 1
+        toks += head
+        ans_id = bpe.encode(" " + a)
+        assert len(ans_id) == 1
+        if demo_p < seq_len - 1:
+            targets[demo_p] = ans_id[0]
+        toks += ans_id + bpe.encode(".\n")
 
     # query zone: one query per slot, order drawn
     order = torch.randperm(4, generator=g_c).tolist()
-    targets = [-1] * seq_len
     qpos: list[int] = []
     qslots: list[int] = []
     answers: list[str] = []

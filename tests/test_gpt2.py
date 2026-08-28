@@ -129,5 +129,5 @@ def test_lora_inert_and_pathway_classified() -> None:
         assert torch.equal(lora(toks, gate_bypass=True), vanilla(toks))
     trunk_ids = {id(p) for p in lora.trunk_parameters()}
     lora_params = [p for n, p in lora.named_parameters() if "lora" in n]
-    assert len(lora_params) == 24  # 12 layers x (A, B)
+    assert len(lora_params) == 96  # 12 layers x 4 sites x (down, up)
     assert all(id(p) not in trunk_ids for p in lora_params), "LoRA frozen as trunk!"

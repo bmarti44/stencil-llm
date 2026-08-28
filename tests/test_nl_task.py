@@ -95,3 +95,36 @@ def test_distances_span_the_receptive_field() -> None:
                 within += 1
     assert beyond >= 8, f"too few beyond-window queries ({beyond})"
     assert within >= 1, "no within-reach control queries at all"
+
+
+@needs_tok
+def test_demo_answers_supervised() -> None:
+    """Iteration 2: the demo worked examples carry loss (format supervision).
+    Exactly two extra target positions beyond the queries; each is a demo
+    answer and IS written into the input (it is a worked example)."""
+    bpe = BPE()
+    demo_ids = {bpe.encode(" " + a)[0] for _, a in DEMO_PAIRS}
+    for seed in range(4):
+        s = generate(seed, bpe=bpe)
+        extra = [
+            p for p, t in enumerate(s.targets)
+            if t >= 0 and p not in s.query_positions
+        ]
+        assert len(extra) == 2, f"expected 2 demo targets, got {len(extra)}"
+        for p in extra:
+            assert s.targets[p] in demo_ids
+            assert s.tokens[p + 1] == s.targets[p], "demo answer must be written"
+
+
+@needs_tok
+def test_near_family_in_window() -> None:
+    """Iteration 2 curriculum: 'near' places every rule close to its query."""
+    for seed in range(4):
+        s = generate(seed, family="near")
+        assert len(s.tokens) == 1024
+        assert 1 <= len(s.query_positions) <= 4
+        for p, slot in zip(s.query_positions, s.query_slots, strict=True):
+            d = p - s.rule_statement_pos[slot]
+            assert 0 < d <= 250, f"near-family distance {d} not near"
+    a, b = generate(3, family="near"), generate(3, family="near")
+    assert a.tokens == b.tokens and a.targets == b.targets

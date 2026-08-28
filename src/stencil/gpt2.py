@@ -67,6 +67,20 @@ class GPT2Config:
     ln_eps = 1e-5
 
 
+class _LoRA(nn.Module):
+    """Rank-r adapter for one weight matrix; up starts at zero => inert."""
+
+    def __init__(self, d_in: int, d_out: int, rank: int, generator: torch.Generator) -> None:
+        super().__init__()
+        self.down = nn.Linear(d_in, rank, bias=False)
+        self.up = nn.Linear(rank, d_out, bias=False)
+        nn.init.normal_(self.down.weight, std=0.02, generator=generator)
+        nn.init.zeros_(self.up.weight)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.up(self.down(x))
+
+
 class _Block(nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -83,12 +97,15 @@ class _Block(nn.Module):
         x: torch.Tensor,
         mask: torch.Tensor,
         gates: torch.Tensor | None,
-        lora: tuple[nn.Linear, nn.Linear] | None = None,
+        lora: nn.ModuleDict | None = None,
     ) -> torch.Tensor:
         c = GPT2Config
         b, t, _ = x.shape
         h = self.ln_1(x)
-        q, k, v = self.attn_qkv(h).split(c.d_model, dim=2)
+        qkv = self.attn_qkv(h)
+        if lora is not None:
+            qkv = qkv + lora["attn_qkv"](h)
+        q, k, v = qkv.split(c.d_model, dim=2)
         shape = (b, t, c.n_head, c.d_model // c.n_head)
         q, k, v = (z.view(shape).transpose(1, 2) for z in (q, k, v))
         att = (q @ k.transpose(-2, -1)) / math.sqrt(q.shape[-1])
@@ -101,10 +118,17 @@ class _Block(nn.Module):
         out = out.transpose(1, 2).reshape(b, t, c.d_model)
         proj = self.attn_proj(out)
         if lora is not None:
-            proj = proj + lora[1](lora[0](out))
+            proj = proj + lora["attn_proj"](out)
         x = x + proj
         h = self.ln_2(x)
-        x = x + self.mlp_proj(F.gelu(self.mlp_fc(h), approximate="tanh"))
+        inner = self.mlp_fc(h)
+        if lora is not None:
+            inner = inner + lora["mlp_fc"](h)
+        act = F.gelu(inner, approximate="tanh")
+        m = self.mlp_proj(act)
+        if lora is not None:
+            m = m + lora["mlp_proj"](act)
+        x = x + m
         return x
 
 
@@ -157,24 +181,23 @@ class GatedGPT2(nn.Module):
         # lm_head is tied to wte (GPT-2 convention).
         self.controller: nn.Module | None = None
         self.gate_source: GateSource | None = None
-        self.lora_a: nn.ModuleList | None = None
-        self.lora_b: nn.ModuleList | None = None
+        self.lora: nn.ModuleList | None = None
         if lora_rank > 0:
             # Top-level (NOT under blocks.) so trunk_parameters() never
-            # classifies LoRA as frozen trunk. B starts at zero => the adapter
-            # is bitwise inert until trained.
-            self.lora_a = nn.ModuleList(
-                nn.Linear(c.d_model, lora_rank, bias=False) for _ in range(c.n_layer)
-            )
-            self.lora_b = nn.ModuleList(
-                nn.Linear(lora_rank, c.d_model, bias=False) for _ in range(c.n_layer)
-            )
+            # classifies LoRA as frozen trunk. Every up-projection starts at
+            # zero => the whole adapter is bitwise inert until trained.
             from .determinism import named_generator
 
             lg = named_generator(seed_init, "train")
-            for a, bmod in zip(self.lora_a, self.lora_b, strict=True):
-                nn.init.normal_(a.weight, std=0.02, generator=lg)
-                nn.init.zeros_(bmod.weight)
+            self.lora = nn.ModuleList(
+                nn.ModuleDict({
+                    "attn_qkv": _LoRA(c.d_model, 3 * c.d_model, lora_rank, lg),
+                    "attn_proj": _LoRA(c.d_model, c.d_model, lora_rank, lg),
+                    "mlp_fc": _LoRA(c.d_model, c.d_ff, lora_rank, lg),
+                    "mlp_proj": _LoRA(c.d_ff, c.d_model, lora_rank, lg),
+                })
+                for _ in range(c.n_layer)
+            )
         if arm != "vanilla":
             from .determinism import named_generator
 
@@ -242,11 +265,7 @@ class GatedGPT2(nn.Module):
         mask = self._mask(t, tokens.device)
         for index, block in enumerate(self.blocks):
             layer_gates = None if gates is None else gates[:, :, index, :]
-            lora = (
-                (self.lora_a[index], self.lora_b[index])
-                if self.lora_a is not None
-                else None
-            )
+            lora = None if self.lora is None else self.lora[index]
             x = block(x, mask, layer_gates, lora)
         x = self.ln_f(x)
         return x @ self.wte.weight.T

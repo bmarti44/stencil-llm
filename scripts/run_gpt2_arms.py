@@ -28,17 +28,18 @@ from stencil.gpt2 import GatedGPT2  # noqa: E402
 from stencil.nl_task import BPE, batch  # noqa: E402
 
 OUT = ROOT / "results" / "gpt2"
-STEPS = 3000
+STEPS = 4000
+CURRICULUM_STEPS = 1000  # phase 1: "near" family (all rules in reach)
 BATCH = 8
 TRAIN_SPACE = 0
 VAL_SPACE = 1_000_000
 FINAL_SPACE = 2_000_000
 DEV = "cuda" if torch.cuda.is_available() else "cpu"
-LORA_RANK = 4  # symmetric adapter, both arms (post-flatline iteration)
+LORA_RANK = 8  # full-matrix symmetric adapter, both arms (iteration 2)
 
 
 def tag(arm: str, seed: int) -> str:
-    return f"{arm}-lora-s{seed}" if LORA_RANK else f"{arm}-s{seed}"
+    return f"{arm}-lora8-s{seed}" if LORA_RANK else f"{arm}-s{seed}"
 
 
 def build(arm: str, seed: int) -> GatedGPT2:
@@ -101,7 +102,8 @@ def train(arm: str, seed: int) -> None:
     model.train()
     for step in range(STEPS):
         seeds = [TRAIN_SPACE + seed * 100_000 + step * BATCH + i for i in range(BATCH)]
-        toks, tgts, _ = batch(seeds, bpe=bpe)
+        fam = "near" if step < CURRICULUM_STEPS else "train"
+        toks, tgts, _ = batch(seeds, family=fam, bpe=bpe)
         loss = loss_fn(logits_of(model, toks.to(DEV)), tgts.to(DEV))
         loss.backward()
         opt.step()
