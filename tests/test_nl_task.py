@@ -1,0 +1,97 @@
+# ruff: noqa: E501
+"""Verifications 6-8 for the NL task (GPT2-PLAN.md), TDD-first."""
+from pathlib import Path
+
+import pytest
+import torch
+
+from stencil.determinism import named_generator
+from stencil.nl_task import (
+    ANSWER_WORDS,
+    BPE,
+    DEMO_PAIRS,
+    SLOT_WORDS,
+    generate,
+)
+
+TOK = Path(__file__).resolve().parent.parent / "models" / "tokenizer"
+needs_tok = pytest.mark.skipif(not (TOK / "vocab.json").exists(), reason="run convert_gpt2.py")
+
+
+@needs_tok
+def test_vocab_single_token() -> None:
+    """V8: every pool word must round-trip as exactly one token with leading space."""
+    bpe = BPE()
+    offenders = [
+        w
+        for w in SLOT_WORDS + ANSWER_WORDS + [w for p in DEMO_PAIRS for w in p]
+        if len(bpe.encode(" " + w)) != 1
+    ]
+    assert offenders == [], f"multi-token pool words: {offenders}"
+    assert len(set(ANSWER_WORDS)) == 16 and len(set(SLOT_WORDS)) == 4
+
+
+@needs_tok
+def test_known_encoding_parity() -> None:
+    """Our BPE matches the reference encoding captured at conversion time."""
+    bpe = BPE()
+    assert bpe.encode("The capital of France is") == [464, 3139, 286, 4881, 318]
+    assert bpe.encode('New rule: reply to "cat" with "dog".')[:3] == bpe.encode("New rule:")[:3]
+
+
+@needs_tok
+def test_generation_deterministic_and_shaped() -> None:
+    a, b = generate(5), generate(5)
+    assert a.tokens == b.tokens and a.targets == b.targets
+    assert len(a.tokens) == 1024
+    assert 1 <= len(a.query_positions) <= 4
+    c = generate(6)
+    assert c.tokens != a.tokens
+
+
+@needs_tok
+def test_answer_never_in_input() -> None:
+    """V-leakage: the answer token never follows the '->' in the input."""
+    bpe = BPE()
+    nl = bpe.encode("\n")[0]
+    checked = 0
+    for seed in range(8):
+        s = generate(seed, bpe=bpe)
+        for p in s.query_positions:
+            assert s.targets[p] >= 0
+            if p + 1 < len(s.tokens):
+                assert s.tokens[p + 1] in (nl,), "answer written into input"
+                assert s.tokens[p + 1] != s.targets[p]
+            checked += 1
+    assert checked >= 24
+
+
+@needs_tok
+def test_fixture_hand_derived_first_rule() -> None:
+    """V6: independently replay seed 0's first draws per the spec and assert
+    the generator's opening rule statement token-for-token."""
+    bpe = BPE()
+    g_c = named_generator(0, "cues")
+    a0 = int(torch.randint(0, 16, (1,), generator=g_c))
+    expected_answer = ANSWER_WORDS[a0]
+    expected = bpe.encode(f'New rule: reply to "cat" with "{expected_answer}". ')
+    s = generate(0, bpe=bpe)
+    assert s.tokens[: len(expected)] == expected
+    assert s.rule_statement_pos[0] == 0
+
+
+@needs_tok
+def test_distances_span_the_receptive_field() -> None:
+    """The benchmark only means something if some queries sit beyond 756."""
+    beyond = within = 0
+    for seed in range(8):
+        s = generate(seed)
+        for p, slot in zip(s.query_positions, s.query_slots, strict=True):
+            d = p - s.rule_statement_pos[slot]
+            assert d > 0
+            if d > 756:
+                beyond += 1
+            else:
+                within += 1
+    assert beyond >= 8, f"too few beyond-window queries ({beyond})"
+    assert within >= 1, "no within-reach control queries at all"
