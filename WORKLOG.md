@@ -60,3 +60,15 @@
   outside the model, weight 0.3), 25% near-replay in phase 2. TDD red->green
   (test_injection_inert_and_bypassable, test_batch_mixed_families); 16 tests
   green; smoke-run verified incl. replay branch. Outputs <arm>-v3-s<seed>.*.
+- 2026-08-28, v3 audit + cue-masking: Brian smelled something off; sol xhigh
+  audit (results/gpt2-v3-audit.md, resumed session): iteration-3 wiring is
+  CORRECT (all gradients live, optimizer complete, injection active both
+  arms) — the aux-at-chance signal is real: oscillator raw state ~6e6 RMS
+  from integrating all 1024 tokens; answer identity shifts the normalized
+  code 0.0008 RMS; probes at chance even AT the rule token. Run stopped at
+  1500 (near 100% held via replay; beyond chance). Cue-masking diagnostic
+  (scripts/cue_mask_diag.py): same trained controller with filler zeroed
+  decodes rules at 90.6%/33%/14%/28% vs 6-10% full-input — FILLER DROWNING
+  CONFIRMED, encoder viable. Iteration 4 = learned salience gate on
+  controller input (+ sol mediums: per-slot aux heads, aux in ckpt,
+  tightened injection test). Pending go.
