@@ -147,3 +147,13 @@
   compaction test demoted to verification, would/would-not text
   pre-registered). Neuron article recorded as originating citation in
   README (cell.com/neuron/fulltext/S0896-6273(23)00506-8).
+- 2026-08-28, gates 1+2 (Brian: "do it"): code_override + hard_salience hooks
+  (TDD, 9 gpt2 tests green). GATE 1 PASSED 8/8: oracle injection on the
+  frozen osc-v6 ckpt drives every beyond-window answer to rank 1 (ce~0.001)
+  — the additive injection actuator carries content (vs old gate site 0/8;
+  scripts/oracle_inject_diag.py). GATE 2 launched: osc-v7 with straight-
+  through BINARY salience (forward exactly reproduces the cue-mask
+  condition; gradient via sigmoid). Per fable gates: capture r-ce <1.5 and
+  acc >50% by step ~100-250 or the oscillator encoding verdict stands
+  (upgraded to "cannot superpose four rules under exact routing" if slot
+  asymmetry appears).

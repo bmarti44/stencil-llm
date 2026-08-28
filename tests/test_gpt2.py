@@ -211,3 +211,28 @@ def test_injection_and_controller_connectivity() -> None:
     for n, p in m.named_parameters():
         if n.startswith("controller."):
             assert p.grad is not None and float(p.grad.abs().sum()) > 0, f"dead grad: {n}"
+
+
+@needs_weights
+def test_code_override_and_hard_salience() -> None:
+    """Diagnostic hooks: code_override must steer the injection channel;
+    hard_salience must zero sub-threshold forcing exactly (straight-through)."""
+    m = _load("osc", window=64)
+    with torch.no_grad():
+        for lin in m.inject:
+            lin.weight.add_(0.01)  # make injection live
+    toks = torch.randint(0, 50257, (1, 96), generator=torch.Generator().manual_seed(31))
+    with torch.no_grad():
+        ref = m(toks)
+        alt = m(toks, code_override=torch.ones(1, 96, 128))
+    assert not torch.equal(ref, alt), "code_override ignored"
+
+    hard = GatedGPT2("osc", window=64, hard_salience=True)
+    sd = torch.load(WEIGHTS, map_location="cpu")
+    hard.load_state_dict(sd, strict=False)
+    with torch.no_grad():
+        emb = hard.wte(toks)
+        s = torch.sigmoid(hard.salience(emb))
+        manual = hard.controller(emb * (s > 0.5).float())
+        assert torch.equal(hard.control_states(toks), manual)
+        assert (s > 0.5).float().sum() < s.numel()  # some tokens actually closed

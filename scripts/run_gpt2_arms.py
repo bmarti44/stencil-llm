@@ -36,17 +36,18 @@ VAL_SPACE = 1_000_000
 FINAL_SPACE = 2_000_000
 DEV = "cuda" if torch.cuda.is_available() else "cpu"
 LORA_RANK = 8  # full-matrix symmetric adapter, both arms (iteration 2)
+HARD_SALIENCE = True  # v7: straight-through binary gate (fable gate 2)
 SALIENCE_WEIGHT = 1.0  # v5: balanced BCE on salience logits (sol prescription)
 AUX_WEIGHT = 0.3  # iteration 3: auxiliary wire-readout supervision (train only)
 REPLAY_EVERY = 4  # iteration 3: 1 in 4 phase-2 items replays the near family
 
 
 def tag(arm: str, seed: int) -> str:
-    return f"{arm}-v6-s{seed}"
+    return f"{arm}-v7-s{seed}"
 
 
 def build(arm: str, seed: int) -> GatedGPT2:
-    model = GatedGPT2(arm, window=64, seed_init=seed, lora_rank=LORA_RANK)
+    model = GatedGPT2(arm, window=64, seed_init=seed, lora_rank=LORA_RANK, hard_salience=HARD_SALIENCE)
     sd = torch.load(ROOT / "models" / "gpt2-small.pt", map_location="cpu")
     missing, unexpected = model.load_state_dict(sd, strict=False)
     assert not unexpected

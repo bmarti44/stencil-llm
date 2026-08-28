@@ -172,6 +172,7 @@ class GatedGPT2(nn.Module):
         seed_init: int = 0,
         osc_periods: tuple[float, float] = (8.0, 2048.0),
         lora_rank: int = 0,
+        hard_salience: bool = False,
     ) -> None:
         super().__init__()
         if arm not in {"vanilla", "base", "osc"}:
@@ -179,6 +180,7 @@ class GatedGPT2(nn.Module):
         c = GPT2Config
         self.arm = arm
         self.window = window
+        self.hard_salience = hard_salience
         self.wte = nn.Embedding(c.vocab, c.d_model)
         self.wpe = nn.Embedding(c.n_ctx, c.d_model)
         self.blocks = nn.ModuleList(_Block() for _ in range(c.n_layer))
@@ -268,7 +270,12 @@ class GatedGPT2(nn.Module):
         """The wire trajectory (b, t, control_dim) for probing/transplants."""
         emb = self.wte(tokens)
         if self.salience is not None:
-            emb = emb * torch.sigmoid(self.salience(emb))
+            s = torch.sigmoid(self.salience(emb))
+            if self.hard_salience:
+                # Straight-through hard gate: forward is exactly binary (the
+                # cue-mask condition, in-training); gradient flows via s.
+                s = (s > 0.5).float() + s - s.detach()
+            emb = emb * s
         if self.arm == "osc":
             assert self.controller is not None
             return self.controller(emb)
@@ -297,6 +304,7 @@ class GatedGPT2(nn.Module):
         *,
         gate_bypass: bool = False,
         control_override: torch.Tensor | None = None,
+        code_override: torch.Tensor | None = None,
     ) -> torch.Tensor:
         b, t = tokens.shape
         if t > GPT2Config.n_ctx:
@@ -316,6 +324,8 @@ class GatedGPT2(nn.Module):
             gates = all_gates.view(b, t, GPT2Config.n_layer, GPT2Config.n_head)
             code = control if self.control_proj is None else self.control_proj(control)
             code = self._norm(code)
+            if code_override is not None:
+                code = code_override.to(code.dtype)
         mask = self._mask(t, tokens.device)
         for index, block in enumerate(self.blocks):
             layer_gates = None if gates is None else gates[:, :, index, :]
