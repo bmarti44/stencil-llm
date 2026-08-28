@@ -9,3 +9,4 @@
   Settled: 2 arms (base stateless-gate / osc), frozen trunk, 2 seeds, clean
   archive pivot. Toy phases + their governance moved untouched to archive/.
   Next: coder pass A (gpt2.py + weight conversion + verifications 1-4).
+- 2026-08-28, pass A DONE: gpt2.py (3 arms, windowed attention, gate site, external oscillator controller), convert_gpt2.py (hand-parsed safetensors, HF pinned-oracle parity max|err|=0.00012, frozen bitwise fixture), verifications 1-4 GREEN (parity bitwise, inert graft bitwise + non-vacuity, frozen trunk bitwise, two-run training bitwise). Next: pass B — nl_task.py, hand-executed fixture first.
