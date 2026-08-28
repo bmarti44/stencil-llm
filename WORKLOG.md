@@ -107,3 +107,13 @@
   smoke verified. Rerunning osc (osc-v6-s0). Key discriminator: r-ce falling
   with q-ce flat = capture works, retention fails (oscillator decay/
   interference); both falling = storage works, watch beyond-window.
+- 2026-08-28, v6 verdict — oscillator encoding is the terminal blocker: with
+  routing SOLVED (salience bimodal, rule-med 0.99) and DIRECT capture
+  supervision at statement ends, r-ce stayed at chance (2.75-2.80) through
+  step 800. The two-cell undamped resonator cannot encode answer identity
+  from gated GPT-2 embeddings even at the moment of statement. Run stopped.
+  Blocker ladder to date: (1) adapter capacity -> solved by full LoRA;
+  (2) actuator site -> solved by additive injection; (3) routing -> solved
+  by supervised salience; (4) ENCODING -> open; controller replacement is a
+  scope decision for Brian (latch keyed by salience / damped cells / gated
+  cell), since it changes what "the wire" is.
