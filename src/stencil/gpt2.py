@@ -272,9 +272,11 @@ class GatedGPT2(nn.Module):
         if self.salience is not None:
             s = torch.sigmoid(self.salience(emb))
             if self.hard_salience:
-                # Straight-through hard gate: forward is exactly binary (the
-                # cue-mask condition, in-training); gradient flows via s.
-                s = (s > 0.5).float() + s - s.detach()
+                # Detached hard gate: forward is exactly binary (the cue-mask
+                # condition, in-training); salience learns ONLY from its
+                # direct BCE supervision — the noisy downstream gradient
+                # (measured wrong-signed by the sol audit) is cut off.
+                s = (s > 0.5).float().detach()
             emb = emb * s
         if self.arm == "osc":
             assert self.controller is not None
