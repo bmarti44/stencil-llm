@@ -39,3 +39,17 @@
   quantiles, checkpoints; smoke-tested). Decision rule adopted: if osc beyond-
   window flat ~500 steps after the step-1000 transition, switch to additive
   residual wire injection; no more seeds until then.
+- 2026-08-28, iteration-2 verdict + actuator proven inadequate: base-lora8
+  final validation beyond-window at chance (5.5/1.8/9.9%) as the proof
+  requires, within-bin barely above chance (near skill did not generalize to
+  long within-reach distances). osc-lora8: near curriculum 76.6% held-out at
+  step 999, then the standard phase FORGOT it (76.6->22.7->10.2%) with
+  beyond-window flat through step 2000 — decision rule triggered, run stopped
+  (ckpt kept). Oracle-wire ceiling diagnostic (scripts/oracle_wire_diag.py,
+  results/gpt2/oracle-wire-diagnostic.txt): freezing everything and directly
+  optimizing the wire state per example, 0/8 beyond-window answers reachable
+  (best rank 2, typical 6-13, CE pinned ~chance) — the 144-scalar gate site
+  CANNOT actuate answers regardless of what the wire carries. Iteration 3
+  (designed, awaiting go): zero-init additive residual injection (symmetric,
+  doorless room preserved), auxiliary wire-readout supervision, near-replay +
+  distance-rung curriculum; Qwen3-1.7B ruled next rung after GPT-2 resolves.
