@@ -133,3 +133,17 @@
   role only, on a benchmark where timing matters (none here — decorative).
   B (damped osc) only as a cheap controller-only comparator. Toy latch
   as-is judged insufficient (single-token overwrite; hard-coded token IDs).
+- 2026-08-28, CORRECTION + fable second opinion: independent fable reviewer
+  (full report in git history of this entry's commit) found the v6 verdict
+  overstated: routing was NOT solved per the registered criterion —
+  sal_filler_p90 logged 0.32-0.35 at EVERY step (registered bar: <0.1 by
+  step 200), and measured non-rule forcing mass is 0.4-0.6x total rule mass
+  (2-5x interference per single rule). "The oscillator cannot encode" is
+  therefore unsupported; the supported statement is "cannot encode under
+  leaky supervised routing (filler-p90 ~0.35)." Second gap: the injection
+  actuator was never oracle-tested at beyond-window queries. Agreed plan:
+  (1) oracle injection diagnostic first; (2) one hard-thresholded-salience
+  oscillator rerun; (3) only then sol's focus-cache pilot (gates kept,
+  compaction test demoted to verification, would/would-not text
+  pre-registered). Neuron article recorded as originating citation in
+  README (cell.com/neuron/fulltext/S0896-6273(23)00506-8).

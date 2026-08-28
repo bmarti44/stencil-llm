@@ -1,7 +1,7 @@
 # Stencil: a separate wire for a model's sense of its current task
 
 A new theory about the brain says knowledge and focus live in different
-mechanisms. The brain stores what it knows in its wiring, while slow electrical
+mechanisms (originating inspiration: [Neuron, 2023](https://www.cell.com/neuron/fulltext/S0896-6273(23)00506-8)). The brain stores what it knows in its wiring, while slow electrical
 waves sweep across that wiring and decide which circuits are switched on at any
 given moment. Knowledge in one place, what am I doing right now in another.
 
