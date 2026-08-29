@@ -528,3 +528,13 @@
   types incl. one at a TRAINED moment class; degenerate-pass-proof gate
   arithmetic with registered Ns and paired tests; component gates carried
   forward; parser-timed named as an arm).
+- 2026-08-29, T1 RECORD COMPLETED (results/qwen/timed-t1-completion.json):
+  the previously-unexecuted registered arms ran with textbook signatures —
+  always-on/oracle destructive (parse 0.703, compliance 0.464 < base);
+  shuffled/wrong == base (0.646); oracle/oracle and learned/learned
+  reproduce 0.859 on deterministic retrain. T1's pass now stands fully
+  qualified: timing = obligation-blind syntax parsing (probe), address =
+  forced-choice among true sentences; the honest T1 claim is "learned
+  syntax-timed pressing of harness-selected spans matches the oracle";
+  obligation READING is untested until T2 v2. T2 CONTRACT v2 committed
+  (merged MUSTs). Next: light round-2 review of v2, then the T2 build.
