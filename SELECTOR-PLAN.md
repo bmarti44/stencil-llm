@@ -81,3 +81,27 @@ flips; S2 both attempts miss; any result requiring unregistered rescue.
 - HONEST CLAIM CEILING (sol): this proves a contentless addressing actuator
   on synthetic authority-conflict prompts; not long-horizon focus, not
   autonomous authority detection, not agent usefulness.
+
+## Amendment 2 (2026-08-29, Brian: option A — S3 registered)
+
+S3 lives only in the regime the baselines cannot reach. Registered design:
+- **S3-A0 scale admission:** N obligations in {8, 16, 32}, same interference
+  shape, K=1 named query. Measure paired on the same sessions: base,
+  FULL-LEDGER re-insertion (accuracy AND token cost). GATE: there exists N*
+  where re-insertion accuracy < 80% (selection fails even with the text
+  re-supplied) OR re-insertion cost > 300 tokens/query while base < 60%.
+  No such N* => the program closes as mechanism-positive; no S3 build.
+- **S3-A1 oracle at N*:** registered S1 config (layers 20-27, beta 2; grid
+  re-check {2,4} allowed once if N* changes the dose). Gate: rescue >= 0.5,
+  broken == 0, wrong-span <= 10%.
+- **S3-A2 learned selector at N*:** same scorer recipe (cached h20 features,
+  direct CE, hard argmax), fresh training seeds, paired n >= 128 validation.
+  Gates: address accuracy >= 0.9; net closure >= 0.5; and the HEADLINE
+  comparison: selector accuracy vs full-ledger re-insertion accuracy at N*
+  with token costs reported side by side.
+- Seed spaces: A0/A1 dev 11.8M-, A2 train 11.85M-, validation 11.9M-,
+  final untouched 11.95M-. Per-example JSON throughout. Stop on any gate
+  miss (one registered dose re-check is the only allowed adjustment).
+- Task extension: fields list generalized (32 composed field names); the
+  generator takes n_obligations; interference includes conflicting notes on
+  queried AND non-queried fields (shortcut already closed).
