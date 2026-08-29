@@ -307,3 +307,9 @@
   owner's discovery-driven scenario as P3's measured object, seven
   mechanical stop conditions (decisive: text-ledger Pareto dominance).
   Pending Brian's approval to begin P0.
+- 2026-08-29, Brian burden-test pass on QWEN-PLAN: spine confirmed
+  straightforward (own the forward for determinism/probes; oracle risk
+  test day one; microfit; drift run with the proven instrument kit). Fat
+  trimmed: slot metadata deferred until a test needs a field; the
+  five-baseline gauntlet and the 64-session agentic battery moved behind a
+  decision point AFTER the drift run proves mechanism at Qwen scale.

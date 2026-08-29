@@ -16,10 +16,11 @@ version. GPT-2 era report: results/gpt2-report.md (dual sign-off).
 - Frozen blocks 0–19 run WITHOUT autograd; residual detached at block 20.
 - Rank-8 LoRA in blocks 20–27 only (q/k/v/o + gate/up/down, ~2.5M params).
 - Focus cache: contextual writer over blocks 0–19 states, 16 slots ×
-  4×256-d BF16 values + 64-d read keys + validity/version/source/priority;
-  explicit overflow error (never silent slot-0 eviction); zero-init
-  injection after attention residual, blocks 24–27; ~34 KiB state; the
-  human-readable ledger + provenance always retained OUTSIDE the model.
+  4×256-d BF16 values + 64-d read keys + validity. NO speculative metadata
+  (priority/version/source/age deferred until a registered test needs a
+  field — burden test). Explicit overflow error; zero-init injection after
+  attention residual, blocks 24–27; the human-readable ledger + provenance
+  always retained OUTSIDE the model.
 - Explicit API: `model(tokens, focus_state) -> (logits, next_focus_state)`.
   No hidden attribute mutation.
 - Microbatch 1; ctx 1024 (microfit) / 2048 (training) / 4–16K (inference
@@ -60,7 +61,13 @@ open multi-token values. Gates: grads everywhere by step 8; loss −30% by
 64. Cannot overfit → audit interface, do not launch longer runs.
 *Retires: values condition generation rather than select among classes.*
 
-**P2 — Structured drift + THE GAUNTLET (1 day).** Run 2
+**DECISION POINT after P2's drift run** (Brian ruling, 2026-08-29: keep the
+core straightforward): the gauntlet (Run 3) and the P3 session battery are
+built only AFTER the drift run shows the mechanism working on Qwen — they
+answer usefulness, which is meaningless before mechanism. P0-P2-core is
+the committed path; everything after is gated on its results.
+
+**P2 — Structured drift (+ gauntlet at the decision point) (1 day).** Run 2
 `q3-api-drift-r8-s0`: ctx 2048 chunk-carried, 192 steps, 16 slots, user
 updates/deletes/compactions/stale traps; gates incl. differential ≥20 pts,
 stale-answer <10%, transplant redirects / shuffle breaks, paired 95% lower
