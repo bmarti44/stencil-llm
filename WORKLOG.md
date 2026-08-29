@@ -441,3 +441,8 @@
   100% @123tok; N=16 base 19% / reins 95% @255tok; N=32 base 5% / reins 84%
   @503tok. N*=32: selection is the bottleneck even with text re-supplied,
   and re-insertion is costly. A1 (oracle at N*=32) next.
+- 2026-08-29, S3-A1 PASS at N*=32 (results/qwen/s3-a1-oracle.json): base
+  3/64 (5%); oracle {20-27} beta=4 rescues 48/61 = 78.7%, broken 0;
+  wrong-span 0/61. beta=2 insufficient at scale (25%) — the registered
+  one-time dose re-check selected beta=4. Oracle ~80% vs re-insertion 84%
+  @503 tok/query. A2 (learned selector at N=32) launching.

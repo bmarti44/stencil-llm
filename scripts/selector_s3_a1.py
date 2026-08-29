@@ -17,12 +17,11 @@ sys.path.insert(0, str(ROOT / "src"))
 from tokenizers import Tokenizer
 
 from stencil.qwen3 import Qwen3
-from stencil.qwen_task import generate_governance
+from stencil.qwen_task import FIELDS32, generate_governance
 
 SEED_BASE = 11_820_000  # S3-A1 block (N*=32)
 N = 64
 GRID = [(tuple(range(20, 28)), 2.0), (tuple(range(20, 28)), 4.0)]
-        (tuple(range(20, 28)), 2.0), (tuple(range(20, 28)), 4.0)]
 
 tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
 m = Qwen3()
@@ -35,7 +34,7 @@ def build(seed):
     enc = tok.encode(s.text)
     ids = enc.ids
     # governing span chars -> token columns via offsets (overlap mapping)
-    lo_c, hi_c = s.ledger_spans[__import__("stencil.qwen_task", fromlist=["FIELDS"]).FIELDS.index(s.field)]
+    lo_c, hi_c = s.ledger_spans[FIELDS32.index(s.field)]
     cols = [i for i, (a, b) in enumerate(enc.offsets) if a < hi_c and b > lo_c]
     assert cols and s.field.split()[0] in s.text[enc.offsets[cols[0]][0]:enc.offsets[cols[-1]][1]], "span mapping failed"
     row_start_char = s.text.rfind("Q: What is the " + s.field)
