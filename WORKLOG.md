@@ -274,3 +274,16 @@
   recovers precision to 0.97 @ recall 0.87 (sweep in this entry's commit).
   Conclusion: weak-label acquisition is viable; calibrate the commit
   threshold on a small clean set at deployment. Experiment C launching.
+- 2026-08-29, Experiment C VERDICT (derived instructions, run stopped
+  saturated at step 1500): beyond-window 100% vs 5.1% zero-code on rules
+  whose answer token NEVER appears in the input — the wire stores
+  CONCLUSIONS the frozen trunk infers from clues (knowledge in the frozen
+  wiring supplies the inference; focus carries its result). Pre-registered
+  paraphrase probe splits the system: DETECTION overfit in this run (0/8
+  commits on novel clue phrasings — gate latched onto trained clue
+  surface), but the VALUE pathway is SEMANTIC: with the write forced, 5/8
+  correct on never-seen phrasings (chance 6.25%, p~2e-6). All three
+  experiments now closed: A (wire beats pinning where pinning is
+  impossible), B (differential survives label noise; gates self-heal +
+  calibrate), C (wire carries inferred conclusions; writer semantic,
+  detector the weak link). Next: era report + Qwen3-1.7B design.
