@@ -420,3 +420,20 @@
   pre-expected to match oracle accuracy and cannot make those claims.
   Next: S2 learned selector (scorer on cached h20 features, hard argmax,
   config inherited), paired base/oracle/selector on n>=128.
+- 2026-08-29, S2 REGISTERED PASS + baselines (results/qwen/s2-selector.json):
+  learned selector address accuracy 128/128 on validation; paired behavioral
+  eval base 55/128 (43%) / oracle 114/128 (89%) / SELECTOR 114/128 (89%) —
+  net closure 1.00 (gate 0.5). The full Miller loop demonstrated: a learned
+  contentless ~3-bit wire equals the oracle spotlight on a frozen trunk.
+  BASELINES (same 128 sessions): oracle-line re-insertion 128/128 (embeds
+  oracle selection; pre-registered as accuracy-trivializing); FULL-LEDGER
+  re-insertion 128/128 at ~123 extra tokens/query (no selection knowledge
+  needed). HONEST BOTTOM LINE: on this task, text re-insertion is a
+  complete solution at modest token cost — the selector's registered win is
+  addressability + zero-identity + cost (3 bits vs 123 tokens/query), not
+  capability. Per plan ("let the trivial baselines decide whether S3
+  deserves to exist"): S3's case must come from regimes where re-insertion
+  is impossible (content compacted away before pinning — the GPT-2 Exp A
+  structural case) or costly (large ledgers, latency). DECISION POINT for
+  Brian: build S3 in that regime, or close the selector program as a clean
+  mechanism-positive with the baseline verdict recorded.
