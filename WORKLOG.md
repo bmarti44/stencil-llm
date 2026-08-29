@@ -231,3 +231,16 @@
   Sol deployment ladder: finish run; final differential at n>=128 (extend
   final eval — n=64/family gives only ~118 beyond); second seed; transplant
   + shuffled-cache controls; then structured-API-first Qwen design.
+- 2026-08-28, v8 closed early at Brian's call (saturated: 100% everything,
+  identical evals 1500/2000; step-2000 ckpt = final artifact). CLOSING
+  CHECKS (scripts/cache_final_checks.py): extended differential n=128 seqs
+  (253 beyond queries): 100.0% learned vs 4.3% zero-code (+95.7 pts;
+  registered >=8). Zero-code also kills within (3.9%) — model is fully
+  wire-routed. TRANSPLANT 28/32 donor-rule answers on a statement-free
+  tail with carried donor state; shuffled-values control 1/32. Protocol
+  note: FINAL_SPACE seeds used for these checks outside the (superseded)
+  single-shot marker ritual — recorded, not concealed. GPT-2 era verdict:
+  mechanism existence, causal isolation, multi-slot dynamics, and state
+  transplant all POSITIVE; usefulness pending experiments A (baseline
+  fight), B (weak-label commits), C (derived instructions — Brian's
+  agent-discovery question).
