@@ -211,3 +211,23 @@
   transition) and >=8 pts at the final n>=128 eval, else close the era.
   Raw beyond comparisons vs v7 are dishonest (shared ~12% non-memory
   floor); teacher-forced-writes advantage must be disclosed in any writeup.
+- 2026-08-28, STEP-1500 RESULT + dual meaning review (sol + fable): cache-v8
+  held-out learned-gate eval: near 100%, within 100%, BEYOND-WINDOW 100%
+  (59/59) vs 3.4% zero-code — differential ~97 pts; gate PR 1.0/1.0. The
+  registered gate is passed decisively; the wire is causally responsible
+  (fable probe: statement at pos 60, query at 995, answer travels only
+  through the wire; 4-rules+update fully learned-addressed 4/4; PARAPHRASE
+  GENERALIZATION confirmed — unseen phrasings commit and answer 4/4).
+  Convergent verdict (sol: results/gpt2-meaning-review-sol.md; fable: in
+  this commit's message trail): mechanism existence + causal isolation
+  PROVEN to an unusual standard; the module itself is memory-network
+  lineage (not novel machinery); USEFULNESS UNPROVEN — critical missing
+  experiment is the trivial-baseline fight (re-insertion/pinning scores
+  ~100% at zero cost; wire must win a token-budget-charged + robustness
+  comparison) and an unsupervised/weak-label commit experiment before Qwen.
+  Known walls (fable probes): quotes load-bearing for commit; closed
+  16-answer content wall (novel words store garbage); advWrites leak of 1
+  under learned gates; teacher-forced-write training advantage disclosed.
+  Sol deployment ladder: finish run; final differential at n>=128 (extend
+  final eval — n=64/family gives only ~118 beyond); second seed; transplant
+  + shuffled-cache controls; then structured-API-first Qwen design.
