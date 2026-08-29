@@ -45,3 +45,21 @@ def test_qwen3_forward_deterministic() -> None:
         a = model(toks)
         b = model(toks)
     assert torch.equal(a, b)
+
+
+@needs_weights
+def test_attn_bias_paths_bitwise_and_live() -> None:
+    """Selector pre-tests: None bias == base bitwise; EXPLICIT zero bias ==
+    base bitwise (exercised path, not a short-circuit); nonzero bias changes
+    logits (non-vacuity)."""
+    model = _load()
+    toks = torch.randint(0, 151936, (1, 128), generator=torch.Generator().manual_seed(7)).cuda()
+    t = toks.shape[1]
+    zero = {L: torch.zeros(t, t, device="cuda") for L in range(20, 28)}
+    spot = {L: torch.zeros(t, t, device="cuda") for L in range(20, 28)}
+    for L in spot:
+        spot[L][100:, 10:20] = 4.0
+    with torch.no_grad():
+        base = model(toks)
+        assert torch.equal(model(toks, attn_bias=zero), base), "zero bias not identity"
+        assert not torch.equal(model(toks, attn_bias=spot), base), "bias ignored (vacuous)"

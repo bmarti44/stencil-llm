@@ -88,6 +88,7 @@ class _Block(nn.Module):
         cos: torch.Tensor,
         sin: torch.Tensor,
         inj: torch.Tensor | None = None,
+        attn_bias: torch.Tensor | None = None,  # (t, t) fp32, added pre-softmax
     ) -> torch.Tensor:
         c = Qwen3Config
         b, t, _ = x.shape
@@ -104,6 +105,8 @@ class _Block(nn.Module):
         att = (q.float() @ k.float().transpose(-2, -1)) / (c.head_dim ** 0.5)
         mask = torch.triu(torch.full((t, t), float("-inf"), device=x.device), diagonal=1)
         att = att + mask
+        if attn_bias is not None:
+            att = att + attn_bias.float()
         out = (F.softmax(att, dim=-1) @ v.float()).to(x.dtype)
         out = out.transpose(1, 2).reshape(b, t, c.n_head * c.head_dim)
         x = x + self.o_proj(out)
@@ -131,6 +134,7 @@ class Qwen3(nn.Module):
         tokens: torch.Tensor,
         *,
         inj: dict[int, torch.Tensor] | None = None,
+        attn_bias: dict[int, torch.Tensor] | None = None,
         return_hidden: int | None = None,
     ) -> torch.Tensor:
         x = self.embed_tokens(tokens)
@@ -138,6 +142,10 @@ class Qwen3(nn.Module):
         for i, block in enumerate(self.layers):
             if return_hidden is not None and i == return_hidden:
                 return x
-            x = block(x, cos, sin, None if inj is None else inj.get(i))
+            x = block(
+                x, cos, sin,
+                None if inj is None else inj.get(i),
+                None if attn_bias is None else attn_bias.get(i),
+            )
         x = self.norm(x)
         return x.float() @ self.embed_tokens.weight.float().T

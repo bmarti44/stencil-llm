@@ -160,14 +160,19 @@ def generate_governance(seed: int, n_obligations: int = 8, n_stale: int = 3) -> 
     # interference block (registered retune 1): format-identical notes AFTER
     # the ledger, no staleness cues — selection must run on source authority
     # (the instruction says only the ledger is authoritative), not surface
-    # wording. Recency bias works against the correct answer.
+    # wording. Measured failure mode (fable, p=6.6e-8): PRIMACY — the first
+    # post-ledger lookalike wins; a ledger-boundary/authority confusion.
     parts.insert(0, "Only the 'Current settings ledger' below is authoritative; ignore later notes.\n")
     off = len(parts[0])
     spans = {k: (lo + off, hi + off) for k, (lo, hi) in spans.items()}
+    others = [f for f in fields if f != field]
+    o1 = others[int(torch.randint(0, len(others), (1,), generator=g))]
+    o2 = others[int(torch.randint(0, len(others), (1,), generator=g))]
     chatter = [
         f" Note: the {field} is {stale_vals[0]}.",
-        " " + pick(FILLER),
+        f" Note: the {o1} is {_value(g)}.",
         f" Note: the {field} is {stale_vals[1]}.",
+        f" Note: the {o2} is {_value(g)}.",
         " " + pick(FILLER),
         f" Note: the {field} is {stale_vals[2]}.",
     ]

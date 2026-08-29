@@ -172,7 +172,7 @@ def test_derived_family() -> None:
             s = generate(seed, family=fam, bpe=bpe)
             assert len(s.tokens) == 1024
             assert 1 <= len(s.query_positions) <= 4
-            for p, slot, ans in zip(s.query_positions, s.query_slots, s.active_answer, strict=True):
+            for p, _slot, ans in zip(s.query_positions, s.query_slots, s.active_answer, strict=True):
                 ans_id = bpe.encode(" " + ans)[0]
                 assert s.targets[p] == ans_id
                 # the answer token must appear NOWHERE in any statement span
