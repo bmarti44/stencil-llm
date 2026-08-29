@@ -13,7 +13,6 @@ from stencil.qwen_task import generate  # noqa: E402
 
 
 def load_tok():
-    import json
     tok_cfg = ROOT / "models" / "qwen3-1.7b-hf"
     sys.path.insert(0, str(ROOT / "src"))
     # minimal: reuse HF tokenizer via tokenizers package if present, else worker

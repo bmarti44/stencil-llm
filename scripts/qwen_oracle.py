@@ -14,9 +14,10 @@ import torch.nn.functional as F
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
-from stencil.qwen3 import Qwen3, _rope  # noqa: E402
-from stencil.qwen_task import generate  # noqa: E402
 from tokenizers import Tokenizer  # noqa: E402
+
+from stencil.qwen3 import Qwen3  # noqa: E402
+from stencil.qwen_task import generate  # noqa: E402
 
 INJ_LAYERS = (24, 25, 26, 27)
 

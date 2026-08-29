@@ -336,3 +336,15 @@
   2 risk retired: injection at blocks 24-27 drives arbitrary multi-token
   generation through the frozen trunk with the evidence DELETED. Next: P1
   microfit (q3-api-micro-r8-s0).
+- 2026-08-29, QWEN P1 microfit PASSED: q3-api-micro — cache (structured
+  writes, no learned gates, NO LoRA per burden test) learns end-to-end on
+  32 fixed sessions: evidence chunk written to state, DELETED, query chunk
+  answers exact multi-token open-content values through the frozen trunk.
+  TRAIN exact 1.00 (gate 0.95) vs zero-code 0.00 -> differential 100 pts
+  (gate 50). Iteration ladder within the run: 64 steps flat (undertrained)
+  -> 512 steps loss 0.87 exact 0 -> multi-vector reader (4 sub-values/slot
+  so position-varying queries can walk a static write into a token
+  SEQUENCE; the single-vector code lived in a <=4-dim simplex) -> 19% ->
+  + grad-accum 4 + cosine decay -> loss 0.0005, 100%. Held-out 0.00 as
+  expected at microfit (32-session memorization); generalization is P2's
+  question (data scale). src/stencil/qwen_cache.py, scripts/qwen_p1_micro.py.
