@@ -21,6 +21,8 @@ INJ_LAYERS = (24, 25, 26, 27)
 WRITE_LAYER = 20  # hidden states feeding the writer / reader
 D_KEY = 64
 D_VAL = 1024  # 4 x 256 flattened
+V_TOK = 12    # max stored value tokens (per-token transcript path)
+D_TOK = 128   # per-token projection width
 D_CODE = 512
 
 
@@ -42,14 +44,18 @@ class QwenFocusCache(nn.Module):
         self.pool_q = nn.Parameter(torch.empty(4, D_KEY))     # four-query span pooling
         self.pool_k = nn.Linear(c.d_model, D_KEY)
         self.key_mlp = nn.Sequential(nn.Linear(c.d_model, 256), nn.GELU(), nn.Linear(256, 4 * D_KEY))
+        self.val_mean = nn.Sequential(nn.Linear(c.d_model, 1024), nn.GELU(), nn.Linear(1024, D_VAL))
+        self.val_tok = nn.Linear(c.d_model, D_TOK)   # per-token value transcript
+        self.tok_code = nn.Linear(D_TOK, D_CODE)     # transcript -> code contribution
+        self.step_q = nn.Linear(c.d_model, V_TOK)    # which transcript position to read
         self.val_mlp = nn.Sequential(nn.Linear(c.d_model, 1024), nn.GELU(), nn.Linear(1024, D_VAL // 4))
         self.query = nn.Linear(c.d_model, D_KEY)
         self.code_proj = nn.Linear(D_VAL // 4, D_CODE)
         self.inj = nn.ModuleList(nn.Linear(D_CODE, c.d_model, bias=False) for _ in INJ_LAYERS)
-        for lin in [m for m in self.key_mlp if isinstance(m, nn.Linear)] + [m for m in self.val_mlp if isinstance(m, nn.Linear)] + [self.query, self.code_proj, self.pool_k]:
+        for lin in [m for m in self.key_mlp if isinstance(m, nn.Linear)] + [m for m in self.val_mlp if isinstance(m, nn.Linear)] + [m for m in self.val_mean if isinstance(m, nn.Linear)] + [self.query, self.code_proj, self.pool_k]:
             nn.init.normal_(lin.weight, std=0.02, generator=g)
             nn.init.zeros_(lin.bias)
-        nn.init.normal_(self.pool_q, std=0.02, generator=g)
+        nn.init.normal_(self.pool_q, std=1.0, generator=g)  # strong distinct queries: break view symmetry from step 0
         for lin in self.inj:
             nn.init.zeros_(lin.weight)  # bitwise inert until trained
 
@@ -69,9 +75,16 @@ class QwenFocusCache(nn.Module):
             span = h[0, lo:hi].float()                       # (s, d)
             att = torch.softmax(self.pool_q @ self.pool_k(span).T / (D_KEY ** 0.5), dim=-1)
             pooled = att @ span                              # (4, d) four views of the span
-            val = self.val_mlp(pooled).reshape(-1)           # 4 x 256 -> 1024
+            # mean path (fast, coarse) + pooled per-view path (precise)
+            val = self.val_mean(span.mean(dim=0)) + self.val_mlp(pooled).reshape(-1)
+            # per-token transcript of the VALUE tokens (focus.set knows its
+            # value argument): identity-preserving by construction.
+            transcript = torch.zeros(V_TOK, D_TOK, device=h.device)
+            if len(ev) > 5 and ev[4] is not None:
+                vlo, vhi = ev[4], min(ev[5], ev[4] + V_TOK)
+                transcript[: vhi - vlo] = self.val_tok(h[0, vlo:vhi].float())
             key = self.key_mlp(span.mean(dim=0))             # addressing from the whole note
-            state.slots[slot] = (key, val)
+            state.slots[slot] = (key, torch.cat([val, transcript.reshape(-1)]))
         return state
 
     def read_inj(self, h: torch.Tensor, state: QwenCacheState) -> dict[int, torch.Tensor]:
@@ -80,13 +93,20 @@ class QwenFocusCache(nn.Module):
         if not state.slots:
             return {}
         ids = sorted(state.slots)
-        # 4 sub-entries per slot: position-varying queries can walk through a
-        # value's sub-vectors, letting a static write drive a token SEQUENCE.
+        # summary part: 4 sub-entries per slot; transcript part: per-token.
         K = torch.cat([state.slots[i][0].view(4, D_KEY) for i in ids])      # (4n, D_KEY)
-        V = torch.cat([state.slots[i][1].view(4, D_VAL // 4) for i in ids])  # (4n, 256)
+        V = torch.cat([state.slots[i][1][:D_VAL].view(4, D_VAL // 4) for i in ids])  # (4n, 256)
+        T_ = torch.stack([state.slots[i][1][D_VAL:].view(V_TOK, D_TOK) for i in ids])  # (n, V_TOK, D_TOK)
         q = self.query(h.float())                                            # (1, t, D_KEY)
-        att = torch.softmax(q @ K.T / (D_KEY ** 0.5), dim=-1)
+        att = torch.softmax(q @ K.T / (D_KEY ** 0.5), dim=-1)               # (1, t, 4n)
         code = self.code_proj(att @ V)                                       # (1, t, D_CODE)
+        # slot-level attention (sum over each slot's 4 sub-entries) selects
+        # which transcript to read; step_q selects the position within it.
+        slot_att = att.view(1, -1, len(ids), 4).sum(-1)                      # (1, t, n)
+        step_att = torch.softmax(self.step_q(h.float()), dim=-1)             # (1, t, V_TOK)
+        chosen = torch.einsum("btn,nvd->btvd", slot_att, T_)                 # (1, t, V_TOK, D_TOK)
+        tok_read = torch.einsum("btv,btvd->btd", step_att, chosen)           # (1, t, D_TOK)
+        code = code + self.tok_code(tok_read)
         return {L: self.inj[j](code).to(h.dtype) for j, L in enumerate(INJ_LAYERS)}
 
 

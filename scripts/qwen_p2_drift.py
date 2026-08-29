@@ -39,13 +39,23 @@ OUT.mkdir(parents=True, exist_ok=True)
 def build(seed: int):
     s = generate_drift(seed)
     chunk_toks, chunk_events = [], []
-    for chunk in s.chunks:
+    for ci, chunk in enumerate(s.chunks):
         ids: list[int] = []
         events = []
-        for line, slot, kind in chunk:
-            piece = tok.encode((" " if ids else "") + line).ids
+        for li, (line, slot, kind) in enumerate(chunk):
+            lead = " " if ids else ""
+            piece = tok.encode(lead + line).ids
             if slot is not None:
-                events.append((len(ids), len(ids) + len(piece), slot, kind))
+                vlo = vhi = None
+                value = (s.values_by_line or {}).get((ci, li))
+                if value is not None:
+                    idx = line.index(" " + value)
+                    pre = tok.encode(lead + line[:idx]).ids
+                    prev = tok.encode(lead + line[:idx] + " " + value).ids
+                    assert piece[: len(prev)] == prev and prev[: len(pre)] == pre, "value span tokenization mismatch"
+                    vlo = len(ids) + len(pre)
+                    vhi = len(ids) + len(prev)
+                events.append((len(ids), len(ids) + len(piece), slot, kind, vlo, vhi))
             ids += piece
         chunk_toks.append(torch.tensor([ids]))
         chunk_events.append(events)

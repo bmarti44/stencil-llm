@@ -79,9 +79,10 @@ class DriftSession:
     Each chunk is a list of (line_text, slot_id_or_None, kind) with kind in
     {"set", "update", "clear", "filler"}."""
 
-    chunks: list[list[tuple[str, int | None, str]]]
+    chunks: list[list[tuple[str, int | None, str]]]  # line, slot, kind
     queries: list[tuple[str, str, str | None]]  # (field, current_value, stale_value_or_None)
-    query_parts: list[str]
+    query_parts: list[str] = None
+    values_by_line: dict[tuple[int, int], str] = None  # (chunk_idx, line_idx) -> value substring
 
 
 def generate_drift(seed: int, n_obligations: int = 4) -> DriftSession:
@@ -93,8 +94,10 @@ def generate_drift(seed: int, n_obligations: int = 4) -> DriftSession:
     fields = [FIELDS[int(i)] for i in torch.randperm(len(FIELDS), generator=g)[:n_obligations]]
     current = {f: _value(g) for f in fields}
     stale: dict[str, str] = {}
+    vals: dict[tuple[int, int], str] = {}
     c0: list[tuple[str, int | None, str]] = []
     for f in fields:
+        vals[(0, len(c0))] = current[f]
         c0.append((f"Note: the {f} is {current[f]}.", FIELDS.index(f), "set"))
     for _ in range(3):
         c0.append((pick(FILLER), None, "filler"))
@@ -105,6 +108,7 @@ def generate_drift(seed: int, n_obligations: int = 4) -> DriftSession:
     for f in upd:
         stale[f] = current[f]
         current[f] = _value(g)
+        vals[(1, len(c1))] = current[f]
         c1.append((f"Update: the {f} is now {current[f]}.", FIELDS.index(f), "update"))
         c1.append((pick(FILLER), None, "filler"))
     c1.append((f"The {clear_f} note is obsolete; disregard it.", FIELDS.index(clear_f), "clear"))
@@ -119,4 +123,4 @@ def generate_drift(seed: int, n_obligations: int = 4) -> DriftSession:
     for f in q_fields:
         parts.append(f"Q: What is the {f}? Answer with the exact value only.\nA: The {f} is")
         queries.append((f, current[f], stale.get(f)))
-    return DriftSession(chunks=[c0, c1], queries=queries, query_parts=parts)
+    return DriftSession(chunks=[c0, c1], queries=queries, query_parts=parts, values_by_line=vals)
