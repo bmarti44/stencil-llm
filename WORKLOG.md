@@ -509,3 +509,22 @@
   disclosed at registration; generality is T2's question (held-out
   formats/types). Next: T2 scripted-session benchmark DESIGN + the
   registered design review (sol+fable) before any T2 run.
+- 2026-08-29, T2 DESIGN REVIEW verdicts — build BLOCKED pending contract v2:
+  sol 6 HIGHs + 13 MUSTs (results/t2-design-review-sol.md); fable DO-NOT-
+  BUILD with 7 MUSTs + a decisive probe (results/qwen/t1-obligation-
+  blindness-probe.json): the T1 timing head fires 32/32 at syntax moments
+  with NO obligations present (0 false fires /1502 in-dist) — timing is
+  obligation-BLIND syntax detection, and T1's address was a forced choice
+  among only the true sentences, so NO learned component has yet read an
+  obligation. PROCESS DEBT RECORDED: T1's registration named parser-timed,
+  always-on/oracle, and shuffled/wrong arms that were never executed; the
+  pass went unqualified. Mapping note: oracle timing IS the regex parser,
+  so oracle/learned == parser-timed + learned address (present under
+  another name, 0.859); the genuinely missing arms (always-on/oracle,
+  shuffled-timing/wrong-span) are being run now as T1-completion. Contract
+  v2 will merge both MUST lists (single shared compaction survival rule;
+  address candidates incl. superseded + distractor quotes; registered
+  abstain mechanism with numeric false-press gate; scoreable held-out
+  types incl. one at a TRAINED moment class; degenerate-pass-proof gate
+  arithmetic with registered Ns and paired tests; component gates carried
+  forward; parser-timed named as an arm).
