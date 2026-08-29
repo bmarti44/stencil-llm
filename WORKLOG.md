@@ -498,3 +498,14 @@
   adoption at selected config: hint 58%->3%, doc 20%->5%. TIMED-SELECTOR-
   PLAN promoted from draft to governing (Brian: "continue with T0"). Next:
   T1 — learned timing head + learned address scorer, factorial arms.
+- 2026-08-29, T1 PASSED at ceiling (results/qwen/timed-t1.json): AST-
+  grounded moment labels (192 rollouts, 728 moments); timing head precision
+  1.000 / recall 1.000 (tau frozen 0.5, all taus equivalent); address
+  scorer 1.000; factorial on fresh val: base 0.646, oracle/oracle 0.859,
+  learned/oracle 0.859, oracle/learned 0.859, LEARNED/LEARNED 0.859 —
+  closure 1.00, paired parse lost 0. Honest note: ceiling scores partly
+  reflect that these three moment types are strongly syntactic in h20 and
+  addresses are template-matchable (order-randomized but same templates) —
+  disclosed at registration; generality is T2's question (held-out
+  formats/types). Next: T2 scripted-session benchmark DESIGN + the
+  registered design review (sol+fable) before any T2 run.
