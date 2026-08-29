@@ -446,3 +446,8 @@
   wrong-span 0/61. beta=2 insufficient at scale (25%) — the registered
   one-time dose re-check selected beta=4. Oracle ~80% vs re-insertion 84%
   @503 tok/query. A2 (learned selector at N=32) launching.
+- 2026-08-29, S3-A2 PASS (val 3.9%->78.9%, closure 0.91, address 91.4%) and
+  SEALED FINAL PASS on untouched 11.95M seeds: base 5/128 -> selector
+  113/128 = 88.3% (oracle 124/128, closure 0.91, address 89.8%). SELECTOR
+  PROGRAM COMPLETE — every registered gate passed through the sealed final.
+  Report: results/selector-report.md. Scorer weights saved.
