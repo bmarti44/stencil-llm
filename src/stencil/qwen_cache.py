@@ -53,11 +53,16 @@ class QwenFocusCache(nn.Module):
     def write(
         self,
         h: torch.Tensor,                      # (1, t, d) block-WRITE_LAYER states of the evidence chunk
-        events: list[tuple[int, int, int]],   # (span_lo, span_hi, slot_id)
+        events: list[tuple],   # (span_lo, span_hi, slot_id[, kind]) kind in set/update/clear
         state: QwenCacheState | None = None,
     ) -> QwenCacheState:
         state = state or QwenCacheState()
-        for lo, hi, slot in events:
+        for ev in events:
+            lo, hi, slot = ev[0], ev[1], ev[2]
+            kind = ev[3] if len(ev) > 3 else "set"
+            if kind == "clear":
+                state.slots.pop(slot, None)
+                continue
             enc = h[0, lo:hi].float().mean(dim=0)
             state.slots[slot] = (self.key_mlp(enc), self.val_mlp(enc))
         return state
