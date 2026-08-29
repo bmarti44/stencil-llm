@@ -291,3 +291,12 @@
   experiments, negative ladder, caveat register, Qwen design). Registered
   step 6 remainder: one sol xhigh results review of the report (held
   session), pending Brian's go.
+- 2026-08-29, final review loop CLOSED in 2 rounds: round-1 highs from both
+  reviewers fixed with committed artifacts (10k adversarial no-write: 0
+  writes; external-ledger baseline 26.0%; paraphrase probe 8/8 commits /
+  6/8 correct; threshold sweep 0.995/1.000; chunk claim narrowed; Exp C
+  attribution fixed). Round 2: SOL SIGN-OFF (99%) + FABLE SIGN-OFF, no
+  high/critical remaining (results/gpt2-round2-signoffs.md); sol's two
+  non-blocking numeric nits applied. Both reviewers' Qwen plans received
+  (sol: results/gpt2-final-review-sol.md part 2); synthesis into
+  QWEN-PLAN.md is next, pending Brian.

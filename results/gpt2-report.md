@@ -102,9 +102,9 @@ rehearsal) remains open; slots could hold oscillator states drop-in.
   answers, one templated grammar. Real horizons are orders of magnitude
   longer and untemplated.
 - **Gate compliance**: the registered READ-ridge gate (>50% by step 500) was
-  missed at step 500 ([0.08/0.33/0.42/0.50]) and recovered by 1500; the
+  missed at step 500 ([0.00/0.17/0.33/0.42]) and recovered by 1500; the
   final differential gate was passed decisively. One training seed (s0)
-  throughout; ~2.01M trainable params including the logit bias.
+  throughout; ~1.96M model trainables (1.98M optimizer trainables incl. aux heads).
 
 ## Next rung (agreed)
 

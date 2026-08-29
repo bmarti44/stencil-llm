@@ -1,6 +1,6 @@
 # ruff: noqa
 # ruff: noqa
-"""Experiment A: the wire vs the trivial baseline (pin/re-insert text).
+"""Experiment A variant: EXTERNAL-LEDGER baseline (every update retained and re-inserted regardless of visibility).
 
 Scenario: compaction at C = first query - 40. Everything before C is deleted.
 - BASELINE: base-v3 (100% near skill, no memory by proof) reads
