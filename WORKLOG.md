@@ -379,3 +379,22 @@
   (mem_key+slot_bias / mem_val, single masked softmax, no step schedule,
   no summary path), same declared schedule and gates, fresh validation
   seeds unchanged. Both-miss => stop condition 3.
+- 2026-08-29, STOP CONDITION 3 FIRED — the fused Qwen focus-cache effort is
+  closed as a registered negative: both confirmatory attempts (confirm1
+  repaired transcript-walk; confirm2 content-addressed cross-attention)
+  missed the step-500 gate (free-running held-out 0%, differential 0 vs
+  >=50%/>=15) on fresh validation seeds under the declared schedule. The
+  honest verdict: at Qwen3-1.7B with a frozen trunk and NO LoRA, the cache
+  has proven CAPACITY (P1: 100% train exact, 100-pt differential) but did
+  not GENERALIZE the value binding within two registered attempts (~6k
+  fresh sessions each); the persistent diagnostic is first-value-token
+  content at chance while format rides the prior. Named candidate causes
+  for any future registered program (NOT rescues of this one): the no-LoRA
+  trim (trunk cannot adapt its reading of the injected code), fp32 span
+  encodings through a 1-layer writer, and the fused memory+selector design
+  itself. Per QWEN-PLAN: no escalation to 7B on this line. NEXT DECISION
+  (Brian-endorsed direction, pending his go): the SPLIT architecture —
+  working memory stored as text/transcript (no contest with the ledger),
+  the wire as a contentless SELECTOR/governor deciding which stored
+  obligation presses on the current token (the Miller 'mobile stencil'
+  claim proper). That is a new registered program, not an amendment.
