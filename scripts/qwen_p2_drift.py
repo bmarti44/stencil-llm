@@ -140,7 +140,7 @@ def evaluate(seeds, zero_code=False):
 STEPS = 1500
 opt = torch.optim.Adam(cache.parameters(), lr=3e-3)
 sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=STEPS, eta_min=3e-4)
-HELD = list(range(9_500_000, 9_500_032))
+HELD = list(range(9_600_000, 9_600_032))  # confirmatory validation (Amendment 1)
 t0 = time.time()
 history = []
 for step in range(STEPS):
