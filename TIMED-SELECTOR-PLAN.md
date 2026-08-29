@@ -59,3 +59,54 @@ as before; T2 is built only after T1 passes.
 3. Any unregistered rescue. On stop: full autopsy; the SELECTOR program's
    published results stand unaffected (sol: the short-answer/long-
    generation distinction is mechanistically sound).
+
+## T2 CONTRACT (draft for the registered design review — no runs until both
+## reviewers clear it)
+
+**Fixture.** One tiny Python module (2-3 stub functions) + the deterministic
+AST/exec checker as the "environment" (hash-pinned). No external tools.
+
+**Sessions (fully scripted, seeded).** Turn types: user instruction turns
+(add/update/clear obligations: naming, docstring-opener, annotation-type,
+plus one process rule), work requests (write/modify a named function),
+deterministic environment feedback (checker findings on the previous work
+turn, templated), distractor turns (quoting conflicting/superseded values in
+prose), and compaction events at fixed turns (context truncated to the last
+K turns; what survives is arm policy). Strata: 20/40/60 turns; obligations
+accumulate 6-12 with 2-5 updates incl. one reversal; 1-3 compactions.
+
+**Governance opportunities** are emitted by the GENERATOR (which obligations
+apply to each work request), independent of any detector. Scoring: AST/exec
+checker; missed moments and invalid code count as nonadherent — denominators
+never shrink.
+
+**Arms.** base; selector (T1 learned/learned, retrained on T2 train split,
+tau recalibrated on calib split then frozen); oracle selector (ceiling);
+pinned-ledger prompt; full-ledger re-insertion at each work turn
+(token-charged). Compaction-summary baseline DEFERRED (registered: requires
+a summarizer policy; revisit at G4-equivalent). Standing controls:
+wrong-span, rate-matched random-timing, zero-selector bitwise identity.
+
+**Held-out generality.** Val/final sessions include one obligation type
+absent from training (registered: "every function body ends with a comment
+'# reviewed'"). Expectation registered NOW: the detector may safely ABSTAIN
+on unseen types (scores as base behavior there); a false press is a
+failure. Precision stays primary.
+
+**Metrics.** Per-opportunity adherence (micro) + per-session macro;
+stale-action rate (obeying a superseded obligation); conflict adoption;
+parse/exec validity (paired); cumulative prompt tokens per arm; activation
+rate; per-example JSON with full transcript, ledger states, activations,
+and checker results.
+
+**Gates.** (1) selector closes >= 0.5 of the base->oracle adherence gap on
+val; (2) cost-adjusted: selector adherence >= re-insertion adherence - 2pts
+at <= 50% of its cumulative prompt tokens, OR beats it outright; (3) paired
+parse loss == 0; (4) stale-action rate <= half of base's. Final untouched
+seeds only if val gates pass.
+
+**Seeds.** dev 12.6M / train 12.65M / calib 12.7M / val 12.75M / final
+12.8M (untouched).
+
+**Stop.** Gates missed after one registered tau/dose recalibration => stop;
+autopsy; T0/T1 results stand.
