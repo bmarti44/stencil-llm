@@ -300,3 +300,10 @@
   non-blocking numeric nits applied. Both reviewers' Qwen plans received
   (sol: results/gpt2-final-review-sol.md part 2); synthesis into
   QWEN-PLAN.md is next, pending Brian.
+- 2026-08-29, QWEN-PLAN.md written (merged sol+fable plans): six phases each
+  <1 day, run-admission timing rule, open-content oracle in P0 (effort-
+  ending risk first), structured focus API before autonomous salience,
+  matched-trained baseline gauntlet with Pareto usefulness gate, the
+  owner's discovery-driven scenario as P3's measured object, seven
+  mechanical stop conditions (decisive: text-ledger Pareto dominance).
+  Pending Brian's approval to begin P0.
