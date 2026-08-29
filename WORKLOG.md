@@ -287,3 +287,7 @@
   impossible), B (differential survives label noise; gates self-heal +
   calibrate), C (wire carries inferred conclusions; writer semantic,
   detector the weak link). Next: era report + Qwen3-1.7B design.
+- 2026-08-29, era report written: results/gpt2-report.md (result, three
+  experiments, negative ladder, caveat register, Qwen design). Registered
+  step 6 remainder: one sol xhigh results review of the report (held
+  session), pending Brian's go.
