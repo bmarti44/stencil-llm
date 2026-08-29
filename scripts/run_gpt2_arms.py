@@ -13,6 +13,7 @@ Trunk frozen; results/gpt2/<arm>-s<seed>.json + .pt written.
 from __future__ import annotations
 
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -43,7 +44,7 @@ REPLAY_EVERY = 4  # iteration 3: 1 in 4 phase-2 items replays the near family
 
 
 def tag(arm: str, seed: int) -> str:
-    return f"{arm}-v8-s{seed}"
+    return f"{arm}-v8{os.environ.get('TAG_SUFFIX', '')}-s{seed}"
 
 
 def build(arm: str, seed: int) -> GatedGPT2:
@@ -190,6 +191,28 @@ def train_cache(arm: str, seed: int) -> None:
         toks, tgts, seqs = batch(seeds, family=fam, bpe=bpe)
         toks_d, tgts_d = toks.to(DEV), tgts.to(DEV)
         sal_m, com_m, labels, slot_ov = cache_masks(seqs, toks.shape[1], DEV)
+        drop_p = float(os.environ.get("NOISE_DROP", "0"))
+        spur_p = float(os.environ.get("NOISE_SPUR", "0"))
+        if drop_p or spur_p:
+            # Experiment B: corrupt the teachers deterministically per step.
+            gn = torch.Generator().manual_seed(seed * 1_000_003 + step)
+            for bi, s in enumerate(seqs):
+                for lo, hi in s.rule_spans:
+                    if hi - 1 >= toks.shape[1]:
+                        continue
+                    if float(torch.rand((), generator=gn)) < drop_p:
+                        sal_m[bi, lo:hi] = False
+                        com_m[bi, hi - 1] = False
+                        slot_ov[bi, hi - 1] = -1
+                if spur_p and float(torch.rand((), generator=gn)) < spur_p:
+                    fp = int(torch.randint(200, toks.shape[1] - 1, (1,), generator=gn))
+                    sal_m[bi, max(0, fp - 5):fp + 1] = True
+                    com_m[bi, fp] = True
+                    slot_ov[bi, fp] = int(torch.randint(0, 8, (1,), generator=gn))
+            labels = [
+                (bi, pos, slot, ans) for (bi, pos, slot, ans) in labels
+                if bool(com_m[bi, pos])
+            ]
         # teacher-forced forward (training only)
         pos_emb = torch.arange(toks.shape[1], device=DEV)
         x = model.wte(toks_d) + model.wpe(pos_emb)

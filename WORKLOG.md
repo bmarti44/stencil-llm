@@ -244,3 +244,16 @@
   transplant all POSITIVE; usefulness pending experiments A (baseline
   fight), B (weak-label commits), C (derived instructions — Brian's
   agent-discovery question).
+- 2026-08-28, Experiment A (baseline fight, scripts/exp_a_baseline_fight.py):
+  compaction at first-query-40, tail repacked to pos 0. WIRE 80.2% with 0
+  carried tokens (~5KB state; drop from 100% = position-shift on repacking,
+  honest). BASELINE (base-v3 + pinned statements, recency policy, only
+  statements still within reach at compaction, budget K): ceiling 22.1%
+  flat from K=64; ~40% of queried rules were structurally UNPINNABLE
+  (statements left reach before compaction) -> chance 3.9% there; even
+  pinned slots only 34.5% (re-inserted text also suffers position shift).
+  Caveat recorded: a baseline TRAINED on pinned layouts would beat 34.5%
+  on pinnable slots; nothing rescues the unpinnable 40%. Headline: the
+  wire wins exactly where pinning is impossible. Experiment B (teacher
+  noise 30% drop / 10% spurious, TAG_SUFFIX=noise) wired + smoked;
+  launching full run.
