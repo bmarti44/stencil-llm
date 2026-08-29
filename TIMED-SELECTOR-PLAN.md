@@ -1,4 +1,4 @@
-# TIMED-SELECTOR-PLAN — per-moment governance of code generation (DRAFT, pending Brian's go)
+# TIMED-SELECTOR-PLAN — per-moment governance of code generation (GOVERNING; Brian-approved 2026-08-29)
 
 Successor to AGENTIC-PLAN (stopped at its G1 gate: the always-on oracle is
 the registered negative). The timed per-moment spotlight is the research

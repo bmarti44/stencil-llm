@@ -488,3 +488,13 @@
   address memorization (must randomize layout); regex-label distillation
   (must hold out obligation types, evaluate on own rollouts, report moment
   precision/recall with precision primary).
+- 2026-08-29, T0 PASSED (results/qwen/timed-t0.json, fresh 12.3M seeds, AST
+  + subprocess-execution scorer, randomized obligation order): SELECTED
+  b=2 timed {20-27}: parse-gated mean 0.667 -> 0.885 (+21.9, gate +15),
+  paired parse lost 0 (gate 0), parse rate 100%; b=4 correctly rejected
+  (1 parse lost despite +22.9). Controls at signature: wrong-sentence
+  0.411 with conflict adoption rising (harmful — span-specific);
+  rate-matched random moments 0.630 ~ base (timing load-bearing). Conflict
+  adoption at selected config: hint 58%->3%, doc 20%->5%. TIMED-SELECTOR-
+  PLAN promoted from draft to governing (Brian: "continue with T0"). Next:
+  T1 — learned timing head + learned address scorer, factorial arms.

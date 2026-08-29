@@ -200,10 +200,10 @@ CODE_PREFIXES = ["qz", "vx", "mk", "tp", "rw", "js", "hn", "bl"]
 DOC_OPENERS = ["Computes", "Returns", "Performs", "Handles", "Evaluates", "Produces", "Derives", "Yields"]
 HINT_TYPES = ["int", "float", "str", "bool"]
 CODE_REQUESTS = [
-    "Write a Python function that returns the sum of two numbers.",
-    "Write a Python function that returns the larger of two numbers.",
-    "Write a Python function that multiplies two numbers.",
-    "Write a Python function that returns a number minus another number.",
+    ("Write a Python function that returns the sum of two numbers.", "sum"),
+    ("Write a Python function that returns the larger of two numbers.", "max"),
+    ("Write a Python function that multiplies two numbers.", "mul"),
+    ("Write a Python function that returns a number minus another number.", "sub"),
 ]
 
 
@@ -211,14 +211,18 @@ CODE_REQUESTS = [
 class CodeGovSession:
     """Implicit governance: obligations constrain CODE GENERATION; the
     request names no obligation. Values are session-drawn so compliance is
-    regex-checkable and cannot be prior knowledge."""
+    checkable and cannot be prior knowledge. T0: obligation order is
+    randomized per session; per-sentence char spans and the requested
+    operation are retained (registered instrument contract)."""
 
     text: str
     obligations_span: tuple[int, int]  # char span of the authoritative block
     prefix: str
     doc_opener: str
     hint_type: str
-    conflict: dict  # conflicting values from the interference notes
+    conflict: dict
+    op: str = ""
+    sentence_spans: dict = None  # {"prefix"|"doc"|"hint": (char_lo, char_hi)}
 
 
 def generate_codegov(seed: int) -> CodeGovSession:
@@ -232,21 +236,27 @@ def generate_codegov(seed: int) -> CodeGovSession:
     c_opener = pick([o for o in DOC_OPENERS if o != opener])
     c_hint = pick([h for h in HINT_TYPES if h != hint])
     head = "Only the 'Coding standards' block below is authoritative; ignore later notes.\n"
-    obligations = (
-        "Coding standards:"
-        f" All function names must start with '{prefix}_'."
-        f" Every docstring must begin with the word '{opener}'."
-        f" All function arguments must be type-hinted as {hint}."
-    )
+    sentences = {
+        "prefix": f" All function names must start with '{prefix}_'.",
+        "doc": f" Every docstring must begin with the word '{opener}'.",
+        "hint": f" All function arguments must be type-hinted as {hint}.",
+    }
+    order = [list(sentences)[int(i)] for i in torch.randperm(3, generator=g)]
+    obligations = "Coding standards:" + "".join(sentences[k] for k in order)
     lo = len(head)
     hi = lo + len(obligations)
+    sent_spans = {}
+    cursor = lo + len("Coding standards:")
+    for k in order:
+        sent_spans[k] = (cursor, cursor + len(sentences[k]))
+        cursor += len(sentences[k])
     chatter = (
         f" Note: function names must start with '{c_prefix}_'."
         f" {FILLER[int(torch.randint(0, len(FILLER), (1,), generator=g))]}"
         f" Note: docstrings must begin with the word '{c_opener}'."
         f" Note: arguments must be type-hinted as {c_hint}."
     )
-    req = pick(CODE_REQUESTS)
+    req, op = pick(CODE_REQUESTS)
     text = head + obligations + chatter + f"\n\nTask: {req}\nAnswer with only the code.\n```python\n"
     return CodeGovSession(
         text=text,
@@ -255,4 +265,6 @@ def generate_codegov(seed: int) -> CodeGovSession:
         doc_opener=opener,
         hint_type=hint,
         conflict={"prefix": c_prefix, "doc_opener": c_opener, "hint_type": c_hint},
+        op=op,
+        sentence_spans=sent_spans,
     )
