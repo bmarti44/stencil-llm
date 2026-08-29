@@ -538,3 +538,14 @@
   syntax-timed pressing of harness-selected spans matches the oracle";
   obligation READING is untested until T2 v2. T2 CONTRACT v2 committed
   (merged MUSTs). Next: light round-2 review of v2, then the T2 build.
+- 2026-08-29, T2 DESIGN REVIEW CLOSED — dual sign-off on CONTRACT v3 (fable
+  round-2 sign-off on v2 MUSTs stands + sol round-3 SIGN-OFF on v3's four
+  repairs: ledger survives compaction for all arms — the wire is tested on
+  SELECTION, memory stays the ledger's job; full opportunity tuple + exact
+  stale definition; >= 48-pair active/absent/cleared/stale-only
+  counterfactual set per split; complete freeze list with single named
+  fallback; absolute floors A_sel >= 0.70 and lift >= 0.10). Build order:
+  (1) session generator (src/stencil/t2_sessions.py) + generator unit
+  tests incl. counterfactual-set construction; (2) multi-turn arm runner +
+  AST/exec/tokenize scorers; (3) selector training per frozen recipe; (4)
+  post-build pre-run hash audit (mandatory); (5) dev shakeout, then val.
