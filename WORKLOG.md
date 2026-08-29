@@ -454,3 +454,15 @@
 - 2026-08-29, AGENTIC-PLAN.md registered (G1 implicit-governance oracle ->
   G2 deterministic scripted-session benchmark -> G3 runtime -> G4 registered
   comparison -> G5 7B rung; stop conditions + review points). Executing G1.
+- 2026-08-29, G1 PASSED via the registered re-check (results/qwen/
+  agentic-g1.json, agentic-g1b.json): admission base mean compliance 67.7%
+  (prefix 95%, doc 61%, hint 47% with 45% CONFLICT ADOPTION) — in band.
+  Always-on oracle FAILED the gate instructively (suppresses conflicts to 0
+  but wrecks generation: validity 95->56% @b2, 11% @b4 — continuous
+  attention forcing starves code-writing of working context). The one
+  registered re-check: TIMED oracle — spotlight the relevant obligation
+  sentence only at its decision moment (post-'def ', docstring opener,
+  annotation site), current prediction row only. b=4: mean compliance
+  0.677 -> 0.901 (+22.4), conflict adoption 0/0/0, validity 0.938. The
+  per-moment governance thesis confirmed: the wave presses transiently.
+  Next per plan: sol+fable G1 reviews before the G2 benchmark build.

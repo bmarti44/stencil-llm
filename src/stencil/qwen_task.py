@@ -194,3 +194,65 @@ def generate_governance(seed: int, n_obligations: int = 8, n_stale: int = 3, fie
         value=current[field],
         stale_values=stale_vals,
     )
+
+
+CODE_PREFIXES = ["qz", "vx", "mk", "tp", "rw", "js", "hn", "bl"]
+DOC_OPENERS = ["Computes", "Returns", "Performs", "Handles", "Evaluates", "Produces", "Derives", "Yields"]
+HINT_TYPES = ["int", "float", "str", "bool"]
+CODE_REQUESTS = [
+    "Write a Python function that returns the sum of two numbers.",
+    "Write a Python function that returns the larger of two numbers.",
+    "Write a Python function that multiplies two numbers.",
+    "Write a Python function that returns a number minus another number.",
+]
+
+
+@dataclass
+class CodeGovSession:
+    """Implicit governance: obligations constrain CODE GENERATION; the
+    request names no obligation. Values are session-drawn so compliance is
+    regex-checkable and cannot be prior knowledge."""
+
+    text: str
+    obligations_span: tuple[int, int]  # char span of the authoritative block
+    prefix: str
+    doc_opener: str
+    hint_type: str
+    conflict: dict  # conflicting values from the interference notes
+
+
+def generate_codegov(seed: int) -> CodeGovSession:
+    g = torch.Generator().manual_seed(seed)
+
+    def pick(pool):
+        return pool[int(torch.randint(0, len(pool), (1,), generator=g))]
+
+    prefix, opener, hint = pick(CODE_PREFIXES), pick(DOC_OPENERS), pick(HINT_TYPES)
+    c_prefix = pick([p for p in CODE_PREFIXES if p != prefix])
+    c_opener = pick([o for o in DOC_OPENERS if o != opener])
+    c_hint = pick([h for h in HINT_TYPES if h != hint])
+    head = "Only the 'Coding standards' block below is authoritative; ignore later notes.\n"
+    obligations = (
+        "Coding standards:"
+        f" All function names must start with '{prefix}_'."
+        f" Every docstring must begin with the word '{opener}'."
+        f" All function arguments must be type-hinted as {hint}."
+    )
+    lo = len(head)
+    hi = lo + len(obligations)
+    chatter = (
+        f" Note: function names must start with '{c_prefix}_'."
+        f" {FILLER[int(torch.randint(0, len(FILLER), (1,), generator=g))]}"
+        f" Note: docstrings must begin with the word '{c_opener}'."
+        f" Note: arguments must be type-hinted as {c_hint}."
+    )
+    req = pick(CODE_REQUESTS)
+    text = head + obligations + chatter + f"\n\nTask: {req}\nAnswer with only the code.\n```python\n"
+    return CodeGovSession(
+        text=text,
+        obligations_span=(lo, hi),
+        prefix=prefix,
+        doc_opener=opener,
+        hint_type=hint,
+        conflict={"prefix": c_prefix, "doc_opener": c_opener, "hint_type": c_hint},
+    )
