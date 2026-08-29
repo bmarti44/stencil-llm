@@ -324,3 +324,15 @@
   2048, p90 1.04 s/step -> 192-step run ~3 min compute — far inside the 2h
   envelope. Remaining P0: session/task generator, visible-task >=80% upper
   bound, open-content oracle ceiling.
+- 2026-08-29, QWEN P0 COMPLETE, all gates passed: (1) parity 8/8 top-1 +
+  bitwise fixture + determinism (earlier entry); (2) timing p90 1.04s/step;
+  (3) open-content task built (src/stencil/qwen_task.py: composed
+  multi-token values, worked-example prompt; checker lesson: score decoded
+  TEXT, not standalone-encoded ids — BPE context mismatch produced a false
+  0/32); (4) VISIBLE-TASK UPPER BOUND 32/32 = 100% (gate 80%; task format
+  iterated once — two-part values invited truncation, hyphen-joined fixed
+  it); (5) OPEN-CONTENT ORACLE 8/8 first-token AND 8/8 exact continuation,
+  CE -> 0.000 (scripts/qwen_oracle.py; gates 6/8 and 4/8) — stop-condition
+  2 risk retired: injection at blocks 24-27 drives arbitrary multi-token
+  generation through the frozen trunk with the evidence DELETED. Next: P1
+  microfit (q3-api-micro-r8-s0).
