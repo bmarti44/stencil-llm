@@ -451,3 +451,6 @@
   113/128 = 88.3% (oracle 124/128, closure 0.91, address 89.8%). SELECTOR
   PROGRAM COMPLETE — every registered gate passed through the sealed final.
   Report: results/selector-report.md. Scorer weights saved.
+- 2026-08-29, AGENTIC-PLAN.md registered (G1 implicit-governance oracle ->
+  G2 deterministic scripted-session benchmark -> G3 runtime -> G4 registered
+  comparison -> G5 7B rung; stop conditions + review points). Executing G1.
