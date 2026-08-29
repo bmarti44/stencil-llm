@@ -75,6 +75,26 @@ ANSWER_WORDS = [
     "fish", "rain", "gold", "lord", "horse", "snow", "black", "wolf",
 ]
 DEMO_PAIRS = [("pen", "ink"), ("day", "night")]
+# Experiment C: clue phrasings whose referent GPT-2 knows; the answer word
+# itself never appears in a derived statement (leak-guarded by test).
+DERIVED_CLUES = {
+    "dog": "the pet animal that barks",
+    "moon": "what glows in the night sky",
+    "blue": "the color of the clear sky",
+    "queen": "the royal wife of a king",
+    "bird": "the small animal that flies and sings",
+    "star": "what twinkles far away at night",
+    "green": "the color of fresh grass",
+    "prince": "the young son of a king",
+    "fish": "the animal that swims in the sea",
+    "rain": "what falls from dark clouds",
+    "gold": "the precious yellow metal of treasure",
+    "lord": "the noble master of the manor",
+    "horse": "the animal that people ride",
+    "snow": "what falls white in cold winter",
+    "black": "the color of the darkest night",
+    "wolf": "the wild animal that howls",
+}
 FILLER = [
     "The weather stayed calm through the long afternoon.",
     "A quiet street ran past the old stone bridge.",
@@ -100,7 +120,12 @@ class NLSequence:
     rule_events: list[tuple[int, int, str]]  # (last_pos, slot, answer) (v6)
 
 
-def _rule_text(slot_word: str, answer: str, update: bool) -> str:
+def _rule_text(slot_word: str, answer: str, update: bool, derived: bool = False) -> str:
+    if derived:
+        clue = DERIVED_CLUES[answer]
+        if update:
+            return f'Update: reply to "{slot_word}" with {clue} now.'
+        return f'New rule: reply to "{slot_word}" with {clue}.'
     if update:
         return f'Update: reply to "{slot_word}" with "{answer}" now.'
     return f'New rule: reply to "{slot_word}" with "{answer}".'
@@ -129,7 +154,8 @@ def generate(
     toks: list[int] = []
     stmt_pos: dict[int, int] = {}
     events: list[tuple[int, int]] = []  # (token_pos, slot)
-    near = family == "near"
+    derived = family in {"derived", "near_derived"}
+    near = family in {"near", "near_derived"}
     rule_spans: list[tuple[int, int]] = []
     rule_events: list[tuple[int, int, str]] = []
     for s in range(len(SLOT_WORDS)):
@@ -140,14 +166,14 @@ def generate(
         active[s] = ANSWER_WORDS[a]
     if not near:
         for s, w in enumerate(SLOT_WORDS):
-            text = _rule_text(w, active[s], update=False) + " "
+            text = _rule_text(w, active[s], update=False, derived=derived) + " "
             stmt_pos[s] = len(toks)
             toks += bpe.encode(text)
             rule_spans.append((stmt_pos[s], len(toks)))
             rule_events.append((len(toks) - 1, s, active[s]))
             events.append((stmt_pos[s], s))
 
-    gap_bounds = {"train": (2, 6), "drought": (8, 14), "burst": (1, 2), "near": (2, 6)}[family]
+    gap_bounds = {"train": (2, 6), "drought": (8, 14), "burst": (1, 2), "near": (2, 6), "derived": (2, 6), "near_derived": (2, 6)}[family]
 
     def filler_until(target_len: int) -> None:
         while len(toks) < target_len:
@@ -162,7 +188,7 @@ def generate(
         filler_until(middle_end - 80)
         for s, w in enumerate(SLOT_WORDS):
             stmt_pos[s] = len(toks)
-            toks += bpe.encode(_rule_text(w, active[s], update=False) + " ")
+            toks += bpe.encode(_rule_text(w, active[s], update=False, derived=derived) + " ")
             rule_spans.append((stmt_pos[s], len(toks)))
             rule_events.append((len(toks) - 1, s, active[s]))
             events.append((stmt_pos[s], s))
@@ -177,7 +203,7 @@ def generate(
         a = choice(16, g_c)
         active[s] = ANSWER_WORDS[a]
         stmt_pos[s] = len(toks)
-        toks += bpe.encode(_rule_text(SLOT_WORDS[s], active[s], update=True) + " ")
+        toks += bpe.encode(_rule_text(SLOT_WORDS[s], active[s], update=True, derived=derived) + " ")
         rule_spans.append((stmt_pos[s], len(toks)))
         rule_events.append((len(toks) - 1, s, active[s]))
         events.append((stmt_pos[s], s))

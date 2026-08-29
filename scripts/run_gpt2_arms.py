@@ -44,7 +44,8 @@ REPLAY_EVERY = 4  # iteration 3: 1 in 4 phase-2 items replays the near family
 
 
 def tag(arm: str, seed: int) -> str:
-    return f"{arm}-v8{os.environ.get('TAG_SUFFIX', '')}-s{seed}"
+    suffix = os.environ.get('TAG_SUFFIX', '') or ('derived' if os.environ.get('DERIVED') else '')
+    return f"{arm}-v8{suffix}-s{seed}"
 
 
 def build(arm: str, seed: int) -> GatedGPT2:
@@ -74,7 +75,8 @@ def evaluate(
 ) -> dict:
     model.eval()
     out: dict = {}
-    offs = {"train": 0, "drought": 30_000, "burst": 60_000, "near": 90_000}
+    offs = {"train": 0, "drought": 30_000, "burst": 60_000, "near": 90_000,
+            "near_derived": 120_000, "derived": 150_000}
     with torch.no_grad():
         for family in families:
             hits = {"within": [0, 0], "beyond": [0, 0]}
@@ -184,10 +186,11 @@ def train_cache(arm: str, seed: int) -> None:
     model.train()
     for step in range(STEPS):
         seeds = [TRAIN_SPACE + seed * 100_000 + step * BATCH + i for i in range(BATCH)]
+        fam_near, fam_long = ("near_derived", "derived") if os.environ.get("DERIVED") else ("near", "train")
         if step < CURRICULUM_STEPS:
-            fam: str | list[str] = "near"
+            fam: str | list[str] = fam_near
         else:
-            fam = ["near" if i % REPLAY_EVERY == 0 else "train" for i in range(BATCH)]
+            fam = [fam_near if i % REPLAY_EVERY == 0 else fam_long for i in range(BATCH)]
         toks, tgts, seqs = batch(seeds, family=fam, bpe=bpe)
         toks_d, tgts_d = toks.to(DEV), tgts.to(DEV)
         sal_m, com_m, labels, slot_ov = cache_masks(seqs, toks.shape[1], DEV)
@@ -305,8 +308,9 @@ def train_cache(arm: str, seed: int) -> None:
                 flush=True,
             )
         if step > 0 and (step % 500 == 0 or step == CURRICULUM_STEPS - 1):
-            mid = evaluate(model, bpe, VAL_SPACE, seed, n=32, families=("near", "train"))
-            mid_zero = evaluate(model, bpe, VAL_SPACE, seed, n=32, families=("train",), zero_code=True)
+            fam_near_e, fam_long_e = ("near_derived", "derived") if os.environ.get("DERIVED") else ("near", "train")
+            mid = evaluate(model, bpe, VAL_SPACE, seed, n=32, families=(fam_near_e, fam_long_e))
+            mid_zero = evaluate(model, bpe, VAL_SPACE, seed, n=32, families=(fam_long_e,), zero_code=True)
             ridge = ridge_capture(model, bpe, seed)
             evals.append({
                 "step": step, "eval": mid, "zero_code_train": mid_zero["train"],
@@ -318,10 +322,10 @@ def train_cache(arm: str, seed: int) -> None:
                  "aux_q": aux_q.state_dict(), "aux_v": aux_v.state_dict()},
                 OUT / f"{tag(arm, seed)}-ckpt.pt",
             )
-            bz = mid_zero["train"]["beyond"]["acc"]
+            bz = mid_zero[fam_long_e]["beyond"]["acc"]
             print(
-                f"[{arm} s{seed}] step {step} EVAL near-within {mid['near']['within']['acc']} "
-                f"train within {mid['train']['within']['acc']} beyond {mid['train']['beyond']['acc']} "
+                f"[{arm} s{seed}] step {step} EVAL near-within {mid[fam_near_e]['within']['acc']} "
+                f"train within {mid[fam_long_e]['within']['acc']} beyond {mid[fam_long_e]['beyond']['acc']} "
                 f"beyond-ZEROCODE {bz} RIDGE cap {ridge['capture']} read {ridge['read']} "
                 f"salPR {ridge['sal_pr']} comPR {ridge['com_pr']} occ {ridge['mean_occupancy']} "
                 f"advWrites {ridge['adversarial_writes']}",
@@ -366,7 +370,8 @@ def ridge_capture(model: GatedGPT2, bpe: BPE, seed: int, n: int = 48) -> dict:
     occupancy: list[int] = []
     with torch.no_grad():
         for i in range(n):
-            toks, _, seqs = batch([VAL_SPACE + 700_000 + seed * 10_000 + i], bpe=bpe)
+            rc_fam = "derived" if os.environ.get("DERIVED") else "train"
+            toks, _, seqs = batch([VAL_SPACE + 700_000 + seed * 10_000 + i], family=rc_fam, bpe=bpe)
             s = seqs[0]
             toks_d = toks.to(DEV)
             sal_m, com_m, labels, slot_ov = cache_masks(seqs, toks.shape[1], DEV)

@@ -159,3 +159,27 @@ def test_rule_events_recorded() -> None:
                 assert 0 <= slot < 4
                 assert ans in ANSWER_WORDS
                 assert any(lo <= pos < hi for lo, hi in s.rule_spans)
+
+
+@needs_tok
+def test_derived_family() -> None:
+    """Experiment C: derived rules state a CLUE, never the answer word. The
+    wire must store a conclusion, not a copy."""
+    from stencil.nl_task import generate
+    bpe = BPE()
+    for seed in (0, 5):
+        for fam in ("derived", "near_derived"):
+            s = generate(seed, family=fam, bpe=bpe)
+            assert len(s.tokens) == 1024
+            assert 1 <= len(s.query_positions) <= 4
+            for p, slot, ans in zip(s.query_positions, s.query_slots, s.active_answer, strict=True):
+                ans_id = bpe.encode(" " + ans)[0]
+                assert s.targets[p] == ans_id
+                # the answer token must appear NOWHERE in any statement span
+                for lo, hi in s.rule_spans:
+                    assert ans_id not in s.tokens[lo:hi], f"answer '{ans}' leaked into statement"
+            if fam == "near_derived":
+                for p, slot in zip(s.query_positions, s.query_slots, strict=True):
+                    assert 0 < p - s.rule_statement_pos[slot] <= 250
+    a, b = generate(3, family="derived"), generate(3, family="derived")
+    assert a.tokens == b.tokens

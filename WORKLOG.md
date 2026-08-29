@@ -257,3 +257,12 @@
   wire wins exactly where pinning is impossible. Experiment B (teacher
   noise 30% drop / 10% spurious, TAG_SUFFIX=noise) wired + smoked;
   launching full run.
+- 2026-08-28, Experiment C built (derived instructions — Brian's agent-
+  discovery question): DERIVED_CLUES in nl_task (statement gives a clue,
+  e.g. 'reply to "cat" with the color of the clear sky'; the answer token
+  NEVER appears in any statement — leak-guarded test). Families derived/
+  near_derived; DERIVED=1 runner mode (curriculum, evals, ridge all switch;
+  tag cache-v8derived). TDD red->green; smoke ok. Queued behind Experiment
+  B (noise run in flight). Honesty note: fixed clue phrasings mean success
+  could be surface association rather than semantics; a paraphrase-clue
+  probe at eval will separate them.
