@@ -46,3 +46,38 @@ for: zero-selector == base bitwise, spotlight touches only attention logits.
 
 Stop conditions: S0 band unreachable after one retune; S1 oracle <50% error
 flips; S2 both attempts miss; any result requiring unregistered rescue.
+
+## Amendment 1 (2026-08-29, post sol+fable reviews — binding)
+
+- CARRIER HARDENED (sol): the evaluated wire is a HARD address — argmax span
+  index + fixed-strength bias mask; selector trained by direct span-address
+  CE on cached h20 features (not answer-loss through a soft spotlight). The
+  wire exposed to Qwen is one discrete index (~3 bits) + registered beta.
+- MECHANISM LANGUAGE CORRECTED (fable, p=6.6e-8): errors are PRIMACY-driven
+  conflicting-note echoes (first post-ledger lookalike), not recency capture;
+  "stale" renamed "conflicting-note" in claims. Authority/boundary confusion
+  is the failure the selector fixes.
+- REGISTERED S1: preregistered grid sites {20},{24},{20-27} x beta {2,4}
+  (b=8 overdrives, measured); all heads; bias rows = final-query rows, cols
+  = governing ledger-line token span; gate rescue_rate>=0.50 AND broken==0
+  per sol's paired definitions; wrong-span control <=10% flips; fresh seed
+  block, per-example JSON evidence. (Dev evidence: fable probe flipped
+  32/32 at b=4 layers 20-27; 1/32 broken; wrong-span 2/32.)
+- REGISTERED BASELINES: prompt-restatement FROZEN from fable's probe (7/32
+  and 2/37 flips — does not trivialize); oracle-reinsertion and lookup
+  baselines at S2 close; no-wire LoRA run once as a LABELED REFERENCE (it
+  changes weights; it cannot make the frozen-trunk contentless claim).
+- S2 SIMPLIFIED (sol): one query-key scorer on frozen cached h20 features,
+  hard argmax, beta/site inherited from S1; report address accuracy first;
+  paired base/oracle/selector on identical seeds n>=128 (base wobbles
+  42-50% across 64-seed draws). Capacity fallback only if address accuracy
+  is poor; wiring debug (not retrain) if address is right but behavior
+  isn't; both attempts miss => stop.
+- TASK FIX before S2 data: conflicting notes also name 1-2 NON-queried
+  fields (closes the chatter-frequency shortcut).
+- S0 FROZEN after one fresh-seed confirmation with per-example JSON; the
+  97% pre-retune number is disclosed as non-reproducible (generator since
+  amended). S3 deferred entirely pending S1+S2+baselines.
+- HONEST CLAIM CEILING (sol): this proves a contentless addressing actuator
+  on synthetic authority-conflict prompts; not long-horizon focus, not
+  autonomous authority detection, not agent usefulness.
