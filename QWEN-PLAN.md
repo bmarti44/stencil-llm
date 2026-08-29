@@ -121,3 +121,32 @@ episodes; transplant/zero controls; then, and only then, the 7B rung.
 
 On any stop: record the negative with the same autopsy discipline as the
 oscillator, publish GPT-2 mechanism + Qwen verdict, do not escalate to 7B.
+
+## Amendment 1 (2026-08-29, post sol+fable Qwen reviews — binding)
+
+Everything run at the Qwen rung before this amendment is DEVELOPMENT (adaptive
+iteration; eval seeds 9.5M burned as dev data). P0 stands with scope notes
+(parity/oracle/timing real; task format iterated once; cache pre-tests not
+yet implemented — focus.set events are hereby declared atomically delivered
+at message boundaries, so no mid-value chunk-equivalence is claimed at this
+phase). P1 = capacity proof after adaptive changes, not a registered pass.
+Instrument repairs (registered): FREE-RUNNING per-query eval (no prior gold
+answers; greedy); stale = full-sequence equality with the stale value;
+transcript validity mask + span<=V_TOK assert; new layers seeded; strict
+trunk load; cleared-slot identity + count asserts; immutable VARIANT tags.
+State honesty: the current design is a structured neural token memory
+(~11 KiB/slot fp32 incl. transcript), not compact semantic focus; writeup
+language per results/qwen-review-sol.md finding 4.
+
+CONFIRMATORY PROTOCOL (at most two attempts, then stop condition 3):
+- Attempt 1 "confirm1": the repaired transcript architecture, frozen as of
+  this commit. Schedule declared: 1500 steps, accum 4, Adam 3e-3 cosine to
+  3e-4. Validation seeds 9_600_000-9_600_031 (fresh). Gates: free-running
+  held-out >=50% AND differential >=15 pts at step 500; final: adherence
+  >=70%, differential >=20, honest stale <10%. Miss at 500 => halt.
+- Attempt 2 "confirm2" (only if confirm1 misses): content-addressed
+  cross-attention reader over masked memory tokens (sol's simplification),
+  same schedule/gates, one attempt.
+- Final untouched seeds 9_700_000+ touched only if an attempt passes its
+  step-500 gate. Both attempts miss => stop condition 3 fires: record the
+  Qwen-cache negative honestly.

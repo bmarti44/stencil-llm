@@ -62,7 +62,7 @@ class QwenFocusCache(nn.Module):
     def write(
         self,
         h: torch.Tensor,                      # (1, t, d) block-WRITE_LAYER states of the evidence chunk
-        events: list[tuple],   # (span_lo, span_hi, slot_id[, kind]) kind in set/update/clear
+        events: list[tuple],   # (lo, hi, slot[, kind[, vlo, vhi]]); mutates AND returns state
         state: QwenCacheState | None = None,
     ) -> QwenCacheState:
         state = state or QwenCacheState()
@@ -80,11 +80,14 @@ class QwenFocusCache(nn.Module):
             # per-token transcript of the VALUE tokens (focus.set knows its
             # value argument): identity-preserving by construction.
             transcript = torch.zeros(V_TOK, D_TOK, device=h.device)
+            tmask = torch.zeros(V_TOK, device=h.device)
             if len(ev) > 5 and ev[4] is not None:
-                vlo, vhi = ev[4], min(ev[5], ev[4] + V_TOK)
+                vlo, vhi = ev[4], ev[5]
+                assert vhi - vlo <= V_TOK, f"value span {vhi-vlo} exceeds V_TOK={V_TOK}"
                 transcript[: vhi - vlo] = self.val_tok(h[0, vlo:vhi].float())
+                tmask[: vhi - vlo] = 1.0
             key = self.key_mlp(span.mean(dim=0))             # addressing from the whole note
-            state.slots[slot] = (key, torch.cat([val, transcript.reshape(-1)]))
+            state.slots[slot] = (key, torch.cat([val, transcript.reshape(-1), tmask]))
         return state
 
     def read_inj(self, h: torch.Tensor, state: QwenCacheState) -> dict[int, torch.Tensor]:
@@ -96,14 +99,19 @@ class QwenFocusCache(nn.Module):
         # summary part: 4 sub-entries per slot; transcript part: per-token.
         K = torch.cat([state.slots[i][0].view(4, D_KEY) for i in ids])      # (4n, D_KEY)
         V = torch.cat([state.slots[i][1][:D_VAL].view(4, D_VAL // 4) for i in ids])  # (4n, 256)
-        T_ = torch.stack([state.slots[i][1][D_VAL:].view(V_TOK, D_TOK) for i in ids])  # (n, V_TOK, D_TOK)
+        T_ = torch.stack([state.slots[i][1][D_VAL : D_VAL + V_TOK * D_TOK].view(V_TOK, D_TOK) for i in ids])
+        TM = torch.stack([state.slots[i][1][D_VAL + V_TOK * D_TOK :] for i in ids])  # (n, V_TOK) validity
         q = self.query(h.float())                                            # (1, t, D_KEY)
         att = torch.softmax(q @ K.T / (D_KEY ** 0.5), dim=-1)               # (1, t, 4n)
         code = self.code_proj(att @ V)                                       # (1, t, D_CODE)
         # slot-level attention (sum over each slot's 4 sub-entries) selects
         # which transcript to read; step_q selects the position within it.
         slot_att = att.view(1, -1, len(ids), 4).sum(-1)                      # (1, t, n)
-        step_att = torch.softmax(self.step_q(h.float()), dim=-1)             # (1, t, V_TOK)
+        # mask invalid transcript positions before the step softmax
+        slot_mask = torch.einsum("btn,nv->btv", slot_att, TM)                # (1, t, V_TOK)
+        step_logits = self.step_q(h.float()).masked_fill(slot_mask < 1e-6, float("-inf"))
+        step_att = torch.softmax(step_logits, dim=-1)                        # (1, t, V_TOK)
+        step_att = torch.nan_to_num(step_att)
         chosen = torch.einsum("btn,nvd->btvd", slot_att, T_)                 # (1, t, V_TOK, D_TOK)
         tok_read = torch.einsum("btv,btvd->btd", step_att, chosen)           # (1, t, D_TOK)
         code = code + self.tok_code(tok_read)
