@@ -110,3 +110,81 @@ seeds only if val gates pass.
 
 **Stop.** Gates missed after one registered tau/dose recalibration => stop;
 autopsy; T0/T1 results stand.
+
+## T2 CONTRACT v2 (supersedes the draft; merges sol's 13 MUSTs + fable's 7)
+
+**Compaction (MUST-1).** ONE survival rule for base/selector/oracle/controls:
+context truncates to the last K turns (K=8/12/16 by stratum) at registered
+compaction turns; the ledger does NOT survive for these arms (obligations
+live only in surviving turns). Prompt baselines apply their token-charged
+insertions on top of the same rule from the harness ground-truth ledger
+(stated: oracle-informed baselines). No per-arm survival policies.
+
+**Address candidates (MUST-2).** Candidates = every obligation-like sentence
+in surviving context, INCLUDING superseded versions and distractor prose
+quotes; scored against generator ground truth (latest version); accuracy on
+superseded-present and distractor-present cases reported separately.
+
+**Abstain mechanism (MUST-3).** The address stage has a null option: press
+only if max address score > theta, calibrated on the calib split, frozen.
+Registered gate: unseen-type false-press count == 0 over >= 64 registered
+unseen-type opportunities; seen-type false-press rate <= 2%.
+
+**Held-out types (MUST-4).** Two: (a) "# reviewed" comment rule, scored by
+a registered tokenize/source-text rule (NOT ast — comments are discarded);
+(b) an unseen FORMAT of a trained type (naming rule in an unseen template)
+at a TRAINED moment class, where the syntax head fires and address+abstain
+must discriminate. Neither supports a generality claim alone; both are
+reported as OOD probes with abstention/adherence/false-press separated.
+
+**Opportunities & denominators (S1, sol-1).** The generator emits immutable
+opportunity records: (session, work-turn, obligation-id, moment-class);
+annotation opportunities are per-argument. Micro = per-opportunity across
+all sessions; macro = per-session mean; BOTH gated. Missed/invalid stay in
+all denominators, including stale.
+
+**Arms.** base; selector (learned timing + learned address + abstain);
+oracle/oracle; parser-timed (regex timing + learned address — named);
+pinned-ledger; full-ledger re-insertion (exact: live-ledger only, canonical
+serialization, inserted immediately before each work turn). Controls:
+always-on/oracle, shuffled-timing/wrong-span, zero-selector bitwise,
+retention-only N/A (single survival rule). Factorial diagnostics
+(learned/oracle, oracle/learned) run on the dev split for triage.
+
+**Component gates (MUST-6).** Own-rollout moment precision >= 0.95, recall
+>= 0.8; conditional address accuracy >= 0.9 under the MUST-2 candidate set;
+the MUST-3 false-press gates. All from per-example JSON.
+
+**Behavioral gates (MUST-5, repaired arithmetic).** N = 96 sessions per
+split (registered); minimum oracle headroom for gate 1 to bind:
+A_oracle - A_base >= 0.10 (else T2 is inconclusive-by-design, recorded).
+Gate 1: closure >= 0.5, McNemar-paired. Gate 2 (cost): with C = logical
+input tokens summed over the session (registered definition; no KV
+assumptions) and precondition A_reinsert >= A_base:
+PASS iff (A_sel >= A_reinsert - 0.02 AND C_sel <= 0.5 * C_reinsert) OR
+(A_sel >= A_reinsert + 0.02 AND C_sel <= C_reinsert). C_sel > C_reinsert
+never passes. Gate 3: paired parse loss == 0 AND paired exec/task-success
+loss == 0. Gate 4 (stale): binds only if base stale opportunities >= 24
+per split; then stale rate <= 0.5 * base's.
+
+**Semantics (sol-7).** Adherence scoring via the AST/exec checker with the
+registered target-function policy; task success (execution test) gated in
+Gate 3, not parse alone.
+
+**Provenance (sol-10).** Only scripted user turns author ledger changes;
+distractor text has no authority; unauthorized-write count == 0 asserted
+structurally (the harness owns the ledger — recorded as such, no learned
+write path at T2).
+
+**Freeze (sol-11/12/13, S5).** Session counts, generator distributions,
+decoding (greedy, max-new per turn = 120), checker version, fixture hash,
+evidence schema (raw output, true opportunities, true/predicted moments,
+predicted addresses + scores, spotlight rows/spans, compaction events,
+config hashes, paired-arm identity) — all frozen at the pre-run audit
+commit; a post-build pre-run hash audit is a registered step.
+
+**Scope notes (S2/S3/S4).** The process rule is CUT from T2 (undefined —
+deferred to a later registration). T2 training rollout policy: base + oracle
+rollouts (plan text now matches practice or the deviation is recorded).
+Summary-baseline deferral carries the clause: no usefulness or 7B gate may
+be claimed against summarize-at-compaction before it runs.
