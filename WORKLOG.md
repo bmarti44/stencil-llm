@@ -371,3 +371,11 @@
   config + ONE width fallback; both miss => stop condition 3. Fable
   correctness audit still in flight — repairs wait for it (a forward-pass
   bug would supersede everything).
+- 2026-08-29, confirm1 MISSED its registered step-500 gate (free-running
+  held 0%, differential 0 vs >=50%/>=15) — halted mechanically per
+  Amendment 1; log results/logs/qwen-p2-confirm1.log, artifacts
+  cache-p2-confirm1-*. Attempt 2 (confirm2) built per registration:
+  content-addressed cross-attention reader over masked memory tokens
+  (mem_key+slot_bias / mem_val, single masked softmax, no step schedule,
+  no summary path), same declared schedule and gates, fresh validation
+  seeds unchanged. Both-miss => stop condition 3.

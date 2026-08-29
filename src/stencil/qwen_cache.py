@@ -37,9 +37,10 @@ class QwenCacheState:
 
 
 class QwenFocusCache(nn.Module):
-    def __init__(self, *, seed: int = 0) -> None:
+    def __init__(self, *, seed: int = 0, reader: str = "walk") -> None:
         super().__init__()
         c = Qwen3Config
+        self.reader = reader
         g = torch.Generator().manual_seed(seed)
         self.pool_q = nn.Parameter(torch.empty(4, D_KEY))     # four-query span pooling
         self.pool_k = nn.Linear(c.d_model, D_KEY)
@@ -48,6 +49,10 @@ class QwenFocusCache(nn.Module):
         self.val_tok = nn.Linear(c.d_model, D_TOK)   # per-token value transcript
         self.tok_code = nn.Linear(D_TOK, D_CODE)     # transcript -> code contribution
         self.step_q = nn.Linear(c.d_model, V_TOK)    # which transcript position to read
+        # confirm2 reader: content-addressed cross-attention over memory tokens
+        self.mem_key = nn.Linear(D_TOK, D_KEY)
+        self.mem_val = nn.Linear(D_TOK, D_CODE)
+        self.slot_bias = nn.Linear(4 * D_KEY, D_KEY)
         self.val_mlp = nn.Sequential(nn.Linear(c.d_model, 1024), nn.GELU(), nn.Linear(1024, D_VAL // 4))
         self.query = nn.Linear(c.d_model, D_KEY)
         self.code_proj = nn.Linear(D_VAL // 4, D_CODE)
@@ -95,6 +100,8 @@ class QwenFocusCache(nn.Module):
         per-layer additive injections."""
         if not state.slots:
             return {}
+        if self.reader == "xattn":
+            return self._read_xattn(h, state)
         ids = sorted(state.slots)
         # summary part: 4 sub-entries per slot; transcript part: per-token.
         K = torch.cat([state.slots[i][0].view(4, D_KEY) for i in ids])      # (4n, D_KEY)
@@ -115,6 +122,27 @@ class QwenFocusCache(nn.Module):
         chosen = torch.einsum("btn,nvd->btvd", slot_att, T_)                 # (1, t, V_TOK, D_TOK)
         tok_read = torch.einsum("btv,btvd->btd", step_att, chosen)           # (1, t, D_TOK)
         code = code + self.tok_code(tok_read)
+        return {L: self.inj[j](code).to(h.dtype) for j, L in enumerate(INJ_LAYERS)}
+
+    def _read_xattn(self, h: torch.Tensor, state: QwenCacheState) -> dict[int, torch.Tensor]:
+        """confirm2: one masked cross-attention over ALL valid memory tokens
+        (per-token transcript entries, keyed by content + slot bias)."""
+        ids = sorted(state.slots)
+        keys, vals, valid = [], [], []
+        for i in ids:
+            kslot = self.slot_bias(state.slots[i][0])                       # (D_KEY,)
+            T_ = state.slots[i][1][D_VAL : D_VAL + V_TOK * D_TOK].view(V_TOK, D_TOK)
+            TM = state.slots[i][1][D_VAL + V_TOK * D_TOK :]                 # (V_TOK,)
+            keys.append(self.mem_key(T_) + kslot)
+            vals.append(self.mem_val(T_))
+            valid.append(TM)
+        K = torch.cat(keys)                                                  # (m, D_KEY)
+        V = torch.cat(vals)                                                  # (m, D_CODE)
+        M = torch.cat(valid)                                                 # (m,)
+        q = self.query(h.float())                                            # (1, t, D_KEY)
+        logits = (q @ K.T / (D_KEY ** 0.5)).masked_fill(M[None, None, :] < 1e-6, float("-inf"))
+        att = torch.nan_to_num(torch.softmax(logits, dim=-1))
+        code = att @ V                                                       # (1, t, D_CODE)
         return {L: self.inj[j](code).to(h.dtype) for j, L in enumerate(INJ_LAYERS)}
 
 

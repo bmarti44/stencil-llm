@@ -31,7 +31,7 @@ trunk.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location
 trunk = trunk.to(torch.bfloat16).cuda().eval()
 for p in trunk.parameters():
     p.requires_grad_(False)
-cache = QwenFocusCache(seed=0).cuda()
+cache = QwenFocusCache(seed=0, reader=os.environ.get("READER", "walk")).cuda()
 model = QwenWithCache(trunk, cache)
 OUT = ROOT / "results" / "qwen"
 OUT.mkdir(parents=True, exist_ok=True)
