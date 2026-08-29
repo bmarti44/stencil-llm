@@ -313,7 +313,7 @@ def train_cache(arm: str, seed: int) -> None:
             mid_zero = evaluate(model, bpe, VAL_SPACE, seed, n=32, families=(fam_long_e,), zero_code=True)
             ridge = ridge_capture(model, bpe, seed)
             evals.append({
-                "step": step, "eval": mid, "zero_code_train": mid_zero["train"],
+                "step": step, "eval": mid, "zero_code_long": mid_zero[fam_long_e],
                 "ridge": ridge,
             })
             torch.save(
