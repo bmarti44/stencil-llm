@@ -88,8 +88,9 @@ rehearsal) remains open; slots could hold oscillator states drop-in.
 - **Closed content space**: values select among 16 trained answers; a novel
   word commits but decodes garbage. Open-content values are the hard problem.
 - **Detection brittleness**: quotes were load-bearing in the plain-rule run;
-  clue-surface overfit in the derived run; one adversarial false write under
-  learned gates.
+  novel-phrasing detection in the derived run is real but uneven across
+  phrasing sets (8/8 vs 0/8 on two different probe sets); one occupied slot
+  appeared on one short adversarial stream (0 writes on the 10k stream).
 - **Novelty**: keyed slot memory is memory-network lineage. The contribution
   is the causally-instrumented retrofit protocol and the receipted negative
   ladder, not the module.
