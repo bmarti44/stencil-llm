@@ -266,3 +266,11 @@
   B (noise run in flight). Honesty note: fixed clue phrasings mean success
   could be surface association rather than semantics; a paraphrase-clue
   probe at eval will separate them.
+- 2026-08-28, Experiment B VERDICT (step-1500, run stopped saturated):
+  differential SURVIVES teacher noise (30% dropped spans, 10% spurious
+  writes): beyond 100% vs 3.4% zero-code, capture ridge 95-100%. Gates
+  partially SELF-HEAL (commit precision 0.40 @1000 -> 0.73 @1500, recall
+  1.0; salience back to 1.0/1.0); threshold calibration on the ckpt
+  recovers precision to 0.97 @ recall 0.87 (sweep in this entry's commit).
+  Conclusion: weak-label acquisition is viable; calibrate the commit
+  threshold on a small clean set at deployment. Experiment C launching.
