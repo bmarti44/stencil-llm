@@ -39,14 +39,17 @@ class QwenFocusCache(nn.Module):
         super().__init__()
         c = Qwen3Config
         g = torch.Generator().manual_seed(seed)
+        self.pool_q = nn.Parameter(torch.empty(4, D_KEY))     # four-query span pooling
+        self.pool_k = nn.Linear(c.d_model, D_KEY)
         self.key_mlp = nn.Sequential(nn.Linear(c.d_model, 256), nn.GELU(), nn.Linear(256, 4 * D_KEY))
-        self.val_mlp = nn.Sequential(nn.Linear(c.d_model, 1024), nn.GELU(), nn.Linear(1024, D_VAL))
+        self.val_mlp = nn.Sequential(nn.Linear(c.d_model, 1024), nn.GELU(), nn.Linear(1024, D_VAL // 4))
         self.query = nn.Linear(c.d_model, D_KEY)
         self.code_proj = nn.Linear(D_VAL // 4, D_CODE)
         self.inj = nn.ModuleList(nn.Linear(D_CODE, c.d_model, bias=False) for _ in INJ_LAYERS)
-        for lin in [m for m in self.key_mlp if isinstance(m, nn.Linear)] + [m for m in self.val_mlp if isinstance(m, nn.Linear)] + [self.query, self.code_proj]:
+        for lin in [m for m in self.key_mlp if isinstance(m, nn.Linear)] + [m for m in self.val_mlp if isinstance(m, nn.Linear)] + [self.query, self.code_proj, self.pool_k]:
             nn.init.normal_(lin.weight, std=0.02, generator=g)
             nn.init.zeros_(lin.bias)
+        nn.init.normal_(self.pool_q, std=0.02, generator=g)
         for lin in self.inj:
             nn.init.zeros_(lin.weight)  # bitwise inert until trained
 
@@ -63,8 +66,12 @@ class QwenFocusCache(nn.Module):
             if kind == "clear":
                 state.slots.pop(slot, None)
                 continue
-            enc = h[0, lo:hi].float().mean(dim=0)
-            state.slots[slot] = (self.key_mlp(enc), self.val_mlp(enc))
+            span = h[0, lo:hi].float()                       # (s, d)
+            att = torch.softmax(self.pool_q @ self.pool_k(span).T / (D_KEY ** 0.5), dim=-1)
+            pooled = att @ span                              # (4, d) four views of the span
+            val = self.val_mlp(pooled).reshape(-1)           # 4 x 256 -> 1024
+            key = self.key_mlp(span.mean(dim=0))             # addressing from the whole note
+            state.slots[slot] = (key, val)
         return state
 
     def read_inj(self, h: torch.Tensor, state: QwenCacheState) -> dict[int, torch.Tensor]:
