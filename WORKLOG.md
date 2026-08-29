@@ -313,3 +313,14 @@
   trimmed: slot metadata deferred until a test needs a field; the
   five-baseline gauntlet and the 64-session agentic battery moved behind a
   decision point AFTER the drift run proves mechanism at Qwen scale.
+- 2026-08-29, QWEN P0 underway: Qwen3-1.7B pinned + downloaded; harness
+  implementation src/stencil/qwen3.py (GQA + q/k-norm + RoPE + SwiGLU,
+  fp32 norms/softmax, injection hook + return_hidden probe access);
+  conversion scripts/convert_qwen3.py (hand-parsed safetensors, tied head
+  verified, 310 tensors) — PARITY: 8/8 top-1 vs pinned HF oracle
+  (transformers==4.51.0), worst bf16 max|err| 0.365, our outputs frozen as
+  bitwise fixture; tests/test_qwen3.py green (bitwise parity + two-run
+  determinism). TIMING PROBE (admission rule): top-8-block autograd, ctx
+  2048, p90 1.04 s/step -> 192-step run ~3 min compute — far inside the 2h
+  envelope. Remaining P0: session/task generator, visible-task >=80% upper
+  bound, open-content oracle ceiling.
