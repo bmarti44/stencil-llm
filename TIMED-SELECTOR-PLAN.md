@@ -188,3 +188,41 @@ deferred to a later registration). T2 training rollout policy: base + oracle
 rollouts (plan text now matches practice or the deviation is recorded).
 Summary-baseline deferral carries the clause: no usefulness or 7B gate may
 be claimed against summarize-at-compaction before it runs.
+
+## T2 CONTRACT v3 (v2 + sol round-2 repairs; fable round-2 SIGN-OFF stands)
+
+- **Compaction repaired (supersedes v2 MUST-1 rendering):** the canonical
+  LIVE ledger (current obligations, canonical serialization) SURVIVES every
+  compaction identically for base / selector / oracle / zero-selector /
+  controls — memory is the ledger's job; the wire is tested on SELECTION.
+  Conversation turns truncate to the last K turns (K=8/12/16 by stratum) at
+  registered turns for all arms. Superseded/distractor text lives in
+  turns (and dies with them); the live ledger never contains it.
+  Pinned-ledger baseline = the same surviving ledger ADDITIONALLY repeated
+  immediately before every work turn (placement registered; tokens charged);
+  re-insertion baseline as registered.
+- **Opportunity records:** (opportunity-id, session, turn, obligation-id,
+  target-object, moment-class, active-expected-value, superseded-values,
+  scorer-id); annotation opportunities are per-argument with target-object
+  = arg name. Stale rate: numerator = opportunities whose output obeys a
+  DISTINCT superseded value; denominator = opportunities having >= 1
+  distinct superseded value; invalid/missed outputs denominator-only.
+- **Active/absent counterfactuals (registered set):** each val/final split
+  contains >= 48 paired work turns with identical request syntax where a
+  trained-type obligation is (a) active, (b) absent, (c) cleared, (d)
+  present only as superseded/distractor text. Address/abstain metrics
+  reported on this set separately; false-press gates apply per cell.
+- **Freeze list extended:** timing head = linear 4-way {none,prefix,doc,
+  hint} over h20; address = 64-d query-key scorer with null threshold
+  theta; training = Adam 1e-3, 30 epochs, class weights [1,20,20,20],
+  batch 512, 192 training sessions (base + oracle rollouts, policy fixed
+  NOW); tau and theta calibrated ONCE on the calib split (grids
+  {0.5..0.98} and theta over score quantiles {0.5..0.95}, tie-break:
+  highest recall then lowest tau/theta), then frozen; beta=2, current-row
+  one-token activation, layers 20-27 inherited. ANY validation gate miss
+  stops T2 — no post-validation recalibration; the single registered
+  fallback (address-head capacity: 128-d) may be invoked once only for an
+  address-accuracy miss, on a fresh seed block 12.85M.
+- **Absolute floors (owner-registered):** macro AND micro A_selector >=
+  0.70 on val; A_selector - A_base >= 0.10. The >= 24 stale-opportunity
+  binding condition refers to GENERATOR-DEFINED stale opportunities.
