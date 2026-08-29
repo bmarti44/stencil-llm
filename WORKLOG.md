@@ -398,3 +398,12 @@
   the wire as a contentless SELECTOR/governor deciding which stored
   obligation presses on the current token (the Miller 'mobile stencil'
   claim proper). That is a new registered program, not an amendment.
+- 2026-08-29, SELECTOR program launched (SELECTOR-PLAN.md registered; the
+  Miller-faithful split: text ledger = working memory, wire = contentless
+  attention-spotlight selector). S0 admission: first task too easy (97% —
+  cue words gave selection away); ONE registered retune (format-identical
+  post-ledger notes, authority-instruction-only selection, recency bias
+  against the answer): base 32/64 = 50%, errors 29 stale-echo / 3 other —
+  selection-shaped failure confirmed, gate PASSED. Next: S1 oracle
+  spotlight (attention-logit bias toward the correct ledger span, layers
+  20-27; gate >=50% of errors flipped without breaking correct cases).

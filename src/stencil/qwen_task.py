@@ -124,3 +124,65 @@ def generate_drift(seed: int, n_obligations: int = 4) -> DriftSession:
         parts.append(f"Q: What is the {f}? Answer with the exact value only.\nA: The {f} is")
         queries.append((f, current[f], stale.get(f)))
     return DriftSession(chunks=[c0, c1], queries=queries, query_parts=parts, values_by_line=vals)
+
+
+@dataclass
+class GovernanceSession:
+    """Selection-under-interference: current ledger + stale/confusable
+    chatter + query. All text visible; failures are selection errors."""
+
+    text: str
+    ledger_spans: dict[int, tuple[int, int]]  # slot -> (char_lo, char_hi) of the ledger line
+    field: str
+    value: str
+    stale_values: list[str]  # interference values for the queried field
+
+
+def generate_governance(seed: int, n_obligations: int = 8, n_stale: int = 3) -> GovernanceSession:
+    g = torch.Generator().manual_seed(seed)
+
+    def pick(pool: list[str]) -> str:
+        return pool[int(torch.randint(0, len(pool), (1,), generator=g))]
+
+    fields = [FIELDS[int(i)] for i in torch.randperm(len(FIELDS), generator=g)[:n_obligations]]
+    current = {f: _value(g) for f in fields}
+    qi = int(torch.randint(0, n_obligations, (1,), generator=g))
+    field = fields[qi]
+    stale_vals = [_value(g) for _ in range(n_stale)]
+    # ledger block
+    parts = ["Current settings ledger:"]
+    spans: dict[int, tuple[int, int]] = {}
+    for f in fields:
+        line = f" The {f} is {current[f]}."
+        lo = sum(len(p) for p in parts)
+        parts.append(line)
+        spans[FIELDS.index(f)] = (lo, lo + len(line))
+    # interference block (registered retune 1): format-identical notes AFTER
+    # the ledger, no staleness cues — selection must run on source authority
+    # (the instruction says only the ledger is authoritative), not surface
+    # wording. Recency bias works against the correct answer.
+    parts.insert(0, "Only the 'Current settings ledger' below is authoritative; ignore later notes.\n")
+    off = len(parts[0])
+    spans = {k: (lo + off, hi + off) for k, (lo, hi) in spans.items()}
+    chatter = [
+        f" Note: the {field} is {stale_vals[0]}.",
+        " " + pick(FILLER),
+        f" Note: the {field} is {stale_vals[1]}.",
+        " " + pick(FILLER),
+        f" Note: the {field} is {stale_vals[2]}.",
+    ]
+    for c in chatter:
+        parts.append(c)
+    parts.append(
+        "\nQ: What is the demo field? Answer with the exact value only.\n"
+        "A: The demo field is sample-item-00.zone-a.\n"
+        f"Q: What is the {field}? Answer with the exact value only.\n"
+        f"A: The {field} is"
+    )
+    return GovernanceSession(
+        text="".join(parts),
+        ledger_spans=spans,
+        field=field,
+        value=current[field],
+        stale_values=stale_vals,
+    )
