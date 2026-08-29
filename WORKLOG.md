@@ -348,3 +348,26 @@
   + grad-accum 4 + cosine decay -> loss 0.0005, 100%. Held-out 0.00 as
   expected at microfit (32-session memorization); generalization is P2's
   question (data scale). src/stencil/qwen_cache.py, scripts/qwen_p1_micro.py.
+- 2026-08-29, SOL QWEN REVIEW (results/qwen-review-sol.md) — P2 halted per
+  registered gate: step-500 held 0% / diff 0 decisively missed; continuing
+  would be an unregistered rescue (a stray step-1000 eval showed held 2%
+  before the kill landed — recorded, changes nothing). Highs accepted:
+  (1) evaluator is teacher-forced and leaks prior gold answers — final
+  claims need free-running generation; (2) stale metric confounded by
+  first-token pool collisions (~12.5% floor) — replace with full-sequence
+  stale-exact + likelihood margin; (3) the transcript design is honestly a
+  "structured neural token memory" (~11KiB/slot fp32), NOT compact semantic
+  focus — writeup language prescribed; (4) P0 "pretests" overclaim: cache
+  pre-tests (non-vacuity, chunk-boundary, no-write) not yet implemented for
+  the Qwen cache — implement or amend; (5) all P1/P2 results relabeled
+  DEVELOPMENT (adaptive iteration on the same eval seeds); P1 = capacity
+  proof, not a registered pass. Repair list before any confirmatory run:
+  free-running eval, corrected stale metric, transcript validity mask +
+  truncation handling, immutable artifact tags per variant, seed the new
+  val_tok/tok_code/step_q layers (currently on global RNG — reproducibility
+  defect), ablation battery (summary-only/transcript-only/shuffles/
+  wrong-key transplant), amended QWEN-PLAN (schedule, no-LoRA, fp32 state
+  bytes, dev-vs-confirmatory seed spaces). Then register ONE confirmatory
+  config + ONE width fallback; both miss => stop condition 3. Fable
+  correctness audit still in flight — repairs wait for it (a forward-pass
+  bug would supersede everything).
