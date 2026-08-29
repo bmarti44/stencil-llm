@@ -437,3 +437,7 @@
   structural case) or costly (large ledgers, latency). DECISION POINT for
   Brian: build S3 in that regime, or close the selector program as a clean
   mechanism-positive with the baseline verdict recorded.
+- 2026-08-29, S3-A0 PASS (results/qwen/s3-a0.json): N=8 base 39% / reins
+  100% @123tok; N=16 base 19% / reins 95% @255tok; N=32 base 5% / reins 84%
+  @503tok. N*=32: selection is the bottleneck even with text re-supplied,
+  and re-insertion is costly. A1 (oracle at N*=32) next.

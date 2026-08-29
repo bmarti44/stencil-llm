@@ -19,6 +19,8 @@ FIELDS = [
     "deploy target", "log directory", "review branch", "alert channel",
     "test command", "backup host", "config file", "release tag",
 ]
+# S3 scale: 32 composed field names (Amendment 2)
+FIELDS32 = [f"{p} {b}" for p in ("primary", "staging", "backup", "edge") for b in FIELDS]
 ADJ = ["primary", "staging", "legacy", "fallback", "canary", "shadow", "pinned", "sandbox"]
 NOUN = ["cluster", "bucket", "node", "gateway", "registry", "queue", "volume", "shard"]
 SUFFIX = ["eu-west-2", "us-east-1", "zone-c", "rack-14", "tier-3", "ring-0", "cell-9", "pod-x7"]
@@ -138,13 +140,14 @@ class GovernanceSession:
     stale_values: list[str]  # interference values for the queried field
 
 
-def generate_governance(seed: int, n_obligations: int = 8, n_stale: int = 3) -> GovernanceSession:
+def generate_governance(seed: int, n_obligations: int = 8, n_stale: int = 3, field_pool: list[str] | None = None) -> GovernanceSession:
     g = torch.Generator().manual_seed(seed)
+    pool_fields = field_pool if field_pool is not None else (FIELDS if n_obligations <= 8 else FIELDS32)
 
     def pick(pool: list[str]) -> str:
         return pool[int(torch.randint(0, len(pool), (1,), generator=g))]
 
-    fields = [FIELDS[int(i)] for i in torch.randperm(len(FIELDS), generator=g)[:n_obligations]]
+    fields = [pool_fields[int(i)] for i in torch.randperm(len(pool_fields), generator=g)[:n_obligations]]
     current = {f: _value(g) for f in fields}
     qi = int(torch.randint(0, n_obligations, (1,), generator=g))
     field = fields[qi]
@@ -156,7 +159,7 @@ def generate_governance(seed: int, n_obligations: int = 8, n_stale: int = 3) -> 
         line = f" The {f} is {current[f]}."
         lo = sum(len(p) for p in parts)
         parts.append(line)
-        spans[FIELDS.index(f)] = (lo, lo + len(line))
+        spans[pool_fields.index(f)] = (lo, lo + len(line))
     # interference block (registered retune 1): format-identical notes AFTER
     # the ledger, no staleness cues — selection must run on source authority
     # (the instruction says only the ledger is authoritative), not surface
