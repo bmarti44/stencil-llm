@@ -407,3 +407,16 @@
   selection-shaped failure confirmed, gate PASSED. Next: S1 oracle
   spotlight (attention-logit bias toward the correct ledger span, layers
   20-27; gate >=50% of errors flipped without breaking correct cases).
+- 2026-08-29, S1 REGISTERED PASS (scripts/selector_s1.py, fresh block 11.3M,
+  evidence results/qwen/s1-oracle.json): base 28/64; grid verdicts — single
+  layers insufficient ({20} b4: 25% rescue; {24} b4: 33%), {20-27} b2:
+  rescue 27/36 = 75% with broken == 0 -> GATE PASSED; {20-27} b4 rejected
+  by the strict broken==0 rule (94% rescue, 1 broken) — the registered
+  criterion did real work. Wrong-span control 1/36 = 2.8% (<=10%).
+  SELECTED CONFIG: layers 20-27, beta 2.0. Fable review addendum adopted
+  for S2 framing: victory condition is ADDRESSABILITY (zero-selector ==
+  base bitwise; point the spotlight elsewhere -> different governed
+  behavior; trunk untouched), NOT raw accuracy — a LoRA reference arm is
+  pre-expected to match oracle accuracy and cannot make those claims.
+  Next: S2 learned selector (scorer on cached h20 features, hard argmax,
+  config inherited), paired base/oracle/selector on n>=128.
