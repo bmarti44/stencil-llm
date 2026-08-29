@@ -466,3 +466,25 @@
   0.677 -> 0.901 (+22.4), conflict adoption 0/0/0, validity 0.938. The
   per-moment governance thesis confirmed: the wave presses transiently.
   Next per plan: sol+fable G1 reviews before the G2 benchmark build.
+- 2026-08-29, G1 RECORD CORRECTED per dual review (sol:
+  results/agentic-g1-review-sol.md; fable probes:
+  results/qwen/g1-fable-review-report.json): the ALWAYS-ON oracle is the
+  REGISTERED NEGATIVE — G1's gate was missed and AGENTIC-PLAN stops at its
+  own stop condition. The timed spotlight was an actuator REDESIGN outside
+  the dose/site allowance (three dimensions changed, same seeds, both
+  betas tried) — my earlier "G1 PASSED" entry overstated it; also the
+  admission band was per-obligation (prefix 95% out of band) and the
+  registered validity gate failed strictly (0.953->0.938) and under
+  ast.parse (63->56, McNemar p=0.016 — the regex 'valid' metric HID a real
+  syntax regression). WHAT SURVIVES, now reviewer-verified beyond the
+  original run: the timed per-moment mechanism is real — span-specific
+  (wrong sentence: 0.516, 16 pts BELOW base, conflict adoption rises),
+  time-specific (rate-matched random moments: 0.667 ~ base), fresh-seed
+  stable (12.05M: +22.9), and the validity damage traces to ONE moment-
+  detector false positive (closing-quote docstring refire leaking the
+  opener word into code; 5/8 no-parse cases); with the opening-quote fix,
+  parse-gated compliance is +20.8 at b=4 with validity intact (fable,
+  verified). Learnability traps named: fixed template offsets allow
+  address memorization (must randomize layout); regex-label distillation
+  (must hold out obligation types, evaluate on own rollouts, report moment
+  precision/recall with precision primary).
