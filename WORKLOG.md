@@ -1287,3 +1287,13 @@ script sha256: 2a0ef6480d6a11cda8f715c290aafb45
   fixture seeds contain exactly 1 qualifying opportunity each, W3b
   eligibility ~167 expected interventions (2.8x the n>=60 floor),
   NULL-calibration data path exists.
+- 2026-08-30, W3 DUAL-CLEARED (sol round 5 after the consumer-path fix;
+  fable's HIGH resolved through its prescribed single-path design:
+  t2_runner.build_arm_prompt is now THE prompt constructor, tested via
+  the consumer with a branch-ran assertion). Execution order once the
+  seal audit frees the GPU: NULL-threshold calibration (frozen grid,
+  held W0 seeds, WORKLOG-recorded) -> W3b record run (13.65M, readout +
+  counter-authority override) -> W3a one-shot clean-format validation
+  (13.8M, fail-closed, per-arm build_arm_prompt zero-occurrence
+  assertion pre-tokenization). Then the final report re-verification
+  and program close.
