@@ -26,6 +26,7 @@ from tokenizers import Tokenizer
 
 from stencil.qwen3 import Qwen3
 from stencil.t2_runner import _oracle_moment, run_session, ledger_sentence_spans
+from stencil.t2_select import candidate_spans
 from stencil.t2_sessions import SENT, SENT_UNSEEN_FMT, generate_t2, prompt_at
 
 import os
@@ -41,26 +42,6 @@ tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.jso
 m = Qwen3()
 m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
 m = m.to(torch.bfloat16).cuda().eval()
-
-CAND_PATTERNS = {
-    "prefix": [r"All function names must start with '(\w+)_'\.", r"Use the naming scheme (\w+)_\* for every function you define\."],
-    "doc": [r"Every docstring must begin with the word '(\w+)'\."],
-    "hint": [r"All function arguments must be type-hinted as (\w+)\."],
-}
-
-
-def candidate_spans(prompt_text, enc):
-    """MUST-2: every obligation-like sentence, live or quoted."""
-    cands = []  # (type, value, tok_span, char_start)
-    for ty, pats in CAND_PATTERNS.items():
-        for pat in pats:
-            for match in re.finditer(pat, prompt_text):
-                a, b = match.span()
-                cols = [i for i, (x, y) in enumerate(enc.offsets) if x < b and y > a]
-                if cols:
-                    cands.append((ty, match.group(1), (cols[0], cols[-1] + 1), a))
-    return cands
-
 
 def gen_and_collect(sess, split, arm):
     """Run one arm over a session collecting (state, timing_label) and
@@ -152,97 +133,102 @@ def ast_moments(code, gen_ids):
     return out
 
 
-print("collecting train rollouts (base + oracle)...", flush=True)
-TX, TY, ADDR = [], [], []
-for k, seed in enumerate(TRAIN):
-    sess = generate_t2(seed, 20, "dev", interference=INTERF)
-    for arm in ("base", "oracle"):
-        tx, ty, ad = gen_and_collect(sess, "dev", arm)
-        TX += tx; TY += ty; ADDR += ad
-    if k % 12 == 0:
-        print(f"  {k}/{len(TRAIN)} sessions", flush=True)
-TX = torch.stack(TX); TY = torch.tensor(TY)
-print(f"timing examples {len(TY)} (moments {(TY>0).sum().item()}), address examples {len(ADDR)} (abstain cases {sum(1 for a in ADDR if a[2] is None)})", flush=True)
+def main():
+    print("collecting train rollouts (base + oracle)...", flush=True)
+    TX, TY, ADDR = [], [], []
+    for k, seed in enumerate(TRAIN):
+        sess = generate_t2(seed, 20, "dev", interference=INTERF)
+        for arm in ("base", "oracle"):
+            tx, ty, ad = gen_and_collect(sess, "dev", arm)
+            TX += tx; TY += ty; ADDR += ad
+        if k % 12 == 0:
+            print(f"  {k}/{len(TRAIN)} sessions", flush=True)
+    TX = torch.stack(TX); TY = torch.tensor(TY)
+    print(f"timing examples {len(TY)} (moments {(TY>0).sum().item()}), address examples {len(ADDR)} (abstain cases {sum(1 for a in ADDR if a[2] is None)})", flush=True)
 
-g = torch.Generator().manual_seed(0)
-head = torch.nn.Linear(2048, 4)
-torch.nn.init.normal_(head.weight, std=0.02, generator=g); torch.nn.init.zeros_(head.bias)
-w = torch.tensor([1.0, 20.0, 20.0, 20.0])
-opt = torch.optim.Adam(head.parameters(), lr=1e-3)
-for ep in range(30):
-    perm = torch.randperm(len(TY), generator=g)
-    for i in range(0, len(TY), 512):
-        idx = perm[i:i+512]
-        loss = F.cross_entropy(head(TX[idx]), TY[idx], weight=w)
-        opt.zero_grad(); loss.backward(); opt.step()
+    g = torch.Generator().manual_seed(0)
+    head = torch.nn.Linear(2048, 4)
+    torch.nn.init.normal_(head.weight, std=0.02, generator=g); torch.nn.init.zeros_(head.bias)
+    w = torch.tensor([1.0, 20.0, 20.0, 20.0])
+    opt = torch.optim.Adam(head.parameters(), lr=1e-3)
+    for ep in range(30):
+        perm = torch.randperm(len(TY), generator=g)
+        for i in range(0, len(TY), 512):
+            idx = perm[i:i+512]
+            loss = F.cross_entropy(head(TX[idx]), TY[idx], weight=w)
+            opt.zero_grad(); loss.backward(); opt.step()
 
-Wq = torch.nn.Linear(2048, 64); Wk = torch.nn.Linear(2048, 64)
-for lin in (Wq, Wk):
-    torch.nn.init.normal_(lin.weight, std=0.02, generator=g); torch.nn.init.zeros_(lin.bias)
-aopt = torch.optim.Adam(list(Wq.parameters()) + list(Wk.parameters()), lr=1e-3)
-pos = [(s, cf, t) for s, cf, t, live in ADDR if t is not None]
-for ep in range(60):
-    tot = 0.0
-    for s, cf, t in pos:
-        logits = (Wq(s) @ Wk(cf).T) / 8.0
-        loss = F.cross_entropy(logits[None], torch.tensor([t]))
-        aopt.zero_grad(); loss.backward(); aopt.step()
-        tot += float(loss.detach())
-print(f"address train loss {tot/len(pos):.4f}", flush=True)
+    Wq = torch.nn.Linear(2048, 64); Wk = torch.nn.Linear(2048, 64)
+    for lin in (Wq, Wk):
+        torch.nn.init.normal_(lin.weight, std=0.02, generator=g); torch.nn.init.zeros_(lin.bias)
+    aopt = torch.optim.Adam(list(Wq.parameters()) + list(Wk.parameters()), lr=1e-3)
+    pos = [(s, cf, t) for s, cf, t, live in ADDR if t is not None]
+    for ep in range(60):
+        tot = 0.0
+        for s, cf, t in pos:
+            logits = (Wq(s) @ Wk(cf).T) / 8.0
+            loss = F.cross_entropy(logits[None], torch.tensor([t]))
+            aopt.zero_grad(); loss.backward(); aopt.step()
+            tot += float(loss.detach())
+    print(f"address train loss {tot/len(pos):.4f}", flush=True)
 
-print("calibrating on calib split...", flush=True)
-CX, CY, CADDR = [], [], []
-for seed in CALIB:
-    sess = generate_t2(seed, 20, "dev", interference=INTERF)
-    tx, ty, ad = gen_and_collect(sess, "dev", "base")
-    CX += tx; CY += ty; CADDR += ad
-CX = torch.stack(CX); CY = torch.tensor(CY)
-with torch.no_grad():
-    probs = torch.softmax(head(CX), dim=-1)
-    best = None
-    for tau in [0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.98]:
-        cls = probs[:, 1:].argmax(dim=-1) + 1
-        conf = probs.gather(1, cls[:, None]).squeeze(1)
-        pred = torch.where(conf > tau, cls, torch.zeros_like(cls))
-        tp = ((pred > 0) & (pred == CY)).sum().item()
-        fp = ((pred > 0) & (pred != CY)).sum().item()
-        fn = ((pred == 0) & (CY > 0)).sum().item()
-        prec = tp / (tp + fp) if tp + fp else 0
-        rec = tp / (tp + fn) if tp + fn else 0
-        if prec >= 0.95 and (best is None or rec > best[2]):
-            best = (tau, prec, rec)
-    assert best, "no tau reaches precision 0.95"
-    TAU = best[0]
-    # theta: max address score quantile separating live from abstain cases
-    live_scores, abstain_scores = [], []
-    for s, cf, t, live in CADDR:
-        sc = float(((Wq(s) @ Wk(cf).T) / 8.0).max())
-        (live_scores if live else abstain_scores).append(sc)
-    theta_best = None
-    import numpy as _np
-    for q in [0.5, 0.6, 0.7, 0.8, 0.9, 0.95]:
-        theta = float(_np.quantile(abstain_scores, q)) if abstain_scores else -1e9
-        fpress = sum(1 for sc in abstain_scores if sc > theta)
-        kept = sum(1 for sc in live_scores if sc > theta)
-        prec_ok = fpress == 0
-        if theta_best is None or (prec_ok and kept > theta_best[2]):
-            if prec_ok or theta_best is None:
-                theta_best = (theta, fpress, kept, q)
-    THETA = theta_best[0]
-    addr_acc = 0
-    naddr = 0
-    for s, cf, t, live in CADDR:
-        if t is None:
-            continue
-        naddr += 1
-        addr_acc += int(int(((Wq(s) @ Wk(cf).T) / 8.0).argmax()) == t)
-print(f"FROZEN tau={TAU} (prec {best[1]:.3f} rec {best[2]:.3f}) theta={THETA:.3f} "
-      f"(calib abstain false-press {theta_best[1]}/{len(abstain_scores)}, live kept {theta_best[2]}/{len(live_scores)}) "
-      f"addr acc {addr_acc}/{naddr}", flush=True)
-torch.save({"head": head.state_dict(), "Wq": Wq.state_dict(), "Wk": Wk.state_dict(),
-            "tau": TAU, "theta": THETA,
-            "calib": {"precision": best[1], "recall": best[2],
-                      "abstain_false_press": theta_best[1], "n_abstain": len(abstain_scores),
-                      "addr_acc": addr_acc / max(1, naddr)}},
-           ROOT / "results" / "qwen" / ("t2b-selector.pt" if T2B else "t2-selector.pt"))
-print("saved results/qwen/t2-selector.pt")
+    print("calibrating on calib split...", flush=True)
+    CX, CY, CADDR = [], [], []
+    for seed in CALIB:
+        sess = generate_t2(seed, 20, "dev", interference=INTERF)
+        tx, ty, ad = gen_and_collect(sess, "dev", "base")
+        CX += tx; CY += ty; CADDR += ad
+    CX = torch.stack(CX); CY = torch.tensor(CY)
+    with torch.no_grad():
+        probs = torch.softmax(head(CX), dim=-1)
+        best = None
+        for tau in [0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.98]:
+            cls = probs[:, 1:].argmax(dim=-1) + 1
+            conf = probs.gather(1, cls[:, None]).squeeze(1)
+            pred = torch.where(conf > tau, cls, torch.zeros_like(cls))
+            tp = ((pred > 0) & (pred == CY)).sum().item()
+            fp = ((pred > 0) & (pred != CY)).sum().item()
+            fn = ((pred == 0) & (CY > 0)).sum().item()
+            prec = tp / (tp + fp) if tp + fp else 0
+            rec = tp / (tp + fn) if tp + fn else 0
+            if prec >= 0.95 and (best is None or rec > best[2]):
+                best = (tau, prec, rec)
+        assert best, "no tau reaches precision 0.95"
+        TAU = best[0]
+        # theta: max address score quantile separating live from abstain cases
+        live_scores, abstain_scores = [], []
+        for s, cf, t, live in CADDR:
+            sc = float(((Wq(s) @ Wk(cf).T) / 8.0).max())
+            (live_scores if live else abstain_scores).append(sc)
+        theta_best = None
+        import numpy as _np
+        for q in [0.5, 0.6, 0.7, 0.8, 0.9, 0.95]:
+            theta = float(_np.quantile(abstain_scores, q)) if abstain_scores else -1e9
+            fpress = sum(1 for sc in abstain_scores if sc > theta)
+            kept = sum(1 for sc in live_scores if sc > theta)
+            prec_ok = fpress == 0
+            if theta_best is None or (prec_ok and kept > theta_best[2]):
+                if prec_ok or theta_best is None:
+                    theta_best = (theta, fpress, kept, q)
+        THETA = theta_best[0]
+        addr_acc = 0
+        naddr = 0
+        for s, cf, t, live in CADDR:
+            if t is None:
+                continue
+            naddr += 1
+            addr_acc += int(int(((Wq(s) @ Wk(cf).T) / 8.0).argmax()) == t)
+    print(f"FROZEN tau={TAU} (prec {best[1]:.3f} rec {best[2]:.3f}) theta={THETA:.3f} "
+          f"(calib abstain false-press {theta_best[1]}/{len(abstain_scores)}, live kept {theta_best[2]}/{len(live_scores)}) "
+          f"addr acc {addr_acc}/{naddr}", flush=True)
+    torch.save({"head": head.state_dict(), "Wq": Wq.state_dict(), "Wk": Wk.state_dict(),
+                "tau": TAU, "theta": THETA,
+                "calib": {"precision": best[1], "recall": best[2],
+                          "abstain_false_press": theta_best[1], "n_abstain": len(abstain_scores),
+                          "addr_acc": addr_acc / max(1, naddr)}},
+               ROOT / "results" / "qwen" / ("t2b-selector.pt" if T2B else "t2-selector.pt"))
+    print("saved results/qwen/t2-selector.pt")
+
+
+if __name__ == "__main__":
+    main()

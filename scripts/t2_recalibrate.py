@@ -21,16 +21,15 @@ import os
 T2B = bool(os.environ.get("T2B"))
 NAME = "t2b-selector.pt" if T2B else "t2-selector.pt"
 sel = torch.load(ROOT / "results" / "qwen" / NAME, map_location="cpu")
-T.head.load_state_dict(sel["head"])
-T.Wq.load_state_dict(sel["Wq"])
-T.Wk.load_state_dict(sel["Wk"])
+Wq = torch.nn.Linear(2048, 64); Wq.load_state_dict(sel["Wq"])
+Wk = torch.nn.Linear(2048, 64); Wk.load_state_dict(sel["Wk"])
 live, abstain = [], []
 for seed in T.CALIB:
     sess = generate_t2(seed, 20, "dev", interference=("s0" if T2B else "v3"))
     _, _, ad = T.gen_and_collect(sess, "dev", "base")
     with torch.no_grad():
         for s, cf, t, is_live in ad:
-            sc = float(((T.Wq(s) @ T.Wk(cf).T) / 8.0).max())
+            sc = float(((Wq(s) @ Wk(cf).T) / 8.0).max())
             (live if is_live else abstain).append(sc)
 THETA = max(abstain) + 1e-6 if abstain else -1e9
 kept = sum(1 for sc in live if sc > THETA)

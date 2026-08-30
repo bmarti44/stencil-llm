@@ -614,3 +614,27 @@
   per contract at the registered stop rule. Report:
   results/timed-selector-report.md. Closing sol+fable verification next
   (per Brian's /goal).
+- 2026-08-30, CLOSING VERIFICATION verdicts: fable VERIFIED (all headline
+  numbers recomputed and matched; non-blocking nit on parser-timed mapping,
+  already recorded). Sol NOT VERIFIED with one CRITICAL + one HIGH:
+  (1) CRITICAL — t2_shakeout.py imported t2_train_selector for
+  candidate_spans; that module RETRAINED ON IMPORT and re-saved the
+  defective quantile-theta checkpoint before every evaluation, overwriting
+  the registered max(abstain)+eps recalibration (t2b-val.log line 11 shows
+  theta=172002.445, calib false-press 9/18). Every selector arm in T2 and
+  T2b shakeouts/validation therefore ran an UNREGISTERED selector; the
+  "calibration bug caught before any gated run" claim was false. The prior
+  val run is invalid as a harness execution error (no information from it
+  fed the artifact — heads and theta rule were frozen at registration).
+  (2) HIGH — "code validity intact" unsupported: val parse rates
+  base 0.873 / oracle 0.863 / reinsertion 0.856 and no paired parse/exec
+  evidence was saved, so Gate 3's zero-paired-loss requirement was never
+  demonstrated; "reinsertion wins outright" is supportable only as higher
+  adherence. FIXES: candidate_spans moved to src/stencil/t2_select.py;
+  t2_train_selector.py body guarded under main(); t2_recalibrate.py builds
+  local heads; t2_shakeout.py imports the library and now records per-work
+  paired parse/exec + paired_vs_base losses; static regression test
+  tests/test_no_side_effect_imports.py. RERUN (write-ahead): T2B train ->
+  recalibrate -> dev shakeout -> val with the registered selector, logs
+  results/logs/t2b-*-r2.log; report to be corrected from the r2 numbers
+  and re-verified by sol once before close.

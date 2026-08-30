@@ -14,10 +14,8 @@ from tokenizers import Tokenizer
 
 from stencil.qwen3 import Qwen3
 from stencil.t2_runner import run_session
+from stencil.t2_select import candidate_spans
 from stencil.t2_sessions import generate_t2
-
-sys.path.insert(0, str(ROOT / "scripts"))
-from t2_train_selector import candidate_spans  # noqa: E402
 
 import os
 T2B = bool(os.environ.get("T2B"))
@@ -66,9 +64,10 @@ def address(model, toks, ptxt, spans, key):
 
 ARMS = ["base", "reinsertion", "oracle", "selector"]
 report = {}
+paired = {arm: {} for arm in ARMS}  # (seed, turn) -> {"parse": bool, "exec": bool}
 with torch.no_grad():
     for arm in ARMS:
-        adh_n = adh_d = stale_n = stale_d = parse_n = works = fpress = 0
+        adh_n = adh_d = stale_n = stale_d = parse_n = exec_n = works = 0
         for seed in DEV:
             sess = generate_t2(seed, 20, SPLIT, interference=INTERF)
             rs = run_session(m, tok, sess, SPLIT, arm,
@@ -77,6 +76,8 @@ with torch.no_grad():
             for r in rs:
                 works += 1
                 parse_n += r.parse
+                exec_n += r.exec_ok
+                paired[arm][(seed, r.turn)] = {"parse": r.parse, "exec": r.exec_ok}
                 for o in sess.opportunities:
                     if o.turn != r.turn:
                         continue
@@ -89,8 +90,18 @@ with torch.no_grad():
                         stale_n += bool(e.get("stale_action"))
         report[arm] = {"adherence": round(adh_n / max(1, adh_d), 3), "n_active": adh_d,
                        "stale_rate": round(stale_n / max(1, stale_d), 3), "n_stale_opp": stale_d,
-                       "parse_rate": round(parse_n / max(1, works), 3), "works": works}
+                       "parse_rate": round(parse_n / max(1, works), 3),
+                       "exec_rate": round(exec_n / max(1, works), 3), "works": works}
         print(arm, report[arm], flush=True)
+# paired validity losses vs base (Gate 3 evidence: works where base succeeded and the arm did not)
+report["paired_vs_base"] = {}
+for arm in ARMS[1:]:
+    keys = sorted(paired["base"].keys() & paired[arm].keys())
+    pv = {f"{metric}_lost": sum(1 for k in keys if paired["base"][k][metric] and not paired[arm][k][metric]) for metric in ("parse", "exec")}
+    pv |= {f"{metric}_gained": sum(1 for k in keys if not paired["base"][k][metric] and paired[arm][k][metric]) for metric in ("parse", "exec")}
+    pv["n"] = len(keys)
+    report["paired_vs_base"][arm] = pv
+    print(f"paired vs base [{arm}]:", pv, flush=True)
 headroom = report["oracle"]["adherence"] - report["base"]["adherence"]
 print(f"HEADROOM (oracle-base): {headroom:+.3f} (binding precondition >= 0.10)")
 (ROOT / "results" / "qwen" / ("t2b-val.json" if VAL else ("t2b-shakeout.json" if T2B else "t2-shakeout.json"))).write_text(json.dumps(report, indent=1))
