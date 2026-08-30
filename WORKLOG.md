@@ -1095,3 +1095,6 @@
   param count corrected to 264,321, 13.30M namespace bounded). Honest
   claim narrowed to the one real axis: the differentiable training
   signal. Round 2 next.
+- 2026-08-30, INTERNAL-WAVE-PLAN v3.1 DUAL-CLEARED (fable r1 + sol r4;
+  4 sol rounds total). Executing: W0.0 canonical builder (TDD) ->
+  verification sweep -> feedback_mode=none -> W0.05 ceiling -> W0.
