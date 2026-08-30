@@ -1306,3 +1306,11 @@ script sha256: 2a0ef6480d6a11cda8f715c290aafb45
   carried by prefix/doc); comment 0/120 in EVERY arm — the novel-type
   hold-out is a NULL TEST (disclosed; supports no generalization
   claim). Report re-verification (checkpoint-iv round 2) next.
+- 2026-08-30, INTERNAL-WAVE CLOSING REPORT DUAL-VERIFIED (fable round 1
+  + sol round 4 after three correction rounds: mixed-format wording,
+  inline per-type table with the comment null test, prefix-match
+  reproduction scope, exact validity comparison). The program's core is
+  CLOSED AND VERIFIED: sealed win, causal attribution, honest per-type
+  texture. W3 (registered, dual-cleared) executes now: NULL calibration
+  -> W3b record run -> W3a one-shot clean-format validation -> final
+  close.
