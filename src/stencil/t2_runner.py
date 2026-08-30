@@ -152,7 +152,7 @@ def run_session(model, tok, sess: T2Session, split: str, arm: str,
             if et < wt:
                 ptxt = ptxt.replace("[checker] (deterministic feedback on the previous submission is inserted here at run time)", ftxt, 1)
         if arm == "reinsertion":
-            led = ledger_text(sess.ledger_at[wt], unseen_fmt=(split in ("val", "final")))
+            led = ledger_text(sess.ledger_at[wt], unseen_fmt=(split in ("val", "final") or bool(sess.held_out.get("clean_prefix"))))
             marker = sess.turns[wt].text
             ptxt = ptxt.replace(marker, "(Reminder) " + led + "\n" + marker, 1)
         ids = tok.encode(ptxt).ids

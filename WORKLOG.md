@@ -1270,3 +1270,20 @@ script sha256: 2a0ef6480d6a11cda8f715c290aafb45
   all + REBINDS W3a to 13.70M (sol's review instantiated the 13.6M
   fixtures — exposure recorded per the untouched-block convention).
   Implementing s0c (TDD) before round 2.
+- 2026-08-30, W3 registration bookkeeping + fable verification: sol
+  round 3 CLEARED but fable NOT CLEARED with a HIGH sol missed — the
+  REINSERTION arm's reminder path (t2_runner run_session via
+  ledger_text) ignored clean_prefix: 61/92 reminders on fable's sweep
+  would have re-injected the trained prefix format into W3a prompts,
+  invisible to the prompt_at-only assertion. FIXED (one line +
+  test_reinsertion_reminder_clean; 7/7 green). BLOCK BOOKKEEPING (the
+  convention requires WORKLOG records): 13.6M EXPOSED (sol review
+  round 1) — superseded; 13.70M EXPOSED (my tests inspected 20 seeds)
+  — superseded; 13.75M = registered scratch/tests; 13.76M = EXPOSED
+  (fable's independent sweep, disclosed); W3b record 13,650,000..23
+  UNTOUCHED; W3a record 13,800,000..95 UNTOUCHED (zero references).
+  Fable also verified: independent 24-seed contamination sweep clean
+  (0 occurrences, 61/61 unseen-present), digest pin matches, stale
+  fixture seeds contain exactly 1 qualifying opportunity each, W3b
+  eligibility ~167 expected interventions (2.8x the n>=60 floor),
+  NULL-calibration data path exists.

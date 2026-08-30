@@ -75,3 +75,17 @@ def test_s0_pinned_digest_regression():
         s = generate_t2(seed, 20, "dev", interference="s0")
         h.update("\x1e".join(t.text for t in s.turns).encode())
     assert h.hexdigest()[:32] == "9dc80229eaf9e0de87668412540fcd44"
+
+
+def test_reinsertion_reminder_clean():
+    """fable W3 verification HIGH: the reinsertion arm's reminder is
+    built by run_session via ledger_text, a different path than
+    prompt_at — it must honor clean_prefix too (61/92 contaminated
+    before the fix)."""
+    from stencil.t2_sessions import ledger_text
+    for seed in range(13_750_000, 13_750_008):
+        s = generate_t2(seed, 20, "dev", interference="s0c")
+        for wt in s.work_turns:
+            led = ledger_text(s.ledger_at[wt], unseen_fmt=(("dev" in ("val", "final")) or bool(s.held_out.get("clean_prefix"))))
+            for v in CODE_PREFIXES:
+                assert SENT["prefix"].format(v=v) not in led, (seed, wt, v)
