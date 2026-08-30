@@ -1314,3 +1314,10 @@ script sha256: 2a0ef6480d6a11cda8f715c290aafb45
   texture. W3 (registered, dual-cleared) executes now: NULL calibration
   -> W3b record run -> W3a one-shot clean-format validation -> final
   close.
+- 2026-08-30, W3b NULL CALIBRATION (results/qwen/w3-null-theta.json,
+  held seeds, frozen grid): theta = 1.9 (of beta_max 2.0), balanced
+  accuracy 0.5604 (n=1182 steps, 94 pos / 1088 neg). The gain alone is
+  a WEAK moment discriminator — consistent with the wave usefully
+  pressing at non-moment rows (how it beat the moment-only oracle);
+  recorded before the record run per registration. The WHEN/NULL
+  confusion matrix will be reported at this frozen theta.

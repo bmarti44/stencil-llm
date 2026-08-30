@@ -1,0 +1,10 @@
+codex
+Not verified. Four HIGH findings remain.
+
+- **HIGH — “rendering-robust” is still unsupported.** [Line 15](/home/bmarti44/stencil-llm/results/internal-wave-report.md:15) upgrades mixed-format exposure into robustness. Because all 276 prefix-active works retained the familiar current-value sentence, the wave could ignore the unseen rendering entirely. Say “val performance under mixed-format exposure,” not rendering robustness. The ladder’s “held-out sentence format” label at [line 33](/home/bmarti44/stencil-llm/results/internal-wave-report.md:33) needs the same qualification.
+
+- **HIGH — the claimed per-type table and decisive null disclosure are absent.** The report merely points readers to the audit at [lines 16–18](/home/bmarti44/stencil-llm/results/internal-wave-report.md:16). It never states that comment adherence was **0/120 for every arm**, so the novel-type holdout supported no claim. Add the promised table: prefix 81.5/39.5, doc 60.1/35.7, hint 29.3/47.2, comment 0/0 for wave/oracle, with denominators and the mixed-format caveat.
+
+- **HIGH — reproduction scope and exactness are overstated.** The audit contains **408 works per arm**, not 480; both report [line 89](/home/bmarti44/stencil-llm/results/internal-wave-report.md:89) and WORKLOG say 480. More importantly, the audit verifies regenerated full hashes only against the original **16-hex-character prefixes** using `startswith` ([w_seal_audit.py](/home/bmarti44/stencil-llm/scripts/w_seal_audit.py:52)). It cannot establish full-hash equality with the original outputs. State: “0 recorded-prefix mismatches across 408 works per arm (2,040 outputs); full hashes preserved for the reproduction run.”
+
+- **HIGH — “better measured validity” versus proxy is false/misleading.** [Finding 2](/home/bmarti44/stencil-llm/results/internal-wave-report.md:42) compares wave with proxy. At seal, wave broke 21 base-valid works versus proxy’s 6, and retained 82.4% versus 91.9% of gain after penalties. Wave had higher absolute utility (`dU 196` vs `137`) because it gained 89 more successes; both passed validity. State those facts rather than calling wave’s validity better.
