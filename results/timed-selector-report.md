@@ -14,7 +14,7 @@ its registered stop rule after one validation run, no rescues.
 | T0 oracle (honest instruments, fresh seeds) | +21.9 pts parse-gated, ZERO parse loss (b=2 selected; b=4 rejected by the strict gate); wrong-sentence control harms; random-moment control null |
 | T1 learned timing+address | == oracle (closure 1.00); later QUALIFIED: timing is obligation-blind syntax detection (probe: fires 32/32 with no obligations present); address was forced-choice — no component had read an obligation; three registered arms initially unrun, later executed at their expected signatures |
 | T2 (multi-turn, v3 contract, 3-round design review) | INCONCLUSIVE-BY-DESIGN: oracle headroom +0.016 < 0.10 — with a small surviving authoritative ledger, session failures are not selection failures |
-| T2b (S0-style in-session interference; cleared by both reviewers after 2 fixes) | headroom BINDS (+0.193 dev / +0.145 val): selection failure is real in sessions and the ORACLE fixes it. Learned selector: dev closure 0.12, VAL closure 0.00 (near-total abstention: 14 presses in 14,794 steps) — GATE MISS; program closed |
+| T2b (S0-style in-session interference; cleared by both reviewers after 2 fixes) | headroom BINDS (+0.193 dev / +0.145 val): selection failure is real in sessions and the ORACLE fixes it. Learned selector: dev closure 0.12, VAL closure 0.00 (14 applied presses in 14,794 steps) — GATE MISS; program closed |
 | Baselines (val, n=1238 opportunities) | base 32.0% / oracle 46.5% / selector 32.0% / re-insertion 52.9% |
 
 All T2b numbers are from the post-fix rerun with the registered selector
@@ -41,10 +41,14 @@ rerun, the val selector row changed 32.3 -> 32.0).
    perfect (130/130); the abstain mechanism is where the design fails.
    At validation the registered selector all but stopped acting: a
    direct press audit (results/qwen/t2b-press-audit.json) counted 14
-   applied presses across 14,794 generation steps (0.09%; the timing
-   head fired 941 times and theta vetoed all but 14), leaving 407/409
-   works token-identical to base and the other 2 scored identically —
-   closure 0.00; stopped per contract.
+   applied presses and 941 timing fires across 14,794 generation steps
+   (non-applied fires were rejected downstream by the theta threshold or
+   an out-of-ledger address; the audit does not split the two). 407/409
+   works produced decoded code strings identical to base's — and the
+   code string is the scorers' entire input, so those works score
+   identically by construction; the 2 differing works left paired
+   parse/exec outcomes and aggregate adherence unchanged — closure 0.00;
+   stopped per contract.
 3. **At session scale with a small ledger, text re-insertion wins on
    adherence** (52.9% vs oracle's 46.5%) — repeating ~40 tokens of
    authoritative text next to the work is stronger than steering attention

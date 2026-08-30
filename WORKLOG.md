@@ -672,3 +672,13 @@
   (hence paired 0/0/0/0 and closure 0.00). Report finding 2 and ladder
   row corrected to the measured numbers. Earlier "never pressed" wording
   in the 05:27 entry is superseded by this entry.
+- 2026-08-30, SOL ROUND 3: audit accepted, wording tightened (HIGH):
+  hashes are of decoded code strings not token ids; 927 non-applied
+  timing fires cannot all be attributed to theta (address may also
+  reject ty-not-in-spans; audit does not split); "scored identically"
+  for the 2 differing works narrowed to unchanged paired parse/exec +
+  unchanged aggregate adherence. Report finding 2 + ladder row now use
+  sol's prescribed formulation, plus one deterministic strengthening:
+  score_work's only input is the code string, so the 407 identical code
+  strings imply identical scores by construction. Round 4 confirmation
+  requested.
