@@ -549,3 +549,13 @@
   tests incl. counterfactual-set construction; (2) multi-turn arm runner +
   AST/exec/tokenize scorers; (3) selector training per frozen recipe; (4)
   post-build pre-run hash audit (mandatory); (5) dev shakeout, then val.
+- 2026-08-29, T2 BUILD stage 1 done: session generator
+  (src/stencil/t2_sessions.py) + unit tests (tests/test_t2_sessions.py, 5
+  green): deterministic sessions; opportunity records match authored
+  history for all cells; counterfactual coverage across 48 sessions =
+  active 492 / absent 62 / stale_only 102 / cleared 76 (>= 48 each
+  non-active cell); ledger survives compaction while turn 0 text ages out;
+  held-out comment type appears only in val/final. Cell semantics
+  clarified during build (stale_only = inactive WITH visible stale text in
+  the surviving window; cleared = inactive without). Next: stage 2 — arm
+  runner + scorers.
