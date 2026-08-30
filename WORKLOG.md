@@ -1161,3 +1161,24 @@
   loss conforms to C1' (comment-class positive exclusion disclosed as
   an actuator-shared asymmetry); NO leakage. Doc edits only. Awaiting
   sol's checkpoint-ii rulings (G-W0b amendment, causal wording, W1).
+- 2026-08-30, CHECKPOINT-ii sol rulings (results/w0-review-sol.md):
+  implementation audit PASS; causal gate mechanically PASS (correct
+  margin: adherence gains 47 vs 42 — 38 was proxy dU; registered
+  headline: "with the same continuous actuator, CE training added five
+  adherence successes and zero measured paired breakage vs the
+  proxy-trained controller"); W1 PROCEED after corrections.
+  CORRECTIONS OF RECORD (all accepted): (1) G-W0b RETRACTION — the
+  gate genuinely failed (30.8% < 50%) and my "provably impossible /
+  oracle ceiling / 8x" claims are WITHDRAWN: the sparse oracle-timed
+  hand field acts only at recognized moments and is not an
+  architectural ceiling for a controller that can improve every row;
+  the 3.8% figure had no committed artifact. Sol's ruling: G_W0b=false
+  PRESERVED; the gate is RETIRED as a malformed diagnostic (the
+  "overfit-1" checkpoint was trained on all 40 seeds — redundant with
+  G-W0a/G-W0c/replay), disclosed as a post-result amendment, no
+  post-hoc recalibration. (2) "Actuator change alone" REWORDED: the
+  proxy objective succeeds WHEN PAIRED WITH the continuous actuator;
+  "alone" would need a same-checkpoint discrete-actuator counterfactual
+  that was not run. (3) Producing the missing per-cell G-W0c artifact
+  and the full 24-session proxy/oracle identity hashes (fable verified
+  1 session; the all-dev claim needs all 24).
