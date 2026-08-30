@@ -1077,3 +1077,10 @@
   agentic coding") satisfied to the extent this program registered:
   mechanism + address + environment-clocked application proven;
   self-clocked focus honestly bounded, not achieved.
+- 2026-08-30, INTERNAL-WAVE-PLAN v1 drafted (the PRESS-PLAN successor;
+  Brian's /goal: prove out the internal wave). Core novelty vs the
+  closed lines: DIFFERENTIABLE training signal (CE through the frozen
+  trunk's attn_bias path), continuous bias field (no certified
+  decision), recurrent state (W1) with the transplant demonstration
+  (W2) as the Miller signature. Fresh seeds 13.4M/13.45M/13.5M. Review
+  round 1 (checkpoint i) launched.
