@@ -916,3 +916,20 @@
   lower priority — the certification anatomy already answered its
   question qualitatively). Next: T1 collector smoke -> train-hard +
   calib-hard collection + pretest.
+- 2026-08-30, T1 COLLECTIONS COMPLETE (train 485 events/48 sessions,
+  calib 246/24; digests in t1-*-features.pt). PRETEST: pressure PASSES
+  30/48 >= 10; assertion coverage FAILS the total-coverage gate (38/48
+  train, 17/24 calib). DIAGNOSIS (offline): not a generation failure
+  (targeted works parse) and not late-turn decay (fires/work ~2-3 in
+  every octile) — per-session variance: ~20% of sessions get zero
+  target-type timing fires at the final work. Total per-session
+  coverage is unattainable under the deployed tau-gated trigger.
+  REDESIGN PROPOSAL (registered rule: redesign + re-register before
+  training): keep generator s0x2; amend CERTIFICATION SEMANTICS —
+  failures = false selections only; sessions without a target hazard
+  stay in the denominator (they still test general false selection)
+  but assertion-miss stops being a failure; new separately-gated
+  fixture-quality statistic HAZARD_COVERAGE (fraction of sessions
+  where the deployed trigger faced the target hazard) with floor 0.75
+  and exact reporting. Review round launched (both reviewers) before
+  any training.
