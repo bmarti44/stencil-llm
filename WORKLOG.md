@@ -1054,3 +1054,11 @@
   added to the untouched list. T0.4 FORMALLY CLOSED as superseded (the
   certification anatomy answered the constraint-vs-representation
   question directly; recorded, not run). Re-verification round 2 next.
+- 2026-08-30, closing rounds 2-3 (sol): round 2 NOT VERIFIED (3 HIGH:
+  T0.3 overgeneralized, finding-1 nonexistence claim, count
+  arithmetic) -> report v3; round 3 NOT VERIFIED (1 HIGH: count
+  taxonomy + WORKLOG missing rounds 2-3 — this entry closes that gap).
+  File evidence for the count: 18 artifacts = 15 substantive + 3
+  one-word confirmations (press-plan-review5, t2t3-review4, a1-ack;
+  wc -w = 2 each incl. the extraction header). Report v4 states the
+  verified taxonomy. Round 4 next.

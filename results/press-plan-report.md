@@ -78,11 +78,14 @@ survived to try.
 
 Preregistration with mechanical gates throughout. Review counting
 convention (reproducible): PRESS-PLAN-era sol artifacts committed under
-results/ through closing round 1 = 18 (16 substantive reviews + 2
-one-word acks): press-plan-review{1-5}, g0-review, impl-review{1,2},
+results/ through closing round 1 = 18: 15 substantive reviews and 3
+one-word confirmations (press-plan-review5 "CLEARED", t2t3-review4
+"CLEARED", a1-ack "112"), the files themselves being the count's
+evidence: press-plan-review{1-5}, g0-review, impl-review{1,2},
 t1-prereg-review{1-3}, s0x2-amend, a1-ack, t2t3-review{1-4},
-press-close; subsequent closing-verification rounds are recorded in
-WORKLOG. Fable rounds per WORKLOG = 9 plus its closing verifications. Every high/critical finding
+press-close. Later closing rounds are committed as press-close{2,3,...}
+and recorded in WORKLOG. Fable rounds per WORKLOG = 9 plus its closing
+verifications. Every high/critical finding
 either fixed or ruled; two reviewer catches prevented sealed-block
 burns (degenerate thresholds; value-vs-span certification semantics);
 one administrative block void (A) disclosed; all seed blocks and their
