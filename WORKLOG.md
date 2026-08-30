@@ -754,3 +754,13 @@
   T0.5 evaluation set = union of per-episode downstream sets (all later
   active opportunities of the violated type, frozen from base). Round 5
   = sol confirmation.
+- 2026-08-30, PRESS-PLAN v3.2 DUAL-CLEARED (fable round 3, sol round 5
+  after 2 targeted confirmation rounds; review trail
+  results/press-plan-review*-sol.md + fable transcripts above).
+  Checkpoint (i) satisfied. Beginning harness registration H1-H4
+  (red/green): span-level policy arm with runner-applied guards +
+  press-event logs, wrong-span non-vacuity fixture, trace writer.
+  Legacy arms (base/reinsertion/oracle/selector) stay untouched for
+  reproducibility; new arms: "policy" (autonomous, H1) and
+  "structured" (type->authoritative redirect with active-ledger
+  eligibility).
