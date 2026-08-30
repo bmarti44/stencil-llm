@@ -608,3 +608,9 @@
   the program closes on the honest composite: selection failure exists in
   sessions and the oracle fixes it, but the safety-constrained learned
   selector under-presses, and re-insertion captures most of the headroom.
+- 2026-08-30, T2b VALIDATION (n=96 sessions, 1238 active opportunities):
+  base 32.0 / oracle 46.5 (headroom +0.145 binds) / SELECTOR 32.3 (closure
+  0.02 — GATE MISS) / re-insertion 52.9 (beats the oracle). Program CLOSED
+  per contract at the registered stop rule. Report:
+  results/timed-selector-report.md. Closing sol+fable verification next
+  (per Brian's /goal).
