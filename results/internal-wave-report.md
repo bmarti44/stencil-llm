@@ -4,18 +4,18 @@
 generating the attention field natively, govern long coding sessions —
 the Miller wave produced inside rather than injected from outside?
 **Answer: YES — SEALED WIN, causal attribution holds.** On 96 sealed
-val sessions (held-out sentence format + a never-seen rule type), the
-stateless wave reaches closure 1.488 (adherence 25.2% -> 44.8%),
-beating the hand-built oracle (38.3%), its proxy twin (37.4%), and —
-for the first time in the project — text re-insertion (43.0%, which
-FAILED the validity rule with 30 broken works while the wave passed
-with parse rate improved 84.8 -> 92.7). Causal re-test at seal: wave
-raw gain 238 vs proxy 149, both valid — the CE-through-trunk training
-signal generalizes better, not just scores better. (Hold-out scope,
-disclosed: the authoritative ledger line uses the unseen format and the
-comment rule type is entirely novel; distractor/user turns still carry
-the trained sentence form in-context — a partial format hold-out by
-the registered design.)
+val sessions, the stateless wave reaches closure 1.488 (adherence
+25.2% -> 44.8%), beating the hand-built oracle (38.3%), its proxy twin
+(37.4%), and — for the first time in the project — text re-insertion
+(43.0%, which FAILED the validity rule with 30 broken works while the
+wave passed, parse rate improved 84.8 -> 92.7). Causal re-test at
+seal: wave raw gain 238 vs proxy 149 (+89), both valid. VAL EXPOSURE
+SCOPE (sol audit, 276/276): every prefix-active work contained BOTH
+the unseen ledger rendering AND the familiar training-format sentence
+in-context — the seal demonstrates rendering-robust val performance,
+NOT format generalization (that claim is retracted); the comment rule
+type is a complete hold-out present in 96/96 sessions, with its
+per-type performance recorded in the reproduction audit.
 
 ## Registered ladder and outcomes
 
@@ -39,16 +39,20 @@ the registered design.)
    trunk's attention path, the 264k-parameter wave beat the hand-built
    oracle press on dev at zero validity cost — with ablation-proven
    WHERE/WHEN/selectivity.
-2. **The matched control isolated two stacked causes of the prior
-   programs' failures.** The proxy objective, deployed through the
-   continuous actuator, converges onto the oracle (the hard-threshold
-   actuator was one killer); the CE signal adds a margin on top with
-   zero breakage (the proxy signal was the other).
-3. **Recurrence was unnecessary here — honestly bounded.** The temporal
-   nulls are real and mechanistically explained, and scoped to the
-   frozen architecture; the Miller-transplant question remains open for
-   a rescaled-state successor, with the function-vector/KV-steering
-   lineage as its citation base (see research-wave-prior-art.md).
+2. **The matched control's supported statement (sol's registered
+   wording):** with the identical continuous actuator, proxy training
+   succeeds (converging token-identically onto the oracle), while CE
+   training adds five raw successes on dev and 89 at seal with better
+   measured validity. Actuator causality in isolation was NOT tested
+   (no same-checkpoint discrete-actuator counterfactual was run).
+3. **Recurrence: reset and cyclic-next-session-donor perturbations
+   were null under teacher-forced held CE; behavioral state dependence
+   was not tested** (replay skipped by ruling once the registered CE
+   conjunction had already failed); no W2 followed. The
+   scaling/saturation measurements (|h20|~609 vs |s_t|~6; saturated
+   gain logits) make suppressed state learning PLAUSIBLE, not proven.
+   The Miller-transplant question remains open for a rescaled-state
+   successor (citation lineage: research-wave-prior-art.md).
 
 ## Prior art
 
@@ -56,20 +60,29 @@ Per the committed search (results/research-wave-prior-art.md): every
 ingredient has published neighbors (PASTA/InstABoost attention biasing —
 all training-free; Guiding Giants/CAST controllers — scalar/vector,
 non-recurrent, residual-space; READ sidecars — PEFT, not decoding-time);
-the conjunction (trained per-step positional attention field, hidden-
-state-conditioned, CE-through-frozen-trunk, matched-control isolation,
-zero-validity multi-turn evaluation) appears unpublished, stated
-conservatively with two flagged unread items.
+the supported search observation is: no identified prior work trains
+a per-step positional attention-bias field with gradients through a
+frozen trunk's pre-softmax path. The search's full conjunction included
+a RECURRENT controller and a zero-validity evaluation; this program's
+sealed finalist is STATELESS and recorded 21 paired breaks at seal, so
+that full conjunction was NOT realized here — stated per the committed
+search's own caveats (two flagged unread items).
 
 ## Process record
 
 Checkpoints i-iii dual-reviewed (6 sol rounds — wave-plan-review{1-4},
 w0-review, w1-review — and 3 fable verification rounds through
 checkpoint iii, artifact-enumerated; closing rounds appended in
-WORKLOG); two instrument errors caught
-and fixed before verdicts (ceiling wrong-position control; G-W0b
-denominator — with my overclaimed defense retracted on review); one
-gate retired by ruling with its failure preserved; sealed job
+WORKLOG); one instrument error caught and fixed before its verdict (the ceiling
+wrong-position control); G-W0b FORMALLY FAILED and was retired
+POST-RESULT by reviewer ruling as a malformed diagnostic — my
+"impossible bar" defense was retracted on review and no impossibility
+was established; sealed job
 fail-closed with pinned hashes (w_seal.py sha256 2a0ef6480d6a11cd...,
 pinned in WORKLOG before execution); all
-numbers reproduce from committed artifacts.
+numbers reproduce from artifacts force-committed to the repo
+(results/qwen evidence JSONs + seal marker + logs) and from the
+deterministic reproduction audit (w-seal-audit.json: full-length
+output sha256 per work, per-work paired records, per-type incl.
+comment-class performance), whose regenerated outputs are
+hash-verified against the sealed run's recorded values.
