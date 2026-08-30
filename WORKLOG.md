@@ -682,3 +682,15 @@
   score_work's only input is the code string, so the 407 identical code
   strings imply identical scores by construction. Round 4 confirmation
   requested.
+- 2026-08-30, PROGRAM CLOSE: sol round 4 VERIFIED (identical-score
+  inference explicitly accepted); fable re-verification VERIFIED (all
+  numbers recomputed, provenance and guard test confirmed). Dual closing
+  verification complete on results/timed-selector-report.md. The /goal
+  ("prove out the focus mechanism deterministically for long agentic
+  coding, verified by sol and fable") is DONE: mechanism proven
+  (oracle +14.5 val / +19.3 dev under in-session interference, ~1.7%
+  paired validity tax), learned safety-constrained selector honestly
+  negative (closure 0.00, 14/14794 presses), re-insertion adherence
+  baseline mapped (52.9% with paired churn). Verification trail:
+  final-verify-sol.md, final-reverify-sol.md, final-reverify2-sol.md,
+  final-reverify3-sol.md, fable transcripts summarized in this log.
