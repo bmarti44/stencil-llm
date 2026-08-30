@@ -55,6 +55,9 @@ short, imperative, and evidence-linked; prune entries that stop paying rent.
   variable-ordering slip killed a full review round silently (2026-08-22).
 - Serialized background chains need per-command failure visibility; a trailing
   echo sentinel masks upstream failures. Read the raw log, not the exit code.
+- `pytest | tail` swallows the failure exit code — a red test got committed
+  under a green-looking chain (2026-08-30). Use `set -o pipefail` in any
+  chain that pipes a test runner.
 - Test the consumer's semantics, not the producer's output: a validator must be
   exercised through the exact code path that consumes it (a `tr`-based check
   passed while the real `read -d ''` consumer dropped the final path, 2026-08-22).
