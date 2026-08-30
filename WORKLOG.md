@@ -559,3 +559,15 @@
   clarified during build (stale_only = inactive WITH visible stale text in
   the surviving window; cleared = inactive without). Next: stage 2 — arm
   runner + scorers.
+- 2026-08-29, T2 BUILD stage 2 done: arm runner + scorers
+  (src/stencil/t2_runner.py): first-FunctionDef target policy; ast/
+  source-text/exec scorers; adherence on active cells only; stale-action
+  per v3 definition; env feedback names violated TYPE only (no value — no
+  second memory channel); arms base/reinsertion(==pinned under v3,
+  recorded)/oracle/selector-pluggable; spotlight beta=2 layers 20-27
+  current-row on ledger-sentence spans located per-prompt. Smoke (1 dev
+  session, 3 arms): 5 works, parse 5/5 everywhere, base 12/14 active-
+  adherent, oracle 13/14, reinsertion 11/14, stale-actions 0. Note for the
+  dev shakeout: single-session base looks strong — the oracle-headroom
+  precondition (>= 0.10) will decide if T2 binds. Next: stage 3 selector
+  training (frozen recipe), hash audit, dev shakeout at scale.
