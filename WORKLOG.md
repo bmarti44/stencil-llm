@@ -1204,3 +1204,32 @@
   for the STATELESS finalist (w0-ce.pt, 13,500,000..95, headroom >=
   0.10, closure >= 0.50, validity, no redraw) to complete the program
   at its sealed bar. Convening checkpoint-iii (sol + fable).
+- 2026-08-30, CHECKPOINT-iii COMPLETE: G-W1a battery emitted, ALL PASS
+  (incl. all four GRU tensors — the state path trained). Sol: skip
+  ratified conditional on battery (met); permutation recorded as
+  CYCLIC next-session (not exact-matched; reset is the stronger
+  alignment-free ablation and nulls identically); stateless verdict
+  RATIFIED; sealed val RATIFIED WITH AMENDMENTS. Fable: CLEARED — the
+  temporal null is REAL with mechanism: state is numerically invisible
+  to the readout (|h20|~609 vs |s_t|~6 concat asymmetry; gain logits
+  saturated, e.g. -40.9 at quiet rows; direct measurement |db|=9.1e-5
+  vs |b|=0.067, dg=0.000000 under randn states) — plausibly SUPPRESSED
+  STATE LEARNING; verdict scoped "stateless suffices UNDER THE FROZEN
+  H3 ARCHITECTURE" (caveat recorded; a rescaled-state architecture is
+  future work, not this program). W1-proxy gates skipped (moot,
+  burden-test). SEALED VALIDATION REGISTRATION (final, both reviewers'
+  amendments): FINALIST NAMED BEFORE TOUCHING THE BLOCK = w0-ce.pt
+  (stateless wave); seeds 13,500,000..95, generate_t2(seed, 20, "val",
+  interference="s0") + prompt_at val split (HELD-OUT prefix format +
+  comment type — formats the wave never saw); greedy, max_new=120,
+  neutral feedback for all arms; arms base/wave/proxy/oracle/
+  reinsertion; PASS = headroom >= 0.10 (miss = INCONCLUSIVE close, no
+  substitute block) AND closure >= 0.50 AND T0.3 validity; causal
+  re-test at seal = wave adh_gain_raw > proxy adh_gain_raw with both
+  valid (closure alone validates mechanism, not attribution); one
+  attempt, no redraw; fail-closed job with pinned hashes (model,
+  tokenizer, w0-ce.pt, w0-proxy.pt, script), .started marker, atomic
+  write, raw numerators + paired records + output sha256 + gain
+  histograms saved. Claim wording: W0-class stateless; WHERE/WHEN/
+  selectivity claims permitted (ablations were binding-clean); no
+  temporal/state claim.

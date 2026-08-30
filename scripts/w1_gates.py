@@ -60,7 +60,39 @@ def session_ces(wave, sess, mode="intact", donor_states=None):
     return ces, s_trace
 
 
+def battery():
+    """G-W1a: real-CE connectivity incl. GRU params (registered)."""
+    torch.manual_seed(0)
+    wave = WaveRNN().cuda()
+    sess = generate_t2(13_400_000, 20, "dev", interference="s0")
+    wt = sess.work_turns[1]
+    full, P, _ = W.work_pack(sess, wt)
+    T = full.shape[1]
+    with torch.no_grad():
+        h = m(full, return_hidden=20)[0].float()
+    K = h[:P].detach(); H = h[P - 1:T - 1].detach()
+    s_st = wave.init_state().cuda()
+    rows = []
+    for i in range(H.shape[0]):
+        b, s_st = wave.step(H[i], s_st, K)
+        rows.append(b)
+    bias = torch.zeros(T, T, device="cuda")
+    bias[P - 1:T - 1, :P] = torch.stack(rows)
+    logits = m(full, attn_bias={L: bias for L in W.LAYERS})[0].float()
+    ce = F.cross_entropy(logits[P - 1:T - 1], full[0, P:])
+    ce.backward()
+    out = {}
+    for n, prm in wave.named_parameters():
+        g = prm.grad
+        out[f"grad_{n}"] = bool(g is not None and torch.isfinite(g).all() and float(g.abs().sum()) > 0)
+    out["PASS"] = all(out.values())
+    print(json.dumps(out, indent=1), flush=True)
+    (ROOT / "results" / "qwen" / "w1-battery.json").write_text(json.dumps(out, indent=1))
+
+
 def main():
+    if os.environ.get("BATTERY"):
+        return battery()
     wave = WaveRNN().cuda()
     wave.load_state_dict(torch.load(ROOT / "results" / "qwen" / CKPT, map_location="cpu"))
     wave.eval()
