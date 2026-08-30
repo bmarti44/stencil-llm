@@ -156,3 +156,14 @@ combined arms; a valid finalist takes precedence over any T4 trigger.
 The post-grid preregistration RECORDS the mechanically selected cell
 and validation machinery; it may not choose among cells after viewing
 results.
+
+## v3.1 (sol round 3, two HIGHs)
+
+- Architecture freeze timing: the T2 architecture table/code digest
+  must be in WORKLOG before ANY T2 forward pass or metric on train,
+  trace0, calib, or probe data; only synthetic shape/unit tests may
+  precede it.
+- Partial-path selection (no valid full-pass rhythm cell): eligible
+  partial cells = validity-pass cells with 0.25 <= closure < 0.50;
+  select maximum closure; ties -> lower g, then larger P; evaluate
+  ONLY that cell's combined arm.
