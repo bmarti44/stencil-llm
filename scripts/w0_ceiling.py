@@ -94,7 +94,12 @@ def teacher_ce(sess, wt, param, beta, wrong=False):
         span = spans.get(key)
         if span and wrong:
             width = span[1] - span[0]
-            span = (5, 5 + width)  # shuffled/wrong position: early prompt tokens
+            # wrong position = inside the CURRENT task-request sentence
+            # (never obligation text; v2 fix — (5,5+width) hit the ledger
+            # header and pressed the rules block, invalidating the control)
+            c = ptxt.rfind("Task: ")
+            cols = [i for i, (a, bnd) in enumerate(enc.offsets) if a >= c and bnd <= c + 40]
+            span = (cols[0], cols[0] + width) if cols else (P // 2, P // 2 + width)
         bias[r] = torch.cat([hand_row(P, span, param, beta), torch.zeros(T - P)])
     targets = torch.tensor(full[1:] + [0])
     with torch.no_grad():

@@ -1103,3 +1103,12 @@
   verification sweep 178 works / 0 FAILURES -> builder FROZEN
   (results/qwen/w0-refs.json; max prompt 376, max total 397 tokens).
   W0.05 ceiling next.
+- 2026-08-30, W0.05 first run: ALL CELLS FAILED gate (ii) — but by
+  instrumentation, not physics: the "wrong position" span (5, 5+width)
+  sits inside the LEDGER HEADER (prompt = ledger_text + convo), so the
+  control pressed the authoritative rules block and HELPED (CE -13%),
+  which is the mechanism working, not the test failing. Correct-position
+  improvements are enormous (A2/B2 ~73%, A4/B4 ~99%). Per the
+  registered infrastructure-failure clause: fixing the control (wrong
+  position = the current work turn's task-request sentence — always
+  present, never obligation text), rerunning. Write-ahead recorded.
