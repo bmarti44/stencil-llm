@@ -971,3 +971,29 @@
   for the flagged pure-steering case). Banked recipe: structured arm +
   reactive pressing (0.875 recovery) + T0.3 cost asymmetry. Next: T2/T3
   preregistration draft -> review round (checkpoint iii).
+- 2026-08-30, T2/T3 PREREG v3.1 DUAL-CLEARED (fable r1 + sol r4; 4
+  rounds total). T2 ARCHITECTURE TABLE (frozen BEFORE any T2 forward
+  pass, per v3.1; only synthetic shape tests precede):
+  COMMON: shared T1 head warm-started from t1-head.pt (round-1); state
+  is per-TYPE (3 types); scorer augmentation identical for all:
+  null_logit += W_z(state_flat) [Linear state_dim->1],
+  q = Wq(h20) + W_qz(state_flat) [Linear state_dim->64]; event write
+  applies only to the fired pred_type's slice via W_u [Linear 2048->8];
+  score from z_pre, then write; D-clock (step gaps, inter-turn D=32).
+  (a) oscillator: z_ty in C^4 (8 real dims/type, state_dim 24);
+      transition z <- rho^D * exp(i*omega*D) * z; rho = sigmoid(r),
+      r init 2.0 per dim; omega init linspace(0.1, 1.0, 4) per type
+      (trainable); write adds W_u(h20) to Re/Im interleaved.
+      Controller params ~18,017.
+  (b) static: state = trainable per-type embedding (8/type, no
+      recurrence) + same W_u event path feeding a per-event additive
+      context (not persisted). ~18,017.
+  (c) EMA: z <- (1-a)*z + a*W_u(h20) on fired type; a = sigmoid(tau)
+      per dim, tau init logit(0.1). ~18,041.
+  (d) GRU: per-type GRUCell(8,8) fed by W_u(h20); ~18,449.
+  (e) null-oscillator: rho=1 fixed, omega FIXED = linspace(0.1,1.0,4),
+      no W_u (no input coupling) — EXEMPT from the parameter match by
+      design (control), disclosed; scorer heads only (~1,625).
+  All counts within +-10% for (a)-(d). Code digest recorded at commit.
+  Executing: T0.3b audit (GPU) in parallel with T2 implementation
+  (synthetic tests first).
