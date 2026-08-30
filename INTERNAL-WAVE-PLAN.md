@@ -1,4 +1,4 @@
-# INTERNAL-WAVE-PLAN v2 — the wave generated inside
+# INTERNAL-WAVE-PLAN v3 — the wave generated inside
 
 v1 reviews (checkpoint i): fable CLEARED with 8 required edits; sol NOT
 CLEARED with 3 CRITICAL + 7 HIGH. All folded. The honest claim after
@@ -172,3 +172,57 @@ pipefail; no top-level work in imported scripts; reviews at (i) this
 v2, (ii) W0.05 selection + W0 results, (iii) W1 results / W2
 registration, (iv) close; loop while high/critical; halting is
 success; every number recomputed from artifacts.
+
+## v3 ADDENDUM (sol round 2: 2 CRITICAL + 4 HIGH; all frozen)
+
+C1. THE MATCHED CONTROL (replaces distillation as the causal test; the
+central comparison of the program): an arm trained on the SAME 40
+no-feedback prompts, same h20 features, same capacity (the identical
+W_q/W_k/w_g module), same init/shuffle seeds — but with the CLOSED
+PROXY OBJECTIVE: timing BCE on oracle-moment labels + CE over
+authoritative-span selection; deployed as a thresholded press at the
+W0.05-selected beta. The differentiable-training claim holds ONLY if
+the CE wave beats this matched control on raw closure with both
+passing validity. The distillation probe becomes descriptive
+reporting; frozen T2b remains a historical baseline arm only.
+
+C2. Parameterization B defined: b_ti = g_t * sigmoid(e_ti) with
+g_t = beta_max * sigmoid(gain_logit_t) — the gain head is live in
+both parameterizations; the identical equation is used in the W0.05
+oracle fields and in training.
+
+H1. Ablations BINDING: each of K-permutation, gain-sequence
+permutation, and uniform-field-at-matched-gain must reproduce < 90%
+of the held CE gain; any that reaches >= 90% declares that component
+(WHERE / WHEN / selectivity) DECORATIVE — recorded, and no internal
+timing/address claim may be made for it regardless of closure.
+
+H2. Literal equations and constants:
+  e_ti = 8.0 * cos(q_t, k_i)   (multiplicative sharpening);
+  A: b_t = g_t * softmax(e_t)/max(softmax(e_t));
+  B: b_ti = g_t * sigmoid(e_ti);
+  init: W_q/W_k default torch init, w_g weight ZERO, bias -2.0 ->
+  g_0 = 0.119 * beta_max (the v2 "beta/2" sentence is struck).
+W0.05: seeds 13,400,000..11 (the first 12 train seeds); hand fields
+use e = +6.0 on oracle-span positions and -6.0 elsewhere with
+g = beta_max; wrong-position degradation floor: >= 5% relative CE
+worsening (numeric, not "measurable").
+
+H3. W1 contract: s_t = GRU(h20_t, s_{t-1}) FIRST, then q_t/g_t from
+[h20_t; s_t] (score-after-write, registered choice — recurrence value
+is established by the permutation/reset probes, not by withholding
+current-step information); full BPTT within a work turn, state
+DETACHED across work turns (memory bound, disclosed); one optimizer
+step per session (accumulated over its works). W1 gates mirror G-W0a
+(connectivity incl. GRU params) and G-W0c (held CE >= 10%). W1
+headroom >= 0.10 precondition with reserve block 13,465,000..23; a
+second headroom miss (W0 or W1) closes that rung INCONCLUSIVE.
+Temporal-probe behavioral floor: each of permutation and reset must
+cost >= 10% of the wave's adherence lift on the dev replay.
+
+H4. W2 requires a separately registered TRANSPLANT FIXTURE: the
+standard prompt reserializes the live ledger (t2_sessions prompt_at),
+so identical-visible-text pairs with different authority are
+impossible under the current contract. The fixture (candidate bank
+presented without authority serialization) is registered and reviewed
+on its own before W2 can run; W2 is DEFERRED until then.
