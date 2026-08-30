@@ -774,3 +774,27 @@
   T0.1 smoke (1 session): 5 events, 3 legacy presses, fields verified;
   stale-print footgun caught and fixed. Launching full T0.1 (48 trace
   seeds).
+- 2026-08-30, T0.1+T0.2 COMPLETE (results/qwen/t0-trace.pt, 381 events /
+  48 sessions; t0-matrix.json). HEADLINE: the T2b selector failure is
+  mechanically explained — the legacy address max-score ranged over ALL
+  candidate types, so at inactive-type moments it scored up to 185,938
+  (cross-type hits on active types' candidates), forcing the
+  zero-false-press theta to 185,850 and killing recall (active scores
+  start at 47,081). TYPE-RESTRICTED addressing (argmax only over
+  candidates of the timing head's predicted type) makes all 58 trace
+  negatives structurally unpressable (no same-type candidate exists
+  in-window for cleared/absent types under this generator) and ranks
+  the live sentence above in-window conflicting notes on 323/323 active
+  events. All six families hit recall 1.000 / 0 false sessions / AUPRC
+  1.000 on trace (t0_matrix.py; threshold rule: max recall with <=2
+  false sessions of 48 — conservative reading, flagged). CAVEATS for
+  G0: (a) tie-break (AUPRC) cannot separate the tied families —
+  proposing cos_max (bounded scale; the raw qk scale drifted ~4x
+  between calib and trace, making a frozen raw threshold fragile);
+  (b) certification on fixture blocks is VACUOUS w.r.t. score
+  discrimination under this generator (no same-type lookalike exists at
+  inactive-type fire moments) — proposing a registered generator
+  extension (notes for one inactive type per session) to make
+  certification non-vacuous; (c) proposing T1 training be skipped in
+  favor of the zero-training type-restricted policy judged under T1's
+  behavioral table. G0 review round (sol+fable) launched on all three.
