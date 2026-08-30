@@ -694,3 +694,11 @@
   baseline mapped (52.9% with paired churn). Verification trail:
   final-verify-sol.md, final-reverify-sol.md, final-reverify2-sol.md,
   final-reverify3-sol.md, fable transcripts summarized in this log.
+- 2026-08-30, PRESS-PLAN.md drafted from the 4-lane research synthesis:
+  P0 diagnostics (score matrix, attention-mass liveness, empirical
+  false-press cost C, theta sweep, event-triggered baseline) -> G0 ->
+  P1 joint candidate-or-null scorer (stop rule: 50% recall at real FP
+  bound) -> P2 rhythm-default phase/gain -> P3 fork-and-judge -> P4
+  oscillator-vs-controls bakeoff -> P5 structured-eligibility ceiling
+  (always ships). Zero-false-press replaced by measured (C, p*) budget.
+  Plan review by sol+fable is the registered next step before P0.
