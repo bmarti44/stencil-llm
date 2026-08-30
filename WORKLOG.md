@@ -702,3 +702,22 @@
   oscillator-vs-controls bakeoff -> P5 structured-eligibility ceiling
   (always ships). Zero-false-press replaced by measured (C, p*) budget.
   Plan review by sol+fable is the registered next step before P0.
+- 2026-08-30, PRESS-PLAN review round 1: sol NOT CLEARED (6 HIGH), fable
+  NOT CLEARED (3 HIGH + mediums), heavily convergent. Decisive findings:
+  (a) "no new GPU runs" false — registered T0.1 trace pass instead;
+  (b) harness cannot express autonomous wrong-candidate selection (the
+  runner redirects any type to the authoritative span) — span-level
+  address API + press-event logging + wrong-span non-vacuity test
+  registered as H1-H4; "WHERE proven 130/130" downgraded to a
+  calibration-set claim pending the rejection split; (c) p* mixed units
+  and pre-empted its own measurement — now symbolic H/(B+H) from paired
+  single-press rollouts, press_stats.bayes_press_threshold requires
+  B,H (no defaults); (d) decision tables completed (G0 mechanical,
+  P0.5 two-way, T1 with one registered fallback for [0.25,0.5));
+  (e) session-level independence units + Clopper-Pearson gates
+  (0/160=1.85%, test-pinned); (f) seeds frozen (trace 13.00M, calib
+  13.03M, fixtures 13.06M, dev 13.10M, val sealed 13.20M; 12.9xM
+  legacy); (g) structured arm folded into every replay; bakeoff (T2)
+  promoted ahead of generation rungs; P0.2 deferred behind G0; beta
+  sweep demoted; T4 uses prefix recomputation (no KV cache exists).
+  PRESS-PLAN rewritten as v2. Round 2 review next.

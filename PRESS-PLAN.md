@@ -1,180 +1,231 @@
-# PRESS-PLAN — making autonomous press timing work
+# PRESS-PLAN v2 — making autonomous press timing work
 
 Governing plan for the post-TIMED-SELECTOR program. Question: can the
 WHEN-to-press decision be made autonomous, now that the mechanism
-(spotlight, +14.5 val) and the WHERE (address, 130/130) are proven and
-the failure is precisely diagnosed?
+(spotlight, +14.5 val) is proven and the failure is precisely
+diagnosed?
 
-Grounding: results/timed-selector-report.md (the honest negative),
-results/research-timing-{design-sol,neuro-fable,ml-fable,crossfield-fable}.md
-(4-lane research, 2026-08-30). Harness: frozen Qwen3-1.7B
-(src/stencil/qwen3.py), T2b session generator (interference="s0"),
-existing scorers and paired parse/exec machinery, cached h20 features.
+v2 after review round 1 (sol NOT CLEARED 6 HIGH, fable NOT CLEARED
+3 HIGH; results/press-plan-review-sol.md + fable transcript in WORKLOG).
+Changelog: honest trace-collection rung replaces the "no new GPU runs"
+claim; span-level address API registered (the old harness silently
+redirected any selected type to the authoritative span — autonomous
+wrong-candidate selection was unexpressible, and "WHERE proven 130/130"
+is downgraded to a calibration-set claim pending the theta/out-of-ledger
+rejection split); symbolic p* from paired single-press B/H (constants
+removed); complete decision tables; session-level independence units;
+concrete seed freeze; structured baseline folded into every replay;
+bakeoff promoted ahead of generation-heavy rungs; P0.2 deferred; beta
+sweep demoted; old 12.96M/941-fire data demoted to legacy exploration.
 
-## Diagnosis being attacked (from the closed program + research)
+Grounding: results/timed-selector-report.md,
+results/research-timing-{design-sol,neuro-fable,ml-fable,crossfield-fable}.md.
+Harness: frozen Qwen3-1.7B, T2b generator (interference="s0"), existing
+scorers; h20 features are RECOMPUTED by forward passes (no feature cache
+exists on disk).
 
-1. Zero-false-press is the Neyman-Pearson alpha=0 corner: for any
-   imperfect score the only feasible policy is "never press" (observed:
-   14/14794). The constraint asserted infinite false-press cost; the
-   actual cost is measurable (~1.7% paired validity per press event).
-2. The controller was untrainable by construction: timing labels came
-   from syntax alone (obligation-blind by design); the address head
-   never saw a null case (relative rank only — its absolute score
-   cannot calibrate a rejection rule); 0/18 calibration bounds false
-   press only at ~15% (95% one-sided).
-3. The deterministic checker feedback is a free error signal no arm
-   consumes (event-triggered control / cholinergic detector / ripple
-   state-triggering all say: trigger on detected events).
+## Diagnosis being attacked
+
+1. Zero-false-press is the Neyman-Pearson alpha=0 corner: for an
+   imperfect score the only feasible policy is "never press" (observed
+   14/14794). It asserted infinite false-press cost; the true per-press
+   cost is unknown (the oracle arm's 7/409 parse-lost is a per-WORK
+   policy aggregate, not a per-press cost) and will be measured (T0.3).
+2. The controller was untrainable by construction: timing labels from
+   syntax alone; the address head never saw a null case; 0/18 bounds
+   false-press only at 15.3% (one-sided 95%).
+3. Deterministic checker feedback is a free error signal no arm
+   consumes.
 4. Biology never learns "when" as a free binary under asymmetric
-   penalty: the rhythm presses by default; learning sets phase and gain
-   (Han et al. 2025 Neuron; Lundqvist bursts; PBWM opponent gating).
+   penalty: default rhythms + learned phase/gain; opponent Go/NoGo with
+   post-hoc criterion; event-triggered detectors.
 
-## Registered ladder (ranked by expected information per GPU-hour)
+## Harness registration (before any rung; red/green TDD)
 
-Order is a dependency ladder: each rung's result gates the next. All
-runs on dev/train seeds unless marked; val seeds stay sealed until one
-pre-registered validation per surviving policy. Every rung reports
-paired parse/exec vs base (Gate-3 style) alongside adherence.
+H1. Span-level address API: the selector-arm address callable returns an
+    exact token span (or NULL); the runner applies THAT span verbatim.
+    The type->authoritative-span redirect survives as the separately
+    named "structured" arm (deployment baseline, in every replay).
+H2. Press-event logging in the runner: per generation step record
+    pre-guard decision (candidate or NULL), guard rejections split by
+    reason (below-threshold vs out-of-ledger), applied presses, and the
+    applied span. "Never/always" claims must cite these records.
+H3. Wrong-span non-vacuity test: a fixture proving a deliberately wrong
+    span is actually applied and actually changes logits (exact-zero
+    lesson: vacuous instrumentation fails loudly).
+H4. Trace writer: the T0.1 pass persists per-event records (below).
 
-### P0 — Diagnostics on existing artifacts (no training, no new GPU runs*)
+## Frozen seeds (registered now; 12.9xM blocks incl. the 941-fire audit
+are LEGACY EXPLORATION — never evidence)
 
-*P0.4 needs generation replays; the rest is cached-features/logs work.
+- trace/train: 13,000,000+i, i<48 (dev split)
+- calibration: 13,030,000+i, i<24
+- negative fixtures: 13,060,000+i, i<160 (component false-selection
+  trials; independence unit = SESSION: a trial fails if any false
+  selection occurs in it; 0/160 -> U95 = 1-0.05^(1/160) = 1.86%)
+- dev replay: 13,100,000+i, i<24
+- sealed validation: 13,200,000+i, i<96 (one named autonomous finalist
+  only, chosen at the pre-val review; all other policies are
+  exploratory — multiplicity is handled by naming, not by testing many)
 
-- P0.1 Score-policy matrix (sol A0): at the 941 logged timing fires,
-  instrument all candidate scores and evaluate offline: raw max
-  (baseline), top1-top2, top1-logsumexp(rest), normalized cosine,
-  live-minus-best-same-type-distractor (provenance CEILING, not
-  autonomous), structured eligibility (press iff predicted type has an
-  active ledger entry). ROC/PR per counterfactual cell
-  (active/absent/cleared/stale_only).
-- P0.2 Attention-mass liveness scan (Attention Tracker replication):
-  per head, attention mass from press-moment token to live vs
-  distractor spans over cached sessions; rank heads by separation;
-  liveness score = summed mass over top-k heads. Training-free.
-- P0.3 Empirical false-press cost: inject deliberate wrong-span and
-  wrong-moment presses across seeded dev sessions; measure adherence +
-  validity damage per press event -> empirical cost C and the Bayes
-  press threshold p* = 0.017C/(14.5+0.017C). Also bias-magnitude sweep
-  (beta x {0.25,0.5,1.0}) at mistimed moments: if damage is superlinear
-  in magnitude, soft pressing is structurally safe.
-- P0.4 Threshold sweep on the already-trained selector: sweep theta
-  below the registered value at ~5 operating points, replay 24 dev
-  sessions each; plot adherence and paired validity vs press rate. If
-  the curve peaks above base at nonzero press rate, the constraint
-  (not the representation) caused the collapse.
-- P0.5 Event-triggered baseline (no learning): press for the implicated
-  obligation on the work turn AFTER the checker flags its violation
-  (reactive; one turn late; near-zero false press by construction),
-  with a refractory rule. Single dev replay. Decisive either way: >8
-  pts recovered => the learned-controller framing was solving the
-  wrong problem; ~0 => violations are unrecoverable once flagged and
-  prediction is genuinely required.
+## Registered ladder
 
-GATE G0: proceed to P1 with whichever score family is nondominated in
-P0.1/P0.2; carry C and p* from P0.3 as the registered risk budget
-(replacing zero-false-press everywhere downstream). If the provenance
-ceiling in P0.1 fails too, the representation lacks the signal — skip
-to P2/P4 (redesigns) directly.
+### T0 — Trace + diagnostics (one GPU trace pass, then offline)
 
-### P1 — Joint candidate-or-null scorer (head-only, ~30 min training)
+- T0.1 TRACE PASS (GPU, deterministic): replay base + selector arms on
+  the trace seeds with H1-H4 in place. Per candidate event store: h20
+  state, timing logits, every candidate span with source label
+  (live/superseded/distractor), all registered score variants, chosen
+  candidate, rejection reason, counterfactual cell. This is the input
+  to everything offline. (Replaces the false "no new GPU runs" claim.)
+- T0.2 Score-policy matrix (offline on the trace): raw max, top1-top2,
+  top1-logsumexp(rest), normalized cosine, live-minus-best-same-type
+  (provenance CEILING), structured eligibility. Metric registered for
+  G0: recall on active events at the threshold where session-level
+  U95(false selection) <= 5% on the negative fixtures, computed
+  select-then-bound (score family chosen on trace sessions; the bound
+  evaluated on the untouched fixture block). Tie-break: higher AUPRC
+  (active vs all). CEILING FAILURE := provenance-ceiling recall < 0.50
+  at that same bound.
+- T0.3 Per-press cost/benefit (GPU, paired single-intervention
+  rollouts): from a common prefix, one rollout with exactly ONE press
+  and one without, to the end of the work; over >=200 paired events per
+  condition (correct-span-correct-moment, wrong-span, wrong-moment)
+  measure per-press benefit B and per-press harm H on the same unit
+  (adherence of that work's opportunities; parse/exec deltas reported
+  alongside, converted only by a utility weight registered BEFORE the
+  runs: 1 broken work = 2 adherence misses). p* := H/(B+H), symbolic —
+  src/stencil/press_stats.py takes B,H as required inputs, no default
+  constants. If B <= 0 the mechanism claim itself is re-examined before
+  proceeding.
+- T0.4 Theta sweep on the trained selector (GPU dev replays, ~5 points
+  below registered theta): adherence + paired validity vs applied press
+  rate (from H2 logs). Purpose: was the collapse the constraint or the
+  representation?
+- T0.5 Event-triggered baseline (GPU dev replay, no learning): rule —
+  when checker feedback flags moment class c at env turn e, press
+  type-c parser-timed moments (_oracle_moment) on subsequent work turns
+  while c remains active-in-ledger; per-type refractory: stop after the
+  first later work turn scores c adherent; update/clear resets the
+  trigger. Registered denominator: violations with >=1 later active
+  opportunity of the same type (last-turn violations are recorded
+  no-ops). Arms: base, reactive (learned-free), reactive-oracle ceiling
+  (same trigger, oracle moments — bounds what reactivity CAN recover),
+  structured. Report conditional recovery on the eligible denominator
+  AND whole-session lift; per-cell metrics on pressed turns reported
+  separately (spillover disclosure). Label: controller-visible
+  triggering (feedback may be compacted out of the model window).
 
-Sol's A1. One listwise softmax over [NULL, cand_1..cand_n]: normalized
-query-key scores + a null head over h_t. Targets: the governing entry
-at real active opportunities; NULL at ordinary tokens, obligation-free
-syntax moments, cleared/stale-only types, distractor-only contexts.
-Margin term: live entry must beat the strongest same-type quoted/stale
-lookalike (hard negatives mined from our own logs — the exact
-distractors that defeated max-score). Trained on cached h20 features.
+GATE G0 (mechanical): let R_auto = best autonomous family's T0.2 recall,
+R_ceil = provenance-ceiling recall, both at the registered bound.
+- R_ceil < 0.50: representation lacks the signal -> skip T1; go to T2
+  bakeoff + T3 with the structured arm as champion.
+- R_ceil >= 0.50 and R_auto >= 0.5*R_ceil: proceed to T1 with that
+  family.
+- R_ceil >= 0.50 and R_auto < 0.5*R_ceil: run the DEFERRED attention-
+  mass scan (one instrumented pass; qwen3.py last-row attention summary
+  registered as a harness change then) as the one additional family; if
+  it also misses 0.5*R_ceil, skip T1 as above.
+T0.5 decision (mechanical, on conditional recovery of the reactive arm
+as a fraction of the reactive-oracle ceiling): >=0.5 -> reactive
+pressing is a registered component of the final recipe; <0.5 ->
+recorded negative; no middle band.
 
-Component gates before any generation run: conditional address >=90%;
-active press recall >=50%; zero false presses over >=300 registered
-negative opportunities (a real ~1% bound, not 0/18); positive lookalike
-margin on >=90% of active cases. Then one 24-session dev replay:
-closure >=0.5 of oracle headroom, lift >=10 pts, paired validity
-disclosed. Ablation: retrain without provenance/layout cues + a
-perturbed-ledger-layout split; if only the provenance version works,
-record honestly as "structured selection works, autonomous recognition
-does not".
+### T1 — Joint candidate-or-null scorer (head-only training)
 
-STOP RULE (autonomous line): if the joint scorer cannot reach 50%
-active recall at the registered false-press bound, or component success
-fails to convert to >=0.25 behavioral closure on dev, the autonomous
-line closes (honest negative #2) and the program continues on P0.5 /
-P5 (structured + event-triggered deployment recipe) only.
+Listwise softmax over [NULL, cand_1..cand_n] (normalized query-key +
+null head over h_t); targets: governing entry at active opportunities,
+NULL everywhere else (ordinary tokens, obligation-free syntax moments,
+cleared/stale-only, distractor-only); margin term vs the strongest
+same-type lookalike (hard negatives mined from the trace). Features
+recomputed h20 (trunk frozen).
 
-### P2 — Rhythm-default press: learn phase and gain, not whether
-(the Miller-faithful redesign; neuro lane #1)
+Component gates (on trace/calib, before any generation): conditional
+address >=90% on active events with the span-level API (this also
+finally measures WHERE autonomously); recall >= 0.5*R_ceil; session-
+level U95(false selection) <= 5% on the untouched negative fixtures;
+positive lookalike margin on >=90% of active events.
 
-Remove the binary decision entirely. A shared scheduler of period T
-(~4-8 steps) presses by default with a raised-cosine envelope; each
-live ledger entry has a learned phase offset phi_i and scalar gain g_i
-(soft bias, magnitude from P0.3's safety curve). The learner never
-decides whether — only where in phase and how strongly. Inverted-
-default variant (Chen 2026 spatial computing): standing negative bias
-on non-ledger context, released over the scheduled span — the null
-action then costs something. Dev replay vs base/oracle/reinsertion;
-watch load-smearing at higher ledger sizes (do not hard-partition).
+Behavioral decision table (24-session dev replay; closure computed from
+raw paired numerators on identical seeds, never rounded rates):
+- Precondition: oracle-base headroom >= 0.10 on these seeds, else
+  INCONCLUSIVE (headroom does not bind; no verdict about the scorer).
+- closure >= 0.50 AND paired-validity harm within the T0.3 budget:
+  PASS -> T1 finalist candidate.
+- closure in [0.25, 0.50): ONE registered fallback — retrain once with
+  hard-negative reweighting (weight 4x, preregistered), re-judge
+  against the same table; no second fallback.
+- closure < 0.25 (or fallback misses): the discriminative-scorer line
+  CLOSES (honest negative); T2/T3 continue as separate lines.
 
-### P3 — Fork-and-judge with KV rollback (policy + label factory)
+### T2 — Controller-state bakeoff (head-only; Brian's oscillator,
+controlled; runs regardless of T1)
 
-At proposed press moments (from P1's scorer at aggressive threshold, or
-P2's schedule), fork pressed vs unpressed continuations from the same
-KV checkpoint to the close of the local syntactic unit; keep the branch
-the deterministic checker scores higher. Branch selectors evaluated:
-syntax-only, learned (logit/hidden deltas), oracle (ceiling ONLY —
-never the reported result). Byproduct: exhaustive per-moment
-press-advantage labels — the supervised dataset for a press-utility
-head (press only when predicted benefit beats predicted harm by a
-calibrated margin). ~10-20 GPU-h pilot; run only if P1 generates
-useful-but-unsafe coverage or P2 needs a safety filter.
+Equal-parameter contenders on recomputed trace features: (a) per-slot
+complex oscillator bank; (b) static per-memory embedding + MLP; (c)
+leaky/EMA integrator; (d) keyed latch / tiny GRU; (e) null-oscillator
+(free-running periodic, generator-matched periods). Task: press
+classification per counterfactual cell. Robustness: insert 0/32/128
+inert tokens before decision moments; phase-scramble at eval.
+Mechanical verdict: the oscillator PROCEEDS to a generation pilot only
+if it beats ALL of (b)-(e) on the T0.2 metric and degrades <10% rel.
+under both probes; a tie (within the metric's fixture-level U95) with
+the latch ships the latch and records the tie.
 
-### P4 — Oscillator-per-memory bakeoff (Brian's proposal, controlled)
+### T3 — Rhythm-default press (generation pilot; only after T2 verdict)
 
-Cached-feature contest, equal parameter budgets, no generation until a
-winner: (a) independent per-slot complex oscillator bank z_j (identity/
-age/urgency in phase, values stay in text); (b) static per-memory
-embedding + MLP; (c) leaky/EMA integrator; (d) keyed latch / tiny GRU.
-Task: press classification per counterfactual cell. Robustness probes:
-insert 0/32/128 inert tokens before decision moments (phase-aliasing
-trap); phase-scramble at eval (if scrambling does not hurt, the
-oscillator is decorative). PROCEED to generation only if the oscillator
-beats ALL non-oscillatory controls and survives both probes; if the
-latch ties it, ship the latch and record the tie. Null-oscillator
-control from the crossfield lane: free-running periodic pressing with
-generator-matched periods must also be beaten (else it is a cron job).
+Shared scheduler period T in {4,8} steps, raised-cosine envelope; per
+live entry a phase offset and gain (magnitude from the T0.3 harm
+curve); slot assignment from the T2 winner (or round-robin if T2 ships
+the latch). Gate: dev replay closure >= 0.25 at the T0.3 validity
+budget else the line closes. Inverted-default variant only if the plain
+rhythm passes. Full objective/grids get fresh preregistration + review
+before launch (registered promise, sol finding 6).
 
-### P5 — Structured-eligibility deployment ceiling (always run; cheap)
+### T4 — Fork-and-judge (conditional; only if T1 or T3 produce
+useful-but-unsafe coverage, defined as recall >= 0.5*R_ceil but
+validity harm > the T0.3 budget)
 
-No theta, no learned liveness: press iff the parser-timed moment's type
-has an active authoritative ledger entry (focus.set/clear provenance).
-One dev replay. This is the deployable, security-safe recipe (quoted
-text cannot acquire authority) and the ceiling every autonomous policy
-is measured against. Product answer regardless of science outcome.
+Deterministic prefix-recomputation forks (Qwen3.forward has no KV
+cache; "rollback" = re-decode from the fork point, deterministic
+greedy). Fork at proposed presses, decode both branches to the close of
+the local syntactic unit (registered boundary: the earliest of
+def-name end / docstring close / annotation end, via the existing
+parser), select by syntax-only verifier first; learned verifier and
+oracle ceiling as comparison arms (oracle never the reported result).
+Byproduct: per-moment press-advantage labels.
+
+### Structured arm (in EVERY replay from T0 on)
+
+Press iff the parser-timed moment's type has an active authoritative
+ledger entry (provenance from the session state). The deployable,
+security-safe recipe and the ceiling all autonomous arms are judged
+against. Ships regardless of science outcome.
 
 ## Frozen rules
 
-- Risk budget: the P0.3-derived (C, p*) replaces zero-false-press in
-  every calibration; calibrated thresholds use >=300 negatives (grid +
-  binomial bounds; conformal/LTT only where its assumptions hold and
-  are stated).
-- Seeds: train/calib/dev from fresh 13.0xM blocks (registered at P0
-  launch); one sealed val run per surviving policy, judged as-is.
-- Every rung reports press counts and paired parse/exec vs base;
-  "never/always" claims require direct instrumentation (press-audit
-  lesson).
-- No script imported by another script does top-level work
-  (tests/test_no_side_effect_imports.py enforces).
-- Reviews: sol xhigh + fable at (i) this plan before P0 launch,
-  (ii) G0, (iii) any registration of a val run, (iv) close. Loop only
-  while high/critical findings remain.
-- Halting is success: each stop rule closes its line with a full
-  autopsy; P5 ships regardless.
+- Risk policy: gates use U95(session-level false-selection rate) <= 5%
+  on independent negative fixtures — the exact Clopper-Pearson one-sided
+  bound from the OBSERVED count (k > 0 allowed; 0/160 gives 1.85%,
+  k=3/160 gives 4.77%, k=4/160 gives 5.63% and fails; computed by
+  src/stencil/press_stats.py, test-pinned). Behavioral
+  validity harm is judged against the T0.3 per-press budget. Zero-FP
+  appears nowhere as a gate.
+- One sealed validation (13.2M seeds) for one named finalist; judged
+  as-is; a miss closes the program per its line's table.
+- Every replay reports applied press counts (H2 logs) and paired
+  parse/exec vs base.
+- No top-level work in imported scripts (test enforced). All new
+  helpers TDD'd red-first.
+- Reviews: sol + fable at (i) this v2 before harness work [round 2],
+  (ii) G0, (iii) T1/T3 preregistration details, (iv) pre-validation
+  finalist naming, (v) close. Loop only while high/critical remain.
+- Halting is success; every closed line gets an autopsy in WORKLOG.
 
-## What would count as the program's win
+## Program verdicts
 
-Any autonomous policy (P1-P4) that on sealed validation closes >=0.5 of
-oracle headroom at the registered risk budget with paired validity
-disclosed — or a clean pair of honest negatives that leaves P5 +
-event-triggered pressing as the documented deployment recipe, with the
-autonomy boundary mapped as precisely as TIMED-SELECTOR mapped the
-constraint boundary.
+WIN: a named autonomous policy closing >= 0.5 of oracle headroom on
+sealed validation within the T0.3 validity budget. HONEST MAP: the
+discriminative, rhythm, and state lines each closed by their tables,
+leaving structured + event-triggered pressing as the documented recipe
+with the autonomy boundary quantified from both sides.
