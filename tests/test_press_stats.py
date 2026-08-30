@@ -21,7 +21,7 @@ from stencil.press_stats import bayes_press_threshold, roc_point, zero_event_upp
 def test_zero_event_upper_bound_exact():
     assert math.isclose(zero_event_upper_bound(18), 1 - 0.05 ** (1 / 18), rel_tol=1e-12)
     assert math.isclose(zero_event_upper_bound(18), 0.153318, abs_tol=5e-6)
-    assert math.isclose(zero_event_upper_bound(300), 0.0099355, abs_tol=5e-7)
+    assert math.isclose(zero_event_upper_bound(300), 0.0099361, abs_tol=5e-7)
     # ~1% at 300 negatives, the plan's claim
     assert zero_event_upper_bound(300) < 0.01
 
