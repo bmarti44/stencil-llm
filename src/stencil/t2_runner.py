@@ -164,7 +164,7 @@ def run_session(model, tok, sess: T2Session, split: str, arm: str,
             elif arm == "selector" and spans and timing is not None:
                 key = timing(model, toks, text)
                 if key is not None:
-                    key = address(model, toks, spans, key) if address is not None else key
+                    key = address(model, toks, ptxt, spans, key) if address is not None else key
                     if key is not None and key in spans:
                         t = toks.shape[1]
                         bias = torch.zeros(t, t, device="cuda")
