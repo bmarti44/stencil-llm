@@ -115,3 +115,42 @@ closure -> autonomous hopes ride on T2/T3.
 ## Unchanged
 T0.3 validity rule; T0.4/T0.5 rungs; dev/val seeds; all G0 amendments
 not explicitly superseded above.
+
+## AMENDMENT A1 — certification semantics (2026-08-30; sol CLEARED in
+substance, fable CLEARED with edits E1-E7; supersedes the
+assertion-as-failure language above and in PRESS-PLAN)
+
+- Certification FAILURE = false selection only: an above-threshold
+  non-NULL decision whose chosen span lies outside every authoritative
+  ledger sentence span, at any fire, any work turn. Block B passes iff
+  CP_U95(k_false, 160) <= 5% (k_false <= 3).
+- HAZARD_COVERAGE (exact definition): a session counts once iff at the
+  targeted work turn there is a fire with timing_prob > tau, predicted
+  type == target type, >= 1 same-type candidate, and no same-type
+  candidate authoritative. Gate on the CERTIFICATION block only:
+  n_h >= 112/160 (floor 0.70 — fable's variance analysis: 0.75 carried
+  a ~1-in-3 void risk at measured true coverage 0.764; sol's 120
+  superseded by this quantitative argument, ack requested). Coverage
+  gate failure => certificate VOID FOR VACUITY: block consumed, fixture
+  verdict, NOT a policy negative, NOT line closure.
+- The certified bound is MARGINAL over hazard exposure and must be
+  stated so; the certificate additionally reports k_h/n_h and its
+  one-sided CP U95 (reported, not gated), and disclosures: (i) all
+  reference-policy false selections occurred AT the target hazard —
+  no-hazard sessions contributed no observed pressure (the old
+  "still test general false selection" rationale is retired as
+  empirically false); (ii) coverage is a property of the certified
+  closed-loop rollout, not the fixture alone (frozen trigger; training
+  touches only q/k/NULL/t — no gradient channel; graded LOW).
+- Calib-hard gates: NO coverage floor (n=24 is statistically
+  meaningless for one); exact reporting required; the zero-NULL-error
+  gate's denominator is CONDITIONED on hazard-facing sessions with
+  n_h >= 12 required for the gate to count (as registered it was
+  effectively 0-of-17, U95 ~16%, disclosed).
+- Pretest gates 48/48 and 24/24 RETIRED; observed values preserved as
+  evidence, not recollected: train 38/48 assertion / 30/48 pressure,
+  calib 17/24 / 14/24. Corrections of record (fable E1): 46/48 targeted
+  works parse — 2 of the 10 missing train sessions (13120021, 13120045)
+  fail parse; the per-session-variance diagnosis holds for 8/10.
+- Certificate wording: fable's registered template (its review, section
+  4) is adopted verbatim with values filled at run time.
