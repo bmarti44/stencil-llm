@@ -946,3 +946,28 @@
 - 2026-08-30, AMENDMENT A1 DUAL-CLEARED (sol "112" ack on the floor;
   fable E1-E7 folded). Certification floor: n_h >= 112/160. Launching
   trace0 recompute (13.00M with the v2 collector), then training.
+- 2026-08-30, T1 TRAINING round 1 (770 rows: 715 active, 55 inactive;
+  t1-gates.json): address 1.0, recall 0.9942, margins 0.9942/0.90 —
+  PASS; zero-NULL-error gate FAILS on exactly one session (13140011),
+  n_h=17 countable. Per the registered fallback table: consuming the
+  ONE fallback (4x reweight on inactive hard-negative rows), re-gating
+  once. Write-ahead: if it passes, IT certifies on block B; if it
+  fails, the discriminative line CLOSES.
+- 2026-08-30, DISCRIMINATIVE LINE CLOSED (registered stop rule: fallback
+  also failed the gates). Autopsy: round-1 head — address 1.0, recall
+  0.9942, margins 0.9942/0.90, hazard leakage 1/17 sessions (both
+  'hint' errors at the s0x hazard of 13140011); 4x fallback retrain —
+  recall 0.9769, leakage 2/17 (added 13140001 'doc'). Verified the
+  failing sessions are hazard-facing and errors are AT-hazard (gate
+  implementation matches A1 semantics). HONEST SUMMARY: the trained
+  candidate-or-null head cut the hazard failure mode by ~93% vs the
+  zero-new-training policy (30/48 pressure sessions -> 1/17) — a large
+  real improvement that is still not certification-grade (1/17 -> U95
+  ~25% >> 5%); the zero-error screen did its job and saved block B from
+  a probable burn. Blocks B and E remain untouched. TWO honest
+  negatives now bracket the discriminative approach. REMAINING
+  REGISTERED LINES: T2 controller-state bakeoff (head-only) and T3
+  rhythm-default (the Miller-faithful line; also the natural mechanism
+  for the flagged pure-steering case). Banked recipe: structured arm +
+  reactive pressing (0.875 recovery) + T0.3 cost asymmetry. Next: T2/T3
+  preregistration draft -> review round (checkpoint iii).

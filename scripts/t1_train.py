@@ -18,6 +18,7 @@ decision margins on >= 90% of active and >= 90% of inactive
 hard-negative rows. Saves results/qwen/t1-head.pt + gate report.
 """
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -29,6 +30,8 @@ import torch.nn.functional as F
 
 from stencil.t1_head import T1Head, decide, margin_loss
 from stencil.t2_trace import load_trace
+
+FALLBACK = bool(os.environ.get("FALLBACK"))
 
 
 def rows_from(path):
@@ -67,8 +70,9 @@ def train(rows):
                 r = rows[j]
                 logits = head(r["h20"], r["cand"])
                 target = 0 if r["label"] is None else r["label"] + 1
-                loss = loss + F.cross_entropy(logits[None], torch.tensor([target]))
-                loss = loss + margin_loss(logits, r["label"])
+                w = 4.0 if (FALLBACK and r["inactive"]) else 1.0
+                loss = loss + w * F.cross_entropy(logits[None], torch.tensor([target]))
+                loss = loss + w * margin_loss(logits, r["label"])
             opt.zero_grad(); loss.backward(); opt.step()
     return head
 
@@ -122,12 +126,13 @@ def main():
           f"({sum(1 for r in rows if r['label'] is not None)} active, "
           f"{sum(1 for r in rows if r['inactive'])} inactive)", flush=True)
     head = train(rows)
-    torch.save(head.state_dict(), ROOT / "results" / "qwen" / "t1-head.pt")
+    name = "t1-head-fallback.pt" if FALLBACK else "t1-head.pt"
+    torch.save(head.state_dict(), ROOT / "results" / "qwen" / name)
     calib_rows = rows_from(ROOT / "results" / "qwen" / "t1-calib-features.pt")
     rep = gates(head, calib_rows)
     print(json.dumps(rep, indent=1), flush=True)
-    (ROOT / "results" / "qwen" / "t1-gates.json").write_text(json.dumps(rep, indent=1))
-    print("saved results/qwen/t1-head.pt + t1-gates.json", flush=True)
+    (ROOT / "results" / "qwen" / ("t1-gates-fallback.json" if FALLBACK else "t1-gates.json")).write_text(json.dumps(rep, indent=1))
+    print(f"saved results/qwen/{name} + gates json", flush=True)
 
 
 if __name__ == "__main__":
