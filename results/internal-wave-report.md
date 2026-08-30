@@ -12,8 +12,9 @@ wave passed, parse rate improved 84.8 -> 92.7). Causal re-test at
 seal: wave raw gain 238 vs proxy 149 (+89), both valid. VAL EXPOSURE
 SCOPE (sol audit, 276/276): every prefix-active work contained BOTH
 the unseen ledger rendering AND the familiar training-format sentence
-in-context — the seal demonstrates rendering-robust val performance,
-NOT format generalization (that claim is retracted); the comment rule
+in-context — the seal demonstrates val performance under MIXED-FORMAT EXPOSURE
+(the wave could have relied entirely on the familiar sentence; even
+"rendering-robust" is not supported — both claims retracted); the comment rule
 type is a complete hold-out present in 96/96 sessions, with its
 per-type performance recorded in the reproduction audit.
 
@@ -30,7 +31,7 @@ per-type performance recorded in the reproduction audit.
 | G-W0c + ablations | PASS 36.2%; binding-clean: K-perm keeps 9.8% of gain (WHERE real), gain-perm 32.5% (WHEN real), uniform 39.7% (selectivity real) |
 | W0 dev replay | Wave closure 1.119 (adherence 29.1 -> 47.1), ZERO paired broken, parse rate 88.3 -> 98.9 IMPROVED; proxy closure 1.0 converging token-identically onto the oracle (92/94 works, verified); causal margin +5 adherence with zero breakage (sol's registered wording) |
 | W1 recurrence | Held CE 34.6% PASS; BOTH temporal probes NULL (permute -0.04%, reset +0.01%): STATELESS SUFFICES under the frozen H3 architecture — fable's mechanism: state numerically invisible to the readout (|h20|~609 vs |s_t|~6; saturated gain logits); no W2 transplant (nothing state-borne to transplant); caveat: the architecture plausibly suppressed state learning — a rescaled-state design is future work |
-| Sealed validation (val split: held-out sentence format + novel rule type; one attempt) | **SEALED WIN**: headroom 0.131 binds; wave closure 1.4875, dU 196 (valid; 21 broken), parse improved; causal re-test HOLDS (238 > 149, both valid); oracle 38.3 / proxy 37.4 / reinsertion 43.0 validity-FAIL |
+| Sealed validation (val split: mixed-format exposure — unseen ledger rendering WITH the familiar sentence co-present — plus a novel rule type; one attempt) | **SEALED WIN**: headroom 0.131 binds; wave closure 1.4875, dU 196 (valid; 21 broken), parse improved; causal re-test HOLDS (238 > 149, both valid); oracle 38.3 / proxy 37.4 / reinsertion 43.0 validity-FAIL |
 
 ## The three findings that matter
 
@@ -42,8 +43,12 @@ per-type performance recorded in the reproduction audit.
 2. **The matched control's supported statement (sol's registered
    wording):** with the identical continuous actuator, proxy training
    succeeds (converging token-identically onto the oracle), while CE
-   training adds five raw successes on dev and 89 at seal with better
-   measured validity. Actuator causality in isolation was NOT tested
+   training adds five raw successes on dev and 89 at seal. Validity at
+   seal, stated exactly: the wave broke 21 base-valid works vs the
+   proxy's 6 (retaining 82.4% vs 91.9% of its own gain after
+   penalties) and finished with higher absolute utility (dU 196 vs
+   137) because of the larger gain; BOTH passed the validity rule.
+   Actuator causality in isolation was NOT tested
    (no same-checkpoint discrete-actuator counterfactual was run).
 3. **Recurrence: reset and cyclic-next-session-donor perturbations
    were null under teacher-forced held CE; behavioral state dependence
@@ -85,5 +90,8 @@ numbers reproduce from artifacts force-committed to the repo
 deterministic reproduction audit (w-seal-audit.json: full-length
 output sha256 per work, per-work paired records, per-type incl.
 comment-class performance), whose regenerated outputs are
-hash-verified against the sealed run's recorded values — REPRODUCTION
-EXACT, 0 mismatches across all 480 works x 5 arms.
+verified against the sealed run's recorded 16-hex hash PREFIXES via
+prefix match: 0 recorded-prefix mismatches across 408 works per arm
+(2,040 outputs); full-length hashes are preserved for the reproduction
+run itself (the sealed run recorded prefixes only, so full-hash
+equality with the originals cannot be established beyond the prefix).

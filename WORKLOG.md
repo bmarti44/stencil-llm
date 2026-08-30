@@ -1298,7 +1298,7 @@ script sha256: 2a0ef6480d6a11cda8f715c290aafb45
   assertion pre-tokenization). Then the final report re-verification
   and program close.
 - 2026-08-30, REPRODUCTION AUDIT COMPLETE: EXACT — 0 hash mismatches
-  across 480 works x 5 arms; sealed evidence certified; full paired
+  across 408 works per arm (2,040 outputs), prefix-match basis; sealed evidence certified on that basis; full paired
   records + full-length sha256 committed (w-seal-audit.json).
   PER-TYPE findings folded into the report: prefix 81.5 (wave) vs 39.5
   (oracle) — doubles the teacher on the unseen-format type; doc
