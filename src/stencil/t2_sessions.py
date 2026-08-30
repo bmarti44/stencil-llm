@@ -198,9 +198,11 @@ def generate_t2(seed: int, stratum: int = 20, split: str = "dev", interference: 
             # the injected same-type non-live note (target was just cleared)
             if s0x_intent == "stale_only" and superseded[ty]:
                 v = superseded[ty][-1]
+                realized = "stale_only"
             else:
                 v = _pick([x for x in POOLS[ty] if x not in superseded[ty]], g)
-            held_out["s0x"] = {"type": ty, "value": v, "cell_intent": s0x_intent}
+                realized = "cleared"  # honest metadata when the stale intent falls back
+            held_out["s0x"] = {"type": ty, "value": v, "cell_intent": realized}
             turns.append(Turn("distractor", f"Note: {SENT[ty].format(v=v)}"))
         elif kind == "s0_note":
             # T2b scheduler guarantee: one genuinely-conflicting note for an
@@ -266,6 +268,10 @@ def generate_t2(seed: int, stratum: int = 20, split: str = "dev", interference: 
         else:
             turns.append(Turn("distractor", _pick(FILLER, g)))
 
+    if "s0x" in held_out and work_turns:
+        # the targeted work is the LAST work turn (certification binds its
+        # non-vacuity assertion to exactly this turn — sol impl review)
+        held_out["s0x"]["work_turn"] = work_turns[-1]
     return T2Session(
         seed=seed, stratum=stratum, turns=turns, work_turns=work_turns,
         fn_names=fn_names, ops=ops, ledger_at=ledger_at,

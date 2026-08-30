@@ -198,6 +198,13 @@ def run_session(model, tok, sess: T2Session, split: str, arm: str,
     return results
 
 
+def span_in_ledger(span, ledger_spans) -> bool:
+    """The registered structural guard: the candidate token span must lie
+    INSIDE an authoritative ledger sentence span (provenance by position,
+    not value — a historical copy of the live sentence fails this)."""
+    return any(s <= span[0] and span[1] <= e for s, e in ledger_spans.values())
+
+
 def run_policy_session(model, tok, prompt_text, ledger_spans, policy,
                        threshold, press_log=None, max_new=120,
                        beta=BETA, layers=LAYERS):
@@ -225,7 +232,7 @@ def run_policy_session(model, tok, prompt_text, ledger_spans, policy,
         if span is not None:
             if float(diag["score"]) <= threshold:
                 entry["rejected"] = "below-threshold"
-            elif not any(s <= span[0] and span[1] <= e for s, e in ledger_spans.values()):
+            elif not span_in_ledger(span, ledger_spans):
                 entry["rejected"] = "out-of-ledger"
             else:
                 entry["applied"] = span

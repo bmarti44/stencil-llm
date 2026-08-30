@@ -832,3 +832,28 @@
   NEXT: sealed block-A certification of the named policy (cos_max @
   0.6407741904258727, type-restricted, runner guards), queued behind
   the running T0.3.
+- 2026-08-30, POST-G0 IMPLEMENTATION REVIEW (sol: 1 CRITICAL + 2 HIGH,
+  NOT CLEARED; fable: 1 HIGH + 3 LOW, NOT CLEARED; both verified the
+  cos math, tie handling, threshold reproduction, and s0/v3
+  bit-identity across 250 seeds). CONSOLIDATED FIXES: (1) CRITICAL/HIGH
+  press semantics — certification now uses provenance-by-span for BOTH
+  failure counting and application (press_certify.certify_decision,
+  sharing t2_runner.span_in_ledger with the runner; STRICTER than the
+  trace's value-level selection semantics — disclosed in the
+  certificate; fable measured ~7% of sessions eventually carry a
+  live-valued note, so value-comparison was fragile); (2) s0x assertion
+  bound to the targeted work turn + no-authoritative-candidate
+  (press_certify.s0x_assertion_hit; held_out["s0x"]["work_turn"]
+  recorded by the generator; cell_intent metadata made honest on
+  fallback); (3) sealed job made FAIL-CLOSED: block/N hard-coded,
+  artifact sha256 pinned (verified independently: selector e9922d70...,
+  qwen 13bfabb5..., tokenizer aeb13307...), .started marker refuses
+  reruns, atomic result write, model loading under main(). (4) BLOCK A
+  ADMINISTRATIVELY VOIDED (sol's audit instantiated its sessions at
+  generator level; conservative reading of single-use). NAMING (before
+  the block is touched): the named policy (timing head +
+  type-restricted cos_max @ 0.6407741904258727 + runner guards,
+  provenance-by-span semantics) certifies on BLOCK D (13,090,000).
+  Reserve pool: E only; extension 13.30M+. 5 new pure-logic tests; all
+  CPU suites green. One targeted re-review of the diff before the
+  sealed run.
