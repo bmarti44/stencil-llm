@@ -857,3 +857,9 @@
   Reserve pool: E only; extension 13.30M+. 5 new pure-logic tests; all
   CPU suites green. One targeted re-review of the diff before the
   sealed run.
+- 2026-08-30, IMPL REVIEW round 2: DUAL CLEARED (sol: guard shared and
+  exact, assertion target-bound, hashes match, block D frozen; fable:
+  press condition bitwise-identical runner vs certify, no env knobs, no
+  residual value comparison, s0x indices verified, one LOW TOCTOU nit —
+  no seed-integrity impact). Sealed block-D certification authorized;
+  runs when T0.3 frees the GPU.
