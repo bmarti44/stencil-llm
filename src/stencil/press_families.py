@@ -38,7 +38,8 @@ def evaluate_event(family: str, event: dict):
             return float("-inf"), None
         j = max(live, key=lambda i: qk[i])
         others = [qk[i] for i in idx if i not in live]
-        return (qk[j] - max(others)) if others else float("inf"), j
+        # G0 ruling: no comparison candidate -> conservative abstention
+        return (qk[j] - max(others), j) if others else (float("-inf"), None)
     if family == "cos_max":
         cos = event["cos_scores"]
         j = max(idx, key=lambda i: cos[i])
@@ -47,11 +48,30 @@ def evaluate_event(family: str, event: dict):
     if family == "raw_max":
         return qk[j], j
     rest = [qk[i] for i in idx if i != j]
+    # G0 ruling (sol+fable HIGH): +inf singleton semantics guaranteed a
+    # false press on single-lookalike inactive fixtures -> abstain instead.
     if family == "top1_top2":
-        return (qk[j] - max(rest)) if rest else float("inf"), j
+        return (qk[j] - max(rest), j) if rest else (float("-inf"), None)
     if family == "top1_logsumexp":
         if not rest:
-            return float("inf"), j
+            return float("-inf"), None
         mx = max(rest)
         return qk[j] - (mx + math.log(sum(math.exp(x - mx) for x in rest))), j
     raise ValueError(f"unknown family {family}")
+
+
+def counterfeit_hard_negative(event: dict):
+    """G0 registered construction: strip live candidates of the event's
+    pred_type from an active event, simulating a conflicting-note-at-
+    inactive-moment. Returns None when no same-type non-live lookalike
+    remains (nothing to press). cell is marked "counterfeit"."""
+    ty = event["pred_type"]
+    keep = [i for i, c in enumerate(event["candidates"])
+            if not (c["type"] == ty and c["source"] == "live")]
+    if not any(event["candidates"][i]["type"] == ty for i in keep):
+        return None
+    return dict(event,
+                candidates=[event["candidates"][i] for i in keep],
+                qk_scores=[event["qk_scores"][i] for i in keep],
+                cos_scores=[event["cos_scores"][i] for i in keep],
+                cell="counterfeit")

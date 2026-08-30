@@ -128,6 +128,43 @@ are LEGACY EXPLORATION — never evidence)
   only, chosen at the pre-val review; all other policies are
   exploratory — multiplicity is handled by naming, not by testing many)
 
+## G0 amendments (registered at the G0 review, 2026-08-30; sol + fable
+rulings in results/g0-review-sol.md and WORKLOG)
+
+- Secondary tie-break: hard-negative AUPRC on registered counterfeit
+  negatives (live same-type candidates stripped from active trace
+  events; press_families.counterfeit_hard_negative, test-pinned), and
+  counterfeit negatives participate in threshold selection. Threshold
+  enumeration at exact score boundaries (nextafter), never offset
+  constants.
+- Margin families (top1_top2, top1_logsumexp, live_minus_best) abstain
+  (-inf) on singleton candidate sets — +inf singleton semantics
+  guaranteed false presses on single-lookalike fixtures.
+- Fixture generator extension (ALL certification blocks, uniformly;
+  version recorded per block in WORKLOG before touching): each session
+  gets one deterministic inactive target type, balanced across
+  prefix/doc/hint and absent/cleared/stale cells, with an S0-style
+  format-identical same-type non-live note inside the surviving window
+  of its targeted work, outside any authoritative span; each session
+  must yield >=1 timing fire of the targeted type with a same-type
+  non-live candidate and no live same-type candidate — a session
+  failing that assertion counts as a CERTIFICATION FAILURE, never
+  silently dropped from the 160 denominator. Thresholds frozen before
+  sealed collection. The CP bound applies to this hard-negative fixture
+  distribution; natural-S0 structural safety is reported separately.
+  Dev replays and sealed validation stay on the UNEXTENDED generator
+  (comparability with the oracle grounding), with the disclosure that
+  behavioral rungs do not exercise the conflicting-note case.
+- T1 shortcut (one-way): the composed zero-NEW-training policy (reuse
+  of the previously supervised timing/address heads + type-restricted
+  cos_max + certified threshold) is behavior-tested first under T1's
+  table. It is named finalist ONLY on the full pass (headroom binds,
+  closure >= 0.50, validity passes). EVERY other conclusive outcome
+  proceeds to registered T1 training (a fixed-scorer failure cannot
+  close the candidate-or-null architecture); the T1 table is terminal
+  only for the trained T1 policy. T1 training data must include
+  inactive same-type lookalikes (the natural trace contains none).
+
 ## Registered ladder
 
 ### T0 — Trace + diagnostics (one GPU trace pass, then offline)

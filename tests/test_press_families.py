@@ -76,6 +76,38 @@ def test_structured():
     assert s == 0.0 and j is None
 
 
+def test_margin_families_abstain_on_singleton():
+    """G0 ruling (sol+fable HIGH): +inf on a singleton typed candidate set
+    guaranteed a false press on single-lookalike inactive fixtures. The
+    registered semantic is conservative abstention: no comparison
+    candidate -> -inf (never press)."""
+    ev = dict(EVENT, candidates=[EVENT["candidates"][0]], qk_scores=[5.0], cos_scores=[0.9])
+    for fam in ("top1_top2", "top1_logsumexp"):
+        s, j = evaluate_event(fam, ev)
+        assert s == float("-inf") and j is None
+    # live_minus_best with no same-type non-live comparison: also abstains
+    s, j = evaluate_event("live_minus_best", ev)
+    assert s == float("-inf") and j is None
+    # raw_max and cos_max still press on singletons (score is absolute)
+    assert evaluate_event("raw_max", ev) == (5.0, 0)
+    assert evaluate_event("cos_max", ev) == (0.9, 0)
+
+
+def test_counterfeit_hard_negative():
+    """G0 registered construction: strip live same-type candidates from an
+    active event -> what a conflicting-note-at-inactive-moment looks like."""
+    from stencil.press_families import counterfeit_hard_negative
+    hn = counterfeit_hard_negative(EVENT)
+    assert hn is not None
+    assert all(not (c["source"] == "live" and c["type"] == "prefix") for c in hn["candidates"])
+    assert hn["cell"] == "counterfeit"
+    assert len(hn["candidates"]) == 2 and len(hn["qk_scores"]) == 2
+    # event with no same-type lookalike yields no counterfeit
+    ev = dict(EVENT, candidates=[EVENT["candidates"][0], EVENT["candidates"][2]],
+              qk_scores=[5.0, 1.0], cos_scores=[0.9, 0.1])
+    assert counterfeit_hard_negative(ev) is None
+
+
 def test_selection_restricted_to_pred_type():
     # even if a hint candidate scored highest, prefix pred_type only ranks prefix candidates
     ev = dict(EVENT, qk_scores=[1.0, 0.5, 9.0], cos_scores=[0.2, 0.1, 0.99])

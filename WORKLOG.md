@@ -798,3 +798,29 @@
   certification non-vacuous; (c) proposing T1 training be skipped in
   favor of the zero-training type-restricted policy judged under T1's
   behavioral table. G0 review round (sol+fable) launched on all three.
+- 2026-08-30, G0 REVIEW COMPLETE (fable: verified all trace claims incl.
+  leakage audit + prompt consistency, endorsed rulings with conditions,
+  2 new HIGH; sol: verified, confirmed cross-type autopsy incl. the
+  185,938 max being a cleared-prefix event won by a live DOC span,
+  1 HIGH threshold bug, conditional approvals). CORRECTIONS accepted:
+  (a) my "~4x raw-scale drift" claim was UNSUPPORTED — 68/323 = 21.1%
+  of trace actives survive the old theta vs calib 24.6%: the evidence
+  shows cross-type threshold pollution, not scale drift; (b) `uniq[0]-1`
+  threshold enumeration froze cosine at -0.359 (would have burned block
+  A); (c) +inf singleton margins were guaranteed false-pressers. ALL
+  FIXED (nextafter boundaries, singleton abstention, counterfeit
+  hard negatives in selection + secondary tie-break; 11 family tests
+  green). CORRECTED MATRIX: cos_max recall 1.000 / 0 false sessions /
+  hard-AUPRC 1.0000 @ threshold 0.6407741904258727; raw_max 0.901 (2
+  false sessions); margins 0.907 (2); live_minus_best ceiling 0.833
+  (singleton abstention cost disclosed — R_auto exceeds the "ceiling"
+  under conservative semantics). G0 BRANCH: R_ceil 0.833 >= 0.50,
+  R_auto 1.000 >= 0.5*R_ceil -> proceed. NAMED G0 WINNER (before any
+  fixture block is touched): family cos_max, threshold
+  0.6407741904258727, composed policy = zero-new-training reuse of the
+  supervised timing/address heads + type-restricted cos_max argmax +
+  runner guards. Plan amended with the G0 amendment section (tie-break,
+  singleton semantics, fixture generator extension spec for ALL
+  certification blocks, T1 one-way shortcut). NEXT: TDD the fixture
+  generator extension; then the sealed block-A certification of the
+  named policy; T0.3 running meanwhile.
