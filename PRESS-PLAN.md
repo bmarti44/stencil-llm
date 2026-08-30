@@ -116,8 +116,11 @@ are LEGACY EXPLORATION — never evidence)
   (provenance CEILING), structured eligibility. For each family, the
   operating threshold is SELECTED on trace-session negatives (no
   guarantee claimed there), then frozen and certified once on fixture
-  block A: certification requires session-level U95(false selection)
-  <= 5%. G0 metric: recall on active trace events at the certified
+  block A: certification requires session-level U(1-0.05/M)(false
+  selection) <= 5%, Bonferroni-corrected for M = the number of families
+  certified on the block (family-wise control; at M=7, k <= 1 failing
+  sessions of 160 still certifies). G0 metric: recall on active trace
+  events at the certified
   threshold. Tie-break: higher AUPRC (active vs all). CEILING FAILURE
   := provenance-ceiling recall < 0.50 at its certified threshold.
 - T0.3 Per-press cost/benefit (GPU, paired single-intervention
@@ -229,7 +232,9 @@ and the claim fails regardless of ranking). Mechanical verdict: the
 oscillator PROCEEDS to a generation pilot only if it beats ALL of
 (b)-(e) on the T0.2 metric by > 0.02 absolute recall AND passes both
 probes; within 0.02 of the best non-oscillatory contender is a
-registered TIE -> ship that contender and record the tie. T2's full
+registered TIE -> ship that contender and record the tie; every other
+outcome (oscillator loses by > 0.02, or wins but fails a probe) ships
+the best non-oscillatory contender. T2's full
 details (dimensions, parameter matching, optimizer, exact paired
 comparison) get their own preregistration + review before launch.
 

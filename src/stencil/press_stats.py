@@ -2,9 +2,10 @@
 """PRESS-PLAN P0 statistics helpers.
 
 The registered risk budget replaces zero-false-press (PRESS-PLAN Frozen
-rules): calibration bounds come from exact zero-event binomial upper
-bounds, and the press decision threshold from the measured false-press
-cost C rather than an assumed infinite one.
+rules): calibration bounds come from exact binomial upper bounds.
+bayes_press_threshold is a REPORTING quantity only (PRESS-PLAN v3 T0.3):
+operating thresholds are chosen by maximizing Delta-U on selection data,
+never from p*.
 """
 import math
 
