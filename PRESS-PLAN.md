@@ -1,4 +1,4 @@
-# PRESS-PLAN v3 — making autonomous press timing work
+# PRESS-PLAN v3.2 — making autonomous press timing work
 
 Governing plan for the post-TIMED-SELECTOR program. Question: can the
 WHEN-to-press decision be made autonomous, now that the mechanism
