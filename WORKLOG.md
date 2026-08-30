@@ -1255,3 +1255,11 @@ script sha256: 2a0ef6480d6a11cda8f715c290aafb45
   references anywhere in training code); every ladder row reproduced;
   prior-art within bounds. Its partial-format-holdout observation
   PROMOTED into the report as a disclosure. Awaiting sol.
+- 2026-08-30, HUMAN RULINGS (Brian) on the six asterisks: (1) CLEAN UP
+  the format confound — build a validation where the conversation
+  history does NOT contain the trained phrasing; (2) reframe W2's
+  target: it is FOCUS, not memory, that must be proven — transplanting
+  the focus and AUDITING it quickly and easily is the goal; (3) the
+  21-broken cost is acceptable, keep it noted; (4) the failed gate
+  stays in the record; (5) keep the narrowed prior-art distinction;
+  (6) evidence fixes approved. Registering W3 accordingly.
