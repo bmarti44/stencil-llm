@@ -1133,3 +1133,20 @@
   1); NOT unilaterally amended — the dev replay proceeds (consumes
   nothing sealed) and checkpoint-ii receives both the gate evidence and
   the replay for ruling. Proxy gates (descriptive) + replay next.
+- 2026-08-30, W0 DEV REPLAY (results/qwen/w0-replay.json, 24 sessions,
+  feedback_mode=none, headroom 0.161 binds): base 29.1 / WAVE 47.1
+  (closure 1.119, ZERO paired broken works, parse rate 88.3 -> 98.9 —
+  the wave IMPROVED validity) / proxy 45.2 (closure 1.0, broken 2,
+  aggregates EXACTLY equal to oracle — histogram-credible under greedy:
+  proxy gain is near-binary 2592/245, a threshold in soft clothing,
+  vs the wave's graded pressing 2011..957; exact-identity verification
+  flagged for checkpoint-ii) / oracle 45.2 / reinsertion 42.5
+  (validity FAILS: 7 broken). REGISTERED READINGS: (1) the causal
+  requirement holds mechanically — wave 1.119 > proxy 1.0, both valid;
+  (2) the wave EXCEEDS the oracle press it was trained toward, with no
+  validity tax; (3) the actuator change ALONE (continuous field, no
+  certified threshold) makes even the proxy objective work — the
+  PRESS-PLAN closure was substantially an ACTUATOR problem, not only a
+  signal problem; (4) per the table, closure >= 0.25 + validity -> W1
+  proceeds, pending checkpoint-ii ratification (G-W0b miscalibration
+  ruling included). Convening checkpoint-ii (sol + fable).
