@@ -1182,3 +1182,10 @@
   that was not run. (3) Producing the missing per-cell G-W0c artifact
   and the full 24-session proxy/oracle identity hashes (fable verified
   1 session; the all-dev claim needs all 24).
+- 2026-08-30, CHECKPOINT-ii ARTIFACTS COMPLETE (results/qwen/
+  w0-addenda.json): proxy/oracle identity 92/94 works token-identical
+  across ALL 24 dev sessions (full-scale verification per sol; the 2
+  divergent works scored identically); per-cell G-W0c: active improve
+  0.383 (n=75), cleared 0.498 (n=12), absent 0.283 (n=5) — every cell
+  improves, none harmed. Sol's checkpoint-ii conditions satisfied;
+  W1 PROCEEDS per ruling.
