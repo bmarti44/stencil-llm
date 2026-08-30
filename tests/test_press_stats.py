@@ -6,9 +6,8 @@ Hand-computed expectations:
   Exact form: 1 - alpha^(1/n) with alpha=0.05. n=18 -> 1-0.05^(1/18)
   = 1 - exp(ln(0.05)/18) = 1 - exp(-0.16643) = 0.15329...
   n=300 -> 1 - 0.05^(1/300) = 0.009935...
-- Bayes press threshold: press iff p*14.5 > (1-p)*0.017*C
-  -> p* = 0.017C / (14.5 + 0.017C). C=100 -> 1.7/16.2 = 0.104938...
-  C=500 -> 8.5/23.0 = 0.369565...
+- Bayes press threshold: press iff p*B > (1-p)*H -> p* = H/(B+H),
+  with B and H measured per-press quantities (T0.3); no defaults.
 - roc_point: presses=[(score,is_positive)...], threshold t: press iff
   score > t. tpr = pressed positives / positives, fpr = pressed
   negatives / negatives.
@@ -34,12 +33,13 @@ def test_zero_event_upper_bound_alpha():
 
 
 def test_bayes_press_threshold():
-    # v2: B and H are REQUIRED measured per-press quantities (sol review:
-    # the old defaults mixed policy aggregates with per-press estimands).
-    assert math.isclose(bayes_press_threshold(B=14.5, H=1.7), 1.7 / 16.2, rel_tol=1e-12)
-    assert math.isclose(bayes_press_threshold(B=14.5, H=8.5), 8.5 / 23.0, rel_tol=1e-12)
+    # B and H are REQUIRED measured per-press quantities (sol review:
+    # policy aggregates are not valid inputs). Fixture values below are
+    # ARBITRARY numbers, not measurements.
+    assert math.isclose(bayes_press_threshold(B=6.0, H=2.0), 0.25, rel_tol=1e-12)
+    assert math.isclose(bayes_press_threshold(B=3.0, H=1.0), 0.25, rel_tol=1e-12)
     # degenerate zero-false-press assumption: H -> inf drives p* -> 1
-    assert bayes_press_threshold(B=14.5, H=1e12) > 0.999
+    assert bayes_press_threshold(B=6.0, H=1e12) > 0.999
     # no defaults exist
     import pytest
     with pytest.raises(TypeError):

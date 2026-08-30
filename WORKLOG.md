@@ -721,3 +721,19 @@
   promoted ahead of generation rungs; P0.2 deferred behind G0; beta
   sweep demoted; T4 uses prefix recomputation (no KV cache exists).
   PRESS-PLAN rewritten as v2. Round 2 review next.
+- 2026-08-30, PRESS-PLAN review round 2 (sol 6 HIGH, fable 3 HIGH, both
+  NOT CLEARED — round-1 fixes confirmed real; new findings are v2's own
+  precision gaps). v3 lands: registered VALIDITY RULE (U(work) =
+  adherent count - 2*BROKEN; replay passes iff Delta-U_total >= 0.8 *
+  adherence gain and > 0) cited by every gate; p* demoted to reporting;
+  fixture single-use with select-on-trace/certify-once and block B
+  (13.07M) for post-G0 policies; T0.5 ceiling replaced with the full
+  oracle restricted to the eligible denominator + headroom
+  precondition; T2 phase-scramble criterion inverted (>=20% degradation
+  REQUIRED) and tie made computable (0.02 absolute); T1 table completed
+  (useful-but-unsafe cell -> T4 trigger; INCONCLUSIVE -> one reserve
+  re-draw on 13.11M then line closes); sealed val gets the same
+  headroom precondition + registered closure formula; T4 blocked on a
+  TDD'd incremental end-of-unit detector in its own preregistration;
+  H1 contract expanded (callable returns span+diagnostics, runner
+  applies and logs guards). Round 3 next.

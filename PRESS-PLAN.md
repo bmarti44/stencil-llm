@@ -1,4 +1,4 @@
-# PRESS-PLAN v2 — making autonomous press timing work
+# PRESS-PLAN v3 — making autonomous press timing work
 
 Governing plan for the post-TIMED-SELECTOR program. Question: can the
 WHEN-to-press decision be made autonomous, now that the mechanism
@@ -17,6 +17,27 @@ removed); complete decision tables; session-level independence units;
 concrete seed freeze; structured baseline folded into every replay;
 bakeoff promoted ahead of generation-heavy rungs; P0.2 deferred; beta
 sweep demoted; old 12.96M/941-fire data demoted to legacy exploration.
+
+v3 after review round 2 (sol 6 HIGH, fable 3 HIGH + mediums, both NOT
+CLEARED; results/press-plan-review2-sol.md + WORKLOG). Changelog: the
+validity BUDGET is now one registered formula (T0.3) cited by every
+gate; p* demoted to a reporting quantity (scores are not calibrated
+probabilities — operating thresholds maximize Delta-U on selection data);
+negative fixtures split select/certify (threshold chosen on trace
+negatives, certified ONCE per policy on block A; block B reserved for
+post-G0 finalists); T0.5's ceiling replaced (it equaled its own test arm
+by construction) with the full-oracle arm restricted to the same
+eligible denominator + headroom precondition; T2 phase-scramble
+criterion inverted (a real phase code MUST degrade >=20% when scrambled;
+<10% only for inert-token insertion) and the tie made computable (0.02
+absolute recall); sealed validation gains the same headroom>=0.10
+precondition as dev with closure defined from raw paired numerators; T4
+requires a registered incremental boundary detector (none exists today)
+inside its own preregistration; H1 registers the full callable contract
+(span-or-NULL + diagnostics; guards applied and logged by the runner);
+T1 table completed (high-closure/over-budget cell -> T4 trigger;
+INCONCLUSIVE gets one reserve re-draw then closes); rounding and test
+fixture labels corrected.
 
 Grounding: results/timed-selector-report.md,
 results/research-timing-{design-sol,neuro-fable,ml-fable,crossfield-fable}.md.
@@ -42,10 +63,14 @@ exists on disk).
 
 ## Harness registration (before any rung; red/green TDD)
 
-H1. Span-level address API: the selector-arm address callable returns an
-    exact token span (or NULL); the runner applies THAT span verbatim.
-    The type->authoritative-span redirect survives as the separately
-    named "structured" arm (deployment baseline, in every replay).
+H1. Span-level address API: the selector-arm policy callable returns
+    (candidate_span | None, diagnostics) where diagnostics carries the
+    raw scores and candidate set; the RUNNER applies the registered
+    guards (threshold, ledger-membership) to the returned candidate,
+    applies the surviving span verbatim, and logs the guard verdict —
+    guards no longer live inside the callables. The
+    type->authoritative-span redirect survives as the separately named
+    "structured" arm (deployment baseline, in every replay).
 H2. Press-event logging in the runner: per generation step record
     pre-guard decision (candidate or NULL), guard rejections split by
     reason (below-threshold vs out-of-ledger), applied presses, and the
@@ -60,10 +85,17 @@ are LEGACY EXPLORATION — never evidence)
 
 - trace/train: 13,000,000+i, i<48 (dev split)
 - calibration: 13,030,000+i, i<24
-- negative fixtures: 13,060,000+i, i<160 (component false-selection
-  trials; independence unit = SESSION: a trial fails if any false
-  selection occurs in it; 0/160 -> U95 = 1-0.05^(1/160) = 1.86%)
-- dev replay: 13,100,000+i, i<24
+- negative fixtures block A: 13,060,000+i, i<160 (G0-stage
+  certification; independence unit = SESSION: a trial fails if any
+  false selection occurs in it; 0/160 -> U95 = 1.85%). Single-use:
+  thresholds are SELECTED on trace-session negatives, then certified
+  ONCE per policy on this block at the frozen threshold — a failed
+  certification fails that policy, no re-tuning on the block.
+- negative fixtures block B: 13,070,000+i, i<160 (reserved for post-G0
+  policies: T1 component gate, T2 winner certification; same
+  single-use rule)
+- dev replay: 13,100,000+i, i<24; reserve dev block: 13,110,000+i,
+  i<24 (used only by T1's INCONCLUSIVE re-draw)
 - sealed validation: 13,200,000+i, i<96 (one named autonomous finalist
   only, chosen at the pre-val review; all other policies are
   exploratory — multiplicity is handled by naming, not by testing many)
@@ -73,31 +105,42 @@ are LEGACY EXPLORATION — never evidence)
 ### T0 — Trace + diagnostics (one GPU trace pass, then offline)
 
 - T0.1 TRACE PASS (GPU, deterministic): replay base + selector arms on
-  the trace seeds with H1-H4 in place. Per candidate event store: h20
-  state, timing logits, every candidate span with source label
+  the trace seeds AND the fixture blocks (A now, B when first needed)
+  with H1-H4 in place. Per candidate event store: h20 state, timing
+  logits, every candidate span with source label
   (live/superseded/distractor), all registered score variants, chosen
   candidate, rejection reason, counterfactual cell. This is the input
   to everything offline. (Replaces the false "no new GPU runs" claim.)
 - T0.2 Score-policy matrix (offline on the trace): raw max, top1-top2,
   top1-logsumexp(rest), normalized cosine, live-minus-best-same-type
-  (provenance CEILING), structured eligibility. Metric registered for
-  G0: recall on active events at the threshold where session-level
-  U95(false selection) <= 5% on the negative fixtures, computed
-  select-then-bound (score family chosen on trace sessions; the bound
-  evaluated on the untouched fixture block). Tie-break: higher AUPRC
-  (active vs all). CEILING FAILURE := provenance-ceiling recall < 0.50
-  at that same bound.
+  (provenance CEILING), structured eligibility. For each family, the
+  operating threshold is SELECTED on trace-session negatives (no
+  guarantee claimed there), then frozen and certified once on fixture
+  block A: certification requires session-level U95(false selection)
+  <= 5%. G0 metric: recall on active trace events at the certified
+  threshold. Tie-break: higher AUPRC (active vs all). CEILING FAILURE
+  := provenance-ceiling recall < 0.50 at its certified threshold.
 - T0.3 Per-press cost/benefit (GPU, paired single-intervention
   rollouts): from a common prefix, one rollout with exactly ONE press
-  and one without, to the end of the work; over >=200 paired events per
-  condition (correct-span-correct-moment, wrong-span, wrong-moment)
-  measure per-press benefit B and per-press harm H on the same unit
-  (adherence of that work's opportunities; parse/exec deltas reported
-  alongside, converted only by a utility weight registered BEFORE the
-  runs: 1 broken work = 2 adherence misses). p* := H/(B+H), symbolic —
-  src/stencil/press_stats.py takes B,H as required inputs, no default
-  constants. If B <= 0 the mechanism claim itself is re-examined before
-  proceeding.
+  and one without, to the end of the work; >=200 paired events per
+  condition (correct-span-correct-moment, wrong-span, wrong-moment).
+  REGISTERED UTILITY (the definition every later gate cites):
+    U(work) := (# adherent active opportunities in the work)
+               - 2 * BROKEN(work),
+    BROKEN(work) := 1 if the pressed/policy branch loses parse OR exec
+    relative to its paired unpressed/base branch, else 0.
+  Outputs: B := mean paired Delta-U per correct-span/correct-moment
+  press; H := mean paired Delta-U LOSS per press, pooled over the
+  wrong-span and wrong-moment conditions weighted by their observed
+  frequencies in the trace. p* := H/(B+H) is a REPORTING quantity only
+  (raw scores are not calibrated probabilities); operating thresholds
+  are always chosen by maximizing total Delta-U on selection data.
+  VALIDITY RULE (the "T0.3 budget" used by T1/T3/T4/validation): a
+  replay passes iff, from raw paired numerators,
+    Delta-U_total >= 0.8 * (adherence gain vs base),
+  i.e. validity losses erode at most 20% of the adherence gain, AND
+  Delta-U_total > 0. If B <= 0 the mechanism claim itself is
+  re-examined before proceeding.
 - T0.4 Theta sweep on the trained selector (GPU dev replays, ~5 points
   below registered theta): adherence + paired validity vs applied press
   rate (from H2 logs). Purpose: was the collapse the constraint or the
@@ -109,11 +152,14 @@ are LEGACY EXPLORATION — never evidence)
   first later work turn scores c adherent; update/clear resets the
   trigger. Registered denominator: violations with >=1 later active
   opportunity of the same type (last-turn violations are recorded
-  no-ops). Arms: base, reactive (learned-free), reactive-oracle ceiling
-  (same trigger, oracle moments — bounds what reactivity CAN recover),
-  structured. Report conditional recovery on the eligible denominator
-  AND whole-session lift; per-cell metrics on pressed turns reported
-  separately (spillover disclosure). Label: controller-visible
+  no-ops). Arms: base, reactive (learned-free), full oracle (the
+  existing per-moment oracle arm — its conditional recovery RESTRICTED
+  to the same eligible denominator is the ceiling; v3 fix: the old
+  "reactive-oracle" ceiling was the test arm itself), structured.
+  Precondition: oracle-base headroom >= 0.10 on these seeds, else the
+  rung is INCONCLUSIVE. Report conditional recovery on the eligible
+  denominator AND whole-session lift; per-cell metrics on pressed turns
+  reported separately (spillover disclosure). Label: controller-visible
   triggering (feedback may be compacted out of the model window).
 
 GATE G0 (mechanical): let R_auto = best autonomous family's T0.2 recall,
@@ -125,10 +171,12 @@ R_ceil = provenance-ceiling recall, both at the registered bound.
 - R_ceil >= 0.50 and R_auto < 0.5*R_ceil: run the DEFERRED attention-
   mass scan (one instrumented pass; qwen3.py last-row attention summary
   registered as a harness change then) as the one additional family; if
-  it also misses 0.5*R_ceil, skip T1 as above.
-T0.5 decision (mechanical, on conditional recovery of the reactive arm
-as a fraction of the reactive-oracle ceiling): >=0.5 -> reactive
-pressing is a registered component of the final recipe; <0.5 ->
+  it reaches 0.5*R_ceil at a block-A-certified threshold, proceed to T1
+  with it; if it also misses, skip T1 as above.
+T0.5 decision (mechanical; only if its precondition held): conditional
+recovery of the reactive arm as a fraction of the full-oracle ceiling's
+conditional recovery on the same denominator >= 0.5 -> reactive
+pressing is a registered component of the final recipe; < 0.5 ->
 recorded negative; no middle band.
 
 ### T1 — Joint candidate-or-null scorer (head-only training)
@@ -143,20 +191,26 @@ recomputed h20 (trunk frozen).
 Component gates (on trace/calib, before any generation): conditional
 address >=90% on active events with the span-level API (this also
 finally measures WHERE autonomously); recall >= 0.5*R_ceil; session-
-level U95(false selection) <= 5% on the untouched negative fixtures;
+level U95(false selection) <= 5% certified once on fixture block B;
 positive lookalike margin on >=90% of active events.
 
-Behavioral decision table (24-session dev replay; closure computed from
-raw paired numerators on identical seeds, never rounded rates):
+Behavioral decision table (24-session dev replay; closure :=
+(adherent_policy - adherent_base) / (adherent_oracle - adherent_base)
+from raw paired numerators on identical seeds, never rounded rates):
 - Precondition: oracle-base headroom >= 0.10 on these seeds, else
-  INCONCLUSIVE (headroom does not bind; no verdict about the scorer).
-- closure >= 0.50 AND paired-validity harm within the T0.3 budget:
-  PASS -> T1 finalist candidate.
-- closure in [0.25, 0.50): ONE registered fallback — retrain once with
-  hard-negative reweighting (weight 4x, preregistered), re-judge
-  against the same table; no second fallback.
-- closure < 0.25 (or fallback misses): the discriminative-scorer line
-  CLOSES (honest negative); T2/T3 continue as separate lines.
+  INCONCLUSIVE -> one re-draw on the reserve dev block (13.11M); if
+  headroom still < 0.10 there, the discriminative line closes as
+  headroom-unbound (environment no longer supports the failure regime).
+- closure >= 0.50 AND the T0.3 validity rule passes: PASS -> T1
+  finalist candidate.
+- closure >= 0.25 AND the validity rule FAILS ("useful but unsafe"):
+  NOT a finalist; this is T4's registered trigger.
+- closure in [0.25, 0.50) with validity passing: ONE registered
+  fallback — retrain once with hard-negative reweighting (weight 4x,
+  preregistered), re-judge against this same table; no second fallback.
+- closure < 0.25 (or the fallback lands below 0.50 without triggering
+  T4): the discriminative-scorer line CLOSES (honest negative); T2/T3
+  continue as separate lines.
 
 ### T2 — Controller-state bakeoff (head-only; Brian's oscillator,
 controlled; runs regardless of T1)
@@ -165,42 +219,51 @@ Equal-parameter contenders on recomputed trace features: (a) per-slot
 complex oscillator bank; (b) static per-memory embedding + MLP; (c)
 leaky/EMA integrator; (d) keyed latch / tiny GRU; (e) null-oscillator
 (free-running periodic, generator-matched periods). Task: press
-classification per counterfactual cell. Robustness: insert 0/32/128
-inert tokens before decision moments; phase-scramble at eval.
-Mechanical verdict: the oscillator PROCEEDS to a generation pilot only
-if it beats ALL of (b)-(e) on the T0.2 metric and degrades <10% rel.
-under both probes; a tie (within the metric's fixture-level U95) with
-the latch ships the latch and records the tie.
+classification per counterfactual cell. Robustness probes (v3 — the
+directions differ by design): inert-token insertion (0/32/128 tokens
+before decision moments) must degrade the oscillator's metric < 10%
+relative (a press schedule must not depend on arbitrary token count);
+phase-scramble at eval must degrade it >= 20% relative (a genuine phase
+code MUST be hurt by scrambling — < 20% means the phase is decorative
+and the claim fails regardless of ranking). Mechanical verdict: the
+oscillator PROCEEDS to a generation pilot only if it beats ALL of
+(b)-(e) on the T0.2 metric by > 0.02 absolute recall AND passes both
+probes; within 0.02 of the best non-oscillatory contender is a
+registered TIE -> ship that contender and record the tie. T2's full
+details (dimensions, parameter matching, optimizer, exact paired
+comparison) get their own preregistration + review before launch.
 
 ### T3 — Rhythm-default press (generation pilot; only after T2 verdict)
 
 Shared scheduler period T in {4,8} steps, raised-cosine envelope; per
 live entry a phase offset and gain (magnitude from the T0.3 harm
 curve); slot assignment from the T2 winner (or round-robin if T2 ships
-the latch). Gate: dev replay closure >= 0.25 at the T0.3 validity
-budget else the line closes. Inverted-default variant only if the plain
-rhythm passes. Full objective/grids get fresh preregistration + review
-before launch (registered promise, sol finding 6).
+the latch). Gate: dev replay closure >= 0.25 AND the T0.3 validity rule
+passes, else the line closes. Inverted-default variant only if the
+plain rhythm passes. Full objective/grids get fresh preregistration +
+review before launch (registered promise, sol finding 6).
 
-### T4 — Fork-and-judge (conditional; only if T1 or T3 produce
-useful-but-unsafe coverage, defined as recall >= 0.5*R_ceil but
-validity harm > the T0.3 budget)
+### T4 — Fork-and-judge (conditional; registered trigger = a T1 or T3
+dev replay with closure >= 0.25 whose T0.3 validity rule FAILS)
 
 Deterministic prefix-recomputation forks (Qwen3.forward has no KV
 cache; "rollback" = re-decode from the fork point, deterministic
 greedy). Fork at proposed presses, decode both branches to the close of
-the local syntactic unit (registered boundary: the earliest of
-def-name end / docstring close / annotation end, via the existing
-parser), select by syntax-only verifier first; learned verifier and
-oracle ceiling as comparison arms (oracle never the reported result).
-Byproduct: per-moment press-advantage labels.
+the local syntactic unit, select by syntax-only verifier first; learned
+verifier and oracle ceiling as comparison arms (oracle never the
+reported result). NO online boundary detector exists today
+(_oracle_moment detects unit BEGINNINGS; ast_moments needs completed
+code): T4's own preregistration must register and TDD a deterministic
+incremental end-of-unit detector before launch — T4 cannot start
+without that review. Byproduct: per-moment press-advantage labels.
 
 ### Structured arm (in EVERY replay from T0 on)
 
 Press iff the parser-timed moment's type has an active authoritative
 ledger entry (provenance from the session state). The deployable,
-security-safe recipe and the ceiling all autonomous arms are judged
-against. Ships regardless of science outcome.
+security-safe reference baseline reported beside every autonomous arm
+(closure itself is defined against the oracle). Ships regardless of
+science outcome.
 
 ## Frozen rules
 
@@ -208,24 +271,33 @@ against. Ships regardless of science outcome.
   on independent negative fixtures — the exact Clopper-Pearson one-sided
   bound from the OBSERVED count (k > 0 allowed; 0/160 gives 1.85%,
   k=3/160 gives 4.77%, k=4/160 gives 5.63% and fails; computed by
-  src/stencil/press_stats.py, test-pinned). Behavioral
-  validity harm is judged against the T0.3 per-press budget. Zero-FP
-  appears nowhere as a gate.
+  src/stencil/press_stats.py, test-pinned). Fixture blocks are
+  single-use per policy (select on trace negatives, certify once).
+  Behavioral validity is judged by the T0.3 VALIDITY RULE
+  (Delta-U_total >= 0.8 * adherence gain, and > 0). Zero-FP appears
+  nowhere as a gate.
 - One sealed validation (13.2M seeds) for one named finalist; judged
-  as-is; a miss closes the program per its line's table.
+  as-is; a miss closes the program per its line's table. Validation
+  precondition mirrors dev: oracle-base headroom >= 0.10 on the val
+  seeds from raw numerators, else the validation is INCONCLUSIVE and
+  the program closes without a win claim (no reseeding). Closure on
+  val uses the same registered formula as T1's table.
 - Every replay reports applied press counts (H2 logs) and paired
   parse/exec vs base.
 - No top-level work in imported scripts (test enforced). All new
   helpers TDD'd red-first.
-- Reviews: sol + fable at (i) this v2 before harness work [round 2],
-  (ii) G0, (iii) T1/T3 preregistration details, (iv) pre-validation
-  finalist naming, (v) close. Loop only while high/critical remain.
+- Reviews: sol + fable at (i) this plan before harness work [round 3
+  reviews v3], (ii) G0, (iii) T1/T2/T3/T4 preregistration details,
+  (iv) pre-validation finalist naming, (v) close. Loop only while
+  high/critical remain.
 - Halting is success; every closed line gets an autopsy in WORKLOG.
 
 ## Program verdicts
 
-WIN: a named autonomous policy closing >= 0.5 of oracle headroom on
-sealed validation within the T0.3 validity budget. HONEST MAP: the
+WIN: the named autonomous finalist, on a sealed validation whose
+headroom precondition holds, reaches closure >= 0.50 (registered
+formula, raw numerators) with the T0.3 validity rule passing. HONEST
+MAP: the
 discriminative, rhythm, and state lines each closed by their tables,
 leaving structured + event-triggered pressing as the documented recipe
 with the autonomy boundary quantified from both sides.
