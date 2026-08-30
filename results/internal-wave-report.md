@@ -11,7 +11,11 @@ for the first time in the project — text re-insertion (43.0%, which
 FAILED the validity rule with 30 broken works while the wave passed
 with parse rate improved 84.8 -> 92.7). Causal re-test at seal: wave
 raw gain 238 vs proxy 149, both valid — the CE-through-trunk training
-signal generalizes better, not just scores better.
+signal generalizes better, not just scores better. (Hold-out scope,
+disclosed: the authoritative ledger line uses the unseen format and the
+comment rule type is entirely novel; distractor/user turns still carry
+the trained sentence form in-context — a partial format hold-out by
+the registered design.)
 
 ## Registered ladder and outcomes
 

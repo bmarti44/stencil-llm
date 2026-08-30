@@ -1246,3 +1246,12 @@ script sha256: 2a0ef6480d6a11cda8f715c290aafb45
   (causal margin at seal: 238 vs 149 raw gain). The program's
   registered WIN condition is met at its sealed bar. Closing
   verification (checkpoint iv) next.
+- 2026-08-30, CHECKPOINT-iv fable verification: VERIFIED — seal
+  arithmetic exact (238/160=1.4875; validity/causal rules per
+  implementation); seal integrity proven by commit ordering (pin
+  15:38:40 < .started 15:38:52 < result 17:04:26); script + artifact
+  hashes recomputed and matching; val-split honesty confirmed (unseen
+  ledger format + comment opportunities present; no val/13.5M
+  references anywhere in training code); every ladder row reproduced;
+  prior-art within bounds. Its partial-format-holdout observation
+  PROMOTED into the report as a disclosure. Awaiting sol.
