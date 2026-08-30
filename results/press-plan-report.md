@@ -14,7 +14,7 @@ validation seeds were never touched.
 | Rung | Outcome |
 |---|---|
 | T0.1/T0.2 trace + score matrix | The T2b failure mechanically explained: the legacy address max-score ranged over ALL candidate types — cross-type hits forced the zero-false-press theta to 185,850, strangling recall. Type-restricted addressing dissolves that failure class on-distribution (323/323 live-over-lookalike ranking) |
-| T0.3 press cost (paired single-press, n=220/condition) | B = +0.27 dU per correct press; wrong-SPAN press costs -0.33 (2.3% broken works); wrong-MOMENT press of the right span costs ZERO. Timing errors are cheap; addressing errors are the only costly class |
+| T0.3 press cost (paired single-press, n=220/condition) | B = +0.27 dU per correct press; wrong-SPAN press costs -0.33 (2.3% broken works); the ONE tested mistiming perturbation — a single same-entry press at fire_step+3 — cost zero. (T0.3b later showed other provenance-valid blind-time presses ARE harmful; "timing errors are cheap" holds only for the exact tested perturbation) |
 | T0.4 theta sweep | Superseded by the certification anatomy (recorded, not run — the constraint-vs-representation question was answered more directly) |
 | T0.5 event-triggered baseline | PASS: reactive pressing (trigger on checker feedback, zero learning) recovers 0.875 of the oracle's recovery on post-violation opportunities; session adherence 44.3 -> 50.0. REGISTERED RECIPE COMPONENT |
 | G0 certification (zero-new-training policy, sealed block D) | FAIL k=149/160, decomposed: 71/160 sessions with FALSE SELECTIONS (the policy's error evidence; U95 = 0.512 >> 5%) plus 79 fixture non-vacuity misses (1 overlap). With real same-type hard negatives, the absolute cosine score cannot detect liveness when the live sentence is absent — discrimination was RANKING-only (the bi-encoder ceiling the research sweep predicted) |
@@ -25,10 +25,12 @@ validation seeds were never touched.
 ## The three findings that matter
 
 1. **The autonomy boundary is now mapped from four sides.** Autonomous
-   pressing fails as absolute discrimination (no transferable liveness
-   threshold exists in the frozen representations), as trained
-   discrimination (93% better, still leaks), as learned state (a fixed
-   clock ties it), and as blind scheduling (net harmful). What SURVIVES
+   pressing failed its registered gates as absolute discrimination (the
+   registered cosine policy found no transferable liveness threshold —
+   a statement about THESE policies and gates, not a nonexistence proof
+   for the representations), as trained discrimination (92.9% better on
+   the calib screen, still leaks), as learned state (a fixed clock ties
+   it), and as blind scheduling (net harmful). What SURVIVES
    is timing from STRUCTURE (the parser knows the moments) and timing
    from FEEDBACK (the checker knows the failures). At this model scale
    and regime, the wave must be clocked by the environment, not by a
@@ -76,10 +78,11 @@ survived to try.
 
 Preregistration with mechanical gates throughout. Review counting
 convention (reproducible): PRESS-PLAN-era sol artifacts committed under
-results/ = 17 rounds (15 reviews + 2 amendment acks:
-press-plan-review{1-5}, g0-review, impl-review{1,2},
+results/ through closing round 1 = 18 (16 substantive reviews + 2
+one-word acks): press-plan-review{1-5}, g0-review, impl-review{1,2},
 t1-prereg-review{1-3}, s0x2-amend, a1-ack, t2t3-review{1-4},
-press-close); fable rounds per WORKLOG = 9. Every high/critical finding
+press-close; subsequent closing-verification rounds are recorded in
+WORKLOG. Fable rounds per WORKLOG = 9 plus its closing verifications. Every high/critical finding
 either fixed or ruled; two reviewer catches prevented sealed-block
 burns (degenerate thresholds; value-vs-span certification semantics);
 one administrative block void (A) disclosed; all seed blocks and their
