@@ -1,106 +1,174 @@
-# INTERNAL-WAVE-PLAN v1 — the wave generated inside
+# INTERNAL-WAVE-PLAN v2 — the wave generated inside
 
-Successor registered by PRESS-PLAN's close. Question: can a small
-trained recurrent controller, running alongside the frozen trunk and
-EMITTING the attention bias natively, govern generation — replacing the
-external parser/checker clocking with an internal dynamical process?
-This is the toy-phase result (a trained oscillator state carries and
-transplants task identity) married to the scale result (attention-gain
-presses select behavior on Qwen3-1.7B).
+v1 reviews (checkpoint i): fable CLEARED with 8 required edits; sol NOT
+CLEARED with 3 CRITICAL + 7 HIGH. All folded. The honest claim after
+review: this program re-poses the closed learned-relevance question
+with ONE genuinely new axis — the training signal (behavioral CE
+through the frozen trunk's differentiable attn_bias path, utility-
+shaped, no hard threshold) — supervised on canonical adherent
+completions. Timing and address EMERGE from that signal or they do
+not; they are not "discovered from reward" and the plan does not claim
+"no proxy labels". Success means: continuous cost-sensitive control
+passes behavioral validity where discrete certified selection could
+not. The liveness problem is not claimed to disappear.
 
-## The bar (quantified by PRESS-PLAN)
+## The bar
 
-Structured pressing scores +14.5 val adherence at a ~1.7% paired
-validity tax. The internal wave's WIN condition is closure >= 0.50 of
-oracle headroom on dev under the T0.3 validity rule, with NO parser, NO
-checker, and NO ledger-span lookup at inference — the controller sees
-only what the trunk computes. Anything less that still beats base is a
-partial result; the honest-map clause applies as always.
+Closure >= 0.50 of oracle headroom on dev under the T0.3 validity rule
+with no parser, no checker feedback (see FEEDBACK MODE), and no
+ledger-span lookup at inference. The wave must ALSO beat the
+CLOSED-LINE CONTROL ARM (frozen T2b selector timing + fixed-beta press
+via the existing selector arm) and survive the DISTILLATION PROBE: fit
+a thresholded discriminator (h20 -> press) on the wave's own gain
+decisions; if it reproduces >= 90% of them AND, substituted at replay,
+matches the wave's closure, the wave is a re-parameterized
+discriminator and the differentiability claim FAILS regardless of
+closure.
 
-## Why this is not the closed discriminative line
+## FEEDBACK MODE (frozen; sol CRITICAL 2)
 
-PRESS-PLAN's lines made discrete, certifiable press DECISIONS trained
-from labels. The wave differs on all three axes that mattered:
-1. TRAINING SIGNAL: the attn_bias enters pre-softmax, so logits are
-   differentiable w.r.t. the bias through the frozen trunk. The wave is
-   trained by DIRECT CE — "raise the adherent continuation's
-   probability at governed moments" — gradients flowing through the
-   trunk into the controller. No proxy labels, no press classification.
-2. OUTPUT FORM: a continuous bias FIELD over prompt positions (bounded
-   gain), not a thresholded decision — no zero-one boundary to certify;
-   behavioral outcomes + the validity rule judge it.
-3. STATE: recurrent across steps and turns (W1), the toy-phase carrier
-   at scale.
+All W* training and replays use feedback_mode="none": environment
+turns carry the fixed neutral text "[checker] (no feedback available
+this session)" identically for every arm (train, base, wave, oracle,
+reinsertion, closed-line control). The win claim is thereby literal:
+no checker signal exists anywhere in the loop.
 
-## Frozen seeds (fresh; nothing overlaps prior blocks)
+## W0.0 — canonical reference builder (sol CRITICAL 1; gates W0)
 
-- teacher trajectories / train: 13,400,000+i, i<48 (s0, dev split)
-- overfit-sanity: the single seed 13,400,000
-- dev replay: 13,450,000+i, i<24 (s0)
-- reserve dev: 13,455,000+i, i<24
-- sealed validation: 13,500,000+i, i<96 (only via fresh registration
-  after a dev WIN; one named finalist)
+A deterministic builder maps (session, work turn) -> canonical
+adherent code: function name {prefix}_{fn} (ledger prefix value; bare
+{fn} if prefix inactive); a one-line docstring ALWAYS present, opening
+with the ledger doc value when active and with the registered neutral
+opener "Compute." (not in POOLS) when inactive; args typed with the
+hint value when active
+(untyped when inactive), body implementing sess.ops[wt]. Registered
+verification over every train work BEFORE training: parses, executes
+(OP_TESTS), satisfies every active obligation via score_work,
+satisfies NO cleared/stale obligation, and records prompt length,
+target ids, and row alignment. Any failure -> fix the builder, rerun;
+the builder is frozen at zero failures.
 
-## Ladder (short cycles; each rung gated before the next)
+Training loss: ORDINARY CE over EVERY canonical continuation token
+(teacher-forced on the canonical code, not on base outputs), plus L1
+on the gain (sum reduction, lambda 0.01). This supervises full
+adherent completions; moment-level effects are measured, not
+supervised in isolation.
 
-### W0 — differentiable-press feasibility (stateless wave)
+## W0.05 — field parameterization ceiling (sol HIGH 7 + fable 3;
+gates the architecture freeze)
 
-Architecture (frozen at review; shape-TDD only before real data):
-controller reads h20_t (last-position, layer 20, fp32) and per-position
-prompt key features K (pooled h20 of the prompt, computed once per
-work); emits bias row b_t = g_t * softmax(q_t K^T / sqrt(d)) where
-q_t = W_q h20_t (64-d) and g_t = beta_max * sigmoid(w_g . h20_t),
-beta_max = 4.0 (2x the proven press, bounded). Bias applied at layers
-20-27 to the current row over PROMPT positions only. ~135k params.
+The v1 field (total row mass <= beta_max) is dose-starved vs the
+proven press (2.0 per span token, mass 20-30) — it cannot express the
+oracle. Candidate parameterizations, selected by a TRAIN-SEED-ONLY
+deterministic oracle-field ceiling test (hand-built fields at oracle
+moments/spans, exact proposed parameterization, feedback_mode none):
+  (A) peak-normalized: b = g * softmax/max(softmax), per-token cap g;
+  (B) per-position bounded: b_i = beta_max * sigmoid(e_i), e from
+      q/K logits (no normalization).
+Ceiling grid: beta_max in {2, 4}. Selection rule (frozen): smallest
+(parameterization, beta_max) whose ceiling shows (i) correct-position
+benefit (moment CE improvement >= 20% vs zero field), (ii)
+wrong-position non-vacuity (measurable degradation, proving the test
+can fail), (iii) the T0.3 validity rule on a 12-session train-seed
+replay. Preference order on ties: A2, B2, A4, B4 (lowest dose first;
+the T0 rejection of hard b=4 is registered as known tension). If NO
+cell passes, the program closes at W0.05 (the field cannot express
+useful pressing — an honest negative about the parameterization
+family). Every replay in the program emits a per-press gain histogram
+artifact.
 
-Training: teacher-forced base trajectories from the train seeds (the
-existing collection machinery); loss = CE toward the ADHERENT
-continuation token at AST-labeled governed moments (prefix/doc/hint
-value tokens), plus an L1 gain penalty (lambda = 0.01) everywhere —
-press only where it pays. Deterministic gates before any replay:
-- G-W0a gradient non-vacuity (exact-zero lesson): dLoss/d(controller
-  params) nonzero on a fixture batch, and a deliberately detached bias
-  must FAIL this test (the test proves it can catch vacuity);
-- G-W0b overfit-1: on the single overfit seed, moment CE falls >= 50%
-  from init (the mechanism can learn at all);
-- G-W0c held-moment CE improvement >= 10% on train-seed holdout works.
-Then ONE dev replay (arms: base, wave, oracle, structured==oracle,
-reinsertion): closure and the T0.3 validity rule from raw paired
-numerators, headroom >= 0.10 precondition (reserve re-draw rule as in
-PRESS-PLAN). Decision table: closure >= 0.25 + validity pass -> W1;
-[0.10, 0.25) + validity -> ONE architecture iteration (wider q/gain
-heads, registered before results are seen further), re-judged once;
-< 0.10 or validity fail -> W0 CLOSES (the differentiable press does
-not work at this scale) and the program closes honestly.
+## W0 — stateless wave
 
-### W1 — recurrence (the actual wave)
+Architecture (frozen AFTER W0.05 selects the field; shape-TDD only
+before): q/k normalized (F.normalize) with registered temperature 8.0;
+W_q, W_k: 2048->64 with bias; gain head 2048->1; low-gain init
+(w_g zero-init so g starts at beta_max/2... registered: bias init
+-2.0, weight zero -> g starts at beta_max*sigmoid(-2)=0.12*beta_max).
+Exact parameter count 264,321 (two 2048x64+64 maps + 2049). K = the
+prompt's h20 states [0:P) computed AFTER feedback-mode substitution,
+recomputed whenever the prompt changes; bias/query row j-1 targets
+token j; prompt columns exactly [0, P); one shared field at layers
+20-27 via a padded [1, 1, T, T] tensor; batch 1 with gradient
+accumulation 8; trunk grad-enabled with requires_grad=False on all
+trunk params, layers 0-19 under no_grad (split-forward; the doubled
+lower-trunk cost is disclosed, not optimized). Registered pre-training
+smoke: max-length forward+backward peak memory and wall time.
 
-State s_t (64-d GRU over h20_t, reset per session, carried ACROSS
-work turns within a session); q_t and g_t become functions of
-[h20_t; s_t]. Same loss + gates (G-W1a/b/c mirror W0's). Additional
-registered probe: state ablation — zeroing s_t at eval must degrade
-moment CE by >= 10% relative, else the recurrence is decorative and W1
-reports "stateless suffices" (that is a finding, not a failure).
-Dev replay + the same table; WIN condition checked here (closure >=
-0.50). Compaction-survival check: adherence on post-compaction works
-reported separately (the wave must not depend on aged-out text).
+Training (frozen): Adam(1e-3, 0.9/0.999, 1e-8, no wd), 20 epochs over
+the 40 TRAIN seeds (13,400,000..39), shuffle generator seed 0, init
+seed 0, final-epoch checkpoint (no selection); held seeds
+13,400,040..47 for G-W0c.
 
-### W2 — the transplant (the Miller signature, only after a W1 WIN)
+Gates (all on artifacts, before any dev replay):
+- G-W0a connectivity battery (sol HIGH 6): with the REAL trunk CE loss
+  (no L1): finite nonzero grads separately for W_q, W_k, w_g; nonzero
+  dCE/dbias; a detached bias FAILS the check (self-test); zero field
+  is bitwise base-equivalent; wrong-position vs correct-position
+  hand fields produce distinguishable logits.
+- G-W0b overfit-1: canonical-token CE on seed 13,400,000 falls >= 50%.
+- G-W0c held CE improvement >= 10% AND the ablation battery (sol HIGH
+  8): zero-field vs full; K-permutation (WHERE); gain-sequence
+  permutation across rows (WHEN); uniform field at matched gain;
+  per-cell (active/cleared/stale/absent) reporting. The battery is
+  reported, not gated, EXCEPT: if the uniform field at matched gain
+  reproduces >= 90% of the CE gain, the wave is an indiscriminate
+  boost and W0 CLOSES.
 
-The toy-phase demonstration at scale: swap s_t between two sessions
-with different ledgers mid-generation; the wave's governance must
-follow the STATE, not the text (registered metric: adherence to the
-donor session's ledger types at matched moments, vs a shuffled-state
-control). This is the "waves select circuits" claim on a real model;
-registered fully before it runs, reviewed at checkpoint.
+W0 dev replay (13,450,000..23; arms: base, wave, oracle (once),
+reinsertion, closed-line control): headroom >= 0.10 precondition
+(one re-draw on 13,455,000..23, used for NOTHING else); decision
+table (validity-fail dominates every band):
+- infrastructure/gradient failure -> fix implementation, no verdict;
+- G-W0b/c failure -> W0 CLOSES;
+- validity fail (any closure) -> W0 CLOSES;
+- closure >= 0.25 + validity -> W1;
+- closure in [0.10, 0.25) + validity -> partial result recorded, W1
+  proceeds (W1 IS the registered next architecture; the v1
+  "wider heads" rescue is CUT);
+- closure < 0.10 -> W0 CLOSES.
+
+## W1 — recurrence
+
+GRU(64) over h20_t, reset per session, carried across works; update
+schedule frozen: state updates at EVERY generation step from h20_t;
+prompt tokens do NOT enter the state (the state sees only what the
+trunk computed while generating). q_t, g_t from [h20_t; s_t]. Same
+loss/optimizer; fresh dev block 13,460,000..23 (disclosed; no reuse of
+W0's). Temporal-state probe (sol HIGH 9): predecessor-state
+PERMUTATION (swap s_t sequences across matched sessions, preserving
+current h20_t) and matched reset — BOTH must degrade held CE by >= 10%
+relative AND degrade replay adherence, else the result is recorded as
+"stateless suffices" (a finding; no W2).
+Decision table:
+- closure >= 0.50 + validity + temporal probe passes -> dev WIN ->
+  fresh registration for sealed validation (13,500,000..95; headroom
+  >= 0.10, closure >= 0.50, validity, NO redraw);
+- closure >= 0.50 + validity, temporal probe fails -> stateless
+  result; no W2; program records the win as W0-class;
+- closure [0.25, 0.50) + validity -> partial close;
+- else -> close.
+
+## W2 — transplant (only after a W1 dev WIN with temporal probe)
+
+Paired sessions with IDENTICAL visible candidate text but different
+prior authority histories (constructed: same final window, different
+aged-out set/clear sequences); arms own-state / donor-state /
+shuffled-state / reset-state at identical moments; the claim requires
+donor-state governance to track the DONOR's authority history against
+identical visible text. Fully registered + reviewed before running.
+
+## Seeds and accounting
+
+train 13,400,000..39; held 13,400,040..47; W0 dev 13,450,000..23;
+redraw 13,455,000..23; W1 dev 13,460,000..23; sealed val
+13,500,000..95. PRESS-PLAN's open-ended 13,300,000+ certification
+namespace is BOUNDED to [13,300,000, 13,400,000) and closed with that
+program. No other block overlaps anything registered.
 
 ## Frozen rules
 
-- Trunk bitwise frozen (existing test machinery); every claim's number
-  recomputed from artifacts; press logs for every replay; no script
-  imported by another does top-level work; pipefail in test chains.
-- Reviews: sol + fable at (i) this plan, (ii) W0 results, (iii) W1
-  results / any W2 registration, (iv) close. Loop while high/critical.
-- Validity: the T0.3 rule (Delta-U >= 0.8 * adherence gain, > 0).
-- Halting is success; every closed rung gets a WORKLOG autopsy.
-- Sealed validation only via fresh registration after a dev WIN.
+Trunk bitwise frozen; press/gain logs + histograms for every replay;
+pipefail; no top-level work in imported scripts; reviews at (i) this
+v2, (ii) W0.05 selection + W0 results, (iii) W1 results / W2
+registration, (iv) close; loop while high/critical; halting is
+success; every number recomputed from artifacts.

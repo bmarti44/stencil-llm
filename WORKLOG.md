@@ -1084,3 +1084,14 @@
   decision), recurrent state (W1) with the transplant demonstration
   (W2) as the Miller signature. Fresh seeds 13.4M/13.45M/13.5M. Review
   round 1 (checkpoint i) launched.
+- 2026-08-30, INTERNAL-WAVE-PLAN v2 (round-1 reviews folded: fable
+  CLEARED w/ 8 edits incl. the dose-starvation catch — the v1 field
+  could not express the proven press; sol NOT CLEARED 3 CRITICAL +
+  7 HIGH incl. nonexistent CE target -> W0.0 canonical reference
+  builder, feedback_mode=none, W0.05 field-parameterization ceiling
+  test, connectivity battery replacing my invalid gradient test — sol
+  RAN the test and showed b.sum()=g has no q/k gradient — full
+  decision tables, closed-line control arm + distillation probe,
+  param count corrected to 264,321, 13.30M namespace bounded). Honest
+  claim narrowed to the one real axis: the differentiable training
+  signal. Round 2 next.
