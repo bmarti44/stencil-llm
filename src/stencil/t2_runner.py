@@ -133,9 +133,16 @@ def ledger_sentence_spans(prompt_text: str, sess: T2Session, turn: int, split: s
 
 
 def run_session(model, tok, sess: T2Session, split: str, arm: str,
-                timing=None, address=None, max_new: int = 120) -> list[WorkResult]:
-    """arm in {base, reinsertion, oracle, selector}; timing/address callables
-    for selector arms (signatures per scripts/timed_t1.py conventions)."""
+                timing=None, address=None, max_new: int = 120,
+                press_log: list | None = None) -> list[WorkResult]:
+    """arm in {base, reinsertion, oracle, structured, selector};
+    timing/address callables for selector arms. "structured" is the
+    PRESS-PLAN deployment baseline and is IDENTICAL to "oracle" here by
+    construction: _oracle_moment is a parser detector over generated
+    text (no ground truth) and ledger_sentence_spans only contains
+    ACTIVE ledger types — parser timing + active-ledger eligibility +
+    authoritative span. press_log (H2): one entry per applied press,
+    {"work_turn", "step", "type", "span"}."""
     results = []
     feedback: dict[int, str] = {}
     for wt in sess.work_turns:
@@ -148,19 +155,21 @@ def run_session(model, tok, sess: T2Session, split: str, arm: str,
             marker = sess.turns[wt].text
             ptxt = ptxt.replace(marker, "(Reminder) " + led + "\n" + marker, 1)
         ids = tok.encode(ptxt).ids
-        spans = ledger_sentence_spans(ptxt, sess, wt, split, tok) if arm in ("oracle", "selector") else {}
+        spans = ledger_sentence_spans(ptxt, sess, wt, split, tok) if arm in ("oracle", "structured", "selector") else {}
         toks = torch.tensor([ids], device="cuda")
         outs = []
         text = ""
-        for _ in range(max_new):
+        for step in range(max_new):
             ab = None
-            if arm == "oracle" and spans:
+            if arm in ("oracle", "structured") and spans:
                 key = _oracle_moment(text[-80:])
                 if key is not None and key in spans:
                     t = toks.shape[1]
                     bias = torch.zeros(t, t, device="cuda")
                     bias[-1:, spans[key][0]:spans[key][1]] = BETA
                     ab = {L: bias for L in LAYERS}
+                    if press_log is not None:
+                        press_log.append({"work_turn": wt, "step": step, "type": key, "span": spans[key]})
             elif arm == "selector" and spans and timing is not None:
                 key = timing(model, toks, text)
                 if key is not None:
@@ -170,6 +179,8 @@ def run_session(model, tok, sess: T2Session, split: str, arm: str,
                         bias = torch.zeros(t, t, device="cuda")
                         bias[-1:, spans[key][0]:spans[key][1]] = BETA
                         ab = {L: bias for L in LAYERS}
+                        if press_log is not None:
+                            press_log.append({"work_turn": wt, "step": step, "type": key, "span": spans[key]})
             nxt = int(model(toks, attn_bias=ab)[0, -1].argmax())
             outs.append(nxt)
             toks = torch.cat([toks, torch.tensor([[nxt]], device="cuda")], dim=1)
@@ -185,6 +196,52 @@ def run_session(model, tok, sess: T2Session, split: str, arm: str,
                 feedback[i] = feedback_text(wr, sess)
                 break
     return results
+
+
+def run_policy_session(model, tok, prompt_text, ledger_spans, policy,
+                       threshold, press_log=None, max_new=120,
+                       beta=BETA, layers=LAYERS):
+    """PRESS-PLAN H1/H2 primitive: generate one work with an autonomous
+    span-level policy. The policy callable returns
+    (candidate_span | None, diagnostics) with diagnostics["score"]; the
+    RUNNER applies the registered guards in order — numeric threshold,
+    then ledger membership — applies the surviving span verbatim, and
+    appends one press-log entry per step:
+    {"step", "pre_guard", "rejected", "applied"} with rejected in
+    {None, "below-threshold", "out-of-ledger"}. The certification
+    failure event (plan: pre-structural-guard) is derivable as
+    pre_guard is not None and rejected != "below-threshold"."""
+    ids = tok.encode(prompt_text).ids
+    try:
+        device = next(model.parameters()).device
+    except (AttributeError, StopIteration, TypeError):
+        device = "cpu"
+    toks = torch.tensor([ids], device=device)
+    outs, text = [], ""
+    for i in range(max_new):
+        span, diag = policy(model, toks, prompt_text, text)
+        entry = {"step": i, "pre_guard": span, "rejected": None, "applied": None}
+        ab = None
+        if span is not None:
+            if float(diag["score"]) <= threshold:
+                entry["rejected"] = "below-threshold"
+            elif not any(s <= span[0] and span[1] <= e for s, e in ledger_spans.values()):
+                entry["rejected"] = "out-of-ledger"
+            else:
+                entry["applied"] = span
+                t = toks.shape[1]
+                bias = torch.zeros(t, t, device=toks.device)
+                bias[-1:, span[0]:span[1]] = beta
+                ab = {L: bias for L in layers}
+        if press_log is not None:
+            press_log.append(entry)
+        nxt = int(model(toks, attn_bias=ab)[0, -1].argmax())
+        outs.append(nxt)
+        toks = torch.cat([toks, torch.tensor([[nxt]], device=toks.device)], dim=1)
+        text = tok.decode(outs)
+        if "```" in text[-6:]:
+            break
+    return text.split("```")[0]
 
 
 def _oracle_moment(tail_text):
