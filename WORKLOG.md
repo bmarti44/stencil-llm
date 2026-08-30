@@ -748,3 +748,9 @@
   set with headroom>=0.10 on that denominator. Round 4 = sol
   confirmation only (fable already cleared; its cleared version
   differed only by these two fixes it did not flag).
+- 2026-08-30, PRESS-PLAN round 4 (sol 2 HIGH) -> v3.2: T0.1 trace-only
+  with sealed one-job certifications after naming; ceiling certifies on
+  block C 13.08M (pool now D 13.09M / E 13.095M, extension 13.30M+);
+  T0.5 evaluation set = union of per-episode downstream sets (all later
+  active opportunities of the violated type, frozen from base). Round 5
+  = sol confirmation.

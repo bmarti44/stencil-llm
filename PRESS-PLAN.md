@@ -48,6 +48,15 @@ pre-structural-guard; T0.5 gets its subtraction formula
 headroom precondition on that exact denominator; the earlier
 Bonferroni-over-families rule is superseded by one-policy-per-block.
 
+v3.2 after review round 4 (sol 2 HIGH): T0.1 is trace-only — every
+certification is one sealed collection+bound job run after its policy
+is named (block A was previously replayed before naming); the
+provenance ceiling certifies on its own block C (its R_ceil sets G0's
+bar); T0.5's metric moved from the violation IDs to each episode's
+DOWNSTREAM SET (all later active opportunities of the violated type,
+frozen from the base arm) — the old formula scored opportunities the
+reactive arm could never repair.
+
 Grounding: results/timed-selector-report.md,
 results/research-timing-{design-sol,neuro-fable,ml-fable,crossfield-fable}.md.
 Harness: frozen Qwen3-1.7B, T2b generator (interference="s0"), existing
@@ -102,13 +111,17 @@ are LEGACY EXPLORATION — never evidence)
   certification fails that policy, no re-tuning on the block.
 - negative fixtures block B: 13,070,000+i, i<160 (T1 finalist's
   component gate — one policy)
-- reserve fixture pool: blocks C 13,080,000+i and D 13,090,000+i,
-  i<160 each. RULE (v3.1, sol round 3): every certification covers
-  exactly ONE policy, named in WORKLOG before its block is touched;
-  adaptively-designed successors (G0's attention fallback, T1's
-  retrained fallback, the T2 winner) each consume a fresh block from
-  the pool; when the pool is empty, further certifications require a
-  registered pool extension (13,095,000+) recorded before use
+- negative fixtures block C: 13,080,000+i, i<160 (the provenance
+  CEILING's certification — its R_ceil sets G0's bar and the ceiling-
+  failure branch, so it certifies like any policy, on its own block)
+- reserve fixture pool: blocks D 13,090,000+i and E 13,095,000+i,
+  i<160 each. RULE (v3.1/v3.2): every certification covers exactly ONE
+  policy, named in WORKLOG before its block is touched, and runs as one
+  sealed collection+bound job; adaptively-designed successors (G0's
+  attention fallback, T1's retrained fallback, the T2 winner) each
+  consume a fresh block from the pool; when the pool is empty, further
+  certifications require a registered pool extension (13,300,000+)
+  recorded before use
 - dev replay: 13,100,000+i, i<24; reserve dev block: 13,110,000+i,
   i<24 (used only by T1's INCONCLUSIVE re-draw)
 - sealed validation: 13,200,000+i, i<96 (one named autonomous finalist
@@ -120,8 +133,10 @@ are LEGACY EXPLORATION — never evidence)
 ### T0 — Trace + diagnostics (one GPU trace pass, then offline)
 
 - T0.1 TRACE PASS (GPU, deterministic): replay base + selector arms on
-  the trace seeds AND the fixture blocks (A now, B when first needed)
-  with H1-H4 in place. Per candidate event store: h20 state, timing
+  the TRACE SEEDS ONLY, with H1-H4 in place. Fixture blocks are never
+  touched here: each certification (block A included) is one sealed
+  job — collection + bound computation together — run only AFTER its
+  single policy is named in WORKLOG (v3.2 ordering fix). Per candidate event store: h20 state, timing
   logits, every candidate span with source label
   (live/superseded/distractor), all registered score variants, chosen
   candidate, rejection reason, counterfactual cell. This is the input
@@ -196,13 +211,18 @@ R_ceil = provenance-ceiling recall, both at the registered bound.
   certified on a FRESH reserve block, never block A; if it reaches
   0.5*R_ceil at that certified threshold, proceed to T1 with it; if it
   also misses, skip T1 as above.
-T0.5 decision (mechanical; only if its precondition held). The eligible
-set is FROZEN from the base arm: the opportunity IDs of base-arm
-violations with >=1 later active opportunity of the same type; every
-arm is evaluated on exactly those IDs. With A_x := raw adherent count
-of arm x on the eligible set,
+T0.5 decision (mechanical; only if its precondition held). Frozen from
+the BASE arm alone (v3.2): each base-arm violation episode (type c
+violated at work turn w, feedback at the next env turn e) maps
+deterministically to its DOWNSTREAM SET — every active opportunity of
+type c at work turns after e in the session (all-later, registered;
+the reactive arm's refractory shapes its pressing, never the metric).
+The eligible evaluation set is the union of downstream sets over
+episodes with a nonempty downstream set; every arm is scored on
+exactly those opportunity IDs. With A_x := raw adherent count of arm x
+on that set,
   recovery_closure := (A_reactive - A_base) / (A_oracle - A_base),
-precondition (A_oracle - A_base) / |eligible| >= 0.10 on this exact
+precondition (A_oracle - A_base) / |set| >= 0.10 on this exact
 denominator, else INCONCLUSIVE. recovery_closure >= 0.5 -> reactive
 pressing is a registered component of the final recipe; < 0.5 ->
 recorded negative; no middle band.
