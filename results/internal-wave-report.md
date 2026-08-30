@@ -3,7 +3,15 @@
 **Question:** can a small trained controller, riding a frozen model and
 generating the attention field natively, govern long coding sessions —
 the Miller wave produced inside rather than injected from outside?
-**Answer:** [SEALED VERDICT PENDING — results/qwen/w-seal.json]
+**Answer: YES — SEALED WIN, causal attribution holds.** On 96 sealed
+val sessions (held-out sentence format + a never-seen rule type), the
+stateless wave reaches closure 1.488 (adherence 25.2% -> 44.8%),
+beating the hand-built oracle (38.3%), its proxy twin (37.4%), and —
+for the first time in the project — text re-insertion (43.0%, which
+FAILED the validity rule with 30 broken works while the wave passed
+with parse rate improved 84.8 -> 92.7). Causal re-test at seal: wave
+raw gain 238 vs proxy 149, both valid — the CE-through-trunk training
+signal generalizes better, not just scores better.
 
 ## Registered ladder and outcomes
 
@@ -18,7 +26,7 @@ the Miller wave produced inside rather than injected from outside?
 | G-W0c + ablations | PASS 36.2%; binding-clean: K-perm keeps 9.8% of gain (WHERE real), gain-perm 32.5% (WHEN real), uniform 39.7% (selectivity real) |
 | W0 dev replay | Wave closure 1.119 (adherence 29.1 -> 47.1), ZERO paired broken, parse rate 88.3 -> 98.9 IMPROVED; proxy closure 1.0 converging token-identically onto the oracle (92/94 works, verified); causal margin +5 adherence with zero breakage (sol's registered wording) |
 | W1 recurrence | Held CE 34.6% PASS; BOTH temporal probes NULL (permute -0.04%, reset +0.01%): STATELESS SUFFICES under the frozen H3 architecture — fable's mechanism: state numerically invisible to the readout (|h20|~609 vs |s_t|~6; saturated gain logits); no W2 transplant (nothing state-borne to transplant); caveat: the architecture plausibly suppressed state learning — a rescaled-state design is future work |
-| Sealed validation (val split: held-out sentence format + novel rule type; one attempt) | [PENDING: headroom / closure / validity / causal re-test / verdict] |
+| Sealed validation (val split: held-out sentence format + novel rule type; one attempt) | **SEALED WIN**: headroom 0.131 binds; wave closure 1.4875, dU 196 (valid; 21 broken), parse improved; causal re-test HOLDS (238 > 149, both valid); oracle 38.3 / proxy 37.4 / reinsertion 43.0 validity-FAIL |
 
 ## Findings (draft; final numbers pend the seal)
 

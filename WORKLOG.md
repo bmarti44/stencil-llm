@@ -1234,3 +1234,15 @@
   selectivity claims permitted (ablations were binding-clean); no
   temporal/state claim.
 script sha256: 2a0ef6480d6a11cda8f715c290aafb45
+- 2026-08-30, SEALED VALIDATION: **SEALED WIN; CAUSAL ATTRIBUTION
+  HOLDS** (results/qwen/w-seal.json; 96 val sessions, held-out formats
+  + novel comment type, 1218 active opportunities, one attempt): base
+  25.2 / WAVE 44.8 (closure 1.4875; dU 196 >= 0.8*238; 21 broken of
+  ~470 works; parse 84.8 -> 92.7 IMPROVED) / oracle 38.3 / proxy 37.4
+  (closure 0.93, valid) / reinsertion 43.0 (validity FAILS: 30 broken,
+  dU 157 < 173.6). THE WAVE BEATS EVERY ARM — including re-insertion,
+  the champion of both prior programs, on adherence AND validity —
+  and generalizes better than both its teacher (oracle) and its twin
+  (causal margin at seal: 238 vs 149 raw gain). The program's
+  registered WIN condition is met at its sealed bar. Closing
+  verification (checkpoint iv) next.
