@@ -571,3 +571,28 @@
   dev shakeout: single-session base looks strong — the oracle-headroom
   precondition (>= 0.10) will decide if T2 binds. Next: stage 3 selector
   training (frozen recipe), hash audit, dev shakeout at scale.
+- 2026-08-30, T2 DEV SHAKEOUT — INCONCLUSIVE-BY-DESIGN branch fires
+  (results/qwen/t2-shakeout.json, 24 dev sessions, 92 works, 244 active
+  opportunities): base 61.9%, reinsertion 61.9% (stale 4.7->1.7%), ORACLE
+  63.5%, selector 63.5% — headroom +0.016 vs the registered >= 0.10
+  binding precondition. Per CONTRACT v3, T2 is recorded inconclusive-by-
+  design: under the v3 memory rule (ledger survives every compaction) with
+  6-12 obligations and one visible distractor at a time, the base model's
+  failures are NOT attention-selection failures (the oracle cannot fix
+  them), so the spotlight has nothing to govern. Consistent picture, not a
+  contradiction: selection failure needs interference pressure (S0's three
+  format-identical notes; S3's N*=32 scale) — the very pressure the v3
+  ledger-survival repair (scientifically required) removed at this small
+  N. The selector's proven value stands where registered: S2 (43->89%),
+  S3 sealed (3.9->88.3% at N=32), G1-codegov (+21.9 under conflict).
+  Stage 3 artifacts: timing 0.995/1.000; address 159/159; theta frozen at
+  the zero-false-press rule (45/159 live kept — calibration bug found and
+  fixed before any gated run). Hash audit written pre-run. DECISION POINT
+  (Brian): (a) accept — record T2 as the boundary finding "multi-turn
+  sessions with a surviving authoritative ledger at small N do not exhibit
+  selection failure; the selector matters under interference/scale," and
+  close the program with S0-S3 + G1 as the positive results; or (b) ONE
+  new registered session design raising interference toward the proven
+  regime (many surviving format-identical conflicting notes near work
+  turns and/or N approaching 32 obligations) — a fresh registration round
+  with both reviewers, not an amendment.
