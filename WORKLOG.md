@@ -1150,3 +1150,14 @@
   signal problem; (4) per the table, closure >= 0.25 + validity -> W1
   proceeds, pending checkpoint-ii ratification (G-W0b miscalibration
   ruling included). Convening checkpoint-ii (sol + fable).
+- 2026-08-30, CHECKPOINT-ii fable verification: CLEARED — all replay
+  arithmetic exact (closure 47/42=1.119; validity rule verified per
+  arm; headroom 42/261); proxy==oracle DEFINITIVELY legitimate (seed
+  13,450,003 rerun: independent code paths, token-identical outputs
+  5/5 works — the proxy converged onto the oracle press through the
+  continuous actuator); parse improvement is the continuous-pressing
+  signature (base/proxy/oracle identical 83/94; wave 93/94); G-W0b
+  oracle-ceiling numbers reproduced exactly (8.08x exceedance); proxy
+  loss conforms to C1' (comment-class positive exclusion disclosed as
+  an actuator-shared asymmetry); NO leakage. Doc edits only. Awaiting
+  sol's checkpoint-ii rulings (G-W0b amendment, causal wording, W1).
