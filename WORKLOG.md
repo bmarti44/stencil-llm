@@ -737,3 +737,14 @@
   TDD'd incremental end-of-unit detector in its own preregistration;
   H1 contract expanded (callable returns span+diagnostics, runner
   applies and logs guards). Round 3 next.
+- 2026-08-30, PRESS-PLAN round 3: fable CLEARED (medium F1 multiplicity
+  + 2 lows, fixed same-day: initially Bonferroni, superseded); sol NOT
+  CLEARED with 2 HIGH -> v3.1: one-policy-per-block certification (G0
+  comparison is trace-only; single pre-named winner certified on block
+  A; attention fallback / T1 retrain fallback / T2 winner each take a
+  fresh reserve block from C 13.08M / D 13.09M; failure event defined
+  BEFORE the ledger-membership guard); T0.5 recovery_closure =
+  (A_reactive-A_base)/(A_oracle-A_base) on a frozen base-arm eligible
+  set with headroom>=0.10 on that denominator. Round 4 = sol
+  confirmation only (fable already cleared; its cleared version
+  differed only by these two fixes it did not flag).

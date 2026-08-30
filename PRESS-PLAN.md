@@ -39,6 +39,15 @@ T1 table completed (high-closure/over-budget cell -> T4 trigger;
 INCONCLUSIVE gets one reserve re-draw then closes); rounding and test
 fixture labels corrected.
 
+v3.1 after review round 3 (fable CLEARED; sol 2 HIGH): certification is
+one-policy-per-block — G0 compares on trace only and certifies the one
+pre-named winner on block A; adaptive successors consume fresh reserve
+blocks (C/D pool); the certification failure event is defined
+pre-structural-guard; T0.5 gets its subtraction formula
+(recovery_closure over a frozen base-arm eligible set) with the
+headroom precondition on that exact denominator; the earlier
+Bonferroni-over-families rule is superseded by one-policy-per-block.
+
 Grounding: results/timed-selector-report.md,
 results/research-timing-{design-sol,neuro-fable,ml-fable,crossfield-fable}.md.
 Harness: frozen Qwen3-1.7B, T2b generator (interference="s0"), existing
@@ -91,9 +100,15 @@ are LEGACY EXPLORATION — never evidence)
   thresholds are SELECTED on trace-session negatives, then certified
   ONCE per policy on this block at the frozen threshold — a failed
   certification fails that policy, no re-tuning on the block.
-- negative fixtures block B: 13,070,000+i, i<160 (reserved for post-G0
-  policies: T1 component gate, T2 winner certification; same
-  single-use rule)
+- negative fixtures block B: 13,070,000+i, i<160 (T1 finalist's
+  component gate — one policy)
+- reserve fixture pool: blocks C 13,080,000+i and D 13,090,000+i,
+  i<160 each. RULE (v3.1, sol round 3): every certification covers
+  exactly ONE policy, named in WORKLOG before its block is touched;
+  adaptively-designed successors (G0's attention fallback, T1's
+  retrained fallback, the T2 winner) each consume a fresh block from
+  the pool; when the pool is empty, further certifications require a
+  registered pool extension (13,095,000+) recorded before use
 - dev replay: 13,100,000+i, i<24; reserve dev block: 13,110,000+i,
   i<24 (used only by T1's INCONCLUSIVE re-draw)
 - sealed validation: 13,200,000+i, i<96 (one named autonomous finalist
@@ -115,12 +130,16 @@ are LEGACY EXPLORATION — never evidence)
   top1-logsumexp(rest), normalized cosine, live-minus-best-same-type
   (provenance CEILING), structured eligibility. For each family, the
   operating threshold is SELECTED on trace-session negatives (no
-  guarantee claimed there), then frozen and certified once on fixture
-  block A: certification requires session-level U(1-0.05/M)(false
-  selection) <= 5%, Bonferroni-corrected for M = the number of families
-  certified on the block (family-wise control; at M=7, k <= 1 failing
-  sessions of 160 still certifies). G0 metric: recall on active trace
-  events at the certified
+  guarantee claimed there). The G0 comparison (recall, tie-break) runs
+  ENTIRELY on trace data; then exactly ONE winning family — named in
+  WORKLOG before block A is touched — is certified once on block A:
+  session-level U95(false selection) <= 5%. FAILURE EVENT definition
+  (applies to every certification): any non-NULL decision surviving the
+  numeric threshold BEFORE the ledger-membership guard — the structural
+  guard may not trivialize certification. If the named family fails
+  certification, that family is dead; the runner-up may be certified on
+  a FRESH reserve block only. G0 metric: recall on active trace events
+  at the certified
   threshold. Tie-break: higher AUPRC (active vs all). CEILING FAILURE
   := provenance-ceiling recall < 0.50 at its certified threshold.
 - T0.3 Per-press cost/benefit (GPU, paired single-intervention
@@ -173,12 +192,18 @@ R_ceil = provenance-ceiling recall, both at the registered bound.
   family.
 - R_ceil >= 0.50 and R_auto < 0.5*R_ceil: run the DEFERRED attention-
   mass scan (one instrumented pass; qwen3.py last-row attention summary
-  registered as a harness change then) as the one additional family; if
-  it reaches 0.5*R_ceil at a block-A-certified threshold, proceed to T1
-  with it; if it also misses, skip T1 as above.
-T0.5 decision (mechanical; only if its precondition held): conditional
-recovery of the reactive arm as a fraction of the full-oracle ceiling's
-conditional recovery on the same denominator >= 0.5 -> reactive
+  registered as a harness change then) as the one additional family —
+  certified on a FRESH reserve block, never block A; if it reaches
+  0.5*R_ceil at that certified threshold, proceed to T1 with it; if it
+  also misses, skip T1 as above.
+T0.5 decision (mechanical; only if its precondition held). The eligible
+set is FROZEN from the base arm: the opportunity IDs of base-arm
+violations with >=1 later active opportunity of the same type; every
+arm is evaluated on exactly those IDs. With A_x := raw adherent count
+of arm x on the eligible set,
+  recovery_closure := (A_reactive - A_base) / (A_oracle - A_base),
+precondition (A_oracle - A_base) / |eligible| >= 0.10 on this exact
+denominator, else INCONCLUSIVE. recovery_closure >= 0.5 -> reactive
 pressing is a registered component of the final recipe; < 0.5 ->
 recorded negative; no middle band.
 
