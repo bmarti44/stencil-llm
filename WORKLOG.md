@@ -1321,3 +1321,5 @@ script sha256: 2a0ef6480d6a11cda8f715c290aafb45
   pressing at non-moment rows (how it beat the moment-only oracle);
   recorded before the record run per registration. The WHEN/NULL
   confusion matrix will be reported at this frozen theta.
+a0f8491297a9ebfd08e92139 scripts/w3a.py
+26b3340dbbdef1707b46b9ce scripts/w3b.py
