@@ -1323,3 +1323,15 @@ script sha256: 2a0ef6480d6a11cda8f715c290aafb45
   confusion matrix will be reported at this frozen theta.
 a0f8491297a9ebfd08e92139 scripts/w3a.py
 26b3340dbbdef1707b46b9ce scripts/w3b.py
+- 2026-08-30, W3b RECORD RUN (results/qwen/w3b.json + w3b-trace.json):
+  OVERRIDE — adoption 18/90 -> 56/90 (+42.2 pts, 2x the bar; McNemar
+  one-sided p ~ 3e-12, discordant 38/0; parse cost 0) but non-target
+  adherence dropped 7 > 2 -> gate FAIL on non-inferiority. Honest
+  content: focus steering through the wave's actuator is powerfully
+  causal and parse-safe but NOT side-effect-free. READOUT — where_acc
+  0.2526 vs the 0.80 bar at frozen theta 1.9 (confusion tp73/fn216/
+  fp41/tn3079) -> FAIL: the wave's field is not decodable as "the
+  governing rule now" by the registered simple rule; it points where
+  pressing helps, which is not a rule label. Both gates recorded as
+  honest negatives on these specific formulations; trace artifact
+  saved. W3a next.
