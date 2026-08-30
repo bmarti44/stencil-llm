@@ -51,3 +51,34 @@ TDD for the generator mode and readout; reviews before running (this
 draft), at results, and at close; every number from committed
 artifacts; the W3a attempt is one-shot, W3b is dev-only (repeatable
 diagnostics, disclosed as such).
+
+## v2 (sol round 1: 2 CRITICAL + 2 HIGH; all folded)
+
+- s0c IMPLEMENTED for real (sol: the v1 name fell through — 255/255
+  contaminated): ONE shared renderer used by every emitter (user_set,
+  user_update, distractor, s0_note), the ledger serialization, and the
+  visible_stale classifier; s0c = s0 scheduling + clean rendering.
+  SCOPE: prefix only (SENT_UNSEEN_FMT has no doc/hint variants) —
+  the claim is prefix-format generalization. Zero-occurrence assertion
+  sweeps the trained prefix template across EVERY CODE_PREFIXES value.
+  TDD: set/update/distractor/s0-note/compaction/stale-classification.
+- W3a REBOUND to fresh seeds 13,700,000+i, i<96 (the 13.6M block was
+  instantiated during review — exposure recorded in WORKLOG).
+- W3b override REDESIGNED as COUNTER-AUTHORITY override (sol's
+  design): at type-compatible governed moments, override the wave's
+  field toward a visible conflicting s0 note carrying another value of
+  the SAME type; measure adoption of that value vs the intact-wave
+  paired rollout (identical seeds). Frozen: one intervention per
+  paired rollout; eligible opportunity IDs from the intact trajectory;
+  n >= 60 interventions; paired exact test (McNemar) at p < 0.05;
+  parse/exec cost reported; non-target moments non-inferiority bound:
+  adherence drop <= 2 counts total.
+- Readout spec (frozen): i = first_argmax(field); decode = the unique
+  ledger span containing i, else NULL; conditional WHERE accuracy at
+  active governed moments scored on exact (type, value) identity; a
+  separate WHEN/NULL confusion matrix over ALL steps incl.
+  absent/cleared; NULL threshold selected ONCE on held W0 data
+  (13,400,040..47) and frozen before the record run.
+- W3b is ONE hash-pinned record run on 13,650,000..23 (exact reruns
+  may verify reproducibility; any change requires fresh seeds); PASS
+  gates apply to that record run only.

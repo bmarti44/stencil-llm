@@ -1263,3 +1263,10 @@ script sha256: 2a0ef6480d6a11cda8f715c290aafb45
   21-broken cost is acceptable, keep it noted; (4) the failed gate
   stays in the record; (5) keep the narrowed prior-art distinction;
   (6) evidence fixes approved. Registering W3 accordingly.
+- 2026-08-30, W3 round 1 (sol: 2 CRITICAL + 2 HIGH): s0c did not exist
+  (registered name fell through; 255/255 contamination measured);
+  override causally undefined (one live entry per type); readout
+  vacuously passable; repeatable-vs-confirmatory conflict. v2 folds
+  all + REBINDS W3a to 13.70M (sol's review instantiated the 13.6M
+  fixtures — exposure recorded per the untouched-block convention).
+  Implementing s0c (TDD) before round 2.
