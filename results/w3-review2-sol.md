@@ -1,0 +1,12 @@
+codex
+Not cleared. The `s0c` implementation itself is correct in a scratch-seed audit, but four HIGH issues remain.
+
+- **HIGH — 13.70M is exposed and must be rebound again.** Tests use the registered W3a block at [test_s0c_clean.py:17](/home/bmarti44/stencil-llm/tests/test_s0c_clean.py:17), and actually inspect its first **20** seeds at [line 53](/home/bmarti44/stencil-llm/tests/test_s0c_clean.py:53), not 12. Move tests to scratch seeds and register another untouched 96-seed W3a block. Merely changing the tests now does not make 13.70M fresh.
+
+- **HIGH — two claimed regression tests are vacuous.** `test_stale_classification_consistent` encounters **zero qualifying prefix/stale-only opportunities** across its 20 seeds, so its assertion never runs. Use a constructed fixture or scratch seed 50 and assert positive coverage. `test_s0_bit_identical_regression` at [line 62](/home/bmarti44/stencil-llm/tests/test_s0c_clean.py:62) compares two calls to the same current implementation; it cannot detect a regression. Compare against a pinned pre-change digest or expected serialized fixture.
+
+- **HIGH — counter-authority intervention remains underfrozen.** [The v2 rule](/home/bmarti44/stencil-llm/results/w3-prereg-draft.md:67) does not specify which same-type note wins when several are visible, its exact token-span extraction, or the imposed field equation/layers. Freeze these before implementation—for example: nearest preceding visible conflicting note, deterministic first-index tie-break, full rendered-sentence token span, A2 `+6/-6 → softmax/max × beta=2`, layers 20–27, one generation row. Explicitly define the primary gate as paired alternate-value adoption increasing by ≥20 points, including McNemar sidedness, rather than inheriting v1’s obsolete “different live entry” wording.
+
+- **HIGH — NULL calibration is still adaptive.** “Selected once on held W0 data” at [lines 76–81](/home/bmarti44/stencil-llm/results/w3-prereg-draft.md:76) does not freeze the threshold grid, objective, or tie-break. Register those before reading calibration results—for example, maximize ACTIVE-vs-NULL balanced accuracy over a fixed grid, ties choosing the higher threshold. Also explicitly mark the contradictory v1 rules—13.6M, fixed `0.2`, and different-live-entry override—as superseded.
+
+The core renderer passed my independent scratch audit: 24 sessions, 99 works, zero trained-prefix occurrences, and no missing unseen rendering.

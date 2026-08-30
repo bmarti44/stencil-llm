@@ -82,3 +82,25 @@ diagnostics, disclosed as such).
 - W3b is ONE hash-pinned record run on 13,650,000..23 (exact reruns
   may verify reproducibility; any change requires fresh seeds); PASS
   gates apply to that record run only.
+
+## v3 (sol round 2; supersessions explicit)
+
+- W3a REBOUND AGAIN to 13,800,000+i, i<96 (13.70M exposed by my own
+  tests — 20 seeds inspected; tests now live on scratch 13.75M).
+  SUPERSEDED: the 13.6M and 13.70M bindings, the v1 fixed-0.2 NULL
+  threshold, and the v1 "different live entry" override wording.
+- Vacuous tests fixed: stale-classification runs on pre-verified
+  qualifying seeds (13,750,011/44/45) with a coverage assertion;
+  s0 regression pins digest 9dc80229eaf9e0de... (recorded while
+  bit-identity with the pre-s0x implementation was established).
+- Counter-authority intervention FROZEN (sol's spec verbatim): target =
+  nearest PRECEDING visible conflicting same-type note, deterministic
+  first-index tie-break; span = the full rendered-sentence token span;
+  imposed field = A2 hand field (+6/-6 logits -> softmax/max * beta 2),
+  layers 20-27, exactly one generation row (the governed moment's).
+  PRIMARY GATE: paired alternate-value ADOPTION rises >= 20 points,
+  McNemar ONE-SIDED p < 0.05; non-target non-inferiority <= 2 counts.
+- NULL calibration FROZEN: grid theta in {0.05, 0.1, ..., 0.95} *
+  beta_max over gain; objective = maximize ACTIVE-vs-NULL balanced
+  accuracy on held W0 seeds (13,400,040..47); ties -> HIGHER threshold;
+  computed once, recorded in WORKLOG before the record run.
