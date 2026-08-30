@@ -1062,3 +1062,18 @@
   one-word confirmations (press-plan-review5, t2t3-review4, a1-ack;
   wc -w = 2 each incl. the extraction header). Report v4 states the
   verified taxonomy. Round 4 next.
+- 2026-08-30, PRESS-PLAN PROGRAM CLOSED — DUAL VERIFIED (sol round 4
+  after 3 correction rounds; fable final confirmation of all five
+  changed sections, incl. independent audit that no PRESS-PLAN-era
+  review artifact was omitted from the count). Closing report:
+  results/press-plan-report.md v4. Verdict: autonomous press timing
+  closed on four honest negatives (discrimination x2, learned state,
+  blind rhythm); the deployable Miller stencil = structured pressing
+  (parser + ledger provenance) and reactive pressing (checker-
+  triggered, 0.875 recovery) as two individually-proven operating
+  points; the autonomy boundary quantified; internal-wave and
+  pure-steering registrations flagged as the successors. Goal
+  ("effectively apply the Miller wave so it's useful on real, long
+  agentic coding") satisfied to the extent this program registered:
+  mechanism + address + environment-clocked application proven;
+  self-clocked focus honestly bounded, not achieved.
