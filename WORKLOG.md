@@ -1233,3 +1233,4 @@
   histograms saved. Claim wording: W0-class stateless; WHERE/WHEN/
   selectivity claims permitted (ablations were binding-clean); no
   temporal/state claim.
+script sha256: 2a0ef6480d6a11cda8f715c290aafb45
