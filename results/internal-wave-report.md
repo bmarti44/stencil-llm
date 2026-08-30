@@ -1,4 +1,4 @@
-# INTERNAL-WAVE program report — DRAFT (sealed verdict pending)
+# INTERNAL-WAVE program report
 
 **Question:** can a small trained controller, riding a frozen model and
 generating the attention field natively, govern long coding sessions —
@@ -28,7 +28,7 @@ signal generalizes better, not just scores better.
 | W1 recurrence | Held CE 34.6% PASS; BOTH temporal probes NULL (permute -0.04%, reset +0.01%): STATELESS SUFFICES under the frozen H3 architecture — fable's mechanism: state numerically invisible to the readout (|h20|~609 vs |s_t|~6; saturated gain logits); no W2 transplant (nothing state-borne to transplant); caveat: the architecture plausibly suppressed state learning — a rescaled-state design is future work |
 | Sealed validation (val split: held-out sentence format + novel rule type; one attempt) | **SEALED WIN**: headroom 0.131 binds; wave closure 1.4875, dU 196 (valid; 21 broken), parse improved; causal re-test HOLDS (238 > 149, both valid); oracle 38.3 / proxy 37.4 / reinsertion 43.0 validity-FAIL |
 
-## Findings (draft; final numbers pend the seal)
+## The three findings that matter
 
 1. **The differentiable press works and out-governs its teacher.** Trained
    only by "make the adherent continuation likelier," through the frozen
@@ -59,10 +59,13 @@ conservatively with two flagged unread items.
 
 ## Process record
 
-Checkpoints i-iii dual-reviewed ([N] sol rounds, [N] fable rounds this
-program; artifact-enumerated convention); two instrument errors caught
+Checkpoints i-iii dual-reviewed (6 sol rounds — wave-plan-review{1-4},
+w0-review, w1-review — and 3 fable verification rounds through
+checkpoint iii, artifact-enumerated; closing rounds appended in
+WORKLOG); two instrument errors caught
 and fixed before verdicts (ceiling wrong-position control; G-W0b
 denominator — with my overclaimed defense retracted on review); one
 gate retired by ruling with its failure preserved; sealed job
-fail-closed with pinned hashes ([w_seal.py sha256 2a0ef648...]); all
+fail-closed with pinned hashes (w_seal.py sha256 2a0ef6480d6a11cd...,
+pinned in WORKLOG before execution); all
 numbers reproduce from committed artifacts.
