@@ -1098,3 +1098,8 @@
 - 2026-08-30, INTERNAL-WAVE-PLAN v3.1 DUAL-CLEARED (fable r1 + sol r4;
   4 sol rounds total). Executing: W0.0 canonical builder (TDD) ->
   verification sweep -> feedback_mode=none -> W0.05 ceiling -> W0.
+- 2026-08-30, W0.0 COMPLETE: builder TDD green (5 tests; one scorer-
+  semantics fix — the doc opener word must appear unmodified);
+  verification sweep 178 works / 0 FAILURES -> builder FROZEN
+  (results/qwen/w0-refs.json; max prompt 376, max total 397 tokens).
+  W0.05 ceiling next.
