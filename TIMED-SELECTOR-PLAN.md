@@ -226,3 +226,33 @@ be claimed against summarize-at-compaction before it runs.
 - **Absolute floors (owner-registered):** macro AND micro A_selector >=
   0.70 on val; A_selector - A_base >= 0.10. The >= 24 stale-opportunity
   binding condition refers to GENERATOR-DEFINED stale opportunities.
+
+## T2b REGISTRATION (2026-08-30 — new round, per the T2 inconclusive-by-
+## design outcome; requires sol+fable clearance before build)
+
+Finding motivating T2b: T2 sessions show no selection failure (oracle
+headroom +0.016) — a small clean surviving ledger is simply read. The
+selector's proven regime is INTERFERENCE (S0: three format-identical
+conflicting notes -> base 46%; S3: N=32 -> base 4%). T2b tests whether that
+regime, occurring inside multi-turn steered sessions, is fixed by the
+selector.
+
+Delta from CONTRACT v3 (everything else inherited unchanged):
+1. Distractor turns now emit S0-style interference: bare format-identical
+   "Note: <SENT>" lines with CONFLICTING values for ACTIVE types (no
+   "old thread"/"not authoritative" framing), 2-4 per active type per
+   session, scheduled so >= 2 conflicting notes sit inside the surviving
+   window of each scored work turn. The ledger remains the sole registered
+   authority (its header says so), surviving compaction as in v3.
+2. Sessions add a second wave of conflicts after each compaction
+   (post-compaction work turns face fresh interference).
+3. Selector heads RETRAINED on the T2b train split (12.90M block) with the
+   IDENTICAL frozen recipe (incl. theta = max abstain + eps); calib
+   12.93M; dev 12.95M; val 12.96M; final untouched 12.97M.
+4. Gates unchanged from v3 (headroom precondition >= 0.10 at dev shakeout
+   binds first; absolute floors; cost gate; component gates; counterfactual
+   cells re-verified by the generator unit tests on the new distribution).
+5. Stop: headroom < 0.10 again => the boundary finding is CONFIRMED
+   (multi-turn sessions with a surviving authoritative ledger do not
+   exhibit fixable selection failure even under S0-style interference) and
+   the program closes with that as the T2 chapter; no third design.
