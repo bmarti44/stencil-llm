@@ -39,9 +39,16 @@ def test_top1_top2():
 
 
 def test_top1_logsumexp():
+    # on EVENT only candidates 0,1 share pred_type -> rest=[3.0], s = 2.0
     s, j = evaluate_event("top1_logsumexp", EVENT)
+    assert math.isclose(s, 2.0, rel_tol=1e-9) and j == 0
+    # three same-type candidates: rest = [3.0, 1.0] -> distinguishes it from top1_top2
+    ev = dict(EVENT, candidates=[dict(c, type="prefix") for c in EVENT["candidates"]])
+    s, j = evaluate_event("top1_logsumexp", ev)
     assert math.isclose(s, 5.0 - math.log(math.exp(3.0) + math.exp(1.0)), rel_tol=1e-9)
     assert j == 0
+    s2, _ = evaluate_event("top1_top2", ev)
+    assert s2 == 2.0 and s < s2
 
 
 def test_cos_max():
