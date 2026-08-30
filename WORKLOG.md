@@ -933,3 +933,13 @@
   where the deployed trigger faced the target hazard) with floor 0.75
   and exact reporting. Review round launched (both reviewers) before
   any training.
+- 2026-08-30, FLAGGED FUTURE REGISTRATION (from Brian's steering
+  question): the T2b benchmark is structurally biased toward
+  environment-checkable, parser-detectable obligations. User steering
+  and self-discovered constraints have NO checker signal and often no
+  syntactic moment — the reactive component is structurally useless
+  there and the current evidence cannot measure that case. When the T1
+  line resolves (either way), the next benchmark registration should
+  include directives with no checker and no parser moment (pure
+  steering), where the rhythm-default line (T3) is the natural
+  candidate mechanism. Do not let this drop.
