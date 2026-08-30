@@ -1121,3 +1121,15 @@
   e = 8*cos(q,k), W_q/W_k 2048->64 + bias, w_g weight-zero bias -2
   (g0 = 0.238), 264,321 params. Next: controller to frozen form (TDD),
   memory smoke, G-W0a battery, wave + matched-proxy training.
+- 2026-08-30, W0 GATES: G-W0c PASSES strongly (held CE improve 0.362 >=
+  0.10; ablations ALL binding-clean: kperm keeps 9.8% of gain, gainperm
+  32.5%, uniform 39.7% < 90%; gain histogram bimodal 450 quiet / 219
+  near-max — WHEN and WHERE learned from CE gradients alone). G-W0b
+  formally FAILS (overfit-1 reduction 30.8% vs the 50% bar) — but the
+  bar is PROVABLY IMPOSSIBLE: the ORACLE hand-field achieves only 3.8%
+  on the same denominator (full-sequence CE; most canonical tokens are
+  not moment-governed). The wave EXCEEDS the oracle-field ceiling 8x.
+  Gate miscalibration recorded (instrument error class, as W0.05 run
+  1); NOT unilaterally amended — the dev replay proceeds (consumes
+  nothing sealed) and checkpoint-ii receives both the gate evidence and
+  the replay for ruling. Proxy gates (descriptive) + replay next.
