@@ -41,6 +41,15 @@ short, imperative, and evidence-linked; prune entries that stop paying rent.
   markers; the validator rejects candidates that drop high/critical numbers.
 - A practical threshold grades magnitude; it can never decide whether evidence
   exists. Existence questions get a registered statistical test.
+- Never import a script that does work at module top level: importing
+  t2_train_selector for one helper silently RETRAINED and overwrote the
+  registered checkpoint before every evaluation (closing-review CRITICAL,
+  2026-08-30). Shared helpers live in src/; script bodies go under a
+  main() guard; tests/test_no_side_effect_imports.py enforces this.
+- Claim only what the artifact measures: "never pressed"/"bitwise identical"
+  died under sol's re-verification (actual: 14/14794 presses, code-string
+  identity). Either instrument the exact claim (press counters, hashes) or
+  narrow the words to the measurement (2026-08-30).
 
 - Smoke-invoke any edited `set -u` shell script before committing — a
   variable-ordering slip killed a full review round silently (2026-08-22).
