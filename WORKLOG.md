@@ -863,3 +863,12 @@
   residual value comparison, s0x indices verified, one LOW TOCTOU nit —
   no seed-integrity impact). Sealed block-D certification authorized;
   runs when T0.3 frees the GPU.
+- 2026-08-30, T0.3 COMPLETE (results/qwen/t0-cost.json, n=220/condition,
+  paired single-press): B = +0.2727 dU per correct press (broken 0.45%);
+  wrong-SPAN H = 0.3318 (broken 2.27%); wrong-MOMENT dU = 0.0 (broken
+  0%, output changed 2.3%). KEY ASYMMETRY: mistimed presses of the
+  right span are ~free; pressing the wrong span is the only costly
+  error — the zero-false-press design guarded the cheap error class.
+  p* (reporting only) = 0.332/(0.273+0.332) = 0.55 for span errors,
+  ~0 for timing errors. VALIDITY RULE constants now instantiable.
+  Launching sealed block-D certification (dual-cleared job).
