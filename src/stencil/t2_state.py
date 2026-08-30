@@ -31,12 +31,14 @@ class _Base(torch.nn.Module):
     def transition(self, z, D):
         return z
 
+    def _replace_row(self, z, type_idx, new_row):
+        rows = [new_row if i == type_idx else z[i] for i in range(NTYPES)]
+        return torch.stack(rows)
+
     def write(self, z, h20, type_idx):
         if self.W_u is None:
             return z
-        z = z.clone()
-        z[type_idx] = z[type_idx] + self.W_u(h20)
-        return z
+        return self._replace_row(z, type_idx, z[type_idx] + self.W_u(h20))
 
     def score_aug(self, z):
         flat = z.reshape(-1)
@@ -54,10 +56,7 @@ class Osc(_Base):
         theta = self.omega * D
         re, im = z[:, 0::2], z[:, 1::2]
         c, s = torch.cos(theta), torch.sin(theta)
-        out = torch.empty_like(z)
-        out[:, 0::2] = rho * (re * c - im * s)
-        out[:, 1::2] = rho * (re * s + im * c)
-        return out
+        return torch.stack((rho * (re * c - im * s), rho * (re * s + im * c)), dim=-1).reshape(NTYPES, SDIM)
 
 
 class Static(_Base):
@@ -70,9 +69,7 @@ class Static(_Base):
 
     def write(self, z, h20, type_idx):
         # event feature contributes per-event context but is NOT persisted
-        z2 = z.clone()
-        z2[type_idx] = self.emb[type_idx] + self.W_u(h20)
-        return z2
+        return self._replace_row(z, type_idx, self.emb[type_idx] + self.W_u(h20))
 
 
 class Ema(_Base):
@@ -82,9 +79,7 @@ class Ema(_Base):
 
     def write(self, z, h20, type_idx):
         a = torch.sigmoid(self.tau[type_idx])
-        z = z.clone()
-        z[type_idx] = (1 - a) * z[type_idx] + a * self.W_u(h20)
-        return z
+        return self._replace_row(z, type_idx, (1 - a) * z[type_idx] + a * self.W_u(h20))
 
 
 class Gru(_Base):
@@ -93,9 +88,7 @@ class Gru(_Base):
         self.cell = torch.nn.GRUCell(SDIM, SDIM)
 
     def write(self, z, h20, type_idx):
-        z = z.clone()
-        z[type_idx] = self.cell(self.W_u(h20)[None], z[type_idx][None])[0]
-        return z
+        return self._replace_row(z, type_idx, self.cell(self.W_u(h20)[None], z[type_idx][None])[0])
 
 
 class NullOsc(_Base):
@@ -114,10 +107,7 @@ class NullOsc(_Base):
         theta = self.omega_fixed * D
         re, im = z[:, 0::2], z[:, 1::2]
         c, s = torch.cos(theta), torch.sin(theta)
-        out = torch.empty_like(z)
-        out[:, 0::2] = re * c - im * s
-        out[:, 1::2] = re * s + im * c
-        return out
+        return torch.stack((re * c - im * s, re * s + im * c), dim=-1).reshape(NTYPES, SDIM)
 
 
 def make_controller(name: str) -> _Base:
