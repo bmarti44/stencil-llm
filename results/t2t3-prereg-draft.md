@@ -1,4 +1,4 @@
-# T2 + T3 PREREGISTRATION v2 — post checkpoint-iii round 1 (2026-08-30)
+# T2 + T3 PREREGISTRATION v3 — post checkpoint-iii round 1 (2026-08-30)
 
 Round 1: fable CLEARED with 4 mandatory edits; sol NOT CLEARED with 5
 HIGH. All folded. Convergent items: wrong-type press cost unmeasured
@@ -111,3 +111,48 @@ fresh preregistration (multiplicity control = the sealed run itself).
 No sealed blocks consumed by screens/T0.3b/dev replays. Block B
 re-bound as above (explicit). Sealed validation 13.20M untouched; one
 named finalist total.
+
+## v3 ADDENDUM (sol round 2, four HIGHs; all frozen)
+
+A. T2 architecture freeze: BEFORE training, WORKLOG records an
+architecture/count table (or code digest) fixing per contender:
+candidate-feature pooling, controller dims/activations, state routing,
+rho/omega/tau parameterization + init, null-oscillator period, and the
+warm-started head's extra-column init. Formal step contract:
+  z_pre = transition(z_prev, D); logits = scorer(event, z_pre);
+  z_next = write(z_pre, event).
+Scramble op (frozen): permute phase components WITHIN each
+(session, type, complex-component) group across that group's events,
+preserving each event's magnitude; no cross-session or future-content
+movement; torch.Generator seed 0. Inert CE bound (<= 1.10x) must hold
+SEPARATELY at 32 and at 128 inserted tokens.
+
+B. T2 screens/terminal table: winner metric stays target-hazard
+leakage; PILOT ELIGIBILITY requires zero false-selection sessions
+across ALL inactive candidate-bearing calib events (target-hazard
+leakage reported separately — off-target leaks must not ride to block
+B). Certification precedence: k_false > 3 is policy FAIL regardless of
+coverage; only (k_false <= 3 AND n_h < 112) is VOID. T2-specific
+behavioral table (T1's retrain fallback is consumed and unavailable):
+closure >= 0.50 + validity pass -> finalist candidate; closure >= 0.25
+with validity FAIL -> T4 trigger; validity-passing [0.25, 0.50) ->
+partial result, T2 closes (no retraining); else close. Headroom >=
+0.10 precondition with the one registered reserve re-draw preserved.
+
+C. T0.3b estimator (frozen): >= 200 deterministic single-intervention
+pairs per (P, g) cell; scheduled interventions selected in
+(seed, work_turn, step) order from the UNPRESSED base trajectory
+(which defines the schedule); each paired branch applies exactly one
+press; expected_DeltaU_cell = mean over its pairs (category
+frequencies are diagnostics only, never reweighted); U and BROKEN
+exactly as T0.3.
+
+D. T3 mechanical finalist selection (frozen before the grid): among
+rhythm cells passing closure >= 0.50 + validity, select MAX closure;
+ties -> lower g, then larger P. Partial path: the mechanically
+selected best rhythm cell's COMBINED arm, which must itself pass the
+validity rule to become finalist. T4 triggers inspect BOTH rhythm and
+combined arms; a valid finalist takes precedence over any T4 trigger.
+The post-grid preregistration RECORDS the mechanically selected cell
+and validation machinery; it may not choose among cells after viewing
+results.
