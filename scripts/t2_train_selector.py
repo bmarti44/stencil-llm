@@ -28,8 +28,11 @@ from stencil.qwen3 import Qwen3
 from stencil.t2_runner import _oracle_moment, run_session, ledger_sentence_spans
 from stencil.t2_sessions import SENT, SENT_UNSEEN_FMT, generate_t2, prompt_at
 
-TRAIN = [12_650_000 + i for i in range(48)]
-CALIB = [12_700_000 + i for i in range(24)]
+import os
+T2B = bool(os.environ.get("T2B"))
+INTERF = "s0" if T2B else "v3"
+TRAIN = [(12_900_000 if T2B else 12_650_000) + i for i in range(48)]
+CALIB = [(12_930_000 if T2B else 12_700_000) + i for i in range(24)]
 CLASSES = ["none", "prefix", "doc", "hint"]
 LAYERS = tuple(range(20, 28))
 BETA = 2.0
@@ -152,7 +155,7 @@ def ast_moments(code, gen_ids):
 print("collecting train rollouts (base + oracle)...", flush=True)
 TX, TY, ADDR = [], [], []
 for k, seed in enumerate(TRAIN):
-    sess = generate_t2(seed, 20, "dev")
+    sess = generate_t2(seed, 20, "dev", interference=INTERF)
     for arm in ("base", "oracle"):
         tx, ty, ad = gen_and_collect(sess, "dev", arm)
         TX += tx; TY += ty; ADDR += ad
@@ -190,7 +193,7 @@ print(f"address train loss {tot/len(pos):.4f}", flush=True)
 print("calibrating on calib split...", flush=True)
 CX, CY, CADDR = [], [], []
 for seed in CALIB:
-    sess = generate_t2(seed, 20, "dev")
+    sess = generate_t2(seed, 20, "dev", interference=INTERF)
     tx, ty, ad = gen_and_collect(sess, "dev", "base")
     CX += tx; CY += ty; CADDR += ad
 CX = torch.stack(CX); CY = torch.tensor(CY)
@@ -241,5 +244,5 @@ torch.save({"head": head.state_dict(), "Wq": Wq.state_dict(), "Wk": Wk.state_dic
             "calib": {"precision": best[1], "recall": best[2],
                       "abstain_false_press": theta_best[1], "n_abstain": len(abstain_scores),
                       "addr_acc": addr_acc / max(1, naddr)}},
-           ROOT / "results" / "qwen" / "t2-selector.pt")
+           ROOT / "results" / "qwen" / ("t2b-selector.pt" if T2B else "t2-selector.pt"))
 print("saved results/qwen/t2-selector.pt")

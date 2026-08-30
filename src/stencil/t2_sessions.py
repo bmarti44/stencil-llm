@@ -91,7 +91,7 @@ def ledger_text(ledger: dict, unseen_fmt: bool = False) -> str:
     return "".join(lines)
 
 
-def generate_t2(seed: int, stratum: int = 20, split: str = "dev") -> T2Session:
+def generate_t2(seed: int, stratum: int = 20, split: str = "dev", interference: str = "v3") -> T2Session:
     g = torch.Generator().manual_seed(seed)
     n_turns = stratum
     turns: list[Turn] = []
@@ -142,6 +142,14 @@ def generate_t2(seed: int, stratum: int = 20, split: str = "dev") -> T2Session:
             plan.append(("filler", None))
     plan = plan[:n_turns]
 
+    if interference == "s0":
+        plan2 = []
+        for step in plan:
+            if step[0] == "work":
+                plan2.append(("s0_note", None))
+                plan2.append(("s0_note", None))
+            plan2.append(step)
+        plan = plan2  # session lengthens by 2 turns per work (registered delta)
     for ti, (kind, ty) in enumerate(plan):
         if kind == "user_set" and ty is not None:
             v = _pick(POOLS[ty], g)
@@ -166,9 +174,25 @@ def generate_t2(seed: int, stratum: int = 20, split: str = "dev") -> T2Session:
             cleared.add(ty)
             turns.append(Turn("user_clear", f"The {ty} standard no longer applies; disregard it.", (ty, None)))
         elif kind == "distractor" and ty is not None:
-            fake = _pick(POOLS[ty], g)
+            # conflict invariant (registered): emitted note value never equals
+            # the currently-active value for its type
+            fake = _pick([x for x in POOLS[ty] if x != ledger.get(ty)], g)
             quoted = superseded[ty][-1] if superseded[ty] and float(torch.rand((), generator=g)) < 0.6 else fake
-            turns.append(Turn("distractor", f"(An old thread note said: {SENT[ty].format(v=quoted)} That thread is not authoritative.)"))
+            if interference == "s0":
+                # T2b: bare format-identical note, no de-authorizing framing
+                turns.append(Turn("distractor", f"Note: {SENT[ty].format(v=quoted)}"))
+            else:
+                turns.append(Turn("distractor", f"(An old thread note said: {SENT[ty].format(v=quoted)} That thread is not authoritative.)"))
+        elif kind == "s0_note":
+            # T2b scheduler guarantee: one genuinely-conflicting note for an
+            # active type (two such steps precede each work turn)
+            active = [k for k in TYPES if k in ledger]
+            if active:
+                ty3 = active[int(torch.randint(0, len(active), (1,), generator=g))]
+                val = _pick([x for x in POOLS[ty3] if x != ledger[ty3]], g)
+                turns.append(Turn("distractor", f"Note: {SENT[ty3].format(v=val)}"))
+            else:
+                turns.append(Turn("distractor", _pick(FILLER, g)))
         elif kind == "work":
             req, op = CODE_REQUESTS[int(torch.randint(0, len(CODE_REQUESTS), (1,), generator=g))]
             fn = f"task{fn_counter}"
@@ -190,7 +214,11 @@ def generate_t2(seed: int, stratum: int = 20, split: str = "dev") -> T2Session:
                 if ty2 in ledger:
                     cell = "active"
                 else:
-                    visible_stale = any(v in window for v in superseded[ty2])
+                    # full formatted-sentence match (fable T2b clearance:
+                    # bare-value substrings collide with unrelated text)
+                    visible_stale = any(
+                        SENT[ty2].format(v=v) in window for v in superseded[ty2]
+                    )
                     if visible_stale:
                         cell = "stale_only"
                     elif ty2 in cleared:

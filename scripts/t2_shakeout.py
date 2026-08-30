@@ -20,14 +20,17 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from t2_train_selector import candidate_spans  # noqa: E402
 
 N_DEV = 24
-DEV = [12_600_000 + i for i in range(N_DEV)]
+import os
+T2B = bool(os.environ.get("T2B"))
+INTERF = "s0" if T2B else "v3"
+DEV = [(12_950_000 if T2B else 12_600_000) + i for i in range(N_DEV)]
 CLASSES = ["none", "prefix", "doc", "hint"]
 
 tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
 m = Qwen3()
 m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
 m = m.to(torch.bfloat16).cuda().eval()
-sel = torch.load(ROOT / "results" / "qwen" / "t2-selector.pt", map_location="cpu")
+sel = torch.load(ROOT / "results" / "qwen" / ("t2b-selector.pt" if T2B else "t2-selector.pt"), map_location="cpu")
 head = torch.nn.Linear(2048, 4); head.load_state_dict(sel["head"]); head = head.cuda()
 Wq = torch.nn.Linear(2048, 64); Wq.load_state_dict(sel["Wq"]); Wq = Wq.cuda()
 Wk = torch.nn.Linear(2048, 64); Wk.load_state_dict(sel["Wk"]); Wk = Wk.cuda()
@@ -65,7 +68,7 @@ with torch.no_grad():
     for arm in ARMS:
         adh_n = adh_d = stale_n = stale_d = parse_n = works = fpress = 0
         for seed in DEV:
-            sess = generate_t2(seed, 20, "dev")
+            sess = generate_t2(seed, 20, "dev", interference=INTERF)
             rs = run_session(m, tok, sess, "dev", arm,
                              timing=timing if arm == "selector" else None,
                              address=address if arm == "selector" else None)
@@ -88,5 +91,5 @@ with torch.no_grad():
         print(arm, report[arm], flush=True)
 headroom = report["oracle"]["adherence"] - report["base"]["adherence"]
 print(f"HEADROOM (oracle-base): {headroom:+.3f} (binding precondition >= 0.10)")
-(ROOT / "results" / "qwen" / "t2-shakeout.json").write_text(json.dumps(report, indent=1))
+(ROOT / "results" / "qwen" / ("t2b-shakeout.json" if T2B else "t2-shakeout.json")).write_text(json.dumps(report, indent=1))
 print("saved results/qwen/t2-shakeout.json")

@@ -256,3 +256,15 @@ Delta from CONTRACT v3 (everything else inherited unchanged):
    (multi-turn sessions with a surviving authoritative ledger do not
    exhibit fixable selection failure even under S0-style interference) and
    the program closes with that as the T2 chapter; no third design.
+
+### T2b clearance amendments (fable round-1; sol CLEAR)
+- visible_stale matcher fixed to full formatted-sentence quotes (bare-value
+  substring collisions mislabeled ~7.3% of non-active cells latently in
+  v3; empirically re-verified 0 mislabels post-fix).
+- Registered conflict invariant: every counted in-window note's value
+  differs from the active value of its type AT THE SCORED WORK TURN; the
+  generator enforces exclusion at emission and the T2b scheduler verifies
+  >= 2 genuinely-conflicting notes in window per scored work turn (notes
+  de-conflicted by later updates are not counted toward the precondition).
+- Registered note: the held-out comment type has no SENT template and
+  receives no interference (low; recorded).

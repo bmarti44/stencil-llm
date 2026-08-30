@@ -17,13 +17,16 @@ from stencil.t2_sessions import generate_t2
 sys.path.insert(0, str(ROOT / "scripts"))
 import t2_train_selector as T
 
-sel = torch.load(ROOT / "results" / "qwen" / "t2-selector.pt", map_location="cpu")
+import os
+T2B = bool(os.environ.get("T2B"))
+NAME = "t2b-selector.pt" if T2B else "t2-selector.pt"
+sel = torch.load(ROOT / "results" / "qwen" / NAME, map_location="cpu")
 T.head.load_state_dict(sel["head"])
 T.Wq.load_state_dict(sel["Wq"])
 T.Wk.load_state_dict(sel["Wk"])
 live, abstain = [], []
 for seed in T.CALIB:
-    sess = generate_t2(seed, 20, "dev")
+    sess = generate_t2(seed, 20, "dev", interference=("s0" if T2B else "v3"))
     _, _, ad = T.gen_and_collect(sess, "dev", "base")
     with torch.no_grad():
         for s, cf, t, is_live in ad:
@@ -35,5 +38,5 @@ print(f"theta={THETA:.3f}: calib abstain false-press 0/{len(abstain)}, live kept
 sel["theta"] = THETA
 sel["calib"]["abstain_false_press"] = 0
 sel["calib"]["live_kept"] = kept / max(1, len(live))
-torch.save(sel, ROOT / "results" / "qwen" / "t2-selector.pt")
+torch.save(sel, ROOT / "results" / "qwen" / NAME)
 print("updated results/qwen/t2-selector.pt")
