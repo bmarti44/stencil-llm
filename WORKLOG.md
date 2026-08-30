@@ -905,3 +905,14 @@
   B first cert, E fallback-only, immediate close on B-failure).
   Execution order: s0x2 TDD -> train-hard collection (13.12M) + pretest
   -> trace recompute -> training -> gates -> sealed block-B cert.
+- 2026-08-30, T0.5 COMPLETE (results/qwen/t0-reactive.json, 24 dev
+  sessions x4 arms): eligible downstream set n=100; base 31 / reactive
+  45 / oracle 47; headroom_on_eligible 0.16 (binds); RECOVERY_CLOSURE
+  0.875 >= 0.5 -> PASS: reactive event-triggered pressing is a
+  REGISTERED COMPONENT of the final recipe (zero learning). Session
+  adherence: base 44.3 / reactive 50.0 / oracle 59.4 / reinsertion
+  63.8 (n_active 246). The crossfield lane's event-triggered-control
+  prediction validated. Remaining T0 rung: T0.4 theta sweep (queued,
+  lower priority — the certification anatomy already answered its
+  question qualitatively). Next: T1 collector smoke -> train-hard +
+  calib-hard collection + pretest.
