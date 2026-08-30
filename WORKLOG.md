@@ -596,3 +596,15 @@
   regime (many surviving format-identical conflicting notes near work
   turns and/or N approaching 32 obligations) — a fresh registration round
   with both reviewers, not an amendment.
+- 2026-08-30, T2b DEV SHAKEOUT (results/qwen/t2b-shakeout.json): HEADROOM
+  BINDS (+0.193): base 37.6% under S0-style in-session interference,
+  oracle 56.9% — real fixable selection failure inside multi-turn
+  sessions. Re-insertion 55.3% (text competes hard here). LEARNED selector
+  40.0% (closure 0.12): the zero-false-press theta keeps only ~25% of live
+  presses; address accuracy 130/130 so the registered capacity fallback's
+  trigger does not fire, and theta's rule is frozen — no registered knob.
+  Proceeding to the single registered VALIDATION run (n=96, val split with
+  OOD probes) to be judged as-is; a gate miss stops T2b per contract and
+  the program closes on the honest composite: selection failure exists in
+  sessions and the oracle fixes it, but the safety-constrained learned
+  selector under-presses, and re-insertion captures most of the headroom.
