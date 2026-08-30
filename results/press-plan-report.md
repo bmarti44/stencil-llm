@@ -17,10 +17,10 @@ validation seeds were never touched.
 | T0.3 press cost (paired single-press, n=220/condition) | B = +0.27 dU per correct press; wrong-SPAN press costs -0.33 (2.3% broken works); wrong-MOMENT press of the right span costs ZERO. Timing errors are cheap; addressing errors are the only costly class |
 | T0.4 theta sweep | Superseded by the certification anatomy (recorded, not run — the constraint-vs-representation question was answered more directly) |
 | T0.5 event-triggered baseline | PASS: reactive pressing (trigger on checker feedback, zero learning) recovers 0.875 of the oracle's recovery on post-violation opportunities; session adherence 44.3 -> 50.0. REGISTERED RECIPE COMPONENT |
-| G0 certification (zero-new-training policy, sealed block D) | FAIL k=149/160: with real same-type hard negatives, the absolute cosine score cannot detect liveness when the live sentence is absent — discrimination was RANKING-only (the bi-encoder ceiling the research sweep predicted) |
-| T1 trained candidate-or-null (hard negatives, decision-aligned margins) | Cut hazard leakage ~93% (30/48 pressure sessions -> 1/17) — large and real, but not certification-grade (1/17 -> U95 ~25% >> 5%); registered fallback consumed and failed (2/17); LINE CLOSED |
-| T2 controller-state bakeoff (oscillator vs controls, frozen contract) | No contender reached zero leakage -> no pilot, no block. Science: the input-blind free-running oscillator TIES every trained state controller — state coupling added nothing measurable; pure statelessness was worst; joint retraining mildly hurt vs the plain T1 head |
-| T3 blind rhythm (gated by the T0.3b wrong-type audit) | GATE NEGATIVE: all four (P, g) cells have expected dU < 0 (-0.03 to -0.125; harm scales with gain; 0-12/200 scheduled presses hit a matching moment). Grid skipped; LINE CLOSED |
+| G0 certification (zero-new-training policy, sealed block D) | FAIL k=149/160, decomposed: 71/160 sessions with FALSE SELECTIONS (the policy's error evidence; U95 = 0.512 >> 5%) plus 79 fixture non-vacuity misses (1 overlap). With real same-type hard negatives, the absolute cosine score cannot detect liveness when the live sentence is absent — discrimination was RANKING-only (the bi-encoder ceiling the research sweep predicted) |
+| T1 trained candidate-or-null (hard negatives, decision-aligned margins) | On the reused (unsealed) calib screen, hazard leakage fell 14/17 sessions -> 1/17 (92.9% relative) — large and real, but not certification-grade (1/17 -> U95 ~25% >> 5%); registered fallback consumed and failed (2/17); LINE CLOSED |
+| T2 controller-state bakeoff (oscillator vs controls, frozen contract) | No contender reached zero leakage -> no pilot, no block. Science (on the third-use, 17-hazard-session calib set): the input-blind free-running oscillator ties the trained oscillator and GRU at 2 leaking sessions and beats EMA (3) and static (5) — state coupling added nothing measurable; pure statelessness was worst; joint retraining mildly hurt vs the plain T1 head (1/17) |
+| T3 blind rhythm (gated by the T0.3b wrong-type audit) | GATE NEGATIVE: all four (P, g) cells have expected dU < 0 (-0.03 to -0.125; harm and broken-work rate scale with gain, 1% -> 4.5%). Grid skipped; LINE CLOSED. (The audit's per-press moment-class counts were computed with a token/character unit bug and are withdrawn; the cell-level dU gate does not use them and stands) |
 
 ## The three findings that matter
 
@@ -33,20 +33,28 @@ validation seeds were never touched.
    from FEEDBACK (the checker knows the failures). At this model scale
    and regime, the wave must be clocked by the environment, not by a
    learned internal judgment of relevance.
-2. **The deployable recipe is proven and cheap.** Structured pressing
-   (parser moment + active-ledger provenance + authoritative span,
-   the T2b "oracle": +14.5 val adherence) layered with reactive
-   pressing (0.875 of recoverable headroom, zero learning) — inside the
-   measured cost asymmetry (mistimed right-span presses free; wrong
-   spans are the only expensive error, which provenance guards
-   eliminate structurally). This is the Miller stencil clocked by
-   syntax and error signals — deployable today for code, where parsers
-   and checkers exist.
-3. **The wrong-span asymmetry reframes safety.** T0.3's measurement
-   (wrong moment: free; wrong span: -0.33/press) means press-timing
-   policies need no safety machinery at all IF span provenance is
-   structural — the entire zero-false-press apparatus that strangled
-   two programs guarded a boundary that provenance makes unreachable.
+2. **Two deployable operating points, individually proven.** Structured
+   pressing (parser moment + active-ledger provenance + authoritative
+   span, the T2b "oracle": +14.5 val adherence, carrying its previously
+   reported ~1.7% paired validity tax — 7 parse / 11 exec losses over
+   409 works, so the registered zero-loss gate was NOT met) and
+   reactive pressing (0.875 of recoverable headroom, zero learning).
+   These are NOT a tested composition: reactive's press set is a strict
+   subset of structured's (flagged active types vs all active types at
+   parser moments), so where both are available structured subsumes
+   reactive; reactive is the operating point for feedback-only
+   environments. This is the Miller stencil clocked by syntax and error
+   signals — a candidate deployment for code, where parsers and
+   checkers exist; composition and deployment remain untested.
+3. **Provenance guards one error class, not safety.** T0.3 measured
+   that a non-authoritative span press is the expensive error
+   (-0.33/press) and a single off-by-3 same-entry press is free.
+   Structural provenance eliminates the first class. But T0.3b showed
+   provenance-valid presses at BLIND times are still net harmful in
+   every cell (broken rates to 4.5%) — semantic mistargeting among
+   authoritative entries is real. Safety therefore requires provenance
+   PLUS moment/type-matched timing from a parser, checker, or validated
+   selector — which is finding 1 restated as a safety requirement.
 
 ## Standing for the Miller program
 
@@ -66,13 +74,18 @@ survived to try.
 
 ## Process record
 
-Preregistration with mechanical gates throughout; 14 sol review rounds
-and 7 fable verification rounds across plan, G0, implementations,
-amendments, and preregistrations; every high/critical finding either
-fixed or ruled; two reviewer catches prevented sealed-block burns
-(degenerate thresholds; value-vs-span certification semantics); one
-administrative block void (A) disclosed; all seed blocks and their
-single-use discipline honored (B, E, validation untouched); every
+Preregistration with mechanical gates throughout. Review counting
+convention (reproducible): PRESS-PLAN-era sol artifacts committed under
+results/ = 17 rounds (15 reviews + 2 amendment acks:
+press-plan-review{1-5}, g0-review, impl-review{1,2},
+t1-prereg-review{1-3}, s0x2-amend, a1-ack, t2t3-review{1-4},
+press-close); fable rounds per WORKLOG = 9. Every high/critical finding
+either fixed or ruled; two reviewer catches prevented sealed-block
+burns (degenerate thresholds; value-vs-span certification semantics);
+one administrative block void (A) disclosed; all seed blocks and their
+single-use discipline honored (B, C, E, and validation untouched; C's
+provenance-ceiling certification was retired before use); T0.4 formally
+closed as superseded (WORKLOG); every
 number in this report reproduces from pinned seeds and committed
 artifacts (results/qwen/t0-*.json, t2-bakeoff.json, g0-certify-D.json,
 t1-gates*.json, press logs, WORKLOG decision trail).

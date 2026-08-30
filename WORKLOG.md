@@ -1032,3 +1032,25 @@
   RECIPE STANDS: structured parser-timed pressing + event-triggered
   reactive pressing (0.875 recovery) within the T0.3 cost asymmetry.
   Closing report next; checkpoint (v) reviews to follow.
+- 2026-08-30, CLOSING VERIFICATION round 1: sol NOT VERIFIED (1
+  CRITICAL: finding 3's "no safety machinery" contradicted by T0.3b;
+  4 HIGH: cert-anatomy attribution, T1 denominators, T2 tie wording,
+  T0.3b class-count unit bug, round counts); fable NOT VERIFIED
+  (numerically faithful; same finding-3 HIGH with the harm-attribution
+  arithmetic; round-count corrections 17 sol / 9 fable; minors: 92.9%
+  exact, block C absent from list, T0.4 never formally closed). ALL
+  FIXED in the report: cert decomposed (71/160 false-selection, U95
+  0.512, + 79 non-vacuity, 1 overlap); T1 stated on the reused calib
+  screen 14/17 -> 1/17 (92.9%, unsealed disclosure); T2 exact tie
+  structure + third-use disclosure; finding 2 rewritten as two
+  operating points with the SUBSUMPTION note (reactive press set is a
+  strict subset of structured's — composition untested claim removed)
+  + oracle validity tax restored; finding 3 rewritten per both
+  reviewers (provenance guards one error class; safety = provenance +
+  moment/type-matched timing); T0.3b class counts WITHDRAWN (the
+  classifier sliced decoded characters by token index — unit bug; the
+  cell dU gate never used them and stands); round counts replaced by
+  the reproducible convention (17 sol incl. 2 acks / 9 fable); block C
+  added to the untouched list. T0.4 FORMALLY CLOSED as superseded (the
+  certification anatomy answered the constraint-vs-representation
+  question directly; recorded, not run). Re-verification round 2 next.
