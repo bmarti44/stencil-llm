@@ -638,3 +638,18 @@
   recalibrate -> dev shakeout -> val with the registered selector, logs
   results/logs/t2b-*-r2.log; report to be corrected from the r2 numbers
   and re-verified by sol once before close.
+- 2026-08-30, T2b REGISTERED RERUN COMPLETE (r2 logs): training reproduced
+  bitwise (12329/837/134 examples, quantile theta 172002.445 identical),
+  recalibration restored registered theta 185849.813 (0/18 false press,
+  32/130 live kept). DEV: base 37.6 / oracle 56.9 (+0.193) / reins 55.3 /
+  selector 40.0 (closure 0.12) — aggregates identical to the contaminated
+  run. VAL (n=96, 1238 active): base 32.0 / oracle 46.5 (+0.145) / reins
+  52.9 / SELECTOR 32.0 — the registered selector NEVER PRESSED (paired
+  0/0/0/0, outputs identical to base), closure 0.00, GATE MISS confirmed
+  on the registered artifact. NEW paired validity evidence (val, n=409
+  works): oracle loses 7 parse / 11 exec (gains 3/5) — Gate 3's zero-loss
+  bar NOT met at session scale (~1.7% validity tax; dev was 0/0);
+  reinsertion churns (-24/+17 parse, -30/+46 exec, net exec +16). Report
+  corrected accordingly (selector row, finding 1 validity tax, finding 3
+  downgraded to adherence win, process record documents the CRITICAL).
+  Sending report for one sol re-verification before close.
