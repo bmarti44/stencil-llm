@@ -1,0 +1,6 @@
+codex
+Not yet verified.
+
+- **HIGH — “never pressed” and “bitwise identical” remain unproven.** [t2_shakeout.py](/home/bmarti44/stencil-llm/scripts/t2_shakeout.py:67) records only parse/exec booleans, not selector activation counts or generated-token hashes. Zero paired score changes in [t2b-val.json](/home/bmarti44/stencil-llm/results/qwen/t2b-val.json:53) establish no measured behavioral differential—not zero presses or bitwise-equal outputs. This overstates [the report](/home/bmarti44/stencil-llm/results/timed-selector-report.md:42) and [WORKLOG](/home/bmarti44/stencil-llm/WORKLOG.md:647). Record press count plus exact per-work token equality, or narrow the claim to “closure 0.00 with identical scored outcomes.”
+
+- **HIGH — “training reproduced bitwise” has no bitwise evidence.** [t2b-train-r2.log](/home/bmarti44/stencil-llm/results/logs/t2b-train-r2.log:8) shows matching counts and scalar thresholds, but no checkpoint hash or tensor-by-tensor equality against the original training artifact. The exact-bitwise claim at [timed-selector-report.md](/home/bmarti44/stencil-llm/results/timed-selector-report.md:79) and [WORKLOG.md](/home/bmarti44/stencil-llm/WORKLOG.md:642) should either be evidenced or changed to “reproduced the recorded counts and thresholds.”

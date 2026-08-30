@@ -14,7 +14,7 @@ its registered stop rule after one validation run, no rescues.
 | T0 oracle (honest instruments, fresh seeds) | +21.9 pts parse-gated, ZERO parse loss (b=2 selected; b=4 rejected by the strict gate); wrong-sentence control harms; random-moment control null |
 | T1 learned timing+address | == oracle (closure 1.00); later QUALIFIED: timing is obligation-blind syntax detection (probe: fires 32/32 with no obligations present); address was forced-choice — no component had read an obligation; three registered arms initially unrun, later executed at their expected signatures |
 | T2 (multi-turn, v3 contract, 3-round design review) | INCONCLUSIVE-BY-DESIGN: oracle headroom +0.016 < 0.10 — with a small surviving authoritative ledger, session failures are not selection failures |
-| T2b (S0-style in-session interference; cleared by both reviewers after 2 fixes) | headroom BINDS (+0.193 dev / +0.145 val): selection failure is real in sessions and the ORACLE fixes it. Learned selector: dev closure 0.12, VAL closure 0.00 (it never pressed) — GATE MISS; program closed |
+| T2b (S0-style in-session interference; cleared by both reviewers after 2 fixes) | headroom BINDS (+0.193 dev / +0.145 val): selection failure is real in sessions and the ORACLE fixes it. Learned selector: dev closure 0.12, VAL closure 0.00 (near-total abstention: 14 presses in 14,794 steps) — GATE MISS; program closed |
 | Baselines (val, n=1238 opportunities) | base 32.0% / oracle 46.5% / selector 32.0% / re-insertion 52.9% |
 
 All T2b numbers are from the post-fix rerun with the registered selector
@@ -39,8 +39,12 @@ rerun, the val selector row changed 32.3 -> 32.0).
    presses, because type-matched lookalike candidates make the address
    max-score a poor live-vs-quoted discriminator. Address accuracy was
    perfect (130/130); the abstain mechanism is where the design fails.
-   At validation the registered selector abstained on EVERY moment —
-   output bitwise identical to base, closure 0.00; stopped per contract.
+   At validation the registered selector all but stopped acting: a
+   direct press audit (results/qwen/t2b-press-audit.json) counted 14
+   applied presses across 14,794 generation steps (0.09%; the timing
+   head fired 941 times and theta vetoed all but 14), leaving 407/409
+   works token-identical to base and the other 2 scored identically —
+   closure 0.00; stopped per contract.
 3. **At session scale with a small ledger, text re-insertion wins on
    adherence** (52.9% vs oracle's 46.5%) — repeating ~40 tokens of
    authoritative text next to the work is stronger than steering attention
@@ -76,9 +80,12 @@ was "caught before any gated run" was false. Fix: helper moved to the
 library, training body guarded, a static regression test forbids
 top-level work in imported scripts, and the full T2b chain (train ->
 recalibrate -> dev -> val) was rerun with the registered artifact.
-Training reproduced bitwise (identical counts and thresholds); dev
-aggregates were unchanged; the val selector row moved 32.3 -> 32.0
-(closure 0.02 -> 0.00). The same closing review found "validity intact"
+Training reproduced the recorded counts, thresholds, and calibration
+statistics exactly (12329/837/134 examples, quantile theta 172002.445,
+address accuracy 130/130; the original checkpoint was overwritten in
+place, so a bitwise tensor comparison is not possible); dev aggregates
+were unchanged; the val selector row moved 32.3 -> 32.0 (closure
+0.02 -> 0.00). The same closing review found "validity intact"
 unsupported; per-work paired parse/exec records are now saved for every
 arm (paired_vs_base in the shakeout JSONs) and the findings above quote
 them.

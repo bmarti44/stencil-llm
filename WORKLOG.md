@@ -653,3 +653,22 @@
   corrected accordingly (selector row, finding 1 validity tax, finding 3
   downgraded to adherence win, process record documents the CRITICAL).
   Sending report for one sol re-verification before close.
+- 2026-08-30, SOL RE-VERIFICATION round 2: numbers accepted; two HIGH
+  overclaim findings. (1) "never pressed / bitwise identical to base" was
+  inferred from zero paired score deltas, not measured -> running
+  scripts/t2b_press_audit.py (val seeds, base+selector arms, press
+  counters + per-work sha256 of generated code) to evidence or narrow it.
+  (2) "training reproduced bitwise" had no tensor-level evidence and the
+  original checkpoint was overwritten in place (results/*.pt gitignored),
+  so the claim is NARROWED in the report to "reproduced the recorded
+  counts, thresholds, and calibration statistics exactly". Correction
+  applies to the 05:27 entry above: read its "bitwise" as narrowed, and
+  its "never pressed" as pending the press audit.
+- 2026-08-30, PRESS AUDIT (results/qwen/t2b-press-audit.json, val seeds,
+  base+selector with counters and per-work sha256): sol's HIGH was
+  CORRECT — "never pressed" is REFUTED. Registered selector applied 14
+  presses / 14794 steps (timing fired 941; theta vetoed 927); 407/409
+  works token-identical to base; the 2 differing works scored identically
+  (hence paired 0/0/0/0 and closure 0.00). Report finding 2 and ladder
+  row corrected to the measured numbers. Earlier "never pressed" wording
+  in the 05:27 entry is superseded by this entry.
