@@ -35,8 +35,14 @@ if SMOKE:
     SEEDS = [13_050_100 + i for i in range(2)]
 elif BLOCK == "train":
     SEEDS = [13_120_000 + i for i in range(48)]
+elif BLOCK == "trace0":
+    # registered recompute of the 13.00M trace rows with THIS collector
+    # (adds cand_feats + span-provenance labels; interference s0 — no s0x
+    # target exists there, pretest is skipped for this block)
+    SEEDS = [13_000_000 + i for i in range(48)]
 else:
     SEEDS = [13_140_000 + i for i in range(24)]
+INTERF = "s0" if BLOCK == "trace0" else "s0x2"
 OUT = f"t1-{'smoke' if SMOKE else BLOCK}-features.pt"
 THR = 0.6407741904258727
 CLASSES = ["none", "prefix", "doc", "hint"]
@@ -86,7 +92,7 @@ def collect_session(sess, writer, seed):
                             for c in cands
                         ],
                         "type_active": ty in sess.ledger_at[wt],
-                        "s0x_target": dict(sess.held_out["s0x"]),
+                        "s0x_target": dict(sess.held_out.get("s0x", {"type": None, "value": None, "work_turn": None})),
                         "ledger": dict(sess.ledger_at[wt]),
                     })
                     n += 1
@@ -135,12 +141,15 @@ def main():
     writer = TraceWriter(ROOT / "results" / "qwen" / OUT)
     total = 0
     for k, seed in enumerate(SEEDS):
-        sess = generate_t2(seed, 20, "dev", interference="s0x2")
+        sess = generate_t2(seed, 20, "dev", interference=INTERF)
         total += collect_session(sess, writer, seed)
         if k % 8 == 0:
             print(f"  {k}/{len(SEEDS)} sessions, {total} events", flush=True)
     writer.close()
     print(f"COLLECTED {total} events -> results/qwen/{OUT}", flush=True)
+    if BLOCK == "trace0":
+        print("trace0 block: pretest skipped (s0, no s0x target)", flush=True)
+        return
     p = pretest(ROOT / "results" / "qwen" / OUT)
     p["n_seeds"] = len(SEEDS)
     print("PRETEST:", json.dumps(p), flush=True)
