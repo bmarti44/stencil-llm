@@ -872,3 +872,29 @@
   p* (reporting only) = 0.332/(0.273+0.332) = 0.55 for span errors,
   ~0 for timing errors. VALIDITY RULE constants now instantiable.
   Launching sealed block-D certification (dual-cleared job).
+- 2026-08-30, SEALED BLOCK-D CERTIFICATION: FAIL, k=149/160 (U95 0.961).
+  Anatomy (results/qwen/g0-certify-D.json): 71 sessions with false
+  selections — ALL 88 events value-WRONG at inactive-type moments
+  (live=None): the policy presses the injected same-type note. The
+  trace's perfect separation was RANKING-only (live beats lookalike
+  when both present); the absolute cos score cannot detect liveness
+  when the live sentence is absent — the bi-encoder ceiling the ML
+  research lane predicted (RocketQA lesson: liveness is span+context).
+  Fable's counterfeit hard negatives under-estimated real s0x scores
+  (max counterfeit cos 0.6016 < threshold 0.6408 < real note scores) —
+  counterfeit-based threshold transfer is now a documented failed
+  instrument. 79 sessions failed the non-vacuity assertion (doc 53 /
+  hint 22 / prefix 4): with the target obligation cleared, the model
+  often does not generate that moment class — fixture design flaw, to
+  be amended (make moment generation task-structural, e.g. the work
+  prompt itself requests a docstring + annotations). VERDICT: the
+  zero-new-training line FAILED certification honestly (PRESS-PLAN
+  honest negative #1). Runner-up raw_max on block E would predictably
+  fail the same way (ranking-only discrimination, threshold selected
+  without real hard negatives) — burden-test proposal: skip it, spend
+  the effort on T1 TRAINING (candidate-or-null with a real null head,
+  hard negatives from s0x sessions) per the registered G0 amendment.
+  Convening the T1 preregistration review (checkpoint iii) with:
+  runner-up skip ruling, fixture assertion redesign, T1 training spec
+  + new seed blocks, certification block accounting (E + 13.30M+
+  extension).
