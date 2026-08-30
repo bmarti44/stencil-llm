@@ -943,3 +943,6 @@
   include directives with no checker and no parser moment (pure
   steering), where the rhythm-default line (T3) is the natural
   candidate mechanism. Do not let this drop.
+- 2026-08-30, AMENDMENT A1 DUAL-CLEARED (sol "112" ack on the floor;
+  fable E1-E7 folded). Certification floor: n_h >= 112/160. Launching
+  trace0 recompute (13.00M with the v2 collector), then training.
