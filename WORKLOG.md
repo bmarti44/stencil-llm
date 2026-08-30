@@ -1297,11 +1297,11 @@ script sha256: 2a0ef6480d6a11cda8f715c290aafb45
   (13.8M, fail-closed, per-arm build_arm_prompt zero-occurrence
   assertion pre-tokenization). Then the final report re-verification
   and program close.
-- 2026-08-30, REPRODUCTION AUDIT COMPLETE: EXACT — 0 hash mismatches
+- 2026-08-30, REPRODUCTION AUDIT COMPLETE: PREFIX-MATCHED — 0 recorded-prefix mismatches
   across 408 works per arm (2,040 outputs), prefix-match basis; sealed evidence certified on that basis; full paired
   records + full-length sha256 committed (w-seal-audit.json).
   PER-TYPE findings folded into the report: prefix 81.5 (wave) vs 39.5
-  (oracle) — doubles the teacher on the unseen-format type; doc
+  (oracle) — doubles the teacher on the mixed-format prefix type; doc
   60.1 vs 35.7; hint 29.3 vs 47.2 (wave UNDERPERFORMS oracle — win
   carried by prefix/doc); comment 0/120 in EVERY arm — the novel-type
   hold-out is a NULL TEST (disclosed; supports no generalization

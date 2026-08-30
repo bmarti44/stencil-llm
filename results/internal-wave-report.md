@@ -15,8 +15,25 @@ the unseen ledger rendering AND the familiar training-format sentence
 in-context — the seal demonstrates val performance under MIXED-FORMAT EXPOSURE
 (the wave could have relied entirely on the familiar sentence; even
 "rendering-robust" is not supported — both claims retracted); the comment rule
-type is a complete hold-out present in 96/96 sessions, with its
-per-type performance recorded in the reproduction audit.
+type is a complete hold-out present in 96/96 sessions — and it is a
+NULL TEST supporting no generalization claim: comment adherence was
+0/120 for EVERY arm (base, wave, proxy, oracle, reinsertion — the
+model never produces the comment and even the hand press cannot
+induce it).
+
+PER-TYPE TABLE (reproduction audit; adherent/denominator; all under
+the mixed-format caveat):
+
+| type | base | wave | oracle |
+|---|---|---|---|
+| prefix | 107/276 (38.8%) | 225/276 (81.5%) | 109/276 (39.5%) |
+| doc | 73/258 (28.3%) | 155/258 (60.1%) | 92/258 (35.7%) |
+| hint | 127/564 (22.5%) | 165/564 (29.3%) | 266/564 (47.2%) |
+| comment | 0/120 | 0/120 | 0/120 |
+
+The wave doubles the oracle on the mixed-format prefix type and leads
+on doc; it UNDERPERFORMS the oracle on hint — the aggregate win is
+carried by prefix and doc.
 
 ## Registered ladder and outcomes
 
