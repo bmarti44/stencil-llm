@@ -30,14 +30,22 @@ class T1Head(torch.nn.Module):
         self.Wq.load_state_dict(legacy_state["Wq"])
         self.Wk.load_state_dict(legacy_state["Wk"])
 
-    def forward(self, h20, cand_feats):
-        """h20 [2048], cand_feats [n, 2048] -> logits [n+1] (0 = NULL)."""
+    def forward(self, h20, cand_feats, null_add=None, q_add=None):
+        """h20 [2048], cand_feats [n, 2048] -> logits [n+1] (0 = NULL).
+        null_add/q_add: optional T2 controller-state augmentations —
+        additive scalar on the NULL logit and additive 64-d vector on the
+        query BEFORE normalization."""
         T = F.softplus(self.t)
         null_logit = self.null_head(h20).squeeze(-1)
+        if null_add is not None:
+            null_logit = null_logit + null_add
         if cand_feats is None or cand_feats.shape[0] == 0:
             return null_logit[None]
-        q = F.normalize(self.Wq(h20), dim=0)
-        k = F.normalize(self.Wk(cand_feats), dim=1)
+        q_raw = self.Wq(h20)
+        if q_add is not None:
+            q_raw = q_raw + q_add
+        q = F.normalize(q_raw, dim=0)
+        k = F.normalize(cand_feats @ self.Wk.weight.T + self.Wk.bias, dim=1)
         return torch.cat([null_logit[None], (q @ k.T) / T])
 
 

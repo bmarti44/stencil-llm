@@ -38,6 +38,20 @@ def test_warm_start_matches_legacy_cosine():
     assert float(logits[0]) == 0.0
 
 
+def test_state_augmentation_hooks():
+    # T2 contract: optional additive contributions to the NULL logit and query
+    h = make_head()
+    x = torch.randn(2048)
+    C = torch.randn(3, 2048)
+    base = h(x, C)
+    aug = h(x, C, null_add=torch.tensor(0.7), q_add=torch.zeros(64))
+    assert torch.allclose(aug[0], base[0] + 0.7, atol=1e-6)
+    assert torch.allclose(aug[1:], base[1:], atol=1e-6)  # zero q_add changes nothing
+    aug2 = h(x, C, null_add=torch.tensor(0.0), q_add=torch.randn(64))
+    assert float(aug2[0]) == float(base[0])
+    assert not torch.allclose(aug2[1:], base[1:])  # nonzero q_add moves candidate logits
+
+
 def test_decide_rule():
     # decision_score = best candidate logit - NULL logit; > 0 -> candidate
     assert decide(torch.tensor([0.0, 0.5, 0.2])) == 0   # cand index 0 (logit 0.5)
