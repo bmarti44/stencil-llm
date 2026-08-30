@@ -226,3 +226,36 @@ so identical-visible-text pairs with different authority are
 impossible under the current contract. The fixture (candidate bank
 presented without authority serialization) is registered and reviewed
 on its own before W2 can run; W2 is DEFERRED until then.
+
+## v3.1 (sol round 3)
+
+C1'. MATCHED CONTROL, actuator-identical: the proxy uses the IDENTICAL
+module and the identical selected A/B field equation at inference —
+the ONLY difference is the training loss. Proxy loss (frozen): timing
+BCE on the gain logit (positive rows = generation rows at active
+authoritative opportunities per the canonical alignment; ALL other
+rows negative; weight 1.0, mean reduction) + span CE on the e-logits
+at positive rows only (target = uniform over the authoritative span's
+token positions; weight 1.0, mean reduction). No threshold
+calibration exists — deployment is the same continuous field. A
+discrete thresholded variant may be reported as descriptive, never as
+the causal test.
+
+H1'. SCOPE OF THE CAUSAL CLAIM: the training-objective attribution is
+made at W0 (stateless vs stateless-proxy). If the winning model is
+W1, any causal claim requires the RECURRENT PROXY TWIN — identical
+GRU, state handling, detach schedule, parameter count, seeds, and
+actuator, trained with the proxy loss — run in the same W1 dev
+replay; absent that twin, a W1 win is reported without
+training-signal attribution.
+
+H2'. TEMPORAL PROBE, two frozen procedures:
+  (a) CE probe: teacher-forced canonical prefixes, h20 sequences
+      FIXED; permute/reset the s-sequence inputs; measure held CE
+      degradation (>= 10% relative required);
+  (b) behavioral probe: at each step, perturb s_{t-1} (permuted donor
+      state or reset) BEFORE the GRU update, then roll forward
+      normally — subsequent prefixes and h20 legitimately diverge;
+      measure replay adherence degradation (>= 10% of the wave's lift
+      required).
+  Both procedures must pass for the temporal claim.
