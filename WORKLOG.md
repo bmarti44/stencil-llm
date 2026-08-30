@@ -898,3 +898,10 @@
   runner-up skip ruling, fixture assertion redesign, T1 training spec
   + new seed blocks, certification block accounting (E + 13.30M+
   extension).
+- 2026-08-30, T1 PREREGISTRATION DUAL-CLEARED (fable v1 conditional —
+  condition folded; sol round 3 after 2 revision rounds). v3 registered:
+  results/t1-prereg-draft.md governs the T1 rung (decision rule frozen,
+  total assertion coverage pretest, mechanical fallback/block table:
+  B first cert, E fallback-only, immediate close on B-failure).
+  Execution order: s0x2 TDD -> train-hard collection (13.12M) + pretest
+  -> trace recompute -> training -> gates -> sealed block-B cert.
