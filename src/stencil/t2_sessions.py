@@ -41,6 +41,14 @@ SENT_UNSEEN_FMT = {  # held-out FORMAT of the trained naming type (val/final)
 POOLS = {"prefix": CODE_PREFIXES, "doc": DOC_OPENERS, "hint": HINT_TYPES}
 
 
+def render_sent(ty: str, v, clean: bool = False) -> str:
+    """The ONE sentence renderer (W3a s0c): clean mode renders prefix in
+    the unseen format everywhere; doc/hint unchanged (registered scope)."""
+    if clean and ty == "prefix":
+        return SENT_UNSEEN_FMT["prefix"].format(v=v)
+    return SENT[ty].format(v=v)
+
+
 @dataclass
 class Turn:
     kind: str            # user_set|user_update|user_clear|work|env|distractor
@@ -108,6 +116,9 @@ def generate_t2(seed: int, stratum: int = 20, split: str = "dev", interference: 
     # guarantee counterfactual coverage: first work turn happens with only 2
     # of 3 types set (one 'absent'), one type is cleared mid-session, updates
     # create stale material quoted by distractors.
+    clean = interference == "s0c"
+    if clean:
+        held_out["clean_prefix"] = True
     order = [TYPES[int(i)] for i in torch.randperm(3, generator=g)]
     plan: list[tuple] = []
     plan.append(("user_set", order[0]))               # t0
@@ -142,7 +153,7 @@ def generate_t2(seed: int, stratum: int = 20, split: str = "dev", interference: 
             plan.append(("filler", None))
     plan = plan[:n_turns]
 
-    if interference in ("s0", "s0x", "s0x2"):
+    if interference in ("s0", "s0x", "s0x2", "s0c"):
         plan2 = []
         for step in plan:
             if step[0] == "work":
@@ -166,7 +177,7 @@ def generate_t2(seed: int, stratum: int = 20, split: str = "dev", interference: 
             v = _pick(POOLS[ty], g)
             ledger[ty] = v
             cleared.discard(ty)
-            turns.append(Turn("user_set", f"From now on: {SENT[ty].format(v=v)}", (ty, v)))
+            turns.append(Turn("user_set", f"From now on: {render_sent(ty, v, clean)}", (ty, v)))
         elif kind == "user_set_comment":
             ledger["comment"] = "# reviewed"
             held_out["comment"] = True
@@ -178,7 +189,7 @@ def generate_t2(seed: int, stratum: int = 20, split: str = "dev", interference: 
             v = _pick([x for x in POOLS[ty] if x != old], g)
             ledger[ty] = v
             cleared.discard(ty)
-            turns.append(Turn("user_update", f"Update: {SENT[ty].format(v=v)} (replaces the earlier rule.)", (ty, v)))
+            turns.append(Turn("user_update", f"Update: {render_sent(ty, v, clean)} (replaces the earlier rule.)", (ty, v)))
         elif kind == "user_clear" and ty is not None:
             if ty in ledger:
                 superseded[ty].append(ledger.pop(ty))
@@ -189,9 +200,9 @@ def generate_t2(seed: int, stratum: int = 20, split: str = "dev", interference: 
             # the currently-active value for its type
             fake = _pick([x for x in POOLS[ty] if x != ledger.get(ty)], g)
             quoted = superseded[ty][-1] if superseded[ty] and float(torch.rand((), generator=g)) < 0.6 else fake
-            if interference in ("s0", "s0x", "s0x2"):
+            if interference in ("s0", "s0x", "s0x2", "s0c"):
                 # T2b: bare format-identical note, no de-authorizing framing
-                turns.append(Turn("distractor", f"Note: {SENT[ty].format(v=quoted)}"))
+                turns.append(Turn("distractor", f"Note: {render_sent(ty, quoted, clean)}"))
             else:
                 turns.append(Turn("distractor", f"(An old thread note said: {SENT[ty].format(v=quoted)} That thread is not authoritative.)"))
         elif kind == "s0x_note" and ty is not None:
@@ -203,7 +214,7 @@ def generate_t2(seed: int, stratum: int = 20, split: str = "dev", interference: 
                 v = _pick([x for x in POOLS[ty] if x not in superseded[ty]], g)
                 realized = "cleared"  # honest metadata when the stale intent falls back
             held_out["s0x"] = {"type": ty, "value": v, "cell_intent": realized}
-            turns.append(Turn("distractor", f"Note: {SENT[ty].format(v=v)}"))
+            turns.append(Turn("distractor", f"Note: {render_sent(ty, v, clean)}"))
         elif kind == "s0_note":
             # T2b scheduler guarantee: one genuinely-conflicting note for an
             # active type (two such steps precede each work turn)
@@ -211,7 +222,7 @@ def generate_t2(seed: int, stratum: int = 20, split: str = "dev", interference: 
             if active:
                 ty3 = active[int(torch.randint(0, len(active), (1,), generator=g))]
                 val = _pick([x for x in POOLS[ty3] if x != ledger[ty3]], g)
-                turns.append(Turn("distractor", f"Note: {SENT[ty3].format(v=val)}"))
+                turns.append(Turn("distractor", f"Note: {render_sent(ty3, val, clean)}"))
             else:
                 turns.append(Turn("distractor", _pick(FILLER, g)))
         elif kind == "work":
@@ -239,7 +250,7 @@ def generate_t2(seed: int, stratum: int = 20, split: str = "dev", interference: 
                     # full formatted-sentence match (fable T2b clearance:
                     # bare-value substrings collide with unrelated text)
                     visible_stale = any(
-                        SENT[ty2].format(v=v) in window for v in superseded[ty2]
+                        render_sent(ty2, v, clean) in window for v in superseded[ty2]
                     )
                     if visible_stale:
                         cell = "stale_only"
@@ -295,5 +306,5 @@ def prompt_at(sess: T2Session, work_turn: int, split: str = "dev") -> str:
     convo = []
     for i in range(max(0, lo), work_turn + 1):
         convo.append(sess.turns[i].text)
-    led = ledger_text(sess.ledger_at[work_turn], unseen_fmt=(split in ("val", "final")))
+    led = ledger_text(sess.ledger_at[work_turn], unseen_fmt=(split in ("val", "final") or bool(sess.held_out.get("clean_prefix"))))
     return led + "\n\n" + "\n".join(convo)

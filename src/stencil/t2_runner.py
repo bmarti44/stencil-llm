@@ -121,7 +121,8 @@ def ledger_sentence_spans(prompt_text: str, sess: T2Session, turn: int, split: s
         if ty == "comment":
             sent = " Every function body must end with the comment '# reviewed'."
         else:
-            tmpl = SENT_UNSEEN_FMT.get(ty) if split in ("val", "final") and ty in SENT_UNSEEN_FMT else SENT[ty]
+            clean = split in ("val", "final") or bool(sess.held_out.get("clean_prefix"))
+            tmpl = SENT_UNSEEN_FMT.get(ty) if clean and ty in SENT_UNSEEN_FMT else SENT[ty]
             sent = " " + tmpl.format(v=v)
         c = prompt_text.find(sent)
         if c < 0:
