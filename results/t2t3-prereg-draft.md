@@ -1,97 +1,113 @@
-# T2 + T3 PREREGISTRATION — draft for checkpoint-iii review (2026-08-30)
+# T2 + T3 PREREGISTRATION v2 — post checkpoint-iii round 1 (2026-08-30)
 
-Context: the discriminative line closed at its registered stop rule
-(WORKLOG autopsy: trained head cut hazard leakage ~93% but 1-2/17
-sessions still leak; zero-error screen saved block B). T2
-(controller-state bakeoff — Brian's oscillator, controlled) and T3
-(rhythm-default) are the remaining autonomous lines. Blocks B and E are
-untouched and available; the banked recipe (structured + reactive) is
-unaffected.
+Round 1: fable CLEARED with 4 mandatory edits; sol NOT CLEARED with 5
+HIGH. All folded. Convergent items: wrong-type press cost unmeasured
+(both), reactive arm missing (both), time-base and probe fixes,
+explicit block re-binding.
 
-## T2 — controller-state bakeoff (head-only, cached features; frozen)
+## T2 — controller-state bakeoff (head-only; frozen contract)
 
-Question: does PERSISTENT STATE (an oscillator per ledger entry, or any
-cheaper state) beat stateless heads at the press decision — attacking
-the closed line's residual failure (absolute liveness at hazards) with
-memory rather than a bigger discriminator?
+Claim being tested (labeled honestly per sol): OPPORTUNITY-INDEXED
+RECURRENCE WITH REAL-TIME PHASE — state updates at timing-fire events,
+with phase advanced by the ACTUAL elapsed decoding steps between events
+(fable: event-count clocks give omega 1-4 ticks and are unlearnable;
+this bakeoff must test Brian's hypothesis, not the data plan). It is
+not a token-by-token oscillator; that remains the internal-wave
+program's question.
 
-Data: the collected feature corpora (t1-train/trace0; calib for
-screens) EXTENDED with per-event history: for each event, the ordered
-sequence of prior events in its session (features only, no new GPU).
-State evolves over the event sequence within a session.
+Training contract (frozen; sol item 1):
+- State reset per SESSION; events ordered by (work_turn, step); phase
+  advance z <- rho^D * exp(i*omega*D) * z then u-update, with D = step
+  gap within a work turn and a REGISTERED inter-turn increment D=32.
+- SCORE FROM THE PRE-UPDATE STATE, then write (the controller must not
+  degenerate into a feed-forward layer).
+- Batches = 8 whole sessions; loss = per-event CE+A1 margins summed,
+  normalized by event count; full BPTT (sequences <= 19 events).
+- Warm start: shared T1 components from t1-head.pt (round-1 head, NOT
+  the fallback — registered), all trainable; optimizer/epochs/seed as
+  the T1 recipe.
+- Parameter accounting: CONTROLLER-specific parameter counts per
+  contender within +-10% of each other, recorded in WORKLOG before
+  training (the shared T1 head is excluded from the match).
+- Contenders (a)-(e) as v1, all on the same D-clock (incl. the
+  null-oscillator).
 
-Contenders (equal trainable-parameter budgets +-10%, all consume the
-same per-event inputs [h20, typed cand_feats] plus their own state):
-(a) oscillator bank: per ledger TYPE a 4-d complex state z; update
-    z <- rho * exp(i*omega) * z + u(event features); press scorer reads
-    Re/Im(z) alongside the T1 head's logits; rho, omega, u trainable;
-(b) static per-type embedding + MLP (stateless control);
-(c) leaky/EMA integrator per type (tau trainable);
-(d) keyed latch / tiny GRU (16-d per type);
-(e) null-oscillator: free-running phase, period fixed from generator
-    statistics, no input coupling.
-All heads share the T1 architecture downstream (candidate-or-null
-listwise + decision rule; warm-start; same loss incl. A1 margins); the
-state vector is concatenated to h20 at the NULL/query heads only.
-Optimizer/epochs/batch/seed: identical to the T1 frozen recipe.
+Metric and verdict (mechanical): hazard-session leakage on calib-hard
+(primary), tie-breaks in order: leaking EVENT count, active recall,
+fewer controller parameters. Screens: address >= 90%, recall >=
+0.41640866873065013, A1 margins 90/90.
 
-Metric (registered): hazard-session leakage on calib-hard (the exact
-statistic that closed the T1 line: sessions with >= 1 above-threshold
-non-NULL decision at a hazard event, denominator n_h) AND active recall
-(floor 0.41640866873065013). Verdict is mechanical:
-- winner = fewest leaking hazard sessions; tie-break higher recall;
-  second tie-break fewer parameters.
-- The OSCILLATOR (a) earns a generation pilot ONLY if it (i) has
-  strictly fewer leaking sessions than ALL of (b)-(e), (ii) passes the
-  probes below, (iii) recall >= floor. A tie with any of (b)-(e) ships
-  that contender and records the tie.
-Probes (G0-amendment criteria): inert-token insertion (0/32/128 before
-decision moments — recompute features for probe events only, one small
-GPU pass) must degrade (a)'s metric < 10% relative; phase-scramble at
-eval must degrade it >= 20% relative (a phase code MUST be hurt;
-otherwise the phase is decorative and (a) cannot claim the win
-regardless of ranking).
-Certification path if any contender reaches zero calib leakage: name
-it, certify on BLOCK B under A1 semantics (floor 112/160). Otherwise
-T2 reports the ranking as science (no certification) and the
-autonomous-press program closes to T3 only.
+Probes (sol item 2 — CE-based, defined at zero leakage; scramble op
+frozen: permute the oscillator's phase components across events with
+torch.Generator seed 0):
+- inert-token insertion (0/32/128; one small GPU pass for probe
+  events): held-out mean CE_inserted <= 1.10 * CE_original;
+- phase scramble: CE_scrambled >= 1.20 * CE_original AND >= 1 decision
+  change (a phase code MUST be hurt).
+The oscillator (a) wins ONLY if it beats (b)-(e) on the primary metric
+chain AND passes both probes; ties ship the non-oscillatory contender.
 
-## T3 — rhythm-default press (generation pilot; the Miller-faithful
-line; runs regardless of T2's outcome, gated by T2's verdict only for
-its slot mechanism)
+Post-screen path (sol item 3, verbatim rules):
+- Only the mechanically selected winner may use block B (explicit
+  re-binding amendment: block B, previously bound to the T1 finalist,
+  is re-bound to the T2 winner — named in WORKLOG before touching).
+- Pilot eligibility = zero calib leakage + all screens.
+- Block-B risk failure closes T2 (no runner-up certification).
+- An A1 coverage VOID may consume block E once for the IDENTICAL
+  frozen policy; a second void closes T2 inconclusively.
+- Block-B pass -> the registered behavioral dev table (certification
+  proves safety, not usefulness).
+- Nonzero calib leakage for every contender -> ranking reported as
+  science; no generation pilot; no block consumed.
+Disclosure: calib-hard 13.14M is on its third selection use (T1 round
+1, T1 fallback, T2 screen); block-B certification remains the guard.
 
-Mechanism: NO press decision at all. A scheduler of period P in {4, 8}
-steps cycles through the LIVE ledger entries (round-robin by ledger
-order; the T2 winner supplies per-entry gain/phase only if T2 produced
-one — else uniform gain); at each scheduled step the spotlight presses
-the CURRENT entry's authoritative span with soft bias
-beta_soft = beta * g, g in {0.5, 1.0} (2x2 grid = 4 dev replays, all
-judged by ONE registered table — multiplicity handled by naming the
-best cell for any sealed run only after the grid is complete and only
-via a fresh preregistration).
-Safety by construction: only authoritative ledger spans are ever
-pressed (provenance guard structural — no liveness decision exists to
-get wrong; the T0.3 asymmetry says mistimed right-span presses are
-~free, measured at beta; the beta_soft=0.5*beta cell probes the softer
-regime).
-Arms per dev replay (13.10M, s0 unextended): base, rhythm,
-rhythm+reactive (rhythm plus the registered reactive component),
-oracle, structured, reinsertion.
-Registered table per cell (closure vs oracle from raw paired
-numerators; headroom precondition >= 0.10; T0.3 validity rule):
-- any cell with closure >= 0.50 AND validity pass -> T3 finalist
-  candidate (fresh preregistration for a sealed validation follows);
-- best cell closure in [0.25, 0.50) with validity pass -> the line
-  records a partial positive; rhythm+reactive's marginal contribution
-  over reactive alone decides (>= +0.10 closure -> finalist candidate
-  path; else honest negative);
-- else -> the rhythm line CLOSES (honest negative #3) and the program
-  closes on the banked recipe.
+## T0.3b — wrong-type authoritative press audit (GATES the T3 grid;
+both reviewers)
+
+t0_cost.py measured same-entry mistiming (free) and non-authoritative
+wrong spans (costly); it NEVER measured pressing another entry's
+authoritative span — which round-robin does at most scheduled steps.
+Paired audit using the ACTUAL four (P, g) schedules on trace-seed
+sessions: classify each scheduled press as (i) matching-type moment,
+(ii) wrong-type authoritative at a moment, (iii) no recognized moment;
+measure paired Delta-U, parse/exec loss, changed-output rate at both
+gains, n >= 200 paired per gain. GRID LAUNCH RULE: the grid runs iff
+at least one cell's schedule-frequency-weighted expected Delta-U > 0;
+otherwise the rhythm line closes without the grid (and the
+"safety by construction" wording is replaced everywhere by "provenance
+safety by construction; semantic mistargeting measured separately").
+
+## T3 — rhythm-default press (grid only if T0.3b clears)
+
+Scheduler (exact, frozen): within each work turn, steps are zero-based
+from the first generated token; a press occurs at every step with
+step mod P == 0; the pressed entry is live-ledger entries in TYPES
+order, indexed by (presses so far THIS work turn) mod n_live; the
+ledger is fixed within a turn; n_live == 0 -> no press. No T2-supplied
+gain/phase (sol: T2's event clock is incompatible; uniform gain g).
+Grid: P in {4, 8} x g in {0.5, 1.0}.
+
+Arms: base, rhythm, rhythm+reactive, REACTIVE (same-seed, seventh arm),
+oracle, structured, reinsertion. The five rhythm-independent arms run
+ONCE and are shared across the four cells (fable).
+
+Decision table (judged arm = RHYTHM for the finalist rule):
+- any cell: closure_rhythm >= 0.50 AND validity pass -> T3 finalist
+  candidate (fresh preregistration for sealed validation; validation
+  measures usefulness — no "certification-equivalent" language).
+- best cell closure_rhythm in [0.25, 0.50) with validity pass ->
+  marginal rule: marginal_closure :=
+  (A_rhythm+reactive - A_reactive) / (A_oracle - A_base), raw
+  numerators, same seeds; >= +0.10 -> finalist-candidate path for the
+  COMBINED arm; else honest negative.
+- any closure >= 0.25 with validity FAILING -> T4 trigger (preserved).
+- else -> the rhythm line CLOSES; the program closes on the banked
+  recipe.
+Cell selection for any sealed run: only after the full grid, named via
+fresh preregistration (multiplicity control = the sealed run itself).
 
 ## Accounting
-No sealed blocks consumed by T2 screens or T3 dev replays. Block B
-reserved for a T2 zero-leakage contender or a T3 finalist's
-certification-equivalent (a T3 finalist needs no false-selection
-certification — it makes no selection decisions; its sealed test IS
-the validation run). Sealed validation (13.20M) untouched; one named
-finalist total, per the plan.
+No sealed blocks consumed by screens/T0.3b/dev replays. Block B
+re-bound as above (explicit). Sealed validation 13.20M untouched; one
+named finalist total.
