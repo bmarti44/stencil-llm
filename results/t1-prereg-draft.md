@@ -1,68 +1,101 @@
-# T1 PREREGISTRATION — draft for checkpoint-iii review (2026-08-30)
+# T1 PREREGISTRATION v2 — post checkpoint-iii reviews (2026-08-30)
 
-Context: block-D certification FAILED (k=149/160; results/qwen/
-g0-certify-D.json). All 88 false-selection events were value-wrong at
-inactive-type moments — absolute-score liveness detection fails when the
-live sentence is absent (ranking-only discrimination). 79 sessions
-failed non-vacuity (doc 53/hint 22/prefix 4): with the target obligation
-cleared, the model often does not generate that moment class.
+v1 reviews: fable CLEARED conditional on the NULL-gate rewrite (its
+arithmetic: 95% event-level implies 16-54 expected failed sessions of
+160 — a gate-passing policy would predictably burn the block); sol NOT
+CLEARED with 4 HIGH (s0x2 continuity pretest; trace rows lack candidate
+features; objective must train candidate-vs-NULL; gate denominators +
+block accounting). All folded below. Fable's h20 probe (grouped-CV AUC
+0.995-0.999 active-vs-inactive on trace events) is cited as supportive
+motivation only — it cannot confirm survival under lookalike
+interference; that is what train-hard supplies.
 
-## Rulings requested
+## Rulings
 
-R1. SKIP the runner-up certification (raw_max on block E). Its
-discrimination is also ranking-only (counterfeit hard-AUPRC 0.9977 was
-measured with the same flawed counterfeit instrument; its threshold was
-likewise selected without real hard negatives). Predictable failure;
-burden test says do not spend the last reserve block on it. Block E is
-preserved for the trained T1 policy.
+R1. raw_max on a fresh block: SKIPPED/UNTESTED as a burden-test
+decision — NOT an empirical negative (block D saved no raw scores; its
+failure is established for cos_max only).
 
-R2. Fixture generator amendment "s0x2" (certification blocks only):
-every work-turn task text appends "Include a one-line docstring and
-type-annotate both arguments." — moment generation becomes
-task-structural (the model produces doc/hint moments regardless of
-ledger state), fixing the doc/hint assertion-miss mode; obligation
-VALUES remain governed solely by the ledger. Non-vacuity assertion
-unchanged. TDD as a pure function of seed. Dev/val stay unextended
-(unchanged from G0 amendments).
+R2. Fixture amendment s0x2 (certification + train-hard/calib-hard
+blocks): every work-turn task text appends "Include a one-line
+docstring and type-annotate both arguments." Moment generation becomes
+task-structural; obligation VALUES remain ledger-governed; the suffix
+matches no CAND_PATTERN (verified) so it creates no pressable span.
+Disclosures: feedback text can differ between s0x and s0x2 beyond the
+suffix (nothing counted reads it); dev/val stay unextended.
 
-## T1 frozen recipe (the registered training rung, now with real
-hard negatives — the G0 amendment's requirement)
+R2-PRETEST (registered, before any training): score the FROZEN failed
+cosine policy (threshold 0.6407741904258727) offline on the train-hard
+base-arm features. Gates: (a) assertion-hit rate >= 80% of sessions
+overall and >= 60% per target type (the s0x2 fix working); (b) the old
+policy still false-selects in >= 20% of sessions (pressure preserved).
+If (b) fails, s0x2 removed the failure rather than enabling T1 to learn
+it — re-design the fixture before training.
 
-Data (new registered blocks; recorded before touching):
-- train-hard: 13,120,000+i, i<48, s0x2, base-arm rollouts;
-- calib-hard: 13,140,000+i, i<24, s0x2 (component gates only);
-- plus the existing 13.00M s0 trace events (active-rich, already
-  collected) as additional training rows.
-Events: every timing-head fire. Per event: h20 state, typed candidate
-set (pred_type restriction retained), pooled candidate features.
-Labels: the live-of-type candidate index when the type is active and
-its authoritative span is among candidates (span-provenance labels, NOT
-value labels); NULL otherwise (inactive type, no candidates, or
-live-span absent).
+## T1 frozen recipe
 
-Architecture: listwise softmax over [NULL, cand_1..cand_n(typed)];
-candidate logits = cos(q(h20), k(cand)) / learned temperature; NULL
-logit = linear null head on h20. Init seed 0.
+Data:
+- train-hard: 13,120,000+i, i<48, s0x2, base-arm rollouts (one GPU
+  collection pass; collector pinned; data digest recorded);
+- calib-hard: 13,140,000+i, i<24, s0x2 (gates only);
+- 13.00M trace rows: RECOMPUTED with the pinned trunk to add pooled
+  candidate features + authoritative ledger spans (the stored rows lack
+  both — sol HIGH; collector + digest pinned; same seeds, no new
+  information).
+Events: every timing-head fire. Labels are span-provenance: the live
+candidate index iff the type is active AND its authoritative span is
+among candidates; NULL otherwise. No-candidate rows carry no loss and
+are excluded from every NULL metric (structural abstentions reported
+separately).
 
-Loss: CE + margin term (live beats best same-type non-live by >= 0.1
-cosine, hinge, weight 1.0). Adam 1e-3, 30 epochs, batch 256. Frozen.
+Architecture (frozen): listwise softmax over [NULL, typed candidates];
+candidate logit = cos(q(h20), k(cand)) / T with T = softplus(t), t
+init 1.0; q/k are 64-d linear maps WARM-STARTED from the pinned legacy
+Wq/Wk (registered choice); NULL logit = linear head on h20, zero-init.
+Ties: NULL wins exact ties. Optimizer: Adam(lr=1e-3, betas 0.9/0.999,
+eps 1e-8, no weight decay), 30 epochs, batch 256, shuffle generator
+seed 0.
 
-Component gates on calib-hard (before any sealed or behavioral run):
-- conditional address (active events, span-provenance) >= 90%;
-- active recall >= 0.5 * R_ceil (R_ceil = 0.833 from G0);
-- NULL accuracy at inactive-type fire moments >= 95%.
+Loss: CE + decision-aligned hinge margins in LOGIT space (weight 1.0):
+- active rows: logit(live) >= max(logit(NULL), strongest non-live
+  candidate logit) + 0.1;
+- inactive hard-negative rows: logit(NULL) >= strongest candidate
+  logit + 0.1;
+- no margin on no-candidate rows.
+(The v1 live-vs-lookalike-only margin trained the solved boundary; this
+trains the measured one — sol HIGH.)
 
-Then ONE sealed certification on block E (s0x2, N=160, fail-closed job,
-same provenance-by-span semantics; policy named in WORKLOG before
-touching). PASS (U95 <= 5%) -> behavioral dev replay (13.10M, s0
-unextended) under the registered T1 decision table. FAIL -> the
-discriminative line CLOSES (honest negative; no further certification
-attempts) and the program's autonomous hopes ride on T2/T3.
+Component gates on calib-hard (screens, NOT certification predictors —
+even 0/24 clean sessions bounds only U95 = 11.7%; the sealed job is the
+proof):
+- conditional address >= 90% on active events (span-provenance);
+- active recall >= 0.4164 (= 0.5 * trace-derived R_ceil
+  0.8328173374613003; the ceiling was never sealed-certified on block C
+  — that dependency is RETIRED under the burden test; 0.4164 is frozen
+  as a trace-derived screening threshold, not a certified ceiling);
+- ZERO NULL errors, session-stated: 0 of 24 calib-hard sessions may
+  contain an above-threshold non-NULL selection at an inactive-type
+  moment, where the NULL denominator is inactive events WITH >= 1
+  same-type non-live candidate and NO authoritative candidate;
+- the decision-margin gate: positive registered margins on >= 90% of
+  active rows AND >= 90% of inactive hard-negative rows (supersedes the
+  v1 lookalike-margin gate — explicit supersession, sol HIGH).
+Action if any gate fails: the trained policy is NOT certified; one
+registered fallback retrain (the plan's hard-negative-reweight, 4x on
+inactive hard-negative rows), re-gated once; a second failure closes
+the line.
 
-Certification accounting: E is the last reserve; extension block
-13,300,000+i, i<160 registered now (one policy per block, sealed jobs
-only).
+Certification: ONE sealed fail-closed job on BLOCK B (13,070,000 —
+registered for the first T1 policy all along; sol correction), s0x2,
+N=160, provenance-by-span semantics, policy named in WORKLOG before
+touching. BLOCK E is preserved for the one registered fallback
+retrain's certification. 13,300,000+ extensions thereafter (one policy
+per block).
+
+PASS -> behavioral dev replay (13.10M, s0 unextended) under the
+registered T1 decision table. FAIL (after the fallback path) -> the
+discriminative line CLOSES; autonomous hopes ride on T2/T3.
 
 ## Unchanged
-T0.3 validity rule and constants; T0.4/T0.5 rungs (queued); dev/val
-seeds; all G0 amendments not superseded above.
+T0.3 validity rule; T0.4/T0.5 rungs; dev/val seeds; all G0 amendments
+not explicitly superseded above.
