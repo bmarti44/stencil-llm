@@ -1017,3 +1017,18 @@
   oscillator-as-SCHEDULER (T3 rhythm, no discrimination at all) is now
   the last autonomous line, gated on T0.3b (running). Probes moot (no
   strict oscillator win).
+- 2026-08-30, T0.3b COMPLETE (results/qwen/t0-costb.json): all four
+  cells negative (P4g0.5 -0.03, P4g1.0 -0.08, P8g0.5 -0.065, P8g1.0
+  -0.125; broken rate scales with gain 1%->4.5%; matching-moment hits
+  0-12/200). GRID RULE fires: SKIPPED — THE RHYTHM LINE CLOSES (honest
+  negative: blind scheduling presses off-moment and buys nothing).
+  PROGRAM VERDICT (PRESS-PLAN "HONEST MAP" clause): all autonomous
+  lines closed at their registered rules — (1) zero-new-training
+  discriminative (certification FAIL, cross-type then absolute-liveness
+  anatomy), (2) trained discriminative (93% hazard reduction, not
+  certification-grade, fallback consumed), (3) state controllers (no
+  pilot-eligible contender; input-blind clock ties trained state),
+  (4) blind rhythm (net harmful). T4 never triggered. THE BANKED
+  RECIPE STANDS: structured parser-timed pressing + event-triggered
+  reactive pressing (0.875 recovery) within the T0.3 cost asymmetry.
+  Closing report next; checkpoint (v) reviews to follow.
