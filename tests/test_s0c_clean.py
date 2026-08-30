@@ -77,15 +77,15 @@ def test_s0_pinned_digest_regression():
     assert h.hexdigest()[:32] == "9dc80229eaf9e0de87668412540fcd44"
 
 
-def test_reinsertion_reminder_clean():
-    """fable W3 verification HIGH: the reinsertion arm's reminder is
-    built by run_session via ledger_text, a different path than
-    prompt_at — it must honor clean_prefix too (61/92 contaminated
-    before the fix)."""
-    from stencil.t2_sessions import ledger_text
+def test_reinsertion_final_prompt_clean():
+    """fable W3 HIGH + sol round 4: exercise THE runner's own prompt
+    path (build_arm_prompt), not a duplicate of its logic — the old
+    test would have passed against the buggy runner."""
+    from stencil.t2_runner import build_arm_prompt
     for seed in range(13_750_000, 13_750_008):
         s = generate_t2(seed, 20, "dev", interference="s0c")
         for wt in s.work_turns:
-            led = ledger_text(s.ledger_at[wt], unseen_fmt=(("dev" in ("val", "final")) or bool(s.held_out.get("clean_prefix"))))
+            ptxt = build_arm_prompt(s, wt, "dev", "reinsertion")
+            assert "(Reminder)" in ptxt  # the branch actually ran
             for v in CODE_PREFIXES:
-                assert SENT["prefix"].format(v=v) not in led, (seed, wt, v)
+                assert SENT["prefix"].format(v=v) not in ptxt, (seed, wt, v)

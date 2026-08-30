@@ -133,6 +133,22 @@ def ledger_sentence_spans(prompt_text: str, sess: T2Session, turn: int, split: s
     return spans
 
 
+def build_arm_prompt(sess: T2Session, wt: int, split: str, arm: str,
+                     feedback: dict | None = None) -> str:
+    """THE final prompt construction for every arm (single path; sol W3
+    round 4: tests and sealed jobs must exercise this, not duplicate
+    its logic)."""
+    ptxt = prompt_at(sess, wt, split)
+    for et, ftxt in (feedback or {}).items():
+        if et < wt:
+            ptxt = ptxt.replace("[checker] (deterministic feedback on the previous submission is inserted here at run time)", ftxt, 1)
+    if arm == "reinsertion":
+        led = ledger_text(sess.ledger_at[wt], unseen_fmt=(split in ("val", "final") or bool(sess.held_out.get("clean_prefix"))))
+        marker = sess.turns[wt].text
+        ptxt = ptxt.replace(marker, "(Reminder) " + led + "\n" + marker, 1)
+    return ptxt
+
+
 def run_session(model, tok, sess: T2Session, split: str, arm: str,
                 timing=None, address=None, max_new: int = 120,
                 press_log: list | None = None) -> list[WorkResult]:
@@ -147,14 +163,7 @@ def run_session(model, tok, sess: T2Session, split: str, arm: str,
     results = []
     feedback: dict[int, str] = {}
     for wt in sess.work_turns:
-        ptxt = prompt_at(sess, wt, split)
-        for et, ftxt in feedback.items():
-            if et < wt:
-                ptxt = ptxt.replace("[checker] (deterministic feedback on the previous submission is inserted here at run time)", ftxt, 1)
-        if arm == "reinsertion":
-            led = ledger_text(sess.ledger_at[wt], unseen_fmt=(split in ("val", "final") or bool(sess.held_out.get("clean_prefix"))))
-            marker = sess.turns[wt].text
-            ptxt = ptxt.replace(marker, "(Reminder) " + led + "\n" + marker, 1)
+        ptxt = build_arm_prompt(sess, wt, split, arm, feedback)
         ids = tok.encode(ptxt).ids
         spans = ledger_sentence_spans(ptxt, sess, wt, split, tok) if arm in ("oracle", "structured", "selector") else {}
         toks = torch.tensor([ids], device="cuda")
