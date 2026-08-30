@@ -140,10 +140,12 @@ rulings in results/g0-review-sol.md and WORKLOG)
 - Margin families (top1_top2, top1_logsumexp, live_minus_best) abstain
   (-inf) on singleton candidate sets — +inf singleton semantics
   guaranteed false presses on single-lookalike fixtures.
-- Fixture generator extension (ALL certification blocks, uniformly;
-  version recorded per block in WORKLOG before touching): each session
-  gets one deterministic inactive target type, balanced across
-  prefix/doc/hint and absent/cleared/stale cells, with an S0-style
+- Fixture generator extension interference="s0x" (ALL certification
+  blocks, uniformly; version recorded per block in WORKLOG before
+  touching): each session gets one deterministic inactive target type,
+  balanced across prefix/doc/hint (seed % 3) and cleared/stale_only
+  intents ((seed//3) % 2) — truly-absent-with-note is not constructible
+  under the base plan (every type gets set), disclosed — with an S0-style
   format-identical same-type non-live note inside the surviving window
   of its targeted work, outside any authoritative span; each session
   must yield >=1 timing fire of the targeted type with a same-type

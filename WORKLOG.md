@@ -824,3 +824,11 @@
   certification blocks, T1 one-way shortcut). NEXT: TDD the fixture
   generator extension; then the sealed block-A certification of the
   named policy; T0.3 running meanwhile.
+- 2026-08-30, s0x fixture generator extension landed (TDD, 5 new tests +
+  s0 regression green; s0 distribution bit-identical). Cells
+  constructible: cleared + stale_only (absent-with-note contradicts the
+  base plan — every type gets set; disclosed in the plan text).
+  GENERATOR VERSION for all certification blocks: s0x @ this commit.
+  NEXT: sealed block-A certification of the named policy (cos_max @
+  0.6407741904258727, type-restricted, runner guards), queued behind
+  the running T0.3.

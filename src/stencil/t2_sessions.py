@@ -142,7 +142,7 @@ def generate_t2(seed: int, stratum: int = 20, split: str = "dev", interference: 
             plan.append(("filler", None))
     plan = plan[:n_turns]
 
-    if interference == "s0":
+    if interference in ("s0", "s0x"):
         plan2 = []
         for step in plan:
             if step[0] == "work":
@@ -150,6 +150,17 @@ def generate_t2(seed: int, stratum: int = 20, split: str = "dev", interference: 
                 plan2.append(("s0_note", None))
             plan2.append(step)
         plan = plan2  # session lengthens by 2 turns per work (registered delta)
+    s0x_ty = s0x_intent = None
+    if interference == "s0x":
+        # G0 fixture extension: one deterministic inactive-target hard
+        # negative per session — clear the target type then inject a
+        # format-identical note for it, immediately before the LAST work
+        # turn's s0 notes. Balanced by seed arithmetic (not g — keeps the
+        # random stream aligned with s0 up to the injection point).
+        s0x_ty = TYPES[seed % 3]
+        s0x_intent = "stale_only" if (seed // 3) % 2 else "cleared"
+        last_work = max(i for i, st in enumerate(plan) if st[0] == "work")
+        plan[last_work - 2:last_work - 2] = [("user_clear", s0x_ty), ("s0x_note", s0x_ty)]
     for ti, (kind, ty) in enumerate(plan):
         if kind == "user_set" and ty is not None:
             v = _pick(POOLS[ty], g)
@@ -178,11 +189,19 @@ def generate_t2(seed: int, stratum: int = 20, split: str = "dev", interference: 
             # the currently-active value for its type
             fake = _pick([x for x in POOLS[ty] if x != ledger.get(ty)], g)
             quoted = superseded[ty][-1] if superseded[ty] and float(torch.rand((), generator=g)) < 0.6 else fake
-            if interference == "s0":
+            if interference in ("s0", "s0x"):
                 # T2b: bare format-identical note, no de-authorizing framing
                 turns.append(Turn("distractor", f"Note: {SENT[ty].format(v=quoted)}"))
             else:
                 turns.append(Turn("distractor", f"(An old thread note said: {SENT[ty].format(v=quoted)} That thread is not authoritative.)"))
+        elif kind == "s0x_note" and ty is not None:
+            # the injected same-type non-live note (target was just cleared)
+            if s0x_intent == "stale_only" and superseded[ty]:
+                v = superseded[ty][-1]
+            else:
+                v = _pick([x for x in POOLS[ty] if x not in superseded[ty]], g)
+            held_out["s0x"] = {"type": ty, "value": v, "cell_intent": s0x_intent}
+            turns.append(Turn("distractor", f"Note: {SENT[ty].format(v=v)}"))
         elif kind == "s0_note":
             # T2b scheduler guarantee: one genuinely-conflicting note for an
             # active type (two such steps precede each work turn)
