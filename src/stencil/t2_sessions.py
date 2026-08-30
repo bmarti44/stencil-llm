@@ -142,7 +142,7 @@ def generate_t2(seed: int, stratum: int = 20, split: str = "dev", interference: 
             plan.append(("filler", None))
     plan = plan[:n_turns]
 
-    if interference in ("s0", "s0x"):
+    if interference in ("s0", "s0x", "s0x2"):
         plan2 = []
         for step in plan:
             if step[0] == "work":
@@ -151,7 +151,7 @@ def generate_t2(seed: int, stratum: int = 20, split: str = "dev", interference: 
             plan2.append(step)
         plan = plan2  # session lengthens by 2 turns per work (registered delta)
     s0x_ty = s0x_intent = None
-    if interference == "s0x":
+    if interference in ("s0x", "s0x2"):
         # G0 fixture extension: one deterministic inactive-target hard
         # negative per session — clear the target type then inject a
         # format-identical note for it, immediately before the LAST work
@@ -189,7 +189,7 @@ def generate_t2(seed: int, stratum: int = 20, split: str = "dev", interference: 
             # the currently-active value for its type
             fake = _pick([x for x in POOLS[ty] if x != ledger.get(ty)], g)
             quoted = superseded[ty][-1] if superseded[ty] and float(torch.rand((), generator=g)) < 0.6 else fake
-            if interference in ("s0", "s0x"):
+            if interference in ("s0", "s0x", "s0x2"):
                 # T2b: bare format-identical note, no de-authorizing framing
                 turns.append(Turn("distractor", f"Note: {SENT[ty].format(v=quoted)}"))
             else:
@@ -223,7 +223,8 @@ def generate_t2(seed: int, stratum: int = 20, split: str = "dev", interference: 
             ops[ti] = op
             ledger_at[ti] = dict(ledger)
             superseded_at[ti] = {k: list(v) for k, v in superseded.items()}
-            turns.append(Turn("work", f"Task: {req} Answer with only the code.\n```python\n"))
+            s0x2_sfx = " Include a one-line docstring and type-annotate both arguments." if interference == "s0x2" else ""
+            turns.append(Turn("work", f"Task: {req}{s0x2_sfx} Answer with only the code.\n```python\n"))
             # surviving window at this work turn (same rule as prompt_at)
             K = STRATA[stratum]
             lo = 0
