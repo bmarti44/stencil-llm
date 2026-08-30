@@ -1297,3 +1297,12 @@ script sha256: 2a0ef6480d6a11cda8f715c290aafb45
   (13.8M, fail-closed, per-arm build_arm_prompt zero-occurrence
   assertion pre-tokenization). Then the final report re-verification
   and program close.
+- 2026-08-30, REPRODUCTION AUDIT COMPLETE: EXACT — 0 hash mismatches
+  across 480 works x 5 arms; sealed evidence certified; full paired
+  records + full-length sha256 committed (w-seal-audit.json).
+  PER-TYPE findings folded into the report: prefix 81.5 (wave) vs 39.5
+  (oracle) — doubles the teacher on the unseen-format type; doc
+  60.1 vs 35.7; hint 29.3 vs 47.2 (wave UNDERPERFORMS oracle — win
+  carried by prefix/doc); comment 0/120 in EVERY arm — the novel-type
+  hold-out is a NULL TEST (disclosed; supports no generalization
+  claim). Report re-verification (checkpoint-iv round 2) next.

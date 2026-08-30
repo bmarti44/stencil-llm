@@ -85,4 +85,5 @@ numbers reproduce from artifacts force-committed to the repo
 deterministic reproduction audit (w-seal-audit.json: full-length
 output sha256 per work, per-work paired records, per-type incl.
 comment-class performance), whose regenerated outputs are
-hash-verified against the sealed run's recorded values.
+hash-verified against the sealed run's recorded values — REPRODUCTION
+EXACT, 0 mismatches across all 480 works x 5 arms.
