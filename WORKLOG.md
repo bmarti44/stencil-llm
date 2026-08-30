@@ -997,3 +997,8 @@
   All counts within +-10% for (a)-(d). Code digest recorded at commit.
   Executing: T0.3b audit (GPU) in parallel with T2 implementation
   (synthetic tests first).
+- 2026-08-30, T2 table correction (pre-forward, per the freeze rule):
+  actual counts osc 18,041 / static 18,041 / ema 18,041 / gru 18,449 /
+  nullosc 1,625 (my table said 18,017 for osc/static — arithmetic slip,
+  omitted the 24 recurrence params; within-10% match unaffected). Shape
+  tests 7/7 green; no real-data forward has occurred.
