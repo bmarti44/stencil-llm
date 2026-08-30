@@ -764,3 +764,13 @@
   reproducibility; new arms: "policy" (autonomous, H1) and
   "structured" (type->authoritative redirect with active-ledger
   eligibility).
+- 2026-08-30, H1-H4 harness landed (all TDD, 8 new tests green + GPU
+  non-vacuity test passed 7.7s): run_policy_session (span-level policy,
+  runner-applied guards, press log with below-threshold/out-of-ledger
+  split), structured arm registered as alias of oracle (equivalence
+  noted: _oracle_moment is a parser detector + active-ledger spans —
+  the T2b "oracle" was already a deployable structured policy),
+  press_log in run_session, TraceWriter with atomic close + digest.
+  T0.1 smoke (1 session): 5 events, 3 legacy presses, fields verified;
+  stale-print footgun caught and fixed. Launching full T0.1 (48 trace
+  seeds).
