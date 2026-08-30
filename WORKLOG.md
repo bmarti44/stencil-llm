@@ -1189,3 +1189,18 @@
   0.383 (n=75), cleared 0.498 (n=12), absent 0.283 (n=5) — every cell
   improves, none harmed. Sol's checkpoint-ii conditions satisfied;
   W1 PROCEEDS per ruling.
+- 2026-08-30, W1 RESULT (results/qwen/w1-gates-w1-ce.json): held CE
+  improve 0.346 (G-W1c PASSES — the recurrent wave learns as well as
+  stateless W0's 0.362) but BOTH frozen CE temporal probes FAIL
+  decisively: permute -0.0004, reset +0.0001 relative (state
+  contribution ~zero). REGISTERED READING: STATELESS SUFFICES — the
+  GRU learned to ignore its own recurrence in this regime; per the W1
+  table there is no W2 (the transplant requires state-borne
+  governance) and the program's win is W0-class (closure 1.119, valid,
+  matched control beaten). W1 behavioral replay proposed SKIPPED under
+  the burden test (verdict fixed by the CE probes; both procedures
+  were required). OPEN TABLE GAP for checkpoint-iii: the plan defines
+  sealed validation only via a W1 WIN; proposing a fresh registration
+  for the STATELESS finalist (w0-ce.pt, 13,500,000..95, headroom >=
+  0.10, closure >= 0.50, validity, no redraw) to complete the program
+  at its sealed bar. Convening checkpoint-iii (sol + fable).
