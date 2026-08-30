@@ -1002,3 +1002,18 @@
   nullosc 1,625 (my table said 18,017 for osc/static — arithmetic slip,
   omitted the 24 recurrence params; within-10% match unaffected). Shape
   tests 7/7 green; no real-data forward has occurred.
+- 2026-08-30, T2 BAKEOFF COMPLETE (results/qwen/t2-bakeoff.json; frozen
+  chain): hazard-leak sessions — osc 2, gru 2, nullosc 2, ema 3,
+  static 5 (events equal; recall equal 0.9942 for the tied three; final
+  tie-break params -> NULLOSC 1,625). No contender reached zero leakage
+  -> registered outcome: RANKING AS SCIENCE, no generation pilot, no
+  block consumed. SCIENCE: (i) the input-blind free-running oscillator
+  ties every trained state controller — state coupling added nothing
+  measurable to hazard rejection (the "cron job" diagnosis from the
+  research sweep, now empirical); (ii) statelessness proper (static)
+  is worst (5); (iii) none beat the plain T1 round-1 head's 1/17 —
+  joint retraining with state channels mildly HURT. The oscillator-as-
+  discriminator hypothesis is answered negatively at this scale/regime;
+  oscillator-as-SCHEDULER (T3 rhythm, no discrimination at all) is now
+  the last autonomous line, gated on T0.3b (running). Probes moot (no
+  strict oscillator win).
