@@ -1112,3 +1112,12 @@
   registered infrastructure-failure clause: fixing the control (wrong
   position = the current work turn's task-request sentence — always
   present, never obligation text), rerunning. Write-ahead recorded.
+- 2026-08-30, W0.05 COMPLETE (results/qwen/w0-ceiling.json, run 2 with
+  the fixed task-sentence control): A2 (peak-normalized, beta 2 — the
+  proven dose) passes all gates: improve 0.727 >= 0.20; wrong-position
+  degrade 0.079 >= 0.05; replay dU +18 / gain +22 / broken 2 -> valid.
+  CHOSEN per smallest-passing; B2/A4/B4 not run (registered rule).
+  ARCHITECTURE FROZEN: A2 field b = g*softmax(e)/max(softmax(e)),
+  e = 8*cos(q,k), W_q/W_k 2048->64 + bias, w_g weight-zero bias -2
+  (g0 = 0.238), 264,321 params. Next: controller to frozen form (TDD),
+  memory smoke, G-W0a battery, wave + matched-proxy training.
