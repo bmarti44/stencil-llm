@@ -70,3 +70,34 @@ finding and label derivation. Reviews: sol + fable on the E0 result
 before any E1 work. Playbook governs (per-item records from the first
 row of anything evaluative; git add -f for results; smoke before
 sealing).
+
+## E0 verdict + REGISTERED post-Multi-IF decision rule (sol post-mortem,
+registered BEFORE Multi-IF results are seen; 2026-08-31)
+
+E0: KILLED per its registered criterion (fable: all numbers bitwise-
+verified, zero findings). Post-mortem (results/e0-corrections-sol.md):
+the question was causally blurred (policy-divergence labels, not
+moment-level treatment effects), plus family-grouping and omitted-
+controls flaws. NEVER: E0-with-more-rows; further tuning on the 27;
+E1 as originally specced.
+
+DECISION RULE for the running Multi-IF (base / deficit-wave /
+static25), registered now:
+1. static25 helps late turns, deficit-wave does not -> actuator has
+   multi-turn value, WHEN is the blocker: launch the causal-moment
+   protocol (frozen moment, branch A=0/A=1 single burst, deterministic
+   rollout to verifier endpoint, ITE labels helpful/harmful/neutral;
+   identical replayed base histories; session/topic + changed-family
+   splits; the FIXED three-feature conflict probe (margin_delta5,
+   attn_mass_span, entropy_delta5) is the pre-registered primary
+   mechanistic endpoint).
+2. deficit-wave helps -> do NOT build EVF; replicate + characterize
+   the simple gate in its arena first.
+3. neither helps but an oracle chooser over recorded arm outputs shows
+   substantial late-turn lift -> timing headroom exists; run the
+   causal-moment branches next (policy-level oracle is only a screen).
+4. neither helps and the oracle has negligible lift -> do not fund a
+   larger WHEN learner; establish moment-level actuator headroom first.
+Caveat registered: each arm consumes its own history, so late-turn arm
+differences are NOT clean local treatment effects; any training
+anatomy must replay identical base histories before branching.
