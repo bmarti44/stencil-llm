@@ -1,4 +1,4 @@
-# BENCH-WAVE-PLAN v1 — the wave on real benchmarks
+# BENCH-WAVE-PLAN v2 — the wave on real benchmarks
 
 Brian's directive (2026-08-30): prove the wave mechanism generally with
 real benchmarks, starting with IFEval, then the most relevant further
@@ -129,3 +129,68 @@ scoped to the verified checkpoint identity and greedy decoding.
 - FIREWALL: B3 generator parameters/phrasings may not be derived from
   inspection of per-prompt B1 IFEval failures (taxonomy-level use
   only) — closes the B1->B4 adaptive-leak path.
+
+## v2 (sol checkpoint-i: 1 CRITICAL + 6 HIGH; all folded — SUPERSEDES
+conflicting v1/v1.1 text)
+
+C1. SEALED ORDERING FIXED: the 541 IFEval prompts are touched EXACTLY
+ONCE, by the sealed B4 job (base/wave/proxy in one run). B0 uses
+hand-built fixtures and NON-IFEval smoke prompts only; B3 (generator,
+proxy, recipe, eval code) freezes fully at checkpoint ii BEFORE any
+541 exposure; the zero-shot probe (old B1) MOVES AFTER B4 (run on the
+same sealed artifacts' base outputs is impossible — it becomes its own
+post-B4 exploratory run, disclosed as post-seal).
+
+H1. RUNNER: ONE implementation — a direct deterministic runner with a
+commit-pinned copy of Google's official data + verifiers for IFEval;
+lm-eval (pinned) ONLY as an adapter for MMLU-Redux/GSM8K. Verifier
+goldens: positive AND targeted-negative fixtures for EVERY instruction
+class present in the 541, plus four-metric aggregate parity against
+the pinned upstream evaluator on a fixed response set. RUNTIME
+ADMISSION: a 20-prompt generation timing test BEFORE B0.3; registered
+max_new, EOS ids (151645 + 151643), truncation accounting; if the
+full-forward runtime exceeds the registered bound, implement KV cache
+with token-by-token parity vs full forward INCLUDING the wave bias.
+
+H2. B0.1 provenance: record repo+revision (local metadata:
+70d244cc86ccca08cf5af4e1e306ecf908b1ad5e), sha256 of config/tokenizer/
+index/shards/converted .pt; fresh parity = identical chat-template
+token ids (enable_thinking=False) AND last-token logits/top-1 vs
+transformers 4.51.0 loading that exact revision in the isolated oracle
+env. ALL claims scoped: "Qwen/Qwen3-1.7B@70d244cc, post-trained,
+non-thinking, greedy". 68.2 remains anchor-only (Qwen recommends
+sampled non-thinking).
+
+H3. B2 fixed: dataset = MMLU-Redux (pinned revision, registered prompt
+format + shot policy) and GSM8K FULL test set (1,319 items, 4-shot
+with the four demonstrations and answer extractor frozen at
+checkpoint ii; the 200-item bound was statistically impossible).
+Bounds become registered paired non-inferiority tests; subsets, where
+used, are committed item-ID manifests, not seed descriptions.
+
+H4. B3 separation upgraded: constraint-FAMILY holdout (train families
+vs held families evaluated separately: per-family seen-vs-unseen
+reporting); disjoint semantic tasks/templates/parameters/canonical
+responses with normalized leak checks and committed manifests; the
+compatibility matrix (v1.1) plus, for EVERY accepted combination, a
+passing canonical response AND a targeted mutation that fails the
+intended verifier.
+
+H5. PROXY MATCHED: identical response-row support — proxy gain
+supervised on every teacher-forced response row (or a preregistered
+per-constraint relevance mask), span CE over all active constraint
+spans at those same rows; architecture/actuator/init/optimizer/steps
+identical. Otherwise the claim is scoped to "CE beats a start-only
+heuristic".
+
+H6. B4 causal gate: wave-vs-proxy requires its OWN one-sided
+prompt-level exact binomial McNemar p < 0.05 (raw inequality
+insufficient). Benchmark #3 PREREGISTERED NOW: IFBench (58 OOD
+verifier families) as the cross-taxonomy test; Multi-IF described as
+exploratory three-turn transfer, not long-horizon. External-validation
+claims require a SECOND frozen training seed (registered now: init
+seeds 0 and 1, both trained, both evaluated in B4; the claim needs
+both to pass the primary gate).
+
+H7. Seeds/manifests: exact train/dev/calibration streams, dataset
+revisions, and committed item manifests replace the two generic seeds.

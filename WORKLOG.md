@@ -1384,3 +1384,14 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   constraints -> B4 sealed IFEval/Multi-IF/do-no-harm with paired
   gates). Checkpoint-i review launched. Internal-wave W3a reproduction
   audit still running; its close-out folds in when it lands.
+- 2026-08-30, BENCH-WAVE checkpoint-i: fable CLEARED w/ 6 edits
+  (identity settled: bitwise instruct checkpoint; vendoring landmine;
+  compatibility matrix; power analysis); sol NOT CLEARED 1 CRITICAL +
+  6 HIGH -> v2: sealed ordering fixed (541 touched exactly once, by
+  B4; zero-shot probe moved post-seal), single-runner decision +
+  per-class goldens + upstream parity + KV/timing admission,
+  provenance-level B0.1 (revision 70d244cc pinned), MMLU-Redux + full
+  GSM8K with frozen shots/extractor, constraint-family holdout +
+  mutation tests, row-matched proxy, causal McNemar + IFBench
+  preregistered as benchmark #3 + two training seeds for the external
+  claim. Round 2 next.
