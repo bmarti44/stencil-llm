@@ -244,3 +244,100 @@ revisions, and committed item manifests replace the two generic seeds.
   non-inferiority procedure FAILS CLOSED — if the Tango score
   iteration does not converge, the gate result is FAIL (reported as
   numerical-failure, not as a policy verdict), no fallback method.
+
+## v3 — checkpoint-ii submission (B0 results + freeze list + B3 prereg; 2026-08-30)
+
+### B0 results (evidence for this review)
+
+- IDENTITY: revision 70d244cc + 7 file sha256s recorded
+  (results/qwen/b0-identity.json). Template/ids/top-1 all PASS on all
+  fixtures; worst_err 0.6955 EXCEEDS the frozen 0.5 magnitude bound.
+  RULING REQUESTED (R1): accept 0.6955 as the recorded bf16 drift
+  characterization (top-1 identity everywhere; a magnitude threshold
+  grades size, it cannot decide existence — playbook), or demand rework.
+- KV CACHE: the registered "token-by-token parity vs full forward" is
+  UNPASSABLE in bf16 — cached (GEMV) vs full (GEMM) kernels drift up to
+  0.459 (no-bias) / 1.107 (wave-bias) logits while greedy margins go as
+  low as 0.103; a flip was observed at step 19/24. RULING REQUESTED
+  (R2), amended acceptance already implemented (tests/test_qwen3_kv.py,
+  5/5): (a) the cached path IS the deployment semantics for ALL arms,
+  bitwise self-deterministic; (b) cross-path drift bounded (<=1.0 /
+  <=2.0) with top-1 agreement mandatory at margins above the bound;
+  (c) capture_hidden within 5% of activation scale, cosine >= 0.999.
+- SCORING: four-metric aggregate parity vs isolated lm_eval==0.4.8 is
+  EXACT on all 541 per-prompt dicts (results/qwen/b0-score-parity.json)
+  after re-vendoring bitwise from the pip pin (our copy had drifted to
+  lm-eval main: greedy-vs-lazy highlight regex). AMENDMENT (R3): the
+  v1.1 claim "`random` unused on the checking path" is FALSE — upstream
+  draws a random letter on invalid kwargs; exactly 2/541 rows (keys
+  1122, 1129) are random-state-sensitive. Registered pin:
+  random.seed(row key) before scoring each row, both sides; disclosed
+  wherever IFEval numbers are reported.
+- TIMING: KV-cached five-arm projection 7.95h (b0-timing-kv.json;
+  was 11.35h full-forward). Caveat: smoke gen len ~100; cost is linear
+  in generated length with the cache.
+- GENERATOR: ONE code path for all arms (stencil.bench.generate_cached);
+  wave bias enters via a mid-forward hook at layer 20 reading the SAME
+  position's h20 (train-time teacher forcing = test-time semantics);
+  hook==direct-bias proven bitwise; hook tensor == return_hidden proven
+  bitwise; wave path demonstrably reaches logits (tests 6/6).
+
+### Freeze list (frozen at this checkpoint, before any 541 exposure)
+
+- Decoding: greedy; max_new 1024; EOS {151645, 151643}; truncation
+  recorded per prompt; pinned non-thinking template f-string (bitwise
+  vs HF apply_chat_template, enable_thinking=False).
+- Data pins (data/bench/pins-manifest.json; converted JSONL committed):
+  GSM8K test 1319 @ 740312ad; MMLU-Redux-2.0 5700 @ 372ea425; Multi-IF
+  4501 @ 0ab97ce0, English subset 909 rows (language=='English',
+  sorted by (key, turn_index)).
+- MMLU-Redux protocol: items with error_type=="ok" ONLY (5330);
+  zero-shot; prompt "Question: {q}\nA. {c0}\nB. {c1}\nC. {c2}\nD. {c3}\n
+  Answer:" through the pinned chat template; score = argmax over the
+  summed logprob of " A"/" B"/" C"/" D" continuations (loglikelihood,
+  no generation); pooled across subjects (registered v2 H3).
+- GSM8K protocol: FULL test 1319; 4-shot with the four demos =
+  train rows 0-3 of the pinned revision (data/bench/gsm8k_demos.jsonl;
+  train raw sha256 ea82612e...); demos joined as Q/A pairs in one user
+  message; answer extractor = LAST number in the response (commas and
+  $ stripped; regex -?[0-9][0-9,]*\.?[0-9]*), exact match vs the #### 
+  gold value.
+- Do-no-harm construction (Tango, fail-closed): margins MMLU-Redux
+  0.5pt / GSM8K 1.0pt, alpha 0.05 one-sided. Registered rule: with
+  discordant counts n10 (base right, wave wrong) and n01 (converse),
+  p_up = BetaInv(0.95, n10+1, n01) (exact Clopper-Pearson upper bound),
+  drop_up = (2*p_up - 1)*(n10+n01)/N; NON-INFERIOR iff drop_up <=
+  margin. Non-convergence or any scoring error = FAIL (fail-closed).
+- Multi-IF: English 909, EXPLORATORY (report only), turn-wise IFEval
+  metrics via the same vendored verifiers, multi-turn template =
+  concatenated pinned single-turn blocks with prior model turns.
+- Single-use invariant restated: no model generation, scoring of model
+  outputs, or per-prompt inspection of the 541 before sealed B4.
+
+### B3 preregistration details
+
+- Families (IFEval taxonomy groups): change_case, keywords, length,
+  detectable_format, detectable_content, combination, punctuation,
+  startend, language. TRAIN families: change_case, keywords, length,
+  detectable_format, detectable_content, combination. HELD-OUT
+  families (zero training exposure): punctuation, startend, language.
+  Per-family seen-vs-unseen reporting registered (v2 H4).
+- Generator: seed 0; N_train 2000 prompts; 1-3 constraints per prompt
+  drawn under the committed compatibility matrix
+  (data/b3/compat-matrix.json, to be committed with the generator);
+  parameters/phrasings DISJOINT from the 541's by construction
+  (registered leak check: normalized instruction text + kwargs of
+  every generated prompt vs all 541, zero overlap).
+- Canonical responses: builder per constraint combination; EVERY
+  canonical response must pass the VENDORED checker for all its
+  constraints, and every registered mutation must fail its targeted
+  checker, before the training set freezes (committed digests).
+- Wave training: the SELECTOR recipe unchanged (CE-through-frozen-trunk
+  on canonical adherent completions; A2 peak-normalized field; w_g
+  zero/-2 init); TWO seeds (s0, s1). Proxy twins: identical module/
+  actuator/optimizer/data ROWS (row-matched, v2 H5), labels from the
+  proxy scheme; two seeds.
+- B4 arms (one sealed job, per-work records from the first row):
+  base, wave-s0, proxy-s0, wave-s1, proxy-s1 on the 541; gates as
+  registered in v2 (both seeds must pass for the external claim; exact
+  one-sided binomial McNemar, +2.0pt primary on strict-prompt).
