@@ -104,6 +104,7 @@ class _Block(nn.Module):
         cache: "KVCache | None" = None,
         layer_idx: int = -1,
         deficit_gate: tuple | None = None,  # (span_mask[T_total] bool, tau, b_max)
+        attn_probe: tuple | None = None,  # (span_mask[T_total] bool, sink dict) -> sink[layer] = last-row mean span mass
     ) -> torch.Tensor:
         c = Qwen3Config
         b, t, _ = x.shape
@@ -146,6 +147,10 @@ class _Block(nn.Module):
                 b_amt = (logit_t - torch.log(psi / (1 - psi))).clamp(max=b_max)
                 b_amt = torch.where(need, b_amt, torch.zeros_like(b_amt))
                 att = att + b_amt[..., None] * span_mask.float()[None, None, None, :]
+        if attn_probe is not None:
+            pm, sink = attn_probe
+            probs = F.softmax(att, dim=-1)
+            sink[layer_idx] = float(probs[0, :, -1, :][:, pm].sum(-1).mean())
         out = (F.softmax(att, dim=-1) @ v.float()).to(x.dtype)
         out = out.transpose(1, 2).reshape(b, t, c.n_head * c.head_dim)
         x = x + self.o_proj(out)
@@ -179,6 +184,7 @@ class Qwen3(nn.Module):
         capture_hidden: int | None = None,
         bias_hook=None,  # (layer, fn): at layer-input, attn_bias = fn(x)
         deficit_hook=None,  # (layer, fn): at layer-input, gates = fn(x); dict[layer] -> (span_mask, tau, b_max)
+        attn_probe=None,  # (span_mask, sink): record last-row span attention mass at layers 20-27
     ) -> torch.Tensor:
         x = self.embed_tokens(tokens)
         offset = cache.length if cache is not None else 0
@@ -205,6 +211,7 @@ class Qwen3(nn.Module):
                 None if attn_bias is None else attn_bias.get(i),
                 cache=cache, layer_idx=i,
                 deficit_gate=(deficit_gates.get(i) if deficit_hook is not None and i >= deficit_hook[0] and deficit_gates else None),
+                attn_probe=(attn_probe if attn_probe is not None and i >= 20 else None),
             )
         if cache is not None:
             cache.length = offset + tokens.shape[1]
