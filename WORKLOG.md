@@ -1395,3 +1395,9 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   mutation tests, row-matched proxy, causal McNemar + IFBench
   preregistered as benchmark #3 + two training seeds for the external
   claim. Round 2 next.
+- 2026-08-30, BENCH-WAVE-PLAN v2.3 DUAL-CLEARED (fable r1 + sol r5;
+  5 sol rounds: sealed ordering, runner/KV admission, provenance
+  parity criteria, Tango non-inferiority fail-closed, five-arm
+  two-seed gates, IFBench prereg timing). B0 executes: vendoring +
+  goldens (CPU) -> provenance/parity -> timing admission. W3a
+  reproduction audit continues in background (12/96, 0 mismatches).
