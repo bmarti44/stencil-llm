@@ -672,3 +672,24 @@ CLOSES the single-turn synthetic/IFEval wave line (honest negative
 with the full autopsy chain already recorded); token-aware contrast or
 GRPO training would be a separately authorized program. The x0.25
 static dose is carried as a descriptive comparator only.
+
+### v4.5 addendum — registered ablation + a disclosure (Brian approved,
+2026-08-31)
+
+- LEARNED-vs-HEURISTIC ADDRESSING ABLATION (registered BEFORE the
+  confirmation runs; executed AFTER confirmation, outside the gate,
+  descriptive): rerun the confirmation block with the SAME deficit
+  trigger and selected (tau, b_max) but span selection replaced by the
+  FIRST Constraint: sentence heuristic (no learned q/k). Claim rules:
+  if learned addressing beats the heuristic (paired), the wave's
+  learned WHERE earns its keep on this task; if not, the single-turn
+  claim is scoped to "SpotLight-class control law", and the wave's
+  distinctive contribution remains the out-of-reach regime (W3) +
+  focus readout/transplant results. Not a gate; no stop-loss impact.
+- DISCLOSURE: the calibration runner's interventions_per_token logs
+  span-SELECTION opportunities (always 1.0 when spans exist), not
+  actual per-head bias firings (those live inside the attention
+  blocks). The registered tie-break (lower intervention rate) is
+  therefore effective only via a post-hoc replay if an exact adherence
+  tie occurs; otherwise selection is by adherence alone. Recorded
+  before seeing full grid results.
