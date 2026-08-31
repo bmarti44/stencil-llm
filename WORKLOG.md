@@ -1433,3 +1433,25 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   MMLU-Redux revision/manifests, GSM8K shots/extractor, Multi-IF size,
   non-inferiority machinery). Goldens 25/25 green; vendoring done;
   provenance recorded.
+
+## 2026-08-30 — KV cache landed; registered parity criterion found unpassable, amended acceptance flagged for checkpoint ii
+
+- Implemented KVCache in src/stencil/qwen3.py (post-RoPE k/v cached pre-GQA-repeat;
+  _rope offset; mask diagonal 1+past; capture_hidden returns layer-i input single-pass).
+- The registered B0 fallback criterion "token-by-token parity vs full forward" is
+  UNPASSABLE in bf16 (recompute-the-claim rule): cached (GEMV) vs full (GEMM) kernels
+  drift up to 0.459 logits no-bias / 1.107 with wave bias, while the greedy trajectory
+  contains top-1/top-2 margins as small as 0.103 → argmax flips are physically forced
+  (observed at step 19 of the 24-step fixture). Same drift class as HF parity (0.6955).
+- Conservative amendment (recorded here, RULING DEFERRED to checkpoint-ii review):
+  (1) the cached path IS the deployment semantics for ALL five arms — bitwise
+  self-determinism required; (2) cross-path drift characterized and bounded
+  (<=1.0 / <=2.0 logits; top-1 must agree at every step with margin above the bound);
+  (3) capture_hidden vs return_hidden within 5% of activation scale, cosine >=0.999.
+  tests/test_qwen3_kv.py: 5/5 green under these criteria.
+- Timing re-admission with cache (scripts/b0_timing_kv.py): five-arm 541 projection
+  7.95h (was 11.35h full-forward). Caveat noted: mean gen len 100 on smoke prompts;
+  long-generation IFEval prompts scale linearly (cached), not quadratically.
+- Pending checkpoint-ii items now: (a) HF parity magnitude bound 0.6955 vs 0.5;
+  (b) this KV parity amendment; (c) freeze list (max_new, MMLU-Redux revision,
+  GSM8K demos/extractor, Multi-IF size, Tango details).

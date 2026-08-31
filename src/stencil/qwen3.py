@@ -28,6 +28,16 @@ class Qwen3Config:
     n_ctx = 40960
 
 
+class KVCache:
+    """Per-layer post-RoPE K / V cache (BENCH-WAVE B0; kept pre-GQA-repeat
+    for memory). Grown by Qwen3.forward when passed via `cache=`."""
+
+    def __init__(self) -> None:
+        self.k: list[torch.Tensor | None] = [None] * Qwen3Config.n_layer
+        self.v: list[torch.Tensor | None] = [None] * Qwen3Config.n_layer
+        self.length = 0
+
+
 class RMSNorm(nn.Module):
     def __init__(self, dim: int, eps: float = Qwen3Config.rms_eps) -> None:
         super().__init__()
@@ -41,10 +51,10 @@ class RMSNorm(nn.Module):
         return (x * self.weight.float()).to(dt)
 
 
-def _rope(t: int, device: torch.device) -> tuple[torch.Tensor, torch.Tensor]:
+def _rope(t: int, device: torch.device, offset: int = 0) -> tuple[torch.Tensor, torch.Tensor]:
     c = Qwen3Config
     inv = 1.0 / (c.rope_theta ** (torch.arange(0, c.head_dim, 2, device=device).float() / c.head_dim))
-    pos = torch.arange(t, device=device).float()
+    pos = torch.arange(offset, offset + t, device=device).float()
     freqs = torch.outer(pos, inv)
     emb = torch.cat((freqs, freqs), dim=-1)
     return emb.cos(), emb.sin()
@@ -88,7 +98,9 @@ class _Block(nn.Module):
         cos: torch.Tensor,
         sin: torch.Tensor,
         inj: torch.Tensor | None = None,
-        attn_bias: torch.Tensor | None = None,  # (t, t) fp32, added pre-softmax
+        attn_bias: torch.Tensor | None = None,  # (t, T_total) fp32, pre-softmax
+        cache: "KVCache | None" = None,
+        layer_idx: int = -1,
     ) -> torch.Tensor:
         c = Qwen3Config
         b, t, _ = x.shape
@@ -99,11 +111,20 @@ class _Block(nn.Module):
         q = self.q_norm(q)
         k = self.k_norm(k)
         q, k = _apply_rope(q, k, cos, sin)
+        past = 0
+        if cache is not None:
+            if cache.k[layer_idx] is not None:
+                past = cache.k[layer_idx].shape[2]
+                k = torch.cat([cache.k[layer_idx], k], dim=2)
+                v = torch.cat([cache.v[layer_idx], v], dim=2)
+            cache.k[layer_idx] = k
+            cache.v[layer_idx] = v
         rep = c.n_head // c.n_kv_head
         k = k.repeat_interleave(rep, dim=1)
         v = v.repeat_interleave(rep, dim=1)
         att = (q.float() @ k.float().transpose(-2, -1)) / (c.head_dim ** 0.5)
-        mask = torch.triu(torch.full((t, t), float("-inf"), device=x.device), diagonal=1)
+        T_total = past + t
+        mask = torch.triu(torch.full((t, T_total), float("-inf"), device=x.device), diagonal=1 + past)
         att = att + mask
         if attn_bias is not None:
             att = att + attn_bias.float()
@@ -136,16 +157,28 @@ class Qwen3(nn.Module):
         inj: dict[int, torch.Tensor] | None = None,
         attn_bias: dict[int, torch.Tensor] | None = None,
         return_hidden: int | None = None,
+        cache: "KVCache | None" = None,
+        capture_hidden: int | None = None,
     ) -> torch.Tensor:
         x = self.embed_tokens(tokens)
-        cos, sin = _rope(tokens.shape[1], tokens.device)
+        offset = cache.length if cache is not None else 0
+        cos, sin = _rope(tokens.shape[1], tokens.device, offset)
+        captured = None
         for i, block in enumerate(self.layers):
             if return_hidden is not None and i == return_hidden:
                 return x
+            if capture_hidden is not None and i == capture_hidden:
+                captured = x
             x = block(
                 x, cos, sin,
                 None if inj is None else inj.get(i),
                 None if attn_bias is None else attn_bias.get(i),
+                cache=cache, layer_idx=i,
             )
+        if cache is not None:
+            cache.length = offset + tokens.shape[1]
         x = self.norm(x)
-        return x.float() @ self.embed_tokens.weight.float().T
+        logits = x.float() @ self.embed_tokens.weight.float().T
+        if capture_hidden is not None:
+            return logits, captured
+        return logits
