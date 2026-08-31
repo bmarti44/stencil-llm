@@ -111,24 +111,7 @@ def test_aggregate_math():
     assert agg["inst_level_loose_acc"] == 1.0
 
 
-def make_wave_bias_fn(ctrl, state):
-    """the registered consumer adapter (v3.1): at prefill, stash prompt h20
-    as ledger keys AND bias the scored final row from its own h20; per
-    step, bias the current row over prompt positions. Same-position
-    semantics throughout — the first response token is wave-influenced."""
-    def bias_fn(h20, P, past):
-        if past == 0:
-            state["K"] = h20[0, :P].float()
-            row_p = ctrl(h20[0, P - 1:P].float(), state["K"])  # scored row
-            b = torch.zeros(P, P, device="cuda")
-            b[-1, :P] = row_p[0]
-            state["prefill_field"] = row_p.detach()
-            return b
-        row_p = ctrl(h20[0, -1:].float(), state["K"])
-        row = torch.zeros(1, past + 1, device="cuda")
-        row[0, :P] = row_p[0]
-        return row
-    return bias_fn
+from stencil.bench import make_wave_bias_fn  # noqa: E402
 
 
 def test_consumer_path_trained_wave_through_cache(setup):

@@ -92,3 +92,40 @@ def generate_cached(m, tok, prompt, bias_fn=None, max_new=MAX_NEW):
             logits = m(torch.tensor([[nxt]], device="cuda"), cache=cache, bias_hook=hook)
             nxt = int(logits[0, -1].argmax())
     return tok.decode(out), len(out), len(out) >= max_new
+
+
+def make_wave_bias_fn(ctrl, state):
+    """the registered consumer adapter (v3.1/v3.2): at prefill, stash the
+    prompt's h20 as ledger keys AND bias the SCORED final row from its
+    own h20 (the first response token — or the loglikelihood decision
+    row — is wave-influenced); per generation step, bias the current
+    row over prompt positions. Same-position semantics throughout."""
+    import torch
+
+    def bias_fn(h20, P, past):
+        if past == 0:
+            state["K"] = h20[0, :P].float()
+            row_p = ctrl(h20[0, P - 1:P].float(), state["K"])
+            b = torch.zeros(P, P, device="cuda")
+            b[-1, :P] = row_p[0]
+            state["prefill_field"] = row_p.detach()
+            return b
+        row_p = ctrl(h20[0, -1:].float(), state["K"])
+        row = torch.zeros(1, past + 1, device="cuda")
+        row[0, :P] = row_p[0]
+        return row
+    return bias_fn
+
+
+def wave_hook_for_prefill(ctrl, P):
+    """single-forward loglikelihood variant of the adapter: returns a
+    (layer, fn) bias_hook that biases only the final (scored) row."""
+    import torch
+
+    def hook(h20):
+        K = h20[0, :P].float()
+        row_p = ctrl(h20[0, P - 1:P].float(), K)
+        b = torch.zeros(P, P, device="cuda")
+        b[-1, :P] = row_p[0]
+        return {layer: b for layer in WAVE_LAYERS}
+    return (20, hook)
