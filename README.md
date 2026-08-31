@@ -1,82 +1,106 @@
-# Stencil: a separate wire for a model's sense of its current task
+# Stencil: teaching a frozen AI model where to focus
 
 A theory of how the brain works, proposed by Earl Miller and colleagues at
 MIT ([Picower article](https://picower.mit.edu/news/cognition-and-consciousness-arise-analog-computations-says-new-theory),
 [Neuron paper](https://www.cell.com/neuron/fulltext/S0896-6273(23)00506-8)),
-says knowledge and focus live in different mechanisms. Knowledge is stored in
-the wiring (synapses). Focus — *what am I doing right now* — is carried by
-electrical waves that sweep across that wiring and decide which circuits are
-switched on at any moment. In their words: **"Synapses store representations,
-while wave dynamics help determine which representations are active at any
-given time."** They call the control waves "mobile stencils." This project is
-named after that phrase, and it builds that split into real AI models.
+says knowledge and focus live in different mechanisms. Knowledge is stored
+in the wiring (synapses). Focus — *what am I doing right now* — is carried
+by electrical waves that sweep across that wiring and decide which circuits
+are on at any moment: **"Synapses store representations, while wave dynamics
+help determine which representations are active at any given time."** They
+call the control waves "mobile stencils." This project is named after that
+phrase, and it builds the split into real AI models.
 
 Today's models don't have the split: what a model knows and what job it is
-doing share one memory and compete. That competition may be part of why an
-assistant on a long job slowly forgets its instructions or drifts (the
-motivating hunch — not something proven about deployed assistants).
+doing share one memory and compete. That may be part of why an assistant on
+a long job slowly forgets its standing instructions and drifts.
 
-## What has been proven (each claim has a rerunnable, seed-pinned test)
+## The headline result: the internal wave
 
-**1. The split works, causally, on a real model (GPT-2 era).**
-GPT-2 small with its weights frozen (checked bit-for-bit) and its attention
-narrowed so instructions provably leave its reach (exact-zero calculus, not
-assumption). A separate ~5KB state carried the instructions: **100% accuracy
-on questions whose evidence was mathematically unreachable, collapsing to
-~4% when the state was zeroed.** Swapping the state between sessions made
-the same frozen wiring follow different rules (28/32; shuffled control
-1/32). Full record: `results/gpt2-report.md` (dual reviewer sign-off).
+A **tiny trained controller (264k parameters — 0.015% of the model)** rides
+alongside a completely frozen Qwen3-1.7B, reads its hidden state at every
+step, and generates an "attention spotlight" pointing the model at whichever
+standing instruction matters right now. Nobody tells it when or where to
+point. It is trained by one signal only: ordinary "make the correct next
+word likelier" gradients flowing **through the frozen model itself**.
 
-**2. The Miller mechanism proper: a contentless selector (SELECTOR program).**
-The mature design keeps working memory as plain text (a visible "ledger" of
-current obligations) and gives the wire one job: decide **which obligation
-governs the current moment** and press the model's attention toward it — an
-address, never a value (5 bits at 32 obligations). On frozen Qwen3-1.7B,
-where the base model collapses to **3.9%** under 32 simultaneous obligations
-with lookalike interference, the learned selector restores **88.3%** (sealed
-final, untouched seeds) — comparable to re-pasting the entire 503-token
-rulebook before every question (84%) at ~1/100th the cost. The selector is
-bitwise-invisible when off, span-specific (a wrong address does nothing),
-and the model's weights never change. Report: `results/selector-report.md`.
+On a sealed, one-shot, never-touched test set (96 multi-turn coding
+sessions), the wave:
 
-**3. Two honest negatives, fully autopsied.**
-- *Waves as storage don't work here:* the literal analog oscillator stored
-  exactly one rule and destroyed the rest by superposition — consistent with
-  the theory (waves select; synapses store).
-- *The wire as a content channel doesn't generalize:* making the wire carry
-  novel values (rather than select among visible ones) memorized but never
-  generalized within registered attempts; and where it worked, plain text
-  storage matched it. Storing things is text's job.
+- lifted rule-following from **25% to 45%** — recovering *more* than the
+  hand-built reference press it learned from;
+- beat the standard fix (re-pasting the rules as text), which broke more
+  code and failed the safety rule the wave passed;
+- **improved** code quality while doing it (parse rate 85% → 93%);
+- beat an identical twin trained with old-style labels — proving the
+  gradient training signal, not the architecture, is the active ingredient;
+- and in a second sealed test where its training phrasing was **completely
+  removed from every prompt**, still won (36% → 55%) — it points at
+  instructions by their role, not by memorized wording.
 
-## What works well, honestly bounded
+Every number above is from a preregistered, hash-pinned, single-attempt run,
+independently recomputed by two adversarial reviewers, with a full
+reproduction audit matching every generated output. Report:
+`results/internal-wave-report.md`.
 
-- **Selection/governance** is where the wire wins: whenever the model can
-  see or already knows the content but picks the wrong thing to obey, the
-  spotlight fixes it — and at scale (32+ obligations) nothing cheap
-  substitutes for it.
-- **Inspectability:** the focus state is a small object you can read with a
-  linear probe, edit, transplant, and carry across context compactions.
-- **Boundaries:** at small obligation counts, re-inserting the text wins
-  outright; the selector's addresses were trained with supervision (what
-  counts as an instruction is taught, not discovered); tasks so far are
-  templated with named queries. These are stated, not hidden.
+## The road there (each step has a rerunnable, seed-pinned record)
+
+1. **The split works causally (GPT-2 era).** A frozen GPT-2 with
+   instructions provably out of attention's reach: a separate ~5KB state
+   carried them — 100% vs ~4% when zeroed; transplanting the state made the
+   same wiring follow different rules. `results/gpt2-report.md`.
+2. **The contentless selector (SELECTOR era).** Working memory stays plain
+   text; a learned 5-bit address presses attention toward the governing
+   rule. Under 32 simultaneous obligations, base 3.9% → selector 88.3%
+   (sealed), at ~1/100th the cost of re-pasting the rulebook.
+   `results/selector-report.md`.
+3. **Four honest negatives that mapped the boundary (TIMED-SELECTOR and
+   PRESS-PLAN eras).** Every attempt to make a *discrete, certified* "press
+   now?" decision failed its registered gates — threshold scoring, trained
+   discrimination, learned state, blind rhythm — each closed with a full
+   autopsy. The autopsies revealed the two real culprits: a brittle
+   hard-threshold actuator, and label-based training. The wave fixes both.
+   `results/timed-selector-report.md`, `results/press-plan-report.md`.
+4. **Focus is steerable; its audit trail is sparse but never wrong (W3).**
+   Overriding the wave's focus makes the model adopt the pointed-at rule
+   (+42 points, p ≈ 4×10⁻¹²) though with some collateral effects (gate
+   failed, honestly recorded). Decoding "what is it focusing on?" speaks
+   rarely — but when it speaks it was correct 73/73 times.
+
+## Honest boundaries (stated, not hidden)
+
+- All results are on one 1.7B model and a synthetic coding harness with
+  machine-checkable rules. External benchmarks are the current program
+  (`BENCH-WAVE-PLAN.md`), starting with IFEval.
+- "Reads meaning, not wording" is proven for one unseen phrasing — not for
+  arbitrary paraphrases.
+- The wave has no memory: recurrence added nothing measurable under the
+  tested architecture; the Miller wave's *temporal* claims (rhythms,
+  state transplant) remain open, honestly scoped.
+- Instructions with no checker and no clean syntax (pure human steering)
+  are outside every test so far — flagged as the hardest next frontier.
 
 ## Why you can trust the numbers
 
-Every model is reimplemented in this repo and parity-checked against pinned
-reference weights; training and evaluation are bitwise deterministic from
-pinned seeds; success metrics are causal (mechanism-off controls,
-wrong-address controls, sealed final seed spaces registered before use);
-and every phase was adversarially reviewed by two independent reviewers who
-ran their own experiments — the record includes three instrument failures
-they caught before false conclusions landed.
+Models are reimplemented in-repo and parity-checked bit-for-bit against
+pinned reference weights; everything is deterministic from pinned seeds;
+sealed tests are one attempt with artifact hashes pinned before running;
+success metrics are causal (matched controls, ablations, wrong-target
+controls); and every phase was adversarially reviewed by two independent
+reviewers who reran the numbers themselves — the record includes more than
+a dozen instrument errors and overclaims they caught (several of them
+mine) before false conclusions could land. `WORKLOG.md` is the complete
+decision-by-decision record, retractions included.
 
 ## Repo map
 
-- `WORKLOG.md` — the complete decision-by-decision record.
-- `SELECTOR-PLAN.md` (+amendments) — the registered protocol of the current
-  program. Earlier eras: `GPT2-PLAN.md`, `QWEN-PLAN.md` (closed).
-- `src/stencil/` — hand-rolled, parity-proven GPT-2 and Qwen3-1.7B trunks
-  with probe/spotlight hooks; task generators; the cache/selector modules.
-- `results/` — reports, per-example JSON evidence, reviews.
-- `archive/` — the toy-scale era that established the mechanism first.
+- `WORKLOG.md` — the full decision record. `AGENTS.md` — the operating
+  lessons that keep this honest.
+- `BENCH-WAVE-PLAN.md` — current program (real benchmarks).
+  `INTERNAL-WAVE-PLAN.md`, `PRESS-PLAN.md`, `TIMED-SELECTOR-PLAN.md`,
+  `SELECTOR-PLAN.md`, `GPT2-PLAN.md` — closed programs, oldest last.
+- `src/stencil/` — parity-proven GPT-2 and Qwen3-1.7B trunks with
+  spotlight hooks; the wave controller (`wave.py`); task generators;
+  scorers.
+- `results/` — reports, per-example JSON evidence, review records,
+  research surveys. `archive/` — the toy-scale era.
