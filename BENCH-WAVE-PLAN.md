@@ -194,3 +194,31 @@ both to pass the primary gate).
 
 H7. Seeds/manifests: exact train/dev/calibration streams, dataset
 revisions, and committed item manifests replace the two generic seeds.
+
+## v2.1 (sol round 2, four HIGHs)
+
+- SINGLE-USE INVARIANT (precise): "No model generation, scoring,
+  per-prompt inspection, or error analysis of the 541 before the
+  sealed B4 job; vendoring the data and deriving the class inventory
+  are permitted non-generative exposure; post-seal reuse (incl. the
+  zero-shot probe) is exploratory and permitted, disclosed as
+  post-seal." H1's timing admission rebinds to "before B4".
+- B0.1 PARITY CRITERIA (frozen): chat-template token ids bitwise
+  equal; top-1 equal on every fixture; all logits finite;
+  max_abs_error <= 1e-3 (registered tolerance; identity comes from
+  file hashes, behavior from these criteria).
+- B2 is BLOCKED until checkpoint ii freezes mechanically: MMLU-Redux
+  exact revision + item count + manifests; margins with inherited
+  status stated; null hypotheses; alpha = 0.05 one-sided; test
+  construction (paired exact binomial on discordant items per suite);
+  aggregation rule across MMLU subjects (pooled, registered).
+- B4 ARMS (one sealed job): base, wave-s0, proxy-s0, wave-s1,
+  proxy-s1. Gate mapping: EXTERNAL CLAIM requires BOTH seeds to pass
+  the primary gate AND do-no-harm; CAUSAL ATTRIBUTION requires both
+  seed-specific causal McNemars to pass; a single-seed pass is
+  reported as artifact-specific, not external validation.
+- IFBench FULLY PREREGISTERED at checkpoint iii (pre-B4, before any
+  B4 result exists): revision, split, metric, the same five arms,
+  greedy decoding, effect floor +2.0 points, one-sided exact binomial
+  McNemar p < 0.05 per seed, NO retraining between B4 and IFBench
+  (the same frozen checkpoints run both).
