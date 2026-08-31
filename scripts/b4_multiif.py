@@ -39,13 +39,21 @@ from ifeval import utils as ifeval_utils  # noqa: E402
 SMOKE = int(os.environ.get("SMOKE", "0"))
 OPENER = "<|im_start|>assistant\n<think>\n\n</think>\n\n"
 TIMEOUT_S = 300
-ARMS = [
-    ("base", None, None),
-    ("wave-s0", "results/qwen/b3-ce-s0.pt",
-     "0e2574ffd431406f7ffba15e9940e42d7f141c27566d6b02110b38acebb6c524"),
-    ("proxy-s0", "results/qwen/b3-proxy-s0.pt",
-     "26988a952e8ef119233b41c67af8fe01adeba800e40fea835b7467c2f81a7c99"),
-]
+
+
+def _registered_sha(record):
+    return json.loads((ROOT / "results" / "qwen" / record).read_text())["selected_sha256"]
+
+
+def arms_table():
+    """v4.5 Multi-IF arms: base + DEFICIT-wave (v4.4 seed-0 Wq/Wk,
+    calibration-selected tau/b_max) + static-x0.25 comparator (same
+    controller; descriptive). Controller hash bound to the committed
+    training record (equivalent to a literal: the record is tracked)."""
+    sha = _registered_sha("b3-ce-s0.json")
+    return [("base", None, None),
+            ("deficit-wave-s0", "results/qwen/b3-ce-s0.pt", sha),
+            ("static25-wave-s0", "results/qwen/b3-ce-s0.pt", sha)]
 
 
 def seed_of(key, turn):
@@ -68,45 +76,82 @@ def score_turn(row, t, response):
     return ifeval_utils.process_results(doc, [response])
 
 
-def gen(m, tok, ctrl, history_text):
-    """cached greedy over an explicit conversation string (history +
-    pinned opener already appended by the caller); real 300s deadline."""
+def user_turn_spans(history_text, enc):
+    """candidate spans for the deficit gate on Multi-IF: each USER
+    message's token span (instructions live in user turns and drift out
+    of focus across the conversation — the registered long-horizon
+    setting). The learned q/k selects among them per step."""
+    spans, start = [], 0
+    while True:
+        i = history_text.find("<|im_start|>user\n", start)
+        if i < 0:
+            break
+        j = history_text.find("<|im_end|>", i)
+        if j < 0:
+            break
+        toks = [ti for ti, (a, b) in enumerate(enc.offsets) if a < j and b > i]
+        if toks:
+            spans.append((toks[0], toks[-1] + 1))
+        start = j + 1
+    return spans
+
+
+def gen(m, tok, ctrl, history_text, mode, tau=None, b_max=None):
+    """cached greedy over an explicit conversation string; mode:
+    'base' | 'deficit' (registered adapter, user-turn spans) |
+    'static25' (v4.4 bias x0.25, descriptive comparator)."""
     import time as _t
+
+    from stencil.bench import WAVE_LAYERS, make_deficit_hook, make_wave_bias_fn
     ids = tok.encode(history_text).ids
+    enc = tok.encode(history_text)
     cache = KVCache()
     out = []
     state = {}
-    bias_fn = make_wave_bias_fn(ctrl, state) if ctrl is not None else None
-
-    def hook_for(past, P):
-        if bias_fn is None:
-            return None
-        def hook(h20):
-            row = bias_fn(h20, P, past)
-            if row is None:
-                return None
-            from stencil.bench import WAVE_LAYERS
-            return {layer: row for layer in WAVE_LAYERS}
-        return (20, hook)
-
     P = len(ids)
+    hook = None
+    if mode == "deficit":
+        spans = user_turn_spans(history_text, enc)
+        state["cache_len"] = 0
+        hook = make_deficit_hook(ctrl, state, spans, tau, b_max)
+    elif mode == "static25":
+        inner = make_wave_bias_fn(ctrl, state)
+        def bias_fn(h20, Pp, past):
+            row = inner(h20, Pp, past)
+            return None if row is None else row * 0.25
+
     t0 = _t.monotonic()
     timed_out = False
     with torch.no_grad():
-        logits = m(torch.tensor([ids], device="cuda"), cache=cache, bias_hook=hook_for(0, P))
+        if mode == "deficit":
+            logits = m(torch.tensor([ids], device="cuda"), cache=cache, deficit_hook=hook)
+        elif mode == "static25":
+            def bh(past):
+                def h(h20):
+                    row = bias_fn(h20, P, past)
+                    return None if row is None else {L: row for L in WAVE_LAYERS}
+                return (20, h)
+            logits = m(torch.tensor([ids], device="cuda"), cache=cache, bias_hook=bh(0))
+        else:
+            logits = m(torch.tensor([ids], device="cuda"), cache=cache)
         nxt = int(logits[0, -1].argmax())
         while nxt not in EOS and len(out) < MAX_NEW:
             if _t.monotonic() - t0 > TIMEOUT_S:
                 timed_out = True
                 break
             out.append(nxt)
-            logits = m(torch.tensor([[nxt]], device="cuda"), cache=cache,
-                       bias_hook=hook_for(cache.length, P))
+            if mode == "deficit":
+                state["cache_len"] = cache.length
+                logits = m(torch.tensor([[nxt]], device="cuda"), cache=cache, deficit_hook=hook)
+            elif mode == "static25":
+                logits = m(torch.tensor([[nxt]], device="cuda"), cache=cache, bias_hook=bh(cache.length))
+            else:
+                logits = m(torch.tensor([[nxt]], device="cuda"), cache=cache)
             nxt = int(logits[0, -1].argmax())
     return tok.decode(out), len(out), len(out) >= MAX_NEW, timed_out
 
 
-def run_arm(m, tok, rows, arm_name, ctrl, meta):
+def run_arm(m, tok, rows, arm_name, ctrl, meta, mode):
     outdir = ROOT / "results" / "qwen" / f"b4-multiif-{arm_name}"
     outdir.mkdir(parents=True, exist_ok=True)
     meta_p = outdir / "meta.json"
@@ -130,7 +175,8 @@ def run_arm(m, tok, rows, arm_name, ctrl, meta):
         for t in (1, 2, 3):
             p, _, _ = turn_doc(row, t)
             history += f"<|im_start|>user\n{p}<|im_end|>\n"
-            text, n, trunc, timeout = gen(m, tok, ctrl, history + OPENER)
+            text, n, trunc, timeout = gen(m, tok, ctrl, history + OPENER, mode,
+                                          tau=TAU, b_max=BMAX)
             rec["responses"][str(t)] = text
             rec["gen"][str(t)] = {"n": n, "truncated": bool(trunc), "timeout": bool(timeout)}
             rec["scores"][str(t)] = score_turn(row, t, text)
@@ -150,6 +196,11 @@ def run_arm(m, tok, rows, arm_name, ctrl, meta):
 
 
 def main():
+    global ARMS, TAU, BMAX
+    ARMS = arms_table()
+    cal = json.loads((ROOT / "results" / "qwen" / "b3-deficit-cal.json").read_text())
+    sel = cal["results"][cal["selected"]]
+    TAU, BMAX = sel["tau"], sel["b_max"]
     man = json.loads((ROOT / "data" / "bench" / "pins-manifest.json").read_text())
     data_p = ROOT / "data" / "bench" / "multiif_en.jsonl"
     data_sha = hashlib.sha256(data_p.read_bytes()).hexdigest()
@@ -171,12 +222,14 @@ def main():
     for name, path, want in ARMS:
         ctrl = None
         if path is not None:
-            ctrl = WaveController().cuda()
+            ctrl = WaveController(beta_max=1.0).cuda()
             ctrl.load_state_dict(torch.load(ROOT / path, map_location="cpu"))
             ctrl = ctrl.eval()
+        mode = "base" if path is None else ("deficit" if name.startswith("deficit") else "static25")
         meta = {"arm": name, "ctrl": path or "none", "ctrl_sha256": (want or "none"),
+                "mode": mode, "tau": TAU, "b_max": BMAX,
                 "pins": pins, "timeout_s": TIMEOUT_S}
-        run_arm(m, tok, rows, name, ctrl, meta)
+        run_arm(m, tok, rows, name, ctrl, meta, mode)
 
 
 if __name__ == "__main__":

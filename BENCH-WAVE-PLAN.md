@@ -693,3 +693,17 @@ static dose is carried as a descriptive comparator only.
   therefore effective only via a post-hoc replay if an exact adherence
   tie occurs; otherwise selection is by adherence alone. Recorded
   before seeing full grid results.
+
+### v4.5 Multi-IF execution (Brian-directed, 2026-08-31; EXPLORATORY as
+registered): the long-horizon test runs REGARDLESS of the single-turn
+confirmation outcome — it is the scope-hypothesis test (instructions
+drift out of focus across turns; published models decay 88->71).
+Arms (closed table, controller bound to the committed v4.4 seed-0
+training record's selected_sha256 9d43315b...): base;
+deficit-wave-s0 (calibration-selected tau/b_max; candidate spans =
+each USER message's token span, learned q/k selects per step — the
+natural generalization when instructions are not phrase-marked);
+static25-wave-s0 (v4.4 bias x0.25, descriptive comparator). All 909
+conversations x 3 turns; per-turn-index + pooled metrics; no gate.
+Ordering: after the single-turn confirmation (+ replication if it
+passes) releases the GPU.
