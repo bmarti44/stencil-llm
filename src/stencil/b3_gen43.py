@@ -299,7 +299,12 @@ def _assemble(rng, combo, kwargs, values, base_sents):
         return iu.count_words("".join(t for t, _ in segs))
 
     if "n_words_max" in combo:
-        cap = kwargs["n_words_max"]["num_words"] - 12
+        reserve = 8
+        if "title" in combo:
+            reserve += len(values["title"].split()) + 2
+        if "postscript" in combo:
+            reserve += len(values["postscript"].split()) + 2
+        cap = kwargs["n_words_max"]["num_words"] - reserve
         guard = 0
         while word_count() > cap and guard < 100:
             guard += 1
