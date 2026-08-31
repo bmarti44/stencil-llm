@@ -1791,3 +1791,20 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
 - Honest caveats for the review: n=27 is tiny for 11 features; the gate was
   registered knowing this. The pre-registered sol+fable review of the E0
   result convenes before ANY next step.
+
+## 2026-08-31 — sol WHEN-fix deep research: Conflict-Triggered Readout Bursts
+
+- results/when-fix-research-sol.md. Neuroscience answer: Lundqvist/Miller data
+  establish DEMAND-sensitive irregular bursts but do NOT identify the upstream
+  trigger; the burst POLICY (hold default, brief irregular reactivation,
+  content/timing separation, refractory) is Miller-faithful, while the SENSOR
+  must be engineering: Botvinick/Shenhav conflict trajectory — which is exactly
+  what E0's surviving signal was (margin collapse AUC 0.706).
+- Recommended successor design: tiny logistic HAZARD gate over
+  [conflict-energy delta, entropy delta, -margin delta, span attention mass +
+  delta, address stability], optional 4-token draft-then-confirm, single fixed
+  safe-dose burst <= 4 tokens, refractory. KL/JS/obligation_shift dropped from
+  firing inputs (E0's verdict). Labels: the causal-moment ITE protocol.
+  Evidence gates BEFORE any training: (A) free temporal replay on existing
+  records; (B) fresh causal branch pilot.
+- Execution remains gated on the REGISTERED post-Multi-IF decision rule.
