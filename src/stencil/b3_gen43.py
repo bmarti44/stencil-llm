@@ -402,8 +402,12 @@ def _mutate(key, text, kwargs, values, spans):
             return " ".join(x.split()).lower()
         protected = [norm(text[a:b]) for sp in spans.values() for a, b in sp]
         t = text
+        floor = max(10, need // 2)
         for _ in range(30):
-            if iu.count_words(t) < need:
+            wc = iu.count_words(t)
+            if wc < need:
+                if wc < floor:
+                    raise ValueError("n_words_min mutation degenerate")
                 return t
             sents = _sentences_of(t)
             victims = [x for x in sents
