@@ -1633,3 +1633,31 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   affects absolute scores, not paired comparisons.
 - B3 dev-200 generation gate: base arm complete, adherence 0.8650 -> each
   wave seed needs >= 0.8850 (registered +2.0pt).
+
+## 2026-08-31 — dev-gate FAIL diagnosed by dual failure-analysis; v4.2 amendment staged
+
+- Official gate (partial): base 0.865, wave-s0 0.755 (-11pts); proxy arms
+  finishing. 29 flips vs 7 fixes, concentrated on include-X constraints.
+- FABLE (empirical, causal): my style-pull hypothesis REFUTED — wave outputs
+  are as natural as base (NLL 0.302 vs 0.232 nats/tok; canonicals 5.73!) with
+  ZERO filler leakage. Mechanism proven: gain saturated 2.0 on 100% of tokens;
+  the bias halves attention over the model's own recent output in layers 20-27
+  (recent-20 mass 0.15->0.09, 0.12->0.06, 0.13->0.07) -> lost running state:
+  23/30 failures are NEAR-MISSES (3-of-4 placeholders, caps slips, count
+  overshoot, repetition loops). Causal: inference gain x0.25 recovers 24/29
+  flips — but only to base parity, never gate-passing (+2).
+- SOL (analytical): ranked causes — (1) objective/teacher-forcing mismatch
+  HIGH (CE on one canonical rewards imitation, not constraint execution;
+  obligation tokens are rare and swamped by filler tokens), (2) saturated
+  always-on field MEDIUM-HIGH, (3) word-salad canonicals as the training-time
+  driver MEDIUM (5.7 nats/tok = unpredictable-from-context by construction ->
+  "copy from prompt at max gain everywhere" is CE-optimal -> saturation).
+  Deeper lesson recorded: sequence CE against ONE canonical is the wrong
+  primary objective for open-generation constraint tasks.
+- CONVERGED FIX (both reviewers): retrain on NATURAL canonicals (predictable
+  from context, so gain must learn selective firing) + beta_max 1.0 at retrain.
+  v4.2 candidate builder committed: topic-conditioned openers, varied natural
+  pool, natural keyword-carrier sentences, word-cap trim; bullets x n_words_max
+  retired (natural sentences too long). tests 9/9. FROZEN v3.2 train/dev files
+  on disk are now GENERATOR-DIVERGENT — refreeze happens only after the
+  amendment review clears; pilot (natural + beta_max 1.0, seed 0) queued.

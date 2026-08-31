@@ -52,17 +52,57 @@ KEYWORD_POOL = ["lantern", "gravel", "hinge", "mortar", "spindle", "tallow",
 FORBIDDEN_POOL = ["vessel", "orchard", "signal", "harbor", "meadow", "timber"]
 
 
-def _sentences(rng, n, keywords=(), forbidden=()):
-    """n content sentences; each keyword placed once per required use."""
-    out = []
+# v4.2 candidate (dev-gate autopsy): NATURAL sentence pool per topic.
+# The v1 word-salad filler taught the wave to fight fluent generation —
+# canonicals must be text the model could plausibly produce.
+_NATURAL = [
+    "The work began early in the morning while the street was still quiet.",
+    "A few neighbors stopped by to watch and offered a hand where they could.",
+    "Each step was done slowly and checked twice before moving on.",
+    "The tools were laid out on a clean cloth within easy reach.",
+    "By midday the hardest part was finished and the rest went quickly.",
+    "Everyone agreed the effort was worth it once the results were visible.",
+    "A short break gave time to review what remained to be done.",
+    "The final touches took longer than expected but came out well.",
+    "Care was taken to leave the area cleaner than it was found.",
+    "Notes were kept so the process could be repeated next season.",
+    "The weather held steady which made the whole task easier.",
+    "In the end the small details made the biggest difference.",
+]
+
+
+_WEAVE_PATTERNS = [
+    "That part of the job went smoothly once the {w} was in place.",
+    "An old {w} from the shed turned out to be surprisingly useful.",
+    "Someone had left a {w} nearby, which saved a trip back home.",
+    "The {w} needed a quick wipe before it could be used.",
+]
+
+
+def _sentences(rng, n, keywords=(), forbidden=(), topic=None):
+    """n NATURAL, varied content sentences; each required keyword gets its
+    own natural carrier sentence; optional topic-conditioned opener."""
     kws = list(keywords)
-    for i in range(n):
-        words = [FILLER[(i * 7 + j) % len(FILLER)] for j in range(9)]
+    pool = _NATURAL[:]
+    rng.shuffle(pool)
+    out = []
+    if topic is not None:
+        out.append(f"Here is a short account of {topic} for the neighborhood newsletter.")
+    pi = 0
+    while len(out) < n:
         if kws:
-            words[4] = kws.pop(0)
-        s = " ".join(w for w in words if w not in forbidden)
-        out.append(s[0].upper() + s[1:] + ".")
-    return out
+            pat = _WEAVE_PATTERNS[len(out) % len(_WEAVE_PATTERNS)]
+            out.append(pat.format(w=kws.pop(0)))
+        else:
+            out.append(pool[pi % len(pool)])
+            pi += 1
+    cleaned = []
+    for s in out:
+        s = " ".join(w for w in s.split() if w.strip(".,").lower() not in forbidden)
+        if not s.endswith("."):
+            s += "."
+        cleaned.append(s)
+    return cleaned
 
 
 # --- constraint registry: key -> dict(iid, family, sample, phrase, mutate)
@@ -147,6 +187,7 @@ def compat_matrix():
         frozenset(("caps", "lower")),
         frozenset(("n_words_min", "n_words_max")),  # co-occur risk of impossible draws
         frozenset(("n_sent", "n_words_max")),  # 9-11 x ~9-word sentences can exceed <90
+        frozenset(("bullets", "n_words_max")),  # 5-7 natural bullets exceed <90 (v4.2)
         frozenset(("bullets", "n_sent")),   # sentence splitter vs bullet lines
         frozenset(("bullets", "postscript")),
         frozenset(("bullets", "title")),
@@ -181,7 +222,7 @@ def combo_ok(combo, matrix):
     return True
 
 
-def build_canonical(rng, combo, kwargs_by_key):
+def build_canonical(rng, combo, kwargs_by_key, topic=None):
     """canonical adherent response for a constraint combo (registered
     order: content -> format wrapper -> case LAST)."""
     kws, forb = [], ()
@@ -198,7 +239,7 @@ def build_canonical(rng, combo, kwargs_by_key):
             n_sent = max(n_sent, kw["num_sentences"] + 1)
         if key == "n_words_min":
             n_sent = max(n_sent, kw["num_words"] // 8 + 2)
-    sents = _sentences(rng, max(n_sent, len(kws) + 2), kws, forb)
+    sents = _sentences(rng, max(n_sent, len(kws) + 2), kws, forb, topic=topic)
 
     if "json_fmt" in combo:
         return json.dumps({f"part_{i}": s for i, s in enumerate(sents[:4])})
@@ -219,6 +260,17 @@ def build_canonical(rng, combo, kwargs_by_key):
         text = "\n".join("* " + ln for ln in lines)
     else:
         text = " ".join(sents)
+    if "n_words_max" in combo:
+        # natural sentences are longer than the old filler; drop trailing
+        # sentences (keyword carriers come first, so they survive) until
+        # safely under the cap, leaving room for wrappers below
+        cap = kwargs_by_key["n_words_max"]["num_words"] - 12
+        parts = text.split(". ")
+        while len(parts) > 2 and len(" ".join(parts).split()) > cap:
+            parts.pop()
+        text = ". ".join(parts)
+        if not text.endswith("."):
+            text += "."
     if "title" in combo:
         text = "<<Notes From the Workshop>>\n" + text
     if "placeholders" in combo:
@@ -268,7 +320,7 @@ def generate(seed, n_prompts, sizes=(1, 2, 3), exclude_prompts=frozenset()):
         prompt = task + " " + " ".join(phrases)
         if prompt in exclude_prompts:
             continue
-        canonical = build_canonical(rng, combo, kwargs_by_key)
+        canonical = build_canonical(rng, combo, kwargs_by_key, topic=topic)
         mutations = {k: CONSTRAINTS[k]["mutate"](canonical, kwargs_by_key[k]) for k in combo}
         rows.append({
             "key": len(rows),
