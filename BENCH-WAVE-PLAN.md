@@ -505,3 +505,17 @@ is unchanged. Pilot evidence (300 rows, 1 epoch, LAM=0): mean gain
 0.238 -> 2.0 within 100 rows; dev CE 5.636 -> 4.598. Collapsed ep0/ep1
 checkpoints deleted; fleet relaunches from scratch after review
 sign-off of this amendment.
+
+### v3.3 addendum (sol condition, recorded BEFORE relaunch)
+
+- The gain-permutation ablation gate is RETIRED for B3 (inert when gain
+  saturates); the gain head is preregistered as potentially decorative.
+  RETAINED: K-permutation ablation and the matched-uniform-field
+  ablation (random field at matched gain — the pilot's counterfactual,
+  now a registered control).
+- B4 causal scoping (registered wording): a wave-vs-proxy margin
+  supports the TASK-CE TRAINING OBJECTIVE PACKAGE for learning the
+  attention field; it does NOT test autonomous timing / when-to-act,
+  and is not attributed specifically to addressing unless gain
+  distributions are matched. Response-row gain histograms are reported
+  for BOTH arms in the B4 artifact.
