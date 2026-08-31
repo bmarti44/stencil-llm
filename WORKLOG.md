@@ -1532,3 +1532,9 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   (b) phrasing substring, (c) topic substring — all asserted
   (tests/test_b3_gen.py 6/6). Generator bug caught by inspection: retry-with-
   new-size biased 63% of prompts to singletons; fixed to within-size resampling.
+
+- 2026-08-30 addendum: results/* gitignore had silently excluded the six B0
+  artifacts + w3a-audit from earlier "committed" claims (git add -A skips
+  ignored paths). Force-added; playbook lesson recorded in AGENTS.md.
+  Long-timing v2: per-prompt times committed (slowest 53.9s; registered 300s
+  timeout = 5.6x).

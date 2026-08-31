@@ -74,6 +74,10 @@ short, imperative, and evidence-linked; prune entries that stop paying rent.
   convergence; corrections appended after its kimi review.
 - plan/retros/phase1.md (2026-08-22) — generators pinned by three-way
   independent agreement; README-row recurrence drove mechanization.
+- `results/*` is GITIGNORED by the repo layout policy: `git add -A` silently
+  skips new result artifacts. Registered artifacts must be `git add -f`'d, and
+  "committed" claims verified with `git ls-files` (six B0 artifacts were
+  claimed committed while untracked, 2026-08-30).
 - Sealed one-shot jobs MUST write their registered per-work records in
   the same run — twice (w_seal, w3a) the records were built in memory
   and only aggregates written, forcing reproduction audits. Put the
