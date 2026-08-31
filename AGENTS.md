@@ -74,3 +74,8 @@ short, imperative, and evidence-linked; prune entries that stop paying rent.
   convergence; corrections appended after its kimi review.
 - plan/retros/phase1.md (2026-08-22) — generators pinned by three-way
   independent agreement; README-row recurrence drove mechanization.
+- Sealed one-shot jobs MUST write their registered per-work records in
+  the same run — twice (w_seal, w3a) the records were built in memory
+  and only aggregates written, forcing reproduction audits. Put the
+  registered output field list in the artifact writer and dry-assert it
+  on a smoke run before sealing (2026-08-30).

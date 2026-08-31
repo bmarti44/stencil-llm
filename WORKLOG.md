@@ -1358,3 +1358,21 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   audit trail is SPARSE, never wrong. Flags: report p as 3.6e-12 (JSON
   0.0 is a rounding artifact); trace entries lack session ids (minor).
   Awaiting sol's parallel results review.
+- 2026-08-30, W3 RESULTS sol review: NOT CLEARED, 3 HIGH (fable had
+  CLEARED — divergence noted). CORRECTIONS ACCEPTED: (1) W3b's
+  override used an UNREGISTERED SUBSET (first eligible moment per work
+  — ~11 of 22 eligible IDs on traced sessions; hint non-target
+  exclusion also too broad): the +42.2/p~3.6e-12 effect is DIAGNOSTIC,
+  not the registered estimate; the gate FAIL (7 > 2 non-target) is
+  robust on the implemented subset. Per sol + burden test: W3b CLOSES
+  as an IMPLEMENTATION-QUALIFIED NEGATIVE, no rerun. (2) Exec cost was
+  never recorded: the claim is "zero paired parse losses in the
+  implemented 90-pair subset; execution cost not recorded". (3) W3a
+  discarded its registered per-work paired records AGAIN (same failure
+  as the first seal — pattern): a deterministic reproduction audit
+  (full-SHA-256 matching this time, since W3a recorded full hashes)
+  will emit them; w3a.json is NOT overwritten. (4) "meaning, not
+  surface" REPLACED with sol's wording: the frozen wave generalized to
+  the single registered unseen prefix rendering with zero trained-
+  template occurrences; this does NOT establish meaning-level
+  invariance or generalization to arbitrary paraphrases.
