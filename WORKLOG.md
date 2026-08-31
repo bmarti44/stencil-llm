@@ -1772,3 +1772,12 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   way), then Multi-IF three arms (base / deficit-wave user-turn spans /
   static-x0.25) regardless of outcome. Next program decisions wait for
   Multi-IF data (Brian).
+
+## 2026-08-31 — BRIAN'S RULING: v4.5 confirmation killed mid-run; EVF program authorized
+
+- Confirmation seed-0 stopped at Brian's direction (~100/1024 base records
+  retained untouched; recorded ABANDONED-BY-RULING). EVF-PLAN.md committed:
+  Phase E0 = kill-fast pilot probe on the recorded 15/12 calibration anatomy
+  (registered gate r+>=0.60 / r-<=0.25 under topic AND family holdout);
+  E1 (GRU tracker + two-stage EVF firing) gated on E0 + separate go.
+  Red/green TDD + deterministic proofs required throughout.
