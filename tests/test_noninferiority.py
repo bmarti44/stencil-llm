@@ -72,3 +72,9 @@ def test_power_under_null_drop():
     # true drop 0, generous margin: should usually pass (sanity, not a gate)
     rate = _simulate_type1(5330, 0.005, 0.005, 0.005, trials=200, seed=13)
     assert rate >= 0.5
+
+
+def test_type1_error_at_margin_pure_degradation_mmlu():
+    # round-2 sol note: the PURE-degradation MMLU counterexample itself
+    rate = _simulate_type1(5330, 0.005, 0.0, 0.005, trials=300, seed=17)
+    assert rate <= 0.08, f"type-I {rate} at the MMLU margin (pure degradation)"

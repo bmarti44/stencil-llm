@@ -111,31 +111,69 @@ def test_aggregate_math():
     assert agg["inst_level_loose_acc"] == 1.0
 
 
+def make_wave_bias_fn(ctrl, state):
+    """the registered consumer adapter (v3.1): at prefill, stash prompt h20
+    as ledger keys AND bias the scored final row from its own h20; per
+    step, bias the current row over prompt positions. Same-position
+    semantics throughout — the first response token is wave-influenced."""
+    def bias_fn(h20, P, past):
+        if past == 0:
+            state["K"] = h20[0, :P].float()
+            row_p = ctrl(h20[0, P - 1:P].float(), state["K"])  # scored row
+            b = torch.zeros(P, P, device="cuda")
+            b[-1, :P] = row_p[0]
+            state["prefill_field"] = row_p.detach()
+            return b
+        row_p = ctrl(h20[0, -1:].float(), state["K"])
+        row = torch.zeros(1, past + 1, device="cuda")
+        row[0, :P] = row_p[0]
+        return row
+    return bias_fn
+
+
 def test_consumer_path_trained_wave_through_cache(setup):
-    """checkpoint-ii FINDING-5 (sol): exercise cached generation through
-    the ACTUAL trained WaveController (the sealed internal-wave ckpt
-    w0-ce.pt) — deterministic repeat + demonstrably reaches logits.
+    """checkpoint-ii FINDING-5 (sol, round 2): the ACTUAL trained
+    WaveController (sealed w0-ce.pt) through cached generation must
+    (a) produce a finite NONZERO field, (b) change the logits vs a
+    zero-field run on the same prefix, (c) repeat deterministically.
     Re-run at pre-B4 with the trained BENCHMARK wave before sealing."""
     from pathlib import Path
 
-    from stencil.bench import generate_cached
+    from stencil.bench import TMPL, WAVE_LAYERS, generate_cached
     from stencil.wave import WaveController
     root = Path(__file__).resolve().parent.parent
     m, tok = setup
     ctrl = WaveController().cuda()
     ctrl.load_state_dict(torch.load(root / "results" / "qwen" / "w0-ce.pt", map_location="cpu"))
     ctrl = ctrl.eval()
-    state = {}
 
-    def bias_fn(h20, P, past):
-        if past == 0:  # prefill: stash prompt h20 as the wave's ledger keys
-            state["K"] = h20[0, :P].float()
-            return None
-        row_p = ctrl(h20[0, -1:].float(), state["K"])  # [1, P]
-        row = torch.zeros(1, past + 1, device="cuda")
-        row[0, :P] = row_p[0]
-        return row
-    a = generate_cached(m, tok, SMOKE, bias_fn=bias_fn, max_new=48)
-    b = generate_cached(m, tok, SMOKE, bias_fn=bias_fn, max_new=48)
-    assert a == b
+    # (a)+(b): first-token logits differ between wave field and zero field
+    ids = tok.encode(TMPL.format(p=SMOKE)).ids
+    P = len(ids)
+    toks = torch.tensor([ids], device="cuda")
+    with torch.no_grad():
+        h20 = m(toks, return_hidden=20)
+        field = ctrl(h20[0, P - 1:P].float(), h20[0, :P].float())
+        assert torch.isfinite(field).all()
+        assert float(field.abs().max()) > 0, "trained controller emits a zero field"
+        b = torch.zeros(P, P, device="cuda")
+        b[-1, :P] = field[0]
+        lw = m(toks, attn_bias={L: b for L in WAVE_LAYERS})[0, -1]
+        l0 = m(toks)[0, -1]
+    assert float((lw - l0).abs().max()) > 0, "wave field does not reach the logits"
+
+    # (c): full cached generation with the registered adapter, twice
+    state = {}
+    a = generate_cached(m, tok, SMOKE, bias_fn=make_wave_bias_fn(ctrl, state), max_new=48)
+    state2 = {}
+    b2 = generate_cached(m, tok, SMOKE, bias_fn=make_wave_bias_fn(ctrl, state2), max_new=48)
+    assert a == b2
     assert a[1] > 0
+    assert float(state["prefill_field"].abs().max()) > 0
+
+
+def test_return_hidden_with_cache_raises(setup):
+    m, tok = setup
+    from stencil.qwen3 import KVCache
+    with pytest.raises(ValueError, match="corrupt"):
+        m(torch.tensor([[1, 2, 3]], device="cuda"), cache=KVCache(), return_hidden=20)

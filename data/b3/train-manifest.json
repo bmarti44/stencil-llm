@@ -1,12 +1,28 @@
 {
  "generator": "src/stencil/b3_gen.py",
- "seed": 0,
- "n": 2000,
- "sha256": "9cb65c70e3c7e811dee0c880b19b50f75abb0d3b55deca2f57c919190e5a47be",
- "verified": "all canonicals pass vendored checkers; all mutations fail targets",
- "combo_sizes": {
-  "2": 661,
-  "1": 675,
-  "3": 664
- }
+ "streams": {
+  "train-2000.jsonl": {
+   "seed": 0,
+   "n": 2000,
+   "sha256": "54cd99f6fb8dc2d1187824bcce70b60b9a625b1b29c07d035e726deaf8dbc304",
+   "combo_sizes": {
+    "2": 672,
+    "1": 664,
+    "3": 664
+   }
+  },
+  "dev-200.jsonl": {
+   "seed": 2,
+   "n": 200,
+   "sha256": "489d1a7086e060bbd8c8a4cd98cc3fb2bed8c48d513e9f3b3154164707796808",
+   "combo_sizes": {
+    "1": 40,
+    "2": 79,
+    "3": 81
+   },
+   "excluded": "all train-2000 prompts (registered disjointness)"
+  }
+ },
+ "train_dev_prompt_overlap": 0,
+ "verified": "all canonicals pass vendored checkers; all mutations fail targets; both streams"
 }

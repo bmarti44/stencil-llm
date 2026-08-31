@@ -146,6 +146,7 @@ def compat_matrix():
     incompatible = {
         frozenset(("caps", "lower")),
         frozenset(("n_words_min", "n_words_max")),  # co-occur risk of impossible draws
+        frozenset(("n_sent", "n_words_max")),  # 9-11 x ~9-word sentences can exceed <90
         frozenset(("bullets", "n_sent")),   # sentence splitter vs bullet lines
         frozenset(("bullets", "postscript")),
         frozenset(("bullets", "title")),
@@ -162,7 +163,7 @@ def compat_matrix():
                 continue
             if frozenset((a, b)) in incompatible:
                 continue
-            allowed.add((a, b))
+            allowed.add(tuple(sorted((a, b))))  # canonical order == combo_ok's lookup order
     return {"singletons": sorted(singleton),
             "allowed_pairs": sorted([list(p) for p in allowed])}
 
@@ -206,7 +207,16 @@ def build_canonical(rng, combo, kwargs_by_key):
     if "bullets" in combo:
         n = kwargs_by_key["bullets"]["num_bullets"]
         sents = _sentences(rng, max(n, len(kws) + 1), kws, forb)
-        text = "\n".join("* " + s for s in sents[:n])
+        lines = sents[:n]
+        if "n_words_min" in combo:
+            # lengthen bullets until the word minimum is met (words spread
+            # across the fixed bullet count)
+            need = kwargs_by_key["n_words_min"]["num_words"]
+            i = 0
+            while sum(len(ln.split()) for ln in lines) < need + 4:
+                lines[i % n] = lines[i % n][:-1] + " and the steady pace holds."
+                i += 1
+        text = "\n".join("* " + ln for ln in lines)
     else:
         text = " ".join(sents)
     if "title" in combo:
@@ -224,7 +234,7 @@ def build_canonical(rng, combo, kwargs_by_key):
     return text
 
 
-def generate(seed, n_prompts, sizes=(1, 2, 3)):
+def generate(seed, n_prompts, sizes=(1, 2, 3), exclude_prompts=frozenset()):
     """the registered generator: seed 0 for the training set. Returns
     rows shaped like IFEval rows + canonical + per-constraint mutations."""
     rng = random.Random(seed)
@@ -256,6 +266,8 @@ def generate(seed, n_prompts, sizes=(1, 2, 3)):
         task = f"Write a short account of {topic} for a neighborhood newsletter."
         phrases = [CONSTRAINTS[k]["phrase"](kwargs_by_key[k]) for k in combo]
         prompt = task + " " + " ".join(phrases)
+        if prompt in exclude_prompts:
+            continue
         canonical = build_canonical(rng, combo, kwargs_by_key)
         mutations = {k: CONSTRAINTS[k]["mutate"](canonical, kwargs_by_key[k]) for k in combo}
         rows.append({
@@ -292,3 +304,23 @@ def verify_rows(rows):
             if inst2.check_following(r["mutations"][key]):
                 failures.append((r["key"], key, "mutation_passes"))
     return len(rows) - len({f[0] for f in failures}), failures
+
+
+def constraint_spans(row, tok):
+    """registered proxy span construction (v3.1): token span of each
+    constraint's instruction sentence within the row's prompt, via the
+    tokenizer's char offsets. Fail-closed: every phrase must be found
+    exactly once and map to a nonempty token span."""
+    enc = tok.encode(row["prompt"])
+    spans = {}
+    for key, kw in zip(row["combo"], row["kwargs"]):
+        phrase = CONSTRAINTS[key]["phrase"](kw)
+        start = row["prompt"].find(phrase)
+        if start < 0 or row["prompt"].find(phrase, start + 1) >= 0:
+            raise ValueError(f"phrase not found exactly once: {key}")
+        end = start + len(phrase)
+        toks = [i for i, (a, b) in enumerate(enc.offsets) if a < end and b > start]
+        if not toks:
+            raise ValueError(f"empty token span: {key}")
+        spans[key] = (toks[0], toks[-1] + 1)
+    return spans

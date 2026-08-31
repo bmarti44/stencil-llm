@@ -91,3 +91,38 @@ def test_leak_firewall():
 def test_compat_matrix_committed_matches_code():
     committed = json.loads((ROOT / "data" / "b3" / "compat-matrix.json").read_text())
     assert committed == compat_matrix()
+
+
+def test_every_declared_pair_is_reachable():
+    """checkpoint-ii round-2 sol FINDING-2: declared-but-unreachable pairs
+    (insertion-order storage vs sorted lookup) must be impossible."""
+    m = compat_matrix()
+    for a, b in m["allowed_pairs"]:
+        assert combo_ok(sorted([a, b]), m), (a, b)
+    # and the committed matrix contains only canonically-ordered pairs
+    for a, b in m["allowed_pairs"]:
+        assert [a, b] == sorted([a, b])
+
+
+def test_dev_stream_disjoint_from_train():
+    train = {json.loads(line)["prompt"] for line in open(ROOT / "data" / "b3" / "train-2000.jsonl")}
+    dev = [json.loads(line) for line in open(ROOT / "data" / "b3" / "dev-200.jsonl")]
+    assert len(dev) == 200
+    assert not any(r["prompt"] in train for r in dev)
+
+
+def test_constraint_spans():
+    from tokenizers import Tokenizer
+
+    from stencil.b3_gen import constraint_spans
+    tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
+    rows = [json.loads(line) for line in open(ROOT / "data" / "b3" / "train-2000.jsonl")][:100]
+    for r in rows:
+        spans = constraint_spans(r, tok)
+        enc = tok.encode(r["prompt"])
+        assert set(spans) == set(r["combo"])
+        for key, (a, b) in spans.items():
+            assert 0 <= a < b <= len(enc.ids)
+            # the span's decoded text contains the phrase's anchor word
+            seg = tok.decode(enc.ids[a:b])
+            assert "Constraint" in seg or "constraint" in seg, (key, seg[:60])

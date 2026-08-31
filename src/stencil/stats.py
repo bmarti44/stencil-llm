@@ -6,8 +6,11 @@ margin, NaN at n01=0).
 
 delta = p10 - p01 is the population accuracy DROP (n10 = base right /
 wave wrong, n01 = converse). tango_upper_bound returns the one-sided
-(1-alpha) score upper confidence limit on delta by inverting Tango's
-score test; the constrained MLE of p01 under each delta0 is found by
+(1-alpha) NOMINAL (asymptotic score) upper confidence limit on delta
+by inverting Tango's score test — near-nominal in practice (recomputed
+exact type-I at the registered scenarios: 0.048 GSM8K boundary, 0.050
+MMLU boundary), but not an exact finite-sample interval and disclosed
+as such; the constrained MLE of p01 under each delta0 is found by
 direct bounded maximization of the trinomial log-likelihood (no
 closed-form sign-convention risk). Fail-closed: any non-convergence
 raises. NON-INFERIOR iff tango_upper_bound(...) < margin (STRICT,

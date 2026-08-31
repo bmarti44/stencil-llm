@@ -20,7 +20,7 @@ m = Qwen3()
 m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
 m = m.to(torch.bfloat16).cuda().eval()
 
-lens, t0 = [], time.time()
+lens, per_prompt_s, t0 = [], [], time.time()
 g = torch.Generator().manual_seed(5)
 for p in PROMPTS:
     ids = tok.encode(TMPL.format(p=p)).ids
@@ -39,11 +39,14 @@ for p in PROMPTS:
                        attn_bias={L: row for L in range(20, 28)}, capture_hidden=20)[0]
             nxt = int(logits[0, -1].argmax())
     lens.append(n)
+    per_prompt_s.append(round(time.time() - t0 - sum(per_prompt_s), 1))
 wall = time.time() - t0
 tot = sum(lens)
 tps = tot / wall
 ceiling_h = 541 * 5 * 1024 / tps / 3600
-out = {"gen_lens": lens, "total_tokens": tot, "wall_s": round(wall, 1),
+out = {"gen_lens": lens, "per_prompt_s": per_prompt_s,
+       "slowest_prompt_s": max(per_prompt_s),
+       "total_tokens": tot, "wall_s": round(wall, 1),
        "tokens_per_s_wave_style": round(tps, 2),
        "worst_case_ceiling_h_5x541xMAXNEW": round(ceiling_h, 1),
        "note": "ceiling assumes EVERY prompt hits max_new in EVERY arm; the sealed job registers crash-safe per-prompt persistence with resume-by-skip (no redraws)"}

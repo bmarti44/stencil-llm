@@ -441,3 +441,47 @@ templates, and no generated instruction sentence appears as a
 substring (word-normalized) of any 541 prompt nor vice versa,
 mechanically asserted; (c) semantic base tasks from a committed
 40-topic lexicon disjoint from 541 topics by the same substring check.
+
+## v3.2 — checkpoint-ii round-2 closures (sol FINDINGS 2/5/6; 2026-08-30)
+
+- MATRIX BUG FIXED (round-2 FINDING-2): compat pairs are now stored in
+  canonical sorted order (13 declared pairs had been silently
+  unreachable under combo_ok's sorted lookup); a test asserts every
+  declared pair is reachable. Structural conflicts surfaced by the fix
+  and registered as incompatible: n_sent x n_words_max; the bullets
+  builder now lengthens bullets to honor n_words_min. TRAIN RE-FROZEN:
+  train-2000.jsonl sha 54cd99f6..., sizes 664/672/664.
+- DEV STREAM FROZEN: dev-200.jsonl (seed 2, prompt-disjoint from train
+  by registered exclusion, sha 489d1a70...). Checkpoint selection =
+  lowest dev-200 CE. No other synthetic streams; held-family
+  evaluation happens ONLY on the 541 at B4 (per-family reporting).
+- TRAINING SCHEDULE FROZEN: Adam lr 1e-3 betas (0.9, 0.999) eps 1e-8;
+  5 epochs over train-2000, gradient accumulation 8, shuffle
+  generator seed 0, wave seeds s0=0 / s1=1 (torch.manual_seed);
+  checkpoint saved per epoch, selected by dev-200 CE; proxy twins:
+  identical schedule/rows, w0-proxy objective with span targets from
+  the registered constraint_spans() (committed + tested).
+- CONSUMER PATH FIXED (FINDING-5): the registered adapter
+  (make_wave_bias_fn) biases the PREFILL'S SCORED ROW from its own
+  h20 (the first response token is wave-influenced, matching the MMLU
+  registration) and each generation row thereafter; the test now
+  asserts a finite NONZERO field, a nonzero wave-vs-zero-field logit
+  differential on the same prefix, and deterministic repeat. A direct
+  regression test pins the return_hidden+cache guard.
+- RUNTIME CONTRACT (FINDING-6): b0_timing_long v2 records per-prompt
+  wall times; REGISTERED per-prompt timeout = 300 seconds (literal;
+  ~5x the ~52s max_new-saturated admission prompt); a timed-out item
+  is recorded truncated-timeout and its partial response is SCORED
+  AS-IS (deterministic, disclosed per item). Sealed record protocol:
+  each completed (key, arm) record is written to a temp file and
+  atomically renamed into the job's records/ directory (crash-safe;
+  no partial JSONL tails); resume scans records/, verifies the pinned
+  sha256s of model, wave/proxy checkpoints, tokenizer, dataset, and
+  runner code BEFORE skipping completed pairs; any hash mismatch
+  aborts the resume (fail-closed).
+- GSM8K (round-2 ruling): no regex match or invalid Decimal = item
+  scored WRONG (registered explicitly; never a job failure).
+- STATS WORDING: the Tango bound is disclosed as a NOMINAL asymptotic
+  score bound (recomputed exact type-I 0.048/0.050 at the registered
+  boundary scenarios), not an exact finite-sample interval; the pure-
+  degradation MMLU simulation added to the test suite.
