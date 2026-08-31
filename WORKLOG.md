@@ -1582,3 +1582,17 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   sign-off of the amendment.
 - The orchestrator-is-the-terminator rule applied: fleet killed on evidence at
   epoch 1, ~10h of knowably-collapsed runs saved.
+
+## 2026-08-31 — B2 MMLU leg (internal wave w0-ce): do-no-harm FAIL, recorded as the real finding it is
+
+- base 48.05% vs wave-w0ce 45.83% on the 5330 ok-items; discordants 175
+  degrade / 57 improve; Tango 95% upper bound on the drop 2.69pt >> 0.5pt
+  margin -> NON_INFERIOR false (results/qwen/b2-mmlu-gate.json).
+- Interpretation (registered): off-distribution gain firing — the INTERNAL
+  wave, trained on session-ledger focus, fires on MMLU prompts and hurts.
+  This is the removability probe's answer: w0-ce is NOT harmlessly attachable
+  off-distribution. The BINDING external-claim gate is the B4-era do-no-harm
+  rerun with the B3 benchmark wave; autopsy item registered for that report:
+  response-row gain histograms on MMLU for both waves (w0-ce vs b3).
+- Per-item records retained under results/qwen/b2-mmlu-*/ (untracked bulk;
+  summaries + gate committed).
