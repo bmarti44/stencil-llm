@@ -71,6 +71,7 @@ def generate_cached(m, tok, prompt, bias_fn=None, max_new=MAX_NEW, deadline_s=No
     from stencil.qwen3 import KVCache
 
     ids = tok.encode(TMPL.format(p=prompt)).ids
+    device = next(m.parameters()).device
     P = len(ids)
     cache = KVCache()
     out = []
@@ -87,7 +88,7 @@ def generate_cached(m, tok, prompt, bias_fn=None, max_new=MAX_NEW, deadline_s=No
     timed_out = False
     with torch.no_grad():
         hook = make_hook(0) if bias_fn is not None else None
-        logits = m(torch.tensor([ids], device="cuda"), cache=cache, bias_hook=hook)
+        logits = m(torch.tensor([ids], device=device), cache=cache, bias_hook=hook)
         nxt = int(logits[0, -1].argmax())
         while nxt not in EOS and len(out) < max_new:
             if deadline_s is not None and time.monotonic() - t0 > deadline_s:
@@ -95,7 +96,9 @@ def generate_cached(m, tok, prompt, bias_fn=None, max_new=MAX_NEW, deadline_s=No
                 break
             out.append(nxt)
             hook = make_hook(cache.length) if bias_fn is not None else None
-            logits = m(torch.tensor([[nxt]], device="cuda"), cache=cache, bias_hook=hook)
+            logits = m(
+                torch.tensor([[nxt]], device=device), cache=cache, bias_hook=hook
+            )
             nxt = int(logits[0, -1].argmax())
     return tok.decode(out), len(out), len(out) >= max_new, timed_out
 

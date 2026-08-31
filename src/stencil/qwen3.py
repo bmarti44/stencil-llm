@@ -150,7 +150,20 @@ class _Block(nn.Module):
         if attn_probe is not None:
             pm, sink = attn_probe
             probs = F.softmax(att, dim=-1)
-            sink[layer_idx] = float(probs[0, :, -1, :][:, pm].sum(-1).mean())
+            if pm.ndim == 1:
+                sink[layer_idx] = float(probs[0, :, -1, :][:, pm].sum(-1).mean())
+            elif pm.ndim == 2:
+                # CTRB needs the natural attention mass for whichever prompt
+                # span its frozen q/k readout selects.  Probe every declared
+                # span in the same forward so selection cannot introduce a
+                # second-forward semantic mismatch.  The legacy 1-D contract
+                # above remains bit-for-bit unchanged.
+                last = probs[0, :, -1, :]
+                sink[layer_idx] = [
+                    float(last[:, row].sum(-1).mean()) for row in pm
+                ]
+            else:
+                raise ValueError("attn_probe mask must be [T] or [S,T]")
         out = (F.softmax(att, dim=-1) @ v.float()).to(x.dtype)
         out = out.transpose(1, 2).reshape(b, t, c.n_head * c.head_dim)
         x = x + self.o_proj(out)

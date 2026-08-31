@@ -1808,3 +1808,26 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   Evidence gates BEFORE any training: (A) free temporal replay on existing
   records; (B) fresh causal branch pilot.
 - Execution remains gated on the REGISTERED post-Multi-IF decision rule.
+
+## 2026-08-31 — CTRB implemented (sol coder) and SMOKE-PROVEN; no fallback needed
+
+- Brian killed Multi-IF to fund immediate CTRB implementation. sol (xhigh,
+  write access) built src/stencil/ctrb.py (six-feature conflict trajectory,
+  deterministic hazard gate, draft-confirm, <=4-token burst + 8-token
+  refractory, generate_ctrb), src/stencil/causal_moments.py (deterministic
+  A=0/A=1 branch labeler), scripts/ctrb_smoke.py, tests/test_ctrb.py.
+  Sol's sandbox hid the GPU; it fail-closed honestly rather than fake results.
+- Orchestrator verification: 12/12 battery green on GPU (bitwise base when
+  silent; burst/refractory enforced via intervention log; branches repeat
+  bitwise). One test bug fixed (strict zip on offset pairs).
+- Smoke progression: uniform moments on passing rows -> all neutral (sampling
+  flaw); uniform on base-FAILING rows -> 1 helpful/30 (mechanism CAN rescue);
+  CONFLICT-GUIDED sampling on failing rows -> 4 helpful + 1 harmful / 36 (11%
+  vs 3% — the conflict features enrich for causally useful moments). All
+  success criteria met (three label kinds, finite features, deterministic
+  fit). Registered fallback NOT invoked.
+- State: the causal-moment labeling pipeline works end-to-end with
+  conflict-guided enrichment. Next (Brian to steer): scale label collection
+  (hundreds of moments), train the hazard gate on causal labels with
+  family/topic holdout, evaluate against the registered discrimination +
+  safe-dose gates — and/or resume Multi-IF for the arena question.
