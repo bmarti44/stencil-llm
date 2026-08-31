@@ -1401,3 +1401,15 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   two-seed gates, IFBench prereg timing). B0 executes: vendoring +
   goldens (CPU) -> provenance/parity -> timing admission. W3a
   reproduction audit continues in background (12/96, 0 mismatches).
+- 2026-08-30, B0.2 vendoring landed: 4 lm-eval ifeval files (hashes in
+  git) with imports relativized and the import-time punkt_tab download
+  patched to an in-repo assert (one mangled patch caught by syntax
+  error and repaired); punkt_tab committed under vendor/nltk_data;
+  langdetect/immutabledict/nltk pinned; IFEval input_data.jsonl (541,
+  sha256 67ffeee0...) committed under data/bench. 25 instruction
+  classes registered; 25 present in the 541. Smoke lesson: langdetect
+  calls 2-word all-caps text Somali — goldens must use realistic
+  lengths, and langdetect.DetectorFactory.seed MUST be pinned in the
+  runner (internal randomness — determinism landmine neither review
+  named). Next: per-class positive+negative goldens (TDD) + upstream
+  aggregate parity + the runner with pinned template.
