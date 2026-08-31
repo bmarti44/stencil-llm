@@ -1596,3 +1596,16 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   response-row gain histograms on MMLU for both waves (w0-ce vs b3).
 - Per-item records retained under results/qwen/b2-mmlu-*/ (untracked bulk;
   summaries + gate committed).
+
+## 2026-08-31 — B3 synthetic ablations (registered v3.3 controls): addressing is the mechanism
+
+- dev-200 task CE: base 5.7766; wave 4.4633/4.4725 (s0/s1); proxy 5.8577/5.8595.
+- K-PERMUTATION (addressing destroyed, gain kept): wave 5.967 — the entire
+  improvement vanishes and goes below base. UNIFORM MATCHED-GAIN field: 6.545 —
+  uniformly-spread bias actively harms. The wave's gain is saturated at 2.0 on
+  every response row in every arm (histogram all-in-top-bin; gain head
+  decorative as preregistered in the v3.3 addendum).
+- Reading: the trained wave helps ONLY through WHERE it points attention
+  (constraint spans), not through the existence of a bias. The proxy control
+  (span-supervised, no CE feedback) sits at base level — the task-CE objective
+  package is what finds the useful addressing.
