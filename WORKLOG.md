@@ -1609,3 +1609,12 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   (constraint spans), not through the existence of a bias. The proxy control
   (span-supervised, no CE feedback) sits at base level — the task-CE objective
   package is what finds the useful addressing.
+
+## 2026-08-31 — B2 GSM8K leg (internal wave w0-ce): do-no-harm FAIL (milder), B2 complete
+
+- base 75.66% vs wave-w0ce 74.37% (full 1319, 4-shot); discordants 80/63;
+  Tango upper 2.80pt > 1.0pt margin -> NON_INFERIOR false. Zero timeouts,
+  1 truncation per arm. Both B2 probes (MMLU 2.69pt bound, GSM8K 2.80pt bound)
+  agree: w0-ce fires off-distribution and harms. B2 CLOSED as a recorded
+  honest finding; the binding external-claim gate remains the B4-era rerun
+  with the B3 wave.
