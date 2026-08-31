@@ -1347,3 +1347,14 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   close. Brian's new directive logged: figure out generalization to
   ANY situation (not this harness, not just IFEval) — the universal-
   focus charter, to be drafted after close.
+- 2026-08-30, W3 RESULTS fable verification: CLEARED — all W3a/W3b
+  numbers recompute exactly; contamination coverage audited SOUND
+  (build_arm_prompt incl. reinsertion reminder checked pre-tokenization,
+  single renderer); one-shot discipline clean (pin commits precede
+  runs); eligibility implementation coincides exactly with the frozen
+  wording. KEY REFRAME: where_acc 0.2526 conflates WHEN with WHERE —
+  conditional on a non-NULL readout the wave is 73/73 = 100% CORRECT
+  (traced above-theta subset 7/15 in-span, all type-correct): the focus
+  audit trail is SPARSE, never wrong. Flags: report p as 3.6e-12 (JSON
+  0.0 is a rounding artifact); trace entries lack session ids (minor).
+  Awaiting sol's parallel results review.
