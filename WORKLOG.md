@@ -1685,3 +1685,20 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   4. Trainer: EOS in targets; obligation-span CE upweighting.
   5. Topic split 30 train / 10 dev-only (true generalization holdout).
   6. beta_max 1.0 at retrain (fable).
+
+## 2026-08-31 — v4.4 pilot: gate FAIL again (base 0.8418, wave-s0 0.7959)
+
+- The full rework (curated natural data, obligation-weighted CE + EOS,
+  beta_max 1.0) cut the harm from -11.0pts to -4.6pts — direction right,
+  outcome still a FAIL vs the registered base+2 gate. Dev task CE 1.50
+  (vs 4.46 old recipe): the objective now concentrates where the prompt
+  matters, yet free-generation adherence still degrades.
+- Dose sweep on the retrained wave running (x0.5, x0.25). If NO dose beats
+  base+2, both the amplitude story and the objective story are closed for
+  this recipe family, and the program-level question goes to the reviewers
+  and Brian: the emerging scope hypothesis is that the wave mechanism helps
+  when focus-critical information is PROVABLY OUT OF REACH (W3 sealed win:
+  +18.5pts with the ledger chunk-deleted) and is parity-to-harmful when the
+  base model can already read the prompt (all B3 gates, both B2 probes).
+  That is a coherent boundary for the theory, not a failure of the toy-scale
+  results — but it bounds the IFEval claim as registered.
