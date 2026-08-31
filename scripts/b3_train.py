@@ -30,7 +30,7 @@ import torch
 import torch.nn.functional as F
 from tokenizers import Tokenizer
 
-from stencil.b3_gen import constraint_spans
+
 from stencil.bench import TMPL, WAVE_LAYERS
 from stencil.qwen3 import Qwen3
 from stencil.wave import WaveController
@@ -56,22 +56,58 @@ def load_rows(name):
     return [json.loads(line) for line in open(ROOT / "data" / "b3" / name)]
 
 
+EOS_ID = 151645
+OBLIGATION_W = 8.0
+
+
+def encode_row_v43(row):
+    """(full ids, P, per-target-token weights) for a v4.3 row: canonical
+    token weights from obligation_spans (x8), EOS appended (x8)."""
+    ptxt = TMPL.format(p=row["prompt"])
+    enc_p = tok.encode(ptxt)
+    P = len(enc_p.ids)
+    enc_c = tok.encode(row["canonical"])
+    ids = enc_p.ids + enc_c.ids + [EOS_ID]
+    w = [1.0] * len(enc_c.ids) + [OBLIGATION_W]  # EOS supervised, weighted
+    spans = [tuple(x) for sp in row["obligation_spans"].values() for x in sp]
+    for ti, (a, b) in enumerate(enc_c.offsets):
+        if any(a < e and b > s0 for s0, e in spans):
+            w[ti] = OBLIGATION_W
+    import torch as _t
+    return (_t.tensor([ids], device="cuda"), P, _t.tensor(w, device="cuda"))
+
+
+def prompt_constraint_spans(row, enc):
+    """token spans of each 'Constraint: ...' sentence in the templated
+    prompt (v4.3 rows carry the phrases verbatim in the prompt)."""
+    ptxt = TMPL.format(p=row["prompt"])
+    spans, start = [], 0
+    while True:
+        i = ptxt.find("Constraint:", start)
+        if i < 0:
+            break
+        j = ptxt.find("Constraint:", i + 1)
+        end = j if j > 0 else ptxt.find("<|im_end|>", i)
+        toks = [ti for ti, (a, b) in enumerate(enc.offsets) if a < end and b > i]
+        if toks:
+            spans.append((toks[0], toks[-1] + 1))
+        start = i + 1
+    if len(spans) != len(row["combo"]):
+        raise ValueError(f"constraint span count mismatch: {len(spans)} vs {len(row['combo'])}")
+    return spans
+
+
 def encode_row(row):
-    """(full ids tensor, P, span list) for one training row."""
+    """(full ids tensor, P, prompt-side constraint span list)."""
     ptxt = TMPL.format(p=row["prompt"])
     enc = tok.encode(ptxt)
     P = len(enc.ids)
     code_ids = tok.encode(row["canonical"]).ids
     full = torch.tensor([enc.ids + code_ids], device="cuda")
-    # constraint spans are indexed on the BARE prompt encoding; shift by
-    # the template prefix length before the {p} slot
-    prefix = TMPL.split("{p}")[0]
-    off = len(tok.encode(prefix).ids)
-    spans = [(a + off, b + off) for (a, b) in constraint_spans(row, tok).values()]
-    return full, P, spans
+    return full, P, prompt_constraint_spans(row, enc)
 
 
-def forward_loss(wave, full, P, spans):
+def forward_loss(wave, full, P, spans, tw=None):
     T = full.shape[1]
     with torch.no_grad():
         h = m(full, return_hidden=20)[0].float()
@@ -96,7 +132,11 @@ def forward_loss(wave, full, P, spans):
     bias[P - 1:T - 1, :P] = field
     logits = m(full, attn_bias={L: bias for L in WAVE_LAYERS})[0].float()
     targets = full[0, P:]
-    ce = F.cross_entropy(logits[P - 1:T - 1], targets)
+    if tw is not None:  # v4.3 obligation-weighted CE (incl. EOS)
+        per = F.cross_entropy(logits[P - 1:T - 1], targets, reduction="none")
+        ce = (per * tw).sum() / tw.sum()
+    else:
+        ce = F.cross_entropy(logits[P - 1:T - 1], targets)
     return ce if LAM == 0 else ce + LAM * wave.gain(H).sum()
 
 
@@ -122,17 +162,17 @@ def dev_task_ce(wave, dev_rows):
 
 
 def main():
-    train = load_rows("train-2000.jsonl")
-    dev = load_rows("dev-200.jsonl")
+    train = load_rows("train-v43.jsonl")
+    dev = load_rows("dev-v43.jsonl")
     if SMOKE:
         train, dev = train[:4], dev[:2]
     torch.manual_seed(SEED)
-    wave = WaveController().cuda()
+    wave = WaveController(beta_max=1.0).cuda()  # v4.3: capped gain (fable)
     opt = torch.optim.Adam(wave.parameters(), lr=1e-3, betas=(0.9, 0.999), eps=1e-8)
     g = torch.Generator().manual_seed(0)  # frozen shuffle seed
     rec = {"obj": OBJ, "seed": SEED, "epochs": [],
            "data_sha256": {n: hashlib.sha256((ROOT / "data" / "b3" / n).read_bytes()).hexdigest()
-                           for n in ("train-2000.jsonl", "dev-200.jsonl")},
+                           for n in ("train-v43.jsonl", "dev-v43.jsonl")},
            "trainer_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
     t0 = time.time()
     for ep in range(EPOCHS):
@@ -140,8 +180,12 @@ def main():
         run, nstep = 0.0, 0
         opt.zero_grad()
         for j, idx in enumerate(perm):
-            full, P, spans = encode_row(train[idx])
-            loss = forward_loss(wave, full, P, spans) / ACCUM
+            if OBJ == "ce":
+                full, P, tw = encode_row_v43(train[idx])
+                loss = forward_loss(wave, full, P, None, tw=tw) / ACCUM
+            else:
+                full, P, spans = encode_row(train[idx])
+                loss = forward_loss(wave, full, P, spans) / ACCUM
             loss.backward()
             run += float(loss) * ACCUM
             nstep += 1

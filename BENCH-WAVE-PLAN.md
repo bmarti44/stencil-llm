@@ -613,3 +613,24 @@ sign-off of this amendment.
   three-arm table (base, wave-s0, proxy-s0), full pin set, real
   deadline, timeout field; exploratory scope unchanged (no two-seed or
   external-validation claims from it).
+
+## v4.4 — B3 recipe amendment (PENDING REVIEW; pilot evidence attached
+when ready; 2026-08-31)
+
+Registered dev-gate FAIL for the v3-recipe waves (base 0.865, wave-s0
+0.755, wave-s1 0.790, proxy-s0 0.845) triggered the dual failure
+analysis + dual data curation (WORKLOG). Amended recipe, per the
+converged reviewer prescription:
+- DATA: v4.3 curated streams FROZEN (train-v43 1932 rows sha 8a5b083c,
+  dev-v43 196 rows sha 4ca86881; sol hand-curation + independent
+  re-verification; dev topics DISJOINT from train).
+- TRAINER: obligation-span weighted CE (x8 on obligation tokens),
+  EOS supervision (id 151645, x8), beta_max 1.0, LAM 0, otherwise the
+  frozen v3.2 schedule (Adam 1e-3, 5 epochs, accum 8, shuffle seed 0,
+  seeds 0/1, unrounded dev task CE selection).
+- GATE: same registered dev generation gate on dev-v43 (196):
+  each wave seed >= base + 2.0pts strict adherence; base re-measured
+  on dev-v43.
+- FIREWALL disclosure: postscript_marker 'P.P.S' exempt from kwargs
+  disjointness (upstream regex-escape landmine forces the special-
+  cased marker; the postscript VALUE varies per row from the prompt).
