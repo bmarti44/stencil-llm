@@ -109,3 +109,33 @@ def test_aggregate_math():
     assert agg["inst_level_strict_acc"] == 0.75
     assert agg["prompt_level_loose_acc"] == 1.0
     assert agg["inst_level_loose_acc"] == 1.0
+
+
+def test_consumer_path_trained_wave_through_cache(setup):
+    """checkpoint-ii FINDING-5 (sol): exercise cached generation through
+    the ACTUAL trained WaveController (the sealed internal-wave ckpt
+    w0-ce.pt) — deterministic repeat + demonstrably reaches logits.
+    Re-run at pre-B4 with the trained BENCHMARK wave before sealing."""
+    from pathlib import Path
+
+    from stencil.bench import generate_cached
+    from stencil.wave import WaveController
+    root = Path(__file__).resolve().parent.parent
+    m, tok = setup
+    ctrl = WaveController().cuda()
+    ctrl.load_state_dict(torch.load(root / "results" / "qwen" / "w0-ce.pt", map_location="cpu"))
+    ctrl = ctrl.eval()
+    state = {}
+
+    def bias_fn(h20, P, past):
+        if past == 0:  # prefill: stash prompt h20 as the wave's ledger keys
+            state["K"] = h20[0, :P].float()
+            return None
+        row_p = ctrl(h20[0, -1:].float(), state["K"])  # [1, P]
+        row = torch.zeros(1, past + 1, device="cuda")
+        row[0, :P] = row_p[0]
+        return row
+    a = generate_cached(m, tok, SMOKE, bias_fn=bias_fn, max_new=48)
+    b = generate_cached(m, tok, SMOKE, bias_fn=bias_fn, max_new=48)
+    assert a == b
+    assert a[1] > 0

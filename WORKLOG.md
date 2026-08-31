@@ -1479,3 +1479,36 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   (key mod 3: echo/upper-echo/fixed JSON — no per-prompt inspection; single-use
   invariant intact) → all 541 per-prompt dicts AND all four aggregates exactly
   equal vs isolated lm_eval==0.4.8. results/qwen/b0-score-parity.json PASS true.
+
+## 2026-08-30 — checkpoint-ii round 1: dual verdicts + correction pass; w3a audit clean
+
+- sol (held session): R3 ACCEPT; R1/R2 ACCEPT-WITH-CHANGES; R4/R5 REJECT.
+  fable (empirical): every artifact number reproduced (drift figures exact,
+  vendor diff = only the 2 declared patches, data pins re-downloaded and
+  re-hashed, single-use invariant grep-verified); independently killed the same
+  statistics rule with Monte Carlo (type-I 0.498 at margin; NaN at n01=0).
+  Convergent CRITICAL: the Clopper-Pearson plug-in non-inferiority rule was
+  invalid AND mislabeled "Tango". Severity resolution: stricter reading governs.
+- Corrections landed:
+  * src/stencil/stats.py: the REGISTERED v2.2 Tango score bound (constrained
+    trinomial MLE by bounded maximization, bisection inversion, fail-closed);
+    tests/test_noninferiority.py 8/8 incl. both reviewers' counterexamples
+    (type-I <= 0.08 at the margin; perfect-run case now passes instead of NaN;
+    strict < margin restored).
+  * b0_identity v2: drift now FULL-vocab (worst_err 0.7679); claim rescoped —
+    identity by hashes + behavioral PASS + magnitude gate recorded FAILED.
+  * results/qwen/b0-kv-drift.json: committed per-step drift/margins/agreement;
+    KV docstring rescoped (argmax stability guaranteed only at margin > 2D;
+    agreement = empirical, fixture-local).
+  * Consumer-path test: cached generation through the ACTUAL sealed trained
+    WaveController (w0-ce.pt) deterministic (to re-run at pre-B4 with the
+    benchmark wave). return_hidden+cache now raises (latent cache corruption).
+  * pins-manifest: gsm8k train hash + demos sha256 added.
+  * b0_timing_long.py running (long-output admission, FINDING-6).
+- Still open for round 2: protocol freezes (MMLU loglik wave semantics +
+  single-token assert; GSM8K literal serialization; Multi-IF 2727-turn
+  semantics), B3 generator/matrix materialization (sol FINDING-2), runtime
+  ceiling + resume-by-skip registration.
+- W3a reproduction audit COMPLETE: 96/96 full-hash exact, 0 mismatches,
+  broken counts match sealed (results/qwen/w3a-audit.json). The clean-format
+  win is reproduction-verified; no report changes needed.

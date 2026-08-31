@@ -165,6 +165,11 @@ class Qwen3(nn.Module):
         offset = cache.length if cache is not None else 0
         cos, sin = _rope(tokens.shape[1], tokens.device, offset)
         captured = None
+        if return_hidden is not None and cache is not None:
+            raise ValueError(
+                "return_hidden early-returns before cache.length updates and "
+                "before layers >= i append k/v — it would corrupt the cache; "
+                "use capture_hidden with cache instead")
         for i, block in enumerate(self.layers):
             if return_hidden is not None and i == return_hidden:
                 return x

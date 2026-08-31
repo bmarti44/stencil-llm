@@ -13,9 +13,11 @@ Amended acceptance (conservative reading, flagged for review):
 1. The CACHED path is the deployment semantics for every benchmark arm
    (base and wave alike) — it must be bitwise self-deterministic.
 2. Cross-path drift vs full forward is characterized and bounded
-   (logits <= 1.0 no-bias / 2.0 bias along the full-path trajectory),
-   and top-1 must agree at every step whose full-path margin exceeds
-   the bound.
+   (logits <= 1.0 no-bias / 2.0 bias along the full-path trajectory —
+   fixture-local characterization, not a global bound). Argmax
+   stability follows mathematically only where margin > 2*bound; the
+   per-step top-1 agreement asserted below is an empirical check on
+   this fixture, committed as results/qwen/b0-kv-drift.json.
 3. capture_hidden (single-pass h20 for the wave controller) must match
    return_hidden within 5% of the activation's max magnitude and
    cosine >= 0.999.
