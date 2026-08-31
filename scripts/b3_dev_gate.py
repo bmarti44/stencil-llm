@@ -1,5 +1,5 @@
 # ruff: noqa
-"""B3 dev-200 GENERATION adherence gate (v4.1, registered before this
+"""B3 dev GENERATION adherence gate (v4.1 registration, v4.4 data:
 run): five arms generate on the dev-200 synthetic prompts (B4 decoding:
 pinned template, cached greedy, max_new 1024, 300s deadline); metric =
 strict-prompt adherence (ALL of a row's constraints pass the VENDORED
@@ -21,17 +21,22 @@ import langdetect
 langdetect.DetectorFactory.seed = 0
 from ifeval import instructions_registry
 
-ARMS = [("base", None), ("wave-s0", "results/qwen/b3-ce-s0.pt"),
-        ("proxy-s0", "results/qwen/b3-proxy-s0.pt"),
-        ("wave-s1", "results/qwen/b3-ce-s1.pt"),
-        ("proxy-s1", "results/qwen/b3-proxy-s1.pt")]
+import os
+if os.environ.get("PILOT"):
+    ARMS = [("base", None), ("wave-s0", "results/qwen/b3-ce-s0.pt")]
+else:
+    ARMS = [("base", None), ("wave-s0", "results/qwen/b3-ce-s0.pt"),
+            ("proxy-s0", "results/qwen/b3-proxy-s0.pt"),
+            ("wave-s1", "results/qwen/b3-ce-s1.pt"),
+            ("proxy-s1", "results/qwen/b3-proxy-s1.pt")]
+BETA_MAX = 1.0  # v4.4
 
 tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
 m = Qwen3()
 m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
 m = m.to(torch.bfloat16).cuda().eval()
-rows = [json.loads(line) for line in open(ROOT / "data" / "b3" / "dev-200.jsonl")]
-assert len(rows) == 200
+rows = [json.loads(line) for line in open(ROOT / "data" / "b3" / "dev-v43.jsonl")]
+assert len(rows) == 196
 
 def adherent(row, text):
     random.seed(row["key"])
@@ -42,13 +47,13 @@ def adherent(row, text):
             return False
     return True
 
-outdir = ROOT / "results" / "qwen" / "b3-dev-gate"
+outdir = ROOT / "results" / "qwen" / "b3v43-dev-gate"
 outdir.mkdir(parents=True, exist_ok=True)
 acc = {}
 for name, path in ARMS:
     ctrl = None
     if path is not None:
-        ctrl = WaveController().cuda()
+        ctrl = WaveController(beta_max=BETA_MAX).cuda()
         ctrl.load_state_dict(torch.load(ROOT / path, map_location="cpu"))
         ctrl = ctrl.eval()
     n_ok = 0
@@ -67,13 +72,14 @@ for name, path in ARMS:
                                    "response": text}, ensure_ascii=False))
         tmp.rename(rec_p)
         if i % 50 == 0:
-            print(f"[{name}] {i}/200 adh {n_ok/(i+1):.3f}", flush=True)
-    acc[name] = n_ok / 200
+            print(f"[{name}] {i}/{len(rows)} adh {n_ok/(i+1):.3f}", flush=True)
+    acc[name] = n_ok / len(rows)
     print(f"[{name}] adherence {acc[name]:.4f}", flush=True)
 
-gate = {"adherence": {k: round(v, 4) for k, v in acc.items()},
-        "gate_wave_s0": bool(acc["wave-s0"] - acc["base"] >= 0.02),
-        "gate_wave_s1": bool(acc["wave-s1"] - acc["base"] >= 0.02)}
-gate["PASS"] = gate["gate_wave_s0"] and gate["gate_wave_s1"]
+gate = {"adherence": {k: round(v, 4) for k, v in acc.items()}}
+for arm in acc:
+    if arm.startswith("wave"):
+        gate[f"gate_{arm}"] = bool(acc[arm] - acc["base"] >= 0.02)
+gate["PASS"] = all(v for k, v in gate.items() if k.startswith("gate_"))
 print(json.dumps(gate, indent=1))
-(ROOT / "results" / "qwen" / "b3-dev-gate.json").write_text(json.dumps(gate, indent=1))
+(ROOT / "results" / "qwen" / "b3v43-dev-gate.json").write_text(json.dumps(gate, indent=1))
