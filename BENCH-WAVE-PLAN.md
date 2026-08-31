@@ -237,3 +237,10 @@ revisions, and committed item manifests replace the two generic seeds.
   margin. Exact-binomial McNemar remains ONLY for the superiority
   gates (IFEval primary, causal), where the zero-margin null is the
   correct test.
+
+## v2.3 (sol round 4)
+
+- The undefined "exact-conditional fallback" is REMOVED: the
+  non-inferiority procedure FAILS CLOSED — if the Tango score
+  iteration does not converge, the gate result is FAIL (reported as
+  numerical-failure, not as a policy verdict), no fallback method.
