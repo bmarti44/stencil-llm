@@ -1335,3 +1335,15 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   pressing helps, which is not a rule label. Both gates recorded as
   honest negatives on these specific formulations; trace artifact
   saved. W3a next.
+- 2026-08-30, W3a SEALED: **CLEAN-FORMAT WIN; CAUSAL HOLDS**
+  (results/qwen/w3a.json; 96 s0c sessions, contamination 0 across all
+  arms/prompts): base 36.6 / WAVE 55.1 (closure 1.1935, dU 181, only 2
+  broken, parse 93.3 -> 98.4) / oracle 52.1 / proxy 49.7 (closure
+  0.845, valid) / reinsertion 53.1 (validity FAILS, 26 broken);
+  headroom 0.155 binds; causal 185 > 131. Brian's asterisk-1 directive
+  is answered with a sealed result: the wave's pointing generalizes to
+  an unseen instruction format with the trained form absent — meaning,
+  not surface. W3 results review (both reviewers) next, then program
+  close. Brian's new directive logged: figure out generalization to
+  ANY situation (not this harness, not just IFEval) — the universal-
+  focus charter, to be drafted after close.
