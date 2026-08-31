@@ -94,3 +94,38 @@ template, generator, canonical builders. Reviews: (i) this plan,
 Playbook governs (pipefail, consumer-path tests, per-work records in
 sealed artifacts, no top-level work in imported scripts). Every claim
 scoped to the verified checkpoint identity and greedy decoding.
+
+## v1.1 (fable checkpoint-i edits; sol round pending)
+
+- B0.1 SETTLED by fable's file-level audit: the local shards are
+  BITWISE Qwen/Qwen3-1.7B (instruct) — shard sha256 169ad53e... /
+  912becff... match the HF LFS hashes; Base excluded (different repo
+  shape/hash). Remaining B0.1 work: fresh logit-parity spot check of
+  qwen3-1.7b.pt vs shards; record both shard hashes in the artifact.
+- B0.2 additions: ONE-TIME pinned downloads (exact revision + sha256
+  recorded, files committed): IFEval input_data.jsonl (541), MMLU
+  subset source, GSM8K subset, Multi-IF English subset; NO `datasets`
+  dependency. Verifier vendoring: the 4 lm-eval ifeval files +
+  langdetect/immutabledict/nltk pinned in pyproject + punkt_tab
+  COMMITTED to the repo with instructions_util's TOP-LEVEL
+  download_nltk_resources() call patched to a local-path assert (the
+  no-top-level-work rule applies to vendored code); confirm `random`
+  unused on the checking path. Fixtures must include one
+  sentence-count (nltk) and one langdetect constraint. Chat template:
+  pinned deterministic f-string for non-thinking single-turn,
+  verified against HF apply_chat_template in an ISOLATED oracle env
+  (convert-script pattern); stop on token 151645; greedy.
+- Checkpoint-ii registration list (frozen before B0.3): max_new;
+  stop rule; Multi-IF English subset size; MMLU subset source split +
+  shuffling procedure.
+- B3 additions: an explicit CONSTRAINT-COMPATIBILITY MATRIX (JSON
+  cannot co-occur with bullets/paragraphs/start-end; end-with is
+  exact-suffix; word counts use the VERIFIER'S tokenizer); the
+  keyword-forbidden generator excludes stopwords and the entire
+  filler-template lexicon; every canonical response verified by the
+  VENDORED checker before freeze.
+- B4: exact one-sided BINOMIAL McNemar; the full discordant table
+  (b, c) goes in the artifact.
+- FIREWALL: B3 generator parameters/phrasings may not be derived from
+  inspection of per-prompt B1 IFEval failures (taxonomy-level use
+  only) — closes the B1->B4 adaptive-leak path.
