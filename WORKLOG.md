@@ -1831,3 +1831,9 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   (hundreds of moments), train the hazard gate on causal labels with
   family/topic holdout, evaluate against the registered discrimination +
   safe-dose gates — and/or resume Multi-IF for the arena question.
+
+## 2026-08-31 — Multi-IF restart: provenance fail-closed on sol's library edits
+
+- Resume refused (registered pin set includes bench.py/qwen3.py, both modified
+  by the CTRB work). 18 pre-edit base conversations DISCARDED (exploratory run,
+  no seal; regenerating under current code rather than mixing versions).
