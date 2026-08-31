@@ -159,6 +159,7 @@ class Qwen3(nn.Module):
         return_hidden: int | None = None,
         cache: "KVCache | None" = None,
         capture_hidden: int | None = None,
+        bias_hook=None,  # (layer, fn): at layer-input, attn_bias = fn(x)
     ) -> torch.Tensor:
         x = self.embed_tokens(tokens)
         offset = cache.length if cache is not None else 0
@@ -169,6 +170,8 @@ class Qwen3(nn.Module):
                 return x
             if capture_hidden is not None and i == capture_hidden:
                 captured = x
+            if bias_hook is not None and i == bias_hook[0]:
+                attn_bias = bias_hook[1](x)
             x = block(
                 x, cos, sin,
                 None if inj is None else inj.get(i),

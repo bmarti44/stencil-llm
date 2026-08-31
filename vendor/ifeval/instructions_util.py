@@ -34,8 +34,7 @@ RANK = os.environ.get("LOCAL_RANK", "0")
 
 
 def download_nltk_resources():
-    """Download 'punkt' if not already installed (UNUSED after the
-    vendoring patch below — retained for upstream diffability)."""
+    """Download 'punkt' if not already installed"""
     assert (nltk_version := parse_version(version("nltk"))) >= parse_version(
         NLTK_MIN_VERSION
     ), (

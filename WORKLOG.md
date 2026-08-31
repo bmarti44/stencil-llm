@@ -1455,3 +1455,27 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
 - Pending checkpoint-ii items now: (a) HF parity magnitude bound 0.6955 vs 0.5;
   (b) this KV parity amendment; (c) freeze list (max_new, MMLU-Redux revision,
   GSM8K demos/extractor, Multi-IF size, Tango details).
+
+## 2026-08-30 — B0.3 runner core + four-metric aggregate parity PASS (with two real catches)
+
+- src/stencil/bench.py: load/score/aggregate over the vendored verifiers +
+  generate_cached (THE single generator for every arm: pinned template, KV-cached
+  greedy, EOS/max_new registered). Wave bias enters via a mid-forward bias_hook at
+  layer 20 — SAME-position h20 semantics (train-time teacher forcing = test-time),
+  no second forward. tests/test_bench_runner.py 6/6 (hook==direct-bias bitwise;
+  hook sees exactly return_hidden's tensor; generator deterministic; wave path
+  demonstrably reaches logits).
+- CATCH 1 (version skew): our vendored verifiers came from lm-eval MAIN, not the
+  pip pin — the highlight-stripping regex differed (greedy 0.4.8/Google vs
+  non-greedy main). Re-vendored bitwise from lm_eval==0.4.8 + our two patches
+  (relative imports, no import-time nltk download). External comparability anchors
+  to the reproducible pip pin.
+- CATCH 2 (upstream nondeterminism): build_description draws a RANDOM letter from
+  global random state when kwargs are invalid — exactly 2 of the 541 (keys 1122,
+  1129: letter_frequency with non a-z letters) are random-state-sensitive, i.e.
+  published IFEval scoring of those rows is nondeterministic upstream. Registered
+  pin: random.seed(row key) per row in scorer + parity worker; disclosed.
+- scripts/b0_score_parity.py (registered H1): fixed programmatic response set
+  (key mod 3: echo/upper-echo/fixed JSON — no per-prompt inspection; single-use
+  invariant intact) → all 541 per-prompt dicts AND all four aggregates exactly
+  equal vs isolated lm_eval==0.4.8. results/qwen/b0-score-parity.json PASS true.
