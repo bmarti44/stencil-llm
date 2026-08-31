@@ -3,8 +3,9 @@
 proxy twin, per the v3.2 FROZEN schedule: Adam(1e-3, (0.9,0.999), 1e-8),
 5 epochs over data/b3/train-2000.jsonl, accumulation 8, shuffle seed 0,
 controller seeds s0=0 / s1=1, checkpoint per epoch, SELECTED by lowest
-dev-200 CE (both objectives select on the wave-CE metric of their own
-biased forward; proxy selects on its own objective loss on dev).
+UNROUNDED dev-200 TASK CE — objective-independent: each controller's
+field through the frozen trunk, CE only (no gain penalty, no proxy
+losses) — tie-break: lowest epoch index (round-3 FINDING-2 closure).
 
 OBJ=ce|proxy SEED=0|1. Wave semantics identical to w0_train.py: h20 =
 layer-20 input; K = prompt rows detached; H = generating rows detached;
@@ -99,13 +100,24 @@ def forward_loss(wave, full, P, spans):
     return ce + LAM * wave.gain(H).sum()
 
 
-def dev_loss(wave, dev_rows):
+def task_ce(wave, full, P):
+    """objective-INDEPENDENT selection metric: this controller's field
+    through the frozen trunk, plain CE on the canonical tokens."""
+    T = full.shape[1]
+    h = m(full, return_hidden=20)[0].float()
+    field = wave.field(h[P - 1:T - 1], h[:P])
+    bias = torch.zeros(T, T, device="cuda")
+    bias[P - 1:T - 1, :P] = field
+    logits = m(full, attn_bias={L: bias for L in WAVE_LAYERS})[0].float()
+    return float(F.cross_entropy(logits[P - 1:T - 1], full[0, P:]))
+
+
+def dev_task_ce(wave, dev_rows):
     tot = 0.0
     for row in dev_rows:
-        full, P, spans = encode_row(row)
+        full, P, _ = encode_row(row)
         with torch.no_grad():
-            loss = forward_loss(wave, full, P, spans)
-        tot += float(loss)
+            tot += task_ce(wave, full, P)
     return tot / len(dev_rows)
 
 
@@ -141,14 +153,15 @@ def main():
                       f"({time.time() - t0:.0f}s)", flush=True)
         opt.step()
         opt.zero_grad()
-        d = dev_loss(wave, dev)
+        d = dev_task_ce(wave, dev)
         ck = ROOT / "results" / "qwen" / f"b3-{OBJ}-s{SEED}-ep{ep}.pt"
         if not SMOKE:
             torch.save(wave.state_dict(), ck)
         rec["epochs"].append({"epoch": ep, "train_loss": round(run / nstep, 4),
-                              "dev_loss": round(d, 4)})
-        print(f"epoch {ep}: train {run / nstep:.4f} dev {d:.4f}", flush=True)
-    best = min(rec["epochs"], key=lambda e: e["dev_loss"])["epoch"]
+                              "dev_task_ce": d})  # UNROUNDED (selection metric)
+        print(f"epoch {ep}: train {run / nstep:.4f} dev_task_ce {d:.6f}", flush=True)
+    # frozen selection: lowest unrounded dev task CE; tie-break lowest epoch
+    best = min(rec["epochs"], key=lambda e: (e["dev_task_ce"], e["epoch"]))["epoch"]
     rec["selected_epoch"] = best
     if not SMOKE:
         sel = ROOT / "results" / "qwen" / f"b3-{OBJ}-s{SEED}.pt"
