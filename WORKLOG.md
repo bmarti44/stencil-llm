@@ -1743,3 +1743,18 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   sealed IFEval. STOP-LOSS: iteration 3 is the LAST single-turn rescue — no
   recalibration after confirmation; failure CLOSES the line; contrast/GRPO
   would need Brian's separate authorization.
+
+## 2026-08-31 — fable verification: numbers ACCURATE, +1.5 NOT significant; v4.5 launched
+
+- Fable reproduced x0.25 BIT-FOR-BIT (168/196 = 0.857143, fresh code path);
+  base/wave-s0 rescored 0-mismatch; training record + shas verified; no
+  contamination. STATISTICS: 7-vs-4 discordants -> McNemar p=0.549, delta CI
+  [-1.8, +4.8]pt; ~1900 paired rows to confirm ANY positive effect. The honest
+  statement: quarter-dose is indistinguishable from base AND from the gate at
+  n=196. FINDING-1 fixed: v4.4 checkpoint was working-tree-only, now committed.
+  FINDING-2 stands: x0.5 sweep number is WORKLOG-prose-only (descriptive).
+- Confirmation stream extended 512 -> 1024 PRE-RUN on the power analysis
+  (registered in the manifest note). Deficit-gate mechanism committed with
+  4/4 battery (bitwise-base at zero deficit; exact odds correction verified
+  numerically). Calibration chain launched: v4.4 seed-1 training then the
+  one-shot tau x b_max grid on cal-v45.
