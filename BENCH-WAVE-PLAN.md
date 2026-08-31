@@ -341,3 +341,103 @@ revisions, and committed item manifests replace the two generic seeds.
   base, wave-s0, proxy-s0, wave-s1, proxy-s1 on the 541; gates as
   registered in v2 (both seeds must pass for the external claim; exact
   one-sided binomial McNemar, +2.0pt primary on strict-prompt).
+
+## v3.1 — checkpoint-ii round-1 corrections (sol FINDINGS 1-6 + fable
+FINDINGS 1-4; 2026-08-30)
+
+### Statistics (FINDING-1, critical — both reviewers)
+
+The v3 Clopper-Pearson plug-in rule is DEAD (type-I 0.45-0.50 at the
+margin; NaN at n01=0; mislabeled Tango). Restored registered rule:
+one-sided 95% TANGO SCORE upper confidence limit on delta = p10 - p01
+(constrained trinomial MLE by bounded maximization; bisection
+inversion; ANY non-convergence raises = FAIL). NON-INFERIOR iff
+upper limit < margin (STRICT, as in v2.2). Implementation
+src/stencil/stats.py; tests/test_noninferiority.py pins the boundary
+tables (0,0)/(k,0)/(0,k), monotonicity, and simulated type-I <= 0.08
+at both reviewers' counterexample scenarios.
+
+### Identity scoping (FINDING-4 sol / FINDING-2 fable)
+
+b0_identity v2 measures drift over the FULL vocabulary:
+worst_err_full_vocab 0.7679. Claim rescoped: source identity by
+hashes; template/ids bitwise; top-1 full-vocab equal on all fixtures;
+the registered 0.5 magnitude gate FAILED and is recorded as failed.
+R1 asks acceptance of the behavioral result WITH the failed magnitude
+gate on the record, not a pass.
+
+### KV evidence (FINDING-5 sol)
+
+Per-step drift/margins/agreement committed:
+results/qwen/b0-kv-drift.json. Wording rescoped: bounds are
+fixture-local characterization; argmax stability is mathematically
+guaranteed only where margin > 2*bound; the per-step agreement is an
+empirical observation. Consumer-path test added: cached generation
+through the ACTUAL sealed trained WaveController (w0-ce.pt),
+deterministic — TO BE RE-RUN with the trained benchmark wave at
+checkpoint iii before B4. return_hidden with a cache now raises
+(fable FINDING-4 foot-gun closed).
+
+### Protocol freezes (FINDING-3 sol)
+
+- MMLU-Redux (loglikelihood, no generation): one KV-cached prefill
+  per item per arm (fresh cache; the registered deployment path);
+  score = log-softmax at the final position of the four single tokens
+  {" A":362, " B":425, " C":356, " D":422} (single-token property
+  asserted in-test); argmax vs gold; ties (exact float equality)
+  score as WRONG (fail-closed). Wave arms: bias_hook fires at the
+  prefill's FINAL ROW ONLY — the row whose logits are scored — with
+  the bias row over all prompt positions computed from that row's h20
+  (the generation-step semantics applied to the scored position);
+  base arm identical with no hook.
+- GSM8K serialization (literal): one user message =
+  "Question: {q_demo1}\nAnswer: {a_demo1}\n\n" x4 demos (answer text
+  verbatim from the pinned train rows INCLUDING their "#### n" line)
+  + "Question: {q_test}\nAnswer:"; through the pinned chat template;
+  greedy, max_new 1024, EOS {151645,151643}, no other stop strings.
+  Extractor: last match of -?[0-9][0-9,]*\.?[0-9]* after removing
+  "$"; commas stripped; trailing "." stripped; compared as
+  python Decimal equality vs the gold "#### " value.
+- Multi-IF: ALL 2727 turns (909 conversations x 3 embedded turns),
+  sequential; each arm consumes ITS OWN prior responses. History
+  serialization: prior turns as
+  "<|im_start|>user\n{p}<|im_end|>\n<|im_start|>assistant\n{r}<|im_end|>\n"
+  (no think blocks in history), final turn opens with the pinned
+  assistant opener incl. empty think block. Turn t scored with turn
+  t's instruction_id_list/kwargs only (per the dataset columns).
+  Reporting: per-turn-index (n=909 each) + pooled (n=2727) four
+  metrics; EXPLORATORY (unchanged).
+- Runtime envelope (FINDING-6): long-output admission COMPLETE
+  (results/qwen/b0-timing-long.json): 19.74 tokens/s wave-style at
+  full max_new depth (all 8 stress prompts hit the 1024 cap);
+  absolute worst-case ceiling 39.0h if EVERY prompt of EVERY arm hits
+  max_new (the smoke-mix projection remains 7.95h). Sealed jobs write
+  per-prompt records via atomic JSONL append (key, arm, response,
+  n_gen, truncated flag) as they complete; on crash, resume SKIPS
+  completed (key, arm) pairs exactly (no regeneration, no redraws —
+  the one-shot rule is preserved because no completed item is ever
+  re-decided). Registered per-prompt hard timeout: 3x the admission's
+  slowest per-prompt wall time, recorded as truncated-timeout if hit.
+
+### B3 proxy registration (FINDING-2 sol)
+
+Proxy twin = EXACT w0-proxy objective transplanted: identical module,
+actuator, optimizer, steps, seeds, and data ROWS as the wave arm;
+loss = BCE(gain logits, timing positives) + mean uniform-within-span
+CE(e-logits, span targets), weight 1:1 (as in scripts/w0_train.py).
+For B3: timing positives = ALL response rows (the same rows the wave
+CE trains through); span targets = each prompt's constraint-
+instruction token spans (uniform within each span, averaged over the
+prompt's constraints). No gain-conditioning on results.
+
+### B3 materialization (FINDING-2 sol): the generator, compatibility
+matrix, canonical/mutation builders, manifests, and template
+fingerprints are committed WITH this amendment (src/stencil/b3_gen.py,
+data/b3/) and are part of the round-2 review scope. Leak firewall
+upgraded from "normalized exact overlap" to: (a) per-instruction-id
+generated kwargs tuples DISJOINT from the 541's kwargs tuples,
+mechanically asserted; (b) our instruction phrasings are fingerprinted
+templates, and no generated instruction sentence appears as a
+substring (word-normalized) of any 541 prompt nor vice versa,
+mechanically asserted; (c) semantic base tasks from a committed
+40-topic lexicon disjoint from 541 topics by the same substring check.

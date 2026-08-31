@@ -1512,3 +1512,23 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
 - W3a reproduction audit COMPLETE: 96/96 full-hash exact, 0 mismatches,
   broken counts match sealed (results/qwen/w3a-audit.json). The clean-format
   win is reproduction-verified; no report changes needed.
+
+## 2026-08-30 — round-2 packet: protocol freezes (v3.1), B3 materialized, long-output admission
+
+- BENCH-WAVE-PLAN.md v3.1: restored Tango rule registered; identity/KV claims
+  rescoped; MMLU loglik protocol (single-token letters asserted: 362/425/356/422;
+  wave bias on the scored final row only, same-position h20); GSM8K literal
+  serialization + Decimal extractor; Multi-IF all-2727-turn semantics (own-arm
+  history, no think blocks in history); runtime envelope (19.74 tok/s at depth,
+  39h absolute ceiling, resume-by-skip atomic persistence, 3x-admission timeout);
+  proxy = exact w0-proxy objective transplanted (BCE timing + uniform-span CE,
+  1:1), row-matched.
+- B3 MATERIALIZED: src/stencil/b3_gen.py (14 constraint types, 6 train families,
+  held families zero-exposure), data/b3/compat-matrix.json (committed = code,
+  asserted), data/b3/train-2000.jsonl frozen (seed 0, sha 9cb65c70..., combo
+  sizes 675/661/664) — ALL 2000 canonicals pass the VENDORED checkers, all
+  mutations fail their targets. Leak firewall (a) parameterized-kwargs
+  disjointness (scalar domains re-picked disjoint from the 541's value sets),
+  (b) phrasing substring, (c) topic substring — all asserted
+  (tests/test_b3_gen.py 6/6). Generator bug caught by inspection: retry-with-
+  new-size biased 63% of prompts to singletons; fixed to within-size resampling.
