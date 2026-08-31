@@ -161,3 +161,64 @@ def provenance_pins(root, extra_files=()):
     for f in extra_files:
         pins[str(f)] = hashlib.sha256((root / f).read_bytes()).hexdigest()
     return pins
+
+
+def make_deficit_hook(ctrl, state, prompt_spans, tau, b_max):
+    """v4.5 deficit-triggered adapter (registered): the FROZEN wave's
+    q/k scores select the governing constraint span per generated row
+    (first-index tie-break); each biased layer then gates per head on
+    the measured post-softmax mass (zero bias when psi >= tau).
+    prompt_spans: list of (start, end) token spans of the prompt's
+    Constraint: sentences. state stashes K at prefill and logs every
+    selection into state['log']."""
+    import torch
+    import torch.nn.functional as F
+
+    def fn(h20):
+        if "K" not in state:  # prefill: stash keys; NO intervention
+            state["K"] = h20[0].float()
+            state.setdefault("log", [])
+            return {}
+        q = F.normalize(ctrl.W_q(h20[0, -1:].float()), dim=-1)
+        k = F.normalize(ctrl.W_k(state["K"]), dim=-1)
+        scores = (q @ k.T)[0]
+        if not prompt_spans:
+            return {}
+        span_scores = [float(scores[a:b].mean()) for a, b in prompt_spans]
+        best = max(range(len(prompt_spans)), key=lambda i: (span_scores[i], -i))
+        a, b = prompt_spans[best]
+        T_total = state["cache_len"] + 1
+        mask = torch.zeros(T_total, dtype=torch.bool, device="cuda")
+        mask[a:b] = True
+        state["log"].append({"span": best, "score": round(span_scores[best], 4)})
+        return {layer: (mask, tau, b_max) for layer in WAVE_LAYERS}
+    return (20, fn)
+
+
+def generate_deficit(m, tok, prompt, ctrl, prompt_spans, tau, b_max,
+                     max_new=MAX_NEW, deadline_s=None):
+    """cached greedy generation with the deficit-triggered wave."""
+    import torch
+
+    from stencil.qwen3 import KVCache
+
+    ids = tok.encode(TMPL.format(p=prompt)).ids
+    cache = KVCache()
+    out = []
+    state = {}
+    hook = make_deficit_hook(ctrl, state, prompt_spans, tau, b_max)
+    t0 = time.monotonic()
+    timed_out = False
+    with torch.no_grad():
+        state["cache_len"] = 0
+        logits = m(torch.tensor([ids], device="cuda"), cache=cache, deficit_hook=hook)
+        nxt = int(logits[0, -1].argmax())
+        while nxt not in EOS and len(out) < max_new:
+            if deadline_s is not None and time.monotonic() - t0 > deadline_s:
+                timed_out = True
+                break
+            out.append(nxt)
+            state["cache_len"] = cache.length
+            logits = m(torch.tensor([[nxt]], device="cuda"), cache=cache, deficit_hook=hook)
+            nxt = int(logits[0, -1].argmax())
+    return tok.decode(out), len(out), len(out) >= max_new, timed_out, state.get("log", [])

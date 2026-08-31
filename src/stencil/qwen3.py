@@ -10,6 +10,8 @@ for the registered parity tolerance; our own outputs are then frozen bitwise.
 """
 from __future__ import annotations
 
+import math
+
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -101,6 +103,7 @@ class _Block(nn.Module):
         attn_bias: torch.Tensor | None = None,  # (t, T_total) fp32, pre-softmax
         cache: "KVCache | None" = None,
         layer_idx: int = -1,
+        deficit_gate: tuple | None = None,  # (span_mask[T_total] bool, tau, b_max)
     ) -> torch.Tensor:
         c = Qwen3Config
         b, t, _ = x.shape
@@ -128,6 +131,21 @@ class _Block(nn.Module):
         att = att + mask
         if attn_bias is not None:
             att = att + attn_bias.float()
+        if deficit_gate is not None:
+            # v4.5 deficit-triggered gating (registered): measure the natural
+            # post-softmax mass psi on the governing span per head/row; bias
+            # ONLY where psi < tau, by the exact odds correction
+            # min(b_max, logit(tau) - logit(psi)); zero deficit -> bitwise
+            # identical attention.
+            span_mask, tau, b_max = deficit_gate
+            p0 = F.softmax(att, dim=-1)
+            psi = p0[..., span_mask].sum(-1).clamp(1e-6, 1 - 1e-6)  # (b, h, t)
+            need = psi < tau
+            if bool(need.any()):
+                logit_t = math.log(tau / (1 - tau))
+                b_amt = (logit_t - torch.log(psi / (1 - psi))).clamp(max=b_max)
+                b_amt = torch.where(need, b_amt, torch.zeros_like(b_amt))
+                att = att + b_amt[..., None] * span_mask.float()[None, None, None, :]
         out = (F.softmax(att, dim=-1) @ v.float()).to(x.dtype)
         out = out.transpose(1, 2).reshape(b, t, c.n_head * c.head_dim)
         x = x + self.o_proj(out)
@@ -160,11 +178,13 @@ class Qwen3(nn.Module):
         cache: "KVCache | None" = None,
         capture_hidden: int | None = None,
         bias_hook=None,  # (layer, fn): at layer-input, attn_bias = fn(x)
+        deficit_hook=None,  # (layer, fn): at layer-input, gates = fn(x); dict[layer] -> (span_mask, tau, b_max)
     ) -> torch.Tensor:
         x = self.embed_tokens(tokens)
         offset = cache.length if cache is not None else 0
         cos, sin = _rope(tokens.shape[1], tokens.device, offset)
         captured = None
+        deficit_gates = None
         if return_hidden is not None and cache is not None:
             raise ValueError(
                 "return_hidden early-returns before cache.length updates and "
@@ -177,11 +197,14 @@ class Qwen3(nn.Module):
                 captured = x
             if bias_hook is not None and i == bias_hook[0]:
                 attn_bias = bias_hook[1](x)
+            if deficit_hook is not None and i == deficit_hook[0]:
+                deficit_gates = deficit_hook[1](x)
             x = block(
                 x, cos, sin,
                 None if inj is None else inj.get(i),
                 None if attn_bias is None else attn_bias.get(i),
                 cache=cache, layer_idx=i,
+                deficit_gate=(deficit_gates.get(i) if deficit_hook is not None and i >= deficit_hook[0] and deficit_gates else None),
             )
         if cache is not None:
             cache.length = offset + tokens.shape[1]
