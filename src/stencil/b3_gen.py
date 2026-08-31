@@ -314,7 +314,20 @@ def generate(seed, n_prompts, sizes=(1, 2, 3), exclude_prompts=frozenset()):
         if "kw_exist" in kwargs_by_key and "kw_freq" in kwargs_by_key:
             while kwargs_by_key["kw_freq"]["keyword"] in kwargs_by_key["kw_exist"]["keywords"]:
                 kwargs_by_key["kw_freq"] = CONSTRAINTS["kw_freq"]["sample"](rng)
+        constrained_words = set()
+        for k in combo:
+            kwv = kwargs_by_key[k]
+            constrained_words |= set(kwv.get("keywords", []))
+            constrained_words |= set(kwv.get("forbidden_words", []))
+            if "keyword" in kwv:
+                constrained_words.add(kwv["keyword"])
         topic = rng.choice(TOPICS)
+        for _ in range(50):
+            if not any(w in topic.lower() for w in constrained_words):
+                break
+            topic = rng.choice(TOPICS)
+        else:
+            continue  # fail-closed: skip pathological draw
         task = f"Write a short account of {topic} for a neighborhood newsletter."
         phrases = [CONSTRAINTS[k]["phrase"](kwargs_by_key[k]) for k in combo]
         prompt = task + " " + " ".join(phrases)
