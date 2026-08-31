@@ -222,3 +222,18 @@ revisions, and committed item manifests replace the two generic seeds.
   greedy decoding, effect floor +2.0 points, one-sided exact binomial
   McNemar p < 0.05 per seed, NO retraining between B4 and IFBench
   (the same frozen checkpoints run both).
+
+## v2.2 (sol round 3, two HIGHs)
+
+- B0.1 parity bound corrected to the recorded conversion scale: exact
+  token-id equality; all logits finite; top-1 equality on EVERY
+  fixture; max_abs_error <= 0.5 (frozen; the recorded HF-parity worst
+  error is 0.365 — identity is established by file hashes, behavior by
+  top-1 + this bound).
+- B2/B4 non-inferiority procedure REGISTERED PROPERLY: a one-sided 95%
+  Tango score confidence bound for the paired accuracy difference
+  (exact-conditional fallback if the score iteration fails to
+  converge); PASS iff the upper degradation bound < the registered
+  margin. Exact-binomial McNemar remains ONLY for the superiority
+  gates (IFEval primary, causal), where the zero-margin null is the
+  correct test.
