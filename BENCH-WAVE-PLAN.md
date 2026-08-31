@@ -634,3 +634,41 @@ converged reviewer prescription:
 - FIREWALL disclosure: postscript_marker 'P.P.S' exempt from kwargs
   disjointness (upstream regex-escape landmine forces the special-
   cased marker; the postscript VALUE varies per row from the prompt).
+
+## v4.5 — deficit-triggered wave (THE FINAL single-turn rescue;
+registered per sol's results review, 2026-08-31)
+
+Motivating evidence (exploratory, scoped): dose sweep on v4.4 wave-s0
+(x1.0 0.7959 / x0.5 0.8214 / x0.25 0.8571 vs base 0.8418 on dev-v43;
+x0.25 beats base by +1.5pts but n=196 cannot distinguish +1.5 from
++2.0 — best-case paired p=0.125; sweep numbers pending fable's
+independent reproduction). Research prior: SpotLight (2505.12025)
+deficit-triggered steering with positive IFEval deltas at 3-8B.
+
+MECHANISM (implemented, battery 4/4 green): frozen v4.4 Wq/Wk select
+the governing Constraint: span per generated row (first-index
+tie-break; no span -> no intervention); per biased layer/head, measure
+natural post-softmax mass psi on the span; psi >= tau -> ZERO bias
+(bitwise base attention); else uniform span bias
+min(b_max, logit(tau) - logit(psi)) (exact odds correction). Every
+intervention logged (span, score, per-item records).
+
+CALIBRATION (one shot): frozen tau grid {0.10, 0.20, 0.30, 0.45} x
+b_max {3.0, 6.0} on cal-v45 (200 rows, seed 5, prompt-disjoint);
+select by adherence, ties -> LOWER intervention rate; base cal run as
+reference. No recalibration after confirmation begins.
+
+CONFIRMATION (one shot): conf-v45 (512 rows, seed 7, dev-topic,
+prompt-disjoint from everything). GATE: deficit-wave(seed-0 Wq/Wk)
+>= base + 2.0pts strict adherence AND one-sided exact McNemar p<0.05
+AND no excess timeouts/truncations; per-row records + raw discordants
+saved. If seed 0 passes, REPLICATE with seed-1 Wq/Wk (same tau/b_max,
+no re-selection); BOTH must pass before sealed IFEval.
+
+STOP-LOSS (registered): this is recipe iteration 3 and the LAST
+single-turn rescue. One calibration grid, one confirmation block, no
+recalibration/retraining/fallbacks after seeing confirmation. Failure
+CLOSES the single-turn synthetic/IFEval wave line (honest negative
+with the full autopsy chain already recorded); token-aware contrast or
+GRPO training would be a separately authorized program. The x0.25
+static dose is carried as a descriptive comparator only.
