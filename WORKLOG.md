@@ -1538,3 +1538,17 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   ignored paths). Force-added; playbook lesson recorded in AGENTS.md.
   Long-timing v2: per-prompt times committed (slowest 53.9s; registered 300s
   timeout = 5.6x).
+
+## 2026-08-30 — round-2 fable verdict: ACCEPT across the board
+
+- Full suite 274 passed / 0 failed (38:49). Tango bound independently
+  reimplemented (Tango-1998 closed-form MLE + brentq): max discrepancy 1.81e-9
+  over 177 tables; type-I 0.040-0.049 at both registered operating points;
+  coverage 0.943-0.956 across six regimes; (100,0,100) correctly fail-closed.
+  Full-vocab identity confirmed in code; kv-drift internally consistent (both
+  argmax flips in the margin<=2*drift regime); B3 fresh-path re-verification 0
+  failures; w0-ce.pt loads strict. One LOW: oracle.index(o) fragility in
+  b0_identity — fixed (enumerate).
+- Note: fable's B3 checks ran against the pre-v3.2 freeze (9cb65c70); the
+  v3.2 re-freeze (54cd99f6, matrix canonicalization) is covered by the freeze
+  script's own full-2000 verification + tests/test_b3_gen.py 9/9.

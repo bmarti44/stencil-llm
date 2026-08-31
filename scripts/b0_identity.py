@@ -82,7 +82,7 @@ def main():
     m = m.to(torch.bfloat16).cuda().eval()
     checks = []
     worst = 0.0
-    for p, o in zip(FIXTURES, oracle):
+    for fi, (p, o) in enumerate(zip(FIXTURES, oracle)):
         ours_text = TMPL.format(p=p)
         ids = tok.encode(ours_text).ids
         template_ok = ours_text == o["template_text"]
@@ -91,7 +91,7 @@ def main():
             logits = m(torch.tensor([ids], device="cuda"))[0, -1].float().cpu()
         top1_ok = int(logits.argmax()) == o["top1"]
         import numpy as np
-        oracle_logits = torch.from_numpy(np.load(scratch / f"oracle_logits_{oracle.index(o)}.npy"))
+        oracle_logits = torch.from_numpy(np.load(scratch / f"oracle_logits_{fi}.npy"))
         err = float((logits - oracle_logits).abs().max())
         worst = max(worst, err)
         finite = bool(torch.isfinite(logits).all())
