@@ -1781,3 +1781,13 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   (registered gate r+>=0.60 / r-<=0.25 under topic AND family holdout);
   E1 (GRU tracker + two-stage EVF firing) gated on E0 + separate go.
   Red/green TDD + deterministic proofs required throughout.
+
+## 2026-08-31 — EVF E0 pilot: registered gate FAIL (family-holdout kill criterion triggered)
+
+- 15/12 anatomy, 11 registered features, deterministic probe. Topic folds:
+  r+ 0.733 / r- 0.417 (needs <=0.25). Family folds: r+ 0.733 / r- 0.667 —
+  near-indiscriminate under family holdout -> the registered kill criterion
+  fires. Per-item features committed (results/qwen/e0-pilot.json).
+- Honest caveats for the review: n=27 is tiny for 11 features; the gate was
+  registered knowing this. The pre-registered sol+fable review of the E0
+  result convenes before ANY next step.
