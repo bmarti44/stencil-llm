@@ -1376,3 +1376,11 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   the single registered unseen prefix rendering with zero trained-
   template occurrences; this does NOT establish meaning-level
   invariance or generalization to arbitrary paraphrases.
+- 2026-08-30, NEW GOAL (Brian): prove the wave on REAL benchmarks —
+  IFEval first, then the most relevant others, improvement + cross-
+  benchmark generalization, same reviewer loop. BENCH-WAVE-PLAN v1
+  drafted (B0 identity/harness/own-baseline -> B1 zero-shot probe ->
+  B2 do-no-harm -> B3 benchmark wave + proxy twin on synthetic
+  constraints -> B4 sealed IFEval/Multi-IF/do-no-harm with paired
+  gates). Checkpoint-i review launched. Internal-wave W3a reproduction
+  audit still running; its close-out folds in when it lands.
