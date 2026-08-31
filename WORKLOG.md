@@ -1717,3 +1717,29 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   checker-reward mature at this scale; obligation-state gating unpublished
   (open ground). Ranked: (1) deficit-triggered wave, (2) token-aware contrast
   + GRPO on the 264k controller, (3) scope-graded battery registration.
+
+## 2026-08-31 — sol results review: sweep legit-but-unauditable; data EXHAUSTED; deficit-trigger registered as the LAST rescue
+
+- A (accuracy): x1.0 arm fully audited (165/196 base, 156/196 wave, 6 fixes/15
+  regressions). x0.5/x0.25 numbers plausible but NOT auditable — I ran the
+  sweep without per-row records (the playbook rule violated a third time;
+  lesson: EVERY evaluative run writes records, exploratory or not). n=196
+  cannot distinguish +1.5 from +2.0 (best-case paired p=0.125); the gate miss
+  is exactly one item. Post-hoc scaling = legitimate exploration, NOT a gate
+  result (registered operating point was beta 1.0; x0.25 chosen after seeing
+  this dev set; seed 0 only).
+- B (data): EXHAUSTED — registered ruling: no v4.5 data curation. Residual
+  label note (12.8% weighted-token fraction; 1.6% pathological rows) documented
+  for any future objective reuse; cannot explain a one-item miss.
+- C (path): REGISTER deficit-triggered steering (SpotLight-adapted): frozen
+  v4.4 Wq/Wk select the governing constraint span; per step/layer/head compute
+  post-softmax mass psi on it; zero bias if psi >= tau; else uniform span bias
+  min(b_max, logit(tau) - logit(psi)) (exact odds correction — sol corrected
+  the research note's log-ratio). Deterministic battery: zero-deficit ->
+  BITWISE base logits; forced deficit -> finite nonzero; uncapped post-bias
+  mass == tau; full intervention logging. tau from a frozen grid on a NEW
+  calibration stream; ONE confirmation on >= 512 fresh prompt-disjoint rows;
+  gate +2.0pts AND one-sided exact McNemar p < 0.05; seed-1 replication before
+  sealed IFEval. STOP-LOSS: iteration 3 is the LAST single-turn rescue — no
+  recalibration after confirmation; failure CLOSES the line; contrast/GRPO
+  would need Brian's separate authorization.
