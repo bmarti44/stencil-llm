@@ -1661,3 +1661,27 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   retired (natural sentences too long). tests 9/9. FROZEN v3.2 train/dev files
   on disk are now GENERATOR-DIVERGENT — refreeze happens only after the
   amendment review clears; pilot (natural + beta_max 1.0, seed 0) queued.
+
+## 2026-08-31 — v4.2 data REJECTED by dual manual curation (Brian-directed); v4.3 designed
+
+- Opus 5 curator (read all 178 distinct surface forms + 211 full rows + re-ran
+  all checkers): DO NOT FREEZE. 895/4473 mutations untargeted (truncation
+  violates 2-3 constraints at once -> the fire-everywhere prior via negatives);
+  bullets rows (277) 0% topic-grounded; title/postscript/placeholders
+  satisfiable by memorizing 1-2 literals; TTR 0.0014 (12 sentences = 67.5% of
+  tokens); DEV SHARES topics/pool with train — not a generalization holdout.
+- sol curator: REWORK. Crux analysis: prompt attention genuinely needed only at
+  first-keyword + numeric-control positions; most CE is filler/fixed-template/
+  response-local. Prescription: obligation VALUES must vary per row and derive
+  from the prompt; canonicals should be frozen-Qwen greedy outputs minimally
+  edited for compliance; EOS supervision; obligation-token weighting.
+- v4.3 DESIGN (both curators + fable's causal analysis):
+  1. Base texts = frozen Qwen greedy responses to 40 topics x 3 task phrasings
+     (120 texts), minimally EDITED per row for compliance; edit spans recorded
+     as obligation spans in the dataset.
+  2. Obligation values randomized per row and SPECIFIED in the prompt
+     (exact title text, postscript phrase, placeholder names).
+  3. Mutations rebuilt minimal+targeted (single-constraint violations).
+  4. Trainer: EOS in targets; obligation-span CE upweighting.
+  5. Topic split 30 train / 10 dev-only (true generalization holdout).
+  6. beta_max 1.0 at retrain (fable).
