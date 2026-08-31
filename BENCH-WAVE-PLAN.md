@@ -519,3 +519,48 @@ sign-off of this amendment.
   and is not attributed specifically to addressing unless gain
   distributions are matched. Response-row gain histograms are reported
   for BOTH arms in the B4 artifact.
+
+## v4 — checkpoint-iii submission (pre-B4; 2026-08-31)
+
+### IFBench preregistration (benchmark #3, run POST-B4)
+
+- Source: allenai/IFBench_test (arXiv:2507.02833, NeurIPS 2025 D&B);
+  pinned HF revision 2e8a48de45ff3bf41242f927254ca81b59ca3ae2; 300
+  rows (recomputed on the pinned file; the paper's "294" is a claim we
+  do not inherit); data/bench/ifbench_test.jsonl committed + hashed.
+- Taxonomy: ALL 300 rows use only the NEW constraint namespaces
+  (count/words/format/repeat/sentence/ratio/custom) — fully DISJOINT
+  from IFEval's 25 classes and from every B3 training family: this is
+  the registered taxonomy-holdout benchmark. The classic-checker
+  landmines (langdetect, random draws in checking) do not apply to
+  these rows; the new checkers' random use is in build_description
+  only (verification deterministic; will be re-verified by goldens).
+- Protocol (registered now, executed post-B4): vendor the ifbench
+  verifier package (Apache-2.0) pinned to the GitHub revision matching
+  the paper; goldens = positive + targeted-negative fixture per
+  instruction class present in the 300 (same discipline as B0.2);
+  same five arms, decoding, timeout, atomic records as B4; same
+  primary metric (strict-prompt) + McNemar machinery; EXPLORATORY
+  until its own pre-run review confirms the vendored goldens.
+
+### B4 execution registration
+
+- IFEval sealed job: scripts/b4_ifeval.py (committed; single-use seal,
+  atomic records, hash-verified resume, gain telemetry). Launch order:
+  base, wave-s0, proxy-s0, wave-s1, proxy-s1 (sequential, uncontended
+  GPU). Controllers: results/qwen/b3-{ce,proxy}-s{0,1}.pt (selected
+  checkpoints; sha256s in their .json records).
+- Do-no-harm rerun (the BINDING gate): b2_mmlu.py + b2_gsm8k.py with
+  CTRL=b3-ce-s0 and b3-ce-s1 (wave arms; margins/Tango as frozen).
+  The w0-ce B2 MMLU FAIL (drop upper bound 2.69pt) stands recorded as
+  the internal wave's off-distribution answer.
+- Multi-IF (exploratory): scripts/b4_multiif.py (committed; smoked on
+  1 conversation); PROPOSED arms = base, wave-s0, proxy-s0 (three, not
+  five — 2727 turns x 5 arms exceeds the runtime envelope; reviewers
+  rule).
+- Evidence bundle for this checkpoint: b3-ce/proxy-s0/s1.json (training
+  records), b3-ablations.json (K-perm + uniform controls; gain
+  saturation), b3-consumer-path.json (all four controllers nonzero
+  field + logit movement + deterministic through the cache),
+  b2-mmlu-gate.json (FAIL recorded), b2-gsm8k gate (pending, appended
+  when the legs finish).
