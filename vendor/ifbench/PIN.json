@@ -1,0 +1,31 @@
+{
+  "repo": "https://github.com/allenai/IFBench",
+  "commit": "fcd289db21d43aaa96c6d9291d32561cd6e19305",
+  "source_subdir": "ifbench/",
+  "retrieved": "2026-08-31",
+  "files_sha256_original": {
+    "__init__.py": "2a806107f115facaa3e7e6046ca97247237b4b113b514bcdd763b2530141f694",
+    "instructions.py": "a76a3b300b531b95200e53427c6b1fbb72b671cf6d358796797c0fa4b6c7c44f",
+    "instructions_registry.py": "5119f2919261c77566f698f2f367883aff56cf89443bac5a56b6e30ddbd5aef9",
+    "instructions_util.py": "6996a6efaf6e3c92a2e926881eadc8c0262fb8d06c8cb56394ef7322f69e1930",
+    "classic_instructions.py": "d26e642f2e71e4f57218e5e05f098a22e36311485779baac401161d3228c9973"
+  },
+  "patches": [
+    "all files: intra-package imports relativized (from ifbench import X -> from . import X; from ifbench.instructions import Instruction -> from .instructions import Instruction)",
+    "instructions_util.py: removed the import-time download_nltk_resources() call (network side effect); replaced with asserts that vendor/nltk_data ships tokenizers/punkt_tab, corpora/stopwords, taggers/averaged_perceptron_tagger_eng, plus nltk.data.path.insert. The legacy punkt pickle (used only by classic NumberOfSentences via _get_sentence_tokenizer) is deliberately NOT vendored.",
+    "instructions.py: upstream created a package-local .nltk_data dir and set NLTK_DATA at import time; replaced with a loud assert on the repo's vendor/nltk_data and nltk.data.path.insert (no directory creation).",
+    "instructions.py: emoji and syllapy are not project dependencies; sys.path insertion of vendor/ifbench/_vendor_deps (pip-vendored emoji==2.15.0, syllapy==0.8.0) before importing them.",
+    "classic_instructions.py: from absl import logging -> stdlib logging (absl-py not a project dependency); classic checkers are vendored only because instructions_registry imports them."
+  ],
+  "vendored_deps": {
+    "emoji": "2.15.0",
+    "syllapy": "0.8.0"
+  },
+  "nltk_resources_added": {
+    "corpora/stopwords": "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/stopwords.zip",
+    "taggers/averaged_perceptron_tagger_eng": "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/taggers/averaged_perceptron_tagger_eng.zip"
+  },
+  "nltk_resources_preexisting": [
+    "tokenizers/punkt_tab"
+  ]
+}
