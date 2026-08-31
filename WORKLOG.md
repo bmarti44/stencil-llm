@@ -1702,3 +1702,18 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   base model can already read the prompt (all B3 gates, both B2 probes).
   That is a coherent boundary for the theory, not a failure of the toy-scale
   results — but it bounds the IFEval claim as registered.
+
+## 2026-08-31 — dose sweep: the wave HELPS at low dose (+1.5pts above base)
+
+- v4.4 wave-s0 on dev-v43: gain x1.0 -> 0.7959, x0.5 -> 0.8214, x0.25 ->
+  0.8571 vs base 0.8418. NON-MONOTONE: quarter-dose BEATS base by +1.5pts
+  (gate needs +2.0). First positive generation-time delta of the program.
+- Academic research (results/research-wave-generation.md): the strong scope
+  hypothesis is REFUTED — SpotLight (2505.12025) reports positive IFEval
+  deltas at 3-8B via DEFICIT-TRIGGERED steering (bias only when per-step
+  attention to instruction spans is deficient; zero otherwise); its published
+  critique of static bias predicts our x1.0 result. Contrast-pair training
+  literature exists for our mutation pairs (MuSC 2502.11541); GRPO-with-
+  checker-reward mature at this scale; obligation-state gating unpublished
+  (open ground). Ranked: (1) deficit-triggered wave, (2) token-aware contrast
+  + GRPO on the 264k controller, (3) scope-graded battery registration.
