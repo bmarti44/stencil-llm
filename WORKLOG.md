@@ -1566,3 +1566,19 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   load-dependent); the timeout flag stays in all reporting.
 - B2/B3 execution begins: 4-run training fleet (wave-s0/s1, proxy-s0/s1)
   launching on the frozen v3.2 schedule.
+
+## 2026-08-31 — B3 fleet stopped at epoch 1: gain collapse; LAM=0 amendment (v3.3)
+
+- Monitor caught dev task CE identical to 6 decimals across epochs. Diagnosis:
+  field EXACTLY zero — trained gains 0.00000 (w_g.weight learned to kill gain;
+  |w|max 0.0076 vs h20 scale 270). The w0-transplanted L1 (0.01/row) out-muscles
+  this task's CE gradient (~0.0008/row); w0 survived it only because its ledger
+  task had 10-100x the CE benefit. Forced-gain-2.0 with a RANDOM field improves
+  dev CE (6.479->6.062) — signal exists, the penalty was the killer.
+- v3.3: LAM=0 for B3 (selectivity penalty was a pressing-era constraint; B3
+  constraints are always-active and the proxy timing target is all-rows-positive
+  — still matched). Pilot: gain 0.238->2.0 in 100 rows, dev CE 5.636->4.598
+  after 300 rows. Collapsed checkpoints deleted. Fleet relaunch after sol
+  sign-off of the amendment.
+- The orchestrator-is-the-terminator rule applied: fleet killed on evidence at
+  epoch 1, ~10h of knowably-collapsed runs saved.

@@ -485,3 +485,23 @@ mechanically asserted; (c) semantic base tasks from a committed
   score bound (recomputed exact type-I 0.048/0.050 at the registered
   boundary scenarios), not an exact finite-sample interval; the pure-
   degradation MMLU simulation added to the test suite.
+
+## v3.3 — B3 training amendment: L1 gain penalty removed (2026-08-31)
+
+FLEET STOPPED after epoch 1 of run 1: dev task CE frozen at 5.776607
+across epochs; diagnosis (WORKLOG) — trained gains collapsed to
+EXACTLY 0 (w_g weights learned to kill the gain through the features;
+bias stayed -2.006). Cause: the w0-transplanted L1 gain penalty
+(LAM=0.01/row) is 10x larger than this task's per-row CE gradient
+(~0.0008), so the penalty wins the race and the wave dies before
+learning. Signal EXISTS: a random untrained field at forced gain 2.0
+improves dev CE (6.479 -> 6.062; 4.048 -> 3.930).
+
+AMENDMENT: LAM = 0 for B3 wave training (the L1's purpose in W was
+timing SELECTIVITY for pressing; B3 constraints are active for the
+whole response, and the row-matched proxy's timing target is likewise
+all-rows-positive — matched). Everything else in the frozen schedule
+is unchanged. Pilot evidence (300 rows, 1 epoch, LAM=0): mean gain
+0.238 -> 2.0 within 100 rows; dev CE 5.636 -> 4.598. Collapsed ep0/ep1
+checkpoints deleted; fleet relaunches from scratch after review
+sign-off of this amendment.

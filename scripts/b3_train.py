@@ -38,7 +38,7 @@ from stencil.wave import WaveController
 OBJ = os.environ.get("OBJ", "ce")
 SEED = int(os.environ.get("SEED", "0"))
 SMOKE = bool(os.environ.get("SMOKE"))
-LAM = 0.01
+LAM = 0.0  # v3.3: L1 gain penalty REMOVED for B3 (collapse evidence, WORKLOG 2026-08-31)
 EPOCHS = 1 if SMOKE else 5
 ACCUM = 8
 
@@ -97,7 +97,7 @@ def forward_loss(wave, full, P, spans):
     logits = m(full, attn_bias={L: bias for L in WAVE_LAYERS})[0].float()
     targets = full[0, P:]
     ce = F.cross_entropy(logits[P - 1:T - 1], targets)
-    return ce + LAM * wave.gain(H).sum()
+    return ce if LAM == 0 else ce + LAM * wave.gain(H).sum()
 
 
 def task_ce(wave, full, P):
