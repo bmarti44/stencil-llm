@@ -1758,3 +1758,17 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   4/4 battery (bitwise-base at zero deficit; exact odds correction verified
   numerically). Calibration chain launched: v4.4 seed-1 training then the
   one-shot tau x b_max grid on cal-v45.
+
+## 2026-08-31 — Brian's ruling: Multi-IF is the decisive experiment; "go from there" on its data
+
+- sol xhigh eval+research (results/b3-eval-research-sol.md): confirmation pass
+  odds ~32%; scalar deficit thresholds condemned (15 repairs / 12 regressions,
+  amplitude not the missing ingredient; oracle WHEN-chooser ceiling +7.5);
+  untried families mapped (retrieval branch, obligation tracker, causal WHEN
+  labels); constrained decoding named the honest single-turn ceiling; MMMT-IF
+  +22.3pt from re-appending dispersed instructions = published proof the
+  multi-turn failure is FOCUS/RETRIEVAL — the wave's arena.
+- ORDER: sealed confirmation completes as registered (stop-loss honored either
+  way), then Multi-IF three arms (base / deficit-wave user-turn spans /
+  static-x0.25) regardless of outcome. Next program decisions wait for
+  Multi-IF data (Brian).
