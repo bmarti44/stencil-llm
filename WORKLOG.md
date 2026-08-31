@@ -1552,3 +1552,17 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
 - Note: fable's B3 checks ran against the pre-v3.2 freeze (9cb65c70); the
   v3.2 re-freeze (54cd99f6, matrix canonicalization) is covered by the freeze
   script's own full-2000 verification + tests/test_b3_gen.py 9/9.
+
+## 2026-08-30 — CHECKPOINT II CLOSED (4 sol rounds + 2 fable rounds, all R1-R5 ACCEPT)
+
+- Final tally: sol rounds 1-4 (critical stats kill -> Tango restore; 13
+  unreachable matrix pairs; vacuous consumer test; runtime contract; selection
+  metric) all RESOLVED; fable rounds 1-2 (independent Monte Carlo kill of the
+  same stats rule; 1.8e-9 independent Tango agreement; full-suite 274/0; all
+  artifacts reproduced) ACCEPT. R5 closed on round-4 single-item confirmation:
+  objective-independent unrounded dev task CE selection, tie-break lowest epoch.
+- Sol round-3 wording note adopted: timeout-truncated partial responses are
+  reproducible FROM THEIR SAVED RECORDS (the truncation point itself is
+  load-dependent); the timeout flag stays in all reporting.
+- B2/B3 execution begins: 4-run training fleet (wave-s0/s1, proxy-s0/s1)
+  launching on the frozen v3.2 schedule.
