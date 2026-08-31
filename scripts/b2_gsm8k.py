@@ -109,9 +109,9 @@ def main():
         state = {}
         bias_fn = make_wave_bias_fn(ctrl, state) if ctrl is not None else None
         t0 = time.time()
-        text, n_gen, truncated = generate_cached(m, tok, user_msg, bias_fn=bias_fn)
+        text, n_gen, truncated, timeout = generate_cached(
+            m, tok, user_msg, bias_fn=bias_fn, deadline_s=TIMEOUT_S)
         wall = time.time() - t0
-        timeout = wall > TIMEOUT_S
         pred = extract(text)
         gold = gold_value(r["answer"])
         assert gold is not None, f"gold unparseable at {i}"

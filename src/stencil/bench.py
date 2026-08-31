@@ -10,6 +10,7 @@ model; sealed jobs do that once.
 """
 import json
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
@@ -58,7 +59,7 @@ def aggregate(per_prompt):
     }
 
 
-def generate_cached(m, tok, prompt, bias_fn=None, max_new=MAX_NEW):
+def generate_cached(m, tok, prompt, bias_fn=None, max_new=MAX_NEW, deadline_s=None):
     """THE generator for every arm: pinned template, KV-cached greedy,
     registered EOS/max_new. bias_fn(h20, prompt_len, past_len) -> bias
     tensor (t, past_len + t) or None, computed from the SAME forward's
@@ -82,16 +83,21 @@ def generate_cached(m, tok, prompt, bias_fn=None, max_new=MAX_NEW):
             return {layer: row for layer in WAVE_LAYERS}
         return (20, hook)
 
+    t0 = time.monotonic()
+    timed_out = False
     with torch.no_grad():
         hook = make_hook(0) if bias_fn is not None else None
         logits = m(torch.tensor([ids], device="cuda"), cache=cache, bias_hook=hook)
         nxt = int(logits[0, -1].argmax())
         while nxt not in EOS and len(out) < max_new:
+            if deadline_s is not None and time.monotonic() - t0 > deadline_s:
+                timed_out = True
+                break
             out.append(nxt)
             hook = make_hook(cache.length) if bias_fn is not None else None
             logits = m(torch.tensor([[nxt]], device="cuda"), cache=cache, bias_hook=hook)
             nxt = int(logits[0, -1].argmax())
-    return tok.decode(out), len(out), len(out) >= max_new
+    return tok.decode(out), len(out), len(out) >= max_new, timed_out
 
 
 def make_wave_bias_fn(ctrl, state):
@@ -129,3 +135,29 @@ def wave_hook_for_prefill(ctrl, P):
         b[-1, :P] = row_p[0]
         return {layer: b for layer in WAVE_LAYERS}
     return (20, hook)
+
+
+def provenance_pins(root, extra_files=()):
+    """the registered resume pin set (v4.1): sha256 of trunk, tokenizer,
+    the execution modules, and the vendored IFEval verifier tree, plus
+    any extra files (controllers, datasets, the sealed runner)."""
+    import hashlib
+    from pathlib import Path as _P
+    root = _P(root)
+    files = [
+        "models/qwen3-1.7b.pt",
+        "models/qwen3-1.7b-hf/tokenizer.json",
+        "src/stencil/bench.py",
+        "src/stencil/qwen3.py",
+        "src/stencil/wave.py",
+    ]
+    pins = {}
+    for f in files:
+        pins[f] = hashlib.sha256((root / f).read_bytes()).hexdigest()
+    tree = hashlib.sha256()
+    for vf in sorted((root / "vendor" / "ifeval").glob("*.py")):
+        tree.update(vf.read_bytes())
+    pins["vendor/ifeval(tree)"] = tree.hexdigest()
+    for f in extra_files:
+        pins[str(f)] = hashlib.sha256((root / f).read_bytes()).hexdigest()
+    return pins

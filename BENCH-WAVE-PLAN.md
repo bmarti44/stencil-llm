@@ -564,3 +564,52 @@ sign-off of this amendment.
   field + logit movement + deterministic through the cache),
   b2-mmlu-gate.json (FAIL recorded), b2-gsm8k gate (pending, appended
   when the legs finish).
+
+## v4.1 — checkpoint-iii round-2 corrections (2026-08-31)
+
+- SEAL REBUILT (sol FINDING-1, critical): scripts/b4_ifeval.py is now
+  ONE entry point with a CLOSED hard-coded arm table (base, wave-s0,
+  proxy-s0, wave-s1, proxy-s1 in fixed order), each controller bound
+  to its registered selected-checkpoint sha256; one GLOBAL seal
+  (results/qwen/b4/.started + manifest.json); resume requires
+  byte-exact manifest equality over the FULL pin set: trunk, tokenizer,
+  bench/qwen3/wave modules, vendored ifeval verifier tree digest, all
+  four controllers, the 541, and the runner itself
+  (stencil.bench.provenance_pins). The four selected controllers are
+  now GIT-TRACKED (force-added).
+- REAL DEADLINE (sol FINDING-2 / fable FINDING-2): generate_cached now
+  enforces the 300s per-prompt deadline in the generation loop; a
+  timed-out PARTIAL response is scored as-is with the timeout flag in
+  the record and all reporting. Registered wording narrowed: the
+  truncation point of a timed-out item is load-dependent (the flag is
+  a runaway backstop ~5.6x the admission's worst case, not an expected
+  path). Gain telemetry includes the prefill's scored row (fable
+  FINDING-3).
+- B2 BINDING ADJUDICATOR (sol FINDING-3): scripts/b2_adjudicate.py —
+  frozen construction; per-item discordances only; registered
+  controller hashes enforced; BOTH seeds must pass BOTH suites
+  (MMLU < 0.5pt, GSM8K < 1.0pt Tango-strict); fail-closed on any
+  missing record/provenance/non-convergence.
+- B3 GATES (sol FINDING-4): (a) gradient battery on the REAL loss —
+  results/qwen/b3-battery.json PASS (all params finite nonzero;
+  dCE/dbias nonzero). (b) REGISTERED BEFORE RUNNING — dev-200
+  GENERATION adherence gate: all five arms generate on the dev-200
+  prompts (same decoding/deadline as B4); metric = strict-prompt
+  adherence (ALL of a row's constraints pass the vendored checkers);
+  GATE: each wave seed must exceed base by >= +2.0 points strict-prompt
+  (mirrors the B4 primary margin); proxies reported, not gated.
+  Artifact: results/qwen/b3-dev-gate.json.
+- IFBench wording corrected (sol FINDING-5): "instruction-class /
+  checker holdout WITH semantic overlap" (identifiers and checker code
+  are disjoint; word-count/format/keyword SEMANTICS overlap B3
+  families). Transfer claims are scoped to unseen verifier classes and
+  compositions, not wholly unseen constraint semantics. Full verifier
+  freeze (vendored ifbench package at a pinned GitHub sha + per-class
+  goldens + per-row seed pin where needed + the same aggregate and
+  paired-McNemar adjudicator as IFEval) is being committed with this
+  amendment; IFBench remains post-B4 in execution and gets its own
+  pre-run goldens review.
+- Multi-IF (sol FINDING-6): runner hardened to the same closed
+  three-arm table (base, wave-s0, proxy-s0), full pin set, real
+  deadline, timeout field; exploratory scope unchanged (no two-seed or
+  external-validation claims from it).
