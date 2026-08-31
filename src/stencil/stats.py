@@ -117,3 +117,13 @@ def _z_of(p):
 def non_inferior(n10, n01, n, margin, alpha=0.05):
     """the registered do-no-harm gate: STRICT upper-bound < margin."""
     return tango_upper_bound(n10, n01, n, alpha) < margin
+
+
+def mcnemar_exact_one_sided(n_improve, n_degrade):
+    """one-sided exact McNemar: P(X >= n_improve | n = discordants, p = 1/2).
+    Registered superiority test (v2/v4.5)."""
+    n = n_improve + n_degrade
+    if n == 0:
+        return 1.0
+    from math import comb
+    return sum(comb(n, k) for k in range(n_improve, n + 1)) / (2 ** n)
