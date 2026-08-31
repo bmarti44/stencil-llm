@@ -1421,3 +1421,15 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   fixtures push bf16 divergence higher). NOT relaxed unilaterally —
   flagged to checkpoint ii with the evidence (top-1 identity is the
   generation-behavior criterion and holds everywhere).
+- 2026-08-30, B0 TIMING ADMISSION (results/qwen/b0-timing.json): 20
+  smoke prompts, mean gen ~99 tokens: base 241s / two-forward 318s;
+  five-arm 541 projection 11.35h AT SHORT LENGTHS (real IFEval
+  responses are 3-5x longer) -> FAILS any fast-iteration bound. The
+  registered fallback triggers: KV-cache implementation in the
+  hand-rolled trunk with token-by-token parity vs full forward
+  INCLUDING the wave bias. CHECKPOINT-ii PACKET now holds: (1) parity
+  magnitude-bound ruling (0.6955 vs 0.5, top-1 identity everywhere);
+  (2) KV-cache build + parity tests; (3) the freeze list (max_new,
+  MMLU-Redux revision/manifests, GSM8K shots/extractor, Multi-IF size,
+  non-inferiority machinery). Goldens 25/25 green; vendoring done;
+  provenance recorded.
