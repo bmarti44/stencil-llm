@@ -1618,3 +1618,18 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   agree: w0-ce fires off-distribution and harms. B2 CLOSED as a recorded
   honest finding; the binding external-claim gate remains the B4-era rerun
   with the B3 wave.
+
+## 2026-08-31 — IFBench verifiers vendored (fable subagent); B3 dev gate running
+
+- vendor/ifbench @ github sha fcd289db (per-file provenance in PIN.json); 58/58
+  class goldens green (175 tests incl. per-class random-state checks — verdicts
+  are seed-independent, no per-row pin needed, unlike IFEval 1122/1129).
+  Patches: relative imports, no import-time nltk downloads (stopwords +
+  averaged_perceptron_tagger_eng added to vendor/nltk_data), absl->stdlib
+  logging, emoji/syllapy vendored under _vendor_deps.
+- Reading caveats recorded for IFBench scores: this is the maintained fork
+  (carries post-paper bug fixes); words:start_verb POS-tags the raw first
+  token, so common imperatives ("Run", "Remember") can be falsely failed —
+  affects absolute scores, not paired comparisons.
+- B3 dev-200 generation gate: base arm complete, adherence 0.8650 -> each
+  wave seed needs >= 0.8850 (registered +2.0pt).
