@@ -1413,3 +1413,11 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   runner (internal randomness — determinism landmine neither review
   named). Next: per-class positive+negative goldens (TDD) + upstream
   aggregate parity + the runner with pinned template.
+- 2026-08-30, B0.1 RESULT (results/qwen/b0-identity.json): provenance
+  recorded (revision 70d244cc, all file hashes incl. .pt); template
+  text BITWISE equal, token ids BITWISE equal, top-1 equal, finite —
+  on every fixture. Registered magnitude bound FAILS: worst_err 0.6955
+  > 0.5 (the 0.365 record came from non-chat prompts; chat-template
+  fixtures push bf16 divergence higher). NOT relaxed unilaterally —
+  flagged to checkpoint ii with the evidence (top-1 identity is the
+  generation-behavior criterion and holds everywhere).
