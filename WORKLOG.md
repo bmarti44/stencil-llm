@@ -2162,3 +2162,50 @@ Independent analysis over the 564 harvested moments (CPU, existing records):
   the wave arm must reach 0.883. Recomputed P(pass) with selection
   correction: 10-20%, not 32% (the +1.5 calibration winner was the max over
   an 8-arm grid; the pooled b_max=3 family is net NEGATIVE -0.5pt).
+
+## 2026-09-01 — WHEN, part 2: obligation state DOES carry the signal (AUC 0.70-0.76)
+
+A second independent analysis (564 moments, CPU, existing records; it also found
+the records DO contain full response text for native + all arms, so partial text
+at any step is reconstructable) tested the obligation-state hypothesis directly:
+
+HELD-OUT AUC by the REGISTERED splits (session / topic / family):
+  registered 6 model-state features   0.54 / 0.46 / 0.51   (PPV@rec.5 0.12-0.14)
+  position only                        0.62 / 0.55 / 0.58
+  obligation, 2 features               0.72 / 0.70 / 0.72   (PPV 0.24-0.25)
+  obligation, 9 features               0.76 / 0.71 / 0.72
+The lead was right: the signal is in the TASK state, not the model's dynamics,
+and it generalizes across all three splits. It still cannot reach the registered
+PPV>=0.70 bar — structurally, because "constraint outstanding at step k" does
+not tell you whether the model would have satisfied it anyway (hazard: kw_exist
+55% eventually-fails, postscript 5%).
+
+FIXABILITY BY FAMILY (sustained_all, per-constraint transitions):
+  postscript 7/7 (100%), placeholders 20/38 (53%), kw_exist 28/69 (41%),
+  bullets 6/54, kw_freq 4/37, caps 3/56, n_sent 1/16, n_words_max 2/69,
+  title 0/31. BREAKAGE: n_words_max 25/93 (27%) = 25 of 57 total breaks.
+  Mechanism: sustained focus lengthens responses near the cap (86.5 -> 92.4
+  words). Live word-cap turns: 6 helpful / 23 harmful (net -17). No-cap
+  turns: 55 / 16 (net +38).
+
+BEST COMPUTABLE RULE (R3b), deployment sim (first-fire per turn, 72 turns,
+turn-cluster bootstrap 2000x):
+  fire-never                                   0
+  fire-always                    +4 turns (+1.7pts)  CI [-6,+13]  P(<=0)=0.22
+  6-feature gate (topic CV)      +1                  CI [-8,+9]   P(<=0)=0.44
+  R3b = outstanding fixable constraint AND no live word cap AND past ~50%
+                                 +6 turns (+2.6pts)  CI [+1,+12]  P(<=0)=0.018
+  per-moment oracle             +14 turns (+6.0pts)
+  R3b captures ~40% of the oracle and is the first rule whose CI clears zero.
+
+RECONCILING the two analyses: fixes are available at ANY onset (agent 1's
+point), but BREAKS concentrate early (10/5/2/0 by response quartile). So timing
+does not create benefit — it AVOIDS HARM. Combined with the family exclusion,
+that is where the net gain comes from.
+
+HEADLINE: "do not fire on any turn with a live word cap" alone accounts for
+more net gain than everything the six model-state features provided.
+
+IMPLICATION: the gate needs NO TRAINING. It is a deterministic rule over the
+vendored checkers run on the partial response. That removes the entire
+hazard-training path (E1/E2) from the critical path.
