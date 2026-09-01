@@ -101,3 +101,31 @@ static25), registered now:
 Caveat registered: each arm consumes its own history, so late-turn arm
 differences are NOT clean local treatment effects; any training
 anatomy must replay identical base histories before branching.
+
+## E2 — CTRB training + clean Multi-IF evaluation (Brian-approved design,
+registered 2026-08-31; supersedes the four-branch rule's arm comparisons)
+
+CONTAMINATION RULE (Brian's question, registered): the gate NEVER trains
+on Multi-IF content. Design:
+- Multi-IF wave arms CANCELLED (the base arm completes: it is the paired
+  baseline + turn-decay headroom map + the frozen histories the EVAL
+  replays — never training data).
+- TRAINING CORPUS: synthetic multi-turn sessions from the v4.3 generator
+  extended to Multi-IF's SHAPE (turn 1 task+constraints; later turns add
+  constraints while earlier ones bind), own topics/phrasings/values,
+  mechanical leak firewall vs Multi-IF (kwargs/phrase/topic checks as
+  registered for the 541). Causal-moment harvest: conflict-guided
+  sampling (CTRB features), late-turn emphasis, A=0/A=1 branches, ITE
+  labels; identical replayed histories per sol's protocol.
+- GATE TRAINING: CTRB hazard gate on causal labels; family/topic/
+  session holdout; the registered discrimination + safe-dose gates from
+  the WHEN spec apply before any benchmark exposure.
+- EVALUATION (one shot, paired vs the recorded base arm): CTRB-gated
+  wave on Multi-IF. SECONDARY SPLIT registered NOW: conversations with
+  key hash mod 9 == 0 (~100) are the disclosed in-distribution
+  diagnostic slice; the PRIMARY claim is staked entirely on the
+  remaining ~809 untouched conversations. Metrics: per-turn-index +
+  pooled strict metrics; primary = late-turn (turn 3) strict-prompt
+  paired delta with exact McNemar.
+- Reviews: sol + fable on the synthetic corpus AND the trained gate
+  evidence before the evaluation runs.
