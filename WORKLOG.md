@@ -2133,3 +2133,32 @@ DECISION FOR BRIAN (paused for CLI upgrade), ranked by the reviewer:
    decisive experiment; formally UNANSWERED; the single-turn arena is where
    the actuator's helpful rate was highest (11%).
 3. Fix the endpoint mismatch before any confirmatory run.
+
+## 2026-09-01 — THE WHEN QUESTION IS ANSWERED, AND THE ANSWER IS "IT'S NOT WHEN"
+
+Independent analysis over the 564 harvested moments (CPU, existing records):
+
+- TIMING DOES NOT MATTER. Firing at the FIRST eligible step of every turn with
+  NO gate reproduces the per-turn oracle exactly: fresh constraints 9 fixed /
+  0 broken (+10.0pts, p=0.002). Helpful and harmful moments co-occur in the
+  same turn in 1 of 72 turns — the outcome is a property of the RESPONSE
+  (which constraint families are live and failing), not of the onset moment.
+  A "gate" that separated helpful from harmful would be a FAMILY CLASSIFIER
+  reading the instruction, not a timing mechanism.
+- ORACLE-OVER-FEATURES bound (settles whether better modeling could help):
+  aged endpoint, per-moment oracle = +1.80pts — BELOW the registered +2.0
+  floor even with perfect timing. Fresh endpoint: fire-all (+36 cells) EQUALS
+  the moment oracle (+45 with 45 helpful vs 8 harmful) — nothing to gate.
+  Held-out gated nets: all-constraint best = fire-all; aged -7 to +6 cells.
+  E2 hazard training is refuted by the bound, not merely by the AUC.
+- WHAT DOES WORK, unconditionally, no gate: sustained bias on the CURRENT
+  user turn's spans fixes CONTENT-INSERTION constraints — kw_exist 19/31
+  (61%) with 0/64 broken; placeholders 12/22 (55%) with 0/112 broken;
+  kw_freq 4/8; fresh overall +5.11pts (McNemar p=4e-7) vs specificity control
+  -3.12pts. It does NOT fix length/format families (n_words_max 0/30,
+  n_sent 1/16), and aged breakage is dominated by n_words_max where the
+  control breaks equally (22 vs 23) = generic perturbation, not the mechanism.
+- Running confirmation: base 0.862 on 487/1024 (matches calibration 0.855);
+  the wave arm must reach 0.883. Recomputed P(pass) with selection
+  correction: 10-20%, not 32% (the +1.5 calibration winner was the max over
+  an 8-arm grid; the pooled b_max=3 family is net NEGATIVE -0.5pt).
