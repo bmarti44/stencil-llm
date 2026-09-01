@@ -276,3 +276,23 @@ trajectory token-for-token, clone that one frozen KV state for all arms, and
 fail on any prefix or suffix divergence.  The three full-recompute session
 records are retained under an explicitly INVALID directory and never enter
 training or counts.
+
+### E2 automatic address-unit correction (2026-09-01, before certified harvest)
+
+Multi-IF contains natural user instructions and no synthetic `Constraint:`
+markers.  Supplying marker-derived or checker-derived constraint boundaries at
+evaluation would leak task wiring unavailable to an autonomous gate, while
+training on marker spans and deploying on user turns would shift three of six
+features.  Therefore the shared train/audit/evaluation address unit is the
+automatically parsed, marker-free, bounded USER TURN.  Its origin is the turn
+index; sustained-all biases every live user-turn span; sustained-aged and
+fixed-oldest use those same units.  The three-session exact-KV/constraint-marker
+preflight is retained as INVALID and excluded.  No certified user-turn harvest
+outcome had been observed when this correction was registered.
+
+Exact unique-token width matching is sometimes geometrically impossible for
+user-turn units at early prefixes (live user text can exceed the entire
+non-user prompt complement).  The specificity arm therefore uses ALL disjoint
+non-user prompt tokens and scales their dose so total added logit-bias L1 mass
+equals sustained-all.  It never overlaps a user span and fails if the
+complement is empty.  This replaces silent width shrinking or oracle spans.

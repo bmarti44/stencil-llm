@@ -13,6 +13,40 @@ from collections.abc import Mapping, Sequence
 NOMINAL_ARM = "sustained_all"
 
 
+def user_turn_span_records(tokenizer, context: str) -> list[dict]:
+    """Automatic, marker-free user-turn spans shared by train and deploy."""
+    marker = "<|im_start|>user\n"
+    enc = tokenizer.encode(context)
+    turns = []
+    cursor = 0
+    while True:
+        marker_start = context.find(marker, cursor)
+        if marker_start < 0:
+            break
+        content_start = marker_start + len(marker)
+        content_end = context.find("<|im_end|>", content_start)
+        if content_end < 0:
+            raise ValueError("unterminated user turn")
+        turns.append((content_start, content_end))
+        cursor = content_end + 1
+    current_turn = len(turns)
+    records = []
+    for index, (start, end) in enumerate(turns, start=1):
+        tokens = [
+            i for i, (a, b) in enumerate(enc.offsets) if a < end and b > start
+        ]
+        if not tokens:
+            raise ValueError(f"user turn {index} has no tokens")
+        records.append(
+            {
+                "span": (tokens[0], tokens[-1] + 1),
+                "origin_turn": index,
+                "is_aged": index < current_turn,
+            }
+        )
+    return records
+
+
 def constraint_span_records(tokenizer, context: str) -> list[dict]:
     """Return bounded constraint spans with one-based user-turn origins."""
     enc = tokenizer.encode(context)
@@ -112,12 +146,35 @@ def matched_nonconstraint_spans(
     return tuple((r[0], r[-1] + 1) for r in runs)
 
 
+def mass_matched_nonconstraint_control(
+    *,
+    total_len: int,
+    spans: Sequence[tuple[int, int]],
+    target_dose: float,
+) -> tuple[tuple[tuple[int, int], ...], float]:
+    """Disjoint complement with dose scaled to equal target logit-bias mass."""
+    blocked = set()
+    for a, b in spans:
+        if not 0 <= a < b <= total_len:
+            raise ValueError("constraint span outside context")
+        blocked.update(range(a, b))
+    available = total_len - len(blocked)
+    if available <= 0:
+        raise ValueError("no non-constraint control tokens")
+    control = matched_nonconstraint_spans(
+        total_len=total_len, spans=spans, width=available
+    )
+    target_width = len(blocked)
+    return control, float(target_dose) * target_width / available
+
+
 def arm_specs(
     spans: Sequence[tuple[int, int]],
     *,
     selected_span: int,
     aged_indices: Sequence[int],
     control_spans: Sequence[tuple[int, int]],
+    control_dose: float = 3.0,
 ) -> dict[str, dict]:
     """The Opus-validated dose/duration arm table, frozen pre-harvest."""
     all_spans = tuple(tuple(x) for x in spans)
@@ -144,7 +201,7 @@ def arm_specs(
         },
         "control": {
             "spans": tuple(tuple(x) for x in control_spans),
-            "dose": 3.0,
+            "dose": float(control_dose),
             "burst_tokens": 10**6,
         },
     }

@@ -2047,3 +2047,20 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
 - The preregistered SHA-256 mod-9 partition yields 113 diagnostic and 796
   primary conversations.  This analysis used recorded base outcomes only and
   did not tune or expose the hazard gate to benchmark treatment outcomes.
+
+## 2026-09-01 — Harvest preflight 2 stopped: address-unit transfer leak
+
+- Multi-IF inspection confirmed it has natural instructions but no synthetic
+  `Constraint:` markers.  Training features on marker-extracted clauses and
+  evaluating on user turns would change feature semantics; deriving benchmark
+  clauses from checker metadata would violate automatic inference.
+- Stopped the 3-session exact-KV marker-span preflight (47 moments: 10 helpful /
+  2 harmful / 35 neutral), retained it as
+  `e2-corrected-harvest-invalid-constraint-markers`, and excluded it.
+- Registered shared autonomous unit: marker-free bounded user-turn spans for
+  harvest, holdout audit, and Multi-IF.  Red/green fixture asserts correct
+  origins, aging, content, and zero marker/assistant bleed.  Schema bumped to 4.
+- The first 128-token smoke then failed closed because exact disjoint control
+  width did not fit.  Registered feasibility correction: use the full non-user
+  complement and scale dose to match sustained-all's total logit-bias L1 mass;
+  never overlap user text or silently shrink treatment mass.

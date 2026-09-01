@@ -71,3 +71,53 @@ def test_mix_length_adjustment_uses_common_support_only():
     assert got["fresh_minus_aged_points"] == pytest.approx(50.0)
     assert got["common_support_cells"] == 8
     assert got["excluded_cells"] == 1
+
+
+def test_replay_analysis_applies_effect_floor_and_beats_ablations():
+    from stencil.e2_multiif import analyze_replay_records
+
+    records = []
+    for i in range(100):
+        base = False
+        arms = {
+            "ctrb": i < 10,
+            "periodic": i < 2,
+            "fixed_oldest": i < 3,
+            "positive_control": i < 20,
+        }
+        def branch(value):
+            return {
+                "scores": {
+                    "inst_level_strict_acc": [value],
+                    "prompt_level_strict_acc": value,
+                },
+                "n_generated": 20,
+                "truncated": False,
+                "timed_out": False,
+                "interventions": [],
+                "biased_tokens": 0,
+            }
+        records.append(
+            {
+                "ci": i,
+                "key": f"k{i}",
+                "diagnostic": False,
+                "turns": {
+                    "2": {
+                        "aged_count": 1,
+                        "base": branch(base),
+                        "arms": {name: branch(value) for name, value in arms.items()},
+                    }
+                },
+            }
+        )
+    got = analyze_replay_records(records, diagnostic=False, bootstrap_draws=200)
+    assert got["gate_pass"]
+    assert not got["failure_reasons"]
+    assert got["arms"]["ctrb"]["aged_constraints"]["delta_points"] == 10.0
+    # Make periodic equal CTRB: conflict-triggered WHEN attribution must fail.
+    for record in records:
+        record["turns"]["2"]["arms"]["periodic"] = record["turns"]["2"]["arms"]["ctrb"]
+    bad = analyze_replay_records(records, diagnostic=False, bootstrap_draws=50)
+    assert not bad["gate_pass"]
+    assert any("periodic" in reason for reason in bad["failure_reasons"])

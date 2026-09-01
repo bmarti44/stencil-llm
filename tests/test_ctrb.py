@@ -454,6 +454,26 @@ def test_e2_span_records_have_turn_origins_and_never_bleed(gpu_setup):
         assert 0 <= a < b <= len(ids)
 
 
+def test_e2_user_turn_span_records_are_marker_free_and_deployable(gpu_setup):
+    from stencil.e2 import user_turn_span_records
+
+    _, tok, _ = gpu_setup
+    ctx = (
+        "<|im_start|>user\nA task with two natural instructions.<|im_end|>\n"
+        "<|im_start|>assistant\nA prior answer.<|im_end|>\n"
+        "<|im_start|>user\nAdd three keywords.<|im_end|>\n"
+        "<|im_start|>assistant\n<think>\n\n</think>\n\n"
+    )
+    ids = tok.encode(ctx).ids
+    records = user_turn_span_records(tok, ctx)
+    assert [r["origin_turn"] for r in records] == [1, 2]
+    assert [r["is_aged"] for r in records] == [True, False]
+    text = [tok.decode(ids[r["span"][0]:r["span"][1]]) for r in records]
+    assert "natural instructions" in text[0] and "three keywords" in text[1]
+    assert all("im_start" not in value and "im_end" not in value for value in text)
+    assert all("assistant" not in value for value in text)
+
+
 def test_e2_candidate_sampling_is_fixed_conflict_plus_temporal_union():
     from stencil.e2 import select_candidate_records
 
@@ -479,7 +499,11 @@ def test_e2_candidate_sampling_is_fixed_conflict_plus_temporal_union():
 
 
 def test_e2_opus_arm_specs_are_exact_and_control_excludes_constraints():
-    from stencil.e2 import arm_specs, matched_nonconstraint_spans
+    from stencil.e2 import (
+        arm_specs,
+        mass_matched_nonconstraint_control,
+        matched_nonconstraint_spans,
+    )
 
     spans = [(10, 15), (30, 36), (50, 54)]
     control = matched_nonconstraint_spans(total_len=70, spans=spans, width=15)
@@ -494,6 +518,15 @@ def test_e2_opus_arm_specs_are_exact_and_control_excludes_constraints():
     assert specs["sustained_all"]["burst_tokens"] > 1_000
     assert specs["sustained_aged"]["spans"] == ((10, 15),)
     assert specs["control"]["spans"] == tuple(control)
+    # If unique non-constraint width is insufficient (automatic user-turn
+    # spans can cover most of a short context), preserve total logit-bias mass
+    # over the full disjoint complement instead of overlapping constraints.
+    narrow, dose = mass_matched_nonconstraint_control(
+        total_len=20, spans=[(0, 15)], target_dose=3.0
+    )
+    assert narrow == ((15, 20),)
+    assert dose == 9.0
+    assert sum(b - a for a, b in narrow) * dose == 15 * 3.0
 
 
 def test_e2_moment_record_schema_and_label_nonvacuity():

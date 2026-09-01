@@ -100,10 +100,10 @@ def main():
     from stencil.ctrb import HazardGate, generate_ctrb
     from stencil.e2 import (
         arm_specs,
-        constraint_span_records,
+        mass_matched_nonconstraint_control,
         make_moment_record,
-        matched_nonconstraint_spans,
         select_candidate_records,
+        user_turn_span_records,
     )
     from stencil.qwen3 import Qwen3
     from stencil.wave import WaveController
@@ -119,7 +119,7 @@ def main():
     outdir = ROOT / "results" / "qwen" / args.out
     outdir.mkdir(parents=True, exist_ok=True)
     meta = {
-        "schema": 3,
+        "schema": 4,
         "schema_fields": list(SCHEMA_FIELDS),
         "corpus": str(data_path.relative_to(ROOT)),
         "corpus_sha256": sha(data_path),
@@ -137,6 +137,7 @@ def main():
         "nominal_arm": "sustained_all",
         "nominal_dose": 3.0,
         "branch_replay": "exact_kv_prompt_once_then_tokenwise",
+        "span_unit": "automatic_bounded_user_turn",
     }
     meta_path = outdir / "meta.json"
     if meta_path.exists():
@@ -165,7 +166,7 @@ def main():
         for turn_i, turn in enumerate(sess["turns"], start=1):
             history_now = history + f"<|im_start|>user\n{turn['prompt']}<|im_end|>\n"
             context = history_now + OPENER
-            span_records = constraint_span_records(tok, context)
+            span_records = user_turn_span_records(tok, context)
             spans = [tuple(x["span"]) for x in span_records]
             if not spans:
                 raise RuntimeError(f"session {session_i} turn {turn_i}: no constraint spans")
@@ -207,9 +208,10 @@ def main():
                 "kwargs": turn["kwargs"],
             }
             aged_indices = [i for i, x in enumerate(span_records) if x["is_aged"]]
-            width = sum(b - a for a, b in spans)
-            control_spans = matched_nonconstraint_spans(
-                total_len=len(tok.encode(context).ids), spans=spans, width=width
+            control_spans, control_dose = mass_matched_nonconstraint_control(
+                total_len=len(tok.encode(context).ids),
+                spans=spans,
+                target_dose=3.0,
             )
             for candidate in candidates:
                 prefix_ids = candidate["prefix_ids"]
@@ -219,6 +221,7 @@ def main():
                     selected_span=selected,
                     aged_indices=aged_indices,
                     control_spans=control_spans,
+                    control_dose=control_dose,
                 )
                 rollouts = rollout_arms_from_prefix_exact(
                     model=model,

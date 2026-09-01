@@ -6,7 +6,7 @@ import hashlib
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
 
-from stencil.e2_stats import mcnemar_one_sided
+from stencil.e2_stats import cluster_bootstrap_delta, mcnemar_one_sided
 
 OPENER = "<|im_start|>assistant\n<think>\n\n</think>\n\n"
 
@@ -115,4 +115,136 @@ def adjusted_aging_gap(cells: Sequence[Mapping]) -> dict:
         "adjusted_aged_rate": aged_rate,
         "fresh_minus_aged_points": (fresh_rate - aged_rate) * 100.0,
         "strata": detail,
+    }
+
+
+def _analyze_arm(records, arm_name, bootstrap_draws):
+    aged_pairs = []
+    all_pairs = []
+    prompt_pairs = defaultdict(list)
+    clusters = defaultdict(list)
+    aged_cluster_rows = []
+    all_cluster_rows = []
+    base_lengths = []
+    arm_lengths = []
+    base_truncations = arm_truncations = 0
+    base_timeouts = arm_timeouts = 0
+    fired = biased_tokens = evaluated_turns = 0
+    for record in records:
+        ordered_turns = sorted(
+            record["turns"].items(), key=lambda item: int(item[0])
+        )
+        for turn, turn_record in ordered_turns:
+            base = turn_record["base"]
+            arm = turn_record["arms"][arm_name]
+            base_cells = [bool(x) for x in base["scores"]["inst_level_strict_acc"]]
+            arm_cells = [bool(x) for x in arm["scores"]["inst_level_strict_acc"]]
+            if len(base_cells) != len(arm_cells):
+                raise ValueError("arm changed constraint count")
+            aged_count = int(turn_record["aged_count"])
+            if not 0 < aged_count <= len(base_cells):
+                raise ValueError("invalid aged constraint count")
+            base_aged = base_cells[:aged_count]
+            arm_aged = arm_cells[:aged_count]
+            aged_pairs.extend(zip(base_aged, arm_aged, strict=True))
+            all_pairs.extend(zip(base_cells, arm_cells, strict=True))
+            clusters[str(record["key"])].append((base_aged, arm_aged))
+            aged_cluster_rows.append(
+                {"conversation": int(record["ci"]), "base": base_aged, "arm": arm_aged}
+            )
+            all_cluster_rows.append(
+                {
+                    "conversation": int(record["ci"]),
+                    "base": base_cells,
+                    "arm": arm_cells,
+                }
+            )
+            prompt_pair = (
+                bool(base["scores"]["prompt_level_strict_acc"]),
+                bool(arm["scores"]["prompt_level_strict_acc"]),
+            )
+            prompt_pairs[str(turn)].append(prompt_pair)
+            prompt_pairs["pooled"].append(prompt_pair)
+            base_lengths.append(int(base["n_generated"]))
+            arm_lengths.append(int(arm["n_generated"]))
+            base_truncations += int(base["truncated"])
+            arm_truncations += int(arm["truncated"])
+            base_timeouts += int(base["timed_out"])
+            arm_timeouts += int(arm["timed_out"])
+            fired += int(
+                any(
+                    event.get("kind") == "onset"
+                    for event in arm.get("interventions", ())
+                )
+            )
+            biased_tokens += int(arm.get("biased_tokens", 0))
+            evaluated_turns += 1
+    return {
+        "aged_constraints": paired_endpoint(aged_pairs),
+        "all_constraints": paired_endpoint(all_pairs),
+        "conversation_aged": conversation_endpoints(clusters),
+        "aged_cluster_bootstrap": cluster_bootstrap_delta(
+            aged_cluster_rows, draws=bootstrap_draws, seed=0
+        ),
+        "all_cluster_bootstrap": cluster_bootstrap_delta(
+            all_cluster_rows, draws=bootstrap_draws, seed=0
+        ),
+        "strict_prompt": {
+            key: paired_endpoint(value) for key, value in sorted(prompt_pairs.items())
+        },
+        "controls": {
+            "evaluated_turns": evaluated_turns,
+            "base_mean_tokens": sum(base_lengths) / len(base_lengths),
+            "arm_mean_tokens": sum(arm_lengths) / len(arm_lengths),
+            "base_truncations": base_truncations,
+            "arm_truncations": arm_truncations,
+            "base_timeouts": base_timeouts,
+            "arm_timeouts": arm_timeouts,
+            "fired_rows": fired,
+            "firing_rate": fired / evaluated_turns,
+            "biased_tokens": biased_tokens,
+        },
+    }
+
+
+def analyze_replay_records(
+    records: Sequence[Mapping], *, diagnostic: bool, bootstrap_draws: int = 10_000
+) -> dict:
+    selected = [
+        record for record in records if bool(record["diagnostic"]) is diagnostic
+    ]
+    if not selected:
+        raise ValueError("requested Multi-IF partition is empty")
+    arm_names = ("ctrb", "periodic", "fixed_oldest", "positive_control")
+    arms = {
+        arm: _analyze_arm(selected, arm, bootstrap_draws) for arm in arm_names
+    }
+    reasons = []
+    if not diagnostic:
+        primary = arms["ctrb"]["aged_constraints"]
+        if primary["delta_points"] < 2.0:
+            reasons.append(
+                f"aged-constraint delta {primary['delta_points']:.4f} < +2.0 points"
+            )
+        if primary["p_one_sided"] >= 0.05:
+            reasons.append(
+                f"aged-constraint McNemar p {primary['p_one_sided']:.6g} >= 0.05"
+            )
+        ctrb_controls = arms["ctrb"]["controls"]
+        if ctrb_controls["arm_truncations"] > ctrb_controls["base_truncations"]:
+            reasons.append("CTRB has excess truncations")
+        if ctrb_controls["arm_timeouts"] > ctrb_controls["base_timeouts"]:
+            reasons.append("CTRB has excess timeouts")
+        for comparator in ("periodic", "fixed_oldest"):
+            delta = arms[comparator]["aged_constraints"]["delta_points"]
+            if primary["delta_points"] <= delta:
+                reasons.append(
+                    f"CTRB aged delta does not beat {comparator} ({delta:.4f})"
+                )
+    return {
+        "partition": "diagnostic" if diagnostic else "primary",
+        "conversations": len(selected),
+        "arms": arms,
+        "gate_pass": None if diagnostic else not reasons,
+        "failure_reasons": reasons,
     }

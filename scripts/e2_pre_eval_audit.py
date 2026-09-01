@@ -54,7 +54,7 @@ def main():
 
     from stencil.causal_moments import score_row_constraints
     from stencil.ctrb import HazardGate
-    from stencil.e2 import constraint_span_records
+    from stencil.e2 import user_turn_span_records
     from stencil.e2_policy import generate_e2_policy
     from stencil.e2_stats import (
         audit_reasons,
@@ -126,7 +126,7 @@ def main():
         for turn_i, turn in enumerate(session["turns"], start=1):
             history_now = history + f"<|im_start|>user\n{turn['prompt']}<|im_end|>\n"
             context = history_now + OPENER
-            span_records = constraint_span_records(tok, context)
+            span_records = user_turn_span_records(tok, context)
             native = generate_e2_policy(
                 model, tok, context, ctrl, span_records,
                 mode="native", max_new=args.turn_max_new,
