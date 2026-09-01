@@ -552,3 +552,51 @@ def test_e2_oracle_summary_derives_arm_best_without_phantom_field():
     # Missing trials fail closed to native, rather than a nonexistent
     # precomputed `by_arm` field (the old aggregate-path crash).
     assert got["by_arm_pass_rate"]["sustained_all"] == pytest.approx(2 / 3)
+
+
+def test_exact_kv_branch_native_reproduces_committed_trajectory(gpu_setup):
+    """Causal labels must branch from the same prompt-once/token-at-a-time
+    numerical path used by deployment, not a full prompt+prefix recompute."""
+    from stencil.causal_moments import rollout_arms_from_prefix_exact
+    from stencil.ctrb import HazardGate, constraint_spans_of, generate_ctrb
+
+    model, tok, ctrl = gpu_setup
+    spans = constraint_spans_of(tok, PROMPT)
+    native = generate_ctrb(
+        model,
+        tok,
+        PROMPT,
+        ctrl,
+        spans,
+        HazardGate.constant(0),
+        max_new=24,
+        draft_tokens=0,
+        collect_prefixes=True,
+    )
+    candidate = next(r for r in native.trace if r["step"] == 8)
+    specs = {
+        "registered": {
+            "spans": (spans[candidate["selected_span"]],),
+            "dose": 1.0,
+            "burst_tokens": 4,
+        }
+    }
+    first = rollout_arms_from_prefix_exact(
+        model=model,
+        tokenizer=tok,
+        prompt=PROMPT,
+        prefix_ids=candidate["prefix_ids"],
+        arm_specs=specs,
+        max_new=24,
+    )
+    second = rollout_arms_from_prefix_exact(
+        model=model,
+        tokenizer=tok,
+        prompt=PROMPT,
+        prefix_ids=candidate["prefix_ids"],
+        arm_specs=specs,
+        max_new=24,
+    )
+    assert first == second
+    assert first["native"].response == native.text
+    assert len(first["native"].continuation_ids) == 24 - len(candidate["prefix_ids"])

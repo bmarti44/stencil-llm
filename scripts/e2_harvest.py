@@ -93,7 +93,10 @@ def main():
     import torch
     from tokenizers import Tokenizer
 
-    from stencil.causal_moments import rollout_from_prefix, score_row_constraints
+    from stencil.causal_moments import (
+        rollout_arms_from_prefix_exact,
+        score_row_constraints,
+    )
     from stencil.ctrb import HazardGate, generate_ctrb
     from stencil.e2 import (
         arm_specs,
@@ -116,7 +119,7 @@ def main():
     outdir = ROOT / "results" / "qwen" / args.out
     outdir.mkdir(parents=True, exist_ok=True)
     meta = {
-        "schema": 2,
+        "schema": 3,
         "schema_fields": list(SCHEMA_FIELDS),
         "corpus": str(data_path.relative_to(ROOT)),
         "corpus_sha256": sha(data_path),
@@ -133,6 +136,7 @@ def main():
         "deadline": args.deadline,
         "nominal_arm": "sustained_all",
         "nominal_dose": 3.0,
+        "branch_replay": "exact_kv_prompt_once_then_tokenwise",
     }
     meta_path = outdir / "meta.json"
     if meta_path.exists():
@@ -210,38 +214,32 @@ def main():
             for candidate in candidates:
                 prefix_ids = candidate["prefix_ids"]
                 selected = int(candidate["selected_span"])
-                common = {
-                    "model": model,
-                    "tokenizer": tok,
-                    "prompt": context,
-                    "prefix_ids": prefix_ids,
-                    "max_new": args.turn_max_new,
-                    "deadline_s": args.deadline,
-                    "raw_context": True,
-                }
-                native = rollout_from_prefix(
-                    **common, selected_span=spans[selected], burst=False
-                )
-                native_scores = score_row_constraints(row, native.response)
-                native_record = branch_record(native, native_scores, len(prefix_ids))
                 specs = arm_specs(
                     spans,
                     selected_span=selected,
                     aged_indices=aged_indices,
                     control_spans=control_spans,
                 )
-                branches = {}
-                for arm, spec in specs.items():
-                    if not spec["spans"]:
-                        raise RuntimeError(f"{arm} has no target spans")
-                    focused = rollout_from_prefix(
-                        **common,
-                        selected_span=spec["spans"][0],
-                        extra_spans=spec["spans"][1:],
-                        burst=True,
-                        dose=spec["dose"],
-                        burst_tokens=spec["burst_tokens"],
+                rollouts = rollout_arms_from_prefix_exact(
+                    model=model,
+                    tokenizer=tok,
+                    prompt=context,
+                    prefix_ids=prefix_ids,
+                    arm_specs=specs,
+                    max_new=args.turn_max_new,
+                    deadline_s=args.deadline,
+                    raw_context=True,
+                )
+                native = rollouts.pop("native")
+                if native.response != native_generation.text:
+                    raise RuntimeError(
+                        f"session {session_i} turn {turn_i} step {candidate['step']}: "
+                        "exact KV native branch diverged from committed trajectory"
                     )
+                native_scores = score_row_constraints(row, native.response)
+                native_record = branch_record(native, native_scores, len(prefix_ids))
+                branches = {}
+                for arm, focused in rollouts.items():
                     focused_scores = score_row_constraints(row, focused.response)
                     branches[arm] = branch_record(focused, focused_scores, len(prefix_ids))
                 moment = make_moment_record(

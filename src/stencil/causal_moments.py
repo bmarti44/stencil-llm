@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import random
 import time
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 
 
@@ -25,6 +25,159 @@ class CausalMomentLabel:
     burst_scores: tuple[bool, ...]
     native: BranchRollout
     burst: BranchRollout
+
+
+def _clone_cache(cache):
+    """Independent GPU cache state for one causal branch."""
+    from stencil.qwen3 import KVCache
+
+    copied = KVCache()
+    copied.length = cache.length
+    copied.k = [None if x is None else x.clone() for x in cache.k]
+    copied.v = [None if x is None else x.clone() for x in cache.v]
+    return copied
+
+
+def _exact_prefix_state(model, prompt_ids, prefix_ids):
+    """Replay prompt once and generated tokens one-by-one, as deployment."""
+    import torch
+
+    from stencil.ctrb import _model_device
+    from stencil.qwen3 import KVCache
+
+    cache = KVCache()
+    prefix = [int(x) for x in prefix_ids]
+    if not prefix:
+        return cache, list(prompt_ids)
+    device = _model_device(model)
+    with torch.no_grad():
+        logits = model(torch.tensor([prompt_ids], device=device), cache=cache)
+        predicted = int(logits[0, -1].argmax())
+        if predicted != prefix[0]:
+            raise RuntimeError("stored prefix diverges at first KV-cached token")
+        for i, token in enumerate(prefix[:-1]):
+            logits = model(torch.tensor([[token]], device=device), cache=cache)
+            predicted = int(logits[0, -1].argmax())
+            if predicted != prefix[i + 1]:
+                raise RuntimeError(f"stored prefix diverges at KV-cached token {i + 1}")
+    return cache, [prefix[-1]]
+
+
+def _rollout_from_exact_state(
+    *,
+    model,
+    tokenizer,
+    cache,
+    current,
+    prefix_ids,
+    spans,
+    dose,
+    burst_tokens,
+    max_new,
+    deadline_s,
+):
+    import torch
+
+    from stencil.bench import EOS, WAVE_LAYERS
+    from stencil.ctrb import _model_device, uniform_span_bias
+
+    frozen = [int(x) for x in prefix_ids]
+    continuation = []
+    forward_step = 0
+    started = time.monotonic()
+    timed_out = False
+    device = _model_device(model)
+    target_spans = [tuple(x) for x in spans]
+    with torch.no_grad():
+        while len(frozen) + len(continuation) < max_new:
+            if deadline_s is not None and time.monotonic() - started > deadline_s:
+                timed_out = True
+                break
+            total = cache.length + len(current)
+
+            def hook(h20, forward_step=forward_step, total=total):
+                if not target_spans or forward_step >= burst_tokens:
+                    return None
+                row = uniform_span_bias(
+                    h20.shape[1],
+                    total,
+                    target_spans[0],
+                    amount=dose,
+                    device=h20.device,
+                )
+                for span in target_spans[1:]:
+                    row = row + uniform_span_bias(
+                        h20.shape[1], total, span, amount=dose, device=h20.device
+                    )
+                return {layer: row for layer in WAVE_LAYERS}
+
+            logits = model(
+                torch.tensor([current], device=device),
+                cache=cache,
+                bias_hook=(20, hook) if target_spans else None,
+            )
+            next_token = int(logits[0, -1].argmax())
+            forward_step += 1
+            if next_token in EOS:
+                break
+            continuation.append(next_token)
+            current = [next_token]
+    all_response_ids = frozen + continuation
+    return BranchRollout(
+        tokenizer.decode(all_response_ids),
+        tuple(continuation),
+        len(all_response_ids) >= max_new,
+        timed_out,
+    )
+
+
+def rollout_arms_from_prefix_exact(
+    *,
+    model,
+    tokenizer,
+    prompt: str,
+    prefix_ids: Sequence[int],
+    arm_specs: Mapping[str, Mapping],
+    max_new: int = 1024,
+    deadline_s: float | None = None,
+    raw_context: bool = False,
+) -> dict[str, BranchRollout]:
+    """Branch all arms from one exact KV replay of the frozen native prefix."""
+    from stencil.bench import TMPL
+
+    prompt_ids = tokenizer.encode(prompt if raw_context else TMPL.format(p=prompt)).ids
+    base_cache, current = _exact_prefix_state(model, prompt_ids, prefix_ids)
+    results = {
+        "native": _rollout_from_exact_state(
+            model=model,
+            tokenizer=tokenizer,
+            cache=_clone_cache(base_cache),
+            current=list(current),
+            prefix_ids=prefix_ids,
+            spans=(),
+            dose=0.0,
+            burst_tokens=0,
+            max_new=max_new,
+            deadline_s=deadline_s,
+        )
+    }
+    for name, spec in arm_specs.items():
+        spans = tuple(tuple(x) for x in spec["spans"])
+        if not spans:
+            raise ValueError(f"arm {name} has no spans")
+        results[str(name)] = _rollout_from_exact_state(
+            model=model,
+            tokenizer=tokenizer,
+            cache=_clone_cache(base_cache),
+            current=list(current),
+            prefix_ids=prefix_ids,
+            spans=spans,
+            dose=float(spec["dose"]),
+            burst_tokens=int(spec["burst_tokens"]),
+            max_new=max_new,
+            deadline_s=deadline_s,
+        )
+    return results
 
 
 def classify_scores(

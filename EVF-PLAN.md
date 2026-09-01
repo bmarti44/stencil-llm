@@ -263,3 +263,16 @@ co-primary/effect-floor/cluster-bootstrap rules above remain unchanged; a CTRB
 positive must also beat BOTH periodic and fixed-span arms on aged-constraint
 recovery to support a conflict-triggered-WHEN claim.  Own-history metrics are
 secondary and run only if the replayed-history gate passes.
+
+### E2 causal replay correction (2026-09-01, before valid harvest results)
+
+The three-session development preflight exposed that the old
+`rollout_from_prefix` rebuilt prompt+prefix in one full forward, while the
+features and deployable policy use a prompt-once then token-by-token KV path.
+Given the already measured KV/logit drift, those labels are invalid for the
+deployed gate.  The valid harvest MUST replay the stored native prefix with
+the exact deployed chunking, verify every native suffix equals the committed
+trajectory token-for-token, clone that one frozen KV state for all arms, and
+fail on any prefix or suffix divergence.  The three full-recompute session
+records are retained under an explicitly INVALID directory and never enter
+training or counts.

@@ -2003,3 +2003,17 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   and writes all registered failure reasons.  A passing fit must repeat
   bitwise before its weights/threshold can be serialized.  It has not been
   run on the partial harvest and does not open Multi-IF.
+
+## 2026-09-01 — Corrected harvest preflight stopped: causal KV path mismatch
+
+- Stopped after 3 development sessions (47 moments: 14 helpful / 4 harmful /
+  29 neutral) because causal branches rebuilt prompt+prefix as one full
+  forward while candidate features/deployment use prompt-once/tokenwise KV.
+  Those records are retained as `e2-corrected-harvest-invalid-fullrecompute`
+  and are excluded from every count and fit.
+- Red/green correction: `rollout_arms_from_prefix_exact` replays the frozen
+  prefix with deployment chunking once, fails if any stored token diverges,
+  clones that exact KV state across native + four arms, and requires the
+  native branch to reproduce the committed full response.  GPU fixture is
+  green and bitwise-repeat exact.  This also removes four redundant prefix
+  reconstructions per candidate.
