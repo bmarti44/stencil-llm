@@ -162,3 +162,44 @@ GATE: co-primary 1 must show a positive paired delta on aged
 constraints with p < 0.05 AND no excess truncation/timeouts; co-primary
 2 reported with it. Failure = honest negative; the arena question is
 then answered for this actuator.
+
+## E2 amendments from kimi round-2 (CRITICAL-1 + HIGH-1/2/3), registered
+2026-09-01 BEFORE any Multi-IF contact
+
+1. EFFECT FLOOR restored on co-primary 1 (was dropped — the B4 discipline
+   must apply to the endpoint that matters most): net aged-constraint
+   recovery >= +2.0 points AND one-sided p < 0.05. Significance alone
+   cannot pass the gate.
+2. CLUSTER-AWARE INFERENCE: constraints within a conversation share a
+   history and a response, so per-constraint McNemar is anti-conservative.
+   Registered: conversation-level co-primary (any/all aged constraints
+   recovered per conversation) AND a cluster bootstrap by conversation
+   reported beside the per-constraint test.
+3. ABLATION ARMS (a positive that does not beat BOTH is not evidence for
+   conflict-triggered WHEN, only for "some spotlight"): (a) PERIODIC
+   trigger at the gate's measured firing rate, no conflict features;
+   (b) FIXED-SPAN always-oldest-user-turn bursts. If runtime forbids
+   both, the claim is scoped to "the CTRB package" explicitly.
+4. HEADROOM RE-DERIVATION before the 5-11pt target is quoted again:
+   WITHIN-TURN fresh-vs-aged, mix- and length-adjusted, from the recorded
+   base arm (kimi's back-out suggests within-turn-3 aging may be ~2pts,
+   not 11 — the cross-turn comparison confounds aging with turn-3 global
+   difficulty).
+5. PRE-EVAL GATE AUDIT on the synthetic holdout with registered acceptable
+   ranges: firing rate per turn, span-selection by turn origin, burst-count
+   distribution. A gate that degenerates to "always boost the oldest user
+   turn" is caught here, not after the eval.
+6. PARAMETER FREEZE before any Multi-IF contact, diagnostic slice included
+   (or the slice is dropped).
+7. RE-APPEND POSITIVE CONTROL (MMMT-IF style): aged instructions restated
+   fresh in the replayed history. No training; bounds what focus/retrieval
+   recovery could EVER deliver on this harness, calibrating any wave
+   positive as a fraction of addressable headroom.
+8. The SINGLE-TURN question is formally recorded as UNANSWERED (the v4.5
+   confirmation was abandoned by ruling at ~100/1024, not failed). "Pivot"
+   does not mean "failed"; reviving the claim requires completing that run.
+Also noted (kimi MEDIUM): _native_draft_confirms uses uncached full
+forwards while the committed trajectory is KV-cached — the WHEN decision
+runs on a numerically different path than the one committed (our own KV
+characterization: drift up to 1.107 logits vs margins as low as 0.103).
+To be characterized or the draft-confirm disabled before the eval.
