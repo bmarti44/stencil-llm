@@ -1848,3 +1848,11 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   (first 70 convs): base strict-prompt 0.700 / 0.457 / 0.314 by turn — ~39pt
   decay, far steeper than published frontier decay; headroom confirmed
   directionally (will be re-measured cleanly).
+
+## 2026-09-01 — reviewer change: Opus 5 replaces fable as empirical verifier
+
+- Brian: fable usage exhausted. The dual-review structure is UNCHANGED (sol
+  xhigh spec-adversary + an independent empirical verifier); the verifier role
+  is now Opus 5 (model: opus), which already did the v4.2 data curation that
+  caught the untargeted-mutation flaw. Same prompting discipline: provenance
+  -level verification (recompute, re-run, re-derive), never transcription.
