@@ -1887,3 +1887,21 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   model retains the SKILL and loses the HOLD — the wave's thesis, quantified.
 - Obsolete wave arms cancelled by the auto-cutoff as registered (1 partial
   record discarded). GPU free for the E2 harvest.
+
+## 2026-09-01 — E2 harvest COMPLETE: multi-turn actuator headroom is ~ZERO
+
+- 240 causal moments (60 synthetic multi-turn sessions, highest-conflict points
+  of turns 2-3, A=0 vs A=1 single registered burst, cumulative-constraint
+  scoring): 236 neutral / 3 helpful / 1 harmful.
+- The decisive number: 155 of 240 moments had >= 1 NATIVELY FAILING constraint
+  (headroom existed), and a burst improved 3 of them (1.9%). Only 4 of 240
+  moments changed the per-constraint outcome vector AT ALL.
+- Contrast: the same conflict-guided protocol on SINGLE-TURN failing rows gave
+  4 helpful + 1 harmful / 36 (11%). The multi-turn arena is WORSE for this
+  actuator, not better — the opposite of the scope hypothesis's prediction.
+- This triggers sol's pre-registered post-Multi-IF branch 4: "neither helps and
+  the oracle has negligible lift -> do not fund a larger WHEN learner; establish
+  moment-level actuator headroom first." Moment-level headroom is now measured
+  and it is ~2%. A better WHEN gate cannot harvest an effect that is not there.
+- Taking to sol + Opus 5 for the registered review before any conclusion is
+  written into the report.
