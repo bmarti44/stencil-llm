@@ -48,9 +48,21 @@ C. SELECTION + EMPHASIS — the EXISTING WaveController, unchanged.
 ## The experiment that decides it (registered BEFORE building)
 
 The trivial version of a ledger already works: re-appending instructions
-as text is published at +22.3pts on multi-turn IF. So the question is NOT
-"does a ledger help" but "does a NEURAL ledger beat a TEXTUAL one, at a
-fraction of the context cost".
+as text is published at +22.3pts on multi-turn IF. Brian's ruling
+(2026-09-01) sets the bar precisely: WE DO NOT HAVE TO BEAT TEXT
+RE-APPEND. WE HAVE TO MATCH IT FOR FREE, AND AUTOMATICALLY.
+
+  "for free"        = ZERO added context tokens (text re-append pays
+                      tokens linear in the number of instructions and
+                      grows every turn; the neural ledger pays none).
+  "match"           = NON-INFERIORITY, not superiority. Registered test:
+                      the existing Tango paired bound (src/stencil/
+                      stats.py), margin 2.0 points, one-sided 95%.
+                      A tie at zero cost is a WIN.
+  "automatically"   = the ledger is built by the salience classifier from
+                      raw text. No "Constraint:" markers, no human
+                      curation, no per-benchmark verifiers at inference.
+                      An arm that needs marked spans does not count.
 
 ARMS (replayed-history harness, identical inputs, single difference):
   1. base                 — recorded native (free, already on disk)
@@ -59,10 +71,14 @@ ARMS (replayed-history harness, identical inputs, single difference):
   3. neural-ledger        — ledger entries as attention-bias targets,
                             selective amplification, context UNCHANGED
   4. specificity control  — matched bias mass on non-ledger tokens
-PRIMARY: per-constraint paired outcomes, neural-ledger vs BASE (does it
-help at all) AND neural-ledger vs text-ledger (does it earn its existence).
-Report context cost (tokens added) per arm — the neural arm's whole claim
-is parity-at-lower-cost.
+PRIMARY (registered): NON-INFERIORITY of neural_ledger to text_ledger on
+per-constraint paired outcomes — Tango upper bound on the drop < 2.0
+points — WITH neural_ledger context cost = 0 added tokens. That is the
+result: same compliance, no context paid, no human in the loop.
+SECONDARY: neural_ledger vs BASE (it must do something at all) and
+text_ledger vs BASE (confirms the ledger contents are right, and
+calibrates the addressable headroom on this harness).
+Context tokens added MUST be reported per arm.
 SCOPE HONESTY: the actuator can only INSERT content; limit/removal/
 restructure families are reported separately and excluded from the primary
 (measured: insertable families are 18.5% of Multi-IF constraints).
