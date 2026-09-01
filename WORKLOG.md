@@ -1837,3 +1837,14 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
 - Resume refused (registered pin set includes bench.py/qwen3.py, both modified
   by the CTRB work). 18 pre-edit base conversations DISCARDED (exploratory run,
   no seal; regenerating under current code rather than mixing versions).
+
+## 2026-09-01 — Multi-IF restart 2: 13/909 conversations have only 2 turns
+
+- Registered "909 x 3 = 2727 turns" was WRONG (recompute-the-claim): 896 have 3
+  turns, 13 have 2 (empty turn_3 columns) -> 2714 turns. Runner crashed on the
+  first 2-turn row (unguarded json.loads('')); patched to process present turns
+  with honest per-turn denominators; 101 pre-patch records discarded (script
+  sha in pins; no version mixing). Early decay signal from the discarded pass
+  (first 70 convs): base strict-prompt 0.700 / 0.457 / 0.314 by turn — ~39pt
+  decay, far steeper than published frontier decay; headroom confirmed
+  directionally (will be re-measured cleanly).

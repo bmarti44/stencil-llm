@@ -164,15 +164,18 @@ def run_arm(m, tok, rows, arm_name, ctrl, meta, mode):
 
     per_turn = {1: [], 2: [], 3: []}
     for ci, row in enumerate(rows):
+        # 13/909 conversations have only 2 turns (empty turn_3 columns);
+        # process the turns that exist, per-turn denominators reflect that
+        turns_present = [t for t in (1, 2, 3) if row[f"turn_{t}_prompt"]]
         rec_p = outdir / f"conv-{ci:03d}.json"
         if rec_p.exists():
             rec = json.loads(rec_p.read_text())
-            for t in (1, 2, 3):
+            for t in turns_present:
                 per_turn[t].append(rec["scores"][str(t)])
             continue
         history = ""
         rec = {"ci": ci, "key": row["key"], "scores": {}, "responses": {}, "gen": {}}
-        for t in (1, 2, 3):
+        for t in turns_present:
             p, _, _ = turn_doc(row, t)
             history += f"<|im_start|>user\n{p}<|im_end|>\n"
             text, n, trunc, timeout = gen(m, tok, ctrl, history + OPENER, mode,
@@ -189,7 +192,7 @@ def run_arm(m, tok, rows, arm_name, ctrl, meta, mode):
             print(f"[{arm_name}] {ci}/{len(rows)}", flush=True)
     summary = {"arm": arm_name, **meta}
     for t in (1, 2, 3):
-        summary[f"turn{t}"] = aggregate(per_turn[t])
+        summary[f"turn{t}"] = {**aggregate(per_turn[t]), "n": len(per_turn[t])}
     summary["pooled"] = aggregate(per_turn[1] + per_turn[2] + per_turn[3])
     (outdir / "summary.json").write_text(json.dumps(summary, indent=1))
     print(f"[{arm_name}] " + json.dumps({k: v for k, v in summary.items() if k.startswith(("turn", "pooled"))}))
