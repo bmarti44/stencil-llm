@@ -2017,3 +2017,19 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   native branch to reproduce the committed full response.  GPU fixture is
   green and bitwise-repeat exact.  This also removes four redundant prefix
   reconstructions per candidate.
+
+## 2026-09-01 — Frozen sustained policy + pre-eval audit implemented
+
+- Red/green implementation in new files only while harvest runs: one-onset
+  sustained-all CTRB, same-trigger fixed-oldest ablation, conflict-free
+  periodic onset, and native mode.  CPU contracts plus a real-GPU silent-row
+  test prove zero-fire token identity; fixed-oldest and periodic controls bind.
+- Registered arithmetic is mechanized: exact one-sided McNemar, stable periodic
+  assignment, fixed-seed conversation-cluster bootstrap, firing/span-origin/
+  onset audit ranges, and the three-adjacent-dose knife-edge rejection.  Nine
+  focused contracts are green.
+- `scripts/e2_pre_eval_audit.py` is gated on a certified hazard artifact and
+  consumes only `mt-dev-60.jsonl`.  It holds native histories fixed, replays
+  every fired decision at doses 2.25/3.0/3.75, asserts forced dose-3 output is
+  identical to the gated action, writes atomic session records, and emits the
+  parameter freeze only on a full pass.  Not yet executed.

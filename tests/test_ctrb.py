@@ -600,3 +600,24 @@ def test_exact_kv_branch_native_reproduces_committed_trajectory(gpu_setup):
     assert first == second
     assert first["native"].response == native.text
     assert len(first["native"].continuation_ids) == 24 - len(candidate["prefix_ids"])
+
+
+def test_e2_sustained_policy_silent_is_bitwise_native_on_gpu(gpu_setup):
+    from stencil.ctrb import HazardGate, constraint_spans_of
+    from stencil.e2_policy import generate_e2_policy
+
+    model, tok, ctrl = gpu_setup
+    span_records = [
+        {"span": span, "origin_turn": 1, "is_aged": False}
+        for span in constraint_spans_of(tok, PROMPT)
+    ]
+    native = generate_e2_policy(
+        model, tok, PROMPT, ctrl, span_records,
+        mode="native", max_new=20)
+    silent = generate_e2_policy(
+        model, tok, PROMPT, ctrl, span_records,
+        mode="ctrb", gate=HazardGate.constant(0), threshold=0.5,
+        max_new=20)
+    assert silent.text == native.text
+    assert silent.token_ids == native.token_ids
+    assert not silent.interventions and silent.biased_tokens == 0
