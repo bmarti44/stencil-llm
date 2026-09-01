@@ -2033,3 +2033,17 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   every fired decision at doses 2.25/3.0/3.75, asserts forced dose-3 output is
   identical to the gated action, writes atomic session records, and emits the
   parameter freeze only on a full pass.  Not yet executed.
+
+## 2026-09-01 — Multi-IF headroom re-derived within turn (pre-eval requirement)
+
+- `results/qwen/multiif-headroom-adjusted.json`, all 909 recorded base
+  conversations, no new generation.  Raw fresh-minus-aged constraint gaps:
+  turn 2 = +8.82pts (909 fresh / 1,380 aged cells); turn 3 = +1.70pts
+  (896 / 2,256).
+- Direct standardization on exact instruction family x response-length
+  quartile, common support only: turn 2 = +1.97pts (1,894 cells, 395 excluded);
+  turn 3 = +4.65pts (2,792, 360 excluded).  Therefore the corrected addressable
+  aging target is about 2-5pts, not the retracted 5-11pt cross-turn comparison.
+- The preregistered SHA-256 mod-9 partition yields 113 diagnostic and 796
+  primary conversations.  This analysis used recorded base outcomes only and
+  did not tune or expose the hazard gate to benchmark treatment outcomes.
