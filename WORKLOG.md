@@ -1856,3 +1856,20 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   is now Opus 5 (model: opus), which already did the v4.2 data curation that
   caught the untargeted-mutation flaw. Same prompting discipline: provenance
   -level verification (recompute, re-run, re-derive), never transcription.
+
+## 2026-09-01 — kimi-k3 cross-review CRITICAL-1 CONFIRMED: my headroom claim was misread arithmetic
+
+- kimi (third reviewer, independent) attacked the Multi-IF headline: strict-prompt
+  is a CONJUNCTION over accumulating constraints, so decay may be arithmetic.
+  I RECOMPUTED on 748 conversations — kimi is RIGHT: independence prediction
+  0.686/0.497/0.290 vs observed 0.711/0.513/0.321 (gaps only +2.5/+1.7/+3.1pts,
+  the expected mild positive correlation). My "38-point focus collapse / enormous
+  headroom" framing was WRONG and is retracted.
+- BUT the origin-turn decomposition (only computable from our records) shows REAL
+  drift the conjunction model does not explain: the SAME constraint decays with
+  age — origin-1 constraints 0.770 fresh -> 0.719 at t2 -> 0.661 at t3 (-10.9pts);
+  origin-2 0.795 -> 0.747 (-4.8pts). Fresh-constraint rates stay ~0.70-0.80.
+  So the honest target is a ~5-11pt per-constraint AGING effect, not 38pts.
+  Registered headroom map: results/qwen/multiif-headroom-map.json.
+- Also generation grows with turns (306/342/371 tokens; truncations 54/74/86) —
+  a length/truncation confound to control, per kimi.

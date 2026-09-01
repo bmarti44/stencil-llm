@@ -1,0 +1,63 @@
+{
+ "n_conversations": 748,
+ "status": "PARTIAL (base arm in progress)",
+ "turns": {
+  "1": {
+   "n": 748,
+   "mean_constraints": 1.491,
+   "inst_level": 0.7695,
+   "strict_observed": 0.7112,
+   "strict_independence_prediction": 0.6864,
+   "gap_obs_minus_pred": 0.0248
+  },
+  "2": {
+   "n": 748,
+   "mean_constraints": 2.491,
+   "inst_level": 0.7499,
+   "strict_observed": 0.5134,
+   "strict_independence_prediction": 0.4966,
+   "gap_obs_minus_pred": 0.0168
+  },
+  "3": {
+   "n": 739,
+   "mean_constraints": 3.491,
+   "inst_level": 0.6961,
+   "strict_observed": 0.3207,
+   "strict_independence_prediction": 0.29,
+   "gap_obs_minus_pred": 0.0307
+  }
+ },
+ "drift": {
+  "at_turn_1": {
+   "origin_1": {
+    "rate": 0.7695,
+    "n": 1115
+   }
+  },
+  "at_turn_2": {
+   "origin_1": {
+    "rate": 0.7193,
+    "n": 1115
+   },
+   "origin_2": {
+    "rate": 0.7955,
+    "n": 748
+   }
+  },
+  "at_turn_3": {
+   "origin_1": {
+    "rate": 0.6606,
+    "n": 1102
+   },
+   "origin_2": {
+    "rate": 0.747,
+    "n": 739
+   },
+   "origin_3": {
+    "rate": 0.6982,
+    "n": 739
+   }
+  }
+ },
+ "headroom_verdict": "Conjunction arithmetic explains nearly all strict-prompt decay (gaps +2.5/+1.7/+3.1pts). REAL drift = same-constraint decay by age: origin-1 constraints 0.770 fresh -> 0.719 (t2) -> 0.661 (t3), i.e. -10.9pts; origin-2 0.795 -> 0.747 (-4.8pts). Honest headroom is the ~5-11pt per-constraint aging effect, NOT the 38pt strict-prompt drop."
+}
