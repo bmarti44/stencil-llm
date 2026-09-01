@@ -63,6 +63,7 @@ def rollout_from_prefix(
     burst: bool,
     dose: float = 1.0,
     burst_tokens: int = 4,
+    extra_spans: tuple = (),
     max_new: int = 1024,
     deadline_s: float | None = None,
     raw_context: bool = False,
@@ -98,6 +99,10 @@ def rollout_from_prefix(
                 row = uniform_span_bias(
                     h20.shape[1], total, selected_span, amount=dose, device=h20.device
                 )
+                for _sp in extra_spans:  # multi-span sustained arms (E2 oracle)
+                    row = row + uniform_span_bias(
+                        h20.shape[1], total, tuple(_sp), amount=dose, device=h20.device
+                    )
                 return {layer: row for layer in WAVE_LAYERS}
 
             logits = model(

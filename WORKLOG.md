@@ -1922,3 +1922,38 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
 - Fix: derive candidate spans in the token coordinates of the complete raw ctx,
   then re-run. Opus 5's independent verification (running) will re-test on the
   corrected pipeline. No hazard training or Multi-IF wave run until then.
+
+## 2026-09-01 — OPUS 5 REFUTES THE TERMINATION: a real, specific effect exists
+
+- Opus 5 (empirical verifier) ran the controlled experiment I should have run:
+  84 replayed moments, 54 with headroom, 12 conditions sharing an identical
+  native branch. RESULTS: registered arm (4-token dose-1.0 burst on the
+  learned span) fixes 0/54. CORRECT spans + SUSTAINED bias over ALL live
+  constraint spans fixes 7/54 (13.0%), 8 constraint cells recovered vs 0,
+  paired exact p=0.0039, breakage LOWER than brute force (2/213), no length
+  degeneracy. SPECIFICITY CONTROL (non-constraint tokens, matched width and
+  schedule): 1/54, p=0.25 — the effect is constraint-specific, not generic
+  perturbation. Inspected recoveries are mechanistically right (missing
+  keywords appear; a sentence is added to meet n_sent).
+- KEY: neither fix alone works. Correct address at the registered dose: 0-2/54.
+  Sustained dose on the WRONG span: 1/54. The registered protocol was
+  under-powered on BOTH axes at once — which is why my harvest read ~zero.
+- Opus FINDING-2 (high): my replacement span finder STILL bled 44.4% of spans
+  across the user/assistant boundary (mean 211 tokens) and my new test passed
+  VACUOUSLY on its own fixture (playbook violation, again). FIXED: spans now
+  clamp to the enclosing user message (verified on real multi-turn context:
+  0 bleed, mean 25.7 tokens) and the test now asserts no assistant/im_end
+  marker and bounded length.
+- Opus FINDING-3 (high): re-running the harvest with ONLY the span fix would
+  have reproduced ~zero and repeated the false termination. Dose x duration
+  arms are now REQUIRED and implemented in scripts/e2_oracle.py
+  (reg / sustained_all / sustained_aged / control), with multi-span bias
+  wired through rollout_from_prefix (16/16 battery, incl. a test that the
+  extra spans actually reach the logits).
+- Opus FINDING-4/5 (medium, recorded): the 240 raw records were gitignored and
+  deleted by my re-run (only aggregates survive); 3 of 6 trajectory features
+  in every harvested record were computed on misaddressed spans, so any gate
+  trained on them would be contaminated.
+- STATUS: the "moment-level headroom ~zero" conclusion is DEAD. The measured
+  ceiling under a correctly-addressed, adequately-dosed actuator is 13% of
+  headroom moments with p=0.0039 and a passing specificity control.

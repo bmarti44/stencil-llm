@@ -248,10 +248,14 @@ def constraint_spans_in_context(tokenizer, context: str, only_last_turn: bool = 
         i = context.find("Constraint:", cursor)
         if i < 0:
             break
-        j = context.find("Constraint:", i + 1)
-        end = j if j > 0 else context.find("<|im_end|>", i)
-        if end < 0:
-            end = len(context)
+        # CLAMP to the enclosing user message (Opus FINDING-2, 2026-09-01):
+        # ending only at the next "Constraint:" let the last constraint of a
+        # turn swallow the assistant reply and the next user preamble
+        # (44.4% of spans bled, mean 211 tokens).
+        nxt = context.find("Constraint:", i + 1)
+        turn_end = context.find("<|im_end|>", i)
+        ends = [x for x in (nxt, turn_end) if x > 0]
+        end = min(ends) if ends else len(context)
         toks = [ti for ti, (a, b) in enumerate(enc.offsets) if a < end and b > i]
         if toks:
             spans.append((toks[0], toks[-1] + 1))

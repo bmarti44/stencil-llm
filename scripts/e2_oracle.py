@@ -31,6 +31,8 @@ def main():
     ap.add_argument("--sessions", type=int, default=20)
     ap.add_argument("--moments", type=int, default=10, help="candidate burst moments per item")
     ap.add_argument("--doses", default="1.0,3.0")
+    ap.add_argument("--arms", default="reg,sustained_all,sustained_aged,control",
+                    help="reg=4-tok burst learned span; sustained_all=every step, ALL live constraint spans (Opus winning arm); sustained_aged=every step, aged spans; control=non-constraint tokens matched width/schedule")
     ap.add_argument("--burst-tokens", type=int, default=4)
     ap.add_argument("--turn-max-new", type=int, default=320)
     ap.add_argument("--out", default="e2-oracle")
@@ -92,18 +94,39 @@ def main():
                 for r in top:
                     if r not in cands:
                         cands.append(r)
+                arms = args.arms.split(",")
+                n_ctx = len(tok.encode(ctx).ids)
+                # aged spans = constraints stated before the final user turn
+                last_user = ctx.rfind("<|im_start|>user")
+                cut_tok = len(tok.encode(ctx[:last_user]).ids) if last_user > 0 else 0
+                aged = [sp for sp in spans if sp[1] <= cut_tok] or spans[:1]
+                # control: non-constraint window of matched total width
+                width = sum(b - a for a, b in spans)
+                ctrl_start = max(0, cut_tok - width - 8)
+                control = [(ctrl_start, ctrl_start + width)] if ctrl_start > 0 else []
                 for rec in cands:
-                    for span_i in range(len(spans)):
-                        if span_i != rec["selected_span"] and span_i not in range(len(spans))[:1]:
-                            continue  # learned span + the oldest span
-                        for dose in doses:
+                    for dose in doses:
+                        for arm in arms:
+                            if arm == "reg":
+                                sel, steps = [tuple(spans[rec["selected_span"]])], args.burst_tokens
+                            elif arm == "sustained_all":
+                                sel, steps = [tuple(x) for x in spans], 10**6
+                            elif arm == "sustained_aged":
+                                sel, steps = [tuple(x) for x in aged], 10**6
+                            elif arm == "control":
+                                if not control:
+                                    continue
+                                sel, steps = [tuple(x) for x in control], 10**6
+                            else:
+                                continue
                             roll = rollout_from_prefix(
                                 model=m, tokenizer=tok, prompt=ctx,
-                                prefix_ids=rec["prefix_ids"], selected_span=tuple(spans[span_i]),
-                                burst=True, dose=dose, burst_tokens=args.burst_tokens,
-                                max_new=args.turn_max_new, raw_context=True)
+                                prefix_ids=rec["prefix_ids"], selected_span=sel[0],
+                                extra_spans=sel[1:], burst=True, dose=dose,
+                                burst_tokens=steps, max_new=args.turn_max_new,
+                                raw_context=True)
                             sc = score_row_constraints(row, roll.response)
-                            out["trials"].append({"step": rec["step"], "span": span_i,
+                            out["trials"].append({"step": rec["step"], "arm": arm,
                                                   "dose": dose, "scores": list(sc),
                                                   "n_pass": sum(sc)})
         best = max([t["n_pass"] for t in out["trials"]], default=sum(native))
@@ -122,6 +145,10 @@ def main():
                "sessions_with_any_oracle_gain": sum(1 for r in recs if r["oracle_gain"] > 0),
                "total_trials": sum(len(r["trials"]) for r in recs)}
     summary["oracle_ceiling_pts"] = round((summary["oracle_pass_rate"] - summary["native_pass_rate"]) * 100, 2)
+    summary["by_arm_pass_rate"] = {}
+    for arm in args.arms.split(","):
+        tot = sum(r["by_arm"].get(arm, r["native_pass"]) for r in recs)
+        summary["by_arm_pass_rate"][arm] = round(tot / tot_n, 4)
     (ROOT / "results" / "qwen" / f"{args.out}-summary.json").write_text(json.dumps(summary, indent=1))
     print(json.dumps(summary, indent=1))
 

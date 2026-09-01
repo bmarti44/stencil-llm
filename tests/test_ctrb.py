@@ -401,7 +401,31 @@ def test_context_spans_are_full_context_coordinates(gpu_setup):
     assert len(all_spans) == 2
     texts = [tok.decode(ids[a:b]) for a, b in all_spans]
     assert "cedar" in texts[0] and "Done." in texts[1]
+    # NON-VACUITY (Opus FINDING-2): a span must not bleed past its own user
+    # message into the assistant reply or the next turn
+    for txt in texts:
+        assert "assistant" not in txt, txt
+        assert "<|im_end|>" not in txt, txt
+        assert "im_start" not in txt, txt
+        assert len(txt.split()) < 25, txt
+    assert "Done." not in texts[0], texts[0]
     last = constraint_spans_in_context(tok, ctx, only_last_turn=True)
     assert len(last) == 1 and "Done." in tok.decode(ids[last[0][0]:last[0][1]])
     for a, b in all_spans:
         assert 0 <= a < b <= len(ids)
+
+
+def test_extra_spans_add_bias_and_change_outcome(gpu_setup):
+    """E2 oracle arms: extra_spans must actually add bias (multi-span
+    sustained arm), not be silently ignored."""
+    from stencil.bench import TMPL
+    from stencil.causal_moments import rollout_from_prefix
+    from stencil.ctrb import constraint_spans_of
+    m, tok, _ = gpu_setup
+    spans = constraint_spans_of(tok, PROMPT)
+    common = dict(model=m, tokenizer=tok, prompt=TMPL.format(p=PROMPT), prefix_ids=[],
+                  selected_span=spans[0], burst=True, dose=3.0, burst_tokens=10**6,
+                  max_new=24, raw_context=True)
+    one = rollout_from_prefix(**common)
+    many = rollout_from_prefix(**common, extra_spans=tuple(spans[1:]))
+    assert one.response != many.response  # the extra span reaches the logits
