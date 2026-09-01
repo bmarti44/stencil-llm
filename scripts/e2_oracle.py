@@ -137,18 +137,9 @@ def main():
         print(f"s{si}: native {out['native_pass']}/{len(native)} oracle {out['oracle_best_pass']} "
               f"gain +{out['oracle_gain']} trials={len(out['trials'])} ({time.time()-t0:.0f}s)", flush=True)
 
+    from stencil.e2 import summarize_oracle_records
     recs = [json.loads(p.read_text()) for p in sorted(outdir.glob("s-*.json"))]
-    tot_n = sum(r["n_constraints"] for r in recs)
-    summary = {"sessions": len(recs), "constraints": tot_n,
-               "native_pass_rate": round(sum(r["native_pass"] for r in recs) / tot_n, 4),
-               "oracle_pass_rate": round(sum(r["oracle_best_pass"] for r in recs) / tot_n, 4),
-               "sessions_with_any_oracle_gain": sum(1 for r in recs if r["oracle_gain"] > 0),
-               "total_trials": sum(len(r["trials"]) for r in recs)}
-    summary["oracle_ceiling_pts"] = round((summary["oracle_pass_rate"] - summary["native_pass_rate"]) * 100, 2)
-    summary["by_arm_pass_rate"] = {}
-    for arm in args.arms.split(","):
-        tot = sum(r["by_arm"].get(arm, r["native_pass"]) for r in recs)
-        summary["by_arm_pass_rate"][arm] = round(tot / tot_n, 4)
+    summary = summarize_oracle_records(recs, args.arms.split(","))
     (ROOT / "results" / "qwen" / f"{args.out}-summary.json").write_text(json.dumps(summary, indent=1))
     print(json.dumps(summary, indent=1))
 

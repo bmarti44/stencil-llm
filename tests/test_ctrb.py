@@ -429,3 +429,126 @@ def test_extra_spans_add_bias_and_change_outcome(gpu_setup):
     one = rollout_from_prefix(**common)
     many = rollout_from_prefix(**common, extra_spans=tuple(spans[1:]))
     assert one.response != many.response  # the extra span reaches the logits
+
+
+def test_e2_span_records_have_turn_origins_and_never_bleed(gpu_setup):
+    from stencil.e2 import constraint_span_records
+
+    _, tok, _ = gpu_setup
+    ctx = (
+        "<|im_start|>user\nTask one. Constraint: mention cedar.<|im_end|>\n"
+        "<|im_start|>assistant\nA prior answer.<|im_end|>\n"
+        "<|im_start|>user\nContinue. Constraint: end with Done. "
+        "Constraint: use lowercase.<|im_end|>\n"
+        "<|im_start|>assistant\n<think>\n\n</think>\n\n"
+    )
+    ids = tok.encode(ctx).ids
+    recs = constraint_span_records(tok, ctx)
+    assert [r["origin_turn"] for r in recs] == [1, 2, 2]
+    assert [r["is_aged"] for r in recs] == [True, False, False]
+    for r in recs:
+        a, b = r["span"]
+        text = tok.decode(ids[a:b])
+        assert "assistant" not in text
+        assert "<|im_end|>" not in text
+        assert 0 <= a < b <= len(ids)
+
+
+def test_e2_candidate_sampling_is_fixed_conflict_plus_temporal_union():
+    from stencil.e2 import select_candidate_records
+
+    trace = []
+    for step in range(12):
+        # All records are eligible. Conflict rank is deliberately unrelated
+        # to temporal order so the union's two sources are both exercised.
+        trace.append(
+            {
+                "step": step,
+                "features": (float(20 - abs(step - 7)), 0, 0, 0, 0, 0),
+                "prefix_ids": tuple(range(step)),
+                "selected_span": step % 3,
+            }
+        )
+    got = select_candidate_records(trace, top_k=2, temporal_k=4)
+    steps = [r["step"] for r in got]
+    # Temporal endpoints are present; conflict peak 7 is present; no dupes;
+    # output is chronological so resume filenames are stable.
+    assert 0 in steps and 11 in steps and 7 in steps
+    assert len(steps) == len(set(steps))
+    assert steps == sorted(steps)
+
+
+def test_e2_opus_arm_specs_are_exact_and_control_excludes_constraints():
+    from stencil.e2 import arm_specs, matched_nonconstraint_spans
+
+    spans = [(10, 15), (30, 36), (50, 54)]
+    control = matched_nonconstraint_spans(total_len=70, spans=spans, width=15)
+    assert sum(b - a for a, b in control) == 15
+    assert all(b <= x or y <= a for a, b in control for x, y in spans)
+    specs = arm_specs(spans, selected_span=1, aged_indices=[0], control_spans=control)
+    assert specs["registered"]["spans"] == ((30, 36),)
+    assert specs["registered"]["dose"] == 1.0
+    assert specs["registered"]["burst_tokens"] == 4
+    assert specs["sustained_all"]["spans"] == tuple(spans)
+    assert specs["sustained_all"]["dose"] == 3.0
+    assert specs["sustained_all"]["burst_tokens"] > 1_000
+    assert specs["sustained_aged"]["spans"] == ((10, 15),)
+    assert specs["control"]["spans"] == tuple(control)
+
+
+def test_e2_moment_record_schema_and_label_nonvacuity():
+    from stencil.e2 import make_branch_record, make_moment_record
+
+    native = make_branch_record("native reply", (True, False), 12, False, False)
+    focused = make_branch_record("focused reply", (True, True), 13, False, False)
+    harmful = make_branch_record("harmful reply", (False, False), 11, False, False)
+    rec = make_moment_record(
+        session=3,
+        turn=2,
+        step=9,
+        features=(1, 2, 3, 4, 5, 6),
+        response_position=0.25,
+        selected_span=1,
+        selected_origin=1,
+        topic="topic",
+        changed_family=("kw_exist",),
+        native=native,
+        arms={"sustained_all": focused, "control": harmful},
+    )
+    assert rec["label"] == "helpful"
+    assert rec["utility_delta"] == 1
+    assert len(rec["features"]) == 6
+    assert rec["native"]["response_sha256"] != rec["arms"]["sustained_all"]["response_sha256"]
+    assert rec["arms"]["control"]["label_vs_native"] == "harmful"
+    assert "response" in rec["native"] and "response" in rec["arms"]["sustained_all"]
+
+
+def test_e2_oracle_summary_derives_arm_best_without_phantom_field():
+    from stencil.e2 import summarize_oracle_records
+
+    records = [
+        {
+            "n_constraints": 2,
+            "native_pass": 1,
+            "oracle_best_pass": 2,
+            "oracle_gain": 1,
+            "trials": [
+                {"arm": "registered", "n_pass": 1},
+                {"arm": "sustained_all", "n_pass": 2},
+            ],
+        },
+        {
+            "n_constraints": 1,
+            "native_pass": 0,
+            "oracle_best_pass": 0,
+            "oracle_gain": 0,
+            "trials": [{"arm": "registered", "n_pass": 0}],
+        },
+    ]
+    got = summarize_oracle_records(records, ("registered", "sustained_all"))
+    assert got["native_pass_rate"] == pytest.approx(1 / 3)
+    assert got["oracle_pass_rate"] == pytest.approx(2 / 3)
+    assert got["by_arm_pass_rate"]["registered"] == pytest.approx(1 / 3)
+    # Missing trials fail closed to native, rather than a nonexistent
+    # precomputed `by_arm` field (the old aggregate-path crash).
+    assert got["by_arm_pass_rate"]["sustained_all"] == pytest.approx(2 / 3)

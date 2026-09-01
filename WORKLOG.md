@@ -1969,3 +1969,23 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   four-token/single-span action is retained only as a control.  No Multi-IF
   diagnostic output will be used to tune the gate.
 - Start provenance: HEAD 66bf00e; worktree clean; `.review.lock` free; GPU idle.
+
+## 2026-09-01 — Corrected E2 harvester GREEN; ready for sealed synthetic run
+
+- Red/green: four new contracts first failed on the absent E2 module, then
+  passed for bounded spans with turn origins, fixed conflict+temporal moment
+  selection, exact Opus arm specs, and non-vacuous atomic record fields.  A
+  fifth red/green test fixed `e2_oracle.py`'s crashing aggregate path (it
+  referenced a nonexistent `by_arm` field).
+- `scripts/e2_harvest.py` now writes one atomic whole-session record containing
+  every registered per-moment field and full native/arm responses plus hashes;
+  native replay is shared across registered, sustained-all, sustained-aged,
+  and matched non-constraint arms.  Import remains side-effect free.
+- GPU proof on current sources: two independent 1-session harvests are
+  recursively bitwise identical; the full CTRB/import battery is green.  A
+  32-token artificial smoke failed closed when a matched
+  non-constraint window could not physically fit; the registered 320-token
+  run does not silently shrink or overlap that control.
+- Full-corpus firewall rechecked on the exact 300 synthetic sessions against
+  all 909 Multi-IF conversations: 0 phrase collisions, 0 kwargs collisions;
+  30 synthetic training topics.
