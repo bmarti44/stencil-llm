@@ -385,3 +385,23 @@ def test_causal_moment_accepts_raw_context(gpu_setup):
         selected_span=spans[0], score_fn=lambda t: (("cedar" in t.lower()),),
         max_new=12, raw_context=True)
     assert lab.label in {"helpful", "harmful", "neutral"}
+
+
+def test_context_spans_are_full_context_coordinates(gpu_setup):
+    """E2 retraction fix: spans must index the PRE-RENDERED conversation,
+    and the decoded span text must be the constraint sentence itself."""
+    from stencil.ctrb import constraint_spans_in_context
+    _, tok, _ = gpu_setup
+    hist = ("<|im_start|>user\nWrite about rain. Constraint: mention cedar.<|im_end|>\n"
+            "<|im_start|>assistant\nA reply about rain.<|im_end|>\n")
+    ctx = hist + ("<|im_start|>user\nContinue. Constraint: end with 'Done.'<|im_end|>\n"
+                  "<|im_start|>assistant\n<think>\n\n</think>\n\n")
+    ids = tok.encode(ctx).ids
+    all_spans = constraint_spans_in_context(tok, ctx)
+    assert len(all_spans) == 2
+    texts = [tok.decode(ids[a:b]) for a, b in all_spans]
+    assert "cedar" in texts[0] and "Done." in texts[1]
+    last = constraint_spans_in_context(tok, ctx, only_last_turn=True)
+    assert len(last) == 1 and "Done." in tok.decode(ids[last[0][0]:last[0][1]])
+    for a, b in all_spans:
+        assert 0 <= a < b <= len(ids)

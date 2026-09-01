@@ -227,6 +227,38 @@ class CTRBResult:
     trace: tuple[dict, ...]
 
 
+def constraint_spans_in_context(tokenizer, context: str, only_last_turn: bool = False) -> list[tuple[int, int]]:
+    """Token spans of every 'Constraint:' sentence in a PRE-RENDERED
+    context (multi-turn conversations included).  Coordinates are those
+    of ``context`` itself — the multi-turn analogue of
+    ``constraint_spans_of``, whose single-turn-template coordinates are
+    WRONG for a conversation (E2 retraction, 2026-09-01).
+
+    only_last_turn=True restricts to constraints stated in the final
+    user message; the default returns every constraint in the whole
+    conversation, which is what an aging-aware selector needs.
+    """
+    start_at = 0
+    if only_last_turn:
+        marker = context.rfind("<|im_start|>user")
+        start_at = marker if marker >= 0 else 0
+    enc = tokenizer.encode(context)
+    spans, cursor = [], start_at
+    while True:
+        i = context.find("Constraint:", cursor)
+        if i < 0:
+            break
+        j = context.find("Constraint:", i + 1)
+        end = j if j > 0 else context.find("<|im_end|>", i)
+        if end < 0:
+            end = len(context)
+        toks = [ti for ti, (a, b) in enumerate(enc.offsets) if a < end and b > i]
+        if toks:
+            spans.append((toks[0], toks[-1] + 1))
+        cursor = i + 1
+    return spans
+
+
 def constraint_spans_of(tokenizer, prompt: str) -> list[tuple[int, int]]:
     """Token spans of all ``Constraint:`` sentences in the chat prompt."""
     from stencil.bench import TMPL

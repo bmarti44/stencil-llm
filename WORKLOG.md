@@ -1905,3 +1905,20 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   and it is ~2%. A better WHEN gate cannot harvest an effect that is not there.
 - Taking to sol + Opus 5 for the registered review before any conclusion is
   written into the report.
+
+## 2026-09-01 — RETRACTION: the E2 harvest was INVALID (span-coordinate bug, sol)
+
+- sol's review caught it and I confirmed it directly: scripts/e2_harvest.py
+  computed spans with constraint_spans_of(tok, turn_prompt) — coordinates of the
+  SINGLE-TURN template rendering — then applied them to the FULL multi-turn
+  context. Demonstrated on session 0 turn 2: span (15,39) should cover
+  "Constraint: make sure both of the words 'gravel' and 'spindle'..." but in the
+  full context those token indices cover the PREVIOUS turn's text. Every burst
+  in the 240-moment harvest was aimed at the wrong tokens.
+- The conclusion "multi-turn actuator headroom is ~ZERO" is RETRACTED. Corrected
+  status: harvest INVALID for the registered learned-span treatment. The 240
+  records are kept as an unintended (and now uninteresting) mis-aimed-burst
+  control. Branch 4 has NOT fired; no conclusion about the arena is licensed.
+- Fix: derive candidate spans in the token coordinates of the complete raw ctx,
+  then re-run. Opus 5's independent verification (running) will re-test on the
+  corrected pipeline. No hazard training or Multi-IF wave run until then.

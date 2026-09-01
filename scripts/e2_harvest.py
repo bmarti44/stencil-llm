@@ -40,7 +40,7 @@ def main():
     from tokenizers import Tokenizer
 
     from stencil.causal_moments import label_causal_moment, score_row_constraints
-    from stencil.ctrb import HazardGate, constraint_spans_of, generate_ctrb
+    from stencil.ctrb import HazardGate, constraint_spans_in_context, generate_ctrb
     from stencil.qwen3 import Qwen3
     from stencil.wave import WaveController
 
@@ -81,7 +81,10 @@ def main():
             # full conversation context for this turn
             history_now = history + f"<|im_start|>user\n{turn['prompt']}<|im_end|>\n"
             ctx = history_now + OPENER
-            spans = constraint_spans_of(tok, turn["prompt"])
+            # FULL-CONTEXT coordinates (E2 retraction fix): every constraint
+            # in the conversation is a candidate, so aged constraints from
+            # earlier turns are selectable — the aging regime we target.
+            spans = constraint_spans_in_context(tok, ctx)
             if not spans:
                 break
             # native roll with feature trace (gate silent -> bitwise base)
