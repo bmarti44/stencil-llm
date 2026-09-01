@@ -1989,3 +1989,17 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
 - Full-corpus firewall rechecked on the exact 300 synthetic sessions against
   all 909 Multi-IF conversations: 0 phrase collisions, 0 kwargs collisions;
   30 synthetic training topics.
+
+## 2026-09-01 — E2 held-out gate analysis GREEN (implementation only)
+
+- While the committed GPU harvest runs, added only new CPU-side files:
+  deterministic generic logistic fitting, 95% Wilson lower bounds,
+  train-fold-only threshold choice, whole-session/topic/changed-family
+  holdouts, and exactly matched-rate entropy/margin/attention/position/
+  periodic controls.  Six red tests preceded the implementation and pass.
+- `scripts/e2_fit_gate.py` consumes only a COMPLETE synthetic harvest,
+  recomputes its label counts from every atomic record, fails closed before
+  fitting if either genuine helpful or genuine harmful count is below 100,
+  and writes all registered failure reasons.  A passing fit must repeat
+  bitwise before its weights/threshold can be serialized.  It has not been
+  run on the partial harvest and does not open Multi-IF.
