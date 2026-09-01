@@ -129,3 +129,36 @@ on Multi-IF content. Design:
   paired delta with exact McNemar.
 - Reviews: sol + fable on the synthetic corpus AND the trained gate
   evidence before the evaluation runs.
+
+## E2 endpoint re-registration (kimi CRITICAL-1 + HIGH-2; registered
+2026-09-01 BEFORE any gate training, replacing the E2 endpoints above)
+
+Motivating claim CORRECTED: the Multi-IF strict-prompt decay is
+conjunction arithmetic (independence prediction 0.686/0.497/0.290 vs
+observed 0.711/0.513/0.321). The registered headroom is the
+CONSTRAINT-AGING effect measured in results/qwen/multiif-headroom-map
+.json: a turn-1 constraint decays 0.770 (fresh) -> 0.719 (t2) ->
+0.661 (t3); turn-2 0.795 -> 0.747. Target = recovering aged-constraint
+compliance, ~5-11pts, NOT the 38pt strict-prompt drop.
+
+ENDPOINTS (replacing "late-turn strict-prompt"):
+- CO-PRIMARY 1 (causal, confound-free): REPLAYED-HISTORY evaluation —
+  for each conversation, replay the BASE arm's recorded turns 1..k-1
+  verbatim as history, then generate turn k (k in {2,3}) with and
+  without the gate. Identical inputs; the only difference is the
+  intervention. Paired exact McNemar on AGED-CONSTRAINT compliance
+  (constraints whose origin turn < k), alpha 0.05 one-sided.
+- CO-PRIMARY 2: same design, per-constraint inst-level paired McNemar
+  over ALL constraints at turn k (escapes conjunction mechanics).
+- SECONDARY (policy-level, disclosed as confounded by own-history
+  shaping): own-history three-turn run, strict-prompt + inst-level.
+- CONTROLS registered: response length and truncation rates per arm/
+  turn reported alongside every endpoint (kimi's length confound); an
+  intervention-count log per turn; gate-silent rows must be BITWISE
+  identical to base (the CTRB harm guarantee, asserted in the artifact).
+- The ~100-conversation diagnostic slice remains disclosed and excluded
+  from all primary claims.
+GATE: co-primary 1 must show a positive paired delta on aged
+constraints with p < 0.05 AND no excess truncation/timeouts; co-primary
+2 reported with it. Failure = honest negative; the arena question is
+then answered for this actuator.
