@@ -203,3 +203,63 @@ forwards while the committed trajectory is KV-cached — the WHEN decision
 runs on a numerically different path than the one committed (our own KV
 characterization: drift up to 1.107 logits vs margins as low as 0.103).
 To be characterized or the draft-confirm disabled before the eval.
+
+## E2 execution registration after the Opus actuator correction
+(Brian-authorized; registered 2026-09-01 BEFORE the corrected harvest)
+
+The Opus result supersedes the refuted single-span/four-token treatment for
+E2: the causal label and deployed action are a single conflict-triggered
+onset followed by dose 3.0 attention bias over ALL live, correctly bounded
+constraint spans through the rest of the response.  The old registered arm
+(selected span, dose 1.0, four tokens), sustained-aged, and a matched-width
+non-constraint sustained arm remain harvest controls.  This scopes a
+positive to the corrected CTRB package; it does not claim that four-token
+bursts worked.  Draft-confirm is disabled because its uncached trajectory is
+numerically different from the committed KV path.
+
+HARVEST: use only the synthetic `mt-train-300.jsonl`, turns 2-3, with whole
+session records and native replay shared across treatment arms.  Candidate
+moments are fixed before generation as the union of the four highest
+conflict points and four evenly spaced temporal points per turn (deduplicated).
+Every record contains the six inference-time features, response position,
+selected-span origin, branch scores, lengths/truncation/timeout, and response
+hashes for native, registered, sustained-all, sustained-aged, and specificity
+control arms.  Gate labels are the nominal sustained-all dose-3.0 net
+per-constraint utility: helpful >0, harmful <0, neutral =0.  Certification
+requires at least 100 helpful and 100 harmful nominal opportunities; exhausting
+the 300-session corpus without them is an offline-gate failure, not permission
+to duplicate rows or tune on Multi-IF.
+
+OFFLINE DISCRIMINATION: fit the fixed six-feature L2 logistic hazard with
+whole-session, whole-topic, and changed-family held-out folds.  Thresholds are
+chosen using training-fold predictions only.  Aggregate held-out performance
+must have 95% Wilson lower bounds PPV >=0.70 and helpful recall >=0.50 in all
+three schemes, net utility >=2x the matched-rate span-attention (`psi`) control,
+and no held-out changed family with negative net utility.  Report matched-rate
+entropy-only, margin-only, span-attention-only, response-position-only, and
+periodic controls.  Failure under any split, or discrimination explainable
+only by family or response position, stops E2.
+
+SAFE DOSE: on the synthetic holdout, freeze gate decisions and evaluate the
+three adjacent sustained-all doses 2.25/3.0/3.75.  All three must have positive
+paired net utility, no significant regression or truncation/timeout excess,
+and identical firing decisions.  A one-dose peak fails.
+
+PRE-EVAL AUDIT acceptable ranges on `mt-dev-60.jsonl`: response firing rate
+10%-60% separately at turns 2 and 3; at most one sustained onset per response;
+conditional onset count exactly one; at least 20% but no more than 80% of
+selected trigger spans are aged; and no single turn-origin supplies >80% of
+trigger selections.  Gate-silent responses must be token-for-token identical
+to native.  These thresholds, the model/controller hashes, six gate weights,
+threshold, dose, and ablation schedules are frozen and committed before any
+Multi-IF generation or diagnostic-slice scoring.
+
+EVALUATION ARMS share replayed base histories: native, frozen CTRB,
+matched-firing periodic onset with the same sustained-all treatment,
+conflict-triggered fixed-span onset on the oldest user-turn constraint span,
+and the no-training positive control that restates aged constraints in the
+current user turn.  The primary set excludes key-hash mod 9 == 0.  The E2
+co-primary/effect-floor/cluster-bootstrap rules above remain unchanged; a CTRB
+positive must also beat BOTH periodic and fixed-span arms on aged-constraint
+recovery to support a conflict-triggered-WHEN claim.  Own-history metrics are
+secondary and run only if the replayed-history gate passes.

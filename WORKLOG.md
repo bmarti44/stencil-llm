@@ -1957,3 +1957,15 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
 - STATUS: the "moment-level headroom ~zero" conclusion is DEAD. The measured
   ceiling under a correctly-addressed, adequately-dosed actuator is 13% of
   headroom moments with p=0.0039 and a passing specificity control.
+
+## 2026-09-01 — WRITE-AHEAD: Brian authorizes full E2 chain; corrected harvest begins
+
+- Authorization is explicit for corrected harvest -> hazard training ->
+  synthetic pre-eval audit -> frozen one-shot Multi-IF evaluation, stopping
+  only on a registered gate failure or at the sealed-541 boundary.
+- Pre-result execution details and numeric audit ranges are appended to
+  EVF-PLAN.md.  The nominal causal action is the Opus-supported sustained-all
+  correctly bounded constraint-span treatment at dose 3.0; the refuted
+  four-token/single-span action is retained only as a control.  No Multi-IF
+  diagnostic output will be used to tune the gate.
+- Start provenance: HEAD 66bf00e; worktree clean; `.review.lock` free; GPU idle.
