@@ -357,3 +357,31 @@ def test_causal_moment_branches_repeat_bitwise(gpu_setup):
     assert a == b
     assert a.label in {"helpful", "harmful", "neutral"}
     assert len(a.native_scores) == 2 == len(a.burst_scores)
+
+
+def test_raw_context_matches_template_when_equivalent(gpu_setup):
+    """E2 multi-turn support: raw_context=True consumes a PRE-RENDERED
+    conversation string; passing the rendered single-turn template must
+    reproduce the templated path bitwise."""
+    from stencil.bench import TMPL
+    from stencil.ctrb import HazardGate, constraint_spans_of, generate_ctrb
+    m, tok, ctrl = gpu_setup
+    spans = constraint_spans_of(tok, PROMPT)
+    kw = dict(max_new=16, threshold=0.5, draft_tokens=0)
+    a = generate_ctrb(m, tok, PROMPT, ctrl, spans, HazardGate.constant(0.0), **kw)
+    b = generate_ctrb(m, tok, TMPL.format(p=PROMPT), ctrl, spans,
+                      HazardGate.constant(0.0), raw_context=True, **kw)
+    assert a.text == b.text and a.n_generated == b.n_generated
+
+
+def test_causal_moment_accepts_raw_context(gpu_setup):
+    from stencil.bench import TMPL
+    from stencil.causal_moments import label_causal_moment
+    from stencil.ctrb import constraint_spans_of
+    m, tok, _ = gpu_setup
+    spans = constraint_spans_of(tok, PROMPT)
+    lab = label_causal_moment(
+        model=m, tokenizer=tok, prompt=TMPL.format(p=PROMPT), prefix_ids=[],
+        selected_span=spans[0], score_fn=lambda t: (("cedar" in t.lower()),),
+        max_new=12, raw_context=True)
+    assert lab.label in {"helpful", "harmful", "neutral"}

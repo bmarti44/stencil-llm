@@ -362,6 +362,7 @@ def generate_ctrb(
     max_new: int = 1024,
     deadline_s: float | None = None,
     collect_prefixes: bool = False,
+    raw_context: bool = False,
 ) -> CTRBResult:
     """KV-cached greedy generation with automatic conflict-triggered bursts.
 
@@ -377,7 +378,7 @@ def generate_ctrb(
     spans = [tuple(x) for x in prompt_spans]
     if not spans:
         raise ValueError("CTRB requires at least one prompt span")
-    ids = tokenizer.encode(TMPL.format(p=prompt)).ids
+    ids = tokenizer.encode(prompt if raw_context else TMPL.format(p=prompt)).ids
     device = _model_device(model)
     prompt_len = len(ids)
     cache = KVCache()

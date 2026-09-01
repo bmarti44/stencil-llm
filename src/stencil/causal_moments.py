@@ -65,6 +65,7 @@ def rollout_from_prefix(
     burst_tokens: int = 4,
     max_new: int = 1024,
     deadline_s: float | None = None,
+    raw_context: bool = False,
 ) -> BranchRollout:
     """Roll a frozen prefix to EOS/max_new, optionally bursting immediately."""
     import torch
@@ -73,7 +74,7 @@ def rollout_from_prefix(
     from stencil.ctrb import _model_device, uniform_span_bias
     from stencil.qwen3 import KVCache
 
-    prompt_ids = tokenizer.encode(TMPL.format(p=prompt)).ids
+    prompt_ids = tokenizer.encode(prompt if raw_context else TMPL.format(p=prompt)).ids
     device = _model_device(model)
     frozen = list(prefix_ids)
     initial = prompt_ids + frozen
@@ -132,6 +133,7 @@ def label_causal_moment(
     burst_tokens: int = 4,
     max_new: int = 1024,
     deadline_s: float | None = None,
+    raw_context: bool = False,
 ) -> CausalMomentLabel:
     """Native A=0 vs one-burst A=1 label from per-constraint utility."""
     common = dict(
@@ -144,6 +146,7 @@ def label_causal_moment(
         burst_tokens=burst_tokens,
         max_new=max_new,
         deadline_s=deadline_s,
+        raw_context=raw_context,
     )
     native = rollout_from_prefix(**common, burst=False)
     focused = rollout_from_prefix(**common, burst=True)
