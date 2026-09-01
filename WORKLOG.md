@@ -1873,3 +1873,17 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   Registered headroom map: results/qwen/multiif-headroom-map.json.
 - Also generation grows with turns (306/342/371 tokens; truncations 54/74/86) —
   a length/truncation confound to control, per kimi.
+
+## 2026-09-01 — Multi-IF BASE ARM COMPLETE (909 conversations, 2714 turns)
+
+- strict-prompt 0.6887 / 0.4950 / 0.3036 by turn; inst-level 0.7601 / 0.7444 /
+  0.6910; loose-prompt 0.7217 / 0.5490 / 0.3538. Independence predictions
+  0.6699 / 0.4843 / 0.2802 (gaps +1.9 / +1.1 / +2.3pts) -> the strict-prompt
+  "collapse" is conjunction arithmetic, as kimi argued and I confirmed.
+- REGISTERED HEADROOM (results/qwen/multiif-headroom-map.json, full 909):
+  constraint AGING is real and is the E2 target — origin-1 constraints
+  0.7601 fresh -> 0.7094 (t2) -> 0.6493 (t3) = -11.08pts; origin-2
+  0.7976 -> 0.7422 = -5.54pts. Fresh-constraint rates hold ~0.70-0.80, so the
+  model retains the SKILL and loses the HOLD — the wave's thesis, quantified.
+- Obsolete wave arms cancelled by the auto-cutoff as registered (1 partial
+  record discarded). GPU free for the E2 harvest.
