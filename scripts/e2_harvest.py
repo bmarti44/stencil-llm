@@ -29,6 +29,8 @@ SCHEMA_FIELDS = (
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--sessions", type=int, default=300)
+    p.add_argument("--start-session", type=int, default=0)
+    p.add_argument("--stop-session", type=int, default=300)
     p.add_argument("--top-moments", type=int, default=4)
     p.add_argument("--temporal-moments", type=int, default=4)
     p.add_argument("--turn-max-new", type=int, default=320)
@@ -115,6 +117,8 @@ def main():
     if not (1 <= args.sessions <= len(sessions)):
         raise ValueError(f"sessions must be in [1,{len(sessions)}]")
     sessions = sessions[: args.sessions]
+    if not 0 <= args.start_session < args.stop_session <= args.sessions:
+        raise ValueError("invalid disjoint shard range")
 
     outdir = ROOT / "results" / "qwen" / args.out
     outdir.mkdir(parents=True, exist_ok=True)
@@ -138,6 +142,7 @@ def main():
         "nominal_dose": 3.0,
         "branch_replay": "exact_kv_prompt_once_then_tokenwise",
         "span_unit": "automatic_bounded_user_turn",
+        "shard_protocol": "disjoint_[start,stop)_ranges_share_atomic_records",
     }
     meta_path = outdir / "meta.json"
     if meta_path.exists():
@@ -157,6 +162,8 @@ def main():
     started = time.monotonic()
 
     for session_i, sess in enumerate(sessions):
+        if not args.start_session <= session_i < args.stop_session:
+            continue
         record_path = outdir / f"session-{session_i:03d}.json"
         if record_path.exists():
             continue
@@ -281,11 +288,22 @@ def main():
             )
 
     records = [json.loads(p.read_text()) for p in sorted(outdir.glob("session-*.json"))]
-    if len(records) != args.sessions:
-        raise RuntimeError("harvest record count does not match registration")
-    summary = {**meta, **summarize(records)}
-    atomic_json(outdir / "summary.json", summary)
-    print(json.dumps(summary, indent=1), flush=True)
+    if len(records) == args.sessions:
+        summary = {**meta, **summarize(records)}
+        atomic_json(outdir / "summary.json", summary)
+        print(json.dumps(summary, indent=1), flush=True)
+    else:
+        print(
+            json.dumps(
+                {
+                    "shard_complete": [args.start_session, args.stop_session],
+                    "durable_sessions_visible": len(records),
+                    "cohort_sessions": args.sessions,
+                },
+                indent=1,
+            ),
+            flush=True,
+        )
 
 
 if __name__ == "__main__":

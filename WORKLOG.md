@@ -2081,3 +2081,13 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   replay primary passes.  It reports per-turn/pooled strict prompt and
   instruction metrics with the own-history confound disclosed.  Shared helpers
   live in `src/`; no evaluation script imports another work-producing script.
+
+## 2026-09-01 — Harvest launcher sharded; scientific record unchanged
+
+- Valid schema-4 session 0 took 220s in one process.  Operational-only change:
+  four disjoint `[start,stop)` processes share the identical provenance meta
+  and atomic `session-NNN.json` namespace; each session remains independent,
+  seed-pinned, and complete-or-absent.  Only the process that observes all 300
+  records writes the summary.
+- The unsharded session-0 artifact is retained separately and must compare
+  bitwise with sharded session 0 before the shared harvest is admitted.
