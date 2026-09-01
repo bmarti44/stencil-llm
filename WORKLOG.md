@@ -2209,3 +2209,52 @@ more net gain than everything the six model-state features provided.
 IMPLICATION: the gate needs NO TRAINING. It is a deterministic rule over the
 vendored checkers run on the partial response. That removes the entire
 hazard-training path (E1/E2) from the critical path.
+
+## 2026-09-01 — the generalization fix: OBLIGATION PROBE (verifier at TRAIN time only)
+
+Brian asked whether the obligation gate generalizes outside the benchmark. It
+does not as built: it calls the vendored IFEval checkers at inference. Measured
+consequences on the REAL benchmark: only 18.5% of Multi-IF late-turn
+constraints are in the repairable families (top families are title 609,
+end_checker 420, number_words 411, forbidden_words 345 — none insertable), and
+in a 3-conversation smoke the gate fired ZERO times (103/157 checks
+"no_outstanding_fixable"). Multi-IF is the wrong arena for this actuator, and
+the checker dependency is the deeper blocker.
+
+DEEP RESEARCH (results/research-generalization.md) found direct precedent for
+removing the checker from inference:
+- Sun et al. 2310.16343: a LINEAR layer on last-layer hidden state at every
+  generation step predicts "how many required keywords satisfied so far" on
+  four 7B chat models: Pearson 0.845-0.898, MAE 0.53-0.68. Never used as a
+  gate, never constraint-conditioned.
+- Gnosis 2512.20578: 5M-param head on Qwen3-1.7B (OUR trunk) hidden states +
+  attention stats -> AUROC 0.95 outcome self-judgment, zero-shot on partial
+  generations at 40% completion.
+- "When Attention Closes" 2605.12922: goal information SURVIVES in the residual
+  stream (probe AUC 0.99) after attention to the goal span has decayed —
+  exactly our result that attention mass carries nothing while task state does.
+- WARNING (Heo et al. ICLR 2025, 2410.14516): unconditioned "will-follow"
+  probes get AUROC 0.74-0.88 across held-out tasks but 0.50-0.55
+  leave-one-instruction-type-out. The probe MUST be conditioned on the
+  constraint representation and evaluated under our family split.
+
+REGISTERED NEXT EXPERIMENT (E3, OBLIGATION-PROBE): <=1M-param head on a
+mid-late residual layer; inputs = pooled last-8-token state + pooled
+INSTRUCTION-SPAN state (family one-hot ablatable); outputs sat_c(t),
+fixable_c, cap_hazard(t). LABELS ARE FREE: run the vendored checkers on every
+PREFIX of every stored response (full text is on disk in b3-deficit-cal 1800,
+b4-multiif-base 909 conversations, e2-corrected-harvest 564 moments).
+INFERENCE USES NO CHECKER: fire iff max_c (1-sat_c)*fixable_c > theta AND
+cap_hazard < theta_cap — one small matmul per step. Bar: reproduce R3b's
++2.6pts on the 72 harvested turns with the probe REPLACING the checkers under
+session/topic/family splits, then held-out-family, then a Multi-IF no-checker
+slice. Cost < 1 GPU-day. Honest odds: sat AUC>=0.80 on insertion families
+~0.65; matches checker-R3b ~0.45; transfers to a held-out family ~0.25.
+
+DEAD ENDS (do not fund, with evidence): output-side self-judging by the 1.7B
+(small judges are lenient exactly on "not yet": macro-F1 0.44-0.53 at 3-4B;
+VerIF soft verifier 48% at 32B); RL/GRPO on the gate (no small-scale IF
+precedent, and fire-first-eligible already equals the per-turn oracle so there
+is nothing for RL to learn); attention-signature forgetting detectors (decay is
+turn-scale); more model-dynamics features; unconditioned will-follow probes;
+better timing for limit/tracking families (they need a counter, not emphasis).
