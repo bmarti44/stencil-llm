@@ -2091,3 +2091,45 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   records writes the summary.
 - The unsharded session-0 artifact is retained separately and must compare
   bitwise with sharded session 0 before the shared harvest is admitted.
+
+## 2026-09-01 — FUTILITY CHECK: E2 gate already fails; harvest STOPPED (30 GPU-h saved)
+
+Independent reviewer (read-only, no GPU) computed three ceilings from data
+already on disk and fit the registered hazard on the 548 harvested moments:
+
+- GATE ALREADY FAILS ITS CERTIFICATION. Held-out AUC by the registered
+  splits: session 0.51, topic 0.48, changed_family 0.52 (best over L2 grid
+  0.554; in-sample 0.676 = pure overfit). Univariate AUCs 0.47-0.56. The
+  registered bar (Wilson-LB PPV >= 0.70 at recall >= 0.50, helpful base rate
+  0.111) needs the ROC through TPR 0.50 / FPR 0.027 — AUC well above 0.9.
+  Measured precision ~8%. EVF-PLAN.md: "Failure under any split stops E2."
+- THE FLOOR EXCEEDS THE CEILING. Oracle-timing on the harvest: aged-only
+  (= co-primary 1) oracle +3.52pts vs specificity control +2.11 -> mechanism-
+  specific ceiling +1.41pts on 5 vs 3 cells (no separation). The registered
+  floor is +2.0. Unconditional (no gate) the treatment is NET HARMFUL on aged
+  constraints: fixes 26/1081 (2.4%), breaks 41 (3.8%) = -1.38pts.
+- ENDPOINT MISMATCH: 64% of the actuator's oracle benefit lands on FRESH
+  constraints (+10.0pts) not aged (+3.5pts). Opus's reviving result scored ALL
+  constraints; co-primary 1 scores AGED only. Validated effect != registered
+  endpoint.
+- POWER is fine (MDE 0.65-1.03pts); the +2.0 floor binds first, exactly as
+  kimi intended.
+- OPERATIONAL: the 4-way harvest shard ran at ~0.5x single-process throughput
+  (1700s/session/shard vs 220s solo) — decode is memory-bandwidth-bound; fork
+  parallelism costs throughput.
+
+ACTION TAKEN: harvest stopped at 36 sessions / 548 moments (61 helpful /
+37 harmful / 450 neutral). Remaining 264 sessions (~30.5 GPU-h) would have
+been spent reaching a gate that the first 12% already fails. Registered as a
+PRE-SPECIFIED FUTILITY CHECK, not a post-hoc rescue.
+
+DECISION FOR BRIAN (paused for CLI upgrade), ranked by the reviewer:
+1. Multi-IF ORACLE-TIMING SCREEN with specificity + restatement controls
+   (~19 GPU-h full / 2.5 GPU-h on the disclosed diagnostic slice first):
+   answers "can ANY timing policy reach the aged-constraint prize on the REAL
+   benchmark" with no gate trained. Decisive both ways.
+2. COMPLETE the abandoned single-turn v4.5 confirmation (467/1024 base records
+   exist, 0 wave; ~1581 generations, 4.5-7 GPU-h). Cheapest registered
+   decisive experiment; formally UNANSWERED; the single-turn arena is where
+   the actuator's helpful rate was highest (11%).
+3. Fix the endpoint mismatch before any confirmatory run.
