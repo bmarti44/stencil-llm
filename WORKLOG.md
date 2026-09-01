@@ -2064,3 +2064,20 @@ a0f8491297a9ebfd08e92139 scripts/w3a.py
   width did not fit.  Registered feasibility correction: use the full non-user
   complement and scale dose to match sustained-all's total logit-bias L1 mass;
   never overlap user text or silently shrink treatment mass.
+
+## 2026-09-01 — Frozen Multi-IF evaluation chain implemented (not run)
+
+- Replayed-history evaluator is atomic/resumable and refuses post-freeze code,
+  data, headroom, model, controller, or schedule drift.  It uses recorded base
+  responses verbatim as prior history, runs CTRB + matched-rate periodic +
+  same-trigger fixed-oldest + verbatim-restatement positive control, and
+  asserts every gate-silent CTRB/fixed row equals recorded base text.
+- Registered output analysis is mechanized for primary (796) and disclosed
+  diagnostic (113): aged/all per-constraint exact McNemar, conversation any/all
+  aged endpoints, fixed-seed conversation cluster bootstrap, strict-prompt by
+  turn/pooled, length/truncation/timeout/intervention controls, +2pt floor, and
+  strict wins over both ablations.  Six replay-analysis fixtures are green.
+- Secondary own-history runner is hash-frozen now but refuses to run unless the
+  replay primary passes.  It reports per-turn/pooled strict prompt and
+  instruction metrics with the own-history confound disclosed.  Shared helpers
+  live in `src/`; no evaluation script imports another work-producing script.

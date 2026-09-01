@@ -280,6 +280,16 @@ def main():
         "periodic_schedule": periodic,
         "policy_sha256": meta["policy_sha256"],
         "stats_sha256": meta["stats_sha256"],
+        "eval_runner_sha256": sha(ROOT / "scripts" / "e2_multiif_eval.py"),
+        "own_history_runner_sha256": sha(
+            ROOT / "scripts" / "e2_multiif_own_history.py"
+        ),
+        "multiif_module_sha256": sha(ROOT / "src" / "stencil" / "e2_multiif.py"),
+        "headroom_sha256": sha(
+            ROOT / "results" / "qwen" / "multiif-headroom-adjusted.json"
+        ),
+        "multiif_data_sha256": sha(ROOT / "data" / "bench" / "multiif_en.jsonl"),
+        "partition": "sha256(key) as integer mod 9 == 0 is diagnostic",
     }
     atomic_json(ROOT / "results" / "qwen" / "e2-freeze.json", freeze)
 

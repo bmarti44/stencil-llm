@@ -3,12 +3,67 @@
 from __future__ import annotations
 
 import hashlib
+import json
+import random
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
 
 from stencil.e2_stats import cluster_bootstrap_delta, mcnemar_one_sided
 
 OPENER = "<|im_start|>assistant\n<think>\n\n</think>\n\n"
+
+
+def seed_of(key, turn):
+    return int(hashlib.sha256(f"{key}:{turn}".encode()).hexdigest()[:8], 16)
+
+
+def turn_doc(row, turn):
+    prompt = json.loads(row[f"turn_{turn}_prompt"])["content"]
+    ids = json.loads(row[f"turn_{turn}_instruction_id_list"])
+    kwargs = [json.loads(value) for value in json.loads(row[f"turn_{turn}_kwargs"])]
+    return prompt, ids, kwargs
+
+
+def score_turn(row, turn, response):
+    from ifeval import utils as ifeval_utils
+
+    prompt, ids, kwargs = turn_doc(row, turn)
+    random.seed(seed_of(row["key"], turn))
+    doc = {
+        "key": 0,
+        "prompt": prompt,
+        "instruction_id_list": ids,
+        "kwargs": kwargs,
+    }
+    return ifeval_utils.process_results(doc, [response])
+
+
+def policy_branch(result, scores):
+    return {
+        "response": result.text,
+        "response_sha256": hashlib.sha256(result.text.encode()).hexdigest(),
+        "scores": scores,
+        "n_generated": result.n_generated,
+        "truncated": result.truncated,
+        "timed_out": result.timed_out,
+        "interventions": list(result.interventions),
+        "biased_tokens": result.biased_tokens,
+    }
+
+
+def base_branch(record, turn):
+    text = record["responses"][str(turn)]
+    generation = record["gen"][str(turn)]
+    return {
+        "response": text,
+        "response_sha256": hashlib.sha256(text.encode()).hexdigest(),
+        "scores": record["scores"][str(turn)],
+        "n_generated": generation["n"],
+        "truncated": bool(generation["truncated"]),
+        "timed_out": bool(generation["timeout"]),
+        "interventions": [],
+        "biased_tokens": 0,
+    }
 
 
 def is_diagnostic_key(key: str) -> bool:
