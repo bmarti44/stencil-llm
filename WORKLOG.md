@@ -2296,3 +2296,10 @@ anyway (0.854/0.860 blind; precision 0.95/0.94).
 - MEDIUM: pinned_control is multi-span and nominal-width matched but not exact in surviving columns (pinned 1,274 vs control 1,290; exact in 5/20). The +0.196 specificity claim carries this qualification.
 - MEDIUM: meta provenance incomplete (determinism/tokenizer/span-extraction/scorer not hashed). LOW: token IDs absent from records; runner docstring omits the 5th arm.
 - Creditable reading stands: unamplified pinning recovers ~62% of the eviction gap and beats the (approximately) matched control by ~20 pts. Report: results/ledger-kv-verify2-sol.md.
+
+## 2026-09-02 10:05 — TRIPLE ISSUES REVIEW (fable / sol / kimi) + CORRECTIONS
+- Reports: results/issues-review-{fable,sol,kimi}.md; synthesis results/issues-review-synthesis.md (top-5 ranked).
+- CORRECTION to the 07:05 entry and commit 3894f90 wording: the single-turn confirmation ran on data/b3/conf-v45.jsonl (synthetic, 1024 rows), NOT the sealed IFEval file. data/bench/ifeval_input_data.jsonl still has zero model runs. The gate FAIL reading is unchanged.
+- CORRECTION to the incident record: the rogue harvest committed sessions 036–106 to main via 8 "checkpoint" commits after the registered STOP (68ee69e); 107 tracked, 108 on disk (088/089 untracked). Quarantine deferred until the GPU is idle.
+- NEW CRITICAL (fable, verified): 909 cohort cannot pass its registered ≤2%-every-arm truncation gate — recorded base truncates 185/1805 = 10.25% of late turns. 909 launch is HELD pending a ROUND 7 amendment (excess-over-base cap + truncation-scoring rule) and sol re-verification.
+- 113 slice continues (63/113) as the falsification screen; its coverage figure decides whether the 0.90 gate stands (it does not get amended).
