@@ -2282,3 +2282,10 @@ anyway (0.854/0.860 blind; precision 0.95/0.94).
 - Reading: the calibrated deficit-wave adapter does not improve single-turn IFEval-style adherence on the sealed set at a detectable level; the ledger/KV line (multi-turn, aged constraints) remains the live hypothesis.
 - Artifacts: results/qwen/b3-deficit-conf-s0.json + per-item records results/qwen/b3-deficit-conf-s0/ (force-added).
 - Step 2 launched: corrected 5-arm KV probe rerun (`scripts/ledger_kv_probe.py --sessions 20 --max-new 320 --out ledger-kv-probe-v2`).
+
+## 2026-09-02 07:40 — KV PROBE v2 (corrected 5-arm, 20 sessions, 56 aged constraints)
+- full 41/56=0.732 | evicted 15/56=0.268 | pinned 31/56=0.554 | pinned_control 20/56=0.357 | pinned_wave 36/56=0.643
+- gap(full−evicted)=0.464; pinned recovers 0.615 of gap; pinned − matched control = +0.196 (pinning is specific, not generic context).
+- pinned_wave: degenerate 13/56, mean rep4 0.533, trunc 12 → the wave dose on pinned columns degenerates; its raw rate is not creditable. Same qualitative reading as v1.
+- Artifacts: results/qwen/ledger-kv-probe-v2/ (meta, summary, 20 session records), force-added. Sol CPU-only verification requested (results/ledger-kv-verify2-sol.md).
+- Step 3 launched: 113 slice `scripts/ledger_eval.py --diagnostic-only` (falsification-only).
