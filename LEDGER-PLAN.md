@@ -127,3 +127,37 @@ classifier. No new corpora unless a gate demands it.
    so a positive is conservative and a negative is informative about the
    architecture rather than the finder. SALIENCE-2 replaces v1 when it
    passes its gates; DEPLOY packages whatever passes.
+
+## LEDGER-KV (Brian, 2026-09-01): the ledger lives in pinned KV slots
+
+Problem with the in-context ledger: entries point at instruction spans that
+must still be IN the context window. Under truncation/compaction — the norm
+in long agentic sessions — there is nothing to point at, and "zero context
+cost" only holds where re-appending is cheap anyway.
+
+Design: when an instruction enters the ledger, PIN its per-layer K/V columns
+(the tensors the trunk computed when it first read those tokens) so they
+survive eviction. Later turns attend to the pinned slots; the wave amplifies
+attention toward the slots of the selected entries. This makes "out of
+reach" LITERAL — the regime of the program's one decisive win (+18.5
+sealed: information provably beyond attention's reach, carried by the
+wave) — and it is what long-horizon agentic use actually needs (turn 3's
+rule binding at turn 200 across compactions). Cost ~115 KB per pinned
+token over 28 layers; a hundred instruction tokens is negligible.
+
+Known risk: RoPE bakes position into K. A pinned K from position 50
+attended from 5000 after eviction has a distorted relative distance.
+StreamingLLM-style evidence says trunks tolerate this with sinks, but it
+is EMPIRICAL for Qwen3-1.7B.
+
+GATE (feasibility probe, registered before building): on >= 20 synthetic
+multi-turn sessions, evict the middle turns from context, pin the ledger
+entries' KV, and measure late-turn adherence for (a) evicted-no-pin,
+(b) evicted-pinned, (c) evicted-pinned + wave amplification, (d) full
+context (ceiling). Pinning must recover a material fraction of the
+(d)-(a) gap without degeneracy (perplexity/length checks). If (b) is
+degenerate, position-handling (re-indexing pinned K, or a sink) is the
+next design question, not more amplification. Sequenced AFTER the
+in-context diagnostic slice (the baseline) and reusing its harness.
+Deploy must keep bias injection abstract over ATTENTION COLUMNS, not
+context spans, so pinned slots drop in later.
