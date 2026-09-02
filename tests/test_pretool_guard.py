@@ -61,6 +61,27 @@ CASES = [
     ("kill -9 123", {}, [], {123}, None),
     ("kill -s TERM 123", {}, [], {123}, None),
     ("kill -SIGTERM 123", {}, [], {123}, None),
+    # Every residual option-bearing wrapper form must locate the real command.
+    ("sudo -u root kill 123", {}, [], set(), "pid"),
+    ("sudo -u root kill 123", {}, [], {123}, None),
+    ("sudo -n kill 123", {}, [], set(), "pid"),
+    ("sudo -n kill 123", {}, [], {123}, None),
+    ("env -u NAME kill 123", {}, [], set(), "pid"),
+    ("env -u NAME kill 123", {}, [], {123}, None),
+    ("env -i X=1 kill 123", {}, [], set(), "pid"),
+    ("env -i X=1 kill 123", {}, [], {123}, None),
+    ("printf 123 | xargs -n 1 kill", {}, [], set(), "pid"),
+    ("printf 123 | xargs -n 1 kill", {}, [], {123}, None),
+    ("printf 123 | xargs -I{} -n1 kill {}", {}, [], set(), "pid"),
+    ("printf 123 | xargs -I{} -n1 kill {}", {}, [], {123}, None),
+    ("command -p kill 123", {}, [], set(), "pid"),
+    ("command -p kill 123", {}, [], {123}, None),
+    ("nice -n 5 kill 123", {}, [], set(), "pid"),
+    ("nice -n 5 kill 123", {}, [], {123}, None),
+    ("timeout 5 kill 123", {}, [], set(), "pid"),
+    ("timeout 5 kill 123", {}, [], {123}, None),
+    ("kill -n 9 123", {}, [], set(), "pid"),
+    ("kill -n 9 123", {}, [], {123}, None),
 ]
 
 

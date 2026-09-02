@@ -67,50 +67,144 @@ def _owned_from_env(env):
     return {int(value) for value in re.findall(r"\d+", values)}
 
 
+def _consume_options(tokens, index, *, operands=(), attached=()):
+    """Consume options and their operands, returning the first command token."""
+    while index < len(tokens) and tokens[index].startswith("-"):
+        option = tokens[index]
+        index += 1
+        if option == "--":
+            break
+        if option in operands:
+            index += 1
+        elif any(option.startswith(prefix) and option != prefix for prefix in attached):
+            continue
+    return index
+
+
+def _locate_process(tokens):
+    """Locate a command behind supported wrappers and return xargs metadata."""
+    index = 0
+    xargs_placeholder = None
+    while index < len(tokens):
+        while index < len(tokens) and "=" in tokens[index]:
+            index += 1
+        if index >= len(tokens):
+            break
+        wrapper = Path(tokens[index]).name
+        index += 1
+        if wrapper in {"builtin", "command"}:
+            index = _consume_options(tokens, index)
+        elif wrapper == "exec":
+            index = _consume_options(tokens, index, operands=("-a",))
+        elif wrapper == "sudo":
+            index = _consume_options(
+                tokens,
+                index,
+                operands=("-u", "--user", "-g", "--group", "-h", "--host"),
+                attached=("-u", "-g", "-h"),
+            )
+        elif wrapper == "env":
+            index = _consume_options(
+                tokens,
+                index,
+                operands=("-u", "--unset", "-C", "--chdir", "-S", "--split-string"),
+                attached=("-u",),
+            )
+            while index < len(tokens) and "=" in tokens[index]:
+                index += 1
+        elif wrapper == "xargs":
+            start = index
+            index = _consume_options(
+                tokens,
+                index,
+                operands=("-I", "--replace", "-n", "--max-args"),
+                attached=("-I", "-n"),
+            )
+            for option in tokens[start:index]:
+                if option == "-I" and tokens.index(option, start, index) + 1 < index:
+                    position = tokens.index(option, start, index)
+                    xargs_placeholder = tokens[position + 1]
+                elif option.startswith("-I") and option != "-I":
+                    xargs_placeholder = option[2:]
+        elif wrapper == "nice":
+            index = _consume_options(
+                tokens, index, operands=("-n", "--adjustment"), attached=("-n",)
+            )
+        elif wrapper == "timeout":
+            index = _consume_options(
+                tokens,
+                index,
+                operands=("-k", "--kill-after", "-s", "--signal"),
+                attached=("-k", "-s"),
+            )
+            if index < len(tokens):
+                index += 1  # duration
+        else:
+            return index - 1, xargs_placeholder
+    return index, xargs_placeholder
+
+
+def _literal_pipeline_pids(tokens):
+    """Extract literal PIDs supplied to xargs by a simple printf/echo command."""
+    if not tokens or Path(tokens[0]).name not in {"echo", "printf"}:
+        return []
+    return [int(token) for token in tokens[1:] if token.isdigit()]
+
+
+def _kill_targets(tokens, index, *, piped_pids=(), placeholder=None):
+    targets = []
+    index += 1
+    while index < len(tokens):
+        token = tokens[index]
+        if token in {"-n", "-s", "--signal"}:
+            index += 2
+            continue
+        if token.startswith("-"):
+            index += 1
+            continue
+        if placeholder is not None and token == placeholder:
+            targets.extend(piped_pids)
+        elif token.isdigit():
+            targets.append(int(token))
+        else:
+            return None
+        index += 1
+    if not targets and piped_pids:
+        targets.extend(piped_pids)
+    return targets
+
+
 def _process_reason(command, owned_pids):
     """Reject process-control targets unless every literal PID is caller-owned."""
     # Scan only the unquoted command surface: drop heredoc bodies and quoted
     # strings first. shlex normalizes an escaped command name such as ``\kill``.
     scan = re.sub(r"<<-?\s*'?\"?(\w+)'?\"?\n.*?\n\1(?=\n|$)", " ", command, flags=re.S)
     scan = re.sub(r"'[^']*'|\"[^\"]*\"", " ", scan)
-    segments = re.split(r"&&|\|\||[;&|()\n]", scan)
-    wrappers = {"builtin", "command", "exec", "sudo", "env", "xargs"}
-    for segment in segments:
-        try:
-            tokens = shlex.split(segment)
-        except ValueError:
-            tokens = []
-        index = 0
-        while index < len(tokens) and (
-            tokens[index] in wrappers
-            or "=" in tokens[index]
-            or tokens[index].startswith("-")
-        ):
-            index += 1
-        if index >= len(tokens):
-            continue
-        process = Path(tokens[index]).name
-        if process in {"pkill", "killall"}:
-            return "pid isolation: name-based process termination is denied"
-        if process != "kill":
-            continue
-        targets = []
-        index += 1
-        while index < len(tokens):
-            token = tokens[index]
-            if token in {"-s", "--signal"}:
-                index += 2
+    for statement in re.split(r"&&|\|\||[;&()\n]", scan):
+        previous_tokens = []
+        for segment in statement.split("|"):
+            try:
+                tokens = shlex.split(segment)
+            except ValueError:
+                tokens = []
+            index, placeholder = _locate_process(tokens)
+            if index >= len(tokens):
+                previous_tokens = tokens
                 continue
-            if token.startswith("-"):
-                index += 1
-                continue
-            if token.isdigit():
-                targets.append(int(token))
-            else:
-                return "pid isolation: target pid is not owned by this launch"
-            index += 1
-        if not targets or not set(targets).issubset(owned_pids):
-            return "pid isolation: target pid is not owned by this launch"
+            process = Path(tokens[index]).name
+            if process in {"pkill", "killall"}:
+                return "pid isolation: name-based process termination is denied"
+            if process == "kill":
+                piped_pids = _literal_pipeline_pids(previous_tokens)
+                targets = _kill_targets(
+                    tokens,
+                    index,
+                    piped_pids=piped_pids,
+                    placeholder=placeholder,
+                )
+                if not targets or not set(targets).issubset(owned_pids):
+                    return "pid isolation: target pid is not owned by this launch"
+            previous_tokens = tokens
 
     python_target = re.search(
         r"(?:os\.kill|os\.killpg|signal\.pthread_kill)\s*\(\s*(\d+)", command

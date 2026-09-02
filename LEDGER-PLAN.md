@@ -377,3 +377,28 @@ frozen rejection policy (raw-vs-steered top-1 ratio >= 0.5; dose halving; layer-
 fallback; press/reject counters), CPU formula tests, one frozen-config pilot on the 20-session cache
 harness with survival >= 5% and no safety regression. Confirmation, if any, on a hashed cohort disjoint
 from any development data, registered with its own n before outcomes are viewed. Not the current 909.
+
+## H1 OUTCOME (2026-09-02): FAIL / DO NOT ADVANCE under the v1 clause; substantive contrasts confirmed
+results/qwen/ledger-kv-probe-h1 + results/h1-review-{fable,sol,kimi}.md. pinned_echo 46/56, echo_only 36, pinned 33,
+pinned_control 20, evicted 15, full 41; wave-on-pinned not creditable at any dose. Registered safety clause breached
+by a single truncation (1/20 vs 0/20 = +5 pts > +2). DISCLOSURE: the clause was written in points on an n=20
+session denominator, which is zero-tolerance; the amendment below moves to integer event counts and is
+registered BEFORE H1′ runs. H1 is not retroactively passed.
+
+## H1′ — automatic-selection replication (registered 2026-09-02, before any outcome is viewed)
+Same 20 sessions, same harness (scripts/ledger_kv_probe.py), max_new 512, one job. Focus set = spans selected
+AUTOMATICALLY by the registered salience finder (src/stencil/salience2.py, DEFAULT_BACKEND, hashes in meta) on
+the raw history — no "Constraint:" marks are read by the arms. Arms: full | evicted | pinned | pinned_control
+(exact-column) | echo_only | pinned_echo | full_echo (fable: does recency help even without eviction?). No
+wave-dose arms (killed at H1). Metrics as H1 plus `invalid_output` (empty / non-text / chat-token leakage) and
+per-session selection coverage of the marked constraints (reported, not gated: it is the automatic-vs-oracle
+bridge). Echo rendered byte-exact by ledger.text_ledger_context from the SELECTED spans; fix the dangling
+" Constraint" token bleed fable found (span window ends at the clause boundary).
+Safety (integer counts, in-job): timeouts 0; truncation events per arm <= full + 1; degenerate sessions
+(rep4 > 0.5) <= full; invalid_output events <= full.
+Decision rules identical to H1 (pinned > pinned_control AND pinned_echo > echo_only AND pinned_echo recovers
+>= 0.85 of the in-job gap AND safety intact → ADVANCE-RETENTION; echo_only >= 0.85 but pinned_echo <= echo_only
+→ RE-INJECTION-ONLY; else FAIL). Additional reading, not a gate: full_echo − full (recency without eviction) and
+automatic coverage vs the oracle spans.
+Cost ~1 GPU-h. Reviewer pass (fable/sol/kimi) before any next rung. If ADVANCE-RETENTION: next = 909 Multi-IF
+text_ledger confirmation under ROUND 7 (already registered), NOT an H3 wave pilot.
