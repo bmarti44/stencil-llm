@@ -91,3 +91,39 @@ scripts/ledger_eval.py. Reuse ctrb/e2/bench helpers; do not re-implement
 generation, spans, or scoring. Red/green TDD; NO vacuous tests (assert on
 decoded content and bounded properties). No training beyond the salience
 classifier. No new corpora unless a gate demands it.
+
+## Brian's rulings, 2026-09-01 (after the first build)
+
+1. SALIENCE-2 — the finder must be far more general. The v1 regex/logistic
+   detector (recall ~0.75, misses buried constraints) is a stopgap. Required:
+   - BURIED instructions: constraints inside task sentences ("Write a blog
+     post with at least 300 words" -> the clause "with at least 300 words").
+     Clause-level spans, not sentence-level.
+   - NON-ADDITIVE instructions must be DETECTED just as well: prohibitions
+     ("do not", "never", "avoid"), limits ("under 90 words", "at most"),
+     tone/manner ("be formal", "sound angry"), format ("in JSON", "as a
+     list"). Detection is the ledger's job regardless of whether the
+     actuator can act on an entry; what to DO with each entry is a separate
+     decision (the actuator's insertion-only limit stays a known, separately
+     reported boundary).
+   - Being welded to Qwen3-1.7B is FINE (Brian) — the finder MAY read the
+     trunk's own hidden states (a token-level span probe) rather than regex.
+   GATES (registered): recall >= 0.90 AND precision >= 0.90 on a BLIND
+   hand-labeled Multi-IF sample at CLAUSE level; leave-one-corpus-out F1
+   >= 0.90; and a TRANSFER test on IFBench prompts (a constraint taxonomy
+   the finder never trained on) with F1 reported honestly. Hand-labels are
+   reviewed by sol (conflict-of-interest rule).
+
+2. DEPLOY — "super easy for people to use". Target: a pip-installable
+   package on top of HuggingFace transformers' Qwen/Qwen3-1.7B (not our
+   hand-rolled trunk), exposing one entry point (load model -> generate with
+   the ledger on), with salience + ledger + controller weights on the HF
+   Hub. Must pass a PARITY test against our verified path (logits within the
+   registered drift bound; ledger spans identical). transformers==4.51.0 is
+   the known-good pin (bitwise template verification, B0).
+
+3. SEQUENCING: the diagnostic slice still runs with the v1 finder once sol
+   clears the build — an UNDER-inclusive ledger only weakens the neural arm,
+   so a positive is conservative and a negative is informative about the
+   architecture rather than the finder. SALIENCE-2 replaces v1 when it
+   passes its gates; DEPLOY packages whatever passes.
