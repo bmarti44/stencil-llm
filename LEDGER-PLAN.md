@@ -437,3 +437,41 @@ or the gain vanishes under native pressure. A Multi-IF-only pass is insufficient
 Excluded and why: VerIFY (dataset unreleased), Lost-in-Conversation and tau2 (need an LLM user/shard simulator; no
 OpenAI key; simulator noise in a confirmatory run), HANDBOOK/SOP-Bench (frontier floor; SOP-Bench CC-BY-NC),
 LongMemEval/LoCoMo (facts not instructions; > trained context; LoCoMo CC-BY-NC), SEQUOR (LLM judge; license unknown).
+
+## GENERALIZING SELECTION — G0 PILOT (registered 2026-09-02, before any run)
+Data lineage: fit/select-on = OASST2 (chat) + APIGen-MT-5k (tool) subsets under data/g0/, hashed; evaluated-on = Multi-IF, BFCL V3, S2 (data/bench/). Disjoint by construction and enforced by tests/test_eval_data_separation.py + the Bash guard (commit e19f67f).
+Trigger: Brian, "we need to do something that generalizes." Evidence: every selector so far was hand-built for one
+benchmark's instruction style (salience2 coverage 0.98 on Multi-IF, recall 0.065 on BFCL sentences against a
+mechanical retention oracle); the selective-regex draft was withdrawn 2:1 (results/agentic-salience-review-*.md);
+deep web research by fable/sol/kimi (results/research-generalizing-*.md, synthesis in
+results/research-generalizing-synthesis.md) established: attention heavy-hitters fail on delayed need (SCBench),
+learned write-time policies transfer only when measured leave-one-corpus-out, label-free model-derived importance
+exists (KVzip), protocol invariants are protected by role, and Miller's selection is read-time.
+Program (in order; each step gated on the previous): G0 audit → zero-training policies scored by oracle recovery →
+G1 learned ranker ONLY if no zero-training policy recovers ≥ 0.80 of oracle utility on BOTH corpora.
+G0 oracle (label-free, deployment-matched): utility(span) = mean teacher-forced NLL on later REFERENCE tokens with
+the span's KV columns evicted (QwenFocusCache.evict) minus NLL full. CORPUS SEPARATION (Brian, 2026-09-02: "if you train
+on the results of the eval, isn't that going to invalidate everything?"): the gate benchmarks (Multi-IF, BFCL V3)
+are EVALUATION ONLY — nothing is fit, chosen, or tuned on them, including the choice among zero-parameter
+policies. The oracle, policy selection, and any learning use only DISJOINT public corpora: a generic multi-turn chat
+corpus (OASST2 English branches; reference = the base model's own greedy response, self-distillation) and a generic
+tool-use corpus with gold calls (APIGen-MT-5k, fallback ToolACE; reference = gold assistant tool calls), fetched and
+hashed before use with licenses recorded (data/g0/MANIFEST.json). The generalization claim is zero-shot transfer of
+a selector chosen entirely elsewhere to two unseen benchmark families with different instruction styles.
+Never delete text to simulate eviction; never use answer
+literals as the label; position-matched null spans (same role/length/age) are the noise floor.
+Pilot (this registration): 30 dialogues per disjoint corpus (chat, tool) on 1.7B, ≤12 candidate + 12 null spans each, top-3 joint-eviction
+check; policies (a) role rule, (b) recent+sinks, (c) BM25 archive retrieval with the current turn as query,
+(d) salience2 held-out finder, (e) attention mass (predicted-failure control), all at one fixed budget B.
+Pilot readouts (reported, gating only the NEXT step): (1) seconds/dialogue (a 1k-dialogue oracle is launched only
+if ≤ 6 GPU-h projected); (2) signal exists iff the fraction of candidate spans with utility above the null p90
+exceeds 0.10 on both corpora — else G0 is declared uninformative at this granularity and the span unit is
+re-registered before any retry; (3) recovery table per policy per corpus. Decision rule after the pilot: if any
+zero-training policy recovers ≥ 0.80 (null-adjusted) on both disjoint corpora, it becomes the registered selector,
+applied UNCHANGED to the gate benchmarks, and G1 is NOT built; if the best is in [0.50, 0.80), G1 is registered with leave-one-corpus-out floors (AUROC ≥ 0.80 held-out,
+recovery ≥ 0.50, beats the best zero-training policy under joint eviction with a paired 95% CI excluding 0); if
+< 0.50 for every policy, the mechanism's generality is reported as unsupported and the publish gate stays closed.
+Harness precondition for any BFCL arm run (from results/agentic-salience-review-fable.md CRITICAL): system prompt +
+tool schemas are never-evictable in EVERY arm; the pin budget covers user/tool columns only; the random-span
+control is token-matched from the same role pool as the treatment. The failed finder preflight (78/100) is recorded
+as FAILED and superseded by this program; the 100 viewed labels are never reused.
