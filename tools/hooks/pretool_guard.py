@@ -61,8 +61,14 @@ def _owned_from_env(env):
 
 def _process_reason(command, owned_pids):
     """Reject process-control targets unless every literal PID is caller-owned."""
-    process_pattern = r"(?<![\w.])(?:" + "p" + r"kill|kill" + "all" + r"|kill)(?!\w)"
-    words = re.findall(process_pattern, command)
+    # Command-position only: start of command, after ; | & ( or a newline, or after
+    # sudo/exec/env/xargs. Prose inside quoted text or heredocs must not trip the guard.
+    process_pattern = (r"(?:^|[;&|(]\s*|\n\s*|\b(?:sudo|exec|env|xargs)\s+)"
+                       + r"(" + "p" + r"kill|kill" + "all" + r"|kill)(?=\s|$)")
+    # Scan only the unquoted command surface: drop heredoc bodies and quoted strings first.
+    scan = re.sub(r"<<-?\s*'?\"?(\w+)'?\"?\n.*?\n\1(?=\n|$)", " ", command, flags=re.S)
+    scan = re.sub(r"'[^']*'|\"[^\"]*\"", " ", scan)
+    words = [m.group(1) for m in re.finditer(process_pattern, scan)]
     python_api = ("os." + "kill(" in command) or ("signal." + "SIG" in command)
     if not words and not python_api:
         return None

@@ -338,3 +338,42 @@ floor, not a multiplicative guarantee — recorded so the two are not read as jo
 Trigger: run the new gate only if the 113 slice / 909 coverage < 0.90; otherwise the finder is
 accepted as-is under the coverage gate and gate 1 is reported as "unmet under the old wording,
 superseded".
+
+## FOCUS LADDER v1 (registered 2026-09-02, after fable/sol/kimi review of v0 — results/focus-ladder-review-{fable,sol,kimi}.md)
+Goal (Brian): a generalized Miller-inspired focus mechanism; fast small proofs before any larger run.
+v0 verdicts: fable "run H1 after cuts"; sol "REJECT v0; ACCEPT H1 after cuts; H2 not a gate; H3 needs a
+registered cache harness + disjoint confirmation"; kimi "H1 echo = recency not availability; keep echo_only;
+cut per-head CI gate and dose grid". v1 adopts every cut.
+
+### H1 (the only rung that runs now) — retention vs re-injection, 20-session KV-probe harness
+Harness: scripts/ledger_kv_probe.py, ALL arms in ONE job at the current default max_new=512 (no mixing
+with the v2 320-token artifact; the gap is recomputed in-job). Focus set = the harness's marked
+"Constraint:" spans → results are labelled "marked/oracle focus", not automatic target-blind selection.
+Arms: full | evicted | pinned | pinned_control (exact-column, v3) | echo_only (evicted + echo) | pinned_echo.
+Echo = src/stencil/ledger.text_ledger_context rendered byte-for-byte from the aged spans, inserted before
+the final user <|im_end|>; chat-control tokens rejected; added token count recorded.
+Metrics per arm: aged-constraint pass (56), truncation, timeout, rep4>0.5, degenerate sessions, invalid
+output, quoting rate (response reproduces >= 8 consecutive echoed tokens) and a quoting-excluded secondary
+pass rate. Safety: absolute timeouts <= 2%; truncation excess over `full` <= +2 pts; degenerate sessions
+not above `full` in-job.
+Reading (factorial contrasts, in-job gap = full - evicted):
+  pinned - evicted        (availability without recency)
+  echo_only - evicted     (recency/re-injection without availability)
+  pinned_echo - echo_only (what KV residency adds on top of re-injection)
+  pinned - pinned_control (specificity)
+Decision rules (integer outcomes; every outcome has a reading):
+  ADVANCE-RETENTION if pinned > pinned_control AND pinned_echo > echo_only AND pinned_echo recovers
+    >= 0.85 of the in-job gap with safety intact.
+  RE-INJECTION-ONLY if echo_only recovers >= 0.85 of the gap but pinned_echo <= echo_only: the product is
+    text re-injection (already the 113-slice text_ledger result: +2.8 pts pooled, p=0.012).
+  FAIL / DO NOT ADVANCE for every other outcome (including recovery in [pinned, 0.85 gap)).
+Cost: ~1 GPU-h. Reviewer pass (fable/sol/kimi) on the artifact before any next rung.
+
+### H2 — DROPPED as a gate (self-passes under the null; no valid teacher-forced target). May return later as
+a non-gating ranker only after held-out reference continuations exist.
+
+### H3 — trust-region wave on pinned KV: NOT registered yet. Preconditions: H1 ADVANCE-RETENTION, then a
+frozen rejection policy (raw-vs-steered top-1 ratio >= 0.5; dose halving; layer-pair drop order; emit-raw
+fallback; press/reject counters), CPU formula tests, one frozen-config pilot on the 20-session cache
+harness with survival >= 5% and no safety regression. Confirmation, if any, on a hashed cohort disjoint
+from any development data, registered with its own n before outcomes are viewed. Not the current 909.

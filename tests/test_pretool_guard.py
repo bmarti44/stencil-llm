@@ -46,6 +46,12 @@ CASES = [
     ("disown", {"STENCIL_SUBAGENT": "1"}, [], set(), "background"),
     ("python cpu_job.py && echo done", {"STENCIL_SUBAGENT": "1"}, [], set(), None),
     ("nohup python cpu_job.py", {}, [], set(), None),
+    # Prose mentioning process termination (heredoc briefs, commit messages) must not trip the guard.
+    ("cat > brief.md <<'EOF'\nNever kill or signal any process.\nEOF", {}, [], set(), None),
+    ("git commit -m 'guard: deny pkill by name; kill only owned pids'", {}, [], set(), None),
+    ("echo done; kill 123", {}, [], set(), "pid"),
+    ("sudo kill -9 123", {}, [], set(), "pid"),
+    ("echo x | xargs kill", {}, [], set(), "pid"),
 ]
 
 
