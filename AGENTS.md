@@ -22,6 +22,14 @@ short, imperative, and evidence-linked; prune entries that stop paying rent.
 - Never edit repo files while a review/coder wrapper is running — the wrapper
   hard-fails on uncontained drift, and its restorer can clobber your edits.
   Wrappers serialize on `.review.lock`; respect it.
+- CODERS launched by `tools/run_codex_agent.sh`: the `.review.lock` you see is
+  held by YOUR OWN wrapper for the duration of your task. Never wait for it and
+  never poll it — write, test, and `git commit` your allowlisted files directly.
+  Two coders (2026-09-02) finished their work, then waited on their own lock
+  until the timeout and the restorer wiped the tree. Also: never run the full
+  pytest suite (it exceeds the wrapper timeout); run the targeted tests named in
+  the brief. Orchestrator: while a wrapper is active, commit only with explicit
+  pathspecs (`git commit -- <paths>`) so a coder's staged index is not swept in.
 - Numbers in specs are claims: recompute them. Round 1 of the plan review found
   the registered chance rate mathematically impossible and the registered
   energy tests unpassable by the registered integrator. Verify arithmetic and
