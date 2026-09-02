@@ -26,7 +26,8 @@ sys.path.insert(0, str(ROOT / "src"))
 from stencil import determinism  # noqa: F401
 
 OPENER = "<|im_start|>assistant\n<think>\n\n</think>\n\n"
-ARMS = ("full", "evicted", "pinned", "pinned_wave")
+ARMS = ("full", "evicted", "pinned", "pinned_control", "pinned_wave")
+DEGENERATE_REP4 = 0.5  # registered degeneracy definition: repeated-4gram frac > 0.5 OR truncated
 
 def sha(p):
     return hashlib.sha256(Path(p).read_bytes()).hexdigest()
@@ -42,7 +43,33 @@ def repeated_4gram_frac(ids):
     grams = [tuple(ids[i:i + 4]) for i in range(len(ids) - 3)]
     return 1.0 - len(set(grams)) / len(grams)
 
-def run_arm(m, tok, ids, arm, keep, evict_range, dose, max_new, deadline_s):
+def matched_control_spans(keep, evict_range):
+    """same-width windows inside the evicted region, disjoint from every
+    constraint span and from each other, nearest FOLLOWING each span
+    (falls back to nearest preceding)."""
+    taken = [tuple(k) for k in keep]
+    out = []
+    for s, e in keep:
+        w = e - s
+        cand = None
+        for start in list(range(e, evict_range[1] - w + 1)) + list(range(s - w, evict_range[0] - 1, -1)):
+            if start < evict_range[0]:
+                continue
+            if all(start + w <= a or start >= b for a, b in taken):
+                cand = (start, start + w)
+                break
+        if cand is None:
+            continue
+        taken.append(cand)
+        out.append(cand)
+    return out
+
+
+def is_degenerate(g):
+    return bool(g["truncated"] or g["rep4"] > DEGENERATE_REP4)
+
+
+def run_arm(m, tok, ids, arm, keep, evict_range, dose, max_new, deadline_s, control_keep=()):
     import torch
 
     from stencil.bench import EOS, WAVE_LAYERS
@@ -55,8 +82,9 @@ def run_arm(m, tok, ids, arm, keep, evict_range, dose, max_new, deadline_s):
         logits = m(torch.tensor([ids], device="cuda"), cache=cache)
         cols = []
         if arm != "full":
-            imap = cache.evict(evict_range[0], evict_range[1], keep=(keep if arm != "evicted" else ()))
-            cols = sorted({imap[o] for s, e in keep for o in range(s, e) if o in imap}) if arm != "evicted" else []
+            pins = {"evicted": (), "pinned": keep, "pinned_wave": keep, "pinned_control": control_keep}[arm]
+            imap = cache.evict(evict_range[0], evict_range[1], keep=pins)
+            cols = sorted({imap[o] for s, e in pins for o in range(s, e) if o in imap})
         nxt = int(logits[0, -1].argmax())
         while nxt not in EOS and len(out) < max_new:
             if time.monotonic() - t0 > deadline_s:
@@ -88,7 +116,6 @@ def main():
     import torch
     from tokenizers import Tokenizer
 
-    from stencil.bench import generate_cached
     from stencil.causal_moments import score_row_constraints
     from stencil.e2 import constraint_span_records
     from stencil.qwen3 import Qwen3
@@ -102,7 +129,7 @@ def main():
             "model_sha256": sha(model_path), "runner_sha256": sha(__file__),
             "qwen3_sha256": sha(ROOT / "src/stencil/qwen3.py"), "arms": list(ARMS),
             "dose": args.dose, "max_new": args.max_new, "deadline": args.deadline,
-            "position_policy": "no_reindex_positions_continue"}
+            "position_policy": "no_reindex_positions_continue", "degenerate_def": f"truncated or rep4>{DEGENERATE_REP4}", "history_decode": "raw_context_greedy"}
     mp = outdir / "meta.json"
     if mp.exists():
         if json.loads(mp.read_text()) != meta:
@@ -123,7 +150,10 @@ def main():
         history = ""
         for turn in turns[:-1]:
             ctx = history + f"<|im_start|>user\n{turn['prompt']}<|im_end|>\n" + OPENER
-            text, n, tr, to = generate_cached(m, tok, ctx, max_new=args.max_new, deadline_s=args.deadline)
+            # verifier (2026-09-01): generate_cached wraps in TMPL -> double
+            # scaffold; decode the raw context instead
+            g = run_arm(m, tok, tok.encode(ctx).ids, "full", [], None, 0.0, args.max_new, args.deadline)
+            text = g["text"]
             history += f"<|im_start|>user\n{turn['prompt']}<|im_end|>\n<|im_start|>assistant\n{text}<|im_end|>\n"
         last = turns[-1]
         context = history + f"<|im_start|>user\n{last['prompt']}<|im_end|>\n" + OPENER
@@ -139,6 +169,7 @@ def main():
         tok_first = next(i for i, (a, b) in enumerate(enc.offsets) if b > first_content)
         tok_last = next(i for i, (a, b) in enumerate(enc.offsets) if b > last_marker)
         evict_range = (tok_first, tok_last)
+        control_keep = matched_control_spans(keep, evict_range)
         row = {"key": int(sess["key"]) * 10 + T_last,
                "instruction_id_list": last["instruction_id_list"], "kwargs": last["kwargs"]}
         # aged constraints = those whose clause originates in an earlier turn;
@@ -146,14 +177,15 @@ def main():
         n_aged = sum(1 for r in recs if r["origin_turn"] < T_last)
         arms = {}
         for arm in ARMS:
-            g = run_arm(m, tok, ids, arm, keep, evict_range, args.dose, args.max_new, args.deadline)
+            g = run_arm(m, tok, ids, arm, keep, evict_range, args.dose, args.max_new, args.deadline, control_keep=control_keep)
+            g["degenerate"] = is_degenerate(g)
             scores = score_row_constraints(row, g["text"])
             g["scores"] = list(scores)
             g["aged_pass"] = sum(scores[:n_aged])
             g["aged_n"] = n_aged
             arms[arm] = g
         rec = {"session": si, "key": sess["key"], "topic": sess["topic"], "n_turns": T_last,
-               "evict_range": evict_range, "keep": keep, "n_aged": n_aged,
+               "evict_range": evict_range, "keep": keep, "control_keep": control_keep, "n_aged": n_aged,
                "context_tokens": len(ids), "arms": arms}
         atomic_json(rp, rec)
         print(f"session {si} aged={n_aged} " + " ".join(f"{a}={arms[a]['aged_pass']}/{n_aged}(rep4={arms[a]['rep4']:.2f},n={arms[a]['n']})" for a in ARMS), flush=True)
@@ -165,7 +197,8 @@ def main():
         summ[a] = {"aged_pass": p, "aged_n": n, "rate": p / max(1, n),
                    "trunc": sum(r["arms"][a]["truncated"] for r in records),
                    "timeout": sum(r["arms"][a]["timed_out"] for r in records),
-                   "mean_rep4": sum(r["arms"][a]["rep4"] for r in records) / max(1, len(records))}
+                   "mean_rep4": sum(r["arms"][a]["rep4"] for r in records) / max(1, len(records)),
+                   "degenerate": sum(is_degenerate(r["arms"][a]) for r in records)}
     gap = summ["full"]["rate"] - summ["evicted"]["rate"]
     summ["gap_full_minus_evicted"] = gap
     summ["recovered_frac_pinned"] = (summ["pinned"]["rate"] - summ["evicted"]["rate"]) / gap if gap > 0 else None

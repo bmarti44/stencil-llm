@@ -221,3 +221,15 @@ context spans, so pinned slots drop in later.
   the pinned MEMORY is the mechanism; amplification of it is harmful here,
   consistent with the always-on-bias finding (B3 dev gate). Pending
   independent verification before any design decision.
+- KV PROBE VERIFICATION (fable, 2026-09-01): CONFIRMED with qualifications.
+  Evicted arm == true single-turn baseline (0/4 both on s0); dropping the
+  turn-1 scaffold collapses output (position-0 sink is load-bearing);
+  scoring order verified 20/20; bias row alignment correct; RoPE
+  distortion is ZERO here (positions continue; relative distances are the
+  true ones) — long-horizon untested (max 761 tokens). Weakened wording:
+  degeneracy threshold was unregistered (now: truncated or rep4>0.5, in
+  the runner); pinned is as degenerate as full; history turns were decoded
+  through a double-wrapped template (fixed: raw-context greedy); the
+  same-width non-constraint pin control was n=1 (0/4) — now a registered
+  fifth arm (pinned_control). RERUN of the 20 sessions required before the
+  result is cited.
