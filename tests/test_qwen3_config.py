@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import pytest
 import torch
 
 from stencil.qwen3 import KVCache, Qwen3, Qwen3Config
@@ -84,6 +85,44 @@ def test_untied_lm_head_is_registered_and_used() -> None:
         model.lm_head.weight.zero_()
         logits = model(torch.tensor([[1, 2]]))
     assert torch.count_nonzero(logits) == 0
+
+
+@pytest.mark.parametrize("tie_word_embeddings", [True, False])
+def test_head_dim_independent_projection_shapes_and_lm_head_dtype(
+    tie_word_embeddings: bool,
+) -> None:
+    """Qwen3-4B has a 128-wide head although hidden_size / heads is 80."""
+    cfg = Qwen3Config(
+        n_layer=1,
+        n_head=3,
+        n_kv_head=1,
+        head_dim=4,
+        d_model=9,
+        d_ff=13,
+        vocab=17,
+        rope_theta=10_000.0,
+        rms_eps=1e-6,
+        n_ctx=16,
+        tie_word_embeddings=tie_word_embeddings,
+    )
+    model = Qwen3(cfg).to(torch.bfloat16).eval()
+    block = model.layers[0]
+
+    assert block.q_proj.weight.shape == (cfg.n_head * cfg.head_dim, cfg.d_model)
+    assert block.k_proj.weight.shape == (cfg.n_kv_head * cfg.head_dim, cfg.d_model)
+    assert block.v_proj.weight.shape == (cfg.n_kv_head * cfg.head_dim, cfg.d_model)
+    assert block.o_proj.weight.shape == (cfg.d_model, cfg.n_head * cfg.head_dim)
+    assert (model.lm_head is None) is tie_word_embeddings
+
+    with torch.no_grad():
+        logits = model(torch.tensor([[1, 2, 3]]))
+        cache = KVCache(cfg)
+        model(torch.tensor([[1, 2, 3]]), cache=cache)
+        cached_logits = model(torch.tensor([[4]]), cache=cache)
+    assert logits.shape == (1, 3, cfg.vocab)
+    assert logits.dtype == torch.bfloat16
+    assert cached_logits.shape == (1, 1, cfg.vocab)
+    assert cache.k[0].shape == (1, cfg.n_kv_head, 4, cfg.head_dim)
 
 
 def test_kv_cache_evict_non_default_layer_count() -> None:
