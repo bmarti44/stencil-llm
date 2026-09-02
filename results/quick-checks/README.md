@@ -26,3 +26,9 @@ greedy output, same eviction plumbing as the registered probe (scripts/ledger_kv
    RB 29/56 (control 22) vs finder 37 (control 18). Kimi's pre-registered rule: RB <= 37 -> the role rule's +4 over
    the finder was BUDGET. At equal cost, which columns are kept matters: selectivity beats role.
    (fable: the keep-in "weak signal" is a span-length artefact — within-length AUROC 0.46 — report as no signal.)
+
+6. READ-TIME RETRIEVAL BY THE MODEL'S OWN ATTENTION (attn_retrieval_check.py, attn_retrieval.log): rank archived
+   sentence spans by the attention the query position (last prompt token, layers 20-27, mean over heads, per column)
+   pays them; pin the top spans at the finder's budget. Constraint coverage 0.19 (per-column) / 0.26 (mass) vs BM25
+   0.37, random 0.13. Outcomes: ATTN 16/56, its exact-column control 24, finder 37, evicted 14. FAILS: the query
+   position attends to recent/topical content, not to standing instructions (delayed need, measured at read time).
