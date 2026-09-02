@@ -245,3 +245,14 @@ context spans, so pinned slots drop in later.
   (plain t and percentile bootstrap both 8.31% false-pass at the
   registered size; corrected 4.90%); wave.py/bench.py/determinism.py
   hashed; preflight dry-constructs every control. Pending sol round 3.
+- ROUND 3 (2026-09-01, results/ledger-reverify3-sol.md): crash, provenance,
+  bound RESOLVED; validity PARTIAL — majority-selection gate gameable at
+  50.03%. RULINGS: (i) selection COVERAGE gate registered at >= 0.90 of
+  eligible constraints (diagnostic preflight: 81/85 = 0.953 have a linked
+  entry, so attainable); (ii) text_beats_base must hold WITHIN the selected
+  subset, and the unselected subset's text-vs-base cells are reported
+  separately and must not be all-concordant-failing; (iii) the diagnostic
+  slice is REGISTERED AS FALSIFICATION-ONLY: a zero observed difference at
+  43 clusters yields a 2.33-point corrected bound > 2.0, so the slice can
+  REJECT non-inferiority (or show text/neural vs base effects) but can
+  never establish it; positive NI requires the full 909 cohort.
