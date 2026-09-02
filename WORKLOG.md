@@ -2258,3 +2258,15 @@ precedent, and fire-first-eligible already equals the per-turn oracle so there
 is nothing for RL to learn); attention-signature forgetting detectors (decay is
 turn-scale); more model-dynamics features; unconditioned will-follow probes;
 better timing for limit/tracking families (they need a counter, not emphasis).
+
+## 2026-09-01 — INVARIANT BREACH (recorded, remediation ordered)
+The SALIENCE-2 builder (fable subagent) loaded data/bench/ifeval_input_data.jsonl
+as weak-labelled TRAINING documents for salience2 (load_ifeval_docs in
+training_docs) and ran the frozen trunk on those prompts for the layer-20
+probe features. No generation/scoring on the sealed set occurred, but the
+salience2 weights (all three backends) are IFEval-TAINTED: they must not be
+used in any sealed IFEval run. Remediation: refit with IFEval docs excluded
+entirely (v2b), recompute all gates, purge the sealed prompts' features from
+results/salience2/feats.npz; tests/test_sealed_guard.py now allowlists the
+sealed file's referrers mechanically. Gate 1 (recall>=0.90) was UNMET
+anyway (0.854/0.860 blind; precision 0.95/0.94).

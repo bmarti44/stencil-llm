@@ -204,3 +204,11 @@ context spans, so pinned slots drop in later.
   e2.mass_matched_nonconstraint_control (which is the diffuse complement).
   (iii) "credit only when selected": an uncredited neural pass scores as a
   FAIL (fail-closed), not an excluded pair; raw rate reported alongside.
+- SALIENCE-2 RESULT (2026-09-01, v2b clean refit after the IFEval-training
+  breach, see WORKLOG): gate 1 UNMET on two blind Multi-IF draws — recall
+  0.854 / 0.884 vs bar 0.90 (precision 0.95 / 0.94); LOCO F1 0.973/0.945
+  (met, linguistic backend); IFBench transfer F1 0.68 (reported); buried
+  recall 0.88 linguistic / 0.97 trunk-probe. DEFAULT_BACKEND=linguistic
+  (CPU-only, deploy-friendly). Unmet gate kept as a strict xfail with the
+  numbers. Brian decides: accept 0.88 recall as v2, or fund a third round
+  (blind-draw failures are new constructions each time — rule overfit risk).
