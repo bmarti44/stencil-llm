@@ -2388,3 +2388,16 @@ anyway (0.854/0.860 blind; precision 0.95/0.94).
 ## 2026-09-02 ~19:50 — isolation guard: sol verify3 REJECT on the static scanner only; loop stopped, escalated to Brian
 - results/isolation-round7-verify3-sol.md. Fixes 2 (ROUND 7 re-summary), 3 (sealed hash/mode), 4 (PreToolUse wrapper/signal parsing) CLOSED. Fix 1 (static watchdog scanner) OPEN HIGH: three ordinary forms still give zero hits (function-local `os.kill` alias; shell `kill` inside an `if` condition; backslash-continued shell `kill`). Science and GPU-ownership checks unchanged.
 - Orchestrator ruling per the anti-churn rule: no fourth fix round without a human decision. The live containment layers (PreToolUse hook + assert_gpu_free_or_owned + sealed hash/mode + AGENTS rules) are closed; the scanner is a static backstop that a text scanner cannot make complete. Options for Brian: (a) accept with the three residuals documented as known gaps; (b) one bounded round adding the three forms + a cross-helper fixture. Recommendation: (a).
+
+## 2026-09-02 — H1′ reviews (kimi, fable) + held-out finder refit (CPU)
+- results/h1p-review-kimi.md: CONFIRMED-WITH-QUALIFICATIONS; literal rules → ADVANCE-RETENTION; all arithmetic verified.
+- results/h1p-review-fable.md: CONFIRMED-WITH-QUALIFICATIONS; 0 recompute mismatches; target-blindness verified by
+  replay; H1 vs H1′ numbers unpaired (histories regenerated). HIGH: shipped finder weights are trained on the Multi-IF
+  909 turn-2/3 prompts (load_multiif23_docs), so a 909 run with them measures an in-sample finder.
+- Resolution (scratchpad/heldout_multiif_refit.py, CPU, 1 s fit): refit excluding Multi-IF →
+  results/salience2/linguistic_heldout_no_multiif.json (sha256 f1c1a311…4815). Multi-IF turn-2/3 (578 unique docs):
+  clause coverage held-out 0.9801 vs shipped 0.9817; docs fully covered 0.9775 vs 0.9792; conv-prose false-positive
+  rate 4/330 both. The finder generalizes to Multi-IF; the 909 confirmation will use the held-out weights.
+- Open (from BFCL handoff): user-instruction recall on BFCL labels 1/23 — the finder does not generalize to
+  tool-use dialogue instructions; preflight floor 0.80 unmet (0.78 only via auto-admitted schemas). Deferred to the
+  BFCL preflight step; not to be fixed after seeing the sealed cohort.
