@@ -31,7 +31,7 @@ though the registration acknowledges non-additivity. A top-three diagnostic
 cannot validate the policy sets actually being selected. Thus even perfectly
 disjoint data would not make the current winner rule sound.
 
-## Findings, ordered by severity
+## Findings
 
 ### G0R-1 — CRITICAL — Multi-IF/BFCL influenced the policy class and the shipped candidate
 
@@ -183,6 +183,14 @@ oversized spans are handled (`tools/codex-agents/g0-oracle-pilot.md:38-48`).
 Outputs store only whole kept-span indices, while recent+sinks is token-based.
 Different reasonable implementations yield different winners.
 
+The in-flight runner confirms rather than resolves these ambiguities: it
+includes every annotated message in candidate construction
+(`scripts/g0_oracle.py:505-515`), indexes every candidate including the query
+for BM25 (`scripts/g0_oracle.py:439-484`), and derives B from the oracle-ranked
+top quarter (`scripts/g0_oracle.py:447-450`). Its nominal “sinks” policy cannot
+actually retain columns 0–3 unless a candidate span starts there; content spans
+normally start after role-template tokens (`scripts/g0_oracle.py:248-305,467-470`).
+
 ### G0R-7 — HIGH — the oracle is useful, but not “label-free need” or fully deployment-matched
 
 The APIGen reference is the gold tool call (`LEDGER-PLAN.md:456-459`;
@@ -237,7 +245,33 @@ role, dialogue, or matching stratum), missing-null behavior, truncated/empty
 self-reference behavior, and macro versus token-weighted aggregation are also
 unregistered (`tools/codex-agents/g0-oracle-pilot.md:18-25,27-36,50-54`).
 
-### G0R-9 — MEDIUM — attention, BM25, and rendering have post-registration degrees of freedom
+### G0R-9 — HIGH — tokenizer coordinates and resume identity are not proven
+
+The in-flight helper tokenizes each message's bare content, obtains local token
+indices, and adds them to a start column derived from the full rendered prompt
+(`src/stencil/g0.py:63-73,108-148`). This assumes tokenization is compositional
+across role-prefix/content/suffix boundaries. That property is not generally
+safe for a subword tokenizer and is tested only with a whitespace `ToyTokenizer`
+(`tests/test_g0.py:19-28,44-66`). Wrong composition means the oracle evicts
+different K/V columns from the recorded text span.
+
+The APIGen continuation is likewise tokenized standalone
+(`scripts/g0_oracle.py:519-522,734-737`) rather than by tokenizing the exact
+`prompt + reference` byte string and proving the prompt tokens are a prefix.
+Boundary-sensitive tokenization can therefore teacher-force a token sequence
+that is not the rendered continuation. OASST2's generated token IDs do not have
+that specific problem.
+
+Resume is field-shape-only: any existing record is accepted without matching a
+run identity, and the summary mixes every JSON record in the directory
+(`scripts/g0_oracle.py:738-753`). Corpus hashes change as self-distilled
+references are appended (`scripts/g0_oracle.py:726-750`), but existing records
+are not bound to the pre-reference subset hash, final reference hash, model,
+tokenizer, renderer, or policy code. A resumed run after any change can silently
+combine incompatible records. These are exact intervention and lineage faults,
+not optional provenance polish.
+
+### G0R-10 — MEDIUM — attention, BM25, and rendering have post-registration degrees of freedom
 
 The brief says only to document after implementation which attention
 layers/heads are averaged (`tools/codex-agents/g0-oracle-pilot.md:45-46`). The
@@ -256,7 +290,7 @@ design choice. The output metadata lists a model hash but not tokenizer,
 template/renderer, policy implementation, or reference-generation hashes
 (`tools/codex-agents/g0-oracle-pilot.md:50-54`).
 
-### G0R-10 — MEDIUM — 30+30 is a useful engineering pilot, not the smallest decisive experiment
+### G0R-11 — MEDIUM — 30+30 is a useful engineering pilot, not the smallest decisive experiment
 
 With 12 candidates plus 12 backgrounds, the nominal cost is about 26
 reference-continuation passes per dialogue (full, 24 single evictions, and one
@@ -264,6 +298,13 @@ joint check), or roughly 1,560 passes before policy-joint fixes. Two first-N
 dialogues per corpus are not a safe timing projection for contexts ranging up
 to 16k. Token counts for the entire drawn subset are available on CPU, so the
 timing smoke should be length-stratified before extrapolation.
+
+The in-flight entry point also defaults directly to 30+30 and contains no
+mechanical 2+2-first timing/projection stop (`scripts/g0_oracle.py:702-718`). Its
+16k cap deletes the oldest non-system messages one at a time, which can leave an
+assistant/tool fragment without the user/call that caused it, and does not
+record the dropped IDs (`scripts/g0_oracle.py:268-305`). Timing and signal from
+such malformed histories would not answer the registered question.
 
 For mechanics, 8+8 dialogues with at most eight eligible spans is enough to
 exercise cache cloning, no-op equality, RoPE preservation, duplicate groups,
@@ -297,7 +338,9 @@ in `results/research-generalizing-fable.md:136-152`.
    success. Non-additivity makes the current recovery rule invalid. Random
    content spans are a background, not a noise floor. Qwen's actual
    `KVCache.evict` preserves original RoPE positions and logical continuation
-   positions; no positional re-indexing bug was found.
+   positions; no positional re-indexing bug was found. The current tokenizer
+   coordinate/reference construction and resume identity still need the fixes
+   in G0R-9 before any measured utility is trustworthy.
 3. **Decision rules:** The constants are pre-stated but not operationally tight
    or statistically defensible. The 0.10 rule has no alpha control; recovery,
    B, cross-corpus best, ties, and fallback behavior are ambiguous. The 0.80 and
@@ -442,6 +485,21 @@ policy or a generality claim. They are ordered by severity.
    > continuation positions; a CPU unit test and the no-op model smoke must
    > verify cache restoration/non-aliasing before G0a.
 
+   Immediately append:
+
+   > Derive every candidate/null token range by mapping its character range
+   > through the single full rendered-context encoding; never add indices from
+   > a separately tokenized message. For APIGen, encode the exact concatenated
+   > prompt plus rendered reference, assert that the prompt encoding is its
+   > token prefix, and use only the suffix as reference IDs. A real pinned Qwen
+   > tokenizer fixture must cover leading spaces, role boundaries, tool tags,
+   > non-ASCII text, and punctuation. Before accepting a resumed record, match
+   > one identity hash over source-only subset hash, complete reference-record
+   > hash, model, tokenizer, renderer, policy code, seed, candidate/null code,
+   > and all thresholds. Refuse mismatches; never summarize records with mixed
+   > identities. Preserve separate immutable hashes for the source-only subset
+   > and the later self-distilled-reference augmentation.
+
 9. **Replace “disjoint by construction and enforced by ...” with:**
 
    > Exact project paths are separated by convention and checked by a
@@ -472,6 +530,13 @@ policy or a generality claim. They are ordered by severity.
     > before any reference/model run; the trigger and chosen corpus are written
     > to the manifest before execution. Metadata hashes the tokenizer, chat/tool
     > renderers, policy code, reference records, model, corpora, and commit.
+
+    Add a mechanical entry-point rule: `--limit 30` is refused until one
+    length-stratified 2+2 timing artifact with the same identity exists and its
+    recorded projection is within budget. Context capping drops complete
+    dialogue exchanges/tool-call groups only and records every dropped message
+    ID; a history that cannot be capped without breaking role/tool causality is
+    excluded before utilities are observed.
 
 11. **Replace the generality sentence at `LEDGER-PLAN.md:459-460` and use this
     exact model-card claim unless an untouched benchmark is added:**
