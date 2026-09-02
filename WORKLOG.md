@@ -2444,3 +2444,14 @@ anyway (0.854/0.860 blind; precision 0.95/0.94).
   loss-oracle pilot (G0 v2) does not measure the quantity that matters for instructions and should be cut or demoted
   to a diagnostic (burden test); the path is role rule → post-development evaluation on Multi-IF 909 + BFCL (with the
   protected-prefix harness fix) → a separately registered no-contact family for the zero-shot claim.
+
+## 2026-09-02 — Brian: direction after "save everything"
+- Brian: "for now, sure, let's save everything - but eventually we need to decide what to change, or compact it, or
+  otherwise encode the memory and take it from short term verbose memory to long term condensed memory."
+- Recorded as the stage AFTER read-time selection is proven (not started; burden test): CONSOLIDATION — candidates in
+  order of least model change: (1) verified text digest replacing raw spans (fidelity checked against the raw
+  archive), (2) compressed KV (merge many columns into few), (3) parametric memory (small trainable weights). The
+  "synapses store" half of Miller's framing; nothing in the current benchmarks measures it.
+- RB control result (results/quick-checks/README.md item 5): role rule at the finder's budget 29/56 vs finder 37 —
+  the role rule's earlier +4 was budget. Selectivity at equal cost is the real question; attention-retrieval test
+  (model's own query attention ranks archived spans at the finder budget) running.
