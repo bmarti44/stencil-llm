@@ -52,6 +52,15 @@ CASES = [
     ("echo done; kill 123", {}, [], set(), "pid"),
     ("sudo kill -9 123", {}, [], set(), "pid"),
     ("echo x | xargs kill", {}, [], set(), "pid"),
+    ("command kill 123", {}, [], set(), "pid"),
+    ("command kill 123", {}, [], {123}, None),
+    ("builtin kill 123", {}, [], set(), "pid"),
+    ("builtin kill 123", {}, [], {123}, None),
+    (r"\kill 123", {}, [], set(), "pid"),
+    (r"\kill 123", {}, [], {123}, None),
+    ("kill -9 123", {}, [], {123}, None),
+    ("kill -s TERM 123", {}, [], {123}, None),
+    ("kill -SIGTERM 123", {}, [], {123}, None),
 ]
 
 
@@ -69,3 +78,10 @@ def test_deny_payload_is_one_line_json(guard):
     parsed = json.loads(payload)
     assert parsed["hookSpecificOutput"]["permissionDecision"] == "deny"
     assert parsed["hookSpecificOutput"]["permissionDecisionReason"] == "sealed input denied"
+
+
+def test_textual_guard_boundary_is_explicit(guard):
+    doc = guard.__doc__ or ""
+    assert "Boundary" in doc
+    for limitation in ("variable splitting", "eval", "base64", "defense in depth"):
+        assert limitation in doc

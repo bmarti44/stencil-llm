@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""Claude PreToolUse guard for sealed data, process, and GPU isolation."""
+"""Claude PreToolUse guard for sealed data, process, and GPU isolation.
+
+Boundary
+--------
+variable splitting, eval, base64 payloads, command substitution, nested shells,
+and similar indirection are outside a textual guard's assurance. This hook is
+defense in depth only; entry-script ownership checks, sealed hashes/mode, and
+code review are the stronger layers.
+"""
 
 import ast
 import json
@@ -61,21 +69,58 @@ def _owned_from_env(env):
 
 def _process_reason(command, owned_pids):
     """Reject process-control targets unless every literal PID is caller-owned."""
-    # Command-position only: start of command, after ; | & ( or a newline, or after
-    # sudo/exec/env/xargs. Prose inside quoted text or heredocs must not trip the guard.
-    process_pattern = (r"(?:^|[;&|(]\s*|\n\s*|\b(?:sudo|exec|env|xargs)\s+)"
-                       + r"(" + "p" + r"kill|kill" + "all" + r"|kill)(?=\s|$)")
-    # Scan only the unquoted command surface: drop heredoc bodies and quoted strings first.
+    # Scan only the unquoted command surface: drop heredoc bodies and quoted
+    # strings first. shlex normalizes an escaped command name such as ``\kill``.
     scan = re.sub(r"<<-?\s*'?\"?(\w+)'?\"?\n.*?\n\1(?=\n|$)", " ", command, flags=re.S)
     scan = re.sub(r"'[^']*'|\"[^\"]*\"", " ", scan)
-    words = [m.group(1) for m in re.finditer(process_pattern, scan)]
-    python_api = ("os." + "kill(" in command) or ("signal." + "SIG" in command)
-    if not words and not python_api:
-        return None
-    if any(word != "kill" for word in words):
-        return "pid isolation: name-based process termination is denied"
-    pids = {int(value) for value in re.findall(r"(?<![\w.])\d+(?![\w.])", command)}
-    if not pids or not pids.issubset(owned_pids):
+    segments = re.split(r"&&|\|\||[;&|()\n]", scan)
+    wrappers = {"builtin", "command", "exec", "sudo", "env", "xargs"}
+    for segment in segments:
+        try:
+            tokens = shlex.split(segment)
+        except ValueError:
+            tokens = []
+        index = 0
+        while index < len(tokens) and (
+            tokens[index] in wrappers
+            or "=" in tokens[index]
+            or tokens[index].startswith("-")
+        ):
+            index += 1
+        if index >= len(tokens):
+            continue
+        process = Path(tokens[index]).name
+        if process in {"pkill", "killall"}:
+            return "pid isolation: name-based process termination is denied"
+        if process != "kill":
+            continue
+        targets = []
+        index += 1
+        while index < len(tokens):
+            token = tokens[index]
+            if token in {"-s", "--signal"}:
+                index += 2
+                continue
+            if token.startswith("-"):
+                index += 1
+                continue
+            if token.isdigit():
+                targets.append(int(token))
+            else:
+                return "pid isolation: target pid is not owned by this launch"
+            index += 1
+        if not targets or not set(targets).issubset(owned_pids):
+            return "pid isolation: target pid is not owned by this launch"
+
+    python_target = re.search(
+        r"(?:os\.kill|os\.killpg|signal\.pthread_kill)\s*\(\s*(\d+)", command
+    )
+    python_api = any(
+        name in command for name in ("os.kill(", "os.killpg(", "signal.pthread_kill(")
+    )
+    if python_api and (
+        python_target is None or int(python_target.group(1)) not in owned_pids
+    ):
         return "pid isolation: target pid is not owned by this launch"
     return None
 

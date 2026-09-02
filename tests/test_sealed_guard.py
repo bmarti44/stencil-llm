@@ -30,8 +30,27 @@ def test_sealed_ifeval_referenced_only_by_allowlist():
     assert not hits, f"sealed IFEval referenced outside the allowlist: {hits}"
 
 
-def test_sealed_ifeval_hash_and_read_only_mode_match_manifest():
+def _assert_sealed_hash_matches_manifest():
     sealed = ROOT / "data" / "bench" / "ifeval_input_data.jsonl"
     manifest = json.loads((ROOT / "data" / "bench" / "pins-manifest.json").read_text())
-    assert hashlib.sha256(sealed.read_bytes()).hexdigest() == manifest["sealed_sha256"]
-    assert stat.S_IMODE(sealed.stat().st_mode) == 0o444
+    actual = hashlib.sha256(sealed.read_bytes()).hexdigest()
+    assert actual == manifest["sealed_sha256"], "sealed hash mismatch"
+
+
+def test_sealed_ifeval_hash_matches_manifest():
+    _assert_sealed_hash_matches_manifest()
+
+
+def test_sealed_ifeval_mode_is_read_only_after_hash_validation():
+    _assert_sealed_hash_matches_manifest()
+    sealed = ROOT / "data" / "bench" / "ifeval_input_data.jsonl"
+    assert stat.S_IMODE(sealed.stat().st_mode) == 0o444, (
+        "sealed mode mismatch: run tools/setup_sealed.sh after checkout"
+    )
+
+
+def test_setup_sealed_verifies_hash_before_chmod():
+    setup = ROOT / "tools" / "setup_sealed.sh"
+    source = setup.read_text()
+    assert "pins-manifest.json" in source and "sealed_sha256" in source
+    assert source.index("sha256sum") < source.index("chmod 0444")

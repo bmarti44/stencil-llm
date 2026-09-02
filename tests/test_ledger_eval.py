@@ -902,3 +902,46 @@ def test_preflight_dry_constructs_control_for_every_ordered_selection(ev, monkey
     monkeypatch.setattr(ledger_mod, "matched_nonledger_control", broken)
     with pytest.raises(RuntimeError, match=r"preflight.*ci=0.*turn=2.*boom"):
         ev.preflight(rows, Tokenizer.from_file(str(TOK_PATH)), Salience(lambda s: True, segment_char_spans, "salience"), [0], top_k=2)
+
+
+def test_resummarize_round_trips_records_with_round7_gate(ev, tmp_path):
+    records = complete_run(ev, n=12)
+    generation_sha = "a" * 64
+    meta = {
+        **good_meta(ev),
+        "provenance": {"ledger_eval.py": generation_sha},
+        "preflight": {"conversations": 12},
+    }
+    (tmp_path / "meta.json").write_text(json.dumps(meta))
+    for record in records:
+        path = tmp_path / f"conv-{record['ci']:03d}.json"
+        path.write_text(json.dumps(record))
+
+    summary = ev.resummarize(
+        tmp_path,
+        identity=identity(12),
+        cohort_size=12,
+    )
+    assert json.loads((tmp_path / "summary.json").read_text()) == summary
+    assert summary["generation_runner_sha256"] == generation_sha
+    assert summary["summarizer_sha256"] == ev.sha(Path(ev.__file__))
+    expected = ev.summarize(records, meta, cohort_size=12, identity=identity(12))
+    assert summary["validity"] == expected["validity"]
+    assert summary["t_base"] == expected["truncations_fraction"]["base"]
+    assert summary["t_arm"] == {
+        arm: expected["truncations_fraction"][arm] for arm in ev.ARMS
+    }
+    assert summary["excess"] == expected["excess_truncation_over_base"]
+
+
+def test_resummarize_cli_is_cpu_only(ev, tmp_path, monkeypatch):
+    called = []
+    monkeypatch.setattr(ev, "resummarize", lambda outdir: called.append(Path(outdir)))
+    monkeypatch.setattr(
+        ev.determinism,
+        "assert_gpu_free_or_owned",
+        lambda: pytest.fail("resummarize must not query GPU ownership"),
+    )
+    monkeypatch.setattr(sys, "argv", ["ledger_eval.py", "--resummarize", str(tmp_path)])
+    ev.main()
+    assert called == [tmp_path]

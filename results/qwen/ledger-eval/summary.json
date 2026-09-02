@@ -53,6 +53,8 @@
   "specificity"
  ],
  "specificity_control": "ledger.matched_nonledger_control (width- and position-matched non-ledger spans, same dose)",
+ "generation_runner_sha256": "eedecc7300e63feed91840186ee6bed5ee37e85a0d2eb045845cf19339fbfb90",
+ "summarizer_sha256": "433818707b3d20f41590a23b9e0de50277bf0c75a7929c3a82ed7bb87f067496",
  "conversations_evaluated": 113,
  "preflight": {
   "conversations": 113,
@@ -112,17 +114,58 @@
   "neural_ledger": true,
   "specificity": true
  },
- "timeouts_or_truncations": {
+ "timeouts": {
+  "base": 0,
+  "text_ledger": 0,
+  "neural_ledger": 0,
+  "specificity": 0
+ },
+ "timeouts_fraction": {
+  "base": 0.0,
+  "text_ledger": 0.0,
+  "neural_ledger": 0.0,
+  "specificity": 0.0
+ },
+ "truncations": {
   "base": 19,
   "text_ledger": 21,
   "neural_ledger": 24,
   "specificity": 20
  },
- "timeouts_or_truncations_fraction": {
+ "truncations_fraction": {
   "base": 0.08597285067873303,
   "text_ledger": 0.09502262443438914,
   "neural_ledger": 0.1085972850678733,
   "specificity": 0.09049773755656108
+ },
+ "base_truncation_fraction": 0.08597285067873303,
+ "excess_truncation_over_base": {
+  "text_ledger": 0.009049773755656104,
+  "neural_ledger": 0.022624434389140274,
+  "specificity": 0.004524886877828052
+ },
+ "truncation_scoring": "scored_as_is_never_excluded",
+ "generation_validity_by_arm": {
+  "base": {
+   "timeout_fraction": 0.0,
+   "truncation_fraction": 0.08597285067873303,
+   "excess_truncation_over_base": 0.0
+  },
+  "text_ledger": {
+   "timeout_fraction": 0.0,
+   "truncation_fraction": 0.09502262443438914,
+   "excess_truncation_over_base": 0.009049773755656104
+  },
+  "neural_ledger": {
+   "timeout_fraction": 0.0,
+   "truncation_fraction": 0.1085972850678733,
+   "excess_truncation_over_base": 0.022624434389140274
+  },
+  "specificity": {
+   "timeout_fraction": 0.0,
+   "truncation_fraction": 0.09049773755656108,
+   "excess_truncation_over_base": 0.004524886877828052
+  }
  },
  "eligible": {
   "definition": "aged (origin turn < current turn) AND insertable family; neural credited only if its linked entry was selected",
@@ -316,12 +359,18 @@
   "records_echo_registered_config": true,
   "registered_config": true,
   "neural_context_tokens_measured_zero": true,
-  "timeouts_truncations_le_2pct": false,
-  "timeouts_truncations_per_arm": {
-   "base": false,
-   "text_ledger": false,
+  "timeouts_le_2pct": true,
+  "timeouts_per_arm": {
+   "base": true,
+   "text_ledger": true,
+   "neural_ledger": true,
+   "specificity": true
+  },
+  "truncation_excess_over_base_le_2pct": false,
+  "truncation_excess_per_treatment": {
+   "text_ledger": true,
    "neural_ledger": false,
-   "specificity": false
+   "specificity": true
   },
   "real_salience_segmenter": true,
   "text_beats_base": true,
@@ -337,7 +386,7 @@
  "primary_claim_reasons": [
   "registered_cohort",
   "falsification_only_slice",
-  "timeouts_truncations_le_2pct",
+  "truncation_excess_over_base_le_2pct",
   "text_not_clustered_better_than_base_selected",
   "text_not_clustered_better_than_base_all_eligible",
   "neural_not_clustered_better_than_base",
@@ -345,5 +394,16 @@
   "clustered_bound_below_margin"
  ],
  "primary_claim_valid": false,
- "primary_claim_note": "FALSIFICATION-ONLY slice (cohort_size < registered 909): can reject non-inferiority or show text/neural-vs-base effects, never establish NI (LEDGER-PLAN ROUND 3 ruling iii)"
+ "primary_claim_note": "FALSIFICATION-ONLY slice (cohort_size < registered 909): can reject non-inferiority or show text/neural-vs-base effects, never establish NI (LEDGER-PLAN ROUND 3 ruling iii)",
+ "t_base": 0.08597285067873303,
+ "t_arm": {
+  "text_ledger": 0.09502262443438914,
+  "neural_ledger": 0.1085972850678733,
+  "specificity": 0.09049773755656108
+ },
+ "excess": {
+  "text_ledger": 0.009049773755656104,
+  "neural_ledger": 0.022624434389140274,
+  "specificity": 0.004524886877828052
+ }
 }

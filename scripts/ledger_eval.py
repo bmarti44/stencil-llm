@@ -113,8 +113,13 @@ PROVENANCE_FILES = {
 PROVENANCE_TREES = {"vendor/ifeval": ROOT / "vendor" / "ifeval"}
 
 
-def parse_args():
+def parse_args(argv=None):
     p = argparse.ArgumentParser()
+    p.add_argument(
+        "--resummarize",
+        type=Path,
+        help="CPU-only: rebuild summary.json from committed conv-*.json records",
+    )
     p.add_argument("--out", default="ledger-eval")
     p.add_argument("--diagnostic-only", action="store_true", help="only the disclosed diagnostic slice (falsification screen)")
     p.add_argument("--limit", type=int, default=None, help="stop after N evaluable conversations (smoke)")
@@ -125,7 +130,7 @@ def parse_args():
     p.add_argument("--salience", choices=["auto", "heuristic"], default="auto",
                    help="auto = stencil.salience if importable else labelled heuristic")
     p.add_argument("--preflight-only", action="store_true", help="CPU: build every ledger, no model, then exit")
-    return p.parse_args()
+    return p.parse_args(argv)
 
 
 def sha(path):
@@ -600,9 +605,61 @@ def summarize(records, meta, *, cohort_size, identity, margin_points=MARGIN_POIN
     return out
 
 
+def resummarize(outdir, *, identity=None, cohort_size=None):
+    """Rebuild one summary from records on disk without loading a model or GPU."""
+    outdir = Path(outdir)
+    meta = json.loads((outdir / "meta.json").read_text())
+    records = [json.loads(path.read_text()) for path in sorted(outdir.glob("conv-*.json"))]
+    old_summary_path = outdir / "summary.json"
+    old_summary = json.loads(old_summary_path.read_text()) if old_summary_path.exists() else {}
+
+    if identity is None:
+        data_path = ROOT / "data" / "bench" / "multiif_en.jsonl"
+        rows = [json.loads(line) for line in data_path.read_text().splitlines()]
+        full_identity = cohort_identity(rows)
+        todo = diagnostic_indices(rows) if meta.get("diagnostic_only") else list(range(len(rows)))
+        if meta.get("limit") is not None:
+            todo = todo[: meta["limit"]]
+        identity = {ci: full_identity[ci] for ci in todo}
+        cohort_size = len(todo)
+    elif cohort_size is None:
+        cohort_size = len(identity)
+
+    generation_sha = old_summary.get("generation_runner_sha256")
+    if generation_sha is None:
+        generation_sha = meta.get("provenance", {}).get("ledger_eval.py")
+    if not generation_sha:
+        raise RuntimeError("generation runner provenance is missing")
+
+    gate = summarize(
+        records,
+        meta,
+        cohort_size=cohort_size,
+        identity=identity,
+        margin_points=meta.get("margin_points", MARGIN_POINTS),
+    )
+    summary = {
+        **meta,
+        "generation_runner_sha256": generation_sha,
+        "summarizer_sha256": sha(Path(__file__).resolve()),
+        "conversations_evaluated": len(records),
+        "preflight": old_summary.get("preflight", meta.get("preflight")),
+        **gate,
+        "t_base": gate["truncations_fraction"]["base"],
+        "t_arm": {arm: gate["truncations_fraction"][arm] for arm in ARMS},
+        "excess": gate["excess_truncation_over_base"],
+    }
+    atomic_json(old_summary_path, summary)
+    return summary
+
+
 def main():
-    determinism.assert_gpu_free_or_owned()
     args = parse_args()
+    if args.resummarize is not None:
+        summary = resummarize(args.resummarize)
+        print(json.dumps(summary, indent=1), flush=True)
+        return
+    determinism.assert_gpu_free_or_owned()
     sys.path.insert(0, str(ROOT / "vendor"))
     import langdetect
     langdetect.DetectorFactory.seed = 0
