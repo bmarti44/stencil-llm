@@ -475,3 +475,78 @@ Harness precondition for any BFCL arm run (from results/agentic-salience-review-
 tool schemas are never-evictable in EVERY arm; the pin budget covers user/tool columns only; the random-span
 control is token-matched from the same role pool as the treatment. The failed finder preflight (78/100) is recorded
 as FAILED and superseded by this program; the 100 viewed labels are never reused.
+
+## GENERALIZING SELECTION — G0 PILOT, AMENDMENT v2 (registered 2026-09-02 after fable/kimi/sol review of v1; before any pilot number is read)
+Reviews: results/g0-registration-review-{fable,kimi}.md (SOUND-WITH-FIXES) and -sol.md (UNSOUND: three CRITICALs,
+all accepted). Amends the v1 text above; where they conflict, v2 governs.
+0. DEVELOPMENT LINEAGE (sol G0R-1, CRITICAL; replaces v1's "zero-shot" wording): Multi-IF, BFCL V3, IFEval/IFBench,
+   and S2/B3 were inspected before this registration and influenced the candidate policy family, the role
+   protections, the salience2 segmenter/floors/backend, and the evaluation harness. They are NOT untouched
+   confirmation sets; later Multi-IF/BFCL results are post-development evaluations and are reported as such. G0
+   outcome selection is restricted to the frozen data/g0 subsets named in data/g0/MANIFEST.json; no result from
+   Multi-IF, BFCL, IFEval/IFBench, S2, or a model response to those sets may alter parameters, thresholds, policy
+   eligibility, budget, renderer, or tie-breaks after this amendment. A zero-shot generalization claim requires a
+   separately registered benchmark family with no prior data, response, label, checker, template, or policy-design
+   contact; it will be named in a later registration BEFORE it is opened (candidates are not listed here to avoid
+   contact). S2 is a within-B3 template holdout and is not independent evidence for any B3-trained policy.
+1. Lineage correction (fable F1, HIGH — the third leakage path): S2 is NOT under data/bench; it is synthesized from
+   data/b3 templates (salience2.synthesize_buried / _BURY_TEMPLATES, template_parity split), the same generator and
+   constraint families the salience2 finder was refit on today. S2 is therefore EXCLUDED from any claim involving
+   policy (d) and remains a secondary leg only for policies with no fitted parameters. evaluated-on = Multi-IF and
+   BFCL V3 (data/bench/). Enforcement adds a CONTENT test (zero 8-gram overlap between every data/g0 text and every
+   data/bench prompt; MANIFEST sha re-verified) in tests/test_g0.py; the path scan and Bash guard are defense in depth
+   only (fable F4: the guard is bypassable by script name, cp/ln, or shell variables).
+2. Policies (d) salience2 finder and (e) attention mass are CONTROLS, ineligible to become the registered selector.
+   (d) is fit on data/b3, a synthetic corpus built from the IFEval instruction taxonomy with vendored IFEval checkers
+   and hand features encoding those categories; today's "held-out 0.98 coverage on Multi-IF" measured taxonomy match,
+   not generalization, and is withdrawn as evidence. The eligible selectors are (a) role rule, (b) recent+sinks,
+   (c) query-time archive retrieval — all parameter-free.
+3. Budget (fable F10): B = 25% of the evictable columns (age ≥ 1, excluding the protected prefix and columns 0–3),
+   computed identically in the pilot and in any later gate run; B never depends on oracle utilities.
+4. Spans (fable F6–F8): candidates and nulls have age ≥ 1 (the current turn is protected in every policy); no span
+   contains columns 0–3 (attention sinks, protected in every policy); a null shares no column with any candidate or
+   other null (drop the candidate if no such window exists). Span→column mapping is asserted on the chat-templated
+   token ids with the pinned tokenizer (kimi F2.1); cache restore is checked checksum-identical before each eviction.
+   KVCache.evict (src/stencil/qwen3.py:70) retains original RoPE positions with no re-indexing — verified in code.
+5. Signal test (kimi F3.1, fable F9): "fraction above null p90 > 0.10" is the null expectation and is withdrawn.
+   Signal exists on a corpus iff a one-sided permutation test of median(candidate utility) − median(matched-null
+   utility) > 0 rejects at p < 0.05 under a dialogue-clustered bootstrap, AND the fraction of candidates above the
+   corpus-pooled, bucket-stratified null p90 is ≥ 0.20 (one-sided 95% null bound at n=360 is 0.126). Assessed and
+   reported per corpus; the tool arm is not stopped by a chat-arm failure.
+6. Selection vs confirmation (kimi F3.2): the five policies are compared on the 30 pilot dialogues per corpus
+   (selection set). The best eligible policy is then CONFIRMED on a fresh, disjoint 70 dialogues per corpus drawn
+   from the stored ≤200 subset (ids hashed before the run). Registration of a selector requires, on the confirmation
+   set, per-corpus null-adjusted recovery ≥ 0.80 with a dialogue-clustered bootstrap 95% lower bound ≥ 0.70, on BOTH
+   corpora; [0.50, 0.80) → G1 registered with leave-one-corpus-out floors; < 0.50 → generality unsupported.
+   Recovery is measured by JOINT EVICTION (sol G0R-4, CRITICAL; additive sums of single-span utilities are
+   explanatory readouts only and never govern promotion): for each policy, evict exactly the evictable columns it
+   would discard at budget B and teacher-force the reference; ΔNLL_policy = NLL_policy − NLL_full;
+   ΔNLL_all = NLL(all evictable columns evicted) − NLL_full; recovery(policy) = 1 − ΔNLL_policy / ΔNLL_all, per
+   dialogue, clipped to [0, 1], micro-averaged over a corpus with macro reported; dialogues with ΔNLL_all below the
+   null-eviction noise (matched random discard set of the same size, 3 draws) are excluded from the average and
+   counted. The random-discard set at the same B is the control every policy must beat. Ties among passing policies
+   go to the higher min-over-corpora recovery, then simplicity (a) < (b) < (c).
+7. Corpora: record the license and origin of each subset in MANIFEST.json (APIGen-MT-5k is CC-BY-NC-4.0, τ-bench
+   retail/airline origin, domain-adjacent to BFCL travel_booking — disclosed; ToolACE, Apache-2.0, preferred if its
+   dialogues meet the ≥3-turn/tool-output criteria). Greedy chat references use the non-thinking template
+   (<think>\n\n</think> prefix) used at scoring. Tool utility is reported on argument-value tokens (primary) and the
+   whole call (secondary).
+8. Claim wording (fable F5): the candidate policy FAMILY was designed after inspecting Multi-IF and BFCL behaviour;
+   the model card discloses this. What may be claimed if (a)/(b)/(c) passes and then holds on Multi-IF and BFCL: "a
+   parameter-free read-time retention rule chosen on OASST2/ToolACE also holds on the two development benchmark
+   families it was designed around" — a post-development evaluation, not zero-shot transfer (item 0). The word
+   "zero-shot" is reserved for the later, separately registered no-contact family. Nothing is claimed for selectors
+   with fitted parameters.
+10. Deployment matching (sol G0R-6): the protected prefix (system + schemas, columns 0–3) and a fixed recent window
+   (the current user turn plus the most recent 256 columns before it) are OUTSIDE the candidate pool, outside the
+   null pool, and outside B, in the oracle and in every policy; BM25 and attention-mass queries read only the
+   current user turn and rank only spans outside the recent window. Oracle mass is never charged for columns that
+   deployment exempts.
+11. Naming (sol G0R-7): the measure is "reference-conditioned counterfactual utility" — self-labeled on OASST2 (the
+   base model's own greedy path; a local sensitivity measure of support for that path, not trajectory success) and
+   gold-conditioned on ToolACE/APIGen (gold continuation tokens are labels of the corpus, not of the benchmarks).
+   The pilot's histories (corpus prior turns / gold trajectories) differ from the gate harness's model-rolled
+   histories; the cache intervention is matched, the history distribution is not — disclosed in every report.
+9. In-flight run: the g0-oracle-pilot coder (brief v1) may complete its 2+2 timing check; any 30+30 records it
+   produces under v1 span/budget rules are a pipeline shakedown, reported but NOT evidence. The v2 rules are applied
+   by a follow-up brief before the selection and confirmation runs.
