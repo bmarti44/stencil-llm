@@ -29,6 +29,16 @@ the primary bound is the continuity-corrected clustered t bound (stats.py);
 the specificity control never crashes (an impossible window is disclosed and
 the turn excluded from neural-vs-specificity); the CPU preflight dry-constructs
 that control for every ordered top_k selection of every turn.
+
+Round 3 (results/ledger-reverify3-sol.md, LEDGER-PLAN.md ROUND 3 rulings): the
+strict-majority selection gate was gameable at 50.03%; (i) a registered COVERAGE
+gate replaces it — >= REGISTERED_COVERAGE (0.90) of eligible constraints must
+have their linked entry selected; (ii) text_beats_base must hold WITHIN the
+selected subset, and the unselected subset's text-vs-base cells are reported
+separately and must not be all-failing; (iii) any cohort_size below the
+registered 909 is a FALSIFICATION-ONLY slice: it can reject non-inferiority but
+never establish it (primary_claim_valid is False with reason
+falsification_only_slice; every other condition is still reported).
 """
 
 import argparse
@@ -46,6 +56,9 @@ ARMS = ("text_ledger", "neural_ledger", "specificity")
 REGISTERED = {"top_k": 2, "dose": 3.0, "max_new": 1024, "deadline": 300.0}
 REGISTERED_COHORT = 909
 MARGIN_POINTS = 2.0
+REGISTERED_COVERAGE = 0.90  # ROUND 3 ruling (i): selected linked entry on >= 90% of eligible constraints
+# validity keys whose failure is reported under a registered reason name
+GATE_REASONS = {"ledger_coverage_ge_0.90": "ledger_coverage_below_0.90"}
 MAX_TIMEOUT_TRUNCATION_FRACTION = 0.02
 SEGMENTER_IDENTITY = "stencil.salience.split_sentences"
 PROVENANCE_FILES = {
@@ -198,7 +211,8 @@ def preflight(rows, tok, sal, todo, base_records=None, top_k=REGISTERED["top_k"]
     from stencil.ledger import build_ledger, link_entries
     from stencil.obligation_gate import FIXABLE_FAMILIES
     stats = {"conversations": 0, "turns": 0, "entries": 0, "aged_entries": 0, "turns_with_aged_entries": 0,
-             "turns_with_aged_constraints": 0, "eligible_constraints": 0, "linkage_granularity": {}, "errors": [],
+             "turns_with_aged_constraints": 0, "eligible_constraints": 0, "eligible_linked": 0, "eligible_coverage": None,
+             "linkage_granularity": {}, "errors": [],
              "segmenter": (SEGMENTER_IDENTITY if sal.segment is salience_module.split_sentences  # identity, not label
                            else f"{sal.segment.__module__}.{sal.segment.__name__}"),
              "control_top_k": top_k, "control_dry_runs": 0, "control_incomplete_turns": [], "control_incomplete_turn_count": 0}
@@ -235,7 +249,11 @@ def preflight(rows, tok, sal, todo, base_records=None, top_k=REGISTERED["top_k"]
             stats["turns_with_aged_entries"] += bool(aged)
             stats["turns_with_aged_constraints"] += any(c["aged"] for c in rows_)
             stats["eligible_constraints"] += sum(c["aged"] and c["insertable"] for c in rows_)
+            stats["eligible_linked"] += sum(c["aged"] and c["insertable"] and bool(c["entry_indices"]) for c in rows_)
             stats["linkage_granularity"][gran] = stats["linkage_granularity"].get(gran, 0) + 1
+    # ROUND 3 ruling (i): coverage can be at most the linked fraction (select() picks among linked entries)
+    stats["eligible_coverage"] = (stats["eligible_linked"] / stats["eligible_constraints"]) if stats["eligible_constraints"] else None
+    stats["registered_coverage"] = REGISTERED_COVERAGE
     return stats
 
 
@@ -281,6 +299,8 @@ def _pair(ref, cand):
     from stencil.e2_stats import mcnemar_one_sided
     from stencil.ledger import paired_drop_table
     t = paired_drop_table(ref, cand)
+    t["n11"] = sum(1 for r, c in zip(ref, cand, strict=True) if r and c)      # full 2x2 (ROUND 3 ruling ii)
+    t["n00"] = sum(1 for r, c in zip(ref, cand, strict=True) if not r and not c)
     return {**t, "improve_points": (100.0 * (t["n01"] - t["n10"]) / t["n"]) if t["n"] else None,
             "mcnemar_improve_p_exploratory": mcnemar_one_sided(t["n01"], t["n10"])}
 
@@ -299,7 +319,8 @@ def summarize(records, meta, *, cohort_size, identity, margin_points=MARGIN_POIN
     arms = ("base",) + ARMS
     cells_all = {a: [] for a in arms}
     elig = {a: [] for a in arms}
-    elig_unselected = {"text": [], "neural_raw": []}
+    elig_unselected = {"base": [], "text": [], "neural_raw": []}
+    elig_selected = {"base": [], "text": []}
     cost = {a: [] for a in arms}
     measured = {a: True for a in ARMS}
     bad_gen = {a: 0 for a in arms}
@@ -345,8 +366,11 @@ def summarize(records, meta, *, cohort_size, identity, margin_points=MARGIN_POIN
                     per_conv_diff.setdefault(rec["ci"], []).append(r["diff_points"])
                     if not control_incomplete:  # a turn without a full matched control is not a specificity comparison
                         per_conv_spec.setdefault(rec["ci"], []).append(100.0 * (float(r["neural_raw"]) - float(r["specificity"])))
-                    if not r["entry_selected"]:
-                        elig_unselected["text"].append(r["text"]); elig_unselected["neural_raw"].append(r["neural_raw"])
+                    if r["entry_selected"]:
+                        elig_selected["base"].append(r["base"]); elig_selected["text"].append(r["text"])
+                    else:
+                        elig_unselected["base"].append(r["base"]); elig_unselected["text"].append(r["text"])
+                        elig_unselected["neural_raw"].append(r["neural_raw"])
             if any(r["eligible"] for r in rows):
                 credited_turns += 1
                 credited_turns_active += bool(turn["ledger_active"])
@@ -360,12 +384,19 @@ def summarize(records, meta, *, cohort_size, identity, margin_points=MARGIN_POIN
     text_vs_base = _pair(elig["base"], elig["text_ledger"]) if n_elig else None
     bad_frac = {a: (bad_gen[a] / turns if turns else None) for a in arms}
     bad_ok = {a: (turns > 0 and bad_frac[a] <= MAX_TIMEOUT_TRUNCATION_FRACTION) for a in arms}  # EVERY arm, base included
-    n_selected = n_elig - len(elig_unselected["text"])
+    n_selected = len(elig_selected["text"])
+    n_unselected = len(elig_unselected["text"])
+    coverage = (n_selected / n_elig) if n_elig else None
+    selected_text_vs_base = _pair(elig_selected["base"], elig_selected["text"]) if n_selected else None
+    unselected_text_vs_base = _pair(elig_unselected["base"], elig_unselected["text"]) if n_unselected else None
+    slice_role = "falsification_only" if cohort_size < REGISTERED_COHORT else "registered_cohort"
     registered = meta.get("registered", REGISTERED)
     expected_turns = sum(len(v["turns"]) for v in identity.values())
     validity = {
         "complete_cohort": len(records) == cohort_size and len(set(cis)) == len(cis) and turns > 0,
         "registered_cohort": cohort_size == REGISTERED_COHORT and len(identity) == REGISTERED_COHORT,
+        # ROUND 3 ruling (iii): a slice can reject NI, never establish it
+        "falsification_only_slice": slice_role != "falsification_only",
         "records_identity": bool(records) and identity_ok and set(cis) == set(identity),
         "expected_turns_present": bool(records) and turns_ok and turns == expected_turns,
         "records_arm_set": bool(records) and arm_set_ok,
@@ -379,12 +410,16 @@ def summarize(records, meta, *, cohort_size, identity, margin_points=MARGIN_POIN
                                     and meta.get("segmenter_identity_asserted") is True
                                     and turns > 0 and automatic_turns == turns),
         "text_beats_base": bool(text_vs_base and text_vs_base["n01"] > text_vs_base["n10"]),
+        # ROUND 3 ruling (ii): text's advantage must hold WITHIN the selected subset (cells
+        # where the ledger was actually exercised), and the unselected subset must not be
+        # 100% text-failing (sol's construction: text fails exactly the unselected cells)
+        "text_beats_base_selected": bool(selected_text_vs_base and selected_text_vs_base["n01"] > selected_text_vs_base["n10"]),
+        "unselected_not_all_failing": n_unselected == 0 or any(elig_unselected["text"]),
         "ledger_active_on_credited_turns": credited_turns > 0 and credited_turns_active == credited_turns,
-        # sol round 2: turn-level activity is not enough — with half the eligible cells never
-        # exercising the ledger (and text failing the same half) the claim passed.  Registered
-        # conservative reading: the linked entry must have been selected on a MAJORITY of
-        # eligible constraints (strict), else the estimand is dominated by untested cells.
-        "ledger_selected_on_majority_of_eligible": n_elig > 0 and 2 * n_selected > n_elig,
+        # sol round 2 / ROUND 3 ruling (i): turn-level activity is not enough and a strict
+        # majority is gameable at 50.03% — the linked entry must have been selected on
+        # >= REGISTERED_COVERAGE of eligible constraints (diagnostic preflight: 81/85 linked).
+        "ledger_coverage_ge_0.90": n_elig > 0 and coverage >= REGISTERED_COVERAGE,
         "clustered_bound_below_margin": primary_bound["upper_bound"] is not None and primary_bound["upper_bound"] < margin_points,
     }
     validity_gate = {k: v for k, v in validity.items() if k != "timeouts_truncations_per_arm"}
@@ -401,8 +436,8 @@ def summarize(records, meta, *, cohort_size, identity, margin_points=MARGIN_POIN
         "eligible": {
             "definition": "aged (origin turn < current turn) AND insertable family; neural credited only if its linked entry was selected",
             "n": n_elig, "n_conversations": len(per_conv_diff),
-            "n_unselected": len(elig_unselected["text"]),
-            "selected_fraction": (n_selected / n_elig) if n_elig else None,
+            "n_selected": n_selected, "n_unselected": n_unselected,
+            "selected_fraction": coverage, "registered_coverage": REGISTERED_COVERAGE,
             "unselected_slice": ({"text_pass_rate": _rate(elig_unselected["text"]), "neural_raw_pass_rate": _rate(elig_unselected["neural_raw"])}),
             "accuracy": {a: _rate(v) for a, v in elig.items()},
         },
@@ -414,6 +449,9 @@ def summarize(records, meta, *, cohort_size, identity, margin_points=MARGIN_POIN
             "tango_pooled_descriptive": non_inferiority_summary(elig["text_ledger"], elig["neural_ledger"], margin_points=margin_points),
         },
         "text_vs_base[eligible]": text_vs_base,
+        "selected_text_vs_base": selected_text_vs_base,      # eligible AND linked entry selected
+        "unselected_text_vs_base": unselected_text_vs_base,  # eligible AND linked entry NOT selected
+        "slice_role": slice_role,
         "neural_vs_base[eligible]": _pair(elig["base"], elig["neural_ledger"]) if n_elig else None,
         "neural_vs_specificity": {
             "sign": "neural - specificity (points; positive = neural better)",
@@ -432,10 +470,13 @@ def summarize(records, meta, *, cohort_size, identity, margin_points=MARGIN_POIN
         },
         "validity": validity,
     }
-    out["primary_claim_reasons"] = [k for k, v in validity_gate.items() if not v]
+    out["primary_claim_reasons"] = [GATE_REASONS.get(k, k) for k, v in validity_gate.items() if not v]
     out["primary_claim_valid"] = bool(all(validity_gate.values()))
     if not validity["registered_cohort"] or not validity["complete_cohort"]:
         out["primary_claim_note"] = "incomplete or non-registered cohort: a FALSIFICATION SCREEN, not a confirmatory NI test"
+    if slice_role == "falsification_only":
+        out["primary_claim_note"] = ("FALSIFICATION-ONLY slice (cohort_size < registered 909): can reject non-inferiority "
+                                     "or show text/neural-vs-base effects, never establish NI (LEDGER-PLAN ROUND 3 ruling iii)")
     if not out["automatic"]:
         out["primary_claim_note"] = "ledger built by the HEURISTIC fallback: NOT the automatic condition"
     return out
@@ -496,6 +537,10 @@ def main():
     # specificity control must construct (or be disclosed incomplete) before any GPU work.
     pre = preflight(rows, tok, sal, todo, base_records, top_k=args.top_k)
     print(f"preflight ok: {json.dumps(pre)}", flush=True)
+    cov = pre["eligible_coverage"]
+    print(f"preflight coverage: {pre['eligible_linked']}/{pre['eligible_constraints']} eligible constraints have a "
+          f"linked entry = {cov if cov is None else round(cov, 4)} (registered gate >= {REGISTERED_COVERAGE}; "
+          f"{'attainable' if cov is not None and cov >= REGISTERED_COVERAGE else 'NOT attainable'})", flush=True)
     if args.preflight_only:
         return
 
@@ -628,8 +673,12 @@ def main():
         print(f"eval conversation {n_done}/{len(todo)} (ci={ci})", flush=True)
 
     records = [json.loads(p.read_text()) for p in sorted(outdir.glob("conv-*.json"))]
+    # ROUND 3 ruling (iii): a --diagnostic-only/--limit run is summarized against ITS OWN
+    # identity and size, so every per-record condition is reported while slice_role is
+    # "falsification_only" and primary_claim_valid is False (registered_cohort also fails).
+    slice_identity = {ci: identity[ci] for ci in todo}
     summary = {**meta, "conversations_evaluated": len(records), "preflight": pre,
-               **summarize(records, meta, cohort_size=REGISTERED_COHORT, identity=identity, margin_points=MARGIN_POINTS)}
+               **summarize(records, meta, cohort_size=len(todo), identity=slice_identity, margin_points=MARGIN_POINTS)}
     atomic_json(outdir / "summary.json", summary)
     print(json.dumps(summary, indent=1), flush=True)
 

@@ -154,7 +154,9 @@ def test_complete_valid_run_passes_and_reports_estimand(ev):
     assert s["validity"]["timeouts_truncations_le_2pct"] is True and s["timeouts_or_truncations"]["base"] == 0
     assert s["validity"]["records_identity"] is True and s["validity"]["records_echo_registered_config"] is True
     assert s["validity"]["expected_turns_present"] is True and s["turns"] == 909
-    assert s["validity"]["ledger_selected_on_majority_of_eligible"] is True
+    assert s["validity"]["ledger_coverage_ge_0.90"] is True and s["eligible"]["selected_fraction"] == 1.0
+    assert s["validity"]["text_beats_base_selected"] is True and s["validity"]["unselected_not_all_failing"] is True
+    assert s["unselected_text_vs_base"] is None and s["slice_role"] == "registered_cohort"
     assert s["neural_vs_specificity"]["control_incomplete_turns"] == 0
     assert p["tango_pooled_descriptive"]["n"] == 909
     assert s["text_vs_base[eligible]"]["n01"] == 303 and s["text_vs_base[eligible]"]["n10"] == 0
@@ -270,8 +272,113 @@ def test_sol2_half_of_eligible_unselected_with_text_failing_the_same_half_is_inv
     assert s["validity"]["text_beats_base"] is True                  # by the other half
     assert s["eligible"]["n_unselected"] == 455 and s["eligible"]["selected_fraction"] == 454 / 909
     assert s["primary_claim_valid"] is False
-    assert s["validity"]["ledger_selected_on_majority_of_eligible"] is False
-    assert "ledger_selected_on_majority_of_eligible" in s["primary_claim_reasons"]
+    assert s["validity"]["ledger_coverage_ge_0.90"] is False
+    assert "ledger_coverage_below_0.90" in s["primary_claim_reasons"]
+
+
+def unselect_conversations(recs, cis, *, text_fails=True):
+    """sol's construction shape on the conversations ``cis``: the linked entry of the eligible
+    constraint is NOT selected (another aged entry keeps the ledger active) and, when
+    ``text_fails``, base/text/neural all fail that cell so fail-closed credit costs nothing."""
+    for ci in cis:
+        t = recs[ci]["turns"]["2"]
+        t["ledger"] = [ENTRY1, {**ENTRY1, "text": "Other aged sentence.", "span": [12, 15], "instruction_ids": []}, ENTRY2]
+        t["aged_entry_indices"] = [0, 1]
+        t["arms"]["neural_ledger"]["selected_entries"] = [1]
+        t["ledger_active"] = True
+        for c in t["constraints"]:
+            c["entry_indices"] = [0] if c["origin_turn"] == 1 else [2]
+            c["entry_selected"] = False
+        if text_fails:
+            t["base"]["per_constraint"] = [False, True, True]
+            t["arms"]["text_ledger"]["per_constraint"] = [False, True, True]
+            t["arms"]["neural_ledger"]["per_constraint"] = [False, True, True]
+
+
+def test_sol3_just_over_half_selected_with_text_failing_the_unselected_half_is_invalid(ev):
+    """sol round 3 HIGH: the strict-majority gate admitted 902/1805 unselected (selected
+    fraction 50.03%) with text failing exactly the unselected cells.  Registered ruling (i):
+    a COVERAGE gate at >= 0.90; (ii) text must beat base WITHIN the selected subset and
+    the unselected subset's cells are reported and must not be all-failing."""
+    recs = complete_run(ev)
+    unselect_conversations(recs, [ci for ci in range(909) if ci % 2 == 1])  # 454 unselected -> 455/909 selected
+    s = summ(ev, recs)
+    assert s["eligible"]["n_unselected"] == 454 and s["eligible"]["selected_fraction"] == 455 / 909  # 50.06%
+    assert s["validity"]["ledger_active_on_credited_turns"] is True and s["validity"]["text_beats_base"] is True
+    assert s["primary"]["clustered"]["upper_bound"] < 2.0            # the bound alone would pass
+    assert s["primary_claim_valid"] is False
+    assert s["validity"]["ledger_coverage_ge_0.90"] is False
+    assert "ledger_coverage_below_0.90" in s["primary_claim_reasons"]
+    # the unselected subset is reported separately: text failed 100% of it -> its own gate fails
+    u = s["unselected_text_vs_base"]
+    assert u["n"] == 454 and u["n01"] == 0 and u["n10"] == 0 and u["n00"] == 454
+    assert s["validity"]["unselected_not_all_failing"] is False
+    assert "unselected_not_all_failing" in s["primary_claim_reasons"]
+    # and text-vs-base within the SELECTED subset is evaluated on its own
+    assert s["validity"]["text_beats_base_selected"] is True
+    assert s["selected_text_vs_base"]["n"] == 455 and s["selected_text_vs_base"]["n01"] > 0
+
+
+def test_sol3_text_beating_base_only_on_unselected_cells_fails_the_selected_gate(ev):
+    """text's advantage over base must come from cells where the ledger was actually
+    exercised: here text beats base ONLY on unselected cells (5% of eligible)."""
+    recs = complete_run(ev)
+    unselected = list(range(0, 909, 20))[:45]
+    for r in recs:  # selected cells: text == base everywhere
+        r["turns"]["2"]["arms"]["text_ledger"]["per_constraint"] = list(r["turns"]["2"]["base"]["per_constraint"])
+    unselect_conversations(recs, unselected, text_fails=False)
+    for ci in unselected:  # unselected cells: base fails, text passes
+        recs[ci]["turns"]["2"]["base"]["per_constraint"] = [False, True, True]
+        recs[ci]["turns"]["2"]["arms"]["text_ledger"]["per_constraint"] = [True, True, True]
+    s = summ(ev, recs)
+    assert s["validity"]["ledger_coverage_ge_0.90"] is True
+    assert s["validity"]["text_beats_base"] is True                 # the overall test is fooled
+    assert s["validity"]["text_beats_base_selected"] is False       # the registered one is not
+    assert s["selected_text_vs_base"]["n01"] == s["selected_text_vs_base"]["n10"]
+    assert s["validity"]["unselected_not_all_failing"] is True and s["unselected_text_vs_base"]["n01"] == 45
+    assert s["primary_claim_valid"] is False and "text_beats_base_selected" in s["primary_claim_reasons"]
+
+
+def test_coverage_of_0_95_with_mixed_unselected_outcomes_passes(ev):
+    """45/909 unselected (coverage 0.9505 >= 0.90); text fails 40 of those cells and passes 5,
+    so the unselected subset is not all-failing and the credited difference stays small."""
+    recs = complete_run(ev)
+    unselected = list(range(0, 909, 20))[:45]
+    unselect_conversations(recs, unselected)
+    for ci in unselected[:5]:
+        recs[ci]["turns"]["2"]["arms"]["text_ledger"]["per_constraint"] = [True, True, True]
+    s = summ(ev, recs)
+    assert s["eligible"]["n_unselected"] == 45 and s["eligible"]["selected_fraction"] == 864 / 909
+    assert s["eligible"]["selected_fraction"] >= ev.REGISTERED_COVERAGE == 0.90
+    assert s["validity"]["ledger_coverage_ge_0.90"] is True
+    u = s["unselected_text_vs_base"]
+    assert u["n"] == 45 and u["n00"] == 40 and u["n01"] == 5
+    assert s["validity"]["unselected_not_all_failing"] is True
+    assert s["validity"]["text_beats_base_selected"] is True and s["validity"]["text_beats_base"] is True
+    assert s["primary_claim_valid"] is True, s["primary_claim_reasons"]
+
+
+def test_sub_registered_cohort_is_a_falsification_only_slice(ev):
+    """Ruling (iii): a slice (cohort_size < 909) can REJECT non-inferiority but never
+    establish it; every other condition is still reported so the slice shows what it meets."""
+    recs = complete_run(ev, n=113)
+    s = summ(ev, recs, cohort_size=113, ident=identity(113))
+    assert s["slice_role"] == "falsification_only"
+    assert s["primary_claim_valid"] is False
+    assert "falsification_only_slice" in s["primary_claim_reasons"]
+    v = s["validity"]
+    assert v["registered_cohort"] is False and v["falsification_only_slice"] is False
+    assert v["complete_cohort"] is True and v["records_identity"] is True and v["expected_turns_present"] is True
+    assert v["ledger_coverage_ge_0.90"] is True and v["text_beats_base_selected"] is True
+    assert v["clustered_bound_below_margin"] is True  # the slice's own bound, reported but not claimable
+    # and the slice CAN still reject: neural drops the eligible constraint on 20/113 conversations
+    for r in recs[:20]:
+        r["turns"]["2"]["arms"]["neural_ledger"]["per_constraint"] = [False, True, True]
+    s2 = summ(ev, recs, cohort_size=113, ident=identity(113))
+    assert s2["primary"]["non_inferior"] is False and s2["slice_role"] == "falsification_only"
+    # the full registered cohort is not a slice
+    assert summ(ev, complete_run(ev))["slice_role"] == "registered_cohort"
+    assert "falsification_only_slice" not in summ(ev, complete_run(ev))["primary_claim_reasons"]
 
 
 def test_sol2_records_must_echo_the_registered_configuration(ev):
@@ -302,6 +409,7 @@ def test_control_incomplete_turns_are_excluded_from_neural_vs_specificity(ev):
 @pytest.mark.parametrize("break_", [
     "top_k", "dose", "max_new", "deadline", "heuristic", "segmenter", "unmeasured_tokens", "nonzero_tokens",
     "timeouts", "truncations", "text_not_better", "inactive_ledger", "bound", "duplicate_ci",
+    "coverage", "unselected_all_failing", "text_not_better_selected",
 ])
 def test_each_gate_condition_invalidates(ev, break_):
     recs, meta = complete_run(ev), good_meta(ev)
@@ -339,6 +447,19 @@ def test_each_gate_condition_invalidates(ev, break_):
             r["turns"]["2"]["arms"]["neural_ledger"]["per_constraint"] = [False, True, True]
     elif break_ == "duplicate_ci":
         recs[1] = copy.deepcopy(recs[0])
+    elif break_ == "coverage":  # 91 unselected with mixed outcomes: 818/909 = 0.8999 < 0.90
+        unselect_conversations(recs, list(range(0, 909, 10))[:91])
+        for ci in list(range(0, 909, 10))[:5]:
+            recs[ci]["turns"]["2"]["arms"]["text_ledger"]["per_constraint"] = [True, True, True]
+    elif break_ == "unselected_all_failing":  # coverage fine (0.99) but text fails 100% of the unselected
+        unselect_conversations(recs, list(range(0, 909, 100)))
+    elif break_ == "text_not_better_selected":  # text == base on selected cells, better only on 9 unselected
+        for r in recs:
+            r["turns"]["2"]["arms"]["text_ledger"]["per_constraint"] = list(r["turns"]["2"]["base"]["per_constraint"])
+        unselect_conversations(recs, list(range(0, 909, 100)), text_fails=False)
+        for ci in range(0, 909, 100):
+            recs[ci]["turns"]["2"]["base"]["per_constraint"] = [False, True, True]
+            recs[ci]["turns"]["2"]["arms"]["text_ledger"]["per_constraint"] = [True, True, True]
     s = summ(ev, recs, meta)
     assert s["primary_claim_valid"] is False, break_
     assert s["primary_claim_reasons"], break_
@@ -346,6 +467,12 @@ def test_each_gate_condition_invalidates(ev, break_):
         assert s["primary"]["clustered"]["upper_bound"] > 2.0 and s["primary"]["non_inferior"] is False
     if break_ in ("timeouts", "truncations"):
         assert s["validity"]["timeouts_truncations_le_2pct"] is False
+    if break_ == "coverage":
+        assert "ledger_coverage_below_0.90" in s["primary_claim_reasons"] and s["validity"]["unselected_not_all_failing"] is True
+    if break_ == "unselected_all_failing":
+        assert s["primary_claim_reasons"] == ["unselected_not_all_failing"]
+    if break_ == "text_not_better_selected":
+        assert s["primary_claim_reasons"] == ["text_beats_base_selected"] and s["validity"]["text_beats_base"] is True
 
 
 def test_estimand_excludes_fresh_and_noninsertable_and_credits_only_selected(ev):
@@ -408,6 +535,10 @@ def test_cpu_preflight_builds_every_diagnostic_turn_with_real_salience(ev):
     assert {"ci": 145, "turn": 2} in stats["control_incomplete_turns"]
     assert stats["control_incomplete_turn_count"] == len(stats["control_incomplete_turns"]) >= 1
     assert base_records is not None, "the exact runner contexts are required for the control dry run"
+    # sol round 3 ruling (i): the registered coverage gate (>= 0.90) is attainable on the slice:
+    # 81/85 eligible constraints have a linked entry
+    assert stats["eligible_constraints"] == 85 and stats["eligible_linked"] == 81
+    assert stats["eligible_coverage"] == 81 / 85 and stats["eligible_coverage"] >= ev.REGISTERED_COVERAGE
     # and the bare-callable path sol found is NOT accepted by the identity assertion
     with pytest.raises(RuntimeError, match="segmenter"):
         ev.assert_real_segmenter(resolve_salience(sal.classify))
