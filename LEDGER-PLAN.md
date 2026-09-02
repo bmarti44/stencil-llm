@@ -286,3 +286,55 @@ context spans, so pinned slots drop in later.
 
 ## KV PROBE v2 VERIFICATION (2026-09-02, sol xhigh, CPU-only)
 Verdict CONFIRMED-WITH-QUALIFICATIONS (results/ledger-kv-verify2-sol.md). Arithmetic exact. Creditable: pinned 31/56 vs evicted 15/56 vs full 41/56 (recovers 0.615 of gap); pinned − control = +0.196 with an approximate (not exact-column) mass match. Not creditable: pinned_wave (degenerate in 13/20 sessions, 12/20 truncations) — consistent with v1: the wave dose on pinned columns degenerates. Open items for the next probe iteration: exact-column control matching, full provenance hash set, token IDs in records, docstring.
+
+## ROUND 7 AMENDMENT — validity gate: truncation cap (registered 2026-09-02, pre-launch of the 909; Brian: "fix the other issues")
+Finding (fable, orchestrator-verified): the recorded Multi-IF base arm truncates 185/1805 = 0.1025 of
+late turns at max_new=1024 (results/qwen/b4-multiif-base), so the registered "<= 2% timeouts+truncations
+in EVERY arm" gate (above, and scripts/ledger_eval.py MAX_TIMEOUT_TRUNCATION_FRACTION) cannot pass for
+any arm, base included. The 113 slice confirms it live (base 6.5%, neural 9.3%).
+Amendment (replaces the absolute per-arm cap; the 909 does NOT launch until sol re-verifies):
+1. Timeouts: absolute cap stays at <= 2% per arm (timeouts are a runner defect, not a model property).
+2. Truncations: PREFLIGHT records the base late-turn truncation fraction t_base (descriptive, from the
+   recorded base). Each treatment arm must satisfy t_arm - t_base <= +0.02 (excess-over-base
+   non-inferiority). A treatment arm that truncates more than +2 pts over base FAILS validity.
+3. Scoring rule for truncated turns: a truncated response is scored by the verifier AS IS (it is a
+   fail for any constraint it did not complete); truncated turns are NEVER excluded from the denominator.
+4. Both t_base and every t_arm are reported in the summary next to the adherence numbers.
+Disclosure: this replaces a gate the base arm was already failing before any treatment ran; it is not
+a post-hoc loosening in the treatment's favor — a treatment arm still cannot hide degeneration.
+
+## RE-SCOPE + PREREGISTRATION v2 (2026-09-02) — after the single-turn stop-loss
+The single-turn IFEval line is CLOSED (data/b3/conf-v45.jsonl confirmation: +0.39 pts, p=0.389, +9
+truncations; results/qwen/b3-deficit-conf-s0.json). It is the registered primary negative; no variant
+iteration on single-turn IFEval. The sealed file data/bench/ifeval_input_data.jsonl remains unused.
+Successor claim (only if the gates below pass): "A target-blind instruction ledger with KV retention
+improves compliance with active, aged constraints under context pressure on multi-turn benchmarks,
+without increasing stale-constraint adoption, truncation, or validity failures." Not "general
+instruction-following improvement"; unamplified pinning is "retention", not "wave", unless amplification
+independently beats an exact-column control without degeneration.
+Benchmark family (3), Holm-adjusted at one-sided alpha = 0.025 per test:
+ P (primary):   Multi-IF 909 cohort, aged FIXABLE constraints, credited neural arm (ledger runner as
+                amended by ROUND 7). Gate: clustered lower bound of (neural - base) > 0 on all-eligible;
+                text_beats_base; coverage >= 0.90; ROUND 7 validity.
+ S1 (secondary): IFBench held-out (constraint taxonomy disjoint from Multi-IF), same estimand; gate:
+                paired McNemar one-sided p < 0.025, CI lower bound > 0.
+ S2 (secondary): buried-constraint long-context set (data/b3 held-out templates, constraint stated
+                >= 2048 tokens before the query); gate as S1.
+ Safety gate in EVERY benchmark: truncation excess-over-base <= +2 pts; stale-constraint adoption not
+                above base (clustered NI bound < 2.0 as registered).
+ Generalization = P passes AND >= 1 of {S1, S2} passes with all safety gates intact; the single-turn
+                negative is disclosed as the scope condition in every report and the model card.
+ n: P is fixed at 909 (1805 late turns). S1/S2 n set by power analysis at 80% for a +3 pt paired
+                effect before either is run; recorded here before launch.
+
+## SALIENCE-2 GATE 1 RE-REGISTRATION (2026-09-02)
+Old gate: recall >= 0.90 AND precision >= 0.90 on a BLIND Multi-IF draw. Observed seed-4 blind
+TP 76 / FP 5 / FN 10 -> recall 0.884, Wilson 95% [0.80, 0.94]. A third small draw would pass by
+sampling noise with P ~ 0.3-0.5 (fable), so it is not a test. New gate 1: Wilson 95% LOWER bound of
+recall >= 0.85 AND precision >= 0.90 on ONE blind draw with >= 250 positive constraints, IFEval-free,
+drawn and hashed before the finder is run. Budget reconciliation (kimi): the end-to-end surfacing
+target is coverage >= 0.90 on the 909 (measured by the runner); the finder gate is a component
+floor, not a multiplicative guarantee — recorded so the two are not read as jointly implying 0.81.
+Trigger: run the new gate only if the 113 slice / 909 coverage < 0.90; otherwise the finder is
+accepted as-is under the coverage gate and gate 1 is reported as "unmet under the old wording,
+superseded".

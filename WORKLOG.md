@@ -2303,3 +2303,10 @@ anyway (0.854/0.860 blind; precision 0.95/0.94).
 - CORRECTION to the incident record: the rogue harvest committed sessions 036–106 to main via 8 "checkpoint" commits after the registered STOP (68ee69e); 107 tracked, 108 on disk (088/089 untracked). Quarantine deferred until the GPU is idle.
 - NEW CRITICAL (fable, verified): 909 cohort cannot pass its registered ≤2%-every-arm truncation gate — recorded base truncates 185/1805 = 10.25% of late turns. 909 launch is HELD pending a ROUND 7 amendment (excess-over-base cap + truncation-scoring rule) and sol re-verification.
 - 113 slice continues (63/113) as the falsification screen; its coverage figure decides whether the 0.90 gate stands (it does not get amended).
+
+## 2026-09-02 10:40 — FIXES IN FLIGHT (Brian: "fix the other issues"; sol coder may use GPU when idle)
+- Quarantined the 78 post-STOP harvest records → results/quarantine/e2-corrected-harvest-post-stop/ (README with SHA-256s; EXCLUDED); archived scripts/e2_harvest.py → archive/scripts/.
+- LEDGER-PLAN.md: ROUND 7 AMENDMENT (truncation excess-over-base gate; truncated scored as fail), RE-SCOPE + PREREGISTRATION v2 (3-benchmark family, Holm), SALIENCE-2 GATE 1 RE-REGISTRATION (Wilson LB ≥ 0.85 on ≥250 positives; trigger only if coverage < 0.90).
+- results/sealed-lineage-audit.md: no live artifact depends on the breached fit; sealed file has zero model runs beyond the registered single-shot.
+- Sol coder brief tools/codex-agents/isolation-and-gates.md (+ .allow): PreToolUse guard, GPU-free assertion, kill-pattern test, sealed sha/chmod test, side-effect-import test over all scripts, ROUND 7 gate in ledger_eval.py with tests, KV probe v3 prep. GPU policy: CPU-only until "GPU RELEASED" is written to tools/codex-agents/isolation-and-gates.gpu.
+- Deep research in flight: results/research-{fable,sol,kimi}.md.
