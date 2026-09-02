@@ -32,3 +32,11 @@ greedy output, same eviction plumbing as the registered probe (scripts/ledger_kv
    pays them; pin the top spans at the finder's budget. Constraint coverage 0.19 (per-column) / 0.26 (mass) vs BM25
    0.37, random 0.13. Outcomes: ATTN 16/56, its exact-column control 24, finder 37, evicted 14. FAILS: the query
    position attends to recent/topical content, not to standing instructions (delayed need, measured at read time).
+
+7. THE MODEL AS ITS OWN SELECTOR (self_extract_check.py, self_extract.log): before answering, the same frozen 1.7B is
+   asked to quote every earlier instruction that still applies; quotes are matched back to source sentences
+   (Jaccard >= 0.5), then pinned + echoed via the H1' mechanism. Coverage of the oracle constraints 0.52 (7/20
+   sessions >= 0.8), 37 extra spans. Outcomes: SELF pinned 31, SELF pinned_echo 37, exact-column control 25 —
+   vs finder 37 / 48, full 44, evicted 14, role-at-budget 29, attention 16. Generic and training-free, and the best
+   parameter-free selector so far, but the 1.7B extractor is the bottleneck (coverage 0.52 vs finder 0.97).
+   Next quick check: the 4B trunk as extractor (same fixed prompt; no prompt tuning on this selection set).
