@@ -39,6 +39,23 @@ class KVCache:
         self.v: list[torch.Tensor | None] = [None] * Qwen3Config.n_layer
         self.length = 0
 
+    def evict(self, drop_start: int, drop_end: int, keep=()) -> dict[int, int]:
+        """LEDGER-KV: remove columns [drop_start, drop_end) from every layer
+        EXCEPT the kept sub-ranges (pinned ledger entries), which survive
+        with their original RoPE. `length` is NOT reduced: new tokens keep
+        their original absolute positions (no re-indexing). Returns the
+        old->new column index map for every surviving column."""
+        assert 0 <= drop_start <= drop_end <= self.k[0].shape[2]
+        survive = []
+        for old in range(self.k[0].shape[2]):
+            if not (drop_start <= old < drop_end) or any(s <= old < e for s, e in keep):
+                survive.append(old)
+        idx = torch.tensor(survive, device=self.k[0].device)
+        for L in range(Qwen3Config.n_layer):
+            self.k[L] = self.k[L].index_select(2, idx).contiguous()
+            self.v[L] = self.v[L].index_select(2, idx).contiguous()
+        return {old: new for new, old in enumerate(survive)}
+
 
 class RMSNorm(nn.Module):
     def __init__(self, dim: int, eps: float = Qwen3Config.rms_eps) -> None:
