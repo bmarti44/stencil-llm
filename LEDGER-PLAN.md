@@ -417,3 +417,23 @@ parallel, the trunk is generalized to Qwen3 dense sizes (brief tools/codex-agent
 bitwise 1.7B regression gate, and Qwen/Qwen3-4B is converted and parity-checked so the AGENTIC stage (benchmark
 registered after the 2026-09-02 research round) can run on 4B, where base tool competence is less likely to mask
 the mechanism. Cost note: 4B is ~2x slower per token; budgets are re-estimated per benchmark before launch.
+
+## PUBLISH-GATE BENCHMARKS (registered 2026-09-02 after the fable/sol/kimi research round; results/agentic-bench-synthesis.md)
+Leg A (agentic): BFCL V3 multi-turn (Apache-2.0; predefined user turns; executable verifier; simulator-free), sealed
+stratified 64-case cohort (16 × base / missing_params / missing_functions / long_context), hashed before any run; a
+DISJOINT 32-case dev slice for preflights. Arms: base | ledger (automatic finder + KV pin + echo, the H1′ mechanism) |
+random-span control (token-matched echo from prior user turns, same template, same pin budget). Trunk: the smallest
+Qwen3 that passes the competence preflight (≥ 15% multi-turn pass on the dev slice; 1.7B is expected to floor at
+~8–10%; Qwen3-4B prepared in parallel). Primary: paired-by-episode LB(ledger − control) > 0, cluster-robust, one-sided
+α = 0.025 (Holm with Leg B). Safety: ROUND 7 + tool-call validity excess ≥ −2 pts + echo-copy exclusion.
+Leg B (long-horizon instruction retention under native pressure): the registered S2 buried-constraint set extended to
+≥ 8k tokens of context before the query (native eviction), same three arms, same estimand; plus the already-registered
+Multi-IF 909 text_ledger confirmation. RULER variable-tracking 8k/16k as a reported-only sanity leg.
+Preflights before the sealed cohort: base competence (dev slice), finder recall ≥ 0.80 on 100 labelled BFCL
+instruction/schema spans, BASE-vs-BASE rerun variance. Blockers: OpenAI-compatible chat/tool shim for the trunk;
+non-thinking mode fixed and disclosed; Qwen3-4B parity.
+Falsifier: LB(ledger − control) ≤ 0 on Leg A at registered n with safety intact; or ledger beats base but not control;
+or the gain vanishes under native pressure. A Multi-IF-only pass is insufficient for the word "agentic".
+Excluded and why: VerIFY (dataset unreleased), Lost-in-Conversation and tau2 (need an LLM user/shard simulator; no
+OpenAI key; simulator noise in a confirmatory run), HANDBOOK/SOP-Bench (frontier floor; SOP-Bench CC-BY-NC),
+LongMemEval/LoCoMo (facts not instructions; > trained context; LoCoMo CC-BY-NC), SEQUOR (LLM judge; license unknown).
