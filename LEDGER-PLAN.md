@@ -195,3 +195,12 @@ context spans, so pinned slots drop in later.
   where the credited constraint's entry was selected.
 - top_k=2 and dose 3.0 are FROZEN EXPLORATORY choices; not tuned after
   outcomes are viewed.
+- FIX-ROUND readings (2026-09-01, flagged for sol re-verification):
+  (i) Multi-IF has no "Constraint:" markers, so entry<->instruction linkage
+  is ORIGIN-TURN granularity (entry links to every id its turn introduced);
+  disclosed in records as linkage_granularity; mildly lenient to neural.
+  (ii) the matched control is ledger.matched_nonledger_control (same-width,
+  nearest-position windows disjoint from every entry, same dose), NOT
+  e2.mass_matched_nonconstraint_control (which is the diffuse complement).
+  (iii) "credit only when selected": an uncredited neural pass scores as a
+  FAIL (fail-closed), not an excluded pair; raw rate reported alongside.

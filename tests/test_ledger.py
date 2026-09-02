@@ -205,8 +205,134 @@ def test_paired_drop_table_and_non_inferiority_points():
     assert s["n"] == 120 and s["n10"] == 20 and s["n01"] == 20
     assert s["drop_points"] == 0.0 and s["upper_bound_points"] > 0
     assert s["non_inferior"] == (s["upper_bound_points"] < 2.0)
+    # asymmetric cells (catch a sign inversion): candidate DROPS on 10% -> not NI at a 2-point margin
+    harm = non_inferiority_summary([True] * 200, [False] * 20 + [True] * 180, margin_points=2.0)
+    assert harm["n10"] == 20 and harm["n01"] == 0 and harm["drop_points"] == 10.0
+    assert harm["upper_bound_points"] > 10.0 and harm["non_inferior"] is False
+    # candidate IMPROVES on 10% -> bound below zero, non-inferior
+    gain = non_inferiority_summary([False] * 20 + [True] * 180, [True] * 200, margin_points=2.0)
+    assert gain["n10"] == 0 and gain["n01"] == 20 and gain["drop_points"] == -10.0
+    assert gain["upper_bound_points"] < 0.0 and gain["non_inferior"] is True
+    assert harm["upper_bound_points"] != -gain["upper_bound_points"]  # Tango is not symmetric
     with pytest.raises(ValueError):
         paired_drop_table([True], [True, False])
+
+
+# ---- sol's verification (results/ledger-verify-sol.md, finding 3): the runner's
+# segmenter path and the conversation-769 crash.
+
+CONV_769_TURN1 = (
+    "Create a slogan for my company and wrap your entire response with double quotation marks. "
+    "My company's name is Color Paper. We produce paper towls. We focus on producing eye-catching, "
+    "colorful paper towls. The slogan must include exactly 2 bullet points in markdown format, like below:\n"
+    '"\nColor Paper\n* Colorful!\n* Eye-catching!\n"'
+)
+
+
+def test_segment_char_spans_survives_standalone_quote_lines():
+    """The fallback segmenter re-attached a closing-quote fragment by string
+    concatenation and then could not find the joined sentence in its own text
+    (RuntimeError on conversation 769). Spans are computed, never re-searched."""
+    from stencil.ledger import segment_char_spans, segment_sentences
+    spans = segment_char_spans(CONV_769_TURN1)
+    assert spans and all(0 <= a < b <= len(CONV_769_TURN1) for a, b in spans)
+    assert all(b0 <= a1 for (_, b0), (a1, _) in zip(spans, spans[1:], strict=False))  # ordered, disjoint
+    assert [CONV_769_TURN1[a:b] for a, b in spans] == segment_sentences(CONV_769_TURN1)
+    assert CONV_769_TURN1[spans[0][0]:spans[0][1]].startswith("Create a slogan")
+    # a quote-only line EXTENDS the previous sentence's span (the newline is kept, so the text is findable)
+    assert segment_char_spans('He said "go." Then left.\n"\nquoted line\n"') == [(0, 13), (14, 26), (27, 40)]
+    assert segment_sentences('He said "go." Then left.\n"\nquoted line\n"') == ['He said "go."', 'Then left.\n"', 'quoted line\n"']
+
+
+def test_build_ledger_accepts_resolved_salience_object_and_uses_its_segmenter(tok):
+    """A bare callable resolves to the FALLBACK segmenter (sol's finding 3);
+    the runner must pass the resolved Salience so split_sentences is used."""
+    salience = pytest.importorskip("stencil.salience")
+    from stencil.e2_multiif import build_replay_context
+    from stencil.ledger import (
+        Salience,
+        build_ledger,
+        resolve_salience,
+        segment_char_spans,
+    )
+    sal = resolve_salience()
+    assert isinstance(sal, Salience) and sal.segment is salience.split_sentences
+    assert resolve_salience(sal.classify).segment is segment_char_spans  # the bug sol found
+    context = build_replay_context([CONV_769_TURN1, "Add one more line."], ["x"], turn=2, positive_control=False)
+    entries = build_ledger(tok, context, salience=sal)
+    assert entries and all(e.provenance == "salience" for e in entries)
+    seen = []
+
+    def spy(text):
+        seen.append(text)
+        return salience.split_sentences(text)
+    build_ledger(tok, context, salience=Salience(sal.classify, spy, "salience"))
+    assert seen == [CONV_769_TURN1, "Add one more line."]  # the object's segmenter was used, per user turn
+
+
+def test_instruction_origins_are_positional_over_cumulative_id_lists():
+    from stencil.ledger import instruction_origins
+    lists = {1: ["a", "b"], 2: ["a", "b", "c"], 3: ["a", "b", "c", "a"]}
+    got = instruction_origins(lists, current_turn=3)
+    assert [(o["index"], o["id"], o["origin_turn"], o["aged"]) for o in got] == [
+        (0, "a", 1, True), (1, "b", 1, True), (2, "c", 2, True), (3, "a", 3, False)]
+    assert [o["origin_turn"] for o in instruction_origins(lists, current_turn=2)] == [1, 1, 2]
+    with pytest.raises(ValueError):
+        instruction_origins({1: ["a"], 2: ["b", "a"]}, current_turn=2)  # not cumulative
+
+
+def test_link_entries_records_instruction_ids_per_entry(tok):
+    from stencil.ledger import build_ledger, instruction_origins, link_entries
+    context = three_turn_context()
+    entries = build_ledger(tok, context, salience=stub_salience)
+    lists = {1: ["keywords:existence"], 2: ["keywords:existence", "punctuation:no_comma"],
+             3: ["keywords:existence", "punctuation:no_comma", "startend:quotation"]}
+    origins = instruction_origins(lists, current_turn=3)
+    granularity = link_entries(entries, tok, context, origins)
+    assert granularity == "origin_turn"  # Multi-IF carries no "Constraint:" markers
+    assert [e.instruction_ids for e in entries] == [["keywords:existence"], ["punctuation:no_comma"], ["startend:quotation"]]
+    assert entries[0].to_record()["instruction_ids"] == ["keywords:existence"]
+    assert [o["entry_indices"] for o in origins] == [[0], [1], [2]]
+
+
+def test_link_entries_uses_constraint_span_records_when_markers_exist(tok):
+    from stencil.e2 import constraint_span_records
+    from stencil.e2_multiif import build_replay_context
+    from stencil.ledger import build_ledger, instruction_origins, link_entries
+    p1 = "Write about rain. Constraint: include the keyword lantern. Constraint: do not use commas."
+    context = build_replay_context([p1, "Shorter please."], ["ok"], turn=2, positive_control=False)
+    assert len(constraint_span_records(tok, context)) == 2
+    entries = build_ledger(tok, context, salience=lambda s: s.startswith("Constraint:"))
+    assert [e.text for e in entries] == ["Constraint: include the keyword lantern.", "Constraint: do not use commas."]
+    origins = instruction_origins({1: ["keywords:existence", "punctuation:no_comma"],
+                                   2: ["keywords:existence", "punctuation:no_comma"]}, current_turn=2)
+    assert link_entries(entries, tok, context, origins) == "constraint_span"
+    assert [e.instruction_ids for e in entries] == [["keywords:existence"], ["punctuation:no_comma"]]
+    assert [o["entry_indices"] for o in origins] == [[0], [1]]
+
+
+def test_matched_nonledger_control_is_width_and_position_matched():
+    from stencil.ledger import matched_nonledger_control
+    user_turns = [(2, 30), (40, 60)]
+    ledger = [(5, 10), (20, 25), (45, 50)]
+    control, tiers = matched_nonledger_control(total_len=70, selected=[(5, 10), (45, 50)],
+                                               ledger_spans=ledger, user_turns=user_turns)
+    assert [b - a for a, b in control] == [5, 5]                       # width matched
+    for (a, b) in control:
+        assert any(ta <= a and b <= tb for ta, tb in user_turns)       # inside a user turn
+        assert all(b <= la or a >= lb for la, lb in ledger)            # disjoint from EVERY entry
+    assert control[0] == (10, 15) and control[1] == (40, 45)           # nearest window (tie -> earlier start)
+    assert tiers == ["same_turn", "same_turn"]
+    assert control[0][1] <= control[1][0]                              # controls disjoint from each other
+    # a fully-instruction turn falls back to another user turn, then to anywhere, disclosed
+    control, tiers = matched_nonledger_control(total_len=70, selected=[(40, 60)], ledger_spans=[(40, 60)],
+                                               user_turns=[(2, 30), (40, 60)])
+    assert control == [(10, 30)] and tiers == ["other_user_turn"]
+    control, tiers = matched_nonledger_control(total_len=100, selected=[(2, 30)], ledger_spans=[(2, 30), (40, 60)],
+                                               user_turns=[(2, 30), (40, 60)])
+    assert tiers == ["outside_user_turns"] and control == [(60, 88)]
+    with pytest.raises(ValueError):
+        matched_nonledger_control(total_len=12, selected=[(0, 10)], ledger_spans=[(0, 10)], user_turns=[(0, 10)])
 
 
 @pytest.fixture(scope="module")
@@ -229,12 +355,32 @@ def gpu_setup():
 @gpu
 def test_empty_ledger_neural_arm_is_bitwise_base(gpu_setup):
     """The harm guarantee: no entries -> no hook -> bitwise the base generator."""
-    from stencil.bench import TMPL, generate_cached
+    from stencil.bench import EOS, TMPL, generate_cached
     from stencil.ledger import generate_sustained
+    from stencil.qwen3 import KVCache
     m, tok, _ = gpu_setup
-    base = generate_cached(m, tok, PROMPTS[0], max_new=40)
-    got = generate_sustained(m, tok, TMPL.format(p=PROMPTS[0]), select_fn=lambda q: [], max_new=40)
-    assert got.text == base[0] and got.n_generated == base[1]
+    context = TMPL.format(p=PROMPTS[0])
+    # independent base generator: plain KV-cached greedy, NO hook argument at all
+    ids = tok.encode(context).ids
+    cache, base_ids = KVCache(), []
+    with torch.no_grad():
+        logits = m(torch.tensor([ids], device="cuda"), cache=cache)
+        nxt = int(logits[0, -1].argmax())
+        while nxt not in EOS and len(base_ids) < 40:
+            base_ids.append(nxt)
+            logits = m(torch.tensor([[nxt]], device="cuda"), cache=cache)
+            nxt = int(logits[0, -1].argmax())
+    calls = {"n": 0}
+
+    def select_fn(q):
+        calls["n"] += 1
+        assert q.shape == (2048,)
+        return []
+    got = generate_sustained(m, tok, context, select_fn=select_fn, max_new=40)
+    assert calls["n"] == 1, "the selection callback must run exactly once, at prefill"
+    assert list(got.ids) == base_ids, "token IDs must be identical, not merely the decoded text"
+    assert got.n_generated == len(base_ids) and got.prompt_tokens == len(ids)
+    assert got.text == generate_cached(m, tok, PROMPTS[0], max_new=40)[0]
     assert got.spans == () and got.biased_tokens == 0
 
 

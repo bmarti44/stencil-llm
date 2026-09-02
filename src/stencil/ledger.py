@@ -45,29 +45,48 @@ class Entry:
     turn_introduced: int
     status: str = "unknown"
     provenance: str = "salience"
+    instruction_ids: list[str] = field(default_factory=list)  # linkage (LEDGER-PLAN amendment)
 
     def to_record(self) -> dict:
         return {"text": self.text, "span": list(self.span), "turn_introduced": self.turn_introduced,
-                "status": self.status, "provenance": self.provenance, "has_key": self.key is not None}
+                "status": self.status, "provenance": self.provenance, "has_key": self.key is not None,
+                "instruction_ids": list(self.instruction_ids)}
 
 
 _SPLIT = re.compile(r"(?<=[.!?])\s+(?=\S)|(?<=[.!?][\"')\]])\s+(?=\S)")
 
 
-def segment_sentences(text: str) -> list[str]:
-    """Newline-first, then terminator-boundary split; a fragment that is
-    only a closing quote/bracket re-attaches to its sentence."""
-    out: list[str] = []
-    for line in text.splitlines():
-        for piece in _SPLIT.split(line.strip()):
-            piece = piece.strip()
-            if not piece:
+def segment_char_spans(text: str) -> list[tuple[int, int]]:
+    """Fallback segmenter (used ONLY when stencil.salience is unavailable):
+    newline-first, then terminator-boundary split; a fragment that is only a
+    closing quote/bracket EXTENDS the previous span.  Spans are computed
+    from match offsets, never re-searched in the text — re-searching a
+    concatenated fragment crashed on conversation 769 (sol, 2026-09-01)."""
+    spans: list[tuple[int, int]] = []
+    for line in re.finditer(r"[^\r\n]+", text):
+        ls = line.start()
+        pieces, cursor = [], 0
+        for m in _SPLIT.finditer(line.group()):
+            pieces.append((cursor, m.start()))
+            cursor = m.end()
+        pieces.append((cursor, len(line.group())))
+        for a, b in pieces:
+            seg = line.group()[a:b]
+            lead = len(seg) - len(seg.lstrip())
+            trail = len(seg) - len(seg.rstrip())
+            if b - trail <= a + lead:
                 continue
-            if out and re.fullmatch(r'["\')\]]+', piece):
-                out[-1] += piece
+            a_abs, b_abs = ls + a + lead, ls + b - trail
+            if spans and re.fullmatch(r'["\')\]]+', text[a_abs:b_abs]):
+                spans[-1] = (spans[-1][0], b_abs)
             else:
-                out.append(piece)
-    return out
+                spans.append((a_abs, b_abs))
+    return spans
+
+
+def segment_sentences(text: str) -> list[str]:
+    """The sentences of ``segment_char_spans`` (fallback path only)."""
+    return [text[a:b] for a, b in segment_char_spans(text)]
 
 
 def heuristic_is_instruction(sentence: str) -> bool:
@@ -87,18 +106,6 @@ class Salience:
     segment: Callable[[str], list[tuple[int, int]]]  # char spans within a turn
     provenance: str                                  # "salience" | "heuristic"
     note: str = ""
-
-
-def segment_char_spans(text: str) -> list[tuple[int, int]]:
-    """Char spans of ``segment_sentences`` within ``text``."""
-    spans, cursor = [], 0
-    for sentence in segment_sentences(text):
-        at = text.find(sentence, cursor)
-        if at < 0:
-            raise RuntimeError("sentence not found in its own text")
-        spans.append((at, at + len(sentence)))
-        cursor = at + len(sentence)
-    return spans
 
 
 def resolve_salience(salience: Callable[[str], bool] | None = None) -> Salience:
@@ -154,8 +161,10 @@ def build_ledger(tokenizer, context: str, model=None, salience=None) -> list[Ent
     """Segment every USER turn of a pre-rendered context into sentences,
     keep the instructions, map each to token span in ``context``'s own
     coordinates (clamped to the user message), pool h20 keys if a model
-    is given."""
-    sal = resolve_salience(salience)
+    is given.  ``salience`` is a resolved ``Salience`` (the runner's path:
+    classifier AND segmenter travel together), a bare classifier (fallback
+    segmenter — test/stub use only), or None (resolve the default)."""
+    sal = salience if isinstance(salience, Salience) else resolve_salience(salience)
     enc = tokenizer.encode(context)
     entries: list[Entry] = []
     for turn, (cs, ce) in enumerate(_user_turns(context), start=1):
@@ -178,6 +187,123 @@ def build_ledger(tokenizer, context: str, model=None, salience=None) -> list[Ent
             a, b = e.span
             e.key = h20[0, a:b].float().mean(0)
     return entries
+
+
+def instruction_origins(id_lists_by_turn: dict[int, Sequence[str]], current_turn: int) -> list[dict]:
+    """Multi-IF instruction_id_list is CUMULATIVE per turn (turn t = turn t-1's
+    list + the ids introduced at t), so the origin turn of the constraint at
+    position j is the first turn whose list reaches j.  Positional, so a
+    family that recurs across turns is still attributed to its own turn."""
+    turns = sorted(t for t in id_lists_by_turn if t <= current_turn)
+    if current_turn not in id_lists_by_turn:
+        raise ValueError("current turn has no instruction list")
+    prev: list[str] = []
+    origin_of: list[int] = []
+    for t in turns:
+        ids = list(id_lists_by_turn[t])
+        if ids[: len(prev)] != prev:
+            raise ValueError(f"instruction lists are not cumulative at turn {t}")
+        origin_of.extend([t] * (len(ids) - len(prev)))
+        prev = ids
+    return [{"index": j, "id": iid, "origin_turn": origin_of[j], "aged": origin_of[j] < current_turn,
+             "entry_indices": []}
+            for j, iid in enumerate(prev)]
+
+
+def link_entries(entries: Sequence[Entry], tokenizer, context: str, origins: Sequence[dict]) -> str:
+    """Record on each entry the instruction ids whose constraint it covers and
+    on each origin the entry indices that cover it.  Uses
+    ``e2.constraint_span_records`` (token-span overlap; the k-th marked
+    constraint of a turn is that turn's k-th introduced id) when the context
+    carries "Constraint:" markers; Multi-IF carries none, so it falls back to
+    ORIGIN-TURN granularity (every entry of a turn links to every id that
+    turn introduced).  Returns the granularity used ("constraint_span" |
+    "origin_turn") so the record discloses it."""
+    from stencil.e2 import constraint_span_records
+
+    for e in entries:
+        e.instruction_ids = []
+    for o in origins:
+        o["entry_indices"] = []
+    by_turn: dict[int, list[dict]] = {}
+    for o in origins:
+        by_turn.setdefault(o["origin_turn"], []).append(o)
+    records = constraint_span_records(tokenizer, context)
+    if records:
+        seen: dict[int, int] = {}
+        for r in records:
+            k = seen.get(r["origin_turn"], 0)
+            seen[r["origin_turn"]] = k + 1
+            ids_here = by_turn.get(r["origin_turn"], [])
+            if k >= len(ids_here):
+                continue  # more markers than registered ids: leave the extra unlinked
+            o = ids_here[k]
+            ra, rb = r["span"]
+            for i, e in enumerate(entries):
+                a, b = e.span
+                # a marked constraint span runs up to the NEXT marker, so a neighbouring
+                # entry's leading-space token overlaps it: require >= half the entry
+                if 2 * max(0, min(b, rb) - max(a, ra)) >= (b - a):
+                    e.instruction_ids.append(o["id"])
+                    o["entry_indices"].append(i)
+        return "constraint_span"
+    for i, e in enumerate(entries):
+        for o in by_turn.get(e.turn_introduced, []):
+            e.instruction_ids.append(o["id"])
+            o["entry_indices"].append(i)
+    return "origin_turn"
+
+
+def matched_nonledger_control(*, total_len: int, selected: Sequence[tuple[int, int]],
+                              ledger_spans: Sequence[tuple[int, int]],
+                              user_turns: Sequence[tuple[int, int]]) -> tuple[list[tuple[int, int]], list[str]]:
+    """The specificity control (LEDGER-PLAN amendment): for each SELECTED span
+    a window of the SAME width, disjoint from EVERY ledger entry (selected or
+    not, aged or fresh) and from the other control windows, at the nearest
+    position — inside the same user turn when possible ("same_turn"), else
+    any user turn ("other_user_turn"), else anywhere ("outside_user_turns").
+    Same dose is applied by the caller.  ``e2.mass_matched_nonconstraint_control``
+    is the diffuse-complement control sol rejected and is NOT used."""
+    blocked = [False] * total_len
+    for a, b in ledger_spans:
+        if not 0 <= a < b <= total_len:
+            raise ValueError("ledger span outside context")
+        for i in range(a, b):
+            blocked[i] = True
+    control: list[tuple[int, int]] = []
+    tiers: list[str] = []
+
+    def free(a, b):
+        return 0 <= a and b <= total_len and not any(blocked[a:b])
+
+    for (sa, sb) in selected:
+        w = sb - sa
+        if w <= 0:
+            raise ValueError("empty selected span")
+        home = [t for t in user_turns if t[0] <= sa and sb <= t[1]]
+        candidates = (
+            ("same_turn", home),
+            ("other_user_turn", [t for t in user_turns if t not in home]),
+            ("outside_user_turns", [(0, total_len)]),
+        )
+        found = None
+        for tier, regions in candidates:
+            starts = sorted({s for (ra, rb) in regions for s in range(ra, rb - w + 1)},
+                            key=lambda s: (abs(s - sa), s))
+            for s in starts:
+                if free(s, s + w):
+                    found = (tier, (s, s + w))
+                    break
+            if found:
+                break
+        if found is None:
+            raise ValueError("no non-ledger window of the selected width is available")
+        tier, (a, b) = found
+        for i in range(a, b):
+            blocked[i] = True
+        control.append((a, b))
+        tiers.append(tier)
+    return control, tiers
 
 
 def select(entries: Sequence[Entry], query_h20, ctrl, top_k: int = 2) -> list[Entry]:
@@ -237,6 +363,8 @@ class SustainedResult:
     spans: tuple[tuple[int, int], ...]
     biased_tokens: int
     select_scores: tuple = field(default=())
+    prompt_tokens: int = 0            # MEASURED length of the context actually sent
+    ids: tuple[int, ...] = field(default=())  # generated token ids (bitwise comparisons)
 
 
 def generate_sustained(model, tokenizer, context: str, *, spans=None, select_fn=None,
@@ -297,7 +425,7 @@ def generate_sustained(model, tokenizer, context: str, *, spans=None, select_fn=
                            bias_hook=hook_factory(cache.length) if active else None)
             nxt = int(logits[0, -1].argmax())
     return SustainedResult(tokenizer.decode(out), len(out), len(out) >= max_new, timed_out,
-                           tuple(chosen), biased)
+                           tuple(chosen), biased, prompt_tokens=P, ids=tuple(out))
 
 
 def paired_drop_table(reference: Sequence[bool], candidate: Sequence[bool]) -> dict:

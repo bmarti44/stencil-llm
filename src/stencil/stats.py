@@ -127,3 +127,127 @@ def mcnemar_exact_one_sided(n_improve, n_degrade):
         return 1.0
     from math import comb
     return sum(comb(n, k) for k in range(n_improve, n + 1)) / (2 ** n)
+
+
+# ------------------------------------------------------------ clustered NI
+# LEDGER-PLAN amendment (2026-09-01, after results/ledger-verify-sol.md):
+# paired per-constraint outcomes inside one conversation are correlated and
+# cumulative constraints are scored again on later turns, so Tango on the
+# pooled cells is descriptive only.  The registered primary bound is a
+# CONVERSATION-clustered one-sided (1-alpha) upper bound on the mean of the
+# per-conversation mean paired differences (points, reference - candidate,
+# positive = a DROP), via Student t on the cluster means; a percentile
+# cluster bootstrap (2000 resamples, seed 0) is the fallback below ten
+# clusters, where the t approximation is least trustworthy.
+
+def _betacf(a, b, x):
+    """continued fraction for the regularized incomplete beta (NR 6.4)."""
+    MAXIT, EPS, FPMIN = 500, 3e-16, 1e-300
+    qab, qap, qam = a + b, a + 1.0, a - 1.0
+    c, d = 1.0, 1.0 - qab * x / qap
+    d = 1.0 / (d if abs(d) >= FPMIN else FPMIN)
+    h = d
+    for m in range(1, MAXIT + 1):
+        m2 = 2 * m
+        aa = m * (b - m) * x / ((qam + m2) * (a + m2))
+        d = 1.0 + aa * d
+        d = 1.0 / (d if abs(d) >= FPMIN else FPMIN)
+        c = 1.0 + aa / c
+        c = c if abs(c) >= FPMIN else FPMIN
+        h *= d * c
+        aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2))
+        d = 1.0 + aa * d
+        d = 1.0 / (d if abs(d) >= FPMIN else FPMIN)
+        c = 1.0 + aa / c
+        c = c if abs(c) >= FPMIN else FPMIN
+        de = d * c
+        h *= de
+        if abs(de - 1.0) < EPS:
+            return h
+    raise RuntimeError("incomplete beta continued fraction did not converge")
+
+
+def _betainc(a, b, x):
+    """regularized incomplete beta I_x(a, b)."""
+    if not 0.0 <= x <= 1.0:
+        raise ValueError("x outside [0, 1]")
+    if x == 0.0 or x == 1.0:
+        return x
+    front = math.exp(math.lgamma(a + b) - math.lgamma(a) - math.lgamma(b)
+                     + a * math.log(x) + b * math.log(1.0 - x))
+    if x < (a + 1.0) / (a + b + 2.0):
+        return front * _betacf(a, b, x) / a
+    return 1.0 - front * _betacf(b, a, 1.0 - x) / b
+
+
+def t_cdf(t, df):
+    """Student t CDF with df degrees of freedom (dependency-free)."""
+    if df <= 0:
+        raise ValueError("df must be positive")
+    x = df / (df + t * t)
+    tail = 0.5 * _betainc(df / 2.0, 0.5, x)
+    return 1.0 - tail if t >= 0 else tail
+
+
+def t_quantile(p, df):
+    """inverse Student t CDF by bisection on t_cdf (|err| < 1e-9)."""
+    if not 0.0 < p < 1.0:
+        raise ValueError("p outside (0, 1)")
+    lo, hi = -1e6, 1e6
+    for _ in range(300):
+        mid = (lo + hi) / 2.0
+        if t_cdf(mid, df) < p:
+            lo = mid
+        else:
+            hi = mid
+        if hi - lo < 1e-10:
+            break
+    return (lo + hi) / 2.0
+
+
+def _mean(xs):
+    return sum(xs) / len(xs)
+
+
+def clustered_upper_bound(per_cluster_mean_diffs, alpha=0.05):
+    """one-sided (1-alpha) upper bound on the mean of the per-cluster mean
+    paired differences via Student t: mean + t_{1-alpha, k-1} * sd / sqrt(k).
+    Needs >= 2 clusters; zero between-cluster variance returns the mean."""
+    diffs = [float(x) for x in per_cluster_mean_diffs]
+    k = len(diffs)
+    if k < 2:
+        raise ValueError("clustered bound needs at least two clusters")
+    m = _mean(diffs)
+    var = sum((x - m) ** 2 for x in diffs) / (k - 1)
+    if var == 0.0:
+        return m
+    return m + t_quantile(1.0 - alpha, k - 1) * math.sqrt(var / k)
+
+
+def cluster_bootstrap_upper_bound(per_cluster_mean_diffs, alpha=0.05, n_resamples=2000, seed=0):
+    """percentile cluster bootstrap: resample clusters with replacement,
+    take the (1-alpha) quantile of the resampled means (deterministic seed)."""
+    import random
+
+    diffs = [float(x) for x in per_cluster_mean_diffs]
+    k = len(diffs)
+    if k < 2:
+        raise ValueError("clustered bound needs at least two clusters")
+    rng = random.Random(seed)
+    means = sorted(_mean([diffs[rng.randrange(k)] for _ in range(k)]) for _ in range(n_resamples))
+    idx = min(n_resamples - 1, max(0, math.ceil((1.0 - alpha) * n_resamples) - 1))
+    return means[idx]
+
+
+def clustered_bound(per_cluster_mean_diffs, alpha=0.05, min_clusters_for_t=10):
+    """registered dispatch: t bound at >= min_clusters_for_t clusters, cluster
+    bootstrap (2000 resamples, seed 0) below; returns the audit fields."""
+    diffs = [float(x) for x in per_cluster_mean_diffs]
+    k = len(diffs)
+    out = {"clusters": k, "alpha": alpha, "mean": (_mean(diffs) if k else None)}
+    if k < 2:
+        return {**out, "method": None, "upper_bound": None, "error": "fewer than two clusters"}
+    if k >= min_clusters_for_t:
+        return {**out, "method": "t", "upper_bound": clustered_upper_bound(diffs, alpha)}
+    return {**out, "method": "cluster_bootstrap", "resamples": 2000, "seed": 0,
+            "upper_bound": cluster_bootstrap_upper_bound(diffs, alpha, 2000, 0)}
