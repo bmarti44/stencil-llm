@@ -13,7 +13,8 @@ WEIGHTS = ROOT / "models" / "qwen3-1.7b.pt"
 FIXTURE = ROOT / "tests" / "fixtures" / "qwen3_parity.pt"
 
 needs_weights = pytest.mark.skipif(
-    not WEIGHTS.exists(), reason="run scripts/convert_qwen3.py first"
+    not WEIGHTS.exists() or not torch.cuda.is_available(),
+    reason="needs converted weights and GPU",
 )
 
 

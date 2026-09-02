@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 import torch
 from torch import nn
 
-from .qwen3 import Qwen3, Qwen3Config, _rope
+from .qwen3 import QWEN3_1_7B, Qwen3, Qwen3Config, _rope
 
 INJ_LAYERS = (24, 25, 26, 27)
 WRITE_LAYER = 20  # hidden states feeding the writer / reader
@@ -37,9 +37,16 @@ class QwenCacheState:
 
 
 class QwenFocusCache(nn.Module):
-    def __init__(self, *, seed: int = 0, reader: str = "walk") -> None:
+    def __init__(
+        self,
+        cfg: Qwen3Config = QWEN3_1_7B,
+        *,
+        seed: int = 0,
+        reader: str = "walk",
+    ) -> None:
         super().__init__()
-        c = Qwen3Config
+        self.cfg = cfg
+        c = cfg
         self.reader = reader
         g = torch.Generator().manual_seed(seed)
         self.pool_q = nn.Parameter(torch.empty(4, D_KEY))     # four-query span pooling
@@ -168,12 +175,17 @@ class QwenWithCache(nn.Module):
     def read_logits(
         self, tokens: torch.Tensor, state: QwenCacheState, *, zero_code: bool = False,
     ) -> torch.Tensor:
-        c = Qwen3Config
+        c = self.trunk.cfg
         h = self.hidden(tokens)
         inj = {} if zero_code else self.cache.read_inj(h, state)
         x = h.detach()
-        cos, sin = _rope(tokens.shape[1], tokens.device)
+        cos, sin = _rope(tokens.shape[1], tokens.device, cfg=c)
         for i in range(WRITE_LAYER, c.n_layer):
             x = self.trunk.layers[i](x, cos, sin, inj.get(i))
         x = self.trunk.norm(x)
-        return x.float() @ self.trunk.embed_tokens.weight.float().T
+        output_weight = (
+            self.trunk.embed_tokens.weight
+            if self.trunk.lm_head is None
+            else self.trunk.lm_head.weight
+        )
+        return x.float() @ output_weight.float().T

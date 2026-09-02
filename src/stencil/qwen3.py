@@ -1,42 +1,70 @@
 # ruff: noqa: E501
-"""Minimal Qwen3-1.7B in the stencil harness (QWEN-PLAN P0).
+"""Minimal dense Qwen3 trunk in the stencil harness (QWEN-PLAN P0).
 
 Owns the forward pass for the same reasons gpt2.py did: bitwise determinism,
 probe access at every layer, inert-graft tests, and provable-unreachability
 constructions (here via chunk deletion rather than windowing). Config values
-from models/qwen3-1.7b-hf/config.json (pinned revision). Norms and softmax in
-fp32, matmuls in bf16, mirroring the reference implementation closely enough
-for the registered parity tolerance; our own outputs are then frozen bitwise.
+The default config comes from the pinned Qwen3-1.7B revision. Norms and softmax
+run in fp32 and matmuls in bf16, mirroring the reference implementation closely
+enough for the registered parity tolerance; our own outputs are frozen bitwise.
 """
 from __future__ import annotations
 
+import json
 import math
+from dataclasses import dataclass
+from pathlib import Path
 
 import torch
 import torch.nn.functional as F
 from torch import nn
 
+ROOT = Path(__file__).resolve().parents[2]
 
+
+@dataclass(frozen=True)
 class Qwen3Config:
-    n_layer = 28
-    n_head = 16
-    n_kv_head = 8
-    head_dim = 128
-    d_model = 2048
-    d_ff = 6144
-    vocab = 151936
-    rope_theta = 1_000_000.0
-    rms_eps = 1e-6
-    n_ctx = 40960
+    n_layer: int
+    n_head: int
+    n_kv_head: int
+    head_dim: int
+    d_model: int
+    d_ff: int
+    vocab: int
+    rope_theta: float
+    rms_eps: float
+    n_ctx: int
+    tie_word_embeddings: bool
+
+    @classmethod
+    def from_hf(cls, path: str | Path) -> Qwen3Config:
+        raw = json.loads(Path(path).read_text())
+        return cls(
+            n_layer=raw["num_hidden_layers"],
+            n_head=raw["num_attention_heads"],
+            n_kv_head=raw["num_key_value_heads"],
+            head_dim=raw["head_dim"],
+            d_model=raw["hidden_size"],
+            d_ff=raw["intermediate_size"],
+            vocab=raw["vocab_size"],
+            rope_theta=float(raw["rope_theta"]),
+            rms_eps=float(raw["rms_norm_eps"]),
+            n_ctx=raw["max_position_embeddings"],
+            tie_word_embeddings=raw["tie_word_embeddings"],
+        )
+
+
+QWEN3_1_7B = Qwen3Config.from_hf(ROOT / "models/qwen3-1.7b-hf/config.json")
 
 
 class KVCache:
     """Per-layer post-RoPE K / V cache (BENCH-WAVE B0; kept pre-GQA-repeat
     for memory). Grown by Qwen3.forward when passed via `cache=`."""
 
-    def __init__(self) -> None:
-        self.k: list[torch.Tensor | None] = [None] * Qwen3Config.n_layer
-        self.v: list[torch.Tensor | None] = [None] * Qwen3Config.n_layer
+    def __init__(self, cfg: Qwen3Config = QWEN3_1_7B) -> None:
+        self.cfg = cfg
+        self.k: list[torch.Tensor | None] = [None] * cfg.n_layer
+        self.v: list[torch.Tensor | None] = [None] * cfg.n_layer
         self.length = 0
 
     def evict(self, drop_start: int, drop_end: int, keep=()) -> dict[int, int]:
@@ -51,14 +79,14 @@ class KVCache:
             if not (drop_start <= old < drop_end) or any(s <= old < e for s, e in keep):
                 survive.append(old)
         idx = torch.tensor(survive, device=self.k[0].device)
-        for L in range(Qwen3Config.n_layer):
+        for L in range(self.cfg.n_layer):
             self.k[L] = self.k[L].index_select(2, idx).contiguous()
             self.v[L] = self.v[L].index_select(2, idx).contiguous()
         return {old: new for new, old in enumerate(survive)}
 
 
 class RMSNorm(nn.Module):
-    def __init__(self, dim: int, eps: float = Qwen3Config.rms_eps) -> None:
+    def __init__(self, dim: int, eps: float = QWEN3_1_7B.rms_eps) -> None:
         super().__init__()
         self.weight = nn.Parameter(torch.ones(dim))
         self.eps = eps
@@ -70,8 +98,13 @@ class RMSNorm(nn.Module):
         return (x * self.weight.float()).to(dt)
 
 
-def _rope(t: int, device: torch.device, offset: int = 0) -> tuple[torch.Tensor, torch.Tensor]:
-    c = Qwen3Config
+def _rope(
+    t: int,
+    device: torch.device,
+    offset: int = 0,
+    cfg: Qwen3Config = QWEN3_1_7B,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    c = cfg
     inv = 1.0 / (c.rope_theta ** (torch.arange(0, c.head_dim, 2, device=device).float() / c.head_dim))
     pos = torch.arange(offset, offset + t, device=device).float()
     freqs = torch.outer(pos, inv)
@@ -94,19 +127,20 @@ def _apply_rope(q: torch.Tensor, k: torch.Tensor, cos: torch.Tensor, sin: torch.
 
 
 class _Block(nn.Module):
-    def __init__(self) -> None:
+    def __init__(self, cfg: Qwen3Config) -> None:
         super().__init__()
-        c = Qwen3Config
+        self.cfg = cfg
+        c = cfg
         qd = c.n_head * c.head_dim
         kd = c.n_kv_head * c.head_dim
-        self.input_layernorm = RMSNorm(c.d_model)
+        self.input_layernorm = RMSNorm(c.d_model, c.rms_eps)
         self.q_proj = nn.Linear(c.d_model, qd, bias=False)
         self.k_proj = nn.Linear(c.d_model, kd, bias=False)
         self.v_proj = nn.Linear(c.d_model, kd, bias=False)
         self.o_proj = nn.Linear(qd, c.d_model, bias=False)
-        self.q_norm = RMSNorm(c.head_dim)
-        self.k_norm = RMSNorm(c.head_dim)
-        self.post_attention_layernorm = RMSNorm(c.d_model)
+        self.q_norm = RMSNorm(c.head_dim, c.rms_eps)
+        self.k_norm = RMSNorm(c.head_dim, c.rms_eps)
+        self.post_attention_layernorm = RMSNorm(c.d_model, c.rms_eps)
         self.gate_proj = nn.Linear(c.d_model, c.d_ff, bias=False)
         self.up_proj = nn.Linear(c.d_model, c.d_ff, bias=False)
         self.down_proj = nn.Linear(c.d_ff, c.d_model, bias=False)
@@ -118,12 +152,12 @@ class _Block(nn.Module):
         sin: torch.Tensor,
         inj: torch.Tensor | None = None,
         attn_bias: torch.Tensor | None = None,  # (t, T_total) fp32, pre-softmax
-        cache: "KVCache | None" = None,
+        cache: KVCache | None = None,
         layer_idx: int = -1,
         deficit_gate: tuple | None = None,  # (span_mask[T_total] bool, tau, b_max)
         attn_probe: tuple | None = None,  # (span_mask[T_total] bool, sink dict) -> sink[layer] = last-row mean span mass
     ) -> torch.Tensor:
-        c = Qwen3Config
+        c = self.cfg
         b, t, _ = x.shape
         h = self.input_layernorm(x)
         q = self.q_proj(h).view(b, t, c.n_head, c.head_dim).transpose(1, 2)
@@ -195,13 +229,18 @@ class Qwen3(nn.Module):
     """Plain trunk. The focus-cache graft arrives in P1 as a separate module
     so the trunk stays hash-checkable in isolation."""
 
-    def __init__(self) -> None:
+    def __init__(self, cfg: Qwen3Config = QWEN3_1_7B) -> None:
         super().__init__()
-        c = Qwen3Config
+        self.cfg = cfg
+        c = cfg
         self.embed_tokens = nn.Embedding(c.vocab, c.d_model)
-        self.layers = nn.ModuleList(_Block() for _ in range(c.n_layer))
-        self.norm = RMSNorm(c.d_model)
-        # lm_head tied to embed_tokens.
+        self.layers = nn.ModuleList(_Block(c) for _ in range(c.n_layer))
+        self.norm = RMSNorm(c.d_model, c.rms_eps)
+        self.lm_head = (
+            None
+            if c.tie_word_embeddings
+            else nn.Linear(c.d_model, c.vocab, bias=False)
+        )
 
     def forward(
         self,
@@ -210,7 +249,7 @@ class Qwen3(nn.Module):
         inj: dict[int, torch.Tensor] | None = None,
         attn_bias: dict[int, torch.Tensor] | None = None,
         return_hidden: int | None = None,
-        cache: "KVCache | None" = None,
+        cache: KVCache | None = None,
         capture_hidden: int | None = None,
         bias_hook=None,  # (layer, fn): at layer-input, attn_bias = fn(x)
         deficit_hook=None,  # (layer, fn): at layer-input, gates = fn(x); dict[layer] -> (span_mask, tau, b_max)
@@ -218,7 +257,7 @@ class Qwen3(nn.Module):
     ) -> torch.Tensor:
         x = self.embed_tokens(tokens)
         offset = cache.length if cache is not None else 0
-        cos, sin = _rope(tokens.shape[1], tokens.device, offset)
+        cos, sin = _rope(tokens.shape[1], tokens.device, offset, self.cfg)
         captured = None
         deficit_gates = None
         if return_hidden is not None and cache is not None:
@@ -246,7 +285,10 @@ class Qwen3(nn.Module):
         if cache is not None:
             cache.length = offset + tokens.shape[1]
         x = self.norm(x)
-        logits = x.float() @ self.embed_tokens.weight.float().T
+        output_weight = (
+            self.embed_tokens.weight if self.lm_head is None else self.lm_head.weight
+        )
+        logits = x.float() @ output_weight.float().T
         if capture_hidden is not None:
             return logits, captured
         return logits
