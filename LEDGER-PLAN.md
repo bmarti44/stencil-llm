@@ -256,3 +256,11 @@ context spans, so pinned slots drop in later.
   43 clusters yields a 2.33-point corrected bound > 2.0, so the slice can
   REJECT non-inferiority (or show text/neural vs base effects) but can
   never establish it; positive NI requires the full 909 cohort.
+- ROUND 4 (2026-09-01, results/ledger-reverify4-sol.md): coverage gate,
+  falsification-only rule, laundering defences all VERIFIED. One HIGH:
+  text-beats-base non-vacuity was POOLED; a record with text worse in
+  605/908 conversations still validated. RULING: non-vacuity is
+  CONVERSATION-CLUSTERED — the registered one-sided 95% LOWER bound
+  (same continuity-corrected clustered machinery, sign-flipped) of the
+  per-conversation mean (text - base) on SELECTED eligible outcomes must
+  be > 0; pooled n01>n10 kept as descriptive only.
