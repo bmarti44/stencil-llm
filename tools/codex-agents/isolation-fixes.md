@@ -1,4 +1,4 @@
-# Brief: isolation-fixes — close sol's four acceptance fixes on a133a35 / 462ec76
+# Brief: isolation-fixes — close sol's four required fixes on a133a35 / 462ec76
 
 ## Objective
 Implement exactly the "Acceptance fixes, in order" from results/isolation-round7-verify-sol.md (read the
