@@ -410,3 +410,10 @@ below after the 2026-09-02 research round) on which the automatic mechanism beat
 a clustered lower bound > 0 under ROUND 7 safety, in a run the orchestrator did not tune on; (3) fable/sol/kimi
 sign-off on the artifact. The model card must carry the single-turn negative and the "retention/re-injection,
 not amplification" qualification. Deploy package: deploy/stencil_wave (empty ledger == OFF bitwise).
+
+## TRUNK SIZE DECISION (Brian, 2026-09-02): prepare Qwen3-4B in parallel; do not slow the ladder
+Current ladder (H1′, 909 text_ledger confirmation) stays on Qwen3-1.7B where harnesses and fixtures exist. In
+parallel, the trunk is generalized to Qwen3 dense sizes (brief tools/codex-agents/qwen3-4b-trunk.md) with a
+bitwise 1.7B regression gate, and Qwen/Qwen3-4B is converted and parity-checked so the AGENTIC stage (benchmark
+registered after the 2026-09-02 research round) can run on 4B, where base tool competence is less likely to mask
+the mechanism. Cost note: 4B is ~2x slower per token; budgets are re-estimated per benchmark before launch.
