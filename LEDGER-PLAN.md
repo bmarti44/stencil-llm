@@ -277,3 +277,9 @@ context spans, so pinned slots drop in later.
   uses CREDITED neural (fail-closed on unselected cells), the estimand's
   neural; raw neural would let unselected cells launder the gate. Flagged
   for sol round 6.
+- ROUND 6 (2026-09-01, results/ledger-reverify6-sol.md): LAUNCH — the 113
+  slice as a falsification-only screen AND the full 909 cohort as the
+  confirmatory run. Runner frozen at this commit for both; any further
+  edit re-opens verification. GPU sequencing once the GPU is free:
+  (1) sealed single-turn confirmation resume (574->1024) + gate;
+  (2) 5-arm KV probe rerun (20 sessions); (3) 113 slice; (4) 909 cohort.
