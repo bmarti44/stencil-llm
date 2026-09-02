@@ -3,6 +3,9 @@ single-use) may be referenced ONLY by the registered sealed runner and the
 vendor/parity tests. A salience builder trained on it on 2026-09-01 (caught
 by the orchestrator, refit ordered); this test makes the invariant
 mechanical."""
+import hashlib
+import json
+import stat
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -11,6 +14,7 @@ ALLOWED = {
     "scripts/b0_score_parity.py",     # scorer parity (no model)
     "tests/test_b3_gen.py",
     "tests/test_ifeval_vendor.py",
+    "tests/test_pretool_guard.py",    # guard decision-table fixture only
     "tests/test_sealed_guard.py",
 }
 
@@ -24,3 +28,10 @@ def test_sealed_ifeval_referenced_only_by_allowlist():
                 if rel not in ALLOWED:
                     hits.append(rel)
     assert not hits, f"sealed IFEval referenced outside the allowlist: {hits}"
+
+
+def test_sealed_ifeval_hash_and_read_only_mode_match_manifest():
+    sealed = ROOT / "data" / "bench" / "ifeval_input_data.jsonl"
+    manifest = json.loads((ROOT / "data" / "bench" / "pins-manifest.json").read_text())
+    assert hashlib.sha256(sealed.read_bytes()).hexdigest() == manifest["sealed_sha256"]
+    assert stat.S_IMODE(sealed.stat().st_mode) == 0o444

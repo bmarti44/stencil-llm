@@ -152,7 +152,9 @@ def test_complete_valid_run_passes_and_reports_estimand(ev):
     p = s["primary"]
     assert p["clustered"]["method"] == "t_continuity" and p["non_inferior"] is True
     assert p["clustered"]["upper_bound"] == 100.0 / 909 and p["clustered"]["t_upper_bound_descriptive"] == 0.0
-    assert s["validity"]["timeouts_truncations_le_2pct"] is True and s["timeouts_or_truncations"]["base"] == 0
+    assert s["validity"]["timeouts_le_2pct"] is True
+    assert s["validity"]["truncation_excess_over_base_le_2pct"] is True
+    assert s["timeouts"]["base"] == 0 and s["truncations"]["base"] == 0
     assert s["validity"]["records_identity"] is True and s["validity"]["records_echo_registered_config"] is True
     assert s["validity"]["expected_turns_present"] is True and s["turns"] == 909
     assert s["validity"]["ledger_coverage_ge_0.90"] is True and s["eligible"]["selected_fraction"] == 1.0
@@ -234,20 +236,51 @@ def test_sol2_one_turn_records_when_cohort_requires_more_turns_are_invalid(ev):
     assert s["validity"]["expected_turns_present"] is False
 
 
-def test_sol2_base_timing_out_on_every_turn_is_invalid(ev):
-    """the 2% timeouts/truncations cap must bind EVERY arm, base included."""
+def mark_generation_flag(recs, arm_name, flag, count):
+    for rec in recs[:count]:
+        branch = rec["turns"]["2"]["base"] if arm_name == "base" else rec["turns"]["2"]["arms"][arm_name]
+        branch[flag] = True
+
+
+def test_round7_base_10pct_treatment_11pct_truncation_passes(ev):
     recs = complete_run(ev)
-    for r in recs:
-        r["turns"]["2"]["base"]["timed_out"] = True
+    mark_generation_flag(recs, "base", "truncated", 91)  # 10.01%
+    for arm_name in ev.ARMS:
+        mark_generation_flag(recs, arm_name, "truncated", 100)  # 11.00%, < +2 points
     s = summ(ev, recs)
-    assert s["primary_claim_valid"] is False and s["validity"]["timeouts_truncations_le_2pct"] is False
-    assert s["timeouts_or_truncations_fraction"]["base"] == 1.0
+    assert s["primary_claim_valid"] is True, s["primary_claim_reasons"]
+    assert s["validity"]["truncation_excess_over_base_le_2pct"] is True
+    assert s["truncations_fraction"]["base"] == pytest.approx(91 / 909)
+    assert s["truncations_fraction"]["neural_ledger"] == pytest.approx(100 / 909)
+    assert s["excess_truncation_over_base"]["neural_ledger"] == pytest.approx(9 / 909)
+
+
+def test_round7_base_10pct_treatment_13pct_truncation_fails(ev):
     recs = complete_run(ev)
-    for r in recs[:19]:  # 2.09% of base truncated
-        r["turns"]["2"]["base"]["truncated"] = True
+    mark_generation_flag(recs, "base", "truncated", 91)
+    mark_generation_flag(recs, "neural_ledger", "truncated", 118)  # +2.97 points
     s = summ(ev, recs)
-    assert s["validity"]["timeouts_truncations_le_2pct"] is False
-    assert s["validity"]["timeouts_truncations_per_arm"]["base"] is False
+    assert s["primary_claim_valid"] is False
+    assert s["validity"]["truncation_excess_over_base_le_2pct"] is False
+    assert s["validity"]["truncation_excess_per_treatment"]["neural_ledger"] is False
+
+
+def test_round7_timeouts_3pct_fail_regardless_of_truncation_baseline(ev):
+    recs = complete_run(ev)
+    mark_generation_flag(recs, "base", "truncated", 91)
+    mark_generation_flag(recs, "neural_ledger", "timed_out", 28)  # 3.08%
+    s = summ(ev, recs)
+    assert s["primary_claim_valid"] is False and s["validity"]["timeouts_le_2pct"] is False
+    assert s["validity"]["timeouts_per_arm"]["neural_ledger"] is False
+
+
+def test_round7_truncated_turns_are_scored_as_is_and_never_excluded(ev):
+    recs = complete_run(ev)
+    mark_generation_flag(recs, "base", "truncated", 1)
+    recs[0]["turns"]["2"]["base"]["per_constraint"] = [False, False, False]
+    s = summ(ev, recs)
+    assert s["eligible"]["n"] == 909
+    assert s["secondary_all_constraints_descriptive"]["accuracy"]["base"] == pytest.approx((909 * 3 - 305) / (909 * 3))
 
 
 def test_sol2_half_of_eligible_unselected_with_text_failing_the_same_half_is_invalid(ev):
@@ -691,10 +724,7 @@ def test_each_gate_condition_invalidates(ev, break_):
         for r in recs[:19]:  # 19/909 = 2.09% > 2%
             r["turns"]["2"]["arms"]["neural_ledger"]["timed_out"] = True
     elif break_ == "truncations":
-        for r in recs[:10]:
-            r["turns"]["2"]["arms"]["text_ledger"]["timed_out"] = True
-        for r in recs[10:19]:
-            r["turns"]["2"]["arms"]["text_ledger"]["truncated"] = True
+        mark_generation_flag(recs, "text_ledger", "truncated", 19)  # +2.09 points over zero base
     elif break_ == "text_not_better":
         for r in recs:
             r["turns"]["2"]["arms"]["text_ledger"]["per_constraint"] = list(r["turns"]["2"]["base"]["per_constraint"])
@@ -732,7 +762,8 @@ def test_each_gate_condition_invalidates(ev, break_):
     if break_ == "bound":
         assert s["primary"]["clustered"]["upper_bound"] > 2.0 and s["primary"]["non_inferior"] is False
     if break_ in ("timeouts", "truncations"):
-        assert s["validity"]["timeouts_truncations_le_2pct"] is False
+        assert (s["validity"]["timeouts_le_2pct"] is False
+                or s["validity"]["truncation_excess_over_base_le_2pct"] is False)
     if break_ == "coverage":
         assert "ledger_coverage_below_0.90" in s["primary_claim_reasons"] and s["validity"]["unselected_not_all_failing"] is True
     if break_ == "unselected_all_failing":
