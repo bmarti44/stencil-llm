@@ -273,3 +273,7 @@ context spans, so pinned slots drop in later.
   conversation-clustered neural-vs-base superiority on all eligible
   outcomes (registered lower bound > 0) — "neural must do something at
   all" is now mechanical, not prose.
+- FIX ROUND 5 reading (2026-09-01): the neural-vs-base superiority gate
+  uses CREDITED neural (fail-closed on unselected cells), the estimand's
+  neural; raw neural would let unselected cells launder the gate. Flagged
+  for sol round 6.

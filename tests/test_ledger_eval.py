@@ -125,8 +125,9 @@ def identity(n=909, turns=("2",)):
 
 
 def complete_run(ev, n=909):
-    """A run that PASSES every gate: text beats base on eligible outcomes, neural ties text,
-    the ledger is active everywhere, tokens measured zero, no timeouts."""
+    """A run that PASSES every gate: base fails the eligible cell in one conversation of three
+    and BOTH text and neural fix it there (a +33-point clustered effect for each vs base,
+    neural ties text), the ledger is active everywhere, tokens measured zero, no timeouts."""
     recs = []
     for ci in range(n):
         base = [False, True, True] if ci % 3 == 0 else [True, True, True]
@@ -375,12 +376,26 @@ def two_turn_run(ev, n=909, single_turn=()):
     return recs, ident
 
 
-def set_cell(rec, turn, *, base, text):
-    """the eligible cell of one turn: base/text pass or fail; neural TIES text (diff 0)."""
+def set_cell(rec, turn, *, base, text, neural=None):
+    """the eligible cell of one turn: base/text pass or fail; neural TIES text (diff 0)
+    unless given explicitly."""
     t = rec["turns"][turn]
     t["base"]["per_constraint"] = [base, True, True]
     t["arms"]["text_ledger"]["per_constraint"] = [text, True, True]
-    t["arms"]["neural_ledger"]["per_constraint"] = [text, True, True]
+    t["arms"]["neural_ledger"]["per_constraint"] = [text if neural is None else neural, True, True]
+
+
+def unselect_turn(rec, turn):
+    """sol's per-turn construction shape: the linked entry of the eligible constraint is NOT
+    selected on this turn (another aged entry keeps the ledger active); cells untouched."""
+    t = rec["turns"][turn]
+    t["ledger"] = [ENTRY1, {**ENTRY1, "text": "Other aged sentence.", "span": [12, 15], "instruction_ids": []}, ENTRY2]
+    t["aged_entry_indices"] = [0, 1]
+    t["arms"]["neural_ledger"]["selected_entries"] = [1]
+    t["ledger_active"] = True
+    for c in t["constraints"]:
+        c["entry_indices"] = [0] if c["origin_turn"] == 1 else [2]
+        c["entry_selected"] = False
 
 
 def test_sol4_pooled_text_advantage_with_clustered_regression_is_invalid(ev):
@@ -418,14 +433,19 @@ def test_sol4_pooled_text_advantage_with_clustered_regression_is_invalid(ev):
     assert s["validity"]["text_beats_base_selected_clustered"] is False  # ... the registered clustered one is not
     assert s["primary"]["clustered"]["upper_bound"] < 2.0                # neural ties text: NI alone would pass
     assert s["primary_claim_valid"] is False
-    assert s["primary_claim_reasons"] == ["text_not_clustered_better_than_base_selected"]
+    # ROUND 5: coverage is 1.0 (all eligible == selected) and neural ties text, so the
+    # all-eligible text gate and the neural-vs-base gate fail for the same reversal
+    assert s["primary_claim_reasons"] == ["text_not_clustered_better_than_base_selected",
+                                          "text_not_clustered_better_than_base_all_eligible",
+                                          "neural_not_clustered_better_than_base"]
     # and pooled-vs-clustered disagreement is exactly the lesson: n01 > n10 must not be a gate
     assert "text_vs_base_selected_pooled" not in s["primary_claim_reasons"]
 
 
 def test_text_better_in_most_conversations_passes_the_clustered_gate(ev):
-    """positive case: text improves the eligible cell on both turns of 600 conversations,
-    regresses on one turn of 200 and ties on 109: a clear clustered margin."""
+    """positive case: text (and neural, which ties it) improves the eligible cell on both
+    turns of 600 conversations, regresses on one turn of 200 and ties on 109: a clear
+    clustered margin on the selected, the all-eligible and the neural-vs-base statistics."""
     recs, ident = two_turn_run(ev)
     for ci in range(600):
         set_cell(recs[ci], "2", base=False, text=True)
@@ -438,7 +458,133 @@ def test_text_better_in_most_conversations_passes_the_clustered_gate(ev):
     assert cl["conversations_text_better"] == 600 and cl["conversations_text_worse"] == 200
     assert cl["lower_bound"] > 0 and cl["lower_bound"] < cl["mean"]
     assert s["validity"]["text_beats_base_selected_clustered"] is True and s["validity"]["text_vs_base_selected_pooled"] is True
+    # ROUND 5: coverage 1.0 -> the all-eligible statistic equals the selected one; neural ties text
+    for key in ("text_vs_base_all_eligible_clustered", "neural_vs_base_all_eligible_clustered"):
+        blk = s[key]
+        assert blk["k"] == 909 and abs(blk["mean"] - cl["mean"]) < 1e-9 and blk["lower_bound"] == cl["lower_bound"]
+        assert blk["conversations_better"] == 600 and blk["conversations_worse"] == 200 and blk["conversations_tied"] == 109
+    assert s["validity"]["text_beats_base_all_eligible_clustered"] is True
+    assert s["validity"]["neural_beats_base_all_eligible_clustered"] is True
     assert s["primary_claim_valid"] is True, s["primary_claim_reasons"]
+
+
+# ---------------------------------------------- sol round 5 (results/ledger-reverify5-sol.md, two HIGH)
+def sol5_simpson_reversal_run(ev):
+    """sol round 5 HIGH 1: 909 records / 1,805 outcomes, coverage 1,625/1,805 = 90.03%, pooled
+    text-vs-base 180 improvements vs 179 regressions, SELECTED clustered lower bound +8.28,
+    but the per-conversation mean (text - base) over ALL eligible outcomes is -0.6601 (text
+    better in 90 conversations, worse in 179, tied in 640): the 9.97% unselected cells carry
+    every regression.  Shape: 13 single-turn conversations regress on their (unselected)
+    cell; 166 two-turn conversations regress on one unselected turn; 90 two-turn
+    conversations improve on both (selected) turns; one unselected tied cell (text passes it,
+    so the unselected subset is not all-failing).  Neural ties text on selected cells."""
+    recs, ident = two_turn_run(ev, single_turn=range(13))
+    for ci in range(13):
+        unselect_turn(recs[ci], "2"); set_cell(recs[ci], "2", base=True, text=False)
+    for ci in range(13, 179):
+        unselect_turn(recs[ci], "2"); set_cell(recs[ci], "2", base=True, text=False)
+    for ci in range(179, 269):
+        set_cell(recs[ci], "2", base=False, text=True)
+        set_cell(recs[ci], "3", base=False, text=True)
+    unselect_turn(recs[300], "2")  # tied unselected cell: base and text both pass
+    return recs, ident
+
+
+def test_sol5_simpson_reversal_via_unselected_cells_is_invalid(ev):
+    recs, ident = sol5_simpson_reversal_run(ev)
+    s = summ(ev, recs, ident=ident)
+    assert s["turns"] == 1805 and s["eligible"]["n"] == 1805
+    assert s["eligible"]["n_selected"] == 1625 and s["eligible"]["n_unselected"] == 180
+    assert abs(s["eligible"]["selected_fraction"] - 0.900277) < 5e-7
+    v = s["validity"]
+    assert v["complete_cohort"] and v["expected_turns_present"] and v["records_identity"] and v["ledger_coverage_ge_0.90"]
+    assert v["unselected_not_all_failing"] is True and v["ledger_active_on_credited_turns"] is True
+    pooled = s["text_vs_base[eligible]"]
+    assert pooled["n"] == 1805 and pooled["n01"] == 180 and pooled["n10"] == 179
+    assert v["text_beats_base"] is True and v["text_vs_base_selected_pooled"] is True
+    sel = s["text_vs_base_selected_clustered"]
+    assert sel["k"] == 896 and abs(sel["mean"] - 9000.0 / 896) < 1e-9
+    assert abs(sel["lower_bound"] - 8.2786) < 5e-5 and v["text_beats_base_selected_clustered"] is True  # sol's number
+    assert s["primary"]["clustered"]["upper_bound"] < 2.0                # neural ties text: NI alone would pass
+    # ROUND 5 ruling (i): the registered statistic is over ALL eligible outcomes
+    al = s["text_vs_base_all_eligible_clustered"]
+    assert al["k"] == 909 and abs(al["mean"] - (-600.0 / 909)) < 1e-9 and abs(al["mean"] - (-0.6601)) < 5e-5
+    assert al["conversations_better"] == 90 and al["conversations_worse"] == 179 and al["conversations_tied"] == 640
+    assert al["lower_bound"] < al["mean"] < 0
+    assert v["text_beats_base_all_eligible_clustered"] is False
+    assert s["primary_claim_valid"] is False
+    assert "text_not_clustered_better_than_base_all_eligible" in s["primary_claim_reasons"]
+    assert "text_not_clustered_better_than_base_selected" not in s["primary_claim_reasons"]
+    # credited neural is fail-closed on all 180 unselected cells (the 179 regressions and the
+    # tied cell, where base passes): the ROUND 5 (ii) gate (CREDITED neural - base, all
+    # eligible) reverses too, -650/909 = -0.7151, and is the only other reason
+    nb = s["neural_vs_base_all_eligible_clustered"]
+    assert nb["k"] == 909 and abs(nb["mean"] - (-650.0 / 909)) < 1e-9 and nb["lower_bound"] < 0
+    assert nb["conversations_better"] == 90 and nb["conversations_worse"] == 180 and nb["conversations_tied"] == 639
+    assert s["primary_claim_reasons"] == ["text_not_clustered_better_than_base_all_eligible",
+                                          "neural_not_clustered_better_than_base"]
+
+
+def sol5_ineffective_neural_run(ev):
+    """sol round 5 HIGH 2: a complete 909-record run with eligible accuracy base 0/909,
+    text 5/909, neural 0/909, specificity 0/909, every entry selected: text's clustered lower
+    bound is +0.0359 and the text - neural NI upper bound is 1.0642, so every existing gate
+    passes although neural does nothing at all."""
+    recs = complete_run(ev)
+    for ci, r in enumerate(recs):
+        set_cell(r, "2", base=False, text=(ci < 5), neural=False)
+        r["turns"]["2"]["arms"]["specificity"]["per_constraint"] = [False, True, True]
+    return recs
+
+
+def test_sol5_completely_ineffective_neural_arm_is_invalid(ev):
+    recs = sol5_ineffective_neural_run(ev)
+    s = summ(ev, recs)
+    acc = s["eligible"]["accuracy"]
+    assert s["eligible"]["n"] == 909 and s["eligible"]["selected_fraction"] == 1.0
+    assert acc["base"] == 0.0 and acc["neural_ledger"] == 0.0 and acc["specificity"] == 0.0
+    assert abs(acc["text_ledger"] - 5 / 909) < 1e-12 and abs(100 * acc["text_ledger"] - 0.5501) < 5e-5
+    v = s["validity"]
+    sel = s["text_vs_base_selected_clustered"]
+    assert sel["k"] == 909 and abs(sel["lower_bound"] - 0.0359) < 5e-5 and v["text_beats_base_selected_clustered"] is True
+    assert abs(s["primary"]["clustered"]["upper_bound"] - 1.0642) < 5e-5 and v["clustered_bound_below_margin"] is True
+    assert v["text_beats_base_all_eligible_clustered"] is True  # coverage 1.0: same statistic as the selected one
+    # ROUND 5 ruling (ii): neural must beat base, conversation-clustered, over all eligible outcomes
+    nb = s["neural_vs_base_all_eligible_clustered"]
+    assert nb["k"] == 909 and nb["mean"] == 0.0 and nb["lower_bound"] == -100.0 / 909
+    assert nb["conversations_better"] == 0 and nb["conversations_worse"] == 0 and nb["conversations_tied"] == 909
+    assert v["neural_beats_base_all_eligible_clustered"] is False
+    assert s["primary_claim_valid"] is False
+    assert s["primary_claim_reasons"] == ["neural_not_clustered_better_than_base"]
+
+
+def test_neural_better_in_a_handful_of_conversations_fails_the_neural_gate(ev):
+    """boundary: base fails the eligible cell everywhere, text fixes it in 600 conversations
+    (both turns), neural fixes it in only 3 -> neural - base clustered mean +0.33 points,
+    continuity-corrected lower bound <= 0, the neural gate fails (and NI is rejected too)."""
+    recs, ident = two_turn_run(ev)
+    for ci in range(600):
+        set_cell(recs[ci], "2", base=False, text=True, neural=(ci < 3))
+        set_cell(recs[ci], "3", base=False, text=True, neural=(ci < 3))
+    s = summ(ev, recs, ident=ident)
+    assert s["validity"]["text_beats_base_all_eligible_clustered"] is True
+    assert s["validity"]["text_beats_base_selected_clustered"] is True
+    nb = s["neural_vs_base_all_eligible_clustered"]
+    assert nb["k"] == 909 and abs(nb["mean"] - 300.0 / 909) < 1e-12 and nb["mean"] > 0
+    assert nb["conversations_better"] == 3 and nb["conversations_worse"] == 0 and nb["conversations_tied"] == 906
+    assert nb["lower_bound"] <= 0
+    assert s["validity"]["neural_beats_base_all_eligible_clustered"] is False
+    assert s["primary_claim_valid"] is False
+    assert "neural_not_clustered_better_than_base" in s["primary_claim_reasons"]
+    assert s["primary"]["non_inferior"] is False
+    # and neural better in 3 conversations with text tied everywhere else: the SOLE failing gate
+    recs, ident = two_turn_run(ev)
+    for ci in range(3):
+        set_cell(recs[ci], "2", base=False, text=True)
+    s = summ(ev, recs, ident=ident)
+    nb = s["neural_vs_base_all_eligible_clustered"]
+    assert nb["conversations_better"] == 3 and nb["lower_bound"] <= 0 < nb["mean"]
+    assert "neural_not_clustered_better_than_base" in s["primary_claim_reasons"]
 
 
 def test_tiny_positive_clustered_mean_with_nonpositive_lower_bound_fails(ev):
@@ -475,11 +621,23 @@ def test_sub_registered_cohort_is_a_falsification_only_slice(ev):
     assert v["complete_cohort"] is True and v["records_identity"] is True and v["expected_turns_present"] is True
     assert v["ledger_coverage_ge_0.90"] is True and v["text_beats_base_selected_clustered"] is True
     assert v["clustered_bound_below_margin"] is True  # the slice's own bound, reported but not claimable
+    # ROUND 5: the all-eligible text and neural clustered statistics are reported on the slice too
+    assert v["text_beats_base_all_eligible_clustered"] is True and v["neural_beats_base_all_eligible_clustered"] is True
+    for key in ("text_vs_base_all_eligible_clustered", "neural_vs_base_all_eligible_clustered"):
+        blk = s[key]
+        assert blk["k"] == 113 and blk["lower_bound"] > 0 and blk["conversations_better"] == 38 and blk["conversations_worse"] == 0
+    assert s["primary_claim_reasons"] == ["registered_cohort", "falsification_only_slice"]
     # and the slice CAN still reject: neural drops the eligible constraint on 20/113 conversations
     for r in recs[:20]:
         r["turns"]["2"]["arms"]["neural_ledger"]["per_constraint"] = [False, True, True]
     s2 = summ(ev, recs, cohort_size=113, ident=identity(113))
     assert s2["primary"]["non_inferior"] is False and s2["slice_role"] == "falsification_only"
+    # and an ineffective neural arm on the slice is reported by the ROUND 5 gate (informative there)
+    recs = sol5_ineffective_neural_run(ev)[:113]
+    s3 = summ(ev, recs, cohort_size=113, ident=identity(113))
+    assert s3["slice_role"] == "falsification_only" and s3["validity"]["neural_beats_base_all_eligible_clustered"] is False
+    assert s3["neural_vs_base_all_eligible_clustered"]["k"] == 113 and s3["neural_vs_base_all_eligible_clustered"]["mean"] == 0.0
+    assert "neural_not_clustered_better_than_base" in s3["primary_claim_reasons"]
     # the full registered cohort is not a slice
     assert summ(ev, complete_run(ev))["slice_role"] == "registered_cohort"
     assert "falsification_only_slice" not in summ(ev, complete_run(ev))["primary_claim_reasons"]
@@ -513,7 +671,7 @@ def test_control_incomplete_turns_are_excluded_from_neural_vs_specificity(ev):
 @pytest.mark.parametrize("break_", [
     "top_k", "dose", "max_new", "deadline", "heuristic", "segmenter", "unmeasured_tokens", "nonzero_tokens",
     "timeouts", "truncations", "text_not_better", "inactive_ledger", "bound", "duplicate_ci",
-    "coverage", "unselected_all_failing", "text_not_better_selected",
+    "coverage", "unselected_all_failing", "text_not_better_selected", "text_not_better_all_eligible", "neural_not_better",
 ])
 def test_each_gate_condition_invalidates(ev, break_):
     recs, meta = complete_run(ev), good_meta(ev)
@@ -564,7 +722,11 @@ def test_each_gate_condition_invalidates(ev, break_):
         for ci in range(0, 909, 100):
             recs[ci]["turns"]["2"]["base"]["per_constraint"] = [False, True, True]
             recs[ci]["turns"]["2"]["arms"]["text_ledger"]["per_constraint"] = [True, True, True]
-    s = summ(ev, recs, meta)
+    elif break_ == "text_not_better_all_eligible":  # ROUND 5 HIGH 1: selected cells fine, unselected 10% reverse it
+        recs, ident = sol5_simpson_reversal_run(ev)
+    elif break_ == "neural_not_better":  # ROUND 5 HIGH 2: neural never passes an eligible cell
+        recs = sol5_ineffective_neural_run(ev)
+    s = summ(ev, recs, meta, ident=ident if break_ == "text_not_better_all_eligible" else None)
     assert s["primary_claim_valid"] is False, break_
     assert s["primary_claim_reasons"], break_
     if break_ == "bound":
@@ -577,6 +739,15 @@ def test_each_gate_condition_invalidates(ev, break_):
         assert s["primary_claim_reasons"] == ["unselected_not_all_failing"]
     if break_ == "text_not_better_selected":
         assert s["primary_claim_reasons"] == ["text_not_clustered_better_than_base_selected"] and s["validity"]["text_beats_base"] is True
+    if break_ == "text_not_better_all_eligible":
+        # credited neural is fail-closed on the unselected regression cells, so the neural
+        # gate (conservative reading: CREDITED neural - base) reverses with text there
+        assert s["primary_claim_reasons"] == ["text_not_clustered_better_than_base_all_eligible",
+                                              "neural_not_clustered_better_than_base"]
+        assert s["validity"]["text_beats_base_selected_clustered"] is True and s["validity"]["text_beats_base"] is True
+    if break_ == "neural_not_better":
+        assert s["primary_claim_reasons"] == ["neural_not_clustered_better_than_base"]
+        assert s["validity"]["text_beats_base_all_eligible_clustered"] is True and s["validity"]["clustered_bound_below_margin"] is True
 
 
 def test_estimand_excludes_fresh_and_noninsertable_and_credits_only_selected(ev):
