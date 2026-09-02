@@ -2289,3 +2289,10 @@ anyway (0.854/0.860 blind; precision 0.95/0.94).
 - pinned_wave: degenerate 13/56, mean rep4 0.533, trunc 12 → the wave dose on pinned columns degenerates; its raw rate is not creditable. Same qualitative reading as v1.
 - Artifacts: results/qwen/ledger-kv-probe-v2/ (meta, summary, 20 session records), force-added. Sol CPU-only verification requested (results/ledger-kv-verify2-sol.md).
 - Step 3 launched: 113 slice `scripts/ledger_eval.py --diagnostic-only` (falsification-only).
+
+## 2026-09-02 08:05 — KV PROBE v2 VERIFICATION (sol, CPU-only): CONFIRMED-WITH-QUALIFICATIONS
+- All summary.json numbers recompute exactly; 100/100 score vectors replay; 5 registered arms; no template double-wrap; RoPE continuation confirmed.
+- CORRECTION to the 07:40 entry: pinned_wave degeneracy is 13/20 SESSIONS (12/20 truncate), not 13/56 — HIGH. The pinned_wave rate (0.643) and its 0.808 recovery fraction are raw diagnostics only; no gate credit.
+- MEDIUM: pinned_control is multi-span and nominal-width matched but not exact in surviving columns (pinned 1,274 vs control 1,290; exact in 5/20). The +0.196 specificity claim carries this qualification.
+- MEDIUM: meta provenance incomplete (determinism/tokenizer/span-extraction/scorer not hashed). LOW: token IDs absent from records; runner docstring omits the 5th arm.
+- Creditable reading stands: unamplified pinning recovers ~62% of the eviction gap and beats the (approximately) matched control by ~20 pts. Report: results/ledger-kv-verify2-sol.md.

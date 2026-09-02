@@ -283,3 +283,6 @@ context spans, so pinned slots drop in later.
   edit re-opens verification. GPU sequencing once the GPU is free:
   (1) sealed single-turn confirmation resume (574->1024) + gate;
   (2) 5-arm KV probe rerun (20 sessions); (3) 113 slice; (4) 909 cohort.
+
+## KV PROBE v2 VERIFICATION (2026-09-02, sol xhigh, CPU-only)
+Verdict CONFIRMED-WITH-QUALIFICATIONS (results/ledger-kv-verify2-sol.md). Arithmetic exact. Creditable: pinned 31/56 vs evicted 15/56 vs full 41/56 (recovers 0.615 of gap); pinned − control = +0.196 with an approximate (not exact-column) mass match. Not creditable: pinned_wave (degenerate in 13/20 sessions, 12/20 truncations) — consistent with v1: the wave dose on pinned columns degenerates. Open items for the next probe iteration: exact-column control matching, full provenance hash set, token IDs in records, docstring.
