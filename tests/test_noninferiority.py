@@ -228,3 +228,29 @@ def test_corrected_bound_false_pass_under_mixed_discordance_by_simulation():
             d.append(100.0 if r < 0.03 else (-100.0 if r < 0.04 else 0.0))
         fp += clustered_upper_bound_corrected(d) < MARGIN_SOL
     assert fp / trials <= 0.07, fp / trials  # 400 trials: MC se ~1.1 points
+
+
+# ---------------------------------------------- ROUND 4 (results/ledger-reverify4-sol.md): clustered LOWER bound
+def test_clustered_lower_bound_hand_computed_and_sign_relation():
+    """the one-sided 95% LOWER bound uses the SAME registered continuity-corrected
+    clustered machinery, sign-flipped: -clustered_bound(-diffs)["upper_bound"].
+    Hand case 1..10: mean 5.5, sd 3.0276504, t_{0.95,9} = 1.8331129, half-width
+    1.7550730 -> t lower 3.7449270, minus one whole-cluster flip 100/10 -> -6.2550730."""
+    from stencil.stats import clustered_bound, clustered_lower_bound
+
+    diffs = list(range(1, 11))
+    lb = clustered_lower_bound(diffs)
+    assert lb["method"] == "t_continuity" and lb["clusters"] == 10 and lb["alpha"] == 0.05
+    assert abs(lb["mean"] - 5.5) < 1e-12
+    assert abs(lb["t_lower_bound_descriptive"] - 3.744927) < 1e-5
+    assert abs(lb["lower_bound"] - (-6.255073)) < 1e-5
+    assert lb["continuity_points"] == 10.0
+    # exact sign relation against the registered upper bound, on several shapes
+    for d in (diffs, [0.0] * 20, [100.0] * 5 + [0.0] * 4, [-3.0, 2.5, 0.0, 7.0], [1e-3] * 3):
+        assert clustered_lower_bound(d)["lower_bound"] == -clustered_bound([-x for x in d])["upper_bound"]
+        assert clustered_lower_bound(d)["lower_bound"] < clustered_bound(d)["upper_bound"]
+    # zero between-cluster variance: the flip alone sets the width
+    assert clustered_lower_bound([100.0] * 25)["lower_bound"] == 100.0 - 4.0
+    # fewer than two clusters fails closed like the upper bound
+    one = clustered_lower_bound([5.0])
+    assert one["lower_bound"] is None and one["error"]

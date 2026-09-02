@@ -39,6 +39,16 @@ separately and must not be all-failing; (iii) any cohort_size below the
 registered 909 is a FALSIFICATION-ONLY slice: it can reject non-inferiority but
 never establish it (primary_claim_valid is False with reason
 falsification_only_slice; every other condition is still reported).
+
+Round 4 (results/ledger-reverify4-sol.md, LEDGER-PLAN.md ROUND 4 ruling): the pooled
+n01 > n10 non-vacuity gate on the selected subset laundered a record with text WORSE
+than base in 605/908 conversations (606 vs 605 pooled cells, clustered mean -0.66).
+Non-vacuity is CONVERSATION-CLUSTERED: the registered one-sided 95% LOWER bound (the
+same continuity-corrected clustered machinery, sign-flipped: stats.clustered_lower_bound)
+of the per-conversation mean (text - base, points) over SELECTED eligible outcomes must
+be > 0 (text_beats_base_selected_clustered, reason
+text_not_clustered_better_than_base_selected); the pooled n01 > n10 is descriptive only
+(text_vs_base_selected_pooled, never a gate).
 """
 
 import argparse
@@ -58,7 +68,10 @@ REGISTERED_COHORT = 909
 MARGIN_POINTS = 2.0
 REGISTERED_COVERAGE = 0.90  # ROUND 3 ruling (i): selected linked entry on >= 90% of eligible constraints
 # validity keys whose failure is reported under a registered reason name
-GATE_REASONS = {"ledger_coverage_ge_0.90": "ledger_coverage_below_0.90"}
+GATE_REASONS = {"ledger_coverage_ge_0.90": "ledger_coverage_below_0.90",
+                "text_beats_base_selected_clustered": "text_not_clustered_better_than_base_selected"}
+# validity fields reported for the audit but NEVER part of the all-of gate
+DESCRIPTIVE_VALIDITY = ("timeouts_truncations_per_arm", "text_vs_base_selected_pooled")
 MAX_TIMEOUT_TRUNCATION_FRACTION = 0.02
 SEGMENTER_IDENTITY = "stencil.salience.split_sentences"
 PROVENANCE_FILES = {
@@ -314,7 +327,7 @@ def summarize(records, meta, *, cohort_size, identity, margin_points=MARGIN_POIN
     is ``cohort_identity(rows)``: every record is checked against it (ci, key, expected
     late turns), for its arm set and for its echo of the frozen configuration."""
     from stencil.ledger import non_inferiority_summary
-    from stencil.stats import clustered_bound
+    from stencil.stats import clustered_bound, clustered_lower_bound
 
     arms = ("base",) + ARMS
     cells_all = {a: [] for a in arms}
@@ -327,7 +340,7 @@ def summarize(records, meta, *, cohort_size, identity, margin_points=MARGIN_POIN
     turns = automatic_turns = empty_ledger_turns = credited_turns = credited_turns_active = 0
     control_incomplete_turns = 0
     selected_hist = {}
-    per_conv_diff, per_conv_spec = {}, {}
+    per_conv_diff, per_conv_spec, per_conv_text_base_selected = {}, {}, {}
     cis = [r["ci"] for r in records]
     identity_ok = arm_set_ok = config_ok = turns_ok = True
     for rec in records:
@@ -368,6 +381,8 @@ def summarize(records, meta, *, cohort_size, identity, margin_points=MARGIN_POIN
                         per_conv_spec.setdefault(rec["ci"], []).append(100.0 * (float(r["neural_raw"]) - float(r["specificity"])))
                     if r["entry_selected"]:
                         elig_selected["base"].append(r["base"]); elig_selected["text"].append(r["text"])
+                        # ROUND 4: text - base (points) on the SELECTED eligible cells, per conversation
+                        per_conv_text_base_selected.setdefault(rec["ci"], []).append(100.0 * (float(r["text"]) - float(r["base"])))
                     else:
                         elig_unselected["base"].append(r["base"]); elig_unselected["text"].append(r["text"])
                         elig_unselected["neural_raw"].append(r["neural_raw"])
@@ -388,6 +403,22 @@ def summarize(records, meta, *, cohort_size, identity, margin_points=MARGIN_POIN
     n_unselected = len(elig_unselected["text"])
     coverage = (n_selected / n_elig) if n_elig else None
     selected_text_vs_base = _pair(elig_selected["base"], elig_selected["text"]) if n_selected else None
+    # ROUND 4 ruling: the registered non-vacuity statistic — conversation-clustered one-sided
+    # 95% LOWER bound of the per-conversation mean (text - base) over selected eligible cells
+    selected_conv_means = [_rate(v) for _, v in sorted(per_conv_text_base_selected.items())]
+    text_base_lower = clustered_lower_bound(selected_conv_means, alpha=0.05)
+    text_vs_base_selected_clustered = {
+        "sign": "text - base (points; positive = text better), per-conversation mean over SELECTED eligible outcomes",
+        "mean": text_base_lower["mean"], "lower_bound": text_base_lower["lower_bound"], "k": text_base_lower["clusters"],
+        "method": text_base_lower["method"], "alpha": text_base_lower["alpha"],
+        "continuity_points": text_base_lower.get("continuity_points"),
+        "t_lower_bound_descriptive": text_base_lower.get("t_lower_bound_descriptive"),
+        "conversations_text_better": sum(1 for m in selected_conv_means if m > 0),
+        "conversations_text_worse": sum(1 for m in selected_conv_means if m < 0),
+        "conversations_tied": sum(1 for m in selected_conv_means if m == 0),
+    }
+    if "error" in text_base_lower:
+        text_vs_base_selected_clustered["error"] = text_base_lower["error"]
     unselected_text_vs_base = _pair(elig_unselected["base"], elig_unselected["text"]) if n_unselected else None
     slice_role = "falsification_only" if cohort_size < REGISTERED_COHORT else "registered_cohort"
     registered = meta.get("registered", REGISTERED)
@@ -413,7 +444,11 @@ def summarize(records, meta, *, cohort_size, identity, margin_points=MARGIN_POIN
         # ROUND 3 ruling (ii): text's advantage must hold WITHIN the selected subset (cells
         # where the ledger was actually exercised), and the unselected subset must not be
         # 100% text-failing (sol's construction: text fails exactly the unselected cells)
-        "text_beats_base_selected": bool(selected_text_vs_base and selected_text_vs_base["n01"] > selected_text_vs_base["n10"]),
+        # ROUND 4 ruling: the pooled n01 > n10 is DESCRIPTIVE (sol: 606 vs 605 pooled cells while
+        # text was worse in 605/908 conversations); the gate is the clustered lower bound > 0
+        "text_vs_base_selected_pooled": bool(selected_text_vs_base and selected_text_vs_base["n01"] > selected_text_vs_base["n10"]),
+        "text_beats_base_selected_clustered": (text_vs_base_selected_clustered["lower_bound"] is not None
+                                               and text_vs_base_selected_clustered["lower_bound"] > 0.0),
         "unselected_not_all_failing": n_unselected == 0 or any(elig_unselected["text"]),
         "ledger_active_on_credited_turns": credited_turns > 0 and credited_turns_active == credited_turns,
         # sol round 2 / ROUND 3 ruling (i): turn-level activity is not enough and a strict
@@ -422,7 +457,7 @@ def summarize(records, meta, *, cohort_size, identity, margin_points=MARGIN_POIN
         "ledger_coverage_ge_0.90": n_elig > 0 and coverage >= REGISTERED_COVERAGE,
         "clustered_bound_below_margin": primary_bound["upper_bound"] is not None and primary_bound["upper_bound"] < margin_points,
     }
-    validity_gate = {k: v for k, v in validity.items() if k != "timeouts_truncations_per_arm"}
+    validity_gate = {k: v for k, v in validity.items() if k not in DESCRIPTIVE_VALIDITY}
     out = {
         "turns": turns, "automatic_turns": automatic_turns, "empty_ledger_turns": empty_ledger_turns,
         "credited_turns": credited_turns, "credited_turns_ledger_active": credited_turns_active,
@@ -449,7 +484,8 @@ def summarize(records, meta, *, cohort_size, identity, margin_points=MARGIN_POIN
             "tango_pooled_descriptive": non_inferiority_summary(elig["text_ledger"], elig["neural_ledger"], margin_points=margin_points),
         },
         "text_vs_base[eligible]": text_vs_base,
-        "selected_text_vs_base": selected_text_vs_base,      # eligible AND linked entry selected
+        "selected_text_vs_base": selected_text_vs_base,      # eligible AND linked entry selected (pooled, descriptive)
+        "text_vs_base_selected_clustered": text_vs_base_selected_clustered,  # ROUND 4: the registered non-vacuity statistic
         "unselected_text_vs_base": unselected_text_vs_base,  # eligible AND linked entry NOT selected
         "slice_role": slice_role,
         "neural_vs_base[eligible]": _pair(elig["base"], elig["neural_ledger"]) if n_elig else None,

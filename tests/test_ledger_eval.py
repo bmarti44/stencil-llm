@@ -155,7 +155,7 @@ def test_complete_valid_run_passes_and_reports_estimand(ev):
     assert s["validity"]["records_identity"] is True and s["validity"]["records_echo_registered_config"] is True
     assert s["validity"]["expected_turns_present"] is True and s["turns"] == 909
     assert s["validity"]["ledger_coverage_ge_0.90"] is True and s["eligible"]["selected_fraction"] == 1.0
-    assert s["validity"]["text_beats_base_selected"] is True and s["validity"]["unselected_not_all_failing"] is True
+    assert s["validity"]["text_beats_base_selected_clustered"] is True and s["validity"]["unselected_not_all_failing"] is True
     assert s["unselected_text_vs_base"] is None and s["slice_role"] == "registered_cohort"
     assert s["neural_vs_specificity"]["control_incomplete_turns"] == 0
     assert p["tango_pooled_descriptive"]["n"] == 909
@@ -315,7 +315,7 @@ def test_sol3_just_over_half_selected_with_text_failing_the_unselected_half_is_i
     assert s["validity"]["unselected_not_all_failing"] is False
     assert "unselected_not_all_failing" in s["primary_claim_reasons"]
     # and text-vs-base within the SELECTED subset is evaluated on its own
-    assert s["validity"]["text_beats_base_selected"] is True
+    assert s["validity"]["text_beats_base_selected_clustered"] is True
     assert s["selected_text_vs_base"]["n"] == 455 and s["selected_text_vs_base"]["n01"] > 0
 
 
@@ -333,10 +333,10 @@ def test_sol3_text_beating_base_only_on_unselected_cells_fails_the_selected_gate
     s = summ(ev, recs)
     assert s["validity"]["ledger_coverage_ge_0.90"] is True
     assert s["validity"]["text_beats_base"] is True                 # the overall test is fooled
-    assert s["validity"]["text_beats_base_selected"] is False       # the registered one is not
+    assert s["validity"]["text_beats_base_selected_clustered"] is False       # the registered one is not
     assert s["selected_text_vs_base"]["n01"] == s["selected_text_vs_base"]["n10"]
     assert s["validity"]["unselected_not_all_failing"] is True and s["unselected_text_vs_base"]["n01"] == 45
-    assert s["primary_claim_valid"] is False and "text_beats_base_selected" in s["primary_claim_reasons"]
+    assert s["primary_claim_valid"] is False and "text_not_clustered_better_than_base_selected" in s["primary_claim_reasons"]
 
 
 def test_coverage_of_0_95_with_mixed_unselected_outcomes_passes(ev):
@@ -354,8 +354,112 @@ def test_coverage_of_0_95_with_mixed_unselected_outcomes_passes(ev):
     u = s["unselected_text_vs_base"]
     assert u["n"] == 45 and u["n00"] == 40 and u["n01"] == 5
     assert s["validity"]["unselected_not_all_failing"] is True
-    assert s["validity"]["text_beats_base_selected"] is True and s["validity"]["text_beats_base"] is True
+    assert s["validity"]["text_beats_base_selected_clustered"] is True and s["validity"]["text_beats_base"] is True
     assert s["primary_claim_valid"] is True, s["primary_claim_reasons"]
+
+
+def two_turn_run(ev, n=909, single_turn=()):
+    """a complete run whose conversations have late turns 2 AND 3 (1 eligible outcome each,
+    turn 3 a copy of turn 2 as in sol's constructions: 1,805 outcomes when 13 are single-turn)
+    with text == base everywhere; returns (records, identity)."""
+    recs = complete_run(ev, n=n)
+    ident = identity(n)
+    for ci, r in enumerate(recs):
+        t = r["turns"]["2"]
+        t["base"]["per_constraint"] = [True, True, True]
+        t["arms"]["text_ledger"]["per_constraint"] = [True, True, True]
+        t["arms"]["neural_ledger"]["per_constraint"] = [True, True, True]
+        if ci not in single_turn:
+            r["turns"]["3"] = copy.deepcopy(t)
+            ident[ci]["turns"] = ["2", "3"]
+    return recs, ident
+
+
+def set_cell(rec, turn, *, base, text):
+    """the eligible cell of one turn: base/text pass or fail; neural TIES text (diff 0)."""
+    t = rec["turns"][turn]
+    t["base"]["per_constraint"] = [base, True, True]
+    t["arms"]["text_ledger"]["per_constraint"] = [text, True, True]
+    t["arms"]["neural_ledger"]["per_constraint"] = [text, True, True]
+
+
+def test_sol4_pooled_text_advantage_with_clustered_regression_is_invalid(ev):
+    """sol round 4 HIGH (results/ledger-reverify4-sol.md): a complete 909-conversation /
+    1,805-outcome record with pooled text-vs-base 606 improvements vs 605 regressions
+    (+0.0554 points, McNemar p = 0.5) but text better in only 303 conversations and worse
+    in 605: conversation-clustered mean text - base = -0.6601 points.  Every other gate
+    passes.  ROUND 4 ruling: non-vacuity is CONVERSATION-CLUSTERED (registered one-sided
+    95% lower bound of the per-conversation mean over selected eligible outcomes > 0);
+    the pooled n01 > n10 is descriptive only.
+    Shape: 13 single-turn conversations regress (-100); 592 two-turn conversations regress
+    on one turn (-50); 303 two-turn conversations improve on both (+100); 1 tied."""
+    recs, ident = two_turn_run(ev, single_turn=range(13))
+    for ci in range(13):
+        set_cell(recs[ci], "2", base=True, text=False)
+    for ci in range(13, 605):
+        set_cell(recs[ci], "2", base=True, text=False)
+    for ci in range(605, 908):
+        set_cell(recs[ci], "2", base=False, text=True)
+        set_cell(recs[ci], "3", base=False, text=True)
+    s = summ(ev, recs, ident=ident)
+    assert s["turns"] == 1805 and s["eligible"]["n"] == 1805 and s["eligible"]["selected_fraction"] == 1.0
+    assert s["validity"]["complete_cohort"] and s["validity"]["expected_turns_present"] and s["validity"]["records_identity"]
+    pooled = s["selected_text_vs_base"]
+    assert pooled["n"] == 1805 and pooled["n01"] == 606 and pooled["n10"] == 605
+    assert abs(pooled["improve_points"] - 100.0 / 1805) < 1e-12 and abs(pooled["improve_points"] - 0.0554) < 5e-5
+    assert pooled["mcnemar_improve_p_exploratory"] == 0.5
+    assert s["validity"]["text_vs_base_selected_pooled"] is True          # the old pooled gate is fooled ...
+    assert s["validity"]["text_beats_base"] is True
+    cl = s["text_vs_base_selected_clustered"]
+    assert cl["k"] == 909
+    assert abs(cl["mean"] - (-600.0 / 909)) < 1e-9 and abs(cl["mean"] - (-0.6601)) < 5e-5
+    assert cl["lower_bound"] < cl["mean"] < 0
+    assert cl["conversations_text_better"] == 303 and cl["conversations_text_worse"] == 605
+    assert s["validity"]["text_beats_base_selected_clustered"] is False  # ... the registered clustered one is not
+    assert s["primary"]["clustered"]["upper_bound"] < 2.0                # neural ties text: NI alone would pass
+    assert s["primary_claim_valid"] is False
+    assert s["primary_claim_reasons"] == ["text_not_clustered_better_than_base_selected"]
+    # and pooled-vs-clustered disagreement is exactly the lesson: n01 > n10 must not be a gate
+    assert "text_vs_base_selected_pooled" not in s["primary_claim_reasons"]
+
+
+def test_text_better_in_most_conversations_passes_the_clustered_gate(ev):
+    """positive case: text improves the eligible cell on both turns of 600 conversations,
+    regresses on one turn of 200 and ties on 109: a clear clustered margin."""
+    recs, ident = two_turn_run(ev)
+    for ci in range(600):
+        set_cell(recs[ci], "2", base=False, text=True)
+        set_cell(recs[ci], "3", base=False, text=True)
+    for ci in range(600, 800):
+        set_cell(recs[ci], "2", base=True, text=False)
+    s = summ(ev, recs, ident=ident)
+    cl = s["text_vs_base_selected_clustered"]
+    assert cl["k"] == 909 and abs(cl["mean"] - (600 * 100.0 - 200 * 50.0) / 909) < 1e-9
+    assert cl["conversations_text_better"] == 600 and cl["conversations_text_worse"] == 200
+    assert cl["lower_bound"] > 0 and cl["lower_bound"] < cl["mean"]
+    assert s["validity"]["text_beats_base_selected_clustered"] is True and s["validity"]["text_vs_base_selected_pooled"] is True
+    assert s["primary_claim_valid"] is True, s["primary_claim_reasons"]
+
+
+def test_tiny_positive_clustered_mean_with_nonpositive_lower_bound_fails(ev):
+    """boundary: text better in ONE conversation of 909 (pooled n01 = 1 > n10 = 0, clustered
+    mean +0.11 points) -> the continuity-corrected lower bound is <= 0 and the gate fails."""
+    recs, ident = two_turn_run(ev)
+    set_cell(recs[500], "2", base=False, text=True)
+    s = summ(ev, recs, ident=ident)
+    cl = s["text_vs_base_selected_clustered"]
+    assert cl["k"] == 909 and abs(cl["mean"] - 50.0 / 909) < 1e-12 and cl["mean"] > 0
+    assert cl["lower_bound"] <= 0
+    assert s["validity"]["text_vs_base_selected_pooled"] is True and s["selected_text_vs_base"]["n01"] == 1
+    assert s["validity"]["text_beats_base_selected_clustered"] is False
+    assert s["primary_claim_valid"] is False
+    assert "text_not_clustered_better_than_base_selected" in s["primary_claim_reasons"]
+    # exact zero: text == base everywhere -> mean 0, lower bound = -100/k
+    recs, ident = two_turn_run(ev)
+    s = summ(ev, recs, ident=ident)
+    cl = s["text_vs_base_selected_clustered"]
+    assert cl["mean"] == 0.0 and cl["lower_bound"] == -100.0 / 909
+    assert s["validity"]["text_beats_base_selected_clustered"] is False
 
 
 def test_sub_registered_cohort_is_a_falsification_only_slice(ev):
@@ -369,7 +473,7 @@ def test_sub_registered_cohort_is_a_falsification_only_slice(ev):
     v = s["validity"]
     assert v["registered_cohort"] is False and v["falsification_only_slice"] is False
     assert v["complete_cohort"] is True and v["records_identity"] is True and v["expected_turns_present"] is True
-    assert v["ledger_coverage_ge_0.90"] is True and v["text_beats_base_selected"] is True
+    assert v["ledger_coverage_ge_0.90"] is True and v["text_beats_base_selected_clustered"] is True
     assert v["clustered_bound_below_margin"] is True  # the slice's own bound, reported but not claimable
     # and the slice CAN still reject: neural drops the eligible constraint on 20/113 conversations
     for r in recs[:20]:
@@ -472,7 +576,7 @@ def test_each_gate_condition_invalidates(ev, break_):
     if break_ == "unselected_all_failing":
         assert s["primary_claim_reasons"] == ["unselected_not_all_failing"]
     if break_ == "text_not_better_selected":
-        assert s["primary_claim_reasons"] == ["text_beats_base_selected"] and s["validity"]["text_beats_base"] is True
+        assert s["primary_claim_reasons"] == ["text_not_clustered_better_than_base_selected"] and s["validity"]["text_beats_base"] is True
 
 
 def test_estimand_excludes_fresh_and_noninsertable_and_credits_only_selected(ev):

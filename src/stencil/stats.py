@@ -271,3 +271,22 @@ def clustered_bound(per_cluster_mean_diffs, alpha=0.05):
     return {**out, "method": "t_continuity", "continuity_points": CONTINUITY_POINTS / k,
             "upper_bound": clustered_upper_bound_corrected(diffs, alpha),
             "t_upper_bound_descriptive": clustered_upper_bound(diffs, alpha)}
+
+
+def clustered_lower_bound(per_cluster_mean_diffs, alpha=0.05):
+    """REGISTERED one-sided (1-alpha) LOWER bound on the mean of the per-cluster
+    mean differences: the SAME continuity-corrected clustered machinery as
+    clustered_bound, sign-flipped (lower_bound = -clustered_bound(-diffs)["upper_bound"]).
+    LEDGER-PLAN ROUND 4 ruling (results/ledger-reverify4-sol.md): text-beats-base
+    non-vacuity is conversation-clustered — this bound on the per-conversation mean
+    (text - base) over selected eligible outcomes must be > 0.  Returns the audit
+    fields with the sign restored (mean is the mean of ``per_cluster_mean_diffs``)."""
+    diffs = [float(x) for x in per_cluster_mean_diffs]
+    flipped = clustered_bound([-x for x in diffs], alpha)
+    out = {"clusters": flipped["clusters"], "alpha": alpha,
+           "mean": (-flipped["mean"] if flipped["mean"] is not None else None), "method": flipped["method"]}
+    if flipped["upper_bound"] is None:
+        return {**out, "lower_bound": None, "error": flipped["error"]}
+    return {**out, "continuity_points": flipped["continuity_points"],
+            "lower_bound": -flipped["upper_bound"],
+            "t_lower_bound_descriptive": -flipped["t_upper_bound_descriptive"]}
