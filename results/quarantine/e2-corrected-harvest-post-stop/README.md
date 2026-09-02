@@ -81,3 +81,5 @@ b7cf6af03bb24ebec76a821503585a905c84ead54d29528959c3de125093cc0e  session-088.js
 f2f1718be27cb30f89dac53f111fa855307381f0e09156b35d6aec3a5e8d5417  session-159.json
 dad436e1fc53c2d5267f791b929638aa7f7ac0834a5310d33a7f01fa7b8f90e1  session-231.json
 01772939bcf19c1aee0b3d3fcb6e1f8b43d9ea4cd074d0b234f5af82ba62ce14  session-232.json
+
+## DELETED 2026-09-02 (Brian: "get rid of the records we don't need"). The 78 record files above were removed from the tree; this README with their SHA-256s remains as the tombstone.
