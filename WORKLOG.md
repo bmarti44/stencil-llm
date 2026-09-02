@@ -2409,3 +2409,4 @@ anyway (0.854/0.860 blind; precision 0.95/0.94).
 - Open (from BFCL handoff): user-instruction recall on BFCL labels 1/23 — the finder does not generalize to
   tool-use dialogue instructions; preflight floor 0.80 unmet (0.78 only via auto-admitted schemas). Deferred to the
   BFCL preflight step; not to be fixed after seeing the sealed cohort.
+- 2026-09-02, coder (auto, run_codex_agent.sh). Brief qwen3-4b-parity: model gpt-5.6-sol, effort medium, exit 0, session 01a06380-947c-7921-96a9-631db2dba001, log /home/bmarti44/stencil-llm/results/logs/codex-agent-qwen3-4b-parity.log.
