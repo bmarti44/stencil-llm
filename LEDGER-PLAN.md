@@ -264,3 +264,12 @@ context spans, so pinned slots drop in later.
   (same continuity-corrected clustered machinery, sign-flipped) of the
   per-conversation mean (text - base) on SELECTED eligible outcomes must
   be > 0; pooled n01>n10 kept as descriptive only.
+- ROUND 5 (2026-09-01, results/ledger-reverify5-sol.md): VERDICT — the
+  113-conversation diagnostic slice is LAUNCHABLE as a falsification-only
+  screen; the full 909 cohort is NOT until two HIGHs close. RULINGS:
+  (i) clustered text-vs-base non-vacuity is over ALL eligible outcomes
+  (registered lower bound > 0), with the selected-subset bound retained as
+  a second required gate (both must hold); (ii) NEW registered gate:
+  conversation-clustered neural-vs-base superiority on all eligible
+  outcomes (registered lower bound > 0) — "neural must do something at
+  all" is now mechanical, not prose.
