@@ -20,3 +20,9 @@ greedy output, same eviction plumbing as the registered probe (scripts/ledger_kv
    Recovery (41-14)/(44-14) = 0.90. Safety: role truncated 1, degenerate 1 (full: 1 / 2). Budget: role pins mean 89
    columns = 20% of evictable (finder: 47). Per session vs finder +4/-1/=15; vs full +3/-5/=12.
    A parameter-free rule with no selector recovers 90% of the eviction gap on this probe.
+
+5. RB — ROLE RULE AT THE FINDER'S BUDGET (role_budget_check.py, role_budget.log; the control kimi/sol/fable all
+   required): pin prior user turns oldest-first, clipped to the H1' finder pin count per session, exact-column null.
+   RB 29/56 (control 22) vs finder 37 (control 18). Kimi's pre-registered rule: RB <= 37 -> the role rule's +4 over
+   the finder was BUDGET. At equal cost, which columns are kept matters: selectivity beats role.
+   (fable: the keep-in "weak signal" is a span-length artefact — within-length AUROC 0.46 — report as no signal.)
