@@ -73,7 +73,7 @@ provenance() {
         tid="MISSING-SESSION-EVENT"
         if [ "${FINAL_EC:-1}" = "0" ]; then FINAL_EC=9; fi
     fi
-    python3 - "$ROOT/plan/LEDGER.md" "$(date -u +%Y-%m-%d)" "$AGENT" \
+    python3 - "$ROOT/WORKLOG.md" "$(date -u +%Y-%m-%d)" "$AGENT" \
         "${CODEX_MODEL:-gpt-5.6-sol}" "${CODEX_EFFORT:-medium}" "${FINAL_EC:-?}" \
         "$tid" "$LOG" "${OVERRIDE_REASON:-}" <<'PYLED'
 import sys

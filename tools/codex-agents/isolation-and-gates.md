@@ -62,3 +62,15 @@ behaviour; a smoke of the pretool guard against the 25-line table; no edits outs
 Append to WORKLOG.md: files touched, test counts (before/after), the RED->GREEN evidence for each new
 test, whether any GPU smoke ran (with nvidia-smi evidence that it was idle), and open questions for the
 sol xhigh re-verification of the ROUND 7 gate.
+
+## Clarifications (orchestrator, 2026-09-02 14:15 — answers to your two questions)
+1. `data/bench/pins-manifest.json` is now allowlisted. Add the sealed file's sha256
+   (67ffeee0fcb87c317c5b08a2de85557b4a7e96ada6178aa645b4954fe4b53d49) under a new key `sealed_sha256`
+   without altering any existing key; the guard test asserts against that key.
+2. Enforce the no-side-effect-import rule ONLY on the five allowlisted GPU entry scripts (ledger_eval.py,
+   ledger_kv_probe.py, b3_deficit_conf.py, b4_multiif.py, b4_ifeval.py). For the ~30 legacy scripts, add a
+   NON-failing inventory test that prints the offenders with `pytest.skip`-style reporting (or an xfail with
+   the list in the reason) so the debt is recorded, not hidden. Do not refactor them.
+3. `plan/PROTOCOL.md` / `plan/LEDGER.md` are archived; the live governing docs are AGENTIC-PLAN.md,
+   LEDGER-PLAN.md and WORKLOG.md (ledger handoff goes to WORKLOG.md). Recorded; no action from you.
+4. The research-*.md files under results/ are orchestrator artifacts, now committed; ignore them.
