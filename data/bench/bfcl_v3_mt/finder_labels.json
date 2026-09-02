@@ -1,0 +1,821 @@
+{
+  "seed": 20260902,
+  "construction": "sample 100 without replacement from dev cases in cohort order; per case schemas then system/user sentence spans",
+  "labels": [
+    {
+      "case_id": "multi_turn_base_177",
+      "category": "base",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the ticketing system that is part of a company, which allows users to create, view, and manage support business tickets. Tool description: Create a ticket in the system and queue it.\",\"name\":\"create_ticket\",\"parameters\":{\"properties\":{\"description\":{\"default\":\"\",\"description\":\"Description of the ticket. Defaults to an empty string.\",\"type\":\"string\"},\"priority\":{\"default\":1,\"description\":\"Priority of the ticket, from 1 to 5. Defaults to 1. 5 is the highest priority. \",\"type\":\"integer\"},\"title\":{\"description\":\"Title of the ticket.\",\"type\":\"string\"}},\"required\":[\"title\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"description\":{\"description\":\"Description of the ticket.\",\"type\":\"string\"},\"id\":{\"description\":\"Unique identifier of the ticket.\",\"type\":\"integer\"},\"priority\":{\"description\":\"Priority level of the ticket.\",\"type\":\"integer\"},\"status\":{\"description\":\"Current status of the ticket.\",\"type\":\"string\"},\"title\":{\"description\":\"Title of the ticket.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_base_177",
+      "category": "base",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the ticketing system that is part of a company, which allows users to create, view, and manage support business tickets. Tool description: Get a specific ticket by its ID.\",\"name\":\"get_ticket\",\"parameters\":{\"properties\":{\"ticket_id\":{\"description\":\"ID of the ticket to retrieve. \",\"type\":\"integer\"}},\"required\":[\"ticket_id\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"created_by\":{\"description\":\"Username of the ticket creator.\",\"type\":\"string\"},\"description\":{\"description\":\"Description of the ticket.\",\"type\":\"string\"},\"id\":{\"description\":\"Unique identifier of the ticket.\",\"type\":\"integer\"},\"priority\":{\"description\":\"Priority level of the ticket.\",\"type\":\"integer\"},\"status\":{\"description\":\"Current status of the ticket.\",\"type\":\"string\"},\"title\":{\"description\":\"Title of the ticket.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_base_177",
+      "category": "base",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the ticketing system that is part of a company, which allows users to create, view, and manage support business tickets. Tool description: Get the username of the currently authenticated user.\",\"name\":\"ticket_get_login_status\",\"parameters\":{\"properties\":{},\"required\":[],\"type\":\"dict\"},\"response\":{\"properties\":{\"username\":{\"description\":\"True if a user is logged in, False otherwise.\",\"type\":\"boolean\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_base_177",
+      "category": "base",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the travel system, which allows users to book flights, manage credit cards, and view budget information. Tool description: Get the nearest airport to the given location\",\"name\":\"get_nearest_airport_by_city\",\"parameters\":{\"properties\":{\"location\":{\"description\":\"The name of the location. [Enum]: Rivermist, Stonebrook, Maplecrest, Silverpine, Shadowridge, London, Paris, Sunset Valley, Oakendale, Willowbend, Crescent Hollow, Autumnville, Pinehaven, Greenfield, San Francisco, Los Angeles, New York, Chicago, Boston, Beijing, Hong Kong, Rome, Tokyo\",\"type\":\"string\"}},\"required\":[\"location\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"nearest_airport\":{\"description\":\"The nearest airport to the given location\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_base_177",
+      "category": "base",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the travel system, which allows users to book flights, manage credit cards, and view budget information. Tool description: Verify the traveler information\",\"name\":\"verify_traveler_information\",\"parameters\":{\"properties\":{\"date_of_birth\":{\"description\":\"The date of birth of the traveler in the format YYYY-MM-DD\",\"type\":\"string\"},\"first_name\":{\"description\":\"The first name of the traveler\",\"type\":\"string\"},\"last_name\":{\"description\":\"The last name of the traveler\",\"type\":\"string\"},\"passport_number\":{\"description\":\"The passport number of the traveler\",\"type\":\"string\"}},\"required\":[\"first_name\",\"last_name\",\"date_of_birth\",\"passport_number\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"verification_failure\":{\"description\":\"The reason for the verification failure\",\"type\":\"string\"},\"verification_status\":{\"description\":\"The status of the verification, True if successful, False if failed\",\"type\":\"boolean\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_base_151",
+      "category": "base",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the TwitterAPI, which provides core functionality for posting tweets, retweeting, commenting, and following users on Twitter. Tool description: Retrieve all comments for a specific tweet.\",\"name\":\"get_tweet_comments\",\"parameters\":{\"properties\":{\"tweet_id\":{\"description\":\"ID of the tweet to retrieve comments for.\",\"type\":\"integer\"}},\"required\":[\"tweet_id\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"comments\":{\"description\":\"List of dictionaries, each containing comment information.\",\"items\":{\"properties\":{\"content\":{\"description\":\"Content of the comment.\",\"type\":\"string\"},\"username\":{\"description\":\"Username of the commenter.\",\"type\":\"string\"}},\"type\":\"dict\"},\"type\":\"array\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_base_151",
+      "category": "base",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the TwitterAPI, which provides core functionality for posting tweets, retweeting, commenting, and following users on Twitter. Tool description: Retweet a tweet for the authenticated user.\",\"name\":\"retweet\",\"parameters\":{\"properties\":{\"tweet_id\":{\"description\":\"ID of the tweet to retweet.\",\"type\":\"integer\"}},\"required\":[\"tweet_id\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"retweet_status\":{\"description\":\"Status of the retweet action.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_base_151",
+      "category": "base",
+      "kind": "instruction_sentence",
+      "turn": 2,
+      "message": 0,
+      "char_span": [
+        0,
+        88
+      ],
+      "text": "I believe it would be strategic to communicate these adjustments to my extended network."
+    },
+    {
+      "case_id": "multi_turn_base_196",
+      "category": "base",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the ticketing system that is part of a company, which allows users to create, view, and manage support business tickets. Tool description: Create a ticket in the system and queue it.\",\"name\":\"create_ticket\",\"parameters\":{\"properties\":{\"description\":{\"default\":\"\",\"description\":\"Description of the ticket. Defaults to an empty string.\",\"type\":\"string\"},\"priority\":{\"default\":1,\"description\":\"Priority of the ticket, from 1 to 5. Defaults to 1. 5 is the highest priority. \",\"type\":\"integer\"},\"title\":{\"description\":\"Title of the ticket.\",\"type\":\"string\"}},\"required\":[\"title\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"description\":{\"description\":\"Description of the ticket.\",\"type\":\"string\"},\"id\":{\"description\":\"Unique identifier of the ticket.\",\"type\":\"integer\"},\"priority\":{\"description\":\"Priority level of the ticket.\",\"type\":\"integer\"},\"status\":{\"description\":\"Current status of the ticket.\",\"type\":\"string\"},\"title\":{\"description\":\"Title of the ticket.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_base_196",
+      "category": "base",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the ticketing system that is part of a company, which allows users to create, view, and manage support business tickets. Tool description: Resolve a ticket with a resolution.\",\"name\":\"resolve_ticket\",\"parameters\":{\"properties\":{\"resolution\":{\"description\":\"Resolution details for the ticket. \",\"type\":\"string\"},\"ticket_id\":{\"description\":\"ID of the ticket to be resolved.\",\"type\":\"integer\"}},\"required\":[\"ticket_id\",\"resolution\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"status\":{\"description\":\"Status of the resolve operation.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_base_140",
+      "category": "base",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the trading system, which allows users to trade stocks, manage their account, and view stock information. Tool description: Cancel an order.\",\"name\":\"cancel_order\",\"parameters\":{\"properties\":{\"order_id\":{\"description\":\"ID of the order to cancel. \",\"type\":\"integer\"}},\"required\":[\"order_id\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"order_id\":{\"description\":\"ID of the cancelled order.\",\"type\":\"integer\"},\"status\":{\"description\":\"New status of the order after cancellation attempt.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_base_140",
+      "category": "base",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the trading system, which allows users to trade stocks, manage their account, and view stock information. Tool description: Update the price of a stock.\",\"name\":\"update_stock_price\",\"parameters\":{\"properties\":{\"new_price\":{\"description\":\"New price of the stock. \",\"type\":\"float\"},\"symbol\":{\"description\":\"Symbol of the stock to update.\",\"type\":\"string\"}},\"required\":[\"symbol\",\"new_price\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"new_price\":{\"description\":\"Updated price of the stock.\",\"type\":\"float\"},\"old_price\":{\"description\":\"Previous price of the stock.\",\"type\":\"float\"},\"symbol\":{\"description\":\"Symbol of the updated stock.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_base_140",
+      "category": "base",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the ticketing system that is part of a company, which allows users to create, view, and manage support business tickets. Tool description: Authenticate a user for ticket system.\",\"name\":\"ticket_login\",\"parameters\":{\"properties\":{\"password\":{\"description\":\"Password of the user. \",\"type\":\"string\"},\"username\":{\"description\":\"Username of the user.\",\"type\":\"string\"}},\"required\":[\"username\",\"password\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"success\":{\"description\":\"True if login was successful, False otherwise.\",\"type\":\"boolean\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_base_157",
+      "category": "base",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the Math API, which provides various mathematical operations. Tool description: Multiply two numbers.\",\"name\":\"multiply\",\"parameters\":{\"properties\":{\"a\":{\"description\":\"First number.\",\"type\":\"float\"},\"b\":{\"description\":\"Second number. \",\"type\":\"float\"}},\"required\":[\"a\",\"b\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"result\":{\"description\":\"Product of the two numbers.\",\"type\":\"float\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_base_157",
+      "category": "base",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the Math API, which provides various mathematical operations. Tool description: Convert a value from one SI unit to another.\",\"name\":\"si_unit_conversion\",\"parameters\":{\"properties\":{\"unit_in\":{\"description\":\"Unit of the input value.\",\"type\":\"string\"},\"unit_out\":{\"description\":\"Unit to convert the value to. \",\"type\":\"string\"},\"value\":{\"description\":\"Value to be converted.\",\"type\":\"float\"}},\"required\":[\"value\",\"unit_in\",\"unit_out\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"result\":{\"description\":\"Converted value in the new unit.\",\"type\":\"float\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_base_157",
+      "category": "base",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the travel system, which allows users to book flights, manage credit cards, and view budget information. Tool description: Purchase insurance\",\"name\":\"purchase_insurance\",\"parameters\":{\"properties\":{\"access_token\":{\"description\":\"The access token obtained from the authenticate\",\"type\":\"string\"},\"booking_id\":{\"description\":\"The ID of the booking\",\"type\":\"string\"},\"card_id\":{\"description\":\"The ID of the credit card to use for the\",\"type\":\"string\"},\"insurance_cost\":{\"description\":\"The cost of the insurance\",\"type\":\"float\"},\"insurance_type\":{\"description\":\"The type of insurance to purchase\",\"type\":\"string\"}},\"required\":[\"access_token\",\"insurance_type\",\"booking_id\",\"insurance_cost\",\"card_id\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"insurance_id\":{\"description\":\"The ID of the insurance\",\"type\":\"string\"},\"insurance_status\":{\"description\":\"The status of the insurance purchase, True if successful, False if failed\",\"type\":\"boolean\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_base_17",
+      "category": "base",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the Gorilla file system. It is a simple file system that allows users to perform basic file operations such as navigating directories, creating files and directories, reading and writing to files, etc. Tool description: Write content to a file at current directory or display it in the terminal.\",\"name\":\"echo\",\"parameters\":{\"properties\":{\"content\":{\"description\":\"The content to write or display.\",\"type\":\"string\"},\"file_name\":{\"default\":\"None\",\"description\":\"The name of the file at current directory to write the content to. Defaults to None. \",\"type\":\"string\"}},\"required\":[\"content\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"terminal_output\":{\"description\":\"The content if no file name is provided, or None if written to file.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_base_17",
+      "category": "base",
+      "kind": "instruction_sentence",
+      "turn": 0,
+      "message": 0,
+      "char_span": [
+        0,
+        132
+      ],
+      "text": "Could you provide me with an inventory of files that are currently visible and hidden in the directory I'm working in at the moment?"
+    },
+    {
+      "case_id": "multi_turn_base_28",
+      "category": "base",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the Gorilla file system. It is a simple file system that allows users to perform basic file operations such as navigating directories, creating files and directories, reading and writing to files, etc. Tool description: Copy a file or directory from one location to another.  If the destination is a directory, the source file or directory will be copied into the destination directory.  Both source and destination must be local to the current directory.\",\"name\":\"cp\",\"parameters\":{\"properties\":{\"destination\":{\"description\":\"The destination name to copy the file or directory to. If the destination is a directory, the source will be copied into this directory. No file paths allowed. \",\"type\":\"string\"},\"source\":{\"description\":\"The name of the file or directory to copy.\",\"type\":\"string\"}},\"required\":[\"source\",\"destination\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"result\":{\"description\":\"The result of the copy operation or an error message if the operation fails.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_base_28",
+      "category": "base",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the Gorilla file system. It is a simple file system that allows users to perform basic file operations such as navigating directories, creating files and directories, reading and writing to files, etc. Tool description: Find any file or directories under specific path that contain name in its file name.  This method searches for files of any extension and directories within a specified path that match the given name. If no name is provided, it returns all files and directories in the specified path and its subdirectories. Note: This method performs a recursive search through all subdirectories of the given path.\",\"name\":\"find\",\"parameters\":{\"properties\":{\"name\":{\"default\":\"None\",\"description\":\"The name of the file or directory to search for. If None, all items are returned. \",\"type\":\"string\"},\"path\":{\"default\":\".\",\"description\":\"The directory path to start the search. Defaults to the current directory (\\\".\\\").\",\"type\":\"string\"}},\"required\":[],\"type\":\"dict\"},\"response\":{\"properties\":{\"matches\":{\"description\":\"A list of matching file and directory paths relative to the given path.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_base_28",
+      "category": "base",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the Gorilla file system. It is a simple file system that allows users to perform basic file operations such as navigating directories, creating files and directories, reading and writing to files, etc. Tool description: Display the last part of a file of any extension.\",\"name\":\"tail\",\"parameters\":{\"properties\":{\"file_name\":{\"description\":\"The name of the file to display. No path is allowed and you can only perform on file at local directory.\",\"type\":\"string\"},\"lines\":{\"default\":10,\"description\":\"The number of lines to display from the end of the file. Defaults to 10. \",\"type\":\"integer\"}},\"required\":[\"file_name\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"last_lines\":{\"description\":\"The last part of the file.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_base_28",
+      "category": "base",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the Gorilla file system. It is a simple file system that allows users to perform basic file operations such as navigating directories, creating files and directories, reading and writing to files, etc. Tool description: Count the number of lines, words, and characters in a file of any extension from current directory.\",\"name\":\"wc\",\"parameters\":{\"properties\":{\"file_name\":{\"description\":\"Name of the file of current directory to perform wc operation on.\",\"type\":\"string\"},\"mode\":{\"default\":\"l\",\"description\":\"Mode of operation ('l' for lines, 'w' for words, 'c' for characters). \",\"type\":\"string\"}},\"required\":[\"file_name\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"count\":{\"description\":\"The count of the number of lines, words, or characters in the file.\",\"type\":\"integer\"},\"type\":{\"description\":\"The type of unit we are counting. [Enum]: [\\\"lines\\\", \\\"words\\\", \\\"characters\\\"]\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_param_61",
+      "category": "missing_params",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the vehicle control system, which allows users to control various aspects of the car such as engine, doors, climate control, lights, and more. Tool description: Activates the parking brake of the vehicle.\",\"name\":\"activateParkingBrake\",\"parameters\":{\"properties\":{\"mode\":{\"description\":\"The mode to set. [Enum]: [\\\"engage\\\", \\\"release\\\"]\",\"type\":\"string\"}},\"required\":[\"mode\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"_parkingBrakeForce\":{\"description\":\"The force applied to the brake in Newtons.\",\"type\":\"float\"},\"_slopeAngle\":{\"description\":\"The slope angle in degrees.\",\"type\":\"float\"},\"parkingBrakeStatus\":{\"description\":\"The status of the brake. [Enum]: [\\\"engaged\\\", \\\"released\\\"]\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_param_61",
+      "category": "missing_params",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the vehicle control system, which allows users to control various aspects of the car such as engine, doors, climate control, lights, and more. Tool description: Displays the status of the vehicle based on the provided display option.\",\"name\":\"displayCarStatus\",\"parameters\":{\"properties\":{\"option\":{\"description\":\"The option to display. [Enum]: [\\\"fuel\\\", \\\"battery\\\", \\\"doors\\\", \\\"climate\\\", \\\"headlights\\\", \\\"parkingBrake\\\", \\\"brakePadle\\\", \\\"engine\\\"]\",\"type\":\"string\"}},\"required\":[\"option\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"status\":{\"description\":\"The status of the vehicle based on the option.\",\"properties\":{\"batteryVoltage\":{\"description\":\"[Optional] The battery voltage of the vehicle in volts.\",\"type\":\"float\"},\"brakePedalForce\":{\"description\":\"[Optional] The force applied to the brake pedal in Newtons.\",\"type\":\"float\"},\"brakePedalStatus\":{\"description\":\"[Optional] The status of the brake pedal. [Enum]: [\\\"pressed\\\", \\\"released\\\"]\",\"type\":\"string\"},\"climateMode\":{\"description\":\"[Optional] The climate mode set. [Enum]: [\\\"auto\\\", \\\"cool\\\", \\\"heat\\\", \\\"defrost\\\"]\",\"type\":\"string\"},\"currentACTemperature\":{\"description\":\"[Optional] The current temperature set in degree Celsius.\",\"type\":\"float\"},\"doorStatus\":{\"description\":\"[Optional] The status of the doors.\",\"properties\":{\"driver\":{\"description\":\"The status of the driver door. [Enum]: [\\\"locked\\\", \\\"unlocked\\\"]\",\"type\":\"string\"},\"passenger\":{\"description\":\"The status of the passenger door. [Enum]: [\\\"locked\\\", \\\"unlocked\\\"]\",\"type\":\"string\"},\"rear_left\":{\"description\":\"The status of the rear left door. [Enum]: [\\\"locked\\\", \\\"unlocked\\\"]\",\"type\":\"string\"},\"rear_right\":{\"description\":\"The status of the rear right door. [Enum]: [\\\"locked\\\", \\\"unlocked\\\"]\",\"type\":\"string\"}},\"type\":\"dict\"},\"engineState\":{\"description\":\"[Optional] The state of the engine. [Enum]: [\\\"running\\\", \\\"stopped\\\"]\",\"type\":\"string\"},\"fanSpeed\":{\"description\":\"[Optional] The fan speed set from 0 to 100.\",\"type\":\"integer\"},\"fuelLevel\":{\"description\":\"[Optional] The fuel level of the vehicle in gallons.\",\"type\":\"float\"},\"headlightStatus\":{\"description\":\"[Optional] The status of the headlights. [Enum]: [\\\"on\\\", \\\"off\\\"]\",\"type\":\"string\"},\"humidityLevel\":{\"description\":\"[Optional] The humidity level in percentage.\",\"type\":\"float\"},\"metadata\":{\"description\":\"[Optional] The metadata of the car.\",\"type\":\"string\"},\"parkingBrakeForce\":{\"description\":\"[Optional] The force applied to the brake in Newtons.\",\"type\":\"float\"},\"parkingBrakeStatus\":{\"description\":\"[Optional] The status of the brake. [Enum]: [\\\"engaged\\\", \\\"released\\\"]\",\"type\":\"string\"},\"slopeAngle\":{\"description\":\"[Optional] The slope angle in degrees.\",\"type\":\"float\"}},\"type\":\"dict\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_param_61",
+      "category": "missing_params",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the vehicle control system, which allows users to control various aspects of the car such as engine, doors, climate control, lights, and more. Tool description: Fills the fuel tank of the vehicle. The fuel tank can hold up to 50 gallons.\",\"name\":\"fillFuelTank\",\"parameters\":{\"properties\":{\"fuelAmount\":{\"description\":\"The amount of fuel to fill in gallons; this is the additional fuel to add to the tank.\",\"type\":\"float\"}},\"required\":[\"fuelAmount\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"fuelLevel\":{\"description\":\"The fuel level of the vehicle in gallons.\",\"type\":\"float\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_param_61",
+      "category": "missing_params",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the vehicle control system, which allows users to control various aspects of the car such as engine, doors, climate control, lights, and more. Tool description: Converts the liter to gallon.\",\"name\":\"liter_to_gallon\",\"parameters\":{\"properties\":{\"liter\":{\"description\":\"The amount of liter to convert.\",\"type\":\"float\"}},\"required\":[\"liter\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"gallon\":{\"description\":\"The amount of gallon converted.\",\"type\":\"float\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_param_61",
+      "category": "missing_params",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the vehicle control system, which allows users to control various aspects of the car such as engine, doors, climate control, lights, and more. Tool description: Sets the headlights of the vehicle.\",\"name\":\"setHeadlights\",\"parameters\":{\"properties\":{\"mode\":{\"description\":\"The mode of the headlights. [Enum]: [\\\"on\\\", \\\"off\\\", \\\"auto\\\"]\",\"type\":\"string\"}},\"required\":[\"mode\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"headlightStatus\":{\"description\":\"The status of the headlights. [Enum]: [\\\"on\\\", \\\"off\\\"]\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_param_4",
+      "category": "missing_params",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the TwitterAPI, which provides core functionality for posting tweets, retweeting, commenting, and following users on Twitter. Tool description: Authenticate a user with username and password.\",\"name\":\"authenticate_twitter\",\"parameters\":{\"properties\":{\"password\":{\"description\":\"Password of the user.\",\"type\":\"string\"},\"username\":{\"description\":\"Username of the user.\",\"type\":\"string\"}},\"required\":[\"username\",\"password\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"authentication_status\":{\"description\":\"True if authenticated, False otherwise.\",\"type\":\"boolean\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_param_4",
+      "category": "missing_params",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the TwitterAPI, which provides core functionality for posting tweets, retweeting, commenting, and following users on Twitter. Tool description: Post a tweet for the authenticated user.\",\"name\":\"post_tweet\",\"parameters\":{\"properties\":{\"content\":{\"description\":\"Content of the tweet.\",\"type\":\"string\"},\"mentions\":{\"default\":[],\"description\":\"List of users mentioned in the tweet. Mention name should start with @. This is only relevant if the user wants to add mentions to the tweet.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"},\"tags\":{\"default\":[],\"description\":\"List of tags for the tweet. Tag name should start with #. This is only relevant if the user wants to add tags to the tweet.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"}},\"required\":[\"content\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"content\":{\"description\":\"Content of the tweet.\",\"type\":\"string\"},\"id\":{\"description\":\"ID of the posted tweet.\",\"type\":\"integer\"},\"mentions\":{\"description\":\"List of users mentioned in the tweet.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"},\"tags\":{\"description\":\"List of tags associated with the tweet.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"},\"username\":{\"description\":\"Username of the poster.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_param_85",
+      "category": "missing_params",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the vehicle control system, which allows users to control various aspects of the car such as engine, doors, climate control, lights, and more. Tool description: Displays the status of the vehicle based on the provided display option.\",\"name\":\"displayCarStatus\",\"parameters\":{\"properties\":{\"option\":{\"description\":\"The option to display. [Enum]: [\\\"fuel\\\", \\\"battery\\\", \\\"doors\\\", \\\"climate\\\", \\\"headlights\\\", \\\"parkingBrake\\\", \\\"brakePadle\\\", \\\"engine\\\"]\",\"type\":\"string\"}},\"required\":[\"option\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"status\":{\"description\":\"The status of the vehicle based on the option.\",\"properties\":{\"batteryVoltage\":{\"description\":\"[Optional] The battery voltage of the vehicle in volts.\",\"type\":\"float\"},\"brakePedalForce\":{\"description\":\"[Optional] The force applied to the brake pedal in Newtons.\",\"type\":\"float\"},\"brakePedalStatus\":{\"description\":\"[Optional] The status of the brake pedal. [Enum]: [\\\"pressed\\\", \\\"released\\\"]\",\"type\":\"string\"},\"climateMode\":{\"description\":\"[Optional] The climate mode set. [Enum]: [\\\"auto\\\", \\\"cool\\\", \\\"heat\\\", \\\"defrost\\\"]\",\"type\":\"string\"},\"currentACTemperature\":{\"description\":\"[Optional] The current temperature set in degree Celsius.\",\"type\":\"float\"},\"doorStatus\":{\"description\":\"[Optional] The status of the doors.\",\"properties\":{\"driver\":{\"description\":\"The status of the driver door. [Enum]: [\\\"locked\\\", \\\"unlocked\\\"]\",\"type\":\"string\"},\"passenger\":{\"description\":\"The status of the passenger door. [Enum]: [\\\"locked\\\", \\\"unlocked\\\"]\",\"type\":\"string\"},\"rear_left\":{\"description\":\"The status of the rear left door. [Enum]: [\\\"locked\\\", \\\"unlocked\\\"]\",\"type\":\"string\"},\"rear_right\":{\"description\":\"The status of the rear right door. [Enum]: [\\\"locked\\\", \\\"unlocked\\\"]\",\"type\":\"string\"}},\"type\":\"dict\"},\"engineState\":{\"description\":\"[Optional] The state of the engine. [Enum]: [\\\"running\\\", \\\"stopped\\\"]\",\"type\":\"string\"},\"fanSpeed\":{\"description\":\"[Optional] The fan speed set from 0 to 100.\",\"type\":\"integer\"},\"fuelLevel\":{\"description\":\"[Optional] The fuel level of the vehicle in gallons.\",\"type\":\"float\"},\"headlightStatus\":{\"description\":\"[Optional] The status of the headlights. [Enum]: [\\\"on\\\", \\\"off\\\"]\",\"type\":\"string\"},\"humidityLevel\":{\"description\":\"[Optional] The humidity level in percentage.\",\"type\":\"float\"},\"metadata\":{\"description\":\"[Optional] The metadata of the car.\",\"type\":\"string\"},\"parkingBrakeForce\":{\"description\":\"[Optional] The force applied to the brake in Newtons.\",\"type\":\"float\"},\"parkingBrakeStatus\":{\"description\":\"[Optional] The status of the brake. [Enum]: [\\\"engaged\\\", \\\"released\\\"]\",\"type\":\"string\"},\"slopeAngle\":{\"description\":\"[Optional] The slope angle in degrees.\",\"type\":\"float\"}},\"type\":\"dict\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_param_85",
+      "category": "missing_params",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the vehicle control system, which allows users to control various aspects of the car such as engine, doors, climate control, lights, and more. Tool description: Fills the fuel tank of the vehicle. The fuel tank can hold up to 50 gallons.\",\"name\":\"fillFuelTank\",\"parameters\":{\"properties\":{\"fuelAmount\":{\"description\":\"The amount of fuel to fill in gallons; this is the additional fuel to add to the tank.\",\"type\":\"float\"}},\"required\":[\"fuelAmount\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"fuelLevel\":{\"description\":\"The fuel level of the vehicle in gallons.\",\"type\":\"float\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_param_85",
+      "category": "missing_params",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the vehicle control system, which allows users to control various aspects of the car such as engine, doors, climate control, lights, and more. Tool description: Starts the engine of the vehicle.\",\"name\":\"startEngine\",\"parameters\":{\"properties\":{\"ignitionMode\":{\"description\":\"The ignition mode of the vehicle. [Enum]: [\\\"START\\\", \\\"STOP\\\"]\",\"type\":\"string\"}},\"required\":[\"ignitionMode\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"batteryVoltage\":{\"description\":\"The battery voltage of the vehicle in volts.\",\"type\":\"float\"},\"engineState\":{\"description\":\"The state of the engine. [Enum]: [\\\"running\\\", \\\"stopped\\\"]\",\"type\":\"string\"},\"fuelLevel\":{\"description\":\"The fuel level of the vehicle in gallons.\",\"type\":\"float\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_param_85",
+      "category": "missing_params",
+      "kind": "instruction_sentence",
+      "turn": 1,
+      "message": 0,
+      "char_span": [
+        0,
+        27
+      ],
+      "text": "I'm going to San Francisco."
+    },
+    {
+      "case_id": "multi_turn_miss_param_184",
+      "category": "missing_params",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the Message API, which is used to manage user interactions in a workspace. Tool description: Send a message to a user.\",\"name\":\"send_message\",\"parameters\":{\"properties\":{\"message\":{\"description\":\"Message to be sent.\",\"type\":\"string\"},\"receiver_id\":{\"description\":\"User ID of the user to send the message to.\",\"type\":\"string\"}},\"required\":[\"receiver_id\",\"message\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"message\":{\"description\":\"A message describing the result of the send attempt.\",\"type\":\"string\"},\"message_id\":{\"description\":\"ID of the sent message.\",\"type\":\"integer\"},\"sent_status\":{\"description\":\"True if the message was sent successfully, False otherwise.\",\"type\":\"boolean\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_param_184",
+      "category": "missing_params",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the travel system, which allows users to book flights, manage credit cards, and view budget information. Tool description: Get the list of cost of a flight in USD based on location, date, and class\",\"name\":\"get_flight_cost\",\"parameters\":{\"properties\":{\"travel_class\":{\"description\":\"The class of the travel. Options are: economy, business, first.\",\"type\":\"string\"},\"travel_date\":{\"description\":\"The date of the travel in the format 'YYYY-MM-DD'\",\"type\":\"string\"},\"travel_from\":{\"description\":\"The 3 letter code of the departing airport\",\"type\":\"string\"},\"travel_to\":{\"description\":\"The 3 letter code of the arriving airport\",\"type\":\"string\"}},\"required\":[\"travel_from\",\"travel_to\",\"travel_date\",\"travel_class\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"travel_cost_list\":{\"description\":\"The list of cost of the travel\",\"items\":{\"type\":\"float\"},\"type\":\"array\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_param_184",
+      "category": "missing_params",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the travel system, which allows users to book flights, manage credit cards, and view budget information. Tool description: Retrieve the invoice for a booking\",\"name\":\"retrieve_invoice\",\"parameters\":{\"properties\":{\"access_token\":{\"description\":\"The access token obtained from the authenticate\",\"type\":\"string\"},\"booking_id\":{\"default\":\"None\",\"description\":\"The ID of the booking\",\"type\":\"string\"},\"insurance_id\":{\"default\":\"None\",\"description\":\"The ID of the insurance\",\"type\":\"string\"}},\"required\":[\"access_token\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"invoice\":{\"description\":\"The invoice for the booking\",\"properties\":{\"booking_id\":{\"description\":\"The ID of the booking\",\"type\":\"string\"},\"transaction_id\":{\"description\":\"The ID of the transaction\",\"type\":\"string\"},\"travel_class\":{\"description\":\"The class of the travel\",\"type\":\"string\"},\"travel_cost\":{\"description\":\"The cost of the travel\",\"type\":\"float\"},\"travel_date\":{\"description\":\"The date of the travel\",\"type\":\"string\"},\"travel_from\":{\"description\":\"The location the travel is from\",\"type\":\"string\"},\"travel_to\":{\"description\":\"The location the travel is to\",\"type\":\"string\"}},\"type\":\"dict\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_param_184",
+      "category": "missing_params",
+      "kind": "instruction_sentence",
+      "turn": 0,
+      "message": 0,
+      "char_span": [
+        90,
+        266
+      ],
+      "text": "Schedule a business class flight for me from JFK to LAX on December 15, 2024, using the credit card with id 'card_2108' and access token 'abc123xyz', under the name Lara Croft."
+    },
+    {
+      "case_id": "multi_turn_miss_param_184",
+      "category": "missing_params",
+      "kind": "instruction_sentence",
+      "turn": 4,
+      "message": 0,
+      "char_span": [
+        107,
+        179
+      ],
+      "text": "Please send him a concise message 'Hi Sam, my travel plans have changed."
+    },
+    {
+      "case_id": "multi_turn_miss_param_102",
+      "category": "missing_params",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the trading system, which allows users to trade stocks, manage their account, and view stock information. Tool description: Get the transaction history within a specified date range.\",\"name\":\"get_transaction_history\",\"parameters\":{\"properties\":{\"end_date\":{\"default\":\"None\",\"description\":\"End date for the history (format: 'YYYY-MM-DD'). \",\"type\":\"string\"},\"start_date\":{\"default\":\"None\",\"description\":\"Start date for the history (format: 'YYYY-MM-DD').\",\"type\":\"string\"}},\"required\":[],\"type\":\"dict\"},\"response\":{\"properties\":{\"transaction_history\":{\"description\":\"List of transactions within the specified date range.\",\"items\":{\"properties\":{\"amount\":{\"description\":\"Amount involved in the transaction.\",\"type\":\"float\"},\"timestamp\":{\"description\":\"Timestamp of the transaction, formatted as 'YYYY-MM-DD HH:MM:SS'.\",\"type\":\"string\"},\"type\":{\"description\":\"Type of transaction. [Enum]: [\\\"deposit\\\", \\\"withdrawal\\\"]\",\"type\":\"string\"}},\"type\":\"dict\"},\"type\":\"array\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_param_102",
+      "category": "missing_params",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the trading system, which allows users to trade stocks, manage their account, and view stock information. Tool description: Make a deposit or withdrawal based on specified amount.\",\"name\":\"make_transaction\",\"parameters\":{\"properties\":{\"account_id\":{\"description\":\"ID of the account.\",\"type\":\"integer\"},\"amount\":{\"description\":\"Amount to deposit or withdraw. \",\"type\":\"float\"},\"xact_type\":{\"description\":\"Transaction type (deposit or withdrawal).\",\"type\":\"string\"}},\"required\":[\"account_id\",\"xact_type\",\"amount\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"new_balance\":{\"description\":\"Updated account balance after the transaction.\",\"type\":\"float\"},\"status\":{\"description\":\"Status of the transaction.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_param_102",
+      "category": "missing_params",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the ticketing system that is part of a company, which allows users to create, view, and manage support business tickets. Tool description: Log out the current user.\",\"name\":\"logout\",\"parameters\":{\"properties\":{},\"required\":[],\"type\":\"dict\"},\"response\":{\"properties\":{\"success\":{\"description\":\"True if logout was successful, False otherwise.\",\"type\":\"boolean\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_param_62",
+      "category": "missing_params",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the Message API, which is used to manage user interactions in a workspace. Tool description: View all historical messages sent by the current user.\",\"name\":\"view_messages_sent\",\"parameters\":{\"properties\":{},\"required\":[],\"type\":\"dict\"},\"response\":{\"properties\":{\"messages\":{\"description\":\"Dictionary of messages grouped by receiver An example of the messages dictionary is {\\\"USR001\\\":[\\\"Hello\\\"],\\\"USR002\\\":[\\\"World\\\"]}.\",\"type\":\"dict\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_param_126",
+      "category": "missing_params",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the trading system, which allows users to trade stocks, manage their account, and view stock information. Tool description: Get the current time.\",\"name\":\"get_current_time\",\"parameters\":{\"properties\":{},\"required\":[],\"type\":\"dict\"},\"response\":{\"properties\":{\"current_time\":{\"description\":\"Current time in HH:MM AM/PM format.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_param_126",
+      "category": "missing_params",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the trading system, which allows users to trade stocks, manage their account, and view stock information. Tool description: Get the login status.\",\"name\":\"trading_get_login_status\",\"parameters\":{\"properties\":{},\"required\":[],\"type\":\"dict\"},\"response\":{\"properties\":{\"status\":{\"description\":\"Login status.\",\"type\":\"boolean\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_func_181",
+      "category": "missing_functions",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the travel system, which allows users to book flights, manage credit cards, and view budget information. Tool description: Authenticate the user with the travel API\",\"name\":\"authenticate_travel\",\"parameters\":{\"properties\":{\"client_id\":{\"description\":\"The client applications client_id supplied by App Management\",\"type\":\"string\"},\"client_secret\":{\"description\":\"The client applications client_secret supplied by App Management\",\"type\":\"string\"},\"grant_type\":{\"description\":\"The grant type of the authentication request. Here are the options: read_write, read, write\",\"type\":\"string\"},\"refresh_token\":{\"description\":\"The refresh token obtained from the initial authentication\",\"type\":\"string\"},\"user_first_name\":{\"description\":\"The first name of the user\",\"type\":\"string\"},\"user_last_name\":{\"description\":\"The last name of the user\",\"type\":\"string\"}},\"required\":[\"client_id\",\"client_secret\",\"refresh_token\",\"grant_type\",\"user_first_name\",\"user_last_name\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"access_token\":{\"description\":\"The access token to be used in the Authorization header of future requests\",\"type\":\"string\"},\"expires_in\":{\"description\":\"The number of time it can use until the access token expires\",\"type\":\"integer\"},\"scope\":{\"description\":\"The scope of the token\",\"type\":\"string\"},\"token_type\":{\"description\":\"The type of token\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_func_181",
+      "category": "missing_functions",
+      "kind": "instruction_sentence",
+      "turn": 0,
+      "message": 0,
+      "char_span": [
+        215,
+        301
+      ],
+      "text": "Please confirm my information using the passport number '123456' I've shared with you."
+    },
+    {
+      "case_id": "multi_turn_miss_func_181",
+      "category": "missing_functions",
+      "kind": "instruction_sentence",
+      "turn": 2,
+      "message": 0,
+      "char_span": [
+        0,
+        188
+      ],
+      "text": "With this estimate in hand, arrange the flight using my credentials with id 'card_3456' and access token 'abc123xyz', ensuring a seamless payment process and detailing my travel itinerary."
+    },
+    {
+      "case_id": "multi_turn_miss_func_171",
+      "category": "missing_functions",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the travel system, which allows users to book flights, manage credit cards, and view budget information. Tool description: List all available airports\",\"name\":\"list_all_airports\",\"parameters\":{\"properties\":{},\"required\":[],\"type\":\"dict\"},\"response\":{\"properties\":{\"airports\":{\"description\":\"A list of all available airports\",\"items\":{\"type\":\"string\"},\"type\":\"array\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_func_171",
+      "category": "missing_functions",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the travel system, which allows users to book flights, manage credit cards, and view budget information. Tool description: Register a credit card\",\"name\":\"register_credit_card\",\"parameters\":{\"properties\":{\"access_token\":{\"description\":\"The access token obtained from the authenticate method\",\"type\":\"string\"},\"card_number\":{\"description\":\"The credit card number\",\"type\":\"string\"},\"card_verification_number\":{\"description\":\"The card verification number\",\"type\":\"integer\"},\"cardholder_name\":{\"description\":\"The name of the cardholder\",\"type\":\"string\"},\"expiration_date\":{\"description\":\"The expiration date of the credit card in the format MM/YYYY\",\"type\":\"string\"}},\"required\":[\"access_token\",\"card_number\",\"expiration_date\",\"cardholder_name\",\"card_verification_number\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"card_id\":{\"description\":\"The ID of the registered credit card\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_func_171",
+      "category": "missing_functions",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the travel system, which allows users to book flights, manage credit cards, and view budget information. Tool description: Set the budget limit for the user\",\"name\":\"set_budget_limit\",\"parameters\":{\"properties\":{\"access_token\":{\"description\":\"The access token obtained from the authentication process or initial configuration.\",\"type\":\"string\"},\"budget_limit\":{\"description\":\"The budget limit to set in USD\",\"type\":\"float\"}},\"required\":[\"access_token\",\"budget_limit\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"budget_limit\":{\"description\":\"The budget limit set in USD\",\"type\":\"float\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_func_171",
+      "category": "missing_functions",
+      "kind": "instruction_sentence",
+      "turn": 0,
+      "message": 0,
+      "char_span": [
+        241,
+        396
+      ],
+      "text": "Now, let's arrange for a luxurious first-class flight from JFK to Beijing Capital Airport for June 15th 2024 utilizing my primary card with id 'card_8283'."
+    },
+    {
+      "case_id": "multi_turn_miss_func_60",
+      "category": "missing_functions",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the vehicle control system, which allows users to control various aspects of the car such as engine, doors, climate control, lights, and more. Tool description: Finds the nearest tire shop.\",\"name\":\"find_nearest_tire_shop\",\"parameters\":{\"properties\":{},\"required\":[],\"type\":\"dict\"},\"response\":{\"properties\":{\"shopLocation\":{\"description\":\"The location of the nearest tire shop.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_func_40",
+      "category": "missing_functions",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the Message API, which is used to manage user interactions in a workspace. Tool description: Get the login status of the current user.\",\"name\":\"message_get_login_status\",\"parameters\":{\"properties\":{},\"required\":[],\"type\":\"dict\"},\"response\":{\"properties\":{\"login_status\":{\"description\":\"True if the current user is logged in, False otherwise.\",\"type\":\"boolean\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_func_40",
+      "category": "missing_functions",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the Gorilla file system. It is a simple file system that allows users to perform basic file operations such as navigating directories, creating files and directories, reading and writing to files, etc. Tool description: Display the last part of a file of any extension.\",\"name\":\"tail\",\"parameters\":{\"properties\":{\"file_name\":{\"description\":\"The name of the file to display. No path is allowed and you can only perform on file at local directory.\",\"type\":\"string\"},\"lines\":{\"default\":10,\"description\":\"The number of lines to display from the end of the file. Defaults to 10. \",\"type\":\"integer\"}},\"required\":[\"file_name\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"last_lines\":{\"description\":\"The last part of the file.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_func_40",
+      "category": "missing_functions",
+      "kind": "instruction_sentence",
+      "turn": 1,
+      "message": 0,
+      "char_span": [
+        0,
+        174
+      ],
+      "text": "Transfer the 'annual_report.txt' in Documents directory to the 'Reports' directory that's in Documents directory, but also make sure it remains available in its current spot."
+    },
+    {
+      "case_id": "multi_turn_miss_func_84",
+      "category": "missing_functions",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the vehicle control system, which allows users to control various aspects of the car such as engine, doors, climate control, lights, and more. Tool description: Converts the liter to gallon.\",\"name\":\"liter_to_gallon\",\"parameters\":{\"properties\":{\"liter\":{\"description\":\"The amount of liter to convert.\",\"type\":\"float\"}},\"required\":[\"liter\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"gallon\":{\"description\":\"The amount of gallon converted.\",\"type\":\"float\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_func_84",
+      "category": "missing_functions",
+      "kind": "instruction_sentence",
+      "turn": 2,
+      "message": 0,
+      "char_span": [
+        0,
+        40
+      ],
+      "text": "Post-engine start, verify tire pressure."
+    },
+    {
+      "case_id": "multi_turn_miss_func_84",
+      "category": "missing_functions",
+      "kind": "instruction_sentence",
+      "turn": 2,
+      "message": 0,
+      "char_span": [
+        41,
+        157
+      ],
+      "text": "If it's insufficient (less than 30.0 psi), proceed to the nearest tire shop at 456 Oakwood Avenue, Rivermist, 83214."
+    },
+    {
+      "case_id": "multi_turn_miss_func_151",
+      "category": "missing_functions",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the travel system, which allows users to book flights, manage credit cards, and view budget information. Tool description: Contact travel booking customer support, get immediate support on an issue with an online call.\",\"name\":\"contact_customer_support\",\"parameters\":{\"properties\":{\"booking_id\":{\"description\":\"The ID of the booking\",\"type\":\"string\"},\"message\":{\"description\":\"The message to send to customer support\",\"type\":\"string\"}},\"required\":[\"booking_id\",\"message\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"customer_support_message\":{\"description\":\"The message from customer support\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_func_151",
+      "category": "missing_functions",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the travel system, which allows users to book flights, manage credit cards, and view budget information. Tool description: Get the balance of a credit card\",\"name\":\"get_credit_card_balance\",\"parameters\":{\"properties\":{\"access_token\":{\"description\":\"The access token obtained from the authenticate\",\"type\":\"string\"},\"card_id\":{\"description\":\"The ID of the credit card\",\"type\":\"string\"}},\"required\":[\"access_token\",\"card_id\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"card_balance\":{\"description\":\"The balance of the credit card\",\"type\":\"float\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_func_151",
+      "category": "missing_functions",
+      "kind": "instruction_sentence",
+      "turn": 2,
+      "message": 0,
+      "char_span": [
+        0,
+        96
+      ],
+      "text": "Due to unforeseen circumstances, I'm unable to proceed with my journey to Los Angeles next week."
+    },
+    {
+      "case_id": "multi_turn_miss_func_14",
+      "category": "missing_functions",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the Gorilla file system. It is a simple file system that allows users to perform basic file operations such as navigating directories, creating files and directories, reading and writing to files, etc. Tool description: Compare two files of any extension line by line at the current directory.\",\"name\":\"diff\",\"parameters\":{\"properties\":{\"file_name1\":{\"description\":\"The name of the first file in current directory.\",\"type\":\"string\"},\"file_name2\":{\"description\":\"The name of the second file in current directorry. \",\"type\":\"string\"}},\"required\":[\"file_name1\",\"file_name2\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"diff_lines\":{\"description\":\"The differences between the two files.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_func_14",
+      "category": "missing_functions",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the Gorilla file system. It is a simple file system that allows users to perform basic file operations such as navigating directories, creating files and directories, reading and writing to files, etc. Tool description: Create a new directory in the current directory.\",\"name\":\"mkdir\",\"parameters\":{\"properties\":{\"dir_name\":{\"description\":\"The name of the new directory at current directory. You can only create directory at current directory.\",\"type\":\"string\"}},\"required\":[\"dir_name\"],\"type\":\"dict\"},\"response\":{\"properties\":{},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_func_140",
+      "category": "missing_functions",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the trading system, which allows users to trade stocks, manage their account, and view stock information. Tool description: Cancel an order.\",\"name\":\"cancel_order\",\"parameters\":{\"properties\":{\"order_id\":{\"description\":\"ID of the order to cancel. \",\"type\":\"integer\"}},\"required\":[\"order_id\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"order_id\":{\"description\":\"ID of the cancelled order.\",\"type\":\"integer\"},\"status\":{\"description\":\"New status of the order after cancellation attempt.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_func_140",
+      "category": "missing_functions",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the trading system, which allows users to trade stocks, manage their account, and view stock information. Tool description: Get the details of a stock.\",\"name\":\"get_stock_info\",\"parameters\":{\"properties\":{\"symbol\":{\"description\":\"Symbol that uniquely identifies the stock. \",\"type\":\"string\"}},\"required\":[\"symbol\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"percent_change\":{\"description\":\"Percentage change in stock price.\",\"type\":\"float\"},\"price\":{\"description\":\"Current price of the stock.\",\"type\":\"float\"},\"volume\":{\"description\":\"Trading volume of the stock. MA(5) (float): 5-day Moving Average of the stock. MA(20) (float): 20-day Moving Average of the stock.\",\"type\":\"float\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_func_140",
+      "category": "missing_functions",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the trading system, which allows users to trade stocks, manage their account, and view stock information. Tool description: Handle user login.\",\"name\":\"trading_login\",\"parameters\":{\"properties\":{\"password\":{\"description\":\"Password for authentication. \",\"type\":\"string\"},\"username\":{\"description\":\"Username for authentication.\",\"type\":\"string\"}},\"required\":[\"username\",\"password\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"status\":{\"description\":\"Login status message.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_miss_func_140",
+      "category": "missing_functions",
+      "kind": "instruction_sentence",
+      "turn": 3,
+      "message": 0,
+      "char_span": [
+        83,
+        142
+      ],
+      "text": "Can you craft a ticket labeled 'Critical Order Assistance'?"
+    },
+    {
+      "case_id": "multi_turn_long_context_188",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the TwitterAPI, which provides core functionality for posting tweets, retweeting, commenting, and following users on Twitter. Tool description: Retrieve all comments for a specific tweet.\",\"name\":\"get_tweet_comments\",\"parameters\":{\"properties\":{\"tweet_id\":{\"description\":\"ID of the tweet to retrieve comments for.\",\"type\":\"integer\"}},\"required\":[\"tweet_id\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"comments\":{\"description\":\"List of dictionaries, each containing comment information.\",\"items\":{\"properties\":{\"content\":{\"description\":\"Content of the comment.\",\"type\":\"string\"},\"username\":{\"description\":\"Username of the commenter.\",\"type\":\"string\"}},\"type\":\"dict\"},\"type\":\"array\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_188",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the travel system, which allows users to book flights, manage credit cards, and view budget information. Tool description: Get the nearest airport to the given location\",\"name\":\"get_nearest_airport_by_city\",\"parameters\":{\"properties\":{\"location\":{\"description\":\"The name of the location. [Enum]: Rivermist, Stonebrook, Maplecrest, Silverpine, Shadowridge, London, Paris, Sunset Valley, Oakendale, Willowbend, Crescent Hollow, Autumnville, Pinehaven, Greenfield, San Francisco, Los Angeles, New York, Chicago, Boston, Beijing, Hong Kong, Rome, Tokyo\",\"type\":\"string\"}},\"required\":[\"location\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"nearest_airport\":{\"description\":\"The nearest airport to the given location\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_47",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the Gorilla file system. It is a simple file system that allows users to perform basic file operations such as navigating directories, creating files and directories, reading and writing to files, etc. Tool description: Display the contents of a file of any extension from currrent directory.\",\"name\":\"cat\",\"parameters\":{\"properties\":{\"file_name\":{\"description\":\"The name of the file from current directory to display. No path is allowed. \",\"type\":\"string\"}},\"required\":[\"file_name\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"file_content\":{\"description\":\"The content of the file.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_47",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the Gorilla file system. It is a simple file system that allows users to perform basic file operations such as navigating directories, creating files and directories, reading and writing to files, etc. Tool description: Find any file or directories under specific path that contain name in its file name.  This method searches for files of any extension and directories within a specified path that match the given name. If no name is provided, it returns all files and directories in the specified path and its subdirectories. Note: This method performs a recursive search through all subdirectories of the given path.\",\"name\":\"find\",\"parameters\":{\"properties\":{\"name\":{\"default\":\"None\",\"description\":\"The name of the file or directory to search for. If None, all items are returned. \",\"type\":\"string\"},\"path\":{\"default\":\".\",\"description\":\"The directory path to start the search. Defaults to the current directory (\\\".\\\").\",\"type\":\"string\"}},\"required\":[],\"type\":\"dict\"},\"response\":{\"properties\":{\"matches\":{\"description\":\"A list of matching file and directory paths relative to the given path.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_47",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the Gorilla file system. It is a simple file system that allows users to perform basic file operations such as navigating directories, creating files and directories, reading and writing to files, etc. Tool description: Sort the contents of a file line by line.\",\"name\":\"sort\",\"parameters\":{\"properties\":{\"file_name\":{\"description\":\"The name of the file appeared at current directory to sort. \",\"type\":\"string\"}},\"required\":[\"file_name\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"sorted_content\":{\"description\":\"The sorted content of the file.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_47",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the Math API, which provides various mathematical operations. Tool description: Divide one number by another.\",\"name\":\"divide\",\"parameters\":{\"properties\":{\"a\":{\"description\":\"Numerator.\",\"type\":\"float\"},\"b\":{\"description\":\"Denominator. \",\"type\":\"float\"}},\"required\":[\"a\",\"b\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"result\":{\"description\":\"Quotient of the division.\",\"type\":\"float\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_47",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the Math API, which provides various mathematical operations. Tool description: Calculate the square root of a number with adjustable precision using the decimal module.\",\"name\":\"square_root\",\"parameters\":{\"properties\":{\"number\":{\"description\":\"The number to calculate the square root of.\",\"type\":\"float\"},\"precision\":{\"description\":\"Desired precision for the result. \",\"type\":\"integer\"}},\"required\":[\"number\",\"precision\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"result\":{\"description\":\"The square root of the number, or an error message.\",\"type\":\"float\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_122",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the trading system, which allows users to trade stocks, manage their account, and view stock information. Tool description: Filter stocks based on a price range.\",\"name\":\"filter_stocks_by_price\",\"parameters\":{\"properties\":{\"max_price\":{\"description\":\"Maximum stock price. \",\"type\":\"float\"},\"min_price\":{\"description\":\"Minimum stock price.\",\"type\":\"float\"},\"stocks\":{\"description\":\"List of stock symbols to filter.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"}},\"required\":[\"stocks\",\"min_price\",\"max_price\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"filtered_stocks\":{\"description\":\"Filtered list of stock symbols within the price range.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_122",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the trading system, which allows users to trade stocks, manage their account, and view stock information. Tool description: Get the details of an order.\",\"name\":\"get_order_details\",\"parameters\":{\"properties\":{\"order_id\":{\"description\":\"ID of the order. \",\"type\":\"integer\"}},\"required\":[\"order_id\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"amount\":{\"description\":\"Number of shares in the order.\",\"type\":\"integer\"},\"id\":{\"description\":\"ID of the order.\",\"type\":\"integer\"},\"order_type\":{\"description\":\"Type of the order.\",\"type\":\"string\"},\"price\":{\"description\":\"Price at which the order was placed.\",\"type\":\"float\"},\"status\":{\"description\":\"Current status of the order. [Enum]: [\\\"Open\\\", \\\"Pending\\\", \\\"Completed\\\", \\\"Cancelled\\\"]\",\"type\":\"string\"},\"symbol\":{\"description\":\"Symbol of the stock in the order.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_122",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the trading system, which allows users to trade stocks, manage their account, and view stock information. Tool description: Get the watchlist.\",\"name\":\"get_watchlist\",\"parameters\":{\"properties\":{},\"required\":[],\"type\":\"dict\"},\"response\":{\"properties\":{\"watchlist\":{\"description\":\"List of stock symbols in the watchlist.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_122",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the trading system, which allows users to trade stocks, manage their account, and view stock information. Tool description: Notify if there is a significant price change in the stocks.\",\"name\":\"notify_price_change\",\"parameters\":{\"properties\":{\"stocks\":{\"description\":\"List of stock symbols to check.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"},\"threshold\":{\"description\":\"Percentage change threshold to trigger a notification. \",\"type\":\"float\"}},\"required\":[\"stocks\",\"threshold\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"notification\":{\"description\":\"Notification message about the price changes.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_122",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the trading system, which allows users to trade stocks, manage their account, and view stock information. Tool description: Update the market status based on the current time.\",\"name\":\"update_market_status\",\"parameters\":{\"properties\":{\"current_time_str\":{\"description\":\"Current time in HH:MM AM/PM format. \",\"type\":\"string\"}},\"required\":[\"current_time_str\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"status\":{\"description\":\"Status of the market. [Enum]: [\\\"Open\\\", \\\"Closed\\\"]\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_109",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the TwitterAPI, which provides core functionality for posting tweets, retweeting, commenting, and following users on Twitter. Tool description: Retrieve all tweets from a specific user.\",\"name\":\"get_user_tweets\",\"parameters\":{\"properties\":{\"username\":{\"description\":\"Username of the user whose tweets to retrieve.\",\"type\":\"string\"}},\"required\":[\"username\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"user_tweets\":{\"description\":\"List of dictionaries, each containing tweet information.\",\"items\":{\"properties\":{\"content\":{\"description\":\"Content of the tweet.\",\"type\":\"string\"},\"id\":{\"description\":\"ID of the retrieved tweet.\",\"type\":\"integer\"},\"mentions\":{\"description\":\"List of users mentioned in the tweet.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"},\"tags\":{\"description\":\"List of tags associated with the tweet.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"},\"username\":{\"description\":\"Username of the tweet's author.\",\"type\":\"string\"}},\"type\":\"dict\"},\"type\":\"array\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_109",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the TwitterAPI, which provides core functionality for posting tweets, retweeting, commenting, and following users on Twitter. Tool description: Post a tweet for the authenticated user.\",\"name\":\"post_tweet\",\"parameters\":{\"properties\":{\"content\":{\"description\":\"Content of the tweet.\",\"type\":\"string\"},\"mentions\":{\"default\":[],\"description\":\"List of users mentioned in the tweet. Mention name should start with @. This is only relevant if the user wants to add mentions to the tweet.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"},\"tags\":{\"default\":[],\"description\":\"List of tags for the tweet. Tag name should start with #. This is only relevant if the user wants to add tags to the tweet.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"}},\"required\":[\"content\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"content\":{\"description\":\"Content of the tweet.\",\"type\":\"string\"},\"id\":{\"description\":\"ID of the posted tweet.\",\"type\":\"integer\"},\"mentions\":{\"description\":\"List of users mentioned in the tweet.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"},\"tags\":{\"description\":\"List of tags associated with the tweet.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"},\"username\":{\"description\":\"Username of the poster.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_109",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the trading system, which allows users to trade stocks, manage their account, and view stock information. Tool description: Get the symbol of a stock by company name.\",\"name\":\"get_symbol_by_name\",\"parameters\":{\"properties\":{\"name\":{\"description\":\"Name of the company. \",\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"symbol\":{\"description\":\"Symbol of the stock or \\\"Stock not found\\\" if not available.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_109",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the trading system, which allows users to trade stocks, manage their account, and view stock information. Tool description: Place an order.\",\"name\":\"place_order\",\"parameters\":{\"properties\":{\"amount\":{\"description\":\"Number of shares to trade. \",\"type\":\"integer\"},\"order_type\":{\"description\":\"Type of the order (Buy/Sell).\",\"type\":\"string\"},\"price\":{\"description\":\"Price at which to place the order.\",\"type\":\"float\"},\"symbol\":{\"description\":\"Symbol of the stock to trade.\",\"type\":\"string\"}},\"required\":[\"order_type\",\"symbol\",\"price\",\"amount\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"amount\":{\"description\":\"Number of shares in the order.\",\"type\":\"integer\"},\"order_id\":{\"description\":\"ID of the newly placed order.\",\"type\":\"integer\"},\"order_type\":{\"description\":\"Type of the order (Buy/Sell).\",\"type\":\"string\"},\"price\":{\"description\":\"Price at which the order was placed.\",\"type\":\"float\"},\"status\":{\"description\":\"Initial status of the order.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_109",
+      "category": "long_context",
+      "kind": "instruction_sentence",
+      "turn": 1,
+      "message": 0,
+      "char_span": [
+        0,
+        72
+      ],
+      "text": "From the tech stocks available, let's dive into one that catches my eye."
+    },
+    {
+      "case_id": "multi_turn_long_context_109",
+      "category": "long_context",
+      "kind": "instruction_sentence",
+      "turn": 6,
+      "message": 0,
+      "char_span": [
+        82,
+        144
+      ],
+      "text": "I initiated and then canceled a 100-share buy order for $MSFT."
+    },
+    {
+      "case_id": "multi_turn_long_context_162",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the ticketing system that is part of a company, which allows users to create, view, and manage support business tickets. Tool description: Close a ticket.\",\"name\":\"close_ticket\",\"parameters\":{\"properties\":{\"ticket_id\":{\"description\":\"ID of the ticket to be closed. \",\"type\":\"integer\"}},\"required\":[\"ticket_id\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"status\":{\"description\":\"Status of the close operation.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_162",
+      "category": "long_context",
+      "kind": "instruction_sentence",
+      "turn": 2,
+      "message": 0,
+      "char_span": [
+        7,
+        175
+      ],
+      "text": "To proceed, I'd like to ascertain the estimated airfare from tranquil Rivermist to the dynamic New York City, considering an economy ticket for this Sunday 09/10, 2024."
+    },
+    {
+      "case_id": "multi_turn_long_context_33",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the Message API, which is used to manage user interactions in a workspace. Tool description: Get user ID from user name.\",\"name\":\"get_user_id\",\"parameters\":{\"properties\":{\"user\":{\"description\":\"User name of the user. \",\"type\":\"string\"}},\"required\":[\"user\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"user_id\":{\"description\":\"User ID of the user\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_33",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the Message API, which is used to manage user interactions in a workspace. Tool description: List all users in the workspace.\",\"name\":\"list_users\",\"parameters\":{\"properties\":{},\"required\":[],\"type\":\"dict\"},\"response\":{\"properties\":{\"user_list\":{\"description\":\"List of all users in the workspace.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_33",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the Message API, which is used to manage user interactions in a workspace. Tool description: Log in a user with the given user ID to messeage application.\",\"name\":\"message_login\",\"parameters\":{\"properties\":{\"user_id\":{\"description\":\"User ID of the user to log in. \",\"type\":\"string\"}},\"required\":[\"user_id\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"login_status\":{\"description\":\"True if login was successful, False otherwise.\",\"type\":\"boolean\"},\"message\":{\"description\":\"A message describing the result of the login attempt.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_33",
+      "category": "long_context",
+      "kind": "instruction_sentence",
+      "turn": 0,
+      "message": 0,
+      "char_span": [
+        0,
+        56
+      ],
+      "text": "What's the name of the python file my current directory?"
+    },
+    {
+      "case_id": "multi_turn_long_context_197",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the Message API, which is used to manage user interactions in a workspace. Tool description: View all historical messages sent by the current user.\",\"name\":\"view_messages_sent\",\"parameters\":{\"properties\":{},\"required\":[],\"type\":\"dict\"},\"response\":{\"properties\":{\"messages\":{\"description\":\"Dictionary of messages grouped by receiver An example of the messages dictionary is {\\\"USR001\\\":[\\\"Hello\\\"],\\\"USR002\\\":[\\\"World\\\"]}.\",\"type\":\"dict\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_197",
+      "category": "long_context",
+      "kind": "instruction_sentence",
+      "turn": 1,
+      "message": 0,
+      "char_span": [
+        0,
+        111
+      ],
+      "text": "Once the travel insurance is successfully procured, I am at a loss remembering the aggregated expense involved."
+    },
+    {
+      "case_id": "multi_turn_long_context_197",
+      "category": "long_context",
+      "kind": "instruction_sentence",
+      "turn": 2,
+      "message": 0,
+      "char_span": [
+        0,
+        50
+      ],
+      "text": "During this adventure, an unexpected hiccup arose."
+    },
+    {
+      "case_id": "multi_turn_long_context_118",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the trading system, which allows users to trade stocks, manage their account, and view stock information. Tool description: Fund the account with the specified amount.\",\"name\":\"fund_account\",\"parameters\":{\"properties\":{\"amount\":{\"description\":\"Amount to fund the account with. \",\"type\":\"float\"}},\"required\":[\"amount\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"new_balance\":{\"description\":\"Updated account balance after funding.\",\"type\":\"float\"},\"status\":{\"description\":\"Status of the funding operation.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_118",
+      "category": "long_context",
+      "kind": "tool_schema",
+      "turn": null,
+      "text": "{\"description\":\"This tool belongs to the trading system, which allows users to trade stocks, manage their account, and view stock information. Tool description: Place an order.\",\"name\":\"place_order\",\"parameters\":{\"properties\":{\"amount\":{\"description\":\"Number of shares to trade. \",\"type\":\"integer\"},\"order_type\":{\"description\":\"Type of the order (Buy/Sell).\",\"type\":\"string\"},\"price\":{\"description\":\"Price at which to place the order.\",\"type\":\"float\"},\"symbol\":{\"description\":\"Symbol of the stock to trade.\",\"type\":\"string\"}},\"required\":[\"order_type\",\"symbol\",\"price\",\"amount\"],\"type\":\"dict\"},\"response\":{\"properties\":{\"amount\":{\"description\":\"Number of shares in the order.\",\"type\":\"integer\"},\"order_id\":{\"description\":\"ID of the newly placed order.\",\"type\":\"integer\"},\"order_type\":{\"description\":\"Type of the order (Buy/Sell).\",\"type\":\"string\"},\"price\":{\"description\":\"Price at which the order was placed.\",\"type\":\"float\"},\"status\":{\"description\":\"Initial status of the order.\",\"type\":\"string\"}},\"type\":\"dict\"}}"
+    },
+    {
+      "case_id": "multi_turn_long_context_118",
+      "category": "long_context",
+      "kind": "instruction_sentence",
+      "turn": 0,
+      "message": 0,
+      "char_span": [
+        0,
+        68
+      ],
+      "text": "Hey, I was wondering if you could look at my stock watchlist for me?"
+    },
+    {
+      "case_id": "multi_turn_long_context_118",
+      "category": "long_context",
+      "kind": "instruction_sentence",
+      "turn": 1,
+      "message": 0,
+      "char_span": [
+        1,
+        54
+      ],
+      "text": "Would you mind taking the first one off my watchlist?"
+    },
+    {
+      "case_id": "multi_turn_long_context_118",
+      "category": "long_context",
+      "kind": "instruction_sentence",
+      "turn": 2,
+      "message": 0,
+      "char_span": [
+        127,
+        184
+      ],
+      "text": "I don't need the specifics—I'm relying on your expertise!"
+    },
+    {
+      "case_id": "multi_turn_long_context_118",
+      "category": "long_context",
+      "kind": "instruction_sentence",
+      "turn": 3,
+      "message": 0,
+      "char_span": [
+        56,
+        105
+      ],
+      "text": "Could you tell me the details of my latest order?"
+    }
+  ]
+}
