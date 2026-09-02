@@ -2270,3 +2270,15 @@ entirely (v2b), recompute all gates, purge the sealed prompts' features from
 results/salience2/feats.npz; tests/test_sealed_guard.py now allowlists the
 sealed file's referrers mechanically. Gate 1 (recall>=0.90) was UNMET
 anyway (0.854/0.860 blind; precision 0.95/0.94).
+
+## 2026-09-02 06:20 — rogue GPU processes terminated (Brian-approved); GPU sequence resumed
+- Brian approved the kill ("I approve run it"); `kill -TERM` of watchdog/waiter/harvest x2/stale sol session x2 succeeded; GPU verified free.
+- Step 1 launched: sealed single-turn confirmation resume (`scripts/b3_deficit_conf.py`, resumes from 574/1024); log in scratchpad `b3-conf-resume3.log`.
+- Next in registered order: corrected 5-arm KV probe rerun → 113 slice (`--diagnostic-only`) → 909 cohort.
+
+## 2026-09-02 07:05 — SEALED SINGLE-TURN CONFIRMATION: GATE FAIL (honest negative)
+- `scripts/b3_deficit_conf.py` complete (1024/1024 both arms). base adherence 0.8584 (3 trunc, 0 timeout); deficit-wave 0.8623 (12 trunc, 0 timeout).
+- Gate: delta +0.391 pts, n_fix 59 / n_break 55, one-sided McNemar p = 0.389, excess_truncated 9 → PASS=false.
+- Reading: the calibrated deficit-wave adapter does not improve single-turn IFEval-style adherence on the sealed set at a detectable level; the ledger/KV line (multi-turn, aged constraints) remains the live hypothesis.
+- Artifacts: results/qwen/b3-deficit-conf-s0.json + per-item records results/qwen/b3-deficit-conf-s0/ (force-added).
+- Step 2 launched: corrected 5-arm KV probe rerun (`scripts/ledger_kv_probe.py --sessions 20 --max-new 320 --out ledger-kv-probe-v2`).
