@@ -21,6 +21,20 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SEALED_NAME = "data/bench/ifeval_input_data.jsonl"
 OWNED_PIDS_ENV = "STENCIL_OWNED_PIDS"
+EVAL_DATA = re.compile(
+    r"(?:data/bench(?:/|\b)|results/qwen/b4-multiif-base(?:/|\b))"
+)
+FIT_TOKEN = re.compile(
+    r"(?<![a-z0-9])(?:fit(?:ting)?|train(?:ing)?|refit(?:ting)?)(?![a-z0-9])|"
+    r"(?:^|\s)-m\s+stencil\.salience(?:2)?(?:\s|$)",
+    re.IGNORECASE,
+)
+EVAL_ONLY_RUNNERS = {
+    "scripts/bfcl_mt.py",
+    "scripts/ledger_eval.py",
+    "scripts/ledger_kv_probe.py",
+}
+EVAL_DATA_READERS = {"git", "ls", "sha256sum"}
 
 
 def _sealed_allowlist():
@@ -42,6 +56,28 @@ def _segments(command):
         for part in re.split(r"&&|\|\||;|\n|(?<!&)&(?!&)", command)
         if part.strip()
     ]
+
+
+def _allowed_eval_fit_segment(segment):
+    try:
+        tokens = shlex.split(segment)
+    except ValueError:
+        return False
+    normalized = [token.removeprefix("./") for token in tokens]
+    if normalized and Path(normalized[0]).name in EVAL_DATA_READERS:
+        return True
+    return any(token in EVAL_ONLY_RUNNERS for token in normalized)
+
+
+def _eval_fit_reason(command):
+    for segment in _segments(command):
+        if (
+            EVAL_DATA.search(segment)
+            and FIT_TOKEN.search(segment)
+            and not _allowed_eval_fit_segment(segment)
+        ):
+            return "eval data used for fitting"
+    return None
 
 
 def _allowed_sealed_segment(segment, allowlist):
@@ -253,6 +289,9 @@ def _background_launch(command):
 def decision(command, *, env=None, gpu_pids=None, owned_pids=None):
     """Return a deny reason, or ``None``. Injected state keeps CPU tests hermetic."""
     env = os.environ if env is None else env
+    eval_fit_reason = _eval_fit_reason(command)
+    if eval_fit_reason:
+        return eval_fit_reason
     allowlist = _sealed_allowlist()
     for segment in _segments(command):
         if SEALED_NAME in segment and not _allowed_sealed_segment(segment, allowlist):

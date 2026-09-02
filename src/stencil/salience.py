@@ -30,7 +30,6 @@ responses are imperatives too and are classified as such.
 """
 from __future__ import annotations
 
-import glob
 import json
 import math
 import re
@@ -265,7 +264,7 @@ def _load_default() -> Model:
 DEFAULT_MODEL: Model = _load_default()
 
 
-def is_trained(model: "Model | None" = None) -> bool:
+def is_trained(model: Model | None = None) -> bool:
     """False for the all-zero fallback. An UNTRAINED model scores every
     sentence at exactly 0.5, which would pass a >=0.5 threshold and admit
     ALL text to the ledger — the known over-inclusive failure mode. Callers
@@ -357,7 +356,7 @@ def load_b3_corpus(root: Path) -> list[Example]:
     return _dedupe(exs, cap={"b3-narrative": 1000})
 
 
-def multiif_turns(root: Path) -> list[tuple[str, int, str]]:
+def eval_multiif_turns(root: Path) -> list[tuple[str, int, str]]:
     """(key, turn, content) for every Multi-IF English turn prompt."""
     out = []
     for line in (root / "data/bench/multiif_en.jsonl").read_text().splitlines():
@@ -371,12 +370,12 @@ def multiif_turns(root: Path) -> list[tuple[str, int, str]]:
     return out
 
 
-def sample_multiif_sentences(root: Path, n: int = 100, seed: int = 0, turns=(1,)) -> list[str]:
+def eval_sample_multiif_sentences(root: Path, n: int = 100, seed: int = 0, turns=(1,)) -> list[str]:
     """Deterministic sample of unique Multi-IF sentences for hand labeling.
     Default: turn-1 only — the raw IFEval prompts that mix task framing with
     constraints (the hard case) and that never enter any training set."""
     uniq: dict[str, None] = {}
-    for _, t, content in multiif_turns(root):
+    for _, t, content in eval_multiif_turns(root):
         if t not in turns:
             continue
         for a, b in split_sentences(content):
@@ -388,20 +387,20 @@ def sample_multiif_sentences(root: Path, n: int = 100, seed: int = 0, turns=(1,)
     return [pool[i] for i in sorted(rng.choice(len(pool), size=n, replace=False))]
 
 
-def load_bench_corpus(root: Path, hand_labels=(), max_convs: int | None = None) -> list[Example]:
+def eval_load_bench_corpus(root: Path, hand_labels=(), max_convs: int | None = None) -> list[Example]:
     """Real corpus: Multi-IF turn-2/3 sentences (+, instruction-only turns by
     construction), prose from recorded Qwen responses (-), and the hand-labeled
     sample (either)."""
     exs: list[Example] = []
     hand = {t.strip().lower() for t, _ in hand_labels}
-    for _, t, content in multiif_turns(root):
+    for _, t, content in eval_multiif_turns(root):
         if t == 1:
             continue
         for a, b in split_sentences(content):
             s = content[a:b]
             if s.strip().lower() not in hand:
                 exs.append(Example(s, 1, "mif-turn23"))
-    files = sorted(glob.glob(str(root / "results/qwen/b4-multiif-base/conv-*.json")))[:max_convs]
+    files = sorted((root / "results/qwen/b4-multiif-base").glob("conv-*.json"))[:max_convs]
     for f in files:
         j = json.loads(Path(f).read_text())
         for resp in j.get("responses", {}).values():
@@ -411,9 +410,9 @@ def load_bench_corpus(root: Path, hand_labels=(), max_convs: int | None = None) 
 
 
 def default_training_set(root: Path, hand_labels=()) -> tuple[list[str], list[int]]:
-    """Union of both corpora minus the hand-labeled sample (kept unseen)."""
+    """Fit only on b3; all benchmark prompts/responses remain evaluation-only."""
     hand = {t.strip().lower() for t, _ in hand_labels}
-    exs = [ex for ex in load_b3_corpus(root) + load_bench_corpus(root, hand_labels=()) if ex.text.strip().lower() not in hand]
+    exs = [ex for ex in load_b3_corpus(root) if ex.text.strip().lower() not in hand]
     return [ex.text for ex in exs], [ex.label for ex in exs]
 
 

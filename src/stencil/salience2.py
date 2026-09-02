@@ -32,11 +32,11 @@ features + probe logit) next to this module; regenerate with
 ``python -m stencil.salience2 [--probe]`` (the probe path caches trunk
 features under results/salience2/).
 
-SEALED DATA: the single-use IFEval set (data/bench, tests/test_sealed_guard.py)
-is never read by this module — no fit, feature pass, or evaluation touched it
-(a first build did; it was withdrawn and everything below is the refit).
-Training = b3 synthetic (+ buried variants, + canonical prose) and Multi-IF
-turn-2/3 (+ recorded-response prose); IFBench is the transfer set.
+DATA LINEAGE: fitting uses only data/b3 synthetic prompts, buried variants,
+and their canonical prose.  Evaluation uses data/bench and recorded benchmark
+responses; those sources are disjoint and are available only through
+``eval_*`` helpers that no fitting path calls.  A first build used IFEval and a
+later build used Multi-IF prompts/responses; both were withdrawn and refit.
 
 MEASURED (tests/test_salience2.py, 2026-09-01; gold = clause spans, match =
 >= 50% character overlap both ways):
@@ -882,7 +882,7 @@ def load_b3_prose(root: Path, cap: int = 800) -> list[Doc]:
     return out
 
 
-def multiif_turns(root: Path) -> list[tuple[str, int, str]]:
+def eval_multiif_turns(root: Path) -> list[tuple[str, int, str]]:
     out = []
     for line in (root / "data/bench/multiif_en.jsonl").read_text().splitlines():
         if not line.strip():
@@ -895,12 +895,12 @@ def multiif_turns(root: Path) -> list[tuple[str, int, str]]:
     return out
 
 
-def load_multiif23_docs(root: Path, exclude_texts: set[str] = frozenset()) -> list[Doc]:
+def eval_load_multiif23_docs(root: Path, exclude_texts: set[str] = frozenset()) -> list[Doc]:
     """Multi-IF turn-2/3 prompts are instruction-only by construction: every
     clause is a positive.  Turns containing an excluded sentence are dropped."""
     docs: list[Doc] = []
     seen: set[str] = set()
-    for _, t, content in multiif_turns(root):
+    for _, t, content in eval_multiif_turns(root):
         if t == 1 or content in seen or any(content[a:b] in exclude_texts for a, b in split_sentences(content)):
             continue
         seen.add(content)
@@ -909,7 +909,7 @@ def load_multiif23_docs(root: Path, exclude_texts: set[str] = frozenset()) -> li
     return docs
 
 
-def load_conv_prose(root: Path, cap: int = 800) -> list[Doc]:
+def eval_load_conv_prose(root: Path, cap: int = 800) -> list[Doc]:
     """Narrative negatives from recorded Qwen responses (read-only)."""
     import glob
     out: list[Doc] = []
@@ -1012,7 +1012,7 @@ def synthesize_buried(root: Path, files=("data/b3/train-v43.jsonl",), template_p
 
 
 # --- IFBench transfer gold (never trained on)
-def load_ifbench_docs(root: Path) -> list[Doc]:
+def eval_load_ifbench_docs(root: Path) -> list[Doc]:
     """IFBench prompts with GOLD spans = the vendored checker's own
     build_description text located in the prompt (numbers normalised);
     each located description is split into sentences.  Prompts whose
@@ -1102,14 +1102,15 @@ def evaluate_docs(docs: list[Doc], predict, thr: float = 0.5) -> dict:
             "false_positives": fps, "false_negatives": fns}
 
 
-def training_docs(root: Path, exclude_texts: set[str] = frozenset()) -> dict[str, list[Doc]]:
-    """The two training corpora (leave-one-out unit): synthetic (b3 + buried
-    + b3 prose) and real (Multi-IF turn-2/3 + recorded-response prose).  The
-    sealed single-use IFEval set (data/bench, see tests/test_sealed_guard.py)
-    is NEVER read here: no fit, feature pass, or evaluation touches it."""
+def training_docs(root: Path) -> dict[str, list[Doc]]:
+    """Disjoint fitting corpora: b3 synthetic, buried variants, and b3 prose.
+
+    ``real`` remains as an empty compatibility corpus for leave-one-corpus-out
+    callers. Evaluation benchmarks and responses to them never enter a fit.
+    """
     return {
         "synthetic": load_b3_docs(root) + synthesize_buried(root, template_parity=0) + load_b3_prose(root),
-        "real": load_multiif23_docs(root, exclude_texts) + load_conv_prose(root),
+        "real": [],
     }
 
 
@@ -1217,10 +1218,7 @@ def _subsample(H: np.ndarray, y: np.ndarray, cap: int) -> tuple[np.ndarray, np.n
 def main() -> None:
     import sys
     root = Path(__file__).resolve().parents[2]
-    sys.path.insert(0, str(root / "tests"))
-    from test_salience2 import HAND_CLAUSES
-    exclude = {s for s, _ in HAND_CLAUSES}
-    corpora = training_docs(root, exclude)
+    corpora = training_docs(root)
     docs = corpora["synthetic"] + corpora["real"]
     exs = clause_examples(docs)
     m = fit_linguistic(exs)

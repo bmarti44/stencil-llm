@@ -575,20 +575,20 @@ def test_marker_is_never_a_feature():
 
 @needs_data
 def test_loaders_emit_no_marker_and_are_non_trivial():
-    corp = S2.training_docs(ROOT, {s for s, _ in HAND_CLAUSES})
-    for name, docs in corp.items():
-        assert len(docs) >= 1000, name
-        assert all("constraint:" not in d.text.lower() for d in docs), name
-        exs = S2.clause_examples(docs)
-        y = np.array([e.label for e in exs])
-        assert len(exs) >= 1500 and 0.2 <= y.mean() <= 0.8, (name, len(exs), y.mean())
-    assert not ({d.text for d in corp["synthetic"]} & {d.text for d in corp["real"]})
+    corp = S2.training_docs(ROOT)
+    assert corp["real"] == []
+    docs = corp["synthetic"]
+    assert len(docs) >= 1000
+    assert all("constraint:" not in d.text.lower() for d in docs)
+    exs = S2.clause_examples(docs)
+    y = np.array([e.label for e in exs])
+    assert len(exs) >= 1500 and 0.2 <= y.mean() <= 0.8, (len(exs), y.mean())
     hand = {s for s, _ in HAND_CLAUSES}
-    for d in corp["real"]:
+    for d in docs:
         assert not any(d.text[a:b] in hand for a, b in S2.split_sentences(d.text)), "hand sentence leaked into training"
-    ifb = S2.load_ifbench_docs(ROOT)
+    ifb = S2.eval_load_ifbench_docs(ROOT)
     assert len(ifb) >= 200 and sum(len(d.spans) for d in ifb) >= 250
-    assert not ({d.text for d in ifb} & ({d.text for d in corp["synthetic"]} | {d.text for d in corp["real"]}))
+    assert not ({d.text for d in ifb} & {d.text for d in corp["synthetic"]})
 
 
 def test_linguistic_fit_is_deterministic_and_bitwise_repeat():
@@ -602,21 +602,21 @@ def test_linguistic_fit_is_deterministic_and_bitwise_repeat():
 
 @needs_data
 def test_default_linguistic_reproduces_committed_weights_bitwise():
-    corp = S2.training_docs(ROOT, {s for s, _ in HAND_CLAUSES})
+    corp = S2.training_docs(ROOT)
     m = S2.fit_linguistic(S2.clause_examples(corp["synthetic"] + corp["real"]))
     assert np.array_equal(m.w, S2.DEFAULT_LINGUISTIC.w) and m.b == S2.DEFAULT_LINGUISTIC.b
 
 
 @needs_data
 def test_label_shuffle_collapses_linguistic():
-    corp = S2.training_docs(ROOT, {s for s, _ in HAND_CLAUSES})
+    corp = S2.training_docs(ROOT)
     exs = S2.clause_examples(corp["synthetic"])
     rng = np.random.default_rng(0)
     y = np.array([e.label for e in exs])
     rng.shuffle(y)
     sh = S2.fit_linguistic([S2.ClauseExample(e.clause, int(lab), e.is_first, e.source) for e, lab in zip(exs, y, strict=True)])
     real = S2.fit_linguistic(exs)
-    test = corp["real"]
+    test = S2.eval_load_multiif23_docs(ROOT) + S2.eval_load_conv_prose(ROOT)
     f_sh = S2.evaluate_docs(test, lambda d: [(s.start, s.end) for s in S2.extract_instructions(d.text, model=sh)])["f1"]
     f_re = S2.evaluate_docs(test, lambda d: [(s.start, s.end) for s in S2.extract_instructions(d.text, model=real)])["f1"]
     # The hand floors (negative-imperative / bounded-attachment / numeral-NP
@@ -677,20 +677,20 @@ def test_gate1_blind_hand_sample_linguistic():
 
 
 @needs_data
-def test_gate2_leave_one_corpus_out_linguistic():
-    corp = S2.training_docs(ROOT, {s for s, _ in HAND_CLAUSES})
-    for tr, te in (("synthetic", "real"), ("real", "synthetic")):
-        m = S2.fit_linguistic(S2.clause_examples(corp[tr]))
-        rep = S2.evaluate_docs(corp[te], _ling_pred(m))
-        _report(f"GATE 2 LOCO {tr}->{te} LINGUISTIC", rep, 8, 8)
-        assert rep["tp"] + rep["fn"] >= 600
-        if S2.DEFAULT_BACKEND == "linguistic":
-            assert rep["f1"] >= 0.90, (tr, te, rep["f1"])
+def test_gate2_disjoint_eval_transfer_linguistic():
+    corp = S2.training_docs(ROOT)
+    eval_docs = S2.eval_load_multiif23_docs(ROOT) + S2.eval_load_conv_prose(ROOT)
+    m = S2.fit_linguistic(S2.clause_examples(corp["synthetic"]))
+    rep = S2.evaluate_docs(eval_docs, _ling_pred(m))
+    _report("GATE 2 DISJOINT b3->Multi-IF LINGUISTIC", rep, 8, 8)
+    assert rep["tp"] + rep["fn"] >= 600
+    if S2.DEFAULT_BACKEND == "linguistic":
+        assert rep["f1"] >= 0.90, rep["f1"]
 
 
 @needs_data
 def test_gate3_ifbench_transfer_linguistic():
-    docs = S2.load_ifbench_docs(ROOT)
+    docs = S2.eval_load_ifbench_docs(ROOT)
     rep = S2.evaluate_docs(docs, _ling_pred())
     _report("GATE 3 IFBench TRANSFER (never trained on) LINGUISTIC", rep, 20, 20)
     assert rep["n_docs"] >= 200 and rep["f1"] > 0.5
@@ -727,7 +727,7 @@ def feats():
     docs = _hand_docs(HAND_CLAUSES) + _hand_docs(HAND_CLAUSES_BLIND) + _hand_docs(HAND_CLAUSES_BLIND2)
     docs += [S2.Doc(BURIED_EXEMPLAR, (), "api")] + [S2.Doc(s, (), "api") for s, _, _ in NON_ADDITIVE] + [S2.Doc(s, (), "api") for s in TASK_ONLY]
     if HAVE_DATA:
-        docs += S2.load_ifbench_docs(ROOT) + S2.synthesize_buried(ROOT, files=("data/b3/dev-v43.jsonl", "data/b3/dev-200.jsonl"), template_parity=1)
+        docs += S2.eval_load_ifbench_docs(ROOT) + S2.synthesize_buried(ROOT, files=("data/b3/dev-v43.jsonl", "data/b3/dev-200.jsonl"), template_parity=1)
     if not _cuda_available() and any(True for d in docs if d.text not in S2.cache_features([], None, FEATS)):
         pytest.skip("feature cache incomplete and no CUDA trunk")
     return S2.cache_features(docs, lambda: S2.H20Extractor(ROOT), FEATS)
@@ -769,29 +769,29 @@ def test_gate1_hand_samples_trunk_backends(feats, backend):
 
 @needs_data
 @pytest.mark.parametrize("backend", ["probe", "hybrid"])
-def test_gate2_leave_one_corpus_out_trunk_backends(feats, backend):
-    corp = S2.training_docs(ROOT, {s for s, _ in HAND_CLAUSES})
-    all_feats = S2.cache_features(corp["synthetic"] + corp["real"], lambda: S2.H20Extractor(ROOT), FEATS)
-    for tr, te in (("synthetic", "real"), ("real", "synthetic")):
-        rows = S2.clause_rows(corp[tr], all_feats)
-        pm = S2.fit_clause_probe(rows)
-        if backend == "hybrid":
-            lab = [r for r in rows if r.label is not None]
-            w, b = S2.fit_hybrid(lab, S2.cross_fitted_probe_logits(lab))
-            model = S2.HybridModel(w, b, pm)
-        else:
-            model = pm
-        rep = S2.evaluate_docs(corp[te], _pred(backend, all_feats, model))
-        _report(f"GATE 2 LOCO {tr}->{te} {backend.upper()}", rep, 6, 6)
-        assert rep["tp"] + rep["fn"] >= 600
-        if S2.DEFAULT_BACKEND == backend:
-            assert rep["f1"] >= 0.90, (tr, te, rep["f1"])
+def test_gate2_disjoint_eval_transfer_trunk_backends(feats, backend):
+    corp = S2.training_docs(ROOT)
+    eval_docs = S2.eval_load_multiif23_docs(ROOT) + S2.eval_load_conv_prose(ROOT)
+    all_feats = S2.cache_features(corp["synthetic"] + eval_docs, lambda: S2.H20Extractor(ROOT), FEATS)
+    rows = S2.clause_rows(corp["synthetic"], all_feats)
+    pm = S2.fit_clause_probe(rows)
+    if backend == "hybrid":
+        lab = [r for r in rows if r.label is not None]
+        w, b = S2.fit_hybrid(lab, S2.cross_fitted_probe_logits(lab))
+        model = S2.HybridModel(w, b, pm)
+    else:
+        model = pm
+    rep = S2.evaluate_docs(eval_docs, _pred(backend, all_feats, model))
+    _report(f"GATE 2 DISJOINT b3->Multi-IF {backend.upper()}", rep, 6, 6)
+    assert rep["tp"] + rep["fn"] >= 600
+    if S2.DEFAULT_BACKEND == backend:
+        assert rep["f1"] >= 0.90, rep["f1"]
 
 
 @needs_data
 @pytest.mark.parametrize("backend", ["probe", "hybrid"])
 def test_gate3_gate4_transfer_and_buried_trunk_backends(feats, backend):
-    rep = S2.evaluate_docs(S2.load_ifbench_docs(ROOT), _pred(backend, feats))
+    rep = S2.evaluate_docs(S2.eval_load_ifbench_docs(ROOT), _pred(backend, feats))
     _report(f"GATE 3 IFBench TRANSFER {backend.upper()}", rep, 10, 10)
     assert rep["n_docs"] >= 200 and rep["f1"] > 0.5
     rep = S2.evaluate_docs(S2.synthesize_buried(ROOT, files=("data/b3/dev-v43.jsonl", "data/b3/dev-200.jsonl"), template_parity=1), _pred(backend, feats))

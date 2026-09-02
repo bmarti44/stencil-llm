@@ -58,6 +58,10 @@ short, imperative, and evidence-linked; prune entries that stop paying rent.
   died under sol's re-verification (actual: 14/14794 presses, code-string
   identity). Either instrument the exact claim (press counters, hashes) or
   narrow the words to the measurement (2026-08-30).
+- Never fit, train, select, or tune on any evaluation benchmark or recorded
+  response to its prompts; the IFEval (2026-09-01) and Multi-IF (2026-09-02)
+  salience incidents both contaminated shipped finders. Write the data-lineage
+  line (fit-on vs evaluated-on, disjoint) before any registration or brief.
 
 - Smoke-invoke any edited `set -u` shell script before committing — a
   variable-ordering slip killed a full review round silently (2026-08-22).

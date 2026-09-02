@@ -2410,3 +2410,25 @@ anyway (0.854/0.860 blind; precision 0.95/0.94).
   tool-use dialogue instructions; preflight floor 0.80 unmet (0.78 only via auto-admitted schemas). Deferred to the
   BFCL preflight step; not to be fixed after seeing the sealed cohort.
 - 2026-09-02, coder (auto, run_codex_agent.sh). Brief qwen3-4b-parity: model gpt-5.6-sol, effort medium, exit 0, session 01a06380-947c-7921-96a9-631db2dba001, log /home/bmarti44/stencil-llm/results/logs/codex-agent-qwen3-4b-parity.log.
+
+## 2026-09-02 — eval-data-guard
+- Data lineage (written before handoff): **fit-on** = `data/b3/{train-v43,cal-v45,mt-train-300}.jsonl`, b3-derived buried variants, and b3 canonical prose; **evaluated-on** = every `data/bench/` benchmark plus recorded responses under `results/qwen/b4-multiif-base`; the sets and their code paths are disjoint. `salience2.training_docs()["real"]` is now empty. Salience v1 and v2 benchmark readers were renamed `eval_*`; no fitting function calls them.
+- Mechanical scan: `tests/test_eval_data_separation.py` parses every `src/stencil/*.py` (44 files) and `scripts/*.py` (93 files), detects literal and split `Path / "data" / "bench"` forms, follows local helper calls from fitting-indicating functions/modules, and checks both forbidden roots. Literal `EVAL_ONLY` allowlist: `scripts/bfcl_mt.py`, `scripts/ledger_eval.py`, `scripts/ledger_kv_probe.py`.
+- TDD RED, before production edits, from the exact requested command (second run fixed the test's own `training`-stem miss and proved both salience versions red):
+
+      AssertionError: evaluation data used by fitting code:
+        src/stencil/salience.py:default_training_set -> ['data/bench/', 'results/qwen/b4-multiif-base']
+        src/stencil/salience2.py:load_ifbench_docs -> ['data/bench/']
+        src/stencil/salience2.py:load_multiif23_docs -> ['data/bench/']
+        src/stencil/salience2.py:training_docs -> ['data/bench/', 'results/qwen/b4-multiif-base']
+      python scripts/fit_finder.py data/bench/multiif_en.jsonl -> expected deny, got None
+      python scripts/select.py --train results/qwen/b4-multiif-base -> expected deny, got None
+      python -m stencil.salience2 data/bench/bfcl_v3_mt -> expected deny, got None
+      4 failed, 96 passed, 2 xfailed, 1 warning in 25.74s
+
+- GREEN: `set -o pipefail; uv run pytest -q tests/test_eval_data_separation.py tests/test_pretool_guard.py tests/test_salience2.py tests/test_sealed_guard.py` -> **103 passed, 2 xfailed, 1 pre-existing SyntaxWarning in 22.35s**. An intermediate run was 99 passed/1 failed because a stale test incorrectly required held-out labels to be absent from the evaluation loader rather than from training; the corrected assertion checks b3 training documents. `uv run ruff check` on every touched Python file and `git diff --check` both pass.
+- CPU-only refits: `CUDA_VISIBLE_DEVICES='' uv run python -m stencil.salience2` fit 11,366 clauses (6,097 positive) in 1.14s. New `src/stencil/salience2_weights.json` SHA-256: `a3d156b7106776d0c4095aa810689b007b2561cf3364bae3b061e3aea0a54f8e` (old: `6bd0e8564b4b719273f03794e9785c8d20bdc96d537cdcade910d6beb1bc3d26`). Salience v1 was also refit from b3 only; new SHA-256 `1b9c59232cbdb0b3b62fc257ed6aab88d757c199bec39f192624a908075e46f6` (old `b5d2f768aaa21b24b42cc0a46620457d20ce097242463399675cad35a436a817`). No probe/hybrid refit or model process ran.
+- Salience2 top-12 before: `+2.850900 directive_x_form`; `+2.176624 form_noun`; `+1.697475 attach_x_tone`; `+1.635840 attach_x_form`; `-1.598505 log_len`; `+1.591075 restrictor`; `+1.190077 output_ref`; `+1.169276 second_person`; `+1.163050 attachment_head`; `-1.023040 genre_noun`; `-0.951401 copula_present`; `+0.924986 numeral`.
+- Salience2 top-12 after: `+2.862758 directive_x_form`; `+2.243809 form_noun`; `+1.833466 attach_x_form`; `+1.790620 restrictor`; `+1.740415 attach_x_tone`; `+1.455685 attachment_head`; `-1.237997 log_len`; `-1.097446 genre_noun`; `+1.097094 output_ref`; `+1.087647 second_person`; `-0.967657 copula_present`; `+0.952808 quoted_literal`.
+- Remaining evaluation-data readers: none for a non-evaluation purpose. The remaining production reads are benchmark runners/scorers (`b0_score_parity.py`, `b2_gsm8k.py`, `b2_mmlu.py`, `b4_ifeval.py`, `b4_multiif.py`, `bfcl_mt.py`, `ledger_eval.py`), Multi-IF evaluation/analysis scripts (`e2_headroom_adjusted.py`, `e2_multiif_eval.py`, `e2_multiif_own_history.py`, `e2_obligation_eval.py`, `e2_pre_eval_audit.py`), and the explicitly named `eval_*` salience loaders. The scan reports no fitting/selecting call path to any of them.
+- Coder provenance: `gpt-5.6-sol`, effort `medium`, session `01a063bd-051b-7223-b55c-af0199c665c1`, wrapper log `/home/bmarti44/stencil-llm/results/logs/codex-agent-eval-data-guard.log`.

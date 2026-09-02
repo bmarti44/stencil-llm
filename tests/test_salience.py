@@ -24,7 +24,7 @@ needs_data = pytest.mark.skipif(not HAVE_DATA, reason="corpora not on disk")
 
 # ---------------------------------------------------------------- hand labels
 # 100 unique Multi-IF TURN-1 sentences (raw IFEval prompts, the hard mixed case;
-# never in any training set; sampled by S.sample_multiif_sentences
+# never in any training set; sampled by S.eval_sample_multiif_sentences
 # with seed 0), labeled by the agent under this rule: 1 = the sentence states an
 # explicit, checkable requirement on the output (numeric bound, required or
 # forbidden literal, format, case, language, structure); 0 = it only sets the
@@ -335,7 +335,7 @@ def test_marker_is_never_a_feature():
 @needs_data
 def test_loaders_emit_no_marker_and_are_non_trivial():
     b3 = S.load_b3_corpus(ROOT)
-    bench = S.load_bench_corpus(ROOT, hand_labels=HAND_LABELS)
+    bench = S.eval_load_bench_corpus(ROOT, hand_labels=HAND_LABELS)
     for corpus in (b3, bench):
         assert all("Constraint:" not in ex.text and "constraint:" not in ex.text.lower() for ex in corpus)
         labels = np.array([ex.label for ex in corpus])
@@ -350,7 +350,7 @@ def test_loaders_emit_no_marker_and_are_non_trivial():
 @needs_data
 def test_label_shuffle_collapses_f1():
     b3 = S.load_b3_corpus(ROOT)
-    bench = S.load_bench_corpus(ROOT, hand_labels=HAND_LABELS)
+    bench = S.eval_load_bench_corpus(ROOT, hand_labels=HAND_LABELS)
     rng = np.random.default_rng(0)
     y = np.array([ex.label for ex in b3])
     rng.shuffle(y)
@@ -391,9 +391,9 @@ def test_top_features_are_linguistic():
 @needs_data
 def test_gate_A_leave_one_corpus_out():
     b3 = S.load_b3_corpus(ROOT)
-    bench = S.load_bench_corpus(ROOT, hand_labels=HAND_LABELS)
+    bench = S.eval_load_bench_corpus(ROOT, hand_labels=HAND_LABELS)
     report = {}
-    for name, train, test in (("b3->bench", b3, bench), ("bench->b3", bench, b3)):
+    for name, train, test in (("b3->bench", b3, bench),):
         m = S.fit([ex.text for ex in train], [ex.label for ex in train])
         gold = np.array([ex.label for ex in test], bool)
         pred = np.array([S.score_instruction(ex.text, m) >= 0.5 for ex in test])
