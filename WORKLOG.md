@@ -2434,3 +2434,13 @@ anyway (0.854/0.860 blind; precision 0.95/0.94).
 - Coder provenance: `gpt-5.6-sol`, effort `medium`, session `01a063bd-051b-7223-b55c-af0199c665c1`, wrapper log `/home/bmarti44/stencil-llm/results/logs/codex-agent-eval-data-guard.log`.
 - 2026-09-02, coder (auto, run_codex_agent.sh). Brief eval-data-guard: model gpt-5.6-sol, effort medium, exit 0, session 01a063bd-051b-7223-b55c-af0199c665c1, log /home/bmarti44/stencil-llm/results/logs/codex-agent-eval-data-guard.log.
 - 2026-09-02, coder (auto, run_codex_agent.sh). Brief g0-oracle-pilot: model gpt-5.6-sol, effort medium, exit 7, session 01a063ca-05d0-7e82-a7d9-da3c678a2ca0, log /home/bmarti44/stencil-llm/results/logs/codex-agent-g0-oracle-pilot.log.
+
+## 2026-09-02 — quick checks before the G0 pilot (results/quick-checks/README.md)
+- Loss-delta oracle: leave-one-out NO signal (AUROC 0.49); keep-one-in weak (0.52 mean / 0.63 top-3) — it measures
+  need to reproduce content, not standing-constraint adherence. BM25 retrieval: 0.37 constraint coverage vs 0.13
+  random. ROLE RULE (pin all prior user turns, no finder): 41/56 aged constraints vs finder 37, control 26, full 44,
+  evicted 14 → recovery 0.90; safety within the integer clause; 20% of evictable columns pinned.
+- Reading (not acted on pending fable/sol/kimi review): the parameter-free role rule is the generic candidate; the
+  loss-oracle pilot (G0 v2) does not measure the quantity that matters for instructions and should be cut or demoted
+  to a diagnostic (burden test); the path is role rule → post-development evaluation on Multi-IF 909 + BFCL (with the
+  protected-prefix harness fix) → a separately registered no-contact family for the zero-shot claim.
