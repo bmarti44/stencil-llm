@@ -1,0 +1,637 @@
+{
+ "ci": 46,
+ "key": "1137:3:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "833e78f3e43edf5d9cc19ff6d9a12ce9e1212224f3a0db28137135bbd92291bc",
+   "context_tokens": 240,
+   "instruction_ids": [
+    "detectable_format:json_format",
+    "keywords:forbidden_words",
+    "length_constraints:nth_paragraph_first_word"
+   ],
+   "insertable": [
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "detectable_format:json_format",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "keywords:forbidden_words",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "length_constraints:nth_paragraph_first_word",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2,
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Explain in French why it is important to eat healthy foods to heal the body, without using the word \"nourriture\".",
+     "span": [
+      3,
+      30
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:json_format",
+      "keywords:forbidden_words"
+     ]
+    },
+    {
+     "text": "Make sure your entire response is wrapped in JSON format.",
+     "span": [
+      30,
+      41
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:json_format",
+      "keywords:forbidden_words"
+     ]
+    },
+    {
+     "text": "Your response should have 7 paragraphs and the 7-th paragraph should start with the word fruits.",
+     "span": [
+      201,
+      221
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word"
+     ]
+    },
+    {
+     "text": "The paragraphs should be separated by two new lines.",
+     "span": [
+      221,
+      231
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "{\n  \"response\": \"Les aliments sains sont essentiels pour restaurer et maintenir la santé du corps. Ils fournissent les nutriments nécessaires pour les processus biologiques, renforcent le système immunitaire et favorisent une énergie optimale. En consommant des aliments riches en fibres, en vitamines et en minéraux, on soutient la fonction physique et mentale, ce qui est crucial pour un bon fonctionnement quotidien. Une alimentation équilibrée permet de prévenir les maladies, de réduire le risque de maladies chroniques et de promouvoir une vie plus saine et épanouissante. Les aliments sains contribuent également à la régulation de l'apetit et à la gestion de l'obésité, ce qui est vital pour un équilibre énergétique. Ils favorisent la croissance cellulaire et la production de hormones essentielles, ce qui est crucial pour un fonctionnement normal du corps. En mangeant des aliments variés et équilibrés, on soutient la santé cardiovasculaire et le système circulatoire, ce qui est essentiel pour une vie longue et saine. Les aliments sains sont également bénéfiques pour la santé du système digestif, en favorisant une bonne digestion et une élimination efficace des déchets. Fruits, légumes, grains entiers et protéines végétales sont des exemples de aliments sains qui apportent des nutriments essentiels et sont riches en antioxydants. En consommant ces aliments, on renforce le système immunitaire et on réduit le risque de maladies chroniques, ce qui est crucial pour un bon fonctionnement à long terme.\"\n}",
+    "response_sha256": "0ff1391ca7b3d5f7cce6e78e0f25132216fc39a08b1df987a1177c11e62613c8",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      false
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      false
+     ]
+    },
+    "n_generated": 395,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "{\n  \"response\": \"Les aliments sains sont essentiels pour restaurer et maintenir la santé du corps. Ils fournissent les nutriments nécessaires pour les processus biologiques, renforcent le système immunitaire et favorisent une énergie optimale. En consommant des aliments riches en fibres, en vitamines et en minéraux, on soutient la fonction physique et mentale, ce qui est crucial pour un bon fonctionnement quotidien. Une alimentation équilibrée permet de prévenir les maladies, de réduire le risque de maladies chroniques et de promouvoir une vie plus saine et épanouissante. Les aliments sains contribuent également à la régulation de l'apport énergétique et à la maintenance de l'équilibre hydrique du corps. Ils favorisent la croissance cellulaire et la production de hormones essentielles pour le fonctionnement normal des organes. En mangeant des aliments variés et équilibrés, on soutient la production de cellules sanguines et la qualité du sang, ce qui est vital pour le système circulatoire. Les aliments sains aident à prévenir les maladies cardiovasculaires et à améliorer la qualité du sommeil. Enfin, les aliments sains favorisent l'absorption des nutriments et la digestion, ce qui est essentiel pour un métabolisme optimale. Fruits, légumes, grains entiers et protéines végétales sont des exemples de aliments sains qui apportent des bénéfices à long terme pour la santé globale.\"\n}",
+     "response_sha256": "0b2f407745a9fed20872845ec3d81c258a40ccc3547b2d9047d14d079ee3258a",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 365,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 287,
+     "context_tokens_added": 47,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "{\n  \"response\": \"Les aliments sains sont essentiels pour restaurer et maintenir la santé du corps. Ils fournissent les nutriments nécessaires pour les processus biologiques, renforcent le système immunitaire et favorisent une énergie optimale. En consommant des aliments riches en fibres, en vitamines et en minéraux, on soutient la fonction physique et mentale, ce qui est crucial pour un bon fonctionnement quotidien. Une alimentation équilibrée permet de prévenir les maladies, de réduire le risque de maladies chroniques et de promouvoir une vie plus saine et épanouissante. Les aliments sains contribuent également à la prévention des maladies cardiovasculaires et à la maintenance de la masse musculaire, ce qui est vital pour un corps actif et en bonne santé. En mangeant des aliments variés et équilibrés, on favorise l'absorption des nutriments et l'équilibre des hormones, ce qui est essentiel pour un fonctionnement optimal du corps. Les aliments sains favorisent également la digestion et l'absorption des nutriments, ce qui est crucial pour un métabolisme équilibré. Enfin, une alimentation saine permet de maintenir une bonne hygiène de la peau, des cheveux et des ongles, ce qui est important pour un état général de santé. Fruits, légumes, légumes et graines sont des exemples de aliments sains qui apportent des vitamines, des minéraux et des fibres essentielles pour un corps en bonne santé.\"\n}",
+     "response_sha256": "34952c469ef2ea76acd2d21636ad63aa4eb461952d022a979545db99dd19b15b",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 369,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 369,
+     "prompt_tokens": 240,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       3,
+       30
+      ],
+      [
+       30,
+       41
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "{\n  \"response\": \"Les aliments sains sont essentiels pour restaurer et maintenir la santé du corps. Ils fournissent les nutriments nécessaires pour les processus biologiques, renforcent le système immunitaire et favorisent une énergie optimale. En consommant des aliments riches en fibres, en vitamines et en minéraux, on soutient la fonction physique et mentale, ce qui est crucial pour un bon fonctionnement quotidien. Une alimentation équilibrée permet de prévenir les maladies, de réduire le risque de maladies chroniques et de promouvoir une vie plus saine et épanouissante. Les aliments sains favorisent également la digestion et l'élimination des déchets, ce qui est crucial pour une fonctionnement optimal du système digestif. Ils contribuent à la production d'énergie et à la régulation de l'apport en énergie quotidienne. En mangeant des aliments variés et équilibrés, on soutient la croissance et le développement des cellules et des tissus. Les aliments sains sont également cruciaux pour la prévention des maladies chroniques et pour améliorer la qualité de vie. Les fruits, en particulier, sont des aliments sains qui apportent des vitamines, des minéraux et des fibres importantes pour la santé générale et la fonction du système immunitaire.\"\n}",
+     "response_sha256": "1e0ae9193e56175ebce5d28310a38086fd707bd2df6deac79e362f5622414b4b",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 314,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 314,
+     "prompt_tokens": 240,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       41,
+       68
+      ],
+      [
+       68,
+       79
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "2c41f4256978177f1670a1b0cf65730492916c045cce94534b5cead502f96d22",
+   "context_tokens": 683,
+   "instruction_ids": [
+    "detectable_format:json_format",
+    "keywords:forbidden_words",
+    "length_constraints:nth_paragraph_first_word",
+    "startend:end_checker"
+   ],
+   "insertable": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "detectable_format:json_format",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "keywords:forbidden_words",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "length_constraints:nth_paragraph_first_word",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      2,
+      3
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "startend:end_checker",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      4,
+      5
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Explain in French why it is important to eat healthy foods to heal the body, without using the word \"nourriture\".",
+     "span": [
+      3,
+      30
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:json_format",
+      "keywords:forbidden_words"
+     ]
+    },
+    {
+     "text": "Make sure your entire response is wrapped in JSON format.",
+     "span": [
+      30,
+      41
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:json_format",
+      "keywords:forbidden_words"
+     ]
+    },
+    {
+     "text": "Your response should have 7 paragraphs and the 7-th paragraph should start with the word fruits.",
+     "span": [
+      201,
+      221
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word"
+     ]
+    },
+    {
+     "text": "The paragraphs should be separated by two new lines.",
+     "span": [
+      221,
+      231
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word"
+     ]
+    },
+    {
+     "text": "Your response should end with the exact phrase: \"ainsi, manger sainement est essentiel pour maintenir une bonne santé.\"",
+     "span": [
+      636,
+      666
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "No other words should follow this phrase.",
+     "span": [
+      666,
+      674
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "{\n  \"response\": \"Les aliments sains sont essentiels pour restaurer et maintenir la santé du corps. Ils fournissent les nutriments nécessaires pour les processus biologiques, renforcent le système immunitaire et favorisent une énergie optimale. En consommant des aliments riches en fibres, en vitamines et en minéraux, on soutient la fonction physique et mentale, ce qui est crucial pour un bon fonctionnement quotidien. Une alimentation équilibrée permet de prévenir les maladies, de réduire le risque de maladies chroniques et de promouvoir une vie plus saine et épanouissante. Les aliments sains contribuent également à la régulation de l'apetit et à la gestion de l'obésité, ce qui est vital pour un équilibre énergétique. Ils favorisent la croissance cellulaire et la production de hormones essentielles, ce qui est crucial pour un fonctionnement normal du corps. En mangeant des aliments variés et équilibrés, on soutient la santé cardiovasculaire et le système circulatoire, ce qui est essentiel pour une vie longue et saine. Les aliments sains sont également bénéfiques pour la santé du système digestif, en favorisant une bonne digestion et une élimination efficace des déchets. Fruits, légumes, grains entiers et protéines végétales sont des exemples de aliments sains qui apportent des nutriments essentiels et sont riches en antioxydants. Ainsi, manger sainement est essentiel pour maintenir une bonne santé.\"\n}",
+    "response_sha256": "e03c7b08a330cfeb19773bd5d237b97dc62cfc2e1edcc8f21951ec6da645d229",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      false,
+      false
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      false,
+      true
+     ]
+    },
+    "n_generated": 373,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     false,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "{\n  \"response\": \"Les aliments sains sont essentiels pour restaurer et maintenir la santé du corps. Ils fournissent les nutriments nécessaires pour les processus biologiques, renforcent le système immunitaire et favorisent une énergie optimale. En consommant des aliments riches en fibres, en vitamines et en minéraux, on soutient la fonction physique et mentale, ce qui est crucial pour un bon fonctionnement quotidien. Une alimentation équilibrée permet de prévenir les maladies, de réduire le risque de maladies chroniques et de promouvoir une vie plus saine et épanouissante. Les aliments sains contribuent également à la régulation de l'apetit et à la gestion de l'obésité, ce qui est vital pour un équilibre énergétique. Ils favorisent la croissance cellulaire et la production de hormones essentielles, ce qui est crucial pour un fonctionnement normal du corps. En mangeant des aliments variés et équilibrés, on soutient la santé cardiovasculaire et le système circulatoire, ce qui est essentiel pour une vie longue et saine. Les aliments sains sont également bénéfiques pour la santé du système digestif, en favorisant une bonne digestion et une élimination efficace des déchets. Fruits, légumes, grains entiers et protéines végétales sont des exemples de aliments sains qui apportent des nutriments essentiels et sont riches en antioxydants. Ainsi, manger sainement est essentiel pour maintenir une bonne santé.\"\n}",
+     "response_sha256": "e03c7b08a330cfeb19773bd5d237b97dc62cfc2e1edcc8f21951ec6da645d229",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false,
+      false
+     ],
+     "strict": false,
+     "n_generated": 373,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 762,
+     "context_tokens_added": 79,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2,
+      3
+     ]
+    },
+    "neural_ledger": {
+     "response": "{\n  \"response\": \"Les aliments sains sont essentiels pour restaurer et maintenir la santé du corps. Ils fournissent les nutriments nécessaires pour les processus biologiques, renforcent le système immunitaire et favorisent une énergie optimale. En consommant des aliments riches en fibres, en vitamines et en minéraux, on soutient la fonction physique et mentale, ce qui est crucial pour un bon fonctionnement quotidien. Une alimentation équilibrée permet de prévenir les maladies, de réduire le risque de maladies chroniques et de promouvoir une vie plus saine et épanouissante. Les aliments sains contribuent également à la régulation de l'apetit et à la gestion de l'obésité, ce qui est vital pour un équilibre énergétique. Ils favorisent la croissance cellulaire et la production de hormones essentielles, ce qui est crucial pour un fonctionnement normal du corps. En mangeant des aliments variés et équilibrés, on soutient la santé cardiovasculaire et le système circulatoire, ce qui est essentiel pour une vie longue et saine. Les aliments sains sont également bénéfiques pour la santé du système digestif, en favorisant une bonne digestion et une élimination efficace des déchets. Fruits, légumes, grains entiers et protéines végétales sont des exemples de aliments sains qui apportent des nutriments essentiels et sont riches en antioxydants. En consommant ces aliments, on renforce le système immunitaire et on réduit le risque de maladies chroniques, ce qui est crucial pour un bon fonctionnement à long terme. Fruits, légumes, grains entiers et protéines végétales sont des exemples de aliments sains qui apportent des nutriments essentiels et sont riches en antioxydants. Ainsi, manger sainement est essentiel pour maintenir une bonne santé.\"\n}",
+     "response_sha256": "120dcb2f5b0e529682a169553ad326c36c93669fe1dd8cd1047b48981a89470e",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false,
+      false
+     ],
+     "strict": false,
+     "n_generated": 462,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 462,
+     "prompt_tokens": 683,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      2
+     ],
+     "selected_spans": [
+      [
+       3,
+       30
+      ],
+      [
+       201,
+       221
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "{\n  \"response\": \"Les aliments sains sont essentiels pour restaurer et maintenir la santé du corps. Ils fournissent les nutriments nécessaires pour les processus biologiques, renforcent le système immunitaire et favorisent une énergie optimale. En consommant des aliments riches en fibres, en vitamines et en minéraux, on soutient la fonction physique et mentale, ce qui est crucial pour un bon fonctionnement quotidien. Une alimentation équilibrée permet de prévenir les maladies, de réduire le risque de maladies chroniques et de promouvoir une vie plus saine et épanouissante. Les aliments sains contribuent également à la régulation de l'apetit et à la gestion de l'obésité, ce qui est vital pour un équilibre énergétique. Ils favorisent la croissance cellulaire et la production de hormones essentielles, ce qui est crucial pour un fonctionnement normal du corps. En mangeant des aliments variés et équilibrés, on soutient la santé cardiovasculaire et le système circulatoire, ce qui est essentiel pour une vie longue et saine. Les aliments sains sont également bénéfiques pour la santé du système digestif, en favorisant une bonne digestion et une élimination efficace des déchets. Fruits, légumes, grains entiers et protéines végétales sont des exemples de aliments sains qui apportent des nutriments essentiels et sont riches en antioxydants. En consommant ces aliments, on renforce le système immunitaire et on réduit le risque de maladies chroniques, ce qui est crucial pour un bon fonctionnement à long terme. Ainsi, manger sainement est essentiel pour maintenir une bonne santé.\"\n}",
+     "response_sha256": "795673c223ccca04784d13b1a10e5e1d32543e902f0e05f30d5ac0a37a33a1dc",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false,
+      false
+     ],
+     "strict": false,
+     "n_generated": 415,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 415,
+     "prompt_tokens": 683,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       41,
+       68
+      ],
+      [
+       181,
+       201
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

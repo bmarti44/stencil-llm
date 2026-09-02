@@ -1,0 +1,643 @@
+{
+ "ci": 843,
+ "key": "3565:10:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "950faf85b30a11e433d4a0476b267144ab485f8a7f0b6abbd90e3c11d857bc98",
+   "context_tokens": 217,
+   "instruction_ids": [
+    "keywords:forbidden_words",
+    "length_constraints:number_paragraphs",
+    "detectable_format:title"
+   ],
+   "insertable": [
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "keywords:forbidden_words",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "length_constraints:number_paragraphs",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "What does the word \"jock\" mean to you?",
+     "span": [
+      3,
+      15
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:forbidden_words",
+      "length_constraints:number_paragraphs"
+     ]
+    },
+    {
+     "text": "The two parts should be separated by 3 asterisks '***'.",
+     "span": [
+      23,
+      37
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:forbidden_words",
+      "length_constraints:number_paragraphs"
+     ]
+    },
+    {
+     "text": "Also, reply without mentioning the word \"jock\" throughout.",
+     "span": [
+      37,
+      50
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:forbidden_words",
+      "length_constraints:number_paragraphs"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      189,
+      208
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<The Meaning of \"Jock\" in Different Contexts>>  \nThe word \"jock\" can have various meanings depending on the context. In sports, it often refers to a player who is skilled or dominant in a particular sport. In a more general sense, it can also mean someone who is popular or well-liked in a social group.  \n\n***  \n\nIn everyday language, \"jock\" might be used to describe someone who is confident or has a strong presence, especially in a social or competitive setting. However, it is important to note that the term can carry a negative connotation in some contexts, such as in a group setting where it might be used to mock or belittle someone.",
+    "response_sha256": "c3ab22f2cbab77bd987a9f42937b2249781d6a3c9fbb053e8f3c456403e8e7ae",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      false,
+      true,
+      true
+     ]
+    },
+    "n_generated": 143,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     true,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<The Meaning of a Word>>  \nThe word \"jock\" can carry different connotations depending on the context. In sports, it often refers to a player who is skilled or dominant in a particular sport. In a more general sense, it can also mean someone who is popular or well-liked in a social group.  \n\n***  \n\nIn everyday language, \"jock\" might be used to describe someone who is confident or has a strong presence, especially in a social or competitive setting. However, it is important to note that the term can carry a negative connotation in some contexts, such as in a group setting where it might be used to mock or belittle someone.",
+     "response_sha256": "e7d26b42065de56c18c927e44117d211fec4c583fb8afbbb24c3012108ad0656",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 138,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 267,
+     "context_tokens_added": 50,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<The Meaning of the Word \"Jock\"***  \nThe word \"jock\" can have different meanings depending on the context. In sports, it often refers to a player who is skilled or dominant in a particular sport. In a more general sense, it can also mean someone who is popular or well-liked in a social group.  \n\n***  \nIn everyday language, \"jock\" might be used to describe someone who is confident or has a strong presence, especially in a social or competitive setting. However, it is important to note that the term can carry a negative connotation in some contexts, such as in a group setting where it might be used to mock or belittle someone.",
+     "response_sha256": "d82c30ced2b500260a85b93acf912906088057e4e96864922fc7fa6dd5b3a20e",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       false,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      false,
+      false,
+      false
+     ],
+     "strict": false,
+     "n_generated": 141,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 141,
+     "prompt_tokens": 217,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      1,
+      2
+     ],
+     "selected_spans": [
+      [
+       23,
+       37
+      ],
+      [
+       37,
+       50
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<The Meaning of \"Jock\" in Different Contexts>>  \nThe word \"jock\" can have various meanings based on the context in which it is used. In sports, it typically refers to a player who is skilled or dominant in a particular sport. In a more general sense, it can also mean someone who is popular or well-liked in a social group.  \n\n***  \n\nIn everyday language, \"jock\" might be used to describe someone who is confident or has a strong presence, especially in a social or competitive setting. However, it is important to note that the term can carry a negative connotation in some contexts, such as in a group setting where it might be used to mock or belittle someone.",
+     "response_sha256": "b1b83adc896a8c595b41821bd713cb43750b0ab8c215765ae749b68b000e6e0a",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 148,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 148,
+     "prompt_tokens": 217,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       50,
+       64
+      ],
+      [
+       64,
+       77
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "9fe0c604a3b3ce57e2597731d8726a0a07b8fbbb11c78401556970e8d67bbc63",
+   "context_tokens": 397,
+   "instruction_ids": [
+    "keywords:forbidden_words",
+    "length_constraints:number_paragraphs",
+    "detectable_format:title",
+    "startend:end_checker"
+   ],
+   "insertable": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "keywords:forbidden_words",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "length_constraints:number_paragraphs",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "startend:end_checker",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      4,
+      5
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "What does the word \"jock\" mean to you?",
+     "span": [
+      3,
+      15
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:forbidden_words",
+      "length_constraints:number_paragraphs"
+     ]
+    },
+    {
+     "text": "The two parts should be separated by 3 asterisks '***'.",
+     "span": [
+      23,
+      37
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:forbidden_words",
+      "length_constraints:number_paragraphs"
+     ]
+    },
+    {
+     "text": "Also, reply without mentioning the word \"jock\" throughout.",
+     "span": [
+      37,
+      50
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:forbidden_words",
+      "length_constraints:number_paragraphs"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      189,
+      208
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    },
+    {
+     "text": "Your response should end with the exact phrase: \"this perspective highlights the diverse views that exist.\"",
+     "span": [
+      361,
+      380
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "No other words should follow this phrase.",
+     "span": [
+      380,
+      388
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<The Meaning of \"Jock\" in Different Contexts>>  \nThe word \"jock\" can have various meanings depending on the context. In sports, it often refers to a player who is skilled or dominant in a particular sport. In a more general sense, it can also mean someone who is popular or well-liked in a social group.  \n\n***  \nIn everyday language, \"jock\" might be used to describe someone who is confident or has a strong presence, especially in a social or competitive setting. However, it is important to note that the term can carry a negative connotation in some contexts, such as in a group setting where it might be used to mock or belittle someone.  \n\nthis perspective highlights the diverse views that exist.",
+    "response_sha256": "cc642707f70595433c5387043bb30861b58fb1e05ff72ff39ad9b49c84001c19",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      false,
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 153,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     true,
+     true,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<The Meaning of \"Jock\" in Different Contexts>>  \nThe word \"jock\" can have different meanings depending on the context. In sports, it often refers to a player who is skilled or dominant in a particular sport. In a more general sense, it can also mean someone who is popular or well-liked in a social group.  \n\n***  \n\nIn everyday language, \"jock\" might be used to describe someone who is confident or has a strong presence, especially in a social or competitive setting. However, it is important to note that the term can carry a negative connotation in some contexts, such as in a group setting where it might be used to mock or belittle someone.  \n\nthis perspective highlights the diverse views that exist.",
+     "response_sha256": "19f4164001c54a2a8e9fa88ef41520c521c9975023734325bbbd8112f91b9b6b",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 153,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 467,
+     "context_tokens_added": 70,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2,
+      3
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<The Meaning of \"Jock\" in Different Contexts>>  \nThe word \"jock\" can have various meanings depending on the context. In sports, it often refers to a player who is skilled or dominant in a particular sport. In a more general sense, it can also mean someone who is popular or well-liked in a social group.  \n\n***  \nIn everyday language, \"jock\" might be used to describe someone who is confident or has a strong presence, especially in a social or competitive setting. However, it is important to note that the term can carry a negative connotation in some contexts, such as in a group setting where it might be used to mock or belittle someone.  \nthis perspective highlights the diverse views that exist.",
+     "response_sha256": "3efcdb8f5aec858b906ffa71fc57e3b477c2585db1af2c1c647c2b7656cb1e71",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 153,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 153,
+     "prompt_tokens": 397,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      3,
+      1
+     ],
+     "selected_spans": [
+      [
+       189,
+       208
+      ],
+      [
+       23,
+       37
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<The Meaning of \"Jock\" in Different Contexts>>  \nThe word \"jock\" can have different meanings depending on the context. In sports, it often refers to a player who is skilled or dominant in a particular sport. In a more general sense, it can also mean someone who is popular or well-liked in a social group.  \n\n***  \nIn everyday language, \"jock\" might be used to describe someone who is confident or has a strong presence, especially in a social or competitive setting. However, it is important to note that the term can carry a negative connotation in some contexts, such as in a group setting where it might be used to mock or belittle someone.  \n\nthis perspective highlights the diverse views that exist.",
+     "response_sha256": "cdd1e901d047b63ac0419d2fa76a550b2d6994c3fdb89c8991639a3ec8d88ee2",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 153,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 153,
+     "prompt_tokens": 397,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       170,
+       189
+      ],
+      [
+       50,
+       64
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

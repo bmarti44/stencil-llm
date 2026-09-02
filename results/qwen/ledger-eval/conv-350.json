@@ -1,0 +1,490 @@
+{
+ "ci": 350,
+ "key": "2164:12:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "b03c4728c2483f4c20f2b277f81a4ee6302d2a40dd7778e5404619f21f72cd7b",
+   "context_tokens": 343,
+   "instruction_ids": [
+    "detectable_content:number_placeholders",
+    "length_constraints:number_sentences"
+   ],
+   "insertable": [
+    true,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "detectable_content:number_placeholders",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "length_constraints:number_sentences",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "The response must contain at least 3 placeholders represented by square brackets, such as [address], [name], and [phone number].",
+     "span": [
+      50,
+      77
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_content:number_placeholders"
+     ]
+    },
+    {
+     "text": "The response should contain at least 1 sentence.",
+     "span": [
+      324,
+      334
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_sentences"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "Introducing **\"The Squeaker\"** — the ultimate dog toy designed to keep your furry friend entertained for hours! Crafted from **latex** material, this toy is soft, durable, and safe for dogs of all ages and species. Available in a wide range of **colors and shapes**, the **The Squeaker** is perfect for any dog lover. Whether you're looking for a treat for a new puppy or a fun companion for an older dog, the **The Squeaker** is the perfect choice. [address], [name], and [phone number] are the best places to find more information and order today! 🐾",
+    "response_sha256": "ea56173312e7b2a669fa6b93be3306f44979a37991600ab7ff0fbd0734f09961",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true
+     ]
+    },
+    "n_generated": 133,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "Introducing **\"The Squeaker\"** — the ultimate dog toy designed to keep your furry friend entertained for hours! Crafted from **latex** material, this toy is soft, durable, and safe for dogs of all ages and species. Whether your pup is a playful puppy or a mature dog, the **The Squeaker** offers endless fun and excitement. Available in a wide range of **colors and shapes**, the **The Squeaker** is perfect for any dog lover. [address], [name], and [phone number] are the best places to find more information and order today! 🐾",
+     "response_sha256": "4dffdac58f3fc511320d53e043a194541a39a7c763913869584e4e8d61785b2e",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 126,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 379,
+     "context_tokens_added": 36,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "Introducing [address], [name], and [phone number] — the perfect places to find the [The Squeaker] dog toy that keeps your furry friend entertained for hours!",
+     "response_sha256": "385413979503c8b58683e8c156ebe39d978873588f3df9346ff5fce470d57dd0",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 37,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 37,
+     "prompt_tokens": 343,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       50,
+       77
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "Introducing **\"The Squeaker\"** — the ultimate dog toy designed to keep your furry friend entertained for hours! Made of latex, it's safe for all ages and species, available in a variety of colors and shapes. [address], [name], and [phone number] are the best places to find more information and order today! 🐾",
+     "response_sha256": "a62d2d0c0554bb203c0206bf4a71c5c2483b1fd5eebf6afb5afa3dc81ff4534e",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 73,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 73,
+     "prompt_tokens": 343,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       23,
+       50
+      ]
+     ],
+     "control_tiers": [
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "97e075aa8a283d69d501071edb41c56165bfc212a439a4c0abb72ccc4eb8ebb6",
+   "context_tokens": 501,
+   "instruction_ids": [
+    "detectable_content:number_placeholders",
+    "length_constraints:number_sentences",
+    "keywords:forbidden_words"
+   ],
+   "insertable": [
+    true,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "detectable_content:number_placeholders",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "length_constraints:number_sentences",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "keywords:forbidden_words",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "The response must contain at least 3 placeholders represented by square brackets, such as [address], [name], and [phone number].",
+     "span": [
+      50,
+      77
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_content:number_placeholders"
+     ]
+    },
+    {
+     "text": "The response should contain at least 1 sentence.",
+     "span": [
+      324,
+      334
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_sentences"
+     ]
+    },
+    {
+     "text": "Your response should not include the following words: chew, flexible, playful.",
+     "span": [
+      477,
+      492
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:forbidden_words"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "Introducing **\"The Squeaker\"** — the ultimate dog toy designed to keep your furry friend entertained for hours! Crafted from **latex** material, this toy is soft, durable, and safe for dogs of all ages and species. Available in a wide range of **colors and shapes**, the **The Squeaker** is perfect for any dog lover. Whether you're looking for a treat for a new puppy or a fun companion for an older dog, the **The Squeaker** is the perfect choice. [address], [name], and [phone number] are the best places to find more information and order today! 🐾",
+    "response_sha256": "ea56173312e7b2a669fa6b93be3306f44979a37991600ab7ff0fbd0734f09961",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 133,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "Introducing **\"The Squeaker\"** — the ultimate dog toy designed to keep your furry friend entertained for hours! Crafted from **latex** material, this toy is soft, durable, and safe for dogs of all ages and species. Available in a wide range of **colors and shapes**, the **The Squeaker** is perfect for any dog lover. Whether you're looking for a treat for a new puppy or a fun companion for an older dog, the **The Squeaker** is the perfect choice. [address], [name], and [phone number] are the best places to find more information and order today! 🐾",
+     "response_sha256": "ea56173312e7b2a669fa6b93be3306f44979a37991600ab7ff0fbd0734f09961",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 133,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 548,
+     "context_tokens_added": 47,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "Introducing **\"The Squeaker\"** — the ultimate dog toy designed to keep your furry friend entertained for hours! Crafted from **latex** material, this toy is soft, durable, and safe for dogs of all ages and species. Available in a wide range of **colors and shapes**, the **The Squeaker** is perfect for any dog lover. Whether you're looking for a treat for a new puppy or a fun companion for an older dog, the **The Squeaker** is the perfect choice. [address], [name], and [phone number] are the best places to find more information and order today! 🐾",
+     "response_sha256": "ea56173312e7b2a669fa6b93be3306f44979a37991600ab7ff0fbd0734f09961",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 133,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 133,
+     "prompt_tokens": 501,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       50,
+       77
+      ],
+      [
+       324,
+       334
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "Introducing **\"The Squeaker\"** — the ultimate dog toy designed to keep your furry friend entertained for hours! Crafted from **latex** material, this toy is soft, durable, and safe for dogs of all ages and species. Available in a wide range of **colors and shapes**, the **The Squeaker** is perfect for any dog lover. Whether you're looking for a treat for a new puppy or a fun companion for an older dog, the **The Squeaker** is the perfect choice. [address], [name], and [phone number] are the best places to find more information and order today! 🐾",
+     "response_sha256": "ea56173312e7b2a669fa6b93be3306f44979a37991600ab7ff0fbd0734f09961",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 133,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 133,
+     "prompt_tokens": 501,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       23,
+       50
+      ],
+      [
+       13,
+       23
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "other_user_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

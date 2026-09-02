@@ -1,0 +1,666 @@
+{
+ "ci": 324,
+ "key": "2063:17:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "2f1e19383de061a034f27a4d691b148888d678571a66c108f3a5d8db4ece6abd",
+   "context_tokens": 276,
+   "instruction_ids": [
+    "combination:repeat_prompt",
+    "punctuation:no_comma",
+    "detectable_format:title"
+   ],
+   "insertable": [
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "combination:repeat_prompt",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "punctuation:no_comma",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      4
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Your response should not contain any comma.",
+     "span": [
+      28,
+      36
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "First repeat the request word for word without change, then give your answer.",
+     "span": [
+      36,
+      51
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "Do not say any words or characters before repeating the request.",
+     "span": [
+      51,
+      63
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "The request you need to repeat only contains the first four sentences in the first line.",
+     "span": [
+      63,
+      80
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      248,
+      267
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<Titan Makes Clothing for Large Men>>  \nTitan makes clothing for large men. We offer comfortable and stylish clothing for men of all sizes. Our clothes are made with high quality materials to keep you comfortable and confident. We have a wide range of styles and colors to choose from. Our customer service is always available to help you find the right clothing. We believe in making fashion accessible to everyone. Choose Titan for your clothing needs.",
+    "response_sha256": "24e8a9277e9f1dd2162f0a24bcd607f22d71617339781af6dddceeefef729257",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      false,
+      true,
+      true
+     ]
+    },
+    "n_generated": 86,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     true,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "Titan makes clothing for large men. Write an advertisement for the company that would appeal to a wide audience. Make sentences short. Your response should not contain any comma.\n\n<<Titan For Large Men>>\n\nTitan makes clothing for large men. We offer comfortable and stylish clothing for men of all sizes. Our clothes are made with high quality materials to keep you comfortable and confident. We have a wide range of styles and colors to choose from. Our customer service is always available to help you find the right clothing. We believe in making fashion accessible to everyone. Choose Titan for your clothing needs.",
+     "response_sha256": "2e9a15f39e724e3963b05b1f8ad9fe0761f093903fd1751622bca3d912fe33bd",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 116,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 340,
+     "context_tokens_added": 64,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2,
+      3
+     ]
+    },
+    "neural_ledger": {
+     "response": "Titan makes clothing for large men. <<Our Comfortable Clothing for All Men>> We offer comfortable and stylish clothing for men of all sizes. Our clothes are made with high quality materials to keep you comfortable and confident. We have a wide range of styles and colors to choose from. Our customer service is always available to help you find the right clothing. We believe in making fashion accessible to everyone. Choose Titan for your clothing needs.",
+     "response_sha256": "de61b3c7819448ae0bb0713457f0960d940298f9b41c3a64316531752f064b18",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 86,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 86,
+     "prompt_tokens": 276,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      2
+     ],
+     "selected_spans": [
+      [
+       28,
+       36
+      ],
+      [
+       51,
+       63
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<Titan Makes Clothing for Large Men>>  \nTitan makes clothing for large men. We offer comfortable and stylish clothing for men of all sizes. Our clothes are made with high quality materials to keep you comfortable and confident. We have a wide range of styles and colors to choose from. Our customer service is always available to help you find the right clothing. We believe in making fashion accessible to everyone. Choose Titan for your clothing needs.",
+     "response_sha256": "24e8a9277e9f1dd2162f0a24bcd607f22d71617339781af6dddceeefef729257",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 86,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 86,
+     "prompt_tokens": 276,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       20,
+       28
+      ],
+      [
+       8,
+       20
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "db00e8dfbc1404922364154b3a36eb31e110025517a67940f2a5e8b23250d7a6",
+   "context_tokens": 387,
+   "instruction_ids": [
+    "combination:repeat_prompt",
+    "punctuation:no_comma",
+    "detectable_format:title",
+    "keywords:forbidden_words"
+   ],
+   "insertable": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "combination:repeat_prompt",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "punctuation:no_comma",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      4
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "keywords:forbidden_words",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      5
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Your response should not contain any comma.",
+     "span": [
+      28,
+      36
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "First repeat the request word for word without change, then give your answer.",
+     "span": [
+      36,
+      51
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "Do not say any words or characters before repeating the request.",
+     "span": [
+      51,
+      63
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "The request you need to repeat only contains the first four sentences in the first line.",
+     "span": [
+      63,
+      80
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      248,
+      267
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    },
+    {
+     "text": "Your response should not include the following words: confidence, quality, style.",
+     "span": [
+      363,
+      378
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:forbidden_words"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2,
+    3,
+    4
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<Titan Makes Clothing for Large Men>>  \nTitan makes clothing for large men. We offer comfortable and stylish clothing for men of all sizes. Our clothes are made with high quality materials to keep you comfortable and confident. We have a wide range of styles and colors to choose from. Our customer service is always available to help you find the right clothing. We believe in making fashion accessible to everyone. Choose Titan for your clothing needs.",
+    "response_sha256": "24e8a9277e9f1dd2162f0a24bcd607f22d71617339781af6dddceeefef729257",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      true,
+      true,
+      false
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      false,
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 86,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     true,
+     true,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "Titan makes clothing for large men. Write an advertisement for the company that would appeal to a wide audience. Make sentences short. Your response should not contain any comma.\n\n<<Titan Makes Clothing for Large Men>>  \nTitan makes clothing for large men. We offer comfortable and stylish clothing for men of all sizes. Our clothes are made with high quality materials to keep you comfortable and confident. We have a wide range of styles and colors to choose from. Our customer service is always available to help you find the right clothing. We believe in making fashion accessible to everyone. Choose Titan for your clothing needs.",
+     "response_sha256": "f4522ff8ca6b4f45d35d5d367bd2034f00c23584efe0fa8b06135a4229ebe185",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 119,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 471,
+     "context_tokens_added": 84,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<Titan Makes Clothing for Large Men>>  \nTitan makes clothing for large men. We offer comfortable and stylish clothing for men of all sizes. Our clothes are made with high quality materials to keep you comfortable and confident. We have a wide range of styles and colors to choose from. Our customer service is always available to help you find the right clothing. We believe in making fashion accessible to everyone. Choose Titan for your clothing needs.",
+     "response_sha256": "24e8a9277e9f1dd2162f0a24bcd607f22d71617339781af6dddceeefef729257",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 86,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 86,
+     "prompt_tokens": 387,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      4,
+      0
+     ],
+     "selected_spans": [
+      [
+       248,
+       267
+      ],
+      [
+       28,
+       36
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<Titan Makes Clothing for Large Men>>  \nTitan makes clothing for large men. We offer comfortable and stylish clothing for men of all sizes. Our clothes are made with high quality materials to keep you comfortable and confident. We have a wide range of styles and colors to choose from. Our customer service is always available to help you find the right clothing. We believe in making fashion accessible to everyone. Choose Titan for your clothing needs.",
+     "response_sha256": "24e8a9277e9f1dd2162f0a24bcd607f22d71617339781af6dddceeefef729257",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 86,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 86,
+     "prompt_tokens": 387,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       9,
+       28
+      ],
+      [
+       1,
+       9
+      ]
+     ],
+     "control_tiers": [
+      "other_user_turn",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

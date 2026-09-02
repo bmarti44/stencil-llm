@@ -1,0 +1,704 @@
+{
+ "ci": 562,
+ "key": "2739:16:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "215b0567ec0b27830bcae28010a974aada67cea9702b2a493fa74abeefa98950",
+   "context_tokens": 277,
+   "instruction_ids": [
+    "combination:repeat_prompt",
+    "punctuation:no_comma",
+    "startend:end_checker"
+   ],
+   "insertable": [
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "combination:repeat_prompt",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "punctuation:no_comma",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "startend:end_checker",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      5
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Make sure it is funny and includes the words \"limerick\" and \"funny\".",
+     "span": [
+      16,
+      35
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "Do not use any commas.",
+     "span": [
+      35,
+      41
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "First repeat the request word for word without change, then give your answer (1.",
+     "span": [
+      41,
+      58
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "do not say any words or characters before repeating the request; 2.",
+     "span": [
+      58,
+      73
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "the request you need to repeat does not include this sentence)",
+     "span": [
+      73,
+      85
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "Your response should end with the exact phrase: \"where humor sits\" No other words should follow this phrase.",
+     "span": [
+      246,
+      268
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2,
+    3,
+    4
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "Write a limerick about the word \"limerick\". Make sure it is funny and includes the words \"limerick\" and \"funny\". Do not use any commas.\n\nThe limerick is funny and bright,  \nIt tells a story with a twist and light.  \nWith a rhyme and a rhythm so true,  \nIt's a limerick, it's a joke,  \nAnd it's so funny, it's hard to know.  \n\nwhere humor sits",
+    "response_sha256": "4e4eaf85e9d0638de85e9f5bbb2bf26198cd1b288b0aee4af5ca63b7c5c07aa0",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      false,
+      true
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      false,
+      true
+     ]
+    },
+    "n_generated": 98,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     false,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "Write a limerick about the word \"limerick\". Make sure it is funny and includes the words \"limerick\" and \"funny\". Do not use any commas.\n\nThe limerick is funny and bright,  \nIt tells a story with a twist and light.  \nWith a rhyme and a rhythm so true,  \nIt's a limerick, it's a joke,  \nAnd it's so funny, it's hard to know.  \n\nwhere humor sits",
+     "response_sha256": "4e4eaf85e9d0638de85e9f5bbb2bf26198cd1b288b0aee4af5ca63b7c5c07aa0",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 98,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 359,
+     "context_tokens_added": 82,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    },
+    "neural_ledger": {
+     "response": "Write a limerick about the word \"limerick\". Make sure it is funny and includes the words \"limerick\" and \"funny\". Do not use any commas.\n\nThe limerick is funny and bright,  \nIt tells a story with a twist and light.  \nWith a rhyme and a rhythm so true,  \nIt's a limerick, it's a joke,  \nAnd it's so funny, it's hard to know.  \n\nwhere humor sits",
+     "response_sha256": "4e4eaf85e9d0638de85e9f5bbb2bf26198cd1b288b0aee4af5ca63b7c5c07aa0",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 98,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 98,
+     "prompt_tokens": 277,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       16,
+       35
+      ],
+      [
+       35,
+       41
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "Write a limerick about the word \"limerick\". Make sure it is funny and includes the words \"limerick\" and \"funny\". Do not use any commas.\n\nThe limerick is funny and bright,  \nIt tells a story with a twist and light.  \nWith a rhyme and a rhythm so true,  \nIt's a limerick, it's a joke,  \nAnd it's so funny, it's hard to know.  \n\nwhere humor sits",
+     "response_sha256": "4e4eaf85e9d0638de85e9f5bbb2bf26198cd1b288b0aee4af5ca63b7c5c07aa0",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 98,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 98,
+     "prompt_tokens": 277,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       85,
+       104
+      ],
+      [
+       10,
+       16
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "95c456dcabbb0e7103d2764c202ba0f2c8cb222d509216aa6a16df9d96b42c0d",
+   "context_tokens": 397,
+   "instruction_ids": [
+    "combination:repeat_prompt",
+    "punctuation:no_comma",
+    "startend:end_checker",
+    "length_constraints:number_words"
+   ],
+   "insertable": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "combination:repeat_prompt",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "punctuation:no_comma",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "startend:end_checker",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      5
+     ],
+     "entry_selected": false
+    },
+    {
+     "index": 3,
+     "id": "length_constraints:number_words",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      6
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Make sure it is funny and includes the words \"limerick\" and \"funny\".",
+     "span": [
+      16,
+      35
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "Do not use any commas.",
+     "span": [
+      35,
+      41
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "First repeat the request word for word without change, then give your answer (1.",
+     "span": [
+      41,
+      58
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "do not say any words or characters before repeating the request; 2.",
+     "span": [
+      58,
+      73
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "the request you need to repeat does not include this sentence)",
+     "span": [
+      73,
+      85
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "Your response should end with the exact phrase: \"where humor sits\" No other words should follow this phrase.",
+     "span": [
+      246,
+      268
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "The text should contain less than 150 words.",
+     "span": [
+      376,
+      388
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_words"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "Write a limerick about the word \"limerick\". Make sure it is funny and includes the words \"limerick\" and \"funny\". Do not use any commas.\n\nThe limerick is funny and bright,  \nIt tells a story with a twist and light.  \nWith a rhyme and a rhythm so true,  \nIt's a limerick, it's a joke,  \nAnd it's so funny, it's hard to know.  \n\nwhere humor sits",
+    "response_sha256": "4e4eaf85e9d0638de85e9f5bbb2bf26198cd1b288b0aee4af5ca63b7c5c07aa0",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      false,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      false,
+      true,
+      true
+     ]
+    },
+    "n_generated": 98,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     false,
+     true,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "Write a limerick about the word \"limerick\". Make sure it is funny and includes the words \"limerick\" and \"funny\". Do not use any commas.\n\nThe limerick is funny and bright,  \nIt tells a story with a twist and light.  \nWith a rhyme and a rhythm so true,  \nIt's a limerick, it's a joke,  \nAnd it's so funny, it's hard to know.  \n\nwhere humor sits",
+     "response_sha256": "4e4eaf85e9d0638de85e9f5bbb2bf26198cd1b288b0aee4af5ca63b7c5c07aa0",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 98,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 502,
+     "context_tokens_added": 105,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+     ]
+    },
+    "neural_ledger": {
+     "response": "Write a limerick about the word \"limerick\". Make sure it is funny and includes the words \"limerick\" and \"funny\". Do not use any commas.\n\nThe limerick is funny and bright,  \nIt tells a story with a twist and light.  \nWith a rhyme and a rhythm so true,  \nIt's a limerick, it's a joke,  \nAnd it's so funny, it's hard to know.  \n\nwhere humor sits",
+     "response_sha256": "4e4eaf85e9d0638de85e9f5bbb2bf26198cd1b288b0aee4af5ca63b7c5c07aa0",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 98,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 98,
+     "prompt_tokens": 397,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       16,
+       35
+      ],
+      [
+       35,
+       41
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "Write a limerick about the word \"limerick\". Make sure it is funny and includes the words \"limerick\" and \"funny\". Do not use any commas.\n\nThe limerick is funny and bright,  \nIt tells a story with a twist and light.  \nWith a rhyme and a rhythm so true,  \nIt's a limerick, it's a joke,  \nAnd it's so funny, it's hard to know.  \n\nwhere humor sits",
+     "response_sha256": "4e4eaf85e9d0638de85e9f5bbb2bf26198cd1b288b0aee4af5ca63b7c5c07aa0",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 98,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 98,
+     "prompt_tokens": 397,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       85,
+       104
+      ],
+      [
+       10,
+       16
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

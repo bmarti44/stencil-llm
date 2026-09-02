@@ -1,0 +1,490 @@
+{
+ "ci": 704,
+ "key": "3150:1:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "8cd267b1df823f498e8d5da08655036bac289054e54b92df1f7b820f530a9c08",
+   "context_tokens": 174,
+   "instruction_ids": [
+    "change_case:english_lowercase",
+    "detectable_content:postscript"
+   ],
+   "insertable": [
+    false,
+    true
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "change_case:english_lowercase",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_content:postscript",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": true,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Your entire response must be in English and contain only lowercase letters.",
+     "span": [
+      21,
+      34
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_lowercase"
+     ]
+    },
+    {
+     "text": "The text should contain a postscript marker, specifically the phrase \"P.S.\", which indicates additional information or a final thought.",
+     "span": [
+      140,
+      165
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_content:postscript"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "a 2-stroke motor has a single cylinder and burns fuel in the compression stroke, while a 4-stroke motor has four strokes and burns fuel in the power stroke. 2-stroke engines are lighter and more powerful but produce more pollution. 4-stroke engines are more efficient and cleaner but heavier and less powerful. 2-stroke engines are commonly used in motorcycles and other small engines, while 4-stroke engines are used in cars and larger machines. p.s. 2-stroke engines are often associated with higher performance and lower maintenance, but they require more frequent oil changes and are generally less durable.",
+    "response_sha256": "d2a12d1ade7f98d64fd4b0ffd51fc672db9f8ddf10a66e355720aed840bd68ab",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true
+     ]
+    },
+    "n_generated": 127,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "a 2-stroke motor has a single cylinder and burns fuel in the compression stroke, while a 4-stroke motor has four strokes and burns fuel in the power stroke. 2-stroke engines are lighter and more powerful but produce more pollution. 4-stroke engines are more efficient and cleaner but heavier and less powerful. 2-stroke engines are commonly used in motorcycles and other small engines, while 4-stroke engines are used in cars and larger machines. p.s. 2-stroke engines are often used in applications where weight and power are prioritized, while 4-stroke engines are preferred in environments where efficiency and emissions control are important.",
+     "response_sha256": "6f56f8c5076ba9d7dbc9605de60add8ec225a6b1cfe5b6bc9f398b6b26135253",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 135,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 196,
+     "context_tokens_added": 22,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "your entire response must be in English and contain only lowercase letters.  \na 2-stroke motor has a single cylinder and burns fuel in the compression stroke, while a 4-stroke motor has four strokes and burns fuel in the power stroke. 2-stroke engines are lighter and more powerful but produce more pollution. 4-stroke engines are more efficient and cleaner but heavier and less powerful. 2-stroke engines are commonly used in motorcycles and other small engines, while 4-stroke engines are used in cars and larger machines. p.s. 2-stroke engines are often associated with higher performance and lower maintenance, but they also require more frequent maintenance and are generally less efficient than 4-stroke engines.",
+     "response_sha256": "3d191bb31771cbb39b644ae7abd250ddfe6e99260a1cc8e695a1747ddf2c3365",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 147,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 147,
+     "prompt_tokens": 174,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       21,
+       34
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "a 2-stroke motor has a single cylinder and burns fuel in the compression stroke, while a 4-stroke motor has four strokes and burns fuel in the power stroke. 2-stroke engines are lighter and more powerful but produce more pollution. 4-stroke engines are more efficient and cleaner but heavier and less powerful. 2-stroke engines are commonly used in motorcycles and other small engines, while 4-stroke engines are used in cars and larger machines. p.s. 2-stroke engines are often used in applications where weight and power are prioritized, while 4-stroke engines are preferred in environments where efficiency and emissions control are important.",
+     "response_sha256": "6f56f8c5076ba9d7dbc9605de60add8ec225a6b1cfe5b6bc9f398b6b26135253",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 135,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 135,
+     "prompt_tokens": 174,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       8,
+       21
+      ]
+     ],
+     "control_tiers": [
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "b00fe583f1811802bbfd194c40d806f470b94acb074d194a895bd436d51d0031",
+   "context_tokens": 330,
+   "instruction_ids": [
+    "change_case:english_lowercase",
+    "detectable_content:postscript",
+    "detectable_format:title"
+   ],
+   "insertable": [
+    false,
+    true,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "change_case:english_lowercase",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_content:postscript",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:title",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Your entire response must be in English and contain only lowercase letters.",
+     "span": [
+      21,
+      34
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_lowercase"
+     ]
+    },
+    {
+     "text": "The text should contain a postscript marker, specifically the phrase \"P.S.\", which indicates additional information or a final thought.",
+     "span": [
+      140,
+      165
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_content:postscript"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      302,
+      321
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<difference between 2-stroke and 4-stroke motors>> a 2-stroke motor has a single cylinder and burns fuel in the compression stroke, while a 4-stroke motor has four strokes and burns fuel in the power stroke. 2-stroke engines are lighter and more powerful but produce more pollution. 4-stroke engines are more efficient and cleaner but heavier and less powerful. 2-stroke engines are commonly used in motorcycles and other small engines, while 4-stroke engines are used in cars and larger machines. p.s. 2-stroke engines are often associated with higher performance and lower maintenance, but they require more frequent oil changes and are generally less durable.",
+    "response_sha256": "b6ddca71010a6c627ce849138378e7be642e889024a24bb5a4f6c2bf0252c9c1",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 141,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<difference between 2-stroke and 4-stroke motors>>  \na 2-stroke motor has a single cylinder and burns fuel in the compression stroke, while a 4-stroke motor has four strokes and burns fuel in the power stroke. 2-stroke engines are lighter and more powerful but produce more pollution. 4-stroke engines are more efficient and cleaner but heavier and less powerful. 2-stroke engines are commonly used in motorcycles and other small engines, while 4-stroke engines are used in cars and larger machines. p.s. 2-stroke engines are often associated with higher performance and lower maintenance, but they require more frequent oil changes and are generally less durable.",
+     "response_sha256": "9ef29581f233f92c9b485feb7301db76bc92c5e17522b96dcac7780f424f2c25",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 142,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 378,
+     "context_tokens_added": 48,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<difference between 2-stroke and 4-stroke motors>> a 2-stroke motor has a single cylinder and burns fuel in the compression stroke, while a 4-stroke motor has four strokes and burns fuel in the power stroke. 2-stroke engines are lighter and more powerful but produce more pollution. 4-stroke engines are more efficient and cleaner but heavier and less powerful. 2-stroke engines are commonly used in motorcycles and other small engines, while 4-stroke engines are used in cars and larger machines. p.s. 2-stroke engines are often associated with higher performance and lower maintenance, but they require more frequent oil changes and are generally less durable.",
+     "response_sha256": "b6ddca71010a6c627ce849138378e7be642e889024a24bb5a4f6c2bf0252c9c1",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 141,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 141,
+     "prompt_tokens": 330,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      1,
+      0
+     ],
+     "selected_spans": [
+      [
+       140,
+       165
+      ],
+      [
+       21,
+       34
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<difference between 2-stroke and 4-stroke motors>> a 2-stroke motor has a single cylinder and burns fuel in the compression stroke, while a 4-stroke motor has four strokes and burns fuel in the power stroke. 2-stroke engines are lighter and more powerful but produce more pollution. 4-stroke engines are more efficient and cleaner but heavier and less powerful. 2-stroke engines are commonly used in motorcycles and other small engines, while 4-stroke engines are used in cars and larger machines. p.s. 2-stroke engines are often associated with higher performance and lower maintenance, but they require more frequent oil changes and are generally less durable.",
+     "response_sha256": "b6ddca71010a6c627ce849138378e7be642e889024a24bb5a4f6c2bf0252c9c1",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 141,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 141,
+     "prompt_tokens": 330,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       115,
+       140
+      ],
+      [
+       8,
+       21
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

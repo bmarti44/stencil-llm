@@ -1,0 +1,490 @@
+{
+ "ci": 861,
+ "key": "3617:11:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "027a89d17869efb79cd259fac8297aaa8ce9e113bc6dec46ec87225d4ccd141c",
+   "context_tokens": 97,
+   "instruction_ids": [
+    "change_case:english_capital",
+    "detectable_content:postscript"
+   ],
+   "insertable": [
+    false,
+    true
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "change_case:english_capital",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_content:postscript",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": true,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Make sure your names are in English and all capital letters.",
+     "span": [
+      17,
+      29
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_capital"
+     ]
+    },
+    {
+     "text": "The text should contain a postscript marker, specifically the phrase \"P.S.\", which indicates additional information or a final thought.",
+     "span": [
+      63,
+      88
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_content:postscript"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "Sure! Here's the updated version with a postscript marker:\n\n**CODEWELL**  \n**BYTEVIA**  \n**NEXTECH**  \n\n**P.S.** These names are designed to convey innovation, reliability, and forward-thinking, making them ideal for a 2B software company focused on delivering value and efficiency to businesses.",
+    "response_sha256": "a3281874c2f27f96c6d93e7083730caa84f0a67474b91d9557455a8b58931116",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true
+     ]
+    },
+    "n_generated": 70,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "1. **CODEWELL**  \n2. **BYTEVIA**  \n3. **NEXTECH**  \n\n**P.S.** These names are designed to convey innovation, reliability, and technical excellence, suitable for a 2B software company focused on delivering high-quality solutions.",
+     "response_sha256": "067259a5560414a3cfbbf1ea80f47feb27e6924da9a090035e5d76f20cd5ea44",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 59,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 118,
+     "context_tokens_added": 21,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "Sure! Here's the updated version with the postscript marker:\n\n**CODEWELL**  \n**BYTEVIA**  \n**NEXTECH**  \n\n**P.S.** These names are designed to convey innovation, technology, and reliability, making them ideal for a 2B software company focused on delivering efficient and scalable solutions.",
+     "response_sha256": "8e14079c016a8467f07917f6e864fd8e5eac43a2b3d08a2aacc7cfb451cb0b75",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 68,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 68,
+     "prompt_tokens": 97,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       17,
+       29
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "Sure! Here's the updated version with a postscript marker:\n\n**2B SOFTWARE COMPANY NAME IDEAS**  \n1. **CODEWELL**  \n2. **BYTEVIA**  \n3. **NEXTECH**  \n\n**P.S.** These names are designed to be modern, professional, and easy to remember, while also conveying a sense of innovation and reliability. Let me know if you'd like to refine them further!",
+     "response_sha256": "cc3dc074e6878cdd547183665fefa71296691deaaeae67fe1768c496eabf73f4",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 90,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 90,
+     "prompt_tokens": 97,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       5,
+       17
+      ]
+     ],
+     "control_tiers": [
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "46932a49705b18a099f6a2cfa6f8db2ae7a0f17c2fd5ffa421423fe8e9db51ae",
+   "context_tokens": 191,
+   "instruction_ids": [
+    "change_case:english_capital",
+    "detectable_content:postscript",
+    "keywords:existence"
+   ],
+   "insertable": [
+    false,
+    true,
+    true
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "change_case:english_capital",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_content:postscript",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "keywords:existence",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": true,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Make sure your names are in English and all capital letters.",
+     "span": [
+      17,
+      29
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_capital"
+     ]
+    },
+    {
+     "text": "The text should contain a postscript marker, specifically the phrase \"P.S.\", which indicates additional information or a final thought.",
+     "span": [
+      63,
+      88
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_content:postscript"
+     ]
+    },
+    {
+     "text": "Your response should include the following keywords: analytics, digital, data.",
+     "span": [
+      168,
+      182
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:existence"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "Sure! Here's the updated response with the keywords **analytics**, **digital**, and **data** included:\n\n**CODEWELL**  \n**BYTEVIA**  \n**NEXTECH**  \n\n**P.S.** These names are designed to convey innovation, reliability, and forward-thinking, making them ideal for a 2B software company focused on delivering value and efficiency to businesses. They also align with the digital and data-driven trends of today, emphasizing analytics and insights to support smarter decision-making.",
+    "response_sha256": "7c0e1dea87c75fa7c910cb703c5442011e9c1acc7053cc3e9e55e7449feb3ca1",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 102,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     true,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "Sure! Here's the updated response with the required keywords and the postscript marker:\n\n**CODEWELL**  \n**BYTEVIA**  \n**NEXTECH**  \n\n**P.S.** These names reflect a strong focus on analytics, digital transformation, and data-driven solutions, making them perfect for a 2B software company that empowers businesses with intelligent, efficient, and scalable technology.",
+     "response_sha256": "cc317ac6bf437a1576443ed96149ecfcc87154a19ade1625125bf85a8cfd9ec2",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 81,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 238,
+     "context_tokens_added": 47,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "Certainly! Here's the updated version with the specified keywords:\n\n**CODEWELL**  \n**BYTEVIA**  \n**NEXTECH**  \n\n**P.S.** These names are designed to convey innovation, reliability, and forward-thinking, making them ideal for a 2B software company focused on delivering value and efficiency to businesses. They also align with the themes of **analytics**, **digital**, and **data** to support modern business needs.",
+     "response_sha256": "b8a0027926bff4ec4193f6dc149adc6e0729a6967ed386348f010c2fc3c3ec36",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 92,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 92,
+     "prompt_tokens": 191,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      1,
+      0
+     ],
+     "selected_spans": [
+      [
+       63,
+       88
+      ],
+      [
+       17,
+       29
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "Sure! Here's the updated version with the keywords **analytics**, **digital**, and **data** included:\n\n**CODEWELL**  \n**BYTEVIA**  \n**NEXTECH**  \n\n**P.S.** These names reflect a strong focus on **digital** transformation, **data**-driven solutions, and **analytics** that empower businesses to make informed decisions and drive growth.",
+     "response_sha256": "29301902f39ba2bd75f2a9fb4bc96face2eb299d96b098b9d43385a9fca027ee",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 81,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 81,
+     "prompt_tokens": 191,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       38,
+       63
+      ],
+      [
+       5,
+       17
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

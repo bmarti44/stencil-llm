@@ -1,0 +1,628 @@
+{
+ "ci": 48,
+ "key": "1139:0:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "8bb117c4957e7ca919b0945746ccfef7750744624e0f78c99dc72052a2db5991",
+   "context_tokens": 174,
+   "instruction_ids": [
+    "combination:repeat_prompt",
+    "keywords:existence",
+    "detectable_format:multiple_sections"
+   ],
+   "insertable": [
+    false,
+    true,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "combination:repeat_prompt",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "keywords:existence",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:multiple_sections",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "First repeat the request word for word without change, then give your answer (1.",
+     "span": [
+      24,
+      41
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "keywords:existence"
+     ]
+    },
+    {
+     "text": "do not say any words or characters before repeating the request; 2.",
+     "span": [
+      41,
+      56
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "keywords:existence"
+     ]
+    },
+    {
+     "text": "the request you need to repeat does not include this sentence)",
+     "span": [
+      56,
+      68
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "keywords:existence"
+     ]
+    },
+    {
+     "text": "The result should contain three sections, and each section should be separated by the word \"SECTION\" in capital letters.",
+     "span": [
+      142,
+      165
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:multiple_sections"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "Write a funny haiku about moms, containing keywords \"mom\" and \"mother\" in your response.\n\nSECTION  \nMom's love is a constant, mother's care is a storm.  \nSweat and tears, but always there,  \nA heart that never stops.  \n\nSECTION  \nMom  \nMother  \nA heart that never stops.  \n\nSECTION  \nMom's voice is a lullaby, mother's touch is a fire.  \nFrom bedtime to bedtime, she's there,  \nA guardian of the night.",
+    "response_sha256": "15e2fa6904d0e3d9be476aa18db8b75dde9f1eb8784e19bc067de505ad24cac0",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      false
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      false
+     ]
+    },
+    "n_generated": 104,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "Write a funny haiku about moms, containing keywords \"mom\" and \"mother\" in your response.\n\nSECTION  \nMom's love is a constant, mother's care is a storm.  \nSweat and tears, but always there,  \nA heart that never stops.  \n\nSECTION  \nMom  \nMother  \nA heart that never stops.  \n\nSECTION  \nMom's love is a constant, mother's care is a storm.  \nSweat and tears, but always there,  \nA heart that never stops.",
+     "response_sha256": "1f56e8d00a0fbaa9a707dfcbc5e2c894a03fdc0c0f7bb1008db69161523f27b9",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 103,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 229,
+     "context_tokens_added": 55,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2
+     ]
+    },
+    "neural_ledger": {
+     "response": "Write a funny haiku about moms, containing keywords \"mom\" and \"mother\" in your response.\n\nSECTION  \nMom's love is a constant, mother's care is a storm.  \nSweat and tears, but always there,  \nA heart that never stops.  \n\nSECTION  \nMom  \nMother  \nA heart that never stops.  \n\nSECTION  \nMom's love is a constant, mother's care is a storm.  \nSweat and tears, but always there,  \nA heart that never stops.",
+     "response_sha256": "1f56e8d00a0fbaa9a707dfcbc5e2c894a03fdc0c0f7bb1008db69161523f27b9",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 103,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 103,
+     "prompt_tokens": 174,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       24,
+       41
+      ],
+      [
+       41,
+       56
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "Write a funny haiku about moms, containing keywords \"mom\" and \"mother\" in your response.\n\nSECTION  \nMom's love is a constant, mother's care is a storm.  \nSweat and tears, but always there,  \nA heart that never stops.  \n\nSECTION  \nMom  \nMother  \nA heart that never stops.  \n\nSECTION  \nMom's love is a constant, mother's care is a storm.  \nSweat and tears, but always there,  \nA heart that never stops.",
+     "response_sha256": "1f56e8d00a0fbaa9a707dfcbc5e2c894a03fdc0c0f7bb1008db69161523f27b9",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 103,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 103,
+     "prompt_tokens": 174,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       7,
+       24
+      ],
+      [
+       68,
+       83
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "68d30556238621f75531d2ff94863995cd163199c158b1c490acd1bf1f912a91",
+   "context_tokens": 313,
+   "instruction_ids": [
+    "combination:repeat_prompt",
+    "keywords:existence",
+    "detectable_format:multiple_sections",
+    "detectable_content:postscript"
+   ],
+   "insertable": [
+    false,
+    true,
+    false,
+    true
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "combination:repeat_prompt",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "keywords:existence",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:multiple_sections",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "detectable_content:postscript",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": true,
+     "entry_indices": [
+      4
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "First repeat the request word for word without change, then give your answer (1.",
+     "span": [
+      24,
+      41
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "keywords:existence"
+     ]
+    },
+    {
+     "text": "do not say any words or characters before repeating the request; 2.",
+     "span": [
+      41,
+      56
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "keywords:existence"
+     ]
+    },
+    {
+     "text": "the request you need to repeat does not include this sentence)",
+     "span": [
+      56,
+      68
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "keywords:existence"
+     ]
+    },
+    {
+     "text": "The result should contain three sections, and each section should be separated by the word \"SECTION\" in capital letters.",
+     "span": [
+      142,
+      165
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:multiple_sections"
+     ]
+    },
+    {
+     "text": "The text should contain a postscript marker, specifically the phrase \"P.S.\", which indicates additional information or a final thought.",
+     "span": [
+      279,
+      304
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_content:postscript"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "Write a funny haiku about moms, containing keywords \"mom\" and \"mother\" in your response.\n\nSECTION  \nMom's love is a constant, mother's care is a storm.  \nSweat and tears, but always there,  \nA heart that never stops.  \n\nSECTION  \nMom  \nMother  \nA heart that never stops.  \n\nSECTION  \nMom's voice is a lullaby, mother's touch is a fire.  \nFrom bedtime to bedtime, she's there,  \nA guardian of the night.  \n\nP.S. Mom and mother are the best, but sometimes they're just two different versions of the same love.",
+    "response_sha256": "b0301ec231809369dbad0faf0a194fb12e47227faab5c5a66feafcd6359a3669",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      false,
+      true
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      false,
+      true
+     ]
+    },
+    "n_generated": 128,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     false,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "Write a funny haiku about moms, containing keywords \"mom\" and \"mother\" in your response.\n\nSECTION  \nMom's love is a constant, mother's care is a storm.  \nSweat and tears, but always there,  \nA heart that never stops.  \n\nSECTION  \nMom  \nMother  \nA heart that never stops.  \n\nSECTION  \nMom's voice is a lullaby, mother's touch is a fire.  \nFrom bedtime to bedtime, she's there,  \nA guardian of the night.  \n\nP.S. Mom and mother are the same, just different titles.",
+     "response_sha256": "6520a88444000e8d2351fa8213bce4eee3d43ae7a7f5770fcebe2263eb9b65ef",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 119,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 392,
+     "context_tokens_added": 79,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2,
+      3
+     ]
+    },
+    "neural_ledger": {
+     "response": "Write a funny haiku about moms, containing keywords \"mom\" and \"mother\" in your response.\n\nSECTION  \nMom's love is a constant, mother's care is a storm.  \nSweat and tears, but always there,  \nA heart that never stops.  \n\nSECTION  \nMom  \nMother  \nA heart that never stops.  \n\nSECTION  \nMom's voice is a lullaby, mother's touch is a fire.  \nFrom bedtime to bedtime, she's there,  \nA guardian of the night.  \n\nP.S. Mom and mother are the only two people who can make a sandwich without a toaster.",
+     "response_sha256": "382d20792828f3a4fcbc78d3da30664b4a658055480b521411929ddaf4d776ab",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 125,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 125,
+     "prompt_tokens": 313,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      3,
+      0
+     ],
+     "selected_spans": [
+      [
+       142,
+       165
+      ],
+      [
+       24,
+       41
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "Write a funny haiku about moms, containing keywords \"mom\" and \"mother\" in your response.\n\nSECTION  \nMom's love is a constant, mother's care is a storm.  \nSweat and tears, but always there,  \nA heart that never stops.  \n\nSECTION  \nMom  \nMother  \nA heart that never stops.  \n\nSECTION  \nMom's voice is a lullaby, mother's touch is a fire.  \nFrom bedtime to bedtime, she's there,  \nA guardian of the night.  \n\nP.S. Mom and mother are the same, just different pronouns.",
+     "response_sha256": "ee4212043bd4448882469f83b2890d3da0eda6748b099f0999d035ee8c505fce",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 120,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 120,
+     "prompt_tokens": 313,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       119,
+       142
+      ],
+      [
+       7,
+       24
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

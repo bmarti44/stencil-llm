@@ -1,0 +1,590 @@
+{
+ "ci": 783,
+ "key": "3380:8:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "a1d9378a9464bbb090c2f0c24d1e3c92adab9cd033df9596afb0a3a6975879ce",
+   "context_tokens": 221,
+   "instruction_ids": [
+    "change_case:english_lowercase",
+    "keywords:existence",
+    "detectable_format:multiple_sections"
+   ],
+   "insertable": [
+    false,
+    true,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "change_case:english_lowercase",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "keywords:existence",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:multiple_sections",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Use the keyword 'people' and 'skills'.",
+     "span": [
+      30,
+      40
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_lowercase",
+      "keywords:existence"
+     ]
+    },
+    {
+     "text": "use only lowercase letters.",
+     "span": [
+      40,
+      45
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_lowercase",
+      "keywords:existence"
+     ]
+    },
+    {
+     "text": "The result should contain at least 7 sections, and each section should be separated by the word \"Day\".",
+     "span": [
+      190,
+      212
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:multiple_sections"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "day 1  \nwe are seeking a dedicated employee to join our team at the cash register. this role requires attention to detail and a strong sense of responsibility. the ideal candidate will be able to manage transactions efficiently while also monitoring the shelves for stock levels.  \n\nday 2  \ncandidates should have basic skills in cash handling and customer service. they should also be able to work well with people and maintain a positive attitude in all interactions. the ability to track inventory and ensure that stock levels are accurate is essential.  \n\nday 3  \nif you are passionate about service and have the necessary skills, we would love to hear from you. please apply with your resume and a brief cover letter explaining why you are a great fit for this role.  \n\nday 4  \nthe role involves working in a fast-paced environment, requiring the ability to handle multiple tasks simultaneously. the employee must be reliable, organized, and able to work under pressure.  \n\nday 5  \nthe employee should be able to communicate clearly with customers and colleagues, ensuring a positive and professional atmosphere. they must also be able to work independently and take initiative when needed.  \n\nday 6  \nthis position requires a willingness to learn and adapt to new processes. the employee should be open to feedback and able to contribute to continuous improvement.  \n\nday 7  \nwe are looking for someone who is committed to excellence and can make a difference in the customer experience. if you are interested in this opportunity, please apply today.",
+    "response_sha256": "2da5c2fc35c53b1215b3cb976a09e5fe162be09c055d9c78f66840e22acafe22",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      false
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      false
+     ]
+    },
+    "n_generated": 296,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "day 1  \nwe are looking for a dedicated employee to join our team at the cash register. this role requires attention to detail and a strong sense of responsibility. the ideal candidate will be able to manage transactions efficiently while also monitoring the shelves for stock levels.  \n\nday 2  \ncandidates should have basic skills in cash handling and customer service. they should also be able to work well with people and maintain a positive attitude in all interactions. the ability to track inventory and ensure that stock levels are accurate is essential.  \n\nday 3  \nif you are passionate about service and have the necessary skills, we would love to hear from you. please apply with your resume and a brief cover letter explaining why you are a great fit for this role.  \n\nday 4  \nthe role involves working closely with people to ensure a positive customer experience. it requires the ability to communicate clearly and respond to questions effectively. the ability to work independently and follow instructions is also important.  \n\nday 5  \nthe employee must be able to handle multiple tasks simultaneously while staying focused. they should be able to work under pressure and meet deadlines. the ability to work well in a team environment is a plus.  \n\nday 6  \nthe role requires a positive attitude and a willingness to learn. the employee should be able to adapt to changing situations and support the team in achieving its goals. they should also be able to work well with people and maintain a professional demeanor.  \n\nday 7  \nwe are looking for someone who is reliable, committed, and has the necessary skills to succeed in this role. if you are interested in joining our team, please apply with your resume and a brief cover letter.",
+     "response_sha256": "bd2b854eca96702693f4768785bd63e6fc06443f4758d58b25b423e567784848",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 336,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 246,
+     "context_tokens_added": 25,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "day 1  \nwe are seeking a dedicated employee to join our team at the cash register. this role requires attention to detail and a strong sense of responsibility. the ideal candidate will be able to manage transactions efficiently while also monitoring the shelves for stock levels.  \n\nday 2  \ncandidates should have basic skills in cash handling and customer service. they should also be able to work well with people and maintain a positive attitude in all interactions. the ability to track inventory and ensure that stock levels are accurate is essential.  \n\nday 3  \nif you are passionate about service and have the necessary skills, we would love to hear from you. please apply with your resume and a brief cover letter explaining why you are a great fit for this role.  \n\nday 4  \nthe role involves interacting with people and ensuring that the store runs smoothly. the person will need to be reliable, organized, and able to work in a fast-paced environment.  \n\nday 5  \npeople are the heart of our business, and we value the contributions of everyone who works with us. we are looking for individuals who are committed to excellence and can support the overall goals of the organization.  \n\nday 6  \nthe skills required for this role include attention to detail, good communication, and the ability to work independently. the person should also be able to adapt to changing situations and maintain a positive attitude.  \n\nday 7  \nwe are excited about the opportunity to bring someone with the right people skills and skills to our team. if you are interested in this role, please apply today and show us why you are the best fit for our organization.",
+     "response_sha256": "44c7a067b36146633afd43bf2ed4c63fa5921cfa73d5ff50b64fc77e6b2184fa",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 324,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 324,
+     "prompt_tokens": 221,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       30,
+       40
+      ],
+      [
+       40,
+       45
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "day 1  \nwe are looking for a dedicated employee to join our team at the cash register. this role requires attention to detail and a strong sense of responsibility. the ideal candidate will be able to manage transactions efficiently while also monitoring the shelves for stock level.\n\nday 2  \ncandidates should have basic skills in cash handling and customer service. they should also be able to work well with people and maintain a positive attitude in all interactions. the ability to track inventory and ensure that stock levels are accurate is essential.\n\nday 3  \nif you are passionate about service and have the necessary skills, we would love to hear from you. please apply with your resume and a brief cover letter explaining why you are a great fit for this role.\n\nday 4  \nthe role involves working in a fast-paced environment, so communication skills and a willingness to learn are important. the cash register position requires the ability to handle multiple tasks and stay organized.\n\nday 5  \nthe employee will be responsible for ensuring that the cash register is always ready for use. this includes processing payments, handling change, and maintaining a clean and organized workspace.\n\nday 6  \nmonitoring the shelves for stock level is an important part of the job. the employee must be able to quickly identify when items are running low and take appropriate action to restock them.\n\nday 7  \nwe are looking for someone who is reliable, friendly, and has a good work ethic. the ideal candidate will be able to work independently and support the overall operations of the store.",
+     "response_sha256": "bdd96e097f9d4e0df54f1b34787c088b33fb80347d606442e8f98872c1c67f70",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 305,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 305,
+     "prompt_tokens": 221,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       20,
+       30
+      ],
+      [
+       15,
+       20
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "bc434517739cb84b2d7953d9b5171c7c7a72d56bc2dfed203b1527fedb35215d",
+   "context_tokens": 536,
+   "instruction_ids": [
+    "change_case:english_lowercase",
+    "keywords:existence",
+    "detectable_format:multiple_sections",
+    "startend:quotation"
+   ],
+   "insertable": [
+    false,
+    true,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "change_case:english_lowercase",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "keywords:existence",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:multiple_sections",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    },
+    {
+     "index": 3,
+     "id": "startend:quotation",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Use the keyword 'people' and 'skills'.",
+     "span": [
+      30,
+      40
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_lowercase",
+      "keywords:existence"
+     ]
+    },
+    {
+     "text": "use only lowercase letters.",
+     "span": [
+      40,
+      45
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_lowercase",
+      "keywords:existence"
+     ]
+    },
+    {
+     "text": "The result should contain at least 7 sections, and each section should be separated by the word \"Day\".",
+     "span": [
+      190,
+      212
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:multiple_sections"
+     ]
+    },
+    {
+     "text": "Wrap your whole response with double quotation marks.",
+     "span": [
+      518,
+      527
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:quotation"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "\"day 1  \nwe are seeking a dedicated employee to join our team at the cash register. this role requires attention to detail and a strong sense of responsibility. the ideal candidate will be able to manage transactions efficiently while also monitoring the shelves for stock levels.  \n\nday 2  \ncandidates should have basic skills in cash handling and customer service. they should also be able to work well with people and maintain a positive attitude in all interactions. the ability to track inventory and ensure that stock levels are accurate is essential.  \n\nday 3  \nif you are passionate about service and have the necessary skills, we would love to hear from you. please apply with your resume and a brief cover letter explaining why you are a great fit for this role.  \n\nday 4  \nthe role involves working in a fast-paced environment, requiring the ability to handle multiple tasks simultaneously. the employee must be reliable, organized, and able to work under pressure.  \n\nday 5  \nthe employee should be able to communicate clearly with customers and colleagues, ensuring a positive and professional atmosphere. they must also be able to work independently and take initiative when needed.  \n\nday 6  \nthis position requires a willingness to learn and adapt to new processes. the employee should be open to feedback and able to contribute to continuous improvement.  \n\nday 7  \nwe are looking for someone who is committed to excellence and can make a difference in the customer experience. if you are interested in this opportunity, please apply today.\"",
+    "response_sha256": "1aafa1d348c00bb08754b182b6556b8e514e9b7a718708d5519f2a73a3d8f198",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      false,
+      true
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      false,
+      true
+     ]
+    },
+    "n_generated": 297,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     false,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "\"day 1  \nwe are looking for a dedicated employee to join our team at the cash register. this role requires attention to detail and a strong sense of responsibility. the ideal candidate will be able to manage transactions efficiently while also monitoring the shelves for stock levels.  \n\nday 2  \ncandidates should have basic skills in cash handling and customer service. they should also be able to work well with people and maintain a positive attitude in all interactions. the ability to track inventory and ensure that stock levels are accurate is essential.  \n\nday 3  \nif you are passionate about service and have the necessary skills, we would love to hear from you. please apply with your resume and a brief cover letter explaining why you are a great fit for this role.  \n\nday 4  \nthe role involves working in a fast-paced environment, requiring the ability to handle multiple tasks simultaneously. the employee must be reliable, organized, and able to work under pressure.  \n\nday 5  \nthe employee should be able to communicate clearly with customers and colleagues, ensuring a positive and professional atmosphere. they must also be able to work independently and take initiative when needed.  \n\nday 6  \nthis position requires a willingness to learn and adapt to new processes. the employee should be open to feedback and able to contribute to continuous improvement.  \n\nday 7  \nwe are looking for someone who is committed to excellence and can make a difference in the customer experience. if you are interested in this opportunity, please apply today.\"",
+     "response_sha256": "5d94994901563c6c8274258cd7f941a4e8817263725ccec040efe1fc8ac426a1",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 298,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 584,
+     "context_tokens_added": 48,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2
+     ]
+    },
+    "neural_ledger": {
+     "response": "\"day 1  \nwe are seeking a dedicated employee to join our team at the cash register. this role requires attention to detail and a strong sense of responsibility. the ideal candidate will be able to manage transactions efficiently while also monitoring the shelves for stock levels.  \n\nday 2  \ncandidates should have basic skills in cash handling and customer service. they should also be able to work well with people and maintain a positive attitude in all interactions. the ability to track inventory and ensure that stock levels are accurate is essential.  \n\nday 3  \nif you are passionate about service and have the necessary skills, we would love to hear from you. please apply with your resume and a brief cover letter explaining why you are a great fit for this role.  \n\nday 4  \nthe role involves working in a fast-paced environment, requiring the ability to handle multiple tasks simultaneously. the employee must be reliable, organized, and able to work under pressure.  \n\nday 5  \nthe employee should be able to communicate clearly with customers and colleagues, ensuring a positive and professional atmosphere. they must also be able to work independently and take initiative when needed.  \n\nday 6  \nthis position requires a willingness to learn and adapt to new processes. the employee should be open to feedback and able to contribute to continuous improvement.  \n\nday 7  \nwe are looking for someone who is committed to excellence and can make a difference in the customer experience. if you are interested in this opportunity, please apply today.\"",
+     "response_sha256": "1aafa1d348c00bb08754b182b6556b8e514e9b7a718708d5519f2a73a3d8f198",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 297,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 297,
+     "prompt_tokens": 536,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       30,
+       40
+      ],
+      [
+       40,
+       45
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "\"day 1  \nwe are seeking a dedicated employee to join our team at the cash register. this role requires attention to detail and a strong sense of responsibility. the ideal candidate will be able to manage transactions efficiently while also monitoring the shelves for stock levels.  \n\nday 2  \ncandidates should have basic skills in cash handling and customer service. they should also be able to work well with people and maintain a positive attitude in all interactions. the ability to track inventory and ensure that stock levels are accurate is essential.  \n\nday 3  \nif you are passionate about service and have the necessary skills, we would love to hear from you. please apply with your resume and a brief cover letter explaining why you are a great fit for this role.  \n\nday 4  \nthe role involves working in a fast-paced environment, requiring the ability to handle multiple tasks simultaneously. the employee must be reliable, organized, and able to work under pressure.  \n\nday 5  \nthe employee should be able to communicate clearly with customers and colleagues, ensuring a positive and professional atmosphere. they must also be able to work independently and take initiative when needed.  \n\nday 6  \nthis position requires a willingness to learn and adapt to new processes. the employee should be open to feedback and able to contribute to continuous improvement.  \n\nday 7  \nwe are looking for someone who is committed to excellence and can make a difference in the customer experience. if you are interested in this opportunity, please apply today.\"",
+     "response_sha256": "1aafa1d348c00bb08754b182b6556b8e514e9b7a718708d5519f2a73a3d8f198",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 297,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 297,
+     "prompt_tokens": 536,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       20,
+       30
+      ],
+      [
+       15,
+       20
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

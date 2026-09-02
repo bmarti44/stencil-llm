@@ -1,0 +1,557 @@
+{
+ "ci": 778,
+ "key": "3369:19:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "cc7fe7904773cbc4dbd0c4d132f9fc994b3072b893ebe574c6315980368316ed",
+   "context_tokens": 193,
+   "instruction_ids": [
+    "combination:repeat_prompt",
+    "keywords:frequency",
+    "detectable_content:postscript"
+   ],
+   "insertable": [
+    false,
+    true,
+    true
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "combination:repeat_prompt",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "keywords:frequency",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_content:postscript",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": true,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "The word \"right\" should appear less than 2 times in the response.",
+     "span": [
+      16,
+      32
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "keywords:frequency"
+     ]
+    },
+    {
+     "text": "Your response should contain a postscript with the marker \"P.P.S\".",
+     "span": [
+      169,
+      184
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_content:postscript"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "Write a limerick about a customer who is always right. The word \"right\" should appear less than 2 times in the response.\n\nBefore you give the limerick, just repeat the request above without any change, at the very beginning of your entire response.\n\nA customer came with a question,  \nA tale of two socks, they said.  \nThey claimed the left was wrong,  \nBut I said the right one was true.  \nNow the store's in trouble, I suppose.\n\nP.P.S. The word \"right\" appears once.",
+    "response_sha256": "dedf80b73113f6a616711427f8d593a264683d39b0244c085a38e9656526a81e",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      false,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 113,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     false,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "Write a limerick about a customer who is always right. The word \"right\" should appear less than 2 times in the response.\n\nBefore you give the limerick, just repeat the request above without any change, at the very beginning of your entire response.\n\nA customer came with a question,  \nA tale of two socks, they said.  \nThey claimed the left was wrong,  \nBut I said the right one was true.  \nNow the store's in trouble, I suppose.\n\nP.P.S. The word \"right\" appears once.",
+     "response_sha256": "dedf80b73113f6a616711427f8d593a264683d39b0244c085a38e9656526a81e",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 113,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 218,
+     "context_tokens_added": 25,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "Write a limerick about a customer who is always right. The word \"right\" should appear less than 2 times in the response.\n\nBefore you give the limerick, just repeat the request above without any change, at the very beginning of your entire response.\n\nA customer came with a question,  \nA tale of two socks, they said.  \nThey claimed the left was wrong,  \nBut I said the right one was true.  \nNow the store's in trouble, I suppose.\n\nP.P.S. The word \"right\" appears once in the response.",
+     "response_sha256": "ba70dbec1dbb20711b479d0a2e5e012412db683979a023db811647b3ae3b6712",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 116,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 116,
+     "prompt_tokens": 193,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       16,
+       32
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "Write a limerick about a customer who is always right. The word \"right\" should appear less than 2 times in the response.\n\nBefore you give the limerick, just repeat the request above without any change, at the very beginning of your entire response.\n\nA customer came with a question,  \nA tale of two socks, they said.  \nThey claimed the left was wrong,  \nBut I said the right one was true.  \nNow the store's in trouble, I suppose.\n\nP.P.S. The word \"right\" appears once in the limerick.",
+     "response_sha256": "7041f88726221d597a2325be1ec75384d8f251206221d78f78185a36cf52b3f0",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 118,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 118,
+     "prompt_tokens": 193,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       32,
+       48
+      ]
+     ],
+     "control_tiers": [
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "2a73f033ab908c6fb112a59bfd3663f40a975a81712cad6a31c8afbce6321167",
+   "context_tokens": 346,
+   "instruction_ids": [
+    "combination:repeat_prompt",
+    "keywords:frequency",
+    "detectable_content:postscript",
+    "length_constraints:nth_paragraph_first_word"
+   ],
+   "insertable": [
+    false,
+    true,
+    true,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "combination:repeat_prompt",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "keywords:frequency",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_content:postscript",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "length_constraints:nth_paragraph_first_word",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2,
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "The word \"right\" should appear less than 2 times in the response.",
+     "span": [
+      16,
+      32
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "keywords:frequency"
+     ]
+    },
+    {
+     "text": "Your response should contain a postscript with the marker \"P.P.S\".",
+     "span": [
+      169,
+      184
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_content:postscript"
+     ]
+    },
+    {
+     "text": "Your response should have 2 paragraphs and the 1-th paragraph should start with the word claims.",
+     "span": [
+      307,
+      327
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word"
+     ]
+    },
+    {
+     "text": "The paragraphs should be separated by two new lines.",
+     "span": [
+      327,
+      337
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "Write a limerick about a customer who is always right. The word \"right\" should appear less than 2 times in the response.\n\nBefore you give the limerick, just repeat the request above without any change, at the very beginning of your entire response.\n\nA customer claims their socks are right,  \nA tale of two pairs, they said.  \nThey insist the left is wrong,  \nBut I say the right one is true.  \nNow the store's in trouble, I suppose.\n\nP.P.S. The word \"right\" appears once.\n\nA customer claims their socks are right,  \nA tale of two pairs, they said.  \nThey insist the left is wrong,  \nBut I say the right one is true.  \nNow the store's in trouble, I suppose.",
+    "response_sha256": "60c2deb83def22bc82d5e73776038a87520ca833d51a8fd2395af28caeee726c",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      false,
+      true,
+      false
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      false,
+      true,
+      false
+     ]
+    },
+    "n_generated": 161,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     false,
+     true,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "Write a limerick about a customer who is always right. The word \"right\" should appear less than 2 times in the response.\n\nBefore you give the limerick, just repeat the request above without any change, at the very beginning of your entire response.\n\nA customer came with a question,  \nA tale of two socks, they said.  \nThey claimed the left was wrong,  \nBut I said the right one was true.  \nNow the store's in trouble, I suppose.\n\nP.P.S. The word \"right\" appears once.\n\nEarlier user instructions restated verbatim:\n- The word \"right\" should appear less than 2 times in the response.\n- Your response should contain a postscript with the marker \"P.P.S\".\n- The 1-th paragraph should start with the word \"claims\".\n- The paragraphs should be separated by two new lines.\n\nClaims a customer came with a question,  \nA tale of two socks, they said.  \nThey claimed the left was wrong,  \nBut I said the right one was true.  \nNow the store's in trouble, I suppose.\n\nP.P.S. The word \"right\" appears once.",
+     "response_sha256": "c8ab30fde87e80bf64c774515fefbd2677c120957ab3b63b1974f3685ce13f98",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 238,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 387,
+     "context_tokens_added": 41,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "Write a limerick about a customer who is always right. The word \"right\" should appear less than 2 times in the response.\n\nA customer came with a question,  \nA tale of two socks, they said.  \nThey claimed the left was wrong,  \nBut I said the right one was true.  \nNow the store's in trouble, I suppose.\n\nP.P.S. The word \"right\" appears once.\n\nP.P.S. The word \"right\" appears once.  \nP.P.S. The word \"right\" appears once.",
+     "response_sha256": "a4df78a86e4daf58aac5c580cedc2c18d5c10929e1e1dab81a07f4789ee0de46",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 112,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 112,
+     "prompt_tokens": 346,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      1,
+      0
+     ],
+     "selected_spans": [
+      [
+       169,
+       184
+      ],
+      [
+       16,
+       32
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "Write a limerick about a customer who is always right. The word \"right\" should appear less than 2 times in the response.\n\nBefore you give the limerick, just repeat the request above without any change, at the very beginning of your entire response.\n\nA customer came with a question,  \nA tale of two socks, they said.  \nThey claimed the left was wrong,  \nBut I said the right one was true.  \nNow the store's in trouble, I suppose.\n\nA customer came with a question,  \nA tale of two socks, they said.  \nThey claimed the left was wrong,  \nBut I said the right one was true.  \nNow the store's in trouble, I suppose.\n\nP.P.S. The word \"right\" appears once.",
+     "response_sha256": "1cbe99f00e33276ba4980f6fd4bfb9cfb39df2337d35b8173b6a22c11594895b",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 159,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 159,
+     "prompt_tokens": 346,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       43,
+       58
+      ],
+      [
+       0,
+       16
+      ]
+     ],
+     "control_tiers": [
+      "other_user_turn",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

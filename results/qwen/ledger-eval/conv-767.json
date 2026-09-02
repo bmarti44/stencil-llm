@@ -1,0 +1,646 @@
+{
+ "ci": 767,
+ "key": "3345:10:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "3a5b8f00c7f4f191dca4d0a829b7c76cf5f75e71d2084b9a5083ffbf0e3d0ce7",
+   "context_tokens": 197,
+   "instruction_ids": [
+    "keywords:frequency",
+    "detectable_format:number_bullet_lists",
+    "keywords:forbidden_words",
+    "detectable_content:postscript"
+   ],
+   "insertable": [
+    true,
+    true,
+    false,
+    true
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "keywords:frequency",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:number_bullet_lists",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "keywords:forbidden_words",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "detectable_content:postscript",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": true,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "The word robber should appear at least 2 times, and the poem must contain exactly 2 bullet point in markdown format, using the exact format below:",
+     "span": [
+      35,
+      66
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:frequency",
+      "detectable_format:number_bullet_lists",
+      "keywords:forbidden_words"
+     ]
+    },
+    {
+     "text": "Do not include keywords ['kill', 'slaughter', 'occupy', 'invasion'] in the response.",
+     "span": [
+      76,
+      99
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:frequency",
+      "detectable_format:number_bullet_lists",
+      "keywords:forbidden_words"
+     ]
+    },
+    {
+     "text": "The text should contain a postscript marker, specifically the phrase \"P.S.\", which indicates additional information or a final thought.",
+     "span": [
+      163,
+      188
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_content:postscript"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "* The moonlight whispers tales of kangaroos in the wild,  \n* Where shadows dance and secrets are told in the dark.  \n\n* Robber jays patrol the skies with a wary gaze,  \n* While the US remains a land of quiet and haze.  \n\nP.S. The absence of kangaroos in the US is a mystery that only the wind can explain.",
+    "response_sha256": "b9269e4a1ed1c7ac722425df5007eb7d02b479c953421fa7baa5472203ceef8b",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      false,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      false,
+      false,
+      true,
+      true
+     ]
+    },
+    "n_generated": 77,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     false,
+     true,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "* The moonlight whispers tales of kangaroos in the wild,  \n* Where shadows dance and secrets are told in the dark.  \n\n* Robber jays patrol the skies with a wary gaze,  \n* While the US remains a land of quiet and haze.  \n\nP.S. The robber possums in Australia are known for their cunning, but the US remains a land of quiet and haze—where the robber jays keep watch with a wary gaze.",
+     "response_sha256": "dbbc9f8afefb4e0353c5cea6eaab757308afa7798b8acee47cad57044f02974f",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 94,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 261,
+     "context_tokens_added": 64,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "* The moonlight whispers tales of kangaroos in the wild,  \n* Where shadows dance and secrets are told in the dark.  \n\n* Robber jays patrol the skies with a wary gaze,  \n* While the US remains a land of quiet and haze.  \n\nP.S. The robber yawns in the night, a silent thief of the moon,  \n* And the kangaroos sleep where the stars dare not go.",
+     "response_sha256": "5260f709441d27fa4f6c8f7603a970eb04988735f44470c466cdd0ab60068cd2",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 88,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 88,
+     "prompt_tokens": 197,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       35,
+       66
+      ],
+      [
+       76,
+       99
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "* The moonlight whispers tales of kangaroos in the wild,  \n* Where shadows dance and secrets are told in the dark.  \n\n* Robber jays patrol the skies with a wary gaze,  \n* Where the US remains a land of quiet and haze.  \n\n**P.S.**  \nSteve, the absence of kangaroo invasions in the US is a mystery that even the most seasoned poets can't explain—maybe it's because the Australian outback is too full of weirdness for the US to handle.",
+     "response_sha256": "b01995236e4cb0004b9ce12ea7b6c9d5ed658740e81ad024b153505c10d212fd",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 106,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 106,
+     "prompt_tokens": 197,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       4,
+       35
+      ],
+      [
+       99,
+       122
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "8b6eaf7604ac1bbd78377e26d22e987737f6bb8444a991931b13d2985a4c8503",
+   "context_tokens": 293,
+   "instruction_ids": [
+    "keywords:frequency",
+    "detectable_format:number_bullet_lists",
+    "keywords:forbidden_words",
+    "detectable_content:postscript",
+    "change_case:english_lowercase"
+   ],
+   "insertable": [
+    true,
+    true,
+    false,
+    true,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "keywords:frequency",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:number_bullet_lists",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "keywords:forbidden_words",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "detectable_content:postscript",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 4,
+     "id": "change_case:english_lowercase",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "The word robber should appear at least 2 times, and the poem must contain exactly 2 bullet point in markdown format, using the exact format below:",
+     "span": [
+      35,
+      66
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:frequency",
+      "detectable_format:number_bullet_lists",
+      "keywords:forbidden_words"
+     ]
+    },
+    {
+     "text": "Do not include keywords ['kill', 'slaughter', 'occupy', 'invasion'] in the response.",
+     "span": [
+      76,
+      99
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:frequency",
+      "detectable_format:number_bullet_lists",
+      "keywords:forbidden_words"
+     ]
+    },
+    {
+     "text": "The text should contain a postscript marker, specifically the phrase \"P.S.\", which indicates additional information or a final thought.",
+     "span": [
+      163,
+      188
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_content:postscript"
+     ]
+    },
+    {
+     "text": "Your result must be entirely in lowercase English.",
+     "span": [
+      275,
+      284
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_lowercase"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "* the moonlight whispers tales of kangaroos in the wild,  \n* where shadows dance and secrets are told in the dark.  \n\n* robber jays patrol the skies with a wary gaze,  \n* while the us remains a land of quiet and haze.  \n\np.s. the absence of kangaroos in the us is a mystery that only the wind can explain.",
+    "response_sha256": "832bce4d7b023a8c75180875b13b00fc059e8c86869137fc8911b4c469551251",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      false,
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      false,
+      false,
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 76,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     false,
+     true,
+     true,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "* the moonlight whispers tales of kangaroos in the wild,  \n* where shadows dance and secrets are told in the dark.  \n\n* robber jays patrol the skies with a wary gaze,  \n* while the us remains a land of quiet and haze.  \n\np.s. the absence of kangaroos in the us is a mystery that only the wind can explain.",
+     "response_sha256": "832bce4d7b023a8c75180875b13b00fc059e8c86869137fc8911b4c469551251",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       false,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       false,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      false,
+      true,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 76,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 383,
+     "context_tokens_added": 90,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2
+     ]
+    },
+    "neural_ledger": {
+     "response": "* the moonlight whispers tales of kangaroos in the wild,  \n* where shadows dance and secrets are told in the dark.  \n\n* robber jays patrol the skies with a wary gaze,  \n* while the us remains a land of quiet and haze.  \n\np.s. the absence of kangaroos in the us is a mystery that only the wind can explain.",
+     "response_sha256": "832bce4d7b023a8c75180875b13b00fc059e8c86869137fc8911b4c469551251",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       false,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       false,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      false,
+      true,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 76,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 76,
+     "prompt_tokens": 293,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      2,
+      0
+     ],
+     "selected_spans": [
+      [
+       163,
+       188
+      ],
+      [
+       35,
+       66
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "* the moonlight whispers tales of kangaroos in the wild,  \n* where shadows dance and secrets are told in the dark.  \n\n* robber jays patrol the skies with a wary gaze,  \n* where the us remains a land of quiet and haze.  \n\np.s. the absence of kangaroos in the us is a mystery that only the wind can explain.",
+     "response_sha256": "4405517b9035b718d8d40e2bab93bbf66f429d24cbf8c06f5fbafeaa20004628",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       false,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       false,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      false,
+      true,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 76,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 76,
+     "prompt_tokens": 293,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       10,
+       35
+      ],
+      [
+       99,
+       130
+      ]
+     ],
+     "control_tiers": [
+      "other_user_turn",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

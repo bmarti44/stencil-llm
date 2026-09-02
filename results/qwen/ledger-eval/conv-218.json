@@ -1,0 +1,534 @@
+{
+ "ci": 218,
+ "key": "1659:4:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "19e89160c58de23eb6207460eda06450b16a4b7785faa901bbd46a5790c77cf4",
+   "context_tokens": 148,
+   "instruction_ids": [
+    "startend:end_checker",
+    "length_constraints:number_words"
+   ],
+   "insertable": [
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "startend:end_checker",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "length_constraints:number_words",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "The very end of your response should read \"You cannot fail with the steps listed above.\"",
+     "span": [
+      29,
+      47
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "No other words should follow this phrase.",
+     "span": [
+      47,
+      55
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "The response should contain fewer than 600 words.",
+     "span": [
+      127,
+      139
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_words"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "Start by researching colleges that align with your interests and strengths. Create a strong application that highlights your unique experiences and qualities. Seek guidance from teachers and mentors to strengthen your application. Stay persistent and confident, and remember that every step you take brings you closer to your goals. You cannot fail with the steps listed above.",
+    "response_sha256": "47b4361e470e6be83a00d84d2a5be4832112e6e2aa011218f99c77760ec00814",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true
+     ]
+    },
+    "n_generated": 63,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "Start by researching colleges that match your interests and strengths. Create a strong application that highlights your unique experiences and qualities. Seek guidance from teachers and mentors to strengthen your application. Stay persistent and confident, and remember that every step you take brings you closer to your goals. You cannot fail with the steps listed above.",
+     "response_sha256": "2f91101b12ae894e863b4515256bd0ca652f4c809195c4af203c0347e8925188",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 62,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 184,
+     "context_tokens_added": 36,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "Start by researching colleges that align with your interests and strengths. Create a strong application that highlights your unique experiences and qualities. Seek guidance from teachers and mentors to strengthen your application. Stay persistent and confident, and remember that every step you take brings you closer to your goals. You cannot fail with the steps listed above.",
+     "response_sha256": "47b4361e470e6be83a00d84d2a5be4832112e6e2aa011218f99c77760ec00814",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 63,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 63,
+     "prompt_tokens": 148,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       29,
+       47
+      ],
+      [
+       47,
+       55
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "Start by researching colleges that align with your interests and strengths. Create a strong application that highlights your unique experiences and qualities. Seek guidance from teachers and mentors to strengthen your application. Stay persistent and confident, and remember that every step you take brings you closer to your goals. You cannot fail with the steps listed above.",
+     "response_sha256": "47b4361e470e6be83a00d84d2a5be4832112e6e2aa011218f99c77760ec00814",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 63,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 63,
+     "prompt_tokens": 148,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       11,
+       29
+      ],
+      [
+       3,
+       11
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "9a0550ff927a5b7e996e8d709cc8fcb216dc850b43f6ea16e79f309d8899dc5a",
+   "context_tokens": 235,
+   "instruction_ids": [
+    "startend:end_checker",
+    "length_constraints:number_words",
+    "keywords:existence"
+   ],
+   "insertable": [
+    false,
+    false,
+    true
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "startend:end_checker",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "length_constraints:number_words",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "keywords:existence",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": true,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "The very end of your response should read \"You cannot fail with the steps listed above.\"",
+     "span": [
+      29,
+      47
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "No other words should follow this phrase.",
+     "span": [
+      47,
+      55
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "The response should contain fewer than 600 words.",
+     "span": [
+      127,
+      139
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_words"
+     ]
+    },
+    {
+     "text": "Your response should include the following keywords: essays, aid, universities.",
+     "span": [
+      212,
+      226
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:existence"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "Start by researching colleges that align with your interests and strengths. Create a strong application that highlights your unique experiences and qualities. Seek guidance from teachers and mentors to strengthen your application. Focus on writing compelling essays that showcase your personality and achievements. Explore financial aid options to ensure you can afford a college that fits your goals. Choose universities that offer a supportive environment and a strong academic program. Stay persistent and confident, and remember that every step you take brings you closer to your goals. You cannot fail with the steps listed above.",
+    "response_sha256": "5334f020dcb54b0e12df23d90df81ec87431bc1bce833b6dff1aba065e0b3c2d",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 104,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "Start by researching colleges that align with your interests and strengths. Create a strong application that highlights your unique experiences and qualities. Seek guidance from teachers and mentors to strengthen your application. Focus on writing compelling essays that showcase your personality and achievements. Consider applying to universities that offer financial aid options to support your educational goals. Stay persistent and confident, and remember that every step you take brings you closer to your goals. You cannot fail with the steps listed above.",
+     "response_sha256": "b59a94219e2e26917e0a6b1a5617dfdf0916ae1eb7536dd157c50465948ed28a",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 90,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 284,
+     "context_tokens_added": 49,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2
+     ]
+    },
+    "neural_ledger": {
+     "response": "Start by researching colleges that align with your interests and strengths. Create a strong application that highlights your unique experiences and qualities. Seek guidance from teachers and mentors to strengthen your application. Focus on writing compelling essays that showcase your personality and achievements. Consider applying to universities that offer financial aid to support your education. Stay persistent and confident, and remember that every step you take brings you closer to your goals. You cannot fail with the steps listed above.",
+     "response_sha256": "3e32bf8b3a9347ab8426ef2c72588882e3700a550f40b0c13cbc08ddbc03f4c9",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 88,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 88,
+     "prompt_tokens": 235,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      2,
+      0
+     ],
+     "selected_spans": [
+      [
+       127,
+       139
+      ],
+      [
+       29,
+       47
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "Research colleges that align with your interests and strengths. Create a strong application that highlights your unique experiences and qualities. Seek guidance from teachers and mentors to strengthen your application. Focus on writing compelling essays that showcase your personality and achievements. Explore financial aid options to ensure you can afford a college that fits your goals. Choose universities that value your potential and offer support for your success. Stay persistent and confident, and remember that every step you take brings you closer to your goals. You cannot fail with the steps listed above.",
+     "response_sha256": "4b9cfce061624ee4f19d7e57ec7ae927518df0d204ede33ae738954d0e216786",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 102,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 102,
+     "prompt_tokens": 235,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       17,
+       29
+      ],
+      [
+       55,
+       73
+      ]
+     ],
+     "control_tiers": [
+      "other_user_turn",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

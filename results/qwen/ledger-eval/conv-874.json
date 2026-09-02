@@ -1,0 +1,643 @@
+{
+ "ci": 874,
+ "key": "3633:6:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "fe1befff1a41791f3a83752a42eab9c1663bb3497d73a88f24ed9ffc0fc13d13",
+   "context_tokens": 339,
+   "instruction_ids": [
+    "combination:repeat_prompt",
+    "punctuation:no_comma",
+    "detectable_format:title"
+   ],
+   "insertable": [
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "combination:repeat_prompt",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "punctuation:no_comma",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Write a review of \"Laureates and twins\" for professionals in the field of psychology without the use of commas and make sure to include the phrase \"well worth watching\".",
+     "span": [
+      3,
+      38
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "First repeat the entire request above word for word without change, then give your answer.",
+     "span": [
+      38,
+      55
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "Do not say any words or characters before repeating the entire request above.",
+     "span": [
+      55,
+      69
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      311,
+      330
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "Write a review of \"Laureates and twins\" for professionals in the field of psychology without the use of commas and make sure to include the phrase \"well worth watching\".\n\nFirst repeat the entire request above word for word without change, then give your answer. Do not say any words or characters before repeating the entire request above.\n\n<<Laureates and twins>>\n\nThe book \"Laureates and twins\" offers a compelling exploration of the intersection between psychology and the study of twins. It delves into the genetic and environmental factors that shape human behavior, providing a comprehensive analysis of twin studies and their implications for psychological theory. The author presents a well-structured approach, combining empirical research with theoretical insights, making the content both informative and thought-provoking. The discussion of twin pairs and their roles in understanding psychological phenomena is thorough, and the book effectively highlights the importance of genetic and environmental influences. The writing style is clear and accessible, making it suitable for professionals in the field. The book is well worth watching.",
+    "response_sha256": "ca613b95a0e374698c6870a478c3b08ca2b4f90aa0c11ab24ce4fb634511c949",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      false,
+      true
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      false,
+      true
+     ]
+    },
+    "n_generated": 204,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     false,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "Write a review of \"Laureates and twins\" for professionals in the field of psychology without the use of commas and make sure to include the phrase \"well worth watching\".\n\n<<Laureates and twins>>\n\nThe book \"Laureates and twins\" offers a compelling exploration of the intersection between psychology and the study of twins. It delves into the genetic and environmental factors that shape human behavior, providing a comprehensive analysis of twin studies and their implications for psychological theory. The author presents a well-structured approach, combining empirical research with theoretical insights, making the content both informative and thought-provoking. The discussion of twin pairs and their roles in understanding psychological phenomena is thorough, and the book effectively highlights the importance of genetic and environmental influences. The writing style is clear and accessible, making it suitable for professionals in the field. The book is well worth watching.",
+     "response_sha256": "368666615675df51967265e7d5636bad9a942137df9d2031b6427befd269e095",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 173,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 416,
+     "context_tokens_added": 77,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2
+     ]
+    },
+    "neural_ledger": {
+     "response": "Write a review of \"Laureates and twins\" for professionals in the field of psychology without the use of commas and make sure to include the phrase \"well worth watching\".\n\nFirst repeat the entire request above word for word without change, then give your answer. Do not say any words or characters before repeating the entire request above.\n\n<<Laureates and twins>>\n\nthe book \"laureates and twins\" offers a compelling exploration of the intersection between psychology and the study of twins. it delves into the genetic and environmental factors that shape human behavior, providing a comprehensive analysis of twin studies and their implications for psychological theory. the author presents a well-structured approach, combining empirical research with theoretical insights, making the content both informative and thought-provoking. the discussion of twin pairs and their roles in understanding psychological phenomena is thorough, and the book effectively highlights the importance of genetic and environmental influences. the writing style is clear and accessible, making it suitable for professionals in the field. the book is well worth watching.",
+     "response_sha256": "9ede98f0a2c132849483e8cb40aa50a02f0d30b43784cb5c8ad2589c2dd14147",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 204,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 204,
+     "prompt_tokens": 339,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       3,
+       38
+      ],
+      [
+       38,
+       55
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "Write a review of \"Laureates and twins\" for professionals in the field of psychology without the use of commas and make sure to include the phrase \"well worth watching\".\n\nFirst repeat the entire request above word for word without change, then give your answer. Do not say any words or characters before repeating the entire request above.\n\nWrite a review of \"Laureates and twins\" for professionals in the field of psychology without the use of commas and make sure to include the phrase \"well worth watching\".\n\n<<Laureates and Twins>>\n\nThe book \"Laureates and twins\" offers a compelling exploration of the intersection between psychology and the study of twins. It delves into the genetic and environmental factors that shape human behavior, providing a comprehensive analysis of twin studies and their implications for psychological theory. The author presents a well-structured approach, combining empirical research with theoretical insights, making the content both informative and thought-provoking. The discussion of twin pairs and their roles in understanding psychological phenomena is thorough, and the book effectively highlights the importance of genetic and environmental influences. The writing style is clear and accessible, making it suitable for professionals in the field. The book is well worth watching.",
+     "response_sha256": "364a83178c80d7acf8524d1ec16c0933e1f7826ec8008400592ad6804c4b8bd3",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 239,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 239,
+     "prompt_tokens": 339,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       69,
+       104
+      ],
+      [
+       104,
+       121
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "0fb1374fe5dac368009459d7025ad4759e8f5f898983234237dfeded2100ba36",
+   "context_tokens": 583,
+   "instruction_ids": [
+    "combination:repeat_prompt",
+    "punctuation:no_comma",
+    "detectable_format:title",
+    "length_constraints:nth_paragraph_first_word"
+   ],
+   "insertable": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "combination:repeat_prompt",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "punctuation:no_comma",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "length_constraints:nth_paragraph_first_word",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      4,
+      5
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Write a review of \"Laureates and twins\" for professionals in the field of psychology without the use of commas and make sure to include the phrase \"well worth watching\".",
+     "span": [
+      3,
+      38
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "First repeat the entire request above word for word without change, then give your answer.",
+     "span": [
+      38,
+      55
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "Do not say any words or characters before repeating the entire request above.",
+     "span": [
+      55,
+      69
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      311,
+      330
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    },
+    {
+     "text": "Your response should have 4 paragraphs and the 1-th paragraph should start with the word behavioral.",
+     "span": [
+      544,
+      564
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word"
+     ]
+    },
+    {
+     "text": "The paragraphs should be separated by two new lines.",
+     "span": [
+      564,
+      574
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<Laureates and twins>>\n\nBehavioral studies of twins have provided valuable insights into the interplay between genetics and environment. The book \"Laureates and twins\" offers a comprehensive review of the research conducted on twin pairs, highlighting how their behaviors are influenced by both heredity and external factors. The author presents a well-structured approach, combining empirical research with theoretical insights, making the content both informative and thought-provoking. The discussion of twin pairs and their roles in understanding psychological phenomena is thorough, and the book effectively highlights the importance of genetic and environmental influences. The writing style is clear and accessible, making it suitable for professionals in the field. The book is well worth watching.",
+    "response_sha256": "651992b0d2f47fbd4d4c7c65f85906f3b8ea40bf5a8ed09408da1730189de5d2",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      false,
+      true,
+      false
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      false,
+      true,
+      true,
+      false
+     ]
+    },
+    "n_generated": 140,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     false,
+     true,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<Laureates and twins>>\n\nBehavioral studies of twins have been a cornerstone of psychological research, and \"Laureates and twins\" provides a thorough examination of this area. The book explores the genetic and environmental factors that influence behavior, offering a detailed analysis of twin studies and their impact on psychological theory. It is structured in a way that allows for a deep understanding of the complexities involved in twin research, making it a valuable resource for professionals in the field. The author's approach is both rigorous and accessible, ensuring that the content is both informative and engaging.\n\nThe book delves into the role of genetics and environment in shaping psychological traits, presenting a well-balanced discussion of the strengths and limitations of twin studies. It highlights the importance of considering both hereditary and environmental influences when studying human behavior, which is crucial for developing accurate psychological models. The insights provided are particularly relevant for researchers interested in the intersection of genetics and psychology, offering a comprehensive overview of the field.\n\nThe writing style is clear and concise, making it suitable for professionals who require detailed information without unnecessary complexity. The book effectively communicates the nuances of twin studies and their applications in psychological research, reinforcing the importance of this area of study. It is well worth watching for anyone interested in the latest developments in psychological science.",
+     "response_sha256": "9c579e7fed53ca79d3b870a4ea3f323a8c0f84b4aa9e295a6c0eba8bcb5a2ee7",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       false,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       false,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      false,
+      false,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 257,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 680,
+     "context_tokens_added": 97,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2,
+      3
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<Laureates and twins>>\n\nBehavioral psychology is the focus of \"Laureates and twins\", offering a deep dive into the role of genetics and environment in shaping human behavior. The book explores how twin studies provide valuable insights into the interplay between nature and nurture, highlighting the importance of both genetic and environmental factors in psychological development. The author presents a well-structured approach, combining empirical research with theoretical insights, making the content both informative and thought-provoking. The discussion of twin pairs and their roles in understanding psychological phenomena is thorough, and the book effectively highlights the importance of genetic and environmental influences. The writing style is clear and accessible, making it suitable for professionals in the field. The book is well worth watching.",
+     "response_sha256": "78fab8f766b21c9e4bae6413ff01292fd98efaa2b1e4711a6be704643ebde2d5",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       false,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      false,
+      false,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 147,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 147,
+     "prompt_tokens": 583,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      3
+     ],
+     "selected_spans": [
+      [
+       3,
+       38
+      ],
+      [
+       311,
+       330
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<Laureates and twins>>\n\nBehavioral approaches to the study of twins emphasize the role of genetics and environment in shaping behavior. The book \"Laureates and twins\" provides a thorough examination of how twin studies contribute to understanding behavioral patterns. It explores the complexities of twin pairs and their unique psychological traits, offering a comprehensive analysis of the factors that influence behavior. The author presents a well-structured approach, combining empirical research with theoretical insights, making the content both informative and thought-provoking. The book is well worth watching.",
+     "response_sha256": "639e3810bd6f1a6715f077e78c71b1049ca26a714d8cf5833f52a799a914d34b",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       false,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      false,
+      false,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 107,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 107,
+     "prompt_tokens": 583,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       69,
+       104
+      ],
+      [
+       292,
+       311
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

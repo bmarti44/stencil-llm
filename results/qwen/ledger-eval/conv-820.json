@@ -1,0 +1,622 @@
+{
+ "ci": 820,
+ "key": "3494:15:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "65351080f0993c3803d0fea596dac2d3051c5854547bd8f35ba1792e70df1327",
+   "context_tokens": 338,
+   "instruction_ids": [
+    "detectable_content:number_placeholders",
+    "language:response_language",
+    "length_constraints:number_paragraphs"
+   ],
+   "insertable": [
+    true,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "detectable_content:number_placeholders",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "language:response_language",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "length_constraints:number_paragraphs",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2,
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Please make your response in only German, no other language is allowed.",
+     "span": [
+      36,
+      50
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_content:number_placeholders",
+      "language:response_language"
+     ]
+    },
+    {
+     "text": "Include at least 7 placeholders with brackets like [subject].",
+     "span": [
+      50,
+      62
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_content:number_placeholders",
+      "language:response_language"
+     ]
+    },
+    {
+     "text": "Your result should have 5 paragraphs.",
+     "span": [
+      309,
+      317
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_paragraphs"
+     ]
+    },
+    {
+     "text": "The paragraphs should be separated by the markdown divider: ***.",
+     "span": [
+      317,
+      329
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_paragraphs"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "Sehr geehrte [subject],  \n\nYou're making a mistake not to buy our cheese products, and I'm going to show you why. [product1] is a traditional German cheese that has been produced for generations, and it is known for its rich flavor and high quality. [product2] is a popular cheese that is loved by many for its creamy texture and mild taste. [product3] is a special cheese that is perfect for those who enjoy a bit of a kick. [product4] is a cheese that is often used in cooking and is known for its versatility. [product5] is a cheese that is often enjoyed on its own, and it is a great choice for those who prefer a more rustic flavor.  \n\n***  \n\nWe believe that our cheese products are the best in the market, and we are confident that you will enjoy them. If you have any questions or need further information, please do not hesitate to contact us.  \n\n***  \n\nOur cheese is made using traditional methods and high-quality ingredients, ensuring that each product is both delicious and authentic. We are committed to providing our customers with the best possible experience, and we are always here to help.  \n\n***  \n\nWhether you're looking for a snack, a meal addition, or a gift, our cheese products are a great choice. They are available in various forms and sizes to suit your needs.  \n\n***  \n\nWe encourage you to try our cheese products and experience the difference for yourself. If you have any feedback or suggestions, we would love to hear from you. Thank you for considering our products.",
+    "response_sha256": "a778d979193fe5dcaff22cea5a7529d13eb1c21ea722bb7479345a24e937a75c",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      false,
+      true
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      false,
+      false,
+      true
+     ]
+    },
+    "n_generated": 321,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     false,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "Sehr geehrte [subject],  \n\nYou're making a mistake not to buy our cheese products, and I'm going to show you why. [product1] is a traditional German cheese that has been produced for generations, and it is known for its rich flavor and high quality. [product2] is a popular cheese that is loved by many for its creamy texture and mild taste. [product3] is a special cheese that is perfect for those who enjoy a bit of a kick. [product4] is a cheese that is often used in cooking and is known for its versatility. [product5] is a cheese that is often enjoyed on its own, and it is a great choice for those who prefer a more rustic flavor.  \n\n***  \n\nWe believe that our cheese products are the best in the market, and we are confident that you will enjoy them. If you have any questions or need further information, please do not hesitate to contact us.  \n\n[product6] is a cheese that is often used in cheese boards and is a great addition to any meal. Our products are crafted with care and attention to detail, ensuring that each piece meets the highest standards. Whether you are looking for a snack, a meal addition, or a gift, our cheese products are sure to delight.  \n\n***  \n\nWe understand that every customer has their own preferences, and we are committed to providing the best possible experience. Our team is always ready to assist you with any inquiries or concerns. We value your trust and are dedicated to ensuring your satisfaction.  \n\n***  \n\nOur cheese products are not only delicious but also a great way to support local farmers and producers. By choosing our products, you are contributing to a sustainable and ethical supply chain. We believe in the power of quality and are proud to offer you the best in German cheese.  \n\n***  \n\nIf you have any questions or need further information, please do not hesitate to contact us. We are here to help and are committed to providing you with the best possible service. Thank you for choosing our cheese products.  \n\nMit freundlichen Grüßen  \n[Your Name]  \n[Your Position]  \n[Company Name]",
+     "response_sha256": "7a864dab89045fcfa4044cc1735c704dbae542e15cb13bf3ceb73c13bca0694e",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 436,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 374,
+     "context_tokens_added": 36,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "Sehr geehrte [subject],  \n\nYou're making a mistake not to buy our cheese products, and I'm going to show you why. [subject] is a traditional German cheese that has been produced for generations, and it is known for its rich flavor and high quality. [subject] is a popular cheese that is loved by many for its creamy texture and mild taste. [subject] is a special cheese that is perfect for those who enjoy a bit of a kick. [subject] is a cheese that is often used in cooking and is known for its versatility. [subject] is a cheese that is often enjoyed on its own, and it is a great choice for those who prefer a more rustic flavor.  \n\n***  \n\nSehr geehrte [subject],  \n\n[subject] is a cheese that is often used in cheese boards and is a great addition to any meal. [subject] is a cheese that is often enjoyed on its own, and it is a great choice for those who prefer a more rustic flavor. [subject] is a cheese that is often used in cooking and is known for its versatility. [subject] is a cheese that is often used in cooking and is known for its versatility. [subject] is a cheese that is often used in cooking and is known for its versatility.  \n\n***  \n\nSehr geehrte [subject],  \n\n[subject] is a cheese that is often used in cooking and is known for its versatility. [subject] is a cheese that is often used in cooking and is known for its versatility. [subject] is a cheese that is often used in cooking and is known for its versatility. [subject] is a cheese that is often used in cooking and is known for its versatility. [subject] is a cheese that is often used in cooking and is known for its versatility.  \n\n***  \n\nSehr geehrte [subject],  \n\n[subject] is a cheese that is often used in cooking and is known for its versatility. [subject] is a cheese that is often used in cooking and is known for its versatility. [subject] is a cheese that is often used in cooking and is known for its versatility. [subject] is a cheese that is often used in cooking and is known for its versatility. [subject] is a cheese that is often used in cooking and is known for its versatility.  \n\n***  \n\nSehr geehrte [subject],  \n\n[subject] is a cheese that is often used in cooking and is known for its versatility. [subject] is a cheese that is often used in cooking and is known for its versatility. [subject] is a cheese that is often used in cooking and is known for its versatility. [subject] is a cheese that is often used in cooking and is known for its versatility. [subject] is a cheese that is often used in cooking and is known for its versatility.",
+     "response_sha256": "c81201b7e0377f4e77b922ef04652ae69e37a65f25f6de4f6fd225cdc52300e1",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 586,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 586,
+     "prompt_tokens": 338,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      1,
+      0
+     ],
+     "selected_spans": [
+      [
+       50,
+       62
+      ],
+      [
+       36,
+       50
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "Sehr geehrte [subject],  \n\nYou're making a mistake not to buy our cheese products, and I'm going to show you why. [product1] is a traditional German cheese that has been produced for generations, and it is known for its rich flavor and high quality. [product2] is a popular cheese that is loved by many for its creamy texture and mild taste. [product3] is a special cheese that is perfect for those who enjoy a bit of a kick. [product4] is a cheese that is often used in cooking and is known for its versatility. [product5] is a cheese that is often enjoyed on its own, and it is a great choice for those who prefer a more rustic flavor.  \n\n***  \n\nYou're making a mistake not to buy our cheese products, and I'm going to show you why. [product6] is a cheese that is often used in cheese boards and is a great addition to any meal. [product1] is a traditional German cheese that has been produced for generations, and it is known for its rich flavor and high quality. [product2] is a popular cheese that is loved by many for its creamy texture and mild taste. [product3] is a special cheese that is perfect for those who enjoy a bit of a kick. [product4] is a cheese that is often used in cooking and is known for its versatility.  \n\n***  \n\nYou're making a mistake not to buy our cheese products, and I'm going to show you why. [product5] is a cheese that is often enjoyed on its own, and it is a great choice for those who prefer a more rustic flavor. [product6] is a cheese that is often used in cheese boards and is a great addition to any meal. [product1] is a traditional German cheese that has been produced for generations, and it is known for its rich flavor and high quality. [product2] is a popular cheese that is loved by many for its creamy texture and mild taste. [product3] is a special cheese that is perfect for those who enjoy a bit of a kick.  \n\n***  \n\nYou're making a mistake not to buy our cheese products, and I'm going to show you why. [product4] is a cheese that is often used in cooking and is known for its versatility. [product5] is a cheese that is often enjoyed on its own, and it is a great choice for those who prefer a more rustic flavor. [product6] is a cheese that is often used in cheese boards and is a great addition to any meal. [product1] is a traditional German cheese that has been produced for generations, and it is known for its rich flavor and high quality. [product2] is a popular cheese that is loved by many for its creamy texture and mild taste.  \n\n***  \n\nYou're making a mistake not to buy our cheese products, and I'm going to show you why. [product3] is a special cheese that is perfect for those who enjoy a bit of a kick. [product4] is a cheese that is often used in cooking and is known for its versatility. [product5] is a cheese that is often enjoyed on its own, and it is a great choice for those who prefer a more rustic flavor. [product6] is a cheese that is often used in cheese boards and is a great addition to any meal. [product1] is a traditional German cheese that has been produced for generations, and it is known for its rich flavor and high quality.",
+     "response_sha256": "40aa13ccbb8e6f994cbda893cdaf770cb5e643048ec3d55508c5cadf805a3405",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 726,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 726,
+     "prompt_tokens": 338,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       24,
+       36
+      ],
+      [
+       10,
+       24
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "0b5ef1c10157572d0e957f849b14e9a3bd2f706662c1b9910a4725c5c0fc4ab8",
+   "context_tokens": 694,
+   "instruction_ids": [
+    "detectable_content:number_placeholders",
+    "language:response_language",
+    "length_constraints:number_paragraphs",
+    "startend:end_checker"
+   ],
+   "insertable": [
+    true,
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "detectable_content:number_placeholders",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "language:response_language",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "length_constraints:number_paragraphs",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      2,
+      3
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "startend:end_checker",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      4
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Please make your response in only German, no other language is allowed.",
+     "span": [
+      36,
+      50
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_content:number_placeholders",
+      "language:response_language"
+     ]
+    },
+    {
+     "text": "Include at least 7 placeholders with brackets like [subject].",
+     "span": [
+      50,
+      62
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_content:number_placeholders",
+      "language:response_language"
+     ]
+    },
+    {
+     "text": "Your result should have 5 paragraphs.",
+     "span": [
+      309,
+      317
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_paragraphs"
+     ]
+    },
+    {
+     "text": "The paragraphs should be separated by the markdown divider: ***.",
+     "span": [
+      317,
+      329
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_paragraphs"
+     ]
+    },
+    {
+     "text": "Your response should end with the exact phrase: \"mit freundlichen grüßen,\" No other words should follow this phrase.",
+     "span": [
+      660,
+      685
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "Sehr geehrte [subject],  \n\nYou're making a mistake not to buy our cheese products, and I'm going to show you why. [product1] is a traditional German cheese that has been produced for generations, and it is known for its rich flavor and high quality. [product2] is a popular cheese that is loved by many for its creamy texture and mild taste. [product3] is a special cheese that is perfect for those who enjoy a bit of a kick. [product4] is a cheese that is often used in cooking and is known for its versatility. [product5] is a cheese that is often enjoyed on its own, and it is a great choice for those who prefer a more rustic flavor.  \n\n***  \n\nWe believe that our cheese products are the best in the market, and we are confident that you will enjoy them. If you have any questions or need further information, please do not hesitate to contact us.  \n\n***  \n\nOur cheese is made using traditional methods and high-quality ingredients, ensuring that each product is both delicious and authentic. We are committed to providing our customers with the best possible experience, and we are always here to help.  \n\n***  \n\nWhether you're looking for a snack, a meal addition, or a gift, our cheese products are a great choice. They are available in various forms and sizes to suit your needs.  \n\n***  \n\nmit freundlichen grüßen",
+    "response_sha256": "620ce2d9167f955a2253fbf2a7eb2e623267592470c21d9533cfd3106f65ab86",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      false,
+      true,
+      false
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      false,
+      false,
+      true,
+      false
+     ]
+    },
+    "n_generated": 289,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     false,
+     true,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "Sehr geehrte [subject],  \n\nYou're making a mistake not to buy our cheese products, and I'm going to show you why. [product1] is a traditional German cheese that has been produced for generations, and it is known for its rich flavor and high quality. [product2] is a popular cheese that is loved by many for its creamy texture and mild taste. [product3] is a special cheese that is perfect for those who enjoy a bit of a kick. [product4] is a cheese that is often used in cooking and is known for its versatility. [product5] is a cheese that is often enjoyed on its own, and it is a great choice for those who prefer a more rustic flavor.  \n\n***  \n\nWe believe that our cheese products are the best in the market, and we are confident that you will enjoy them. If you have any questions or need further information, please do not hesitate to contact us.  \n\n***  \n\nOur cheese is made using traditional methods and high-quality ingredients, ensuring that each product is both delicious and authentic. We are committed to providing our customers with the best possible experience, and we are always here to help.  \n\n***  \n\nWhether you're looking for a snack, a meal addition, or a gift, our cheese products are a great choice. They are available in various forms and sizes to suit your needs.  \n\n***  \n\nmit freundlichen grüßen",
+     "response_sha256": "620ce2d9167f955a2253fbf2a7eb2e623267592470c21d9533cfd3106f65ab86",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       false,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       false,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      false,
+      false,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 289,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 752,
+     "context_tokens_added": 58,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2,
+      3
+     ]
+    },
+    "neural_ledger": {
+     "response": "Sehr geehrte [subject],  \n\nYou're making a mistake not to buy our cheese products, and I'm going to show you why. [product1] is a traditional German cheese that has been produced for generations, and it is known for its rich flavor and high quality. [product2] is a popular cheese that is loved by many for its creamy texture and mild taste. [product3] is a special cheese that is perfect for those who enjoy a bit of a kick. [product4] is a cheese that is often used in cooking and is known for its versatility. [product5] is a cheese that is often enjoyed on its own, and it is a great choice for those who prefer a more rustic flavor.  \n\n***  \n\nWe believe that our cheese products are the best in the market, and we are confident that you will enjoy them. If you have any questions or need further information, please do not hesitate to contact us.  \n\n***  \n\nOur cheese is made using traditional methods and high-quality ingredients, ensuring that each product is both delicious and authentic. We are committed to providing our customers with the best possible experience, and we are always here to help.  \n\n***  \n\nWhether you're looking for a snack, a meal addition, or a gift, our cheese products are a great choice. They are available in various forms and sizes to suit your needs.  \n\n***  \n\nmit freundlichen grüßen",
+     "response_sha256": "620ce2d9167f955a2253fbf2a7eb2e623267592470c21d9533cfd3106f65ab86",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       false,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       false,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      false,
+      false,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 289,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 289,
+     "prompt_tokens": 694,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      2
+     ],
+     "selected_spans": [
+      [
+       36,
+       50
+      ],
+      [
+       309,
+       317
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "Sehr geehrte [subject],  \n\nYou're making a mistake not to buy our cheese products, and I'm going to show you why. [product1] is a traditional German cheese that has been produced for generations, and it is known for its rich flavor and high quality. [product2] is a popular cheese that is loved by many for its creamy texture and mild taste. [product3] is a special cheese that is perfect for those who enjoy a bit of a kick. [product4] is a cheese that is often used in cooking and is known for its versatility. [product5] is a cheese that is often enjoyed on its own, and it is a great choice for those who prefer a more rustic flavor.  \n\n***  \n\nWe believe that our cheese products are the best in the market, and we are confident that you will enjoy them. If you have any questions or need further information, please do not hesitate to contact us.  \n\n***  \n\nOur cheese is made using traditional methods and high-quality ingredients, ensuring that each product is both delicious and authentic. We are committed to providing our customers with the best possible experience, and we are always here to help.  \n\n***  \n\nWhether you're looking for a snack, a meal addition, or a gift, our cheese products are a great choice. They are available in various forms and sizes to suit your needs.  \n\n***  \n\nmit freundlichen grüßen",
+     "response_sha256": "620ce2d9167f955a2253fbf2a7eb2e623267592470c21d9533cfd3106f65ab86",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       false,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       false,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      false,
+      false,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 289,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 289,
+     "prompt_tokens": 694,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       22,
+       36
+      ],
+      [
+       14,
+       22
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "other_user_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

@@ -1,0 +1,534 @@
+{
+ "ci": 393,
+ "key": "2268:7:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "c520a770270bf45650499a80e649564e8b4a4d24e73ab61503f3643c00cf0a64",
+   "context_tokens": 180,
+   "instruction_ids": [
+    "startend:end_checker",
+    "detectable_format:title"
+   ],
+   "insertable": [
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "startend:end_checker",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Please end your response with \"Is there anything else I can help with?\"",
+     "span": [
+      23,
+      38
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "and no other words should follow this statement.",
+     "span": [
+      38,
+      47
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      152,
+      171
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<Multivariate Analysis Explained>>  \nMultivariate analysis is a set of statistical methods used to analyze data with multiple variables at the same time. It helps you understand how different factors affect each other and find patterns or relationships in the data. It's like looking at a puzzle with many pieces and trying to figure out how they fit together. This type of analysis is useful in many fields, like science, business, and social sciences, to make better decisions and predictions.\n\nIs there anything else I can help with?",
+    "response_sha256": "5eeaecfb07c64caf0b041c693d23f9afcb4eb180c20d8b22e86f12ef597e26cc",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true
+     ]
+    },
+    "n_generated": 103,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<Multivariate Analysis>>  \nMultivariate analysis is a set of statistical methods used to analyze data with multiple variables at the same time. It helps you understand how different factors affect each other and find patterns or relationships in the data. It's like looking at a puzzle with many pieces and trying to figure out how they fit together. This type of analysis is useful in many fields, like science, business, and social sciences, to make better decisions and predictions.  \n\nIs there anything else I can help with?",
+     "response_sha256": "03dea20a9c68a5682d9d69e86b0d46a2b4d2c2856cf2ccde626996d76c350ed1",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 102,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 214,
+     "context_tokens_added": 34,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<Multivariate Analysis Explained>>  \nMultivariate analysis is a set of statistical methods used to analyze data with multiple variables at the same time. It helps you understand how different factors affect each other and find patterns or relationships in the data. It's like looking at a puzzle with many pieces and trying to figure out how they fit together. This type of analysis is useful in many fields, like science, business, and social sciences, to make better decisions and predictions.\n\nIs there anything else I can help with?",
+     "response_sha256": "5eeaecfb07c64caf0b041c693d23f9afcb4eb180c20d8b22e86f12ef597e26cc",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 103,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 103,
+     "prompt_tokens": 180,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       23,
+       38
+      ],
+      [
+       38,
+       47
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<Multivariate Analysis Explained>>  \nMultivariate analysis is a set of statistical methods used to analyze data with multiple variables at the same time. It helps you understand how different factors affect each other and find patterns or relationships in the data. It's like looking at a puzzle with many pieces and trying to figure out how they fit together. This type of analysis is useful in many fields, like science, business, and social sciences, to make better decisions and predictions.\n\nIs there anything else I can help with?",
+     "response_sha256": "5eeaecfb07c64caf0b041c693d23f9afcb4eb180c20d8b22e86f12ef597e26cc",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 103,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 103,
+     "prompt_tokens": 180,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       8,
+       23
+      ],
+      [
+       47,
+       56
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "72d7e036683ffcd970e813658515ffa191fe80c0bf89a7683e6ef599f8133eb7",
+   "context_tokens": 312,
+   "instruction_ids": [
+    "startend:end_checker",
+    "detectable_format:title",
+    "detectable_format:title"
+   ],
+   "insertable": [
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "startend:end_checker",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:title",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Please end your response with \"Is there anything else I can help with?\"",
+     "span": [
+      23,
+      38
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "and no other words should follow this statement.",
+     "span": [
+      38,
+      47
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      152,
+      171
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      284,
+      303
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<Multivariate Analysis: A Simple Explanation>>  \nMultivariate analysis is a set of statistical methods used to analyze data with multiple variables at the same time. It helps you understand how different factors affect each other and find patterns or relationships in the data. It's like looking at a puzzle with many pieces and trying to figure out how they fit together. This type of analysis is useful in many fields, like science, business, and social sciences, to make better decisions and predictions.\n\nIs there anything else I can help with?",
+    "response_sha256": "8cacf96b6959157ff0d0c1d86ddd10c07a0bfbcb3a6b7968b9a9e5969ce9a036",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 105,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<Multivariate Analysis Explained>>  \nMultivariate analysis is a set of statistical methods used to analyze data with multiple variables at the same time. It helps you understand how different factors affect each other and find patterns or relationships in the data. It's like looking at a puzzle with many pieces and trying to figure out how they fit together. This type of analysis is useful in many fields, like science, business, and social sciences, to make better decisions and predictions.\n\nIs there anything else I can help with?",
+     "response_sha256": "5eeaecfb07c64caf0b041c693d23f9afcb4eb180c20d8b22e86f12ef597e26cc",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 103,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 366,
+     "context_tokens_added": 54,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<Multivariate Analysis Explained>>  \nMultivariate analysis is a set of statistical methods used to analyze data with multiple variables at the same time. It helps you understand how different factors affect each other and find patterns or relationships in the data. It's like looking at a puzzle with many pieces and trying to figure out how they fit together. This type of analysis is useful in many fields, like science, business, and social sciences, to make better decisions and predictions.\n\nIs there anything else I can help with?",
+     "response_sha256": "5eeaecfb07c64caf0b041c693d23f9afcb4eb180c20d8b22e86f12ef597e26cc",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 103,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 103,
+     "prompt_tokens": 312,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      2
+     ],
+     "selected_spans": [
+      [
+       23,
+       38
+      ],
+      [
+       152,
+       171
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<Multivariate Analysis: A Casual Explanation>>  \nMultivariate analysis is a set of statistical methods used to analyze data with multiple variables at the same time. It helps you understand how different factors affect each other and find patterns or relationships in the data. It's like looking at a puzzle with many pieces and trying to figure out how they fit together. This type of analysis is useful in many fields, like science, business, and social sciences, to make better decisions and predictions.\n\nIs there anything else I can help with?",
+     "response_sha256": "3994ae0e449624ae40e2ed6180eda6aaceb950b80f59f56f0759a2d4f7541f0d",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 105,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 105,
+     "prompt_tokens": 312,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       8,
+       23
+      ],
+      [
+       133,
+       152
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

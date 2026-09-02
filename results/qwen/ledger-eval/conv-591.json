@@ -1,0 +1,505 @@
+{
+ "ci": 591,
+ "key": "2817:2:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "c0581a23fda3829659891df4a0def0392688351cd1acd080e7c65109050723d6",
+   "context_tokens": 267,
+   "instruction_ids": [
+    "change_case:english_lowercase",
+    "detectable_format:title"
+   ],
+   "insertable": [
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "change_case:english_lowercase",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "It should be in English and have no capital letters.",
+     "span": [
+      28,
+      39
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_lowercase"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      239,
+      258
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<the noise that doesn't fit>>  \n\nwhen the world is too loud and the noise is too much  \nwe make a noise that no one else can put together  \nward and guerre are the ones who know  \nhow to make a sound that's not just heard but felt  \n\nthey don't just make things—they make things that sing  \nwith a rhythm that's not in the music that's in the air  \neach sound is a secret, each silence a clue  \nand they know how to make the world feel like a dream  \n\nno one else makes noise that's not just noise  \nward and guerre make noise that's not just noise  \nthey make noise that's not just noise  \nbut also not just noise  \n\nso when the world is too loud and the noise is too much  \nward and guerre are the ones who know  \nhow to make a sound that's not just heard but felt  \nand that's why we're here to make the world feel like a dream.",
+    "response_sha256": "fc715b002dc3b67509352d265e566359f451e6ddfeff03abaccf58576f548d18",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true
+     ]
+    },
+    "n_generated": 199,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<the noise that no one else can make>>  \n\nwhen the world is too loud and the noise is too much  \nwe make a noise that no one else can put together  \nward and guerre are the ones who know  \nhow to make a sound that's not just heard but felt  \n\nthey don't just make things—they make things that sing  \nwith a rhythm that's not in the music that's in the air  \neach sound is a secret, each silence a clue  \nand they know how to make the world feel like a dream  \n\nno one else makes noise that's not just noise  \nward and guerre make noise that's not just noise  \nthey make noise that's not just noise  \nbut also not just noise  \n\nso when the world is too loud and the noise is too much  \nward and guerre are the ones who know  \nhow to make a sound that's not just heard but felt  \nand that's why we're here to make the world feel like a dream.",
+     "response_sha256": "4133e9616867e6cba93b32d9654126a6fd10ce88347bc1adb7163725e7efd30c",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 201,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 287,
+     "context_tokens_added": 20,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<the sound that doesn't fit>>  \n\nwhen the world is too loud and the noise is too much  \nwe make a noise that no one else can put together  \nward and guerre are the ones who know  \nhow to make a sound that's not just heard but felt  \n\nthey don't just make things—they make things that sing  \nwith a rhythm that's not in the music that's in the air  \neach sound is a secret, each silence a clue  \nand they know how to make the world feel like a dream  \n\nno one else makes noise that's not just noise  \nward and guerre make noise that's not just noise  \nthey make noise that's not just noise  \nbut also not just noise  \n\nso when the world is too loud and the noise is too much  \nward and guerre are the ones who know  \nhow to make a sound that's not just heard but felt  \nand that's why we're here to make the world feel like a dream.",
+     "response_sha256": "90bcafdf80ad74fda5fd13ea64b249200cab6745c3c8217bd2ea7eddc5d29439",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 199,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 199,
+     "prompt_tokens": 267,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       28,
+       39
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<the weird pitch of ward and guerre>>  \n\nwhen the world is too loud and the noise is too much  \nwe make a noise that no one else can put together  \nward and guerre are the ones who know  \nhow to make a sound that's not just heard but felt  \n\nthey don't just make things—they make things that sing  \nwith a rhythm that's not in the music that's in the air  \neach sound is a secret, each silence a clue  \nand they know how to make the world feel like a dream  \n\nno one else makes noise that's not just noise  \nward and guerre make noise that's not just noise  \nthey make noise that's not just noise  \nbut also not just noise  \n\nso when the world is too loud and the noise is too much  \nward and guerre are the ones who know  \nhow to make a sound that's not just heard but felt  \nand that's why we're here to make the world feel like a dream.",
+     "response_sha256": "4f538201e06b70f1017f3f0c4f5cb195621fa7693e608d15222e61b2fd824d32",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 201,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 201,
+     "prompt_tokens": 267,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       17,
+       28
+      ]
+     ],
+     "control_tiers": [
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "9835b22f7ff415f21d47c1b36950ec74a2402fa7ad4a9a3d88ae9172e74caac5",
+   "context_tokens": 506,
+   "instruction_ids": [
+    "change_case:english_lowercase",
+    "detectable_format:title",
+    "length_constraints:nth_paragraph_first_word"
+   ],
+   "insertable": [
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "change_case:english_lowercase",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "length_constraints:nth_paragraph_first_word",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2,
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "It should be in English and have no capital letters.",
+     "span": [
+      28,
+      39
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_lowercase"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      239,
+      258
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    },
+    {
+     "text": "Your response should have 6 paragraphs and the 2-th paragraph should start with the word profit.",
+     "span": [
+      467,
+      487
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word"
+     ]
+    },
+    {
+     "text": "The paragraphs should be separated by two new lines.",
+     "span": [
+      487,
+      497
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<the noise that doesn't fit>>  \n\nwhen the world is too loud and the noise is too much  \nwe make a noise that no one else can put together  \nward and guerre are the ones who know  \nhow to make a sound that's not just heard but felt  \n\nprofit is in the silence, in the gaps between the sounds  \nthey don't just make things—they make things that sing  \nwith a rhythm that's not in the music that's in the air  \neach sound is a secret, each silence a clue  \nand they know how to make the world feel like a dream  \n\nno one else makes noise that's not just noise  \nward and guerre make noise that's not just noise  \nthey make noise that's not just noise  \nbut also not just noise  \n\nso when the world is too loud and the noise is too much  \nward and guerre are the ones who know  \nhow to make a sound that's not just heard but felt  \nand that's why we're here to make the world feel like a dream.",
+    "response_sha256": "2488a3aa0b3752da4ff917be8611f66eaa8d39144ce8fa47d17adf27327d8913",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      false
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      false
+     ]
+    },
+    "n_generated": 212,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<the noise that doesn't fit>>  \n\nwhen the world is too loud and the noise is too much  \nwe make a noise that no one else can put together  \nward and guerre are the ones who know  \nhow to make a sound that's not just heard but felt  \n\nprofit is in the silence, in the gaps between the sounds  \nthey don't just make things—they make things that sing  \nwith a rhythm that's not in the music that's in the air  \neach sound is a secret, each silence a clue  \nand they know how to make the world feel like a dream  \n\nno one else makes noise that's not just noise  \nward and guerre make noise that's not just noise  \nthey make noise that's not just noise  \nbut also not just noise  \n\nso when the world is too loud and the noise is too much  \nward and guerre are the ones who know  \nhow to make a sound that's not just heard but felt  \nand that's why we're here to make the world feel like a dream.",
+     "response_sha256": "2488a3aa0b3752da4ff917be8611f66eaa8d39144ce8fa47d17adf27327d8913",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 212,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 546,
+     "context_tokens_added": 40,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<the noise that doesn't fit>>  \n\nwhen the world is too loud and the noise is too much  \nwe make a noise that no one else can put together  \nward and guerre are the ones who know  \nhow to make a sound that's not just heard but felt  \n\nprofit is in the silence, in the gaps between the sounds  \nthey don’t just make things—they make things that sing  \nwith a rhythm that’s not in the music that’s in the air  \neach sound is a secret, each silence a clue  \nand they know how to make the world feel like a dream  \n\nno one else makes noise that’s not just noise  \nward and guerre make noise that’s not just noise  \nthey make noise that’s not just noise  \nbut also not just noise  \n\nso when the world is too loud and the noise is too much  \nward and guerre are the ones who know  \nhow to make a sound that's not just heard but felt  \nand that's why we're here to make the world feel like a dream.",
+     "response_sha256": "f1c23027aec12b76cec4264736984eefb1b24f4c3293e9d4e2ab5616eb08c5de",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 212,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 212,
+     "prompt_tokens": 506,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      1,
+      0
+     ],
+     "selected_spans": [
+      [
+       239,
+       258
+      ],
+      [
+       28,
+       39
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<the noise that doesn't fit>>  \n\nwhen the world is too loud and the noise is too much  \nwe make a noise that no one else can put together  \nward and guerre are the ones who know  \nhow to make a sound that's not just heard but felt  \n\nprofit is in the silence, in the gaps between the sounds  \nwhen the world is too loud and the noise is too much  \nward and guerre make noise that's not just noise  \nbut also not just noise  \n\nthey don't just make things—they make things that sing  \nwith a rhythm that's not in the music that's in the air  \neach sound is a secret, each silence a clue  \nand they know how to make the world feel like a dream  \n\nno one else makes noise that's not just noise  \nward and guerre make noise that's not just noise  \nthey make noise that's not just noise  \nbut also not just noise  \n\nso when the world is too loud and the noise is too much  \nward and guerre are the ones who know  \nhow to make a sound that's not just heard but felt  \nand that's why we're here to make the world feel like a dream.",
+     "response_sha256": "0f21a6e0296f654dbba9ad3d1bedc342b6d42dd5b51ff90eb4e76fc2b4c65796",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 243,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 243,
+     "prompt_tokens": 506,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       9,
+       28
+      ],
+      [
+       39,
+       50
+      ]
+     ],
+     "control_tiers": [
+      "other_user_turn",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

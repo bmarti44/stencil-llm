@@ -1,0 +1,56 @@
+{
+ "schema": 2,
+ "data_sha256": "3a3d2af30c9a7197b201b25bb86cac200a34611b66c236fa6b8484afb904816d",
+ "base_records_sha256": "874d88566d6e9367237cf9d96fb5a85d4916b814edeb259ebf25dc31be81c0cc",
+ "model_sha256": "13bfabb5592c7b35383a56471fba1c74c771f57587322e60faaabb96268b2829",
+ "controller_sha256": "9d43315b8967b05db656ceeccf37f12f80efe9298aa9f3acd49e6887472d800d",
+ "provenance": {
+  "salience_weights.json": "b5d2f768aaa21b24b42cc0a46620457d20ce097242463399675cad35a436a817",
+  "qwen3.py": "5122ec09d96ed6c1e4231cdeb5efbf5e35ff927beed440560f74881d374de616",
+  "ctrb.py": "2c6590cb67ec77a49afec6cee0a22cbfb997984cd96141b1e07d2b60b4c8c717",
+  "e2.py": "a82b794a073979406ae07536f2a81da4b7afbd64372bb6d664670cccbf61905f",
+  "e2_multiif.py": "97211cda6ab6c22686af693cea4a6db92231c81fef499589ebb1807693da65c1",
+  "stats.py": "2484b07d894e0a3dff51a322086c838e2d501b631be8f6df8b86dea85a347b2f",
+  "ledger.py": "506335ab2d3657084ba1ffc584bf3c167731ffa4b91b9f67a4353f8323c42cd7",
+  "salience.py": "6a1ba9a40469cd5b0f35ec90df211e821d693abea4947051bdfd41a46946de94",
+  "wave.py": "a35eea1d8fe1f9d43f8842603a0188eee34430a4b3c033eee0c4c0ed38d24142",
+  "bench.py": "4b89a18aca19406458ef4ed659037d4fd4691bbea37c78b410eb61627d597572",
+  "determinism.py": "cb508cc0fdf87c243427f3b91fd4524a05f0c4722f67a258a66b71dd08410dab",
+  "tokenizer.json": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
+  "ledger_eval.py": "eedecc7300e63feed91840186ee6bed5ee37e85a0d2eb045845cf19339fbfb90",
+  "vendor/ifeval": "4f49451a09d9b816f331704ccff37a528bc9cff7b990f9bd4f95691fbc38a4f0"
+ },
+ "salience_provenance": "salience",
+ "salience_note": "",
+ "automatic": true,
+ "segmenter": "stencil.salience.split_sentences",
+ "segmenter_identity_asserted": true,
+ "insertable_families": [
+  "detectable_content:number_placeholders",
+  "detectable_content:postscript",
+  "detectable_format:number_bullet_lists",
+  "keywords:existence",
+  "keywords:frequency"
+ ],
+ "diagnostic_only": true,
+ "limit": null,
+ "registered": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ },
+ "registered_cohort": 909,
+ "top_k": 2,
+ "dose": 3.0,
+ "max_new": 1024,
+ "deadline": 300.0,
+ "margin_points": 2.0,
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "specificity_control": "ledger.matched_nonledger_control (width- and position-matched non-ledger spans, same dose)"
+}

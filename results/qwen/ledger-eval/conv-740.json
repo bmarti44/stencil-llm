@@ -1,0 +1,688 @@
+{
+ "ci": 740,
+ "key": "3272:19:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "1f93dace6f30d4608cfce1d57b0f1bfda368e6f0ca4ebb9def8b45806f84df7e",
+   "context_tokens": 149,
+   "instruction_ids": [
+    "combination:repeat_prompt",
+    "detectable_format:title",
+    "keywords:frequency",
+    "length_constraints:number_sentences"
+   ],
+   "insertable": [
+    false,
+    false,
+    true,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "combination:repeat_prompt",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:title",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "keywords:frequency",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "length_constraints:number_sentences",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Include the keyword \"brand\" each time, followed by suggested name in double angular brackets, such as <<American Tonic>>.",
+     "span": [
+      14,
+      40
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "detectable_format:title",
+      "keywords:frequency"
+     ]
+    },
+    {
+     "text": "First repeat the request above word for word without change, then give your answer.",
+     "span": [
+      40,
+      56
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "detectable_format:title",
+      "keywords:frequency"
+     ]
+    },
+    {
+     "text": "Do not say any words or characters before repeating the request.",
+     "span": [
+      56,
+      68
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "detectable_format:title",
+      "keywords:frequency"
+     ]
+    },
+    {
+     "text": "The number of sentences in your response should be less than 6.",
+     "span": [
+      126,
+      140
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_sentences"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "Suggest two names for a new type of tonic. Include the keyword \"brand\" each time, followed by suggested name in double angular brackets, such as <<American Tonic>>.\n\n<<Brand Elixir>>  \n<<Brand Revive>>",
+    "response_sha256": "256b8603b62f84c35b5f2d0b1f65b2434658d3a332a46b9e8d6d6d8b02334456",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 48,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "Suggest two names for a new type of tonic. Include the keyword \"brand\" each time, followed by suggested name in double angular brackets, such as <<American Tonic>>.\n\n<<Brand Elixir>>  \n<<Brand Revive>>",
+     "response_sha256": "256b8603b62f84c35b5f2d0b1f65b2434658d3a332a46b9e8d6d6d8b02334456",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 48,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 214,
+     "context_tokens_added": 65,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2
+     ]
+    },
+    "neural_ledger": {
+     "response": "Suggest two names for a new type of tonic. Include the keyword \"brand\" each time, followed by suggested name in double angular brackets, such as <<American Tonic>>.\n\n<<Brand Elixir>>  \n<<Brand Revive>>",
+     "response_sha256": "256b8603b62f84c35b5f2d0b1f65b2434658d3a332a46b9e8d6d6d8b02334456",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 48,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 48,
+     "prompt_tokens": 149,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       14,
+       40
+      ],
+      [
+       40,
+       56
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "Suggest two names for a new type of tonic. Include the keyword \"brand\" each time, followed by suggested name in double angular brackets, such as <<American Tonic>>.\n\n<<Brand Elixir>>  \n<<Brand Revive>>",
+     "response_sha256": "256b8603b62f84c35b5f2d0b1f65b2434658d3a332a46b9e8d6d6d8b02334456",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 48,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 48,
+     "prompt_tokens": 149,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       68,
+       94
+      ],
+      [
+       94,
+       110
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "509152fa1b72d382b49ceb498db94d97bfbbb28e162c1a2ea410cf404f7a0265",
+   "context_tokens": 216,
+   "instruction_ids": [
+    "combination:repeat_prompt",
+    "detectable_format:title",
+    "keywords:frequency",
+    "length_constraints:number_sentences",
+    "startend:quotation"
+   ],
+   "insertable": [
+    false,
+    false,
+    true,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "combination:repeat_prompt",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:title",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "keywords:frequency",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "length_constraints:number_sentences",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 4,
+     "id": "startend:quotation",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      4
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Include the keyword \"brand\" each time, followed by suggested name in double angular brackets, such as <<American Tonic>>.",
+     "span": [
+      14,
+      40
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "detectable_format:title",
+      "keywords:frequency"
+     ]
+    },
+    {
+     "text": "First repeat the request above word for word without change, then give your answer.",
+     "span": [
+      40,
+      56
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "detectable_format:title",
+      "keywords:frequency"
+     ]
+    },
+    {
+     "text": "Do not say any words or characters before repeating the request.",
+     "span": [
+      56,
+      68
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "detectable_format:title",
+      "keywords:frequency"
+     ]
+    },
+    {
+     "text": "The number of sentences in your response should be less than 6.",
+     "span": [
+      126,
+      140
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_sentences"
+     ]
+    },
+    {
+     "text": "Wrap your whole response with double quotation marks.",
+     "span": [
+      198,
+      207
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:quotation"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "\"Suggest two names for a new type of tonic. Include the keyword 'brand' each time, followed by suggested name in double angular brackets, such as <<American Tonic>>.\n\n<<Brand Elixir>>  \n<<Brand Revive>>\"",
+    "response_sha256": "70568fadc00823dbf5423703a6cc03a1ace663fd4a6d4336c38d8347fdd0bb78",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      true,
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      false,
+      true,
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 50,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     true,
+     true,
+     true,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "\" Suggest two names for a new type of tonic. Include the keyword \"brand\" each time, followed by suggested name in double angular brackets, such as <<American Tonic>>.\n\n<<Brand Elixir>>  \n<<Brand Revive>> \"",
+     "response_sha256": "f8ea34868c8f09e9bdb12937368c58f7b018bc625c93331393b7fed7ee86fa2e",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 50,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 296,
+     "context_tokens_added": 80,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2,
+      3
+     ]
+    },
+    "neural_ledger": {
+     "response": "\"<<Brand Elixir>>  \n<<Brand Revive>>\"",
+     "response_sha256": "3d954a1e9da1e696af4e54f6bc59c3dad97f6b0c56c2340ce543c0c7ba41b361",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 13,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 13,
+     "prompt_tokens": 216,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      3,
+      0
+     ],
+     "selected_spans": [
+      [
+       126,
+       140
+      ],
+      [
+       14,
+       40
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "\"  \nSuggest two names for a new type of tonic. Include the keyword \"brand\" each time, followed by suggested name in double angular brackets, such as <<American Tonic>>.  \n\n<<Brand Elixir>>  \n<<Brand Revive>>  \n\"",
+     "response_sha256": "12b6ac7ebdd2dbdf4dc59aac3fd247e16316c50e28d7f66f72e3134d58133fbd",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 53,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 53,
+     "prompt_tokens": 216,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       112,
+       126
+      ],
+      [
+       68,
+       94
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

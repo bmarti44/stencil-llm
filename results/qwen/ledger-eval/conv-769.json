@@ -1,0 +1,542 @@
+{
+ "ci": 769,
+ "key": "334:1:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "4fbce96e59abc6430fc51f2de8f174196a8e8d1ada67cbadf64d6d4f6e60259e",
+   "context_tokens": 122,
+   "instruction_ids": [
+    "startend:quotation",
+    "detectable_format:number_bullet_lists",
+    "change_case:capital_word_frequency"
+   ],
+   "insertable": [
+    false,
+    true,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "startend:quotation",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:number_bullet_lists",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "change_case:capital_word_frequency",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "The slogan must include exactly 2 bullet points in markdown format, like below:",
+     "span": [
+      45,
+      61
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:quotation",
+      "detectable_format:number_bullet_lists"
+     ]
+    },
+    {
+     "text": "In your response, words in all capital letters should have at least 1 times.",
+     "span": [
+      96,
+      113
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:capital_word_frequency"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "\"Color Paper  \n* VIBRANT!  \n* DYNAMIC!\"",
+    "response_sha256": "bc36714ace99e5645f5ec023c107a87d2bea831f1b1ccab7d32eefd5152daa5f",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 15,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "\"Color Paper  \n* Vivid!  \n* Bold!\"",
+     "response_sha256": "d6ca62baebbcbf61e071a41eb3a684e106aecc04b1fa8d5d8f674033feae5549",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 12,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 147,
+     "context_tokens_added": 25,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "\"Color Paper  \n* VIBRANT!  \n* DYNAMIC!\"",
+     "response_sha256": "bc36714ace99e5645f5ec023c107a87d2bea831f1b1ccab7d32eefd5152daa5f",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 15,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 15,
+     "prompt_tokens": 122,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       45,
+       61
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "\"Color Paper  \n* VIBRANT!  \n* DYNAMIC!\"",
+     "response_sha256": "bc36714ace99e5645f5ec023c107a87d2bea831f1b1ccab7d32eefd5152daa5f",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 15,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 15,
+     "prompt_tokens": 122,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       29,
+       45
+      ]
+     ],
+     "control_tiers": [
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "067a3324f7fd319cd73b7d06ca2418d32af2ece1541907d18c1c2d38c2d072b6",
+   "context_tokens": 160,
+   "instruction_ids": [
+    "startend:quotation",
+    "detectable_format:number_bullet_lists",
+    "change_case:capital_word_frequency",
+    "keywords:frequency"
+   ],
+   "insertable": [
+    false,
+    true,
+    false,
+    true
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "startend:quotation",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:number_bullet_lists",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "change_case:capital_word_frequency",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "keywords:frequency",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": true,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "The slogan must include exactly 2 bullet points in markdown format, like below:",
+     "span": [
+      45,
+      61
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:quotation",
+      "detectable_format:number_bullet_lists"
+     ]
+    },
+    {
+     "text": "In your response, words in all capital letters should have at least 1 times.",
+     "span": [
+      96,
+      113
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:capital_word_frequency"
+     ]
+    },
+    {
+     "text": "Your response should include the word bright at least 6 times.",
+     "span": [
+      138,
+      151
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:frequency"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "\"Color Paper  \n* Bright and bold!  \n* Brightly colored!  \n* Brightly designed!  \n* Bright and eye-catching!  \n* Brightly vibrant!\"",
+    "response_sha256": "3cb17407bf2bc2bd431eb13a9da69bab7bc43c614eef43117bb8b3a75a3b877c",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      false,
+      false,
+      false
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      false,
+      false,
+      false
+     ]
+    },
+    "n_generated": 34,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     false,
+     false,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "\"Color Paper  \n* BRILLIANT!  \n* BRIGHT!\"",
+     "response_sha256": "bbcc7729aa4465dbbca1260f35b64d108a6dfa493ccde4557105cf2e42e4a46b",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 15,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 203,
+     "context_tokens_added": 43,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "\"Color Paper  \n* BRIGHT!  \n* BRIGHT!  \n* BRIGHT!  \n* BRIGHT!  \n* BRIGHT!  \n* BRIGHT!\"",
+     "response_sha256": "9320d25cf77cc29ebf4463b2fb24d0a8ad243084c71dcd68a323097bcb9f11cf",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 33,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 33,
+     "prompt_tokens": 160,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       45,
+       61
+      ],
+      [
+       96,
+       113
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "\"Color Paper  \n* Bright!  \n* Bright!  \n* Bright!  \n* Bright!  \n* Bright!\"",
+     "response_sha256": "7c677755f193e7186e45f123803714ccd8ecdaeaff18dc9e605503dbc7035997",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       false,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       false,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      false,
+      false
+     ],
+     "strict": false,
+     "n_generated": 23,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 23,
+     "prompt_tokens": 160,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       29,
+       45
+      ],
+      [
+       12,
+       29
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "other_user_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

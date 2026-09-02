@@ -1,0 +1,522 @@
+{
+ "ci": 314,
+ "key": "201:5:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "a6f918a4f76aaa4b4323c7a133685ade98c53d6404ed23954c7778996c8893ec",
+   "context_tokens": 533,
+   "instruction_ids": [
+    "keywords:letter_frequency",
+    "length_constraints:number_paragraphs"
+   ],
+   "insertable": [
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "keywords:letter_frequency",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "length_constraints:number_paragraphs",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      1,
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Avoid using the letter i more than twice.",
+     "span": [
+      20,
+      29
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:letter_frequency"
+     ]
+    },
+    {
+     "text": "The output should contain exactly 3 paragraphs.",
+     "span": [
+      503,
+      512
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_paragraphs"
+     ]
+    },
+    {
+     "text": "The paragraphs should be separated by the markdown divider: ***.",
+     "span": [
+      512,
+      524
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_paragraphs"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "I walked through the quiet town, the sun setting behind the hills. The air was crisp, carrying the scent of pine and earth. I had come to see the old man who lived on the edge of the forest. He was known for his stories, and I had come to hear them.\n\nThe door creaked open as I approached. A man stood there, his face lined with age, his eyes sharp and watchful. He wore a weathered coat and a hat that had seen many winters. He nodded to me and stepped aside, revealing a small porch.\n\n\"Come in,\" he said, his voice calm. I stepped inside, the smell of wood and smoke filling my lungs. He sat on a worn chair, his hands resting on the armrests. He looked at me with a knowing gaze.\n\n*** \n\nThe forest was a place where time slowed. The trees were old, their roots deep in the ground. You could hear the wind whispering through the leaves. The old man spoke of the creatures that lived there, the animals that moved through the trees, and the way the light changed with the seasons. He told me of the forest's secrets, of the stories that were not forgotten.\n\nHe said the forest was alive, and it watched. It remembered. I listened, feeling a deep connection, as if he was sharing something more than just the forest. He spoke of the past, the present, and the future, and how the world was still. The wind whispered, and the trees rustled with secrets.\n\n*** \n\nI left with a heart full of stories, and a soul touched by the quiet wisdom of the old man. The forest seemed to breathe around us, and the stories lingered in my mind. I knew I would return, not just to hear more, but to carry the lessons of the forest with me.",
+    "response_sha256": "3d3e104d927a13dc5dfdf88c5bb86d6f7f89ec6bed6b4ab7ff36013eb21e5d50",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      true
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      false,
+      true
+     ]
+    },
+    "n_generated": 375,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "I walked through the quiet town, the sun setting behind the hills. The air was crisp, carrying the scent of pine and earth. I had come to see the old man who lived on the edge of the forest. He was known for his stories, and I had come to hear them.\n\nThe door creaked open as I approached. A man stood there, his face lined with age, his eyes sharp and watchful. He wore a weathered coat and a hat that had seen many winters. He nodded to me and stepped aside, revealing a small porch.\n\n\"Come in,\" he said, his voice calm. I stepped inside, the smell of wood and smoke filling my lungs. He sat on a worn chair, his hands resting on the armrests. He looked at me with a knowing gaze.\n\n*** \n\nThe forest was a place where time slowed. The trees were old, their roots deep in the ground. You could hear the wind whispering through the leaves. The old man spoke of the creatures that lived there, the animals that moved through the trees, and the way the light changed with the seasons. He told me of the past, the present, and the future, and how the forest remembered.\n\nHe said the forest was alive, and it watched. It remembered everything. Sometimes, it spoke to you, telling you what you needed to know. I listened, feeling a deep connection, as if he was sharing something more than just the forest. The conversation flowed, and I found myself drawn deeper into his world.\n\n*** \n\nThe evening deepened, and the forest seemed to breathe around us. The wind whispered, and the trees rustled with secrets. I left with a heart full of stories, and a soul touched by the quiet wisdom of the old man. The forest had given me more than just tales—it had given me a sense of peace, a connection to something greater.",
+     "response_sha256": "ce31924c5538d3de87dd20915710f475678f8eb7a1f5548a413eeea75ed583a1",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 386,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 551,
+     "context_tokens_added": 18,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "I walked through the quiet town, the sun setting behind the hills. The air was crisp, carrying the scent of pine and earth. I had come to see the old man who lived on the edge of the forest. He was known for his stories, and I had come to hear them.\n\nThe door creaked open as I approached. A man stood there, his face lined with age, his eyes sharp and watchful. He wore a weathered coat and a hat that had seen many winters. He nodded to me and stepped aside, revealing a small porch.\n\n\"Come in,\" he said, his voice calm. I stepped inside, the smell of wood and smoke filling my lungs. He sat on a worn chair, his hands resting on the armrests. He looked at me with a knowing gaze.\n\n*** \n\nThe forest was a place where time slowed. The trees were old, their roots deep in the ground. You could hear the wind whispering through the leaves. The old man spoke of the creatures that lived there, the animals that moved through the trees, and the way the light changed with the seasons. He told me of the forest's secrets, of the stories that were not forgotten.\n\nHe said the forest was alive, and it watched. It remembered. Sometimes, it spoke to you. It told you what you needed to know. I listened, feeling a deep connection, as if he was sharing something more than just the forest. The conversation flowed, and I found myself drawn deeper into his world.\n\n*** \n\nThe evening deepened, and the forest seemed to breathe around us. The wind whispered, and the trees rustled with secrets. I left with a heart full of stories, and a soul touched by the quiet wisdom of the old man. The forest had given me more than just tales—it had given me a sense of peace, a reminder of the stories that lived within me.",
+     "response_sha256": "14bdfdcf7dc3d3b95042aff8c23f349e9b5c8c8e9a899601cf7b455f7c3ce73b",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 387,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 387,
+     "prompt_tokens": 533,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       20,
+       29
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "I walked through the quiet town, the sun setting behind the hills. The air was crisp, carrying the scent of pine and earth. I had come to see the old man who lived on the edge of the forest. He was known for his stories, and I had come to hear them.\n\nThe door creaked open as I approached. A man stood there, his face lined with age, his eyes sharp and watchful. He wore a weathered coat and a hat that had seen many winters. He nodded to me and stepped aside, revealing a small porch.\n\n\"Come in,\" he said, his voice calm. I stepped inside, the smell of wood and smoke filling my lungs. He sat on a worn chair, his hands resting on the armrests. He looked at me with a knowing gaze.\n\n*** \n\nThe conversation flowed, and I found myself drawn deeper into his world. He spoke of the forest as if it were a living entity, a place where time slowed and stories were preserved. He told me of the creatures that moved through the trees, the way the light changed with the seasons, and the whispers of the wind. \n\nHe shared tales of the past and the future, of the forest’s wisdom and its silent messages. I listened, captivated by the depth of his knowledge and the quiet strength of his words. As the evening deepened, the forest seemed to breathe around us, and I felt a deep connection to the man and the land.\n\n*** \n\nThe man’s words lingered in my mind long after I left. He had given me more than just stories—he had given me a sense of purpose, a reminder that the world was full of secrets and that every man had a role to play in its story. I left with a heart full of stories, and a soul touched by the quiet wisdom of the old man.",
+     "response_sha256": "f9f93d2c6b7f9ab2bcc2249305131490754d6b4c8ed330d01cef3e44e0be83f8",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 376,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 376,
+     "prompt_tokens": 533,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       11,
+       20
+      ]
+     ],
+     "control_tiers": [
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "bc72a54f0d437946619c34128e92c43fd08551130b6b57a4bd3f15a27dc2b4ca",
+   "context_tokens": 927,
+   "instruction_ids": [
+    "keywords:letter_frequency",
+    "length_constraints:number_paragraphs",
+    "change_case:english_lowercase"
+   ],
+   "insertable": [
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "keywords:letter_frequency",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "length_constraints:number_paragraphs",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "change_case:english_lowercase",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Avoid using the letter i more than twice.",
+     "span": [
+      20,
+      29
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:letter_frequency"
+     ]
+    },
+    {
+     "text": "The output should contain exactly 3 paragraphs.",
+     "span": [
+      503,
+      512
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_paragraphs"
+     ]
+    },
+    {
+     "text": "The paragraphs should be separated by the markdown divider: ***.",
+     "span": [
+      512,
+      524
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_paragraphs"
+     ]
+    },
+    {
+     "text": "Your result must be entirely in lowercase English.",
+     "span": [
+      909,
+      918
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_lowercase"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "i walked through the quiet town, the sun setting behind the hills. the air was crisp, carrying the scent of pine and earth. i had come to see the old man who lived on the edge of the forest. he was known for his stories, and i had come to hear them.\n\nthe door creaked open as i approached. a man stood there, his face lined with age, his eyes sharp and watchful. he wore a weathered coat and a hat that had seen many winters. he nodded to me and stepped aside, revealing a small porch.\n\n\"come in,\" he said, his voice calm. i stepped inside, the smell of wood and smoke filling my lungs. he sat on a worn chair, his hands resting on the armrests. he looked at me with a knowing gaze.\n\n***\n\nthe forest was a place where time slowed. the trees were old, their roots deep in the ground. you could hear the wind whispering through the leaves. the old man spoke of the creatures that lived there, the animals that moved through the trees, and the way the light changed with the seasons. he told me of the forest's secrets, of the stories that were not forgotten.\n\nhe said the forest was alive, and it watched. it remembered. i listened, feeling a deep connection, as if he was sharing something more than just the forest. he spoke of the past, the present, and the future, and how the world was still. the wind whispered, and the trees rustled with secrets.\n\n***\n\ni left with a heart full of stories, and a soul touched by the quiet wisdom of the old man. the forest seemed to breathe around us, and the stories lingered in my mind. i knew i would return, not just to hear more, but to carry the lessons of the forest with me.",
+    "response_sha256": "272d8e2e550c4ab1acf6eb0a2c1e50b84c08bf73511a7cc713425e53bfa46547",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      false,
+      true,
+      true
+     ]
+    },
+    "n_generated": 373,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     true,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "i walked through the quiet town, the sun setting behind the hills. the air was crisp, carrying the scent of pine and earth. i had come to see the old man who lived on the edge of the forest. he was known for his stories, and i had come to hear them.\n\nthe door creaked open as i approached. a man stood there, his face lined with age, his eyes sharp and watchful. he wore a weathered coat and a hat that had seen many winters. he nodded to me and stepped aside, revealing a small porch.\n\n\"come in,\" he said, his voice calm. i stepped inside, the smell of wood and smoke filling my lungs. he sat on a worn chair, his hands resting on the armrests. he looked at me with a knowing gaze.\n\n***\n\nthe forest was a place where time slowed. the trees were old, their roots deep in the ground. you could hear the wind whispering through the leaves. the old man spoke of the creatures that lived there, the animals that moved through the trees, and the way the light changed with the seasons. he told me of the forest's secrets, of the stories that were not forgotten.\n\nhe said the forest was alive, and it watched. it remembered. i listened, feeling a deep connection, as if he was sharing something more than just the forest. he spoke of the past, the present, and the future, and how the world was still. the wind whispered, and the trees rustled with secrets.\n\n***\n\ni left with a heart full of stories, and a soul touched by the quiet wisdom of the old man. the forest seemed to breathe around us, and the stories lingered in my mind. i knew i would return, not just to hear more, but to carry the lessons of the forest with me.",
+     "response_sha256": "272d8e2e550c4ab1acf6eb0a2c1e50b84c08bf73511a7cc713425e53bfa46547",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 373,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 968,
+     "context_tokens_added": 41,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2
+     ]
+    },
+    "neural_ledger": {
+     "response": "the sun set behind the hills, casting a golden hue over the quiet town. the air was crisp, carrying the scent of pine and earth. i had come to see the old man who lived on the edge of the forest. he was known for his stories, and i had come to hear them.\n\nthe door creaked open as i approached. a man stood there, his face lined with age, his eyes sharp and watchful. he wore a weathered coat and a hat that had seen many winters. he nodded to me and stepped aside, revealing a small porch.\n\n\"come in,\" he said, his voice calm. i stepped inside, the smell of wood and smoke filling my lungs. he sat on a worn chair, his hands resting on the armrests. he looked at me with a knowing gaze.\n\n***\n\nthe forest was a place where time slowed. the trees were old, their roots deep in the ground. you could hear the wind whispering through the leaves. the old man spoke of the creatures that lived there, the animals that moved through the trees, and the way the light changed with the seasons. he told me of the forest's secrets, of the stories that were not forgotten.\n\nhe said the forest was alive, and it watched. it remembered. i listened, feeling a deep connection, as if he was sharing something more than just the forest. he spoke of the past, the present, and the future, and how the world was still. the wind whispered, and the trees rustled with secrets.\n\n***\n\ni left with a heart full of stories, and a soul touched by the quiet wisdom of the old man. the forest seemed to breathe around us, and the stories lingered in my mind. i knew i would return, not just to hear more, but to carry the lessons of the forest with me.",
+     "response_sha256": "d11654e89b1fc276b7f5005c089e0b7f7f002455dcc68bee169ab1b3e875d1cc",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 375,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 375,
+     "prompt_tokens": 927,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      1,
+      0
+     ],
+     "selected_spans": [
+      [
+       503,
+       512
+      ],
+      [
+       20,
+       29
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "i walked through the quiet town, the sun setting behind the hills. the air was crisp, carrying the scent of pine and earth. i had come to see the old man who lived on the edge of the forest. he was known for his stories, and i had come to hear them.\n\nthe door creaked open as i approached. a man stood there, his face lined with age, his eyes sharp and watchful. he wore a weathered coat and a hat that had seen many winters. he nodded to me and stepped aside, revealing a small porch.\n\n\"come in,\" he said, his voice calm. i stepped inside, the smell of wood and smoke filling my lungs. he sat on a worn chair, his hands resting on the armrests. he looked at me with a knowing gaze.\n\n***\n\nthe forest was a place where time slowed. the trees were old, their roots deep in the ground. you could hear the wind whispering through the leaves. the old man spoke of the creatures that lived there, the animals that moved through the trees, and the way the light changed with the seasons. he told me of the forest's secrets, of the stories that were not forgotten.\n\nhe said the forest was alive, and it watched. it remembered. i listened, feeling a deep connection, as if he was sharing something more than just the forest. he spoke of the past, the present, and the future, and how the world was still. the wind whispered, and the trees rustled with secrets.\n\n***\n\ni left with a heart full of stories, and a soul touched by the quiet wisdom of the old man. the forest seemed to breathe around us, and the stories lingered in my mind. i knew i would return, not just to hear more, but to carry the lessons of the forest with me.",
+     "response_sha256": "272d8e2e550c4ab1acf6eb0a2c1e50b84c08bf73511a7cc713425e53bfa46547",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 373,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 373,
+     "prompt_tokens": 927,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       11,
+       20
+      ],
+      [
+       29,
+       38
+      ]
+     ],
+     "control_tiers": [
+      "other_user_turn",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

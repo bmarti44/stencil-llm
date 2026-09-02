@@ -1,0 +1,505 @@
+{
+ "ci": 294,
+ "key": "1934:17:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "996ad88e4312b556ca8385ae50acceb111e24f3764666ae6e0531cecc58da76b",
+   "context_tokens": 153,
+   "instruction_ids": [
+    "detectable_format:number_bullet_lists",
+    "keywords:frequency"
+   ],
+   "insertable": [
+    true,
+    true
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "detectable_format:number_bullet_lists",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "keywords:frequency",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": true,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Your answer must be in the form of exactly 4 bullet points with the format below:",
+     "span": [
+      10,
+      28
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:number_bullet_lists"
+     ]
+    },
+    {
+     "text": "Your response should include the word mythology at least 2 times.",
+     "span": [
+      131,
+      144
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:frequency"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "* Star Wars is popular due to its rich storytelling and iconic characters that have transcended generations.  \n* The franchise blends science fiction with epic fantasy, offering a unique blend of adventure and emotional depth.  \n* It has a strong cultural impact, influencing art, music, and popular culture worldwide.  \n* The series maintains a consistent brand identity and continues to evolve with new films and media.  \n* Star Wars draws inspiration from mythology, blending ancient tales with futuristic settings.  \n* The mythology of the Force and the Jedi Order adds a timeless layer to the narrative.",
+    "response_sha256": "3a2a3da87dde4975a476635c95255609eb17f9c72988b664900a845f6db905e3",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true
+     ]
+    },
+    "n_generated": 113,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "* Star Wars is popular due to its rich storytelling and iconic characters that have transcended generations, drawing from mythology and ancient tales.  \n* The franchise blends science fiction with epic fantasy, offering a unique blend of adventure and emotional depth, rooted in mythology.  \n* It has a strong cultural impact, influencing art, music, and popular culture worldwide, with mythology at its core.  \n* The series maintains a consistent brand identity and continues to evolve with new films and media, incorporating mythology into its narrative.",
+     "response_sha256": "75295d589d1f6b407cc8346c235b45b74ebdc5c94681c6bc6b058def9b468ec3",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 101,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 180,
+     "context_tokens_added": 27,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "* Star Wars is popular due to its rich storytelling and iconic characters that have transcended generations.  \n* The franchise blends science fiction with epic fantasy, offering a unique blend of adventure and emotional depth.  \n* It has a strong cultural impact, influencing art, music, and popular culture worldwide.  \n* The series maintains a consistent brand identity and continues to evolve with new films and media.  \n* Star Wars draws from mythology, blending ancient tales with futuristic settings, and continues to inspire new mythologies.  \n* Star Wars also incorporates mythology through its deep lore and legendary characters, creating a timeless narrative.",
+     "response_sha256": "f4de11f195d79b253d2cc61fcf0d8e47a62331d24858855c151bf115a938ccca",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 121,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 121,
+     "prompt_tokens": 153,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       10,
+       28
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "* Star Wars is popular due to its rich storytelling and iconic characters that have transcended generations.  \n* The franchise blends science fiction with epic fantasy, offering a unique blend of adventure and emotional depth.  \n* It has a strong cultural impact, influencing art, music, and popular culture worldwide.  \n* The series maintains a consistent brand identity and continues to evolve with new films and media.  \n* This is also rooted in mythology, where the Force is a mystical force that connects all living beings.  \n* The mythology of the galaxy is explored through the adventures of the Jedi and the Sith.",
+     "response_sha256": "7a63d33f4c50e2a3a46e58c5ba6ac3776a80e46b1f7bce57068b86d3f87adc53",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 119,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 119,
+     "prompt_tokens": 153,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       28,
+       46
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "6163a788aff82fb18c0c50f6d036cdcd68bea723c3665f2cf77c1a8a12ecf207",
+   "context_tokens": 304,
+   "instruction_ids": [
+    "detectable_format:number_bullet_lists",
+    "keywords:frequency",
+    "startend:end_checker"
+   ],
+   "insertable": [
+    true,
+    true,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "detectable_format:number_bullet_lists",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "keywords:frequency",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "startend:end_checker",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2,
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Your answer must be in the form of exactly 4 bullet points with the format below:",
+     "span": [
+      10,
+      28
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:number_bullet_lists"
+     ]
+    },
+    {
+     "text": "Your response should include the word mythology at least 2 times.",
+     "span": [
+      131,
+      144
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:frequency"
+     ]
+    },
+    {
+     "text": "Your response should end with the exact phrase: \"this saga continues to capture hearts across the galaxy.\"",
+     "span": [
+      267,
+      287
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "No other words should follow this phrase.",
+     "span": [
+      287,
+      295
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "* Star Wars is popular due to its rich storytelling and iconic characters that have transcended generations.  \n* The franchise blends science fiction with epic fantasy, offering a unique blend of adventure and emotional depth.  \n* It has a strong cultural impact, influencing art, music, and popular culture worldwide.  \n* The series maintains a consistent brand identity and continues to evolve with new films and media.  \n* Star Wars draws inspiration from mythology, blending ancient tales with futuristic settings.  \n* The mythology of the Force and the Jedi Order adds a timeless layer to the narrative.  \nthis saga continues to capture hearts across the galaxy.",
+    "response_sha256": "7c88d99f6cb1e436f15a71fd4cb716b624a611ed3c57c50384ca7339fb92f472",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      false,
+      true,
+      true
+     ]
+    },
+    "n_generated": 124,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     true,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "* Star Wars is popular due to its rich storytelling and iconic characters that have transcended generations.  \n* The franchise blends science fiction with epic fantasy, offering a unique blend of adventure and emotional depth.  \n* It has a strong cultural impact, influencing art, music, and popular culture worldwide.  \n* The series maintains a consistent brand identity and continues to evolve with new films and media.  \n* Star Wars draws inspiration from mythology, blending ancient tales with futuristic settings.  \n* The mythology of the Force and the Jedi Order adds a timeless layer to the narrative.  \nthis saga continues to capture hearts across the galaxy.",
+     "response_sha256": "7c88d99f6cb1e436f15a71fd4cb716b624a611ed3c57c50384ca7339fb92f472",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 124,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 345,
+     "context_tokens_added": 41,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "* Star Wars is popular due to its rich storytelling and iconic characters that have transcended generations.  \n* The franchise blends science fiction with epic fantasy, offering a unique blend of adventure and emotional depth.  \n* It has a strong cultural impact, influencing art, music, and popular culture worldwide.  \n* The series maintains a consistent brand identity and continues to evolve with new films and media.  \n* Star Wars draws inspiration from mythology, blending ancient tales with futuristic settings.  \n* The mythology of the Force and the Jedi Order adds a timeless layer to the narrative.  \nthis saga continues to capture hearts across the galaxy.",
+     "response_sha256": "7c88d99f6cb1e436f15a71fd4cb716b624a611ed3c57c50384ca7339fb92f472",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 124,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 124,
+     "prompt_tokens": 304,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       10,
+       28
+      ],
+      [
+       131,
+       144
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "* Star Wars is popular due to its rich storytelling and iconic characters that have transcended generations.  \n* The franchise blends science fiction with epic fantasy, offering a unique blend of adventure and emotional depth.  \n* It has a strong cultural impact, influencing art, music, and popular culture worldwide.  \n* The series maintains a consistent brand identity and continues to evolve with new films and media.  \n* Star Wars draws inspiration from mythology, blending ancient tales with futuristic settings.  \n* The mythology of the Force and the Jedi Order adds a timeless layer to the narrative.  \n* this saga continues to capture hearts across the galaxy.",
+     "response_sha256": "499a2fae9234333b448fad8697816dc33a1c1cb751bd1f56c6e38e00c33fdd1f",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 125,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 125,
+     "prompt_tokens": 304,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       28,
+       46
+      ],
+      [
+       118,
+       131
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

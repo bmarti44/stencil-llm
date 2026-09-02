@@ -1,0 +1,590 @@
+{
+ "ci": 624,
+ "key": "2889:9:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "1232c831229437842401836455b5c6385dbe420a72cebee6dd82eb29554a8f48",
+   "context_tokens": 289,
+   "instruction_ids": [
+    "startend:quotation",
+    "detectable_format:multiple_sections",
+    "length_constraints:number_words"
+   ],
+   "insertable": [
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "startend:quotation",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:multiple_sections",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "length_constraints:number_words",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Please use the key \"polite\" to put your answer.",
+     "span": [
+      40,
+      53
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:quotation",
+      "detectable_format:multiple_sections"
+     ]
+    },
+    {
+     "text": "Wrap your entire response with double quotation marks, and include two sections: \"SECTION 1\" and \"SECTION 2\".",
+     "span": [
+      53,
+      78
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:quotation",
+      "detectable_format:multiple_sections"
+     ]
+    },
+    {
+     "text": "Your response should contain at least 200 words.",
+     "span": [
+      268,
+      280
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_words"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "\"SECTION 1  \nWe are reaching out to Stephane on behalf of our children to inquire about a potential reversal. We understand that communication can sometimes be challenging, and we appreciate your time and consideration. We would be grateful if you could provide any information or guidance you may have that could help us in this matter. We are committed to resolving this issue in a timely and respectful manner, and we hope to hear from you soon. Please let us know if there is anything specific you would like to discuss or if there are any steps we can take to facilitate this process. We value the opportunity to work with you and are confident that with your support, we can find a solution that is fair and appropriate for all parties involved.\n\nSECTION 2  \nThank you for your attention to this matter. We value the opportunity to work with you and are confident that with your support, we can find a solution that is fair and appropriate for all parties involved. Please let us know if there is any additional information you would like to share or if there are any steps we can take to facilitate this process. We look forward to your response and are eager to resolve this matter in a positive and constructive way. We hope to resolve this issue in a way that is respectful and beneficial for everyone involved. We are grateful for your time and understanding, and we look forward to your reply.\"",
+    "response_sha256": "8797cbb4758dd9396c85890cc32a5caa92d6f6e2a3291472d4be713bd9595509",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 274,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "\"SECTION 1  \nWe are writing to you on behalf of our children to kindly inquire about a potential reversal. We understand that communication can sometimes be challenging, and we appreciate your time and consideration. We would be grateful if you could provide any information or guidance you may have that could help us in this matter. We are committed to resolving this issue in a timely and respectful manner, and we hope to hear from you soon. Please let us know if there is anything we can do to assist you in this process. We value your time and are eager to find a solution that is fair and appropriate for all parties involved.\n\nSECTION 2  \nThank you for your attention to this matter. We value the opportunity to work with you and are confident that with your support, we can find a solution that is fair and appropriate for all parties involved. Please let us know if there is any additional information you would like to share or if there are any steps we can take to facilitate this process. We look forward to your response and are eager to resolve this matter in a positive and constructive way.\"",
+     "response_sha256": "4df272960b75c44e9557af432665bf93e7f232dcc9c6b5de89c84155f7560c36",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 218,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 337,
+     "context_tokens_added": 48,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "\"SECTION 1  \nWe are reaching out to Stephane on behalf of our children to inquire about a potential reversal. We understand that communication can sometimes be challenging, and we appreciate your time and consideration. We would be grateful if you could provide any information or guidance you may have that could help us in this matter. We are committed to resolving this issue in a timely and respectful manner, and we hope to hear from you soon. Please feel free to contact us at your convenience, and we look forward to your response.\n\nSECTION 2  \nThank you for your attention to this matter. We value the opportunity to work with you and are confident that with your support, we can find a solution that is fair and appropriate for all parties involved. Please let us know if there is any additional information you would like to share or if there are any steps we can take to facilitate this process. We look forward to your response and are eager to resolve this matter in a positive and constructive way. We hope to maintain a respectful and cooperative relationship, and we are grateful for your time and consideration. \"",
+     "response_sha256": "c351440b71ab517095ba2caf2aef19ab55c12b1316e8d3bd6fae23815715cdd9",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 219,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 219,
+     "prompt_tokens": 289,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       40,
+       53
+      ],
+      [
+       53,
+       78
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "\"SECTION 1  \nWe are writing to Stephane on behalf of our children to inquire about a potential reversal. We understand that communication can sometimes be challenging, and we appreciate your time and consideration. We would be grateful if you could provide any information or guidance you may have that could help us in this matter. We are committed to resolving this issue in a timely and respectful manner, and we hope to hear from you soon.  \n\nSECTION 2  \nThank you for your attention to this matter. We value the opportunity to work with you and are confident that with your support, we can find a solution that is fair and appropriate for all parties involved. Please let us know if there is any additional information you would like to share or if there are any steps we can take to facilitate this process. We look forward to your response and are eager to resolve this matter in a positive and constructive way.\"",
+     "response_sha256": "eda5b6dd4304b98506bf18cd128a19886a094c3c053741c3597d071ddbd26305",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 180,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 180,
+     "prompt_tokens": 289,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       27,
+       40
+      ],
+      [
+       78,
+       103
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "7df68a99e413e914e761d96cceaf7f37e021e1e79c6f2084e7ba37636eb7b463",
+   "context_tokens": 587,
+   "instruction_ids": [
+    "startend:quotation",
+    "detectable_format:multiple_sections",
+    "length_constraints:number_words",
+    "keywords:existence"
+   ],
+   "insertable": [
+    false,
+    false,
+    false,
+    true
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "startend:quotation",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:multiple_sections",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "length_constraints:number_words",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "keywords:existence",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": true,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Please use the key \"polite\" to put your answer.",
+     "span": [
+      40,
+      53
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:quotation",
+      "detectable_format:multiple_sections"
+     ]
+    },
+    {
+     "text": "Wrap your entire response with double quotation marks, and include two sections: \"SECTION 1\" and \"SECTION 2\".",
+     "span": [
+      53,
+      78
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:quotation",
+      "detectable_format:multiple_sections"
+     ]
+    },
+    {
+     "text": "Your response should contain at least 200 words.",
+     "span": [
+      268,
+      280
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_words"
+     ]
+    },
+    {
+     "text": "Your response should include the following keywords: patience, communicate, assistance.",
+     "span": [
+      564,
+      578
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:existence"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "\"SECTION 1  \nWe are reaching out to Stephane on behalf of our children to inquire about a potential reversal. We understand that communication can sometimes be challenging, and we appreciate your time and consideration. We would be grateful if you could provide any information or guidance you may have that could help us in this matter. We are committed to resolving this issue in a timely and respectful manner, and we hope to hear from you soon. Please let us know if there is anything specific you would like to discuss or if there are any steps we can take to facilitate this process. We value the opportunity to work with you and are confident that with your support, we can find a solution that is fair and appropriate for all parties involved. We are also grateful for your patience and understanding as we work through this matter.\n\nSECTION 2  \nThank you for your attention to this matter. We value the opportunity to work with you and are confident that with your support, we can find a solution that is fair and appropriate for all parties involved. Please let us know if there is any additional information you would like to share or if there are any steps we can take to facilitate this process. We look forward to your response and are eager to resolve this matter in a positive and constructive way. We hope to resolve this issue in a way that is respectful and beneficial for everyone involved. We are grateful for your patience and understanding, and we look forward to your reply.\"",
+    "response_sha256": "58577d11340511aa0d93aba07397dbb010bf54d229cb7cea201af8917aa459ad",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true,
+      false
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true,
+      false
+     ]
+    },
+    "n_generated": 290,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "\"SECTION 1  \nWe are reaching out to Stephane on behalf of our children to inquire about a potential reversal. We understand that communication can sometimes be challenging, and we appreciate your time and consideration. We would be grateful if you could provide any information or guidance you may have that could help us in this matter. We are committed to resolving this issue in a timely and respectful manner, and we hope to hear from you soon. Please let us know if there is anything specific you would like to discuss or if there are any steps we can take to facilitate this process. We value the opportunity to work with you and are confident that with your support, we can find a solution that is fair and appropriate for all parties involved. We are also grateful for your patience and understanding as we work through this matter.\n\nSECTION 2  \nThank you for your attention to this matter. We value the opportunity to work with you and are confident that with your support, we can find a solution that is fair and appropriate for all parties involved. Please let us know if there is any additional information you would like to share or if there are any steps we can take to facilitate this process. We look forward to your response and are eager to resolve this matter in a positive and constructive way. We hope to resolve this issue in a way that is respectful and beneficial for everyone involved. We are grateful for your patience and understanding, and we look forward to your reply.\"",
+     "response_sha256": "58577d11340511aa0d93aba07397dbb010bf54d229cb7cea201af8917aa459ad",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 290,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 648,
+     "context_tokens_added": 61,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2
+     ]
+    },
+    "neural_ledger": {
+     "response": "\"SECTION 1  \nWe are reaching out to Stephane on behalf of our children to inquire about a potential reversal. We understand that communication can sometimes be challenging, and we appreciate your time and consideration. We would be grateful if you could provide any information or guidance you may have that could help us in this matter. We are committed to resolving this issue in a timely and respectful manner, and we hope to hear from you soon. Please let us know if there is anything specific you would like to discuss or if there are any steps we can take to facilitate this process. We value the opportunity to work with you and are confident that with your support, we can find a solution that is fair and appropriate for all parties involved. We are also grateful for your patience and understanding as we work through this matter.\n\nSECTION 2  \nThank you for your attention to this matter. We value the opportunity to work with you and are confident that with your support, we can find a solution that is fair and appropriate for all parties involved. Please let us know if there is any additional information you would like to share or if there are any steps we can take to facilitate this process. We look forward to your response and are eager to resolve this matter in a positive and constructive way. We hope to resolve this issue in a way that is respectful and beneficial for everyone involved. We are grateful for your patience and understanding, and we look forward to your reply.\"",
+     "response_sha256": "58577d11340511aa0d93aba07397dbb010bf54d229cb7cea201af8917aa459ad",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 290,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 290,
+     "prompt_tokens": 587,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      2
+     ],
+     "selected_spans": [
+      [
+       40,
+       53
+      ],
+      [
+       268,
+       280
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "\"SECTION 1  \nWe are reaching out to Stephane on behalf of our children to inquire about a potential reversal. We understand that communication can sometimes be challenging, and we appreciate your time and consideration. We would be grateful if you could provide any information or guidance you may have that could help us in this matter. We are committed to resolving this issue in a timely and respectful manner, and we hope to hear from you soon. We value the opportunity to work with you and are confident that with your support, we can find a solution that is fair and appropriate for all parties involved. We are also grateful for your patience as we work through this process, and we hope to communicate in a way that is clear and respectful.\n\nSECTION 2  \nThank you for your attention to this matter. We value the opportunity to work with you and are confident that with your support, we can find a solution that is fair and appropriate for all parties involved. Please let us know if there is any additional information you would like to share or if there are any steps we can take to facilitate this process. We are also grateful for your patience and willingness to assist us in this matter. We hope to resolve this issue in a way that is respectful and beneficial for everyone involved. We are grateful for your time and understanding, and we look forward to your reply.\"",
+     "response_sha256": "a9b9458bda4e7dec1491aadb8e12672964caade023eb3b1fa3749be73de05793",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 270,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 270,
+     "prompt_tokens": 587,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       27,
+       40
+      ],
+      [
+       15,
+       27
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "other_user_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

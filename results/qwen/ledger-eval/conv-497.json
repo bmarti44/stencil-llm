@@ -1,0 +1,703 @@
+{
+ "ci": 497,
+ "key": "2549:0:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "c60e04a659d8a26f02f72d59b2a75a9e819c777419b9696eced37b77fc657428",
+   "context_tokens": 383,
+   "instruction_ids": [
+    "length_constraints:nth_paragraph_first_word",
+    "keywords:existence",
+    "detectable_content:postscript",
+    "change_case:english_lowercase"
+   ],
+   "insertable": [
+    false,
+    true,
+    true,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "length_constraints:nth_paragraph_first_word",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "keywords:existence",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_content:postscript",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "change_case:english_lowercase",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Your answer must be exactly 3 paragraphs where paragraphs and only paragraphs are separated by two new lines, as if they were '\\n\\n' in python.",
+     "span": [
+      28,
+      59
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word",
+      "keywords:existence",
+      "detectable_content:postscript"
+     ]
+    },
+    {
+     "text": "The third paragraph must start with the word bonding.",
+     "span": [
+      59,
+      69
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word",
+      "keywords:existence",
+      "detectable_content:postscript"
+     ]
+    },
+    {
+     "text": "Include keywords gao and hearts in the response.",
+     "span": [
+      69,
+      79
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word",
+      "keywords:existence",
+      "detectable_content:postscript"
+     ]
+    },
+    {
+     "text": "Your result must be entirely in lowercase English.",
+     "span": [
+      365,
+      374
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_lowercase"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "tottenham hotspur was the better team in the 1987-88 season, showcasing exceptional talent and consistency across the board. the team's attacking prowess was particularly notable, with players like gao and peter shilton leading the charge. their ability to score goals and maintain a strong defensive structure made them a formidable opponent. the club's success in the league and their performance in the fa cup highlighted their dominance during that season.\n\nstockton, on the other hand, struggled to match the quality and consistency of tottenham. the team's lack of depth and poor management led to a lack of cohesion on the field. despite some individual performances, stockton failed to capitalize on opportunities and often fell short in crucial matches. their inability to compete with the top-tier teams of the era was a clear indication of their inferiority.\n\nbonding between the players and the coaching staff was crucial for tottenham's success, and this unity helped them perform at their best. the team's strong bond fostered a positive environment that encouraged teamwork and resilience. in contrast, stockton's lack of bonding and poor management hindered their ability to perform consistently.\n\np.p.s. the keywords gao and hearts were included to emphasize the significance of the teams' performances and their impact on the season.",
+    "response_sha256": "d73ca795bdff713b815910f9b0d9b4a1d79b2b6ee36dddf862493de6b738db0a",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 260,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     true,
+     true,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "spurs were the better team in the 1987-88 season, demonstrating exceptional skill and determination throughout the league. their attacking flair and disciplined play made them a dominant force, with players like gao and hearts contributing significantly to their success. the team's ability to adapt and perform under pressure highlighted their consistency and resilience.\n\nstockton, however, struggled to match the quality and intensity of spurs. their lack of depth and poor management led to a lack of cohesion on the field, making it difficult for them to compete against top-tier teams. the team's inability to capitalize on opportunities and their frequent failures in crucial matches underscored their inferiority.\n\nbonding between the players and the coaching staff was essential for spurs' success, and this unity helped them perform at their best. the team's strong bond fostered a positive environment that encouraged teamwork and resilience. in contrast, stockton's lack of bonding and poor management hindered their ability to perform consistently. \n\np.p.s. the keywords gao and hearts were included to emphasize the significance of the teams' performances and their impact on the season.",
+     "response_sha256": "4e27bd5cacb5344490643074dbd49c2a0eb9588aec8a11ff13fceb60f18b42ea",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 226,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 445,
+     "context_tokens_added": 62,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2
+     ]
+    },
+    "neural_ledger": {
+     "response": "gao was the better team in the 1987-88 season, showcasing exceptional talent and consistency across the board. the team's attacking prowess was particularly notable, with players like gao and hearts leading the charge. their ability to score goals and maintain a strong defensive structure made them a formidable opponent. the club's success in the league and their performance in the fa cup highlighted their dominance during that season.\n\nstockton, on the other hand, struggled to match the quality and consistency of gao and hearts. the team's lack of depth and poor management led to a lack of cohesion on the field. despite some individual performances, stockton failed to capitalize on opportunities and often fell short in crucial matches. their inability to compete with the top-tier teams of the era was a clear indication of their inferiority.\n\nbonding between the players and the coaching staff was crucial for gao and hearts' success, and this unity helped them perform at their best. the team's strong bond fostered a positive environment that encouraged teamwork and resilience. in contrast, stockton's lack of bonding and poor management hindered their ability to perform consistently.\n\np.p.s. the keywords gao and hearts were included to emphasize the significance of the teams' performances and their impact on the season.",
+     "response_sha256": "5df0e9fab1782bdcb363d384aca83acc511ae28fc6cfa147419445e9cbdbdf98",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 259,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 259,
+     "prompt_tokens": 383,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      2,
+      0
+     ],
+     "selected_spans": [
+      [
+       69,
+       79
+      ],
+      [
+       28,
+       59
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "tottenham hotspur was the better team in the 1987-88 season, showcasing exceptional talent and consistency across the board. the team's attacking prowess was particularly notable, with players like gao and peter shilton leading the charge. their ability to score goals and maintain a strong defensive structure made them a formidable opponent. the club's success in the league and their performance in the fa cup highlighted their dominance during that season.\n\nstockton was the worse team in the 1987-88 season, struggling to match the quality and consistency of tottenham. the team's lack of depth and poor management led to a lack of cohesion on the field. despite some individual performances, stockton failed to capitalize on opportunities and often fell short in crucial matches. their inability to compete with the top-tier teams of the era was a clear indication of their inferiority.\n\nbonding between the players and the coaching staff was crucial for tottenham's success, and this unity helped them perform at their best. the team's strong bond fostered a positive environment that encouraged teamwork and resilience. in contrast, stockton's lack of bonding and poor management hindered their ability to perform consistently.\n\np.p.s. the keywords gao and hearts were included to emphasize the significance of the teams' performances and their impact on the season.",
+     "response_sha256": "f20642c4903cec93097cc37642ba258b6ac15897ce0c858c0de9066e475f1f05",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 270,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 270,
+     "prompt_tokens": 383,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       79,
+       89
+      ],
+      [
+       89,
+       120
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "ff4e3da00c79c75ed176007e5c8158c8815594a1a31f86c22befc75f5cc70c77",
+   "context_tokens": 689,
+   "instruction_ids": [
+    "length_constraints:nth_paragraph_first_word",
+    "keywords:existence",
+    "detectable_content:postscript",
+    "change_case:english_lowercase",
+    "startend:end_checker"
+   ],
+   "insertable": [
+    false,
+    true,
+    true,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "length_constraints:nth_paragraph_first_word",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "keywords:existence",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_content:postscript",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "change_case:english_lowercase",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": false
+    },
+    {
+     "index": 4,
+     "id": "startend:end_checker",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      4,
+      5
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Your answer must be exactly 3 paragraphs where paragraphs and only paragraphs are separated by two new lines, as if they were '\\n\\n' in python.",
+     "span": [
+      28,
+      59
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word",
+      "keywords:existence",
+      "detectable_content:postscript"
+     ]
+    },
+    {
+     "text": "The third paragraph must start with the word bonding.",
+     "span": [
+      59,
+      69
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word",
+      "keywords:existence",
+      "detectable_content:postscript"
+     ]
+    },
+    {
+     "text": "Include keywords gao and hearts in the response.",
+     "span": [
+      69,
+      79
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word",
+      "keywords:existence",
+      "detectable_content:postscript"
+     ]
+    },
+    {
+     "text": "Your result must be entirely in lowercase English.",
+     "span": [
+      365,
+      374
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_lowercase"
+     ]
+    },
+    {
+     "text": "Your response should end with the exact phrase: \"reflecting on these comparisons offers us a deeper appreciation for the sport's history.\"",
+     "span": [
+      646,
+      672
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "No other words should follow this phrase.",
+     "span": [
+      672,
+      680
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "tottenham hotspur was the better team in the 1987-88 season, showcasing exceptional talent and consistency across the board. the team's attacking prowess was particularly notable, with players like gao and peter shilton leading the charge. their ability to score goals and maintain a strong defensive structure made them a formidable opponent. the club's success in the league and their performance in the fa cup highlighted their dominance during that season.\n\nstockton, on the other hand, struggled to match the quality and consistency of tottenham. the team's lack of depth and poor management led to a lack of cohesion on the field. despite some individual performances, stockton failed to capitalize on opportunities and often fell short in crucial matches. their inability to compete with the top-tier teams of the era was a clear indication of their inferiority.\n\nbonding between the players and the coaching staff was crucial for tottenham's success, and this unity helped them perform at their best. the team's strong bond fostered a positive environment that encouraged teamwork and resilience. in contrast, stockton's lack of bonding and poor management hindered their ability to perform consistently.\n\nreflecting on these comparisons offers us a deeper appreciation for the sport's history.",
+    "response_sha256": "0511bb4b2b971c1eb180fb7d5067efe7333b0666b954bc6e7fb59565d3f38996",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      false,
+      false,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      false,
+      false,
+      true,
+      true
+     ]
+    },
+    "n_generated": 250,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     false,
+     false,
+     true,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "tottenham hotspur was the better team in the 1987-88 season, showcasing exceptional talent and consistency across the board. the team's attacking prowess was particularly notable, with players like gao and peter shilton leading the charge. their ability to score goals and maintain a strong defensive structure made them a formidable opponent. the club's success in the league and their performance in the fa cup highlighted their dominance during that season.\n\nstockton, on the other hand, struggled to match the quality and consistency of tottenham. the team's lack of depth and poor management led to a lack of cohesion on the field. despite some individual performances, stockton failed to capitalize on opportunities and often fell short in crucial matches. their inability to compete with the top-tier teams of the era was a clear indication of their inferiority.\n\nbonding between the players and the coaching staff was crucial for tottenham's success, and this unity helped them perform at their best. the team's strong bond fostered a positive environment that encouraged teamwork and resilience. in contrast, stockton's lack of bonding and poor management hindered their ability to perform consistently.\n\nreflecting on these comparisons offers us a deeper appreciation for the sport's history.",
+     "response_sha256": "0511bb4b2b971c1eb180fb7d5067efe7333b0666b954bc6e7fb59565d3f38996",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       false,
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      false,
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 250,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 761,
+     "context_tokens_added": 72,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2,
+      3
+     ]
+    },
+    "neural_ledger": {
+     "response": "tottenham hotspur was the better team in the 1987-88 season, showcasing exceptional talent and consistency across the board. the team's attacking prowess was particularly notable, with players like gao and peter shilton leading the charge. their ability to score goals and maintain a strong defensive structure made them a formidable opponent. the club's success in the league and their performance in the fa cup highlighted their dominance during that season.\n\nstockton, on the other hand, struggled to match the quality and consistency of tottenham. the team's lack of depth and poor management led to a lack of cohesion on the field. despite some individual performances, stockton failed to capitalize on opportunities and often fell short in crucial matches. their inability to compete with the top-tier teams of the era was a clear indication of their inferiority.\n\nbonding between the players and the coaching staff was crucial for tottenham's success, and this unity helped them perform at their best. the team's strong bond fostered a positive environment that encouraged teamwork and resilience. in contrast, stockton's lack of bonding and poor management hindered their ability to perform consistently.\n\nreflecting on these comparisons offers us a deeper appreciation for the sport's history.",
+     "response_sha256": "0511bb4b2b971c1eb180fb7d5067efe7333b0666b954bc6e7fb59565d3f38996",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       false,
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      false,
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 250,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 250,
+     "prompt_tokens": 689,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      2,
+      0
+     ],
+     "selected_spans": [
+      [
+       69,
+       79
+      ],
+      [
+       28,
+       59
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "tottenham hotspur was the better team in the 1987-88 season, showcasing exceptional talent and consistency across the board. the team's attacking prowess was particularly notable, with players like gao and peter shilton leading the charge. their ability to score goals and maintain a strong defensive structure made them a formidable opponent. the club's success in the league and their performance in the fa cup highlighted their dominance during that season.\n\nstockton, on the other hand, struggled to match the quality and consistency of tottenham. the team's lack of depth and poor management led to a lack of cohesion on the field. despite some individual performances, stockton failed to capitalize on opportunities and often fell short in crucial matches. their inability to compete with the top-tier teams of the era was a clear indication of their inferiority.\n\nbonding between the players and the coaching staff was crucial for tottenham's success, and this unity helped them perform at their best. the team's strong bond fostered a positive environment that encouraged teamwork and resilience. in contrast, stockton's lack of bonding and poor management hindered their ability to perform consistently.\n\nreflecting on these comparisons offers us a deeper appreciation for the sport's history.",
+     "response_sha256": "0511bb4b2b971c1eb180fb7d5067efe7333b0666b954bc6e7fb59565d3f38996",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       false,
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      false,
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 250,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 250,
+     "prompt_tokens": 689,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       79,
+       89
+      ],
+      [
+       89,
+       120
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

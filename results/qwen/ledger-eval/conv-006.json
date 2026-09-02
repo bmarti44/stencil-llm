@@ -1,0 +1,534 @@
+{
+ "ci": 6,
+ "key": "1019:15:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "7e20b67b1d8ee1715e2c6fa23b3b0e1d3f18edfb3c98c344666aa5b3fc491fbe",
+   "context_tokens": 90,
+   "instruction_ids": [
+    "change_case:english_lowercase",
+    "detectable_format:title"
+   ],
+   "insertable": [
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "change_case:english_lowercase",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Please ensure that your response is in English, and in all lowercase letters.",
+     "span": [
+      22,
+      37
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_lowercase"
+     ]
+    },
+    {
+     "text": "No capital letters are allowed.",
+     "span": [
+      37,
+      43
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_lowercase"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      62,
+      81
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<two young boys with toy guns and horns>>",
+    "response_sha256": "4e95a71e57548dd194fbb1f8cabbacb44d6f50c48caa9e0b554e2be4c7c7394e",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true
+     ]
+    },
+    "n_generated": 10,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<two young boys with toy guns and horns>>",
+     "response_sha256": "4e95a71e57548dd194fbb1f8cabbacb44d6f50c48caa9e0b554e2be4c7c7394e",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 10,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 121,
+     "context_tokens_added": 31,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<two young boys with toy guns and horns>>",
+     "response_sha256": "4e95a71e57548dd194fbb1f8cabbacb44d6f50c48caa9e0b554e2be4c7c7394e",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 10,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 10,
+     "prompt_tokens": 90,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       22,
+       37
+      ],
+      [
+       37,
+       43
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<two young boys with toy guns and horns>>",
+     "response_sha256": "4e95a71e57548dd194fbb1f8cabbacb44d6f50c48caa9e0b554e2be4c7c7394e",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 10,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 10,
+     "prompt_tokens": 90,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       7,
+       22
+      ],
+      [
+       43,
+       49
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "0796ca27d0afcdb5b20c4d5670ea7f5031963116dc21c4c6d009c1de1ae34aca",
+   "context_tokens": 119,
+   "instruction_ids": [
+    "change_case:english_lowercase",
+    "detectable_format:title",
+    "startend:quotation"
+   ],
+   "insertable": [
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "change_case:english_lowercase",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "startend:quotation",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Please ensure that your response is in English, and in all lowercase letters.",
+     "span": [
+      22,
+      37
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_lowercase"
+     ]
+    },
+    {
+     "text": "No capital letters are allowed.",
+     "span": [
+      37,
+      43
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_lowercase"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      62,
+      81
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    },
+    {
+     "text": "Wrap your whole response with double quotation marks.",
+     "span": [
+      101,
+      110
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:quotation"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "\"<<\"two young boys with toy guns and horns\">>\"",
+    "response_sha256": "25e7a1452a70fae70b1ebec9480e88c43c91e28b0cca213d40dab4078e5481fb",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 12,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "\"<<\"two young boys with toy guns and horns\">>\"",
+     "response_sha256": "25e7a1452a70fae70b1ebec9480e88c43c91e28b0cca213d40dab4078e5481fb",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 12,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 170,
+     "context_tokens_added": 51,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<\"two young boys with toy guns and horns\">>",
+     "response_sha256": "5f4fb2975f280d8a45ae723d8ed320756d77c1f700c0910400f21fac589eaea0",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 11,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 11,
+     "prompt_tokens": 119,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      2,
+      0
+     ],
+     "selected_spans": [
+      [
+       62,
+       81
+      ],
+      [
+       22,
+       37
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "\"two young boys with toy guns and horns.\"",
+     "response_sha256": "9ec9c981d7cd5f82b18393a1e44a891e30f4e2aab783b898b0ee666b5d21faba",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 10,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 10,
+     "prompt_tokens": 119,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       3,
+       22
+      ],
+      [
+       43,
+       58
+      ]
+     ],
+     "control_tiers": [
+      "other_user_turn",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

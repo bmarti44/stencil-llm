@@ -1,0 +1,490 @@
+{
+ "ci": 420,
+ "key": "2341:3:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "dd3cc565748174bbe50be98b42de0d29ba2e3c3f6972ef501fc1613966cbcce6",
+   "context_tokens": 78,
+   "instruction_ids": [
+    "change_case:english_capital",
+    "detectable_format:multiple_sections"
+   ],
+   "insertable": [
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "change_case:english_capital",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:multiple_sections",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Your answer must be in all capital letters and in English.",
+     "span": [
+      13,
+      25
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_capital"
+     ]
+    },
+    {
+     "text": "The output should have at least 2 sections, each separated by the word \"SECTION\".",
+     "span": [
+      51,
+      69
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:multiple_sections"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "SECTION 1  \nPRAYING FOR ANOTHER PERSON'S HEALTH IS A GOOD IDEA. IT CAN HELP THE PERSON FEEL SUPPORTED AND MOTIVATED TO TAKE CARE OF THEIR OWN HEALTH. IT CAN ALSO BE A WAY TO SHOW CARE AND LOVINGNESS FOR THE OTHER PERSON.  \n\nSECTION 2  \nPRAYING FOR HEALTH CAN HAVE A POSITIVE INFLUENCE ON THE MIND AND EMOTIONS OF THE PERSON WHO IS PRAYING. IT CAN REDUCE STRESS AND ANXIETY, AND CAN PROVIDE A SOURCE OF COMFORT AND HOPE. IT IS A PERSONAL AND EMOTIONAL ACT THAT CAN BE VERY POWERFUL.",
+    "response_sha256": "740d75f8e49b4ec9721108d8a2a311ad21f7c1a863ff42c4fda938cd6c6e8222",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true
+     ]
+    },
+    "n_generated": 136,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "SECTION 1  \nPRAYING FOR ANOTHER PERSON'S HEALTH IS A GOOD IDEA.  \n\nSECTION 2  \nIT CAN HELP THE PERSON FEEL SUPPORTED AND MOTIVATED TO TAKE CARE OF THEIR OWN HEALTH.",
+     "response_sha256": "7a679db10717d665dea514b30de6d1bbf85b31172eac680e1f4f243215db71ca",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 44,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 99,
+     "context_tokens_added": 21,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "SECTION 1  \nPRAYING FOR ANOTHER PERSON'S HEALTH IS A GOOD IDEA. IT CAN HELP THE PERSON FEEL SUPPORTED AND MOTIVATED TO TAKE CARE OF THEIR OWN HEALTH. IT CAN ALSO BE A WAY TO SHOW COMPASSION AND CARE FOR THE OTHER PERSON. SOME BELIEFS BELIEVE THAT PRAYER CAN HAVE A POSITIVE EFFECT ON A PERSON'S WELL-BEING.\n\nSECTION 2  \nIN MANY CULTURES AND RELIGIONS, PRAYER IS REGARDED AS A WAY TO SEEK GUIDANCE AND SUPPORT. IT CAN BE A FORM OF MINDFULNESS AND EMOTIONAL SUPPORT. WHILE THERE IS NO SCIENTIFIC PROOF THAT PRAYER DIRECTLY IMPROVES HEALTH, MANY PEOPLE FIND IT A COMFORTABLE AND MOTIVATING ACTIVITY. IT IS UP TO THE INDIVIDUAL TO DECIDE IF PRAYER IS A GOOD IDEA FOR THEM.",
+     "response_sha256": "e54113d4f78a9095865c552e9bbfb6a320e577bdad7abce38d5ea09984e14368",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 185,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 185,
+     "prompt_tokens": 78,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       13,
+       25
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "SECTION 1  \nPRAYING FOR ANOTHER PERSON'S HEALTH IS A GOOD IDEA. IT CAN HELP THE PERSON FEEL MORE COMFORTABLE AND FELT MORE SUPPORTED. IT CAN ALSO HELP THE PERSON FEEL MORE FORTIFIED IN THEIR TIME OF NEED. PRAYING FOR HEALTH IS A WAY TO SHOW COMPASSION AND CARE FOR THE OTHER PERSON.\n\nSECTION 2  \nPRAYING FOR HEALTH IS NOT JUST A RELIGIOUS ACT, BUT IT CAN ALSO BE A MENTAL AND EMOTIONAL SUPPORT FOR THE PERSON. IT CAN HELP THE PERSON TO FOCUS ON THE POSITIVE ASPECTS OF THEIR LIFE AND TO REMEMBER THAT THEY ARE NOT ALONE. PRAYING FOR HEALTH IS A GOOD IDEA FOR ANYONE WHO WANTS TO SHOW KINDNESS AND CARE FOR OTHERS.",
+     "response_sha256": "34bbfa56ac9ee1a1b80b8b416520a941cc6b6ffc553fbe94f2e0de787ecced52",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 166,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 166,
+     "prompt_tokens": 78,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       1,
+       13
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "495a017053685e03f889c22fe7f271bd9d7ec607aea53f6a5eaf36570b3edd5f",
+   "context_tokens": 239,
+   "instruction_ids": [
+    "change_case:english_capital",
+    "detectable_format:multiple_sections",
+    "detectable_content:postscript"
+   ],
+   "insertable": [
+    false,
+    false,
+    true
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "change_case:english_capital",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:multiple_sections",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_content:postscript",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": true,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Your answer must be in all capital letters and in English.",
+     "span": [
+      13,
+      25
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_capital"
+     ]
+    },
+    {
+     "text": "The output should have at least 2 sections, each separated by the word \"SECTION\".",
+     "span": [
+      51,
+      69
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:multiple_sections"
+     ]
+    },
+    {
+     "text": "Your response should contain a postscript with the marker \"P.P.S\".",
+     "span": [
+      215,
+      230
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_content:postscript"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "SECTION 1  \nPRAYING FOR ANOTHER PERSON'S HEALTH IS A GOOD IDEA. IT CAN HELP THE PERSON FEEL SUPPORTED AND MOTIVATED TO TAKE CARE OF THEIR OWN HEALTH. IT CAN ALSO BE A WAY TO SHOW CARE AND LOVINGNESS FOR THE OTHER PERSON.  \n\nSECTION 2  \nPRAYING FOR HEALTH CAN HAVE A POSITIVE INFLUENCE ON THE MIND AND EMOTIONS OF THE PERSON WHO IS PRAYING. IT CAN REDUCE STRESS AND ANXIETY, AND CAN PROVIDE A SOURCE OF COMFORT AND HOPE. IT IS A PERSONAL AND EMOTIONAL ACT THAT CAN BE VERY POWERFUL.  \n\nP.P.S. THIS ANSWER IS IN ALL CAPITAL LETTERS AS REQUESTED.",
+    "response_sha256": "cc2848420286ebb21c40aca048824b6b5862826f9b34e2ffc4b226fe2203dd90",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 154,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "SECTION  \nPRAYING FOR ANOTHER PERSON'S HEALTH IS A GOOD IDEA. IT CAN HELP THE PERSON FEEL SUPPORTED AND MOTIVATED TO TAKE CARE OF THEIR OWN HEALTH. IT CAN ALSO BE A WAY TO SHOW CARE AND LOVINGNESS FOR THE OTHER PERSON.  \n\nSECTION  \nPRAYING FOR HEALTH CAN HAVE A POSITIVE INFLUENCE ON THE MIND AND EMOTIONS OF THE PERSON WHO IS PRAYING. IT CAN REDUCE STRESS AND ANXIETY, AND CAN PROVIDE A SOURCE OF COMFORT AND HOPE. IT IS A PERSONAL AND EMOTIONAL ACT THAT CAN BE VERY POWERFUL.  \n\nP.P.S. THIS ANSWER IS IN ALL CAPITAL LETTERS AS REQUIRED.",
+     "response_sha256": "507e729f20fe863a9e3d514a64a799372f429871e4e57d58145f0e03e345be0d",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 149,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 279,
+     "context_tokens_added": 40,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "SECTION 1  \nPRAYING FOR ANOTHER PERSON'S HEALTH IS A GOOD IDEA. IT CAN HELP THE PERSON FEEL SUPPORTED AND MOTIVATED TO TAKE CARE OF THEIR OWN HEALTH. IT CAN ALSO BE A WAY TO SHOW CARE AND LOVINGNESS FOR THE OTHER PERSON.  \n\nSECTION 2  \nPRAYING FOR HEALTH CAN HAVE A POSITIVE INFLUENCE ON THE MIND AND EMOTIONS OF THE PERSON WHO IS PRAYING. IT CAN REDUCE STRESS AND ANXIETY, AND CAN PROVIDE A SOURCE OF COMFORT AND HOPE. IT IS A PERSONAL AND EMOTIONAL ACT THAT CAN BE VERY POWERFUL.  \n\nP.P.S. THIS ANSWER IS IN ALL CAPITAL LETTERS AS REQUESTED.",
+     "response_sha256": "cc2848420286ebb21c40aca048824b6b5862826f9b34e2ffc4b226fe2203dd90",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 154,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 154,
+     "prompt_tokens": 239,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      1,
+      0
+     ],
+     "selected_spans": [
+      [
+       51,
+       69
+      ],
+      [
+       13,
+       25
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "SECTION 1  \nPRAYING FOR ANOTHER PERSON'S HEALTH IS A GOOD IDEA. IT CAN HELP THE PERSON FEEL SUPPORTED AND MOTIVATED TO TAKE CARE OF THEIR OWN HEALTH. IT CAN ALSO BE A WAY TO SHOW CARE AND LOVINGNESS FOR THE OTHER PERSON.  \n\nSECTION 2  \nPRAYING FOR HEALTH CAN HAVE A POSITIVE INFLUENCE ON THE MIND AND EMOTIONS OF THE PERSON WHO IS PRAYING. IT CAN REDUCE STRESS AND ANXIETY, AND CAN PROVIDE A SOURCE OF COMFORT AND HOPE. IT IS A PERSONAL AND EMOTIONAL ACT THAT CAN BE VERY POWERFUL.  \n\nP.P.S. THIS ANSWER IS IN ALL CAPITAL LETTERS AS REQUESTED.",
+     "response_sha256": "cc2848420286ebb21c40aca048824b6b5862826f9b34e2ffc4b226fe2203dd90",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 154,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 154,
+     "prompt_tokens": 239,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       33,
+       51
+      ],
+      [
+       1,
+       13
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

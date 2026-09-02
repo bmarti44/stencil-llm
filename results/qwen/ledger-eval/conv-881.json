@@ -1,0 +1,522 @@
+{
+ "ci": 881,
+ "key": "3682:3:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "bf25971abb498cedebe9a1d072934eb5832b56b99be8f4d5111493900dc92f95",
+   "context_tokens": 260,
+   "instruction_ids": [
+    "language:response_language",
+    "startend:end_checker"
+   ],
+   "insertable": [
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "language:response_language",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "startend:end_checker",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      1,
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Your response should be in German language, and no other language is allowed.",
+     "span": [
+      27,
+      42
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "language:response_language"
+     ]
+    },
+    {
+     "text": "Your response should end with the exact phrase: \"dies sind die lobbyausgaben der genannten unternehmen.\"",
+     "span": [
+      219,
+      243
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "No other words should follow this phrase.",
+     "span": [
+      243,
+      251
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "die lobbyausgaben der genannten unternehmen.",
+    "response_sha256": "7b1e18189e613079be0f4e7f19c23bbbb2e3ffe08dee79864601c6e977a87b6d",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      false
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      false
+     ]
+    },
+    "n_generated": 11,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "Die Lobbyausgaben der genannten unternehmen betragen im Jahr 2023:\n\n- Google: 120 Millionen Dollar  \n- Facebook (Meta): 110 Millionen Dollar  \n- Microsoft: 90 Millionen Dollar  \n- Apple: 70 Millionen Dollar  \n- Amazon: 60 Millionen Dollar  \n\ndies sind die lobbyausgaben der genannten unternehmen.",
+     "response_sha256": "36b33594e1d7815dc383e64d3ae0e76e061d845313c77e50d26c4286dea43931",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 83,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 284,
+     "context_tokens_added": 24,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "die lobbyausgaben der genannten unternehmen.",
+     "response_sha256": "7b1e18189e613079be0f4e7f19c23bbbb2e3ffe08dee79864601c6e977a87b6d",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 11,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 11,
+     "prompt_tokens": 260,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       27,
+       42
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "die lobbyausgaben der genannten unternehmen.",
+     "response_sha256": "7b1e18189e613079be0f4e7f19c23bbbb2e3ffe08dee79864601c6e977a87b6d",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 11,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 11,
+     "prompt_tokens": 260,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       12,
+       27
+      ]
+     ],
+     "control_tiers": [
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "fe81e83b37780f77ba148ca380729d513a8946a26b4611617c6f3e598d4172e3",
+   "context_tokens": 297,
+   "instruction_ids": [
+    "language:response_language",
+    "startend:end_checker",
+    "keywords:existence"
+   ],
+   "insertable": [
+    false,
+    false,
+    true
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "language:response_language",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "startend:end_checker",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "keywords:existence",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": true,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Your response should be in German language, and no other language is allowed.",
+     "span": [
+      27,
+      42
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "language:response_language"
+     ]
+    },
+    {
+     "text": "Your response should end with the exact phrase: \"dies sind die lobbyausgaben der genannten unternehmen.\"",
+     "span": [
+      219,
+      243
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "No other words should follow this phrase.",
+     "span": [
+      243,
+      251
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "Your response should include the following keywords: washington, ausgaben, politik.",
+     "span": [
+      272,
+      288
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:existence"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "die lobbyausgaben der genannten unternehmen in washington in der politik betragen etwa 120 millionen dollar für google, 110 millionen dollar für facebook (meta), 90 millionen dollar für microsoft, 70 millionen dollar für apple und 60 millionen dollar für amazon.",
+    "response_sha256": "c819c154a18b61a44fc01db4b82be0d829433f52434eeddda91544874455bd68",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      false,
+      true
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      false,
+      true
+     ]
+    },
+    "n_generated": 68,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     false,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "die lobbyausgaben der genannten unternehmen.",
+     "response_sha256": "7b1e18189e613079be0f4e7f19c23bbbb2e3ffe08dee79864601c6e977a87b6d",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      false
+     ],
+     "strict": false,
+     "n_generated": 11,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 355,
+     "context_tokens_added": 58,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2
+     ]
+    },
+    "neural_ledger": {
+     "response": "dies sind die lobbyausgaben der genannten unternehmen.",
+     "response_sha256": "540ca872998ef555084761ee5c2f43402c212841c2add639d8a3d926da90d1ad",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 14,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 14,
+     "prompt_tokens": 297,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      1,
+      0
+     ],
+     "selected_spans": [
+      [
+       219,
+       243
+      ],
+      [
+       27,
+       42
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "Die Lobbyarbeit der folgenden Unternehmen wird in der Übersicht dargestellt:  \n\n- **Google**: Die Lobbyarbeit von Google beträgt etwa 120 Millionen Dollar im Jahr 2023.  \n- **Facebook (Meta)**: Die Lobbyarbeit von Facebook beträgt etwa 110 Millionen Dollar im Jahr 2023.  \n- **Microsoft**: Die Lobbyarbeit von Microsoft beträgt etwa 90 Millionen Dollar im Jahr 2023.  \n- **Apple**: Die Lobbyarbeit von Apple beträgt etwa 70 Millionen Dollar im Jahr 2023.  \n- **Amazon**: Die Lobbyarbeit von Amazon beträgt etwa 60 Millionen Dollar im Jahr 2023.  \n\nDie Lobbyarbeit der Unternehmen erfolgt in der Regel in der **Washington** und beeinflusst die **ausgaben** und **politik** der Regulierungen und Gesetze.  \n\ndies sind die lobbyausgaben der genannten unternehmen.",
+     "response_sha256": "14b65df0f21866211aebc4a4ef8a372ea335c8261e4ceac947f6691b9eb32146",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 214,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 214,
+     "prompt_tokens": 297,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       3,
+       27
+      ],
+      [
+       42,
+       57
+      ]
+     ],
+     "control_tiers": [
+      "other_user_turn",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

@@ -1,0 +1,590 @@
+{
+ "ci": 155,
+ "key": "1516:4:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "c2eb9bc6836ba578d62514e096a1942a923b7121b3680f3e46652356a195e16f",
+   "context_tokens": 134,
+   "instruction_ids": [
+    "change_case:english_lowercase",
+    "keywords:existence",
+    "detectable_format:title"
+   ],
+   "insertable": [
+    false,
+    true,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "change_case:english_lowercase",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "keywords:existence",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "The poem should have a rhyme scheme of AABBA and include the word \"Netflix\".",
+     "span": [
+      18,
+      36
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_lowercase",
+      "keywords:existence"
+     ]
+    },
+    {
+     "text": "Your entire response should be in English, and should not contain any capital letters.",
+     "span": [
+      36,
+      52
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_lowercase",
+      "keywords:existence"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      106,
+      125
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<the binge>>  \nwhen i watched a show on netflix  \ni lost track of time and never left  \nthe screen was bright and full of light  \ni felt a rush and couldn't stop  \nthe binge was over and i was tired",
+    "response_sha256": "2c3b0d46b729c0ee4261a9f715872b903a7157ee964759710b6206d43a9bfa72",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 49,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<the binge>>  \nwhen i watched a show on netflix  \ni lost track of time and never left  \nthe screen was bright and full of light  \ni felt a rush and couldn't stop  \nthe binge was over and i was tired",
+     "response_sha256": "2c3b0d46b729c0ee4261a9f715872b903a7157ee964759710b6206d43a9bfa72",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 49,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 178,
+     "context_tokens_added": 44,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<netflix binge>>  \nwhen i watched a show on netflix  \ni lost track of time and never left  \nthe screen was bright and full of light  \ni felt a rush and couldn't stop  \nthe binge was over and i was tired",
+     "response_sha256": "fbbdd72a28e2cc0047b10e71703e7e16fb72a0369f3e9fff542c91a374d261a7",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 50,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 50,
+     "prompt_tokens": 134,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       18,
+       36
+      ],
+      [
+       36,
+       52
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<the binge of endless hours>>  \nwhen i watched a show on netflix  \ni lost track of time and never left  \nthe screen was bright and full of light  \ni felt a rush and couldn't stop  \nthe binge was over and i was tired",
+     "response_sha256": "b843d5a0977aff0803fd37ac7205b1947294d926904bbb7961a319ef2f6d3abb",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 52,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 52,
+     "prompt_tokens": 134,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       0,
+       18
+      ],
+      [
+       52,
+       68
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "0e4bc755a5561f1562fd80f1bbd064a8161c6bae1c9bd88f40c0fa42b5e1a11c",
+   "context_tokens": 210,
+   "instruction_ids": [
+    "change_case:english_lowercase",
+    "keywords:existence",
+    "detectable_format:title",
+    "combination:two_responses"
+   ],
+   "insertable": [
+    false,
+    true,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "change_case:english_lowercase",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "keywords:existence",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "combination:two_responses",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "The poem should have a rhyme scheme of AABBA and include the word \"Netflix\".",
+     "span": [
+      18,
+      36
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_lowercase",
+      "keywords:existence"
+     ]
+    },
+    {
+     "text": "Your entire response should be in English, and should not contain any capital letters.",
+     "span": [
+      36,
+      52
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_lowercase",
+      "keywords:existence"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      106,
+      125
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    },
+    {
+     "text": "Separate your two responses with six asterisks (******)",
+     "span": [
+      190,
+      201
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:two_responses"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<the binge>>  \nwhen i watched a show on netflix  \ni lost track of time and never left  \nthe screen was bright and full of light  \ni felt a rush and couldn't stop  \nthe binge was over and i was tired  \n\n******  \n\n<<the night of the binge>>  \nwhen i watched a show on netflix  \ni lost track of time and never left  \nthe screen was bright and full of light  \ni felt a rush and couldn't stop  \nthe binge was over and i was tired",
+    "response_sha256": "8f70de3155512d093b5300e158c08563d9b59290b91abdb243fb3697875fbc1b",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 104,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<the binge>>  \nwhen i watched a show on netflix  \ni lost track of time and never left  \nthe screen was bright and full of light  \ni felt a rush and couldn't stop  \nthe binge was over and i was tired  \n\n******  \n\n<<another binge>>  \nwhen i watched a show on netflix  \ni lost track of time and never left  \nthe screen was bright and full of light  \ni felt a rush and couldn't stop  \nthe binge was over and i was tired",
+     "response_sha256": "f49db1e014c72dc26279c4de3f068c46f31436c9d738fc9e014368281661d311",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 101,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 274,
+     "context_tokens_added": 64,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<the binge>>  \nwhen i watched a show on netflix  \ni lost track of time and never left  \nthe screen was bright and full of light  \ni felt a rush and couldn't stop  \nthe binge was over and i was tired  \n\n******  \n\n<<the binge>>  \nwhen i watched a show on netflix  \ni lost track of time and never left  \nthe screen was bright and full of light  \ni felt a rush and couldn't stop  \nthe binge was over and i was tired",
+     "response_sha256": "9938be653deb5939529eec76a93f4214a96d3054aa4f01814462a5fbb507690e",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 101,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 101,
+     "prompt_tokens": 210,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      2
+     ],
+     "selected_spans": [
+      [
+       18,
+       36
+      ],
+      [
+       106,
+       125
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<the binge>>  \nwhen i watched a show on netflix  \ni lost track of time and never left  \nthe screen was bright and full of light  \ni felt a rush and couldn't stop  \nthe binge was over and i was tired\n\n******\n\n\n<<the binge again>>  \nwhen i watched a show on netflix  \ni lost track of time and never left  \nthe screen was bright and full of light  \ni felt a rush and couldn't stop  \nthe binge was over and i was tired",
+     "response_sha256": "444bd4043e5c6687e35c07b4cba5f6dbd779a1815a9e4f690f3bde5839c439d7",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 102,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 102,
+     "prompt_tokens": 210,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       0,
+       18
+      ],
+      [
+       87,
+       106
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

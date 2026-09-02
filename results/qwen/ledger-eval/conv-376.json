@@ -1,0 +1,490 @@
+{
+ "ci": 376,
+ "key": "2239:13:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "2f13b2dc404255d69b97bec71d3559110d06107f9785e7edea337636337d3284",
+   "context_tokens": 78,
+   "instruction_ids": [
+    "startend:quotation",
+    "detectable_format:multiple_sections"
+   ],
+   "insertable": [
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "startend:quotation",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:multiple_sections",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Put your entire response in double quotation marks.",
+     "span": [
+      19,
+      28
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:quotation"
+     ]
+    },
+    {
+     "text": "The result should contain at least 7 sections, and each section should be separated by the word \"Day\".",
+     "span": [
+      47,
+      69
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:multiple_sections"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "\"Day 1: I flung my hatred into the burning fire.  \nDay 2: The fire consumed my anger, turning it into ash.  \nDay 3: My heart was heavy with the weight of my emotions.  \nDay 4: I felt a strange calm as the fire began to fade.  \nDay 5: The world around me seemed to quiet down.  \nDay 6: I realized that my hatred had been transformed.  \nDay 7: I stood alone, reflecting on what had happened.\"",
+    "response_sha256": "029cf03a9e79bcbafca4f72c3df43fb1a9d9fd992d69251f18bd2f50ca9d8c89",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true
+     ]
+    },
+    "n_generated": 107,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "\"Day 1: I flung my hatred into the burning fire.  \nDay 2: The fire consumed my anger, turning it into ash.  \nDay 3: My heart was left empty, filled only with smoke.  \nDay 4: The flames danced, reflecting my inner turmoil.  \nDay 5: I watched as the fire grew brighter, symbolizing my transformation.  \nDay 6: The heat of the fire reminded me of the strength I had lost.  \nDay 7: In the end, the fire became my new companion, guiding me through the darkness.\"",
+     "response_sha256": "49f31aa430d88626434fdb92f6530ba9c0144d63df97df57008b219d19b96abc",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 120,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 96,
+     "context_tokens_added": 18,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "\"Day 1: I flung my hatred into the burning fire.  \nDay 2: The fire consumed my anger, turning it into ash.  \nDay 3: My heart was filled with sorrow, knowing I had lost everything.  \nDay 4: I wandered the streets, lost in my thoughts, searching for meaning.  \nDay 5: A kind stranger offered me a cup of tea, reminding me of hope.  \nDay 6: I began to write, pouring my emotions onto the page.  \nDay 7: Through the writing, I found peace, even in the midst of chaos.\"",
+     "response_sha256": "dee19b18dcf069b7eb422faf231bbff8d491a77f35cb11fb5348e2ab1ff7a124",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 125,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 125,
+     "prompt_tokens": 78,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       19,
+       28
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "\"Day 1: I flung my hatred into the burning fire.  \nDay 2: The fire consumed my anger, turning it into ash.  \nDay 3: My heart was consumed by the heat, and I felt nothing but pain.  \nDay 4: The fire grew stronger, and I could feel its power growing with me.  \nDay 5: I stood there, watching as the fire consumed everything I had.  \nDay 6: My body was burned, but my spirit was unbroken.  \nDay 7: The fire had taken my hatred, but I had taken it with me.  \nDay 8: I emerged from the fire, stronger and more determined than ever.\"",
+     "response_sha256": "eebf36116b521480d253d2a3058ab078f16cce0fb6714e8832a7d9677000fd82",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 144,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 144,
+     "prompt_tokens": 78,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       10,
+       19
+      ]
+     ],
+     "control_tiers": [
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "637245b8f350337209150317de4e8a20255f59908fc3addfe7072047e43017ca",
+   "context_tokens": 211,
+   "instruction_ids": [
+    "startend:quotation",
+    "detectable_format:multiple_sections",
+    "keywords:forbidden_words"
+   ],
+   "insertable": [
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "startend:quotation",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:multiple_sections",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "keywords:forbidden_words",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Put your entire response in double quotation marks.",
+     "span": [
+      19,
+      28
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:quotation"
+     ]
+    },
+    {
+     "text": "The result should contain at least 7 sections, and each section should be separated by the word \"Day\".",
+     "span": [
+      47,
+      69
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:multiple_sections"
+     ]
+    },
+    {
+     "text": "Your response should not include the following words: emotions, hearth, blaze.",
+     "span": [
+      186,
+      202
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:forbidden_words"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "\"Day 1: I flung my hatred into the burning fire.  \nDay 2: The fire consumed my anger, turning it into ash.  \nDay 3: My heart was heavy with the weight of my actions.  \nDay 4: I felt a strange calm as the fire began to fade.  \nDay 5: The world around me seemed to quiet down.  \nDay 6: I realized that my hatred had been transformed.  \nDay 7: I stood alone, reflecting on what had happened.\"",
+    "response_sha256": "b5c85ca69eec7d664af9a0ecc5ac5145fdde1ab8c6946d9d9facce4017954ad5",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 107,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "\"Day 1: I flung my hatred into the burning fire.  \nDay 2: The fire consumed my anger, turning it into ash.  \nDay 3: My heart was heavy with the weight of my emotions.  \nDay 4: I felt a strange calm as the fire began to fade.  \nDay 5: The world around me seemed to quiet down.  \nDay 6: I realized that my hatred had been transformed.  \nDay 7: I stood alone, reflecting on what had happened.\"",
+     "response_sha256": "029cf03a9e79bcbafca4f72c3df43fb1a9d9fd992d69251f18bd2f50ca9d8c89",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 107,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 252,
+     "context_tokens_added": 41,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "\"Day 1: I flung my hatred into the burning fire.  \nDay 2: The fire consumed my anger, turning it into ash.  \nDay 3: My heart was heavy with the weight of my emotions.  \nDay 4: I felt a strange calm as the fire began to fade.  \nDay 5: The world around me seemed to quiet down.  \nDay 6: I realized that my hatred had been transformed.  \nDay 7: I stood alone, reflecting on what had happened.\"",
+     "response_sha256": "029cf03a9e79bcbafca4f72c3df43fb1a9d9fd992d69251f18bd2f50ca9d8c89",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 107,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 107,
+     "prompt_tokens": 211,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      1,
+      0
+     ],
+     "selected_spans": [
+      [
+       47,
+       69
+      ],
+      [
+       19,
+       28
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "\"Day 1: I flung my hatred into the burning fire.  \nDay 2: The fire consumed my anger, turning it into ash.  \nDay 3: My heart was heavy with the weight of my emotions.  \nDay 4: I felt a strange calm as the fire began to fade.  \nDay 5: The world around me seemed to quiet down.  \nDay 6: I realized that my hatred had been transformed.  \nDay 7: I stood alone, reflecting on what had happened.\"",
+     "response_sha256": "029cf03a9e79bcbafca4f72c3df43fb1a9d9fd992d69251f18bd2f50ca9d8c89",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 107,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 107,
+     "prompt_tokens": 211,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       69,
+       91
+      ],
+      [
+       10,
+       19
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

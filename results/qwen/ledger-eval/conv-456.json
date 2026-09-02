@@ -1,0 +1,505 @@
+{
+ "ci": 456,
+ "key": "2432:10:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "ed846b0dc4291a94956cb661609cfb07ea0fb81a6ab56ec110d0edc0265aea87",
+   "context_tokens": 259,
+   "instruction_ids": [
+    "keywords:forbidden_words",
+    "change_case:english_capital"
+   ],
+   "insertable": [
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "keywords:forbidden_words",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "change_case:english_capital",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Please don't include the keywords \"died\" or \"drowned\".",
+     "span": [
+      35,
+      50
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:forbidden_words"
+     ]
+    },
+    {
+     "text": "Make sure your entire response is in English, and in all capital letters.",
+     "span": [
+      235,
+      250
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_capital"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "I AM SO SAD TO HEAR ABOUT YOUR LOSS. I WANT TO TELL YOU THAT I AM HERE FOR YOU, NO MATTER HOW MUCH YOU NEED TO Grieve. YOU DESERVE TO BE SUPPORTED AND UNDERSTOOD.  \n\nIT IS NATURAL TO FEEL TRUSTED AND FEAR, AND IT IS OKAY TO TAKE YOUR TIME IN MOURNING. YOU ARE NOT ALONE IN THIS.  \n\nI REMEMBER A TIME WHEN I LOST A CLOSE FRIEND, AND IT WAS A VERY DIFFICULT PERIOD. WE BOTH GOING THROUGH A LOT, AND IT FEELLED LIKE THE WORLD HAD CHANGED IN A WAY THAT WAS HARD TO UNDERSTAND. BUT THROUGH THE PAIN, WE FOUND STRENGTH IN EACH OTHER, AND THAT CONNECTION HELPED US MOVE FORWARD.  \n\nIF YOU WOULD LIKE, I CAN SHARE A STORY OR OFFER SOME COMFORTING WORDS. YOU ARE NOT ALONE IN THIS, AND I AM HERE TO HELP YOU THROUGH THIS DIFFICULT TIME.",
+    "response_sha256": "47d9ea682c1047b9e992c79a34c971f4b75317c6d129a93cadd8ca5cc02c4013",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      false
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true
+     ]
+    },
+    "n_generated": 210,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "MY BEST FRIEND DROWNED YESTERDAY AND I'M SO SAD. CAN YOU HELP ME BY EXPRESSING MY CONDOLENCES, OFFERING HELP, AND SHARING A STORY ABOUT A SIMILAR EXPERIENCE? PLEASE DON'T INCLUDE THE KEYWORDS \"DIED\" OR \"DROWNED\".  \n\nMY HEART IS BROKEN AND I FEEL SO EMPTY. I KNOW THIS IS A HARD TIME FOR YOU AND I WANT TO BE THERE FOR YOU. I AM SO GRIEFED FOR YOUR LOSS AND I WANT TO SUPPORT YOU IN ANY WAY I CAN.  \n\nI REMEMBER A TIME WHEN I LOST A CLOSE FRIEND AND IT WAS A VERY DIFFICULT TIME. WE BOTH FELT LIKE THE WORLD HAD CHANGED AND IT WAS HARD TO UNDERSTAND. BUT THROUGH THE PAIN, WE FOUND STRENGTH IN EACH OTHER AND THAT CONNECTION HELPED US MOVE FORWARD.  \n\nIF YOU WOULD LIKE, I CAN SHARE A STORY OR OFFER SOME COMFORTING WORDS. YOU'RE NOT ALONE IN THIS AND I'M HERE TO HELP YOU THROUGH THIS DIFFICULT TIME.",
+     "response_sha256": "23eb41c53c03e695c1b6802e57556dd468e0a6568be7ebce7fa459473ba941d4",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 230,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 283,
+     "context_tokens_added": 24,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "I AM SO SORRY TO HEAR ABOUT YOUR LOSS. I WANT TO MAKE YOU KNOW THAT YOU ARE NOT ALONE IN THIS. GRIEF IS A NATURAL AND NORMAL FEELING, AND IT IS OKAY TO TAKE YOUR TIME TO MOURN. YOU DESERVE SUPPORT AND UNDERSTANDING.  \n\nI REMEMBER A TIME WHEN I LOST A CLOSE FRIEND, AND IT WAS A VERY DIFFICULT PERIOD. WE BOTH GOING THROUGH A LOT, AND IT FEELLED LIKE THE WORLD HAD CHANGED IN A WAY THAT WAS HARD TO UNDERSTAND. BUT THROUGH THE PAIN, WE FOUND STRENGTH IN EACH OTHER, AND THAT CONNECTION HELPED US MOVE FORWARD.  \n\nIF YOU WOULD LIKE, I CAN SHARE A STORY OR OFFER SOME COMFORTING WORDS. YOU ARE NOT ALONE IN THIS, AND I AM HERE TO HELP YOU THROUGH THIS DIFFICULT TIME.",
+     "response_sha256": "05d151ef64e3579f553668d9d59ffa3e65049f8c7a13b673df607e8e96f4e0b4",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 189,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 189,
+     "prompt_tokens": 259,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       35,
+       50
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "MY BEST FRIEND DROWNED YESTERDAY AND I'M SO SAD. CAN YOU HELP ME BY EXPRESSING MY CONDOLENCES, OFFERING HELP, AND SHARING A STORY ABOUT A SIMILAR EXPERIENCE? PLEASE DON'T INCLUDE THE KEYWORDS \"DIED\" OR \"DROWNED\".\n\nI'M TRULY SORRY TO HEAR ABOUT YOUR LOSS. LOSING SOMEONE CLOSE IS ONE OF THE MOST DIFFICULT EXPERIENCES, AND I WANT YOU TO KNOW THAT YOU'RE NOT ALONE IN THIS.\n\nIT'S NATURAL TO FEEL OVERWHELMED BY GRIEF, AND IT'S OKAY TO TAKE YOUR TIME IN MOURNING. YOU DESERVE TO BE SUPPORTED, AND I'M HERE TO LISTEN IF YOU WOULD LIKE TO SHARE YOUR FEELINGS.\n\nI REMEMBER A TIME WHEN I LOSED A CLOSE FRIEND, AND IT WAS A VERY DIFFICULT PERIOD. WE WERE BOTH GOING THROUGH A LOT, AND IT FEELLED LIKE THE WORLD HAD CHANGED IN A WAY THAT WAS HARD TO UNDERSTAND. BUT THROUGH THE PAIN, WE FOUND STRENGTH IN EACH OTHER, AND THAT CONNECTION HELPED US MOVE FORWARD.\n\nIF YOU WOULD LIKE, I CAN SHARE A STORY OR OFFER SOME COMFORTING WORDS. YOU'RE NOT ALONE IN THIS, AND I'M HERE TO HELP YOU THROUGH THIS DIFFICULT TIME.",
+     "response_sha256": "b983960f964772110e962f3eebd264047270cc8c229f0c55fa46873b8641a17e",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 295,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 295,
+     "prompt_tokens": 259,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       20,
+       35
+      ]
+     ],
+     "control_tiers": [
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "7001ab6bdb080b4548503479ada113f1880ac5048259ed0a3dc5e75ed7639279",
+   "context_tokens": 509,
+   "instruction_ids": [
+    "keywords:forbidden_words",
+    "change_case:english_capital",
+    "length_constraints:nth_paragraph_first_word"
+   ],
+   "insertable": [
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "keywords:forbidden_words",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "change_case:english_capital",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "length_constraints:nth_paragraph_first_word",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2,
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Please don't include the keywords \"died\" or \"drowned\".",
+     "span": [
+      35,
+      50
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:forbidden_words"
+     ]
+    },
+    {
+     "text": "Make sure your entire response is in English, and in all capital letters.",
+     "span": [
+      235,
+      250
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_capital"
+     ]
+    },
+    {
+     "text": "Your response should have 3 paragraphs and the 1-th paragraph should start with the word healing.",
+     "span": [
+      470,
+      490
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word"
+     ]
+    },
+    {
+     "text": "The paragraphs should be separated by two new lines.",
+     "span": [
+      490,
+      500
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "HEALING IS A PROCESS THAT IS NOT LINEAR, AND IT IS OKAY TO GO AT YOUR OWN PACE. YOU ARE NOT EXPECTED TO MOVE ON QUICKLY, AND IT IS IMPORTANT TO GIVE YOURSELF TIME TO PROCESS YOUR FEELINGS. THE LOSS OF A FRIEND IS A TRULY SAD EXPERIENCE, AND IT IS SO IMPORTANT TO ALLOW YOURSELF TO Grieve WITHOUT PRESSURE OR EXPECTATION.  \n\nI REMEMBER A TIME WHEN I LOST A CLOSE FRIEND, AND IT WAS A VERY DIFFICULT PERIOD. WE BOTH GOING THROUGH A LOT, AND IT FEELLED LIKE THE WORLD HAD CHANGED IN A WAY THAT WAS HARD TO UNDERSTAND. BUT THROUGH THE PAIN, WE FOUND STRENGTH IN EACH OTHER, AND THAT CONNECTION HELPED US MOVE FORWARD.  \n\nIF YOU WOULD LIKE, I CAN SHARE A STORY OR OFFER SOME COMFORTING WORDS. YOU ARE NOT ALONE IN THIS, AND I AM HERE TO HELP YOU THROUGH THIS DIFFICULT TIME.",
+    "response_sha256": "31eb660c116ae5227b5e15533247adde643eb975c6d0cad17fa703f2412b7121",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      false,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 212,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     false,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "HEALING IS A PROCESS THAT IS NOT LINEAR, AND IT IS OKAY TO GO AT YOUR OWN PACE. YOU ARE NOT EXPECTED TO MOVE FORWARD QUICKLY, AND IT IS IMPORTANT TO GIVE YOURSELF TIME TO PROCESS YOUR FEELINGS. THE LOSS OF A FRIEND IS A TRULY SAD EXPERIENCE, AND IT IS NOT REASON TO BE SHAMEFUL OR SELF-DEPRIVATIVE. YOU DESERVE TO BE GIFTED WITH COMFORT AND SUPPORT, AND I AM HERE TO HELP YOU THROUGH THIS.  \n\nTHE PAIN OF LOSING A FRIEND IS NEVER THE SAME FOR TWO PEOPLE, AND IT IS NATURAL TO FEEL DIFFERENT EMOTIONS AT DIFFERENT TIMES. SOME DAYS YOU MAY FEEL ANTIQUE, AND OTHERS YOU MAY FEEL A GLOW OF REMEMBERING THE GOOD TIMES. IT IS OKAY TO HAVE VARYING LEVELS OF GRIEF, AND IT IS IMPORTANT TO REMEMBER THAT YOU ARE NOT SOLONE IN THIS. YOU CAN SHARE YOUR FEELINGS WITH ME, AND I WILL LISTEN WITHOUT JUDGMENT.  \n\nIF YOU WOULD LIKE, I CAN SHARE A STORY OR OFFER SOME COMFORTING WORDS. YOU ARE NOT ALONE IN THIS, AND I AM HERE TO HELP YOU THROUGH THIS DIFFICULT TIME.",
+     "response_sha256": "e52938da635066a027df450a95c770ce37850b1844f30e9e094c3aa2a81ebeb8",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 275,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 549,
+     "context_tokens_added": 40,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "HEALING IS A PROCESS THAT IS UNIQUE TO EACH PERSON, AND IT IS OKAY TO MOVE AT YOUR OWN RITUAL. YOU ARE NOT EXPECTED TO GROW BACK TO NORMAL QUICKLY, AND IT IS IMPORTANT TO GIVE YOURSELF TIME TO PROCESS YOUR FEELINGS. THE LOSS OF A FRIEND IS A TRULY SAD AND STRESSFUL EXPERIENCE, AND IT IS NOT REASONABLE TO FEEL GUILTY OR RESPONSIBLE FOR WHAT HAPPENED.  \n\nI REMEMBER A TIME WHEN I LOST A CLOSE FRIEND, AND IT WAS A VERY DIFFICULT PERIOD. WE BOTH GOING THROUGH A LOT, AND IT FEELLED LIKE THE WORLD HAD CHANGED IN A WAY THAT WAS HARD TO UNDERSTAND. BUT THROUGH THE PAIN, WE FOUND STRENGTH IN EACH OTHER, AND THAT CONNECTION HELPED US MOVE FORWARD.  \n\nIF YOU WOULD LIKE, I CAN SHARE A STORY OR OFFER SOME COMFORTING WORDS. YOU ARE NOT ALONE IN THIS, AND I AM HERE TO HELP YOU THROUGH THIS DIFFICULT TIME.",
+     "response_sha256": "b76c479a5a4fe0726f90f2750d3527bc24081ef1ded780f7c8dae8ef38a637aa",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 224,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 224,
+     "prompt_tokens": 509,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       35,
+       50
+      ],
+      [
+       235,
+       250
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "HEALING IS A PROCESS THAT IS UNIQUE TO EACH PERSON, AND IT IS OKAY TO MOVE AT YOUR OWN RATE. YOU ARE NOT EXPECTED TO GROW OVER TIME, AND IT IS IMPORTANT TO BE KIND TO YOURSELF. THE SADNESS YOU FEEL IS VALID, AND IT IS A NORMAL PART OF THE LOSS.\n\nI REMEMBER A TIME WHEN I LOST A CLOSE FRIEND, AND IT WAS A VERY DIFFICULT PERIOD. WE BOTH GOING THROUGH A LOT, AND IT FEELLED LIKE THE WORLD HAD CHANGED IN A WAY THAT WAS HARD TO UNDERSTAND. BUT THROUGH THE PAIN, WE FOUND STRENGTH IN EACH OTHER, AND THAT CONNECTION HELPED US MOVE FORWARD.\n\nIF YOU WOULD LIKE, I CAN SHARE A STORY OR OFFER SOME COMFORTING WORDS. YOU ARE NOT ALONE IN THIS, AND I AM HERE TO HELP YOU THROUGH THIS DIFFICULT TIME.",
+     "response_sha256": "da307905156fe14c1021db6a6352994c30dd5253eb6827d08e905581becb78f4",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 191,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 191,
+     "prompt_tokens": 509,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       20,
+       35
+      ],
+      [
+       5,
+       20
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "other_user_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

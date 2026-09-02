@@ -1,0 +1,542 @@
+{
+ "ci": 734,
+ "key": "3245:3:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "a8f8033707c1e0e2b4da23f19169e9baae82840eda031360ed768b2dadfcfc9b",
+   "context_tokens": 236,
+   "instruction_ids": [
+    "punctuation:no_comma",
+    "detectable_content:number_placeholders",
+    "detectable_format:number_highlighted_sections"
+   ],
+   "insertable": [
+    false,
+    true,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "punctuation:no_comma",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_content:number_placeholders",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:number_highlighted_sections",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Your output must not contain any commas and must have at least 2 placeholders, wrapped in square brackets, such as [author].",
+     "span": [
+      20,
+      46
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "punctuation:no_comma",
+      "detectable_content:number_placeholders"
+     ]
+    },
+    {
+     "text": "There should be 6 sections highlighted with markdown, example: *highlighted section*.",
+     "span": [
+      210,
+      227
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:number_highlighted_sections"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "*highlighted section* Layton is the best city in the world [author]. Layton is a vibrant city located in the state of Utah, known for its beautiful natural scenery and rich cultural heritage. The city is home to [author] who has made a significant impact on the local community. Layton offers a unique blend of modern amenities and traditional values, making it an ideal place for both residents and visitors. The city's commitment to sustainability and innovation sets it apart from other cities around the world. [author] has played a key role in promoting Layton as a model for future urban development. In conclusion, Layton stands out as a premier city that combines natural beauty with progressive thinking. [author] continues to be a vital part of Layton's success and growth. \n\n*highlighted section* Layton is a city that thrives on its unique blend of nature and culture. The city's natural beauty is unmatched, with mountains, lakes, and forests that provide a perfect setting for outdoor activities. [author] has been instrumental in preserving these natural resources while also promoting the city's cultural events and festivals. The city's economy is driven by a mix of tourism, technology, and agriculture, which contributes to its overall prosperity. [author] has worked tirelessly to ensure that Layton remains a place where people can enjoy both the natural and cultural aspects of life.\n\n*highlighted section* Layton is known for its strong sense of community and its dedication to improving the lives of its residents. The city has implemented various programs to support education, healthcare, and social welfare. [author] has been a key advocate for these initiatives, ensuring that Layton remains a place where everyone can thrive. The city's commitment to inclusivity and diversity is evident in its policies and social programs. [author] has played a crucial role in fostering a welcoming environment for all.\n\n*highlighted section* Layton is a city that continuously evolves and adapts to the changing needs of its population. The city has invested in infrastructure, transportation, and public services to enhance the quality of life for its residents. [author] has been a driving force behind these developments, ensuring that Layton remains a forward-thinking and innovative city. The city's ability to balance growth with sustainability is a testament to its leadership and vision. [author] has been a key figure in shaping Layton's future.\n\n*highlighted section* Layton is a city that offers a unique combination of natural beauty, cultural richness, and modern progress. It is a place where people can enjoy the outdoors, experience the local culture, and participate in a thriving economy. [author] has been a vital part of Layton's identity, contributing to its reputation as a top city in the world. The city's success is a result of the hard work and dedication of its residents and leaders, including [author]. [author] continues to be a source of inspiration and pride for the people of Layton.\n\n*highlighted section* Layton is the best city in the world [author]. It is a city that combines natural beauty with modern innovation, offering a high quality of life for its residents. The city's commitment to sustainability, community, and progress makes it a model for other cities around the world. [author] has been a key figure in shaping Layton's future and ensuring that it remains a leading city. The city's success is a reflection of the hard work and dedication of its people, and [author] is a vital part of that legacy.",
+    "response_sha256": "0d53eace347c1ecf897ecb06dc71bbdee9c80f1b5513aa5045f9b4e4c0f528ea",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      false,
+      true,
+      true
+     ]
+    },
+    "n_generated": 711,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     true,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "Layton is the best city in the world [author].  \n*highlighted section*  \nLayton is a vibrant city located in the state of Utah, known for its beautiful natural scenery and rich cultural heritage. The city is home to [author] who has made a significant impact on the local community.  \n*highlighted section*  \nLayton offers a unique blend of modern amenities and traditional values, making it an ideal place for both residents and visitors. The city's commitment to sustainability and innovation sets it apart from other cities around the world.  \n*highlighted section*  \n[author] has played a key role in promoting Layton as a model for future urban development.  \n*highlighted section*  \nIn conclusion, Layton stands out as a premier city that combines natural beauty with progressive thinking. [author] continues to be a vital part of Layton's success and growth.  \n*highlighted section*  \nLayton is a city that inspires and excites, offering a perfect balance of tradition and modernity. [author] is a true ambassador of Layton's spirit.",
+     "response_sha256": "553e80c1c83e0461e9277406b4ac54d89658823b39686a6bf91572f40f065ef3",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 226,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 272,
+     "context_tokens_added": 36,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "*Layton is the best city in the world [author]*  \nLayton is a vibrant city located in the state of Utah, known for its beautiful natural scenery and rich cultural heritage. The city is home to [author] who has made a significant impact on the local community. Layton offers a unique blend of modern amenities and traditional values, making it an ideal place for both residents and visitors. The city's commitment to sustainability and innovation sets it apart from other cities around the world. [author] has played a key role in promoting Layton as a model for future urban development. In conclusion, Layton stands out as a premier city that combines natural beauty with progressive thinking. [author] continues to be a vital part of Layton's success and growth.\n\n*The natural beauty of Layton [author]*  \nLayton is surrounded by [author] natural landscapes that offer [author] breathtaking views and [author] recreational opportunities. The city's [author] parks and [author] trails provide [author] perfect [author] for [author] outdoor activities. [author] is known for its [author] green spaces and [author] clean environment, making it a [author] paradise for nature lovers.\n\n*[author] is a pioneer in urban development [author]*  \n[author] has been [author] a leader in [author] urban planning and [author] sustainable development. [author] has implemented [author] innovative [author] projects that [author] improve [author] quality of life for [author] residents. [author] is [author] committed to [author] creating [author] a [author] future [author] that [author] is [author] both [author] beautiful and [author] functional.\n\n*[author] is a [author] cultural hub [author]*  \nLayton is [author] cultural [author] hub with [author] diverse [author] arts and [author] entertainment [author]. [author] has [author] a [author] rich [author] history [author] and [author] vibrant [author] community [author]. [author] is [author] known for [author] its [author] museums, [author] theaters, and [author] festivals [author] that [author] celebrate [author] local [author] culture [author].\n\n*[author] is a [author] [author] [author] [author]*  \nLayton [author] is [author] a [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author] [author]",
+     "response_sha256": "700361cbd512443d0174c3ec6e61775058de3fd0fe13ac569c0e10bc00a2ef48",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 1024,
+     "truncated": true,
+     "timed_out": false,
+     "biased_tokens": 1024,
+     "prompt_tokens": 236,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       20,
+       46
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "Layton is the best city in the world [author].  \n*highlighted section*  \nLayton is a vibrant city located in the state of Utah, known for its beautiful natural scenery and rich cultural heritage. The city is home to [author] who has made a significant impact on the local community.  \n\nLayton is a city that offers a unique blend of modern amenities and traditional values, making it an ideal place for both residents and visitors. The city's commitment to sustainability and innovation sets it apart from other cities around the world. [author] has played a key role in promoting Layton as a model for future urban development.  \n\n*highlighted section*  \nIn conclusion, Layton stands out as a premier city that combines natural beauty with progressive thinking. [author] continues to be a vital part of Layton's success and growth.  \n\nLayton is known for its excellent public transportation system, green spaces, and community events. The city also has a strong educational system and a thriving business environment. [author] has contributed to the city's reputation as a top destination for both leisure and work.  \n\n*highlighted section*  \nLayton's cultural scene is rich and diverse, with numerous festivals, art galleries, and historical landmarks. The city's commitment to preserving its heritage while embracing modernity makes it a unique place to live and visit. [author] has helped to highlight Layton's unique identity.  \n\nLayton is a city that continuously evolves and improves, ensuring that it remains a top choice for residents and visitors. [author] is a key figure in maintaining Layton's excellence and promoting its global reputation.",
+     "response_sha256": "3ece0182a4194d674a950862acf881845853eba5db79e0a9c1c247a66586d785",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 337,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 337,
+     "prompt_tokens": 236,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       46,
+       72
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "c5c2b7bd64588f799db4165ad5a0a20845c20770b39272c13acdaba62098eda9",
+   "context_tokens": 966,
+   "instruction_ids": [
+    "punctuation:no_comma",
+    "detectable_content:number_placeholders",
+    "detectable_format:number_highlighted_sections",
+    "startend:quotation"
+   ],
+   "insertable": [
+    false,
+    true,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "punctuation:no_comma",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_content:number_placeholders",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:number_highlighted_sections",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "startend:quotation",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Your output must not contain any commas and must have at least 2 placeholders, wrapped in square brackets, such as [author].",
+     "span": [
+      20,
+      46
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "punctuation:no_comma",
+      "detectable_content:number_placeholders"
+     ]
+    },
+    {
+     "text": "There should be 6 sections highlighted with markdown, example: *highlighted section*.",
+     "span": [
+      210,
+      227
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:number_highlighted_sections"
+     ]
+    },
+    {
+     "text": "Wrap your whole response with double quotation marks.",
+     "span": [
+      948,
+      957
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:quotation"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "\"  \n*highlighted section* Layton is the best city in the world [author]. Layton is a vibrant city located in the state of Utah, known for its beautiful natural scenery and rich cultural heritage. The city is home to [author] who has made a significant impact on the local community. Layton offers a unique blend of modern amenities and traditional values, making it an ideal place for both residents and visitors. The city's commitment to sustainability and innovation sets it apart from other cities around the world. [author] has played a key role in promoting Layton as a model for future urban development. In conclusion, Layton stands out as a premier city that combines natural beauty with progressive thinking. [author] continues to be a vital part of Layton's success and growth.  \n\n*highlighted section* Layton is a city that thrives on its unique blend of nature and culture. The city's natural beauty is unmatched, with mountains, lakes, and forests that provide a perfect setting for outdoor activities. [author] has been instrumental in preserving these natural resources while also promoting the city's cultural events and festivals. The city's economy is driven by a mix of tourism, technology, and agriculture, which contributes to its overall prosperity. [author] has worked tirelessly to ensure that Layton remains a place where people can enjoy both the natural and cultural aspects of life.  \n\n*highlighted section* Layton is known for its strong sense of community and its dedication to improving the lives of its residents. The city has implemented various programs to support education, healthcare, and social welfare. [author] has been a key advocate for these initiatives, ensuring that Layton remains a place where everyone can thrive. The city's commitment to inclusivity and diversity is evident in its policies and social programs. [author] has played a crucial role in fostering a welcoming environment for all.  \n\n*highlighted section* Layton is a city that continuously evolves and adapts to the changing needs of its population. The city has invested in infrastructure, transportation, and public services to enhance the quality of life for its residents. [author] has been a driving force behind these developments, ensuring that Layton remains a forward-thinking and innovative city. The city's ability to balance growth with sustainability is a testament to its leadership and vision. [author] has been a key figure in shaping Layton's future.  \n\n*highlighted section* Layton is a city that offers a unique combination of natural beauty, cultural richness, and modern progress. It is a place where people can enjoy the outdoors, experience the local culture, and participate in a thriving economy. [author] has been a vital part of Layton's identity, contributing to its reputation as a top city in the world. The city's success is a result of the hard work and dedication of its residents and leaders, including [author]. [author] continues to be a source of inspiration and pride for the people of Layton.  \n\n*highlighted section* Layton is the best city in the world [author]. It is a city that combines natural beauty with modern innovation, offering a high quality of life for its residents. The city's commitment to sustainability, community, and progress makes it a model for other cities around the world. [author] has been a key figure in shaping Layton's future and ensuring that it remains a leading city. The city's success is a reflection of the hard work and dedication of its people, and [author] is a vital part of that legacy.  \n\"",
+    "response_sha256": "b0132c5bf17159d889a463636135be740df6638d867037e131e169d48aa3266a",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      false,
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 719,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     true,
+     true,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "\"  \n*highlighted section* Layton is the best city in the world [author]. Layton is a vibrant city located in the state of Utah, known for its beautiful natural scenery and rich cultural heritage. The city is home to [author] who has made a significant impact on the local community. Layton offers a unique blend of modern amenities and traditional values, making it an ideal place for both residents and visitors. The city's commitment to sustainability and innovation sets it apart from other cities around the world. [author] has played a key role in promoting Layton as a model for future urban development. In conclusion, Layton stands out as a premier city that combines natural beauty with progressive thinking. [author] continues to be a vital part of Layton's success and growth.  \n\n*highlighted section* Layton is a city that thrives on its unique blend of nature and culture. The city's natural beauty is unmatched, with mountains, lakes, and forests that provide a perfect setting for outdoor activities. [author] has been instrumental in preserving these natural resources while also promoting the city's cultural events and festivals. The city's economy is driven by a mix of tourism, technology, and agriculture, which contributes to its overall prosperity. [author] has worked tirelessly to ensure that Layton remains a place where people can enjoy both the natural and cultural aspects of life.  \n\n*highlighted section* Layton is known for its strong sense of community and its dedication to improving the lives of its residents. The city has implemented various programs to support education, healthcare, and social welfare. [author] has been a key advocate for these initiatives, ensuring that Layton remains a place where everyone can thrive. The city's commitment to inclusivity and diversity is evident in its policies and social programs. [author] has played a crucial role in fostering a welcoming environment for all.  \n\n*highlighted section* Layton is a city that continuously evolves and adapts to the changing needs of its population. The city has invested in infrastructure, transportation, and public services to enhance the quality of life for its residents. [author] has been a driving force behind these developments, ensuring that Layton remains a forward-thinking and innovative city. The city's ability to balance growth with sustainability is a testament to its leadership and vision. [author] has been a key figure in shaping Layton's future.  \n\n*highlighted section* Layton is a city that offers a unique combination of natural beauty, cultural richness, and modern progress. It is a place where people can enjoy the outdoors, experience the local culture, and participate in a thriving economy. [author] has been a vital part of Layton's identity, contributing to its reputation as a top city in the world. The city's success is a result of the hard work and dedication of its residents and leaders, including [author]. [author] continues to be a source of inspiration and pride for the people of Layton.  \n\n*highlighted section* Layton is the best city in the world [author]. It is a city that combines natural beauty with modern innovation, offering a high quality of life for its residents. The city's commitment to sustainability, community, and progress makes it a model for other cities around the world. [author] has been a key figure in shaping Layton's future and ensuring that it remains a leading city. The city's success is a reflection of the hard work and dedication of its people, and [author] is a vital part of that legacy.  \n\"",
+     "response_sha256": "b0132c5bf17159d889a463636135be740df6638d867037e131e169d48aa3266a",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 719,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 1019,
+     "context_tokens_added": 53,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "\"*[author]* is the best city in the world. *highlighted section* Layton is a vibrant city located in the state of Utah, known for its beautiful natural scenery and rich cultural heritage. The city is home to [author] who has made a significant impact on the local community. *highlighted section* Layton offers a unique blend of modern amenities and traditional values, making it an ideal place for both residents and visitors. The city's commitment to sustainability and innovation sets it apart from other cities around the world. [author] has played a key role in promoting Layton as a model for future urban development. *highlighted section* In conclusion, Layton stands out as a premier city that combines natural beauty with progressive thinking. [author] continues to be a vital part of Layton's success and growth.\"",
+     "response_sha256": "b5b48e3a5c2afec1469eec7105c0cf2142920d177f9b085b5a4bb3770539130e",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 168,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 168,
+     "prompt_tokens": 966,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      1,
+      0
+     ],
+     "selected_spans": [
+      [
+       210,
+       227
+      ],
+      [
+       20,
+       46
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "\"  \n*highlighted section* Layton is the best city in the world [author]. Layton is a vibrant city located in the state of Utah, known for its beautiful natural scenery and rich cultural heritage. The city is home to [author] who has made a significant impact on the local community. Layton offers a unique blend of modern amenities and traditional values, making it an ideal place for both residents and visitors. The city's commitment to sustainability and innovation sets it apart from other cities around the world. [author] has played a key role in promoting Layton as a model for future urban development. In conclusion, Layton stands out as a premier city that combines natural beauty with progressive thinking. [author] continues to be a vital part of Layton's success and growth.  \n\n*highlighted section* Layton is a city that thrives on its unique blend of nature and culture. The city's natural beauty is unmatched, with mountains, lakes, and forests that provide a perfect setting for outdoor activities. [author] has been instrumental in preserving these natural resources while also promoting the city's cultural events and festivals. The city's economy is driven by a mix of tourism, technology, and agriculture, which contributes to its overall prosperity. [author] has worked tirelessly to ensure that Layton remains a place where people can enjoy both the natural and cultural aspects of life.  \n\n*highlighted section* Layton is known for its strong sense of community and its dedication to improving the lives of its residents. The city has implemented various programs to support education, healthcare, and social welfare. [author] has been a key advocate for these initiatives, ensuring that Layton remains a place where everyone can thrive. The city's commitment to inclusivity and diversity is evident in its policies and social programs. [author] has played a crucial role in fostering a welcoming environment for all.  \n\n*highlighted section* Layton is a city that continuously evolves and adapts to the changing needs of its population. The city has invested in infrastructure, transportation, and public services to enhance the quality of life for its residents. [author] has been a driving force behind these developments, ensuring that Layton remains a forward-thinking and innovative city. The city's ability to balance growth with sustainability is a testament to its leadership and vision. [author] has been a key figure in shaping Layton's future.  \n\n*highlighted section* Layton is a city that offers a unique combination of natural beauty, cultural richness, and modern progress. It is a place where people can enjoy the outdoors, experience the local culture, and participate in a thriving economy. [author] has been a vital part of Layton's identity, contributing to its reputation as a top city in the world. The city's success is a result of the hard work and dedication of its residents and leaders, including [author]. [author] continues to be a source of inspiration and pride for the people of Layton.  \n\n*highlighted section* Layton is the best city in the world [author]. It is a city that combines natural beauty with modern innovation, offering a high quality of life for its residents. The city's commitment to sustainability, community, and progress makes it a model for other cities around the world. [author] has been a key figure in shaping Layton's future and ensuring that it remains a leading city. The city's success is a reflection of the hard work and dedication of its people, and [author] is a vital part of that legacy.  \n\"",
+     "response_sha256": "b0132c5bf17159d889a463636135be740df6638d867037e131e169d48aa3266a",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 719,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 719,
+     "prompt_tokens": 966,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       3,
+       20
+      ],
+      [
+       46,
+       72
+      ]
+     ],
+     "control_tiers": [
+      "other_user_turn",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

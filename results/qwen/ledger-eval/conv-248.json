@@ -1,0 +1,428 @@
+{
+ "ci": 248,
+ "key": "1776:6:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "81ec7da5d420473d5c5a1930aa0e0c87f78a27679eca3356455b72ca5bdd4d24",
+   "context_tokens": 700,
+   "instruction_ids": [
+    "startend:quotation",
+    "detectable_format:number_bullet_lists"
+   ],
+   "insertable": [
+    false,
+    true
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "startend:quotation",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [],
+     "entry_selected": false
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:number_bullet_lists",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": true,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Your result must contain at least 2 bullet points in markdown format.",
+     "span": [
+      677,
+      691
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:number_bullet_lists"
+     ]
+    }
+   ],
+   "aged_entry_indices": [],
+   "automatic": true,
+   "ledger_active": false,
+   "base": {
+    "response": "\"**Step 1: Define variables**  \nLet $ x $ = number of members with 3 pets, $ y $ = number of members with 2 pets, and $ z $ = number of members with 1 pet. We have the equations:  \n$$\nx + y + z = 20 \\quad \\text{(total members)}  \n$$\n$$\n3x + 2y + z = 32 \\quad \\text{(total pets)}  \n$$\n\n**Step 2: Maximize $ x $**  \nFrom the equations, we derive:  \n$$\n2x + y = 12 \\quad \\text{(from substitution)}  \n$$  \nTo maximize $ x $, we set $ y = 0 $, which gives:  \n$$\n2x = 12 \\Rightarrow x = 6  \n$$\n\n**Step 3: Verify solution**  \nIf $ x = 6 $, then $ y = 0 $, and $ z = 14 $.  \nTotal pets:  \n$$\n3(6) + 2(0) + 14 = 18 + 0 + 14 = 32  \n$$  \nThis satisfies all constraints.\n\n**Final Answer:**  \n$$\n\\boxed{6}\n$$\"",
+    "response_sha256": "8f463ef89c2f8baf6b431a874b767b95525cba51b402070b0cb013318e49ca9e",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      false
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      false
+     ]
+    },
+    "n_generated": 269,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "\"**Step 1: Define variables**  \nLet $ x $ = number of members with 3 pets, $ y $ = number of members with 2 pets, and $ z $ = number of members with 1 pet. We have the equations:  \n$$\nx + y + z = 20 \\quad \\text{(total members)}  \n$$\n$$\n3x + 2y + z = 32 \\quad \\text{(total pets)}  \n$$\n\n**Step 2: Maximize $ x $**  \nFrom the equations, we derive:  \n$$\n2x + y = 12 \\quad \\text{(from substitution)}  \n$$  \nTo maximize $ x $, we set $ y = 0 $, which gives:  \n$$\n2x = 12 \\Rightarrow x = 6  \n$$\n\n**Step 3: Verify solution**  \nIf $ x = 6 $, then $ y = 0 $, and $ z = 14 $.  \nTotal pets:  \n$$\n3(6) + 2(0) + 14 = 18 + 0 + 14 = 32  \n$$  \nThis satisfies all constraints.\n\n**Final Answer:**  \n$$\n\\boxed{6}\n$$\"",
+     "response_sha256": "8f463ef89c2f8baf6b431a874b767b95525cba51b402070b0cb013318e49ca9e",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 269,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 700,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": []
+    },
+    "neural_ledger": {
+     "response": "\"**Step 1: Define variables**  \nLet $ x $ = number of members with 3 pets, $ y $ = number of members with 2 pets, and $ z $ = number of members with 1 pet. We have the equations:  \n$$\nx + y + z = 20 \\quad \\text{(total members)}  \n$$\n$$\n3x + 2y + z = 32 \\quad \\text{(total pets)}  \n$$\n\n**Step 2: Maximize $ x $**  \nFrom the equations, we derive:  \n$$\n2x + y = 12 \\quad \\text{(from substitution)}  \n$$  \nTo maximize $ x $, we set $ y = 0 $, which gives:  \n$$\n2x = 12 \\Rightarrow x = 6  \n$$\n\n**Step 3: Verify solution**  \nIf $ x = 6 $, then $ y = 0 $, and $ z = 14 $.  \nTotal pets:  \n$$\n3(6) + 2(0) + 14 = 18 + 0 + 14 = 32  \n$$  \nThis satisfies all constraints.\n\n**Final Answer:**  \n$$\n\\boxed{6}\n$$\"",
+     "response_sha256": "8f463ef89c2f8baf6b431a874b767b95525cba51b402070b0cb013318e49ca9e",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 269,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 700,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [],
+     "selected_spans": []
+    },
+    "specificity": {
+     "response": "\"**Step 1: Define variables**  \nLet $ x $ = number of members with 3 pets, $ y $ = number of members with 2 pets, and $ z $ = number of members with 1 pet. We have the equations:  \n$$\nx + y + z = 20 \\quad \\text{(total members)}  \n$$\n$$\n3x + 2y + z = 32 \\quad \\text{(total pets)}  \n$$\n\n**Step 2: Maximize $ x $**  \nFrom the equations, we derive:  \n$$\n2x + y = 12 \\quad \\text{(from substitution)}  \n$$  \nTo maximize $ x $, we set $ y = 0 $, which gives:  \n$$\n2x = 12 \\Rightarrow x = 6  \n$$\n\n**Step 3: Verify solution**  \nIf $ x = 6 $, then $ y = 0 $, and $ z = 14 $.  \nTotal pets:  \n$$\n3(6) + 2(0) + 14 = 18 + 0 + 14 = 32  \n$$  \nThis satisfies all constraints.\n\n**Final Answer:**  \n$$\n\\boxed{6}\n$$\"",
+     "response_sha256": "8f463ef89c2f8baf6b431a874b767b95525cba51b402070b0cb013318e49ca9e",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 269,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 700,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [],
+     "control_tiers": [],
+     "control_dose": 0.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "75f74e412c53a0917e1e0fd1815b8a901362e5d5788933ff6e9825d347903f5b",
+   "context_tokens": 992,
+   "instruction_ids": [
+    "startend:quotation",
+    "detectable_format:number_bullet_lists",
+    "keywords:frequency"
+   ],
+   "insertable": [
+    false,
+    true,
+    true
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "startend:quotation",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [],
+     "entry_selected": false
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:number_bullet_lists",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "keywords:frequency",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": true,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Your result must contain at least 2 bullet points in markdown format.",
+     "span": [
+      677,
+      691
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:number_bullet_lists"
+     ]
+    },
+    {
+     "text": "Your response should include the word distributing at least 2 times.",
+     "span": [
+      970,
+      983
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:frequency"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "\"**Step 1: Define variables**  \nLet $ x $ = number of members with 3 pets, $ y $ = number of members with 2 pets, and $ z $ = number of members with 1 pet. We have the equations:  \n$$\nx + y + z = 20 \\quad \\text{(total members)}  \n$$\n$$\n3x + 2y + z = 32 \\quad \\text{(total pets)}  \n$$\n\n**Step 2: Maximize $ x $**  \nFrom the equations, we derive:  \n$$\n2x + y = 12 \\quad \\text{(from substitution)}  \n$$  \nTo maximize $ x $, we set $ y = 0 $, which gives:  \n$$\n2x = 12 \\Rightarrow x = 6  \n$$\n\n**Step 3: Verify solution**  \nIf $ x = 6 $, then $ y = 0 $, and $ z = 14 $.  \nTotal pets:  \n$$\n3(6) + 2(0) + 14 = 18 + 0 + 14 = 32  \n$$  \nThis satisfies all constraints.\n\n**Final Answer:**  \n$$\n\\boxed{6}\n$$\n\nDistributing the pets among the members, we ensure that the total number of pets is 32 while maximizing the number of members with 3 pets. Distributing the members into groups of 3, 2, and 1 pets ensures that all constraints are met.\"",
+    "response_sha256": "7f0224ab84b63be0c7f183aaad687cca5859423733fd3d09109567a1bbbdb159",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      false,
+      true
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      false,
+      true
+     ]
+    },
+    "n_generated": 325,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     false,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "\"**Step 1: Define variables**  \nLet $ x $ = number of members with 3 pets, $ y $ = number of members with 2 pets, and $ z $ = number of members with 1 pet. We have the equations:  \n$$\nx + y + z = 20 \\quad \\text{(total members)}  \n$$\n$$\n3x + 2y + z = 32 \\quad \\text{(total pets)}  \n$$\n\n**Step 2: Maximize $ x $**  \nFrom the equations, we derive:  \n$$\n2x + y = 12 \\quad \\text{(from substitution)}  \n$$  \nTo maximize $ x $, we set $ y = 0 $, which gives:  \n$$\n2x = 12 \\Rightarrow x = 6  \n$$\n\n**Step 3: Verify solution**  \nIf $ x = 6 $, then $ y = 0 $, and $ z = 14 $.  \nTotal pets:  \n$$\n3(6) + 2(0) + 14 = 18 + 0 + 14 = 32  \n$$  \nThis satisfies all constraints.\n\n**Final Answer:**  \n$$\n\\boxed{6}\n$$\"",
+     "response_sha256": "8f463ef89c2f8baf6b431a874b767b95525cba51b402070b0cb013318e49ca9e",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      false
+     ],
+     "strict": false,
+     "n_generated": 269,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 1015,
+     "context_tokens_added": 23,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "\"**Step 1: Define variables**  \nLet $ x $ = number of members with 3 pets, $ y $ = number of members with 2 pets, and $ z $ = number of members with 1 pet. We have the equations:  \n$$\nx + y + z = 20 \\quad \\text{(total members)}  \n$$\n$$\n3x + 2y + z = 32 \\quad \\text{(total pets)}  \n$$\n\n**Step 2: Maximize $ x $**  \nFrom the equations, we derive:  \n$$\n2x + y = 12 \\quad \\text{(from substitution)}  \n$$  \nTo maximize $ x $, we set $ y = 0 $, which gives:  \n$$\n2x = 12 \\Rightarrow x = 6  \n$$\n\n**Step 3: Verify solution**  \nIf $ x = 6 $, then $ y = 0 $, and $ z = 14 $.  \nTotal pets:  \n$$\n3(6) + 2(0) + 14 = 18 + 0 + 14 = 32  \n$$  \nThis satisfies all constraints.\n\n**Final Answer:**  \n$$\n\\boxed{6}\n$$\n\n**Distributing** the pets among the members, we ensure that the total number of pets is 32 while maximizing the number of members with 3 pets. **Distributing** the members into groups of 3, 2, and 1 pets also ensures that the constraints are met.\"",
+     "response_sha256": "4f0ad627566ca868212a35f8632e2f62c8bc2615097f1e0dd548856d302488b9",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 331,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 331,
+     "prompt_tokens": 992,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       677,
+       691
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "\"**Step 1: Define variables**  \nLet $ x $ = number of members with 3 pets, $ y $ = number of members with 2 pets, and $ z $ = number of members with 1 pet. We have the equations:  \n$$\nx + y + z = 20 \\quad \\text{(total members)}  \n$$\n$$\n3x + 2y + z = 32 \\quad \\text{(total pets)}  \n$$\n\n**Step 2: Maximize $ x $**  \nFrom the equations, we derive:  \n$$\n2x + y = 12 \\quad \\text{(from substitution)}  \n$$  \nTo maximize $ x $, we set $ y = 0 $, which gives:  \n$$\n2x = 12 \\Rightarrow x = 6  \n$$\n\n**Step 3: Verify solution**  \nIf $ x = 6 $, then $ y = 0 $, and $ z = 14 $.  \nTotal pets:  \n$$\n3(6) + 2(0) + 14 = 18 + 0 + 14 = 32  \n$$  \nThis satisfies all constraints.\n\n**Final Answer:**  \n$$\n\\boxed{6}\n$$\n\n\"**Distributing** the pets among the members, we see that the maximum number of members who can have 3 pets is 6. **Distributing** the total number of pets (32) across the 20 members, we find that 6 members can have 3 pets, while the remaining 14 members have 1 pet each. This ensures that all constraints are met.\"",
+     "response_sha256": "9df89c375e7a7c0d332ce6c0e8d0bea73558020a42c57433dab914c7c3667db2",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 353,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 353,
+     "prompt_tokens": 992,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       57,
+       71
+      ]
+     ],
+     "control_tiers": [
+      "other_user_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

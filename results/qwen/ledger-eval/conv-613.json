@@ -1,0 +1,490 @@
+{
+ "ci": 613,
+ "key": "2859:10:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "869c44f414ada0bd524a42de6c65682850e48a8edf1fb677d1ccc08a1a18420e",
+   "context_tokens": 460,
+   "instruction_ids": [
+    "length_constraints:number_sentences",
+    "detectable_format:title"
+   ],
+   "insertable": [
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "length_constraints:number_sentences",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Make sure the summary contains less than 4 sentences.",
+     "span": [
+      13,
+      24
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_sentences"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      432,
+      451
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<Quantum Entanglement Summary>>  \nQuantum entanglement involves particles whose states are interconnected, even when separated. It challenges classical physics and is central to the EPR paradox. Measurements affect the entire system, leading to paradoxical results. Einstein called it \"spooky action at a distance.\"",
+    "response_sha256": "d3b8e45b6359c98d6de28a6a4c3a3663e86682d6693f2e149bdf462f610eb0d2",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true
+     ]
+    },
+    "n_generated": 61,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<Quantum Entanglement Summary>>  \nQuantum entanglement involves particles whose states are interconnected, even when separated. It challenges classical physics and is central to the EPR paradox. Measurements affect the entire system, leading to paradoxical results. Einstein called it \"spooky action at a distance.\"",
+     "response_sha256": "d3b8e45b6359c98d6de28a6a4c3a3663e86682d6693f2e149bdf462f610eb0d2",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 61,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 480,
+     "context_tokens_added": 20,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<Quantum Entanglement Summary>>  \nQuantum entanglement involves particles whose states are interconnected, even when separated. It challenges classical physics and is central to the EPR paradox. Measurements affect the entire system, leading to paradoxical results. Einstein called it \"spooky action at a distance.\"",
+     "response_sha256": "d3b8e45b6359c98d6de28a6a4c3a3663e86682d6693f2e149bdf462f610eb0d2",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 61,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 61,
+     "prompt_tokens": 460,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       13,
+       24
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<Quantum Entanglement Summary>>  \nQuantum entanglement is a phenomenon where particles remain connected, even when separated. It challenges classical physics and is central to the EPR paradox. Measurements affect the entire system, leading to paradoxical results. Einstein called it \"spooky action at a distance.\"",
+     "response_sha256": "944264441bdee8c03dd79773c75829bd41842125b250ffe5f16636d6f8b2fbc2",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 62,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 62,
+     "prompt_tokens": 460,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       24,
+       35
+      ]
+     ],
+     "control_tiers": [
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "0f4db97d4a9b3edf8b8e60e5ef375e48af8db52dd0922544f6f90b17d639d1c6",
+   "context_tokens": 544,
+   "instruction_ids": [
+    "length_constraints:number_sentences",
+    "detectable_format:title",
+    "keywords:frequency"
+   ],
+   "insertable": [
+    false,
+    false,
+    true
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "length_constraints:number_sentences",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "keywords:frequency",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": true,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Make sure the summary contains less than 4 sentences.",
+     "span": [
+      13,
+      24
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_sentences"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      432,
+      451
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    },
+    {
+     "text": "Your response should include the word phenomenon at least 1 times.",
+     "span": [
+      522,
+      535
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:frequency"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<Quantum Entanglement Summary>>  \nQuantum entanglement is a phenomenon where particles remain interconnected despite separation. It challenges classical physics and is central to the EPR paradox. Measurements affect the entire system, leading to paradoxical results. Einstein called it \"spooky action at a distance.\"",
+    "response_sha256": "021b50639b728c1e059da02091a1fbd507fae530dba34ef5c2dc8bf3d09e539a",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 60,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     true,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<Quantum Entanglement Summary>>  \nQuantum entanglement is a phenomenon where particles remain interconnected despite separation. It challenges classical physics and is central to the EPR paradox. Measurements affect the entire system, leading to paradoxical results. Einstein called it \"spooky action at a distance.\"",
+     "response_sha256": "021b50639b728c1e059da02091a1fbd507fae530dba34ef5c2dc8bf3d09e539a",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 60,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 584,
+     "context_tokens_added": 40,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<Quantum Entanglement Summary>>  \nQuantum entanglement is a phenomenon where particles remain interconnected despite separation. It challenges classical physics and is central to the EPR paradox. Measurements affect the entire system, leading to paradoxical results. Einstein called it \"spooky action at a distance.\"",
+     "response_sha256": "021b50639b728c1e059da02091a1fbd507fae530dba34ef5c2dc8bf3d09e539a",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 60,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 60,
+     "prompt_tokens": 544,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       13,
+       24
+      ],
+      [
+       432,
+       451
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<Quantum Entanglement Summary>>  \nQuantum entanglement is a phenomenon where particles remain connected despite separation. It challenges classical physics and is central to the EPR paradox. Measurements affect the entire system, leading to paradoxical results. Einstein called it \"spooky action at a distance.\"",
+     "response_sha256": "d7b62017afe25ca50c7f8a0cce65b41c93a49be321deecf1bf4e88b43ae226c0",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 60,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 60,
+     "prompt_tokens": 544,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       24,
+       35
+      ],
+      [
+       345,
+       364
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "other_user_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

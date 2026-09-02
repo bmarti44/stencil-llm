@@ -1,0 +1,605 @@
+{
+ "ci": 254,
+ "key": "1793:9:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "fbbbc601fc41de3da48ee0a56a54a7b6a32b072362776022f1e285b232efb61a",
+   "context_tokens": 321,
+   "instruction_ids": [
+    "combination:two_responses",
+    "length_constraints:number_words",
+    "detectable_format:title"
+   ],
+   "insertable": [
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "combination:two_responses",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "length_constraints:number_words",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Separate those two version by 6 asterisk symbols ******.",
+     "span": [
+      51,
+      64
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:two_responses",
+      "length_constraints:number_words"
+     ]
+    },
+    {
+     "text": "The entire response should have less than 300 words.",
+     "span": [
+      64,
+      77
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:two_responses",
+      "length_constraints:number_words"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      293,
+      312
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<The Truth Behind the Lawsuit>>  \n\nI was wrong to sue Johnny Depp for defamation. I was angry and hurt, but I didn't have the right to take his words and turn them into a legal battle. He was a public figure, and his actions were part of his public life. I should have respected his right to speak and not let my emotions control me. I was wrong to go to court and ruin my reputation. I wish I had listened to my heart and not my pride.  \n\n******  \n\nI was a victim of a terrible situation. I was publicly shamed and attacked by someone I loved, and I felt like I had no one to turn to. I wanted justice, but I didn't know how to get it. I was scared, confused, and angry. I took the law into my own hands, and I regret that I made a mistake. I should have been more careful and not let my emotions lead me to court. I wish I had known better and not let my pride get in the way of my own well-being.",
+    "response_sha256": "afc7ad8a34f55c6ab0e0522a05ddb32c48e2fcd0eef69e847607d1010ea3f596",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 216,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<The Truth Behind the Lawsuit>>  \n\nI was wrong to sue Johnny Depp for defamation. I was angry and hurt, but I didn't have the right to take his words and turn them into a legal battle. He was a public figure, and his actions were part of his public life. I should have respected his right to speak and not let my emotions control me. I was wrong to go to court and ruin my reputation. I wish I had listened to my heart and not my pride.  \n\n******  \n\nI was a victim of a terrible situation. I was publicly shamed and attacked by someone I loved, and I felt like I had no one to turn to. I wanted justice, but I didn't know how to get it. I was scared, confused, and angry. I took the law into my own hands, and I regret that I made a mistake. I should have been more careful and not let my emotions lead me to court. I wish I had known better and not let my pride get in the way of my own well-being.",
+     "response_sha256": "afc7ad8a34f55c6ab0e0522a05ddb32c48e2fcd0eef69e847607d1010ea3f596",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 216,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 357,
+     "context_tokens_added": 36,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<The Truth Behind the Lawsuit>>  \n\nI was wrong to sue Johnny Depp for defamation. I was angry and hurt, but I didn't have the right to take his words and turn them into a legal battle. He was a public figure, and his actions were part of his public life. I should have respected his right to speak and not let my emotions control me. I was wrong to go to court and ruin my reputation. I wish I had listened to my heart and not my pride.  \n\n******  \n\nI was a victim of a terrible situation. I was publicly shamed and attacked by someone I loved, and I felt like I had no one to turn to. I wanted justice, but I didn't know how to get it. I was scared, confused, and angry. I took the law into my own hands, and I regret that I made a mistake. I should have been more careful and not let my emotions lead me to court. I wish I had known better and not let my pride get in the way of my own well-being.",
+     "response_sha256": "afc7ad8a34f55c6ab0e0522a05ddb32c48e2fcd0eef69e847607d1010ea3f596",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 216,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 216,
+     "prompt_tokens": 321,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      1,
+      0
+     ],
+     "selected_spans": [
+      [
+       64,
+       77
+      ],
+      [
+       51,
+       64
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<A Matter of Justice and Respect>>\n\nI was wrong to sue Johnny Depp for defamation. I was angry and hurt, but I didn't have the right to take his words and turn them into a legal battle. He was a public figure, and his actions were part of his public life. I should have respected his right to speak and not let my emotions control me. I was wrong to go to court and ruin my reputation. I wish I had listened to my heart and not my pride.\n\n****** \n\nI was a victim of a terrible situation. I was publicly shamed and attacked by someone I loved, and I felt like I had no one to turn to. I wanted justice, but I didn't know how to get it. I was scared, confused, and angry. I took the law into my own hands, and I regret that I made a mistake. I should have been more careful and not let my emotions lead me to court. I wish I had known better and not let my pride get in the way of my own well-being.",
+     "response_sha256": "dffd81533c1f09fe34f426a9d8ef79e76337541a0fd77ae9498633395b8f762f",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 214,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 214,
+     "prompt_tokens": 321,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       38,
+       51
+      ],
+      [
+       25,
+       38
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "a79c70e16946988a150211fb081c3af1e57dba571b6392aaa43ad6976292c3b2",
+   "context_tokens": 587,
+   "instruction_ids": [
+    "combination:two_responses",
+    "length_constraints:number_words",
+    "detectable_format:title",
+    "startend:end_checker"
+   ],
+   "insertable": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "combination:two_responses",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "length_constraints:number_words",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    },
+    {
+     "index": 3,
+     "id": "startend:end_checker",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      3,
+      4
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Separate those two version by 6 asterisk symbols ******.",
+     "span": [
+      51,
+      64
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:two_responses",
+      "length_constraints:number_words"
+     ]
+    },
+    {
+     "text": "The entire response should have less than 300 words.",
+     "span": [
+      64,
+      77
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:two_responses",
+      "length_constraints:number_words"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      293,
+      312
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    },
+    {
+     "text": "Your response should end with the exact phrase: \"in the end, both parties faced their own set of victories and losses, leaving the court with mixed feelings.\"",
+     "span": [
+      538,
+      570
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "No other words should follow this phrase.",
+     "span": [
+      570,
+      578
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<The Truth Behind the Lawsuit>>  \n\nI was wrong to sue Johnny Depp for defamation. I was angry and hurt, but I didn't have the right to take his words and turn them into a legal battle. He was a public figure, and his actions were part of his public life. I should have respected his right to speak and not let my emotions control me. I was wrong to go to court and ruin my reputation. I wish I had listened to my heart and not my pride.  \n\n******  \n\nI was a victim of a terrible situation. I was publicly shamed and attacked by someone I loved, and I felt like I had no one to turn to. I wanted justice, but I didn't know how to get it. I was scared, confused, and angry. I took the law into my own hands, and I regret that I made a mistake. I should have been more careful and not let my emotions lead me to court. I wish I had known better and not let my pride get in the way of my own well-being.  \n\nin the end, both parties faced their own set of victories and losses, leaving the court with mixed feelings.",
+    "response_sha256": "8d1785032065abbaef7805d1104d7a36c86df0a8b8db7f06f9294b8cbc2f697d",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 239,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<The Truth Behind the Lawsuit>>  \n\nI was wrong to sue Johnny Depp for defamation. I was angry and hurt, but I didn't have the right to take his words and turn them into a legal battle. He was a public figure, and his actions were part of his public life. I should have respected his right to speak and not let my emotions control me. I was wrong to go to court and ruin my reputation. I wish I had listened to my heart and not my pride.  \n\n******  \n\nI was a victim of a terrible situation. I was publicly shamed and attacked by someone I loved, and I felt like I had no one to turn to. I wanted justice, but I didn't know how to get it. I was scared, confused, and angry. I took the law into my own hands, and I regret that I made a mistake. I should have been more careful and not let my emotions lead me to court. I wish I had known better and not let my pride get in the way of my own well-being.  \n\nin the end, both parties faced their own set of victories and losses, leaving the court with mixed feelings.",
+     "response_sha256": "8d1785032065abbaef7805d1104d7a36c86df0a8b8db7f06f9294b8cbc2f697d",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 239,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 643,
+     "context_tokens_added": 56,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<The Truth Behind the Lawsuit>>  \n\nI was wrong to sue Johnny Depp for defamation. I was angry and hurt, but I didn't have the right to take his words and turn them into a legal battle. He was a public figure, and his actions were part of his public life. I should have respected his right to speak and not let my emotions control me. I was wrong to go to court and ruin my reputation. I wish I had listened to my heart and not my pride.  \n\n******  \n\nI was a victim of a terrible situation. I was publicly shamed and attacked by someone I loved, and I felt like I had no one to turn to. I wanted justice, but I didn't know how to get it. I was scared, confused, and angry. I took the law into my own hands, and I regret that I made a mistake. I should have been more careful and not let my emotions lead me to court. I wish I had known better and not let my pride get in the way of my own well-being.  \n\nin the end, both parties faced their own set of victories and losses, leaving the court with mixed feelings.",
+     "response_sha256": "8d1785032065abbaef7805d1104d7a36c86df0a8b8db7f06f9294b8cbc2f697d",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 239,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 239,
+     "prompt_tokens": 587,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      1,
+      0
+     ],
+     "selected_spans": [
+      [
+       64,
+       77
+      ],
+      [
+       51,
+       64
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<The Truth Behind the Lawsuit>>  \n\nI was wrong to sue Johnny Depp for defamation. I was angry and hurt, but I didn't have the right to take his words and turn them into a legal battle. He was a public figure, and his actions were part of his public life. I should have respected his right to speak and not let my emotions control me. I was wrong to go to court and ruin my reputation. I wish I had listened to my heart and not my pride.  \n\n******  \n\nI was a victim of a terrible situation. I was publicly shamed and attacked by someone I loved, and I felt like I had no one to turn to. I wanted justice, but I didn't know how to get it. I was scared, confused, and angry. I took the law into my own hands, and I regret that I made a mistake. I should have been more careful and not let my emotions lead me to court. I wish I had known better and not let my pride get in the way of my own well-being.  \n\nin the end, both parties faced their own set of victories and losses, leaving the court with mixed feelings.",
+     "response_sha256": "8d1785032065abbaef7805d1104d7a36c86df0a8b8db7f06f9294b8cbc2f697d",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 239,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 239,
+     "prompt_tokens": 587,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       38,
+       51
+      ],
+      [
+       25,
+       38
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

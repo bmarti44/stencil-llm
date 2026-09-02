@@ -1,0 +1,349 @@
+{
+ "schema": 2,
+ "data_sha256": "3a3d2af30c9a7197b201b25bb86cac200a34611b66c236fa6b8484afb904816d",
+ "base_records_sha256": "874d88566d6e9367237cf9d96fb5a85d4916b814edeb259ebf25dc31be81c0cc",
+ "model_sha256": "13bfabb5592c7b35383a56471fba1c74c771f57587322e60faaabb96268b2829",
+ "controller_sha256": "9d43315b8967b05db656ceeccf37f12f80efe9298aa9f3acd49e6887472d800d",
+ "provenance": {
+  "salience_weights.json": "b5d2f768aaa21b24b42cc0a46620457d20ce097242463399675cad35a436a817",
+  "qwen3.py": "5122ec09d96ed6c1e4231cdeb5efbf5e35ff927beed440560f74881d374de616",
+  "ctrb.py": "2c6590cb67ec77a49afec6cee0a22cbfb997984cd96141b1e07d2b60b4c8c717",
+  "e2.py": "a82b794a073979406ae07536f2a81da4b7afbd64372bb6d664670cccbf61905f",
+  "e2_multiif.py": "97211cda6ab6c22686af693cea4a6db92231c81fef499589ebb1807693da65c1",
+  "stats.py": "2484b07d894e0a3dff51a322086c838e2d501b631be8f6df8b86dea85a347b2f",
+  "ledger.py": "506335ab2d3657084ba1ffc584bf3c167731ffa4b91b9f67a4353f8323c42cd7",
+  "salience.py": "6a1ba9a40469cd5b0f35ec90df211e821d693abea4947051bdfd41a46946de94",
+  "wave.py": "a35eea1d8fe1f9d43f8842603a0188eee34430a4b3c033eee0c4c0ed38d24142",
+  "bench.py": "4b89a18aca19406458ef4ed659037d4fd4691bbea37c78b410eb61627d597572",
+  "determinism.py": "cb508cc0fdf87c243427f3b91fd4524a05f0c4722f67a258a66b71dd08410dab",
+  "tokenizer.json": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
+  "ledger_eval.py": "eedecc7300e63feed91840186ee6bed5ee37e85a0d2eb045845cf19339fbfb90",
+  "vendor/ifeval": "4f49451a09d9b816f331704ccff37a528bc9cff7b990f9bd4f95691fbc38a4f0"
+ },
+ "salience_provenance": "salience",
+ "salience_note": "",
+ "automatic": true,
+ "segmenter": "stencil.salience.split_sentences",
+ "segmenter_identity_asserted": true,
+ "insertable_families": [
+  "detectable_content:number_placeholders",
+  "detectable_content:postscript",
+  "detectable_format:number_bullet_lists",
+  "keywords:existence",
+  "keywords:frequency"
+ ],
+ "diagnostic_only": true,
+ "limit": null,
+ "registered": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ },
+ "registered_cohort": 909,
+ "top_k": 2,
+ "dose": 3.0,
+ "max_new": 1024,
+ "deadline": 300.0,
+ "margin_points": 2.0,
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "specificity_control": "ledger.matched_nonledger_control (width- and position-matched non-ledger spans, same dose)",
+ "conversations_evaluated": 113,
+ "preflight": {
+  "conversations": 113,
+  "turns": 221,
+  "entries": 719,
+  "aged_entries": 449,
+  "turns_with_aged_entries": 209,
+  "turns_with_aged_constraints": 221,
+  "eligible_constraints": 85,
+  "eligible_linked": 81,
+  "eligible_coverage": 0.9529411764705882,
+  "linkage_granularity": {
+   "origin_turn": 221
+  },
+  "errors": [],
+  "segmenter": "stencil.salience.split_sentences",
+  "control_top_k": 2,
+  "control_dry_runs": 841,
+  "control_incomplete_turns": [
+   {
+    "ci": 145,
+    "turn": 2
+   }
+  ],
+  "control_incomplete_turn_count": 1,
+  "registered_coverage": 0.9
+ },
+ "turns": 221,
+ "automatic_turns": 221,
+ "empty_ledger_turns": 12,
+ "credited_turns": 75,
+ "credited_turns_ledger_active": 73,
+ "selected_entries_by_turn_introduced": {
+  "1": 244,
+  "2": 103
+ },
+ "context_tokens_added_mean": {
+  "base": 0.0,
+  "text_ledger": 40.98190045248869,
+  "neural_ledger": 0.0,
+  "specificity": 0.0
+ },
+ "context_tokens_added_max": {
+  "base": 0,
+  "text_ledger": 147,
+  "neural_ledger": 0,
+  "specificity": 0
+ },
+ "context_tokens_added_sum": {
+  "base": 0,
+  "text_ledger": 9057,
+  "neural_ledger": 0,
+  "specificity": 0
+ },
+ "context_tokens_measured": {
+  "text_ledger": true,
+  "neural_ledger": true,
+  "specificity": true
+ },
+ "timeouts_or_truncations": {
+  "base": 19,
+  "text_ledger": 21,
+  "neural_ledger": 24,
+  "specificity": 20
+ },
+ "timeouts_or_truncations_fraction": {
+  "base": 0.08597285067873303,
+  "text_ledger": 0.09502262443438914,
+  "neural_ledger": 0.1085972850678733,
+  "specificity": 0.09049773755656108
+ },
+ "eligible": {
+  "definition": "aged (origin turn < current turn) AND insertable family; neural credited only if its linked entry was selected",
+  "n": 85,
+  "n_conversations": 43,
+  "n_selected": 80,
+  "n_unselected": 5,
+  "selected_fraction": 0.9411764705882353,
+  "registered_coverage": 0.9,
+  "unselected_slice": {
+   "text_pass_rate": 0.6,
+   "neural_raw_pass_rate": 0.6
+  },
+  "accuracy": {
+   "base": 0.7294117647058823,
+   "text_ledger": 0.7764705882352941,
+   "neural_ledger": 0.7411764705882353,
+   "specificity": 0.7411764705882353
+  }
+ },
+ "primary": {
+  "estimand": "mean paired difference text_ledger - credited neural_ledger (points) over eligible outcomes, clustered by conversation",
+  "margin_points": 2.0,
+  "clustered": {
+   "clusters": 43,
+   "alpha": 0.05,
+   "mean": 4.263565891472869,
+   "method": "t_continuity",
+   "continuity_points": 2.3255813953488373,
+   "upper_bound": 13.191628681644161,
+   "t_upper_bound_descriptive": 10.866047286295323
+  },
+  "non_inferior": false,
+  "tango_pooled_descriptive": {
+   "n10": 5,
+   "n01": 2,
+   "n": 85,
+   "margin_points": 2.0,
+   "drop_points": 3.5294117647058822,
+   "upper_bound_points": 9.631290998008742,
+   "non_inferior": false,
+   "error": null
+  }
+ },
+ "text_vs_base[eligible]": {
+  "n10": 1,
+  "n01": 5,
+  "n": 85,
+  "n11": 61,
+  "n00": 18,
+  "improve_points": 4.705882352941177,
+  "mcnemar_improve_p_exploratory": 0.109375
+ },
+ "selected_text_vs_base": {
+  "n10": 1,
+  "n01": 5,
+  "n": 80,
+  "n11": 58,
+  "n00": 16,
+  "improve_points": 5.0,
+  "mcnemar_improve_p_exploratory": 0.109375
+ },
+ "text_vs_base_selected_clustered": {
+  "sign": "text - base (points; positive = text better), per-conversation mean over SELECTED eligible outcomes",
+  "mean": 3.8333333333333335,
+  "lower_bound": -3.12510754342927,
+  "k": 40,
+  "method": "t_continuity",
+  "alpha": 0.05,
+  "continuity_points": 2.5,
+  "t_lower_bound_descriptive": -0.6251075434292699,
+  "conversations_better": 5,
+  "conversations_worse": 1,
+  "conversations_tied": 34,
+  "conversations_text_better": 5,
+  "conversations_text_worse": 1
+ },
+ "text_vs_base_all_eligible_clustered": {
+  "sign": "text - base (points; positive = text better), per-conversation mean over ALL eligible outcomes",
+  "mean": 3.565891472868217,
+  "lower_bound": -2.9039412534645757,
+  "k": 43,
+  "method": "t_continuity",
+  "alpha": 0.05,
+  "continuity_points": 2.3255813953488373,
+  "t_lower_bound_descriptive": -0.5783598581157383,
+  "conversations_better": 5,
+  "conversations_worse": 1,
+  "conversations_tied": 37
+ },
+ "neural_vs_base_all_eligible_clustered": {
+  "sign": "credited neural - base (points; positive = neural better), per-conversation mean over ALL eligible outcomes",
+  "mean": -0.6976744186046512,
+  "lower_bound": -9.63161980835678,
+  "k": 43,
+  "method": "t_continuity",
+  "alpha": 0.05,
+  "continuity_points": 2.3255813953488373,
+  "t_lower_bound_descriptive": -7.3060384130079425,
+  "conversations_better": 4,
+  "conversations_worse": 2,
+  "conversations_tied": 37
+ },
+ "unselected_text_vs_base": {
+  "n10": 0,
+  "n01": 0,
+  "n": 5,
+  "n11": 3,
+  "n00": 2,
+  "improve_points": 0.0,
+  "mcnemar_improve_p_exploratory": 1.0
+ },
+ "slice_role": "falsification_only",
+ "neural_vs_base[eligible]": {
+  "n10": 3,
+  "n01": 4,
+  "n": 85,
+  "n11": 59,
+  "n00": 19,
+  "improve_points": 1.1764705882352942,
+  "mcnemar_improve_p_exploratory": 0.5
+ },
+ "neural_vs_specificity": {
+  "sign": "neural - specificity (points; positive = neural better)",
+  "mean_points": 2.7906976744186047,
+  "clustered": {
+   "clusters": 43,
+   "alpha": 0.05,
+   "mean": 2.7906976744186047,
+   "method": "t_continuity",
+   "continuity_points": 2.3255813953488373,
+   "upper_bound": 9.086952915134741,
+   "t_upper_bound_descriptive": 6.761371519785904
+  },
+  "upper_bound": 9.086952915134741,
+  "lower_bound": -3.505557566297531,
+  "control_incomplete_turns": 1,
+  "note": "turns whose matched control could not be built for every selected span are excluded here"
+ },
+ "secondary_all_constraints_descriptive": {
+  "accuracy": {
+   "base": 0.7015384615384616,
+   "text_ledger": 0.7292307692307692,
+   "neural_ledger": 0.6984615384615385,
+   "specificity": 0.6938461538461539
+  },
+  "neural_raw_vs_text": {
+   "n10": 41,
+   "n01": 21,
+   "n": 650,
+   "n11": 433,
+   "n00": 155,
+   "improve_points": -3.076923076923077,
+   "mcnemar_improve_p_exploratory": 0.9964256330834185
+  },
+  "neural_raw_vs_base": {
+   "n10": 22,
+   "n01": 20,
+   "n": 650,
+   "n11": 434,
+   "n00": 174,
+   "improve_points": -0.3076923076923077,
+   "mcnemar_improve_p_exploratory": 0.6780155218148138
+  },
+  "text_vs_base": {
+   "n10": 20,
+   "n01": 38,
+   "n": 650,
+   "n11": 436,
+   "n00": 156,
+   "improve_points": 2.769230769230769,
+   "mcnemar_improve_p_exploratory": 0.012373017921220399
+  },
+  "specificity_vs_base": {
+   "n10": 19,
+   "n01": 14,
+   "n": 650,
+   "n11": 437,
+   "n00": 180,
+   "improve_points": -0.7692307692307693,
+   "mcnemar_improve_p_exploratory": 0.8518968157004565
+  }
+ },
+ "validity": {
+  "complete_cohort": true,
+  "registered_cohort": false,
+  "falsification_only_slice": false,
+  "records_identity": true,
+  "expected_turns_present": true,
+  "records_arm_set": true,
+  "records_echo_registered_config": true,
+  "registered_config": true,
+  "neural_context_tokens_measured_zero": true,
+  "timeouts_truncations_le_2pct": false,
+  "timeouts_truncations_per_arm": {
+   "base": false,
+   "text_ledger": false,
+   "neural_ledger": false,
+   "specificity": false
+  },
+  "real_salience_segmenter": true,
+  "text_beats_base": true,
+  "text_vs_base_selected_pooled": true,
+  "text_beats_base_selected_clustered": false,
+  "text_beats_base_all_eligible_clustered": false,
+  "neural_beats_base_all_eligible_clustered": false,
+  "unselected_not_all_failing": true,
+  "ledger_active_on_credited_turns": false,
+  "ledger_coverage_ge_0.90": true,
+  "clustered_bound_below_margin": false
+ },
+ "primary_claim_reasons": [
+  "registered_cohort",
+  "falsification_only_slice",
+  "timeouts_truncations_le_2pct",
+  "text_not_clustered_better_than_base_selected",
+  "text_not_clustered_better_than_base_all_eligible",
+  "neural_not_clustered_better_than_base",
+  "ledger_active_on_credited_turns",
+  "clustered_bound_below_margin"
+ ],
+ "primary_claim_valid": false,
+ "primary_claim_note": "FALSIFICATION-ONLY slice (cohort_size < registered 909): can reject non-inferiority or show text/neural-vs-base effects, never establish NI (LEDGER-PLAN ROUND 3 ruling iii)"
+}

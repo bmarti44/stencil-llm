@@ -1,0 +1,537 @@
+{
+ "ci": 33,
+ "key": "1108:11:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "2199a2f23f5dde7a62cb913c6353e5b45b8655ff5511672ae9e20cfc4012c7ac",
+   "context_tokens": 203,
+   "instruction_ids": [
+    "language:response_language",
+    "startend:end_checker"
+   ],
+   "insertable": [
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "language:response_language",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "startend:end_checker",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      1,
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Please respond using only the Kannada language, no other language is allowed.",
+     "span": [
+      8,
+      23
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "language:response_language"
+     ]
+    },
+    {
+     "text": "Your response should end with the exact phrase: \"ಹೀಗಾಗಿ, ಹ್ಯಾಂಬರ್ಗರ್‌ಗಳು ವಿಶೇಷ ರೀತಿಯ ಸ್ಯಾಂಡ್‌ವಿಚ್‌ಗಳು ಎಂದು ಪರಿಗಣಿಸಬಹುದು.\"",
+     "span": [
+      73,
+      186
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "No other words should follow this phrase.",
+     "span": [
+      186,
+      194
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "ಹಾಗು ಹಾಗು ಸಂದೇಶಗಳು ಸಂದೇಶಗಳು.  \nಹೀಗಾಗಿ, ಹ್ಯಾಂಬರ್ಗರ್‌ಗಳು ವಿಶೇಷ ರೀತಿಯ ಸ್ಯಾಂಡ್‌ವಿಚ್‌ಗಳು ಎಂದು ಪರಿಗಣಿಸಬಹುದು.",
+    "response_sha256": "b28254d56acdeb3f84854f824d1c762711d47e6fa154740aec58c5bfd63f37fc",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true
+     ]
+    },
+    "n_generated": 144,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "ಹಾಗು ಹಾಗು ಸಂದೇಶಗಳು ಸಂದೇಶಗಳು.  \nಹೀಗಾಗಿ, ಹ್ಯಾಂಬರ್ಗರ್‌ಗಳು ವಿಶೇಷ ರೀತಿಯ ಸ್ಯಾಂಡ್‌ವಿಚ್‌ಗಳು ಎಂದು ಪರಿಗಣಿಸಬಹುದು.",
+     "response_sha256": "b28254d56acdeb3f84854f824d1c762711d47e6fa154740aec58c5bfd63f37fc",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 144,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 227,
+     "context_tokens_added": 24,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "ಹಾಗು ಹಾಗು ಸಂದೇಶಗಳು ಸಂದೇಶಗಳು.ಹೀಗಾಗಿ, ಹ್ಯಾಂಬರ್ಗರ್‌ಗಳು ವಿಶೇಷ ರೀತಿಯ ಸ್ಯಾಂಡ್‌ವಿಚ್‌ಗಳು ಎಂದು ಪರಿಗಣಿಸಬಹುದು.",
+     "response_sha256": "47c271a7af326c3c8301806d7a55a2952f09f45b9cda89c1afa78b0033711873",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 143,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 143,
+     "prompt_tokens": 203,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       8,
+       23
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "ಹಾಗು ಹಾಗು ಸಂದೇಶಗಳು ಸಂದೇಶಗಳು.",
+     "response_sha256": "903da3c9013176e722e9538a02f6c77fa60550b117b4fe9b44ae9535e95a51c7",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 40,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 40,
+     "prompt_tokens": 203,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       23,
+       38
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "369742918cbe69054f5f4c46f76808c1d3a1f7f0732ac71c0228d7b1346fce60",
+   "context_tokens": 378,
+   "instruction_ids": [
+    "language:response_language",
+    "startend:end_checker",
+    "length_constraints:number_paragraphs"
+   ],
+   "insertable": [
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "language:response_language",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "startend:end_checker",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "length_constraints:number_paragraphs",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      3,
+      4
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Please respond using only the Kannada language, no other language is allowed.",
+     "span": [
+      8,
+      23
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "language:response_language"
+     ]
+    },
+    {
+     "text": "Your response should end with the exact phrase: \"ಹೀಗಾಗಿ, ಹ್ಯಾಂಬರ್ಗರ್‌ಗಳು ವಿಶೇಷ ರೀತಿಯ ಸ್ಯಾಂಡ್‌ವಿಚ್‌ಗಳು ಎಂದು ಪರಿಗಣಿಸಬಹುದು.\"",
+     "span": [
+      73,
+      186
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "No other words should follow this phrase.",
+     "span": [
+      186,
+      194
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "The result should contain exactly 6 paragraphs.",
+     "span": [
+      348,
+      357
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_paragraphs"
+     ]
+    },
+    {
+     "text": "The paragraphs should be separated by the markdown divider: ***.",
+     "span": [
+      357,
+      369
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_paragraphs"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "ಹಾಗು ಹಾಗು ಸಂದೇಶಗಳು ಸಂದೇಶಗಳು.  \nಹಾಗು ಹಾಗು ಸಂದೇಶಗಳು ಸಂದೇಶಗಳು.  \nಹಾಗು ಹಾಗು ಸಂದೇಶಗಳು ಸಂದೇಶಗಳು.  \nಹಾಗು ಹಾಗು ಸಂದೇಶಗಳು ಸಂದೇಶಗಳು.  \nಹಾಗು ಹಾಗು ಸಂದೇಶಗಳು ಸಂದೇಶಗಳು.  \nಹೀಗಾಗಿ, ಹ್ಯಾಂಬರ್ಗರ್‌ಗಳು ವಿಶೇಷ ರೀತಿಯ ಸ್ಯಾಂಡ್‌ವಿಚ್‌ಗಳು ಎಂದು ಪರಿಗಣಿಸಬಹುದು.",
+    "response_sha256": "645a76d355c2ac13d52d687798e5fc7b3df53fce69ec3f4d91afa485e18f751d",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      false
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      false
+     ]
+    },
+    "n_generated": 308,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "ಹಾಗು ಹಾಗು ಸಂದೇಶಗಳು ಸಂದೇಶಗಳು.  \nಹಾಗು ಹಾಗು ಸಂದೇಶಗಳು ಸಂದೇಶಗಳು.  \nಹಾಗು ಹಾಗು ಸಂದೇಶಗಳು ಸಂದೇಶಗಳು.  \nಹಾಗು ಹಾಗು ಸಂದೇಶಗಳು ಸಂದೇಶಗಳು.  \nಹಾಗು ಹಾಗು ಸಂದೇಶಗಳು ಸಂದೇಶಗಳು.  \nಹೀಗಾಗಿ, ಹ್ಯಾಂಬರ್ಗರ್‌ಗಳು ವಿಶೇಷ ರೀತಿಯ ಸ್ಯಾಂಡ್‌ವಿಚ್‌ಗಳು ಎಂದು ಪರಿಗಣಿಸಬಹುದು.",
+     "response_sha256": "645a76d355c2ac13d52d687798e5fc7b3df53fce69ec3f4d91afa485e18f751d",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 308,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 525,
+     "context_tokens_added": 147,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2
+     ]
+    },
+    "neural_ledger": {
+     "response": "ಹೀಗಾಗಿ, ಹ್ಯಾಂಬರ್ಗರ್‌ಗಳು ವಿಶೇಷ ರೀತಿಯ ಸ್ಯಾಂಡ್‌ವಿಚ್‌ಗಳು ಎಂದು ಪರಿಗಣಿಸಬಹುದು.  \nಹೀಗಾಗಿ, ಹ್ಯಾಂಬರ್ಗರ್‌ಗಳು ವಿಶೇಷ ರೀತಿಯ ಸ್ಯಾಂಡ್‌ವಿಚ್‌ಗಳು ಎಂದು ಪರಿಗಣಿಸಬಹುದು.  \nಹೀಗಾಗಿ, ಹ್ಯಾಂಬರ್ಗರ್‌ಗಳು ವಿಶೇಷ ರೀತಿಯ ಸ್ಯಾಂಡ್‌ವಿಚ್‌ಗಳು ಎಂದು ಪರಿಗಣಿಸಬಹುದು.  \nಹೀಗಾಗಿ, ಹ್ಯಾಂಬರ್ಗರ್‌ಗಳು ವಿಶೇಷ ರೀತಿಯ ಸ್ಯಾಂಡ್‌ವಿಚ್‌ಗಳು ಎಂದು ಪರಿಗಣಿಸಬಹುದು.  \nಹೀಗಾಗಿ, ಹ್ಯಾಂಬರ್ಗರ್‌ಗಳು ವಿಶೇಷ ರೀತಿಯ ಸ್ಯಾಂಡ್‌ವಿಚ್‌ಗಳು ಎಂದು ಪರಿಗಣಿಸಬಹುದು.  \nಹೀಗಾಗಿ, ಹ್ಯಾಂಬರ್ಗರ್‌ಗಳು ವಿಶೇಷ ರೀತಿಯ ಸ್ಯಾಂಡ್‌ವಿಚ್‌ಗಳು ಎಂದು ಪರಿಗಣಿಸಬಹುದು.  \n\n***  \nಹೀಗಾಗಿ, ಹ್ಯಾಂಬರ್ಗರ್‌ಗಳು ವಿಶೇಷ ರೀತಿಯ ಸ್ಯಾಂಡ್‌ವಿಚ್‌ಗಳು ಎಂದು ಪರಿಗಣಿಸಬಹುದು.  \nಹೀಗಾಗಿ, ಹ್ಯಾಂಬರ್ಗರ್‌ಗಳು ವಿಶೇಷ ರೀತಿಯ ಸ್ಯಾಂಡ್‌ವಿಚ್‌ಗಳು ಎಂದು ಪರಿಗಣಿಸಬಹುದು.  \nಹೀಗಾಗಿ, ಹ್ಯಾಂಬರ್ಗರ್‌ಗಳು ವಿಶೇಷ ರೀತಿಯ ಸ್ಯಾಂಡ್‌ವಿಚ್‌ಗಳು ಎಂದು ಪರಿಗಣಿಸಬಹುದು.  \nಹೀಗಾಗಿ, ಹ್ಯಾಂಬರ್ಗರ್‌ಗಳು ವಿಶೇಷ ರೀತಿಯ ಸ್ಯಾಂಡ್‌ವಿಚ್‌ಗಳು ಎಂದು ಪರ",
+     "response_sha256": "42611c4ba016ce628df7843ee191e629dae756d3dcb0161bae358547777acbc6",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      false
+     ],
+     "strict": false,
+     "n_generated": 1024,
+     "truncated": true,
+     "timed_out": false,
+     "biased_tokens": 1024,
+     "prompt_tokens": 378,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       8,
+       23
+      ],
+      [
+       73,
+       186
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "ಹಾಗು ಹಾಗು ಸಂದೇಶಗಳು ಸಂದೇಶಗಳು.  \nಹಾಗು ಹಾಗು ಸಂದೇಶಗಳು ಸಂದೇಶಗಳು.  \nಹಾಗು ಹಾಗು ಸಂದೇಶಗಳು ಸಂದೇಶಗಳು.  \nಹಾಗು ಹಾಗು ಸಂದೇಶಗಳು ಸಂದೇಶಗಳು.  \nಹಾಗು ಹಾಗು ಸಂದೇಶಗಳು ಸಂದೇಶಗಳು.  \nಹೀಗಾಗಿ, ಹ್ಯಾಂಬರ್ಗರ್‌ಗಳು ವಿಶೇಷ ರೀತಿಯ ಸ್ಯಾಂಡ್‌ವಿಚ್‌ಗಳು ಎಂದು ಪರಿಗಣಿಸಬಹುದು.",
+     "response_sha256": "645a76d355c2ac13d52d687798e5fc7b3df53fce69ec3f4d91afa485e18f751d",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 308,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 308,
+     "prompt_tokens": 378,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       23,
+       38
+      ],
+      [
+       194,
+       307
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

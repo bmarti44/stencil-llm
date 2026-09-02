@@ -1,0 +1,505 @@
+{
+ "ci": 4,
+ "key": "1005:3:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "37ceda381902b03b6ef02cbe94efe11a2a8f3e02f4c9b59a107464f2c1c6b996",
+   "context_tokens": 560,
+   "instruction_ids": [
+    "detectable_content:number_placeholders",
+    "detectable_format:title"
+   ],
+   "insertable": [
+    true,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "detectable_content:number_placeholders",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Make sure to include at least 12 placeholder represented by square brackets, such as [address], [name].",
+     "span": [
+      19,
+      42
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_content:number_placeholders"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      532,
+      551
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<Fresh High School Graduate Resume>>\n\n[Name]  \n[City, State] | [Phone Number] | [Email Address] | [LinkedIn Profile] | [Portfolio/Website] (if applicable)  \n\n**Objective**  \nFresh high school graduate seeking a meaningful and challenging position in [industry/field of interest], with a strong foundation in [relevant skills or education]. Looking for an opportunity to grow, learn, and contribute to a dynamic team.\n\n**Education**  \n[High School Name] | [City, State] | [Graduation Date]  \n- [Subject Area] – [Grade Level]  \n- [Additional academic achievement or award, if applicable]  \n\n**Skills**  \n- [Technical skills, e.g., Microsoft Office, Photoshop, Excel]  \n- [Soft skills, e.g., communication, teamwork, problem-solving]  \n- [Any certifications or training, e.g., [Certification Name], [Training Program Name]]  \n\n**Experience**  \n[Job Title] | [Company Name] | [City, State] | [Month – Year]  \n- [Brief description of experience, e.g., \"Assisted in organizing events for [Company Name], contributing to a 20% increase in attendance.\"]  \n- [Another experience, if applicable]  \n\n**Projects**  \n- [Project Title] | [Description of project, e.g., \"Developed a mobile app to track student progress in [Subject Area]\"]  \n- [Another project, if applicable]  \n\n**Volunteer/Community Service**  \n- [Organization Name] | [Role] | [Description of work, e.g., \"Volunteered at [Organization Name] to help with [specific task or initiative]\"]  \n- [Another volunteer experience, if applicable]  \n\n**Certifications**  \n- [Certification Name] | [Issuing Organization] | [Date]  \n- [Another certification, if applicable]  \n\n**Languages**  \n- [Language Name] – [Proficiency Level]  \n- [Another language, if applicable]  \n\n**Additional Information**  \n- [Hobbies or interests, e.g., \"Music, photography, reading\"]  \n- [Any other relevant information, e.g., \"Passionate about [interest]\"]  \n\n**References**  \nAvailable upon request  \n\n---  \n*Note: Replace all placeholder text (e.g., [Name], [City, State]) with your actual information before submitting.*",
+    "response_sha256": "c27def879beec113fbd3a325120738fa6e173ced85e89a0752bf217a813c3972",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true
+     ]
+    },
+    "n_generated": 495,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<Fresh High School Graduate Resume>>\n\n[Name]  \n[City, State] | [Phone Number] | [Email Address] | [LinkedIn Profile] | [Portfolio/Website] (if applicable)  \n\n**Objective**  \nFresh high school graduate seeking a meaningful and challenging position in [industry/field of interest], with a strong foundation in [relevant skills or education]. Looking for an opportunity to grow, learn, and contribute to a dynamic team.\n\n**Education**  \n[High School Name] | [City, State] | [Graduation Date]  \n- [Subject Area] – [Grade Level]  \n- [Additional academic achievement or award, if applicable]  \n\n**Skills**  \n- [Technical skills, e.g., Microsoft Office, Photoshop, Excel]  \n- [Soft skills, e.g., communication, teamwork, problem-solving]  \n- [Any certifications or training, e.g., [Certification Name], [Training Program Name]]  \n\n**Experience**  \n[Job Title] | [Company Name] | [City, State] | [Month – Year]  \n- [Brief description of experience, e.g., \"Assisted in organizing events for [Company Name], contributing to a 20% increase in attendance.\"]  \n- [Another experience, if applicable]  \n\n**Projects**  \n- [Project Title] | [Description of project, e.g., \"Developed a mobile app to track student progress in [Subject Area]\"]  \n- [Another project, if applicable]  \n\n**Volunteer/Community Service**  \n- [Organization Name] | [Role] | [Description of work, e.g., \"Volunteered at [Organization Name] to help with [specific task or initiative]\"]  \n- [Another volunteer experience, if applicable]  \n\n**Certifications**  \n- [Certification Name] | [Issuing Organization] | [Date]  \n- [Another certification, if applicable]  \n\n**Languages**  \n- [Language Name] – [Proficiency Level]  \n- [Another language, if applicable]  \n\n**Additional Information**  \n- [Hobbies or interests, e.g., \"Music, photography, reading\"]  \n- [Any other relevant information, e.g., \"Passionate about [interest]\"]  \n\n**References**  \nAvailable upon request  \n\n---  \n*Note: This resume includes 12 placeholders represented by square brackets, as requested.*",
+     "response_sha256": "1ac1288245fadedd2d4801132207e157a3bc7e1d2b091382c6c9ab543215f9fa",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 487,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 592,
+     "context_tokens_added": 32,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<Fresh High School Graduate Resume Template>>\n\n[Name]  \n[Address] | [City, State] | [Phone Number] | [Email Address] | [LinkedIn Profile] | [Portfolio/Website] (if applicable)  \n\n**Objective**  \nFresh high school graduate seeking a meaningful and challenging position in [industry/field of interest], with a strong foundation in [relevant skills or education]. Looking for an opportunity to grow, learn, and contribute to a dynamic team.\n\n**Education**  \n[High School Name] | [City, State] | [Graduation Date]  \n- [Subject Area] – [Grade Level]  \n- [Additional academic achievement or award, if applicable]  \n\n**Skills**  \n- [Technical skills, e.g., Microsoft Office, Photoshop, Excel]  \n- [Soft skills, e.g., communication, teamwork, problem-solving]  \n- [Any certifications or training, e.g., [Certification Name], [Training Program Name]]  \n\n**Experience**  \n[Job Title] | [Company Name] | [City, State] | [Month – Year]  \n- [Brief description of experience, e.g., \"Assisted in organizing events for [Company Name], contributing to a 20% increase in attendance.\"]  \n- [Another experience, if applicable]  \n\n**Projects**  \n- [Project Title] | [Description of project, e.g., \"Developed a mobile app to track student progress in [Subject Area]\"]  \n- [Another project, if applicable]  \n\n**Volunteer/Community Service**  \n- [Organization Name] | [Role] | [Description of work, e.g., \"Volunteered at [Organization Name] to help with [specific task or initiative]\"]  \n- [Another volunteer experience, if applicable]  \n\n**Certifications**  \n- [Certification Name] | [Issuing Organization] | [Date]  \n- [Another certification, if applicable]  \n\n**Languages**  \n- [Language Name] – [Proficiency Level]  \n- [Another language, if applicable]  \n\n**Additional Information**  \n- [Hobbies or interests, e.g., \"Music, photography, reading\"]  \n- [Any other relevant information, e.g., \"Passionate about [interest]\"]  \n\n**References**  \nAvailable upon request  \n\n---  \n*Note: Replace all placeholder text such as [name], [address], [phone], [email], etc., with your actual information.*",
+     "response_sha256": "2cce9dcddc2ab7d79e5491665cb5b73e5578eb670e8e84e4c8c40235946d79c3",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 502,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 502,
+     "prompt_tokens": 560,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       19,
+       42
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<Fresh High School Graduate Resume>>  \n\n[Name]  \n[City, State] | [Phone Number] | [Email Address] | [LinkedIn Profile] | [Portfolio/Website] (if applicable)  \n\n**Objective**  \nFresh high school graduate seeking a meaningful and challenging position in [industry/field of interest], with a strong foundation in [relevant skills or education]. Looking for an opportunity to grow, learn, and contribute to a dynamic team.  \n\n**Education**  \n[High School Name] | [City, State] | [Graduation Date]  \n- [Subject Area] – [Grade Level]  \n- [Additional academic achievement or award, if applicable]  \n\n**Skills**  \n- [Technical skills, e.g., Microsoft Office, Photoshop, Excel]  \n- [Soft skills, e.g., communication, teamwork, problem-solving]  \n- [Any certifications or training, e.g., [Certification Name], [Training Program Name]]  \n\n**Experience**  \n[Job Title] | [Company Name] | [City, State] | [Month – Year]  \n- [Brief description of experience, e.g., \"Assisted in organizing events for [Company Name], contributing to a 20% increase in attendance.\"]  \n- [Another experience, if applicable]  \n\n**Projects**  \n- [Project Title] | [Description of project, e.g., \"Developed a mobile app to track student progress in [Subject Area]\"]  \n- [Another project, if applicable]  \n\n**Volunteer/Community Service**  \n- [Organization Name] | [Role] | [Description of work, e.g., \"Volunteered at [Organization Name] to help with [specific task or initiative]\"]  \n- [Another volunteer experience, if applicable]  \n\n**Certifications**  \n- [Certification Name] | [Issuing Organization] | [Date]  \n- [Another certification, if applicable]  \n\n**Languages**  \n- [Language Name] – [Proficiency Level]  \n- [Another language, if applicable]  \n\n**Additional Information**  \n- [Hobbies or interests, e.g., \"Music, photography, reading\"]  \n- [Any other relevant information, e.g., \"Passionate about [interest]\"]  \n\n**References**  \nAvailable upon request  \n\n---  \n*Note: Replace all placeholder text (e.g., [Name], [City, State]) with your actual information before submitting.*",
+     "response_sha256": "df21a7a964f895f6c035092b4c2508604c9b442e4aa55c5ff492565b2386d8f1",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 497,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 497,
+     "prompt_tokens": 560,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       42,
+       65
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "6f6f5209d75633151cc40b6d8275ec3ecdf7d373dde9467505ffff91fbf8198c",
+   "context_tokens": 1086,
+   "instruction_ids": [
+    "detectable_content:number_placeholders",
+    "detectable_format:title",
+    "length_constraints:number_paragraphs"
+   ],
+   "insertable": [
+    true,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "detectable_content:number_placeholders",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "length_constraints:number_paragraphs",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2,
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Make sure to include at least 12 placeholder represented by square brackets, such as [address], [name].",
+     "span": [
+      19,
+      42
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_content:number_placeholders"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      532,
+      551
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    },
+    {
+     "text": "The text should contain exactly 4 paragraphs.",
+     "span": [
+      1056,
+      1065
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_paragraphs"
+     ]
+    },
+    {
+     "text": "The paragraphs should be separated by the markdown divider: ***.",
+     "span": [
+      1065,
+      1077
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_paragraphs"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<Fresh High School Graduate Resume>>\n\n[Name]  \n[City, State] | [Phone Number] | [Email Address] | [LinkedIn Profile] | [Portfolio/Website] (if applicable)  \n\n**Objective**  \nFresh high school graduate seeking a meaningful and challenging position in [industry/field of interest], with a strong foundation in [relevant skills or education]. Looking for an opportunity to grow, learn, and contribute to a dynamic team.\n\n***  \n\n**Education**  \n[High School Name] | [City, State] | [Graduation Date]  \n- [Subject Area] – [Grade Level]  \n- [Additional academic achievement or award, if applicable]  \n\n***  \n\n**Skills**  \n- [Technical skills, e.g., Microsoft Office, Photoshop, Excel]  \n- [Soft skills, e.g., communication, teamwork, problem-solving]  \n- [Any certifications or training, e.g., [Certification Name], [Training Program Name]]  \n\n***  \n\n**Experience**  \n[Job Title] | [Company Name] | [City, State] | [Month – Year]  \n- [Brief description of experience, e.g., \"Assisted in organizing events for [Company Name], contributing to a 20% increase in attendance.\"]  \n- [Another experience, if applicable]  \n\n---  \n*Note: Replace all placeholder text (e.g., [Name], [City, State]) with your actual information before submitting.*",
+    "response_sha256": "0306dbcad64b63dc255eec2df8f3b71c93256bf8cf4767206cd3a86a7b57d426",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 295,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<Fresh High School Graduate Resume>>\n\n[Name]  \n[City, State] | [Phone Number] | [Email Address] | [LinkedIn Profile] | [Portfolio/Website] (if applicable)  \n\n**Objective**  \nFresh high school graduate seeking a meaningful and challenging position in [industry/field of interest], with a strong foundation in [relevant skills or education]. Looking for an opportunity to grow, learn, and contribute to a dynamic team.\n\n**Education**  \n[High School Name] | [City, State] | [Graduation Date]  \n- [Subject Area] – [Grade Level]  \n- [Additional academic achievement or award, if applicable]  \n\n**Skills**  \n- [Technical skills, e.g., Microsoft Office, Photoshop, Excel]  \n- [Soft skills, e.g., communication, teamwork, problem-solving]  \n- [Any certifications or training, e.g., [Certification Name], [Training Program Name]]  \n\n**Experience**  \n[Job Title] | [Company Name] | [City, State] | [Month – Year]  \n- [Brief description of experience, e.g., \"Assisted in organizing events for [Company Name], contributing to a 20% increase in attendance.\"]  \n- [Another experience, if applicable]  \n\n***  \n\n**Projects**  \n- [Project Title] | [Description of project, e.g., \"Developed a mobile app to track student progress in [Subject Area]\"]  \n- [Another project, if applicable]  \n\n**Volunteer/Community Service**  \n- [Organization Name] | [Role] | [Description of work, e.g., \"Volunteered at [Organization Name] to help with [specific task or initiative]\"]  \n- [Another volunteer experience, if applicable]  \n\n***  \n\n**Certifications**  \n- [Certification Name] | [Issuing Organization] | [Date]  \n- [Another certification, if applicable]  \n\n**Languages**  \n- [Language Name] – [Proficiency Level]  \n- [Another language, if applicable]  \n\n**Additional Information**  \n- [Hobbies or interests, e.g., \"Music, photography, reading\"]  \n- [Any other relevant information, e.g., \"Passionate about [interest]\"]  \n\n**References**  \nAvailable upon request",
+     "response_sha256": "9950d48353fd22fd8f82524095be5c39c8a3b171e7ca3265ce80fa4c90bfee82",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 470,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 1138,
+     "context_tokens_added": 52,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<Fresh High School Graduate Resume>>\n\n[Name]  \n[City, State] | [Phone Number] | [Email Address] | [LinkedIn Profile] | [Portfolio/Website] (if applicable)  \n\n**Objective**  \nFresh high school graduate seeking a meaningful and challenging position in [industry/field of interest], with a strong foundation in [relevant skills or education]. Looking for an opportunity to grow, learn, and contribute to a dynamic team.\n\n***  \n\n**Education**  \n[High School Name] | [City, State] | [Graduation Date]  \n- [Subject Area] – [Grade Level]  \n- [Additional academic achievement or award, if applicable]  \n\n***  \n\n**Skills**  \n- [Technical skills, e.g., Microsoft Office, Photoshop, Excel]  \n- [Soft skills, e.g., communication, teamwork, problem-solving]  \n- [Any certifications or training, e.g., [Certification Name], [Training Program Name]]  \n\n***  \n\n**Experience**  \n[Job Title] | [Company Name] | [City, State] | [Month – Year]  \n- [Brief description of experience, e.g., \"Assisted in organizing events for [Company Name], contributing to a 20% increase in attendance.\"]  \n- [Another experience, if applicable]  \n\n---  \n*Note: Replace all placeholder text (e.g., [Name], [City, State]) with your actual information before submitting.*",
+     "response_sha256": "0306dbcad64b63dc255eec2df8f3b71c93256bf8cf4767206cd3a86a7b57d426",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 295,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 295,
+     "prompt_tokens": 1086,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       19,
+       42
+      ],
+      [
+       532,
+       551
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<Fresh High School Graduate Resume>>\n\n[Name]  \n[City, State] | [Phone Number] | [Email Address] | [LinkedIn Profile] | [Portfolio/Website] (if applicable)  \n\n**Objective**  \nFresh high school graduate seeking a meaningful and challenging position in [industry/field of interest], with a strong foundation in [relevant skills or education]. Looking for an opportunity to grow, learn, and contribute to a dynamic team.\n\n***  \n\n**Education**  \n[High School Name] | [City, State] | [Graduation Date]  \n- [Subject Area] – [Grade Level]  \n- [Additional academic achievement or award, if applicable]  \n\n***  \n\n**Skills**  \n- [Technical skills, e.g., Microsoft Office, Photoshop, Excel]  \n- [Soft skills, e.g., communication, teamwork, problem-solving]  \n- [Any certifications or training, e.g., [Certification Name], [Training Program Name]]  \n\n***  \n\n**Experience**  \n[Job Title] | [Company Name] | [City, State] | [Month – Year]  \n- [Brief description of experience, e.g., \"Assisted in organizing events for [Company Name], contributing to a 20% increase in attendance.\"]  \n- [Another experience, if applicable]  \n\n---  \n*Note: Replace all placeholder text (e.g., [Name], [City, State]) with your actual information before submitting.*",
+     "response_sha256": "0306dbcad64b63dc255eec2df8f3b71c93256bf8cf4767206cd3a86a7b57d426",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 295,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 295,
+     "prompt_tokens": 1086,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       42,
+       65
+      ],
+      [
+       513,
+       532
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

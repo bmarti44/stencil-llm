@@ -1,0 +1,542 @@
+{
+ "ci": 250,
+ "key": "1779:17:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "b01a313358b18815e29a7d02232225c69a259ce5dee1a8c22fc017563f333289",
+   "context_tokens": 481,
+   "instruction_ids": [
+    "change_case:english_capital",
+    "keywords:existence",
+    "startend:quotation"
+   ],
+   "insertable": [
+    false,
+    true,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "change_case:english_capital",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "keywords:existence",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "startend:quotation",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Make the itinerary funny, write it in all capital letters and include the keywords 'DISGUSTING', 'DELICIOUS', 'BAD', and 'GOOD'.",
+     "span": [
+      21,
+      54
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_capital",
+      "keywords:existence"
+     ]
+    },
+    {
+     "text": "Wrap your whole response with double quotation marks.",
+     "span": [
+      463,
+      472
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:quotation"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "\"**TRIP TO THE GROCERY STORE IN LIMA: A FUNNY ITINERARY**  \n\n**DAY 1: ARRIVE IN LIMA**  \n**TIME:** 9:00 AM  \n**PLACE:** LIMA INTERNATIONAL AIRPORT  \n**ACTION:** BOARD A BUS TO THE GROCERY STORE  \n**NOTE:** THE BUS IS BAD, THE DRIVER IS BAD, AND THE FOOD IS BAD. BUT THE VIEW IS GOOD.  \n\n**DAY 2: ENTER THE GROCERY STORE**  \n**TIME:** 10:00 AM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** START YOUR JOURNEY INTO THE GOOD STUFF  \n**NOTE:** THE STORE IS DELICIOUS, BUT THE SHOPS ARE BAD. THE FRESH FRUITS ARE GOOD, BUT THE SALESCLERKS ARE DISGUSTING.  \n\n**DAY 3: BUY LOCAL GOODS**  \n**TIME:** 12:00 PM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** BUY LOCAL GOODS, TASTE THE FOOD, AND TALK TO THE SALESMEN  \n**NOTE:** THE FOOD IS DELICIOUS, BUT THE PRICE IS BAD. THE GROCERS ARE GOOD, BUT THE SERVICE IS DISGUSTING.  \n\n**DAY 4: LEAVE LIMA**  \n**TIME:** 3:00 PM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** PACK YOUR BAGS, TASTE THE FOOD, AND LEAVE WITH A GOOD MEMORY  \n**NOTE:** THE TRIP WAS FUNNY, THE FOOD WAS DELICIOUS, AND THE EXPERIENCE WAS BAD. BUT THE VIEWS ARE GOOD.  \n\n**END OF ITINERARY**  \n**CONCLUSION:** THIS TRIP WAS A SUCCESS. THE FOOD WAS DELICIOUS, THE STORE WAS BAD, AND THE EXPERIENCE WAS DISGUSTING. BUT THE VIEWS ARE GOOD.\"",
+    "response_sha256": "a3ff3c625fd3d9b8880fafe21cccf212999bfd3b28e7bf203cce69eb60f2f9c1",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 400,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "\"**TRIP TO THE GROCERY STORE IN LIMA: A FUNNY ITINERARY**  \n\n**DAY 1: ARRIVE IN LIMA**  \n**TIME:** 9:00 AM  \n**PLACE:** LIMA INTERNATIONAL AIRPORT  \n**ACTION:** BOARD A BUS TO THE GROCERY STORE  \n**NOTE:** THE BUS IS BAD, THE DRIVER IS BAD, AND THE FOOD IS BAD. BUT THE VIEW IS GOOD.  \n\n**DAY 2: ENTER THE GROCERY STORE**  \n**TIME:** 10:00 AM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** START YOUR JOURNEY INTO THE GOOD STUFF  \n**NOTE:** THE STORE IS DELICIOUS, BUT THE SHOPS ARE BAD. THE FRESH FRUITS ARE GOOD, BUT THE SALESCLERKS ARE DISGUSTING.  \n\n**DAY 3: BUY LOCAL GOODS**  \n**TIME:** 12:00 PM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** BUY LOCAL GOODS, TASTE THE FOOD, AND TALK TO THE SALESMEN  \n**NOTE:** THE FOOD IS DELICIOUS, BUT THE PRICE IS BAD. THE GROCERS ARE GOOD, BUT THE SERVICE IS DISGUSTING.  \n\n**DAY 4: LEAVE LIMA**  \n**TIME:** 3:00 PM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** PACK YOUR BAGS, TASTE THE FOOD, AND LEAVE WITH A GOOD MEMORY  \n**NOTE:** THE TRIP WAS FUNNY, THE FOOD WAS DELICIOUS, AND THE EXPERIENCE WAS BAD. BUT THE VIEWS ARE GOOD.  \n\n**END OF ITINERARY**  \n**CONCLUSION:** THIS TRIP WAS A SUCCESS. THE FOOD WAS DELICIOUS, THE STORE WAS BAD, AND THE EXPERIENCE WAS DISGUSTING. BUT THE VIEWS ARE GOOD.\"",
+     "response_sha256": "a3ff3c625fd3d9b8880fafe21cccf212999bfd3b28e7bf203cce69eb60f2f9c1",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 400,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 523,
+     "context_tokens_added": 42,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "\"  \n**TRIP TO THE GROCERY STORE IN LIMA: A FUNNY ITINERARY**  \n\n**DAY 1: ARRIVE IN LIMA**  \n**TIME:** 9:00 AM  \n**PLACE:** LIMA INTERNATIONAL AIRPORT  \n**ACTION:** BOARD A BUS TO THE GROCERY STORE  \n**NOTE:** THE BUS IS BAD, THE DRIVER IS BAD, AND THE FOOD IS BAD. BUT THE VIEW IS GOOD.  \n\n**DAY 2: ENTER THE GROCERY STORE**  \n**TIME:** 10:00 AM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** START YOUR JOURNEY INTO THE GOOD STUFF  \n**NOTE:** THE STORE IS DELICIOUS, BUT THE SHOPS ARE BAD. THE FRESH FRUITS ARE GOOD, BUT THE SALESCLERKS ARE DISGUSTING.  \n\n**DAY 3: BUY LOCAL GOODS**  \n**TIME:** 12:00 PM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** BUY LOCAL GOODS, TASTE THE FOOD, AND TALK TO THE SALESMEN  \n**NOTE:** THE FOOD IS DELICIOUS, BUT THE PRICE IS BAD. THE GROCERS ARE GOOD, BUT THE SERVICE IS DISGUSTING.  \n\n**DAY 4: LEAVE LIMA**  \n**TIME:** 3:00 PM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** PACK YOUR BAGS, TASTE THE FOOD, AND LEAVE WITH A GOOD MEMORY  \n**NOTE:** THE TRIP WAS FUNNY, THE FOOD WAS DELICIOUS, AND THE EXPERIENCE WAS BAD. BUT THE VIEWS ARE GOOD.  \n\n**END OF ITINERARY**  \n**CONCLUSION:** THIS TRIP WAS A SUCCESS. THE FOOD WAS DELICIOUS, THE STORE WAS BAD, AND THE EXPERIENCE WAS DISGUSTING. BUT THE VIEWS ARE GOOD.  \n\"",
+     "response_sha256": "5f4a67824103dc61e74f205be0a41d6f293947c6b85aefa76f351b3c146610e1",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 403,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 403,
+     "prompt_tokens": 481,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       21,
+       54
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "\"**TRIP TO THE GROCERY STORE IN LIMA: A FUNNY ITINERARY**  \n\n**DAY 1: ARRIVE IN LIMA**  \n**TIME:** 9:00 AM  \n**PLACE:** LIMA INTERNATIONAL AIRPORT  \n**ACTION:** BOARD A BUS TO THE GROCERY STORE  \n**NOTE:** THE BUS IS BAD, THE DRIVER IS BAD, AND THE FOOD IS BAD. BUT THE VIEW IS GOOD.  \n\n**DAY 2: ENTER THE GROCERY STORE**  \n**TIME:** 10:00 AM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** START YOUR JOURNEY INTO THE GOOD STUFF  \n**NOTE:** THE STORE IS DELICIOUS, BUT THE SHOPS ARE BAD. THE FRESH FRUITS ARE GOOD, BUT THE SALESCLERKS ARE DISGUSTING.  \n\n**DAY 3: BUY LOCAL GOODS**  \n**TIME:** 12:00 PM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** BUY LOCAL GOODS, TASTE THE FOOD, AND TALK TO THE SALESMEN  \n**NOTE:** THE FOOD IS DELICIOUS, BUT THE PRICE IS BAD. THE GROCERS ARE GOOD, BUT THE SERVICE IS DISGUSTING.  \n\n**DAY 4: LEAVE LIMA**  \n**TIME:** 3:00 PM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** PACK YOUR BAGS, TASTE THE FOOD, AND LEAVE WITH A GOOD MEMORY  \n**NOTE:** THE TRIP WAS FUNNY, THE FOOD WAS DELICIOUS, AND THE EXPERIENCE WAS BAD. BUT THE VIEWS ARE GOOD.  \n\n**END OF ITINERARY**  \n**CONCLUSION:** THIS TRIP WAS A SUCCESS. THE FOOD WAS DELICIOUS, THE STORE WAS BAD, AND THE EXPERIENCE WAS DISGUSTING. BUT THE VIEWS ARE GOOD.\"",
+     "response_sha256": "a3ff3c625fd3d9b8880fafe21cccf212999bfd3b28e7bf203cce69eb60f2f9c1",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 400,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 400,
+     "prompt_tokens": 481,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       54,
+       87
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "bf56213ba8a4ae58bdc7322f73516f577a333b991c92b573ec3996d65086a876",
+   "context_tokens": 903,
+   "instruction_ids": [
+    "change_case:english_capital",
+    "keywords:existence",
+    "startend:quotation",
+    "length_constraints:number_words"
+   ],
+   "insertable": [
+    false,
+    true,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "change_case:english_capital",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "keywords:existence",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "startend:quotation",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "length_constraints:number_words",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Make the itinerary funny, write it in all capital letters and include the keywords 'DISGUSTING', 'DELICIOUS', 'BAD', and 'GOOD'.",
+     "span": [
+      21,
+      54
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_capital",
+      "keywords:existence"
+     ]
+    },
+    {
+     "text": "Wrap your whole response with double quotation marks.",
+     "span": [
+      463,
+      472
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:quotation"
+     ]
+    },
+    {
+     "text": "The text should contain at least 900 words.",
+     "span": [
+      882,
+      894
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_words"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "\"**TRIP TO THE GROCERY STORE IN LIMA: A FUNNY ITINERARY**  \n\n**DAY 1: ARRIVE IN LIMA**  \n**TIME:** 9:00 AM  \n**PLACE:** LIMA INTERNATIONAL AIRPORT  \n**ACTION:** BOARD A BUS TO THE GROCERY STORE  \n**NOTE:** THE BUS IS BAD, THE DRIVER IS BAD, AND THE FOOD IS BAD. BUT THE VIEW IS GOOD.  \n\n**DAY 2: ENTER THE GROCERY STORE**  \n**TIME:** 10:00 AM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** START YOUR JOURNEY INTO THE GOOD STUFF  \n**NOTE:** THE STORE IS DELICIOUS, BUT THE SHOPS ARE BAD. THE FRESH FRUITS ARE GOOD, BUT THE SALESCLERKS ARE DISGUSTING.  \n\n**DAY 3: BUY LOCAL GOODS**  \n**TIME:** 12:00 PM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** BUY LOCAL GOODS, TASTE THE FOOD, AND TALK TO THE SALESMEN  \n**NOTE:** THE FOOD IS DELICIOUS, BUT THE PRICE IS BAD. THE GROCERS ARE GOOD, BUT THE SERVICE IS DISGUSTING.  \n\n**DAY 4: LEAVE LIMA**  \n**TIME:** 3:00 PM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** PACK YOUR BAGS, TASTE THE FOOD, AND LEAVE WITH A GOOD MEMORY  \n**NOTE:** THE TRIP WAS FUNNY, THE FOOD WAS DELICIOUS, AND THE EXPERIENCE WAS BAD. BUT THE VIEWS ARE GOOD.  \n\n**DAY 5: VISIT THE LOCAL MARKET**  \n**TIME:** 10:00 AM  \n**PLACE:** LIMA LOCAL MARKET  \n**ACTION:** VISIT THE LOCAL MARKET, BUY LOCAL FRESH FRUITS, AND TASTE THE LOCAL FOOD  \n**NOTE:** THE MARKET IS DELICIOUS, BUT THE SHOPS ARE BAD. THE FRESH FRUITS ARE GOOD, BUT THE SALESCLERKS ARE DISGUSTING.  \n\n**DAY 6: VISIT THE LOCAL FARM**  \n**TIME:** 12:00 PM  \n**PLACE:** LIMA LOCAL FARM  \n**ACTION:** VISIT THE LOCAL FARM, TASTE THE LOCAL FRESH FRUITS, AND BUY LOCAL GROCERS  \n**NOTE:** THE FARM IS DELICIOUS, BUT THE SHOPS ARE BAD. THE FRESH FRUITS ARE GOOD, BUT THE SALESCLERKS ARE DISGUSTING.  \n\n**DAY 7: VISIT THE LOCAL COFFEE SHOP**  \n**TIME:** 1:00 PM  \n**PLACE:** LIMA LOCAL COFFEE SHOP  \n**ACTION:** VISIT THE LOCAL COFFEE SHOP, TASTE THE LOCAL COFFEE, AND BUY LOCAL GROCERS  \n**NOTE:** THE COFFEE IS DELICIOUS, BUT THE SHOPS ARE BAD. THE COFFEE IS GOOD, BUT THE SALESCLERKS ARE DISGUSTING.  \n\n**DAY 8: VISIT THE LOCAL BAKERY**  \n**TIME:** 2:00 PM  \n**PLACE:** LIMA LOCAL BAKERY  \n**ACTION:** VISIT THE LOCAL BAKERY, TASTE THE LOCAL BREAD, AND BUY LOCAL GROCERS  \n**NOTE:** THE BREAD IS DELICIOUS, BUT THE SHOPS ARE BAD. THE BREAD IS GOOD, BUT THE SALESCLERKS ARE DISGUSTING.  \n\n**DAY 9: VISIT THE LOCAL CAFE**  \n**TIME:** 3:00 PM  \n**PLACE:** LIMA LOCAL CAFE  \n**ACTION:** VISIT THE LOCAL CAFE, TASTE THE LOCAL COFFEE, AND BUY LOCAL GROCERS  \n**NOTE:** THE COFFEE IS DELICIOUS, BUT THE SHOPS ARE BAD. THE COFFEE IS GOOD, BUT THE SALESCLERKS ARE DISGUSTING.  \n\n**DAY 10: VISIT THE LOCAL FISH MARKET**  \n**TIME:** 4:00 PM  \n**PLACE:** LIMA LOCAL FISH MARKET  \n**ACTION:** VISIT THE LOCAL FISH MARKET, TASTE THE LOCAL FISH, AND BUY LOCAL GROCERS  \n**NOTE:** THE FISH IS DELICIOUS, BUT THE SHOPS ARE BAD. THE FISH IS GOOD, BUT THE SALESCLERKS ARE DISGUSTING.  \n\n**DAY 11: VISIT THE LOCAL GROCERY STORE**  \n**TIME:** 5:00 PM  \n**PLACE:** LIMA LOCAL GROCERY STORE  \n**ACTION:** VISIT THE LOCAL GROCERY STORE, TASTE THE LOCAL FOOD, AND BUY LOCAL GROCERS  \n**NOTE:** THE STORE IS DELICIOUS, BUT THE SH",
+    "response_sha256": "d07f0258a5182148900e25a15a3cab5a9bb987827ccff4b2ea9b0c7f6f872407",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      false,
+      false
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      false,
+      false
+     ]
+    },
+    "n_generated": 1024,
+    "truncated": true,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     false,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "\"**TRIP TO THE GROCERY STORE IN LIMA: A FUNNY ITINERARY**  \n\n**DAY 1: ARRIVE IN LIMA**  \n**TIME:** 9:00 AM  \n**PLACE:** LIMA INTERNATIONAL AIRPORT  \n**ACTION:** BOARD A BUS TO THE GROCERY STORE  \n**NOTE:** THE BUS IS BAD, THE DRIVER IS BAD, AND THE FOOD IS BAD. BUT THE VIEW IS GOOD. THE AIRPORT IS BAD, THE FACILITIES ARE BAD, AND THE FOOD IS BAD. BUT THE VIEWS ARE GOOD. THE STAFF IS BAD, THE SERVICE IS BAD, AND THE FOOD IS BAD. BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE VIEWS ARE GOOD. THE FOOD IS BAD, BUT THE VIEWS ARE GOOD. THE TRIP IS BAD, BUT THE",
+     "response_sha256": "1c56a722fd25f67af0c85bf73b1fe9bad30c4c52107145f19d1357a6b081f939",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       false,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       false,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      false,
+      false
+     ],
+     "strict": false,
+     "n_generated": 1024,
+     "truncated": true,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 955,
+     "context_tokens_added": 52,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "\"**TRIP TO THE GROCERY STORE IN LIMA: A FUNNY ITINERARY**  \n\n**DAY 1: ARRIVE IN LIMA**  \n**TIME:** 9:00 AM  \n**PLACE:** LIMA INTERNATIONAL AIRPORT  \n**ACTION:** BOARD A BUS TO THE GROCERY STORE  \n**NOTE:** THE BUS IS BAD, THE DRIVER IS BAD, AND THE FOOD IS BAD. BUT THE VIEW IS GOOD.  \n\n**DAY 2: ENTER THE GROCERY STORE**  \n**TIME:** 10:00 AM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** START YOUR JOURNEY INTO THE GOOD STUFF  \n**NOTE:** THE STORE IS DELICIOUS, BUT THE SHOPS ARE BAD. THE FRESH FRUITS ARE GOOD, BUT THE SALESCLERKS ARE DISGUSTING.  \n\n**DAY 3: BUY LOCAL GOODS**  \n**TIME:** 12:00 PM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** BUY LOCAL GOODS, TASTE THE FOOD, AND TALK TO THE SALESMEN  \n**NOTE:** THE FOOD IS DELICIOUS, BUT THE PRICE IS BAD. THE GROCERS ARE GOOD, BUT THE SERVICE IS DISGUSTING.  \n\n**DAY 4: LEAVE LIMA**  \n**TIME:** 3:00 PM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** PACK YOUR BAGS, TASTE THE FOOD, AND LEAVE WITH A GOOD MEMORY  \n**NOTE:** THE TRIP WAS FUNNY, THE FOOD WAS DELICIOUS, AND THE EXPERIENCE WAS BAD. BUT THE VIEWS ARE GOOD.  \n\n**DAY 5: VISIT THE FRESH FRUITS SECTION**  \n**TIME:** 10:00 AM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** VISIT THE FRESH FRUITS SECTION  \n**NOTE:** THE FRESH FRUITS ARE GOOD, BUT THE PRICE IS BAD. THE FRUITS ARE DELICIOUS, BUT THE SALESCLERKS ARE DISGUSTING. THE STORE IS DELICIOUS, BUT THE SHOPS ARE BAD. THE FOOD IS DELICIOUS, BUT THE SERVICE IS BAD. THE DISGUSTING PART IS THE BAD SERVICE. THE GOOD PART IS THE DELICIOUS FOOD.  \n\n**DAY 6: VISIT THE MEAT SECTION**  \n**TIME:** 11:00 AM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** VISIT THE MEAT SECTION  \n**NOTE:** THE MEAT IS BAD, BUT THE DISGUSTING PART IS THE BAD SERVICE. THE MEAT IS BAD, BUT THE GOOD PART IS THE DELICIOUS FOOD. THE STORE IS BAD, BUT THE FOOD IS DELICIOUS. THE DISGUSTING PART IS THE BAD SERVICE. THE GOOD PART IS THE DELICIOUS FOOD.  \n\n**DAY 7: VISIT THE SNACKS SECTION**  \n**TIME:** 12:00 PM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** VISIT THE SNACKS SECTION  \n**NOTE:** THE SNACKS ARE BAD, BUT THE DISGUSTING PART IS THE BAD SERVICE. THE SNACKS ARE BAD, BUT THE GOOD PART IS THE DELICIOUS FOOD. THE STORE IS BAD, BUT THE FOOD IS DELICIOUS. THE DISGUSTING PART IS THE BAD SERVICE. THE GOOD PART IS THE DELICIOUS FOOD.  \n\n**DAY 8: VISIT THE DRY GOODS SECTION**  \n**TIME:** 1:00 PM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** VISIT THE DRY GOODS SECTION  \n**NOTE:** THE DRY GOODS ARE BAD, BUT THE DISGUSTING PART IS THE BAD SERVICE. THE DRY GOODS ARE BAD, BUT THE GOOD PART IS THE DELICIOUS FOOD. THE STORE IS BAD, BUT THE FOOD IS DELICIOUS. THE DISGUSTING PART IS THE BAD SERVICE. THE GOOD PART IS THE DELICIOUS FOOD.  \n\n**DAY 9: VISIT THE BEVERAGES SECTION**  \n**TIME:** 2:00 PM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** VISIT THE BEVERAGES SECTION  \n**NOTE:** THE BEVERAGES ARE BAD, BUT THE DISGUSTING PART IS THE BAD SERVICE. THE BEVERAGES ARE BAD, BUT THE GOOD PART IS THE DELICIOUS FOOD. THE STORE IS BAD, BUT THE FOOD IS DELICIOUS. THE DISGUSTING PART IS THE BAD SERVICE. THE GOOD PART IS THE DELICIOUS FOOD.  \n\n**DAY 10: VISIT THE CEREALS SECTION**  \n**TIME:** 3:00 PM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** VISIT THE CEREALS SECTION  \n**NOTE:** THE CEREALS ARE BAD,",
+     "response_sha256": "f763103b6430a95f84ed51c4a7aa5ddc611c529d3370403f0ee1b326ea011260",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false,
+      false
+     ],
+     "strict": false,
+     "n_generated": 1024,
+     "truncated": true,
+     "timed_out": false,
+     "biased_tokens": 1024,
+     "prompt_tokens": 903,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       21,
+       54
+      ],
+      [
+       463,
+       472
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "\"**TRIP TO THE GROCERY STORE IN LIMA: A FUNNY ITINERARY**  \n\n**DAY 1: ARRIVE IN LIMA**  \n**TIME:** 9:00 AM  \n**PLACE:** LIMA INTERNATIONAL AIRPORT  \n**ACTION:** BOARD A BUS TO THE GROCERY STORE  \n**NOTE:** THE BUS IS BAD, THE DRIVER IS BAD, AND THE FOOD IS BAD. BUT THE VIEW IS GOOD.  \n\n**DAY 2: ENTER THE GROCERY STORE**  \n**TIME:** 10:00 AM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** START YOUR JOURNEY INTO THE GOOD STUFF  \n**NOTE:** THE STORE IS DELICIOUS, BUT THE SHOPS ARE BAD. THE FRESH FRUITS ARE GOOD, BUT THE SALESCLERKS ARE DISGUSTING.  \n\n**DAY 3: BUY LOCAL GOODS**  \n**TIME:** 12:00 PM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** BUY LOCAL GOODS, TASTE THE FOOD, AND TALK TO THE SALESMEN  \n**NOTE:** THE FOOD IS DELICIOUS, BUT THE PRICE IS BAD. THE GROCERS ARE GOOD, BUT THE SERVICE IS DISGUSTING.  \n\n**DAY 4: LEAVE LIMA**  \n**TIME:** 3:00 PM  \n**PLACE:** LIMA GROCERY STORE  \n**ACTION:** PACK YOUR BAGS, TASTE THE FOOD, AND LEAVE WITH A GOOD MEMORY  \n**NOTE:** THE TRIP WAS FUNNY, THE FOOD WAS DELICIOUS, AND THE EXPERIENCE WAS BAD. BUT THE VIEWS ARE GOOD.  \n\n**DAY 5: VISIT THE LOCAL MARKET**  \n**TIME:** 10:00 AM  \n**PLACE:** LIMA LOCAL MARKET  \n**ACTION:** BUY LOCAL GOODS, TASTE THE FOOD, AND TALK TO THE SALESMEN  \n**NOTE:** THE MARKET IS DELICIOUS, BUT THE SHOPS ARE BAD. THE FRESH FRUITS ARE GOOD, BUT THE SALESCLERKS ARE DISGUSTING.  \n\n**DAY 6: VISIT THE LOCAL FARM**  \n**TIME:** 12:00 PM  \n**PLACE:** LIMA LOCAL FARM  \n**ACTION:** BUY LOCAL GOODS, TASTE THE FOOD, AND TALK TO THE SALESMEN  \n**NOTE:** THE FARM IS DELICIOUS, BUT THE SHOPS ARE BAD. THE FRESH FRUITS ARE GOOD, BUT THE SALESCLERKS ARE DISGUSTING.  \n\n**DAY 7: VISIT THE LOCAL COFFEE SHOP**  \n**TIME:** 1:00 PM  \n**PLACE:** LIMA LOCAL COFFEE SHOP  \n**ACTION:** BUY LOCAL GOODS, TASTE THE FOOD, AND TALK TO THE SALESMEN  \n**NOTE:** THE COFFEE SHOP IS DELICIOUS, BUT THE SHOPS ARE BAD. THE FRESH COFFEE IS GOOD, BUT THE SALESCLERKS ARE DISGUSTING.  \n\n**DAY 8: VISIT THE LOCAL BAKERY**  \n**TIME:** 2:00 PM  \n**PLACE:** LIMA LOCAL BAKERY  \n**ACTION:** BUY LOCAL GOODS, TASTE THE FOOD, AND TALK TO THE SALESMEN  \n**NOTE:** THE BAKERY IS DELICIOUS, BUT THE SHOPS ARE BAD. THE FRESH BREAD IS GOOD, BUT THE SALESCLERKS ARE DISGUSTING.  \n\n**DAY 9: VISIT THE LOCAL FISH MARKET**  \n**TIME:** 3:00 PM  \n**PLACE:** LIMA LOCAL FISH MARKET  \n**ACTION:** BUY LOCAL GOODS, TASTE THE FOOD, AND TALK TO THE SALESMEN  \n**NOTE:** THE FISH MARKET IS DELICIOUS, BUT THE SHOPS ARE BAD. THE FRESH FISH IS GOOD, BUT THE SALESCLERKS ARE DISGUSTING.  \n\n**DAY 10: VISIT THE LOCAL CAFE**  \n**TIME:** 4:00 PM  \n**PLACE:** LIMA LOCAL CAFE  \n**ACTION:** BUY LOCAL GOODS, TASTE THE FOOD, AND TALK TO THE SALESMEN  \n**NOTE:** THE CAFE IS DELICIOUS, BUT THE SHOPS ARE BAD. THE FRESH COFFEE IS GOOD, BUT THE SALESCLERKS ARE DISGUSTING.  \n\n**DAY 11: VISIT THE LOCAL BANQUET HALL**  \n**TIME:** 5:00 PM  \n**PLACE:** LIMA LOCAL BANQUET HALL  \n**ACTION:** BUY LOCAL GOODS, TASTE THE FOOD, AND TALK TO THE SALESMEN  \n**NOTE:** THE BANQUET HALL IS DELICIOUS, BUT THE SHOPS ARE BAD. THE FRESH FOOD IS GOOD, BUT THE",
+     "response_sha256": "432b4567882ca790c874ff51fe57c255c50ae05c69ced2bf2baa1364813b4595",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false,
+      false
+     ],
+     "strict": false,
+     "n_generated": 1024,
+     "truncated": true,
+     "timed_out": false,
+     "biased_tokens": 1024,
+     "prompt_tokens": 903,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       54,
+       87
+      ],
+      [
+       12,
+       21
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "other_user_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

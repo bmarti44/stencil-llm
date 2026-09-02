@@ -1,0 +1,537 @@
+{
+ "ci": 841,
+ "key": "3563:1:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "3af2998e324d5c70ebc2a52e0b0fb49ef9f87b32eb8b6da79d7f697325d479a4",
+   "context_tokens": 117,
+   "instruction_ids": [
+    "combination:repeat_prompt",
+    "startend:end_checker"
+   ],
+   "insertable": [
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "combination:repeat_prompt",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "startend:end_checker",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      1,
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "First repeat the question above without change of words, then give your answer.",
+     "span": [
+      20,
+      35
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt"
+     ]
+    },
+    {
+     "text": "Your response should end with the exact phrase: \"he brought the wise wizard to life on the big screen.\"",
+     "span": [
+      78,
+      100
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "No other words should follow this phrase.",
+     "span": [
+      100,
+      108
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "What is the name of the actor who played Gandalf in Lord of the Rings?\n\nIan McKellen he brought the wise wizard to life on the big screen.",
+    "response_sha256": "2444c0074f320f07491a101f1a88e5a9ddeedc2110c0e4cdea2b9b7b9694dcdc",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true
+     ]
+    },
+    "n_generated": 32,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "What is the name of the actor who played Gandalf in Lord of the Rings?\n\nIan McKellen brought the wise wizard to life on the big screen.",
+     "response_sha256": "98d5b712a9888149bae5b6e70ed07ec235c85ad59341bb0f45a8f167d33c14f3",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 31,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 141,
+     "context_tokens_added": 24,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "What is the name of the actor who played Gandalf in Lord of the Rings?\n\nIan McKellen he brought the wise wizard to life on the big screen.",
+     "response_sha256": "2444c0074f320f07491a101f1a88e5a9ddeedc2110c0e4cdea2b9b7b9694dcdc",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 32,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 32,
+     "prompt_tokens": 117,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       20,
+       35
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "What is the name of the actor who played Gandalf in Lord of the Rings?\n\nIan McKellen he brought the wise wizard to life on the big screen.",
+     "response_sha256": "2444c0074f320f07491a101f1a88e5a9ddeedc2110c0e4cdea2b9b7b9694dcdc",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 32,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 32,
+     "prompt_tokens": 117,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       5,
+       20
+      ]
+     ],
+     "control_tiers": [
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "97cbdf9c09d481f3e598905935bca41719c5004af680290a855936b07d775dfd",
+   "context_tokens": 189,
+   "instruction_ids": [
+    "combination:repeat_prompt",
+    "startend:end_checker",
+    "length_constraints:nth_paragraph_first_word"
+   ],
+   "insertable": [
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "combination:repeat_prompt",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "startend:end_checker",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "length_constraints:nth_paragraph_first_word",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      3,
+      4
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "First repeat the question above without change of words, then give your answer.",
+     "span": [
+      20,
+      35
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt"
+     ]
+    },
+    {
+     "text": "Your response should end with the exact phrase: \"he brought the wise wizard to life on the big screen.\"",
+     "span": [
+      78,
+      100
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "No other words should follow this phrase.",
+     "span": [
+      100,
+      108
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "Your response should have 3 paragraphs and the 3-th paragraph should start with the word wizard.",
+     "span": [
+      150,
+      170
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word"
+     ]
+    },
+    {
+     "text": "The paragraphs should be separated by two new lines.",
+     "span": [
+      170,
+      180
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "What is the name of the actor who played Gandalf in Lord of the Rings?\n\nIan McKellen is the actor who played Gandalf in Lord of the Rings. He brought the wise wizard to life on the big screen.\n\nMcKellen's portrayal of Gandalf was widely praised for its depth and charisma. His performance captured the wizard's wisdom and authority, making him a beloved figure in the fantasy genre. His dedication to the role earned him numerous awards and solidified his status as one of the greatest actors of his time.\n\nWizard McKellen's performance as Gandalf was a monumental achievement in film history. His ability to convey both the ancient wisdom of the wizard and the relatable humanity of a character who could be both a mentor and a leader. He brought the wise wizard to life on the big screen.",
+    "response_sha256": "970004aa116b35c0e515446eb13ca83fa20eafcb5eabd8574cb61f5e7edc24e9",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      false
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 163,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "What is the name of the actor who played Gandalf in Lord of the Rings?\n\nIan McKellen played Gandalf in the Lord of the Rings trilogy. He brought the wise wizard to life on the big screen.\n\nMcKellen is known for his iconic portrayal of Gandalf, a role that earned him numerous awards and critical acclaim. His performance was praised for its depth and the way he conveyed the wizard's wisdom and power.\n\nWizard Ian McKellen brought the wise wizard to life on the big screen.",
+     "response_sha256": "f8fac67670aaec2b7854575c1ca74ea235d68eb19c66352f4efeca2a62c09263",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      false
+     ],
+     "strict": false,
+     "n_generated": 101,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 245,
+     "context_tokens_added": 56,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2
+     ]
+    },
+    "neural_ledger": {
+     "response": "What is the name of the actor who played Gandalf in Lord of the Rings?\n\nIan McKellen is the actor who played Gandalf in Lord of the Rings. He brought the wise wizard to life on the big screen.\n\nMcKellen's portrayal of Gandalf was widely praised for its depth and wisdom. His performance captured the character's age, experience, and magical aura, making him a beloved figure in the fantasy genre. His dedication to the role earned him numerous awards and solidified his status as one of the greatest actors of his time.\n\nWizard McKellen he brought the wise wizard to life on the big screen.",
+     "response_sha256": "762b94252a2a6978e98f29f1eef8d4d0aeeabf5f203922c81759aac4d021b3b5",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 125,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 125,
+     "prompt_tokens": 189,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      1,
+      0
+     ],
+     "selected_spans": [
+      [
+       78,
+       100
+      ],
+      [
+       20,
+       35
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "What is the name of the actor who played Gandalf in Lord of the Rings?\n\nIan McKellen is the actor who played Gandalf in Lord of the Rings. He portrayed the wise wizard in the trilogy, bringing him to life on the big screen through his powerful performance and deep character portrayal.\n\nIan McKellen is known for his role as Gandalf in the Lord of the Rings films. His portrayal of the wizard was both iconic and memorable, earning him widespread acclaim and multiple awards.\n\nWizard Ian McKellen brought the wise wizard to life on the big screen.",
+     "response_sha256": "558883dfc486e4eea94d263d90d6a9e359eb2bd1c47b9523b7371c39a4dca021",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      false
+     ],
+     "strict": false,
+     "n_generated": 112,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 112,
+     "prompt_tokens": 189,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       56,
+       78
+      ],
+      [
+       5,
+       20
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

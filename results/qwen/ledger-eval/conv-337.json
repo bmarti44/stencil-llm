@@ -1,0 +1,628 @@
+{
+ "ci": 337,
+ "key": "2100:10:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "033e8452ba4572b7ce99fb7f7c2b27f87a9eb5bc3fde128c2e1e7b14372067c7",
+   "context_tokens": 132,
+   "instruction_ids": [
+    "detectable_format:number_bullet_lists",
+    "change_case:english_lowercase",
+    "detectable_content:postscript"
+   ],
+   "insertable": [
+    true,
+    false,
+    true
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "detectable_format:number_bullet_lists",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "change_case:english_lowercase",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_content:postscript",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": true,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Make your answer weird or interesting and use only lowercase letters.",
+     "span": [
+      14,
+      26
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:number_bullet_lists",
+      "change_case:english_lowercase"
+     ]
+    },
+    {
+     "text": "Your answer must contain exactly 3 bullet points using the markdown bullet points format, such as:",
+     "span": [
+      26,
+      45
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:number_bullet_lists",
+      "change_case:english_lowercase"
+     ]
+    },
+    {
+     "text": "* Bullet point 1",
+     "span": [
+      45,
+      50
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:number_bullet_lists",
+      "change_case:english_lowercase"
+     ]
+    },
+    {
+     "text": "Your response should contain a postscript with the marker \"P.P.S\".",
+     "span": [
+      108,
+      123
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_content:postscript"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "* a dress made of decomposed seaweed and tangled hair from a lost love letter  \n* shoes that are the remnants of a spaceship's broken landing gear but now have a soft, squishy texture  \n* a headpiece that is a giant, melted ice cream cone with a tiny, flickering camera inside  \n\np.p.s. this fashion is a mix of the bizarre and the practical, designed to reflect the chaotic and mysterious nature of the franksenstein bride.",
+    "response_sha256": "f5b53ca62c900925801f0a6c500b526ca7cac5227e5d20c8b96a49c944b06aa3",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 95,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "* a dress made of recycled plastic bottles and spider silk  \n* shoes that were once the legs of a giant squid but now have a rubbery texture  \n* a headpiece that looks like a melted ice cream cone with a tiny camera inside  \n\np.p.s. this is just a fun way to imagine the bride of frankenstein, with a touch of absurdity and creativity.",
+     "response_sha256": "bc985e05579e68b2f72707cb1ea61a65306c85424f8c52f1b7b5c08b2a39b4e6",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 76,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 179,
+     "context_tokens_added": 47,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2
+     ]
+    },
+    "neural_ledger": {
+     "response": "* a dress made of recycled plastic bottles and spider silk  \n* shoes that were once the legs of a giant squid but now have a rubbery texture  \n* a headpiece that looks like a melted ice cream cone with a tiny camera inside  \n\np.p.s. this is a weird and interesting way to describe fashion for a monster.",
+     "response_sha256": "64d47578d9a27b21ea20f613bc6a7ae369aaec0299e0b04e6a12f01f3f19faef",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 67,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 67,
+     "prompt_tokens": 132,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       14,
+       26
+      ],
+      [
+       26,
+       45
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "* a cloak made of dead fish and old newspapers  \n* a necklace that's a collection of dead flowers and broken mirrors  \n* a hat that's a giant, floppy pillow filled with dead stars and old newspapers  \n\np.p.s. the bride's fashion is a mix of the grotesque and the bizarre, reflecting the themes of the francesca's story.",
+     "response_sha256": "8ebe2d642c42e184eef1a422b23ad1b8095fa99631b8e8d5f6a21c7931ac3e7a",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 73,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 73,
+     "prompt_tokens": 132,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       2,
+       14
+      ],
+      [
+       50,
+       69
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "ad0eaf4aa78716b644a625412a6f52b05e723561d2d29b2ccf89fe7dc9de5ff5",
+   "context_tokens": 246,
+   "instruction_ids": [
+    "detectable_format:number_bullet_lists",
+    "change_case:english_lowercase",
+    "detectable_content:postscript",
+    "startend:quotation"
+   ],
+   "insertable": [
+    true,
+    false,
+    true,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "detectable_format:number_bullet_lists",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "change_case:english_lowercase",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_content:postscript",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "startend:quotation",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      4
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Make your answer weird or interesting and use only lowercase letters.",
+     "span": [
+      14,
+      26
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:number_bullet_lists",
+      "change_case:english_lowercase"
+     ]
+    },
+    {
+     "text": "Your answer must contain exactly 3 bullet points using the markdown bullet points format, such as:",
+     "span": [
+      26,
+      45
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:number_bullet_lists",
+      "change_case:english_lowercase"
+     ]
+    },
+    {
+     "text": "* Bullet point 1",
+     "span": [
+      45,
+      50
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:number_bullet_lists",
+      "change_case:english_lowercase"
+     ]
+    },
+    {
+     "text": "Your response should contain a postscript with the marker \"P.P.S\".",
+     "span": [
+      108,
+      123
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_content:postscript"
+     ]
+    },
+    {
+     "text": "Wrap your whole response with double quotation marks.",
+     "span": [
+      228,
+      237
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:quotation"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "\"  \n* a dress made of decomposed seaweed and tangled hair from a lost love letter  \n* shoes that are the remnants of a spaceship's broken landing gear but now have a soft, squishy texture  \n* a headpiece that is a giant, melted ice cream cone with a tiny, flickering camera inside  \np.p.s. this fashion is a mix of the bizarre and the practical, designed to reflect the chaotic and mysterious nature of the franksenstein bride.  \n\"",
+    "response_sha256": "db50c51ac3062605e3177d84e8aa0465fe4848aeb3d2d9d486e8656262eb34c4",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 99,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "\"  \n* a dress made of tangled hair from a lost love letter and the remnants of a forgotten spaceship's propeller  \n* shoes that are the legs of a giant squid but now have a rubbery, squishy texture after being exposed to a mysterious chemical  \n* a headpiece that is a giant, melted ice cream cone with a tiny, flickering camera inside  \np.p.s. this fashion is a mix of the bizarre and the practical, designed to reflect the chaotic and mysterious nature of the franksenstein bride.\"",
+     "response_sha256": "d4883a83861c4ef6b7cf88e65425976faa1b1de30061cfb871ebc378fa4a0935",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 107,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 310,
+     "context_tokens_added": 64,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2,
+      3
+     ]
+    },
+    "neural_ledger": {
+     "response": "\"  \n* a dress made of decomposed seaweed and tangled hair from a lost love letter  \n* shoes that are the remnants of a spaceship's broken landing gear but now have a soft, squishy texture  \n* a headpiece that is a giant, melted ice cream cone with a tiny, flickering camera inside  \nP.P.S. this fashion is a mix of the bizarre and the practical, designed to reflect the chaotic and mysterious nature of the franksenstein bride.  \n\"",
+     "response_sha256": "62e69d38bf575cf7c9b1624076053196a419e7459d5519844b2fbb3c78ac652b",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 99,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 99,
+     "prompt_tokens": 246,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      3,
+      0
+     ],
+     "selected_spans": [
+      [
+       108,
+       123
+      ],
+      [
+       14,
+       26
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "\"  \n* a dress made of decomposed seaweed and tangled hair from a lost love letter  \n* shoes that are the remnants of a spaceship's broken landing gear but now have a soft, squishy texture  \n* a headpiece that is a giant, melted ice cream cone with a tiny, flickering camera inside  \np.p.s. this fashion is a mix of the bizarre and the practical, designed to reflect the chaotic and mysterious nature of the franksenstein bride.  \n\"",
+     "response_sha256": "db50c51ac3062605e3177d84e8aa0465fe4848aeb3d2d9d486e8656262eb34c4",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 99,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 99,
+     "prompt_tokens": 246,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       93,
+       108
+      ],
+      [
+       2,
+       14
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

@@ -1,0 +1,522 @@
+{
+ "ci": 53,
+ "key": "1148:8:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "7e406c3910670dfc6af89cff4b5edb2599321645a015a42259d1b4068533c006",
+   "context_tokens": 179,
+   "instruction_ids": [
+    "detectable_format:json_format",
+    "startend:end_checker"
+   ],
+   "insertable": [
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "detectable_format:json_format",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "startend:end_checker",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      1,
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Wrap the entire output in JSON format.",
+     "span": [
+      18,
+      26
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:json_format"
+     ]
+    },
+    {
+     "text": "Your response should end with the exact phrase: \"indeed, supernatural powers can be both a blessing and a curse.\"",
+     "span": [
+      138,
+      162
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "No other words should follow this phrase.",
+     "span": [
+      162,
+      170
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "{\n  \"advantages\": [\n    \"Enhanced abilities to help others\",\n    \"Ability to solve complex problems\",\n    \"Sense of power and control\",\n    \"Potential for personal growth and self-discovery\"\n  ],\n  \"disadvantages\": [\n    \"Risk of misuse or harm to others\",\n    \"Emotional and psychological strain\",\n    \"Social isolation or stigma\",\n    \"Potential for losing one's humanity\"\n  ],\n  \"indeed, supernatural powers can be both a blessing and a curse.\"\n}",
+    "response_sha256": "16672fe9c14f0d39e6bfb4434f8672e7f0fc6538de6740f21bcc57d7377dc504",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      false
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      false,
+      true
+     ]
+    },
+    "n_generated": 105,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "```json\n{\n  \"advantages\": [\n    \"Enhanced abilities to help others\",\n    \"Ability to solve complex problems\",\n    \"Sense of power and control\",\n    \"Potential for personal growth and self-discovery\"\n  ],\n  \"disadvantages\": [\n    \"Risk of misuse or harm to others\",\n    \"Emotional and psychological strain\",\n    \"Social isolation or stigma\",\n    \"Potential for losing one's humanity\"\n  ]\n}\nindeed, supernatural powers can be both a blessing and a curse.",
+     "response_sha256": "05172375e9f18aeb8df1e9bcce68b8422f113e0dd7b5bd39c2ba3899a632858d",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 106,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 196,
+     "context_tokens_added": 17,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "{\n  \"advantages\": [\n    \"Enhanced abilities to help others\",\n    \"Ability to solve complex problems\",\n    \"Sense of power and control\",\n    \"Potential for personal growth and self-discovery\"\n  ],\n  \"disadvantages\": [\n    \"Risk of misuse or harm to others\",\n    \"Emotional and psychological strain\",\n    \"Social isolation or stigma\",\n    \"Potential for losing one's humanity\"\n  ],\n  \"indeed, supernatural powers can be both a blessing and a curse.\"\n}",
+     "response_sha256": "16672fe9c14f0d39e6bfb4434f8672e7f0fc6538de6740f21bcc57d7377dc504",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      false
+     ],
+     "strict": false,
+     "n_generated": 105,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 105,
+     "prompt_tokens": 179,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       18,
+       26
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "{\n  \"advantages\": [\n    \"Enhanced abilities to help others\",\n    \"Ability to solve complex problems\",\n    \"Sense of power and control\",\n    \"Potential for personal growth and self-discovery\"\n  ],\n  \"disadvantages\": [\n    \"Risk of misuse or harm to others\",\n    \"Emotional and psychological strain\",\n    \"Social isolation or stigma\",\n    \"Potential for losing one's humanity\"\n  ],\n  \"indeed, supernatural powers can be both a blessing and a curse.\"\n}",
+     "response_sha256": "16672fe9c14f0d39e6bfb4434f8672e7f0fc6538de6740f21bcc57d7377dc504",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      false
+     ],
+     "strict": false,
+     "n_generated": 105,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 105,
+     "prompt_tokens": 179,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       10,
+       18
+      ]
+     ],
+     "control_tiers": [
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "19dd2156396301d7f8f9200150940445201e00d1f946b34305f759847e200a41",
+   "context_tokens": 308,
+   "instruction_ids": [
+    "detectable_format:json_format",
+    "startend:end_checker",
+    "keywords:existence"
+   ],
+   "insertable": [
+    false,
+    false,
+    true
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "detectable_format:json_format",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "startend:end_checker",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "keywords:existence",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": true,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Wrap the entire output in JSON format.",
+     "span": [
+      18,
+      26
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:json_format"
+     ]
+    },
+    {
+     "text": "Your response should end with the exact phrase: \"indeed, supernatural powers can be both a blessing and a curse.\"",
+     "span": [
+      138,
+      162
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "No other words should follow this phrase.",
+     "span": [
+      162,
+      170
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "Your response should include the following keywords: control, anonymity, morality.",
+     "span": [
+      285,
+      299
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:existence"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "{\n  \"advantages\": [\n    \"Enhanced control over one's environment and actions\",\n    \"Ability to achieve goals that seem impossible\",\n    \"Freedom from mundane constraints\",\n    \"Potential for anonymity in certain situations\"\n  ],\n  \"disadvantages\": [\n    \"Loss of moral clarity and ethical boundaries\",\n    \"Risk of losing personal identity and autonomy\",\n    \"Struggle with the burden of responsibility\",\n    \"Potential for exploitation by others\"\n  ],\n  \"indeed, supernatural powers can be both a blessing and a curse.\"\n}",
+    "response_sha256": "7a70803455f9703d1a3a48388a965a32aefc9c201d96ce22cfc7c451d9d1e48b",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      false,
+      false
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      false,
+      true,
+      false
+     ]
+    },
+    "n_generated": 111,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     false,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "{\n  \"advantages\": [\n    \"Enhanced control over one's environment\",\n    \"Ability to maintain anonymity in certain situations\",\n    \"Guided by a higher morality\"\n  ],\n  \"disadvantages\": [\n    \"Risk of losing control over one's actions\",\n    \"Potential for compromising anonymity\",\n    \"Challenges in maintaining moral integrity\"\n  ],\n  \"indeed, supernatural powers can be both a blessing and a curse.\"\n}",
+     "response_sha256": "157f4de8421c7696f46a19ce5250600669c4d4ff909cf4422302399dccdd1a14",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 91,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 359,
+     "context_tokens_added": 51,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2
+     ]
+    },
+    "neural_ledger": {
+     "response": "{\n  \"advantages\": [\n    \"Enhanced control over one's destiny\",\n    \"Ability to navigate complex situations with ease\",\n    \"A sense of anonymity in the face of great power\",\n    \"A framework for moral guidance and responsibility\"\n  ],\n  \"disadvantages\": [\n    \"Loss of personal autonomy and freedom\",\n    \"Potential for moral ambiguity and ethical dilemmas\",\n    \"Risk of exploitation by those without good intentions\",\n    \"Challenges in maintaining a balance between power and humility\"\n  ],\n  \"indeed, supernatural powers can be both a blessing and a curse.\"\n}",
+     "response_sha256": "3428cd0e6d95506e52f9b896e4666cc9f083866ccb804a587bf8f1917047559b",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       false,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      false,
+      false,
+      false
+     ],
+     "strict": false,
+     "n_generated": 122,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 122,
+     "prompt_tokens": 308,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      1,
+      0
+     ],
+     "selected_spans": [
+      [
+       138,
+       162
+      ],
+      [
+       18,
+       26
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "{\n  \"advantages\": [\n    \"Enhanced control over one's environment and destiny\",\n    \"Ability to navigate complex situations with ease\",\n    \"Freedom from mundane constraints\",\n    \"Potential for personal growth and self-discovery\"\n  ],\n  \"disadvantages\": [\n    \"Risk of losing one's humanity and morality\",\n    \"Struggle with anonymity and identity issues\",\n    \"Potential for causing harm or disrupting social order\",\n    \"Challenges in maintaining ethical boundaries\"\n  ],\n  \"indeed, supernatural powers can be both a blessing and a curse.\"\n}",
+     "response_sha256": "a04c5fa9499b10f3b6bfb35d79823109c344a255de33d46a7b78e3de70db7b1a",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 116,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 116,
+     "prompt_tokens": 308,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       114,
+       138
+      ],
+      [
+       10,
+       18
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

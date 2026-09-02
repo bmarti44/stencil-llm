@@ -1,0 +1,557 @@
+{
+ "ci": 216,
+ "key": "1658:6:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "1c28b161bf0b52f15ab5bd894ab932e3add13c23cd4e1d967c1925971d7d941b",
+   "context_tokens": 388,
+   "instruction_ids": [
+    "startend:quotation",
+    "keywords:existence",
+    "detectable_format:title"
+   ],
+   "insertable": [
+    false,
+    true,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "startend:quotation",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "keywords:existence",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Include the keywords \"Python\" and \"Java\" and wrap the response with double quotation marks.",
+     "span": [
+      20,
+      39
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:quotation",
+      "keywords:existence"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      360,
+      379
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "\"  \n<<Resume for 20-Year-Old College Student>>  \n**Name:** John Doe  \n**Email:** johndoe@example.com  \n**Phone:** (123) 456-7890  \n**Location:** Anytown, USA  \n\n**Education:**  \nBachelor of Science in Computer Science  \nUniversity of Anytown  \nGraduated: April 2024  \n\n**Skills:**  \n- Proficient in Python and Java  \n- Strong foundation in data structures and algorithms  \n- Experience with object-oriented programming  \n- Familiar with version control using Git  \n- Knowledge of web development with HTML, CSS, and JavaScript  \n- Familiar with database management systems (MySQL, PostgreSQL)  \n\n**Projects:**  \n- **Python Project:** Developed a simple command-line application for task management.  \n- **Java Project:** Created a web service using Spring Boot to handle user authentication.  \n\n**Certifications:**  \n- Google Cloud Certified Associate (2023)  \n- AWS Certified Solutions Architect (2023)  \n\n**Languages:**  \n- English (Fluent)  \n- Spanish (Basic)  \n\n**Interests:**  \n- Programming, web development, open-source projects  \n- Reading, hiking, and playing video games  \n\n**Summary:**  \nA motivated and enthusiastic 20-year-old college student with a strong foundation in computer science. Passionate about programming and continuously learning new technologies. Skilled in Python and Java, with a keen interest in developing innovative solutions. Looking for a challenging and rewarding opportunity to apply my skills in a professional setting.  \n\"",
+    "response_sha256": "7012cfcbf3ccd1928f4e72ff52bd1ee06bff132d21d4d9e0d6a21fa756467ddd",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 322,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "\"  \n<<Resume for 20-Year-Old College Student>>  \n\"  \n**Name:** John Doe  \n**Email:** johndoe@example.com  \n**Phone:** (123) 456-7890  \n**Location:** Anytown, USA  \n\n**Education:**  \nBachelor of Science in Computer Science  \nUniversity of Anytown  \nGraduated: April 2024  \n\n**Skills:**  \n- Proficient in Python and Java  \n- Strong foundation in data structures and algorithms  \n- Experience with object-oriented programming  \n- Familiar with version control using Git  \n- Knowledge of web development with HTML, CSS, and JavaScript  \n- Familiar with database management systems (MySQL, PostgreSQL)  \n\n**Projects:**  \n- **Python Project:** Developed a simple command-line application for task management.  \n- **Java Project:** Created a web service using Spring Boot to handle user authentication.  \n\n**Certifications:**  \n- Google Cloud Certified Associate (2023)  \n- AWS Certified Solutions Architect (2023)  \n\n**Languages:**  \n- English (Fluent)  \n- Spanish (Basic)  \n\n**Interests:**  \n- Programming, web development, open-source projects  \n- Reading, hiking, and playing video games  \n\n**Summary:**  \nA motivated and enthusiastic 20-year-old college student with a strong foundation in computer science. Passionate about programming and continuously learning new technologies. Skilled in Python and Java, with a keen interest in developing innovative solutions. Looking for a challenging and rewarding opportunity to apply my skills in a professional setting.  \n\n\"",
+     "response_sha256": "1b993a94fced294ae5fc1b451007938cc81f390bd97df046be07716faf262853",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 324,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 416,
+     "context_tokens_added": 28,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "\"  \n\"  \n<<Resume for 20-Year-Old College Student>>  \n\"  \n**Name:** John Doe  \n**Email:** johndoe@example.com  \n**Phone:** (123) 456-7890  \n**Location:** Anytown, USA  \n\n**Education:**  \nBachelor of Science in Computer Science  \nUniversity of Anytown  \nGraduated: April 2024  \n\n**Skills:**  \n- Proficient in Python and Java  \n- Strong foundation in data structures and algorithms  \n- Experience with object-oriented programming  \n- Familiar with version control using Git  \n- Knowledge of web development with HTML, CSS, and JavaScript  \n- Familiar with database management systems (MySQL, PostgreSQL)  \n\n**Projects:**  \n- **Python Project:** Developed a simple command-line application for task management.  \n- **Java Project:** Created a web service using Spring Boot to handle user authentication.  \n\n**Certifications:**  \n- Google Cloud Certified Associate (2023)  \n- AWS Certified Solutions Architect (2023)  \n\n**Languages:**  \n- English (Fluent)  \n- Spanish (Basic)  \n\n**Interests:**  \n- Programming, web development, open-source projects  \n- Reading, hiking, and playing video games  \n\n**Summary:**  \nA motivated and enthusiastic 20-year-old college student with a strong foundation in computer science. Passionate about programming and continuously learning new technologies. Skilled in Python and Java, with a keen interest in developing innovative solutions. Looking for a challenging and rewarding opportunity to apply my skills in a professional setting.  \n\n\"",
+     "response_sha256": "9a65cfb4c04f0fc8d8e68bf0820b1860186967811e7bcdf6379aaf337b3a0219",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 326,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 326,
+     "prompt_tokens": 388,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       20,
+       39
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "\"  \n<<Resume for 20-Year-Old College Student with No Work Experience>>  \n\"  \n**Name:** John Doe  \n**Email:** johndoe@example.com  \n**Phone:** (123) 456-7890  \n**Location:** Anytown, USA  \n\n**Education:**  \nBachelor of Science in Computer Science  \nUniversity of Anytown  \nGraduated: April 2024  \n\n**Skills:**  \n- Proficient in Python and Java  \n- Strong foundation in data structures and algorithms  \n- Experience with object-oriented programming  \n- Familiar with version control using Git  \n- Knowledge of web development with HTML, CSS, and JavaScript  \n- Familiar with database management systems (MySQL, PostgreSQL)  \n\n**Projects:**  \n- **Python Project:** Developed a simple command-line application for task management.  \n- **Java Project:** Created a web service using Spring Boot to handle user authentication.  \n\n**Certifications:**  \n- Google Cloud Certified Associate (2023)  \n- AWS Certified Solutions Architect (2023)  \n\n**Languages:**  \n- English (Fluent)  \n- Spanish (Basic)  \n\n**Interests:**  \n- Programming, web development, open-source projects  \n- Reading, hiking, and playing video games  \n\n**Summary:**  \nA motivated and enthusiastic 20-year-old college student with a strong foundation in computer science. Passionate about programming and continuously learning new technologies. Skilled in Python and Java, with a keen interest in developing innovative solutions. Looking for a challenging and rewarding opportunity to apply my skills in a professional setting.  \n\n\"",
+     "response_sha256": "cd3b4dbe346a194282bebd9648130b81d8934f748ff192d09d55b266238347f8",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 328,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 328,
+     "prompt_tokens": 388,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       1,
+       20
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "97f0db8ee24ad899e0ca309a788608b65600670ffc1f95cb262c3b3256d180b5",
+   "context_tokens": 750,
+   "instruction_ids": [
+    "startend:quotation",
+    "keywords:existence",
+    "detectable_format:title",
+    "length_constraints:nth_paragraph_first_word"
+   ],
+   "insertable": [
+    false,
+    true,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "startend:quotation",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "keywords:existence",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "length_constraints:nth_paragraph_first_word",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2,
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Include the keywords \"Python\" and \"Java\" and wrap the response with double quotation marks.",
+     "span": [
+      20,
+      39
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:quotation",
+      "keywords:existence"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      360,
+      379
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    },
+    {
+     "text": "Your response should have 4 paragraphs and the 2-th paragraph should start with the word engineering.",
+     "span": [
+      711,
+      731
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word"
+     ]
+    },
+    {
+     "text": "The paragraphs should be separated by two new lines.",
+     "span": [
+      731,
+      741
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "\"  \n<<Resume for 20-Year-Old College Student>>  \n\n**Name:** John Doe  \n**Email:** johndoe@example.com  \n**Phone:** (123) 456-7890  \n**Location:** Anytown, USA  \n\n**Education:**  \nBachelor of Science in Computer Science  \nUniversity of Anytown  \nGraduated: April 2024  \n\nEngineering is a core aspect of my academic journey, where I have developed a strong foundation in programming and problem-solving. I have taken courses in data structures, algorithms, and software engineering, which have equipped me with the skills to design and implement efficient solutions. My interest in engineering extends beyond the classroom, as I actively participate in open-source projects and contribute to various coding challenges.  \n\n**Skills:**  \n- Proficient in Python and Java  \n- Strong foundation in data structures and algorithms  \n- Experience with object-oriented programming  \n- Familiar with version control using Git  \n- Knowledge of web development with HTML, CSS, and JavaScript  \n- Familiar with database management systems (MySQL, PostgreSQL)  \n\n**Projects:**  \n- **Python Project:** Developed a simple command-line application for task management.  \n- **Java Project:** Created a web service using Spring Boot to handle user authentication.  \n\n**Certifications:**  \n- Google Cloud Certified Associate (2023)  \n- AWS Certified Solutions Architect (2023)  \n\n**Languages:**  \n- English (Fluent)  \n- Spanish (Basic)  \n\n**Interests:**  \n- Programming, web development, open-source projects  \n- Reading, hiking, and playing video games",
+    "response_sha256": "066709095ed013cd2b5e15469fa7f123544301d9602ededaa6021d61f0be9117",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      true,
+      true,
+      false
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      false,
+      true,
+      true,
+      false
+     ]
+    },
+    "n_generated": 330,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     true,
+     true,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "\"  \n<<Resume for 20-Year-Old College Student>>  \n\n**Name:** John Doe  \n**Email:** johndoe@example.com  \n**Phone:** (123) 456-7890  \n**Location:** Anytown, USA  \n\n**Education:**  \nBachelor of Science in Computer Science  \nUniversity of Anytown  \nGraduated: April 2024  \n\nEngineering is a core aspect of my academic journey, where I have developed a strong foundation in programming and problem-solving. I am proficient in Python and Java, which have been instrumental in shaping my understanding of software development. My coursework in data structures and algorithms has further enhanced my ability to design efficient solutions. I am always eager to learn and apply new technologies, particularly in the fields of web development and database management.  \n\n**Skills:**  \n- Proficient in Python and Java  \n- Strong foundation in data structures and algorithms  \n- Experience with object-oriented programming  \n- Familiar with version control using Git  \n- Knowledge of web development with HTML, CSS, and JavaScript  \n- Familiar with database management systems (MySQL, PostgreSQL)  \n\n**Projects:**  \n- **Python Project:** Developed a simple command-line application for task management.  \n- **Java Project:** Created a web service using Spring Boot to handle user authentication.  \n\n**Certifications:**  \n- Google Cloud Certified Associate (2023)  \n- AWS Certified Solutions Architect (2023)  \n\n**Languages:**  \n- English (Fluent)  \n- Spanish (Basic)  \n\n**Interests:**  \n- Programming, web development, open-source projects  \n- Reading, hiking, and playing video games  \n\"",
+     "response_sha256": "b3069d3eccc033afcb1e567e19798f0e80f9586dafc3c32614d7ea3550adf1b9",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 339,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 798,
+     "context_tokens_added": 48,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "\"  \n<<Resume for 20-Year-Old College Student>>  \n\n<<Title>>  \n\n**Name:** John Doe  \n**Email:** johndoe@example.com  \n**Phone:** (123) 456-7890  \n**Location:** Anytown, USA  \n\n**Education:**  \nBachelor of Science in Computer Science  \nUniversity of Anytown  \nGraduated: April 2024  \n\n**Skills:**  \n- Proficient in Python and Java  \n- Strong foundation in data structures and algorithms  \n- Experience with object-oriented programming  \n- Familiar with version control using Git  \n- Knowledge of web development with HTML, CSS, and JavaScript  \n- Familiar with database management systems (MySQL, PostgreSQL)  \n\nEngineering is a core aspect of my academic and professional journey. I have a deep interest in how software systems are designed and implemented, and I am always eager to learn new technologies. My background in Python and Java has given me a solid foundation in both backend and frontend development, allowing me to approach problems from multiple angles. I am passionate about creating efficient and scalable solutions, and I am committed to continuous learning and improvement.  \n\n**Projects:**  \n- **Python Project:** Developed a simple command-line application for task management.  \n- **Java Project:** Created a web service using Spring Boot to handle user authentication.  \n\n**Certifications:**  \n- Google Cloud Certified Associate (2023)  \n- AWS Certified Solutions Architect (2023)  \n\n**Languages:**  \n- English (Fluent)  \n- Spanish (Basic)  \n\n\"",
+     "response_sha256": "8a5ec44fbf69074662ee1a5095710c55fac08012de7a0d27ec7daee5ea9aecf5",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 320,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 320,
+     "prompt_tokens": 750,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      1,
+      0
+     ],
+     "selected_spans": [
+      [
+       360,
+       379
+      ],
+      [
+       20,
+       39
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "\"  \n<<Resume for 20-Year-Old College Student>>  \n\n**Name:** John Doe  \n**Email:** johndoe@example.com  \n**Phone:** (123) 456-7890  \n**Location:** Anytown, USA  \n\n**Education:**  \nBachelor of Science in Computer Science  \nUniversity of Anytown  \nGraduated: April 2024  \n\nEngineering is a core aspect of my academic journey, where I have developed a strong foundation in programming and problem-solving. I have taken courses in data structures, algorithms, and software engineering, which have equipped me with the knowledge to design and implement solutions using Python and Java. My interest in engineering extends beyond the classroom, as I actively participate in open-source projects and contribute to various coding challenges.  \n\n**Skills:**  \n- Proficient in Python and Java  \n- Strong foundation in data structures and algorithms  \n- Experience with object-oriented programming  \n- Familiar with version control using Git  \n- Knowledge of web development with HTML, CSS, and JavaScript  \n- Familiar with database management systems (MySQL, PostgreSQL)  \n\n**Projects:**  \n- **Python Project:** Developed a simple command-line application for task management.  \n- **Java Project:** Created a web service using Spring Boot to handle user authentication.  \n\n**Certifications:**  \n- Google Cloud Certified Associate (2023)  \n- AWS Certified Solutions Architect (2023)  \n\n\"",
+     "response_sha256": "43e159d37c5a0c16abc1015425a6ac92a8ba0338fdbca6da10341ab96c878afe",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 293,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 293,
+     "prompt_tokens": 750,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       341,
+       360
+      ],
+      [
+       1,
+       20
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

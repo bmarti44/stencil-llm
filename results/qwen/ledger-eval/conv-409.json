@@ -1,0 +1,490 @@
+{
+ "ci": 409,
+ "key": "2311:15:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "0f90941ae20f194b37484867acff1621c075db90306c9712f5befd1ec0403482",
+   "context_tokens": 115,
+   "instruction_ids": [
+    "punctuation:no_comma",
+    "detectable_format:title"
+   ],
+   "insertable": [
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "punctuation:no_comma",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Do not use commas in your response.",
+     "span": [
+      24,
+      32
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      87,
+      106
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<Calories in Almonds>> There are 396 calories in a serving of 32 grams of unsalted almonds because almonds are high in calories due to their fat content. The calorie count is calculated based on the nutritional information of the almonds.",
+    "response_sha256": "c7cc94912dcc957d8baed005e96c7c9198d75d355952eeb5fd7b43020f122c2a",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true
+     ]
+    },
+    "n_generated": 52,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<calories in almonds>>  \nThere are 396 calories in a serving of 32 grams of unsalted almonds because almonds are high in calories due to their fat content. The calorie count is calculated based on the nutritional information of the almonds.",
+     "response_sha256": "9f740a85a6c627abf395086e5ff0c788d2f8fea1d07461e0ceb801ab1413e647",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 52,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 132,
+     "context_tokens_added": 17,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<Calories in Almonds>> There are 396 calories in a serving of 32 grams of unsalted almonds because almonds are high in calories due to their fat content. The calorie count is calculated based on the nutritional information of the almonds.",
+     "response_sha256": "c7cc94912dcc957d8baed005e96c7c9198d75d355952eeb5fd7b43020f122c2a",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 52,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 52,
+     "prompt_tokens": 115,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       24,
+       32
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<Calories in Almonds>> There are 396 calories in a serving of 32 grams of unsalted almonds because almonds are high in calories due to their fat content. The calorie count is calculated based on the nutritional information of the almonds.",
+     "response_sha256": "c7cc94912dcc957d8baed005e96c7c9198d75d355952eeb5fd7b43020f122c2a",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 52,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 52,
+     "prompt_tokens": 115,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       16,
+       24
+      ]
+     ],
+     "control_tiers": [
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "90f9ba2aefdc439acc269eb438779a0b91145ff8a7aa802ee73e6c719808a72a",
+   "context_tokens": 192,
+   "instruction_ids": [
+    "punctuation:no_comma",
+    "detectable_format:title",
+    "keywords:forbidden_words"
+   ],
+   "insertable": [
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "punctuation:no_comma",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "keywords:forbidden_words",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Do not use commas in your response.",
+     "span": [
+      24,
+      32
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "punctuation:no_comma"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      87,
+      106
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    },
+    {
+     "text": "Your response should not include the following words: nutrients, nutritional, fiber.",
+     "span": [
+      168,
+      183
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:forbidden_words"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<Calories in Almonds>> There are 396 calories in a serving of 32 grams of unsalted almonds because almonds are high in calories due to their fat content. The calorie count is calculated based on the nutritional information of the almonds.",
+    "response_sha256": "c7cc94912dcc957d8baed005e96c7c9198d75d355952eeb5fd7b43020f122c2a",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      false
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      false
+     ]
+    },
+    "n_generated": 52,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<Calories in Almonds>> There are 396 calories in a serving of 32 grams of unsalted almonds because almonds are high in calories due to their fat content. The calorie count is calculated based on the nutritional information of the almonds.",
+     "response_sha256": "c7cc94912dcc957d8baed005e96c7c9198d75d355952eeb5fd7b43020f122c2a",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 52,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 229,
+     "context_tokens_added": 37,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<Calories in Almonds>> There are 396 calories in a serving of 32 grams of unsalted almonds because almonds are high in calories due to their fat content. The calorie count is calculated based on the nutritional information of the almonds.",
+     "response_sha256": "c7cc94912dcc957d8baed005e96c7c9198d75d355952eeb5fd7b43020f122c2a",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 52,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 52,
+     "prompt_tokens": 192,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      1,
+      0
+     ],
+     "selected_spans": [
+      [
+       87,
+       106
+      ],
+      [
+       24,
+       32
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "There are 396 calories in a serving of 32 grams of unsalted almonds because almonds are high in calories due to their fat content. The calorie count is calculated based on the nutritional information of the almonds.",
+     "response_sha256": "a5998423bf67a5c4b7ea72ea7f321e7a267e85c1177850b5336b28e6ff7772f0",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      false
+     ],
+     "strict": false,
+     "n_generated": 45,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 45,
+     "prompt_tokens": 192,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       5,
+       24
+      ],
+      [
+       32,
+       40
+      ]
+     ],
+     "control_tiers": [
+      "other_user_turn",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

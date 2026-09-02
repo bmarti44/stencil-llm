@@ -1,0 +1,600 @@
+{
+ "ci": 867,
+ "key": "3624:10:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "fdaf21b2333c7f37c61fd507187173b3a66c780cbcf9aa93f1c5f83bc158783b",
+   "context_tokens": 409,
+   "instruction_ids": [
+    "length_constraints:nth_paragraph_first_word",
+    "startend:end_checker"
+   ],
+   "insertable": [
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "length_constraints:nth_paragraph_first_word",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "startend:end_checker",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      3,
+      4
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "There should be exactly 4 paragraphs.",
+     "span": [
+      17,
+      25
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word"
+     ]
+    },
+    {
+     "text": "Paragraphs and only paragraphs should be separated by two new lines (like \"\\n\\n\").",
+     "span": [
+      25,
+      43
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word"
+     ]
+    },
+    {
+     "text": "Paragraph 2 must start with the word \"it\".",
+     "span": [
+      43,
+      54
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word"
+     ]
+    },
+    {
+     "text": "Your response should end with the exact phrase: \"and so we harness the power of change.\"",
+     "span": [
+      373,
+      392
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "No other words should follow this phrase.",
+     "span": [
+      392,
+      400
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "The world of thermodynamics is a complex one, where energy flows and reactions take their course. Gibbs free energy, with its intricate calculations and formulas, is the key to understanding whether a process is spontaneous or not. It's like a guide for the molecules, showing them the path of least resistance. But in the world of politics, we often forget the science behind the policies we support.\n\nIt is the measure of energy available to do work, a tool that helps us decide whether a plan will succeed or fail. Just as a president must assess the potential of a policy, Gibbs free energy helps us evaluate the feasibility of a reaction. It's not just about the energy, but how it's used and where it goes. In the end, it's all about the balance between what's possible and what's practical.\n\nThe formula, ΔG = ΔH - TΔS, is a bit like a political strategy—complex, sometimes confusing, but essential for making informed decisions. It tells us if a process is favorable, whether it will happen without external help. In the world of leadership, this is the same as knowing whether a policy will be successful or not. It's a tool that helps us navigate the challenges of the future.\n\nand so we harness the power of change.",
+    "response_sha256": "b008ff08ba97985ce5c2dc5cd7a2044c7062223e205a332276f077c82a0f95ae",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true
+     ]
+    },
+    "n_generated": 258,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "The world of thermodynamics is a complex one, where energy flows and reactions take their course. Gibbs free energy, with its intricate calculations and formulas, is the key to understanding whether a process is spontaneous or not. It's like a guide for the molecules, showing them the path of least resistance. But in the world of politics, we often forget the science behind the policies we support.\n\nIt is the measure of energy available to do work, a tool that helps us decide whether a plan will succeed or fail. Just as a president must assess the potential of a policy, Gibbs free energy helps us evaluate the feasibility of a reaction. It's not just about the energy, but how it's used and where it goes. In the end, it's all about the balance between what's possible and what's practical.\n\nThe formula, ΔG = ΔH - TΔS, is a bit like a political strategy—complex, sometimes confusing, but essential for making informed decisions. It tells us if a process is favorable, whether it will happen without external help. In the world of leadership, this is the same as knowing whether a policy will be successful or not. It's a tool that helps us navigate the challenges of the future.\n\nand so we harness the power of change.",
+     "response_sha256": "b008ff08ba97985ce5c2dc5cd7a2044c7062223e205a332276f077c82a0f95ae",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 258,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 457,
+     "context_tokens_added": 48,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2
+     ]
+    },
+    "neural_ledger": {
+     "response": "The world of thermodynamics is a complex one, where energy flows and reactions take their course. Gibbs free energy, with its intricate calculations and formulas, is the key to understanding whether a process is spontaneous or not. It's like a guide for the molecules, showing them the path of least resistance. But in the world of politics, we often forget the science behind the policies we support.\n\nit is the measure of energy available to do work, a tool that helps us decide whether a plan will succeed or fail. Just as a president must assess the potential of a policy, Gibbs free energy helps us evaluate the feasibility of a reaction. It's not just about the energy, but how it's used and where it goes. In the end, it's all about the balance between what's possible and what's practical.\n\nThe formula, ΔG = ΔH - TΔS, is a bit like a political strategy—complex, sometimes confusing, but essential for making informed decisions. It tells us if a process is favorable, whether it will happen without external help. In the world of leadership, this is the same as knowing whether a policy will be successful or not. It's a tool that helps us navigate the challenges of the future.\n\nand so we harness the power of change.",
+     "response_sha256": "98d46791a28648f66bffd66a3858fa02e200c29cb520d17d6ed9c2de446c1f20",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 258,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 258,
+     "prompt_tokens": 409,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      2
+     ],
+     "selected_spans": [
+      [
+       17,
+       25
+      ],
+      [
+       43,
+       54
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "The world of thermodynamics is a complex one, where energy flows and reactions take their course. Gibbs free energy, with its intricate calculations and formulas, is the key to understanding whether a process is spontaneous or not. It's like a guide for the molecules, showing them the path of least resistance. But in the world of politics, we often forget the science behind the policies we support.\n\nIt is the measure of energy available to do work, a tool that helps us decide whether a plan will succeed or fail. Just as a president must assess the potential of a policy, Gibbs free energy helps us evaluate the feasibility of a reaction. It's not just about the energy, but how it's used and where it goes. In the end, it's all about the balance between what's possible and what's practical.\n\nThe formula, ΔG = ΔH - TΔS, is a bit like a political strategy—complex, sometimes confusing, but essential for making informed decisions. It tells us if a process is favorable, whether it will happen without external help. In the world of leadership, this is the same as knowing whether a policy will be successful or not. It's a tool that helps us navigate the challenges of the future.\n\nAnd so we harness the power of change.",
+     "response_sha256": "702fc8caa6151c37827436b0ecbb1a0093b8361ce7370046c88980c91f23d67f",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 258,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 258,
+     "prompt_tokens": 409,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       9,
+       17
+      ],
+      [
+       54,
+       65
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "3096bb25f1ba31955646a95727470de189c840aa5f698ed55c80cf15dada46ac",
+   "context_tokens": 690,
+   "instruction_ids": [
+    "length_constraints:nth_paragraph_first_word",
+    "startend:end_checker",
+    "keywords:frequency"
+   ],
+   "insertable": [
+    false,
+    false,
+    true
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "length_constraints:nth_paragraph_first_word",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "startend:end_checker",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      3,
+      4
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "keywords:frequency",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": true,
+     "entry_indices": [
+      5
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "There should be exactly 4 paragraphs.",
+     "span": [
+      17,
+      25
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word"
+     ]
+    },
+    {
+     "text": "Paragraphs and only paragraphs should be separated by two new lines (like \"\\n\\n\").",
+     "span": [
+      25,
+      43
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word"
+     ]
+    },
+    {
+     "text": "Paragraph 2 must start with the word \"it\".",
+     "span": [
+      43,
+      54
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:nth_paragraph_first_word"
+     ]
+    },
+    {
+     "text": "Your response should end with the exact phrase: \"and so we harness the power of change.\"",
+     "span": [
+      373,
+      392
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "No other words should follow this phrase.",
+     "span": [
+      392,
+      400
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "Your response should include the word temperature at least 3 times.",
+     "span": [
+      668,
+      681
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:frequency"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2,
+    3,
+    4
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "The world of thermodynamics is a complex one, where energy flows and reactions take their course. Gibbs free energy, with its intricate calculations and formulas, is the key to understanding whether a process is spontaneous or not. It's like a guide for the molecules, showing them the path of least resistance. But in the world of politics, we often forget the science behind the policies we support.\n\nIt is the measure of energy available to do work, a tool that helps us decide whether a plan will succeed or fail. Just as a president must assess the potential of a policy, Gibbs free energy helps us evaluate the feasibility of a reaction. It's not just about the energy, but how it's used and where it goes. In the end, it's all about the balance between what's possible and what's practical.\n\nThe formula, ΔG = ΔH - TΔS, is a bit like a political strategy—complex, sometimes confusing, but essential for making informed decisions. It tells us if a process is favorable, whether it will happen without external help. In the world of leadership, this is the same as knowing whether a policy will be successful or not. It's a tool that helps us navigate the challenges of the future. Temperature plays a crucial role in determining the direction of a reaction, just as it does in the world of leadership. Temperature is the key to understanding the balance between energy and entropy, and it's the foundation of our decisions. And so we harness the power of change.",
+    "response_sha256": "a9fa6bba01735a71c760ece1e449ccd3e85fd43725156c511b41b44e70b64c50",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      false,
+      true,
+      false
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      false,
+      true,
+      false
+     ]
+    },
+    "n_generated": 303,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     false,
+     true,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "The world of thermodynamics is a complex one, where energy flows and reactions take their course. Gibbs free energy, with its intricate calculations and formulas, is the key to understanding whether a process is spontaneous or not. It's like a guide for the molecules, showing them the path of least resistance. Temperature plays a crucial role in determining the direction of a reaction, just as a president must assess the potential of a policy. It is the measure of energy available to do work, a tool that helps us decide whether a plan will succeed or fail. Just as a president must assess the potential of a policy, Gibbs free energy helps us evaluate the feasibility of a reaction. It's not just about the energy, but how it's used and where it goes. In the end, it's all about the balance between what's possible and what's practical.\n\nIt is the measure of energy available to do work, a tool that helps us decide whether a plan will succeed or fail. Just as a president must assess the potential of a policy, Gibbs free energy helps us evaluate the feasibility of a reaction. Temperature plays a crucial role in determining the direction of a reaction, just as a president must assess the potential of a policy. It is the measure of energy available to do work, a tool that helps us decide whether a plan will succeed or fail. In the end, it's all about the balance between what's possible and what's practical.\n\nThe formula, ΔG = ΔH - TΔS, is a bit like a political strategy—complex, sometimes confusing, but essential for making informed decisions. It tells us if a process is favorable, whether it will happen without external help. Temperature plays a crucial role in determining the direction of a reaction, just as a president must assess the potential of a policy. In the world of leadership, this is the same as knowing whether a policy will be successful or not. It's a tool that helps us navigate the challenges of the future.\n\nand so we harness the power of change.",
+     "response_sha256": "cfc847bbabe8ba82b5461572b0ee59c051b0f3cc3cf67d042234645396e36f2f",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 408,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 767,
+     "context_tokens_added": 77,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    },
+    "neural_ledger": {
+     "response": "The world of thermodynamics is a complex one, where energy flows and reactions take their course. Gibbs free energy, with its intricate calculations and formulas, is the key to understanding whether a process is spontaneous or not. It's like a guide for the molecules, showing them the path of least resistance. But in the world of politics, we often forget the science behind the policies we support.\n\nIt is the measure of energy available to do work, a tool that helps us decide whether a plan will succeed or fail. Just as a president must assess the potential of a policy, Gibbs free energy helps us evaluate the feasibility of a reaction. It's not just about the energy, but how it's used and where it goes. In the end, it's all about the balance between what's possible and what's practical. Temperature plays a crucial role in determining the direction of a reaction, and so does the balance of energy. Temperature is the key to unlocking the potential of a process, and so we harness the power of change. and so we harness the power of change.",
+     "response_sha256": "d9d9ee1a434e3ec116296dbf283e0bcf7f81b04de300550a29abc3ad53e5ae65",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 215,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 215,
+     "prompt_tokens": 690,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      3
+     ],
+     "selected_spans": [
+      [
+       17,
+       25
+      ],
+      [
+       373,
+       392
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "The world of thermodynamics is a complex one, where energy flows and reactions take their course. Gibbs free energy, with its intricate calculations and formulas, is the key to understanding whether a process is spontaneous or not. It's like a guide for the molecules, showing them the path of least resistance. But in the world of politics, we often forget the science behind the policies we support.\n\nIt is the measure of energy available to do work, a tool that helps us decide whether a plan will succeed or fail. Just as a president must assess the potential of a policy, Gibbs free energy helps us evaluate the feasibility of a reaction. It's not just about the energy, but how it's used and where it goes. In the end, it's all about the balance between what's possible and what's practical. Temperature plays a crucial role in determining the direction of a reaction, just as it does in the calculation of Gibbs free energy. The higher the temperature, the more the system can overcome the energy barrier, and the more likely the process will proceed. Temperature is the key factor that determines the outcome, just as it does in the calculation of Gibbs free energy.\n\nThe formula, ΔG = ΔH - TΔS, is a bit like a political strategy—complex, sometimes confusing, but essential for making informed decisions. It tells us if a process is favorable, whether it will happen without external help. In the world of leadership, this is the same as knowing whether a policy will be successful or not. It's a tool that helps us navigate the challenges of the future. Temperature is the foundation of this calculation, ensuring that we make the best possible decisions. With every decision, we must consider the energy and the outcomes. Temperature is the key factor that determines the best possible result, and so we harness the power of change.",
+     "response_sha256": "d7e4f7dd955b11ec9b341656c057c6838c346a7cff0e1762f4426977ebe0f025",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true
+     ],
+     "strict": false,
+     "n_generated": 371,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 371,
+     "prompt_tokens": 690,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       9,
+       17
+      ],
+      [
+       354,
+       373
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

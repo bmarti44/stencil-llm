@@ -1,0 +1,490 @@
+{
+ "ci": 372,
+ "key": "2225:11:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "0597460219e4a5f214cf9e8bd2e56bc28c16b60469f77f0d0d2ec545e92e6869",
+   "context_tokens": 177,
+   "instruction_ids": [
+    "language:response_language",
+    "detectable_format:title"
+   ],
+   "insertable": [
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "language:response_language",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Please respond to me only in Korean.",
+     "span": [
+      17,
+      25
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "language:response_language"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      149,
+      168
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<레일과 허브의 차이>>",
+    "response_sha256": "a042a3ac3488cb9a5fa894260641264ffc4c6ea152340e691c972f452a0e014f",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true
+     ]
+    },
+    "n_generated": 12,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<레일과 허브의 차이>>\n\n레일은 금속으로 만들어진 고정된 구조물로, 고정된 경로를 따라 운행되는 철도의 주요 구성 요소입니다. 반면 허브는 나무나 나무로 만들어진 유동적인 구조물로, 자연의 흐름과 상호작용하는 구조입니다. 레일은 안정적이며 강력하며, 허브는 유동적이며 유연합니다. 따라서 레일은 더 안정적이며, 허브는 더 유동적이며, 레일은 더 강력합니다.",
+     "response_sha256": "ba6179195f44f9b1f1bb88b35280b6d23faf5049dae0b4882b824955cc1109a4",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 148,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 194,
+     "context_tokens_added": 17,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<레일과 허브의 차이>>",
+     "response_sha256": "a042a3ac3488cb9a5fa894260641264ffc4c6ea152340e691c972f452a0e014f",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 12,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 12,
+     "prompt_tokens": 177,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       17,
+       25
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<Levee vs. Embankment: Differences in Function and Construction>>",
+     "response_sha256": "3112d6ec0693fa92a451da9599b78f989e04b81248234cbe494733a5c0465754",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 16,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 16,
+     "prompt_tokens": 177,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       9,
+       17
+      ]
+     ],
+     "control_tiers": [
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "83e09f5dfd805a1675a17b1852dc6972a55a1809b60085b64abb680fcd9d00b3",
+   "context_tokens": 216,
+   "instruction_ids": [
+    "language:response_language",
+    "detectable_format:title",
+    "combination:two_responses"
+   ],
+   "insertable": [
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "language:response_language",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "combination:two_responses",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Please respond to me only in Korean.",
+     "span": [
+      17,
+      25
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "language:response_language"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      149,
+      168
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    },
+    {
+     "text": "Separate your two responses with six asterisks (******)",
+     "span": [
+      196,
+      207
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:two_responses"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<레일과 허브의 차이>>  \n레일은 금속으로 만들어진 고정된 구조물로, 고정된 경로를 따라 운행되는 철도의 주요 구성 요소입니다. 반면 허브는 나무나 나무로 만들어진 유동적인 구조물로, 자연의 흐름과 상호작용을 통해 변형될 수 있습니다. 레일은 안정적이며 강력하며, 허브는 유동적이며 유연합니다.  \n\n******  \n<<레일과 허브의 차이>>  \n레일은 고정된 경로를 따라 운행되는 철도의 주요 구성 요소로, 금속으로 만들어진 고정된 구조물입니다. 반면 허브는 자연의 흐름과 상호작용을 통해 변형될 수 있는 유동적인 구조물로, 레일과는 달리 유연하게 변화할 수 있습니다. 레일은 안정적이며 강력하며, 허브는 유동적이며 유연합니다.",
+    "response_sha256": "7f8f43e0ef0c7dc90e3cc1e4a25deae8144ace7f3dc6e9b552c78341087efc34",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 249,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<레일과 허브의 차이>>  \n레일은 금속으로 만들어진 고정된 구조물로, 고정된 경로를 따라 운행되는 철도의 주요 구성 요소입니다. 반면 허브는 나무나 나무로 만들어진 유동적인 구조물로, 자연의 흐름과 상호작용을 통해 변형될 수 있습니다. 레일은 안정적이며 강력하며, 허브는 유동적이며 유연합니다. 따라서 레일은 더 안정적이며, 허브는 더 유동적이며, 레일은 더 강력합니다.  \n\n******  \n<<레일과 허브의 차이>>  \n레일은 금속으로 만들어진 고정된 구조물로, 고정된 경로를 따라 운행되는 철도의 주요 구성 요소입니다. 반면 허브는 나무나 나무로 만들어진 유동적인 구조물로, 자연의 흐름과 상호작용을 통해 변형될 수 있습니다. 레일은 안정적이며 강력하며, 허브는 유동적이며 유연합니다. 따라서 레일은 더 안정적이며, 허브는 더 유동적이며, 레일은 더 강력합니다.",
+     "response_sha256": "ba2435c7dc602c98fd8dd5eb97baf2a7a6721a5bdad1471aae03d1900cf1a79a",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 307,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 253,
+     "context_tokens_added": 37,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<레일과 허브의 차이>>  \n레일은 금속으로 만들어진 고정된 구조물로, 고정된 경로를 따라 운행되는 철도의 주요 구성 요소입니다. 반면 허브는 나무나 나무로 만들어진 유동적인 구조물로, 자연의 흐름과 상호작용을 통해 변형될 수 있습니다. 레일은 안정적이며 강력하며, 허브는 유동적이며 유연합니다. <<레일과 허브의 차이>>  \n******  \n<<레일과 허브의 차이>>  \n레일은 고정된 구조로, 고정된 경로를 따라 운행되는 철도의 주요 구성 요소입니다. 허브는 유동적인 구조로, 자연의 흐름과 상호작용을 통해 변형될 수 있습니다. 레일은 안정적이며 강력하며, 허브는 유동적이며 유연합니다. <<레일과 허브의 차이>>",
+     "response_sha256": "e6b9408447cc37af77b5895e054737c7eb2f9998cb4bf776eb9464b58290c3a3",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 247,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 247,
+     "prompt_tokens": 216,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      1,
+      0
+     ],
+     "selected_spans": [
+      [
+       149,
+       168
+      ],
+      [
+       17,
+       25
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<레일과 허브의 차이>>  \n레일은 금속으로 만들어진 고정된 구조물로, 물리적으로 고정되어 있습니다. 반면 허브는 유동적인 구조물로, 높은 유동성을 가집니다. 레일은 더 강력하고 안정적이며, 허브는 더 유동적이며, 레일은 더 강력합니다.  \n\n******  \n\n<<레일과 허브의 차이>>  \n레일은 물리적으로 고정되어 있으며, 허브는 유동적으로 변형할 수 있습니다. 레일은 강력하고 안정적이며, 허브는 유동적이며, 레일은 더 강력합니다.",
+     "response_sha256": "a91979fef990cbe596b23507ff061794e5475adaa23a98f1597165d81c192b48",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 173,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 173,
+     "prompt_tokens": 216,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       130,
+       149
+      ],
+      [
+       9,
+       17
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

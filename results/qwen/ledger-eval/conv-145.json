@@ -1,0 +1,619 @@
+{
+ "ci": 145,
+ "key": "1476:16:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "0ff42bc9918b3c464462205054cdef0dfae2cf9123fc27127c1a5c754614e97e",
+   "context_tokens": 123,
+   "instruction_ids": [
+    "keywords:forbidden_words",
+    "length_constraints:number_sentences",
+    "startend:end_checker"
+   ],
+   "insertable": [
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "keywords:forbidden_words",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "length_constraints:number_sentences",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "startend:end_checker",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2,
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Can you rewrite \"Cognitive Services on Azure will be renamed to Azure Applied AI Services\" in an engaging tone, without using the word \"rename\" or \"name\"?",
+     "span": [
+      3,
+      37
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:forbidden_words",
+      "length_constraints:number_sentences"
+     ]
+    },
+    {
+     "text": "Keep it under 3 sentences (just 1 or 2 sentences, not 3).",
+     "span": [
+      37,
+      56
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:forbidden_words",
+      "length_constraints:number_sentences"
+     ]
+    },
+    {
+     "text": "Your response should end with the exact phrase: \"get ready for a revolution in ai services!\"",
+     "span": [
+      87,
+      106
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "No other words should follow this phrase.",
+     "span": [
+      106,
+      114
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "Azure Cognitive Services are now part of Azure Applied AI Services, bringing cutting-edge AI solutions to your cloud. Get ready for a revolution in ai services!",
+    "response_sha256": "2bd2e9baf5c68cc5f62fee4056e0bcdd5a625ab5aa30b4b3a3a9a37c18cd8372",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 30,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "Azure Cognitive Services are now part of Azure Applied AI Services, bringing cutting-edge AI solutions to your cloud. Get ready for a revolution in ai services!",
+     "response_sha256": "2bd2e9baf5c68cc5f62fee4056e0bcdd5a625ab5aa30b4b3a3a9a37c18cd8372",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 30,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 187,
+     "context_tokens_added": 64,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "Azure Cognitive Services are now part of Azure Applied AI Services, bringing cutting-edge AI solutions to your cloud. Get ready for a revolution in ai services!",
+     "response_sha256": "2bd2e9baf5c68cc5f62fee4056e0bcdd5a625ab5aa30b4b3a3a9a37c18cd8372",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 30,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 30,
+     "prompt_tokens": 123,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       3,
+       37
+      ],
+      [
+       37,
+       56
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "Azure Cognitive Services are now part of Azure Applied AI Services, bringing cutting-edge AI solutions to your cloud. Get ready for a revolution in ai services!",
+     "response_sha256": "2bd2e9baf5c68cc5f62fee4056e0bcdd5a625ab5aa30b4b3a3a9a37c18cd8372",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 30,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 30,
+     "prompt_tokens": 123,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      null,
+      [
+       56,
+       75
+      ]
+     ],
+     "control_tiers": [
+      "none",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": true,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "39665f9922715983367a789997751a7a6f2f1dc834ed724662740ffc7761c035",
+   "context_tokens": 184,
+   "instruction_ids": [
+    "keywords:forbidden_words",
+    "length_constraints:number_sentences",
+    "startend:end_checker",
+    "detectable_format:json_format"
+   ],
+   "insertable": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "keywords:forbidden_words",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "length_constraints:number_sentences",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "startend:end_checker",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      2,
+      3
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "detectable_format:json_format",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      4
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Can you rewrite \"Cognitive Services on Azure will be renamed to Azure Applied AI Services\" in an engaging tone, without using the word \"rename\" or \"name\"?",
+     "span": [
+      3,
+      37
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:forbidden_words",
+      "length_constraints:number_sentences"
+     ]
+    },
+    {
+     "text": "Keep it under 3 sentences (just 1 or 2 sentences, not 3).",
+     "span": [
+      37,
+      56
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:forbidden_words",
+      "length_constraints:number_sentences"
+     ]
+    },
+    {
+     "text": "Your response should end with the exact phrase: \"get ready for a revolution in ai services!\"",
+     "span": [
+      87,
+      106
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "No other words should follow this phrase.",
+     "span": [
+      106,
+      114
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:end_checker"
+     ]
+    },
+    {
+     "text": "Do not add any words outside of the JSON block.",
+     "span": [
+      164,
+      175
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:json_format"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "{\n  \"response\": \"Azure Cognitive Services are now part of Azure Applied AI Services, bringing cutting-edge AI solutions to your cloud. Get ready for a revolution in ai services!\"\n}",
+    "response_sha256": "ff56a72895dd963a53166d4511547bb7420026e20c818bd0bc98e9c9e8df939c",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      false,
+      false,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 37,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     false,
+     false,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "{\n  \"response\": \"Azure Cognitive Services are now part of Azure Applied AI Services, bringing cutting-edge AI solutions to your cloud. Get ready for a revolution in ai services!\"\n}",
+     "response_sha256": "ff56a72895dd963a53166d4511547bb7420026e20c818bd0bc98e9c9e8df939c",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 37,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 277,
+     "context_tokens_added": 93,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2,
+      3
+     ]
+    },
+    "neural_ledger": {
+     "response": "{\n  \"response\": \"Azure Cognitive Services are now part of Azure Applied AI Services, bringing cutting-edge AI solutions to your cloud. get ready for a revolution in ai services!\"\n}",
+     "response_sha256": "f8d185d0b9b72ae06cbd88cf4c16864df956ee6840ccb89d9a0772ff3c60121f",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 37,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 37,
+     "prompt_tokens": 184,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      1,
+      2
+     ],
+     "selected_spans": [
+      [
+       37,
+       56
+      ],
+      [
+       87,
+       106
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "{\"response\": \"Azure Cognitive Services are now part of Azure Applied AI Services, bringing cutting-edge AI solutions to your cloud. Get ready for a revolution in ai services!\"}",
+     "response_sha256": "89ffcd379d820998ba854db34f3864c1024fcfe3caa1192b545bce851780ae3e",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 35,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 35,
+     "prompt_tokens": 184,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       56,
+       75
+      ],
+      [
+       114,
+       133
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

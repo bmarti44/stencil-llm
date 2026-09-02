@@ -1,0 +1,720 @@
+{
+ "ci": 739,
+ "key": "3272:12:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "c2007e4469b719cb1322a3ee8d36f863eb76123bf982ce5ab1cb3f456523758d",
+   "context_tokens": 156,
+   "instruction_ids": [
+    "combination:repeat_prompt",
+    "detectable_format:title",
+    "keywords:frequency",
+    "length_constraints:number_paragraphs"
+   ],
+   "insertable": [
+    false,
+    false,
+    true,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "combination:repeat_prompt",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:title",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "keywords:frequency",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "length_constraints:number_paragraphs",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      3,
+      4
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Include the keyword \"brand\" each time, followed by suggested name in double angular brackets, such as <<American Tonic>>.",
+     "span": [
+      14,
+      40
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "detectable_format:title",
+      "keywords:frequency"
+     ]
+    },
+    {
+     "text": "First repeat the request above word for word without change, then give your answer.",
+     "span": [
+      40,
+      56
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "detectable_format:title",
+      "keywords:frequency"
+     ]
+    },
+    {
+     "text": "Do not say any words or characters before repeating the request.",
+     "span": [
+      56,
+      68
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "detectable_format:title",
+      "keywords:frequency"
+     ]
+    },
+    {
+     "text": "The output should contain exactly 3 paragraphs.",
+     "span": [
+      126,
+      135
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_paragraphs"
+     ]
+    },
+    {
+     "text": "The paragraphs should be separated by the markdown divider: ***.",
+     "span": [
+      135,
+      147
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_paragraphs"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "Suggest two names for a new type of tonic. Include the keyword \"brand\" each time, followed by suggested name in double angular brackets, such as <<American Tonic>>.\n\n<<Brand Elixir>>  \n<<Brand Revive>>  \n\n***  \n\nThe brand name should reflect the tonic's purpose and appeal. \"Elixir\" suggests a blend of beneficial ingredients and a sense of rejuvenation, making it a strong choice for a tonic aimed at revitalization. The name \"Revive\" conveys a sense of renewal and energy, appealing to consumers looking for a refreshing and uplifting drink.  \n\n***  \n\nThe brand name should also consider the target audience and the tonic's intended use. \"Elixir\" is a classic term that evokes health and wellness, while \"Revive\" is more modern and direct. Both names are easy to remember and can be associated with a premium feel. The use of \"brand\" in the name ensures that the product is clearly identified as a specific offering from a company, reinforcing brand identity and trust.",
+    "response_sha256": "422449dee4eb9ab519891534ff68ff6efdd22eb4e55abf86e431bef55629f24e",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 209,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "Suggest two names for a new type of tonic. Include the keyword \"brand\" each time, followed by suggested name in double angular brackets, such as <<American Tonic>>.\n\n***\n\n<<Brand Elixir>>  \n<<Brand Revive>>  \n\n***\n\nThe output should contain exactly 3 paragraphs. The paragraphs should be separated by the markdown divider: ***.\n\n<<Brand Elixir>>  \n<<Brand Revive>>  \n\n***  \n\n<<Brand Elixir>>  \n<<Brand Revive>>",
+     "response_sha256": "2b78df53636f6b8ce46994e070a9e657024e9a058c28874807aa5066e58162d5",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 97,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 221,
+     "context_tokens_added": 65,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2
+     ]
+    },
+    "neural_ledger": {
+     "response": "Suggest two names for a new type of tonic. Include the keyword \"brand\" each time, followed by suggested name in double angular brackets, such as <<American Tonic>>.\n\n<<Brand Elixir>>  \n<<Brand Revive>>  \n\n***  \n\nThe brand name should reflect the tonic's purpose and appeal. <<Brand Elixir>> suggests a revitalizing and refreshing experience, while <<Brand Revive>> implies a rejuvenating effect. Both names are concise and easy to remember, making them ideal for a brand identity.\n\n***  \n\nThe brand name should also evoke a sense of quality and authenticity. <<Brand Elixir>> suggests a traditional and trustworthy source of health and wellness, while <<Brand Revive>> implies a modern and innovative approach to health. Both names are versatile and can be adapted for different markets or target audiences.",
+     "response_sha256": "6f2f41febf46ec1427a8cabd882daf34da3a6c051e28db6f4581b09a7b58d64a",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 166,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 166,
+     "prompt_tokens": 156,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       14,
+       40
+      ],
+      [
+       40,
+       56
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "Suggest two names for a new type of tonic. Include the keyword \"brand\" each time, followed by suggested name in double angular brackets, such as <<American Tonic>>.\n\n<<Brand Elixir>>  \n<<Brand Revive>>  \n\n***  \n\nThe brand name should reflect the essence of the tonic, whether it's for revitalization, hydration, or refreshment. A brand name like <<Brand Elixir>> suggests a blend of quality and rejuvenation, appealing to those seeking a refreshing experience. The brand name should also evoke a sense of trust and reliability, making it a strong choice for a new tonic.\n\n***  \n\nThe brand name should also be memorable and easy to pronounce. A name like <<Brand Revive>> suggests a revitalizing effect, making it ideal for a tonic that aims to restore energy and vitality. The brand name should resonate with the target audience, whether they are looking for a tonic to use during a busy day or to enhance their overall well-being. The brand name should also be versatile, allowing for different marketing strategies and product variations.",
+     "response_sha256": "b8a1837f495bdef3f8a9d630680a448db5f7bbeb2b0bda45638fb0096c3f057b",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 214,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 214,
+     "prompt_tokens": 156,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       68,
+       94
+      ],
+      [
+       94,
+       110
+      ]
+     ],
+     "control_tiers": [
+      "outside_user_turns",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "0fa394e5e65e32a25045f169c6c27962b10c249cd658d1aa3dd3eb0b2f062ef1",
+   "context_tokens": 390,
+   "instruction_ids": [
+    "combination:repeat_prompt",
+    "detectable_format:title",
+    "keywords:frequency",
+    "length_constraints:number_paragraphs",
+    "change_case:english_capital"
+   ],
+   "insertable": [
+    false,
+    false,
+    true,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "combination:repeat_prompt",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "detectable_format:title",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "keywords:frequency",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": true,
+     "entry_indices": [
+      0,
+      1,
+      2
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "length_constraints:number_paragraphs",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      3,
+      4
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 4,
+     "id": "change_case:english_capital",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      5
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Include the keyword \"brand\" each time, followed by suggested name in double angular brackets, such as <<American Tonic>>.",
+     "span": [
+      14,
+      40
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "detectable_format:title",
+      "keywords:frequency"
+     ]
+    },
+    {
+     "text": "First repeat the request above word for word without change, then give your answer.",
+     "span": [
+      40,
+      56
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "detectable_format:title",
+      "keywords:frequency"
+     ]
+    },
+    {
+     "text": "Do not say any words or characters before repeating the request.",
+     "span": [
+      56,
+      68
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "combination:repeat_prompt",
+      "detectable_format:title",
+      "keywords:frequency"
+     ]
+    },
+    {
+     "text": "The output should contain exactly 3 paragraphs.",
+     "span": [
+      126,
+      135
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_paragraphs"
+     ]
+    },
+    {
+     "text": "The paragraphs should be separated by the markdown divider: ***.",
+     "span": [
+      135,
+      147
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "length_constraints:number_paragraphs"
+     ]
+    },
+    {
+     "text": "Make sure your entire response is in English, and in all capital letters.",
+     "span": [
+      366,
+      381
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:english_capital"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2,
+    3,
+    4
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "SUGGEST TWO NAMES FOR A NEW TYPE OF TONIC. INCLUDE THE KEYWORD \"BRAND\" EACH TIME, FOLLOWED BY SUGGESTED NAME IN DOUBLE ANGULAR BRACKETS, SUCH AS <<AMERICAN TONIC>>.\n\n<<BRAND ELIXIR>>  \n<<BRAND REVIVE>>  \n\n***  \n\nTHE BRAND NAME SHOULD REFLECT THE TONIC'S PURPOSE AND APPEAL. \"ELIXIR\" SUGGESTS A BLEND OF BENEFICIAL INGREDIENTS AND A SENSE OF REJUVENATION, MAKING IT A STRONG CHOICE FOR A TONIC AIMED AT REVITALIZATION. THE NAME \"REVIVE\" CONVEYS A SENSE OF RENEWAL AND ENERGY, APPEALING TO CONSUMERS LOOKING FOR A REFRESHING AND UPLIFTING DRINK.  \n\n***  \n\nTHE BRAND NAME SHOULD ALSO CONSIDER THE TARGET AUDIENCE AND THE TONIC'S INTENDED USE. \"ELIXIR\" IS A CLASSIC TERM THAT EVOKES HEALTH AND WELLNESS, WHILE \"REVIVE\" IS MORE MODERN AND DIRECT. BOTH NAMES ARE EASY TO REMEMBER AND CAN BE ASSOCIATED WITH A PREMIUM FEEL. THE USE OF \"BRAND\" IN THE NAME ENFORCES BRAND IDENTITY AND TRUST.",
+    "response_sha256": "dce1918ff6df907542676813504191e17b861a3a0ed4df99f00b7632a7234f15",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 278,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "Suggest two names for a new type of tonic. Include the keyword \"brand\" each time, followed by suggested name in double angular brackets, such as <<American Tonic>>.\n\n<<BRAND Elixir>>  \n<<BRAND Revive>>  \n\n***  \n\nThe brand name should reflect the tonic's purpose and appeal. \"Elixir\" suggests a blend of beneficial ingredients and a sense of rejuvenation, making it a strong choice for a tonic aimed at revitalization. The name \"Revive\" conveys a sense of renewal and energy, appealing to consumers looking for a refreshing and uplifting drink.  \n\n***  \n\nThe brand name should also consider the target audience and the tonic's intended use. \"Elixir\" is a classic term that evokes health and wellness, while \"Revive\" is more modern and direct. Both names are easy to remember and can be associated with a premium feel. The use of \"brand\" in the name ensures that the product is clearly identified as a specific offering from a company, reinforcing brand identity and trust.",
+     "response_sha256": "31cd11899233187b59870da774b22b5e3997a978dc5ee5d13cc46a37a63fecc4",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 211,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 478,
+     "context_tokens_added": 88,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    },
+    "neural_ledger": {
+     "response": "THE OUTPUT SHOULD CONTAIN EXACTLY 3 PARAGRAPHS. THE PARAGRAPHS SHOULD BE SEPARATED BY THE MARKDOWN DIVIDER: ***.  \n\n<<BRAND BRAND BRAND>>  \n<<BRAND BRAND BRAND>>  \n<<BRAND BRAND BRAND>>  \n\n***  \n\nTHE BRAND NAME SHOULD REFLECT THE TONIC'S PURPOSE AND APPEAL. \"BRAND\" suggests a blend of beneficial ingredients and a sense of rejuvenation, making it a strong choice for a tonic aimed at revitalization. THE NAME \"BRAND\" conveys a sense of renewal and energy, appealing to consumers looking for a refreshing and uplifting drink.  \n\n***  \n\nTHE BRAND NAME SHOULD ALSO CONSIDER THE TARGET AUDIENCE AND THE TONIC'S INTENDED USE. \"BRAND\" is a classic term that evokes health and wellness, while \"BRAND\" is more modern and direct. BOTH NAMES ARE EASY TO REMEMBER AND CAN BE ASSOCIATED WITH A PREMIUM FEEL. THE USE OF \"BRAND\" IN THE NAME ENFORCES BRAND IDENTITY AND TRUST.",
+     "response_sha256": "1c86519ca5176c1dc031be1a39d77d7e25493aade92c654c4e3502a65cdf184f",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       true,
+       false,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      true,
+      false,
+      false
+     ],
+     "strict": false,
+     "n_generated": 224,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 224,
+     "prompt_tokens": 390,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      3,
+      0
+     ],
+     "selected_spans": [
+      [
+       126,
+       135
+      ],
+      [
+       14,
+       40
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "Suggest two names for a new type of tonic. Include the keyword \"brand\" each time, followed by suggested name in double angular brackets, such as <<American Tonic>>.\n\n<<BRAND Elixir>>  \n<<BRAND Revive>>  \n\n***  \n\nTHE BRAND NAME SHOULD REFLECT THE TONIC'S PURPOSE AND APPEAL. \"ELIXIR\" SUGGESTS A BLEND OF BENEFICIAL INGREDIENTS AND A SENSE OF REJUVENATION, MAKING IT A STRONG CHOICE FOR A TONIC AIMED AT REVITALIZATION. THE NAME \"REVIVE\" CONVEYS A SENSE OF RENEWAL AND ENERGY, APPEALING TO CONSUMERS LOOKING FOR A REFRESHING AND UPLIFTING DRINK.  \n\n***  \n\nTHE BRAND NAME SHOULD ALSO CONSIDER THE TARGET AUDIENCE AND THE TONIC'S INTENDED USE. \"ELIXIR\" IS A CLASSIC TERM THAT EVOKES HEALTH AND WELLNESS, WHILE \"REVIVE\" IS MORE MODERN AND DIRECT. BOTH NAMES ARE EASY TO REMEMBER AND CAN BE ASSOCIATED WITH A PREMIUM FEEL. THE USE OF \"BRAND\" IN THE NAME ENFORCES BRAND IDENTITY AND TRUST.",
+     "response_sha256": "f983990255543121bf82e11bb86fa45c6f1a6b63e12148fd3351ee262108a382",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 262,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 262,
+     "prompt_tokens": 390,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       5,
+       14
+      ],
+      [
+       68,
+       94
+      ]
+     ],
+     "control_tiers": [
+      "other_user_turn",
+      "outside_user_turns"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

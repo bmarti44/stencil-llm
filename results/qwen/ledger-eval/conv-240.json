@@ -1,0 +1,542 @@
+{
+ "ci": 240,
+ "key": "1739:14:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "19ad7936bf1f46a03d6b3062f3b54eb2f39a79cd8cadd2c361e2f7a87fb63617",
+   "context_tokens": 228,
+   "instruction_ids": [
+    "punctuation:no_comma",
+    "language:response_language",
+    "detectable_format:title"
+   ],
+   "insertable": [
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "punctuation:no_comma",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "language:response_language",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "No other language except Vietnamese is allowed to be used in your response.",
+     "span": [
+      86,
+      100
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "punctuation:no_comma",
+      "language:response_language"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      200,
+      219
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<title>>",
+    "response_sha256": "13ca5ac7ae848bf75cf2c69e8fac270dabcf840bbc100cb12af41e3ee37fb09e",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      false,
+      true
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      false,
+      true
+     ]
+    },
+    "n_generated": 3,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     false,
+     true
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<title>>",
+     "response_sha256": "13ca5ac7ae848bf75cf2c69e8fac270dabcf840bbc100cb12af41e3ee37fb09e",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 3,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 251,
+     "context_tokens_added": 23,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<title>>",
+     "response_sha256": "13ca5ac7ae848bf75cf2c69e8fac270dabcf840bbc100cb12af41e3ee37fb09e",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 3,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 3,
+     "prompt_tokens": 228,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0
+     ],
+     "selected_spans": [
+      [
+       86,
+       100
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<title>>",
+     "response_sha256": "13ca5ac7ae848bf75cf2c69e8fac270dabcf840bbc100cb12af41e3ee37fb09e",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 3,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 3,
+     "prompt_tokens": 228,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       72,
+       86
+      ]
+     ],
+     "control_tiers": [
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "7bceffe6ff120a615aa9ca7c7b9ef5d6c42afcc45e796ae139150257b5f5b28f",
+   "context_tokens": 254,
+   "instruction_ids": [
+    "punctuation:no_comma",
+    "language:response_language",
+    "detectable_format:title",
+    "keywords:frequency"
+   ],
+   "insertable": [
+    false,
+    false,
+    false,
+    true
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "punctuation:no_comma",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "language:response_language",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 3,
+     "id": "keywords:frequency",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": true,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "No other language except Vietnamese is allowed to be used in your response.",
+     "span": [
+      86,
+      100
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "punctuation:no_comma",
+      "language:response_language"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      200,
+      219
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    },
+    {
+     "text": "Your response should include the word cải at least 3 times.",
+     "span": [
+      232,
+      245
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "keywords:frequency"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "Cải thiện mô hình cho năm tới. Chúng ta sẽ có thể so sánh dữ liệu của mình với dữ liệu từ năm trước và xem mô hình của chúng ta đã diễn ra như thế nào. Cải thiện mô hình so với mô hình trước đó.",
+    "response_sha256": "18411214fc382efc1a485843910e2ec403ff5be3377c1a44e1e5837f0c6b53bc",
+    "scores": {
+     "prompt_level_strict_acc": false,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      false,
+      false
+     ],
+     "prompt_level_loose_acc": false,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      false,
+      false
+     ]
+    },
+    "n_generated": 54,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     false,
+     false
+    ],
+    "strict": false,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<title>>  \nChúng ta có thể cải thiện mô hình cho năm tới. Chúng ta sẽ có thể so sánh dữ liệu của mình với dữ liệu từ năm trước và xem mô hình của chúng ta đã diễn ra như thế nào. Chúng ta cũng có thể so sánh mô hình của chúng ta với một mô hình đã được huấn luyện dựa trên dữ liệu từ năm trước và xem mô hình của chúng ta diễn ra như thế nào.",
+     "response_sha256": "ddf400e6e41adfa4e3abf1912c3166e800bdf075fcad013acd97dcd164c435e0",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       false
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       false
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      false
+     ],
+     "strict": false,
+     "n_generated": 94,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 297,
+     "context_tokens_added": 43,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "Cải thiện kết quả, cải tiến mô hình, cải tạo nội dung.",
+     "response_sha256": "b9d3ac1f9f65f53fbc05cb48fd9644db9751fcea48dd51b6c1ebc0d283586350",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       false,
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       false,
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      false,
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 16,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 16,
+     "prompt_tokens": 254,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      1,
+      0
+     ],
+     "selected_spans": [
+      [
+       200,
+       219
+      ],
+      [
+       86,
+       100
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "Cải thiện mô hình cho năm tới. Cải thiện dữ liệu so với năm trước. Cải thiện mô hình so với mô hình được huấn luyện năm trước.",
+     "response_sha256": "027ca1006fc557c4605c89de9e8a8f0e87ca401c7b249db5ca46e7a360e82862",
+     "scores": {
+      "prompt_level_strict_acc": false,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       false,
+       true
+      ],
+      "prompt_level_loose_acc": false,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       false,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      false,
+      true
+     ],
+     "strict": false,
+     "n_generated": 35,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 35,
+     "prompt_tokens": 254,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       67,
+       86
+      ],
+      [
+       53,
+       67
+      ]
+     ],
+     "control_tiers": [
+      "other_user_turn",
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}

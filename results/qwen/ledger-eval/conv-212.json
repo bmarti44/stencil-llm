@@ -1,0 +1,590 @@
+{
+ "ci": 212,
+ "key": "1653:2:en",
+ "diagnostic": true,
+ "turns": {
+  "2": {
+   "context_sha256": "a649760be5e8bc5905dee73ecda172e3c66f383d7028c13062e9885138c2395e",
+   "context_tokens": 451,
+   "instruction_ids": [
+    "change_case:capital_word_frequency",
+    "length_constraints:number_sentences",
+    "detectable_format:title"
+   ],
+   "insertable": [
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "change_case:capital_word_frequency",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "length_constraints:number_sentences",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Please limit the number of words with all capital letters to less than four.",
+     "span": [
+      45,
+      60
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:capital_word_frequency",
+      "length_constraints:number_sentences"
+     ]
+    },
+    {
+     "text": "Your response should contain at least ten sentences.",
+     "span": [
+      60,
+      69
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:capital_word_frequency",
+      "length_constraints:number_sentences"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      423,
+      442
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "<<The Ultimate Portable Camera for Every Moment>>\n\nCapture every moment with the **X-View Pro** – a sleek, powerful camera designed for **on-the-go** photography. Whether you're traveling, recording a video, or capturing a special event, the **X-View Pro** delivers high-quality images and videos in a compact, lightweight package. With **4K resolution** and **120fps video recording**, it’s perfect for both casual and professional use. The **X-View Pro** features a **built-in battery** that keeps you going all day, and a **smart lens** that automatically adjusts for lighting and focus. It’s also **water-resistant** and **durable**, making it ideal for any environment. The **X-View Pro** is easy to use – just plug in the USB cable and start capturing. With **128GB storage**, you’ll have plenty of space for your photos and videos. The **X-View Pro** is compatible with both iOS and Android devices, so you can use it on the go. Finally, the **X-View Pro** is designed with a **user-friendly interface** that makes it simple to navigate and edit your footage. Whether you're a photographer, a content creator, or someone who loves to take pictures, the **X-View Pro** is the perfect tool for your needs.",
+    "response_sha256": "7084b22b86036f87d17df0ea7bb457f018a726aa7507944f63579aac2c18bce7",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 278,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "<<Portable Camera Revolution: Capture Every Moment with the X-View Pro>>\n\nThe **X-View Pro** is the ultimate portable camera designed for **on-the-go** photography. It’s built for **travelers**, **content creators**, and **photographers** who want high-quality images and videos without the hassle of carrying heavy equipment. With **4K resolution** and **120fps video recording**, it captures every detail with clarity. The **X-View Pro** features a **built-in battery** that keeps you going all day, and a **smart lens** that automatically adjusts for lighting and focus. It’s also **water-resistant** and **durable**, making it ideal for any environment. The **X-View Pro** is easy to use – just plug in the USB cable and start capturing. With **128GB storage**, you’ll have plenty of space for your photos and videos. The **X-View Pro** is compatible with both iOS and Android devices, so you can use it on the go. Finally, the **X-View Pro** is designed with a **user-friendly interface** that makes it simple to navigate and edit your footage. Whether you're a photographer, a content creator, or someone who loves to take pictures, the **X-View Pro** is the perfect tool for your needs.",
+     "response_sha256": "6c4acb94670e66ed0ac8dff5f0a76ef45c1bfd191440aece422ea582904dc90c",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 273,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 485,
+     "context_tokens_added": 34,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ]
+    },
+    "neural_ledger": {
+     "response": "<<X-View Pro: Capture Every Moment with Style and Power>>\n\nCapture every moment with the **X-View Pro** – a sleek, powerful camera designed for **on-the-go** photography. Whether you're traveling, recording a video, or capturing a special event, the **X-View Pro** delivers high-quality images and videos in a compact, lightweight package. With **4K resolution** and **120fps video recording**, it’s perfect for both casual and professional use. The **X-View Pro** features a **built-in battery** that keeps you going all day, and a **smart lens** that automatically adjusts for lighting and focus. It’s also **water-resistant** and **durable**, making it ideal for any environment. The **X-View Pro** is easy to use – just plug in the USB cable and start capturing. With **128GB storage**, you’ll have plenty of space for your photos and videos. The **X-View Pro** is compatible with both iOS and Android devices, so you can use it on the go. Finally, the **X-View Pro** is designed with a **user-friendly interface** that makes it simple to navigate and edit your footage. Whether you're a photographer, a content creator, or someone who loves to take pictures, the **X-View Pro** is the perfect tool for your needs.",
+     "response_sha256": "fa139da510090d4acbfb620dc5f09e207e19d5e7c7b2330b25b85ca00ca2bd90",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 283,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 283,
+     "prompt_tokens": 451,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       45,
+       60
+      ],
+      [
+       60,
+       69
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "<<Portable Camera Ad Template>>\n\nCapture every moment with the **X-View Pro** – a sleek, powerful camera designed for **on-the-go** photography. Whether you're traveling, recording a video, or capturing a special event, the **X-View Pro** delivers high-quality images and videos in a compact, lightweight package. With **4K resolution** and **120fps video recording**, it’s perfect for both casual and professional use. The **X-View Pro** features a **built-in battery** that keeps you going all day, and a **smart lens** that automatically adjusts for lighting and focus. It’s also **water-resistant** and **durable**, making it ideal for any environment. The **X-View Pro** is easy to use – just plug in the USB cable and start capturing. With **128GB storage**, you’ll have plenty of space for your photos and videos. The **X-View Pro** is compatible with both iOS and Android devices, so you can use it on the go. Finally, the **X-View Pro** is designed with a **user-friendly interface** that makes it simple to navigate and edit your footage. Whether you're a photographer, a content creator, or someone who loves to take pictures, the **X-View Pro** is the perfect tool for your needs.",
+     "response_sha256": "ed38702c3bab0125b8b2f08352aac770e43489132fb183ad22a19ce7016fb736",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 275,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 275,
+     "prompt_tokens": 451,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       30,
+       45
+      ],
+      [
+       21,
+       30
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  },
+  "3": {
+   "context_sha256": "8252f57e44fe2958a3aa05a0ead1bfdcb3bbb66bb4f291bb0f7851e516c97c94",
+   "context_tokens": 748,
+   "instruction_ids": [
+    "change_case:capital_word_frequency",
+    "length_constraints:number_sentences",
+    "detectable_format:title",
+    "startend:quotation"
+   ],
+   "insertable": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "constraints": [
+    {
+     "index": 0,
+     "id": "change_case:capital_word_frequency",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 1,
+     "id": "length_constraints:number_sentences",
+     "origin_turn": 1,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      0,
+      1
+     ],
+     "entry_selected": true
+    },
+    {
+     "index": 2,
+     "id": "detectable_format:title",
+     "origin_turn": 2,
+     "aged": true,
+     "insertable": false,
+     "entry_indices": [
+      2
+     ],
+     "entry_selected": false
+    },
+    {
+     "index": 3,
+     "id": "startend:quotation",
+     "origin_turn": 3,
+     "aged": false,
+     "insertable": false,
+     "entry_indices": [
+      3
+     ],
+     "entry_selected": false
+    }
+   ],
+   "linkage_granularity": "origin_turn",
+   "segmenter": "stencil.salience.split_sentences",
+   "ledger": [
+    {
+     "text": "Please limit the number of words with all capital letters to less than four.",
+     "span": [
+      45,
+      60
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:capital_word_frequency",
+      "length_constraints:number_sentences"
+     ]
+    },
+    {
+     "text": "Your response should contain at least ten sentences.",
+     "span": [
+      60,
+      69
+     ],
+     "turn_introduced": 1,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "change_case:capital_word_frequency",
+      "length_constraints:number_sentences"
+     ]
+    },
+    {
+     "text": "The result must contain a title wrapped in double angular brackets, i.e. <<title>>.",
+     "span": [
+      423,
+      442
+     ],
+     "turn_introduced": 2,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "detectable_format:title"
+     ]
+    },
+    {
+     "text": "Wrap your whole response with double quotation marks.",
+     "span": [
+      730,
+      739
+     ],
+     "turn_introduced": 3,
+     "status": "unknown",
+     "provenance": "salience",
+     "has_key": true,
+     "instruction_ids": [
+      "startend:quotation"
+     ]
+    }
+   ],
+   "aged_entry_indices": [
+    0,
+    1,
+    2
+   ],
+   "automatic": true,
+   "ledger_active": true,
+   "base": {
+    "response": "\"  \n<<The Ultimate Portable Camera for Every Moment>>  \n\nCapture every moment with the **X-View Pro** – a sleek, powerful camera designed for **on-the-go** photography. Whether you're traveling, recording a video, or capturing a special event, the **X-View Pro** delivers high-quality images and videos in a compact, lightweight package. With **4K resolution** and **120fps video recording**, it’s perfect for both casual and professional use. The **X-View Pro** features a **built-in battery** that keeps you going all day, and a **smart lens** that automatically adjusts for lighting and focus. It’s also **water-resistant** and **durable**, making it ideal for any environment. The **X-View Pro** is easy to use – just plug in the USB cable and start capturing. With **128GB storage**, you’ll have plenty of space for your photos and videos. The **X-View Pro** is compatible with both iOS and Android devices, so you can use it on the go. Finally, the **X-View Pro** is designed with a **user-friendly interface** that makes it simple to navigate and edit your footage. Whether you're a photographer, a content creator, or someone who loves to take pictures, the **X-View Pro** is the perfect tool for your needs.  \n\"",
+    "response_sha256": "f55e9b0632ab4f81cad5fa04136d20a454ad827703f7a8bdbea436b3870946db",
+    "scores": {
+     "prompt_level_strict_acc": true,
+     "inst_level_strict_acc": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "prompt_level_loose_acc": true,
+     "inst_level_loose_acc": [
+      true,
+      true,
+      true,
+      true
+     ]
+    },
+    "n_generated": 283,
+    "truncated": false,
+    "timed_out": false,
+    "interventions": [],
+    "biased_tokens": 0,
+    "per_constraint": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "strict": true,
+    "context_tokens_added": 0
+   },
+   "arms": {
+    "text_ledger": {
+     "response": "\"  \n<<The Ultimate Portable Camera for Every Moment>>  \n\nCapture every moment with the **X-View Pro** – a sleek, powerful camera designed for **on-the-go** photography. Whether you're traveling, recording a video, or capturing a special event, the **X-View Pro** delivers high-quality images and videos in a compact, lightweight package. With **4K resolution** and **120fps video recording**, it’s perfect for both casual and professional use. The **X-View Pro** features a **built-in battery** that keeps you going all day, and a **smart lens** that automatically adjusts for lighting and focus. It’s also **water-resistant** and **durable**, making it ideal for any environment. The **X-View Pro** is easy to use – just plug in the USB cable and start capturing. With **128GB storage**, you’ll have plenty of space for your photos and videos. The **X-View Pro** is compatible with both iOS and Android devices, so you can use it on the go. Finally, the **X-View Pro** is designed with a **user-friendly interface** that makes it simple to navigate and edit your footage. Whether you're a photographer, a content creator, or someone who loves to take pictures, the **X-View Pro** is the perfect tool for your needs.  \n\"",
+     "response_sha256": "f55e9b0632ab4f81cad5fa04136d20a454ad827703f7a8bdbea436b3870946db",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 283,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 0,
+     "prompt_tokens": 802,
+     "context_tokens_added": 54,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1,
+      2
+     ]
+    },
+    "neural_ledger": {
+     "response": "\"  \n<<The Ultimate Portable Camera for Every Moment>>  \n\nCapture every moment with the **X-View Pro** – a sleek, powerful camera designed for **on-the-go** photography. Whether you're traveling, recording a video, or capturing a special event, the **X-View Pro** delivers high-quality images and videos in a compact, lightweight package. With **4K resolution** and **120fps video recording**, it’s perfect for both casual and professional use. The **X-View Pro** features a **built-in battery** that keeps you going all day, and a **smart lens** that automatically adjusts for lighting and focus. It’s also **water-resistant** and **durable**, making it ideal for any environment. The **X-View Pro** is easy to use – just plug in the USB cable and start capturing. With **128GB storage**, you’ll have plenty of space for your photos and videos. The **X-View Pro** is compatible with both iOS and Android devices, so you can use it on the go. Finally, the **X-View Pro** is designed with a **user-friendly interface** that makes it simple to navigate and edit your footage. Whether you're a photographer, a content creator, or someone who loves to take pictures, the **X-View Pro** is the perfect tool for your needs.  \n\"",
+     "response_sha256": "f55e9b0632ab4f81cad5fa04136d20a454ad827703f7a8bdbea436b3870946db",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 283,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 283,
+     "prompt_tokens": 748,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "selected_entries": [
+      0,
+      1
+     ],
+     "selected_spans": [
+      [
+       45,
+       60
+      ],
+      [
+       60,
+       69
+      ]
+     ]
+    },
+    "specificity": {
+     "response": "\"  \n<<The Ultimate Portable Camera for Every Moment>>  \n\nCapture every moment with the **X-View Pro** – a sleek, powerful camera designed for **on-the-go** photography. Whether you're traveling, recording a video, or capturing a special event, the **X-View Pro** delivers high-quality images and videos in a compact, lightweight package. With **4K resolution** and **120fps video recording**, it’s perfect for both casual and professional use. The **X-View Pro** features a **built-in battery** that keeps you going all day, and a **smart lens** that automatically adjusts for lighting and focus. It’s also **water-resistant** and **durable**, making it ideal for any environment. The **X-View Pro** is easy to use – just plug in the USB cable and start capturing. With **128GB storage**, you’ll have plenty of space for your photos and videos. The **X-View Pro** is compatible with both iOS and Android devices, so you can use it on the go. Finally, the **X-View Pro** is designed with a **user-friendly interface** that makes it simple to navigate and edit your footage. Whether you're a photographer, a content creator, or someone who loves to take pictures, the **X-View Pro** is the perfect tool for your needs.  \n\"",
+     "response_sha256": "f55e9b0632ab4f81cad5fa04136d20a454ad827703f7a8bdbea436b3870946db",
+     "scores": {
+      "prompt_level_strict_acc": true,
+      "inst_level_strict_acc": [
+       true,
+       true,
+       true,
+       true
+      ],
+      "prompt_level_loose_acc": true,
+      "inst_level_loose_acc": [
+       true,
+       true,
+       true,
+       true
+      ]
+     },
+     "per_constraint": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "strict": true,
+     "n_generated": 283,
+     "truncated": false,
+     "timed_out": false,
+     "biased_tokens": 283,
+     "prompt_tokens": 748,
+     "context_tokens_added": 0,
+     "context_tokens_measured": true,
+     "control_spans": [
+      [
+       30,
+       45
+      ],
+      [
+       21,
+       30
+      ]
+     ],
+     "control_tiers": [
+      "same_turn",
+      "same_turn"
+     ],
+     "control_dose": 3.0,
+     "control_incomplete": false,
+     "selected_entries": []
+    }
+   }
+  }
+ },
+ "arms": [
+  "base",
+  "text_ledger",
+  "neural_ledger",
+  "specificity"
+ ],
+ "config": {
+  "top_k": 2,
+  "dose": 3.0,
+  "max_new": 1024,
+  "deadline": 300.0
+ }
+}
