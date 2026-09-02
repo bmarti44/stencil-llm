@@ -9,6 +9,8 @@ the arms differ only in what survives:
   evicted             — all prior turns dropped, nothing pinned
   pinned              — prior turns dropped EXCEPT aged constraint-clause K/V
   pinned_control      — exactly the same deduplicated column mass, non-constraint
+  echo_only           — all prior turns dropped, with aged constraints echoed
+  pinned_echo         — aged constraint-clause K/V retained, with the same echo
   pinned_wave_d0.5    — pinned + 0.5 pre-softmax bias on pinned columns
   pinned_wave_d1.0    — pinned + 1.0 pre-softmax bias on pinned columns
   pinned_wave_d3.0    — pinned + 3.0 pre-softmax bias on pinned columns
@@ -30,9 +32,12 @@ from stencil import determinism  # noqa: F401
 
 OPENER = "<|im_start|>assistant\n<think>\n\n</think>\n\n"
 BASE_ARMS = ("full", "evicted", "pinned", "pinned_control")
+ECHO_ARMS = ("echo_only", "pinned_echo")
 DEFAULT_DOSES = (0.5, 1.0, 3.0)
 DEGENERATE_REP4 = 0.5  # registered degeneracy definition: repeated-4gram frac > 0.5 OR truncated
 WAVE_KILL_RULE = "degenerate sessions > 2/20 at best dose"
+CHAT_CONTROL_TOKENS = ("<|im_start|>", "<|im_end|>", "<|endoftext|>")
+QUOTING_RUN = 8
 
 
 def dose_label(dose):
@@ -40,7 +45,7 @@ def dose_label(dose):
 
 
 def arm_names(doses):
-    return BASE_ARMS + tuple(f"pinned_wave_d{dose_label(dose)}" for dose in doses)
+    return BASE_ARMS + ECHO_ARMS + tuple(f"pinned_wave_d{dose_label(dose)}" for dose in doses)
 
 
 def parse_args(argv=None):
@@ -111,6 +116,55 @@ def repeated_4gram_frac(ids):
     grams = [tuple(ids[i:i + 4]) for i in range(len(ids) - 3)]
     return 1.0 - len(set(grams)) / len(grams)
 
+
+def tokenized_eviction_range(tokenizer, context):
+    """Tokenize ``context`` and locate its prior-history eviction range."""
+    enc = tokenizer.encode(context)
+    last_marker = context.rfind("<|im_start|>user\n")
+    first_marker = context.find("<|im_start|>user\n")
+    if first_marker < 0 or last_marker <= first_marker:
+        raise ValueError("context must contain prior history and a final user turn")
+    first_content = first_marker + len("<|im_start|>user\n")
+    tok_first = next(i for i, (a, b) in enumerate(enc.offsets) if b > first_content)
+    tok_last = next(i for i, (a, b) in enumerate(enc.offsets) if b > last_marker)
+    return list(enc.ids), (tok_first, tok_last)
+
+
+def echo_context(tokenizer, context, aged_records):
+    """Render exact registered aged spans into the final user turn."""
+    from stencil.ledger import Entry, render_text_ledger, text_ledger_context
+
+    ids = tokenizer.encode(context).ids
+    entries = []
+    for record in aged_records:
+        start, end = record["span"]
+        if not 0 <= start < end <= len(ids):
+            raise ValueError("aged constraint span outside context")
+        span_text = tokenizer.decode(ids[start:end], skip_special_tokens=False)
+        if any(token in span_text for token in CHAT_CONTROL_TOKENS):
+            raise ValueError("chat-control token inside echoed text")
+        entries.append(Entry(span_text, (start, end), None, int(record["origin_turn"])))
+    rendered = render_text_ledger(entries)
+    echoed = text_ledger_context(context, entries)
+    cut = context.rfind("<|im_end|>")
+    if rendered and echoed != context[:cut] + "\n\n" + rendered + context[cut:]:
+        raise AssertionError("echo did not land before the final user <|im_end|>")
+    return echoed, entries, rendered
+
+
+def detect_quoting(response_ids, echo_ids, *, echo_arm):
+    """Whether a response contains eight consecutive tokens from the echo."""
+    if not echo_arm or len(response_ids) < QUOTING_RUN or len(echo_ids) < QUOTING_RUN:
+        return False
+    echo_windows = {
+        tuple(echo_ids[i:i + QUOTING_RUN])
+        for i in range(len(echo_ids) - QUOTING_RUN + 1)
+    }
+    return any(
+        tuple(response_ids[i:i + QUOTING_RUN]) in echo_windows
+        for i in range(len(response_ids) - QUOTING_RUN + 1)
+    )
+
 def matched_control_spans(keep, evict_range):
     """Position-match exactly the deduplicated surviving-column mass."""
     lo, hi = evict_range
@@ -151,7 +205,11 @@ def run_arm(m, tok, ids, arm, keep, evict_range, dose, max_new, deadline_s, cont
         logits = m(torch.tensor([ids], device="cuda"), cache=cache)
         cols = []
         if arm != "full":
-            pins = (() if arm == "evicted" else control_keep if arm == "pinned_control" else keep)
+            pins = (
+                () if arm in ("evicted", "echo_only")
+                else control_keep if arm == "pinned_control"
+                else keep
+            )
             imap = cache.evict(evict_range[0], evict_range[1], keep=pins)
             cols = sorted({imap[o] for s, e in pins for o in range(s, e) if o in imap})
         nxt = int(logits[0, -1].argmax())
@@ -176,7 +234,8 @@ def run_arm(m, tok, ids, arm, keep, evict_range, dose, max_new, deadline_s, cont
 
 
 def session_record(*, session, key, topic, n_turns, evict_range, keep, control_keep,
-                   n_aged, history_token_ids, context_token_ids, arms):
+                   n_aged, history_token_ids, context_token_ids, arms,
+                   echo_context_token_ids=(), echo_tokens_added=0, echo_text_sha256=""):
     pinned_columns = {i for start, end in keep for i in range(start, end)}
     control_columns = {i for start, end in control_keep for i in range(start, end)}
     if len(control_columns) != len(pinned_columns):
@@ -196,10 +255,15 @@ def session_record(*, session, key, topic, n_turns, evict_range, keep, control_k
         "n_aged": n_aged,
         "history_token_ids": list(history_token_ids),
         "context_token_ids": list(context_token_ids),
+        "echo_context_token_ids": list(echo_context_token_ids),
+        "echo_tokens_added": int(echo_tokens_added),
+        "echo_text_sha256": echo_text_sha256,
         "arms": arms,
     }
     if any("generated_token_ids" not in branch for branch in arms.values()):
         raise AssertionError("every arm must record generated_token_ids")
+    if any(not isinstance(branch.get("quoting"), bool) for branch in arms.values()):
+        raise AssertionError("every arm must record quoting as a bool")
     return record
 
 
@@ -239,6 +303,45 @@ def paired_bootstrap_pinned_minus_control(records, *, n_resamples=2000, seed=0):
         "seed": seed,
         "unit": "session",
     }
+
+
+def summarize_records(records, arms_registered, meta=None):
+    """Aggregate arm metrics and registered H1 pass-count contrasts."""
+    summ = {**(meta or {}), "sessions": len(records)}
+    for arm in arms_registered:
+        passed = sum(r["arms"][arm]["aged_pass"] for r in records)
+        total = sum(r["arms"][arm]["aged_n"] for r in records)
+        nonquoting = [r for r in records if not r["arms"][arm]["quoting"]]
+        nonquoting_passed = sum(r["arms"][arm]["aged_pass"] for r in nonquoting)
+        nonquoting_total = sum(r["arms"][arm]["aged_n"] for r in nonquoting)
+        summ[arm] = {
+            "aged_pass": passed,
+            "aged_n": total,
+            "rate": passed / max(1, total),
+            "trunc": sum(r["arms"][arm]["truncated"] for r in records),
+            "timeout": sum(r["arms"][arm]["timed_out"] for r in records),
+            "mean_rep4": sum(r["arms"][arm]["rep4"] for r in records) / max(1, len(records)),
+            "degenerate": sum(is_degenerate(r["arms"][arm]) for r in records),
+            "quoting_rate": sum(r["arms"][arm]["quoting"] for r in records) / max(1, len(records)),
+            "pass_rate_quoting_excluded": nonquoting_passed / nonquoting_total if nonquoting_total else None,
+        }
+
+    gap_passes = summ["full"]["aged_pass"] - summ["evicted"]["aged_pass"]
+    summ["gap_full_minus_evicted_passes"] = gap_passes
+    contrast_arms = (
+        ("pinned_minus_evicted", "pinned", "evicted"),
+        ("echo_only_minus_evicted", "echo_only", "evicted"),
+        ("pinned_echo_minus_echo_only", "pinned_echo", "echo_only"),
+        ("pinned_minus_pinned_control", "pinned", "pinned_control"),
+    )
+    summ["contrasts"] = {}
+    for label, treatment, reference in contrast_arms:
+        difference = summ[treatment]["aged_pass"] - summ[reference]["aged_pass"]
+        summ["contrasts"][label] = {
+            "pass_count_difference": difference,
+            "recovered_fraction_of_gap": difference / gap_passes if gap_passes > 0 else None,
+        }
+    return summ
 
 def main():
     determinism.assert_gpu_free_or_owned()
@@ -296,18 +399,20 @@ def main():
         last = turns[-1]
         history_ids = tok.encode(history).ids
         context = history + f"<|im_start|>user\n{last['prompt']}<|im_end|>\n" + OPENER
-        ids = tok.encode(context).ids
-        enc = tok.encode(context)
+        ids, evict_range = tokenized_eviction_range(tok, context)
         recs = constraint_span_records(tok, context)
         T_last = len(turns)
-        keep = [tuple(r["span"]) for r in recs if r["origin_turn"] < T_last]
-        # evict from the first token of turn-1 content to the token where the
-        # LAST user turn's marker begins
-        last_marker = context.rfind("<|im_start|>user\n")
-        first_content = context.find("<|im_start|>user\n") + len("<|im_start|>user\n")
-        tok_first = next(i for i, (a, b) in enumerate(enc.offsets) if b > first_content)
-        tok_last = next(i for i, (a, b) in enumerate(enc.offsets) if b > last_marker)
-        evict_range = (tok_first, tok_last)
+        aged_recs = [r for r in recs if r["origin_turn"] < T_last]
+        keep = [tuple(r["span"]) for r in aged_recs]
+        echoed_context, _, echo_text = echo_context(tok, context, aged_recs)
+        echo_ids, echo_evict_range = tokenized_eviction_range(tok, echoed_context)
+        if tok.decode(ids[slice(*evict_range)]) != tok.decode(echo_ids[slice(*echo_evict_range)]):
+            raise AssertionError("echo tokenization changed the prior-history eviction text")
+        echo_recs = constraint_span_records(tok, echoed_context)
+        echo_keep = [tuple(r["span"]) for r in echo_recs if r["origin_turn"] < T_last]
+        echo_token_ids = tok.encode(echo_text).ids
+        echo_tokens_added = len(echo_ids) - len(ids)
+        echo_text_sha256 = hashlib.sha256(echo_text.encode()).hexdigest()
         control_keep = matched_control_spans(keep, evict_range)
         pinned_count = len({i for start, end in keep for i in range(start, end)})
         control_count = len({i for start, end in control_keep for i in range(start, end)})
@@ -320,32 +425,37 @@ def main():
         arms = {}
         for arm in arms_registered:
             dose = float(arm.rsplit("_d", 1)[1]) if arm.startswith("pinned_wave_d") else 0.0
-            g = run_arm(m, tok, ids, arm, keep, evict_range, dose, args.max_new, args.deadline, control_keep=control_keep)
+            is_echo = arm in ECHO_ARMS
+            arm_ids = echo_ids if is_echo else ids
+            arm_keep = echo_keep if is_echo else keep
+            arm_evict_range = echo_evict_range if is_echo else evict_range
+            g = run_arm(
+                m, tok, arm_ids, arm, arm_keep, arm_evict_range, dose,
+                args.max_new, args.deadline, control_keep=control_keep,
+            )
             g["degenerate"] = is_degenerate(g)
             scores = score_row_constraints(row, g["text"])
             g["scores"] = list(scores)
             g["aged_pass"] = sum(scores[:n_aged])
             g["aged_n"] = n_aged
+            g["quoting"] = detect_quoting(
+                g["generated_token_ids"], echo_token_ids, echo_arm=is_echo
+            )
             arms[arm] = g
         assert arms["pinned"]["pinned_cols"] == arms["pinned_control"]["pinned_cols"]
         rec = session_record(
             session=si, key=sess["key"], topic=sess["topic"], n_turns=T_last,
             evict_range=evict_range, keep=keep, control_keep=control_keep, n_aged=n_aged,
             history_token_ids=history_ids, context_token_ids=ids, arms=arms,
+            echo_context_token_ids=echo_ids, echo_tokens_added=echo_tokens_added,
+            echo_text_sha256=echo_text_sha256,
         )
         rec["context_tokens"] = len(ids)
         atomic_json(rp, rec)
         print(f"session {si} aged={n_aged} " + " ".join(f"{a}={arms[a]['aged_pass']}/{n_aged}(rep4={arms[a]['rep4']:.2f},n={arms[a]['n']})" for a in arms_registered), flush=True)
 
     records = [json.loads(p.read_text()) for p in sorted(outdir.glob("session-*.json"))]
-    summ = {**meta, "sessions": len(records)}
-    for a in arms_registered:
-        p = sum(r["arms"][a]["aged_pass"] for r in records); n = sum(r["n_aged"] for r in records)
-        summ[a] = {"aged_pass": p, "aged_n": n, "rate": p / max(1, n),
-                   "trunc": sum(r["arms"][a]["truncated"] for r in records),
-                   "timeout": sum(r["arms"][a]["timed_out"] for r in records),
-                   "mean_rep4": sum(r["arms"][a]["rep4"] for r in records) / max(1, len(records)),
-                   "degenerate": sum(is_degenerate(r["arms"][a]) for r in records)}
+    summ = summarize_records(records, arms_registered, meta)
     gap = summ["full"]["rate"] - summ["evicted"]["rate"]
     summ["gap_full_minus_evicted"] = gap
     summ["recovered_frac_pinned"] = (summ["pinned"]["rate"] - summ["evicted"]["rate"]) / gap if gap > 0 else None
