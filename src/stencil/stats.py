@@ -136,9 +136,22 @@ def mcnemar_exact_one_sided(n_improve, n_degrade):
 # pooled cells is descriptive only.  The registered primary bound is a
 # CONVERSATION-clustered one-sided (1-alpha) upper bound on the mean of the
 # per-conversation mean paired differences (points, reference - candidate,
-# positive = a DROP), via Student t on the cluster means; a percentile
-# cluster bootstrap (2000 resamples, seed 0) is the fallback below ten
-# clusters, where the t approximation is least trustworthy.
+# positive = a DROP).
+#
+# REGISTERED BOUND (sol round 2, results/ledger-reverify-sol.md finding 2):
+# the plain Student-t bound on the cluster means has an 8.31% boundary
+# false-pass at the registered size (909 conversations, pure degradation
+# exactly at the 2-point margin: NI declared with 0-12 harmed clusters) and
+# a zero-width bound on all-zero data.  The percentile cluster bootstrap
+# (4000 resamples, seed 0) has the SAME pass set — on binary cluster data it
+# is a Wald-type interval — and was rejected by simulation.  Registered:
+# t bound + a small-sample CONTINUITY CORRECTION of one whole-cluster flip,
+# CONTINUITY_POINTS / k (the per-cluster differences live on a 100-point
+# scale, so one conversation flipping moves the mean by 100/k).  Pass set
+# 0-11 harmed, exact boundary false-pass 4.90% (tests/test_noninferiority.py
+# recomputes both numbers).  Applied ALWAYS (no cluster-count switch); the
+# uncorrected t bound is reported as descriptive only.
+CONTINUITY_POINTS = 100.0
 
 def _betacf(a, b, x):
     """continued fraction for the regularized incomplete beta (NR 6.4)."""
@@ -239,15 +252,22 @@ def cluster_bootstrap_upper_bound(per_cluster_mean_diffs, alpha=0.05, n_resample
     return means[idx]
 
 
-def clustered_bound(per_cluster_mean_diffs, alpha=0.05, min_clusters_for_t=10):
-    """registered dispatch: t bound at >= min_clusters_for_t clusters, cluster
-    bootstrap (2000 resamples, seed 0) below; returns the audit fields."""
+def clustered_upper_bound_corrected(per_cluster_mean_diffs, alpha=0.05, continuity_points=CONTINUITY_POINTS):
+    """REGISTERED: the t bound plus one whole-cluster flip (continuity_points / k).
+    Strictly positive width even at zero between-cluster variance."""
+    diffs = [float(x) for x in per_cluster_mean_diffs]
+    return clustered_upper_bound(diffs, alpha) + continuity_points / len(diffs)
+
+
+def clustered_bound(per_cluster_mean_diffs, alpha=0.05):
+    """registered dispatch: the continuity-corrected t bound at every cluster
+    count >= 2 (the plain t bound is carried as a descriptive field only);
+    returns the audit fields."""
     diffs = [float(x) for x in per_cluster_mean_diffs]
     k = len(diffs)
     out = {"clusters": k, "alpha": alpha, "mean": (_mean(diffs) if k else None)}
     if k < 2:
         return {**out, "method": None, "upper_bound": None, "error": "fewer than two clusters"}
-    if k >= min_clusters_for_t:
-        return {**out, "method": "t", "upper_bound": clustered_upper_bound(diffs, alpha)}
-    return {**out, "method": "cluster_bootstrap", "resamples": 2000, "seed": 0,
-            "upper_bound": cluster_bootstrap_upper_bound(diffs, alpha, 2000, 0)}
+    return {**out, "method": "t_continuity", "continuity_points": CONTINUITY_POINTS / k,
+            "upper_bound": clustered_upper_bound_corrected(diffs, alpha),
+            "t_upper_bound_descriptive": clustered_upper_bound(diffs, alpha)}

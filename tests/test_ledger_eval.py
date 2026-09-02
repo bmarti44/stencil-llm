@@ -41,8 +41,12 @@ def test_registered_values_are_the_frozen_ones(ev):
 def test_provenance_manifest_covers_every_registered_dependency(ev):
     prov = ev.provenance_manifest()
     for key in ("salience_weights.json", "qwen3.py", "ctrb.py", "e2.py", "e2_multiif.py", "stats.py",
-                "ledger.py", "salience.py", "tokenizer.json", "vendor/ifeval", "ledger_eval.py"):
+                "ledger.py", "salience.py", "tokenizer.json", "vendor/ifeval", "ledger_eval.py",
+                "wave.py", "bench.py", "determinism.py"):  # sol round 2 finding 7: EOS / biased layers / seeds
         assert key in prov and len(prov[key]) == 64, key
+    assert prov["wave.py"] == ev.sha(ROOT / "src" / "stencil" / "wave.py")
+    assert prov["bench.py"] == ev.sha(ROOT / "src" / "stencil" / "bench.py")
+    assert prov["determinism.py"] == ev.sha(ROOT / "src" / "stencil" / "determinism.py")
     # the tree hash is order-independent, content-dependent, and ignores __pycache__
     h = ev.tree_sha(ROOT / "vendor" / "ifeval")
     assert h == prov["vendor/ifeval"] == ev.tree_sha(ROOT / "vendor" / "ifeval")
@@ -55,6 +59,15 @@ def test_resume_fails_closed_on_provenance_mismatch(ev, tmp_path):
     ev.check_or_write_meta(tmp_path / "meta.json", copy.deepcopy(meta))  # identical -> ok
     with pytest.raises(RuntimeError, match="provenance"):
         ev.check_or_write_meta(tmp_path / "meta.json", {**meta, "provenance": {"ledger.py": "b" * 64}})
+
+
+def test_resume_fails_closed_when_wave_bench_or_determinism_hash_changes(ev, tmp_path):
+    prov = ev.provenance_manifest()
+    meta = {"schema": 2, "provenance": prov, "registered": ev.REGISTERED}
+    ev.check_or_write_meta(tmp_path / "meta.json", meta)
+    for name in ("wave.py", "bench.py", "determinism.py"):
+        with pytest.raises(RuntimeError, match="provenance"):
+            ev.check_or_write_meta(tmp_path / "meta.json", {**meta, "provenance": {**prov, name: "0" * 64}})
 
 
 # ------------------------------------------------------------------ records
@@ -94,8 +107,21 @@ ENTRY1 = {"text": "Include the keyword lantern.", "span": [3, 9], "turn_introduc
 ENTRY2 = {"text": "Use the word bright twice.", "span": [30, 37], "turn_introduced": 2, "provenance": "salience", "instruction_ids": [IDS[2]]}
 
 
-def make_record(ci, turn, *, diagnostic=False):
-    return {"ci": ci, "key": f"k{ci}", "diagnostic": diagnostic, "turns": {"2": turn}}
+def record_config(ev):
+    return {"top_k": 2, "dose": 3.0, "max_new": ev.REGISTERED["max_new"], "deadline": 300.0}
+
+
+def make_record(ci, turn, *, diagnostic=False, ev=None, turns=None):
+    """A record as the runner writes it: identity (ci, key) and the frozen configuration
+    ECHOED per record (sol round 2 finding 1: identity was checked in meta only)."""
+    return {"ci": ci, "key": f"k{ci}", "diagnostic": diagnostic, "turns": turns if turns is not None else {"2": turn},
+            "arms": ["base", *ev.ARMS], "config": record_config(ev)}
+
+
+def identity(n=909, turns=("2",)):
+    """The registered cohort identity the runner derives from the data rows: key and the
+    expected late turns of every conversation."""
+    return {ci: {"key": f"k{ci}", "turns": list(turns)} for ci in range(n)}
 
 
 def complete_run(ev, n=909):
@@ -107,18 +133,29 @@ def complete_run(ev, n=909):
         text = [True, True, True]
         neural = [True, True, True] if ci % 40 else [True, True, False]  # a fresh-constraint miss: NOT eligible
         recs.append(make_record(ci, turn_record(base=base, text=text, neural=neural, spec=[True, False, True],
-                                                ledger=[ENTRY1, ENTRY2], aged=[0], selected=[0])))
+                                                ledger=[ENTRY1, ENTRY2], aged=[0], selected=[0]), ev=ev))
     return recs
 
 
+def summ(ev, recs, meta=None, *, cohort_size=None, ident=None):
+    return ev.summarize(recs, meta or good_meta(ev), cohort_size=cohort_size or ev.REGISTERED_COHORT,
+                        identity=ident if ident is not None else identity())
+
+
 def test_complete_valid_run_passes_and_reports_estimand(ev):
-    s = ev.summarize(complete_run(ev), good_meta(ev), cohort_size=ev.REGISTERED_COHORT)
+    s = summ(ev, complete_run(ev))
     assert s["primary_claim_valid"] is True, s["primary_claim_reasons"]
     el = s["eligible"]
     assert el["n"] == 909 and el["n_conversations"] == 909  # aged AND insertable: only keywords:existence at origin 1
     assert el["definition"].startswith("aged")
     p = s["primary"]
-    assert p["clustered"]["method"] == "t" and p["clustered"]["upper_bound"] == 0.0 and p["non_inferior"] is True
+    assert p["clustered"]["method"] == "t_continuity" and p["non_inferior"] is True
+    assert p["clustered"]["upper_bound"] == 100.0 / 909 and p["clustered"]["t_upper_bound_descriptive"] == 0.0
+    assert s["validity"]["timeouts_truncations_le_2pct"] is True and s["timeouts_or_truncations"]["base"] == 0
+    assert s["validity"]["records_identity"] is True and s["validity"]["records_echo_registered_config"] is True
+    assert s["validity"]["expected_turns_present"] is True and s["turns"] == 909
+    assert s["validity"]["ledger_selected_on_majority_of_eligible"] is True
+    assert s["neural_vs_specificity"]["control_incomplete_turns"] == 0
     assert p["tango_pooled_descriptive"]["n"] == 909
     assert s["text_vs_base[eligible]"]["n01"] == 303 and s["text_vs_base[eligible]"]["n10"] == 0
     assert s["validity"]["text_beats_base"] is True
@@ -132,8 +169,8 @@ def test_sol_adversarial_empty_ledger_identical_arms_is_invalid(ev):
     for ci in range(909):
         t = turn_record(base=[True, True, True], text=[True, True, True], neural=[True, True, True],
                         spec=[True, True, True], ledger=[], aged=[], selected=[])
-        recs.append(make_record(ci, t))
-    s = ev.summarize(recs, good_meta(ev), cohort_size=ev.REGISTERED_COHORT)
+        recs.append(make_record(ci, t, ev=ev))
+    s = summ(ev, recs)
     assert s["primary_claim_valid"] is False
     v = s["validity"]
     assert v["ledger_active_on_credited_turns"] is False and v["text_beats_base"] is False
@@ -143,12 +180,123 @@ def test_sol_adversarial_empty_ledger_identical_arms_is_invalid(ev):
 def test_sol_adversarial_favorable_partial_record_is_invalid(ev):
     """Finding 1: a favorable four-cell partial record."""
     recs = complete_run(ev, n=4)
-    s = ev.summarize(recs, good_meta(ev), cohort_size=ev.REGISTERED_COHORT)
+    s = summ(ev, recs)
     assert s["primary_claim_valid"] is False and s["validity"]["complete_cohort"] is False
-    assert s["primary"]["clustered"]["method"] == "cluster_bootstrap"
+    assert s["primary"]["clustered"]["method"] == "t_continuity" and s["primary"]["clustered"]["continuity_points"] == 25.0
     # and passing the partial count as the cohort size does not launder it: the registered size is checked
-    s2 = ev.summarize(recs, good_meta(ev), cohort_size=4)
+    s2 = summ(ev, recs, cohort_size=4, ident=identity(4))
     assert s2["primary_claim_valid"] is False and s2["validity"]["registered_cohort"] is False
+
+
+# ---------------------------------------------- sol round 2 (results/ledger-reverify-sol.md, CRITICAL)
+def test_sol2_wrong_conversation_identities_are_invalid(ev):
+    """909 records with entirely wrong conversation IDs (unique, but not the cohort)."""
+    recs = complete_run(ev)
+    for r in recs:
+        r["ci"] += 5000
+    s = summ(ev, recs)
+    assert s["primary_claim_valid"] is False and s["validity"]["records_identity"] is False
+    assert "records_identity" in s["primary_claim_reasons"]
+    # right ids, wrong keys (a different cohort's records renamed) is equally invalid
+    recs = complete_run(ev)
+    recs[300]["key"] = "not-the-registered-key"
+    s = summ(ev, recs)
+    assert s["primary_claim_valid"] is False and s["validity"]["records_identity"] is False
+    # and a record from a different data file (key right, ci right) but wrong arm set
+    recs = complete_run(ev)
+    recs[10]["arms"] = ["base", "text_ledger", "neural_ledger"]
+    s = summ(ev, recs)
+    assert s["primary_claim_valid"] is False and s["validity"]["records_arm_set"] is False
+    recs = complete_run(ev)
+    del recs[10]["turns"]["2"]["arms"]["specificity"]
+    s = summ(ev, recs)
+    assert s["primary_claim_valid"] is False and s["validity"]["records_arm_set"] is False
+
+
+def test_sol2_one_turn_records_when_cohort_requires_more_turns_are_invalid(ev):
+    """909 one-turn records although the real cohort has 1,805 late turns."""
+    recs = complete_run(ev)
+    ident = identity()
+    for ci in range(909):
+        if ci % 2 == 0:
+            ident[ci]["turns"] = ["2", "3"]
+    assert sum(len(v["turns"]) for v in ident.values()) > 909
+    s = summ(ev, recs, ident=ident)
+    assert s["primary_claim_valid"] is False and s["validity"]["expected_turns_present"] is False
+    assert "expected_turns_present" in s["primary_claim_reasons"]
+    # an extra unexpected turn is invalid too (a record from a different context)
+    recs = complete_run(ev)
+    recs[3]["turns"]["3"] = copy.deepcopy(recs[3]["turns"]["2"])
+    s = summ(ev, recs)
+    assert s["validity"]["expected_turns_present"] is False
+
+
+def test_sol2_base_timing_out_on_every_turn_is_invalid(ev):
+    """the 2% timeouts/truncations cap must bind EVERY arm, base included."""
+    recs = complete_run(ev)
+    for r in recs:
+        r["turns"]["2"]["base"]["timed_out"] = True
+    s = summ(ev, recs)
+    assert s["primary_claim_valid"] is False and s["validity"]["timeouts_truncations_le_2pct"] is False
+    assert s["timeouts_or_truncations_fraction"]["base"] == 1.0
+    recs = complete_run(ev)
+    for r in recs[:19]:  # 2.09% of base truncated
+        r["turns"]["2"]["base"]["truncated"] = True
+    s = summ(ev, recs)
+    assert s["validity"]["timeouts_truncations_le_2pct"] is False
+    assert s["validity"]["timeouts_truncations_per_arm"]["base"] is False
+
+
+def test_sol2_half_of_eligible_unselected_with_text_failing_the_same_half_is_invalid(ev):
+    """half the eligible constraints had NO selected linked entry (another entry kept the
+    ledger 'active'); text failed exactly those cells, so fail-closed credit costs nothing."""
+    recs = complete_run(ev)
+    for ci, r in enumerate(recs):
+        t = r["turns"]["2"]
+        if ci % 2 == 0:
+            # another aged entry (unlinked to constraint 0) is selected -> ledger_active stays True
+            t["ledger"] = [ENTRY1, {**ENTRY1, "text": "Other aged sentence.", "span": [12, 15], "instruction_ids": []}, ENTRY2]
+            t["aged_entry_indices"] = [0, 1]
+            t["arms"]["neural_ledger"]["selected_entries"] = [1]
+            t["ledger_active"] = True
+            for c in t["constraints"]:
+                c["entry_indices"] = [0] if c["origin_turn"] == 1 else [2]
+                c["entry_selected"] = False
+            t["base"]["per_constraint"] = [False, True, True]                # base fails there as well
+            t["arms"]["text_ledger"]["per_constraint"] = [False, True, True]  # text fails the unselected cell
+            t["arms"]["neural_ledger"]["per_constraint"] = [False, True, True]
+    s = summ(ev, recs)
+    assert s["validity"]["ledger_active_on_credited_turns"] is True  # sol: the turn-level check is satisfied
+    assert s["validity"]["text_beats_base"] is True                  # by the other half
+    assert s["eligible"]["n_unselected"] == 455 and s["eligible"]["selected_fraction"] == 454 / 909
+    assert s["primary_claim_valid"] is False
+    assert s["validity"]["ledger_selected_on_majority_of_eligible"] is False
+    assert "ledger_selected_on_majority_of_eligible" in s["primary_claim_reasons"]
+
+
+def test_sol2_records_must_echo_the_registered_configuration(ev):
+    for field, bad in (("top_k", 3), ("dose", 1.0), ("max_new", 64), ("deadline", 60.0)):
+        recs = complete_run(ev)
+        recs[42]["config"][field] = bad
+        s = summ(ev, recs)
+        assert s["primary_claim_valid"] is False and s["validity"]["records_echo_registered_config"] is False, field
+    recs = complete_run(ev)
+    del recs[42]["config"]
+    assert summ(ev, recs)["validity"]["records_echo_registered_config"] is False
+
+
+def test_control_incomplete_turns_are_excluded_from_neural_vs_specificity(ev):
+    """finding 4 (conversation 145): a turn whose matched control could not be built for
+    every selected span is disclosed and left out of the neural - specificity comparison."""
+    recs = complete_run(ev, n=12)
+    for r in recs:
+        r["turns"]["2"]["arms"]["specificity"]["per_constraint"] = [False, True, True]
+    recs[0]["turns"]["2"]["arms"]["specificity"]["control_incomplete"] = True
+    recs[0]["turns"]["2"]["arms"]["specificity"]["control_tiers"] = ["none", "same_turn"]
+    recs[0]["turns"]["2"]["arms"]["specificity"]["per_constraint"] = [True, True, True]  # would pull the mean down
+    s = summ(ev, recs)
+    ns = s["neural_vs_specificity"]
+    assert ns["control_incomplete_turns"] == 1 and ns["clustered"]["clusters"] == 11 and ns["mean_points"] == 100.0
 
 
 @pytest.mark.parametrize("break_", [
@@ -191,7 +339,7 @@ def test_each_gate_condition_invalidates(ev, break_):
             r["turns"]["2"]["arms"]["neural_ledger"]["per_constraint"] = [False, True, True]
     elif break_ == "duplicate_ci":
         recs[1] = copy.deepcopy(recs[0])
-    s = ev.summarize(recs, meta, cohort_size=ev.REGISTERED_COHORT)
+    s = summ(ev, recs, meta)
     assert s["primary_claim_valid"] is False, break_
     assert s["primary_claim_reasons"], break_
     if break_ == "bound":
@@ -224,11 +372,11 @@ def test_neural_minus_specificity_is_reported_directly_with_clustered_bound(ev):
     recs = complete_run(ev, n=12)
     for r in recs:
         r["turns"]["2"]["arms"]["specificity"]["per_constraint"] = [False, True, True]
-    s = ev.summarize(recs, good_meta(ev), cohort_size=ev.REGISTERED_COHORT)
+    s = summ(ev, recs)
     ns = s["neural_vs_specificity"]
     assert ns["sign"] == "neural - specificity (points; positive = neural better)"
-    assert ns["mean_points"] == 100.0 and ns["clustered"]["method"] == "t" and ns["clustered"]["clusters"] == 12
-    assert ns["lower_bound"] == 100.0 and ns["upper_bound"] == 100.0  # zero variance
+    assert ns["mean_points"] == 100.0 and ns["clustered"]["method"] == "t_continuity" and ns["clustered"]["clusters"] == 12
+    assert ns["lower_bound"] == 100.0 - 100.0 / 12 and ns["upper_bound"] == 100.0 + 100.0 / 12  # zero variance + one flip
 
 
 @pytest.mark.skipif(not (TOK_PATH.exists() and DATA_PATH.exists()), reason="tokenizer/data not present")
@@ -253,6 +401,13 @@ def test_cpu_preflight_builds_every_diagnostic_turn_with_real_salience(ev):
     assert stats["turns_with_aged_entries"] > 0 and stats["turns_with_aged_constraints"] > 0
     assert stats["linkage_granularity"] == {"origin_turn": 221}
     assert stats["segmenter"] == ev.SEGMENTER_IDENTITY
+    # sol round 2 finding 4: the specificity control is DRY-CONSTRUCTED for every possible
+    # top_k selection (every ordered choice of aged entries) of every turn; conversation 145
+    # turn 2 (aged widths 34/19, longest free run 31) is reported incomplete, not a crash
+    assert stats["control_dry_runs"] > 221 and stats["control_top_k"] == ev.REGISTERED["top_k"]
+    assert {"ci": 145, "turn": 2} in stats["control_incomplete_turns"]
+    assert stats["control_incomplete_turn_count"] == len(stats["control_incomplete_turns"]) >= 1
+    assert base_records is not None, "the exact runner contexts are required for the control dry run"
     # and the bare-callable path sol found is NOT accepted by the identity assertion
     with pytest.raises(RuntimeError, match="segmenter"):
         ev.assert_real_segmenter(resolve_salience(sal.classify))
@@ -275,3 +430,36 @@ def test_preflight_fails_loudly_on_any_exception(ev, monkeypatch):
             return E()
     with pytest.raises(RuntimeError, match=r"preflight.*ci=0.*turn=2.*sentence not found"):
         ev.preflight(rows, Tok(), Salience(lambda s: True, boom, "salience"), [0])
+
+
+def test_preflight_dry_constructs_control_for_every_ordered_selection(ev, monkeypatch):
+    """the dry run exercises matched_nonledger_control on the exact runner inputs for every
+    ordered top_k choice of aged entries; an impossible window is COUNTED, an exception is raised."""
+    import stencil.ledger as ledger_mod
+
+    calls = []
+    real = ledger_mod.matched_nonledger_control
+
+    def spy(**kw):
+        calls.append(kw)
+        return real(**kw)
+    monkeypatch.setattr(ledger_mod, "matched_nonledger_control", spy)
+    rows = [{"key": "k", "turn_1_prompt": json.dumps({"content": "Use the word lantern. Do not use commas. Write in English."}),
+             "turn_1_instruction_id_list": "[]", "turn_1_kwargs": "[]",
+             "turn_2_prompt": json.dumps({"content": "Now shorter."}), "turn_2_instruction_id_list": "[]", "turn_2_kwargs": "[]",
+             "turn_3_prompt": ""}]
+    from tokenizers import Tokenizer
+    if not TOK_PATH.exists():
+        pytest.skip("tokenizer not present")
+    from stencil.ledger import Salience, segment_char_spans
+    stats = ev.preflight(rows, Tokenizer.from_file(str(TOK_PATH)), Salience(lambda s: True, segment_char_spans, "salience"), [0], top_k=2)
+    assert stats["turns"] == 1 and stats["aged_entries"] == 3
+    assert stats["control_dry_runs"] == len(calls) == 6  # 3 aged entries, ordered pairs
+    assert all(len(c["selected"]) == 2 for c in calls)
+    assert stats["control_incomplete_turn_count"] == 0 and stats["control_incomplete_turns"] == []
+
+    def broken(**kw):
+        raise ValueError("boom")
+    monkeypatch.setattr(ledger_mod, "matched_nonledger_control", broken)
+    with pytest.raises(RuntimeError, match=r"preflight.*ci=0.*turn=2.*boom"):
+        ev.preflight(rows, Tokenizer.from_file(str(TOK_PATH)), Salience(lambda s: True, segment_char_spans, "salience"), [0], top_k=2)

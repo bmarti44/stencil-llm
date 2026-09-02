@@ -331,8 +331,59 @@ def test_matched_nonledger_control_is_width_and_position_matched():
     control, tiers = matched_nonledger_control(total_len=100, selected=[(2, 30)], ledger_spans=[(2, 30), (40, 60)],
                                                user_turns=[(2, 30), (40, 60)])
     assert tiers == ["outside_user_turns"] and control == [(60, 88)]
-    with pytest.raises(ValueError):
-        matched_nonledger_control(total_len=12, selected=[(0, 10)], ledger_spans=[(0, 10)], user_turns=[(0, 10)])
+    # impossible window: NEVER raises (sol round 2: conversation 145 turn 2 crashed the arm);
+    # the span gets tier "none" and a None control, the others are still constructed
+    control, tiers = matched_nonledger_control(total_len=12, selected=[(0, 10)], ledger_spans=[(0, 10)], user_turns=[(0, 10)])
+    assert control == [None] and tiers == ["none"]
+    control, tiers = matched_nonledger_control(total_len=44, selected=[(0, 34), (34, 38)], ledger_spans=[(0, 34), (34, 38)],
+                                               user_turns=[(0, 38)])
+    assert tiers == ["none", "outside_user_turns"] and control == [None, (38, 42)]
+
+
+DATA_PATH = ROOT / "data" / "bench" / "multiif_en.jsonl"
+BASE_DIR = ROOT / "results" / "qwen" / "b4-multiif-base"
+
+
+@pytest.mark.skipif(not (TOK_PATH.exists() and DATA_PATH.exists() and (BASE_DIR / "conv-145.json").exists()),
+                    reason="tokenizer/data/base records not present")
+def test_conversation_145_turn_2_control_is_incomplete_not_a_crash(tok):
+    """sol round 2 (results/ledger-reverify-sol.md, HIGH): conversation 145 turn 2 has aged
+    entries of widths 34 and 19; the longest non-ledger run is 31 tokens, so the 34-wide
+    control is impossible in EITHER selection order.  The context is built exactly the
+    runner's way (recorded base responses as history), no model."""
+    import importlib.util
+    import itertools
+    import json
+
+    from stencil.e2 import user_turn_span_records
+    from stencil.ledger import build_ledger, matched_nonledger_control, resolve_salience
+    spec = importlib.util.spec_from_file_location("ledger_eval_145", ROOT / "scripts" / "ledger_eval.py")
+    ev = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ev)
+    rows = [json.loads(line) for line in DATA_PATH.read_text().splitlines()]
+    base = json.loads((BASE_DIR / "conv-145.json").read_text())
+    sal = resolve_salience()
+    ev.assert_real_segmenter(sal)
+    context = ev.turn_context(rows[145], base, 2)
+    P = len(tok.encode(context).ids)
+    entries = build_ledger(tok, context, salience=sal)
+    aged = [e for e in entries if e.turn_introduced < 2]
+    assert sorted(e.span[1] - e.span[0] for e in aged) == [19, 34]
+    user_turns = [tuple(r["span"]) for r in user_turn_span_records(tok, context)]
+    ledger = [e.span for e in entries]
+    for order in itertools.permutations(aged):
+        control, tiers = matched_nonledger_control(total_len=P, selected=[e.span for e in order],
+                                                   ledger_spans=ledger, user_turns=user_turns)
+        assert len(control) == len(tiers) == 2
+        assert tiers[[e.span[1] - e.span[0] for e in order].index(34)] == "none"
+        assert tiers.count("none") == 1
+        for sp, (sa, sb), tier in zip(control, [e.span for e in order], tiers, strict=True):
+            if tier == "none":
+                assert sp is None
+                continue
+            a, b = sp
+            assert b - a == sb - sa and 0 <= a < b <= P
+            assert all(b <= la or a >= lb for la, lb in ledger)
 
 
 @pytest.fixture(scope="module")

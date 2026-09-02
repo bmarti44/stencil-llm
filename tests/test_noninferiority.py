@@ -122,14 +122,109 @@ def test_clustered_upper_bound_needs_two_clusters_and_handles_zero_variance():
     assert clustered_upper_bound([3.0] * 12) == 3.0
 
 
-def test_cluster_bootstrap_fallback_below_ten_clusters():
-    from stencil.stats import cluster_bootstrap_upper_bound, clustered_bound
+def test_cluster_bootstrap_is_seeded_and_sign_aware():
+    from stencil.stats import cluster_bootstrap_upper_bound
     diffs = [0.0, 10.0, 0.0, 5.0, 20.0]
-    b = clustered_bound(diffs)
-    assert b["method"] == "cluster_bootstrap" and b["clusters"] == 5 and b["resamples"] == 2000 and b["seed"] == 0
-    assert b["upper_bound"] == cluster_bootstrap_upper_bound(diffs)
-    assert 7.0 < b["upper_bound"] <= 20.0  # a bootstrap quantile lies within the resampled means
+    assert 7.0 < cluster_bootstrap_upper_bound(diffs) <= 20.0  # a bootstrap quantile lies within the resampled means
     assert cluster_bootstrap_upper_bound(diffs) == cluster_bootstrap_upper_bound(diffs)  # seeded
     assert cluster_bootstrap_upper_bound([-x for x in diffs]) < 0.0  # sign carried through
-    t = clustered_bound(list(range(1, 11)))
-    assert t["method"] == "t" and abs(t["upper_bound"] - 7.255073) < 1e-5
+
+
+# ---------------------------------------------------- sol round 2 (HIGH): boundary false-pass
+# results/ledger-reverify-sol.md finding 2: 909 independent clusters, pure degradation exactly
+# at the 2-point margin (each conversation's single eligible constraint is harmed with
+# probability 0.02, a 100-point per-conversation difference; otherwise 0).  The number of
+# harmed clusters is Binomial(909, 0.02) and every candidate bound is a deterministic
+# function of it (binary data), so the boundary false-pass probability is EXACT: the
+# binomial mass of the harmed counts the bound lets through.
+K_SOL, P_SOL, MARGIN_SOL = 909, 0.02, 2.0
+
+
+def _binom_pmf(n, p):
+    from math import comb
+    return [comb(n, h) * p ** h * (1 - p) ** (n - h) for h in range(n + 1)]
+
+
+def _harmed(h, k=K_SOL):
+    return [100.0] * h + [0.0] * (k - h)
+
+
+def _exact_false_pass(passes):
+    pmf = _binom_pmf(K_SOL, P_SOL)
+    return sum(pmf[h] for h in range(K_SOL + 1) if passes(h))
+
+
+def test_sol_reproduction_uncorrected_t_bound_false_pass_is_8_31_percent():
+    """the BEFORE number: the plain t bound declares NI with 0-12 harmed clusters (sol: 8.31%)."""
+    from stencil.stats import clustered_upper_bound
+    pass_set = [h for h in range(40) if clustered_upper_bound(_harmed(h)) < MARGIN_SOL]
+    assert pass_set == list(range(13))
+    rate = _exact_false_pass(lambda h: h <= 12)
+    assert abs(rate - 0.0831) < 5e-4, rate
+    assert clustered_upper_bound([0.0] * K_SOL) == 0.0  # sol: zero-width bound on all-zero data
+
+
+def test_candidate_a_percentile_cluster_bootstrap_is_rejected_by_simulation():
+    """candidate (a), 4000 resamples: on binary cluster data the resampled mean is
+    100/k * Binomial(k, h/k), so the percentile upper bound is its 0.95 quantile —
+    the SAME pass set (0-12 harmed) and the same 8.31% (registered implementation,
+    seed 0, Monte Carlo 60 trials: 5/60 = 0.083).  Not registered."""
+    from math import comb
+
+    def binom_quantile(n, q, prob):
+        c = 0.0
+        for x in range(n + 1):
+            c += comb(n, x) * prob ** x * (1 - prob) ** (n - x)
+            if c >= q:
+                return x
+        return n
+    def passes(h):
+        return h == 0 or 100.0 / K_SOL * binom_quantile(K_SOL, 0.95, h / K_SOL) < MARGIN_SOL
+    assert [h for h in range(40) if passes(h)] == list(range(13))
+    rate = _exact_false_pass(passes)
+    assert rate > 0.05 and abs(rate - 0.0831) < 5e-4, rate
+
+
+def test_registered_continuity_corrected_t_bound_false_pass_le_5_percent():
+    """candidate (b), REGISTERED: t bound + one whole-cluster flip (100/k points).  Pass set
+    0-11 harmed; exact boundary false-pass 4.90% <= 5%.  A half-flip (50/k) leaves 8.31%."""
+    from stencil.stats import (
+        CONTINUITY_POINTS,
+        clustered_bound,
+        clustered_upper_bound,
+        clustered_upper_bound_corrected,
+    )
+    assert CONTINUITY_POINTS == 100.0
+    pass_set = [h for h in range(40) if clustered_upper_bound_corrected(_harmed(h)) < MARGIN_SOL]
+    assert pass_set == list(range(12))
+    rate = _exact_false_pass(lambda h: h <= 11)
+    assert rate <= 0.05 and abs(rate - 0.0490) < 5e-4, rate
+    half = [h for h in range(40) if clustered_upper_bound(_harmed(h)) + 50.0 / K_SOL < MARGIN_SOL]
+    assert half == list(range(13))
+    # all-zero data: strictly positive width (one flip), never a zero-width bound
+    assert clustered_upper_bound_corrected([0.0] * K_SOL) == 100.0 / K_SOL > 0.0
+    # the registered dispatch applies the corrected bound ALWAYS (no cluster-count switch)
+    for diffs in (_harmed(5), [0.0, 10.0, 0.0, 5.0, 20.0], list(range(1, 11))):
+        b = clustered_bound(diffs)
+        assert b["method"] == "t_continuity" and b["upper_bound"] == clustered_upper_bound_corrected(diffs)
+        assert b["continuity_points"] == 100.0 / len(diffs)
+        assert abs(b["t_upper_bound_descriptive"] - clustered_upper_bound(diffs)) < 1e-12
+    assert abs(clustered_bound(list(range(1, 11)))["t_upper_bound_descriptive"] - 7.255073) < 1e-5
+    assert clustered_bound([1.0])["upper_bound"] is None and clustered_bound([1.0])["error"]
+
+
+def test_corrected_bound_false_pass_under_mixed_discordance_by_simulation():
+    """secondary check at the registered size: drop exactly at the margin with two-sided
+    discordance (p10 = 0.03, p01 = 0.01) — the corrected bound stays <= 5% + MC error."""
+    import random
+
+    from stencil.stats import clustered_upper_bound_corrected
+    rng = random.Random(0)
+    trials, fp = 400, 0
+    for _ in range(trials):
+        d = []
+        for _ in range(K_SOL):
+            r = rng.random()
+            d.append(100.0 if r < 0.03 else (-100.0 if r < 0.04 else 0.0))
+        fp += clustered_upper_bound_corrected(d) < MARGIN_SOL
+    assert fp / trials <= 0.07, fp / trials  # 400 trials: MC se ~1.1 points

@@ -233,3 +233,15 @@ context spans, so pinned slots drop in later.
   same-width non-constraint pin control was n=1 (0/4) — now a registered
   fifth arm (pinned_control). RERUN of the 20 sessions required before the
   result is cited.
+- FIX ROUND 2 (2026-09-01, after results/ledger-reverify-sol.md): matched
+  control never raises (impossible windows -> tier "none", turn excluded
+  from neural-vs-specificity, control_incomplete recorded; conv 145 t2 is
+  the one known case); validity gate now checks per-record identity,
+  expected turns (1805 for the cohort), arm set, echoed config, <=2%
+  timeouts+truncations in EVERY arm, and a NEW registered threshold:
+  ledger must have a selected linked entry on a strict MAJORITY of
+  eligible constraints; clustered bound = t + one-whole-cluster-flip
+  continuity correction (100/k points), chosen by exact simulation
+  (plain t and percentile bootstrap both 8.31% false-pass at the
+  registered size; corrected 4.90%); wave.py/bench.py/determinism.py
+  hashed; preflight dry-constructs every control. Pending sol round 3.

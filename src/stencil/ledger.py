@@ -256,21 +256,28 @@ def link_entries(entries: Sequence[Entry], tokenizer, context: str, origins: Seq
 
 def matched_nonledger_control(*, total_len: int, selected: Sequence[tuple[int, int]],
                               ledger_spans: Sequence[tuple[int, int]],
-                              user_turns: Sequence[tuple[int, int]]) -> tuple[list[tuple[int, int]], list[str]]:
+                              user_turns: Sequence[tuple[int, int]]) -> tuple[list[tuple[int, int] | None], list[str]]:
     """The specificity control (LEDGER-PLAN amendment): for each SELECTED span
     a window of the SAME width, disjoint from EVERY ledger entry (selected or
     not, aged or fresh) and from the other control windows, at the nearest
     position — inside the same user turn when possible ("same_turn"), else
     any user turn ("other_user_turn"), else anywhere ("outside_user_turns").
     Same dose is applied by the caller.  ``e2.mass_matched_nonconstraint_control``
-    is the diffuse-complement control sol rejected and is NOT used."""
+    is the diffuse-complement control sol rejected and is NOT used.
+
+    NEVER raises for an impossible window (sol round 2: conversation 145
+    turn 2 — aged widths 34 and 19, longest non-ledger run 31 — crashed the
+    arm in both selection orders): that span gets control ``None`` and tier
+    ``"none"``; the caller records ``control_incomplete`` and excludes the
+    turn from the neural-vs-specificity comparison.  Both lists align with
+    ``selected``."""
     blocked = [False] * total_len
     for a, b in ledger_spans:
         if not 0 <= a < b <= total_len:
             raise ValueError("ledger span outside context")
         for i in range(a, b):
             blocked[i] = True
-    control: list[tuple[int, int]] = []
+    control: list[tuple[int, int] | None] = []
     tiers: list[str] = []
 
     def free(a, b):
@@ -296,8 +303,10 @@ def matched_nonledger_control(*, total_len: int, selected: Sequence[tuple[int, i
                     break
             if found:
                 break
-        if found is None:
-            raise ValueError("no non-ledger window of the selected width is available")
+        if found is None:  # disclosed, not fatal
+            control.append(None)
+            tiers.append("none")
+            continue
         tier, (a, b) = found
         for i in range(a, b):
             blocked[i] = True
