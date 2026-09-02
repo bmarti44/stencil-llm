@@ -161,3 +161,37 @@ next design question, not more amplification. Sequenced AFTER the
 in-context diagnostic slice (the baseline) and reusing its harness.
 Deploy must keep bias injection abstract over ATTENTION COLUMNS, not
 context spans, so pinned slots drop in later.
+
+## Amendments after sol's verification (2026-09-01, results/ledger-verify-sol.md)
+
+- RETRACTED: "an under-inclusive ledger only weakens the neural arm". It
+  weakens BOTH arms, reduces discordance, and makes non-inferiority
+  EASIER. Hence primary validity now REQUIRES non-vacuity: text_ledger
+  must beat base (n10 > n01 on eligible outcomes) and the ledger must be
+  active (>= 1 aged entry selected) on every credited turn.
+- ESTIMAND: eligible outcomes = AGED (origin turn < current turn)
+  constraints in FIXABLE_FAMILIES only; fresh constraints are excluded
+  from the primary (the treatment holds aged entries only).
+- CLUSTERING: the primary bound is a CONVERSATION-CLUSTERED one-sided 95%
+  upper bound on the mean paired difference (text - neural, points),
+  cluster = conversation, via t on the per-conversation mean differences
+  (fallback: cluster bootstrap, 2000 resamples, seed 0). Tango on pooled
+  cells is reported as descriptive only.
+- SLICE STATUS: the ~113-conversation diagnostic slice is a FALSIFICATION
+  SCREEN (all-concordant bound already exceeds the margin at n=85); a
+  confirmatory NI needs the complete 909-conversation cohort and is a
+  separate registered run.
+- VALIDITY GATE (primary_claim_valid): complete cohort; registered
+  top_k/dose/max_new/deadline; neural context tokens MEASURED per turn (not
+  a literal); timeouts+truncations <= 2% per arm; real-salience path
+  asserted (segmenter identity check); provenance hashes cover
+  salience_weights.json, qwen3.py, ctrb.py, e2.py, stats.py, tokenizer,
+  and the vendored verifier tree.
+- CONTROL: specificity = width- and position-matched NON-ledger spans at
+  the SAME dose (mass_matched_nonconstraint_control from e2.py), reported
+  directly against neural (neural - specificity, clustered bound).
+- LINKAGE: each ledger entry records the instruction_ids whose constraint
+  clause it overlaps (e2.constraint_span_records); credit is only counted
+  where the credited constraint's entry was selected.
+- top_k=2 and dose 3.0 are FROZEN EXPLORATORY choices; not tuned after
+  outcomes are viewed.
