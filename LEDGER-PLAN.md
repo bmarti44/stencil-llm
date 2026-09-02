@@ -402,3 +402,11 @@ Decision rules identical to H1 (pinned > pinned_control AND pinned_echo > echo_o
 automatic coverage vs the oracle spans.
 Cost ~1 GPU-h. Reviewer pass (fable/sol/kimi) before any next rung. If ADVANCE-RETENTION: next = 909 Multi-IF
 text_ledger confirmation under ROUND 7 (already registered), NOT an H3 wave pilot.
+
+## PUBLISH GATE (Brian, 2026-09-02): Hub release `bmarti44/stencil` only after automatic long-horizon agentic benefit is shown
+Precondition, all registered before outcomes are viewed: (1) H1′ ADVANCE-RETENTION or RE-INJECTION-ONLY with the
+AUTOMATIC finder (no oracle marks); (2) a long-context / long-horizon / agentic benchmark (selection registered
+below after the 2026-09-02 research round) on which the automatic mechanism beats the equal-context base with
+a clustered lower bound > 0 under ROUND 7 safety, in a run the orchestrator did not tune on; (3) fable/sol/kimi
+sign-off on the artifact. The model card must carry the single-turn negative and the "retention/re-injection,
+not amplification" qualification. Deploy package: deploy/stencil_wave (empty ledger == OFF bitwise).
