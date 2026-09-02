@@ -212,3 +212,12 @@ context spans, so pinned slots drop in later.
   (CPU-only, deploy-friendly). Unmet gate kept as a strict xfail with the
   numbers. Brian decides: accept 0.88 recall as v2, or fund a third round
   (blind-draw failures are new constructions each time — rule overfit risk).
+- LEDGER-KV PROBE RESULT (2026-09-01, 20 synthetic sessions, 56 aged
+  constraints, results/qwen/ledger-kv-probe): full 42/56, evicted 16/56,
+  pinned 36/56, pinned+wave(3.0) 35/56. Pinning recovers 0.77 of the
+  full-evicted gap (paired 14 better / 1 worse), degeneracy 2/20 vs 1/20
+  evicted → GATE MET under the no-reindex position policy. The wave dose on
+  pinned columns adds NOTHING and degenerates 8/20 (truncations 9 vs 4):
+  the pinned MEMORY is the mechanism; amplification of it is harmful here,
+  consistent with the always-on-bias finding (B3 dev gate). Pending
+  independent verification before any design decision.
