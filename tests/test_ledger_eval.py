@@ -513,9 +513,11 @@ def sol5_simpson_reversal_run(ev):
     so the unselected subset is not all-failing).  Neural ties text on selected cells."""
     recs, ident = two_turn_run(ev, single_turn=range(13))
     for ci in range(13):
-        unselect_turn(recs[ci], "2"); set_cell(recs[ci], "2", base=True, text=False)
+        unselect_turn(recs[ci], "2")
+        set_cell(recs[ci], "2", base=True, text=False)
     for ci in range(13, 179):
-        unselect_turn(recs[ci], "2"); set_cell(recs[ci], "2", base=True, text=False)
+        unselect_turn(recs[ci], "2")
+        set_cell(recs[ci], "2", base=True, text=False)
     for ci in range(179, 269):
         set_cell(recs[ci], "2", base=False, text=True)
         set_cell(recs[ci], "3", base=False, text=True)

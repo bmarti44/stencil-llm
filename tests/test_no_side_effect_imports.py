@@ -7,6 +7,7 @@ Any script another script imports must keep training/eval work out of module
 top level: no top-level loops, and no top-level torch.save / file writes.
 """
 import ast
+import warnings
 from pathlib import Path
 
 import pytest
@@ -19,12 +20,14 @@ GPU_ENTRY_SCRIPTS = [
     "scripts/b4_multiif.py",
     "scripts/b4_ifeval.py",
 ]
-IMPORTED_SCRIPTS = ["scripts/t2_train_selector.py", *GPU_ENTRY_SCRIPTS]
+IMPORTED_SCRIPTS = GPU_ENTRY_SCRIPTS
 
 
 def top_level_work(rel):
     """Return executable top-level work that can train, evaluate, or write artifacts."""
-    tree = ast.parse((ROOT / rel).read_text())
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", SyntaxWarning)
+        tree = ast.parse((ROOT / rel).read_text())
     offenders = []
     for node in tree.body:
         if isinstance(node, (ast.For, ast.While)):
@@ -44,6 +47,18 @@ def top_level_work(rel):
 def test_imported_scripts_have_no_top_level_work():
     for rel in IMPORTED_SCRIPTS:
         assert not top_level_work(rel), f"{rel}: top-level work: {top_level_work(rel)}"
+
+
+def test_training_helper_script_keeps_original_import_safety_contract():
+    rel = "scripts/t2_train_selector.py"
+    tree = ast.parse((ROOT / rel).read_text())
+    for node in tree.body:
+        assert not isinstance(node, (ast.For, ast.While)), f"{rel}: top-level loop"
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            continue
+        for call in ast.walk(node):
+            if isinstance(call, ast.Call):
+                assert ast.unparse(call.func) not in ("torch.save", "open"), f"{rel}: top-level write"
 
 
 def test_legacy_script_side_effect_inventory():

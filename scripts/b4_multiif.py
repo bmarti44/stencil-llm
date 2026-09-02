@@ -200,6 +200,7 @@ def run_arm(m, tok, rows, arm_name, ctrl, meta, mode):
 
 def main():
     global ARMS, TAU, BMAX
+    determinism.assert_gpu_free_or_owned()
     ARMS = arms_table()
     cal = json.loads((ROOT / "results" / "qwen" / "b3-deficit-cal.json").read_text())
     sel = cal["results"][cal["selected"]]

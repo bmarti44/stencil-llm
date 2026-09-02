@@ -1,9 +1,10 @@
+# ruff: noqa: E501
 """Static backstop: experiment code must never terminate another process."""
 import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-CODE_SUFFIXES = {".py", ".sh"}
+CODE_SUFFIXES = {".py", ".sh", ".json", ".toml", ".yaml", ".yml"}
 FORBIDDEN = (
     re.compile(r"os\.kill\("),
     re.compile(r"signal\.SIG"),

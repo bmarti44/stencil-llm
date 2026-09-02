@@ -117,6 +117,7 @@ def run_arm(m, tok, rows, name, ctrl, outdir):
 
 
 def main():
+    determinism.assert_gpu_free_or_owned()
     manifest = build_manifest()
     jobdir = ROOT / "results" / "qwen" / "b4"
     jobdir.mkdir(parents=True, exist_ok=True)

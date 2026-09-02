@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """CPU-only decision-table tests for the mechanical PreToolUse Bash guard."""
 import importlib.util
 import json

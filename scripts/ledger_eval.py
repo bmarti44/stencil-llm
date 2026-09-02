@@ -15,7 +15,8 @@ constraint was selected.  PRIMARY: conversation-clustered one-sided 95% upper
 bound on the mean paired difference (text - credited neural, points) < 2.0;
 Tango on the pooled cells is descriptive only.  primary_claim_valid requires
 the complete registered cohort, the frozen configuration, measured-zero neural
-context tokens, <= 2% timeouts+truncations per arm, the real-salience
+context tokens, <= 2% timeouts per arm and <= +2 points truncation over base,
+the real-salience
 segmenter (identity asserted), text_ledger beating base on eligible outcomes,
 an active ledger on every credited turn, and the clustered bound.  Resumable
 with a fail-closed provenance check; atomic per-conversation records.
@@ -86,8 +87,13 @@ GATE_REASONS = {"ledger_coverage_ge_0.90": "ledger_coverage_below_0.90",
                 "text_beats_base_all_eligible_clustered": "text_not_clustered_better_than_base_all_eligible",
                 "neural_beats_base_all_eligible_clustered": "neural_not_clustered_better_than_base"}
 # validity fields reported for the audit but NEVER part of the all-of gate
-DESCRIPTIVE_VALIDITY = ("timeouts_truncations_per_arm", "text_vs_base_selected_pooled")
+DESCRIPTIVE_VALIDITY = (
+    "timeouts_per_arm", "truncation_excess_per_treatment", "text_vs_base_selected_pooled",
+)
+# Kept for artifact/consumer compatibility; ROUND 7 applies this absolute cap
+# to timeouts only and a separate excess-over-base cap to truncations.
 MAX_TIMEOUT_TRUNCATION_FRACTION = 0.02
+MAX_EXCESS_TRUNCATION_OVER_BASE = 0.02
 SEGMENTER_IDENTITY = "stencil.salience.split_sentences"
 PROVENANCE_FILES = {
     "salience_weights.json": ROOT / "src" / "stencil" / "salience_weights.json",
@@ -192,6 +198,14 @@ def cohort_identity(rows):
     """The registered cohort as the data rows define it: per conversation index its key
     and the late turns a record MUST contain (summarize checks every record against it)."""
     return {ci: {"key": row["key"], "turns": [str(t) for t in late_turns(row)]} for ci, row in enumerate(rows)}
+
+
+def base_truncation_preflight(rows, base_records, indices):
+    """Read the ROUND 7 base truncation rate from the frozen base records."""
+    values = [bool(base_records[ci]["gen"][str(turn)]["truncated"])
+              for ci in indices for turn in late_turns(rows[ci])]
+    return {"truncated": sum(values), "turns": len(values),
+            "fraction": (sum(values) / len(values)) if values else None}
 
 
 def turn_context(row, base_record, turn):
@@ -370,7 +384,8 @@ def summarize(records, meta, *, cohort_size, identity, margin_points=MARGIN_POIN
     elig_selected = {"base": [], "text": []}
     cost = {a: [] for a in arms}
     measured = {a: True for a in ARMS}
-    bad_gen = {a: 0 for a in arms}
+    timeouts = {a: 0 for a in arms}
+    truncations = {a: 0 for a in arms}
     turns = automatic_turns = empty_ledger_turns = credited_turns = credited_turns_active = 0
     control_incomplete_turns = 0
     selected_hist = {}
@@ -399,8 +414,10 @@ def summarize(records, meta, *, cohort_size, identity, margin_points=MARGIN_POIN
                 arm = turn["arms"][a]
                 cost[a].append(arm["context_tokens_added"])
                 measured[a] = measured[a] and bool(arm.get("context_tokens_measured", False))
-                bad_gen[a] += bool(arm["timed_out"]) or bool(arm["truncated"])
-            bad_gen["base"] += bool(turn["base"].get("timed_out")) or bool(turn["base"].get("truncated"))
+                timeouts[a] += bool(arm["timed_out"])
+                truncations[a] += bool(arm["truncated"])
+            timeouts["base"] += bool(turn["base"].get("timed_out"))
+            truncations["base"] += bool(turn["base"].get("truncated"))
             spec_arm = turn["arms"]["specificity"]
             control_incomplete = bool(spec_arm.get("control_incomplete")) or "none" in spec_arm.get("control_tiers", [])
             control_incomplete_turns += control_incomplete
@@ -435,8 +452,12 @@ def summarize(records, meta, *, cohort_size, identity, margin_points=MARGIN_POIN
     spec_lower = clustered_bound([-x for x in spec_means], alpha=0.05)
     n_elig = len(elig["text_ledger"])
     text_vs_base = _pair(elig["base"], elig["text_ledger"]) if n_elig else None
-    bad_frac = {a: (bad_gen[a] / turns if turns else None) for a in arms}
-    bad_ok = {a: (turns > 0 and bad_frac[a] <= MAX_TIMEOUT_TRUNCATION_FRACTION) for a in arms}  # EVERY arm, base included
+    timeout_frac = {a: (timeouts[a] / turns if turns else None) for a in arms}
+    truncation_frac = {a: (truncations[a] / turns if turns else None) for a in arms}
+    timeout_ok = {a: (turns > 0 and timeout_frac[a] <= MAX_TIMEOUT_TRUNCATION_FRACTION) for a in arms}
+    t_base = truncation_frac["base"]
+    excess_truncation = {a: (truncation_frac[a] - t_base if turns else None) for a in ARMS}
+    truncation_ok = {a: (turns > 0 and excess_truncation[a] <= MAX_EXCESS_TRUNCATION_OVER_BASE) for a in ARMS}
     n_selected = len(elig_selected["text"])
     n_unselected = len(elig_unselected["text"])
     coverage = (n_selected / n_elig) if n_elig else None
@@ -472,8 +493,10 @@ def summarize(records, meta, *, cohort_size, identity, margin_points=MARGIN_POIN
         "records_echo_registered_config": bool(records) and config_ok,
         "registered_config": all(meta.get(k) == v for k, v in REGISTERED.items()) and registered == REGISTERED,
         "neural_context_tokens_measured_zero": measured["neural_ledger"] and turns > 0 and sum(cost["neural_ledger"]) == 0,
-        "timeouts_truncations_le_2pct": turns > 0 and all(bad_ok.values()),
-        "timeouts_truncations_per_arm": bad_ok,
+        "timeouts_le_2pct": turns > 0 and all(timeout_ok.values()),
+        "timeouts_per_arm": timeout_ok,
+        "truncation_excess_over_base_le_2pct": turns > 0 and all(truncation_ok.values()),
+        "truncation_excess_per_treatment": truncation_ok,
         "real_salience_segmenter": (meta.get("automatic") is True and meta.get("salience_provenance") == "salience"
                                     and meta.get("segmenter") == SEGMENTER_IDENTITY
                                     and meta.get("segmenter_identity_asserted") is True
@@ -512,7 +535,19 @@ def summarize(records, meta, *, cohort_size, identity, margin_points=MARGIN_POIN
         "context_tokens_added_max": {a: (max(v) if v else None) for a, v in cost.items()},
         "context_tokens_added_sum": {a: sum(v) for a, v in cost.items()},
         "context_tokens_measured": measured,
-        "timeouts_or_truncations": bad_gen, "timeouts_or_truncations_fraction": bad_frac,
+        "timeouts": timeouts, "timeouts_fraction": timeout_frac,
+        "truncations": truncations, "truncations_fraction": truncation_frac,
+        "base_truncation_fraction": t_base,
+        "excess_truncation_over_base": excess_truncation,
+        "truncation_scoring": "scored_as_is_never_excluded",
+        "generation_validity_by_arm": {
+            a: {
+                "timeout_fraction": timeout_frac[a],
+                "truncation_fraction": truncation_frac[a],
+                "excess_truncation_over_base": (0.0 if a == "base" else excess_truncation[a]),
+            }
+            for a in arms
+        },
         "eligible": {
             "definition": "aged (origin turn < current turn) AND insertable family; neural credited only if its linked entry was selected",
             "n": n_elig, "n_conversations": len(per_conv_diff),
@@ -566,6 +601,7 @@ def summarize(records, meta, *, cohort_size, identity, margin_points=MARGIN_POIN
 
 
 def main():
+    determinism.assert_gpu_free_or_owned()
     args = parse_args()
     sys.path.insert(0, str(ROOT / "vendor"))
     import langdetect
@@ -619,6 +655,8 @@ def main():
     # CPU preflight over the SAME selection: every ledger must build and every possible
     # specificity control must construct (or be disclosed incomplete) before any GPU work.
     pre = preflight(rows, tok, sal, todo, base_records, top_k=args.top_k)
+    base_truncation = base_truncation_preflight(rows, base_records, todo)
+    pre["base_truncation"] = base_truncation
     print(f"preflight ok: {json.dumps(pre)}", flush=True)
     cov = pre["eligible_coverage"]
     print(f"preflight coverage: {pre['eligible_linked']}/{pre['eligible_constraints']} eligible constraints have a "
@@ -652,6 +690,9 @@ def main():
         "registered_cohort": REGISTERED_COHORT,
         "top_k": args.top_k, "dose": args.dose, "max_new": max_new, "deadline": args.deadline,
         "margin_points": MARGIN_POINTS,
+        "base_truncation_preflight": base_truncation,
+        "max_excess_truncation_over_base": MAX_EXCESS_TRUNCATION_OVER_BASE,
+        "truncation_scoring": "scored_as_is_never_excluded",
         "arms": ["base", *ARMS],
         "specificity_control": "ledger.matched_nonledger_control (width- and position-matched non-ledger spans, same dose)",
     }

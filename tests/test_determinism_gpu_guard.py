@@ -31,12 +31,16 @@ def test_gpu_busy_with_exact_owner_passes_but_other_apps_fail(monkeypatch):
     monkeypatch.setattr(determinism.subprocess, "run", lambda *a, **k: smi("2749844\n"))
     determinism.assert_gpu_free_or_owned()
 
-    monkeypatch.setattr(determinism.subprocess, "run", lambda *a, **k: smi("2749844\n999\n"))
+    monkeypatch.setattr(
+        determinism.subprocess, "run", lambda *a, **k: smi("2749844\n999\n")
+    )
     with pytest.raises(RuntimeError, match="GPU busy"):
         determinism.assert_gpu_free_or_owned()
 
 
 def test_nvidia_smi_failure_fails_closed(monkeypatch):
-    monkeypatch.setattr(determinism.subprocess, "run", lambda *a, **k: smi("", returncode=9))
+    monkeypatch.setattr(
+        determinism.subprocess, "run", lambda *a, **k: smi("", returncode=9)
+    )
     with pytest.raises(RuntimeError, match="nvidia-smi"):
         determinism.assert_gpu_free_or_owned()
