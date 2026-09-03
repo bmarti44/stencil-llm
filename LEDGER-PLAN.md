@@ -780,3 +780,12 @@ the frozen constants, harness/module manifest hashes, selector/trunk/tokenizer/t
 cohort's verified bytes; a sealed run validates the certificate BEFORE reading any sealed byte, then verifies its own
 cohort bytes against the sealed offsets index and records them. Competence baseline (V8-3): full's initial-prompt NA
 cases are excluded from the preflight competence denominators and reported.
+
+### LEG A AMENDMENT 6 (2026-09-03, fable's harness-v10 review FV10-3, text; before the registered preflight)
+Echo-unreachable regime: when, after the two-directional clamp, a comparator's echo cannot reach the treatment's
+token count from its matched spans (|echo_token_delta| > 16 after extension), the turn is recorded (echo_delta,
+echo_unreachable = true) and the affected comparator's contrast is uninformative for that turn's cluster; it is NOT a
+harness assertion failure. Invariant violations of any kind on the dev path fail the preflight (recorded as
+invariant_violation, never as match_impossible); on the sealed path they are recorded and make the affected contrast
+uninformative. The post-run drift check compares the harness manifest and data hashes, not git provenance; both
+provenances are recorded in evidence.
