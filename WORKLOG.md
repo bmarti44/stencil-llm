@@ -3402,3 +3402,104 @@ The sealed command remains prohibited and is intentionally not reproduced here.
   harness (exact matching) and is a SHAKEDOWN only; the registered preflight runs under the v6 harness (nearest
   matching, token-exact echo clamp; commit 9fe7c3f) after sol/fable review, with the certificate computed over
   v7 + A1-A3.
+
+## 2026-09-03 — bfcl-evict-v7 coder handoff (BFCL-V6-1..6)
+
+Commit `baccfec` closes sol's `results/harness-v6-review-sol.md` findings under
+LEG A v7 plus Amendments 1--3. No `results/harness-v6-review-fable.md` existed,
+so there were no fable findings or conflicts to close. No model process was
+launched, no GPU process or lock was waited on or signalled, `--split sealed`
+was not run, and `data/bench/ifeval_input_data.jsonl` was never read. The two
+sealed-IFEval-reading tests in `tests/test_sealed_guard.py` were intentionally
+not invoked; its source-allowlist and setup-order tests were run.
+
+Finding closures:
+
+1. BFCL-V6-1: `src/stencil/bfcl.py:468-786` visits every selected target in
+   registered order before supplementation, keeps explicit target/resource
+   groups, supplements each narrow group deterministically, clamps every tool
+   target separately, and propagates or derives `match_impossible` from failed
+   total/per-role clamps. The wide-USER/unvisited-TOOL, wide-one-for-two-TOOL,
+   and nonzero-clamp-remainder consumer paths are CPU-tested.
+2. BFCL-V6-2: `scripts/bfcl_mt.py:114-388,1476-1558,2124-2167` hashes the
+   bytes actually read for the offsets index and each bounded case/answer row,
+   refuses every mismatch before decode/model load, preloads verified function
+   documents from those same handles for execution, hashes the imported
+   checker closure and template, and binds the actual maps into certificate and
+   run identity. Authorized sealed loading additionally verifies each complete
+   mixed source before decoding a row. `scripts/bfcl_seal_index.py:16-90`
+   regenerated only `data/bench/bfcl_v3_mt/offsets.json` to schema 2, adding a
+   SHA-256 to all 192 indexed case/answer records, and updated only its
+   `offsets_sha256` pin in `data/bench/pins-manifest.json`.
+3. BFCL-V6-3: `scripts/bfcl_mt.py:773-1007` asserts the <=16 echo-delta bound
+   immediately after comparator construction unless matching is impossible;
+   `src/stencil/bfcl.py:1142-1237,1548-1829` rejects such records at both schema
+   and summary entry instead of changing a contrast status.
+4. BFCL-V6-4: `src/stencil/bfcl.py:993-1010` is the one executable call
+   normalizer (qualified-name suffix, object arguments, valid identifiers,
+   sorted canonical JSON). `scripts/bfcl_mt.py:605-646,1245-1280` uses it for
+   prior ground truth, echo calls, generated calls, and current-ground-truth
+   exclusion; the consumer decision is tested for both included and excluded
+   qualified/unqualified spellings.
+5. BFCL-V6-5: `scripts/bfcl_mt.py:178-225` removes the `stencil.bench` import,
+   dry-imports the generation, teacher-history/checker, and all dynamic BFCL
+   environment paths, then enumerates `sys.modules` and hashes every reached
+   repo-local module. The CPU closure test rejects any reached local module
+   absent from the manifest.
+6. BFCL-V6-6: `scripts/bfcl_mt.py:741-772,1043-1467` records the shared
+   pressure trigger and total pin overflow on every arm and as record-level
+   `turn_facts`, validates cross-arm equality, and records overflow phase as
+   `initial_prompt`, `within_generation`, or `tool_step`.
+   `src/stencil/bfcl.py:1258-1328,1421-1441,1548-1829` defines the primary from
+   the shared pressure fact, excludes only initial full-prompt overflow from
+   final-pass/A3 reporting, and counts later full/non-full overflow as a
+   truncated failure.
+
+Certificate verified-byte inventory for the full 32-case dev preflight:
+
+- offsets index `55984b9992d42132afb76e78d89b48e630b657dd7120c601bce0daef4679d3cd`;
+  pins manifest `b9660de6f5519a22feb99f0659bb237cc9e9be421c4c41a2db3fc9a63d313d17`;
+  cohorts `22cf69afea1d7711a47af9e787dddeebb0a2485b3f32f4759236ba4d8ad919da`;
+  template `5c77165201e18ebe604521df02f18efca8bed5e5c228522086a2eb83356089fe`.
+- 64 exact bounded record hashes (case + answer per dev id), stored individually
+  in the certificate; canonical map SHA-256
+  `edfa850d8795539aceab0995513bc486c4e7b49e557188902cf4ea98ce37f3ba`.
+- Eight individually stored function-document hashes; canonical map SHA-256
+  `d4785702ba63e97bdcbf8986c47ece98232981b88c571e73dda6c6bca5c04eb9`.
+- Fifteen individually stored checker/environment hashes; canonical map SHA-256
+  `b70974c69829d22da39f6918737d38b86a13651ca0d3d4128ac0a37f33fc441a`.
+
+Runtime module manifest list (each path has its own SHA-256 in metadata):
+`scripts/bfcl_mt.py`; `src/stencil/{__init__,bfcl,determinism,ledger,qwen3,
+qwen_cache,selector_v2,stats}.py`; `vendor/bfcl_eval/__init__.py`;
+`vendor/bfcl_eval/eval_checker/__init__.py`;
+`vendor/bfcl_eval/eval_checker/multi_turn_eval/{__init__,multi_turn_checker,
+multi_turn_utils}.py`; and
+`vendor/bfcl_eval/eval_checker/multi_turn_eval/func_source_code/{__init__,
+gorilla_file_system,long_context,math_api,message_api,posting_api,ticket_api,
+trading_bot,travel_booking,vehicle_control}.py`. The separately bound manifest
+entry `chat_template:render_prompt` is also present.
+
+TDD evidence: the new v7 suite was written first and produced 13 expected
+failures with one already-safe path passing; it is now **14 passed**. The
+focused real-dev regression for `multi_turn_long_context_188` turn 5 now builds
+the exact 364-column tool comparator using six explicit resources with
+`match_impossible=False`. Final all-target CPU count is recorded in the next
+entry after the long census completes. Targeted Ruff and `git diff --check` are
+clean.
+
+Deferred GPU/model commands (recorded, not run):
+
+```bash
+uv run python scripts/bfcl_mt.py run --split dev --mode teacher --trunk 1.7b --limit 1 --out bfcl-evict-v7-smoke-1.7b
+uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 1.7b --out bfcl-evict-v7-preflight-1.7b
+# Run only if the registered 1.7B fallback rule requires it:
+uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b --out bfcl-evict-v7-preflight-4b
+```
+
+The sealed command remains prohibited and is intentionally not reproduced.
+
+- 2026-09-03, bfcl-evict-v7 final CPU verification: **92 passed in
+  1031.43 s** across `tests/test_bfcl.py`, BFCL evict v2--v7, and the two
+  sealed-guard checks that do not read the sealed IFEval input. This includes
+  the complete real-dev nearest-matching census. No GPU/model command ran.

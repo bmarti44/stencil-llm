@@ -111,14 +111,19 @@ def sha256(path: str | Path) -> str:
         return hashlib.sha256(handle.read()).hexdigest()
 
 
-def _load_verified_json(path: Path, expected_sha256: str) -> object:
-    """Hash and decode the exact bytes read from one file handle."""
+def _read_verified_bytes(path: Path, expected_sha256: str) -> bytes:
+    """Read and verify immutable input bytes from one file handle."""
     with path.open("rb") as handle:
         raw = handle.read()
     actual = hashlib.sha256(raw).hexdigest()
     if actual != expected_sha256:
         raise RuntimeError(f"frozen input hash mismatch: {path}")
-    return json.loads(raw)
+    return raw
+
+
+def _load_verified_json(path: Path, expected_sha256: str) -> object:
+    """Hash and decode the exact bytes read from one file handle."""
+    return json.loads(_read_verified_bytes(path, expected_sha256))
 
 
 def _read_indexed_row(
@@ -344,11 +349,9 @@ def _load_verified_runtime_inputs(pins: dict) -> tuple[dict, dict]:
     for class_name, filename in FUNCTION_DOCS.items():
         path = DATA / "function_docs" / filename
         relative = str(path.relative_to(ROOT))
-        with path.open("rb") as handle:
-            raw = handle.read()
+        expected = pins["files_sha256"].get(relative, "")
+        raw = _read_verified_bytes(path, expected)
         actual = hashlib.sha256(raw).hexdigest()
-        if actual != pins["files_sha256"].get(relative):
-            raise RuntimeError(f"frozen input hash mismatch: {relative}")
         function_docs[relative] = actual
         docs_by_class[class_name] = [
             json.loads(line) for line in raw.splitlines() if line
@@ -632,6 +635,14 @@ def canonical_repeated_call_set(
                 except ValueError:
                     pass
     return calls
+
+
+def repeated_call_event(
+    call: dict, prior_calls: set[str], current_ground_truth: set[str]
+) -> bool:
+    """Apply the execution canonicalizer at the repetition decision point."""
+    normalized = canonical_call(call)
+    return normalized in prior_calls and normalized not in current_ground_truth
 
 
 def build_teacher_history(
@@ -1236,20 +1247,17 @@ def run_case_arm(
             for item in parsed:
                 record = asdict(item)
                 try:
-                    normalized = (
-                        canonical_call(item.call) if item.valid else item.raw.strip()
-                    )
+                    if item.valid:
+                        canonical_call(item.call)
                 except ValueError as exc:
-                    normalized = item.raw.strip()
                     record["valid"] = False
                     record["error"] = str(exc)
                 current_ground_truth = {
                     canonical_call(_call_string_to_json(call, tools))
                     for call in ground_truth[turn_index]
                 }
-                if (
-                    normalized in history_call_raw
-                    and normalized not in current_ground_truth
+                if record["valid"] and repeated_call_event(
+                    item.call, history_call_raw, current_ground_truth
                 ):
                     repeated_history_calls += 1
                     turn_repeated_call = True

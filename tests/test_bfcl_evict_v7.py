@@ -160,7 +160,7 @@ def test_v6_3_echo_overflow_rejected_by_schema_and_summary():
 
 
 def test_v6_4_repeated_call_uses_execution_normalization():
-    from scripts.bfcl_mt import canonical_repeated_call_set
+    from scripts.bfcl_mt import canonical_repeated_call_set, repeated_call_event
     from stencil.bfcl import canonical_call
 
     prior = canonical_repeated_call_set(
@@ -174,7 +174,12 @@ def test_v6_4_repeated_call_uses_execution_normalization():
     }
     generated = canonical_call({"name": "API.lookup", "arguments": {"q": "x"}})
     assert generated in prior
-    assert generated in current  # current-ground-truth exclusion remains effective
+    assert repeated_call_event(
+        {"name": "API.lookup", "arguments": {"q": "x"}}, prior, set()
+    )
+    assert not repeated_call_event(
+        {"name": "API.lookup", "arguments": {"q": "x"}}, prior, current
+    )
 
 
 def test_v6_5_manifest_covers_dry_runtime_import_closure():
