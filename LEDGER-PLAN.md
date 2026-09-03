@@ -611,3 +611,11 @@ role_pinned 29; C1 +17.1 pts (LB −3.1, p 0.09), C2 +1.2 (p 0.76), C3 +18.1 (p 
 as expected; safety: full 0/0/0/0 on 20 conversations, so every other arm fails "degenerate <= full" with 1-3
 events; the clause is applied to the 909 counts, unchanged. The full run starts now with the registered
 arms/contrasts/threshold/artifacts; records are resumable and are never deleted.
+
+### LEG B AMENDMENT 2 (2026-09-03, before the corrected run's first outcome is viewed)
+Eviction timing: the registered harness evicts BEFORE the current user turn is prefilled (commit 5c743f1; sol
+EVICT-1 resolved; fable/sol fix reviews SOUND). The post-prefill run (results/qwen/multiif-evict-909, 145/909) is
+INVALID-ORDERING and retained. Two-stage prefill is fp32-identical to one-shot (top-1 agreement 1.0; bf16 kernel
+differences only, shared by every arm). Dev-probe under the corrected ordering with the registered selector:
+full 44 | evicted 10 | clf_pinned 41 | clf_pinned_echo 46 | control 13. Contrasts, safety, threshold, artifacts,
+and the 24 GPU-h cap are unchanged. The corrected run writes to results/qwen/multiif-evict-909-prequery.

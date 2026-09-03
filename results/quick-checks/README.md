@@ -228,3 +228,14 @@ spec change did not teach (all seeds miss it).
    Contrasts not significant at n=20 (C1 p 0.09, C3 p 0.05, C2 p 0.76). 87 s/conversation -> 22 GPU-h for 909
    (cap amended to 24 GPU-h, LEG B AMENDMENT 1). Safety: full 0 degenerate on 20 -> the integer clause fails every
    other arm on 1-3 events; judged on 909.
+
+27. CORRECTED EVICTION ORDERING (history prefill -> evict -> current-turn prefill; commit 5c743f1; sol/fable fix
+   reviews SOUND) — the 20-session probe with the FINAL selector (results/qwen/ledger-kv-probe-prequery/clf-probe.json):
+   full 44 | evicted 10 | clf_pinned 41 | clf_pinned_echo 46 | exact-column control 13   (post-prefill ordering:
+   44 | 14 | 33 | 46 | 17). The old ordering leaked history through the current turn: clean eviction costs 4 more
+   (14 -> 10) and pins matter MORE (33 -> 41): pins alone recover (41-10)/(44-10) = 0.91 of the gap; pin+echo 46
+   exceeds full. Prefill diagnostic (prefill_diag.log): two-stage vs one-shot prefill on the real trunk is identical
+   in fp32 (max |d| 8e-5, top-1 agreement 1.0) and differs in bf16 by kernel accumulation (max |d| 0.67; batch-shape
+   noise floor 0.0) — a numerical, not logical, difference; all arms share the two-stage schedule, so comparisons
+   are fair; the "bitwise" test wording is narrowed to fp32-equal / bf16-top-1-equal. All checks 4-25 are now
+   labelled "post-prefill ordering"; check 27 supersedes them for the mechanism claim.
