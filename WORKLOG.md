@@ -2878,3 +2878,5 @@ written after this leg is authored without access to BFCL records and nearest-ne
 selector work never returns to BFCL outcomes. No-contact family for the zero-shot claim, screened by name only:
 ToolTalk, CoSQL/SParC, ConvFinQA (fable §5; sol's APIFlow-Bench and Toolathlon by landing page); the registered contact
 screen runs before any item is fetched; registered after this leg regardless of outcome.
+
+## 2026-09-03 — LEG A registration v7 (REGISTERED; v5 + fable R1-R8 + sol v5 fixes verbatim)
