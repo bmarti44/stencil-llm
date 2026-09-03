@@ -756,3 +756,16 @@ no outcome from them has been viewed or used). Cap, contrasts, safety, threshold
 4. Items already closed by the v5 harness (sealed offsets loader; degenerate on non-truncated only; manifest hash over
    every executing module; certificate) are confirmed as registered; the registration hash is recomputed over the v7 +
    A1 + A2 + A3 text before the preflight certificate is written.
+
+### LEG A AMENDMENT 4 (2026-09-03, fable's harness-v6 review FV6-2/FV6-3, text; applied before the registered preflight)
+1. Position overflow, two cases (FV6-2): (a) INITIAL-PROMPT overflow — a turn whose full-arm prompt exceeds 40,960
+   positions before generation: full does not generate; per-turn pass NA; the turn is excluded from A3 and from
+   full's safety baseline (it is NOT a truncated event for full); recorded as position_overflow_initial. (b) WITHIN-
+   TURN overflow — any arm whose cache exceeds 40,960 positions during a turn's steps stops generating at that step:
+   truncated event for that arm, scores fail (Amendment 3 unchanged). Dev census: 6 of 11 evicting turns are case (a).
+2. Echo clamp completeness (FV6-3): the comparator echo is clamped token-exactly in BOTH directions — truncating the
+   last entry when over, and extending the last entry from its source text (never beyond the source span) when
+   under; |echo_token_delta| <= 16 is asserted after clamping on dev and sealed paths alike (fail-closed).
+3. Per-role column equality of every comparator is asserted on EVERY evicting turn on the sealed path as well as on
+   dev (fail-closed; a violation makes the affected contrast uninformative and is recorded), and the preflight report
+   lists match_impossible, shortfall and delta counts.
