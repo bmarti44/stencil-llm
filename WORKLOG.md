@@ -2524,3 +2524,21 @@ anyway (0.854/0.860 blind; precision 0.95/0.94).
   corrected ordering (all quick checks 4-25 share the old ordering and are re-labelled "post-prefill eviction").
 - The 909 run (8 records at the time) is to be stopped on Brian's approval; its records are kept under
   results/qwen/multiif-evict-909 and labelled invalid-ordering; the corrected run writes to a new directory.
+
+## 2026-09-03 — evict-before-query harness fix
+- Commit `5c743f1` moves the shared cache operation to history prefill -> eviction -> current-turn/opener prefill ->
+  generation (`src/stencil/qwen3.py:88`). `scripts/multiif_evict.py:322` uses it for every arm, records
+  `eviction_timing: pre-query` in meta (`:629`), refuses mismatched resume provenance through the existing exact-meta
+  check, and defaults to `multiif-evict-909-prequery` (`:47`). `scripts/ledger_kv_probe.py:60,112,166,385` adds the
+  timing flag/meta, exact current-turn boundary, and pre-query/legacy-post-prefill execution. The import-safe copied
+  quick check at `scripts/clf_probe_check.py:25,64` requires `--scores` and forwards the timing flag.
+- TDD: focused RED was 5 expected failures (missing helper/script/flags/default), then GREEN was **34 passed, 1
+  skipped** for `tests/test_multiif_evict.py tests/test_ledger_kv_probe.py`; targeted Ruff and `git diff --check` are
+  clean. The stub-trunk test proves current-turn ids are absent at eviction and `cache.length` advances from the
+  unshortened history length. The full-arm bitwise GPU test was **skipped with reason**: GPU busy, compute PID 54538.
+- Probe re-validation was **not run**: two later `nvidia-smi --query-compute-apps=pid --format=csv,noheader` checks
+  still reported PID 54538. Per policy, no score regeneration or GPU process was launched. The retained post-prefill
+  reference totals are full 44, evicted 14, classifier pinned 33, pinned echo 46, and matched control 17.
+- Boundary choice: no unresolved ambiguity. Conservatively, history ends immediately before the final
+  `<|im_start|>user\n`; this equals the existing eviction-range high endpoint and therefore includes the preceding
+  assistant `<|im_end|>\n`. Echo text remains inside the final user turn and is prefilled only after eviction.
