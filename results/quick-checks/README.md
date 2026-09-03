@@ -171,3 +171,6 @@ as the mean, head-selection rule fixed in advance (mean over seeds; no picking t
    "none" precision 0.96). Probe: seed 1 pinned 33 / echo 45 / control 17; seed 2 pinned 33 / echo 44 / control 17;
    coverage 0.86. Two seeds agree (finder 37 / 48; full 44; evicted 14). Seed 0 (rerun) and the FINAL three-seed
    run with the 59-row reviewed relabel patch follow; the reported number will be the three-seed mean.
+   Check 21 budget/safety (seed 2 rows): CLF pinned a mean 40 columns vs the finder's 47 (0.86x); pinned arm 0
+   truncated / 0 degenerate; echo arm 0 truncated / 2 degenerate (full: 1 / 2). Seed-1 rows were overwritten by the
+   chain (per-run copies added from here on); its log totals stand.
