@@ -221,3 +221,10 @@ spec change did not teach (all seeds miss it).
    post-development Multi-IF evaluation. Reading: development result on the selection set; parity-or-better with
    the taxonomy finder on pin+echo (45 vs 48 point estimates are within n=56 noise; pins 33 vs 37 are not) at
    0.86x its pinned columns; the mechanism reaches the full-context baseline with a benchmark-disjoint selector.
+
+26. MULTI-IF REAL-EVICTION PREFLIGHT (scripts/multiif_evict.py, 20 conversations, results/qwen/multiif-evict-
+   preflight): aged constraints / 53 — full 30, evicted 18, clf_pinned 31, clf_pinned_echo 33, clf_control 22,
+   role_pinned 29. Same ordering as the dev probe on the real benchmark with real eviction; pin+echo above full.
+   Contrasts not significant at n=20 (C1 p 0.09, C3 p 0.05, C2 p 0.76). 87 s/conversation -> 22 GPU-h for 909
+   (cap amended to 24 GPU-h, LEG B AMENDMENT 1). Safety: full 0 degenerate on 20 -> the integer clause fails every
+   other arm on 1-3 events; judged on 909.

@@ -601,3 +601,13 @@ sentences; its label spec was developed against a synthetic instruction-followin
 are post-development evaluations on benchmark families that informed the design; constraint-type overlap with
 IFEval is deliberate; no benchmark item or paraphrase entered training."
 Artifact hashes (seed 0, FINAL run, commit 48d670e): head.pt 191b3372010e8d151b842d2810b4be9dbd0ff34db7ae7539d6b823c69d4ebe3e; encoder/model.safetensors 2232813597b889355dfbda5607bfc473590385bd96ce382939a9ee154713d830; encoder/tokenizer.json 56827b4e89e42ec568d48462c6c37822da5a783161893deb981b31367bbc6f00; full list in results/quick-checks/ft_final2_s0_sha256.txt. Dev-probe FINAL numbers: pinned 33/33/33, pin+echo 46/45/44, control 17; scope-specific author-disjoint held-out 0.85/0.85/0.83.
+
+### LEG B AMENDMENT 1 (2026-09-03, after the registered 20-conversation preflight, before any further outcome is viewed)
+Preflight (results/qwen/multiif-evict-preflight, commit 8018113): 87.4 s/conversation, projected 22.1 GPU-h for
+909 > the registered 12 GPU-h cap. The cap is raised to 24 GPU-h: the GPU is otherwise idle and the cost is wall
+time, not money; the cohort is NOT cut (a seeded subset after seeing the preflight would be a post-hoc choice).
+Preflight arm table (53 aged constraints): full 30, evicted 18, clf_pinned 31, clf_pinned_echo 33, clf_control 22,
+role_pinned 29; C1 +17.1 pts (LB −3.1, p 0.09), C2 +1.2 (p 0.76), C3 +18.1 (p 0.05) — none significant at n=20,
+as expected; safety: full 0/0/0/0 on 20 conversations, so every other arm fails "degenerate <= full" with 1-3
+events; the clause is applied to the 909 counts, unchanged. The full run starts now with the registered
+arms/contrasts/threshold/artifacts; records are resumable and are never deleted.
