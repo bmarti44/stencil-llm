@@ -2464,3 +2464,7 @@ anyway (0.854/0.860 blind; precision 0.95/0.94).
 - Brian's direction: similarity retrieval for facts + a trained GENERIC classifier for rules. Data: kimi-k3 writes it by
   hand (36 domains x 2 seeds x 120 + a with-context pass), sol and Opus review/enrich and write author-disjoint
   held-out sets; spec data/classifier/LABELS.md. Teacher = the 4B extractor (check 10); student = the classifier.
+- 2026-09-03, check 12 (budget-matched extractor): 25/27 vs finder 37/48 — precision decides at fixed budget.
+- 2026-09-03, check 13 (interim classifier, 2.5k unreviewed kimi rows, never saw b3): pinned 37 (= finder),
+  pinned_echo 47 (finder 48, full 44), control 22, at 1.23x the finder's columns; budget-matched 27/34. Precision on
+  one-off task sentences is the remaining gap → reviewers' enrichment must stress imperative one-off negatives.

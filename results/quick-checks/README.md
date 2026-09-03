@@ -73,3 +73,14 @@ greedy output, same eviction plumbing as the registered probe (scripts/ledger_kv
    extras (task sentences, reminders) consume the budget and crowd out constraints. Recall is high (check 10),
    precision is the gap, and at a fixed budget precision decides. This is the case for the trained generic
    classifier (precision) over prompting alone.
+
+13. INTERIM GENERIC CLASSIFIER AS SELECTOR (train_classifier.py, clf_score_sessions.py, clf_probe_check.py,
+   clf_probe.log, clf_interim_metrics.json): linear head on bge-small sentence embeddings + role, trained on the first
+   18 kimi-k3 batches (2,507 hand-written rows, NO review, NO b3/benchmark data; train acc 0.89, hard 0.86).
+   Threshold 0.5 on P(rule)+P(fact) over sentences of prior user turns. Coverage 0.94 (17/20 >= 0.8). Outcomes / 56:
+   CLF pinned 37 (= finder 37), CLF pinned_echo 47 (finder 48, full 44), exact-column control (post-clamp) 22; safety
+   echo arm truncated 1 / degenerate 2 (full 1 / 2). Budget: 57 cols vs finder 47 (1.23x; 1/20 sessions at or under).
+   Budget-matched by probability rank: 27 / 34 / control 20 — the probabilities are not yet discriminative: it selects
+   93/120 candidate sentences incl. the one-off task sentences. Precision on imperative one-off tasks is the gap the
+   reviewed/enriched data must close. Note: the classifier never saw b3; this is a transfer result for the selector,
+   while b3 remains the selection set for the mechanism choice.
