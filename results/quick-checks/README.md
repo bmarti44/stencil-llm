@@ -183,3 +183,11 @@ as the mean, head-selection rule fixed in advance (mean over seeds; no picking t
    trained on hand-written, reviewed, benchmark-disjoint data under the three-scope spec reaches the full-context
    ceiling with pin+echo (45 vs 44) at 0.86x the finder's columns, and trails the taxonomy finder by 4 on pins and
    3 on echo.
+
+REVIEWS of checks 19-22 (kimi CONFIRMED-WITH-QUALIFICATIONS; sol CONFIRMED-WITH-QUALIFICATIONS, HIGH 1-2 accepted):
+(1) b3 shaped the spec and the kinds of training examples written after its failures — "no training row derives
+from b3" is false causally; only "development result on the selection set" stands. (2) The scope pass (4,954 rows)
+was NOT reviewed; "hand-written, reviewed" is narrowed to the kimi/kimi-ctx passes until the scope-pass review
+(sol, Opus) lands; LABELS.md's taxonomy-disjoint sentence replaced by the item-level policy. (3) "Ceiling" ->
+"full-context baseline point estimate"; 0.86x refers to pinned columns only, echo tokens excluded. (4) The FINAL
+identical-data run carries a train manifest (sha, per-source counts, patch files) and per-run rows for safety.

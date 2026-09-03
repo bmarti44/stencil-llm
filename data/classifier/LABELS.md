@@ -4,8 +4,14 @@ Purpose: a small GENERIC classifier that decides, for one sentence of a conversa
 the assistant must remember it for later turns. It is the write-time selector of a retention mechanism (pin the
 sentence's KV columns through eviction; re-inject its text before answering). Provenance: written directly by
 kimi-k3 (data/classifier/kimi, kimi-ctx), reviewed and enriched by hand by sol and Opus (review/, *-enrich.jsonl),
-with author-disjoint held-out sets (heldout/). NEVER from any evaluation benchmark (IFEval, Multi-IF, BFCL,
-tau-bench, S2/B3), not even by paraphrase of their instruction taxonomy.
+with held-out sets (heldout/; fable-validation is author-disjoint, opus/sol held-out share authors with the
+enrichment). Disjointness policy (item-level, agreed by kimi/sol/Opus/fable reviews of 2026-09-03): no benchmark
+item, template, marker, or exact phrasing from any evaluation benchmark (IFEval, Multi-IF, BFCL, tau-bench, S2/B3)
+enters the data; plain-language formatting rules are kept and constraint-TYPE overlap with IFEval is deliberate and
+disclosed. The label spec (v2 scopes) was developed against the b3 dev probe, and the scope pass was written after
+the probe exposed the scope gap — the probe shaped the spec and the kinds of examples, never their text.
+Review status: kimi/ and kimi-ctx/ reviewed by sol and Opus (review/*-patch.jsonl); kimi-scope/ reviewed via
+review/scope-v2-*-patch.jsonl when present; *-enrich.jsonl are reviewer-authored.
 
 Labels (exactly one per sentence):
 - rule — an instruction, constraint, preference, persona, or commitment that governs the assistant's FUTURE
