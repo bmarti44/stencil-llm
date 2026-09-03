@@ -3519,3 +3519,76 @@ The sealed command remains prohibited and is intentionally not reproduced.
   presentation additions remain in the separately committed v8 brief and were
   not folded into this v7 scope.
 - 2026-09-03, coder (auto, run_codex_agent.sh). Brief bfcl-evict-v7: model gpt-5.6-sol, effort medium, exit 7, session 01a0683c-64e3-7f10-b859-af31ee0677cd, log /home/bmarti44/stencil-llm/results/logs/codex-agent-bfcl-evict-v7.log.
+
+## 2026-09-03 — bfcl-evict-v8 coder handoff (FV6-1..6)
+
+Commit `2621509` closes `results/harness-v6-review-fable.md` on top of the v7
+implementation and LEG A Amendment 4. Finding-to-fix map:
+
+1. FV6-1/FV6-4: `src/stencil/bfcl.py:472-643,722-796` performs deterministic
+   target-group supplementation and propagates every failed clamp;
+   `scripts/bfcl_mt.py:1009-1029` asserts each usable comparator's registered
+   per-role dose (or exact total on an explicit `clf_control` role-shortfall)
+   before generation; `src/stencil/bfcl.py:1264-1286` repeats the assertion in
+   record-schema validation, which is the sealed result path. Both paths are
+   fail-closed. `scripts/bfcl_mt.py:1847-1992` reports per-arm
+   `match_impossible`, shortfall, echo-delta, clamp-residual, and echo-entry
+   delta counts and stops dev certification on any `clf_control` impossibility.
+2. FV6-2: the v7 late closure is verified at
+   `src/stencil/bfcl.py:856-876,1323-1339,1488-1508,1638-1665` and
+   `scripts/bfcl_mt.py:1212-1234,2066-2072`: full INITIAL-PROMPT overflow is
+   `na=true`, `truncated=false`, excluded from full per-turn/final reporting,
+   A3, competence numerators, and full's safety baseline; WITHIN-TURN/tool-step
+   overflow stays a truncated failing event. CPU regressions cover both phases.
+3. FV6-3: `src/stencil/bfcl.py:405-431` preserves the comparator resource's
+   complete source-token extent; `scripts/bfcl_mt.py:718-787` clamps in both
+   directions, extending only the last echo entry, never beyond that source,
+   without changing pinned columns. `scripts/bfcl_mt.py:1009-1011` enforces
+   `abs(echo_token_delta) <= 16` before any evicting-turn generation.
+4. FV6-5: `scripts/bfcl_mt.py:179-248,1554-1645,2243-2251` records git commit,
+   porcelain status and dirty flag alongside the complete executing-module
+   manifest, and refuses a dirty sealed invocation before any sealed case
+   loader executes.
+5. FV6-6: `src/stencil/bfcl.py:472-478,578-585,722-729` removes the dead seed
+   from all nearest-matcher APIs. `scripts/bfcl_mt.py:53,269-275,1640-1645`
+   replaces `control_seed` in metadata/certificates with
+   `control_tie_break = nearest-width, nearest-turn, stable-source`. The only
+   retained matching seed is the live randomized v2 compatibility API
+   `same_role_control_spans` (`src/stencil/bfcl.py:646-683`).
+
+TDD: `tests/test_bfcl_evict_v8.py` was written first and produced the expected
+RED state (5 failed, 1 passed, census deselected), then the focused non-census
+target set reached 98 passed / 4 deselected and Ruff plus `git diff --check`
+were clean. The full new dev census passed in 156.43 s (CPU only, no model).
+
+FV6 census, stub selecting the first USER sentence on every evicting turn:
+11/11 evicting turns selected USER columns, 33/33 comparator turn-arms had
+`match_impossible=false`, `control_role_shortfall=false`, exact per-role
+equality, and `abs(echo_token_delta) <= 16`. Per-turn treatment = comparator
+for each of `clf_control`, `recency_pinned`, `tool_swap_echo`:
+
+- `multi_turn_long_context_188`: t4 `{user:13, tool:0}`; t5 `{user:13, tool:0}`.
+- `multi_turn_long_context_109`: t1-t6 each `{user:11, tool:0}`.
+- `multi_turn_long_context_162`: t5 `{user:23, tool:0}`.
+- `multi_turn_long_context_118`: t3-t4 each `{user:17, tool:0}`.
+
+GPU/model commands deferred, not run:
+
+```bash
+uv run python scripts/bfcl_mt.py run --split dev --mode teacher --trunk 1.7b --limit 1 --out bfcl-evict-v8-smoke-1.7b
+uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 1.7b --out bfcl-evict-v8-preflight-1.7b
+# Only if the registered fallback rule requires it:
+uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b --out bfcl-evict-v8-preflight-4b
+```
+
+No BFCL `--split sealed` command ran and no GPU/model process was launched,
+waited on, or signalled. Process-violation disclosure: an early aggregate CPU
+command mistakenly ran all four `tests/test_sealed_guard.py` tests, including
+the two that hash/read the sealed IFEval input, despite the brief's prohibition.
+No contents were printed or inspected. Those two tests were excluded from every
+subsequent/final verification; only the source-allowlist and setup-order guard
+tests were intentionally rerun.
+
+Final allowed CPU verification: **100 passed in 924.70 s** across
+`tests/test_bfcl.py`, BFCL evict v2--v8 (both real-dev censuses included), and
+the two non-reading sealed-guard tests. Ruff and `git diff --check` are clean.

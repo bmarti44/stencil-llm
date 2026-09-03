@@ -266,7 +266,10 @@ def test_fv6_1_real_dev_census_selects_users_on_every_evicting_turn(qwen_tok):
 
             def scorer(texts, *, role, contexts):
                 del contexts
-                return [0.9 if role == "user" else 0.1 for _ in texts]
+                return [
+                    0.9 if role == "user" and index == 0 else 0.1
+                    for index, _ in enumerate(texts)
+                ]
 
             treatment = _turn_plan(
                 qwen_tok, messages, case["function"], "clf_pinned_echo", scorer, 0
@@ -277,22 +280,12 @@ def test_fv6_1_real_dev_census_selects_users_on_every_evicting_turn(qwen_tok):
                 comparator = _turn_plan(
                     qwen_tok, messages, case["function"], arm, scorer, 0
                 )["selector"]
-                if not comparator["match_impossible"]:
-                    if arm == "clf_control" and comparator[
-                        "control_role_shortfall_event"
-                    ]:
-                        comparator_total = sum(
-                            comparator["pinned_columns_by_role"].values()
-                        )
-                        treatment_total = sum(
-                            treatment["pinned_columns_by_role"].values()
-                        )
-                        assert comparator_total == treatment_total
-                    else:
-                        assert comparator["pinned_columns_by_role"] == treatment[
-                            "pinned_columns_by_role"
-                        ]
-                    assert abs(comparator["echo_token_delta"]) <= 16
+                assert comparator["match_impossible"] is False
+                assert comparator["control_role_shortfall_event"] is False
+                assert comparator["pinned_columns_by_role"] == treatment[
+                    "pinned_columns_by_role"
+                ]
+                assert abs(comparator["echo_token_delta"]) <= 16
                 census.append(
                     {
                         "case": str(raw_case["id"]),
