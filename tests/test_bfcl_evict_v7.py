@@ -205,10 +205,16 @@ def test_v6_5_manifest_covers_dry_runtime_import_closure():
 
 
 @pytest.mark.parametrize(
-    ("phase", "expected_final_n"),
-    [("initial_prompt", 5), ("within_generation", 6), ("tool_step", 6)],
+    ("phase", "expected_final_n", "expected_truncated"),
+    [
+        ("initial_prompt", 5, 0),
+        ("within_generation", 6, 1),
+        ("tool_step", 6, 1),
+    ],
 )
-def test_v6_6_full_overflow_phase_controls_final_reporting(phase, expected_final_n):
+def test_v6_6_full_overflow_phase_controls_final_reporting(
+    phase, expected_final_n, expected_truncated
+):
     from stencil.bfcl import summarize_records
     from tests.test_bfcl_evict_v3 import _record
 
@@ -217,9 +223,10 @@ def test_v6_6_full_overflow_phase_controls_final_reporting(phase, expected_final
     full_turn.update(
         {
             "pass": False,
-            "truncated": True,
+            "truncated": phase != "initial_prompt",
             "position_overflow": True,
             "overflow_phase": phase,
+            "na": phase == "initial_prompt",
         }
     )
     records[0]["arms"]["full"].update(final_pass=False, position_overflow=True)
@@ -227,6 +234,8 @@ def test_v6_6_full_overflow_phase_controls_final_reporting(phase, expected_final
     full = summary["categories"]["long_context"]["arms"]["full"]
     assert full["final_pass"]["n"] == expected_final_n
     assert full["position_overflow_phases"][phase] == 1
+    assert summary["safety"]["counts"]["full"]["truncated"] == expected_truncated
+    assert full["per_turn_pass"]["n"] == (5 if phase == "initial_prompt" else 6)
 
 
 def test_v6_6_pressure_fact_keeps_pre_generation_overflow_primary():
@@ -251,6 +260,20 @@ def test_v6_6_pressure_fact_keeps_pre_generation_overflow_primary():
     summary = summarize_records(records)
     assert summary["primary"]["turns"] == 6
     assert summary["safety"]["counts"]["base"]["truncated"] == 1
+
+
+def test_v6_6_full_initial_prompt_overflow_is_na_not_truncated():
+    from stencil.bfcl import position_overflow_result
+
+    result = position_overflow_result("full", 40961, phase="initial_prompt")
+    assert result == {
+        "position_overflow": True,
+        "overflow_phase": "initial_prompt",
+        "generate": False,
+        "pass": False,
+        "truncated": False,
+        "na": True,
+    }
 
 
 def test_v6_2_offset_index_has_hash_for_every_authorized_record():

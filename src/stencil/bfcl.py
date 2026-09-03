@@ -853,15 +853,27 @@ def exact_sign_flip(values: Sequence[float]) -> dict:
     }
 
 
-def position_overflow_result(arm: str, positions: int, limit: int = 40960) -> dict:
+def position_overflow_result(
+    arm: str,
+    positions: int,
+    limit: int = 40960,
+    *,
+    phase: str | None = None,
+) -> dict:
     """Registered action when initial or within-turn positions exceed the limit."""
     overflow = positions > limit
-    return {
+    result = {
         "position_overflow": overflow,
         "generate": not overflow,
         "pass": False if overflow else None,
-        "truncated": overflow,
+        "truncated": overflow and not (arm == "full" and phase == "initial_prompt"),
     }
+    if phase is not None:
+        result.update(
+            overflow_phase=phase if overflow else None,
+            na=overflow and arm == "full" and phase == "initial_prompt",
+        )
+    return result
 
 
 def recent_user_spans(
@@ -1225,6 +1237,8 @@ def assert_case_record_schema(
                     raise ValueError(f"arm {name} turn v4 safety schema incomplete")
                 if not isinstance(turn["pass"], bool):
                     raise ValueError(f"arm {name} turn pass must be boolean")
+            if schema >= 6 and {"overflow_phase", "na"} - set(turn):
+                raise ValueError(f"arm {name} turn v6 overflow schema incomplete")
             if name in {"clf_control", "recency_pinned", "tool_swap_echo"} and (
                 not bool(turn["eviction"].get("match_impossible"))
                 and abs(int(turn["eviction"].get("echo_token_delta", 0))) > 16
@@ -1295,7 +1309,11 @@ def _arm_summary(records: Sequence[Mapping], arm: str) -> dict:
             ]
         ),
         "per_turn_pass": _rate(
-            [bool(turn["pass"]) for turn in turns if turn["pass"] is not None]
+            [
+                bool(turn["pass"])
+                for turn in turns
+                if turn["pass"] is not None and not bool(turn.get("na"))
+            ]
         ),
         "tool_call_validity": (
             sum(bool(call["valid"]) for call in calls) / len(calls) if calls else None
@@ -1583,6 +1601,9 @@ def summarize_records(
                         bool(_turn_by_index(record, arm, turn_index)["pass"])
                         for record in primary_records
                         for turn_index in primary_indices[str(record["case_id"])]
+                        if not bool(
+                            _turn_by_index(record, arm, turn_index).get("na")
+                        )
                     ]
                 )
             }

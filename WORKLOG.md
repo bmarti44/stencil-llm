@@ -3503,3 +3503,18 @@ The sealed command remains prohibited and is intentionally not reproduced.
   1031.43 s** across `tests/test_bfcl.py`, BFCL evict v2--v7, and the two
   sealed-guard checks that do not read the sealed IFEval input. This includes
   the complete real-dev nearest-matching census. No GPU/model command ran.
+
+- 2026-09-03, late-review reconciliation: commit `8082320` added
+  `results/harness-v6-review-fable.md` only after this coder task had started;
+  it reviewed pre-v7 commit `7b8de79`, not the v7 implementation. Its FV6-1
+  agrees with sol V6-1 and is closed by the target-group matcher. Its
+  initial-prompt-overflow reading resolves a nuance in sol V6-6: a `full`
+  initial prompt over 40,960 is now `pass=false, na=true, truncated=false` and
+  excluded from per-turn/final-pass/A3 reporting and truncation safety, while
+  within-generation/tool-step overflow remains a counted truncated failure.
+  TDD for this addition went red on the missing phase-aware action, then green:
+  v7 is **15 passed**; the post-change non-census targeted set is **92 passed,
+  1 deselected in 25.32 s**. The already-green complete census is unaffected by
+  this phase-only reporting change. Fable's newly requested v8 provenance and
+  presentation additions remain in the separately committed v8 brief and were
+  not folded into this v7 scope.

@@ -1098,6 +1098,7 @@ def run_case_arm(
         turn_degenerate = False
         turn_position_overflow = False
         turn_overflow_phase = None
+        turn_na = False
         turn_repeated_call = False
         plan = _turn_plan(
             tokenizer,
@@ -1143,9 +1144,12 @@ def run_case_arm(
                     positions = len(context_ids)
             else:
                 positions = int(cache.k[0].shape[2]) + len(continuation_ids or [])
-            position_action = position_overflow_result(arm, positions)
+            pre_generation_phase = "initial_prompt" if cache is None else "tool_step"
+            position_action = position_overflow_result(
+                arm, positions, phase=pre_generation_phase
+            )
             if position_action["position_overflow"]:
-                overflow_phase = "initial_prompt" if cache is None else "tool_step"
+                overflow_phase = position_action["overflow_phase"]
                 result = {
                     "text": "",
                     "token_ids": [],
@@ -1161,9 +1165,11 @@ def run_case_arm(
                     "columns_after_step": positions,
                     "position_overflow": True,
                     "overflow_phase": overflow_phase,
+                    "na": position_action["na"],
                 }
                 turn_position_overflow = True
                 turn_overflow_phase = overflow_phase
+                turn_na = bool(position_action["na"])
             else:
                 result = generate(
                     model,
@@ -1324,6 +1330,7 @@ def run_case_arm(
                 "prompt_positions": responses[0]["prompt_tokens"] if responses else 0,
                 "position_overflow": turn_position_overflow,
                 "overflow_phase": turn_overflow_phase,
+                "na": turn_na,
                 "repeated_call": turn_repeated_call,
                 "chat_control_echo": any(
                     marker in render_echo(plan["entries"])
@@ -1948,7 +1955,10 @@ def preflight(
         record["arms"]["full"]["final_pass"] for record in long_records
     )
     full_long_turns = [
-        turn for record in long_records for turn in record["arms"]["full"]["turns"]
+        turn
+        for record in long_records
+        for turn in record["arms"]["full"]["turns"]
+        if not bool(turn.get("na"))
     ]
     full_long_turn_passed = sum(bool(turn["pass"]) for turn in full_long_turns)
     exposed_records = [
@@ -1981,8 +1991,8 @@ def preflight(
             "full_long_cases": {"passed": full_long_passed, "n": 8, "floor": "2/8"},
             "full_long_turns": {
                 "passed": full_long_turn_passed,
-                "n": 40,
-                "floor": "6/40",
+                "n": len(full_long_turns),
+                "floor": "at least 6 passing eligible turns",
             },
             "base_overall": {"passed": base_passed, "n": 32, "floor": "5/32"},
             "base_long_turns": {
