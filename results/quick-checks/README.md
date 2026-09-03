@@ -211,3 +211,13 @@ spec change did not teach (all seeds miss it).
    44; control 17 / 17 / 17 — identical to check 22 (fable F1 confirmed: the data were already identical). Per-run
    rows retained (clf_probe_rows_<epoch>.json). The corrected run (scope-pass reviews + exemplar drop applied)
    follows as check 25; its seed-0 artifact is the candidate registered selector.
+
+25. FINAL (registered) run — scope-pass reviews (sol, Opus) + exemplar drop applied; 20,054 training rows; three
+   seeds on identical data with a train manifest (clf_probe10_s*.log, ft_final2_s*.log, metrics in
+   data/classifier/model/ft*/metrics.json): pinned 33 / 33 / 33; pinned_echo 46 / 45 / 44 (mean 45.0); control
+   17 / 17 / 17; coverage 0.86; held-out 0.89 each — fable-scope-validation 0.85 / 0.85 / 0.83, fable-validation
+   0.87 / 0.88 / 0.88 (author-disjoint), opus/sol held-out 0.92-0.95 (author-shared). Seed 0 artifact =
+   data/classifier/model/ft (sha256 list: ft_final2_s0_sha256.txt) — the SELECTOR v2 registered for the
+   post-development Multi-IF evaluation. Reading: development result on the selection set; parity-or-better with
+   the taxonomy finder on pin+echo (45 vs 48 point estimates are within n=56 noise; pins 33 vs 37 are not) at
+   0.86x its pinned columns; the mechanism reaches the full-context baseline with a benchmark-disjoint selector.

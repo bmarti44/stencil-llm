@@ -2473,3 +2473,44 @@ anyway (0.854/0.860 blind; precision 0.95/0.94).
   classifier was developed with b3 feedback (enrichment written against check 13's gap) and the held-out set is not
   author-disjoint from training. Accepted; wording corrected in results/quick-checks/README.md; fable to write an
   author-disjoint validation set; taxonomy policy = Opus's (item-level disjointness, type overlap disclosed).
+
+## 2026-09-03 — Multi-IF real-eviction Leg B harness (write-ahead)
+- Registered source: `LEDGER-PLAN.md` “SELECTOR v2 — POST-DEVELOPMENT EVALUATION, LEG B”. TDD RED was 6 expected
+  missing-module failures with 19 existing ledger tests green; GREEN is 25/25 targeted tests. The final seed-0
+  classifier loads and scores on CPU in the uv environment (`transformers==5.16.1`).
+- GPU preflight authorized by an empty `nvidia-smi --query-compute-apps=pid --format=csv,noheader` result. Launch is
+  foreground, `--limit 20`, max-new 512, 300-second per-generation deadline; no lock polling. Records begin at the
+  first conversation and are atomic/resumable. The full 909 is explicitly not this coder’s run.
+- Preflight COMPLETE: 20/20 atomic records plus meta/summary; 1,747.53 s total, **87.376 s/conversation**. Projection
+  = **22.063 GPU-h for 909**, above the registered 12 GPU-h ceiling, so the full run was NOT launched. Independent
+  post-run validation found real eviction in 20/20 records and exact classifier/control/role pin-count equality in
+  20/20. Classifier pin count: mean 37.75 columns (range 15–66); evictable range: mean 688.25 (94–1,088); echo added
+  mean 48.05 tokens (24–78). All first-20 conversations had a turn 3; aged denominator = 53, all-final = 73.
+
+  | arm | aged pass | all-final pass | timeout | trunc | degenerate | invalid | quote |
+  |---|---:|---:|---:|---:|---:|---:|---:|
+  | full | 30/53 | 46/73 | 0 | 0 | 0 | 0 | 0 |
+  | evicted | 18/53 | 32/73 | 0 | 2 | 2 | 0 | 0 |
+  | clf_pinned | 31/53 | 48/73 | 0 | 3 | 3 | 0 | 0 |
+  | clf_pinned_echo | 33/53 | 49/73 | 0 | 1 | 2 | 0 | 1 |
+  | clf_control | 22/53 | 37/73 | 0 | 2 | 2 | 0 | 0 |
+  | role_pinned | 29/53 | 48/73 | 0 | 2 | 2 | 0 | 0 |
+
+  ROUND 7 integer safety is not intact on the preflight slice: full has 0 truncations/degenerates, while eviction
+  arms exceed `full + 1` truncations and/or `full` degenerates. This slice is timing/safety diagnostic evidence, not
+  the registered 909 inference. Descriptive cluster results: C1 echo-control mean +17.08 points, corrected LB −3.08;
+  C2 classifier-role +1.25, LB −12.88; registered C3 half-gap recovery +18.125, LB −0.039; echo-full +6.25, LB −13.08.
+- Classifier hashes were written to preflight `meta.json` before the first arm: `head.pt` `191b3372…e3e`, encoder
+  weights `22328135…830`, encoder tokenizer `56827b4e…bc6`, config `d4b2c4e7…ccf`, tokenizer config `c9c2e0ff…006`,
+  metrics `ba2fd941…3a`. The first five match `results/quick-checks/ft_final2_s0_sha256.txt` exactly.
+- Conservative checker/template choices: use the final turn’s cumulative vendored Multi-IF instruction list, with
+  its previous turn’s cumulative list as the aged prefix; seed checker randomness by stable `key:turn`, matching
+  `e2_multiif.score_turn`; score truncations as-is and separately fail safety. Degenerate means truncation OR
+  repeated-4gram fraction > 0.5 (the stricter probe/review convention), while repetition itself is retained. The
+  explicit raw Qwen chat serialization and closed `<think>…</think>` opener match the existing non-thinking trunk
+  harness; no converted Multi-IF row supplied a system prompt, but the layout helper protects one if present.
+- Registration/brief ambiguity resolved conservatively: Leg B registers C3 against half of the full−evicted gap,
+  while the brief also asks for an echo−full lower bound. The summary implements registered C3 for Holm and reports
+  echo−full descriptively. `clf_control` uses the non-echo base context, matching check 22, after selected spans are
+  clamped and proven echo-safe; role pinning takes the most recent prior-user columns at exactly the classifier count.
+- 2026-09-03, coder (auto, run_codex_agent.sh). Brief multiif-eviction-harness: model gpt-5.6-sol, effort medium, exit 0, session 01a0661d-866d-71d1-9079-43adef9b8ebf, log /home/bmarti44/stencil-llm/results/logs/codex-agent-multiif-eviction-harness.log.

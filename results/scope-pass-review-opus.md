@@ -217,7 +217,7 @@ Every `(source, text)` key in the patch was checked against the pass: all resolv
 
 Resulting pass if the patch is applied: **4,954 -> 4,782 rows**; label distribution
 2060/893/2001 (rule/fact/none) -> **2001/890/1891**. Three files are untouched
-(`customer-support-chat` and two others are near-untouched at 1 row); the most-affected are
+(`fitness-coaching`, `software-engineering-pair-programming`, `translation-and-localization`); the most-affected are
 `teaching-assistant-grading` 13.2%, `research-literature-review` 10.6%, `devops-incident-response` and
 `medical-intake-and-triage` 9.8%, `slide-deck-and-report-writing` 8.9%, `system-prompt-personas` 7.8%,
 `recipe-and-meal-planning` 7.2%.
