@@ -2606,3 +2606,48 @@ Outcome rules: A1 and A3 pass with safety intact -> the mechanism's benefit on a
 post-development; A2 alone failing -> the role rule suffices on BFCL (tool retention unproven) and is reported as
 such; A1 or A3 failing -> unsupported at this selector; selector work returns to the classifier data (tool-line
 examples), never to BFCL outcomes. The no-contact family is registered after this leg regardless of outcome.
+
+## 2026-09-03 — BFCL LEG A selector-v2 eviction harness implementation
+
+- Governing-text fallback: the reviewed `SELECTOR v2 — POST-DEVELOPMENT EVALUATION, LEG A` heading was absent from
+  `LEDGER-PLAN.md` at implementation start, so this work follows the companion DRAFT immediately above, as the
+  bfcl-evict-v2 brief directs.
+- `src/stencil/selector_v2.py:10` now owns the registered sentence splitter used by BFCL selection.
+  `src/stencil/bfcl.py:51` maps the protected system + `<tools>` prefix (and at least four sink columns) and the
+  pre-current-user evictable range. `src/stencil/bfcl.py:165` maps and scores prior USER sentences plus prior TOOL
+  lines once per role with empty classifier context. `src/stencil/bfcl.py:241` fills `floor(0.25 * evictable)` by
+  descending keep probability, then recency, partially taking the final span when needed for an exact column fill.
+- Tool-output splitting rule: split each tool message on newline boundaries, discard empty lines, and retain all
+  lines when there are at most 40. If there are more than 40, retain the 40 longest in descending length (original
+  line index breaks ties). Retained text excludes only the newline delimiter; echo renders it verbatim after a
+  literal `tool:` marker.
+- Same-role-pool control (`src/stencil/bfcl.py:283`): clamp selected columns to the echo-verified eviction range,
+  count selected USER and TOOL columns separately, exclude all selected columns, deterministically rotate each
+  role's full rendered message-envelope pool by the registered case/turn seed, and take the exact count from that
+  same role. It fails closed if either role cannot supply its exact dose. Role-pinned uses only full prior USER
+  envelopes, newest columns first, capped at the classifier's used-column count (`src/stencil/bfcl.py:331`).
+- `scripts/bfcl_mt.py:151` now calls `qwen3.prefill_with_eviction`: at user turns 2+ it prefills history, triggers
+  eviction only when history exceeds K=8192, evicts only the post-prefix/pre-query range while retaining arm pins,
+  then prefills the current turn. `scripts/bfcl_mt.py:308` records per-turn eviction status, before/after columns,
+  pinned columns, and evictable size. `scripts/bfcl_mt.py:466` runs all six arm trajectories and writes one atomic,
+  resumable schema-v2 case record keyed by arm. `scripts/bfcl_mt.py:517` asserts every registered classifier file
+  against `results/quick-checks/ft_final2_s0_sha256.txt` before loading the model.
+- `src/stencil/bfcl.py:532` dry-asserts the six-arm/per-turn record schema. `src/stencil/bfcl.py:698` reports every
+  category and the long_context primary cohort: final/per-turn pass, tool-call validity, echo-copy rate, cache
+  columns, case-clustered one-sided A1/A2/A3 with Holm correction, and the per-arm integer safety clause versus full.
+  `scripts/bfcl_mt.py:595` implements the 32-case dev preflight, four-case BASE rerun, selector coverage/budget use,
+  timing, and sealed-cost projection. The old per-arm CLI was replaced by `run` / `preflight` subcommands.
+- Conservative ambiguity choices: exact budget fill permits a partial final span but echoes that kept span's whole
+  text; control pools include the rendered role delimiters because those columns share the selected span's role;
+  independent BFCL arm trajectories necessarily diverge after different tool calls, while every intervention uses
+  the arm's unmodified base context ids and coordinate frame (only the registered echo arm adds text). Echo is
+  inserted via `ledger.text_ledger_context` inside the current user message even after later tool-response steps.
+- TDD evidence: RED was 6 expected missing-contract failures with 13 passes; GREEN is **18 passed** for only
+  `tests/test_bfcl.py tests/test_bfcl_evict_v2.py`. Targeted Ruff, `git diff --check`, classifier hash assertion, a
+  real vendored-layout six-arm planning dry-run, and Python compilation are clean. No model process was launched.
+- GPU smoke DEFERRED while the registered Multi-IF 909 run owns the GPU. Exact command after release:
+  `uv run python scripts/bfcl_mt.py run --split dev --limit 1 --out bfcl-evict-v2-smoke`
+- Full dev preflight DEFERRED for the same reason. Exact 1.7B command after the smoke:
+  `uv run python scripts/bfcl_mt.py preflight --split dev --out bfcl-evict-v2-preflight`
+  If its registered 15% base-competence floor fails, rerun exactly:
+  `uv run python scripts/bfcl_mt.py preflight --split dev --trunk 4b --out bfcl-evict-v2-preflight-4b`
