@@ -111,3 +111,9 @@ greedy output, same eviction plumbing as the registered probe (scripts/ledger_kv
    candidate sentences selected) with 0 truncated / 0 degenerate outputs — so "pinned 38 vs finder 37" is at slightly
    LOWER cost than the finder. The clipped budget-matched arm (29/37) discards spans by probability rank and is the
    conservative bound.
+
+17. CHECK 16 AT THRESHOLD 0.65 (clf_probe5.log; threshold chosen from the held-out sweep, not from the probe):
+   coverage 0.65 (7/20); CLF pinned 31, pinned_echo 37, control 15; clipped 28 / 35 / 18. Worse than 0.5: the
+   higher bar drops true constraints the classifier is unsure about — the formatting-rule class that sol's
+   taxonomy purge removed from training (kimi's check-16 review: restore those 344 rows, keep exact-phrasing drops).
+   Threshold stays 0.5 (registered value); the lever is training coverage of plain-language formatting rules.
