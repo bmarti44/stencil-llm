@@ -146,3 +146,16 @@ noise; the "restore taxonomy rows" lever is unsupported (+0.01..0.09 on formatti
 budget-matched arm ran at 0.67x the finder's columns (reminder sentence consumed the clip then was clamped out), and
 "0 truncated / 0 degenerate" held for the echo arm only. From check 19 on: >= 3 seeds, results reported per seed and
 as the mean, head-selection rule fixed in advance (mean over seeds; no picking the best seed on the probe).
+
+19. FINE-TUNED ENCODER (finetune_classifier.py, seed 0, 3 epochs, 111 s on GPU; finetune_seed0.log): held-out acc
+   0.90 — fable-validation (author-disjoint) 0.87 (was 0.67 frozen), Opus 0.92, sol 0.94; "none" precision 0.93 /
+   recall 0.87; hard 0.85. PROBE (clf_probe7.log, pair scoring with preceding sentences as context): coverage 0.17,
+   CLF pinned 15 / echo 19 / control 14 — the evicted floor. Diagnosis (ft_diag.py on the 38 unique true constraint
+   sentences): context prefix at scoring collapses P(keep) 0.47 -> 0.17 (scorer changed to no-context); and even
+   without context only 17/38 pass — the near-zero ones are "finish with this exact postscript line", "begin with the
+   exact title <<...>>", "exactly 5 bullet points", "in lowercase letters only": by LABELS.md these are reply-scoped
+   formatting constraints (none), but in the probe, in Multi-IF, and in any session that keeps working on the same
+   artifact, they persist while that work continues. The spec knew two scopes (this reply / forever); there is a
+   third — the current task or artifact — and that is what the taxonomy finder had learned. Spec amended (LABELS.md
+   v2: task-scoped constraints are rules unless explicitly one-off); kimi writes a focused "scope" batch; retrain
+   x3 seeds; rescore without context. The seeds-1/2 runs already queued use the old scorer and are reported as-is.
