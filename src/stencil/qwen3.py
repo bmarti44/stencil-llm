@@ -94,6 +94,7 @@ def prefill_with_eviction(
     evict_range: tuple[int, int] | None,
     keep=(),
     eviction_timing: str = "pre-query",
+    current_forward_kwargs=None,
 ):
     """Prefill history, optionally evict it, then prefill the current turn."""
     if eviction_timing not in ("pre-query", "post-prefill"):
@@ -102,13 +103,18 @@ def prefill_with_eviction(
         raise ValueError("history/current-turn split must be inside the token sequence")
 
     index_map = {}
+    current_forward_kwargs = current_forward_kwargs or {}
     if history_end == 0:
         if evict_range is not None:
             raise ValueError("cannot evict an empty history")
-        logits = model(tokens, cache=cache)
+        logits = model(tokens, cache=cache, **current_forward_kwargs)
         columns = int(cache.k[0].shape[2])
         return logits, index_map, columns, columns
     if eviction_timing == "post-prefill":
+        if current_forward_kwargs:
+            raise ValueError(
+                "current-only forward options require pre-query eviction ordering"
+            )
         logits = model(tokens, cache=cache)
         columns_before = int(cache.k[0].shape[2])
         if evict_range is not None:
@@ -127,7 +133,9 @@ def prefill_with_eviction(
         if cache.length != length_before:
             raise AssertionError("KVCache.evict reduced absolute position length")
     columns_after_eviction = int(cache.k[0].shape[2])
-    logits = model(tokens[:, history_end:], cache=cache)
+    logits = model(
+        tokens[:, history_end:], cache=cache, **current_forward_kwargs
+    )
     return logits, index_map, columns_before, columns_after_eviction
 
 
@@ -385,6 +393,7 @@ class Qwen3(nn.Module):
         return_hidden: int | None = None,
         cache: KVCache | None = None,
         capture_hidden: int | None = None,
+        residual_hook=None,  # (layer, fn): add/transform layer-input residual
         bias_hook=None,  # (layer, fn): at layer-input, attn_bias = fn(x)
         deficit_hook=None,  # (layer, fn): at layer-input, gates = fn(x); dict[layer] -> (span_mask, tau, b_max)
         attn_probe=None,  # (span_mask, sink): record last-row span attention mass at layers 20-27
@@ -394,7 +403,12 @@ class Qwen3(nn.Module):
         cos, sin = _rope(
             tokens.shape[1], tokens.device, offset, self.cfg, dtype=x.dtype
         )
-        captured = None
+        capture_many = (
+            set(capture_hidden)
+            if capture_hidden is not None and not isinstance(capture_hidden, int)
+            else None
+        )
+        captured = {} if capture_many is not None else None
         deficit_gates = None
         if return_hidden is not None and cache is not None:
             raise ValueError(
@@ -404,7 +418,11 @@ class Qwen3(nn.Module):
         for i, block in enumerate(self.layers):
             if return_hidden is not None and i == return_hidden:
                 return x
-            if capture_hidden is not None and i == capture_hidden:
+            if residual_hook is not None and i == residual_hook[0]:
+                x = residual_hook[1](x)
+            if capture_many is not None and i in capture_many:
+                captured[i] = x
+            elif capture_hidden is not None and i == capture_hidden:
                 captured = x
             if bias_hook is not None and i == bias_hook[0]:
                 attn_bias = bias_hook[1](x)

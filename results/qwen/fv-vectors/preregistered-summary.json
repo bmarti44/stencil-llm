@@ -1,0 +1,25 @@
+{
+  "status": "preregistered_before_gpu_probe",
+  "date": "2026-09-03",
+  "probe": {
+    "eviction_timing": "pre-query",
+    "sessions": 20,
+    "aged_constraints": 56,
+    "constraint_text_in_view_for_fv_inject": false,
+    "clear_after_generated_tokens": 64,
+    "wave_kill_rule": "degenerate > 2/20 kills the arm",
+    "degenerate_definition": "rep4 > 0.5 on non-truncated output"
+  },
+  "reading": {
+    "helps": "fv_inject >= 30/56; paired wins > losses vs evicted; not killed",
+    "strong": "fv_inject_echo > 46/56; paired wins > losses vs clf_pinned_echo; not killed",
+    "harmful": "killed or fv_inject < evicted + 5"
+  },
+  "baseline_totals": {
+    "full": 44,
+    "evicted": 10,
+    "clf_pinned": 41,
+    "clf_pinned_echo": 46,
+    "clf_control": 13
+  }
+}

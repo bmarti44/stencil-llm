@@ -13,12 +13,12 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
-POST_PREFILL_TOTALS = {
+PRE_QUERY_BASELINE_TOTALS = {
     "full": 44,
-    "evicted": 14,
-    "clf_pinned": 33,
+    "evicted": 10,
+    "clf_pinned": 41,
     "clf_pinned_echo": 46,
-    "clf_control": 17,
+    "clf_control": 13,
 }
 CALIBRATION_PATH = ROOT / "results/qwen/b3-deficit-cal.json"
 ARM_SPECS = (
@@ -30,12 +30,17 @@ ARM_SPECS = (
     ("clf_pinned_wave", "pinned"),
     ("clf_pinned_wave_conf", "pinned"),
     ("clf_pinned_echo_wave", "pinned_echo"),
+    ("fv_inject", "evicted"),
+    ("fv_inject_echo", "pinned_echo"),
+    ("fv_clear", "evicted"),
 )
 WAVE_ARMS = {
     "clf_pinned_wave",
     "clf_pinned_wave_conf",
     "clf_pinned_echo_wave",
 }
+FV_ARMS = {"fv_inject", "fv_inject_echo", "fv_clear"}
+KILL_RULE_ARMS = WAVE_ARMS | FV_ARMS
 
 
 def load_wave_calibration(path=CALIBRATION_PATH):
@@ -71,7 +76,11 @@ def arm_configuration(
     eviction_timing,
 ):
     probe_arm = dict(ARM_SPECS)[name]
-    is_echo = name in {"clf_pinned_echo", "clf_pinned_echo_wave"}
+    is_echo = name in {
+        "clf_pinned_echo",
+        "clf_pinned_echo_wave",
+        "fv_inject_echo",
+    }
     deficit_spans = []
     if name in WAVE_ARMS:
         deficit_spans = [
@@ -107,6 +116,12 @@ def parse_args(argv=None):
     parser.add_argument("--max-new", type=int, default=512)
     parser.add_argument("--deadline", type=float, default=300.0)
     parser.add_argument("--out", default="ledger-kv-probe-prequery")
+    parser.add_argument(
+        "--vectors", default=str(ROOT / "results/qwen/fv-vectors/vectors.pt")
+    )
+    parser.add_argument(
+        "--fv-grid", default=str(ROOT / "results/qwen/fv-vectors/grid.json")
+    )
     return parser.parse_args(argv)
 
 
@@ -136,14 +151,28 @@ def _echo_invalid(probe, tokenizer, context, record):
 
 def main(argv=None):
     args = parse_args(argv)
+    import function_vectors as fv_script
     import g0_oracle
     import ledger_kv_probe as probe
 
     from stencil.causal_moments import score_row_constraints
+    from stencil.function_vectors import (
+        combine_vectors,
+        function_vector_summary,
+        generate_injected,
+    )
 
     scores_path = Path(args.scores).resolve()
     scores = json.loads(scores_path.read_text())
     calibration = load_wave_calibration()
+    vectors_path = Path(args.vectors).resolve()
+    grid_path = Path(args.fv_grid).resolve()
+    vectors, vector_payload = fv_script.load_vectors(vectors_path)
+    grid = json.loads(grid_path.read_text())
+    if grid.get("status") != "selected_before_probe":
+        raise ValueError("function-vector grid must be selected before probe")
+    fv_alpha = float(grid["selected"]["alpha"])
+    fv_layer = int(grid["selected"]["layer"])
     model, tokenizer = g0_oracle.load_model()
     corpus_path = ROOT / "data/b3/mt-train-300.jsonl"
     corpus = {
@@ -206,6 +235,10 @@ def main(argv=None):
             "kwargs": last["kwargs"],
         }
         n_aged = record["n_aged"]
+        aged_types = session["turns"][record["n_turns"] - 1]["combo"][:n_aged]
+        if len(aged_types) != n_aged:
+            raise AssertionError("aged constraint type count mismatch")
+        fv_vector, unknown_types = combine_vectors(vectors, aged_types, fv_layer)
         arm_rows = {}
         for name, _probe_arm in arm_specs:
             configured = arm_configuration(
@@ -220,32 +253,62 @@ def main(argv=None):
                 b_max=calibration["b_max"],
                 eviction_timing=args.eviction_timing,
             )
-            generated = probe.run_arm(
-                model,
-                tokenizer,
-                configured["ids"],
-                configured["probe_arm"],
-                configured["keep"],
-                configured["evict_range"],
-                0.0,
-                args.max_new,
-                args.deadline,
-                control_keep=control,
-                eviction_timing=configured["eviction_timing"],
-                deficit_spans=configured["deficit_spans"],
-                deficit_tau=configured["deficit_tau"],
+            if name in FV_ARMS:
+                fv_keep = keep if name == "fv_inject_echo" else ()
+                generated = generate_injected(
+                    model,
+                    tokenizer,
+                    configured["ids"],
+                    evict_range=configured["evict_range"],
+                    keep=fv_keep,
+                    vector=fv_vector,
+                    alpha=fv_alpha,
+                    layer=fv_layer,
+                    clear_after=64 if name == "fv_clear" else None,
+                    max_new=args.max_new,
+                    deadline_s=args.deadline,
+                )
+                generated["invalid_output"] = probe.invalid_output(generated["text"])
+            else:
+                generated = probe.run_arm(
+                    model,
+                    tokenizer,
+                    configured["ids"],
+                    configured["probe_arm"],
+                    configured["keep"],
+                    configured["evict_range"],
+                    0.0,
+                    args.max_new,
+                    args.deadline,
+                    control_keep=control,
+                    eviction_timing=configured["eviction_timing"],
+                    deficit_spans=configured["deficit_spans"],
+                    deficit_tau=configured["deficit_tau"],
+                )
+            scores_for_arm = list(
+                score_row_constraints(score_row, generated["text"])[:n_aged]
             )
-            passed = sum(score_row_constraints(score_row, generated["text"])[:n_aged])
+            passed = sum(scores_for_arm)
             totals[name] += passed
             arm_rows[name] = {
                 "aged_pass": passed,
                 "pinned_cols": generated["pinned_cols"],
                 "truncated": generated["truncated"],
                 "timed_out": generated["timed_out"],
-                "degenerate": probe.is_degenerate(generated),
+                "degenerate": (
+                    not generated["truncated"] and generated["rep4"] > 0.5
+                ),
                 "invalid": generated["invalid_output"],
+                "scores": scores_for_arm,
             }
-        rows.append({"session": record["session"], "n_aged": n_aged, "arms": arm_rows})
+        rows.append({
+            "session": record["session"],
+            "n_aged": n_aged,
+            "aged_constraint_types": aged_types,
+            "unknown_vector_constraints": len(unknown_types),
+            "unknown_vector_types": unknown_types,
+            "arms": arm_rows,
+        })
         print(
             f"session {record['session']:02d}: "
             + " ".join(
@@ -276,12 +339,29 @@ def main(argv=None):
         "wave_kill_rule": "degenerate > 2/20 kills the arm",
         "wave_killed": {
             name: safety[name]["degenerate"] > 2
-            for name in WAVE_ARMS
+            for name in KILL_RULE_ARMS
         },
-        "post_prefill_totals": POST_PREFILL_TOTALS,
+        "pre_query_baseline_totals": PRE_QUERY_BASELINE_TOTALS,
+        "function_vectors": {
+            "vectors": str(vectors_path),
+            "vectors_sha256": hashlib.sha256(vectors_path.read_bytes()).hexdigest(),
+            "grid": str(grid_path),
+            "grid_sha256": hashlib.sha256(grid_path.read_bytes()).hexdigest(),
+            "constraint_types": list(vector_payload["constraint_types"]),
+            "alpha": fv_alpha,
+            "layer": fv_layer,
+            "clear_after_generated_tokens": 64,
+        },
         "elapsed_seconds": time.monotonic() - started,
         "rows": rows,
     }
+    output.update(
+        function_vector_summary(
+            rows,
+            totals=totals,
+            killed=output["wave_killed"],
+        )
+    )
     outdir = ROOT / "results/qwen" / args.out
     outdir.mkdir(parents=True, exist_ok=True)
     probe.atomic_json(outdir / "clf-probe.json", output)
@@ -290,7 +370,13 @@ def main(argv=None):
         "totals",
         "safety",
         "wave_killed",
-        "post_prefill_totals",
+        "pre_query_baseline_totals",
+        "function_vectors",
+        "preregistered_reading",
+        "paired_fv_inject_vs_evicted",
+        "paired_fv_inject_echo_vs_clf_pinned_echo",
+        "unknown_vector_constraints",
+        "reading",
     )
     print(json.dumps({key: output[key] for key in report_fields}, indent=1))
 

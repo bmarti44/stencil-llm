@@ -3592,3 +3592,56 @@ tests were intentionally rerun.
 Final allowed CPU verification: **100 passed in 924.70 s** across
 `tests/test_bfcl.py`, BFCL evict v2--v8 (both real-dev censuses included), and
 the two non-reading sealed-guard tests. Ruff and `git diff --check` are clean.
+## Function-vector focus (CPU implementation; GPU deferred, 2026-09-03)
+
+Coder provenance: `gpt-5.6-sol`, effort `medium`, session
+`01a06889-6c8e-72d3-a681-9933bbb8ee71`, wrapper log
+`/home/bmarti44/stencil-llm/results/logs/codex-agent-function-vector-focus.log`.
+No model/GPU process was launched by this coder.
+
+The 20 `ledger-kv-probe-h1p` sessions contain 56 aged constraints of 11
+types: `bullets` 4, `caps` 5, `kw_exist` 5, `kw_forbid` 7, `kw_freq` 5,
+`lower` 2, `n_sent` 6, `n_words_max` 5, `placeholders` 7, `postscript` 4,
+and `title` 6. Candidate row counts in `data/b3/train-v43.jsonl` are,
+respectively, 192, 89, 401, 429, 378, 192, 275, 293, 450, 326, and 365.
+Extraction deterministically takes the first 32 exact-clause minimal pairs per
+type (352 pairs total; every count is >= 16), with layers 8/12/16/20/24.
+
+Grid procedure, registered before the probe: use source rows with keys 0--3
+(not any of the 20 multi-turn probe sessions), greedy decoding, and the full
+3-by-3 grid alpha `{0.5, 1.0, 2.0}` by layer `{12, 16, 20}`. A cell is
+non-degenerate when all 4 outputs have rep4 <= 0.5 (truncation is separately
+reported). Select the largest alpha among non-degenerate cells; break a layer
+tie toward the smallest layer. `grid.json` records `selected_before_probe` and
+must exist before `clf_probe_check.py` starts.
+
+Exact deferred GPU commands, in order (orchestrator must wait for an idle GPU):
+
+```bash
+cd /home/bmarti44/stencil-llm && .venv/bin/python scripts/function_vectors.py extract --out /home/bmarti44/stencil-llm/results/qwen/fv-vectors --n-per-type 32 --layers 8 12 16 20 24
+cd /home/bmarti44/stencil-llm && .venv/bin/python scripts/function_vectors.py grid --vectors /home/bmarti44/stencil-llm/results/qwen/fv-vectors/vectors.pt --out /home/bmarti44/stencil-llm/results/qwen/fv-vectors/grid.json --max-new 512 --deadline 300
+cd /home/bmarti44/stencil-llm && .venv/bin/python scripts/clf_probe_check.py --scores /home/bmarti44/stencil-llm/results/quick-checks/clf_scores_final_s0.json --eviction-timing pre-query --vectors /home/bmarti44/stencil-llm/results/qwen/fv-vectors/vectors.pt --fv-grid /home/bmarti44/stencil-llm/results/qwen/fv-vectors/grid.json --max-new 512 --deadline 300 --out function-vector-focus
+```
+
+Ambiguities resolved conservatively: `fv_inject` and `fv_clear` use the fully
+evicted substrate so no aged instruction-text K/V remains; the alpha-zero
+identity therefore means the unmodified substrate of the arm (evicted for
+these two, pinned-echo for `fv_inject_echo`), rather than retaining text solely
+to make `fv_inject` equal `clf_pinned`. Type labels select vectors but no
+constraint sentence is supplied. Multiple aged vectors are summed once per
+constraint occurrence; unknown types receive no addition and are counted.
+`fv_inject_echo` intentionally uses pinned-echo as specified. Clearing at 64
+replays the same conditional token trajectory without additions to rebuild K/V,
+so forwards after the boundary are genuinely unmodified rather than merely
+disabling the hook while contaminated downstream K/V persists. Strong paired
+wins/losses are read against `clf_pinned_echo`. These choices should be checked
+in the next review.
+
+The preregistered reading was written to
+`results/qwen/fv-vectors/preregistered-summary.json` before any GPU step:
+helps iff `fv_inject >= 30/56`, paired wins exceed losses versus evicted, and
+the arm is not killed; strong iff `fv_inject_echo > 46/56`, paired wins exceed
+losses versus `clf_pinned_echo`, and the arm is not killed; harmful iff killed
+or `fv_inject < evicted + 5`. CPU verification: 18 passed, 1 policy skip in
+`tests/test_clf_probe_check.py tests/test_function_vector*.py`; scoped ruff and
+`git diff --check` clean.

@@ -19,6 +19,9 @@ def test_registered_arms_and_calibration_are_plumbed():
         "clf_pinned_wave",
         "clf_pinned_wave_conf",
         "clf_pinned_echo_wave",
+        "fv_inject",
+        "fv_inject_echo",
+        "fv_clear",
     ]
     calibration = load_wave_calibration()
     assert calibration["selected"] == "t30-b3"
