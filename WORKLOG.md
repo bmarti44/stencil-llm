@@ -3301,3 +3301,9 @@ uv run python scripts/bfcl_mt.py run --split dev --mode free --trunk "$BFCL_SELE
 # Sealed command remains deferred and MUST NOT run until separately authorized:
 STENCIL_SEALED_RUN=1 uv run python scripts/bfcl_mt.py run --split sealed --mode teacher --trunk "$BFCL_SELECTED_TRUNK" --preflight-certificate "$BFCL_PREFLIGHT" --out bfcl-evict-v5-sealed
 ```
+- 2026-09-03, coder (auto, run_codex_agent.sh). Brief bfcl-evict-v5: model gpt-5.6-sol, effort medium, exit 0, session 01a067f7-3694-7622-8382-4e89d7e03952, log /home/bmarti44/stencil-llm/results/logs/codex-agent-bfcl-evict-v5.log.
+- 2026-09-03, check 28: classifier-gated deficit wave — passes 44/42/44 but degenerate 8/8/6 of 20 (base arm 3, full
+  2): killed by the registered rule; harmful by fable's pre-registered reading. Wave family closed with data.
+- 2026-09-03: the corrected Leg B run crashed at 145/909 (exact-column control impossible when pins exceed half the
+  evictable range); LEG B AMENDMENT 3 registers control_impossible handling; restart as multiif-evict-909-prequery-v2
+  is chained behind the shortfall fix, the BFCL dev preflight (running under the v5 harness), and a free GPU.

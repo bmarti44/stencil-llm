@@ -239,3 +239,13 @@ spec change did not teach (all seeds miss it).
    noise floor 0.0) — a numerical, not logical, difference; all arms share the two-stage schedule, so comparisons
    are fair; the "bitwise" test wording is narrowed to fp32-equal / bf16-top-1-equal. All checks 4-25 are now
    labelled "post-prefill ordering"; check 27 supersedes them for the mechanism claim.
+
+28. CLASSIFIER-GATED DEFICIT WAVE (Brian's proposal; results/qwen/clf-gated-wave-prequery/clf-probe.json; corrected
+   eviction ordering; tau 0.3, b_max 3.0 from the frozen calibration; fable's pre-registered reading in
+   results/gated-wave-review-fable.md): clf_pinned_wave 44 (clf_pinned 41; paired 4 wins / 1 loss / 15 ties);
+   clf_pinned_wave_conf 42 (confidence saturated — near-duplicate as predicted); clf_pinned_echo_wave 44
+   (clf_pinned_echo 46; 2 wins / 3 losses). SAFETY: degenerate 8 / 8 / 6 of 20 vs clf_pinned 3, full 2; truncated 5
+   vs 2 / 1. All three wave arms KILLED by the registered rule (degenerate > 2/20) and HARMFUL by the pre-registered
+   reading (excess degeneracy over the base arm > 2). Reading: gating the boost to selected spans at deficit moments
+   reduces but does not remove degeneration; the +3 on pins is bought with 4x the degeneracy; re-injection reaches 46
+   with none. The wave family is closed with data under this trunk.
