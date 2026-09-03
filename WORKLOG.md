@@ -3766,3 +3766,53 @@ uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 1.
 # Only if the registered fallback rule requires it:
 uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b --out bfcl-evict-v10-preflight-4b
 ```
+
+## 2026-09-03 — late fable-v8 review closure (bfcl-evict-v11)
+
+`results/harness-v8-review-fable.md` arrived after the v10 code commit; commits
+`14caed8` and `a298bc9` apply all FV8-1..7 findings on top of v10, resolving
+toward LEG A v7 + Amendments 1-5. FV8-1 is closed by v9/v10's split-invariant
+contract plus schema-3 dev evidence and the real dev-to-sealed round trip.
+
+- FV8-2: `src/stencil/bfcl.py:498-583` now declares fallback control matching
+  impossible only when total eligible columns are below the quota; fewer
+  resources than targets records role shortfall and continues. The synthetic
+  case-24-t5 stress census used 18 all-USER targets / 180 selected columns and
+  16 TOOL resources / 2,048 eligible columns: possible, shortfall recorded,
+  exact output dose 180/180. Same-role `tool_swap_echo` keeps per-target failure.
+- FV8-3: `scripts/bfcl_mt.py:1174-1192` converts pressure-turn echo/column
+  violations to `match_impossible` with `invariant_violation`, so sealed-shaped
+  execution records an uninformative comparator instead of raising.
+  `src/stencil/bfcl.py:1254-1259` and `scripts/bfcl_mt.py:2267-2276` apply the
+  ±16 check only under pressure (missing legacy flags remain fail-closed).
+- FV8-4: `scripts/bfcl_mt.py:871-930` accepts the already cached context token
+  IDs and measures each clamp probe only from the current USER marker. The
+  10,000-character-prefix regression refuses any full-context re-encode and
+  verifies the local exact identity `echoed_local_tokens - base_local_tokens =
+  reported_delta`; clamp choices/residuals remain token-exact.
+- FV8-5: `scripts/bfcl_mt.py:1598-1620` computes case `final_pass` over non-NA
+  turns only; the existing eligible-full competence population remains the
+  post-initial-overflow denominator.
+- FV8-6: `scripts/bfcl_mt.py:207-251` binds `scripts/__init__.py` and fails if
+  `stencil.bench` enters the BFCL runtime closure. Registration SHA-256:
+  `dd2b6eaa1a8c251c012bde10c5c26de7a78c9c4b786cebaaa57f380ccbc4dcbc`.
+  Harness manifest SHA-256:
+  `6d9aaf4d7eadc1e78a6727d7f9a124e1f5da1f6eb9d6632a8e9d81ac7f609ea1`.
+- FV8-7: `src/stencil/bfcl.py:786-795` routes retained tool-swap USER rows
+  through `_decode_row`, preserving `_echo_source_columns` for extension.
+
+TDD RED: all five initial v11 tests failed against v10. Final allowed CPU suite:
+**126 passed in 258.10 s** across `tests/test_bfcl.py`, BFCL evict v2-v11, and
+`tests/test_sealed_guard.py`; ruff and `git diff --check` are clean. No sealed
+run or model process was launched, no sealed IFEval input was read, no
+`data/bench/*` file was modified, and no GPU/model process was waited on or
+signalled.
+
+GPU/model commands deferred because the GPU is busy:
+
+```bash
+uv run python scripts/bfcl_mt.py run --split dev --mode teacher --trunk 1.7b --limit 1 --out bfcl-evict-v11-smoke-1.7b
+uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 1.7b --out bfcl-evict-v11-preflight-1.7b
+# Only if the registered fallback rule requires it:
+uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b --out bfcl-evict-v11-preflight-4b
+```
