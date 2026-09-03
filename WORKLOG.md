@@ -2514,3 +2514,13 @@ anyway (0.854/0.860 blind; precision 0.95/0.94).
   echo−full descriptively. `clf_control` uses the non-echo base context, matching check 22, after selected spans are
   clamped and proven echo-safe; role pinning takes the most recent prior-user columns at exactly the classifier count.
 - 2026-09-03, coder (auto, run_codex_agent.sh). Brief multiif-eviction-harness: model gpt-5.6-sol, effort medium, exit 0, session 01a0661d-866d-71d1-9079-43adef9b8ebf, log /home/bmarti44/stencil-llm/results/logs/codex-agent-multiif-eviction-harness.log.
+
+## 2026-09-03 — LEG B run stopped pending fix: eviction is post-prefill (sol harness review CRITICAL EVICT-1)
+- Fable (MEDIUM E1) and sol (CRITICAL EVICT-1) both found that scripts/multiif_evict.py (and the H1' probe harness
+  it mirrors) prefill the WHOLE context and only then call KVCache.evict, so the final user turn's K/V and the first
+  generated token were computed with full-history attention. Sol: STOP THE RUN. Accepted: the evicted arm is not
+  cleanly evicted and current-turn representations carry leaked history. Fix: prefill history -> evict(keep=pins)
+  -> prefill current turn (+ echo) -> generate, in the harness AND the probe; re-validate the dev probe under the
+  corrected ordering (all quick checks 4-25 share the old ordering and are re-labelled "post-prefill eviction").
+- The 909 run (8 records at the time) is to be stopped on Brian's approval; its records are kept under
+  results/qwen/multiif-evict-909 and labelled invalid-ordering; the corrected run writes to a new directory.
