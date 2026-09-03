@@ -2651,3 +2651,89 @@ examples), never to BFCL outcomes. The no-contact family is registered after thi
   `uv run python scripts/bfcl_mt.py preflight --split dev --out bfcl-evict-v2-preflight`
   If its registered 15% base-competence floor fails, rerun exactly:
   `uv run python scripts/bfcl_mt.py preflight --split dev --trunk 4b --out bfcl-evict-v2-preflight-4b`
+- 2026-09-03, coder (auto, run_codex_agent.sh). Brief bfcl-evict-v2: model gpt-5.6-sol, effort medium, exit 0, session 01a0673f-ee23-75f0-bf68-c4560fc32370, log /home/bmarti44/stencil-llm/results/logs/codex-agent-bfcl-evict-v2.log.
+
+## 2026-09-03 — LEG A registration v3 (after sol UNSOUND + fable UNSOUND-as-drafted reviews; to LEDGER-PLAN after confirmation)
+
+### SELECTOR v2 — POST-DEVELOPMENT EVALUATION, LEG A (BFCL V3 multi-turn) — v3 (merges sol LEG-A-1..6 and fable L1..; registered before any Leg A outcome)
+Data lineage: selector = the LEG B registered artifact (data/classifier/model/ft; sha256 in LEG B). Its training data
+include tool-role rows written by kimi/sol/Opus, never from BFCL; the tool-role "fact" label (LABELS.md, 2026-09-02
+20:28) post-dates the BFCL population analysis (results/agentic-salience-review-fable.md, 15:30) that motivated it;
+the sealed cohort was not part of that analysis. BFCL V3 is a DEVELOPMENT benchmark (its schema-first layout and the
+finder failure shaped the role protections and the three-scope spec); this leg is a post-development evaluation,
+not zero-shot transfer. The sealed 64-case cohort has never been run or opened; the 32-case dev slice serves
+preflights only. Model card: "BFCL informed the retention design (protected schema prefix, tool-role facts); no
+BFCL item, response, or paraphrase entered the selector's training; Leg A is a post-development evaluation."
+Experimental design (sol LEG-A-1 / fable): PRIMARY = TEACHER-FORCED histories: before turn t every arm sees the
+ground-truth trajectory (ground-truth calls of turns < t executed through the vendored environments, rendered as
+<tool_call> JSON + <tool_response>), so context ids are identical across arms at every turn; each arm generates
+turn t with its own within-turn tool steps (MAX_STEPS 20, deadline 300 s); turn t is scored by multi_turn_checker
+on ground_truth[:t] + [the arm's turn t]. SECONDARY (reported, never gated) = FREE-RUNNING trajectories (BFCL's own
+protocol) for base and clf_pinned_echo only, final all-or-nothing pass, first-divergence turn recorded. The two are
+never conflated: the mechanism claim rests on the primary, the policy claim is descriptive.
+Eviction (frozen; sol LEG-A-2 / fable): one decision per user turn t >= 2, at step 0 of the turn, BEFORE the turn-t
+user message is prefilled: if prefix_columns + history_columns > K = 8192, evict the evictable range = all columns
+after the protected prefix and before the turn-t user message (located by MESSAGE INDEX, never by the last
+<|im_start|>user marker, because tool responses are rendered inside user blocks), keeping the arm's pins. This is a
+threshold-triggered flush of the evictable range (named as such; not native capacity eviction). Protected prefix =
+[0, max(4, system_turn_end)) where system_turn_end is the end of the complete system turn including the tool-call
+output-format contract; schema additions (missing_functions) advance it at the next serialization. The KV cache
+persists across the steps of a turn (assistant and tool-response tokens appended; no re-render, no second eviction);
+the cache may exceed K within a turn and this is recorded, identical across arms. If prefix + pins + the turn-t
+message exceed K, pins are dropped newest-first until it fits ("pin overflow", recorded). Two-stage schedule for
+every arm incl. `full` (no deletion). Recorded per turn: evicted, columns before/after, evictable size, pinned
+columns, budget used, echo tokens, columns after each step.
+Selector (fable L1): candidates = sentences of prior USER messages (registered splitter) and prior TOOL messages
+split on newlines, then every piece longer than T = 128 tokens (Qwen3 tokenizer) chunked into consecutive 128-token
+pieces; no cap on candidates. Scored WITHOUT context, role "user"/"tool", by the registered artifact with
+truncation="longest_first", max_length 192; the harness asserts no candidate exceeds 192 encoder tokens. keep iff
+P(rule)+P(fact) >= 0.5. Pins = kept candidates ordered by (P desc, recency), added whole while they fit in B = 25% of
+evictable columns; the first that does not fit ends the fill; sub-threshold candidates are never added; B is a cap.
+Any candidate containing <|im_, <tool_call, </tool_call, <tool_response or </tool_response is dropped from pins and
+echo and counted. Echo = text_ledger_context with header "Earlier context restated verbatim:" and per-entry prefixes
+"user:" / "tool:", most probable spans first, capped at E = 1,024 tokens (whole spans), placed inside the turn-t user
+message and fixed for all steps of the turn.
+Arms (teacher-forced; each with identical context ids per turn):
+  base | clf_pinned (pins, no echo; reported) | clf_pinned_echo |
+  clf_control — exact-column control from the SAME role pool as the pins, user and tool columns in the same
+    proportion, nearest free column, built after the echo clamp, frozen seed 20260903, disjoint from the selection;
+    pool shortfall in one role is filled from the other and recorded; the control arm receives the ECHO of its own
+    spans' decoded text under the same template and cap (A1 holds tokens, template, position and residency constant) |
+  recency_pinned — parameter-free comparator: all prior user columns + the most recent prior tool columns up to the
+    classifier's column count, echoed identically |
+  tool_swap_echo — selected USER spans kept; selected TOOL chunks replaced by matched TOOL chunks (control rules);
+    pinned and echoed identically (sol LEG-A-3; enables the only tool-source claim, A4) |
+  role_pinned — all prior user columns, no tool output, no echo (REPORTED only) |
+  full — no deletion, same two-stage schedule (reference; turns whose full prompt exceeds 40,960 positions are
+    excluded from A3 and counted).
+Contrasts — primary unit = per-turn pass under teacher forcing at turns where eviction fired (any category; cluster =
+case; continuity 100/k); one-sided cluster-robust; Holm alpha 0.05 over A1-A3 (supersedes the 0.025 cross-leg alpha
+for this leg): A1 clf_pinned_echo − clf_control > 0; A2 clf_pinned_echo − recency_pinned > 0; A3 clf_pinned_echo −
+base > 0.5 x (full − base), evaluated only if full − base > 0 on the primary (else "full is not a ceiling; A3
+uninformative"). A4 clf_pinned_echo − tool_swap_echo > 0 at alpha 0.05 outside the family (the ONLY tool-source
+claim; declared uninformative before the sealed run if the selector keeps zero tool candidates on the dev
+long_context evicting turns). Reported, not gated: final all-or-nothing pass per arm (teacher-forced and
+free-running), the non-evicting turns (echo-only stratum), role_pinned and recency_pinned − role_pinned, tool-call
+validity, echo-copy rate (NO exclusion: copying a tool-returned identifier is the task), calls repeated verbatim from
+history, columns and echo tokens per arm and turn, pin-overflow events.
+Safety: per arm vs full on the primary unit, integer clause: timeouts 0; truncated <= full + 1; degenerate <= full;
+invalid <= full + 1, where invalid = a <tool_call> block failing parse_tool_calls or call_to_python, counted per
+turn; vacuity guard: if full has 0 events of a type, that type is judged "<= 1" and reported. A breaching arm fails
+its contrasts. The integer clause replaces the rate-based ROUND 7 fields in src/stencil/bfcl.py:summarize_records.
+Preflights (dev slice, before the sealed cohort): (1) base competence with the 1.7B trunk: overall final pass >= 15%
+AND per-turn pass on the 40 dev long_context turns >= 15%; if either fails, the 4B trunk is used for the whole leg
+and both re-checked; if 4B also fails the leg is void; preflight and sealed run use the same trunk. (2) BASE-vs-BASE
+bitwise determinism on the first dev id of each category. (3) feasibility gate: at least 4 of the 8 dev long_context
+cases pressure-exposed (eviction fired in base) and at least 4 exposed case-turns select a tool chunk; otherwise the
+sealed run is not an agentic-retention test and is not launched (K may be re-registered lower before any outcome is
+viewed, recorded). (4) seconds per case and projected sealed cost; cap 30 GPU-h; if exceeded, the arm set is cut to
+base | clf_pinned_echo | clf_control | recency_pinned | full before any sealed outcome is viewed; the cohort is
+never cut. (5) constants K, B, T, E, threshold, header, seed and the harness sha256 are recorded before the
+preflight and not changed after it; any change re-registers the leg.
+Outcome rules: A1 & A3 pass with safety intact -> benefit on agentic dialogue supported post-development; A2 failing
+alone -> within-role recency suffices on BFCL (simpler wins; reported); A4 failing or uninformative -> no tool-source
+claim; A1 or A3 failing -> unsupported at this selector; any classifier data written after this leg is authored
+without access to BFCL records and nearest-neighbour audited against the dev slice; selector work never returns to
+BFCL outcomes. No-contact family for the zero-shot claim, screened by name only (results/leg-a-review-fable.md §5;
+sol's APIFlow-Bench/Toolathlon landing pages): ToolTalk, CoSQL/SParC, ConvFinQA; the registered contact screen runs
+before any item is fetched; registered after this leg regardless of outcome.
