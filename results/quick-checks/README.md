@@ -66,3 +66,10 @@ greedy output, same eviction plumbing as the registered probe (scripts/ledger_kv
    which sentences are instructions to keep following) matches the taxonomy finder on pins and reaches the
    full-context ceiling with echo. Remaining gap to finder_echo (48) is precision: 41 extra spans dilute the echo.
    Lineage: prompt fixed before the run; no tuning on this selection set; b3 remains a selection set for the CHOICE.
+
+12. CHECK 10 BUDGET-MATCHED (self_extract_turnB_check.py; required by fable F1 / sol QC10#3): the extractor's spans
+   clipped to the finder's per-session pin count, most recent first. Coverage falls to 0.51 (2/20 >= 0.8), extras
+   23; SELF pinned 25, pinned_echo 27, control 19 — vs finder 37 / 48. At EQUAL budget the extractor loses: its
+   extras (task sentences, reminders) consume the budget and crowd out constraints. Recall is high (check 10),
+   precision is the gap, and at a fixed budget precision decides. This is the case for the trained generic
+   classifier (precision) over prompting alone.
