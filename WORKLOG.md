@@ -3307,3 +3307,16 @@ STENCIL_SEALED_RUN=1 uv run python scripts/bfcl_mt.py run --split sealed --mode 
 - 2026-09-03: the corrected Leg B run crashed at 145/909 (exact-column control impossible when pins exceed half the
   evictable range); LEG B AMENDMENT 3 registers control_impossible handling; restart as multiif-evict-909-prequery-v2
   is chained behind the shortfall fix, the BFCL dev preflight (running under the v5 harness), and a free GPU.
+
+## 2026-09-03 — Multi-IF exact-control shortfall handling
+- `scripts/multiif_evict.py:232-268` returns an impossible-control sentinel instead of raising when available columns
+  are fewer than classifier-pinned columns. `scripts/multiif_evict.py:800-920` skips only `clf_control`, runs and
+  scores every other arm, and records `control_impossible`, `control_pinned_cols`, `control_available_cols`, null
+  `control_spans`, null `pinned_cols.clf_control`, and null `arms.clf_control`; the schema validates the arithmetic.
+- `scripts/multiif_evict.py:534-657` excludes impossible-control conversations only from C1 and control-arm metrics,
+  reports each contrast's `n`, plus summary `c1_population` and `n_control_impossible`, while C2, C3, descriptive
+  metrics, other-arm metrics, timing, and conversation count retain every record. The exact meta comparison remains
+  fail-closed. TDD: RED was 3 expected failures; GREEN is **10 passed, 1 skipped** (the existing GPU-only test) for
+  `tests/test_multiif_evict.py`; targeted Ruff and `git diff --check` are clean. No model process was launched.
+- Restart from conversation zero in the registered new directory (do not resume the superseded directory):
+  `uv run python scripts/multiif_evict.py --out multiif-evict-909-prequery-v2`

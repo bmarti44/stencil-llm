@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+from types import SimpleNamespace
 
 import pytest
 
@@ -117,13 +118,16 @@ def _record(ci=0, bits=None):
         "context_token_ids": [1, 2, 3],
         "echo_context_token_ids": [1, 2, 3, 4],
         "protected_prefix": [0, 1],
-        "evict_range": [1, 2],
+        "evict_range": [1, 3],
         "selected_spans": [{"text": "rule", "score": 0.9, "span": [1, 2]}],
+        "control_impossible": False,
+        "control_pinned_cols": 1,
+        "control_available_cols": 1,
         "pinned_cols": {
             arm: (1 if "pinned" in arm or arm == "clf_control" else 0)
             for arm in ARMS
         },
-        "control_spans": [[1, 2]],
+        "control_spans": [[2, 3]],
         "arms": {arm: _arm(list(bits)) for arm in ARMS},
         "seconds": {"history": 0.1, "selector": 0.01, "arms": 0.2, "total": 0.31},
     }
@@ -155,6 +159,7 @@ def test_summary_from_synthetic_records_reports_registered_contrasts():
     assert summary["arms"]["full"]["aged_pass"] == 8
     assert summary["arms"]["evicted"]["aged_pass"] == 0
     assert summary["contrasts"]["c1_echo_minus_control"]["mean_points"] == 100.0
+    assert summary["contrasts"]["c1_echo_minus_control"]["n"] == 4
     assert summary["contrasts"]["c2_classifier_minus_role"]["lower_bound"] > 0
     assert summary["contrasts"]["c3_half_gap_recovery"]["mean_points"] == 50.0
     assert set(summary["holm"]) == {
@@ -163,6 +168,104 @@ def test_summary_from_synthetic_records_reports_registered_contrasts():
         "c3_half_gap_recovery",
     }
     assert summary["safety"]["intact"] is True
+
+
+def test_control_shortfall_skips_only_control_and_c1(monkeypatch):
+    import scripts.multiif_evict as harness
+    import stencil.ledger
+
+    class Encoding:
+        ids = [10, 11, 12]
+
+    class Tokenizer:
+        def encode(self, _text):
+            return Encoding()
+
+    monkeypatch.setattr(
+        harness,
+        "_turn_doc",
+        lambda _row, turn: (f"prompt {turn}", ["instruction"], [{}]),
+    )
+    monkeypatch.setattr(
+        harness,
+        "_generate_history",
+        lambda *_args: ("history", {"generations": [], "seconds": 0.0}),
+    )
+    monkeypatch.setattr(
+        harness,
+        "context_layout",
+        lambda *_args: {
+            "context_token_ids": [10, 11, 12],
+            "protected_prefix": (0, 0),
+            "evict_range": (0, 3),
+        },
+    )
+    monkeypatch.setattr(
+        harness,
+        "select_prior_user_sentences",
+        lambda *_args: (
+            [{"text": "keep", "turn": 1, "score": 0.9, "span": [0, 2]}],
+            [],
+        ),
+    )
+    monkeypatch.setattr(harness, "role_pinned_spans", lambda *_args: [(0, 2)])
+    monkeypatch.setattr(
+        stencil.ledger, "text_ledger_context", lambda context, _: context
+    )
+    monkeypatch.setattr(stencil.ledger, "render_text_ledger", lambda _entries: "")
+    called = []
+
+    def fake_run_arm(_model, _tokenizer, _ids, *, keep, **_kwargs):
+        called.append(tuple(keep))
+        return {
+            "text": "answer",
+            "generated_token_ids": [1],
+            "n_generated": 1,
+            "timed_out": False,
+            "truncated": False,
+            "degenerate": False,
+            "invalid": False,
+            "pinned_cols": sum(end - start for start, end in keep),
+        }
+
+    monkeypatch.setattr(harness, "run_arm", fake_run_arm)
+    monkeypatch.setattr(
+        harness,
+        "_score_fields",
+        lambda *_args: {"all": [True], "aged": [True]},
+    )
+
+    row = {"key": "short", **{f"turn_{turn}_prompt": "x" for turn in (1, 2, 3)}}
+    record = harness.evaluate_conversation(
+        object(),
+        Tokenizer(),
+        object(),
+        row,
+        145,
+        SimpleNamespace(max_new=1, deadline=1),
+    )
+
+    assert len(called) == len(harness.ARMS) - 1
+    assert record["control_impossible"] is True
+    assert record["control_pinned_cols"] == 2
+    assert record["control_available_cols"] == 1
+    assert record["control_spans"] is None
+    assert record["pinned_cols"]["clf_control"] is None
+    assert record["arms"]["clf_control"] is None
+    assert all(
+        record["arms"][arm] is not None
+        for arm in harness.ARMS
+        if arm != "clf_control"
+    )
+
+    records = [_record(i) for i in range(4)] + [record]
+    summary = harness.summarize_records(records)
+    assert summary["n_control_impossible"] == 1
+    assert summary["c1_population"] == 4
+    assert summary["contrasts"]["c1_echo_minus_control"]["n"] == 4
+    assert summary["contrasts"]["c2_classifier_minus_role"]["n"] == 5
+    assert summary["contrasts"]["c3_half_gap_recovery"]["n"] == 5
+    assert summary["arms"]["full"]["aged_n"] == 9
 
 
 def test_resume_preserves_existing_record_and_returns_only_missing(tmp_path):
@@ -289,4 +392,4 @@ def test_meta_records_prequery_and_rejects_other_timing(tmp_path):
 def test_default_output_directory_is_registered_prequery_name():
     from scripts.multiif_evict import parse_args
 
-    assert parse_args([]).out == "multiif-evict-909-prequery"
+    assert parse_args([]).out == "multiif-evict-909-prequery-v2"

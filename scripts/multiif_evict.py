@@ -44,7 +44,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--start", type=int, default=0)
     parser.add_argument("--max-new", type=int, default=512)
     parser.add_argument("--deadline", type=float, default=300.0)
-    parser.add_argument("--out", default="multiif-evict-909-prequery")
+    parser.add_argument("--out", default="multiif-evict-909-prequery-v2")
     args = parser.parse_args(argv)
     if args.limit is not None and args.limit <= 0:
         parser.error("--limit must be positive")
@@ -231,7 +231,7 @@ def _columns_to_spans(columns: Sequence[int]) -> list[tuple[int, int]]:
 
 def matched_control_spans(
     keep: Sequence[tuple[int, int]], evict_range: tuple[int, int]
-) -> list[tuple[int, int]]:
+) -> list[tuple[int, int]] | None:
     """Position-match exactly the deduplicated surviving-column mass."""
     low, high = evict_range
     pinned = {
@@ -241,9 +241,7 @@ def matched_control_spans(
     }
     available = set(range(low, high)) - pinned
     if len(available) < len(pinned):
-        raise RuntimeError(
-            f"cannot match {len(pinned)} pinned columns with {len(available)} controls"
-        )
+        return None
     chosen = []
     for target in sorted(pinned):
         candidate = min(
@@ -257,7 +255,7 @@ def matched_control_spans(
 
 def clamp_and_match_control(
     spans: Sequence[tuple[int, int]], evict_range: tuple[int, int]
-) -> tuple[list[tuple[int, int]], list[tuple[int, int]]]:
+) -> tuple[list[tuple[int, int]], list[tuple[int, int]] | None]:
     """Clamp selected spans first, then construct the exact-column control."""
     low, high = evict_range
     pinned = _columns_to_spans(
@@ -411,6 +409,9 @@ def assert_record_schema(record: Mapping) -> None:
         "protected_prefix",
         "evict_range",
         "selected_spans",
+        "control_impossible",
+        "control_pinned_cols",
+        "control_available_cols",
         "pinned_cols",
         "control_spans",
         "arms",
@@ -423,7 +424,35 @@ def assert_record_schema(record: Mapping) -> None:
         raise ValueError("record arms do not equal the registered arm set")
     if set(record["pinned_cols"]) != set(ARMS):
         raise ValueError("pinned_cols do not cover the registered arm set")
+    if not isinstance(record["control_impossible"], bool):
+        raise ValueError("control_impossible must be boolean")
+    control_impossible = record["control_impossible"]
+    control_fields = (
+        record["control_spans"],
+        record["pinned_cols"]["clf_control"],
+        record["arms"]["clf_control"],
+    )
+    null_control_fields = [value is None for value in control_fields]
+    if any(null_control_fields) != all(null_control_fields):
+        raise ValueError("control fields must be all null or all populated")
+    if control_impossible != all(null_control_fields):
+        raise ValueError("control fields do not match control_impossible")
+    pinned_columns = int(record["control_pinned_cols"])
+    available_columns = int(record["control_available_cols"])
+    low, high = (int(value) for value in record["evict_range"])
+    if available_columns != high - low - pinned_columns:
+        raise ValueError("control shortfall arithmetic is inconsistent")
+    if pinned_columns < 0 or available_columns < 0:
+        raise ValueError("control shortfall counts must be non-negative")
+    if control_impossible != (available_columns < pinned_columns):
+        raise ValueError("control_impossible does not match the recorded arithmetic")
+    if int(record["pinned_cols"]["clf_pinned"]) != pinned_columns:
+        raise ValueError("recorded classifier pin count is inconsistent")
     for name, arm in record["arms"].items():
+        if arm is None:
+            if name != "clf_control":
+                raise ValueError(f"arm {name} may not be null")
+            continue
         arm_required = {
             "text",
             "generated_token_ids",
@@ -486,7 +515,8 @@ def _contrast(values: Sequence[float]) -> dict:
 
     bound = clustered_lower_bound(values)
     return {
-        "mean_points": sum(values) / len(values),
+        "n": len(values),
+        "mean_points": sum(values) / len(values) if values else None,
         "lower_bound": bound["lower_bound"],
         "bound": bound,
         "p_one_sided": _one_sided_cluster_p(values),
@@ -516,33 +546,44 @@ def summarize_records(records: Sequence[Mapping]) -> dict:
         raise ValueError("summary needs at least two conversations")
     for record in records:
         assert_record_schema(record)
+    control_records = [record for record in records if not record["control_impossible"]]
     arm_summary = {}
-    clusters = {arm: _cluster_values(records, arm) for arm in ARMS}
+    clusters = {
+        arm: _cluster_values(control_records if arm == "clf_control" else records, arm)
+        for arm in ARMS
+    }
     for arm in ARMS:
+        arm_records = control_records if arm == "clf_control" else records
         aged = [
             bool(value)
-            for record in records
+            for record in arm_records
             for value in record["arms"][arm]["scores"]["aged"]
         ]
         all_constraints = [
             bool(value)
-            for record in records
+            for record in arm_records
             for value in record["arms"][arm]["scores"]["all"]
         ]
         arm_summary[arm] = {
             "aged_pass": sum(aged),
             "aged_n": len(aged),
-            "aged_rate": sum(aged) / len(aged),
+            "aged_rate": sum(aged) / len(aged) if aged else None,
             "all_pass": sum(all_constraints),
             "all_n": len(all_constraints),
-            "all_rate": sum(all_constraints) / len(all_constraints),
-            "conversation_mean_aged_rate": sum(clusters[arm]) / (100 * len(records)),
+            "all_rate": sum(all_constraints) / len(all_constraints)
+            if all_constraints
+            else None,
+            "conversation_mean_aged_rate": (
+                sum(clusters[arm]) / (100 * len(arm_records)) if arm_records else None
+            ),
         }
     values = {
         "c1_echo_minus_control": [
             echo - control
             for echo, control in zip(
-                clusters["clf_pinned_echo"], clusters["clf_control"], strict=True
+                _cluster_values(control_records, "clf_pinned_echo"),
+                clusters["clf_control"],
+                strict=True,
             )
         ],
         "c2_classifier_minus_role": [
@@ -576,12 +617,15 @@ def summarize_records(records: Sequence[Mapping]) -> dict:
     holm = _holm(registered)
     safety_arms = {}
     for arm in ARMS:
+        arm_records = control_records if arm == "clf_control" else records
         safety_arms[arm] = {
-            field: sum(bool(record["arms"][arm]["safety"][field]) for record in records)
+            field: sum(
+                bool(record["arms"][arm]["safety"][field]) for record in arm_records
+            )
             for field in ("timed_out", "truncated", "degenerate", "invalid")
         }
         safety_arms[arm]["quoting"] = sum(
-            bool(record["arms"][arm]["quoting"]) for record in records
+            bool(record["arms"][arm]["quoting"]) for record in arm_records
         )
     full = safety_arms["full"]
     safety_pass = {}
@@ -597,6 +641,8 @@ def summarize_records(records: Sequence[Mapping]) -> dict:
     return {
         "schema": 1,
         "conversations": len(records),
+        "n_control_impossible": len(records) - len(control_records),
+        "c1_population": len(control_records),
         "arms": arm_summary,
         "contrasts": contrasts,
         "holm": holm,
@@ -776,6 +822,10 @@ def evaluate_conversation(
     selected_spans = [tuple(record["span"]) for record in selected]
     pinned, control = clamp_and_match_control(selected_spans, layout["evict_range"])
     pinned_columns = sum(end - start for start, end in pinned)
+    available_columns = (
+        layout["evict_range"][1] - layout["evict_range"][0] - pinned_columns
+    )
+    control_impossible = control is None
     role_pins = role_pinned_spans(
         tokenizer, context, layout["evict_range"], pinned_columns
     )
@@ -794,12 +844,19 @@ def evaluate_conversation(
         "evicted": (layout["context_token_ids"], layout["evict_range"], []),
         "clf_pinned": (layout["context_token_ids"], layout["evict_range"], pinned),
         "clf_pinned_echo": (echo_ids, echo_layout["evict_range"], pinned),
-        "clf_control": (layout["context_token_ids"], layout["evict_range"], control),
+        "clf_control": (
+            layout["context_token_ids"],
+            layout["evict_range"],
+            control,
+        ),
         "role_pinned": (layout["context_token_ids"], layout["evict_range"], role_pins),
     }
     arms = {}
     arm_started = time.monotonic()
     for name in ARMS:
+        if name == "clf_control" and control_impossible:
+            arms[name] = None
+            continue
         ids, eviction, keep = arm_inputs[name]
         generated = run_arm(
             model,
@@ -827,7 +884,9 @@ def evaluate_conversation(
             ),
         }
     arm_seconds = time.monotonic() - arm_started
-    if arms["clf_pinned"]["pinned_cols"] != arms["clf_control"]["pinned_cols"]:
+    if not control_impossible and (
+        arms["clf_pinned"]["pinned_cols"] != arms["clf_control"]["pinned_cols"]
+    ):
         raise AssertionError("classifier and control pinned-column counts differ")
     if arms["clf_pinned"]["pinned_cols"] != arms["role_pinned"]["pinned_cols"]:
         raise AssertionError("classifier and role pinned-column counts differ")
@@ -849,10 +908,18 @@ def evaluate_conversation(
         "history": history_meta,
         "selector_candidates": candidates,
         "selected_spans": selected,
-        "pinned_cols": {name: int(arms[name]["pinned_cols"]) for name in ARMS},
+        "control_impossible": control_impossible,
+        "control_pinned_cols": pinned_columns,
+        "control_available_cols": available_columns,
+        "pinned_cols": {
+            name: int(arms[name]["pinned_cols"]) if arms[name] is not None else None
+            for name in ARMS
+        },
         "classifier_spans": [list(span) for span in pinned],
         "role_spans": [list(span) for span in role_pins],
-        "control_spans": [list(span) for span in control],
+        "control_spans": (
+            [list(span) for span in control] if control is not None else None
+        ),
         "echo_text": rendered_echo,
         "echo_tokens_added": len(echo_ids) - len(layout["context_token_ids"]),
         "arms": arms,
@@ -898,7 +965,11 @@ def main(argv: Sequence[str] | None = None) -> None:
         atomic_json(outdir / f"conv-{ci:03d}.json", record)
         aged = len(record["arms"]["full"]["scores"]["aged"])
         report = " ".join(
-            f"{arm}={sum(record['arms'][arm]['scores']['aged'])}/{aged}"
+            (
+                f"{arm}={sum(record['arms'][arm]['scores']['aged'])}/{aged}"
+                if record["arms"][arm] is not None
+                else f"{arm}=NA"
+            )
             for arm in ARMS
         )
         elapsed = record["seconds"]["total"]
