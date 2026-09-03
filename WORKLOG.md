@@ -2944,10 +2944,11 @@ that fit the remaining classifier-column dose; (2) v3 says the control-rule shor
 also applies to `tool_swap_echo`, so that fallback is recorded rather than hidden; (3) v3's
 vacuity sentence says any zero-full event type is judged `<=1`, so it is applied literally,
 including timeout/degenerate despite the preceding stricter clauses. During this coder run,
-separate processes committed a later `LEG A registration v5` and its reviews (`a64b4ca`,
-`ea1e19b`) after the v3 brief had started. Those postdate and materially supersede this
-brief (different matching, overflow, inference, safety, and preflight rules); they were not
-silently folded into the brief-scoped v3 code and require a dedicated follow-up coder pass.
+separate processes committed later `LEG A registration v5` reviews and text (`a64b4ca`,
+`ea1e19b`) and then registration v7 (`e24a588`, `354b860`) after the v3 brief had started.
+Those postdate and materially supersede this brief (different matching, overflow, inference,
+safety, and preflight rules); they were not silently folded into the brief-scoped v3 code and
+require a dedicated follow-up coder pass.
 
 Deferred GPU commands (recorded only; do not run while the registered Multi-IF job/probes
 own the GPU):
@@ -2956,9 +2957,10 @@ own the GPU):
 uv run python scripts/bfcl_mt.py run --split dev --mode teacher --trunk 1.7b --limit 1 --out bfcl-evict-v3-smoke-1.7b
 uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 1.7b --out bfcl-evict-v3-preflight-1.7b
 uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b --out bfcl-evict-v3-preflight-4b
-uv run python scripts/bfcl_mt.py run --split dev --mode free --trunk SELECTED --limit 1 --out bfcl-evict-v3-free-smoke
+BFCL_SELECTED_TRUNK=1.7b  # change to 4b only if the registered fallback selects it
+uv run python scripts/bfcl_mt.py run --split dev --mode free --trunk "$BFCL_SELECTED_TRUNK" --limit 1 --out bfcl-evict-v3-free-smoke
 # Sealed command is intentionally authorization-gated and was NOT run:
-STENCIL_SEALED_RUN=1 uv run python scripts/bfcl_mt.py run --split sealed --mode teacher --trunk SELECTED --out bfcl-evict-v3-sealed
+STENCIL_SEALED_RUN=1 uv run python scripts/bfcl_mt.py run --split sealed --mode teacher --trunk "$BFCL_SELECTED_TRUNK" --out bfcl-evict-v3-sealed
 ```
 
 ## 2026-09-03 — LEG A registration v7 (REGISTERED; v5 + fable R1-R8 + sol v5 fixes verbatim)
