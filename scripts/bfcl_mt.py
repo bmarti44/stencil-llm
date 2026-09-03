@@ -249,17 +249,23 @@ def harness_manifest() -> dict:
     return {"files": files, "sha256": _canonical_sha256(files)}
 
 
-def certificate_payload(meta: dict, gates: dict) -> dict:
+def certificate_payload(
+    meta: dict,
+    gates: dict,
+    *,
+    preflight_evidence: dict | None = None,
+    sealed_arms: list[str] | None = None,
+) -> dict:
     """Split-invariant frozen contract plus the dev bytes used in preflight."""
     frozen = {
         key: value
         for key, value in meta.get("frozen_hashes", {}).items()
         if key != "verified_bytes"
     }
-    return {
-        "schema": 2,
+    payload = {
+        "schema": 3 if preflight_evidence is not None else 2,
         "trunk": meta["trunk"],
-        "arms": list(meta["arms"]),
+        "arms": list(sealed_arms if sealed_arms is not None else meta["arms"]),
         "generation": {
             "max_new": meta.get("max_new"),
             "deadline": meta.get("deadline"),
@@ -281,7 +287,9 @@ def certificate_payload(meta: dict, gates: dict) -> dict:
         "registration_sha256": meta.get("registration_sha256"),
         "frozen_hashes": frozen,
         "classifier_sha256": meta.get("classifier_sha256", {}),
-        "preflight_evidence": {
+        "preflight_evidence": preflight_evidence
+        if preflight_evidence is not None
+        else {
             "split": meta.get("split"),
             "dev_verified_bytes": meta.get("frozen_hashes", {}).get(
                 "verified_bytes", {}
@@ -289,6 +297,7 @@ def certificate_payload(meta: dict, gates: dict) -> dict:
         },
         "gates": gates,
     }
+    return payload
 
 
 def _gate_passed(value: object) -> bool:
@@ -299,6 +308,80 @@ def _gate_passed(value: object) -> bool:
             if key in value:
                 return bool(value[key])
     return False
+
+
+def _unbound_meta(meta: dict) -> dict:
+    return {
+        key: value
+        for key, value in meta.items()
+        if key not in {"preflight_certificate_sha256", "run_identity_sha256"}
+    }
+
+
+def issue_preflight_certificate(
+    args,
+    output: Path,
+    frozen_meta: dict,
+    records: list[dict],
+    gates: dict,
+    *,
+    sealed_arms: list[str],
+) -> dict:
+    """Sign only the on-disk records and frozen metadata that passed preflight."""
+
+    def drift(reason: str) -> None:
+        atomic_json(
+            output / "preflight.json",
+            {
+                "schema": 6,
+                "status": "INCONCLUSIVE",
+                "failure_state": "ARTIFACT_DRIFT",
+                "error": reason,
+            },
+        )
+        raise RuntimeError(f"ARTIFACT_DRIFT: {reason}")
+
+    fresh_meta = artifact_meta(args)
+    if fresh_meta != _unbound_meta(frozen_meta):
+        drift("post-run artifact metadata differs from frozen preflight metadata")
+    meta_path = output / "meta.json"
+    if not meta_path.is_file() or json.loads(meta_path.read_text()) != frozen_meta:
+        drift("meta.json does not contain the frozen preflight metadata")
+    run_identity = frozen_meta.get("run_identity_sha256")
+    if not run_identity:
+        drift("frozen preflight metadata lacks a run identity")
+    records_dir = output / "records"
+    expected_names = {f"{record['case_id']}.json" for record in records}
+    actual_names = {path.name for path in records_dir.glob("*.json")}
+    if actual_names != expected_names:
+        drift("record file set differs from the completed preflight cohort")
+    records_sha256 = {}
+    for record in records:
+        path = records_dir / f"{record['case_id']}.json"
+        if json.loads(path.read_text()) != record:
+            drift(f"record bytes do not encode completed record {record['case_id']}")
+        if record.get("run_identity_sha256") != run_identity:
+            drift(f"record run identity mismatch: {record['case_id']}")
+        if list(record.get("arms", {})) != list(frozen_meta["arms"]):
+            drift(f"record arm set mismatch: {record['case_id']}")
+        records_sha256[path.name] = sha256(path)
+    evidence = {
+        "split": frozen_meta.get("split"),
+        "run_identity_sha256": run_identity,
+        "meta_sha256": sha256(meta_path),
+        "meta_payload_sha256": _canonical_sha256(frozen_meta),
+        "dev_verified_bytes": frozen_meta.get("frozen_hashes", {}).get(
+            "verified_bytes", {}
+        ),
+        "records_sha256": records_sha256,
+        "preflight_arms": list(frozen_meta["arms"]),
+    }
+    return certificate_payload(
+        frozen_meta,
+        gates,
+        preflight_evidence=evidence,
+        sealed_arms=sealed_arms,
+    )
 
 
 def validate_preflight_certificate(path: Path, meta: dict) -> str:
@@ -314,13 +397,56 @@ def validate_preflight_certificate(path: Path, meta: dict) -> str:
         _gate_passed(payload["gates"][gate]) for gate in required
     ):
         raise RuntimeError("preflight certificate contains a failed gate")
-    expected = certificate_payload(meta, {})
+    if meta.get("schema") == 5 and payload.get("schema") != 3:
+        raise RuntimeError("preflight certificate lacks signed run evidence")
+    expected = certificate_payload(
+        meta,
+        {},
+        preflight_evidence={} if payload.get("schema") == 3 else None,
+    )
     actual_contract = dict(payload)
     actual_contract["gates"] = {}
     actual_contract.pop("preflight_evidence", None)
     expected.pop("preflight_evidence", None)
     if actual_contract != expected:
         raise RuntimeError("preflight certificate does not match sealed run contract")
+    if payload.get("schema") == 3:
+        evidence = payload.get("preflight_evidence", {})
+        meta_path = path.parent / "meta.json"
+        if not meta_path.is_file() or sha256(meta_path) != evidence.get("meta_sha256"):
+            raise RuntimeError("preflight certificate meta.json digest mismatch")
+        preflight_meta = json.loads(meta_path.read_text())
+        if _canonical_sha256(preflight_meta) != evidence.get("meta_payload_sha256"):
+            raise RuntimeError("preflight certificate meta payload digest mismatch")
+        if (
+            preflight_meta.get("run_identity_sha256")
+            != evidence.get("run_identity_sha256")
+            or preflight_meta.get("split") != "dev"
+            or list(preflight_meta.get("arms", []))
+            != list(evidence.get("preflight_arms", []))
+            or preflight_meta.get("frozen_hashes", {}).get("verified_bytes")
+            != evidence.get("dev_verified_bytes")
+        ):
+            raise RuntimeError("preflight certificate run evidence mismatch")
+        expected_records = evidence.get("records_sha256")
+        if not isinstance(expected_records, dict) or not expected_records:
+            raise RuntimeError("preflight certificate lacks record digests")
+        records_dir = path.parent / "records"
+        actual_names = {record_path.name for record_path in records_dir.glob("*.json")}
+        if actual_names != set(expected_records):
+            raise RuntimeError("preflight certificate record set mismatch")
+        for name, expected_digest in expected_records.items():
+            record_path = records_dir / name
+            if sha256(record_path) != expected_digest:
+                raise RuntimeError("preflight certificate record digest mismatch")
+            record = json.loads(record_path.read_text())
+            if (
+                record.get("run_identity_sha256")
+                != evidence.get("run_identity_sha256")
+                or list(record.get("arms", {}))
+                != list(evidence.get("preflight_arms", []))
+            ):
+                raise RuntimeError("preflight certificate record identity mismatch")
     manifest = payload.get("frozen_hashes", {}).get("bfcl_manifest")
     if manifest is not None:
         evidence = payload.get("preflight_evidence", {})
@@ -2079,7 +2205,7 @@ def preflight_competence(records: list[dict], *, trunk: str) -> dict:
 
 
 def preflight(
-    args, model, tokenizer, scorer, *, cases=None, verified_docs=None
+    args, model, tokenizer, scorer, *, meta: dict, cases=None, verified_docs=None
 ) -> None:
     output = Path(args.out)
     if not output.is_absolute():
@@ -2091,6 +2217,7 @@ def preflight(
         scorer,
         resume=True,
         run_tag="preflight_a",
+        meta=meta,
         cases=cases,
         verified_docs=verified_docs,
     )
@@ -2305,11 +2432,11 @@ def preflight(
     report["schema"] = 5
     report["status"] = "PASSED" if all_passed else "INCONCLUSIVE"
     if all_passed:
-        contract_meta = artifact_meta(args)
         cut = projected_hours > 30
-        contract_meta["arms"] = list(REDUCED_ARMS if cut else ARMS)
-        contract_meta["cost_arm_cut"] = cut
-        payload = certificate_payload(contract_meta, gates)
+        sealed_arms = list(REDUCED_ARMS if cut else ARMS)
+        payload = issue_preflight_certificate(
+            args, output, meta, first, gates, sealed_arms=sealed_arms
+        )
         report["certificate"] = payload
         report["certificate_sha256"] = _canonical_sha256(payload)
     else:
@@ -2361,6 +2488,7 @@ def main() -> None:
             model,
             tokenizer,
             scorer,
+            meta=meta,
             cases=cases,
             verified_docs=verified_docs,
         )

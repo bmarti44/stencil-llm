@@ -1570,6 +1570,9 @@ def primary_claim_status(
     a1_passed: bool,
     a3_eligible: bool,
     a3_passed: bool,
+    a3_safety_intact: bool = True,
+    a3_safety_reason: str | None = None,
+    a3_uninformative_reason: str = "no measurable full-context headroom",
 ) -> dict[str, str]:
     """Apply the registered Amendment-2 primary-claim ordering exactly."""
     if global_k < 6:
@@ -1578,11 +1581,16 @@ def primary_claim_status(
         return {"status": "INCONCLUSIVE", "reason": "A1 is uninformative"}
     if not treatment_safety:
         return {"status": "UNSUPPORTED", "reason": "treatment safety breach"}
+    if not a3_safety_intact:
+        return {
+            "status": "INCONCLUSIVE",
+            "reason": a3_safety_reason or "A3 comparator/method safety breach",
+        }
     if not a3_eligible:
         if a1_passed:
             return {
                 "status": "SUPPORTED_A1_ONLY",
-                "reason": "no measurable full-context headroom on this cohort",
+                "reason": a3_uninformative_reason.replace("_", " "),
             }
         return {"status": "UNSUPPORTED", "reason": "A3 uninformative and A1 failed"}
     if a1_passed and a3_passed:
@@ -1719,6 +1727,7 @@ def summarize_records(
         "a2_echo_minus_recency": "recency_pinned",
         "a3_half_gap_recovery": "base",
     }
+    comparator_unusable = {}
     for name, arm in comparator_for.items():
         unusable = any(
             bool(
@@ -1737,6 +1746,7 @@ def summarize_records(
             for record in primary_records
             for turn_index in primary_indices[str(record["case_id"])]
         )
+        comparator_unusable[name] = unusable
         if unusable or not safety["checks"][arm]["passed"]:
             contrasts[name]["status"] = "uninformative"
     if not safety["checks"]["full"]["passed"]:
@@ -1772,8 +1782,20 @@ def summarize_records(
         a4_contrast["status"] = "failed_safety"
     a1_passed = bool(holm["a1_echo_minus_control"]["passed"])
     a3_passed = bool(holm["a3_half_gap_recovery"]["passed"])
-    a3_claim_eligible = (
-        a3_eligible and contrasts["a3_half_gap_recovery"]["status"] == "eligible"
+    a3_integrity_failures = []
+    if comparator_unusable["a3_half_gap_recovery"]:
+        a3_integrity_failures.append("base comparator method")
+    a3_integrity_failures.extend(
+        f"{arm} safety"
+        for arm in ("base", "full")
+        if not safety["checks"][arm]["passed"]
+    )
+    a3_safety_intact = not a3_integrity_failures
+    a3_claim_eligible = a3_eligible and a3_safety_intact
+    a3_uninformative_reason = (
+        "post_exclusion_k"
+        if len(a3) < 6
+        else "no_measurable_full_context_headroom"
     )
     primary_claim = primary_claim_status(
         global_k=primary["clusters"],
@@ -1782,6 +1804,13 @@ def summarize_records(
         a1_passed=a1_passed,
         a3_eligible=a3_claim_eligible,
         a3_passed=a3_passed,
+        a3_safety_intact=a3_safety_intact,
+        a3_safety_reason=(
+            f"A3 integrity breach: {', '.join(a3_integrity_failures)}"
+            if a3_integrity_failures
+            else None
+        ),
+        a3_uninformative_reason=a3_uninformative_reason,
     )
     a2_passed = bool(holm["a2_echo_minus_recency"]["passed"])
     a4_safety = safety["checks"]["clf_pinned_echo"]["passed"] and (

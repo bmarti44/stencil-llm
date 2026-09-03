@@ -140,11 +140,41 @@ def test_v8_1_real_dev_certificate_validates_before_sealed_rows(
         lambda *a, **k: pytest.fail("pre-authorization metadata read sealed rows"),
     )
     sealed_contract = bfcl_mt.artifact_meta(args("sealed"))
-    payload = bfcl_mt.certificate_payload(dev_meta, _gates())
-    path = tmp_path / "real-dev-preflight.json"
+    bound_meta = bfcl_mt.bind_run_identity(dev_meta)
+    output = tmp_path / "real-dev-preflight"
+    records_dir = output / "records"
+    records_dir.mkdir(parents=True)
+    bfcl_mt.atomic_json(output / "meta.json", bound_meta)
+    case_ids = sorted(
+        {
+            key.rsplit(":", 1)[0]
+            for key in dev_meta["frozen_hashes"]["verified_bytes"]["records"]
+        }
+    )
+    records = [
+        {
+            "case_id": case_id,
+            "run_identity_sha256": bound_meta["run_identity_sha256"],
+            "arms": {arm: {} for arm in bound_meta["arms"]},
+        }
+        for case_id in case_ids
+    ]
+    for record in records:
+        bfcl_mt.atomic_json(records_dir / f"{record['case_id']}.json", record)
+    monkeypatch.setattr(bfcl_mt, "artifact_meta", lambda _args: dev_meta)
+    payload = bfcl_mt.issue_preflight_certificate(
+        args("dev"),
+        output,
+        bound_meta,
+        records,
+        _gates(),
+        sealed_arms=list(bound_meta["arms"]),
+    )
+    path = output / "preflight.json"
     _write_certificate(path, payload)
 
     assert len(payload["preflight_evidence"]["dev_verified_bytes"]["records"]) == 64
+    assert len(payload["preflight_evidence"]["records_sha256"]) == 32
     assert bfcl_mt.validate_preflight_certificate(path, sealed_contract)
 
 
