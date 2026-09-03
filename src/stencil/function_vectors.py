@@ -117,7 +117,9 @@ def make_residual_hook(
                 {"layer": int(layer), "generated_position": int(generated_position)}
             )
         addition = vector.to(device=hidden.device, dtype=hidden.dtype)
-        return hidden + addition * alpha
+        delta = torch.zeros_like(hidden)
+        delta[:, -1, :] = addition * alpha
+        return hidden + delta
 
     return layer, inject
 

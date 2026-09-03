@@ -128,6 +128,21 @@ def test_residual_hook_injects_only_registered_layer_and_positions():
     assert events == [{"layer": 1, "generated_position": 3}]
 
 
+def test_prompt_prefill_injection_changes_only_the_final_token_position():
+    from stencil.function_vectors import make_residual_hook
+
+    hook = make_residual_hook(
+        torch.tensor([1.0, -2.0]),
+        alpha=2.0,
+        layer=1,
+        generated_position=0,
+    )
+    hidden = torch.zeros(1, 3, 2)
+    changed = hook[1](hidden)
+    assert torch.count_nonzero(changed[:, :-1]) == 0
+    assert torch.equal(changed[:, -1], torch.tensor([[2.0, -4.0]]))
+
+
 def test_alpha_zero_and_zero_vector_are_bitwise_identity():
     from stencil.function_vectors import make_residual_hook
 
