@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import argparse
 import ast
+import functools
 import hashlib
+import inspect
 import json
 import sys
 import time
@@ -21,22 +23,24 @@ from stencil.bfcl import (  # noqa: E402
     ARMS,
     CATEGORIES,
     ECHO_HEADER,
+    REDUCED_ARMS,
     assert_case_record_schema,
     atomic_json,
     budget_history_spans,
     build_matched_control,
     call_to_python,
-    clamp_pins_newest_first,
     context_layout,
     echo_copy_flag,
     ensure_split_allowed,
     execute_call_strings,
     load_jsonl,
     parse_tool_calls,
+    position_overflow_result,
     prepare_case,
     recency_pinned_plan,
     recent_user_spans,
     render_echo,
+    resolve_pin_overflow,
     score_case,
     select_history_spans,
     summarize_records,
@@ -71,6 +75,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--deadline", type=float, default=300.0)
     parser.add_argument("--limit", type=int)
     parser.add_argument("--out", default="bfcl-evict-v3")
+    parser.add_argument(
+        "--arm-cut",
+        action="store_true",
+        help="apply the registered >30 GPU-h reduced arm set",
+    )
     args = parser.parse_args(argv)
     ensure_split_allowed(args.split)
     if args.max_new <= 0 or args.deadline <= 0:
@@ -84,8 +93,29 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return args
 
 
+@functools.cache
 def sha256(path: str | Path) -> str:
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def registration_text_and_hash() -> tuple[str, str]:
+    """Return the exact registered v7+A1 section and its SHA-256."""
+    ledger = (ROOT / "LEDGER-PLAN.md").read_text()
+    header = (
+        "## SELECTOR v2 — POST-DEVELOPMENT EVALUATION, LEG A (BFCL V3 multi-turn) — v7"
+    )
+    start = ledger.index(header)
+    next_section = ledger.find("\n## ", start + len(header))
+    text = ledger[start:] if next_section < 0 else ledger[start:next_section]
+    return text, hashlib.sha256(text.encode()).hexdigest()
+
+
+def _tree_sha256(paths: list[Path]) -> str:
+    digest = hashlib.sha256()
+    for path in sorted(paths):
+        digest.update(str(path.relative_to(ROOT)).encode() + b"\0")
+        digest.update(path.read_bytes())
+    return digest.hexdigest()
 
 
 def load_cases(split: str, limit: int | None = None) -> list[tuple[str, dict, list]]:
@@ -187,6 +217,7 @@ def generate(
     generated = []
     started = time.monotonic()
     timed_out = False
+    position_overflow = False
     evicted = False
     pin_overflow = 0
     with torch.no_grad():
@@ -201,15 +232,7 @@ def generate(
                 raise ValueError("initial turn generation requires an eviction range")
             history_end = int(evict_range[1])
             protected_end = int(evict_range[0])
-            active_columns = sorted(
-                column for start, end in keep for column in range(start, end)
-            )
-            suffix = len(ids) - history_end
-            overflow = max(
-                0,
-                protected_end + len(active_columns) + suffix - K,
-            )
-            active_keep, pin_overflow = clamp_pins_newest_first(keep, overflow)
+            active_keep = list(keep)
             actual_range = (
                 tuple(evict_range)
                 if allow_eviction and evict_range is not None and history_end > K
@@ -233,18 +256,28 @@ def generate(
             if evicted
             else sum(end - start for start, end in active_keep)
         )
+        protected_prefix_survived = (
+            all(column in index_map for column in range(protected_end))
+            if evicted
+            else True
+        )
+        if not protected_prefix_survived:
+            raise AssertionError("protected prefix did not survive eviction")
         next_token = int(logits[0, -1].argmax())
         while next_token not in EOS and len(generated) < max_new:
             if time.monotonic() - started > deadline:
                 timed_out = True
                 break
             generated.append(next_token)
+            if int(cache.k[0].shape[2]) + 1 > 40960:
+                position_overflow = True
+                break
             logits = model(torch.tensor([[next_token]], device=device), cache=cache)
             next_token = int(logits[0, -1].argmax())
     return {
         "text": tokenizer.decode(generated, skip_special_tokens=False),
         "token_ids": generated,
-        "truncated": len(generated) >= max_new,
+        "truncated": len(generated) >= max_new or position_overflow,
         "timeout": timed_out,
         "evicted": evicted,
         "prompt_tokens": len(ids),
@@ -255,6 +288,8 @@ def generate(
             int(evict_range[1]) - int(evict_range[0]) if evict_range is not None else 0
         ),
         "pin_overflow": pin_overflow,
+        "protected_prefix_survived": protected_prefix_survived,
+        "position_overflow": position_overflow,
         "columns_after_step": int(cache.k[0].shape[2]),
         "_cache": cache,
     }
@@ -349,14 +384,14 @@ def build_teacher_history(
 
 
 def _echo_cap(
-    tokenizer, entries: list[dict], context: str, close: int
+    tokenizer, entries: list[dict], context: str, close: int, *, cap: int = ECHO_CAP
 ) -> tuple[list[dict], int]:
     chosen: list[dict] = []
     for row in entries:
         proposed = [*chosen, row]
         echoed = _echo_current_user(context, proposed, close=close)
         tokens = len(tokenizer.encode(echoed).ids) - len(tokenizer.encode(context).ids)
-        if tokens > ECHO_CAP:
+        if tokens > cap:
             break
         chosen = proposed
     echoed = _echo_current_user(context, chosen, close=close)
@@ -403,9 +438,29 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
     kept, classifier_pins, budget = budget_history_spans(
         eligible, layout["evict_range"], fraction=BUDGET_FRACTION
     )
-    classifier_entries, classifier_echo_tokens = _echo_cap(
-        tokenizer, kept, context, layout["current_user_close"]
+    original_pin_columns = sum(len(row["pinned_columns"]) for row in kept)
+    suffix_columns = len(layout["context_token_ids"]) - layout["history_end"]
+    while True:
+        classifier_entries, classifier_echo_tokens = _echo_cap(
+            tokenizer, kept, context, layout["current_user_close"]
+        )
+        overflow = resolve_pin_overflow(
+            kept,
+            prefix_columns=layout["protected_prefix"][1],
+            turn_columns=suffix_columns + classifier_echo_tokens,
+            no_echo_turn_columns=suffix_columns,
+            k=K,
+        )
+        if len(overflow["entries"]) == len(kept):
+            break
+        kept = overflow["entries"]
+    overflow["dropped_columns"] = original_pin_columns - sum(
+        len(row["pinned_columns"]) for row in kept
     )
+    overflow["pin_overflow"] = (
+        bool(overflow["dropped_columns"]) and not overflow["pin_overflow_total"]
+    )
+    classifier_pins = overflow["pins"]
     echo_context = _echo_current_user(
         context, classifier_entries, close=layout["current_user_close"]
     )
@@ -426,17 +481,37 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
         context=context,
     )
     control_entries, control_echo_tokens = _echo_cap(
-        tokenizer, control["entries"], context, layout["current_user_close"]
+        tokenizer,
+        control["entries"],
+        context,
+        layout["current_user_close"],
+        cap=classifier_echo_tokens,
     )
     classifier_columns = sum(end - start for start, end in classifier_pins)
+    treatment_roles = {
+        role: sum(len(row["pinned_columns"]) for row in kept if row["role"] == role)
+        for role in ("user", "tool")
+    }
     role_pins = recent_user_spans(
         candidates,
         layout["evict_range"],
         layout["evict_range"][1] - layout["evict_range"][0],
     )
-    recency = recency_pinned_plan(candidates, classifier_columns, layout["evict_range"])
+    if overflow["pin_overflow_total"]:
+        role_pins = []
+    recency = recency_pinned_plan(
+        candidates,
+        treatment_roles,
+        layout["evict_range"],
+        tokenizer=tokenizer,
+        context=context,
+    )
     recency_entries, recency_echo_tokens = _echo_cap(
-        tokenizer, recency["entries"], context, layout["current_user_close"]
+        tokenizer,
+        recency["entries"],
+        context,
+        layout["current_user_close"],
+        cap=classifier_echo_tokens,
     )
     tool_swap = tool_swap_plan(
         candidates,
@@ -447,7 +522,11 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
         context=context,
     )
     swap_entries, swap_echo_tokens = _echo_cap(
-        tokenizer, tool_swap["entries"], context, layout["current_user_close"]
+        tokenizer,
+        tool_swap["entries"],
+        context,
+        layout["current_user_close"],
+        cap=classifier_echo_tokens,
     )
     keep = {
         "clf_pinned": classifier_pins,
@@ -473,6 +552,28 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
         "tool_swap_echo": swap_echo_tokens,
         "role_pinned": 0,
     }[arm]
+    arm_role_counts = {
+        "clf_pinned": treatment_roles,
+        "clf_pinned_echo": treatment_roles,
+        "clf_control": {
+            role: treatment_roles[role]
+            + control.get("role_column_deltas", {}).get(role, 0)
+            for role in ("user", "tool")
+        },
+        "recency_pinned": recency.get("role_counts", {"user": 0, "tool": 0}),
+        "tool_swap_echo": {
+            role: sum(
+                len(row.get("pinned_columns", []))
+                for row in tool_swap["entries"]
+                if row["role"] == role
+            )
+            for role in ("user", "tool")
+        },
+        "role_pinned": {
+            "user": sum(end - start for start, end in role_pins),
+            "tool": 0,
+        },
+    }[arm]
     rendered = render_echo(entries)
     return {
         "context": context,
@@ -487,18 +588,54 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
             "kept": len(kept),
             "budget": budget,
             "used": classifier_columns,
+            "nominal_b": budget,
+            "actual_b": classifier_columns,
+            "candidate_spans_by_role": {
+                role: [row["span"] for row in candidates if row["role"] == role]
+                for role in ("user", "tool")
+            },
+            "eligible_spans_by_role": {
+                role: [row["span"] for row in eligible if row["role"] == role]
+                for role in ("user", "tool")
+            },
+            "selected_spans_by_role": {
+                role: [row["span"] for row in kept if row["role"] == role]
+                for role in ("user", "tool")
+            },
+            "capacity_rejections": max(0, len(eligible) - len(kept)),
+            "fallback_count": int(control.get("control_role_shortfall", False)),
             "role_counts": control["role_counts"],
+            "pinned_columns_by_role": arm_role_counts,
             "control_role_shortfall": control["role_shortfall"],
+            "control_role_shortfall_event": control.get(
+                "control_role_shortfall", False
+            ),
+            "role_column_deltas": control.get(
+                "role_column_deltas", {"user": 0, "tool": 0}
+            ),
+            "match_impossible": {
+                "clf_control": control.get("match_impossible", False),
+                "recency_pinned": recency.get("match_impossible", False),
+                "tool_swap_echo": tool_swap.get("match_impossible", False),
+            }.get(arm, False),
             "echo_dropped_control_tokens": dropped,
+            "scorer_truncated_candidates": max(
+                (int(row.get("scorer_truncated_candidates", 0)) for row in candidates),
+                default=0,
+            ),
             "echo_tokens": echo_tokens,
+            "echo_token_delta": echo_tokens - classifier_echo_tokens
+            if arm in {"clf_control", "recency_pinned", "tool_swap_echo"}
+            else 0,
+            "pin_overflow": overflow["pin_overflow"],
+            "pin_overflow_total": overflow["pin_overflow_total"],
+            "pin_overflow_dropped_columns": overflow["dropped_columns"],
             "spans": kept,
         },
     }
 
 
 def _degenerate(ids: list[int], truncated: bool) -> bool:
-    if truncated:
-        return True
     if len(ids) < 8:
         return False
     grams = [tuple(ids[index : index + 4]) for index in range(len(ids) - 3)]
@@ -555,7 +692,11 @@ def run_case_arm(
         messages.extend(current_messages)
         if args.mode == "teacher":
             history_call_raw = {
-                json.dumps(_call_string_to_json(call, tools), separators=(",", ":"))
+                json.dumps(
+                    _call_string_to_json(call, tools),
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
                 for prior_calls in ground_truth[:turn_index]
                 for call in prior_calls
             }
@@ -566,6 +707,8 @@ def run_case_arm(
         turn_timeout = False
         turn_truncated = False
         turn_degenerate = False
+        turn_position_overflow = False
+        turn_repeated_call = False
         plan = _turn_plan(
             tokenizer,
             messages,
@@ -590,19 +733,52 @@ def run_case_arm(
             echo_added = len(tokenizer.encode(context).ids) - len(
                 tokenizer.encode(base_context).ids
             )
-            result = generate(
-                model,
-                tokenizer,
-                context,
-                evict_range=plan["evict_range"],
-                keep=plan["keep"],
-                allow_eviction=turn_index >= 1 and arm != "full",
-                max_new=args.max_new,
-                deadline=remaining,
-                cache=cache,
-                continuation_ids=continuation_ids,
-            )
-            cache = result.pop("_cache")
+            context_ids = tokenizer.encode(context).ids
+            if cache is None:
+                if turn_index >= 1 and arm != "full" and plan["evict_range"][1] > K:
+                    positions = (
+                        plan["evict_range"][0]
+                        + sum(end - start for start, end in plan["keep"])
+                        + len(context_ids)
+                        - plan["evict_range"][1]
+                    )
+                else:
+                    positions = len(context_ids)
+            else:
+                positions = int(cache.k[0].shape[2]) + len(continuation_ids or [])
+            position_action = position_overflow_result(arm, positions)
+            if position_action["position_overflow"]:
+                result = {
+                    "text": "",
+                    "token_ids": [],
+                    "truncated": position_action["truncated"],
+                    "timeout": False,
+                    "evicted": False,
+                    "prompt_tokens": positions,
+                    "columns_before": positions,
+                    "columns_after": positions,
+                    "pinned_columns": 0,
+                    "evictable_size": plan["evict_range"][1] - plan["evict_range"][0],
+                    "pin_overflow": 0,
+                    "columns_after_step": positions,
+                    "position_overflow": True,
+                }
+                turn_position_overflow = True
+            else:
+                result = generate(
+                    model,
+                    tokenizer,
+                    context,
+                    evict_range=plan["evict_range"],
+                    keep=plan["keep"],
+                    allow_eviction=turn_index >= 1 and arm != "full",
+                    max_new=args.max_new,
+                    deadline=remaining,
+                    cache=cache,
+                    continuation_ids=continuation_ids,
+                )
+                cache = result.pop("_cache")
+                turn_position_overflow |= result["position_overflow"]
             if first_eviction is None:
                 first_eviction = {
                     "evicted": result["evicted"],
@@ -612,7 +788,29 @@ def run_case_arm(
                     "evictable_size": result["evictable_size"],
                     "budget_used": plan["selector"]["used"],
                     "echo_tokens": plan["selector"].get("echo_tokens", 0),
-                    "pin_overflow": result["pin_overflow"],
+                    "pin_overflow": plan["selector"].get("pin_overflow", False),
+                    "pin_overflow_total": plan["selector"].get(
+                        "pin_overflow_total", False
+                    ),
+                    "pin_overflow_dropped_columns": plan["selector"].get(
+                        "pin_overflow_dropped_columns", 0
+                    ),
+                    "match_impossible": plan["selector"].get("match_impossible", False),
+                    "control_role_shortfall": plan["selector"].get(
+                        "control_role_shortfall_event", False
+                    ),
+                    "role_column_deltas": plan["selector"].get(
+                        "role_column_deltas", {"user": 0, "tool": 0}
+                    ),
+                    "echo_token_delta": plan["selector"].get("echo_token_delta", 0),
+                    "pinned_columns_by_role": plan["selector"].get(
+                        "pinned_columns_by_role", {"user": 0, "tool": 0}
+                    ),
+                    "protected_prefix_columns": plan["evict_range"][0],
+                    "current_turn_prefilled_before_eviction": False,
+                    "protected_prefix_survived": result.get(
+                        "protected_prefix_survived", True
+                    ),
                 }
             any_eviction |= result["evicted"]
             if _step == 0:
@@ -622,14 +820,33 @@ def run_case_arm(
             turn_timeout |= result["timeout"]
             turn_truncated |= result["truncated"]
             turn_degenerate |= _degenerate(result["token_ids"], result["truncated"])
+            if turn_position_overflow:
+                break
             messages.append({"role": "assistant", "content": result["text"]})
             parsed = parse_tool_calls(result["text"])
             executable = []
             call_records = []
             for item in parsed:
                 record = asdict(item)
-                if item.raw.strip() in history_call_raw:
+                normalized = (
+                    json.dumps(item.call, sort_keys=True, separators=(",", ":"))
+                    if item.valid
+                    else item.raw.strip()
+                )
+                current_ground_truth = {
+                    json.dumps(
+                        _call_string_to_json(call, tools),
+                        sort_keys=True,
+                        separators=(",", ":"),
+                    )
+                    for call in ground_truth[turn_index]
+                }
+                if (
+                    normalized in history_call_raw
+                    and normalized not in current_ground_truth
+                ):
                     repeated_history_calls += 1
+                    turn_repeated_call = True
                 if item.valid:
                     try:
                         record["python"] = call_to_python(item.call)
@@ -656,7 +873,9 @@ def run_case_arm(
                 messages.append({"role": "tool", "content": output})
             continuation_ids = _tool_step_suffix(tokenizer, execution)
         history_call_raw.update(
-            str(call.get("raw", "")).strip() for call in turn_calls if call.get("raw")
+            json.dumps(call["call"], sort_keys=True, separators=(",", ":"))
+            for call in turn_calls
+            if call.get("valid") and call.get("call")
         )
         if args.mode == "teacher":
             decoded_for_score = [
@@ -665,11 +884,17 @@ def run_case_arm(
         else:
             decoded_turns.append(decoded_steps)
             decoded_for_score = decoded_turns
-        turn_score = score_case(
-            active_case,
-            decoded_for_score,
-            ground_truth[: turn_index + 1],
-            run_name=f"score_{run_tag}_{arm}_turn_{turn_index}",
+        turn_score = (
+            {"valid": None, "error_type": "stencil:position_overflow"}
+            if turn_position_overflow and arm == "full"
+            else {"valid": False, "error_type": "stencil:position_overflow"}
+            if turn_position_overflow
+            else score_case(
+                active_case,
+                decoded_for_score,
+                ground_truth[: turn_index + 1],
+                run_name=f"score_{run_tag}_{arm}_turn_{turn_index}",
+            )
         )
         turns.append(
             {
@@ -679,16 +904,32 @@ def run_case_arm(
                 "timeout": turn_timeout,
                 "truncated": turn_truncated,
                 "degenerate": turn_degenerate,
-                "pass": bool(turn_score["valid"]),
+                "pass": (
+                    None if turn_score["valid"] is None else bool(turn_score["valid"])
+                ),
                 "score": turn_score,
                 "eviction": first_eviction,
                 "prompt_positions": responses[0]["prompt_tokens"] if responses else 0,
+                "position_overflow": turn_position_overflow,
+                "repeated_call": turn_repeated_call,
+                "chat_control_echo": any(
+                    marker in render_echo(plan["entries"])
+                    for marker in (
+                        "<|im_",
+                        "<tool_call",
+                        "</tool_call",
+                        "<tool_response",
+                        "</tool_response",
+                    )
+                ),
             }
         )
         if turn_timeout and args.mode == "free":
             break
     if args.mode == "teacher":
-        final_score = {"valid": all(turn["pass"] for turn in turns)}
+        final_score = {
+            "valid": all(turn["pass"] for turn in turns if turn["pass"] is not None)
+        }
     elif len(decoded_turns) == len(ground_truth):
         final_score = score_case(
             case,
@@ -717,13 +958,20 @@ def run_case_arm(
         "final_pass": bool(final_score["valid"]),
         "final_score": final_score,
         "repeated_history_calls": repeated_history_calls,
+        "position_overflow": any(turn["position_overflow"] for turn in turns),
         "_context_ids": context_ids_by_turn,
     }
 
 
 def run_case(model, tokenizer, scorer, category, raw_case, ground_truth, args, run_tag):
     started = time.monotonic()
-    selected_arms = ARMS if args.mode == "teacher" else ("base", "clf_pinned_echo")
+    selected_arms = (
+        REDUCED_ARMS
+        if args.mode == "teacher" and args.arm_cut
+        else ARMS
+        if args.mode == "teacher"
+        else ("base", "clf_pinned_echo")
+    )
     arms = {
         arm: run_case_arm(
             model,
@@ -761,7 +1009,7 @@ def run_case(model, tokenizer, scorer, category, raw_case, ground_truth, args, r
         if first_divergence is None and len(left) != len(right):
             first_divergence = min(len(left), len(right))
     record = {
-        "schema": 3,
+        "schema": 4,
         "mode": args.mode,
         "case_id": raw_case["id"],
         "category": category,
@@ -775,12 +1023,35 @@ def run_case(model, tokenizer, scorer, category, raw_case, ground_truth, args, r
 
 
 def artifact_meta(args) -> dict:
-    files = [*CASE_FILES.values(), *ANSWER_FILES.values(), DATA / "cohorts.json"]
+    _, registration_hash = registration_text_and_hash()
+    classifier = assert_registered_classifier()
+    model_dir = ROOT / f"models/qwen3-{args.trunk}-hf"
+    checker_dir = ROOT / "vendor/bfcl_eval/eval_checker/multi_turn_eval"
+    frozen_hashes = {
+        "harness": sha256(__file__),
+        "selector_artifact": hashlib.sha256(
+            json.dumps(classifier, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest(),
+        "trunk_weights": sha256(ROOT / f"models/qwen3-{args.trunk}.pt"),
+        "trunk_tokenizer": sha256(model_dir / "tokenizer.json"),
+        "cohorts": sha256(DATA / "cohorts.json"),
+        "chat_template": hashlib.sha256(
+            inspect.getsource(render_prompt).encode()
+        ).hexdigest(),
+        "vendored_checker": _tree_sha256(list(checker_dir.rglob("*.py"))),
+    }
     return {
-        "schema": 3,
+        "schema": 4,
         "split": args.split,
         "mode": args.mode,
-        "arms": list(ARMS if args.mode == "teacher" else ("base", "clf_pinned_echo")),
+        "arms": list(
+            REDUCED_ARMS
+            if args.mode == "teacher" and getattr(args, "arm_cut", False)
+            else ARMS
+            if args.mode == "teacher"
+            else ("base", "clf_pinned_echo")
+        ),
+        "cost_arm_cut": bool(getattr(args, "arm_cut", False)),
         "trunk": args.trunk,
         "max_new": args.max_new,
         "deadline": args.deadline,
@@ -791,15 +1062,15 @@ def artifact_meta(args) -> dict:
         "selector_threshold": SELECTOR_THRESHOLD,
         "echo_header": ECHO_HEADER,
         "control_seed": CONTROL_SEED,
+        "registration_sha256": registration_hash,
         "selector_roles": ["user", "tool"],
         "selector_context": "empty",
         "eviction_timing": "pre-query",
         "protected_prefix": "system_plus_tools_and_at_least_four_sink_columns",
         "greedy": True,
         "thinking": False,
-        "script_sha256": sha256(__file__),
-        "classifier_sha256": assert_registered_classifier(),
-        "data_sha256": {str(path.relative_to(ROOT)): sha256(path) for path in files},
+        "frozen_hashes": frozen_hashes,
+        "classifier_sha256": classifier,
     }
 
 
@@ -920,8 +1191,77 @@ def determinism_trace(arm_record: dict) -> list[dict]:
     ]
 
 
+def assert_dev_invariants(records: list[dict]) -> dict:
+    """Assert registration-v7 invariants for every generated dev arm/turn."""
+    checked = 0
+    shortfalls = overflows = drops = 0
+    for record in records:
+        treatment_turns = record["arms"]["clf_pinned_echo"]["turns"]
+        for turn_offset, treatment_turn in enumerate(treatment_turns):
+            treatment = treatment_turn["eviction"]
+            for arm, arm_row in record["arms"].items():
+                turn = arm_row["turns"][turn_offset]
+                eviction = turn["eviction"]
+                if eviction["evicted"]:
+                    assert eviction["current_turn_prefilled_before_eviction"] is False
+                    assert eviction["protected_prefix_survived"] is True
+                    assert (
+                        eviction["columns_before"]
+                        - eviction["evictable_size"]
+                        + eviction["pinned_columns"]
+                        == eviction["columns_after"]
+                    )
+                if arm in {"recency_pinned", "tool_swap_echo"}:
+                    assert (
+                        eviction["pinned_columns_by_role"]
+                        == treatment["pinned_columns_by_role"]
+                        or eviction["match_impossible"]
+                    )
+                    assert (
+                        abs(eviction["echo_token_delta"]) <= 16
+                        or eviction["match_impossible"]
+                    )
+                if arm == "clf_control":
+                    if eviction["control_role_shortfall"]:
+                        assert (
+                            sum(eviction["pinned_columns_by_role"].values())
+                            == sum(treatment["pinned_columns_by_role"].values())
+                            or eviction["match_impossible"]
+                        )
+                    else:
+                        assert (
+                            eviction["pinned_columns_by_role"]
+                            == treatment["pinned_columns_by_role"]
+                            or eviction["match_impossible"]
+                        )
+                shortfalls += bool(eviction.get("control_role_shortfall"))
+                overflows += bool(eviction.get("pin_overflow"))
+                drops += int(eviction.get("pin_overflow_dropped_columns", 0))
+                checked += 1
+    return {
+        "checked": checked,
+        "passed_fraction": 1.0,
+        "control_role_shortfall": shortfalls,
+        "pin_overflow": overflows,
+        "dropped_columns": drops,
+    }
+
+
 def preflight(args, model, tokenizer, scorer) -> None:
     first = run(args, model, tokenizer, scorer, resume=True, run_tag="preflight_a")
+    invariants = assert_dev_invariants(first)
+    excessive_echo = [
+        (record["case_id"], arm, turn["turn"], turn["eviction"]["echo_token_delta"])
+        for record in first
+        for arm in ("clf_control", "recency_pinned", "tool_swap_echo")
+        for turn in record["arms"][arm]["turns"]
+        if abs(int(turn["eviction"].get("echo_token_delta", 0))) > 16
+        and not turn["eviction"].get("match_impossible")
+    ]
+    if excessive_echo:
+        raise RuntimeError(
+            f"dev comparator echo token delta exceeds 16: {excessive_echo}"
+        )
     dev_cases = load_cases("dev")
     determinism_cases = [
         next(row for row in dev_cases if row[0] == category) for category in CATEGORIES
@@ -950,13 +1290,15 @@ def preflight(args, model, tokenizer, scorer) -> None:
         for right in second
     )
     base_rows = [record["arms"]["base"] for record in first]
+    full_rows = [record["arms"]["full"] for record in first]
     selectors = [record["arms"]["clf_pinned"]["selector"] for record in first]
     candidates = sum(row["candidates"] for row in selectors)
     kept = sum(row["kept"] for row in selectors)
     budget = sum(row["budget"] for row in selectors)
     used = sum(row["used"] for row in selectors)
     seconds = sum(float(record["seconds"]) for record in first)
-    competence_rate = sum(row["final_pass"] for row in base_rows) / len(base_rows)
+    base_passed = sum(row["final_pass"] for row in base_rows)
+    full_passed = sum(row["final_pass"] for row in full_rows)
     long_turns = [
         turn
         for record in first
@@ -964,6 +1306,14 @@ def preflight(args, model, tokenizer, scorer) -> None:
         for turn in record["arms"]["base"]["turns"]
     ]
     long_turn_rate = sum(bool(turn["pass"]) for turn in long_turns) / len(long_turns)
+    long_records = [record for record in first if record["category"] == "long_context"]
+    full_long_passed = sum(
+        record["arms"]["full"]["final_pass"] for record in long_records
+    )
+    full_long_turns = [
+        turn for record in long_records for turn in record["arms"]["full"]["turns"]
+    ]
+    full_long_turn_passed = sum(bool(turn["pass"]) for turn in full_long_turns)
     exposed_records = [
         record
         for record in first
@@ -979,19 +1329,50 @@ def preflight(args, model, tokenizer, scorer) -> None:
             strict=True,
         )
     )
-    competence_ok = competence_rate >= 0.15 and long_turn_rate >= 0.15
+    competence_ok = (
+        full_passed >= 5
+        and full_long_passed >= 2
+        and full_long_turn_passed >= 6
+        and base_passed >= 5
+        and sum(bool(turn["pass"]) for turn in long_turns) >= 6
+    )
     projected_hours = seconds / len(first) * 64 / 3600
+    reduced_projected_hours = projected_hours * 5 / len(ARMS)
     report = {
+        "competence": {
+            "full_overall": {"passed": full_passed, "n": 32, "floor": "5/32"},
+            "full_long_cases": {"passed": full_long_passed, "n": 8, "floor": "2/8"},
+            "full_long_turns": {
+                "passed": full_long_turn_passed,
+                "n": 40,
+                "floor": "6/40",
+            },
+            "base_overall": {"passed": base_passed, "n": 32, "floor": "5/32"},
+            "base_long_turns": {
+                "passed": sum(bool(turn["pass"]) for turn in long_turns),
+                "n": 40,
+                "floor": "6/40",
+            },
+            "passed_all": competence_ok,
+            "trunk": args.trunk,
+            "use_4b_fallback": not competence_ok and args.trunk == "1.7b",
+            "if_failed": "rerun every floor once with --trunk 4b"
+            if not competence_ok and args.trunk == "1.7b"
+            else "INCONCLUSIVE"
+            if not competence_ok
+            else None,
+        },
         "base_competence": {
-            "passed": sum(row["final_pass"] for row in base_rows),
+            "passed": base_passed,
             "n": len(base_rows),
-            "rate": competence_rate,
-            "floor": 0.15,
-            "overall_floor_pass": competence_rate >= 0.15,
+            "rate": base_passed / len(base_rows),
+            "floor": "5/32",
+            "overall_floor_pass": base_passed >= 5,
             "long_context_turns_passed": sum(bool(turn["pass"]) for turn in long_turns),
             "long_context_turns_n": len(long_turns),
             "long_context_turns_rate": long_turn_rate,
-            "long_context_floor_pass": long_turn_rate >= 0.15,
+            "long_context_floor_pass": sum(bool(turn["pass"]) for turn in long_turns)
+            >= 6,
             "passed_both": competence_ok,
             "trunk": args.trunk,
             "use_4b_fallback": not competence_ok and args.trunk == "1.7b",
@@ -1004,6 +1385,7 @@ def preflight(args, model, tokenizer, scorer) -> None:
             ),
         },
         "bitwise_base_rerun": {"cases": 4, "passed": deterministic},
+        "invariants": invariants,
         "selector_coverage": {
             "candidates": candidates,
             "kept": kept,
@@ -1011,9 +1393,37 @@ def preflight(args, model, tokenizer, scorer) -> None:
             "budget_columns": budget,
             "used_columns": used,
             "fraction_budget_used": used / budget if budget else None,
+            "by_role": {
+                role: {
+                    "eligible_spans": sum(
+                        len(turn.get("eligible_spans_by_role", {}).get(role, []))
+                        for row in selectors
+                        for turn in row.get("turns", [])
+                    ),
+                    "selected_spans": sum(
+                        len(turn.get("selected_spans_by_role", {}).get(role, []))
+                        for row in selectors
+                        for turn in row.get("turns", [])
+                    ),
+                }
+                for role in ("user", "tool")
+            },
+            "nominal_b": budget,
+            "actual_b": used,
+            "capacity_rejections": sum(
+                int(turn.get("capacity_rejections", 0))
+                for row in selectors
+                for turn in row.get("turns", [])
+            ),
+            "fallback_count": sum(
+                int(turn.get("fallback_count", 0))
+                for row in selectors
+                for turn in row.get("turns", [])
+            ),
         },
         "feasibility": {
             "pressure_exposed_cases": len(exposed_records),
+            "no_pressure_cases": len(long_records) - len(exposed_records),
             "pressure_exposed_floor": 4,
             "tool_chunk_exposed_case_turns": exposed_tool_turns,
             "tool_chunk_floor": 4,
@@ -1028,6 +1438,8 @@ def preflight(args, model, tokenizer, scorer) -> None:
             "projected_sealed_hours": projected_hours,
             "cap_gpu_hours": 30,
             "arm_cut_required": projected_hours > 30,
+            "projected_reduced_hours": reduced_projected_hours,
+            "stop_inconclusive": projected_hours > 30 and reduced_projected_hours > 30,
             "sealed_arms": (
                 ["base", "clf_pinned_echo", "clf_control", "recency_pinned", "full"]
                 if projected_hours > 30

@@ -83,6 +83,7 @@ class ClassifierScorer:
         )
         self.head.load_state_dict(saved["head"])
         self.head.eval()
+        self.scorer_truncated_candidates = 0
 
     def __call__(
         self,
@@ -99,6 +100,8 @@ class ClassifierScorer:
         if len(texts) != len(contexts):
             raise ValueError("texts and contexts must have equal length")
         probabilities: list[float] = []
+        if not hasattr(self, "scorer_truncated_candidates"):
+            self.scorer_truncated_candidates = 0
         with torch.no_grad():
             for start in range(0, len(texts), 64):
                 chunk = list(texts[start : start + 64])
@@ -108,9 +111,7 @@ class ClassifierScorer:
                         f"[{role}] {value}", add_special_tokens=True
                     )["input_ids"]
                     if len(candidate_tokens) > 192:
-                        raise AssertionError(
-                            "selector candidate exceeds 192 encoder tokens"
-                        )
+                        self.scorer_truncated_candidates += 1
                 batch = self.tokenizer(
                     [value if value else "(no context)" for value in chunk_contexts],
                     [f"[{role}] {value}" for value in chunk],

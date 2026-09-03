@@ -27,6 +27,13 @@ ARMS = (
     "role_pinned",
     "full",
 )
+REDUCED_ARMS = (
+    "base",
+    "clf_pinned_echo",
+    "clf_control",
+    "recency_pinned",
+    "full",
+)
 ECHO_HEADER = "Earlier context restated verbatim:"
 CONTROL_MARKERS = (
     "<|im_",
@@ -220,6 +227,7 @@ def select_history_spans(
     *,
     threshold: float = 0.5,
     chunk_tokens: int = 128,
+    special_token_ids: set[int] | None = None,
 ) -> tuple[list[dict], list[dict], int]:
     """Score prior user sentences and newline/128-token tool chunks once."""
     from stencil.selector_v2 import split_sentence_spans
@@ -235,11 +243,16 @@ def select_history_spans(
             continue
         if role == "user" and location["message_index"] == current_user_index:
             continue
-        pieces = (
-            split_sentence_spans(location["content"])
-            if role == "user"
-            else _tool_line_spans(location["content"])
-        )
+        pieces = split_sentence_spans(location["content"])
+        if role == "tool":
+            pieces = [
+                sentence
+                for line in _tool_line_spans(location["content"])
+                for sentence in split_sentence_spans(
+                    location["content"][line[0] : line[1]]
+                )
+                for sentence in [(line[0] + sentence[0], line[0] + sentence[1])]
+            ]
         if chunk_tokens <= 0:
             raise ValueError("chunk_tokens must be positive")
         local_spans = [
@@ -269,15 +282,22 @@ def select_history_spans(
                     ),
                 }
             )
-    dropped = sum(
-        any(marker in str(row["text"]) for marker in CONTROL_MARKERS)
-        for row in candidates
-    )
-    candidates = [
-        row
-        for row in candidates
-        if not any(marker in str(row["text"]) for marker in CONTROL_MARKERS)
-    ]
+    if special_token_ids is None:
+        decoder = (
+            tokenizer.get_added_tokens_decoder()
+            if hasattr(tokenizer, "get_added_tokens_decoder")
+            else {}
+        )
+        special_token_ids = {int(token_id) for token_id in decoder}
+
+    def unsafe(row: Mapping) -> bool:
+        return any(marker in str(row["text"]) for marker in CONTROL_MARKERS) or bool(
+            set(tokenizer.encode(str(row["text"])).ids) & special_token_ids
+        )
+
+    dropped = sum(unsafe(row) for row in candidates)
+    candidates = [row for row in candidates if not unsafe(row)]
+    scorer_before = int(getattr(scorer, "scorer_truncated_candidates", 0))
     for role in ("user", "tool"):
         role_rows = [row for row in candidates if row["role"] == role]
         texts = [row["text"] for row in role_rows]
@@ -292,6 +312,9 @@ def select_history_spans(
                 raise ValueError("classifier score outside [0, 1]")
             row["score"] = value
     selected = [row for row in candidates if row["score"] >= threshold]
+    truncated = int(getattr(scorer, "scorer_truncated_candidates", scorer_before))
+    for row in candidates:
+        row["scorer_truncated_candidates"] = max(0, truncated - scorer_before)
     return selected, candidates, dropped
 
 
@@ -360,13 +383,124 @@ def render_echo(entries: Sequence[Mapping]) -> str:
     return (
         ECHO_HEADER
         + "\n"
-        + "\n".join(f"- {row['role']}: {row['text']}" for row in entries)
+        + "\n".join(
+            f"- {row['role']}: {json.dumps(str(row['text']), ensure_ascii=False)}"
+            for row in entries
+        )
     )
 
 
 def _candidate_columns(row: Mapping, low: int, high: int) -> list[int]:
     span = row["span"]
     return list(range(max(low, int(span[0])), min(high, int(span[1]))))
+
+
+def _row_columns(row: Mapping, low: int, high: int) -> list[int]:
+    return _candidate_columns(row, low, high)
+
+
+def _decode_row(
+    row: Mapping, columns: Sequence[int], tokenizer=None, context=None
+) -> dict:
+    out = dict(row)
+    out["span"] = [min(columns), max(columns) + 1]
+    out["pinned_columns"] = list(columns)
+    if tokenizer is not None and context is not None:
+        out["text"] = tokenizer.decode(
+            list(tokenizer.encode(context).ids)[out["span"][0] : out["span"][1]]
+        )
+    elif len(columns) < int(row["span"][1]) - int(row["span"][0]):
+        width = max(1, int(row["span"][1]) - int(row["span"][0]))
+        out["text"] = str(row["text"])[
+            : max(1, len(str(row["text"])) * len(columns) // width)
+        ]
+    return out
+
+
+def clamp_candidate_rows(
+    rows: Sequence[Mapping],
+    quotas: Mapping[str, int],
+    *,
+    evict_range: tuple[int, int] | None = None,
+    tokenizer=None,
+    context: str | None = None,
+) -> dict:
+    """Admit resources in order, truncating only the final row per role."""
+    low, high = evict_range or (-sys.maxsize, sys.maxsize)
+    remaining = {role: int(quotas.get(role, 0)) for role in ("user", "tool")}
+    entries: list[dict] = []
+    closed: set[str] = set()
+    for row in rows:
+        role = str(row["role"])
+        if role in closed or remaining[role] <= 0:
+            continue
+        columns = _row_columns(row, low, high)
+        if not columns:
+            continue
+        take = min(len(columns), remaining[role])
+        entries.append(_decode_row(row, columns[:take], tokenizer, context))
+        remaining[role] -= take
+        if take < len(columns):
+            closed.add(role)
+    chosen = [column for row in entries for column in row["pinned_columns"]]
+    counts = {
+        role: sum(len(row["pinned_columns"]) for row in entries if row["role"] == role)
+        for role in ("user", "tool")
+    }
+    return {
+        "pins": _columns_to_spans(chosen),
+        "entries": entries,
+        "role_counts": counts,
+        "match_impossible": any(remaining.values()),
+    }
+
+
+def _resource_match(
+    candidates: Sequence[Mapping],
+    kept: Sequence[Mapping],
+    evict_range: tuple[int, int],
+    *,
+    seed: int,
+    allow_role_fallback: bool,
+) -> tuple[list[Mapping], bool, bool]:
+    """One-to-one width/age resource matching without reuse or rotation."""
+    low, high = evict_range
+    selected_ids = {id(row) for row in kept}
+    selected_spans = {tuple(row["span"]) for row in kept}
+    available = [
+        row
+        for row in candidates
+        if id(row) not in selected_ids and tuple(row["span"]) not in selected_spans
+    ]
+    rng = random.Random(seed)
+    tie = {id(row): rng.random() for row in available}
+    matches: list[Mapping] = []
+    shortfall = False
+    for target in kept:
+        width = len(target.get("pinned_columns", _row_columns(target, low, high)))
+        same = [
+            row
+            for row in available
+            if row["role"] == target["role"]
+            and int(row["turn"]) == int(target["turn"])
+            and len(_row_columns(row, low, high)) == width
+        ]
+        pool = same
+        if not pool and allow_role_fallback:
+            pool = [
+                row
+                for row in available
+                if row["role"] != target["role"]
+                and int(row["turn"]) == int(target["turn"])
+                and len(_row_columns(row, low, high)) == width
+            ]
+            shortfall |= bool(pool)
+        if not pool:
+            return [], True, shortfall
+        choice = min(pool, key=lambda row: (tie[id(row)], int(row["span"][0])))
+        matches.append(choice)
+        available.remove(choice)
+    return matches, False, shortfall
 
 
 def build_matched_control(
@@ -378,96 +512,52 @@ def build_matched_control(
     tokenizer=None,
     context: str | None = None,
 ) -> dict:
-    """Nearest-free exact-column control with cross-role shortfall fill."""
+    """Width/age resource-identified control with registered role fallback."""
     low, high = evict_range
-    selected = {column for row in kept for column in row.get("pinned_columns", [])}
     needed = {
         role: sum(
             len(row.get("pinned_columns", [])) for row in kept if row["role"] == role
         )
         for role in ("user", "tool")
     }
-    pools = {
-        role: sorted(
-            {
-                column
-                for row in candidates
-                if row["role"] == role
-                for column in _candidate_columns(row, low, high)
-                if column not in selected
-            }
+    matched, impossible, shortfall = _resource_match(
+        candidates, kept, evict_range, seed=seed, allow_role_fallback=True
+    )
+    if impossible:
+        return {
+            "pins": [],
+            "entries": [],
+            "role_counts": {"user": 0, "tool": 0},
+            "role_shortfall": needed,
+            "control_role_shortfall": shortfall,
+            "role_column_deltas": {role: -needed[role] for role in needed},
+            "match_impossible": True,
+        }
+    quotas = {
+        role: sum(
+            len(_row_columns(row, low, high)) for row in matched if row["role"] == role
         )
         for role in ("user", "tool")
     }
-    column_roles = {
-        column: role for role, columns in pools.items() for column in columns
-    }
-    anchors = {
-        role: [
-            column
-            for row in kept
-            if row["role"] == role
-            for column in row.get("pinned_columns", [])
-        ]
-        for role in ("user", "tool")
-    }
-    chosen: list[int] = []
-    shortfall = {"user": 0, "tool": 0}
-    rng = random.Random(seed)
-    for role in ("user", "tool"):
-        pool = pools[role]
-        tie = {column: rng.random() for column in pool}
-        center = sum(anchors[role]) / len(anchors[role]) if anchors[role] else low
-        ordered = sorted(pool, key=lambda column: (abs(column - center), tie[column]))
-        take = min(needed[role], len(ordered))
-        chosen.extend(ordered[:take])
-        pools[role] = ordered[take:]
-        shortfall[role] = needed[role] - take
-    for role in ("user", "tool"):
-        other = "tool" if role == "user" else "user"
-        take = shortfall[role]
-        if take > len(pools[other]):
-            raise RuntimeError("control pools cannot supply exact registered columns")
-        chosen.extend(pools[other][:take])
-        pools[other] = pools[other][take:]
-    if len(set(chosen)) != sum(needed.values()):
-        raise AssertionError("matched control is not exact or disjoint")
-    chosen_set = set(chosen)
-    if tokenizer is not None and context is not None:
-        context_ids = list(tokenizer.encode(context).ids)
-        entries = []
-        entry_spans = [
-            span
-            for role in ("user", "tool")
-            for span in _columns_to_spans(
-                [column for column in chosen if column_roles[column] == role]
-            )
-        ]
-        for start, end in sorted(entry_spans):
-            source = next(
-                row for row in candidates if start in _candidate_columns(row, low, high)
-            )
-            row = dict(source)
-            row.update(
-                {
-                    "role": column_roles[start],
-                    "text": tokenizer.decode(context_ids[start:end]),
-                    "span": [start, end],
-                    "pinned_columns": list(range(start, end)),
-                }
-            )
-            entries.append(row)
-    else:
-        entries = [
-            dict(row)
-            for row in candidates
-            if chosen_set.intersection(_candidate_columns(row, low, high))
-        ]
+    clamped = clamp_candidate_rows(
+        matched,
+        quotas,
+        evict_range=evict_range,
+        tokenizer=tokenizer,
+        context=context,
+    )
+    actual = clamped["role_counts"]
+    deltas = {role: actual[role] - needed[role] for role in needed}
     return {
-        "pins": _columns_to_spans(chosen),
-        "entries": entries,
+        "pins": clamped["pins"],
+        "entries": clamped["entries"],
         "role_counts": needed,
-        "role_shortfall": shortfall,
+        "role_shortfall": {
+            role: max(0, needed[role] - actual[role]) for role in needed
+        },
+        "control_role_shortfall": shortfall,
+        "role_column_deltas": deltas,
+        "match_impossible": False,
     }
 
 
@@ -478,44 +568,73 @@ def same_role_control_spans(
     *,
     seed: int,
 ) -> tuple[list[tuple[int, int]], dict[str, int]]:
-    """Compatibility wrapper for the v3 matched control."""
-    result = build_matched_control(candidates, kept, evict_range, seed=seed)
-    return result["pins"], result["role_counts"]
+    """Compatibility wrapper retaining the v2 column-dose API."""
+    low, high = evict_range
+    selected = {column for row in kept for column in row.get("pinned_columns", [])}
+    counts = {
+        role: sum(
+            len(row.get("pinned_columns", [])) for row in kept if row["role"] == role
+        )
+        for role in ("user", "tool")
+    }
+    chosen = []
+    rng = random.Random(seed)
+    for role in ("user", "tool"):
+        pool = sorted(
+            {
+                column
+                for row in candidates
+                if row["role"] == role
+                for column in _candidate_columns(row, low, high)
+                if column not in selected
+            },
+            key=lambda column: (rng.random(), column),
+        )
+        if len(pool) < counts[role]:
+            raise RuntimeError("same-role control pool cannot supply exact columns")
+        chosen.extend(pool[: counts[role]])
+    return _columns_to_spans(chosen), counts
 
 
 def recency_pinned_plan(
     candidates: Sequence[Mapping],
-    classifier_columns: int,
+    classifier_columns: int | Mapping[str, int],
     evict_range: tuple[int, int],
+    *,
+    tokenizer=None,
+    context: str | None = None,
 ) -> dict:
-    """Keep all user columns and newest tool columns up to classifier dose."""
-    low, high = evict_range
-    user = sorted(
-        {
-            column
+    """Most-recent candidates under exact treatment per-role quotas."""
+    if isinstance(classifier_columns, Mapping):
+        quotas = {
+            role: int(classifier_columns.get(role, 0)) for role in ("user", "tool")
+        }
+    else:  # compatibility for v3 callers: allocate dose user-first, then tool
+        low, high = evict_range
+        user_available = sum(
+            len(_candidate_columns(row, low, high))
             for row in candidates
             if row["role"] == "user"
-            for column in range(
-                max(low, int(row.get("role_span", row["span"])[0])),
-                min(high, int(row.get("role_span", row["span"])[1])),
-            )
+        )
+        quotas = {
+            "user": min(int(classifier_columns), user_available),
+            "tool": max(0, int(classifier_columns) - user_available),
         }
+    ordered = sorted(
+        candidates,
+        key=lambda row: (
+            -int(row["turn"]),
+            -int(row.get("message_index", row["span"][0])),
+            -int(row["span"][0]),
+        ),
     )
-    tool_rows = sorted(
-        (row for row in candidates if row["role"] == "tool"),
-        key=lambda row: (int(row["turn"]), int(row["span"][0])),
-        reverse=True,
+    return clamp_candidate_rows(
+        ordered,
+        quotas,
+        evict_range=evict_range,
+        tokenizer=tokenizer,
+        context=context,
     )
-    tool_budget = max(0, classifier_columns - len(user))
-    tool: list[int] = []
-    entries = [dict(row) for row in candidates if row["role"] == "user"]
-    for row in tool_rows:
-        columns = _candidate_columns(row, low, high)
-        if len(tool) + len(columns) > tool_budget:
-            continue
-        tool.extend(columns)
-        entries.append(dict(row))
-    return {"pins": _columns_to_spans([*user, *tool]), "entries": entries}
 
 
 def tool_swap_plan(
@@ -527,23 +646,107 @@ def tool_swap_plan(
     tokenizer=None,
     context: str | None = None,
 ) -> dict:
-    """Retain selected users and replace selected tools by matched tools."""
+    """Retain users and replace tools by disjoint same-role width/age matches."""
     users = [dict(row) for row in kept if row["role"] == "user"]
     tools = [dict(row) for row in kept if row["role"] == "tool"]
-    matched = build_matched_control(
-        candidates,
-        tools,
-        evict_range,
-        seed=seed,
+    matches, impossible, _ = _resource_match(
+        candidates, tools, evict_range, seed=seed, allow_role_fallback=False
+    )
+    if impossible:
+        return {
+            "pins": _columns_to_spans(
+                [column for row in users for column in row["pinned_columns"]]
+            ),
+            "entries": users,
+            "role_shortfall": {
+                "user": 0,
+                "tool": sum(len(row["pinned_columns"]) for row in tools),
+            },
+            "match_impossible": True,
+        }
+    tool_quota = sum(len(row["pinned_columns"]) for row in tools)
+    matched = clamp_candidate_rows(
+        matches,
+        {"user": 0, "tool": tool_quota},
+        evict_range=evict_range,
         tokenizer=tokenizer,
         context=context,
     )
     user_columns = [column for row in users for column in row["pinned_columns"]]
-    entries = users + [row for row in matched["entries"] if row["role"] == "tool"]
+    entries = users + matched["entries"]
     return {
         "pins": _columns_to_spans([*user_columns, *_flatten_spans(matched["pins"])]),
         "entries": entries,
-        "role_shortfall": matched["role_shortfall"],
+        "role_shortfall": {"user": 0, "tool": 0},
+        "match_impossible": False,
+    }
+
+
+def resolve_pin_overflow(
+    entries: Sequence[Mapping],
+    *,
+    prefix_columns: int,
+    turn_columns: int,
+    k: int,
+    no_echo_turn_columns: int | None = None,
+) -> dict:
+    """Drop whole lowest-ranked pins, preserving prefix/current-turn columns."""
+    total = (
+        prefix_columns
+        + (turn_columns if no_echo_turn_columns is None else no_echo_turn_columns)
+        > k
+    )
+    kept = [] if total else [dict(row) for row in entries]
+    capacity = max(0, k - prefix_columns - turn_columns)
+    dropped_columns = 0
+    while sum(len(row.get("pinned_columns", [])) for row in kept) > capacity:
+        dropped_columns += len(kept[-1].get("pinned_columns", []))
+        kept.pop()
+    pins = _columns_to_spans(
+        [column for row in kept for column in row.get("pinned_columns", [])]
+    )
+    return {
+        "pins": pins,
+        "entries": kept,
+        "pin_overflow": bool(dropped_columns) and not total,
+        "pin_overflow_total": total,
+        "dropped_columns": (
+            sum(len(row.get("pinned_columns", [])) for row in entries)
+            if total
+            else dropped_columns
+        ),
+    }
+
+
+def exact_sign_flip(values: Sequence[float]) -> dict:
+    """Exact one-sided paired sign-flip test, with zeros and upper-tail ties."""
+    rows = [float(value) for value in values]
+    observed = sum(rows)
+    assignments = 1 << len(rows)
+    upper = 0
+    for mask in range(assignments):
+        statistic = sum(
+            value if mask & (1 << index) else -value for index, value in enumerate(rows)
+        )
+        if statistic >= observed - 1e-12:
+            upper += 1
+    return {
+        "k": len(rows),
+        "upper_tail": upper,
+        "assignments": assignments,
+        "p": upper / assignments,
+        "grid": f"{upper}/{assignments}",
+    }
+
+
+def position_overflow_result(arm: str, positions: int, limit: int = 40960) -> dict:
+    """Registered action when initial or within-turn positions exceed the limit."""
+    overflow = positions > limit
+    return {
+        "position_overflow": overflow,
+        "generate": not overflow,
+        "pass": None if arm == "full" and overflow else (False if overflow else None),
+        "truncated": arm != "full" and overflow,
     }
 
 
@@ -759,10 +962,11 @@ def assert_case_record_schema(record: Mapping) -> None:
     if missing:
         raise ValueError(f"record fields missing: {sorted(missing)}")
     schema = int(record["schema"])
-    if schema not in {2, 3}:
-        raise ValueError("record schema is not BFCL LEG A v2/v3")
-    if set(record["arms"]) != set(ARMS):
-        raise ValueError("record arms do not equal the registered v3 arm set")
+    if schema not in {2, 3, 4}:
+        raise ValueError("record schema is not BFCL LEG A v2/v3/v4")
+    record_arms = set(record["arms"])
+    if record_arms != set(ARMS) and record_arms != set(REDUCED_ARMS):
+        raise ValueError("record arms do not equal a registered v7 arm set")
     arm_required = {
         "turns",
         "evicted",
@@ -803,6 +1007,21 @@ def assert_case_record_schema(record: Mapping) -> None:
                 }
                 if required_v3 - set(turn["eviction"]):
                     raise ValueError(f"arm {name} turn v3 eviction schema incomplete")
+            if schema == 4:
+                required_v4 = {
+                    "budget_used",
+                    "echo_tokens",
+                    "pin_overflow",
+                    "pin_overflow_total",
+                    "match_impossible",
+                    "echo_token_delta",
+                }
+                if required_v4 - set(turn["eviction"]):
+                    raise ValueError(f"arm {name} turn v4 eviction schema incomplete")
+                if {"position_overflow", "repeated_call", "chat_control_echo"} - set(
+                    turn
+                ):
+                    raise ValueError(f"arm {name} turn v4 safety schema incomplete")
 
 
 def _rate(values: Sequence[bool]) -> dict:
@@ -828,8 +1047,16 @@ def _arm_summary(records: Sequence[Mapping], arm: str) -> dict:
             "mean": sum(values) / len(values) if values else None,
         }
     return {
-        "final_pass": _rate([bool(row["final_pass"]) for row in arm_rows]),
-        "per_turn_pass": _rate([bool(turn["pass"]) for turn in turns]),
+        "final_pass": _rate(
+            [
+                bool(row["final_pass"])
+                for row in arm_rows
+                if arm != "full" or not bool(row.get("position_overflow"))
+            ]
+        ),
+        "per_turn_pass": _rate(
+            [bool(turn["pass"]) for turn in turns if turn["pass"] is not None]
+        ),
         "tool_call_validity": (
             sum(bool(call["valid"]) for call in calls) / len(calls) if calls else None
         ),
@@ -846,14 +1073,29 @@ def _arm_summary(records: Sequence[Mapping], arm: str) -> dict:
         "pin_overflow_events": sum(
             int(turn.get("eviction", {}).get("pin_overflow", 0)) > 0 for turn in turns
         ),
+        "pin_overflow_total": sum(
+            bool(turn.get("eviction", {}).get("pin_overflow_total")) for turn in turns
+        ),
+        "position_overflow": sum(bool(turn.get("position_overflow")) for turn in turns),
+        "control_role_shortfall": sum(
+            bool(turn.get("eviction", {}).get("control_role_shortfall"))
+            for turn in turns
+        ),
+        "match_impossible": sum(
+            bool(turn.get("eviction", {}).get("match_impossible")) for turn in turns
+        ),
+        "echo_token_deltas": [
+            int(turn.get("eviction", {}).get("echo_token_delta", 0)) for turn in turns
+        ],
         "columns": columns,
     }
 
 
 def _cohort_summary(records: Sequence[Mapping]) -> dict:
+    arms = [arm for arm in ARMS if all(arm in record["arms"] for record in records)]
     return {
         "cases": len(records),
-        "arms": {arm: _arm_summary(records, arm) for arm in ARMS},
+        "arms": {arm: _arm_summary(records, arm) for arm in arms},
     }
 
 
@@ -874,17 +1116,26 @@ def _one_sided_cluster_p(values: Sequence[float]) -> float:
 
 def _contrast(values: Sequence[float]) -> dict:
     bound = clustered_lower_bound(values) if len(values) >= 2 else None
+    exact = exact_sign_flip(values)
     return {
         "clusters": len(values),
+        "k": len(values),
         "mean_points": sum(values) / len(values) if values else None,
         "lower_bound": None if bound is None else bound["lower_bound"],
         "bound": bound,
-        "p_one_sided": _one_sided_cluster_p(values),
+        "p_one_sided": exact["p"],
+        "p_grid": exact["grid"],
+        "sign_flip": exact,
+        "descriptive_clustered_p": _one_sided_cluster_p(values),
+        "status": "eligible" if len(values) >= 6 else "uninformative",
     }
 
 
 def _holm(contrasts: Mapping[str, Mapping], alpha: float = 0.05) -> dict:
-    ordered = sorted(contrasts, key=lambda name: (contrasts[name]["p_one_sided"], name))
+    eligible = {
+        name: row for name, row in contrasts.items() if row.get("status") == "eligible"
+    }
+    ordered = sorted(eligible, key=lambda name: (eligible[name]["p_one_sided"], name))
     passed_so_far = True
     result = {}
     for rank, name in enumerate(ordered):
@@ -896,6 +1147,14 @@ def _holm(contrasts: Mapping[str, Mapping], alpha: float = 0.05) -> dict:
             "passed": passed,
         }
         passed_so_far = passed
+    for name in contrasts:
+        if name not in result:
+            result[name] = {
+                "p_one_sided": contrasts[name]["p_one_sided"],
+                "cutoff": None,
+                "passed": False,
+                "status": "uninformative",
+            }
     return result
 
 
@@ -919,28 +1178,49 @@ def _turn_by_index(record: Mapping, arm: str, turn_index: int) -> Mapping:
 
 def _safety(records: Sequence[Mapping], primary: Mapping[str, Sequence[int]]) -> dict:
     counts = {}
-    for arm in ARMS:
-        turns = [
-            _turn_by_index(record, arm, turn_index)
+    available_arms = [
+        arm for arm in ARMS if all(arm in record["arms"] for record in records)
+    ]
+    for arm in available_arms:
+        cases = [
+            [
+                _turn_by_index(record, arm, turn_index)
+                for turn_index in primary[str(record["case_id"])]
+            ]
             for record in records
-            for turn_index in primary[str(record["case_id"])]
+            if primary[str(record["case_id"])]
         ]
         counts[arm] = {
-            "timeouts": sum(bool(turn["timeout"]) for turn in turns),
-            "truncated": sum(bool(turn["truncated"]) for turn in turns),
-            "degenerate": sum(bool(turn["degenerate"]) for turn in turns),
+            "timeouts": sum(
+                any(bool(turn["timeout"]) for turn in turns) for turns in cases
+            ),
+            "truncated": sum(
+                any(bool(turn["truncated"]) for turn in turns) for turns in cases
+            ),
+            "degenerate": sum(
+                any(bool(turn["degenerate"]) for turn in turns) for turns in cases
+            ),
             "invalid": sum(
-                any(not bool(call["valid"]) for call in turn["tool_calls"])
-                for turn in turns
+                any(
+                    any(not bool(call["valid"]) for call in turn["tool_calls"])
+                    for turn in turns
+                )
+                for turns in cases
+            ),
+            "repeated_call": sum(
+                any(bool(turn.get("repeated_call")) for turn in turns)
+                for turns in cases
+            ),
+            "chat_control_echo": sum(
+                any(bool(turn.get("chat_control_echo")) for turn in turns)
+                for turns in cases
             ),
         }
     full = counts["full"]
     checks = {}
     for arm, row in counts.items():
         checks[arm] = {
-            "timeouts_registered": (
-                row["timeouts"] <= 1 if full["timeouts"] == 0 else row["timeouts"] == 0
-            ),
+            "timeouts_zero": row["timeouts"] == 0,
             "truncated_le_full_plus_one": row["truncated"] <= full["truncated"] + 1,
             "degenerate_le_full": (
                 row["degenerate"] <= 1
@@ -948,23 +1228,21 @@ def _safety(records: Sequence[Mapping], primary: Mapping[str, Sequence[int]]) ->
                 else row["degenerate"] <= full["degenerate"]
             ),
             "invalid_le_full_plus_one": row["invalid"] <= full["invalid"] + 1,
+            "repeated_call_le_full_plus_one": row["repeated_call"]
+            <= full["repeated_call"] + 1,
+            "chat_control_echo_zero": row["chat_control_echo"] == 0,
         }
         checks[arm]["passed"] = all(checks[arm].values())
     return {
         "integer_clause": (
             "timeouts=0; truncated<=full+1; degenerate<=full; "
-            "invalid<=full+1 (invalid is per turn)"
+            "invalid<=full+1; repeated-call<=full+1; chat-control-echo=0 (case-level)"
         ),
         "counts": counts,
         "checks": checks,
         "vacuity_guard": {
             event: "full=0; judged <=1"
-            for event, field in (
-                ("timeouts", "timeouts"),
-                ("truncated", "truncated"),
-                ("degenerate", "degenerate"),
-                ("invalid", "invalid"),
-            )
+            for event, field in (("degenerate", "degenerate"),)
             if full[field] == 0
         },
         "intact": all(row["passed"] for row in checks.values()),
@@ -999,10 +1277,18 @@ def summarize_records(records: Sequence[Mapping]) -> dict:
                 )
             }
             for arm in ARMS
+            if all(arm in record["arms"] for record in primary_records)
         },
     }
 
-    def cluster_values(left: str, right: str, transform=None, *, a3=False):
+    def cluster_values(
+        left: str, right: str, transform=None, *, a3=False, no_shortfall=False
+    ):
+        if any(
+            left not in record["arms"] or right not in record["arms"]
+            for record in primary_records
+        ):
+            return [], 0
         values = []
         excluded = 0
         for record in primary_records:
@@ -1010,6 +1296,12 @@ def summarize_records(records: Sequence[Mapping]) -> dict:
             for turn_index in primary_indices[str(record["case_id"])]:
                 left_turn = _turn_by_index(record, left, turn_index)
                 right_turn = _turn_by_index(record, right, turn_index)
+                if no_shortfall and bool(
+                    _turn_by_index(record, "clf_control", turn_index)["eviction"].get(
+                        "control_role_shortfall"
+                    )
+                ):
+                    continue
                 if (
                     a3
                     and int(
@@ -1030,6 +1322,9 @@ def summarize_records(records: Sequence[Mapping]) -> dict:
         return values, excluded
 
     a1, _ = cluster_values("clf_pinned_echo", "clf_control")
+    a1_no_shortfall, _ = cluster_values(
+        "clf_pinned_echo", "clf_control", no_shortfall=True
+    )
     a2, _ = cluster_values("clf_pinned_echo", "recency_pinned")
     a4, _ = cluster_values("clf_pinned_echo", "tool_swap_echo")
     ceiling, excluded = cluster_values("full", "base", a3=True)
@@ -1049,11 +1344,66 @@ def summarize_records(records: Sequence[Mapping]) -> dict:
         "a3_half_gap_recovery": a3,
     }
     contrasts = {name: _contrast(rows) for name, rows in values.items()}
-    holm = _holm(contrasts)
     safety = _safety(primary_records, primary_indices)
+    comparator_for = {
+        "a1_echo_minus_control": "clf_control",
+        "a2_echo_minus_recency": "recency_pinned",
+        "a3_half_gap_recovery": "base",
+    }
+    for name, arm in comparator_for.items():
+        unusable = any(
+            bool(
+                _turn_by_index(record, arm, turn_index)["eviction"].get(
+                    "match_impossible"
+                )
+            )
+            or abs(
+                int(
+                    _turn_by_index(record, arm, turn_index)["eviction"].get(
+                        "echo_token_delta", 0
+                    )
+                )
+            )
+            > 16
+            for record in primary_records
+            for turn_index in primary_indices[str(record["case_id"])]
+        )
+        if unusable or not safety["checks"][arm]["passed"]:
+            contrasts[name]["status"] = "uninformative"
+    if not safety["checks"]["full"]["passed"]:
+        contrasts["a3_half_gap_recovery"]["status"] = "uninformative"
+    if not safety["checks"]["clf_pinned_echo"]["passed"]:
+        for row in contrasts.values():
+            row["status"] = "failed_safety"
+    holm = _holm(contrasts)
     a4_contrast = _contrast(a4)
+    a4_available = all("tool_swap_echo" in record["arms"] for record in primary_records)
+    a4_unusable = not a4_available or any(
+        bool(
+            _turn_by_index(record, "tool_swap_echo", turn_index)["eviction"].get(
+                "match_impossible"
+            )
+        )
+        or abs(
+            int(
+                _turn_by_index(record, "tool_swap_echo", turn_index)["eviction"].get(
+                    "echo_token_delta", 0
+                )
+            )
+        )
+        > 16
+        for record in primary_records
+        for turn_index in primary_indices[str(record["case_id"])]
+    )
+    if a4_unusable or (
+        a4_available and not safety["checks"]["tool_swap_echo"]["passed"]
+    ):
+        a4_contrast["status"] = "uninformative"
+    if not safety["checks"]["clf_pinned_echo"]["passed"]:
+        a4_contrast["status"] = "failed_safety"
     return {
-        "schema": 3,
+        "schema": 4,
+        "leg_status": "INCONCLUSIVE" if primary["clusters"] < 6 else "evaluated",
         "cases": len(records),
         "categories": categories,
         "primary": primary,
@@ -1070,9 +1420,17 @@ def summarize_records(records: Sequence[Mapping]) -> dict:
         "a4_echo_minus_tool_swap": {
             **a4_contrast,
             "alpha": 0.05,
-            "passed": safety["intact"] and a4_contrast["p_one_sided"] <= 0.05,
+            "passed": safety["intact"]
+            and a4_contrast["status"] == "eligible"
+            and a4_contrast["p_one_sided"] <= 0.05,
         },
         "reported": {
+            "teacher_forced_case_pass": {
+                arm: _arm_summary(records, arm)["final_pass"]
+                for arm in ARMS
+                if all(arm in record["arms"] for record in records)
+            },
+            "a1_no_shortfall_sensitivity": _contrast(a1_no_shortfall),
             "recency_minus_role": _contrast(
                 cluster_values("recency_pinned", "role_pinned")[0]
             ),
