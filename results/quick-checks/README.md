@@ -117,3 +117,14 @@ greedy output, same eviction plumbing as the registered probe (scripts/ledger_kv
    higher bar drops true constraints the classifier is unsure about — the formatting-rule class that sol's
    taxonomy purge removed from training (kimi's check-16 review: restore those 344 rows, keep exact-phrasing drops).
    Threshold stays 0.5 (registered value); the lever is training coverage of plain-language formatting rules.
+
+CORRECTION (sol's check-16 review, HIGH 1-2, accepted): (a) the enrichment rows were written AFTER and in response
+to check 13's failure on this probe (both reviewers' briefs named the b3 task-sentence gap; Opus/sol wrote "Now add a
+closing section ..." contrast pairs), so the classifier was DEVELOPED WITH b3 FEEDBACK — "never saw b3" was an
+overclaim; check 16 is a development/selected-on-probe result, not transfer. (b) the 438-row held-out set is
+path- and text-disjoint but NOT author-disjoint from training (sol/Opus wrote both enrich and held-out rows); the
+threshold sweep therefore risks selecting for their style. Fix: a validation set written by an author who supplied
+no training rows (fable), and transfer claims reserved for the post-development benchmarks and the no-contact family.
+(c) Sol's nearest-neighbour audit: no copies of b3 rows, but ~12 constraint-family analogues among the 100 nearest —
+taxonomy-level overlap; LABELS.md's "not even by paraphrase of the taxonomy" wording is withdrawn in favour of
+item-level disjointness with deliberate type overlap (kimi + sol + Opus all concur on Opus's policy).

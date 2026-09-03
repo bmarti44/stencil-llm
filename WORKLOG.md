@@ -2468,3 +2468,8 @@ anyway (0.854/0.860 blind; precision 0.95/0.94).
 - 2026-09-03, check 13 (interim classifier, 2.5k unreviewed kimi rows, never saw b3): pinned 37 (= finder),
   pinned_echo 47 (finder 48, full 44), control 22, at 1.23x the finder's columns; budget-matched 27/34. Precision on
   one-off task sentences is the remaining gap → reviewers' enrichment must stress imperative one-off negatives.
+- 2026-09-03, checks 16-17 + reviews: generic classifier pinned 38 / echo 44 / ctrl 16 at 0.91x finder columns
+  (parity with the taxonomy finder, per kimi "not a win"); thr 0.65 worse. Sol REFUTED the characterization: the
+  classifier was developed with b3 feedback (enrichment written against check 13's gap) and the held-out set is not
+  author-disjoint from training. Accepted; wording corrected in results/quick-checks/README.md; fable to write an
+  author-disjoint validation set; taxonomy policy = Opus's (item-level disjointness, type overlap disclosed).
