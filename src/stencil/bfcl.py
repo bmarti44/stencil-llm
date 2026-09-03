@@ -22,8 +22,18 @@ ARMS = (
     "clf_pinned",
     "clf_pinned_echo",
     "clf_control",
+    "recency_pinned",
+    "tool_swap_echo",
     "role_pinned",
     "full",
+)
+ECHO_HEADER = "Earlier context restated verbatim:"
+CONTROL_MARKERS = (
+    "<|im_",
+    "<tool_call",
+    "</tool_call",
+    "<tool_response",
+    "</tool_response",
 )
 UPSTREAM_CATEGORY = {
     "base": "multi_turn_base",
@@ -48,11 +58,38 @@ def _prefix_token_count(tokenizer, context: str, char_end: int) -> int:
     return len(tokenizer.encode(context[:char_end]).ids)
 
 
-def context_layout(tokenizer, context: str) -> dict:
-    """Locate the protected system/tools prefix and prior-history range."""
-    current_marker = context.rfind("<|im_start|>user\n")
-    if current_marker < 0:
-        raise ValueError("current user marker missing")
+def context_layout(
+    tokenizer,
+    context: str,
+    messages: Sequence[Mapping] | None = None,
+    *,
+    current_message_index: int | None = None,
+) -> dict:
+    """Locate the protected prefix and history by semantic message index."""
+    if messages is not None:
+        if current_message_index is None:
+            user_indices = [
+                index for index, row in enumerate(messages) if row["role"] == "user"
+            ]
+            if not user_indices:
+                raise ValueError("current user message missing")
+            current_message_index = user_indices[-1]
+        location = next(
+            (
+                row
+                for row in _message_locations(context, messages)
+                if row["message_index"] == current_message_index
+                and row["role"] == "user"
+            ),
+            None,
+        )
+        if location is None:
+            raise ValueError("current user message index not rendered")
+        current_marker = int(location["pool_start"])
+    else:
+        current_marker = context.rfind("<|im_start|>user\n")
+        if current_marker < 0:
+            raise ValueError("current user marker missing")
     if not context.startswith("<|im_start|>system\n"):
         raise ValueError("BFCL context must start with a system/tools block")
     system_end = context.find("<|im_end|>")
@@ -145,21 +182,29 @@ def _message_locations(context: str, messages: Sequence[Mapping]) -> list[dict]:
     return locations
 
 
-def _tool_line_spans(text: str, cap: int = 40) -> list[tuple[int, int]]:
-    lines = []
-    cursor = 0
-    for line_index, piece in enumerate(text.splitlines(keepends=True)):
-        raw = piece.rstrip("\r\n")
-        end = cursor + len(raw)
-        if raw:
-            lines.append((cursor, end, line_index, raw))
-        cursor += len(piece)
-    if text and not text.splitlines(keepends=True):
-        lines.append((0, len(text), 0, text))
-    if len(lines) > cap:
-        lines.sort(key=lambda row: (-len(row[3]), row[2]))
-        lines = lines[:cap]
-    return [(start, end) for start, end, _, _ in lines]
+def _tool_line_spans(text: str) -> list[tuple[int, int]]:
+    spans = []
+    for match in re.finditer(r"[^\r\n]+", text):
+        if match.group().strip():
+            spans.append(match.span())
+    return spans
+
+
+def _chunk_char_span(
+    tokenizer, text: str, span: tuple[int, int], size: int
+) -> list[tuple[int, int]]:
+    """Split a source character span into consecutive tokenizer chunks."""
+    start, end = span
+    encoding = tokenizer.encode(text[start:end])
+    if not encoding.ids:
+        return []
+    chunks = []
+    for at in range(0, len(encoding.ids), size):
+        offsets = encoding.offsets[at : at + size]
+        visible = [(left, right) for left, right in offsets if right > left]
+        if visible:
+            chunks.append((start + visible[0][0], start + visible[-1][1]))
+    return chunks
 
 
 def select_history_spans(
@@ -169,8 +214,8 @@ def select_history_spans(
     scorer,
     *,
     threshold: float = 0.5,
-) -> tuple[list[dict], list[dict]]:
-    """Score each prior user sentence and capped tool line exactly once."""
+) -> tuple[list[dict], list[dict], int]:
+    """Score prior user sentences and newline/128-token tool chunks once."""
     from stencil.selector_v2 import split_sentence_spans
 
     encoding = tokenizer.encode(context)
@@ -184,14 +229,17 @@ def select_history_spans(
             continue
         if role == "user" and location["message_index"] == current_user_index:
             continue
-        local_spans = (
+        pieces = (
             split_sentence_spans(location["content"])
             if role == "user"
             else _tool_line_spans(location["content"])
         )
-        role_span = _token_span(
-            encoding, location["pool_start"], location["pool_end"]
-        )
+        local_spans = [
+            chunk
+            for piece in pieces
+            for chunk in _chunk_char_span(tokenizer, location["content"], piece, 128)
+        ]
+        role_span = _token_span(encoding, location["pool_start"], location["pool_end"])
         for local_start, local_end in local_spans:
             char_start = location["start"] + local_start
             char_end = location["start"] + local_end
@@ -211,6 +259,15 @@ def select_history_spans(
                     ),
                 }
             )
+    dropped = sum(
+        any(marker in str(row["text"]) for marker in CONTROL_MARKERS)
+        for row in candidates
+    )
+    candidates = [
+        row
+        for row in candidates
+        if not any(marker in str(row["text"]) for marker in CONTROL_MARKERS)
+    ]
     for role in ("user", "tool"):
         role_rows = [row for row in candidates if row["role"] == role]
         texts = [row["text"] for row in role_rows]
@@ -225,7 +282,7 @@ def select_history_spans(
                 raise ValueError("classifier score outside [0, 1]")
             row["score"] = value
     selected = [row for row in candidates if row["score"] >= threshold]
-    return selected, candidates
+    return selected, candidates, dropped
 
 
 def _columns_to_spans(columns: Sequence[int]) -> list[tuple[int, int]]:
@@ -250,7 +307,6 @@ def budget_history_spans(
     low, high = evict_range
     budget = math.floor((high - low) * fraction)
     kept = []
-    chosen: set[int] = set()
     ordered = sorted(
         enumerate(candidates),
         key=lambda item: (
@@ -261,23 +317,108 @@ def budget_history_spans(
         ),
     )
     for _, candidate in ordered:
-        available = [
-            column
-            for column in range(
+        columns = list(
+            range(
                 max(low, int(candidate["span"][0])),
                 min(high, int(candidate["span"][1])),
             )
-            if column not in chosen
-        ]
-        take = available[: max(0, budget - len(chosen))]
-        if take:
-            row = dict(candidate)
-            row["pinned_columns"] = take
-            kept.append(row)
-            chosen.update(take)
-        if len(chosen) == budget:
+        )
+        if len(columns) > budget - sum(len(row["pinned_columns"]) for row in kept):
             break
+        if columns:
+            row = dict(candidate)
+            row["pinned_columns"] = columns
+            kept.append(row)
+    chosen = [column for row in kept for column in row["pinned_columns"]]
     return kept, _columns_to_spans(chosen), budget
+
+
+def render_echo(entries: Sequence[Mapping]) -> str:
+    """Render the neutral, source-labelled LEG A echo."""
+    if not entries:
+        return ""
+    return (
+        ECHO_HEADER
+        + "\n"
+        + "\n".join(f"- {row['role']}: {row['text']}" for row in entries)
+    )
+
+
+def _candidate_columns(row: Mapping, low: int, high: int) -> list[int]:
+    span = row["span"]
+    return list(range(max(low, int(span[0])), min(high, int(span[1]))))
+
+
+def build_matched_control(
+    candidates: Sequence[Mapping],
+    kept: Sequence[Mapping],
+    evict_range: tuple[int, int],
+    *,
+    seed: int,
+) -> dict:
+    """Nearest-free exact-column control with cross-role shortfall fill."""
+    low, high = evict_range
+    selected = {column for row in kept for column in row.get("pinned_columns", [])}
+    needed = {
+        role: sum(
+            len(row.get("pinned_columns", [])) for row in kept if row["role"] == role
+        )
+        for role in ("user", "tool")
+    }
+    pools = {
+        role: sorted(
+            {
+                column
+                for row in candidates
+                if row["role"] == role
+                for column in _candidate_columns(row, low, high)
+                if column not in selected
+            }
+        )
+        for role in ("user", "tool")
+    }
+    anchors = {
+        role: [
+            column
+            for row in kept
+            if row["role"] == role
+            for column in row.get("pinned_columns", [])
+        ]
+        for role in ("user", "tool")
+    }
+    chosen: list[int] = []
+    shortfall = {"user": 0, "tool": 0}
+    rng = random.Random(seed)
+    for role in ("user", "tool"):
+        pool = pools[role]
+        tie = {column: rng.random() for column in pool}
+        center = sum(anchors[role]) / len(anchors[role]) if anchors[role] else low
+        ordered = sorted(pool, key=lambda column: (abs(column - center), tie[column]))
+        take = min(needed[role], len(ordered))
+        chosen.extend(ordered[:take])
+        pools[role] = ordered[take:]
+        shortfall[role] = needed[role] - take
+    for role in ("user", "tool"):
+        other = "tool" if role == "user" else "user"
+        take = shortfall[role]
+        if take > len(pools[other]):
+            raise RuntimeError("control pools cannot supply exact registered columns")
+        chosen.extend(pools[other][:take])
+        pools[other] = pools[other][take:]
+    if len(set(chosen)) != sum(needed.values()):
+        raise AssertionError("matched control is not exact or disjoint")
+    chosen_set = set(chosen)
+    entries = [
+        dict(row)
+        for row in candidates
+        if chosen_set.intersection(_candidate_columns(row, low, high))
+    ]
+    return {
+        "pins": _columns_to_spans(chosen),
+        "entries": entries,
+        "role_counts": needed,
+        "role_shortfall": shortfall,
+    }
 
 
 def same_role_control_spans(
@@ -287,45 +428,68 @@ def same_role_control_spans(
     *,
     seed: int,
 ) -> tuple[list[tuple[int, int]], dict[str, int]]:
-    """Match selected user/tool columns from each role's unselected pool."""
+    """Compatibility wrapper for the v3 matched control."""
+    result = build_matched_control(candidates, kept, evict_range, seed=seed)
+    return result["pins"], result["role_counts"]
+
+
+def recency_pinned_plan(
+    candidates: Sequence[Mapping],
+    classifier_columns: int,
+    evict_range: tuple[int, int],
+) -> dict:
+    """Keep all user columns and newest tool columns up to classifier dose."""
     low, high = evict_range
-    pinned = {
-        int(column) for row in kept for column in row.get("pinned_columns", [])
-    }
-    counts = {
-        role: sum(
-            len(row.get("pinned_columns", []))
-            for row in kept
-            if row["role"] == role
-        )
-        for role in ("user", "tool")
-    }
-    chosen = []
-    for role_index, role in enumerate(("user", "tool")):
-        pool = sorted(
-            {
-                column
-                for row in candidates
-                if row["role"] == role
-                for column in range(
-                    max(low, int(row.get("role_span", row["span"])[0])),
-                    min(high, int(row.get("role_span", row["span"])[1])),
-                )
-                if column not in pinned
-            }
-        )
-        needed = counts[role]
-        if len(pool) < needed:
-            raise RuntimeError(
-                f"same-role {role} pool has {len(pool)} columns; {needed} required"
+    user = sorted(
+        {
+            column
+            for row in candidates
+            if row["role"] == "user"
+            for column in range(
+                max(low, int(row.get("role_span", row["span"])[0])),
+                min(high, int(row.get("role_span", row["span"])[1])),
             )
-        if pool:
-            start = (seed + role_index * 104729) % len(pool)
-            rotated = pool[start:] + pool[:start]
-            chosen.extend(rotated[:needed])
-    if len(set(chosen)) != sum(counts.values()):
-        raise AssertionError("same-role control columns overlap")
-    return _columns_to_spans(chosen), counts
+        }
+    )
+    tool_rows = sorted(
+        (row for row in candidates if row["role"] == "tool"),
+        key=lambda row: (int(row["turn"]), int(row["span"][0])),
+        reverse=True,
+    )
+    tool_budget = max(0, classifier_columns - len(user))
+    tool: list[int] = []
+    entries = [dict(row) for row in candidates if row["role"] == "user"]
+    for row in tool_rows:
+        columns = _candidate_columns(row, low, high)
+        if len(tool) + len(columns) > tool_budget:
+            continue
+        tool.extend(columns)
+        entries.append(dict(row))
+    return {"pins": _columns_to_spans([*user, *tool]), "entries": entries}
+
+
+def tool_swap_plan(
+    candidates: Sequence[Mapping],
+    kept: Sequence[Mapping],
+    evict_range: tuple[int, int],
+    *,
+    seed: int,
+) -> dict:
+    """Retain selected users and replace selected tools by matched tools."""
+    users = [dict(row) for row in kept if row["role"] == "user"]
+    tools = [dict(row) for row in kept if row["role"] == "tool"]
+    matched = build_matched_control(candidates, tools, evict_range, seed=seed)
+    user_columns = [column for row in users for column in row["pinned_columns"]]
+    entries = users + [row for row in matched["entries"] if row["role"] == "tool"]
+    return {
+        "pins": _columns_to_spans([*user_columns, *_flatten_spans(matched["pins"])]),
+        "entries": entries,
+        "role_shortfall": matched["role_shortfall"],
+    }
+
+
+def _flatten_spans(spans: Sequence[tuple[int, int]]) -> list[int]:
+    return [column for start, end in spans for column in range(start, end)]
 
 
 def recent_user_spans(
@@ -535,10 +699,11 @@ def assert_case_record_schema(record: Mapping) -> None:
     missing = required - set(record)
     if missing:
         raise ValueError(f"record fields missing: {sorted(missing)}")
-    if int(record["schema"]) != 2:
-        raise ValueError("record schema is not BFCL LEG A v2")
+    schema = int(record["schema"])
+    if schema not in {2, 3}:
+        raise ValueError("record schema is not BFCL LEG A v2/v3")
     if set(record["arms"]) != set(ARMS):
-        raise ValueError("record arms do not equal the registered six-arm set")
+        raise ValueError("record arms do not equal the registered v3 arm set")
     arm_required = {
         "turns",
         "evicted",
@@ -571,6 +736,14 @@ def assert_case_record_schema(record: Mapping) -> None:
                 "pass",
             } <= set(turn):
                 raise ValueError(f"arm {name} turn schema incomplete")
+            if schema == 3:
+                required_v3 = {
+                    "budget_used",
+                    "echo_tokens",
+                    "pin_overflow",
+                }
+                if required_v3 - set(turn["eviction"]):
+                    raise ValueError(f"arm {name} turn v3 eviction schema incomplete")
 
 
 def _rate(values: Sequence[bool]) -> dict:
@@ -606,6 +779,13 @@ def _arm_summary(records: Sequence[Mapping], arm: str) -> dict:
             sum(bool(row["echo_copy"]) for row in arm_rows) / len(arm_rows)
             if arm_rows
             else None
+        ),
+        "echo_tokens": sum(int(row.get("echo_tokens_added", 0)) for row in arm_rows),
+        "repeated_history_calls": sum(
+            int(row.get("repeated_history_calls", 0)) for row in arm_rows
+        ),
+        "pin_overflow_events": sum(
+            int(turn.get("eviction", {}).get("pin_overflow", 0)) > 0 for turn in turns
         ),
         "columns": columns,
     }
@@ -660,16 +840,39 @@ def _holm(contrasts: Mapping[str, Mapping], alpha: float = 0.05) -> dict:
     return result
 
 
-def _safety(records: Sequence[Mapping]) -> dict:
+def _primary_turns(records: Sequence[Mapping]) -> dict[str, list[int]]:
+    """Case -> semantic turn indices where the base pressure trigger fired."""
+    return {
+        str(record["case_id"]): [
+            int(turn["turn"])
+            for turn in record["arms"]["base"]["turns"]
+            if bool(turn["eviction"]["evicted"])
+        ]
+        for record in records
+    }
+
+
+def _turn_by_index(record: Mapping, arm: str, turn_index: int) -> Mapping:
+    return next(
+        turn for turn in record["arms"][arm]["turns"] if int(turn["turn"]) == turn_index
+    )
+
+
+def _safety(records: Sequence[Mapping], primary: Mapping[str, Sequence[int]]) -> dict:
     counts = {}
     for arm in ARMS:
-        turns = [turn for record in records for turn in record["arms"][arm]["turns"]]
+        turns = [
+            _turn_by_index(record, arm, turn_index)
+            for record in records
+            for turn_index in primary[str(record["case_id"])]
+        ]
         counts[arm] = {
             "timeouts": sum(bool(turn["timeout"]) for turn in turns),
             "truncated": sum(bool(turn["truncated"]) for turn in turns),
             "degenerate": sum(bool(turn["degenerate"]) for turn in turns),
-            "invalid_tool_calls": sum(
-                not bool(call["valid"]) for turn in turns for call in turn["tool_calls"]
+            "invalid": sum(
+                any(not bool(call["valid"]) for call in turn["tool_calls"])
+                for turn in turns
             ),
         }
     full = counts["full"]
@@ -679,24 +882,32 @@ def _safety(records: Sequence[Mapping]) -> dict:
             "timeouts_zero": row["timeouts"] == 0,
             "truncated_le_full_plus_one": row["truncated"] <= full["truncated"] + 1,
             "degenerate_le_full": row["degenerate"] <= full["degenerate"],
-            "invalid_le_full_plus_one": (
-                row["invalid_tool_calls"] <= full["invalid_tool_calls"] + 1
-            ),
+            "invalid_le_full_plus_one": row["invalid"] <= full["invalid"] + 1,
         }
         checks[arm]["passed"] = all(checks[arm].values())
     return {
         "integer_clause": (
             "timeouts=0; truncated<=full+1; degenerate<=full; "
-            "invalid_tool_calls<=full+1"
+            "invalid<=full+1 (invalid is per turn)"
         ),
         "counts": counts,
         "checks": checks,
+        "vacuity_guard": {
+            event: "full=0; judged <=1"
+            for event, field in (
+                ("timeouts", "timeouts"),
+                ("truncated", "truncated"),
+                ("degenerate", "degenerate"),
+                ("invalid", "invalid"),
+            )
+            if full[field] == 0
+        },
         "intact": all(row["passed"] for row in checks.values()),
     }
 
 
 def summarize_records(records: Sequence[Mapping]) -> dict:
-    """Report all strata and registered long-context clustered contrasts."""
+    """Report v3 teacher-forced evicting-turn clustered contrasts."""
     for record in records:
         assert_case_record_schema(record)
     categories = {
@@ -705,54 +916,107 @@ def summarize_records(records: Sequence[Mapping]) -> dict:
         )
         for category in CATEGORIES
     }
-    primary_records = [
-        record for record in records if record["category"] == "long_context"
-    ]
+    primary_records = list(records)
+    primary_indices = _primary_turns(primary_records)
+    primary_turn_count = sum(map(len, primary_indices.values()))
     primary = {
-        "category": "long_context",
-        **_cohort_summary(primary_records),
-    }
-    values = {
-        "a1_echo_minus_control": [
-            100.0
-            * (
-                float(record["arms"]["clf_pinned_echo"]["final_pass"])
-                - float(record["arms"]["clf_control"]["final_pass"])
-            )
-            for record in primary_records
-        ],
-        "a2_echo_minus_role": [
-            100.0
-            * (
-                float(record["arms"]["clf_pinned_echo"]["final_pass"])
-                - float(record["arms"]["role_pinned"]["final_pass"])
-            )
-            for record in primary_records
-        ],
-        "a3_half_gap_recovery": [
-            100.0
-            * (
-                float(record["arms"]["clf_pinned_echo"]["final_pass"])
-                - float(record["arms"]["base"]["final_pass"])
-                - 0.5
-                * (
-                    float(record["arms"]["full"]["final_pass"])
-                    - float(record["arms"]["base"]["final_pass"])
+        "unit": "teacher_forced_evicting_turn",
+        "clusters": sum(bool(rows) for rows in primary_indices.values()),
+        "turns": primary_turn_count,
+        "arms": {
+            arm: {
+                "per_turn_pass": _rate(
+                    [
+                        bool(_turn_by_index(record, arm, turn_index)["pass"])
+                        for record in primary_records
+                        for turn_index in primary_indices[str(record["case_id"])]
+                    ]
                 )
-            )
-            for record in primary_records
-        ],
+            }
+            for arm in ARMS
+        },
+    }
+
+    def cluster_values(left: str, right: str, transform=None, *, a3=False):
+        values = []
+        excluded = 0
+        for record in primary_records:
+            rows = []
+            for turn_index in primary_indices[str(record["case_id"])]:
+                left_turn = _turn_by_index(record, left, turn_index)
+                right_turn = _turn_by_index(record, right, turn_index)
+                if (
+                    a3
+                    and int(
+                        _turn_by_index(record, "full", turn_index).get(
+                            "prompt_positions", 0
+                        )
+                    )
+                    > 40960
+                ):
+                    excluded += 1
+                    continue
+                value = float(left_turn["pass"]) - float(right_turn["pass"])
+                rows.append(
+                    transform(record, turn_index, value) if transform else value
+                )
+            if rows:
+                values.append(100.0 * sum(rows) / len(rows))
+        return values, excluded
+
+    a1, _ = cluster_values("clf_pinned_echo", "clf_control")
+    a2, _ = cluster_values("clf_pinned_echo", "recency_pinned")
+    a4, _ = cluster_values("clf_pinned_echo", "tool_swap_echo")
+    ceiling, excluded = cluster_values("full", "base", a3=True)
+    ceiling_positive = bool(ceiling) and sum(ceiling) / len(ceiling) > 0
+
+    def a3_transform(record, turn_index, echo_base):
+        full = float(_turn_by_index(record, "full", turn_index)["pass"])
+        base = float(_turn_by_index(record, "base", turn_index)["pass"])
+        return echo_base - 0.5 * (full - base)
+
+    a3, _ = cluster_values("clf_pinned_echo", "base", a3_transform, a3=True)
+    if not ceiling_positive:
+        a3 = []
+    values = {
+        "a1_echo_minus_control": a1,
+        "a2_echo_minus_recency": a2,
+        "a3_half_gap_recovery": a3,
     }
     contrasts = {name: _contrast(rows) for name, rows in values.items()}
     holm = _holm(contrasts)
-    safety = _safety(primary_records)
+    safety = _safety(primary_records, primary_indices)
+    a4_contrast = _contrast(a4)
     return {
-        "schema": 2,
+        "schema": 3,
         "cases": len(records),
         "categories": categories,
         "primary": primary,
         "contrasts": contrasts,
         "holm": holm,
+        "a3": {
+            "eligible": ceiling_positive,
+            "full_minus_base": _contrast(ceiling),
+            "excluded_over_40960": excluded,
+            "status": None
+            if ceiling_positive
+            else "full is not a ceiling; A3 uninformative",
+        },
+        "a4_echo_minus_tool_swap": {
+            **a4_contrast,
+            "alpha": 0.05,
+            "passed": a4_contrast["p_one_sided"] <= 0.05,
+        },
+        "reported": {
+            "recency_minus_role": _contrast(
+                cluster_values("recency_pinned", "role_pinned")[0]
+            ),
+            "non_evicting_turns": sum(
+                not bool(turn["eviction"]["evicted"])
+                for record in records
+                for turn in record["arms"]["base"]["turns"]
+            ),
+        },
         "safety": safety,
         "registered_contrasts_pass": safety["intact"]
         and all(row["passed"] for row in holm.values()),

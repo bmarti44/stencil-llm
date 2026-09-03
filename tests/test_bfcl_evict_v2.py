@@ -96,7 +96,7 @@ def test_two_stage_prefill_evicts_before_current_turn():
     assert (before, after) == (5, 3)
 
 
-def test_selector_scores_prior_user_and_capped_tool_lines_without_context(tok):
+def test_selector_scores_prior_user_and_all_tool_lines_without_context(tok):
     from scripts.bfcl_mt import render_prompt
     from stencil.bfcl import select_history_spans
 
@@ -114,20 +114,21 @@ def test_selector_scores_prior_user_and_capped_tool_lines_without_context(tok):
         calls.append((list(texts), role, list(contexts)))
         return [0.9 if text.startswith(("Keep", "line-41")) else 0.1 for text in texts]
 
-    selected, candidates = select_history_spans(tok, prompt, messages, scorer)
+    selected, candidates, dropped = select_history_spans(tok, prompt, messages, scorer)
     assert [call[1] for call in calls] == ["user", "tool"]
     assert all(context == "" for texts, _, contexts in calls for context in contexts)
     assert calls[0][0] == ["Keep alpha.", "Ignore drizzle."]
-    assert len(calls[1][0]) == 40
-    assert calls[1][0][:2] == [tool_lines[41], tool_lines[40]]
+    assert len(calls[1][0]) == 42
+    assert calls[1][0][:2] == tool_lines[:2]
     assert {row["role"] for row in candidates} == {"user", "tool"}
     assert [(row["role"], row["text"]) for row in selected] == [
         ("user", "Keep alpha."),
         ("tool", tool_lines[41]),
     ]
+    assert dropped == 0
 
 
-def test_budget_fills_by_probability_then_recency_and_clips_last_span():
+def test_budget_stops_when_next_whole_span_does_not_fit():
     from stencil.bfcl import budget_history_spans
 
     candidates = [
@@ -137,9 +138,9 @@ def test_budget_fills_by_probability_then_recency_and_clips_last_span():
     ]
     kept, pins, budget = budget_history_spans(candidates, (0, 40), fraction=0.25)
     assert budget == 10
-    assert _columns(pins) == {*range(2, 8), *range(20, 24)}
-    assert [row["turn"] for row in kept] == [1, 3]
-    assert kept[-1]["pinned_columns"] == [20, 21, 22, 23]
+    assert _columns(pins) == set(range(2, 8))
+    assert [row["turn"] for row in kept] == [1]
+    assert kept[-1]["pinned_columns"] == list(range(2, 8))
 
 
 def test_same_role_control_matches_exact_user_tool_proportions():
@@ -233,15 +234,15 @@ def test_summary_reports_categories_primary_contrasts_holm_and_safety():
         record["arms"]["clf_pinned_echo"] = _arm(True)
     summary = summarize_records(records)
     assert summary["cases"] == 5
-    assert summary["primary"]["category"] == "long_context"
-    assert summary["primary"]["arms"]["clf_pinned_echo"]["final_pass"]["rate"] == 1.0
+    assert summary["primary"]["unit"] == "teacher_forced_evicting_turn"
+    assert summary["primary"]["arms"]["clf_pinned_echo"]["per_turn_pass"]["rate"] == 1.0
     assert summary["categories"]["base"]["arms"]["base"]["final_pass"]["n"] == 1
-    assert summary["contrasts"]["a1_echo_minus_control"]["mean_points"] == 100.0
-    assert summary["contrasts"]["a2_echo_minus_role"]["lower_bound"] > 0
-    assert summary["contrasts"]["a3_half_gap_recovery"]["mean_points"] == 50.0
+    assert summary["contrasts"]["a1_echo_minus_control"]["mean_points"] == 80.0
+    assert summary["contrasts"]["a2_echo_minus_recency"]["mean_points"] == 0
+    assert summary["contrasts"]["a3_half_gap_recovery"]["mean_points"] == 40.0
     assert set(summary["holm"]) == {
         "a1_echo_minus_control",
-        "a2_echo_minus_role",
+        "a2_echo_minus_recency",
         "a3_half_gap_recovery",
     }
     assert summary["safety"]["intact"] is True

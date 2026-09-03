@@ -103,11 +103,19 @@ class ClassifierScorer:
             for start in range(0, len(texts), 64):
                 chunk = list(texts[start : start + 64])
                 chunk_contexts = list(contexts[start : start + 64])
+                for value in chunk:
+                    candidate_tokens = self.tokenizer(
+                        f"[{role}] {value}", add_special_tokens=True
+                    )["input_ids"]
+                    if len(candidate_tokens) > 192:
+                        raise AssertionError(
+                            "selector candidate exceeds 192 encoder tokens"
+                        )
                 batch = self.tokenizer(
                     [value if value else "(no context)" for value in chunk_contexts],
                     [f"[{role}] {value}" for value in chunk],
                     padding=True,
-                    truncation="only_first",
+                    truncation="longest_first",
                     max_length=192,
                     return_tensors="pt",
                 )
