@@ -738,3 +738,21 @@ scores normally (C2, C3 and all reported metrics keep it). The harness hash chan
 the run is RESTARTED in a new directory (multiif-evict-909-prequery-v2) rather than resumed; the 145 records of the
 crashed run are retained and labelled superseded (they were produced under the same eviction ordering and selector;
 no outcome from them has been viewed or used). Cap, contrasts, safety, threshold and artifacts are unchanged.
+
+### LEG A AMENDMENT 3 (2026-09-03, fable's harness-v4 review F1-F3, text; applied before the dev preflight is read)
+1. Matching (F1): comparator matching is NEAREST, not exact — for each selected span, the disjoint nonselected
+   candidate of the required role (decision (i) fallback for clf_control) that minimizes |token width difference|
+   with ties broken by smallest |source-turn age difference| then stable source order, without reuse; the column
+   clamp then makes the total pinned columns exact. match_impossible therefore means only that the eligible pool has
+   fewer TOTAL columns than the quota (clf_control: combined pools; recency_pinned: the same-role universe;
+   tool_swap_echo: no disjoint tool chunk at all). Dev census (fable): exact-width matching would have voided A1 on
+   5-7 of 11 evicting turns; nearest matching is the intended reading.
+2. Echo clamp (F2): comparator echo entries are the decoded text of the pinned columns (char-exact where the span is
+   untruncated); the echo is clamped TOKEN-EXACTLY to the treatment's echo token count by truncating the last entry
+   at a Qwen3 token boundary (mirroring the column clamp), so |echo_token_delta| <= 16 holds by construction; any
+   larger delta is a harness assertion failure, not a method failure.
+3. Position overflow (F3): a `full` turn whose within-turn cache exceeds 40,960 positions is a truncated event for
+   full (pass = 0, counted; never None); summarize_records must never receive None passes.
+4. Items already closed by the v5 harness (sealed offsets loader; degenerate on non-truncated only; manifest hash over
+   every executing module; certificate) are confirmed as registered; the registration hash is recomputed over the v7 +
+   A1 + A2 + A3 text before the preflight certificate is written.

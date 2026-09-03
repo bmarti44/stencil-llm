@@ -3320,3 +3320,4 @@ STENCIL_SEALED_RUN=1 uv run python scripts/bfcl_mt.py run --split sealed --mode 
   `tests/test_multiif_evict.py`; targeted Ruff and `git diff --check` are clean. No model process was launched.
 - Restart from conversation zero in the registered new directory (do not resume the superseded directory):
   `uv run python scripts/multiif_evict.py --out multiif-evict-909-prequery-v2`
+- 2026-09-03, coder (auto, run_codex_agent.sh). Brief multiif-control-shortfall: model gpt-5.6-sol, effort medium, exit 7, session 01a06807-ef55-7d21-861e-30ce8fcb95fa, log /home/bmarti44/stencil-llm/results/logs/codex-agent-multiif-control-shortfall.log.
