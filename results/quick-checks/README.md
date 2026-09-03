@@ -107,3 +107,7 @@ greedy output, same eviction plumbing as the registered probe (scripts/ledger_kv
    control 16; BUDGET-MATCHED 29 / 37 / 19 (echo: 29 -> 34 -> 37 across checks 14-16). Held-out threshold sweep
    (heldout_sweep.py): thr 0.5 keep-precision 0.76 / recall 0.97; thr 0.65 ~0.83 / 0.95; thr 0.8 0.89 / 0.78.
    A thr-0.65 probe is queued (check 17).
+   BUDGET NOTE (check 16): the unclipped CLF arm pinned a mean 42 columns vs the finder's 47 (ratio 0.91; 74/116
+   candidate sentences selected) with 0 truncated / 0 degenerate outputs — so "pinned 38 vs finder 37" is at slightly
+   LOWER cost than the finder. The clipped budget-matched arm (29/37) discards spans by probability rank and is the
+   conservative bound.
