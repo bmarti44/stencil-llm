@@ -728,3 +728,13 @@ screen runs before any item is fetched; registered after this leg regardless of 
 ### LEG A AMENDMENT 1 (2026-09-03, fable v7 confirmation residuals A/B/C, text only; applied in place above before the dev preflight): preflight (6) lead-in deleted so clf_control is not a subject of the per-role equality; model-card timestamp lineage clause restored; safety pointer -> decisions (v)/(vi).
 
 ### LEG A AMENDMENT 2 (2026-09-03, sol v7 confirmation residuals, text only; applied in place above before the dev preflight): arm-specific match_impossible definitions and the clamp truncation rule; A1 uninformative -> INCONCLUSIVE; eligible A3 with either A1/A3 failing -> unsupported.
+
+### LEG B AMENDMENT 3 (2026-09-03, before any outcome of the corrected run is viewed)
+The corrected run (results/qwen/multiif-evict-909-prequery) crashed at conversation 145/909: the exact-column control
+cannot be drawn when the classifier pins more than half of the evictable range (79 pinned vs 68 available columns on a
+short history). Registered handling: such a conversation is recorded with control_impossible = true, its clf_control
+arm is not run, it is EXCLUDED from contrast C1 and counted (n_control_impossible), and every other arm runs and
+scores normally (C2, C3 and all reported metrics keep it). The harness hash changes; per the fail-closed resume rule
+the run is RESTARTED in a new directory (multiif-evict-909-prequery-v2) rather than resumed; the 145 records of the
+crashed run are retained and labelled superseded (they were produced under the same eviction ordering and selector;
+no outcome from them has been viewed or used). Cap, contrasts, safety, threshold and artifacts are unchanged.
