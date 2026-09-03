@@ -84,3 +84,8 @@ greedy output, same eviction plumbing as the registered probe (scripts/ledger_kv
    93/120 candidate sentences incl. the one-off task sentences. Precision on imperative one-off tasks is the gap the
    reviewed/enriched data must close. Note: the classifier never saw b3; this is a transfer result for the selector,
    while b3 remains the selection set for the mechanism choice.
+
+14. CLASSIFIER, 9,863 kimi rows (unreviewed), same linear head (clf_probe2.log): train acc 0.876 ("none" recall
+   0.79). Coverage 0.91; CLF pinned 35, pinned_echo 39, control 22; budget-matched 27 / 29 / 20. More data with a
+   linear head did NOT help (47 -> 39 with echo; n=56, noisy). The limit is head capacity / precision on one-off
+   tasks, not volume. Next: reviewed + enriched data (sol, Opus) and a nonlinear head or encoder fine-tune.
