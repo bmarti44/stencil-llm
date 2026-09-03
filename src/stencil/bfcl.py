@@ -1252,7 +1252,7 @@ def assert_case_record_schema(
             if schema >= 6 and {"overflow_phase", "na"} - set(turn):
                 raise ValueError(f"arm {name} turn v6 overflow schema incomplete")
             if name in {"clf_control", "recency_pinned", "tool_swap_echo"} and (
-                bool(turn["eviction"].get("pressure_triggered"))
+                bool(turn["eviction"].get("pressure_triggered", True))
                 and not bool(turn["eviction"].get("match_impossible"))
                 and abs(int(turn["eviction"].get("echo_token_delta", 0))) > 16
             ):
