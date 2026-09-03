@@ -9,6 +9,7 @@ import functools
 import hashlib
 import inspect
 import json
+import re
 import sys
 import time
 from dataclasses import asdict
@@ -33,12 +34,11 @@ from stencil.bfcl import (  # noqa: E402
     echo_copy_flag,
     ensure_split_allowed,
     execute_call_strings,
-    load_jsonl,
     parse_tool_calls,
     position_overflow_result,
     prepare_case,
+    prior_user_spans,
     recency_pinned_plan,
-    recent_user_spans,
     render_echo,
     resolve_pin_overflow,
     score_case,
@@ -59,8 +59,6 @@ ADDED_FUNCTION_PROMPT = (
     "I have updated some more functions you can choose from. What about now?"
 )
 DATA = ROOT / "data/bench/bfcl_v3_mt"
-CASE_FILES = {category: DATA / f"cases_{category}.jsonl" for category in CATEGORIES}
-ANSWER_FILES = {category: DATA / f"answers_{category}.jsonl" for category in CATEGORIES}
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -75,6 +73,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--deadline", type=float, default=300.0)
     parser.add_argument("--limit", type=int)
     parser.add_argument("--out", default="bfcl-evict-v3")
+    parser.add_argument("--preflight-certificate", type=Path)
     parser.add_argument(
         "--arm-cut",
         action="store_true",
@@ -90,6 +89,18 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         parser.error("preflight requires --mode teacher")
     if args.command == "preflight" and args.limit is not None:
         parser.error("preflight always runs the complete 32-case dev slice")
+    if args.command == "preflight" and args.arm_cut:
+        parser.error("preflight measures the full arm set; --arm-cut is invalid")
+    if args.split == "sealed":
+        if args.limit is not None:
+            parser.error("sealed runs forbid --limit")
+        if args.command != "run" or args.mode != "teacher":
+            parser.error("sealed execution requires run --mode teacher")
+        if (
+            args.preflight_certificate is None
+            or not args.preflight_certificate.is_file()
+        ):
+            parser.error("sealed run requires an existing --preflight-certificate")
     return args
 
 
@@ -118,20 +129,138 @@ def _tree_sha256(paths: list[Path]) -> str:
     return digest.hexdigest()
 
 
+def _canonical_sha256(value: object) -> str:
+    return hashlib.sha256(
+        json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+
+
+def harness_manifest() -> dict:
+    """Canonical hashes for every local module that can execute in this harness."""
+    paths = [
+        ROOT / "scripts/bfcl_mt.py",
+        *(
+            ROOT / "src/stencil" / name
+            for name in (
+                "bfcl.py",
+                "selector_v2.py",
+                "ledger.py",
+                "stats.py",
+                "qwen3.py",
+                "qwen_cache.py",
+                "determinism.py",
+                "bench.py",
+            )
+        ),
+        *(ROOT / "vendor/bfcl_eval/eval_checker/multi_turn_eval").rglob("*.py"),
+    ]
+    files = {str(path.relative_to(ROOT)): sha256(path) for path in sorted(set(paths))}
+    files["chat_template:render_prompt"] = hashlib.sha256(
+        inspect.getsource(render_prompt).encode()
+    ).hexdigest()
+    return {"files": files, "sha256": _canonical_sha256(files)}
+
+
+def certificate_payload(meta: dict, gates: dict) -> dict:
+    """Signed preflight contract, excluding dev-only report presentation."""
+    return {
+        "schema": 1,
+        "trunk": meta["trunk"],
+        "arms": list(meta["arms"]),
+        "generation": {
+            "max_new": meta.get("max_new"),
+            "deadline": meta.get("deadline"),
+            "greedy": meta.get("greedy", True),
+            "thinking": meta.get("thinking", False),
+        },
+        "constants": {
+            key: meta.get(key)
+            for key in (
+                "k",
+                "budget_fraction",
+                "chunk_tokens",
+                "echo_cap",
+                "selector_threshold",
+                "echo_header",
+                "control_seed",
+            )
+        },
+        "registration_sha256": meta.get("registration_sha256"),
+        "frozen_hashes": meta.get("frozen_hashes", {}),
+        "classifier_sha256": meta.get("classifier_sha256", {}),
+        "gates": gates,
+    }
+
+
+def _gate_passed(value: object) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, dict):
+        for key in ("passed", "passed_all"):
+            if key in value:
+                return bool(value[key])
+    return False
+
+
+def validate_preflight_certificate(path: Path, meta: dict) -> str:
+    report = json.loads(path.read_text())
+    if report.get("status") != "PASSED" or "certificate" not in report:
+        raise RuntimeError("sealed run requires a passing preflight certificate")
+    payload = report["certificate"]
+    digest = _canonical_sha256(payload)
+    if report.get("certificate_sha256") != digest:
+        raise RuntimeError("preflight certificate digest mismatch")
+    required = {"competence", "determinism", "feasibility", "invariants", "cost"}
+    if set(payload.get("gates", {})) != required or not all(
+        _gate_passed(payload["gates"][gate]) for gate in required
+    ):
+        raise RuntimeError("preflight certificate contains a failed gate")
+    expected = certificate_payload(meta, {})
+    actual_contract = dict(payload)
+    actual_contract["gates"] = {}
+    if actual_contract != expected:
+        raise RuntimeError("preflight certificate does not match sealed run contract")
+    return digest
+
+
 def load_cases(split: str, limit: int | None = None) -> list[tuple[str, dict, list]]:
-    cohort = json.loads((DATA / "cohorts.json").read_text())[split]
-    cases = {
-        row["id"]: (category, row)
-        for category, path in CASE_FILES.items()
-        for row in load_jsonl(path)
-    }
-    answers = {
-        row["id"]: row["ground_truth"]
-        for path in ANSWER_FILES.values()
-        for row in load_jsonl(path)
-    }
+    index_path = DATA / "offsets.json"
+    index = json.loads(index_path.read_text())
+    if (
+        sha256(index_path)
+        != json.loads((ROOT / "data/bench/pins-manifest.json").read_text())["pins"][
+            "ShishirPatil/gorilla BFCL V3 multi-turn"
+        ]["offsets_sha256"]
+    ):
+        raise RuntimeError("BFCL offsets index hash mismatch")
+    cohort = list(index["cohorts"][split])
     ids = cohort[:limit] if limit is not None else cohort
-    return [(cases[case_id][0], cases[case_id][1], answers[case_id]) for case_id in ids]
+    requested = set(ids)
+
+    def read_row(case_id: str, kind: str) -> tuple[dict, str]:
+        entry = index["records"][case_id][kind]
+        if case_id not in requested:
+            raise AssertionError("indexed row is outside requested cohort")
+        path = ROOT / entry["file"]
+        with path.open("rb") as handle:
+            handle.seek(int(entry["offset"]))
+            raw = handle.read(int(entry["length"]))
+        match = re.search(rb'"id"\s*:\s*"([^"\\]+)"', raw)
+        if match is None or match.group(1).decode() != case_id:
+            raise RuntimeError(f"indexed BFCL id mismatch before decode: {case_id}")
+        row = json.loads(raw)
+        if str(row["id"]) != case_id:
+            raise RuntimeError(f"decoded BFCL id mismatch: {case_id}")
+        return row, str(entry["category"])
+
+    rows = []
+    for case_id in ids:
+        case, category = read_row(case_id, "case")
+        answer, answer_category = read_row(case_id, "answer")
+        if category != answer_category:
+            raise RuntimeError(f"indexed BFCL category mismatch: {case_id}")
+        rows.append((category, case, answer["ground_truth"]))
+    return rows
 
 
 def load_model(trunk: str):
@@ -357,6 +486,39 @@ def _call_string_to_json(call: str, tools: list[dict] | None = None) -> dict:
     return {"name": name, "arguments": arguments}
 
 
+def _canonical_call(call: dict) -> str:
+    return json.dumps(call, sort_keys=True, separators=(",", ":"))
+
+
+def canonical_repeated_call_set(
+    prior_ground_truth: list[list[str]], tools: list[dict], entries: list[dict]
+) -> set[str]:
+    """Canonical calls that repetition safety treats as prior/echoed."""
+    calls = {
+        _canonical_call(_call_string_to_json(call, tools))
+        for turn in prior_ground_truth
+        for call in turn
+    }
+    for entry in entries:
+        text = str(entry.get("text", "")).strip()
+        parsed_rows = parse_tool_calls(text)
+        for parsed in parsed_rows:
+            if parsed.valid and parsed.call is not None:
+                calls.add(_canonical_call(parsed.call))
+        if not parsed_rows:
+            try:
+                value = json.loads(text)
+            except json.JSONDecodeError:
+                value = None
+            if (
+                isinstance(value, dict)
+                and isinstance(value.get("name"), str)
+                and isinstance(value.get("arguments"), dict)
+            ):
+                calls.add(_canonical_call(value))
+    return calls
+
+
 def build_teacher_history(
     case: dict, ground_truth: list, turn_index: int, run_name: str
 ) -> list[dict]:
@@ -417,6 +579,10 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
         "control_role_shortfall": {"user": 0, "tool": 0},
         "echo_dropped_control_tokens": 0,
     }
+    suffix_columns = len(layout["context_token_ids"]) - layout["history_end"]
+    empty["pin_overflow_total"] = layout["protected_prefix"][1] + suffix_columns > K
+    empty["candidate_message_indices"] = []
+    empty["current_user_message_index"] = current_index
     if arm in {"base", "full"}:
         return {
             "context": context,
@@ -439,7 +605,6 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
         eligible, layout["evict_range"], fraction=BUDGET_FRACTION
     )
     original_pin_columns = sum(len(row["pinned_columns"]) for row in kept)
-    suffix_columns = len(layout["context_token_ids"]) - layout["history_end"]
     while True:
         classifier_entries, classifier_echo_tokens = _echo_cap(
             tokenizer, kept, context, layout["current_user_close"]
@@ -492,10 +657,12 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
         role: sum(len(row["pinned_columns"]) for row in kept if row["role"] == role)
         for role in ("user", "tool")
     }
-    role_pins = recent_user_spans(
-        candidates,
+    role_pins = prior_user_spans(
+        tokenizer,
+        context,
+        messages,
+        current_index,
         layout["evict_range"],
-        layout["evict_range"][1] - layout["evict_range"][0],
     )
     if overflow["pin_overflow_total"]:
         role_pins = []
@@ -631,11 +798,17 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
             "pin_overflow_total": overflow["pin_overflow_total"],
             "pin_overflow_dropped_columns": overflow["dropped_columns"],
             "spans": kept,
+            "candidate_message_indices": [
+                int(row["message_index"]) for row in candidates
+            ],
+            "current_user_message_index": current_index,
         },
     }
 
 
 def _degenerate(ids: list[int], truncated: bool) -> bool:
+    if truncated:
+        return False
     if len(ids) < 8:
         return False
     grams = [tuple(ids[index : index + 4]) for index in range(len(ids) - 3)]
@@ -690,16 +863,6 @@ def run_case_arm(
             current_messages = original_messages
             active_case = case
         messages.extend(current_messages)
-        if args.mode == "teacher":
-            history_call_raw = {
-                json.dumps(
-                    _call_string_to_json(call, tools),
-                    sort_keys=True,
-                    separators=(",", ":"),
-                )
-                for prior_calls in ground_truth[:turn_index]
-                for call in prior_calls
-            }
         responses = []
         turn_calls = []
         decoded_steps = []
@@ -717,6 +880,13 @@ def run_case_arm(
             scorer,
             seed=COHORT_SEED + turn_index * 101,
         )
+        canonical_history = canonical_repeated_call_set(
+            ground_truth[:turn_index], tools, plan["entries"]
+        )
+        if args.mode == "teacher":
+            history_call_raw = canonical_history
+        else:
+            history_call_raw.update(canonical_history)
         context_ids_by_turn.append(
             list(tokenizer.encode(render_prompt(messages, tools)).ids)
         )
@@ -829,16 +999,10 @@ def run_case_arm(
             for item in parsed:
                 record = asdict(item)
                 normalized = (
-                    json.dumps(item.call, sort_keys=True, separators=(",", ":"))
-                    if item.valid
-                    else item.raw.strip()
+                    _canonical_call(item.call) if item.valid else item.raw.strip()
                 )
                 current_ground_truth = {
-                    json.dumps(
-                        _call_string_to_json(call, tools),
-                        sort_keys=True,
-                        separators=(",", ":"),
-                    )
+                    _canonical_call(_call_string_to_json(call, tools))
                     for call in ground_truth[turn_index]
                 }
                 if (
@@ -873,7 +1037,7 @@ def run_case_arm(
                 messages.append({"role": "tool", "content": output})
             continuation_ids = _tool_step_suffix(tokenizer, execution)
         history_call_raw.update(
-            json.dumps(call["call"], sort_keys=True, separators=(",", ":"))
+            _canonical_call(call["call"])
             for call in turn_calls
             if call.get("valid") and call.get("call")
         )
@@ -963,7 +1127,17 @@ def run_case_arm(
     }
 
 
-def run_case(model, tokenizer, scorer, category, raw_case, ground_truth, args, run_tag):
+def run_case(
+    model,
+    tokenizer,
+    scorer,
+    category,
+    raw_case,
+    ground_truth,
+    args,
+    run_tag,
+    run_identity_sha256: str | None = None,
+):
     started = time.monotonic()
     selected_arms = (
         REDUCED_ARMS
@@ -1009,13 +1183,14 @@ def run_case(model, tokenizer, scorer, category, raw_case, ground_truth, args, r
         if first_divergence is None and len(left) != len(right):
             first_divergence = min(len(left), len(right))
     record = {
-        "schema": 4,
+        "schema": 5,
         "mode": args.mode,
         "case_id": raw_case["id"],
         "category": category,
         "arms": arms,
         "seconds": time.monotonic() - started,
         "first_divergence_turn": first_divergence,
+        "run_identity_sha256": run_identity_sha256,
     }
     if args.mode == "teacher":
         assert_case_record_schema(record)
@@ -1027,21 +1202,32 @@ def artifact_meta(args) -> dict:
     classifier = assert_registered_classifier()
     model_dir = ROOT / f"models/qwen3-{args.trunk}-hf"
     checker_dir = ROOT / "vendor/bfcl_eval/eval_checker/multi_turn_eval"
+    code_manifest = harness_manifest()
+    offsets = DATA / "offsets.json"
+    pins_manifest = ROOT / "data/bench/pins-manifest.json"
+    pins = json.loads(pins_manifest.read_text())
+    bfcl_files = pins["pins"]["ShishirPatil/gorilla BFCL V3 multi-turn"]["files_sha256"]
     frozen_hashes = {
-        "harness": sha256(__file__),
+        "harness": code_manifest["sha256"],
+        "harness_manifest": code_manifest["sha256"],
+        "harness_files": code_manifest["files"],
         "selector_artifact": hashlib.sha256(
             json.dumps(classifier, sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest(),
         "trunk_weights": sha256(ROOT / f"models/qwen3-{args.trunk}.pt"),
         "trunk_tokenizer": sha256(model_dir / "tokenizer.json"),
+        "trunk_config": sha256(model_dir / "config.json"),
         "cohorts": sha256(DATA / "cohorts.json"),
+        "offsets": sha256(offsets),
+        "pins_manifest": sha256(pins_manifest),
+        "bfcl_files": bfcl_files,
         "chat_template": hashlib.sha256(
             inspect.getsource(render_prompt).encode()
         ).hexdigest(),
         "vendored_checker": _tree_sha256(list(checker_dir.rglob("*.py"))),
     }
     return {
-        "schema": 4,
+        "schema": 5,
         "split": args.split,
         "mode": args.mode,
         "arms": list(
@@ -1052,6 +1238,7 @@ def artifact_meta(args) -> dict:
             else ("base", "clf_pinned_echo")
         ),
         "cost_arm_cut": bool(getattr(args, "arm_cut", False)),
+        "limit": getattr(args, "limit", None),
         "trunk": args.trunk,
         "max_new": args.max_new,
         "deadline": args.deadline,
@@ -1072,6 +1259,13 @@ def artifact_meta(args) -> dict:
         "frozen_hashes": frozen_hashes,
         "classifier_sha256": classifier,
     }
+
+
+def bind_run_identity(meta: dict, certificate_sha256: str | None = None) -> dict:
+    bound = dict(meta)
+    bound["preflight_certificate_sha256"] = certificate_sha256
+    bound["run_identity_sha256"] = _canonical_sha256(bound)
+    return bound
 
 
 def assert_registered_classifier() -> dict[str, str]:
@@ -1101,22 +1295,47 @@ def _check_or_write_meta(path: Path, meta: dict) -> None:
 
 
 def run(
-    args, model, tokenizer, scorer, *, resume: bool = True, run_tag: str = "main"
+    args,
+    model,
+    tokenizer,
+    scorer,
+    *,
+    resume: bool = True,
+    run_tag: str = "main",
+    meta: dict | None = None,
 ) -> list[dict]:
     output = Path(args.out)
     if not output.is_absolute():
         output = ROOT / "results/qwen" / output
     records_dir = output / "records"
     records_dir.mkdir(parents=True, exist_ok=True)
-    _check_or_write_meta(output / "meta.json", artifact_meta(args))
+    if meta is None:
+        meta = bind_run_identity(artifact_meta(args))
+    _check_or_write_meta(output / "meta.json", meta)
+    run_identity = str(meta["run_identity_sha256"])
     records = []
     cases = load_cases(args.split, args.limit)
+    cohort_ids = [str(case["id"]) for _, case, _ in cases]
+    expected_files = {f"{case_id}.json" for case_id in cohort_ids}
+    extra_files = {path.name for path in records_dir.glob("*.json")} - expected_files
+    if extra_files:
+        raise RuntimeError(
+            f"unexpected record files outside active cohort: {sorted(extra_files)}"
+        )
     for index, (category, case, answer) in enumerate(cases):
         path = records_dir / f"{case['id']}.json"
         if resume and path.exists():
             record = json.loads(path.read_text())
             if args.mode == "teacher":
-                assert_case_record_schema(record)
+                assert_case_record_schema(
+                    record,
+                    expected_arms=meta["arms"],
+                    run_identity_sha256=run_identity,
+                )
+            elif record.get("run_identity_sha256") != run_identity or list(
+                record.get("arms", {})
+            ) != list(meta["arms"]):
+                raise RuntimeError("resume run identity or arms mismatch")
             if record["case_id"] != case["id"] or record["category"] != category:
                 raise RuntimeError(f"resume identity mismatch: {case['id']}")
         else:
@@ -1129,6 +1348,7 @@ def run(
                 answer,
                 args,
                 f"{run_tag}_{index}",
+                run_identity,
             )
             atomic_json(path, record)
         records.append(record)
@@ -1140,10 +1360,22 @@ def run(
             flush=True,
         )
     all_records = [
-        json.loads(path.read_text()) for path in sorted(records_dir.glob("*.json"))
+        json.loads((records_dir / f"{case_id}.json").read_text())
+        for case_id in cohort_ids
     ]
+    if args.mode != "teacher" and any(
+        record.get("run_identity_sha256") != run_identity
+        or list(record.get("arms", {})) != list(meta["arms"])
+        for record in all_records
+    ):
+        raise RuntimeError("summary record run identity or arms mismatch")
     summary = (
-        summarize_records(all_records)
+        summarize_records(
+            all_records,
+            expected_case_ids=cohort_ids,
+            run_identity_sha256=run_identity,
+            expected_arms=meta["arms"],
+        )
         if args.mode == "teacher"
         else {
             "schema": 3,
@@ -1193,7 +1425,24 @@ def determinism_trace(arm_record: dict) -> list[dict]:
 
 def assert_dev_invariants(records: list[dict]) -> dict:
     """Assert registration-v7 invariants for every generated dev arm/turn."""
-    checked = 0
+    families = {
+        name: {"passed": 0, "n": 0}
+        for name in (
+            "protected_prefix",
+            "current_turn_absent",
+            "cache_equation",
+            "candidate_source",
+            "comparator_columns",
+            "comparator_echo",
+        )
+    }
+
+    def check(name: str, condition: bool) -> None:
+        families[name]["n"] += 1
+        families[name]["passed"] += bool(condition)
+        if not condition:
+            raise AssertionError(f"dev invariant failed: {name}")
+
     shortfalls = overflows = drops = 0
     for record in records:
         treatment_turns = record["arms"]["clf_pinned_echo"]["turns"]
@@ -1203,44 +1452,66 @@ def assert_dev_invariants(records: list[dict]) -> dict:
                 turn = arm_row["turns"][turn_offset]
                 eviction = turn["eviction"]
                 if eviction["evicted"]:
-                    assert eviction["current_turn_prefilled_before_eviction"] is False
-                    assert eviction["protected_prefix_survived"] is True
-                    assert (
+                    check(
+                        "current_turn_absent",
+                        eviction["current_turn_prefilled_before_eviction"] is False,
+                    )
+                    check(
+                        "protected_prefix",
+                        eviction["protected_prefix_survived"] is True,
+                    )
+                    check(
+                        "cache_equation",
                         eviction["columns_before"]
                         - eviction["evictable_size"]
                         + eviction["pinned_columns"]
-                        == eviction["columns_after"]
+                        == eviction["columns_after"],
                     )
+                selector = arm_row.get("selector", {}).get("turns", [])[turn_offset]
+                current_user = int(selector["current_user_message_index"])
+                for message_index in selector["candidate_message_indices"]:
+                    check("candidate_source", int(message_index) < current_user)
                 if arm in {"recency_pinned", "tool_swap_echo"}:
-                    assert (
+                    check(
+                        "comparator_columns",
                         eviction["pinned_columns_by_role"]
                         == treatment["pinned_columns_by_role"]
-                        or eviction["match_impossible"]
+                        or eviction["match_impossible"],
                     )
-                    assert (
+                    check(
+                        "comparator_echo",
                         abs(eviction["echo_token_delta"]) <= 16
-                        or eviction["match_impossible"]
+                        or eviction["match_impossible"],
                     )
                 if arm == "clf_control":
                     if eviction["control_role_shortfall"]:
-                        assert (
+                        check(
+                            "comparator_columns",
                             sum(eviction["pinned_columns_by_role"].values())
                             == sum(treatment["pinned_columns_by_role"].values())
-                            or eviction["match_impossible"]
+                            or eviction["match_impossible"],
                         )
                     else:
-                        assert (
+                        check(
+                            "comparator_columns",
                             eviction["pinned_columns_by_role"]
                             == treatment["pinned_columns_by_role"]
-                            or eviction["match_impossible"]
+                            or eviction["match_impossible"],
                         )
+                    check(
+                        "comparator_echo",
+                        abs(eviction["echo_token_delta"]) <= 16
+                        or eviction["match_impossible"],
+                    )
                 shortfalls += bool(eviction.get("control_role_shortfall"))
                 overflows += bool(eviction.get("pin_overflow"))
                 drops += int(eviction.get("pin_overflow_dropped_columns", 0))
-                checked += 1
+    passed = sum(row["passed"] for row in families.values())
+    checked = sum(row["n"] for row in families.values())
     return {
         "checked": checked,
-        "passed_fraction": 1.0,
+        "passed_fraction": passed / checked if checked else None,
+        "families": families,
         "control_role_shortfall": shortfalls,
         "pin_overflow": overflows,
         "dropped_columns": drops,
@@ -1248,8 +1519,24 @@ def assert_dev_invariants(records: list[dict]) -> dict:
 
 
 def preflight(args, model, tokenizer, scorer) -> None:
+    output = Path(args.out)
+    if not output.is_absolute():
+        output = ROOT / "results/qwen" / output
     first = run(args, model, tokenizer, scorer, resume=True, run_tag="preflight_a")
-    invariants = assert_dev_invariants(first)
+    try:
+        invariants = assert_dev_invariants(first)
+    except AssertionError as exc:
+        failure = {
+            "schema": 5,
+            "status": "INCONCLUSIVE",
+            "failure_state": "INVARIANT_FAILURE",
+            "error": str(exc),
+        }
+        atomic_json(output / "preflight.json", failure)
+        raise RuntimeError("registered preflight invariant failed") from exc
+    invariants["passed"] = all(
+        row["passed"] == row["n"] for row in invariants["families"].values()
+    )
     excessive_echo = [
         (record["case_id"], arm, turn["turn"], turn["eviction"]["echo_token_delta"])
         for record in first
@@ -1259,9 +1546,14 @@ def preflight(args, model, tokenizer, scorer) -> None:
         and not turn["eviction"].get("match_impossible")
     ]
     if excessive_echo:
-        raise RuntimeError(
-            f"dev comparator echo token delta exceeds 16: {excessive_echo}"
-        )
+        failure = {
+            "schema": 5,
+            "status": "INCONCLUSIVE",
+            "failure_state": "INVARIANT_FAILURE",
+            "error": f"dev comparator echo token delta exceeds 16: {excessive_echo}",
+        }
+        atomic_json(output / "preflight.json", failure)
+        raise RuntimeError(failure["error"])
     dev_cases = load_cases("dev")
     determinism_cases = [
         next(row for row in dev_cases if row[0] == category) for category in CATEGORIES
@@ -1296,7 +1588,14 @@ def preflight(args, model, tokenizer, scorer) -> None:
     kept = sum(row["kept"] for row in selectors)
     budget = sum(row["budget"] for row in selectors)
     used = sum(row["used"] for row in selectors)
-    seconds = sum(float(record["seconds"]) for record in first)
+    seconds = sum(
+        float(record["arms"][arm]["seconds"]) for record in first for arm in ARMS
+    )
+    reduced_seconds = sum(
+        float(record["arms"][arm]["seconds"])
+        for record in first
+        for arm in REDUCED_ARMS
+    )
     base_passed = sum(row["final_pass"] for row in base_rows)
     full_passed = sum(row["final_pass"] for row in full_rows)
     long_turns = [
@@ -1337,7 +1636,7 @@ def preflight(args, model, tokenizer, scorer) -> None:
         and sum(bool(turn["pass"]) for turn in long_turns) >= 6
     )
     projected_hours = seconds / len(first) * 64 / 3600
-    reduced_projected_hours = projected_hours * 5 / len(ARMS)
+    reduced_projected_hours = reduced_seconds / len(first) * 64 / 3600
     report = {
         "competence": {
             "full_overall": {"passed": full_passed, "n": 32, "floor": "5/32"},
@@ -1439,6 +1738,7 @@ def preflight(args, model, tokenizer, scorer) -> None:
             "cap_gpu_hours": 30,
             "arm_cut_required": projected_hours > 30,
             "projected_reduced_hours": reduced_projected_hours,
+            "measured_reduced_arm_seconds": reduced_seconds,
             "stop_inconclusive": projected_hours > 30 and reduced_projected_hours > 30,
             "sealed_arms": (
                 ["base", "clf_pinned_echo", "clf_control", "recency_pinned", "full"]
@@ -1447,11 +1747,40 @@ def preflight(args, model, tokenizer, scorer) -> None:
             ),
         },
     }
-    output = Path(args.out)
-    if not output.is_absolute():
-        output = ROOT / "results/qwen" / output
+    cost_ok = projected_hours <= 30 or reduced_projected_hours <= 30
+    gates = {
+        "competence": report["competence"],
+        "determinism": report["bitwise_base_rerun"],
+        "feasibility": report["feasibility"],
+        "invariants": report["invariants"],
+        "cost": {
+            "passed": cost_ok,
+            "full_projected_hours": projected_hours,
+            "reduced_projected_hours": reduced_projected_hours,
+            "cap_gpu_hours": 30,
+        },
+    }
+    all_passed = all(_gate_passed(value) for value in gates.values())
+    report["schema"] = 5
+    report["status"] = "PASSED" if all_passed else "INCONCLUSIVE"
+    if all_passed:
+        contract_meta = artifact_meta(args)
+        cut = projected_hours > 30
+        contract_meta["arms"] = list(REDUCED_ARMS if cut else ARMS)
+        contract_meta["cost_arm_cut"] = cut
+        payload = certificate_payload(contract_meta, gates)
+        report["certificate"] = payload
+        report["certificate_sha256"] = _canonical_sha256(payload)
+    else:
+        report["failure_state"] = (
+            "FALLBACK_REQUIRED_4B"
+            if not competence_ok and args.trunk == "1.7b"
+            else "INCONCLUSIVE"
+        )
     atomic_json(output / "preflight.json", report)
     print(json.dumps(report, indent=2))
+    if not all_passed:
+        raise RuntimeError(f"registered preflight failed: {report['failure_state']}")
 
 
 def main() -> None:
@@ -1460,7 +1789,14 @@ def main() -> None:
     output = Path(args.out)
     if not output.is_absolute():
         output = ROOT / "results/qwen" / output
-    _check_or_write_meta(output / "meta.json", artifact_meta(args))
+    base_meta = artifact_meta(args)
+    certificate_sha256 = None
+    if args.split == "sealed":
+        certificate_sha256 = validate_preflight_certificate(
+            args.preflight_certificate, base_meta
+        )
+    meta = bind_run_identity(base_meta, certificate_sha256)
+    _check_or_write_meta(output / "meta.json", meta)
     from stencil.selector_v2 import ClassifierScorer
 
     model, tokenizer = load_model(args.trunk)
@@ -1468,7 +1804,7 @@ def main() -> None:
     if args.command == "preflight":
         preflight(args, model, tokenizer, scorer)
     else:
-        run(args, model, tokenizer, scorer)
+        run(args, model, tokenizer, scorer, meta=meta)
 
 
 if __name__ == "__main__":

@@ -24,6 +24,9 @@ def _atomic_json(path: Path, value: object) -> None:
 
 
 def main() -> None:
+    index_path = DATA / "offsets.json"
+    if index_path.exists():
+        raise RuntimeError("sealed BFCL offsets already exist; one-time read refused")
     cohorts = json.loads((DATA / "cohorts.json").read_text())
     wanted = set(cohorts["dev"]) | set(cohorts["sealed"])
     manifest_path = ROOT / "data/bench/pins-manifest.json"
@@ -59,8 +62,11 @@ def main() -> None:
                     }
                 offset += len(line)
 
-    incomplete = {case_id: sorted(row) for case_id, row in records.items()
-                  if set(row) != {"case", "answer"}}
+    incomplete = {
+        case_id: sorted(row)
+        for case_id, row in records.items()
+        if set(row) != {"case", "answer"}
+    }
     if incomplete:
         raise RuntimeError(f"incomplete cohort offsets: {incomplete}")
     index = {
@@ -68,10 +74,11 @@ def main() -> None:
         "cohorts_sha256": _sha256((DATA / "cohorts.json").read_bytes()),
         "cohorts": {"dev": cohorts["dev"], "sealed": cohorts["sealed"]},
         "source_files_sha256": dict(sorted(source_hashes.items())),
-        "records": {case_id: records[case_id]
-                    for case_id in [*cohorts["dev"], *cohorts["sealed"]]},
+        "records": {
+            case_id: records[case_id]
+            for case_id in [*cohorts["dev"], *cohorts["sealed"]]
+        },
     }
-    index_path = DATA / "offsets.json"
     _atomic_json(index_path, index)
     pinned["offsets_sha256"] = _sha256(index_path.read_bytes())
     _atomic_json(manifest_path, manifest)

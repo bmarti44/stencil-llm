@@ -275,7 +275,9 @@ def test_per_turn_primary_a3_exclusion_and_safety_vacuity_guard():
     assert summary["contrasts"]["a1_echo_minus_control"]["mean_points"] == 100.0
     assert summary["contrasts"]["a3_half_gap_recovery"]["clusters"] == 1
     assert summary["a3"]["excluded_over_40960"] == 1
-    assert summary["a3"]["eligible"] is True
+    assert summary["a3"]["eligible"] is False
+    assert summary["a3"]["k"] == 1
+    assert summary["a3"]["status"] == "post-exclusion k<6; A3 uninformative"
     assert summary["safety"]["checks"]["base"]["timeouts_zero"] is True
     assert set(summary["safety"]["vacuity_guard"]) == {"degenerate"}
     records[0]["arms"]["base"]["turns"][0]["degenerate"] = True
