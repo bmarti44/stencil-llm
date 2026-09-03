@@ -3321,3 +3321,79 @@ STENCIL_SEALED_RUN=1 uv run python scripts/bfcl_mt.py run --split sealed --mode 
 - Restart from conversation zero in the registered new directory (do not resume the superseded directory):
   `uv run python scripts/multiif_evict.py --out multiif-evict-909-prequery-v2`
 - 2026-09-03, coder (auto, run_codex_agent.sh). Brief multiif-control-shortfall: model gpt-5.6-sol, effort medium, exit 7, session 01a06807-ef55-7d21-861e-30ce8fcb95fa, log /home/bmarti44/stencil-llm/results/logs/codex-agent-multiif-control-shortfall.log.
+
+## 2026-09-03 — bfcl-evict-v6 coder handoff (LEG A Amendment 3)
+
+Commit `9fe7c3f` closes fable's harness-v4 F1--F10 review under LEG A v7 plus
+Amendments 1--3. No model process was launched, no GPU process was waited on or
+signalled, `--split sealed` was not run, `data/bench/ifeval_input_data.jsonl` was
+never read, and no file below `data/bench/` changed.
+
+Finding closures:
+
+1. F1: `src/stencil/bfcl.py:468-623` ranks disjoint resources by nearest token
+   width, then nearest source-turn age, then stable source order, without reuse;
+   the exact column clamp determines the final quota. Impossibility is based on
+   total eligible columns, and signed width/turn deltas are retained per match.
+2. F2: `src/stencil/bfcl.py:405-431` preserves source characters for whole
+   entries and decodes only a truncated source-token prefix.
+   `scripts/bfcl_mt.py:572-620,732-791` clamps each comparator echo to the
+   treatment token count at a Qwen source-token boundary and records its
+   residual. The last echo entry alone may be truncated.
+3. F3: `src/stencil/bfcl.py:803-812,1146` and
+   `scripts/bfcl_mt.py:1159-1163` make every 40,960-position overflow a
+   truncated failure and reject non-boolean schema-v4/v5 turn passes, so the
+   summary cannot receive `None`.
+4. F4: verified still closed at `scripts/bfcl_mt.py:906-912`: truncated
+   generations cannot be classified as degenerate.
+5. F5: verified still closed at `scripts/bfcl_mt.py:141-166`: the canonical
+   manifest hashes the runner, every executing stencil module, the vendored
+   multi-turn checker tree, and the rendered chat-template source; its digest
+   remains certificate/run-identity bound.
+6. F6: `src/stencil/bfcl.py:685-749` substitutes tool matches in the original
+   treatment entry order and retains the match deltas.
+7. F7: `src/stencil/selector_v2.py:10-18,120-123` counts truncation using the
+   exact untruncated `(no context, [role] candidate)` pair rather than the
+   candidate alone.
+8. F8: `scripts/bfcl_mt.py:326-429,623-648,1050-1096` measures current-turn
+   absence at the pre-query boundary, reports zero pinned columns when no
+   eviction occurred, attributes overflow events once to the treatment and
+   role-shortfall facts once to `clf_control`, and retains the already enforced
+   candidate-message-index check. `src/stencil/bfcl.py:1155-1240` aggregates
+   nominal and actual B with the other registered per-arm counters.
+9. F9: `src/stencil/bfcl.py:1615-1714` reports the fixed t>=2, no-eviction,
+   non-empty-treatment-echo stratum per arm and emits the mechanically derived
+   outcome label and reason. The per-arm summaries include truncation, dropped
+   control tokens/columns, nominal/actual B, role deltas, and echo deltas.
+10. F10: verified still closed at `scripts/bfcl_mt.py:229-270`: the dev loader
+    uses only the registered dev byte offsets, validates each raw ID before JSON
+    decode, and never scans or opens a sealed row.
+
+TDD and CPU evidence: `tests/test_bfcl_evict_v6.py` was written first and gave
+10 expected behavioral failures (2 pre-existing v5 closure checks already
+passed). Its real dev-slice test reconstructed all 32 cases/115 teacher-forced
+histories through the vendored environments with a deterministic 30% stub
+scorer: exactly **11 evicting turns**, **0 match_impossible** events across
+`clf_control`, `recency_pinned`, and `tool_swap_echo`, and every absolute echo
+delta was <=16. It passed as part of **12 passed in 504.79 s**. The pre-v6
+targeted set is **68 passed in 9.81 s**; the other 11 v6 tests passed in 7.43 s.
+Targeted Ruff and `git diff --check` are clean.
+The final single-command acceptance run over exactly the brief-authorized files
+completed with **80 passed in 800.70 s**.
+
+The exact registration text extractor now hashes LEG A v7 + A1 + A2 + A3,
+explicitly omitting the intervening LEG B Amendment 3. New registration SHA-256:
+`7f4078ece9263daed0d0fd28799318de098bd78e5d08c7da7249ca53d281674a`.
+A CPU test proves a preflight certificate carrying the stale registration hash
+is refused.
+
+Deferred GPU/model commands (recorded, not run):
+
+```bash
+uv run python scripts/bfcl_mt.py run --split dev --mode teacher --trunk 1.7b --limit 1 --out bfcl-evict-v6-smoke-1.7b
+uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 1.7b --out bfcl-evict-v6-preflight-1.7b
+# Run only if the registered 1.7B fallback rule requires it:
+uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b --out bfcl-evict-v6-preflight-4b
+```
+
+The sealed command remains prohibited and is intentionally not reproduced here.
