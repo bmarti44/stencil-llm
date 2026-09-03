@@ -1,4 +1,4 @@
-"""Registered Multi-IF post-development evaluation with real KV eviction.
+"""Registered Multi-IF post-development evaluation with pre-query KV eviction.
 
 The benchmark is evaluation-only: this module never fits, selects a threshold,
 or reads the sealed single-turn IFEval data. Conversation records are written
@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
 from stencil import determinism  # noqa: E402
+from stencil.qwen3 import prefill_with_eviction as prefill_for_generation  # noqa: E402
 
 ARMS = (
     "full",
@@ -43,7 +44,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--start", type=int, default=0)
     parser.add_argument("--max-new", type=int, default=512)
     parser.add_argument("--deadline", type=float, default=300.0)
-    parser.add_argument("--out", default="multiif-evict-preflight")
+    parser.add_argument("--out", default="multiif-evict-909-prequery")
     args = parser.parse_args(argv)
     if args.limit is not None and args.limit <= 0:
         parser.error("--limit must be positive")
@@ -328,7 +329,7 @@ def run_arm(
     max_new: int,
     deadline: float,
 ) -> dict:
-    """Greedy generation after a single real cache eviction."""
+    """Greedy generation after a single real pre-query cache eviction."""
     import torch
 
     from stencil.bench import EOS
@@ -340,11 +341,26 @@ def run_arm(
     timed_out = False
     device = next(model.parameters()).device
     with torch.no_grad():
-        logits = model(torch.tensor([list(ids)], device=device), cache=cache)
+        tokens = torch.tensor([list(ids)], device=device)
+        # All callers provide chat contexts; derive the exact registered split
+        # from the final user marker rather than from any echo text length.
+        context = tokenizer.decode(ids, skip_special_tokens=False)
+        marker = context.rfind("<|im_start|>user\n")
+        if marker < 0:
+            raise ValueError("current user marker missing")
+        history_end = len(tokenizer.encode(context[:marker]).ids)
         pinned_columns = []
-        cache_columns_before = int(cache.k[0].shape[2])
+        logits, index_map, _history_columns_before, history_columns_after = (
+            prefill_for_generation(
+                model,
+                cache,
+                tokens,
+                history_end=history_end,
+                evict_range=evict_range,
+                keep=keep,
+            )
+        )
         if evict_range is not None:
-            index_map = cache.evict(*evict_range, keep=keep)
             pinned_columns = sorted(
                 {
                     index_map[column]
@@ -353,7 +369,8 @@ def run_arm(
                     if column in index_map
                 }
             )
-        cache_columns_after = int(cache.k[0].shape[2])
+        cache_columns_before = len(ids)
+        cache_columns_after = history_columns_after + len(ids) - history_end
         next_token = int(logits[0, -1].argmax())
         while next_token not in EOS and len(generated) < max_new:
             if time.monotonic() - started > deadline:
@@ -636,6 +653,7 @@ def build_meta(args: argparse.Namespace, data_path: Path, model_path: Path) -> d
             "deadline_seconds": args.deadline,
         },
         "position_policy": "no_reindex_positions_continue",
+        "eviction_timing": "pre-query",
         "scoring": "vendored Multi-IF/IFEval process_results; truncations scored as-is",
     }
 

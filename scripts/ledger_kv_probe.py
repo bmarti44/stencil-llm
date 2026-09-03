@@ -3,7 +3,7 @@
 
 Synthetic multi-turn corpus (data/b3/mt-train-300.jsonl; Multi-IF never
 read). Turns 1..T-1 are generated natively (base) to build history; at the
-LAST turn the prior history is EVICTED from the KV cache after prefill and
+LAST turn the prior history is EVICTED from the KV cache before query prefill and
 the arms differ only in what survives:
   full                — nothing evicted (ceiling)
   evicted             — all prior turns dropped, nothing pinned
@@ -66,6 +66,11 @@ def parse_args(argv=None):
     ap.add_argument("--deadline", type=float, default=300.0)
     ap.add_argument("--dose", type=float, nargs="+", default=None)
     ap.add_argument("--out", default="ledger-kv-probe")
+    ap.add_argument(
+        "--eviction-timing",
+        choices=("pre-query", "post-prefill"),
+        default="pre-query",
+    )
     args = ap.parse_args(argv)
     if args.focus == "auto" and args.dose is not None:
         ap.error("--dose is unavailable with --focus auto (H1 prime has no wave arms)")
@@ -104,7 +109,10 @@ def provenance_manifest():
     return out
 
 
-def build_meta(*, doses, max_new, deadline, artifact_hashes=None, focus="oracle"):
+def build_meta(
+    *, doses, max_new, deadline, artifact_hashes=None, focus="oracle",
+    eviction_timing="pre-query",
+):
     meta = {
         "schema": 3,
         "arms": list(arm_names(doses, focus=focus)),
@@ -112,6 +120,7 @@ def build_meta(*, doses, max_new, deadline, artifact_hashes=None, focus="oracle"
         "max_new": max_new,
         "deadline": deadline,
         "position_policy": "no_reindex_positions_continue",
+        "eviction_timing": eviction_timing,
         "degenerate_def": f"truncated or rep4>{DEGENERATE_REP4}",
         "history_decode": "raw_context_greedy",
         "wave_kill_rule": WAVE_KILL_RULE,
@@ -152,6 +161,15 @@ def tokenized_eviction_range(tokenizer, context):
     tok_first = next(i for i, (a, b) in enumerate(enc.offsets) if b > first_content)
     tok_last = next(i for i, (a, b) in enumerate(enc.offsets) if b > last_marker)
     return list(enc.ids), (tok_first, tok_last)
+
+
+def current_turn_start(tokenizer, ids):
+    """Return the token boundary immediately before the final user turn."""
+    context = tokenizer.decode(ids, skip_special_tokens=False)
+    marker = context.rfind("<|im_start|>user\n")
+    if marker < 0:
+        raise ValueError("current user marker missing")
+    return len(tokenizer.encode(context[:marker]).ids)
 
 
 def strip_constraint_marks(text):
@@ -364,25 +382,39 @@ def is_degenerate(g):
     return bool(g["truncated"] or g["rep4"] > DEGENERATE_REP4)
 
 
-def run_arm(m, tok, ids, arm, keep, evict_range, dose, max_new, deadline_s, control_keep=()):
+def run_arm(m, tok, ids, arm, keep, evict_range, dose, max_new, deadline_s,
+            control_keep=(), eviction_timing="pre-query"):
     import torch
 
     from stencil.bench import EOS, WAVE_LAYERS
-    from stencil.qwen3 import KVCache
+    from stencil.qwen3 import KVCache, prefill_with_eviction
     cache = KVCache()
     out = []
     t0 = time.monotonic()
     timed_out = False
     with torch.no_grad():
-        logits = m(torch.tensor([ids], device="cuda"), cache=cache)
         cols = []
+        pins = ()
         if arm not in ("full", "full_echo"):
             pins = (
                 () if arm in ("evicted", "echo_only")
                 else control_keep if arm == "pinned_control"
                 else keep
             )
-            imap = cache.evict(evict_range[0], evict_range[1], keep=pins)
+        logits, imap, _, _ = prefill_with_eviction(
+            m,
+            cache,
+            torch.tensor([ids], device="cuda"),
+            history_end=(
+                evict_range[1]
+                if evict_range is not None
+                else current_turn_start(tok, ids)
+            ),
+            evict_range=None if arm in ("full", "full_echo") else evict_range,
+            keep=pins,
+            eviction_timing=eviction_timing,
+        )
+        if arm not in ("full", "full_echo"):
             cols = sorted({imap[o] for s, e in pins for o in range(s, e) if o in imap})
         nxt = int(logits[0, -1].argmax())
         while nxt not in EOS and len(out) < max_new:
@@ -580,6 +612,7 @@ def main():
         max_new=args.max_new,
         deadline=args.deadline,
         focus=args.focus,
+        eviction_timing=args.eviction_timing,
         artifact_hashes={
             "corpus": str(data_path.relative_to(ROOT)),
             "corpus_sha256": sha(data_path),
@@ -664,6 +697,7 @@ def main():
             g = run_arm(
                 m, tok, arm_ids, arm, arm_keep, arm_evict_range, dose,
                 args.max_new, args.deadline, control_keep=control_keep,
+                eviction_timing=args.eviction_timing,
             )
             g["degenerate"] = is_degenerate(g)
             scores = score_row_constraints(row, g["text"])

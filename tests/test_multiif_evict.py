@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 
 import pytest
 
@@ -174,3 +175,118 @@ def test_resume_preserves_existing_record_and_returns_only_missing(tmp_path):
     assert resume_indices(tmp_path, [(0, "key-0"), (1, "key-1")]) == [1]
     assert path.read_bytes() == before
     assert json.loads(path.read_text()) == original
+
+
+def test_two_stage_prefill_evicts_before_current_turn_and_keeps_positions():
+    import torch
+
+    from scripts.multiif_evict import prefill_for_generation
+
+    events = []
+
+    class Cache:
+        def __init__(self):
+            self.length = 0
+            self.k = [None]
+
+        def evict(self, lo, hi, keep=()):
+            events.append(("evict", self.length, lo, hi, tuple(keep)))
+            assert self.length == 4
+            assert 50 not in trunk.seen and 51 not in trunk.seen
+            self.k[0] = self.k[0][:, :, :2]
+            return {0: 0, 3: 1}
+
+    class Trunk:
+        def __init__(self):
+            self.seen = []
+
+        def __call__(self, tokens, *, cache):
+            values = tokens[0].tolist()
+            events.append(("prefill", values, cache.length))
+            self.seen.extend(values)
+            cache.length += len(values)
+            cache.k[0] = torch.zeros(1, 1, len(self.seen), 1)
+            return torch.tensor([[[float(value)] for value in values]])
+
+    trunk = Trunk()
+    cache = Cache()
+    logits, _, before, after = prefill_for_generation(
+        trunk,
+        cache,
+        torch.tensor([[10, 11, 12, 13, 50, 51]]),
+        history_end=4,
+        evict_range=(1, 3),
+        keep=(),
+    )
+    assert events == [
+        ("prefill", [10, 11, 12, 13], 0),
+        ("evict", 4, 1, 3, ()),
+        ("prefill", [50, 51], 4),
+    ]
+    assert cache.length == 6
+    assert (before, after) == (4, 2)
+    assert logits[0, -1, 0].item() == 51
+
+
+def _gpu_idle() -> tuple[bool, str]:
+    try:
+        import torch
+
+        if not torch.cuda.is_available():
+            return False, "CUDA unavailable"
+        result = subprocess.run(
+            ["nvidia-smi", "--query-compute-apps=pid", "--format=csv,noheader"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (ImportError, FileNotFoundError, subprocess.CalledProcessError) as exc:
+        return False, f"GPU idle check unavailable: {exc}"
+    if result.stdout.strip():
+        return False, f"GPU busy (compute PIDs: {result.stdout.strip()})"
+    return True, ""
+
+
+def test_full_two_stage_prefill_logits_bitwise_equal_one_shot(tok):
+    idle, reason = _gpu_idle()
+    if not idle:
+        pytest.skip(reason)
+
+    import torch
+
+    from scripts.multiif_evict import context_layout, prefill_for_generation
+    from stencil.qwen3 import KVCache, Qwen3
+
+    model = Qwen3()
+    model.load_state_dict(
+        torch.load("models/qwen3-1.7b.pt", map_location="cpu", weights_only=True)
+    )
+    model = model.to(torch.bfloat16).cuda().eval()
+    layout = context_layout(tok, _context())
+    tokens = torch.tensor([layout["context_token_ids"]], device="cuda")
+    with torch.no_grad():
+        one_shot = model(tokens, cache=KVCache(model.cfg))[:, -1]
+        two_stage, _, _, _ = prefill_for_generation(
+            model,
+            KVCache(model.cfg),
+            tokens,
+            history_end=layout["evict_range"][1],
+            evict_range=None,
+            keep=(),
+        )
+    assert torch.equal(two_stage[:, -1], one_shot)
+
+
+def test_meta_records_prequery_and_rejects_other_timing(tmp_path):
+    from scripts.multiif_evict import _check_or_write_meta
+
+    path = tmp_path / "meta.json"
+    _check_or_write_meta(path, {"eviction_timing": "pre-query"})
+    with pytest.raises(RuntimeError, match="resume provenance mismatch"):
+        _check_or_write_meta(path, {"eviction_timing": "post-prefill"})
+
+
+def test_default_output_directory_is_registered_prequery_name():
+    from scripts.multiif_evict import parse_args
+
+    assert parse_args([]).out == "multiif-evict-909-prequery"

@@ -45,6 +45,7 @@ def test_dose_list_defaults_and_arm_names(kv):
     assert args.focus == "oracle"
     assert args.dose == [0.5, 1.0, 3.0]
     assert args.max_new == 512
+    assert args.eviction_timing == "pre-query"
     assert kv.arm_names(args.dose) == (
         "full", "evicted", "pinned", "pinned_control",
         "echo_only", "pinned_echo",
@@ -59,6 +60,7 @@ def test_dose_list_defaults_and_arm_names(kv):
     )
     with pytest.raises(SystemExit):
         kv.parse_args(["--focus", "auto", "--dose", "1.0"])
+    assert kv.parse_args(["--eviction-timing", "post-prefill"]).eviction_timing == "post-prefill"
 
 
 def test_auto_focus_uses_salience2_on_unmarked_turns_and_not_oracle_reader(kv, tok):
@@ -156,9 +158,23 @@ def test_provenance_and_registered_kill_rule(kv):
                 "salience2_weights.json", "salience2_probe.npz", "salience2_hybrid.json",
                 "vendor/ifeval"):
         assert key in prov and len(prov[key]) == 64, key
-    meta = kv.build_meta(doses=[0.5, 1.0, 3.0], max_new=512, deadline=300.0)
+    meta = kv.build_meta(
+        doses=[0.5, 1.0, 3.0], max_new=512, deadline=300.0,
+        eviction_timing="pre-query",
+    )
     assert meta["wave_kill_rule"] == "degenerate sessions > 2/20 at best dose"
+    assert meta["eviction_timing"] == "pre-query"
     assert meta["provenance"] == prov
+
+
+def test_quick_check_probe_flag_and_scores_path_round_trip():
+    from scripts.clf_probe_check import parse_args
+
+    args = parse_args([
+        "--scores", "scores.json", "--eviction-timing", "post-prefill"
+    ])
+    assert args.scores == "scores.json"
+    assert args.eviction_timing == "post-prefill"
 
 
 def test_paired_bootstrap_ci_is_session_paired_and_deterministic(kv):
@@ -231,6 +247,19 @@ def test_echo_eviction_range_recomputed_on_echoed_ids_covers_same_history(kv, to
     base_ids, base_range = kv.tokenized_eviction_range(tok, context)
     echo_ids, echo_range = kv.tokenized_eviction_range(tok, echoed)
     assert tok.decode(base_ids[slice(*base_range)]) == tok.decode(echo_ids[slice(*echo_range)])
+
+
+def test_current_turn_start_supports_single_turn_generation(kv, tok):
+    context = (
+        "<|im_start|>user\nFirst prompt.<|im_end|>\n"
+        "<|im_start|>assistant\n<think>\n\n</think>\n\n"
+    )
+    ids = tok.encode(context).ids
+    split = kv.current_turn_start(tok, ids)
+    assert split == 0
+    assert tok.decode(ids[split:], skip_special_tokens=False).startswith(
+        "<|im_start|>user\n"
+    )
 
 
 def test_echo_span_stops_before_next_constraint_and_reminder(kv, tok):

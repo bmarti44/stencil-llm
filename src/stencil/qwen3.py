@@ -85,6 +85,52 @@ class KVCache:
         return {old: new for new, old in enumerate(survive)}
 
 
+def prefill_with_eviction(
+    model,
+    cache: KVCache,
+    tokens: torch.Tensor,
+    *,
+    history_end: int,
+    evict_range: tuple[int, int] | None,
+    keep=(),
+    eviction_timing: str = "pre-query",
+):
+    """Prefill history, optionally evict it, then prefill the current turn."""
+    if eviction_timing not in ("pre-query", "post-prefill"):
+        raise ValueError(f"unknown eviction timing: {eviction_timing}")
+    if tokens.ndim != 2 or not 0 <= history_end < tokens.shape[1]:
+        raise ValueError("history/current-turn split must be inside the token sequence")
+
+    index_map = {}
+    if history_end == 0:
+        if evict_range is not None:
+            raise ValueError("cannot evict an empty history")
+        logits = model(tokens, cache=cache)
+        columns = int(cache.k[0].shape[2])
+        return logits, index_map, columns, columns
+    if eviction_timing == "post-prefill":
+        logits = model(tokens, cache=cache)
+        columns_before = int(cache.k[0].shape[2])
+        if evict_range is not None:
+            index_map = cache.evict(*evict_range, keep=keep)
+        return logits, index_map, columns_before, int(cache.k[0].shape[2])
+
+    model(tokens[:, :history_end], cache=cache)
+    columns_before = int(cache.k[0].shape[2])
+    if cache.length != history_end or columns_before != history_end:
+        raise AssertionError(
+            "current-turn ids reached the cache before pre-query eviction"
+        )
+    if evict_range is not None:
+        length_before = cache.length
+        index_map = cache.evict(*evict_range, keep=keep)
+        if cache.length != length_before:
+            raise AssertionError("KVCache.evict reduced absolute position length")
+    columns_after_eviction = int(cache.k[0].shape[2])
+    logits = model(tokens[:, history_end:], cache=cache)
+    return logits, index_map, columns_before, columns_after_eviction
+
+
 class RMSNorm(nn.Module):
     def __init__(
         self,
