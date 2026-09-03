@@ -8,9 +8,10 @@ assistant, whether the assistant must REMEMBER it for later turns. This pass is 
 Labels (exactly one):
 - "rule": (1) conversation-scoped instructions ("from now on", "always", "never", "whenever"), AND (2) TASK-scoped
   constraints — a constraint on HOW the piece of work in progress must be written or done (a document, code, a plan,
-  a story, an email thread, a spreadsheet): "keep it under 90 words", "no bullet points", "begin with a title in
-  angle brackets", "use tabs in this file", "end every section with a question", "write it in the second person",
-  "cite two sources", "use British spelling in this report". These are rules because they PERSIST while the same
+  a story, an email thread, a spreadsheet): "keep the whole thing short", "no bullet points", "open with a one-line
+  heading", "use tabs in this file", "end every section with a question", "write it in the second person",
+  "cite two sources", "use British spelling in this report". (Exemplars rewritten 2026-09-03 after fable's check-22
+  review F3: the earlier version carried specifics lifted from the dev probe; rows echoing them are dropped.) These are rules because they PERSIST while the same
   work continues in later turns ("now extend it", "revise the piece", "add a closing section", "fix the next
   function") — even when the sentence does not say "from now on". Also rule changes/cancellations.
 - "fact": durable information needed later (ids, names, numbers, dates, decisions, states).

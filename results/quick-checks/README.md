@@ -191,3 +191,12 @@ was NOT reviewed; "hand-written, reviewed" is narrowed to the kimi/kimi-ctx pass
 (sol, Opus) lands; LABELS.md's taxonomy-disjoint sentence replaced by the item-level policy. (3) "Ceiling" ->
 "full-context baseline point estimate"; 0.86x refers to pinned columns only, echo tokens excluded. (4) The FINAL
 identical-data run carries a train manifest (sha, per-source counts, patch files) and per-run rows for safety.
+FABLE (checks 19-22): CONFIRMED-WITH-QUALIFICATIONS. F1: all three v2 seeds already trained on identical data (the
+trainer's patch glob picked up the 59-row patch before seeds 1-2 started) — the check-22 caveat is withdrawn and the
+FINAL chain is a replication. F2: the selected span sets are identical across seeds (pinned 33 is one deterministic
+measurement; the echo spread is echo-order noise); budget-matched arms differ by seed (pinned 33/27/33, echo
+45/35/40) and are reported here. F3 (HIGH, accepted): the v2 spec and the scope-generation prompt carried exemplars
+lifted from the probe's misses with their specifics (90-word cap, angle-bracket title, postscript); 38 scope rows
+echoing them are dropped (review/scope-exemplar-patch.jsonl), exemplars rewritten in LABELS.md and the generator;
+lineage wording narrowed. F5: patch precedence now deterministic (sorted). F7: the postscript family is the one the
+spec change did not teach (all seeds miss it).

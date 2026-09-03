@@ -17,8 +17,9 @@ Labels (exactly one per sentence):
 - rule — an instruction, constraint, preference, persona, or commitment that governs the assistant's FUTURE
   replies, including sentences that change or cancel an earlier rule. THREE SCOPES (v2, 2026-09-03, after quick
   check 19): (1) conversation-scoped ("from now on", "always", "never", "whenever") → rule; (2) TASK/ARTIFACT-scoped —
-  a constraint on the piece of work in progress (a document, a piece of code, a plan, a story: "keep it under 90
-  words", "no bullet points", "begin with the title <<...>>", "use tabs in this file", "end with a P.S.") → rule,
+  a constraint on the piece of work in progress (a document, a piece of code, a plan, a story: "keep the whole
+  thing short", "no bullet points", "open with a one-line heading", "use tabs in this file", "sign off with my
+  initials"; exemplars deliberately NOT drawn from the dev probe — see fable's check-22 review F3) → rule,
   because it persists while the same work continues in later turns ("now extend it", "revise the piece", "add a
   closing section") and is echoed back precisely then; (3) explicitly single-reply scoped ("just for this one
   answer", "this time only", "for this message") → none. When scope is unstated, a constraint on how the work must
