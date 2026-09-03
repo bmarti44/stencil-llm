@@ -3708,3 +3708,61 @@ uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 1.
 # Only if the registered fallback rule requires it:
 uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b --out bfcl-evict-v9-preflight-4b
 ```
+## 2026-09-03 — bfcl-evict-v10 coder handoff
+
+Commit `b755a35` closes every finding in `results/harness-v9-review-sol.md`;
+`results/harness-v8-review-fable.md` was absent, so there were no fable-v8
+findings or conflicts to apply.
+
+- BFCL-V9-1 CRITICAL: `scripts/bfcl_mt.py:2207-2223` passes the one frozen,
+  bound `meta` into the actual preflight `run()`. Certificate issuance at
+  `scripts/bfcl_mt.py:321-384` recomputes `artifact_meta()` only as a
+  fail-closed drift check, verifies the exact on-disk `meta.json`, record set,
+  record contents, run identities, and preflight arm set, and writes
+  `INCONCLUSIVE/ARTIFACT_DRIFT` without a certificate on any mismatch.
+  `scripts/bfcl_mt.py:387-449` makes the sealed consumer require the signed
+  schema-3 evidence and re-hash the sibling preflight `meta.json` and every
+  record before authorization. Producer drift and altered/failed consumer
+  cases are covered at `tests/test_bfcl_evict_v10.py:30-130`; the real 32-case
+  producer/consumer path is covered in `tests/test_bfcl_evict_v9.py`.
+- Certificate payload/signature: `scripts/bfcl_mt.py:252-300` binds trunk,
+  sealed arm choice, generation settings, constants, registration digest,
+  split-invariant frozen hashes, classifier hashes, and all five gate results.
+  `preflight_evidence` binds `split=dev`, `run_identity_sha256`, the exact-byte
+  `meta_sha256`, canonical `meta_payload_sha256`, the full
+  `dev_verified_bytes` inventory, every emitted record's SHA-256, and the
+  preflight arm set (`scripts/bfcl_mt.py:368-384`). The detached signature is
+  `certificate_sha256 = SHA256(canonical JSON payload)` at
+  `scripts/bfcl_mt.py:2440-2441`; changing the payload, failed gates, meta, or
+  any record fails validation.
+- BFCL-V9-2 HIGH: `src/stencil/bfcl.py:1730-1753` preserves comparator-method
+  and safety state before Holm/primary evaluation.
+  `src/stencil/bfcl.py:1783-1814` separately identifies base-method, base-safety,
+  and full-safety A3 integrity failures and passes them to the decision table;
+  `src/stencil/bfcl.py:1565-1598` returns `INCONCLUSIVE` before the A3
+  measurement/headroom branch. Summary regressions cover base safety, full
+  safety, and base `match_impossible` at `tests/test_bfcl_evict_v10.py:133-162`.
+- Completed primary decision table: global k<6 -> INCONCLUSIVE; A1
+  uninformative -> INCONCLUSIVE; treatment safety breach -> UNSUPPORTED; A3
+  base/full safety or comparator-method breach -> INCONCLUSIVE; safe A3
+  nonpositive headroom or post-exclusion k<6 with passing A1 ->
+  SUPPORTED_A1_ONLY; safe A3-uninformative plus failed A1 -> UNSUPPORTED;
+  eligible A1+A3 both passing -> SUPPORTED; every other eligible combination ->
+  UNSUPPORTED. A2 remains separate and A4 remains local/reporting-only.
+
+TDD RED first: the new v10 suite initially failed all 10 cases (missing signed
+producer plus the reproduced `SUPPORTED_A1_ONLY` safety breach). Final v10 is
+11/11 green after adding the comparator-method case. Final allowed CPU command
+is **121 passed in 793.10 s** across `tests/test_bfcl.py`, BFCL evict v2-v10,
+and `tests/test_sealed_guard.py`. Ruff and `git diff --check` are clean. No
+sealed command ran, no sealed IFEval input was read, no `data/bench/*` file was
+modified, and no GPU/model process was launched, waited on, or signalled.
+
+GPU/model commands deferred because the GPU is busy:
+
+```bash
+uv run python scripts/bfcl_mt.py run --split dev --mode teacher --trunk 1.7b --limit 1 --out bfcl-evict-v10-smoke-1.7b
+uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 1.7b --out bfcl-evict-v10-preflight-1.7b
+# Only if the registered fallback rule requires it:
+uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b --out bfcl-evict-v10-preflight-4b
+```
