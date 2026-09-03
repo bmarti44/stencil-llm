@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: I001
 """GPU-deferred extraction and dev-grid selection for function vectors."""
 
 from __future__ import annotations
@@ -9,11 +10,13 @@ import json
 import sys
 from pathlib import Path
 
-import torch
-
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
+
+from stencil import determinism  # noqa: E402, F401
+
+import torch  # noqa: E402
 
 from stencil.function_vectors import (  # noqa: E402
     build_minimal_pairs,
@@ -73,8 +76,6 @@ def encode_prompt(tokenizer, prompt: str) -> torch.Tensor:
 
 
 def extract(args) -> None:
-    from stencil import determinism  # noqa: F401
-
     determinism.assert_gpu_free_or_owned()
     source_path = ROOT / "data/b3/train-v43.jsonl"
     constraint_types = probe_constraint_types()
@@ -144,8 +145,6 @@ def load_vectors(path: Path):
 
 
 def grid(args) -> None:
-    from stencil import determinism  # noqa: F401
-
     determinism.assert_gpu_free_or_owned()
     vectors, payload = load_vectors(Path(args.vectors))
     rows = load_rows(ROOT / "data/b3/train-v43.jsonl")[:4]
