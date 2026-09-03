@@ -7,6 +7,16 @@ from collections.abc import Sequence
 from pathlib import Path
 
 
+def scoring_pair_token_count(tokenizer, context: str, text: str, role: str) -> int:
+    """Measure the exact untruncated encoder pair used by the scorer."""
+    encoded = tokenizer(
+        context if context else "(no context)",
+        f"[{role}] {text}",
+        truncation=False,
+    )
+    return len(encoded["input_ids"])
+
+
 def split_sentence_spans(text: str) -> list[tuple[int, int]]:
     """Return the frozen selector-v2 sentence spans within ``text``."""
     out = []
@@ -106,11 +116,10 @@ class ClassifierScorer:
             for start in range(0, len(texts), 64):
                 chunk = list(texts[start : start + 64])
                 chunk_contexts = list(contexts[start : start + 64])
-                for value in chunk:
-                    candidate_tokens = self.tokenizer(
-                        f"[{role}] {value}", add_special_tokens=True
-                    )["input_ids"]
-                    if len(candidate_tokens) > 192:
+                for context, value in zip(chunk_contexts, chunk, strict=True):
+                    if scoring_pair_token_count(
+                        self.tokenizer, context, value, role
+                    ) > 192:
                         self.scorer_truncated_candidates += 1
                 batch = self.tokenizer(
                     [value if value else "(no context)" for value in chunk_contexts],

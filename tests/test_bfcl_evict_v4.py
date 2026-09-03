@@ -214,14 +214,14 @@ def test_k_floor_holm_and_comparator_uninformative_are_reported():
     assert summary["contrasts"]["a1_echo_minus_control"]["k"] == 6
 
 
-def test_full_position_overflow_is_na_and_other_arm_overflow_truncates():
+def test_full_and_other_arm_position_overflow_truncate_and_fail():
     from stencil.bfcl import position_overflow_result
 
     assert position_overflow_result("full", 40961) == {
         "position_overflow": True,
         "generate": False,
-        "pass": None,
-        "truncated": False,
+        "pass": False,
+        "truncated": True,
     }
     assert position_overflow_result("base", 40961)["truncated"] is True
 

@@ -110,14 +110,17 @@ def sha256(path: str | Path) -> str:
 
 
 def registration_text_and_hash() -> tuple[str, str]:
-    """Return the exact registered v7+A1 section and its SHA-256."""
+    """Return exactly LEG A v7 plus Amendments 1--3 and its SHA-256."""
     ledger = (ROOT / "LEDGER-PLAN.md").read_text()
     header = (
         "## SELECTOR v2 — POST-DEVELOPMENT EVALUATION, LEG A (BFCL V3 multi-turn) — v7"
     )
     start = ledger.index(header)
-    next_section = ledger.find("\n## ", start + len(header))
-    text = ledger[start:] if next_section < 0 else ledger[start:next_section]
+    leg_b_a3 = ledger.index("\n### LEG B AMENDMENT 3", start)
+    leg_a_a3 = ledger.index("\n### LEG A AMENDMENT 3", leg_b_a3)
+    next_section = ledger.find("\n## ", leg_a_a3 + 1)
+    a3_end = len(ledger) if next_section < 0 else next_section
+    text = ledger[start:leg_b_a3] + ledger[leg_a_a3:a3_end]
     return text, hashlib.sha256(text.encode()).hexdigest()
 
 
@@ -383,7 +386,7 @@ def generate(
                 for column in range(start, end)
             )
             if evicted
-            else sum(end - start for start, end in active_keep)
+            else 0
         )
         protected_prefix_survived = (
             all(column in index_map for column in range(protected_end))
@@ -419,6 +422,11 @@ def generate(
         "pin_overflow": pin_overflow,
         "protected_prefix_survived": protected_prefix_survived,
         "position_overflow": position_overflow,
+        "current_turn_prefilled_before_eviction": (
+            columns_before != int(evict_range[1])
+            if continuation_ids is None and evict_range is not None
+            else False
+        ),
         "columns_after_step": int(cache.k[0].shape[2]),
         "_cache": cache,
     }
@@ -561,6 +569,85 @@ def _echo_cap(
     return chosen, tokens
 
 
+def _echo_clamp(
+    tokenizer,
+    entries: list[dict],
+    context: str,
+    close: int,
+    *,
+    target_tokens: int,
+) -> tuple[list[dict], int, int]:
+    """Clamp comparator echo at a source Qwen-token boundary."""
+    if target_tokens <= 0 or not entries:
+        return [], 0, max(0, target_tokens)
+    context_ids = list(tokenizer.encode(context).ids)
+    chosen: list[dict] = []
+
+    def measure(rows: list[dict]) -> int:
+        echoed = _echo_current_user(context, rows, close=close)
+        return len(tokenizer.encode(echoed).ids) - len(context_ids)
+
+    for row in entries:
+        whole = [*chosen, dict(row)]
+        whole_tokens = measure(whole)
+        if whole_tokens <= target_tokens:
+            chosen = whole
+            continue
+        columns = list(row.get("pinned_columns", []))
+        best_row = None
+        best_tokens = measure(chosen)
+        # BPE rendering can merge across the JSON framing boundary, so token
+        # count is not guaranteed monotone in source-prefix length.  Exhausting
+        # one candidate is bounded by the registered 128-token chunk size and
+        # guarantees the token-exact boundary when one exists.
+        for count in range(1, len(columns) + 1):
+            partial = dict(row)
+            partial_columns = columns[:count]
+            partial["pinned_columns"] = partial_columns
+            partial["span"] = [partial_columns[0], partial_columns[-1] + 1]
+            partial["text"] = tokenizer.decode(
+                context_ids[partial_columns[0] : partial_columns[-1] + 1]
+            )
+            tokens = measure([*chosen, partial])
+            if tokens <= target_tokens and tokens >= best_tokens:
+                best_row, best_tokens = partial, tokens
+            if tokens == target_tokens:
+                break
+        if best_row is not None:
+            chosen.append(best_row)
+        return chosen, best_tokens, target_tokens - best_tokens
+    tokens = measure(chosen)
+    return chosen, tokens, target_tokens - tokens
+
+
+def _arm_event_fields(
+    arm: str,
+    *,
+    evicted: bool,
+    pinned_columns: int,
+    pin_overflow: bool = False,
+    pin_overflow_total: bool = False,
+    dropped_columns: int = 0,
+    control_role_shortfall: bool = False,
+    role_column_deltas: dict[str, int] | None = None,
+) -> dict:
+    """Attribute shared-plan events once to the arm they describe."""
+    treatment = arm == "clf_pinned_echo"
+    control = arm == "clf_control"
+    return {
+        "pinned_columns": int(pinned_columns) if evicted else 0,
+        "pin_overflow": bool(pin_overflow) if treatment else False,
+        "pin_overflow_total": bool(pin_overflow_total) if treatment else False,
+        "pin_overflow_dropped_columns": int(dropped_columns) if treatment else 0,
+        "control_role_shortfall": bool(control_role_shortfall) if control else False,
+        "role_column_deltas": (
+            dict(role_column_deltas or {"user": 0, "tool": 0})
+            if control
+            else {"user": 0, "tool": 0}
+        ),
+    }
+
+
 def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
     context = render_prompt(messages, tools)
     current_index = max(
@@ -645,12 +732,12 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
         tokenizer=tokenizer,
         context=context,
     )
-    control_entries, control_echo_tokens = _echo_cap(
+    control_entries, control_echo_tokens, control_echo_residual = _echo_clamp(
         tokenizer,
         control["entries"],
         context,
         layout["current_user_close"],
-        cap=classifier_echo_tokens,
+        target_tokens=classifier_echo_tokens,
     )
     classifier_columns = sum(end - start for start, end in classifier_pins)
     treatment_roles = {
@@ -673,12 +760,12 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
         tokenizer=tokenizer,
         context=context,
     )
-    recency_entries, recency_echo_tokens = _echo_cap(
+    recency_entries, recency_echo_tokens, recency_echo_residual = _echo_clamp(
         tokenizer,
         recency["entries"],
         context,
         layout["current_user_close"],
-        cap=classifier_echo_tokens,
+        target_tokens=classifier_echo_tokens,
     )
     tool_swap = tool_swap_plan(
         candidates,
@@ -688,12 +775,12 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
         tokenizer=tokenizer,
         context=context,
     )
-    swap_entries, swap_echo_tokens = _echo_cap(
+    swap_entries, swap_echo_tokens, swap_echo_residual = _echo_clamp(
         tokenizer,
         tool_swap["entries"],
         context,
         layout["current_user_close"],
-        cap=classifier_echo_tokens,
+        target_tokens=classifier_echo_tokens,
     )
     keep = {
         "clf_pinned": classifier_pins,
@@ -771,7 +858,8 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
             },
             "capacity_rejections": max(0, len(eligible) - len(kept)),
             "fallback_count": int(control.get("control_role_shortfall", False)),
-            "role_counts": control["role_counts"],
+            "treatment_role_counts": treatment_roles,
+            "control_role_counts": control["role_counts"],
             "pinned_columns_by_role": arm_role_counts,
             "control_role_shortfall": control["role_shortfall"],
             "control_role_shortfall_event": control.get(
@@ -794,6 +882,15 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
             "echo_token_delta": echo_tokens - classifier_echo_tokens
             if arm in {"clf_control", "recency_pinned", "tool_swap_echo"}
             else 0,
+            "echo_clamp_residual": {
+                "clf_control": control_echo_residual,
+                "recency_pinned": recency_echo_residual,
+                "tool_swap_echo": swap_echo_residual,
+            }.get(arm, 0),
+            "match_deltas": {
+                "clf_control": control.get("matches", []),
+                "tool_swap_echo": tool_swap.get("matches", []),
+            }.get(arm, []),
             "pin_overflow": overflow["pin_overflow"],
             "pin_overflow_total": overflow["pin_overflow_total"],
             "pin_overflow_dropped_columns": overflow["dropped_columns"],
@@ -950,34 +1047,45 @@ def run_case_arm(
                 cache = result.pop("_cache")
                 turn_position_overflow |= result["position_overflow"]
             if first_eviction is None:
+                event_fields = _arm_event_fields(
+                    arm,
+                    evicted=bool(result["evicted"]),
+                    pinned_columns=int(result["pinned_columns"]),
+                    pin_overflow=bool(plan["selector"].get("pin_overflow", False)),
+                    pin_overflow_total=bool(
+                        plan["selector"].get("pin_overflow_total", False)
+                    ),
+                    dropped_columns=int(
+                        plan["selector"].get("pin_overflow_dropped_columns", 0)
+                    ),
+                    control_role_shortfall=bool(
+                        plan["selector"].get("control_role_shortfall_event", False)
+                    ),
+                    role_column_deltas=plan["selector"].get(
+                        "role_column_deltas", {"user": 0, "tool": 0}
+                    ),
+                )
                 first_eviction = {
                     "evicted": result["evicted"],
                     "columns_before": result["columns_before"],
                     "columns_after": result["columns_after"],
-                    "pinned_columns": result["pinned_columns"],
+                    **event_fields,
                     "evictable_size": result["evictable_size"],
                     "budget_used": plan["selector"]["used"],
                     "echo_tokens": plan["selector"].get("echo_tokens", 0),
-                    "pin_overflow": plan["selector"].get("pin_overflow", False),
-                    "pin_overflow_total": plan["selector"].get(
-                        "pin_overflow_total", False
-                    ),
-                    "pin_overflow_dropped_columns": plan["selector"].get(
-                        "pin_overflow_dropped_columns", 0
-                    ),
                     "match_impossible": plan["selector"].get("match_impossible", False),
-                    "control_role_shortfall": plan["selector"].get(
-                        "control_role_shortfall_event", False
-                    ),
-                    "role_column_deltas": plan["selector"].get(
-                        "role_column_deltas", {"user": 0, "tool": 0}
-                    ),
                     "echo_token_delta": plan["selector"].get("echo_token_delta", 0),
+                    "echo_clamp_residual": plan["selector"].get(
+                        "echo_clamp_residual", 0
+                    ),
+                    "match_deltas": plan["selector"].get("match_deltas", []),
                     "pinned_columns_by_role": plan["selector"].get(
                         "pinned_columns_by_role", {"user": 0, "tool": 0}
                     ),
                     "protected_prefix_columns": plan["evict_range"][0],
-                    "current_turn_prefilled_before_eviction": False,
+                    "current_turn_prefilled_before_eviction": result.get(
+                        "current_turn_prefilled_before_eviction", False
+                    ),
                     "protected_prefix_survived": result.get(
                         "protected_prefix_survived", True
                     ),
@@ -1049,9 +1157,7 @@ def run_case_arm(
             decoded_turns.append(decoded_steps)
             decoded_for_score = decoded_turns
         turn_score = (
-            {"valid": None, "error_type": "stencil:position_overflow"}
-            if turn_position_overflow and arm == "full"
-            else {"valid": False, "error_type": "stencil:position_overflow"}
+            {"valid": False, "error_type": "stencil:position_overflow"}
             if turn_position_overflow
             else score_case(
                 active_case,
@@ -1444,6 +1550,7 @@ def assert_dev_invariants(records: list[dict]) -> dict:
             raise AssertionError(f"dev invariant failed: {name}")
 
     shortfalls = overflows = drops = 0
+    match_deltas = {"clf_control": [], "tool_swap_echo": []}
     for record in records:
         treatment_turns = record["arms"]["clf_pinned_echo"]["turns"]
         for turn_offset, treatment_turn in enumerate(treatment_turns):
@@ -1506,6 +1613,8 @@ def assert_dev_invariants(records: list[dict]) -> dict:
                 shortfalls += bool(eviction.get("control_role_shortfall"))
                 overflows += bool(eviction.get("pin_overflow"))
                 drops += int(eviction.get("pin_overflow_dropped_columns", 0))
+                if arm in match_deltas:
+                    match_deltas[arm].extend(eviction.get("match_deltas", []))
     passed = sum(row["passed"] for row in families.values())
     checked = sum(row["n"] for row in families.values())
     return {
@@ -1515,6 +1624,7 @@ def assert_dev_invariants(records: list[dict]) -> dict:
         "control_role_shortfall": shortfalls,
         "pin_overflow": overflows,
         "dropped_columns": drops,
+        "match_deltas": match_deltas,
     }
 
 

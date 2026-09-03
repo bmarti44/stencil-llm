@@ -127,7 +127,7 @@ def test_control_shortfall_fills_other_role_and_echoes_own_spans():
     control = build_matched_control(candidates, kept, (0, 12), seed=20260903)
     assert len(_columns(control["pins"])) == 3
     assert control["control_role_shortfall"] is True
-    assert control["role_column_deltas"] == {"user": -3, "tool": 3}
+    assert control["role_column_deltas"] == {"user": -2, "tool": 2}
     assert not (_columns(control["pins"]) & {0, 1, 2})
     echoed = render_echo(control["entries"])
     assert "Earlier context restated verbatim:" in echoed
@@ -200,8 +200,8 @@ def test_recency_and_tool_swap_are_column_matched():
     recency = recency_pinned_plan(candidates, classifier_columns=7, evict_range=(0, 10))
     assert _columns(recency["pins"]) == {*range(0, 4), *range(7, 10)}
     swapped = tool_swap_plan(candidates, kept, (0, 10), seed=20260903)
-    assert _columns(swapped["pins"]) == set(range(0, 4))
-    assert swapped["match_impossible"] is True
+    assert _columns(swapped["pins"]) == {*range(0, 4), *range(7, 10)}
+    assert swapped["match_impossible"] is False
 
 
 def _turn(
