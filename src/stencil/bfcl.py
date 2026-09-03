@@ -1292,6 +1292,14 @@ def _rate(values: Sequence[bool]) -> dict:
     return {"n": n, "passed": passed, "rate": passed / n if n else None}
 
 
+def full_case_final_reporting_eligible(arm_row: Mapping) -> bool:
+    """Whether a full-arm case belongs in case-level competence/reporting."""
+    return not any(
+        bool(turn.get("na")) or turn.get("overflow_phase") == "initial_prompt"
+        for turn in arm_row["turns"]
+    )
+
+
 def _arm_summary(records: Sequence[Mapping], arm: str) -> dict:
     arm_rows = [record["arms"][arm] for record in records]
     turns = [turn for row in arm_rows for turn in row["turns"]]
@@ -1324,11 +1332,7 @@ def _arm_summary(records: Sequence[Mapping], arm: str) -> dict:
             [
                 bool(row["final_pass"])
                 for row in arm_rows
-                if arm != "full"
-                or not any(
-                    turn.get("overflow_phase") == "initial_prompt"
-                    for turn in row["turns"]
-                )
+                if arm != "full" or full_case_final_reporting_eligible(row)
             ]
         ),
         "per_turn_pass": _rate(

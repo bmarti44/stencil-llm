@@ -37,6 +37,7 @@ from stencil.bfcl import (  # noqa: E402
     echo_copy_flag,
     ensure_split_allowed,
     execute_call_strings,
+    full_case_final_reporting_eligible,
     parse_tool_calls,
     position_overflow_result,
     prepare_case,
@@ -249,9 +250,14 @@ def harness_manifest() -> dict:
 
 
 def certificate_payload(meta: dict, gates: dict) -> dict:
-    """Signed preflight contract, excluding dev-only report presentation."""
+    """Split-invariant frozen contract plus the dev bytes used in preflight."""
+    frozen = {
+        key: value
+        for key, value in meta.get("frozen_hashes", {}).items()
+        if key != "verified_bytes"
+    }
     return {
-        "schema": 1,
+        "schema": 2,
         "trunk": meta["trunk"],
         "arms": list(meta["arms"]),
         "generation": {
@@ -273,8 +279,14 @@ def certificate_payload(meta: dict, gates: dict) -> dict:
             )
         },
         "registration_sha256": meta.get("registration_sha256"),
-        "frozen_hashes": meta.get("frozen_hashes", {}),
+        "frozen_hashes": frozen,
         "classifier_sha256": meta.get("classifier_sha256", {}),
+        "preflight_evidence": {
+            "split": meta.get("split"),
+            "dev_verified_bytes": meta.get("frozen_hashes", {}).get(
+                "verified_bytes", {}
+            ),
+        },
         "gates": gates,
     }
 
@@ -305,8 +317,21 @@ def validate_preflight_certificate(path: Path, meta: dict) -> str:
     expected = certificate_payload(meta, {})
     actual_contract = dict(payload)
     actual_contract["gates"] = {}
+    actual_contract.pop("preflight_evidence", None)
+    expected.pop("preflight_evidence", None)
     if actual_contract != expected:
         raise RuntimeError("preflight certificate does not match sealed run contract")
+    manifest = payload.get("frozen_hashes", {}).get("bfcl_manifest")
+    if manifest is not None:
+        evidence = payload.get("preflight_evidence", {})
+        verified = evidence.get("dev_verified_bytes", {})
+        if evidence.get("split") != "dev" or verified.get("source_files"):
+            raise RuntimeError("preflight certificate lacks dev-only byte evidence")
+        if verified.get("records") != manifest.get("dev_records"):
+            raise RuntimeError("preflight certificate dev record inventory mismatch")
+        for field in ("offsets", "pins_manifest"):
+            if verified.get(field) != payload["frozen_hashes"].get(field):
+                raise RuntimeError(f"preflight certificate {field} evidence mismatch")
     return digest
 
 
@@ -1567,10 +1592,25 @@ def artifact_meta(
     pins = json.loads(pins_raw)["pins"][
         "ShishirPatil/gorilla BFCL V3 multi-turn"
     ]
+    offsets_raw = (DATA / "offsets.json").read_bytes()
+    offsets_digest = hashlib.sha256(offsets_raw).hexdigest()
+    if offsets_digest != pins["offsets_sha256"]:
+        raise RuntimeError("BFCL offsets index hash mismatch")
+    offsets_index = json.loads(offsets_raw)
     if verified_inputs is None:
-        _, loaded = _load_cases_verified(args.split, getattr(args, "limit", None))
+        if args.split == "sealed":
+            loaded = {
+                "offsets": offsets_digest,
+                "pins_manifest": hashlib.sha256(pins_raw).hexdigest(),
+                "records": {},
+                "source_files": {},
+            }
+        else:
+            _, loaded = _load_cases_verified(args.split, getattr(args, "limit", None))
     else:
         loaded = verified_inputs
+    if loaded["offsets"] != offsets_digest:
+        raise RuntimeError("verified BFCL rows do not match the active offsets index")
 
     if verified_runtime is None:
         _, runtime = _load_verified_runtime_inputs(pins)
@@ -1586,6 +1626,14 @@ def artifact_meta(
     template_digest = hashlib.sha256(
         inspect.getsource(render_prompt).encode()
     ).hexdigest()
+    expected_records = {
+        split: {
+            f"{case_id}:{kind}": offsets_index["records"][case_id][kind]["sha256"]
+            for case_id in offsets_index["cohorts"][split]
+            for kind in ("case", "answer")
+        }
+        for split in ("dev", "sealed")
+    }
     verified_bytes = {
         **loaded,
         "cohorts": cohorts_digest,
@@ -1598,8 +1646,6 @@ def artifact_meta(
         **function_docs,
         **checker_files,
     }
-    if args.split == "sealed":
-        actual_bfcl_files.update(loaded["source_files"])
     frozen_hashes = {
         "harness": code_manifest["sha256"],
         "harness_manifest": code_manifest["sha256"],
@@ -1616,6 +1662,11 @@ def artifact_meta(
         "bfcl_files": actual_bfcl_files,
         "chat_template": template_digest,
         "vendored_checker": _canonical_sha256(checker_files),
+        "bfcl_manifest": {
+            "dev_records": expected_records["dev"],
+            "sealed_records": expected_records["sealed"],
+            "source_files": dict(offsets_index["source_files_sha256"]),
+        },
         "verified_bytes": verified_bytes,
     }
     return {
@@ -1950,6 +2001,83 @@ def assert_dev_invariants(records: list[dict]) -> dict:
     }
 
 
+def preflight_competence(records: list[dict], *, trunk: str) -> dict:
+    """Aggregate registered competence floors with full initial-NA exclusion."""
+    base_rows = [record["arms"]["base"] for record in records]
+    full_rows = [record["arms"]["full"] for record in records]
+    eligible_full = [
+        row for row in full_rows if full_case_final_reporting_eligible(row)
+    ]
+    long_records = [
+        record for record in records if record["category"] == "long_context"
+    ]
+    full_long_rows = [record["arms"]["full"] for record in long_records]
+    eligible_full_long = [
+        row for row in full_long_rows if full_case_final_reporting_eligible(row)
+    ]
+    long_turns = [
+        turn for record in long_records for turn in record["arms"]["base"]["turns"]
+    ]
+    full_long_turns = [
+        turn
+        for record in long_records
+        for turn in record["arms"]["full"]["turns"]
+        if not bool(turn.get("na"))
+    ]
+    base_passed = sum(bool(row["final_pass"]) for row in base_rows)
+    full_passed = sum(bool(row["final_pass"]) for row in eligible_full)
+    full_long_passed = sum(bool(row["final_pass"]) for row in eligible_full_long)
+    full_long_turn_passed = sum(bool(turn["pass"]) for turn in full_long_turns)
+    base_long_turn_passed = sum(bool(turn["pass"]) for turn in long_turns)
+    competence_ok = (
+        full_passed >= 5
+        and full_long_passed >= 2
+        and full_long_turn_passed >= 6
+        and base_passed >= 5
+        and base_long_turn_passed >= 6
+    )
+    return {
+        "full_overall": {
+            "passed": full_passed,
+            "n": len(eligible_full),
+            "excluded_initial_prompt_na": len(full_rows) - len(eligible_full),
+            "floor": "at least 5 eligible cases",
+        },
+        "full_long_cases": {
+            "passed": full_long_passed,
+            "n": len(eligible_full_long),
+            "excluded_initial_prompt_na": len(full_long_rows)
+            - len(eligible_full_long),
+            "floor": "at least 2 eligible long-context cases",
+        },
+        "full_long_turns": {
+            "passed": full_long_turn_passed,
+            "n": len(full_long_turns),
+            "floor": "at least 6 passing eligible turns",
+        },
+        "base_overall": {
+            "passed": base_passed,
+            "n": len(base_rows),
+            "floor": "at least 5 cases",
+        },
+        "base_long_turns": {
+            "passed": base_long_turn_passed,
+            "n": len(long_turns),
+            "floor": "at least 6 long-context turns",
+        },
+        "passed_all": competence_ok,
+        "trunk": trunk,
+        "use_4b_fallback": not competence_ok and trunk == "1.7b",
+        "if_failed": (
+            "rerun every floor once with --trunk 4b"
+            if not competence_ok and trunk == "1.7b"
+            else "INCONCLUSIVE"
+            if not competence_ok
+            else None
+        ),
+    }
+
+
 def preflight(
     args, model, tokenizer, scorer, *, cases=None, verified_docs=None
 ) -> None:
@@ -2035,8 +2163,6 @@ def preflight(
         == determinism_trace(right)
         for right in second
     )
-    base_rows = [record["arms"]["base"] for record in first]
-    full_rows = [record["arms"]["full"] for record in first]
     selectors = [record["arms"]["clf_pinned"]["selector"] for record in first]
     candidates = sum(row["candidates"] for row in selectors)
     kept = sum(row["kept"] for row in selectors)
@@ -2050,26 +2176,7 @@ def preflight(
         for record in first
         for arm in REDUCED_ARMS
     )
-    base_passed = sum(row["final_pass"] for row in base_rows)
-    full_passed = sum(row["final_pass"] for row in full_rows)
-    long_turns = [
-        turn
-        for record in first
-        if record["category"] == "long_context"
-        for turn in record["arms"]["base"]["turns"]
-    ]
-    long_turn_rate = sum(bool(turn["pass"]) for turn in long_turns) / len(long_turns)
     long_records = [record for record in first if record["category"] == "long_context"]
-    full_long_passed = sum(
-        record["arms"]["full"]["final_pass"] for record in long_records
-    )
-    full_long_turns = [
-        turn
-        for record in long_records
-        for turn in record["arms"]["full"]["turns"]
-        if not bool(turn.get("na"))
-    ]
-    full_long_turn_passed = sum(bool(turn["pass"]) for turn in full_long_turns)
     exposed_records = [
         record
         for record in first
@@ -2085,49 +2192,26 @@ def preflight(
             strict=True,
         )
     )
-    competence_ok = (
-        full_passed >= 5
-        and full_long_passed >= 2
-        and full_long_turn_passed >= 6
-        and base_passed >= 5
-        and sum(bool(turn["pass"]) for turn in long_turns) >= 6
-    )
+    competence = preflight_competence(first, trunk=args.trunk)
+    competence_ok = bool(competence["passed_all"])
     projected_hours = seconds / len(first) * 64 / 3600
     reduced_projected_hours = reduced_seconds / len(first) * 64 / 3600
     report = {
-        "competence": {
-            "full_overall": {"passed": full_passed, "n": 32, "floor": "5/32"},
-            "full_long_cases": {"passed": full_long_passed, "n": 8, "floor": "2/8"},
-            "full_long_turns": {
-                "passed": full_long_turn_passed,
-                "n": len(full_long_turns),
-                "floor": "at least 6 passing eligible turns",
-            },
-            "base_overall": {"passed": base_passed, "n": 32, "floor": "5/32"},
-            "base_long_turns": {
-                "passed": sum(bool(turn["pass"]) for turn in long_turns),
-                "n": 40,
-                "floor": "6/40",
-            },
-            "passed_all": competence_ok,
-            "trunk": args.trunk,
-            "use_4b_fallback": not competence_ok and args.trunk == "1.7b",
-            "if_failed": "rerun every floor once with --trunk 4b"
-            if not competence_ok and args.trunk == "1.7b"
-            else "INCONCLUSIVE"
-            if not competence_ok
-            else None,
-        },
+        "competence": competence,
         "base_competence": {
-            "passed": base_passed,
-            "n": len(base_rows),
-            "rate": base_passed / len(base_rows),
+            "passed": competence["base_overall"]["passed"],
+            "n": competence["base_overall"]["n"],
+            "rate": competence["base_overall"]["passed"]
+            / competence["base_overall"]["n"],
             "floor": "5/32",
-            "overall_floor_pass": base_passed >= 5,
-            "long_context_turns_passed": sum(bool(turn["pass"]) for turn in long_turns),
-            "long_context_turns_n": len(long_turns),
-            "long_context_turns_rate": long_turn_rate,
-            "long_context_floor_pass": sum(bool(turn["pass"]) for turn in long_turns)
+            "overall_floor_pass": competence["base_overall"]["passed"] >= 5,
+            "long_context_turns_passed": competence["base_long_turns"]["passed"],
+            "long_context_turns_n": competence["base_long_turns"]["n"],
+            "long_context_turns_rate": (
+                competence["base_long_turns"]["passed"]
+                / competence["base_long_turns"]["n"]
+            ),
+            "long_context_floor_pass": competence["base_long_turns"]["passed"]
             >= 6,
             "passed_both": competence_ok,
             "trunk": args.trunk,
@@ -2248,6 +2332,12 @@ def main() -> None:
     output = Path(args.out)
     if not output.is_absolute():
         output = ROOT / "results/qwen" / output
+    certificate_sha256 = None
+    if args.split == "sealed":
+        preflight_contract = artifact_meta(args)
+        certificate_sha256 = validate_preflight_certificate(
+            args.preflight_certificate, preflight_contract
+        )
     cases, verified_inputs = _load_cases_verified(args.split, args.limit)
     with (ROOT / "data/bench/pins-manifest.json").open("rb") as handle:
         pins = json.loads(handle.read())["pins"][
@@ -2259,11 +2349,6 @@ def main() -> None:
         verified_inputs=verified_inputs,
         verified_runtime=verified_runtime,
     )
-    certificate_sha256 = None
-    if args.split == "sealed":
-        certificate_sha256 = validate_preflight_certificate(
-            args.preflight_certificate, base_meta
-        )
     meta = bind_run_identity(base_meta, certificate_sha256)
     _check_or_write_meta(output / "meta.json", meta)
     from stencil.selector_v2 import ClassifierScorer
