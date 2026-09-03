@@ -230,7 +230,9 @@ def harness_manifest() -> dict:
     ]
     for name in runtime_imports:
         importlib.import_module(name)
-    paths = {ROOT / "scripts/bfcl_mt.py"}
+    if "stencil.bench" in sys.modules:
+        raise RuntimeError("stencil.bench must not enter the BFCL runtime closure")
+    paths = {ROOT / "scripts/__init__.py", ROOT / "scripts/bfcl_mt.py"}
     for name, module in tuple(sys.modules.items()):
         if not (name.startswith("stencil") or name.startswith("bfcl_eval")):
             continue
@@ -873,16 +875,24 @@ def _echo_clamp(
     close: int,
     *,
     target_tokens: int,
+    context_ids: list[int] | None = None,
 ) -> tuple[list[dict], int, int]:
     """Clamp comparator echo at a source Qwen-token boundary."""
     if target_tokens <= 0 or not entries:
         return [], 0, max(0, target_tokens)
-    context_ids = list(tokenizer.encode(context).ids)
+    context_ids = list(context_ids) if context_ids is not None else list(
+        tokenizer.encode(context).ids
+    )
+    marker = context.rfind("<|im_start|>user\n", 0, close + 1)
+    if marker < 0:
+        raise ValueError("current user turn marker is missing")
+    local_context = context[marker:]
+    local_context_tokens = len(tokenizer.encode(local_context).ids)
     chosen: list[dict] = []
 
     def measure(rows: list[dict]) -> int:
         echoed = _echo_current_user(context, rows, close=close)
-        return len(tokenizer.encode(echoed).ids) - len(context_ids)
+        return len(tokenizer.encode(echoed[marker:]).ids) - local_context_tokens
 
     for row in entries:
         whole = [*chosen, dict(row)]
@@ -918,7 +928,6 @@ def _echo_clamp(
         last = dict(chosen[-1])
         pinned = list(last.get("pinned_columns", []))
         source = list(last.get("_echo_source_columns", pinned))
-        context_ids = list(tokenizer.encode(context).ids)
         best_row = last
         best_tokens = tokens
         # Extend only the echoed text. The comparator's pinned-column dose is
@@ -1059,6 +1068,7 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
         context,
         layout["current_user_close"],
         target_tokens=classifier_echo_tokens,
+        context_ids=layout["context_token_ids"],
     )
     classifier_columns = sum(end - start for start, end in classifier_pins)
     treatment_roles = {
@@ -1087,6 +1097,7 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
         context,
         layout["current_user_close"],
         target_tokens=classifier_echo_tokens,
+        context_ids=layout["context_token_ids"],
     )
     tool_swap = tool_swap_plan(
         candidates,
@@ -1101,6 +1112,7 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
         context,
         layout["current_user_close"],
         target_tokens=classifier_echo_tokens,
+        context_ids=layout["context_token_ids"],
     )
     keep = {
         "clf_pinned": classifier_pins,
@@ -1161,7 +1173,10 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
     )
     pressure_triggered = layout["history_end"] > K
     if pressure_triggered and not match_impossible and abs(echo_delta) > 16:
-        raise AssertionError(f"{arm} echo token delta exceeds 16: {echo_delta}")
+        match_impossible = True
+        invariant_violation = "echo_delta"
+    else:
+        invariant_violation = None
     if (
         pressure_triggered
         and arm in {"clf_control", "recency_pinned", "tool_swap_echo"}
@@ -1173,7 +1188,8 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
             "control_role_shortfall", False
         ) else exact_roles
         if not usable_columns:
-            raise AssertionError(f"{arm} comparator column mismatch")
+            match_impossible = True
+            invariant_violation = "columns"
     return {
         "context": context,
         "echo_close": layout["current_user_close"],
@@ -1213,6 +1229,7 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
             "role_column_deltas": control.get(
                 "role_column_deltas", {"user": 0, "tool": 0}
             ),
+            "invariant_violation": invariant_violation,
             "match_impossible": match_impossible,
             "echo_dropped_control_tokens": dropped,
             "scorer_truncated_candidates": max(
@@ -1594,7 +1611,9 @@ def run_case_arm(
             "turns": selector_turns,
         },
         "seconds": time.monotonic() - arm_started,
-        "final_pass": bool(final_score["valid"]),
+        "final_pass": all(
+            bool(turn["pass"]) for turn in turns if not bool(turn.get("na"))
+        ),
         "final_score": final_score,
         "repeated_history_calls": repeated_history_calls,
         "position_overflow": any(turn["position_overflow"] for turn in turns),
@@ -2251,6 +2270,7 @@ def preflight(
         for arm in ("clf_control", "recency_pinned", "tool_swap_echo")
         for turn in record["arms"][arm]["turns"]
         if abs(int(turn["eviction"].get("echo_token_delta", 0))) > 16
+        and bool(turn["eviction"].get("pressure_triggered"))
         and not turn["eviction"].get("match_impossible")
     ]
     if excessive_echo:

@@ -551,8 +551,12 @@ def _resource_match(
 
     # One-to-one pass: aggregate width must never suppress a target visit.
     for target_index in range(len(targets)):
-        if not take_nearest(target_index, required_visit=True):
+        if not take_nearest(target_index, required_visit=not allow_role_fallback):
             return [], True, shortfall, match_rows
+        if not any(
+            row.get("_match_target_index") == target_index for row in matches
+        ):
+            shortfall = True
 
     # Supplement each narrower target group in target order, without reuse.
     # A wide match in one group cannot satisfy a different target's quota.
@@ -571,7 +575,11 @@ def _resource_match(
             before = len(matches)
             take_nearest(target_index, required_visit=False)
             if len(matches) == before:
-                return [], True, shortfall, match_rows
+                if not allow_role_fallback:
+                    return [], True, shortfall, match_rows
+                break
+    if sum(len(_row_columns(row, low, high)) for row in matches) < required:
+        return [], True, shortfall, match_rows
     return matches, False, shortfall, match_rows
 
 
@@ -777,7 +785,11 @@ def tool_swap_plan(
     tool_index = 0
     for row in kept:
         if row["role"] == "user":
-            entries.append(dict(row))
+            entries.append(
+                _decode_row(
+                    row, row["pinned_columns"], tokenizer=tokenizer, context=context
+                )
+            )
         else:
             entries.extend(replacements.get(tool_index, []))
             tool_index += 1
@@ -1240,7 +1252,8 @@ def assert_case_record_schema(
             if schema >= 6 and {"overflow_phase", "na"} - set(turn):
                 raise ValueError(f"arm {name} turn v6 overflow schema incomplete")
             if name in {"clf_control", "recency_pinned", "tool_swap_echo"} and (
-                not bool(turn["eviction"].get("match_impossible"))
+                bool(turn["eviction"].get("pressure_triggered"))
+                and not bool(turn["eviction"].get("match_impossible"))
                 and abs(int(turn["eviction"].get("echo_token_delta", 0))) > 16
             ):
                 raise ValueError(f"arm {name} turn echo token delta exceeds 16")
