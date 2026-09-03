@@ -769,3 +769,14 @@ no outcome from them has been viewed or used). Cap, contrasts, safety, threshold
 3. Per-role column equality of every comparator is asserted on EVERY evicting turn on the sealed path as well as on
    dev (fail-closed; a violation makes the affected contrast uninformative and is recorded), and the preflight report
    lists match_impossible, shortfall and delta counts.
+
+### LEG A AMENDMENT 5 (2026-09-03, sol's harness-v8 review V8-2, text; resolves AMENDMENT 4 item 3 vs decision (i))
+Per-role column equality: every comparator on every evicting turn, and clf_control on every NON-shortfall turn, must
+match the treatment's exact per-role pinned columns. clf_control on a control_role_shortfall turn (decision (i))
+matches the exact TOTAL pinned columns with the per-role deltas recorded. Both conditions are asserted fail-closed on
+the dev path (preflight invariants) and on the sealed result path (record schema); a violation makes the affected
+contrast uninformative and is recorded. Certificate (V8-1): the preflight certificate is split-invariant — it binds
+the frozen constants, harness/module manifest hashes, selector/trunk/tokenizer/template/checker hashes and the DEV
+cohort's verified bytes; a sealed run validates the certificate BEFORE reading any sealed byte, then verifies its own
+cohort bytes against the sealed offsets index and records them. Competence baseline (V8-3): full's initial-prompt NA
+cases are excluded from the preflight competence denominators and reported.
