@@ -3592,6 +3592,8 @@ tests were intentionally rerun.
 Final allowed CPU verification: **100 passed in 924.70 s** across
 `tests/test_bfcl.py`, BFCL evict v2--v8 (both real-dev censuses included), and
 the two non-reading sealed-guard tests. Ruff and `git diff --check` are clean.
+- 2026-09-03, coder (auto, run_codex_agent.sh). Brief bfcl-evict-v8: model gpt-5.6-sol, effort medium, exit 7, session 01a06866-d584-72e1-98f6-e308b240a343, log /home/bmarti44/stencil-llm/results/logs/codex-agent-bfcl-evict-v8.log.
+
 ## Function-vector focus (CPU implementation; GPU deferred, 2026-09-03)
 
 Coder provenance: `gpt-5.6-sol`, effort `medium`, session
@@ -3645,3 +3647,64 @@ losses versus `clf_pinned_echo`, and the arm is not killed; harmful iff killed
 or `fv_inject < evicted + 5`. CPU verification: 19 passed, 1 policy skip in
 `tests/test_clf_probe_check.py tests/test_function_vector*.py`; scoped ruff and
 `git diff --check` clean.
+- 2026-09-03, coder (auto, run_codex_agent.sh). Brief function-vector-focus: model gpt-5.6-sol, effort medium, exit 0, session 01a06889-6c8e-72d3-a681-9933bbb8ee71, log /home/bmarti44/stencil-llm/results/logs/codex-agent-function-vector-focus.log.
+
+## BFCL harness v9 — harness-v8 review closure under LEG A Amendment 5 (2026-09-03)
+
+Coder provenance: `gpt-5.6-sol`, effort `medium`, session
+`01a068a7-0b0c-7dc0-bfb1-270e8c89b559`, wrapper log
+`results/logs/codex-agent-bfcl-evict-v9.log`.
+
+- BFCL-V8-1: `scripts/bfcl_mt.py:252-335` separates the split-invariant
+  certificate contract from dev byte evidence and validates the evidence
+  against the authorized dev record inventory. `scripts/bfcl_mt.py:1576-1670`
+  constructs sealed pre-authorization metadata from the pinned offsets index,
+  common runtime bytes, and expected cohort hashes without loading a sealed
+  row. `scripts/bfcl_mt.py:2327-2352` validates the certificate before
+  `_load_cases_verified`; the later verified sealed record/source digests stay
+  in `meta.frozen_hashes.verified_bytes` and therefore enter
+  `run_identity_sha256`. The real-dev cross-split regression is
+  `tests/test_bfcl_evict_v9.py:111`; the explicit no-sealed-read-on-reject
+  consumer test is `tests/test_bfcl_evict_v9.py:151`. Same-ID bounded-row
+  mutation remains covered by `tests/test_bfcl_evict_v7.py:93`.
+- BFCL-V8-2, resolved by Amendment 5 rather than the superseded review wording:
+  `src/stencil/bfcl.py:578-641` preserves exact-total matching plus reported
+  per-role deltas for an explicit `clf_control` shortfall;
+  `scripts/bfcl_mt.py:1017-1027`, `scripts/bfcl_mt.py:1889-1918`, and
+  `src/stencil/bfcl.py:1264-1286` require exact per-role columns everywhere
+  else and fail closed on both dev and record-schema paths. Bidirectional
+  shortage/delta regressions and dev/sealed boundary checks are at
+  `tests/test_bfcl_evict_v9.py:193-257`.
+- BFCL-V8-3: `src/stencil/bfcl.py:1295-1336` defines and uses the shared full
+  case eligibility predicate. `scripts/bfcl_mt.py:2004-2078` applies it to the
+  preflight case floors, reports eligible denominators and initial-prompt-NA
+  exclusions, retains NA filtering for the full turn denominator, and counts
+  within-generation overflow as failure. Regression:
+  `tests/test_bfcl_evict_v9.py:260`.
+
+Certificate payload fields: `schema=2`, `trunk`, `arms`, `generation`, frozen
+`constants`, `registration_sha256`, split-invariant `frozen_hashes`,
+`classifier_sha256`, `preflight_evidence`, and `gates`. `frozen_hashes` binds
+the harness/module file manifest, selector artifact, trunk weights/tokenizer/
+config, cohort/offsets/pins hashes, function-doc/checker/template hashes, and
+the offsets index's expected dev/sealed record plus source-file maps.
+`preflight_evidence.dev_verified_bytes` records the actual dev offsets, pins,
+64 case/answer rows, cohort file, function documents, checker files, template,
+and an empty source-file scan (dev never scans mixed sealed sources).
+
+TDD: the new v9 file first failed 3 tests (missing separated evidence, sealed
+loader called before rejection, missing eligible competence aggregation), then
+passed. Final allowed CPU verification: **108 passed in 1055.25 s** across
+`tests/test_bfcl.py`, BFCL evict v2-v9, and the two non-reading sealed guards.
+Ruff and `git diff --check` are clean. The sealed IFEval hash/read tests were
+not run; no sealed BFCL command ran; no benchmark data was modified or opened;
+no GPU/model process was launched, waited on, or signalled.
+
+GPU/model commands deferred because the GPU is busy:
+
+```bash
+uv run python scripts/bfcl_mt.py run --split dev --mode teacher --trunk 1.7b --limit 1 --out bfcl-evict-v9-smoke-1.7b
+uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 1.7b --out bfcl-evict-v9-preflight-1.7b
+# Only if the registered fallback rule requires it:
+uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b --out bfcl-evict-v9-preflight-4b
+```
