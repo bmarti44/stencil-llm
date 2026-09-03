@@ -22,7 +22,11 @@ Labels (exactly one per sentence):
   initials"; exemplars deliberately NOT drawn from the dev probe — see fable's check-22 review F3) → rule,
   because it persists while the same work continues in later turns ("now extend it", "revise the piece", "add a
   closing section") and is echoed back precisely then; (3) explicitly single-reply scoped ("just for this one
-  answer", "this time only", "for this message") → none. When scope is unstated, a constraint on how the work must
+  answer", "this time only", "for this message") → none. v2.1 (Opus scope-pass review S7/S8): "for now",
+  "temporarily", "until I say otherwise" → rule (conversation-scoped with an open expiry); "for this section", "in
+  this paragraph", "for the next two chapters" → rule while that sub-unit is the work in progress (task-scoped), none
+  only when the sub-unit is already finished in the same turn. When a sentence mixes a work request with a
+  constraint on how it must be done ("Summarize this in under 100 words."), the constraint clause wins → rule. When scope is unstated, a constraint on how the work must
   be written is TASK-scoped (rule); a request to do a piece of work is a one-off task (none).
 - fact — durable information likely needed in later turns that is not an instruction: identifiers, names, numbers,
   dates, decisions, states of the world, and corrections of earlier facts. Tool-output lines carrying identifiers
