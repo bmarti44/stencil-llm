@@ -6,10 +6,11 @@ against `LEDGER-PLAN.md:623-758`, and rechecked every finding in
 `results/harness-v4-review-fable.md` (F1..F10). `HEAD` is `7b8de79`; there is
 no code/test/data diff from `9fe7c3f` to `HEAD`.
 
-Execution was CPU-only with `CUDA_VISIBLE_DEVICES=''`; no model was loaded or
-launched, no process was signalled/terminated, no sealed split or sealed IFEval
-file was opened, unrelated files were untouched, and this is the only file
-written by the review. One hard-rule violation occurred and is disclosed rather
+Execution by this review was CPU-only with `CUDA_VISIBLE_DEVICES=''`; it loaded
+or launched no model, did not touch the pre-existing GPU shakedown, signalled or
+terminated no process, opened no sealed split or sealed IFEval file, left
+unrelated files untouched, and wrote only this file. One hard-rule violation
+occurred and is disclosed rather
 than waived: running the whole v5 test file included
 `test_v4_1_index_preserves_all_frozen_bfcl_files_and_is_manifest_pinned`, which
 SHA-256-read the eight mixed BFCL case/answer files. It did not parse, print, or
@@ -231,12 +232,12 @@ primary.
 | BFCL-V4-7 | **PARTIAL / BLOCKER.** Tool order, prior-user source, non-evicting outcomes, and dose aggregates are fixed; matcher and overflow facts retain the V6-1/V6-6 defects. |
 | F1 | **PARTIAL / BLOCKER.** Dev feasibility is green and the nearest key is present, but matching is not reliably per-target/one-to-one and failed clamps are suppressed (V6-1). |
 | F2 | **PARTIAL / BLOCKER.** Source-boundary echo clamp is green on dev; sealed delta overflow still becomes uninformative instead of asserting (V6-3). |
-| F3 | **PARTIAL.** `None`/crash and safety counting are closed; within-turn full final-pass reporting remains wrong (V6-6). |
+| F3 | **PARTIAL / BLOCKER.** `None`/crash and safety counting are closed; within-turn full final-pass reporting remains wrong (V6-6). |
 | F4 | **CLOSED.** Truncated generations cannot be degenerate. |
 | F5 | **OPEN / BLOCKER.** Static manifest is still not the executing repo-local module closure (V6-5). |
 | F6 | **CLOSED.** Tool replacements are reinserted at treatment-order target positions. |
 | F7 | **CLOSED.** Truncation counting uses the exact untruncated encoder pair. |
-| F8 | **PARTIAL.** Measured invariant counts, zero non-evict pins, and scoped shortfall/overflow-drop counts are fixed; the shared total-overflow/pressure facts are not faithfully represented (V6-6). |
+| F8 | **PARTIAL / BLOCKER.** Measured invariant counts, zero non-evict pins, and scoped shortfall/overflow-drop counts are fixed; the shared total-overflow/pressure facts are not faithfully represented (V6-6). |
 | F9 | **CLOSED.** Outcome label, non-evicting treatment-echo stratum, and registered dose/event aggregates are present. |
 | F10 | **CLOSED.** Dev case/answer loading is seek-only and never scans a sealed row. |
 
