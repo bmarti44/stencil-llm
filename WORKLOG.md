@@ -3820,3 +3820,62 @@ uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b
 ```
 - 2026-09-03, coder (auto, run_codex_agent.sh). Brief bfcl-evict-v10: model gpt-5.6-sol, effort medium, exit 0, session 01a068ce-f075-7163-9735-7e22b3c9d593, log /home/bmarti44/stencil-llm/results/logs/codex-agent-bfcl-evict-v10.log.
 - 2026-09-03, coder (auto, run_codex_agent.sh). Brief bfcl-evict-v11: model gpt-5.6-sol, effort medium, exit 0, session 01a06901-5b2d-7aa2-bba0-e118ca6c7738, log /home/bmarti44/stencil-llm/results/logs/codex-agent-bfcl-evict-v11.log.
+
+## 2026-09-03 — BFCL harness v12, fable harness-v10 closure
+
+Commit `6c86017` implements LEG A Amendment 6 and closes the launch-blocking
+FV10-1/FV10-2 findings plus the FV10-4 reporting residual. No sealed command,
+model process, or GPU action was run; no sealed IFEval input was read and no
+`data/bench/*` file was modified.
+
+- FV10-1 HIGH: `scripts/bfcl_mt.py:1181-1241` records pressure-turn column and
+  echo failures as `invariant_violation` (and echo failures as
+  `echo_unreachable`) without converting them to `match_impossible`.
+  `scripts/bfcl_mt.py:1466-1481` copies both fields into the durable eviction
+  record. `scripts/bfcl_mt.py:2101-2156` fails the dev invariant families on
+  those recorded violations while retaining genuine matching impossibility as
+  a distinct method state; `scripts/bfcl_mt.py:2310-2326` no longer suppresses
+  the excessive-echo stop based on `match_impossible`. The sealed-shaped schema
+  accepts and validates the separately recorded state at
+  `src/stencil/bfcl.py:1254-1309`, and the affected A1/A2/A4 contrast becomes
+  uninformative at `src/stencil/bfcl.py:1757-1808`. Regressions for recency and
+  tool-swap column mismatch, delta 29, genuine impossibility, and certificate
+  refusal are in `tests/test_bfcl_evict_v12.py:12-84`.
+- FV10-2 HIGH: `scripts/bfcl_mt.py:346-353` excludes only git provenance from
+  the post-run metadata drift view, leaving the harness manifest, verified data
+  hashes, constants, and all other frozen metadata fail-closed. Both freeze and
+  issue git provenances are evidence fields at `scripts/bfcl_mt.py:375-386`.
+  `tests/test_bfcl_evict_v12.py:87-112` proves git-only drift issues a
+  certificate while harness-file drift still produces `ARTIFACT_DRIFT`.
+- FV10-4 LOW: teacher `final_score.valid` now excludes NA turns through
+  `scripts/bfcl_mt.py:1284-1293,1610-1611`; the all-NA result remains the
+  registered harmless `all([]) == True` because full-case reporting eligibility
+  excludes initial-prompt-NA cases. Regression:
+  `tests/test_bfcl_evict_v12.py:115-124`.
+- FV10-5 LOW notes: the measured echo-cap cost remains accepted; clamp wording
+  remains per role/tool-target group; result review files must still be
+  committed before a sealed run. No implementation change was required.
+
+TDD RED was observed before implementation: the new v12 suite produced **5
+failed, 1 passed** (sealed-schema retention, git-only drift, and NA scoring were
+red; the existing dev gate already refused the synthetic column mismatch).
+Focused GREEN: **6 passed**. Full allowlisted CPU verification:
+`uv run pytest -p no:cacheprovider tests/test_bfcl.py tests/test_bfcl_evict_v*.py tests/test_sealed_guard.py`
+-> **132 passed in 230.37s**. Ruff is clean on the changed v12 files and
+`git diff --check` is clean. A broader allowlisted-tree lint probe exposed 18
+pre-existing findings in unrelated files; none is in the v12 diff.
+
+Recomputed after the v12 implementation:
+
+- Harness manifest SHA-256 (26 files):
+  `6e12641f700adb18ba70189e8f12e47bdb985653556797a802272539d8bf64ae`.
+- Registration SHA-256 over LEG A v7 + Amendments 1-6 (26,048 chars):
+  `bab228f9e65e92bb1047e0681c9a2b551ec5b56124fc3064dee44b1fc21c76f5`.
+
+Exact registered preflight commands, deferred while the GPU is busy:
+
+```bash
+uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 1.7b --out bfcl-evict-v12-preflight-1.7b
+# Only if the registered fallback rule requires it:
+uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b --out bfcl-evict-v12-preflight-4b
+```
