@@ -2560,3 +2560,4 @@ anyway (0.854/0.860 blind; precision 0.95/0.94).
   probe was launched. Targeted Ruff and `git diff --check` are clean.
 - Exact deferred orchestrator command (foreground, only after the 909 releases the GPU):
   `uv run python scripts/clf_probe_check.py --scores results/quick-checks/clf_scores_final_s0.json --eviction-timing pre-query --out clf-gated-wave-prequery`
+- 2026-09-03, coder (auto, run_codex_agent.sh). Brief clf-gated-wave: model gpt-5.6-sol, effort medium, exit 0, session 01a06716-4c8d-7f91-9eec-f4c893b23642, log /home/bmarti44/stencil-llm/results/logs/codex-agent-clf-gated-wave.log.
