@@ -100,3 +100,10 @@ greedy output, same eviction plumbing as the registered probe (scripts/ledger_kv
    (c) "begin with the exact title <<...>>" scores 0.23 because taxonomy phrasings were (rightly) removed from
    training; generic formatting rules in plain language belong in the enrichment. The reminder sentence scores 0.96
    (it is rule-like) and is dropped by the echo clamp.
+
+16. CLASSIFIER, MLP head, all reviewed data (15,258 rows after sol/Opus patches: 530 drops, 98 relabels; 438
+   author-disjoint held-out rows, acc 0.79, "none" recall 0.61), FIXED sentence splitter (clf_probe4.log):
+   coverage 0.89 (17/20). CLF pinned 38 (finder 37), pinned_echo 44 (= full 44; finder_echo 48), exact-column
+   control 16; BUDGET-MATCHED 29 / 37 / 19 (echo: 29 -> 34 -> 37 across checks 14-16). Held-out threshold sweep
+   (heldout_sweep.py): thr 0.5 keep-precision 0.76 / recall 0.97; thr 0.65 ~0.83 / 0.95; thr 0.8 0.89 / 0.78.
+   A thr-0.65 probe is queued (check 17).
