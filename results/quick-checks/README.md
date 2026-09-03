@@ -52,3 +52,9 @@ greedy output, same eviction plumbing as the registered probe (scripts/ledger_kv
    the inspected sessions; the misses were the matcher's (sentence splitter breaks on "P.P.S.", Jaccard < 0.5 on the
    fragments). The "extras" are the task sentence and the reminder sentence. Rerun with a direct substring matcher =
    check 10 (self_extract_turn2_check.py).
+
+11. EMBEDDING-SIMILARITY RETRIEVAL (embed_check.py; Brian's question "store an embedding of all messages, embed the
+   next message, retrieve the most similar"): bge-small-en-v1.5 (cached), cosine similarity of the current message to
+   each prior sentence, top spans at the finder's budget. Constraint-token coverage 0.41 (0.43 with an
+   instruction-flavoured query prefix), 0-1 of 20 sessions >= 0.8 — vs BM25 0.37, attention 0.19-0.26, random 0.13.
+   Semantic similarity finds what the new message is ABOUT; standing rules are not about the message that needs them.
