@@ -3879,3 +3879,4 @@ uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 1.
 # Only if the registered fallback rule requires it:
 uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b --out bfcl-evict-v12-preflight-4b
 ```
+- 2026-09-03, coder (auto, run_codex_agent.sh). Brief bfcl-evict-v12: model gpt-5.6-sol, effort medium, exit 0, session 01a06924-1461-7730-b99c-e0b502aac9d4, log /home/bmarti44/stencil-llm/results/logs/codex-agent-bfcl-evict-v12.log.
