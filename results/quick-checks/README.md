@@ -174,3 +174,12 @@ as the mean, head-selection rule fixed in advance (mean over seeds; no picking t
    Check 21 budget/safety (seed 2 rows): CLF pinned a mean 40 columns vs the finder's 47 (0.86x); pinned arm 0
    truncated / 0 degenerate; echo arm 0 truncated / 2 degenerate (full: 1 / 2). Seed-1 rows were overwritten by the
    chain (per-run copies added from here on); its log totals stand.
+
+22. SPEC v2, three seeds (seed 0 rerun after the 59-row reviewed relabel patch landed, so its training set differs
+   slightly from seeds 1-2 — the FINAL run re-does all three on identical data): pinned 33 / 33 / 33 (mean 33.0);
+   pinned_echo 46 / 45 / 44 (mean 45.0); control 17; coverage 0.86; held-out 0.90 each (fable author-disjoint
+   0.85-0.88). vs finder 37 / 48, full 44, evicted 14. Three seeds agree within +-1 — the instability of the frozen-
+   embedding checks is gone. Reading (development result on the selection set, not transfer): a generic classifier
+   trained on hand-written, reviewed, benchmark-disjoint data under the three-scope spec reaches the full-context
+   ceiling with pin+echo (45 vs 44) at 0.86x the finder's columns, and trails the taxonomy finder by 4 on pins and
+   3 on echo.
