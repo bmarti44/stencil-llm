@@ -2561,3 +2561,48 @@ anyway (0.854/0.860 blind; precision 0.95/0.94).
 - Exact deferred orchestrator command (foreground, only after the 909 releases the GPU):
   `uv run python scripts/clf_probe_check.py --scores results/quick-checks/clf_scores_final_s0.json --eviction-timing pre-query --out clf-gated-wave-prequery`
 - 2026-09-03, coder (auto, run_codex_agent.sh). Brief clf-gated-wave: model gpt-5.6-sol, effort medium, exit 0, session 01a06716-4c8d-7f91-9eec-f4c893b23642, log /home/bmarti44/stencil-llm/results/logs/codex-agent-clf-gated-wave.log.
+
+## 2026-09-03 — LEG A (BFCL) registration DRAFT (companion note for the bfcl-evict-v2 coder; appended to LEDGER-PLAN after fable/sol review)
+
+### SELECTOR v2 — POST-DEVELOPMENT EVALUATION, LEG A (BFCL V3 multi-turn) — DRAFT for fable/sol review, 2026-09-03
+Data lineage: selector = the LEG B registered artifact (data/classifier/model/ft, sha256 in LEG B); its training
+data include tool-role rows (facts from tool output) written by kimi/sol/Opus — never from BFCL. BFCL V3 is a
+DEVELOPMENT benchmark (its schema-first prompt layout and the 1/23 finder failure shaped the role protections and
+the three-scope spec); this leg is a post-development evaluation, not zero-shot transfer. The sealed 64-case cohort
+(data/bench/bfcl_v3_mt/cohorts.json) has never been run or opened; the 32-case dev slice is used for the preflight.
+Harness (rework of scripts/bfcl_mt.py; brief tools/codex-agents/bfcl-evict-v2.md):
+- Protected prefix in EVERY arm: system prompt + <tools> schema block + 4 sink columns are never evicted (fable's
+  CRITICAL from results/agentic-salience-review-fable.md: the old harness evicted from column 0, schemas first).
+- Eviction: at each user turn t >= 2, if the cache exceeds K = 8192 columns, evict the evictable range = everything
+  after the protected prefix and before the current user turn, keeping the arm's pins; eviction happens BEFORE the
+  current turn is prefilled (LEG B AMENDMENT 2 ordering). Because base/missing_params/missing_functions cases
+  rarely exceed K, the registered PRIMARY cohort for the contrasts is the long_context category; the other
+  categories are run and reported (no-eviction cases measure echo-only, disclosed).
+- Selector: sentences of prior USER turns AND prior TOOL-output lines (split by the registered splitter; tool
+  lines split on newlines), scored WITHOUT context with role "user" / "tool", keep iff P(rule)+P(fact) >= 0.5;
+  budget B = 25% of the evictable columns, filled by classifier probability then recency; pins = the kept spans'
+  columns; echo = ledger.text_ledger_context of the kept spans before the current user turn (tool lines echoed
+  verbatim, marked as tool text).
+- Arms on identical context ids per turn: base (evict, no pins) | clf_pinned | clf_pinned_echo | clf_control
+  (exact-column control drawn from the SAME role pool as the pins — user and tool columns in the same proportion —
+  built after the echo clamp) | role_pinned (all prior user turns + nothing from tool output, recency-clipped to
+  the classifier's column count) | full (no eviction; K unlimited; reported as the reference).
+- Tool protocol, template, executors, and scoring (BFCL checkers, all-or-nothing per case + per-turn) unchanged
+  from the existing harness; generation greedy, non-thinking template, max_new 512, deadline 300 s.
+Registered contrasts (long_context primary cohort; one-sided; cluster-robust by case; Holm alpha 0.05 over three):
+A1 clf_pinned_echo − clf_control > 0 (final pass); A2 clf_pinned_echo − role_pinned > 0 (tool-output retention
+matters); A3 clf_pinned_echo − base > 0.5 x (full − base) (recovers at least half of the eviction gap).
+Reported, not gated: tool-call validity per arm; echo-copy rate; columns per arm; per-category tables; the
+non-overflow categories' echo-only effect.
+Safety (ROUND 7 integer clause per arm vs full on the primary cohort): timeouts 0; truncated <= full + 1;
+degenerate <= full; invalid tool calls <= full + 1. A breaching arm fails its contrasts.
+Preflights (dev slice, 32 cases, before the sealed cohort): (1) base competence on the 1.7B trunk >= 15% multi-turn
+pass (registered floor; if unmet, the 4B trunk is used for this leg and the floor re-checked); (2) BASE-vs-BASE
+bitwise determinism on 4 cases; (3) selector coverage on the dev slice: fraction of prior user+tool spans kept
+and the column budget actually used (reported; no floor — the old 0.80 recall floor and its 100 viewed labels are
+superseded and never reused); (4) seconds per case and the projected sealed-cohort cost (cap 12 GPU-h; amend
+before viewing outcomes if exceeded).
+Outcome rules: A1 and A3 pass with safety intact -> the mechanism's benefit on agentic dialogue is supported
+post-development; A2 alone failing -> the role rule suffices on BFCL (tool retention unproven) and is reported as
+such; A1 or A3 failing -> unsupported at this selector; selector work returns to the classifier data (tool-line
+examples), never to BFCL outcomes. The no-contact family is registered after this leg regardless of outcome.
