@@ -138,3 +138,11 @@ item-level disjointness with deliberate type overlap (kimi + sol + Opus all conc
    context-as-prefix hurting (0.58 with context vs 0.74 without). Conclusion: a frozen sentence embedding cannot draw
    this boundary; the encoder must be fine-tuned with context as a sentence PAIR. Fine-tune queued (check 19).
    Checks 13-18 are development results on a selection set; none is a transfer claim.
+
+CORRECTION (fable's check-16 review, HIGH F1): check 16's head was a single lucky seed — replicating the trainer
+exactly reproduces 0.890 coverage; seeds 1-2, a 2e-7 feature perturbation, or dropout-off all give ~0.58 coverage
+(check 17/18-level). Cause: dropout resampled inside the LBFGS closure (fixed). Checks 14-18 differences are seed
+noise; the "restore taxonomy rows" lever is unsupported (+0.01..0.09 on formatting-type scores). Also: the clipped
+budget-matched arm ran at 0.67x the finder's columns (reminder sentence consumed the clip then was clamped out), and
+"0 truncated / 0 degenerate" held for the echo arm only. From check 19 on: >= 3 seeds, results reported per seed and
+as the mean, head-selection rule fixed in advance (mean over seeds; no picking the best seed on the probe).
