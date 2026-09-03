@@ -3191,3 +3191,113 @@ uv run python scripts/bfcl_mt.py run --split dev --mode free --trunk "$BFCL_SELE
 # Sealed remains authorization-gated and was NOT run:
 STENCIL_SEALED_RUN=1 uv run python scripts/bfcl_mt.py run --split sealed --mode teacher --trunk "$BFCL_SELECTED_TRUNK" --out bfcl-evict-v4-sealed
 ```
+- 2026-09-03, coder (auto, run_codex_agent.sh). Brief bfcl-evict-v4: model gpt-5.6-sol, effort medium, exit 0, session 01a0676b-2b21-7ce2-9d31-2bd997290a43, log /home/bmarti44/stencil-llm/results/logs/codex-agent-bfcl-evict-v4.log.
+
+## 2026-09-03 — bfcl-evict-v5 harness-review closure (CPU only)
+
+Governing inputs: `LEDGER-PLAN.md` LEG A v7 plus Amendments 1–2 and
+`results/harness-v4-review-sol.md` BFCL-V4-1..7. The optional
+`results/harness-v4-review-fable.md` was absent at start, so there was no
+sol/fable conflict to resolve. Root `plan/PROTOCOL.md` and `plan/LEDGER.md` were
+also absent; the archived copies were read as directed by `AGENTS.md`, while
+root `LEDGER-PLAN.md` remained the governing science text. No GPU/model process
+was launched, no process was waited on or signalled, no sealed split was run,
+and `data/bench/ifeval_input_data.jsonl` was never read.
+
+TDD evidence: `tests/test_bfcl_evict_v5.py` was written first and produced 20
+expected failures against harness v4 (including the mandatory seek-only loader
+failure). The completed v5 file has 22 tests, including the complete
+Amendment-2 `primary_claim_status` table at
+`tests/test_bfcl_evict_v5.py:163`. Final registered CPU command:
+
+```bash
+CUDA_VISIBLE_DEVICES='' .venv/bin/pytest -q tests/test_bfcl.py tests/test_bfcl_evict_v2.py tests/test_bfcl_evict_v3.py tests/test_bfcl_evict_v4.py tests/test_bfcl_evict_v5.py tests/test_sealed_guard.py
+# 68 passed in 11.38s
+.venv/bin/ruff check scripts/bfcl_mt.py scripts/bfcl_seal_index.py src/stencil/bfcl.py tests/test_bfcl_evict_v3.py tests/test_bfcl_evict_v5.py
+# All checks passed
+```
+
+One-time authorized index build: after the RED loader test,
+`CUDA_VISIBLE_DEVICES='' .venv/bin/python scripts/bfcl_seal_index.py` read each
+of the eight mixed category files once, verified it against the pre-existing
+pin, and wrote the 96-cohort-ID case/answer byte ranges to
+`data/bench/bfcl_v3_mt/offsets.json`. The builder now refuses to run when the
+index exists. Source hashes recorded in the index are:
+
+- answers_base `6ea6bf48a2fc6067b57a289d314e7dc0582b12e22be53c8f7681599fba84a028`
+- answers_long_context `387fae6ec3146c1fd4cce8b901a69b1ec7a0844aa211f425f79049d35dd0b433`
+- answers_missing_functions `e47b7f29224e43b8991ef6f5e6e01a936a4dccad17d1484610e6a33f27998b34`
+- answers_missing_params `585d97fd579965a14b63d09882a680bcfbd1826ccf3e3a5de6fa68363c98a704`
+- cases_base `fe5c442849bdb2c2cdedc91f377411ff7fc6cd11af299766f4554d71d3d40f98`
+- cases_long_context `17898c71fc5ceca4538e812602bc0338efafe665594380094bd4288f10394f51`
+- cases_missing_functions `4a3a862f3e897d121ad94aa2c3f29ea752b7f7ac4eac6a23c8d502d1143e3492`
+- cases_missing_params `25509d5c441017c51de784e7670647dbec11a22fe0640990b0dafabf32e8c8d1`
+
+The cohort hash remains
+`22cf69afea1d7711a47af9e787dddeebb0a2485b3f32f4759236ba4d8ad919da`;
+the offset index hash is
+`d2c90b4352c9ff55d62a90e5fd13aaac80ea43f99609c5ccf846f4800cf86758`
+and is stored as `offsets_sha256` in `data/bench/pins-manifest.json`. No other
+file below `data/bench/` changed.
+
+Finding closures:
+
+1. BFCL-V4-1: `scripts/bfcl_mt.py:226` verifies the pinned index, checks raw IDs
+   before JSON decoding, and performs only bounded seek/read operations for the
+   requested cohort. `tests/test_bfcl_evict_v5.py:19` proves dev reads never
+   overlap a sealed offset.
+2. BFCL-V4-2: `scripts/bfcl_mt.py:164-223` defines and validates the certificate;
+   `scripts/bfcl_mt.py:1521-1783` writes `status: INCONCLUSIVE` then raises on
+   every registered gate failure, emits `FALLBACK_REQUIRED_4B` explicitly, and
+   measures the reduced projection from the exact reduced arms. The certificate
+   is schema 1 canonical JSON containing selected trunk, exact ordered arms,
+   generation settings, all frozen constants, registration/hash manifests,
+   selector hashes, and the five gate reports/counts; `certificate_sha256` is
+   SHA-256 over canonical payload JSON. Sealed CLI validation occurs at
+   `scripts/bfcl_mt.py:1786-1807`, before model loading or item access, and the
+   digest is bound into schema-v5 meta.
+3. BFCL-V4-3: `src/stencil/bfcl.py:1346-1371` implements the complete registered
+   decision ordering. `src/stencil/bfcl.py:1374-1658` separates primary, A2, A3,
+   and A4 states; A2/global reporting-arm safety does not gate the primary, A3
+   exposes headroom/k/status/eligibility, and A4 uses only its method plus
+   treatment/tool-swap safety.
+4. BFCL-V4-4: `scripts/bfcl_mt.py:493-526,809-815` builds the canonical
+   ground-truth-plus-echo call set before generation and makes truncated
+   generations non-degenerate. `src/stencil/bfcl.py:837-879` emits invalid
+   records for malformed JSON and unmatched open/close markers.
+5. BFCL-V4-5: `scripts/bfcl_mt.py:138-223,1200-1271` stores a canonical manifest
+   and individual hashes for all named harness modules, vendored checker/
+   executor files, chat template, model inputs, selector, offsets, and BFCL
+   files. `scripts/bfcl_mt.py:1297-1394` binds every record to the run/meta digest
+   and rejects stale arms/identity plus missing, duplicate, unexpected, or
+   out-of-order cohort records; `src/stencil/bfcl.py:1010-1094,1374-1394`
+   validates the same contracts at schema and summary boundaries.
+6. BFCL-V4-6: candidate source ordering is asserted at
+   `src/stencil/bfcl.py:281-288` and rechecked by the preflight consumer at
+   `scripts/bfcl_mt.py:1426-1518`. The report contains named `{passed,n}` counts
+   for all six invariant families and derives, rather than hard-codes, its pass
+   fraction.
+7. BFCL-V4-7: shared total overflow is computed before base/full return at
+   `scripts/bfcl_mt.py:583`; `src/stencil/bfcl.py:643-690` preserves tool-swap
+   treatment rank order; `src/stencil/bfcl.py:784-807` obtains every prior USER
+   column independently of candidates; and `src/stencil/bfcl.py:1100-1190,
+   1561-1658` aggregates the registered dose/event fields plus per-arm pass and
+   effect summaries for the fixed non-evicting stratum.
+
+Commits: `ddd397a` (one-time index + pin) and `5a01ab3` (harness, summary, and
+tests).
+
+Deferred GPU/model commands (recorded, not run):
+
+```bash
+uv run python scripts/bfcl_mt.py run --split dev --mode teacher --trunk 1.7b --limit 1 --out bfcl-evict-v5-smoke-1.7b
+uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 1.7b --out bfcl-evict-v5-preflight-1.7b
+# Run the 4B preflight only if the 1.7B report says FALLBACK_REQUIRED_4B:
+uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b --out bfcl-evict-v5-preflight-4b
+BFCL_SELECTED_TRUNK=1.7b  # use 4b only after its passing registered fallback preflight
+BFCL_PREFLIGHT=results/qwen/bfcl-evict-v5-preflight-$BFCL_SELECTED_TRUNK/preflight.json
+uv run python scripts/bfcl_mt.py run --split dev --mode free --trunk "$BFCL_SELECTED_TRUNK" --limit 1 --out bfcl-evict-v5-free-smoke
+# Add --arm-cut iff the passing certificate's exact arm list is REDUCED_ARMS.
+# Sealed command remains deferred and MUST NOT run until separately authorized:
+STENCIL_SEALED_RUN=1 uv run python scripts/bfcl_mt.py run --split sealed --mode teacher --trunk "$BFCL_SELECTED_TRUNK" --preflight-certificate "$BFCL_PREFLIGHT" --out bfcl-evict-v5-sealed
+```
