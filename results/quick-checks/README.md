@@ -40,3 +40,8 @@ greedy output, same eviction plumbing as the registered probe (scripts/ledger_kv
    vs finder 37 / 48, full 44, evicted 14, role-at-budget 29, attention 16. Generic and training-free, and the best
    parameter-free selector so far, but the 1.7B extractor is the bottleneck (coverage 0.52 vs finder 0.97).
    Next quick check: the 4B trunk as extractor (same fixed prompt; no prompt tuning on this selection set).
+
+8. 4B AS EXTRACTOR (self_extract4b_check.py, self_extract4b.log): same read-time whole-history extraction prompt,
+   Qwen3-4B extracts, 1.7B runs the arms. Coverage 0.58 (9/20 >= 0.8), extras 36. SELF pinned 33, pinned_echo 30,
+   control 23. Extractor size barely moves whole-history recall; extras make the echo harmful. Next: WRITE-TIME
+   per-turn extraction (each prior user turn alone, short input) — the "save what matters as it arrives" form.
