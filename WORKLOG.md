@@ -3642,6 +3642,6 @@ The preregistered reading was written to
 helps iff `fv_inject >= 30/56`, paired wins exceed losses versus evicted, and
 the arm is not killed; strong iff `fv_inject_echo > 46/56`, paired wins exceed
 losses versus `clf_pinned_echo`, and the arm is not killed; harmful iff killed
-or `fv_inject < evicted + 5`. CPU verification: 18 passed, 1 policy skip in
+or `fv_inject < evicted + 5`. CPU verification: 19 passed, 1 policy skip in
 `tests/test_clf_probe_check.py tests/test_function_vector*.py`; scoped ruff and
 `git diff --check` clean.
