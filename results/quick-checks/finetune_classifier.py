@@ -24,7 +24,7 @@ def load(paths):
     return rows
 
 
-train = load(sorted(glob.glob(f"{ROOT}/kimi/*.jsonl") + glob.glob(f"{ROOT}/kimi-ctx/*.jsonl") + glob.glob(f"{ROOT}/*-enrich.jsonl")))
+train = load(sorted(glob.glob(f"{ROOT}/kimi/*.jsonl") + glob.glob(f"{ROOT}/kimi-ctx/*.jsonl") + glob.glob(f"{ROOT}/kimi-scope/*.jsonl") + glob.glob(f"{ROOT}/*-enrich.jsonl")))
 patches = {}; skipped = 0
 for p in glob.glob(f"{ROOT}/review/*-patch.jsonl"):
     for ln in open(p):
@@ -43,6 +43,10 @@ for o in train:
         if pt.get("new_label") in LABELS: o["label"] = pt["new_label"]
         if pt.get("new_role") in ROLES: o["role"] = pt["new_role"]
     if "context" in o:
+        if isinstance(o.get("context"), list):  # scope pass sometimes wrote context as a list of sentences
+            o["context"] = " ".join(str(x) for x in o["context"])
+        elif not isinstance(o.get("context"), str):
+            o["context"] = ""
         o["text"] = re.sub(r"^(?:user|assistant|tool|system)\s*:\s*", "", o["text"].strip(), flags=re.I)
         ctx = (o.get("context") or "").strip(); core = re.sub(r"^(?:user|assistant|tool|system)\s*:\s*", "", ctx, flags=re.I)
         if not ctx or core.strip().lower() == o["text"].strip().lower():
@@ -50,6 +54,11 @@ for o in train:
     fixed.append(o)
 seen = set(); train = [o for o in fixed if not ((o["text"].strip().lower(), o["label"], o["role"]) in seen or seen.add((o["text"].strip().lower(), o["label"], o["role"])))]
 heldout = load(sorted(glob.glob(f"{ROOT}/heldout/*.jsonl")))
+# spec v2 relabels apply to held-out rows too (same mechanical re-judgement, recorded separately)
+for o in heldout:
+    pt = patches.get((o.get("source"), o["text"]))
+    if pt and pt.get("new_label") in LABELS:
+        o["label"] = pt["new_label"]
 print(f"train {len(train)} (taxonomy-category drops not applied: {skipped}); heldout {len(heldout)}; device {DEV}", flush=True)
 
 name = "BAAI/bge-small-en-v1.5"
@@ -79,7 +88,7 @@ def batches(rows, bs, shuffle):
         yield {k: v.to(DEV) for k, v in t.items()}, roles.to(DEV), y.to(DEV), chunk
 
 
-torch.manual_seed(0); random.seed(0)
+SEED = int(os.environ.get("SEED", "0")); torch.manual_seed(SEED); random.seed(SEED)
 model = Clf().to(DEV)
 opt = torch.optim.AdamW(model.parameters(), lr=3e-5, weight_decay=0.01)
 steps = EPOCHS * ((len(train) + 31) // 32); sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1.0, (s + 1) / (0.06 * steps)) * max(0.0, (steps - s) / steps))
@@ -112,8 +121,9 @@ for ep in range(EPOCHS):
         tot += float(loss) * len(y); n += len(y)
     print(f"epoch {ep+1}/{EPOCHS} loss {tot/n:.4f} elapsed {time.time()-t0:.0f}s", flush=True)
     metrics = evaluate(heldout, f"HELDOUT ep{ep+1}")
-os.makedirs(f"{ROOT}/model/ft", exist_ok=True)
-model.cpu(); model.enc.save_pretrained(f"{ROOT}/model/ft/encoder"); tk.save_pretrained(f"{ROOT}/model/ft/encoder")
-torch.save({"head": model.head.state_dict(), "labels": LABELS, "roles": ROLES, "hidden": enc.config.hidden_size}, f"{ROOT}/model/ft/head.pt")
-json.dump({"heldout": metrics, "epochs": EPOCHS, "train_n": len(train)}, open(f"{ROOT}/model/ft/metrics.json", "w"), indent=1)
-print("saved", f"{ROOT}/model/ft", flush=True)
+OUT = f"{ROOT}/model/ft" + (f"-seed{SEED}" if SEED else "")
+os.makedirs(OUT, exist_ok=True)
+model.cpu(); model.enc.save_pretrained(f"{OUT}/encoder"); tk.save_pretrained(f"{OUT}/encoder")
+torch.save({"head": model.head.state_dict(), "labels": LABELS, "roles": ROLES, "hidden": enc.config.hidden_size}, f"{OUT}/head.pt")
+json.dump({"heldout": metrics, "epochs": EPOCHS, "train_n": len(train), "seed": SEED}, open(f"{OUT}/metrics.json", "w"), indent=1)
+print("saved", OUT, "seed", SEED, flush=True)

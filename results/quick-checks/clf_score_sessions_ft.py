@@ -8,7 +8,7 @@ from transformers import AutoTokenizer, AutoModel
 
 ROOT = "/home/bmarti44/stencil-llm"; S = sys.argv[1]
 tok = Tokenizer.from_file(ROOT + "/models/qwen3-1.7b-hf/tokenizer.json")
-FT = ROOT + "/data/classifier/model/ft"
+FT = os.environ.get("FT_DIR", ROOT + "/data/classifier/model/ft")
 tk = AutoTokenizer.from_pretrained(FT + "/encoder"); enc = AutoModel.from_pretrained(FT + "/encoder").eval()
 hd = torch.load(FT + "/head.pt"); ROLES, LABELS = hd["roles"], hd["labels"]
 head = torch.nn.Sequential(torch.nn.Dropout(0.1), torch.nn.Linear(hd["hidden"] + len(ROLES), 3)); head.load_state_dict(hd["head"]); head.eval()
@@ -33,9 +33,11 @@ for p in sorted(glob.glob(ROOT + "/results/qwen/ledger-kv-probe-h1p/session-*.js
         sents = [(a + s, a + e, context[a + s:a + e].strip()) for s, e in split_sentences(context[a:b])]
         if not sents:
             continue
+        # check 19 diagnosis: a context prefix collapses P(keep) 0.47 -> 0.17 on the probe; score without context
+        # unless CLF_CONTEXT=1
         pairs = []
         for i, (_, _, txt) in enumerate(sents):
-            prev = " ".join("user: " + s[2] for s in sents[max(0, i - 2):i])
+            prev = " ".join("user: " + s[2] for s in sents[max(0, i - 2):i]) if os.environ.get("CLF_CONTEXT") == "1" else ""
             pairs.append((prev, txt))
         for (ca, cb, _), pr in zip(sents, score(pairs)):
             rows.append([ca, cb, pr, t])

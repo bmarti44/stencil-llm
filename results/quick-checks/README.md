@@ -165,3 +165,9 @@ as the mean, head-selection rule fixed in advance (mean over seeds; no picking t
    pass wrote "context" as a list in some rows; fixed in the trainer) and its probe reused seed 1's scores — reported
    as invalid. Consistent with check 19: under spec v1 the fine-tuned classifier rejects task-scoped formatting
    constraints. Next (check 21): spec v2 data + scope pass, three seeds, no-context scoring, mean reported.
+
+21. SPEC v2 (scope pass added; reviewed relabel patch NOT yet applied), fine-tuned encoder, NO-context scoring,
+   seeds 1 and 2 (ft_v2_s{1,2}.log, clf_probe8_s{1,2}.log): held-out 0.90 / 0.90 (fable author-disjoint 0.88 / 0.86;
+   "none" precision 0.96). Probe: seed 1 pinned 33 / echo 45 / control 17; seed 2 pinned 33 / echo 44 / control 17;
+   coverage 0.86. Two seeds agree (finder 37 / 48; full 44; evicted 14). Seed 0 (rerun) and the FINAL three-seed
+   run with the 59-row reviewed relabel patch follow; the reported number will be the three-seed mean.
