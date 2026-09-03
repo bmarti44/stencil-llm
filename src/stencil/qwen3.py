@@ -192,6 +192,45 @@ def _apply_rope(
     return q2.to(q.dtype), k2.to(k.dtype)
 
 
+def _apply_deficit_gate(
+    att: torch.Tensor,
+    deficit_gate: tuple | list[tuple],
+) -> torch.Tensor:
+    """Apply one legacy gate or several independently capped span gates."""
+    gates = (
+        [deficit_gate]
+        if isinstance(deficit_gate, tuple)
+        and len(deficit_gate) == 3
+        and isinstance(deficit_gate[0], torch.Tensor)
+        else list(deficit_gate)
+    )
+    natural_probs = F.softmax(att, dim=-1)
+    total_bias = torch.zeros_like(att)
+    changed = False
+    for span_mask, tau, b_max in gates:
+        if span_mask.ndim != 1 or span_mask.shape[0] != att.shape[-1]:
+            raise ValueError("deficit span mask must be [T_total]")
+        if not 0.0 < tau < 1.0:
+            raise ValueError("deficit tau must be strictly between zero and one")
+        if b_max < 0.0:
+            raise ValueError("deficit b_max must be nonnegative")
+        if not bool(span_mask.any()) or b_max == 0.0:
+            continue
+        psi = natural_probs[..., span_mask].sum(-1).clamp(1e-6, 1 - 1e-6)
+        need = psi < tau
+        if not bool(need.any()):
+            continue
+        logit_t = math.log(tau / (1 - tau))
+        b_amt = (logit_t - torch.log(psi / (1 - psi))).clamp(max=b_max)
+        b_amt = torch.where(need, b_amt, torch.zeros_like(b_amt))
+        total_bias = (
+            total_bias
+            + b_amt[..., None] * span_mask.to(att.dtype)[None, None, None, :]
+        )
+        changed = True
+    return att + total_bias if changed else att
+
+
 class _Block(nn.Module):
     def __init__(self, cfg: Qwen3Config) -> None:
         super().__init__()
@@ -229,7 +268,7 @@ class _Block(nn.Module):
         attn_bias: torch.Tensor | None = None,  # (t, T_total) fp32, pre-softmax
         cache: KVCache | None = None,
         layer_idx: int = -1,
-        deficit_gate: tuple | None = None,  # (span_mask[T_total] bool, tau, b_max)
+        deficit_gate: tuple | list[tuple] | None = None,
         attn_probe: tuple | None = None,  # (span_mask[T_total] bool, sink dict) -> sink[layer] = last-row mean span mass
     ) -> torch.Tensor:
         c = self.cfg
@@ -287,15 +326,9 @@ class _Block(nn.Module):
             # ONLY where psi < tau, by the exact odds correction
             # min(b_max, logit(tau) - logit(psi)); zero deficit -> bitwise
             # identical attention.
-            span_mask, tau, b_max = deficit_gate
-            p0 = F.softmax(att, dim=-1)
-            psi = p0[..., span_mask].sum(-1).clamp(1e-6, 1 - 1e-6)  # (b, h, t)
-            need = psi < tau
-            if bool(need.any()):
-                logit_t = math.log(tau / (1 - tau))
-                b_amt = (logit_t - torch.log(psi / (1 - psi))).clamp(max=b_max)
-                b_amt = torch.where(need, b_amt, torch.zeros_like(b_amt))
-                att = att + b_amt[..., None] * span_mask.float()[None, None, None, :]
+            # A list measures every classifier-selected instruction against
+            # the same natural attention, then applies its own cap.
+            att = _apply_deficit_gate(att, deficit_gate)
         if attn_probe is not None:
             pm, sink = attn_probe
             probs = F.softmax(att, dim=-1)

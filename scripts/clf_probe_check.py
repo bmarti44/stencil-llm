@@ -20,6 +20,79 @@ POST_PREFILL_TOTALS = {
     "clf_pinned_echo": 46,
     "clf_control": 17,
 }
+CALIBRATION_PATH = ROOT / "results/qwen/b3-deficit-cal.json"
+ARM_SPECS = (
+    ("full", "full"),
+    ("evicted", "evicted"),
+    ("clf_pinned", "pinned"),
+    ("clf_pinned_echo", "pinned_echo"),
+    ("clf_control", "pinned_control"),
+    ("clf_pinned_wave", "pinned"),
+    ("clf_pinned_wave_conf", "pinned"),
+    ("clf_pinned_echo_wave", "pinned_echo"),
+)
+WAVE_ARMS = {
+    "clf_pinned_wave",
+    "clf_pinned_wave_conf",
+    "clf_pinned_echo_wave",
+}
+
+
+def load_wave_calibration(path=CALIBRATION_PATH):
+    path = Path(path)
+    raw = json.loads(path.read_text())
+    selected = raw["selected"]
+    row = raw["results"][selected]
+    return {
+        "selected": selected,
+        "tau": float(row["tau"]),
+        "b_max": float(row["b_max"]),
+        "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+    }
+
+
+def confidence_cap(probability, b_max):
+    if not 0.5 <= probability <= 1.0:
+        raise ValueError("confidence-scaled wave requires P(keep) in [0.5, 1.0]")
+    return b_max * (probability - 0.5) / 0.5
+
+
+def arm_configuration(
+    name,
+    *,
+    ids,
+    echo_ids,
+    evict_range,
+    echo_evict_range,
+    keep,
+    selected,
+    tau,
+    b_max,
+    eviction_timing,
+):
+    probe_arm = dict(ARM_SPECS)[name]
+    is_echo = name in {"clf_pinned_echo", "clf_pinned_echo_wave"}
+    deficit_spans = []
+    if name in WAVE_ARMS:
+        deficit_spans = [
+            (
+                span,
+                confidence_cap(probability, b_max)
+                if name == "clf_pinned_wave_conf"
+                else b_max,
+            )
+            for span, probability, _turn in selected
+        ]
+    return {
+        "probe_arm": probe_arm,
+        "ids": echo_ids if is_echo else ids,
+        "evict_range": echo_evict_range if is_echo else evict_range,
+        "keep": keep,
+        "deficit_spans": deficit_spans,
+        "deficit_tau": tau if deficit_spans else None,
+        "confidence_scaled": name == "clf_pinned_wave_conf",
+        "eviction_timing": eviction_timing,
+    }
 
 
 def parse_args(argv=None):
@@ -70,6 +143,7 @@ def main(argv=None):
 
     scores_path = Path(args.scores).resolve()
     scores = json.loads(scores_path.read_text())
+    calibration = load_wave_calibration()
     model, tokenizer = g0_oracle.load_model()
     corpus_path = ROOT / "data/b3/mt-train-300.jsonl"
     corpus = {
@@ -84,13 +158,7 @@ def main(argv=None):
     if len(source_records) != 20:
         raise RuntimeError(f"expected 20 source sessions, found {len(source_records)}")
 
-    arm_specs = (
-        ("full", "full"),
-        ("evicted", "evicted"),
-        ("clf_pinned", "pinned"),
-        ("clf_pinned_echo", "pinned_echo"),
-        ("clf_control", "pinned_control"),
-    )
+    arm_specs = ARM_SPECS
     totals = {name: 0 for name, _ in arm_specs}
     rows = []
     started = time.monotonic()
@@ -111,10 +179,18 @@ def main(argv=None):
         selected = sorted(candidates, key=lambda candidate: -candidate[1])
         keep = sorted(candidate[0] for candidate in selected)
         aged = [
-            {"span": candidate[0], "origin_turn": candidate[2]}
+            {
+                "span": candidate[0],
+                "probability": candidate[1],
+                "origin_turn": candidate[2],
+            }
             for candidate in selected
         ]
         aged, keep = clamp(probe, tokenizer, context, aged, keep)
+        selected = [
+            (tuple(item["span"]), item["probability"], item["origin_turn"])
+            for item in aged
+        ]
         control = probe.matched_control_spans(keep, (low, high)) if keep else []
         if aged:
             echoed, _, _ = probe.echo_context(tokenizer, context, aged)
@@ -131,20 +207,33 @@ def main(argv=None):
         }
         n_aged = record["n_aged"]
         arm_rows = {}
-        for name, probe_arm in arm_specs:
-            is_echo = name == "clf_pinned_echo"
+        for name, _probe_arm in arm_specs:
+            configured = arm_configuration(
+                name,
+                ids=ids,
+                echo_ids=echo_ids,
+                evict_range=(low, high),
+                echo_evict_range=echo_range,
+                keep=keep,
+                selected=selected,
+                tau=calibration["tau"],
+                b_max=calibration["b_max"],
+                eviction_timing=args.eviction_timing,
+            )
             generated = probe.run_arm(
                 model,
                 tokenizer,
-                echo_ids if is_echo else ids,
-                probe_arm,
-                keep,
-                echo_range if is_echo else (low, high),
+                configured["ids"],
+                configured["probe_arm"],
+                configured["keep"],
+                configured["evict_range"],
                 0.0,
                 args.max_new,
                 args.deadline,
                 control_keep=control,
-                eviction_timing=args.eviction_timing,
+                eviction_timing=configured["eviction_timing"],
+                deficit_spans=configured["deficit_spans"],
+                deficit_tau=configured["deficit_tau"],
             )
             passed = sum(score_row_constraints(score_row, generated["text"])[:n_aged])
             totals[name] += passed
@@ -152,7 +241,9 @@ def main(argv=None):
                 "aged_pass": passed,
                 "pinned_cols": generated["pinned_cols"],
                 "truncated": generated["truncated"],
+                "timed_out": generated["timed_out"],
                 "degenerate": probe.is_degenerate(generated),
+                "invalid": generated["invalid_output"],
             }
         rows.append({"session": record["session"], "n_aged": n_aged, "arms": arm_rows})
         print(
@@ -164,13 +255,29 @@ def main(argv=None):
             flush=True,
         )
 
+    safety = {
+        name: {
+            "truncated": sum(row["arms"][name]["truncated"] for row in rows),
+            "timeout": sum(row["arms"][name]["timed_out"] for row in rows),
+            "degenerate": sum(row["arms"][name]["degenerate"] for row in rows),
+            "invalid": sum(row["arms"][name]["invalid"] for row in rows),
+        }
+        for name, _ in arm_specs
+    }
     output = {
         "eviction_timing": args.eviction_timing,
         "scores": str(scores_path),
         "scores_sha256": hashlib.sha256(scores_path.read_bytes()).hexdigest(),
         "threshold": args.threshold,
+        "calibration": calibration,
         "sessions": len(rows),
         "totals": totals,
+        "safety": safety,
+        "wave_kill_rule": "degenerate > 2/20 kills the arm",
+        "wave_killed": {
+            name: safety[name]["degenerate"] > 2
+            for name in WAVE_ARMS
+        },
         "post_prefill_totals": POST_PREFILL_TOTALS,
         "elapsed_seconds": time.monotonic() - started,
         "rows": rows,
@@ -178,7 +285,13 @@ def main(argv=None):
     outdir = ROOT / "results/qwen" / args.out
     outdir.mkdir(parents=True, exist_ok=True)
     probe.atomic_json(outdir / "clf-probe.json", output)
-    report_fields = ("eviction_timing", "totals", "post_prefill_totals")
+    report_fields = (
+        "eviction_timing",
+        "totals",
+        "safety",
+        "wave_killed",
+        "post_prefill_totals",
+    )
     print(json.dumps({key: output[key] for key in report_fields}, indent=1))
 
 

@@ -2542,3 +2542,21 @@ anyway (0.854/0.860 blind; precision 0.95/0.94).
 - Boundary choice: no unresolved ambiguity. Conservatively, history ends immediately before the final
   `<|im_start|>user\n`; this equals the existing eviction-range high endpoint and therefore includes the preceding
   assistant `<|im_end|>\n`. Echo text remains inside the final user turn and is prefilled only after eviction.
+- 2026-09-03, coder (auto, run_codex_agent.sh). Brief evict-before-query: model gpt-5.6-sol, effort medium, exit 0, session 01a06650-472c-7df2-b13d-fcb23d5d1d7a, log /home/bmarti44/stencil-llm/results/logs/codex-agent-evict-before-query.log.
+
+## 2026-09-03 — classifier-selected deficit-gated wave probe arms
+- Added `clf_pinned_wave`, `clf_pinned_wave_conf`, and `clf_pinned_echo_wave` to the corrected pre-query probe while
+  retaining all five existing arms. Each selected instruction is deficit-tested independently against its natural
+  attention mass; the confidence arm uses the registered linear cap `b_max * (P(keep)-0.5)/0.5`. Per-arm timeout,
+  truncation, degeneracy, and invalid counts are emitted, and each wave arm is killed at `degenerate > 2/20`.
+- Frozen calibration read from `results/qwen/b3-deficit-cal.json`: selected `t30-b3`, `tau=0.3`, `b_max=3.0`, SHA-256
+  `f0dd561b589364a2c4c22352b4eddeb397eac93309619a57953a9d400b07cb2b`. Final selector scores are fixed at
+  `results/quick-checks/clf_scores_final_s0.json`, SHA-256 `6d7608b5a8b01e1aa366179676df1889449c440a42911e2d2870ba7eee2241fd`.
+- TDD battery: RED was 6 expected failures for missing arm/calibration/configuration/multi-span gate plumbing; GREEN
+  is **16 passed, 2 skipped** for `tests/test_clf_probe_check.py tests/test_multiif_evict.py`. CPU proofs cover
+  zero-deficit bitwise-identical logits, finite nonzero forced-deficit bias capped per span, monotone confidence
+  scaling, and echo+wave history eviction before current-turn prefill. The registered-model identity test and the
+  existing full-prefill GPU test were skipped with reason: GPU busy with the registered 909 run; no model process or
+  probe was launched. Targeted Ruff and `git diff --check` are clean.
+- Exact deferred orchestrator command (foreground, only after the 909 releases the GPU):
+  `uv run python scripts/clf_probe_check.py --scores results/quick-checks/clf_scores_final_s0.json --eviction-timing pre-query --out clf-gated-wave-prequery`

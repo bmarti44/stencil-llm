@@ -383,12 +383,14 @@ def is_degenerate(g):
 
 
 def run_arm(m, tok, ids, arm, keep, evict_range, dose, max_new, deadline_s,
-            control_keep=(), eviction_timing="pre-query"):
+            control_keep=(), eviction_timing="pre-query", deficit_spans=(),
+            deficit_tau=None):
     import torch
 
     from stencil.bench import EOS, WAVE_LAYERS
     from stencil.qwen3 import KVCache, prefill_with_eviction
-    cache = KVCache()
+    device = next(m.parameters()).device
+    cache = KVCache(m.cfg)
     out = []
     t0 = time.monotonic()
     timed_out = False
@@ -404,7 +406,7 @@ def run_arm(m, tok, ids, arm, keep, evict_range, dose, max_new, deadline_s,
         logits, imap, _, _ = prefill_with_eviction(
             m,
             cache,
-            torch.tensor([ids], device="cuda"),
+            torch.tensor([ids], device=device),
             history_end=(
                 evict_range[1]
                 if evict_range is not None
@@ -416,6 +418,11 @@ def run_arm(m, tok, ids, arm, keep, evict_range, dose, max_new, deadline_s,
         )
         if arm not in ("full", "full_echo"):
             cols = sorted({imap[o] for s, e in pins for o in range(s, e) if o in imap})
+        mapped_deficits = [
+            (sorted({imap[o] for o in range(*span) if o in imap}), cap)
+            for span, cap in deficit_spans
+        ]
+        mapped_deficits = [item for item in mapped_deficits if item[0] and item[1] > 0.0]
         nxt = int(logits[0, -1].argmax())
         while nxt not in EOS and len(out) < max_new:
             if time.monotonic() - t0 > deadline_s:
@@ -424,10 +431,32 @@ def run_arm(m, tok, ids, arm, keep, evict_range, dose, max_new, deadline_s,
             out.append(nxt)
             ab = None
             if arm.startswith("pinned_wave_d") and cols:
-                row = torch.zeros(1, cache.k[0].shape[2] + 1, device="cuda")
+                row = torch.zeros(1, cache.k[0].shape[2] + 1, device=device)
                 row[0, cols] = dose
                 ab = {L: row for L in WAVE_LAYERS}
-            logits = m(torch.tensor([[nxt]], device="cuda"), cache=cache, attn_bias=ab)
+            deficit_hook = None
+            if mapped_deficits:
+                if deficit_tau is None:
+                    raise ValueError("deficit_tau is required with deficit_spans")
+                gates = {}
+                for layer in WAVE_LAYERS:
+                    layer_gates = []
+                    for span_cols, cap in mapped_deficits:
+                        mask = torch.zeros(
+                            cache.k[0].shape[2] + 1,
+                            dtype=torch.bool,
+                            device=device,
+                        )
+                        mask[span_cols] = True
+                        layer_gates.append((mask, deficit_tau, cap))
+                    gates[layer] = layer_gates
+                deficit_hook = (min(WAVE_LAYERS), lambda _hidden: gates)
+            logits = m(
+                torch.tensor([[nxt]], device=device),
+                cache=cache,
+                attn_bias=ab,
+                deficit_hook=deficit_hook,
+            )
             nxt = int(logits[0, -1].argmax())
     text = tok.decode(out, skip_special_tokens=False)
     return {
