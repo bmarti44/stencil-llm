@@ -1251,9 +1251,19 @@ def assert_case_record_schema(
                     raise ValueError(f"arm {name} turn pass must be boolean")
             if schema >= 6 and {"overflow_phase", "na"} - set(turn):
                 raise ValueError(f"arm {name} turn v6 overflow schema incomplete")
+            violation = turn["eviction"].get("invariant_violation")
+            if violation not in {None, "columns", "echo_delta"}:
+                raise ValueError(f"arm {name} turn has unknown invariant violation")
+            if violation is not None and bool(
+                turn["eviction"].get("match_impossible")
+            ):
+                raise ValueError(
+                    f"arm {name} turn invariant violation is not match_impossible"
+                )
             if name in {"clf_control", "recency_pinned", "tool_swap_echo"} and (
                 bool(turn["eviction"].get("pressure_triggered", True))
                 and not bool(turn["eviction"].get("match_impossible"))
+                and violation != "echo_delta"
                 and abs(int(turn["eviction"].get("echo_token_delta", 0))) > 16
             ):
                 raise ValueError(f"arm {name} turn echo token delta exceeds 16")
@@ -1285,7 +1295,7 @@ def assert_case_record_schema(
                 eviction = turn["eviction"]
                 if not bool(eviction.get("pressure_triggered")) or bool(
                     eviction.get("match_impossible")
-                ):
+                ) or eviction.get("invariant_violation") == "columns":
                     continue
                 treatment = treatment_turns[int(turn["turn"])]["eviction"]
                 actual = eviction.get("pinned_columns_by_role", {})
@@ -1385,6 +1395,10 @@ def _arm_summary(records: Sequence[Mapping], arm: str) -> dict:
         ),
         "match_impossible": sum(
             bool(turn.get("eviction", {}).get("match_impossible")) for turn in turns
+        ),
+        "invariant_violations": sum(
+            turn.get("eviction", {}).get("invariant_violation") is not None
+            for turn in turns
         ),
         "echo_token_deltas": [
             int(turn.get("eviction", {}).get("echo_token_delta", 0)) for turn in turns
@@ -1748,6 +1762,10 @@ def summarize_records(
                     "match_impossible"
                 )
             )
+            or _turn_by_index(record, arm, turn_index)["eviction"].get(
+                "invariant_violation"
+            )
+            is not None
             or abs(
                 int(
                     _turn_by_index(record, arm, turn_index)["eviction"].get(
@@ -1776,6 +1794,10 @@ def summarize_records(
                 "match_impossible"
             )
         )
+        or _turn_by_index(record, "tool_swap_echo", turn_index)["eviction"].get(
+            "invariant_violation"
+        )
+        is not None
         or abs(
             int(
                 _turn_by_index(record, "tool_swap_echo", turn_index)["eviction"].get(

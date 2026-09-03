@@ -343,8 +343,13 @@ def issue_preflight_certificate(
         )
         raise RuntimeError(f"ARTIFACT_DRIFT: {reason}")
 
+    def drift_view(meta: dict) -> dict:
+        view = _unbound_meta(meta)
+        view.pop("git", None)
+        return view
+
     fresh_meta = artifact_meta(args)
-    if fresh_meta != _unbound_meta(frozen_meta):
+    if drift_view(fresh_meta) != drift_view(frozen_meta):
         drift("post-run artifact metadata differs from frozen preflight metadata")
     meta_path = output / "meta.json"
     if not meta_path.is_file() or json.loads(meta_path.read_text()) != frozen_meta:
@@ -377,6 +382,8 @@ def issue_preflight_certificate(
         ),
         "records_sha256": records_sha256,
         "preflight_arms": list(frozen_meta["arms"]),
+        "git_at_freeze": frozen_meta.get("git"),
+        "git_at_issue": fresh_meta.get("git"),
     }
     return certificate_payload(
         frozen_meta,
@@ -1173,10 +1180,11 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
     )
     pressure_triggered = layout["history_end"] > K
     if pressure_triggered and not match_impossible and abs(echo_delta) > 16:
-        match_impossible = True
         invariant_violation = "echo_delta"
+        echo_unreachable = True
     else:
         invariant_violation = None
+        echo_unreachable = False
     if (
         pressure_triggered
         and arm in {"clf_control", "recency_pinned", "tool_swap_echo"}
@@ -1188,7 +1196,6 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
             "control_role_shortfall", False
         ) else exact_roles
         if not usable_columns:
-            match_impossible = True
             invariant_violation = "columns"
     return {
         "context": context,
@@ -1230,6 +1237,7 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
                 "role_column_deltas", {"user": 0, "tool": 0}
             ),
             "invariant_violation": invariant_violation,
+            "echo_unreachable": echo_unreachable,
             "match_impossible": match_impossible,
             "echo_dropped_control_tokens": dropped,
             "scorer_truncated_candidates": max(
@@ -1271,6 +1279,17 @@ def _degenerate(ids: list[int], truncated: bool) -> bool:
         return False
     grams = [tuple(ids[index : index + 4]) for index in range(len(ids) - 3)]
     return 1.0 - len(set(grams)) / len(grams) > 0.5
+
+
+def _teacher_final_score(turns: list[dict]) -> dict:
+    """Score only turns eligible for teacher-forced final reporting."""
+    return {
+        "valid": all(
+            turn["pass"]
+            for turn in turns
+            if not bool(turn.get("na")) and turn["pass"] is not None
+        )
+    }
 
 
 def run_case_arm(
@@ -1453,6 +1472,12 @@ def run_case_arm(
                     "budget_used": plan["selector"]["used"],
                     "echo_tokens": plan["selector"].get("echo_tokens", 0),
                     "match_impossible": plan["selector"].get("match_impossible", False),
+                    "invariant_violation": plan["selector"].get(
+                        "invariant_violation"
+                    ),
+                    "echo_unreachable": plan["selector"].get(
+                        "echo_unreachable", False
+                    ),
                     "echo_token_delta": plan["selector"].get("echo_token_delta", 0),
                     "echo_clamp_residual": plan["selector"].get(
                         "echo_clamp_residual", 0
@@ -1583,9 +1608,7 @@ def run_case_arm(
         if turn_timeout and args.mode == "free":
             break
     if args.mode == "teacher":
-        final_score = {
-            "valid": all(turn["pass"] for turn in turns if turn["pass"] is not None)
-        }
+        final_score = _teacher_final_score(turns)
     elif len(decoded_turns) == len(ground_truth):
         final_score = score_case(
             case,
@@ -2080,37 +2103,57 @@ def assert_dev_invariants(records: list[dict]) -> dict:
                     "recency_pinned",
                     "tool_swap_echo",
                 }:
-                    check(
-                        "comparator_columns",
-                        eviction["pinned_columns_by_role"]
-                        == treatment["pinned_columns_by_role"]
-                        or eviction["match_impossible"],
+                    violation = eviction.get("invariant_violation") or selector.get(
+                        "invariant_violation"
                     )
-                    check(
-                        "comparator_echo",
-                        abs(eviction["echo_token_delta"]) <= 16
-                        or eviction["match_impossible"],
-                    )
+                    if violation == "columns":
+                        check("comparator_columns", False)
+                    elif eviction["match_impossible"]:
+                        check("comparator_columns", True)
+                    else:
+                        check(
+                            "comparator_columns",
+                            eviction["pinned_columns_by_role"]
+                            == treatment["pinned_columns_by_role"],
+                        )
+                    if violation == "echo_delta":
+                        check("comparator_echo", False)
+                    elif eviction["match_impossible"]:
+                        check("comparator_echo", True)
+                    else:
+                        check(
+                            "comparator_echo",
+                            abs(eviction["echo_token_delta"]) <= 16,
+                        )
                 if pressure_triggered and arm == "clf_control":
-                    if eviction["control_role_shortfall"]:
+                    violation = eviction.get("invariant_violation") or selector.get(
+                        "invariant_violation"
+                    )
+                    if violation == "columns":
+                        check("comparator_columns", False)
+                    elif eviction["match_impossible"]:
+                        check("comparator_columns", True)
+                    elif eviction["control_role_shortfall"]:
                         check(
                             "comparator_columns",
                             sum(eviction["pinned_columns_by_role"].values())
-                            == sum(treatment["pinned_columns_by_role"].values())
-                            or eviction["match_impossible"],
+                            == sum(treatment["pinned_columns_by_role"].values()),
                         )
                     else:
                         check(
                             "comparator_columns",
                             eviction["pinned_columns_by_role"]
-                            == treatment["pinned_columns_by_role"]
-                            or eviction["match_impossible"],
+                            == treatment["pinned_columns_by_role"],
                         )
-                    check(
-                        "comparator_echo",
-                        abs(eviction["echo_token_delta"]) <= 16
-                        or eviction["match_impossible"],
-                    )
+                    if violation == "echo_delta":
+                        check("comparator_echo", False)
+                    elif eviction["match_impossible"]:
+                        check("comparator_echo", True)
+                    else:
+                        check(
+                            "comparator_echo",
+                            abs(eviction["echo_token_delta"]) <= 16,
+                        )
                 shortfalls += bool(eviction.get("control_role_shortfall"))
                 overflows += bool(eviction.get("pin_overflow"))
                 drops += int(eviction.get("pin_overflow_dropped_columns", 0))
@@ -2269,9 +2312,8 @@ def preflight(
         for record in first
         for arm in ("clf_control", "recency_pinned", "tool_swap_echo")
         for turn in record["arms"][arm]["turns"]
-        if abs(int(turn["eviction"].get("echo_token_delta", 0))) > 16
+        if turn["eviction"].get("invariant_violation") == "echo_delta"
         and bool(turn["eviction"].get("pressure_triggered"))
-        and not turn["eviction"].get("match_impossible")
     ]
     if excessive_echo:
         failure = {
