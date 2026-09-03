@@ -45,3 +45,10 @@ greedy output, same eviction plumbing as the registered probe (scripts/ledger_kv
    Qwen3-4B extracts, 1.7B runs the arms. Coverage 0.58 (9/20 >= 0.8), extras 36. SELF pinned 33, pinned_echo 30,
    control 23. Extractor size barely moves whole-history recall; extras make the echo harmful. Next: WRITE-TIME
    per-turn extraction (each prior user turn alone, short input) — the "save what matters as it arrives" form.
+
+9. WRITE-TIME PER-TURN EXTRACTION, 4B (self_extract_turn_check.py, self_extract_turn.log): each prior user turn
+   shown alone; asked to quote the sentences that are instructions to keep following. Scored coverage 0.64, extras 44,
+   SELF pinned 30 / echo 31 / control 23. CAVEAT found on inspection: the extractor quoted every true constraint in
+   the inspected sessions; the misses were the matcher's (sentence splitter breaks on "P.P.S.", Jaccard < 0.5 on the
+   fragments). The "extras" are the task sentence and the reminder sentence. Rerun with a direct substring matcher =
+   check 10 (self_extract_turn2_check.py).
