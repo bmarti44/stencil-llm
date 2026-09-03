@@ -159,3 +159,9 @@ as the mean, head-selection rule fixed in advance (mean over seeds; no picking t
    third — the current task or artifact — and that is what the taxonomy finder had learned. Spec amended (LABELS.md
    v2: task-scoped constraints are rules unless explicitly one-off); kimi writes a focused "scope" batch; retrain
    x3 seeds; rescore without context. The seeds-1/2 runs already queued use the old scorer and are reported as-is.
+
+20. FINE-TUNED ENCODER, spec v1, seeds 1-2 (queued before the v2 spec; context-prefix scorer): seed 1 held-out 0.90
+   (fable 0.87) — probe coverage 0.29, CLF pinned 22 / echo 23 / control 15. Seed 2 did NOT train (crash: the scope
+   pass wrote "context" as a list in some rows; fixed in the trainer) and its probe reused seed 1's scores — reported
+   as invalid. Consistent with check 19: under spec v1 the fine-tuned classifier rejects task-scoped formatting
+   constraints. Next (check 21): spec v2 data + scope pass, three seeds, no-context scoring, mean reported.
