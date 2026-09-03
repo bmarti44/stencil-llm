@@ -44,7 +44,7 @@ def test_f1_nearest_match_ranks_width_then_age_then_stable_source():
         _candidate("user", "stable-first", 50, 9, 7, message_index=4),
         _candidate("user", "supplement", 60, 3, 1),
     ]
-    result = build_matched_control(rows, [selected], (0, 70), seed=20260903)
+    result = build_matched_control(rows, [selected], (0, 70))
     assert result["match_impossible"] is False
     assert result["entries"][0]["text"] == "stable-first"
     assert result["matches"][0] == {
@@ -65,7 +65,7 @@ def test_f1_impossible_depends_on_total_available_columns_not_exact_rows():
     }
     available = _candidate("user", "different width and age", 10, 8, 1)
     possible = build_matched_control(
-        [selected, available], [selected], (0, 20), seed=20260903
+        [selected, available], [selected], (0, 20)
     )
     assert possible["match_impossible"] is False
     assert sum(len(row["pinned_columns"]) for row in possible["entries"]) == 6
@@ -73,7 +73,6 @@ def test_f1_impossible_depends_on_total_available_columns_not_exact_rows():
         [selected, _candidate("user", "too-short", 10, 5, 1)],
         [selected],
         (0, 20),
-        seed=20260903,
     )
     assert impossible["match_impossible"] is True
 
@@ -204,7 +203,7 @@ def test_f6_tool_swap_echo_order_and_match_deltas_follow_treatment_order():
     user = {**_candidate("user", "selected user", 10, 2, 3), "pinned_columns": [10, 11]}
     replacement = _candidate("tool", "replacement", 20, 4, 2)
     result = tool_swap_plan(
-        [tool, user, replacement], [tool, user], (0, 30), seed=20260903
+        [tool, user, replacement], [tool, user], (0, 30)
     )
     assert result["entries"][0]["text"].startswith("replace")
     assert result["entries"][1]["text"] == "selected user"

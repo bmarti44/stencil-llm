@@ -406,6 +406,10 @@ def _decode_row(
     row: Mapping, columns: Sequence[int], tokenizer=None, context=None
 ) -> dict:
     out = dict(row)
+    source_columns = list(
+        row.get("_echo_source_columns", _row_columns(row, -sys.maxsize, sys.maxsize))
+    )
+    out["_echo_source_columns"] = source_columns
     out["span"] = [min(columns), max(columns) + 1]
     out["pinned_columns"] = list(columns)
     original_width = len(row.get("pinned_columns", [])) or (
@@ -470,7 +474,6 @@ def _resource_match(
     kept: Sequence[Mapping],
     evict_range: tuple[int, int],
     *,
-    seed: int,
     allow_role_fallback: bool,
 ) -> tuple[list[Mapping], bool, bool, list[dict]]:
     """Nearest width/age matching, one initial resource per target.
@@ -488,7 +491,6 @@ def _resource_match(
         for row in candidates
         if id(row) not in selected_ids and tuple(row["span"]) not in selected_spans
     ]
-    del seed  # retained in the public contract; Amendment 3 uses stable source ties.
     matches: list[Mapping] = []
     match_rows: list[dict] = []
     shortfall = False
@@ -578,7 +580,6 @@ def build_matched_control(
     kept: Sequence[Mapping],
     evict_range: tuple[int, int],
     *,
-    seed: int,
     tokenizer=None,
     context: str | None = None,
 ) -> dict:
@@ -591,7 +592,7 @@ def build_matched_control(
         for role in ("user", "tool")
     }
     matched, impossible, shortfall, match_rows = _resource_match(
-        candidates, kept, evict_range, seed=seed, allow_role_fallback=True
+        candidates, kept, evict_range, allow_role_fallback=True
     )
     if impossible:
         return {
@@ -723,14 +724,13 @@ def tool_swap_plan(
     kept: Sequence[Mapping],
     evict_range: tuple[int, int],
     *,
-    seed: int,
     tokenizer=None,
     context: str | None = None,
 ) -> dict:
     """Retain users and replace tools by disjoint same-role width/age matches."""
     tools = [dict(row) for row in kept if row["role"] == "tool"]
     matches, impossible, _, match_rows = _resource_match(
-        candidates, tools, evict_range, seed=seed, allow_role_fallback=False
+        candidates, tools, evict_range, allow_role_fallback=False
     )
     if impossible:
         return {
@@ -1261,6 +1261,29 @@ def assert_case_record_schema(
                     fact["pin_overflow_total"]
                 ):
                     raise ValueError(f"arm {name} disagrees with shared turn facts")
+        treatment_turns = {
+            int(turn["turn"]): turn
+            for turn in record["arms"]["clf_pinned_echo"]["turns"]
+        }
+        for name in ("clf_control", "recency_pinned", "tool_swap_echo"):
+            if name not in record["arms"]:
+                continue
+            for turn in record["arms"][name]["turns"]:
+                eviction = turn["eviction"]
+                if not bool(eviction.get("pressure_triggered")) or bool(
+                    eviction.get("match_impossible")
+                ):
+                    continue
+                treatment = treatment_turns[int(turn["turn"])]["eviction"]
+                actual = eviction.get("pinned_columns_by_role", {})
+                expected = treatment.get("pinned_columns_by_role", {})
+                exact = actual == expected
+                if name == "clf_control" and bool(
+                    eviction.get("control_role_shortfall")
+                ):
+                    exact = sum(actual.values()) == sum(expected.values())
+                if not exact:
+                    raise ValueError(f"arm {name} comparator column mismatch")
 
 
 def _rate(values: Sequence[bool]) -> dict:

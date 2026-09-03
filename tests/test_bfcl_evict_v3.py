@@ -124,7 +124,7 @@ def test_control_shortfall_fills_other_role_and_echoes_own_spans():
         {"role": "tool", "text": "tool-free", "span": [4, 7], "score": 0.1, "turn": 1},
     ]
     kept = [{**candidates[0], "pinned_columns": [0, 1, 2]}]
-    control = build_matched_control(candidates, kept, (0, 12), seed=20260903)
+    control = build_matched_control(candidates, kept, (0, 12))
     assert len(_columns(control["pins"])) == 3
     assert control["control_role_shortfall"] is True
     assert control["role_column_deltas"] == {"user": -2, "tool": 2}
@@ -199,7 +199,7 @@ def test_recency_and_tool_swap_are_column_matched():
     ]
     recency = recency_pinned_plan(candidates, classifier_columns=7, evict_range=(0, 10))
     assert _columns(recency["pins"]) == {*range(0, 4), *range(7, 10)}
-    swapped = tool_swap_plan(candidates, kept, (0, 10), seed=20260903)
+    swapped = tool_swap_plan(candidates, kept, (0, 10))
     assert _columns(swapped["pins"]) == {*range(0, 4), *range(7, 10)}
     assert swapped["match_impossible"] is False
 

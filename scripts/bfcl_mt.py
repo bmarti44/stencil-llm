@@ -10,6 +10,7 @@ import importlib
 import inspect
 import json
 import re
+import subprocess
 import sys
 import time
 from dataclasses import asdict
@@ -52,7 +53,7 @@ from stencil.bfcl import (  # noqa: E402
 K = 8192
 MAX_STEPS = 20
 COHORT_SEED = 20260902
-CONTROL_SEED = 20260903
+CONTROL_TIE_BREAK = "nearest-width, nearest-turn, stable-source"
 CHUNK_TOKENS = 128
 ECHO_CAP = 1024
 BUDGET_FRACTION = 0.25
@@ -147,7 +148,7 @@ def _read_indexed_row(
 
 
 def registration_text_and_hash() -> tuple[str, str]:
-    """Return exactly LEG A v7 plus Amendments 1--3 and its SHA-256."""
+    """Return exactly LEG A v7 plus its LEG A amendments and SHA-256."""
     ledger = (ROOT / "LEDGER-PLAN.md").read_text()
     header = (
         "## SELECTOR v2 — POST-DEVELOPMENT EVALUATION, LEG A (BFCL V3 multi-turn) — v7"
@@ -173,6 +174,33 @@ def _canonical_sha256(value: object) -> str:
     return hashlib.sha256(
         json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
     ).hexdigest()
+
+
+def git_provenance() -> dict:
+    """Return the exact repository revision and porcelain dirty state."""
+    commit = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    status = subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.rstrip("\n")
+    return {"commit": commit, "dirty": bool(status), "status": status}
+
+
+def assert_clean_git_for_sealed() -> dict:
+    """Sealed execution is valid only from a committed, clean harness tree."""
+    provenance = git_provenance()
+    if provenance["dirty"]:
+        raise RuntimeError("sealed run requires a clean git worktree")
+    return provenance
 
 
 def harness_manifest() -> dict:
@@ -241,7 +269,7 @@ def certificate_payload(meta: dict, gates: dict) -> dict:
                 "echo_cap",
                 "selector_threshold",
                 "echo_header",
-                "control_seed",
+                "control_tie_break",
             )
         },
         "registration_sha256": meta.get("registration_sha256"),
@@ -735,6 +763,27 @@ def _echo_clamp(
             chosen.append(best_row)
         return chosen, best_tokens, target_tokens - best_tokens
     tokens = measure(chosen)
+    if tokens < target_tokens and chosen:
+        last = dict(chosen[-1])
+        pinned = list(last.get("pinned_columns", []))
+        source = list(last.get("_echo_source_columns", pinned))
+        context_ids = list(tokenizer.encode(context).ids)
+        best_row = last
+        best_tokens = tokens
+        # Extend only the echoed text. The comparator's pinned-column dose is
+        # unchanged, and the extension never passes the source resource end.
+        for count in range(len(pinned) + 1, len(source) + 1):
+            extended = dict(last)
+            extended["text"] = tokenizer.decode(
+                context_ids[source[0] : source[count - 1] + 1]
+            )
+            measured = measure([*chosen[:-1], extended])
+            if measured <= target_tokens and measured >= best_tokens:
+                best_row, best_tokens = extended, measured
+            if measured == target_tokens:
+                break
+        chosen[-1] = best_row
+        tokens = best_tokens
     return chosen, tokens, target_tokens - tokens
 
 
@@ -850,7 +899,6 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
         candidates,
         kept,
         echo_layout["evict_range"],
-        seed=CONTROL_SEED,
         tokenizer=tokenizer,
         context=context,
     )
@@ -893,7 +941,6 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
         candidates,
         kept,
         layout["evict_range"],
-        seed=CONTROL_SEED,
         tokenizer=tokenizer,
         context=context,
     )
@@ -961,8 +1008,21 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
         if arm in {"clf_control", "recency_pinned", "tool_swap_echo"}
         else 0
     )
-    if not match_impossible and abs(echo_delta) > 16:
+    pressure_triggered = layout["history_end"] > K
+    if pressure_triggered and not match_impossible and abs(echo_delta) > 16:
         raise AssertionError(f"{arm} echo token delta exceeds 16: {echo_delta}")
+    if (
+        pressure_triggered
+        and arm in {"clf_control", "recency_pinned", "tool_swap_echo"}
+        and not match_impossible
+    ):
+        exact_roles = arm_role_counts == treatment_roles
+        exact_total = sum(arm_role_counts.values()) == sum(treatment_roles.values())
+        usable_columns = exact_total if arm == "clf_control" and control.get(
+            "control_role_shortfall", False
+        ) else exact_roles
+        if not usable_columns:
+            raise AssertionError(f"{arm} comparator column mismatch")
     return {
         "context": context,
         "echo_close": layout["current_user_close"],
@@ -1015,6 +1075,11 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
                 "recency_pinned": recency_echo_residual,
                 "tool_swap_echo": swap_echo_residual,
             }.get(arm, 0),
+            "echo_entry_count_delta": (
+                len(entries) - len(classifier_entries)
+                if arm in {"clf_control", "recency_pinned", "tool_swap_echo"}
+                else 0
+            ),
             "match_deltas": {
                 "clf_control": control.get("matches", []),
                 "tool_swap_echo": tool_swap.get("matches", []),
@@ -1223,6 +1288,9 @@ def run_case_arm(
                     "echo_token_delta": plan["selector"].get("echo_token_delta", 0),
                     "echo_clamp_residual": plan["selector"].get(
                         "echo_clamp_residual", 0
+                    ),
+                    "echo_entry_count_delta": plan["selector"].get(
+                        "echo_entry_count_delta", 0
                     ),
                     "match_deltas": plan["selector"].get("match_deltas", []),
                     "pinned_columns_by_role": plan["selector"].get(
@@ -1486,6 +1554,9 @@ def artifact_meta(
     verified_inputs: dict | None = None,
     verified_runtime: dict | None = None,
 ) -> dict:
+    provenance = (
+        assert_clean_git_for_sealed() if args.split == "sealed" else git_provenance()
+    )
     _, registration_hash = registration_text_and_hash()
     classifier = assert_registered_classifier()
     model_dir = ROOT / f"models/qwen3-{args.trunk}-hf"
@@ -1569,7 +1640,8 @@ def artifact_meta(
         "echo_cap": ECHO_CAP,
         "selector_threshold": SELECTOR_THRESHOLD,
         "echo_header": ECHO_HEADER,
-        "control_seed": CONTROL_SEED,
+        "control_tie_break": CONTROL_TIE_BREAK,
+        "git": provenance,
         "registration_sha256": registration_hash,
         "selector_roles": ["user", "tool"],
         "selector_context": "empty",
@@ -1774,6 +1846,12 @@ def assert_dev_invariants(records: list[dict]) -> dict:
 
     shortfalls = overflows = drops = 0
     match_deltas = {"clf_control": [], "tool_swap_echo": []}
+    comparator_arms = ("clf_control", "recency_pinned", "tool_swap_echo")
+    match_impossible = {arm: 0 for arm in comparator_arms}
+    shortfall_counts = {arm: 0 for arm in comparator_arms}
+    delta_counts = {arm: 0 for arm in comparator_arms}
+    echo_clamp_residual_counts = {arm: 0 for arm in comparator_arms}
+    echo_entry_count_deltas = {arm: [] for arm in comparator_arms}
     for record in records:
         treatment_turns = record["arms"]["clf_pinned_echo"]["turns"]
         for turn_offset, treatment_turn in enumerate(treatment_turns):
@@ -1801,7 +1879,11 @@ def assert_dev_invariants(records: list[dict]) -> dict:
                 current_user = int(selector["current_user_message_index"])
                 for message_index in selector["candidate_message_indices"]:
                     check("candidate_source", int(message_index) < current_user)
-                if arm in {"recency_pinned", "tool_swap_echo"}:
+                pressure_triggered = bool(treatment.get("pressure_triggered"))
+                if pressure_triggered and arm in {
+                    "recency_pinned",
+                    "tool_swap_echo",
+                }:
                     check(
                         "comparator_columns",
                         eviction["pinned_columns_by_role"]
@@ -1813,7 +1895,7 @@ def assert_dev_invariants(records: list[dict]) -> dict:
                         abs(eviction["echo_token_delta"]) <= 16
                         or eviction["match_impossible"],
                     )
-                if arm == "clf_control":
+                if pressure_triggered and arm == "clf_control":
                     if eviction["control_role_shortfall"]:
                         check(
                             "comparator_columns",
@@ -1838,6 +1920,18 @@ def assert_dev_invariants(records: list[dict]) -> dict:
                 drops += int(eviction.get("pin_overflow_dropped_columns", 0))
                 if arm in match_deltas:
                     match_deltas[arm].extend(eviction.get("match_deltas", []))
+                if arm in comparator_arms and bool(eviction.get("pressure_triggered")):
+                    match_impossible[arm] += bool(eviction.get("match_impossible"))
+                    shortfall_counts[arm] += bool(
+                        eviction.get("control_role_shortfall")
+                    )
+                    delta_counts[arm] += int(eviction.get("echo_token_delta", 0)) != 0
+                    echo_clamp_residual_counts[arm] += int(
+                        eviction.get("echo_clamp_residual", 0)
+                    ) != 0
+                    echo_entry_count_deltas[arm].append(
+                        int(eviction.get("echo_entry_count_delta", 0))
+                    )
     passed = sum(row["passed"] for row in families.values())
     checked = sum(row["n"] for row in families.values())
     return {
@@ -1848,6 +1942,11 @@ def assert_dev_invariants(records: list[dict]) -> dict:
         "pin_overflow": overflows,
         "dropped_columns": drops,
         "match_deltas": match_deltas,
+        "match_impossible": match_impossible,
+        "shortfall_counts": shortfall_counts,
+        "delta_counts": delta_counts,
+        "echo_clamp_residual_counts": echo_clamp_residual_counts,
+        "echo_entry_count_deltas": echo_entry_count_deltas,
     }
 
 
@@ -1881,6 +1980,16 @@ def preflight(
     invariants["passed"] = all(
         row["passed"] == row["n"] for row in invariants["families"].values()
     )
+    if invariants["match_impossible"]["clf_control"]:
+        failure = {
+            "schema": 5,
+            "status": "INCONCLUSIVE",
+            "failure_state": "INVARIANT_FAILURE",
+            "error": "dev clf_control matching is impossible",
+            "invariants": invariants,
+        }
+        atomic_json(output / "preflight.json", failure)
+        raise RuntimeError(failure["error"])
     excessive_echo = [
         (record["case_id"], arm, turn["turn"], turn["eviction"]["echo_token_delta"])
         for record in first
@@ -2133,6 +2242,8 @@ def preflight(
 
 def main() -> None:
     args = parse_args()
+    if args.split == "sealed":
+        assert_clean_git_for_sealed()
     determinism.assert_gpu_free_or_owned()
     output = Path(args.out)
     if not output.is_absolute():

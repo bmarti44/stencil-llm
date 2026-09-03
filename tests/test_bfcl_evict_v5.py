@@ -339,7 +339,6 @@ def test_v4_7_tool_swap_preserves_treatment_rank_order():
         [selected_tool, selected_user, replacement],
         [selected_tool, selected_user],
         (0, 30),
-        seed=20260903,
     )
     assert [row["text"] for row in result["entries"]] == ["replacement", "user"]
 

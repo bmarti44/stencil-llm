@@ -33,7 +33,7 @@ def test_control_matches_whole_resources_by_width_and_age_without_reuse():
         _candidate("user", "match-u", 30, 3, 2),
         _candidate("tool", "match-t", 40, 2, 1),
     ]
-    result = build_matched_control(candidates, selected, (0, 50), seed=20260903)
+    result = build_matched_control(candidates, selected, (0, 50))
     assert [row["text"] for row in result["entries"]] == ["match-u", "match-t"]
     assert result["match_impossible"] is False
     assert result["control_role_shortfall"] is False
@@ -46,11 +46,11 @@ def test_control_role_fallback_and_no_match_are_recorded_not_rotated():
 
     kept = [{**_candidate("user", "selected", 0, 3, 2), "pinned_columns": [0, 1, 2]}]
     fallback = _candidate("tool", "fallback", 10, 3, 2)
-    result = build_matched_control([*kept, fallback], kept, (0, 20), seed=20260903)
+    result = build_matched_control([*kept, fallback], kept, (0, 20))
     assert result["control_role_shortfall"] is True
     assert result["role_column_deltas"] == {"user": -3, "tool": 3}
     assert result["match_impossible"] is False
-    impossible = build_matched_control(kept, kept, (0, 10), seed=20260903)
+    impossible = build_matched_control(kept, kept, (0, 10))
     assert impossible["match_impossible"] is True
     assert impossible["pins"] == []
 
@@ -84,9 +84,9 @@ def test_recency_uses_exact_per_role_quota_and_tool_swap_has_no_fallback():
     assert recency["match_impossible"] is False
     assert recency["entries"][0]["text"] != "old-u"
     kept = [{**rows[2], "pinned_columns": [10, 11]}]
-    swap = tool_swap_plan(rows, kept, (0, 30), seed=20260903)
+    swap = tool_swap_plan(rows, kept, (0, 30))
     assert [row["text"] for row in swap["entries"]] == ["match-t"]
-    no_tool = tool_swap_plan([rows[2], rows[4]], kept, (0, 30), seed=20260903)
+    no_tool = tool_swap_plan([rows[2], rows[4]], kept, (0, 30))
     assert no_tool["match_impossible"] is True
     assert no_tool["pins"] == []
 

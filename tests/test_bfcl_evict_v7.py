@@ -43,7 +43,7 @@ def test_v6_1_control_visits_every_target_before_supplementing():
         _candidate("user", "wide-user", 10, 4, 5),
         _candidate("tool", "tool-match", 20, 2, 4),
     ]
-    result = build_matched_control(rows, [user, tool], (0, 30), seed=20260903)
+    result = build_matched_control(rows, [user, tool], (0, 30))
     assert result["match_impossible"] is False
     assert [row["target_role"] for row in result["matches"][:2]] == ["user", "tool"]
     assert result["role_counts"] == {"user": 2, "tool": 2}
@@ -60,7 +60,7 @@ def test_v6_1_tool_swap_replaces_every_selected_tool_chunk():
         _candidate("tool", "wide", 10, 4, 5),
         _candidate("tool", "second-match", 20, 2, 4),
     ]
-    result = tool_swap_plan(rows, [first, second], (0, 30), seed=20260903)
+    result = tool_swap_plan(rows, [first, second], (0, 30))
     assert result["match_impossible"] is False
     assert [row["target_role"] for row in result["matches"][:2]] == ["tool", "tool"]
     assert len(result["entries"]) == 2
@@ -85,7 +85,7 @@ def test_v6_1_failed_clamp_is_never_reported_usable(monkeypatch):
 
     monkeypatch.setattr(bfcl, "clamp_candidate_rows", incomplete)
     result = bfcl.build_matched_control(
-        [selected, available], [selected], (0, 20), seed=20260903
+        [selected, available], [selected], (0, 20)
     )
     assert result["match_impossible"] is True
 
