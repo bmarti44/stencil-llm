@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 from pathlib import Path
@@ -24,8 +25,15 @@ def _atomic_json(path: Path, value: object) -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--replace-existing",
+        action="store_true",
+        help="authorized schema migration of the already sealed offsets index",
+    )
+    args = parser.parse_args()
     index_path = DATA / "offsets.json"
-    if index_path.exists():
+    if index_path.exists() and not args.replace_existing:
         raise RuntimeError("sealed BFCL offsets already exist; one-time read refused")
     cohorts = json.loads((DATA / "cohorts.json").read_text())
     wanted = set(cohorts["dev"]) | set(cohorts["sealed"])
@@ -59,6 +67,7 @@ def main() -> None:
                         "offset": offset,
                         "length": len(line),
                         "category": category,
+                        "sha256": _sha256(line),
                     }
                 offset += len(line)
 
@@ -70,7 +79,7 @@ def main() -> None:
     if incomplete:
         raise RuntimeError(f"incomplete cohort offsets: {incomplete}")
     index = {
-        "schema": 1,
+        "schema": 2,
         "cohorts_sha256": _sha256((DATA / "cohorts.json").read_bytes()),
         "cohorts": {"dev": cohorts["dev"], "sealed": cohorts["sealed"]},
         "source_files_sha256": dict(sorted(source_hashes.items())),

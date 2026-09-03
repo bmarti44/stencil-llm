@@ -5,8 +5,8 @@ from __future__ import annotations
 
 import argparse
 import ast
-import functools
 import hashlib
+import importlib
 import inspect
 import json
 import re
@@ -24,12 +24,14 @@ from stencil.bfcl import (  # noqa: E402
     ARMS,
     CATEGORIES,
     ECHO_HEADER,
+    FUNCTION_DOCS,
     REDUCED_ARMS,
     assert_case_record_schema,
     atomic_json,
     budget_history_spans,
     build_matched_control,
     call_to_python,
+    canonical_call,
     context_layout,
     echo_copy_flag,
     ensure_split_allowed,
@@ -104,9 +106,39 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return args
 
 
-@functools.cache
 def sha256(path: str | Path) -> str:
-    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    with Path(path).open("rb") as handle:
+        return hashlib.sha256(handle.read()).hexdigest()
+
+
+def _load_verified_json(path: Path, expected_sha256: str) -> object:
+    """Hash and decode the exact bytes read from one file handle."""
+    with path.open("rb") as handle:
+        raw = handle.read()
+    actual = hashlib.sha256(raw).hexdigest()
+    if actual != expected_sha256:
+        raise RuntimeError(f"frozen input hash mismatch: {path}")
+    return json.loads(raw)
+
+
+def _read_indexed_row(
+    root: Path, entry: dict, case_id: str
+) -> tuple[dict, str, str]:
+    """Bounded-read, hash, identify, and decode one authorized BFCL record."""
+    path = root / entry["file"]
+    with path.open("rb") as handle:
+        handle.seek(int(entry["offset"]))
+        raw = handle.read(int(entry["length"]))
+    actual = hashlib.sha256(raw).hexdigest()
+    if actual != entry.get("sha256"):
+        raise RuntimeError(f"indexed BFCL record hash mismatch: {case_id}")
+    match = re.search(rb'"id"\s*:\s*"([^"\\]+)"', raw)
+    if match is None or match.group(1).decode() != case_id:
+        raise RuntimeError(f"indexed BFCL id mismatch before decode: {case_id}")
+    row = json.loads(raw)
+    if str(row["id"]) != case_id:
+        raise RuntimeError(f"decoded BFCL id mismatch: {case_id}")
+    return row, str(entry["category"]), actual
 
 
 def registration_text_and_hash() -> tuple[str, str]:
@@ -140,24 +172,43 @@ def _canonical_sha256(value: object) -> str:
 
 def harness_manifest() -> dict:
     """Canonical hashes for every local module that can execute in this harness."""
-    paths = [
-        ROOT / "scripts/bfcl_mt.py",
+    runtime_imports = [
+        "stencil.ledger",
+        "stencil.qwen3",
+        "stencil.qwen_cache",
+        "stencil.selector_v2",
+        "bfcl_eval.eval_checker.multi_turn_eval.multi_turn_checker",
+        "bfcl_eval.eval_checker.multi_turn_eval.multi_turn_utils",
         *(
-            ROOT / "src/stencil" / name
+            "bfcl_eval.eval_checker.multi_turn_eval.func_source_code." + name
             for name in (
-                "bfcl.py",
-                "selector_v2.py",
-                "ledger.py",
-                "stats.py",
-                "qwen3.py",
-                "qwen_cache.py",
-                "determinism.py",
-                "bench.py",
+                "gorilla_file_system",
+                "long_context",
+                "math_api",
+                "message_api",
+                "posting_api",
+                "ticket_api",
+                "trading_bot",
+                "travel_booking",
+                "vehicle_control",
             )
         ),
-        *(ROOT / "vendor/bfcl_eval/eval_checker/multi_turn_eval").rglob("*.py"),
     ]
-    files = {str(path.relative_to(ROOT)): sha256(path) for path in sorted(set(paths))}
+    for name in runtime_imports:
+        importlib.import_module(name)
+    paths = {ROOT / "scripts/bfcl_mt.py"}
+    for name, module in tuple(sys.modules.items()):
+        if not (name.startswith("stencil") or name.startswith("bfcl_eval")):
+            continue
+        if name in {"stencil.bench"} or name.startswith("vendor.ifeval"):
+            continue
+        raw_path = getattr(module, "__file__", None)
+        if not raw_path:
+            continue
+        path = Path(raw_path).resolve()
+        if path.suffix == ".py" and path.is_relative_to(ROOT):
+            paths.add(path)
+    files = {str(path.relative_to(ROOT)): sha256(path) for path in sorted(paths)}
     files["chat_template:render_prompt"] = hashlib.sha256(
         inspect.getsource(render_prompt).encode()
     ).hexdigest()
@@ -226,44 +277,96 @@ def validate_preflight_certificate(path: Path, meta: dict) -> str:
     return digest
 
 
-def load_cases(split: str, limit: int | None = None) -> list[tuple[str, dict, list]]:
+def _load_cases_verified(
+    split: str, limit: int | None = None
+) -> tuple[list[tuple[str, dict, list]], dict]:
     index_path = DATA / "offsets.json"
-    index = json.loads(index_path.read_text())
-    if (
-        sha256(index_path)
-        != json.loads((ROOT / "data/bench/pins-manifest.json").read_text())["pins"][
-            "ShishirPatil/gorilla BFCL V3 multi-turn"
-        ]["offsets_sha256"]
-    ):
+    pins_path = ROOT / "data/bench/pins-manifest.json"
+    with pins_path.open("rb") as handle:
+        pins_raw = handle.read()
+    pins = json.loads(pins_raw)["pins"][
+        "ShishirPatil/gorilla BFCL V3 multi-turn"
+    ]
+    with index_path.open("rb") as handle:
+        index_raw = handle.read()
+    index_digest = hashlib.sha256(index_raw).hexdigest()
+    if index_digest != pins["offsets_sha256"]:
         raise RuntimeError("BFCL offsets index hash mismatch")
+    index = json.loads(index_raw)
+    if int(index.get("schema", 0)) < 2:
+        raise RuntimeError("BFCL offsets index lacks per-record hashes")
+    if split == "sealed":
+        # Authorized sealed invocations bind the complete mixed sources before
+        # any cohort row is decoded.  Dev never scans these mixed files.
+        for relative, expected in index["source_files_sha256"].items():
+            actual = sha256(ROOT / relative)
+            if actual != expected or actual != pins["files_sha256"].get(relative):
+                raise RuntimeError(f"frozen BFCL source hash mismatch: {relative}")
     cohort = list(index["cohorts"][split])
     ids = cohort[:limit] if limit is not None else cohort
     requested = set(ids)
-
-    def read_row(case_id: str, kind: str) -> tuple[dict, str]:
-        entry = index["records"][case_id][kind]
+    rows = []
+    record_hashes = {}
+    for case_id in ids:
         if case_id not in requested:
             raise AssertionError("indexed row is outside requested cohort")
-        path = ROOT / entry["file"]
-        with path.open("rb") as handle:
-            handle.seek(int(entry["offset"]))
-            raw = handle.read(int(entry["length"]))
-        match = re.search(rb'"id"\s*:\s*"([^"\\]+)"', raw)
-        if match is None or match.group(1).decode() != case_id:
-            raise RuntimeError(f"indexed BFCL id mismatch before decode: {case_id}")
-        row = json.loads(raw)
-        if str(row["id"]) != case_id:
-            raise RuntimeError(f"decoded BFCL id mismatch: {case_id}")
-        return row, str(entry["category"])
-
-    rows = []
-    for case_id in ids:
-        case, category = read_row(case_id, "case")
-        answer, answer_category = read_row(case_id, "answer")
+        case, category, case_digest = _read_indexed_row(
+            ROOT, index["records"][case_id]["case"], case_id
+        )
+        answer, answer_category, answer_digest = _read_indexed_row(
+            ROOT, index["records"][case_id]["answer"], case_id
+        )
         if category != answer_category:
             raise RuntimeError(f"indexed BFCL category mismatch: {case_id}")
         rows.append((category, case, answer["ground_truth"]))
+        record_hashes[f"{case_id}:case"] = case_digest
+        record_hashes[f"{case_id}:answer"] = answer_digest
+    verified = {
+        "offsets": index_digest,
+        "pins_manifest": hashlib.sha256(pins_raw).hexdigest(),
+        "records": record_hashes,
+        "source_files": (
+            dict(index["source_files_sha256"]) if split == "sealed" else {}
+        ),
+    }
+    return rows, verified
+
+
+def load_cases(split: str, limit: int | None = None) -> list[tuple[str, dict, list]]:
+    rows, _ = _load_cases_verified(split, limit)
     return rows
+
+
+def _load_verified_runtime_inputs(pins: dict) -> tuple[dict, dict]:
+    """Load function docs once and hash every prompt/checker byte source."""
+    function_docs = {}
+    docs_by_class = {}
+    for class_name, filename in FUNCTION_DOCS.items():
+        path = DATA / "function_docs" / filename
+        relative = str(path.relative_to(ROOT))
+        with path.open("rb") as handle:
+            raw = handle.read()
+        actual = hashlib.sha256(raw).hexdigest()
+        if actual != pins["files_sha256"].get(relative):
+            raise RuntimeError(f"frozen input hash mismatch: {relative}")
+        function_docs[relative] = actual
+        docs_by_class[class_name] = [
+            json.loads(line) for line in raw.splitlines() if line
+        ]
+    checker_files = {}
+    for relative, expected in pins["files_sha256"].items():
+        if not (
+            relative.startswith("vendor/bfcl_eval/") and relative.endswith(".py")
+        ):
+            continue
+        actual = sha256(ROOT / relative)
+        if actual != expected:
+            raise RuntimeError(f"frozen input hash mismatch: {relative}")
+        checker_files[relative] = actual
+    return docs_by_class, {
+        "function_docs": function_docs,
+        "checker": checker_files,
+    }
 
 
 def load_model(trunk: str):
@@ -338,8 +441,9 @@ def generate(
 ):
     import torch
 
-    from stencil.bench import EOS
     from stencil.qwen3 import KVCache, prefill_with_eviction
+
+    eos = {151645, 151643}
 
     ids = tokenizer.encode(prompt).ids
     if not ids:
@@ -396,7 +500,7 @@ def generate(
         if not protected_prefix_survived:
             raise AssertionError("protected prefix did not survive eviction")
         next_token = int(logits[0, -1].argmax())
-        while next_token not in EOS and len(generated) < max_new:
+        while next_token not in eos and len(generated) < max_new:
             if time.monotonic() - started > deadline:
                 timed_out = True
                 break
@@ -422,6 +526,7 @@ def generate(
         "pin_overflow": pin_overflow,
         "protected_prefix_survived": protected_prefix_survived,
         "position_overflow": position_overflow,
+        "overflow_phase": "within_generation" if position_overflow else None,
         "current_turn_prefilled_before_eviction": (
             columns_before != int(evict_range[1])
             if continuation_ids is None and evict_range is not None
@@ -494,16 +599,12 @@ def _call_string_to_json(call: str, tools: list[dict] | None = None) -> dict:
     return {"name": name, "arguments": arguments}
 
 
-def _canonical_call(call: dict) -> str:
-    return json.dumps(call, sort_keys=True, separators=(",", ":"))
-
-
 def canonical_repeated_call_set(
     prior_ground_truth: list[list[str]], tools: list[dict], entries: list[dict]
 ) -> set[str]:
     """Canonical calls that repetition safety treats as prior/echoed."""
     calls = {
-        _canonical_call(_call_string_to_json(call, tools))
+        canonical_call(_call_string_to_json(call, tools))
         for turn in prior_ground_truth
         for call in turn
     }
@@ -512,7 +613,10 @@ def canonical_repeated_call_set(
         parsed_rows = parse_tool_calls(text)
         for parsed in parsed_rows:
             if parsed.valid and parsed.call is not None:
-                calls.add(_canonical_call(parsed.call))
+                try:
+                    calls.add(canonical_call(parsed.call))
+                except ValueError:
+                    pass
         if not parsed_rows:
             try:
                 value = json.loads(text)
@@ -523,7 +627,10 @@ def canonical_repeated_call_set(
                 and isinstance(value.get("name"), str)
                 and isinstance(value.get("arguments"), dict)
             ):
-                calls.add(_canonical_call(value))
+                try:
+                    calls.add(canonical_call(value))
+                except ValueError:
+                    pass
     return calls
 
 
@@ -630,14 +737,18 @@ def _arm_event_fields(
     dropped_columns: int = 0,
     control_role_shortfall: bool = False,
     role_column_deltas: dict[str, int] | None = None,
+    pressure_triggered: bool | None = None,
 ) -> dict:
-    """Attribute shared-plan events once to the arm they describe."""
+    """Record shared turn facts on every arm and arm-specific plan events."""
     treatment = arm == "clf_pinned_echo"
     control = arm == "clf_control"
     return {
         "pinned_columns": int(pinned_columns) if evicted else 0,
         "pin_overflow": bool(pin_overflow) if treatment else False,
-        "pin_overflow_total": bool(pin_overflow_total) if treatment else False,
+        "pin_overflow_total": bool(pin_overflow_total),
+        "pressure_triggered": (
+            bool(evicted) if pressure_triggered is None else bool(pressure_triggered)
+        ),
         "pin_overflow_dropped_columns": int(dropped_columns) if treatment else 0,
         "control_role_shortfall": bool(control_role_shortfall) if control else False,
         "role_column_deltas": (
@@ -829,6 +940,18 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
         },
     }[arm]
     rendered = render_echo(entries)
+    match_impossible = {
+        "clf_control": control.get("match_impossible", False),
+        "recency_pinned": recency.get("match_impossible", False),
+        "tool_swap_echo": tool_swap.get("match_impossible", False),
+    }.get(arm, False)
+    echo_delta = (
+        echo_tokens - classifier_echo_tokens
+        if arm in {"clf_control", "recency_pinned", "tool_swap_echo"}
+        else 0
+    )
+    if not match_impossible and abs(echo_delta) > 16:
+        raise AssertionError(f"{arm} echo token delta exceeds 16: {echo_delta}")
     return {
         "context": context,
         "echo_close": layout["current_user_close"],
@@ -868,20 +991,14 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
             "role_column_deltas": control.get(
                 "role_column_deltas", {"user": 0, "tool": 0}
             ),
-            "match_impossible": {
-                "clf_control": control.get("match_impossible", False),
-                "recency_pinned": recency.get("match_impossible", False),
-                "tool_swap_echo": tool_swap.get("match_impossible", False),
-            }.get(arm, False),
+            "match_impossible": match_impossible,
             "echo_dropped_control_tokens": dropped,
             "scorer_truncated_candidates": max(
                 (int(row.get("scorer_truncated_candidates", 0)) for row in candidates),
                 default=0,
             ),
             "echo_tokens": echo_tokens,
-            "echo_token_delta": echo_tokens - classifier_echo_tokens
-            if arm in {"clf_control", "recency_pinned", "tool_swap_echo"}
-            else 0,
+            "echo_token_delta": echo_delta,
             "echo_clamp_residual": {
                 "clf_control": control_echo_residual,
                 "recency_pinned": recency_echo_residual,
@@ -922,8 +1039,9 @@ def run_case_arm(
     args,
     run_tag: str,
     arm: str,
+    verified_docs: dict | None = None,
 ):
-    case = prepare_case(raw_case, DATA / "function_docs")
+    case = prepare_case(raw_case, DATA / "function_docs", verified_docs)
     tools = case["function"]
     holdouts = case.get("missed_function", {})
     messages = []
@@ -939,7 +1057,7 @@ def run_case_arm(
     arm_started = time.monotonic()
     for turn_index, original_messages in enumerate(case["question"]):
         if args.mode == "teacher":
-            turn_case = prepare_case(raw_case, DATA / "function_docs")
+            turn_case = prepare_case(raw_case, DATA / "function_docs", verified_docs)
             teacher_run = f"teacher_{run_tag}_{arm}_{turn_index}"
             messages = build_teacher_history(
                 turn_case, ground_truth, turn_index, teacher_run
@@ -968,6 +1086,7 @@ def run_case_arm(
         turn_truncated = False
         turn_degenerate = False
         turn_position_overflow = False
+        turn_overflow_phase = None
         turn_repeated_call = False
         plan = _turn_plan(
             tokenizer,
@@ -1015,6 +1134,7 @@ def run_case_arm(
                 positions = int(cache.k[0].shape[2]) + len(continuation_ids or [])
             position_action = position_overflow_result(arm, positions)
             if position_action["position_overflow"]:
+                overflow_phase = "initial_prompt" if cache is None else "tool_step"
                 result = {
                     "text": "",
                     "token_ids": [],
@@ -1029,8 +1149,10 @@ def run_case_arm(
                     "pin_overflow": 0,
                     "columns_after_step": positions,
                     "position_overflow": True,
+                    "overflow_phase": overflow_phase,
                 }
                 turn_position_overflow = True
+                turn_overflow_phase = overflow_phase
             else:
                 result = generate(
                     model,
@@ -1046,6 +1168,10 @@ def run_case_arm(
                 )
                 cache = result.pop("_cache")
                 turn_position_overflow |= result["position_overflow"]
+                if result["position_overflow"]:
+                    turn_overflow_phase = result.get(
+                        "overflow_phase", "within_generation"
+                    )
             if first_eviction is None:
                 event_fields = _arm_event_fields(
                     arm,
@@ -1063,6 +1189,9 @@ def run_case_arm(
                     ),
                     role_column_deltas=plan["selector"].get(
                         "role_column_deltas", {"user": 0, "tool": 0}
+                    ),
+                    pressure_triggered=(
+                        turn_index >= 1 and plan["evict_range"][1] > K
                     ),
                 )
                 first_eviction = {
@@ -1106,11 +1235,16 @@ def run_case_arm(
             call_records = []
             for item in parsed:
                 record = asdict(item)
-                normalized = (
-                    _canonical_call(item.call) if item.valid else item.raw.strip()
-                )
+                try:
+                    normalized = (
+                        canonical_call(item.call) if item.valid else item.raw.strip()
+                    )
+                except ValueError as exc:
+                    normalized = item.raw.strip()
+                    record["valid"] = False
+                    record["error"] = str(exc)
                 current_ground_truth = {
-                    _canonical_call(_call_string_to_json(call, tools))
+                    canonical_call(_call_string_to_json(call, tools))
                     for call in ground_truth[turn_index]
                 }
                 if (
@@ -1119,7 +1253,7 @@ def run_case_arm(
                 ):
                     repeated_history_calls += 1
                     turn_repeated_call = True
-                if item.valid:
+                if record["valid"]:
                     try:
                         record["python"] = call_to_python(item.call)
                         executable.append(record["python"])
@@ -1145,7 +1279,7 @@ def run_case_arm(
                 messages.append({"role": "tool", "content": output})
             continuation_ids = _tool_step_suffix(tokenizer, execution)
         history_call_raw.update(
-            _canonical_call(call["call"])
+            canonical_call(call["call"])
             for call in turn_calls
             if call.get("valid") and call.get("call")
         )
@@ -1181,6 +1315,7 @@ def run_case_arm(
                 "eviction": first_eviction,
                 "prompt_positions": responses[0]["prompt_tokens"] if responses else 0,
                 "position_overflow": turn_position_overflow,
+                "overflow_phase": turn_overflow_phase,
                 "repeated_call": turn_repeated_call,
                 "chat_control_echo": any(
                     marker in render_echo(plan["entries"])
@@ -1243,6 +1378,7 @@ def run_case(
     args,
     run_tag,
     run_identity_sha256: str | None = None,
+    verified_docs: dict | None = None,
 ):
     started = time.monotonic()
     selected_arms = (
@@ -1263,6 +1399,7 @@ def run_case(
             args,
             run_tag,
             arm,
+            verified_docs,
         )
         for arm in selected_arms
     }
@@ -1274,6 +1411,30 @@ def run_case(
                 raise AssertionError(
                     f"teacher-forced context ids differ at turn {turn_index}"
                 )
+    turn_facts = []
+    if args.mode == "teacher":
+        for turn_index in range(len(ground_truth)):
+            arm_facts = [
+                next(
+                    turn
+                    for turn in arms[arm]["turns"]
+                    if int(turn["turn"]) == turn_index
+                )["eviction"]
+                for arm in selected_arms
+            ]
+            pressure = {bool(row.get("pressure_triggered")) for row in arm_facts}
+            overflow_total = {bool(row.get("pin_overflow_total")) for row in arm_facts}
+            if len(pressure) != 1 or len(overflow_total) != 1:
+                raise AssertionError(
+                    f"arm-independent turn facts differ at turn {turn_index}"
+                )
+            turn_facts.append(
+                {
+                    "turn": turn_index,
+                    "pressure_triggered": pressure.pop(),
+                    "pin_overflow_total": overflow_total.pop(),
+                }
+            )
     first_divergence = None
     if args.mode == "free":
         left = response_ids(arms["base"])
@@ -1289,7 +1450,7 @@ def run_case(
         if first_divergence is None and len(left) != len(right):
             first_divergence = min(len(left), len(right))
     record = {
-        "schema": 5,
+        "schema": 6,
         "mode": args.mode,
         "case_id": raw_case["id"],
         "category": category,
@@ -1297,22 +1458,62 @@ def run_case(
         "seconds": time.monotonic() - started,
         "first_divergence_turn": first_divergence,
         "run_identity_sha256": run_identity_sha256,
+        "turn_facts": turn_facts,
     }
     if args.mode == "teacher":
         assert_case_record_schema(record)
     return record
 
 
-def artifact_meta(args) -> dict:
+def artifact_meta(
+    args,
+    *,
+    verified_inputs: dict | None = None,
+    verified_runtime: dict | None = None,
+) -> dict:
     _, registration_hash = registration_text_and_hash()
     classifier = assert_registered_classifier()
     model_dir = ROOT / f"models/qwen3-{args.trunk}-hf"
-    checker_dir = ROOT / "vendor/bfcl_eval/eval_checker/multi_turn_eval"
     code_manifest = harness_manifest()
-    offsets = DATA / "offsets.json"
     pins_manifest = ROOT / "data/bench/pins-manifest.json"
-    pins = json.loads(pins_manifest.read_text())
-    bfcl_files = pins["pins"]["ShishirPatil/gorilla BFCL V3 multi-turn"]["files_sha256"]
+    with pins_manifest.open("rb") as handle:
+        pins_raw = handle.read()
+    pins = json.loads(pins_raw)["pins"][
+        "ShishirPatil/gorilla BFCL V3 multi-turn"
+    ]
+    if verified_inputs is None:
+        _, loaded = _load_cases_verified(args.split, getattr(args, "limit", None))
+    else:
+        loaded = verified_inputs
+
+    if verified_runtime is None:
+        _, runtime = _load_verified_runtime_inputs(pins)
+    else:
+        runtime = verified_runtime
+    function_docs = runtime["function_docs"]
+    checker_files = runtime["checker"]
+    cohorts_path = DATA / "cohorts.json"
+    cohorts_digest = sha256(cohorts_path)
+    cohorts_relative = str(cohorts_path.relative_to(ROOT))
+    if cohorts_digest != pins["files_sha256"].get(cohorts_relative):
+        raise RuntimeError("frozen input hash mismatch: cohorts.json")
+    template_digest = hashlib.sha256(
+        inspect.getsource(render_prompt).encode()
+    ).hexdigest()
+    verified_bytes = {
+        **loaded,
+        "cohorts": cohorts_digest,
+        "function_docs": function_docs,
+        "checker": checker_files,
+        "template": template_digest,
+    }
+    actual_bfcl_files = {
+        cohorts_relative: cohorts_digest,
+        **function_docs,
+        **checker_files,
+    }
+    if args.split == "sealed":
+        actual_bfcl_files.update(loaded["source_files"])
     frozen_hashes = {
         "harness": code_manifest["sha256"],
         "harness_manifest": code_manifest["sha256"],
@@ -1323,14 +1524,13 @@ def artifact_meta(args) -> dict:
         "trunk_weights": sha256(ROOT / f"models/qwen3-{args.trunk}.pt"),
         "trunk_tokenizer": sha256(model_dir / "tokenizer.json"),
         "trunk_config": sha256(model_dir / "config.json"),
-        "cohorts": sha256(DATA / "cohorts.json"),
-        "offsets": sha256(offsets),
-        "pins_manifest": sha256(pins_manifest),
-        "bfcl_files": bfcl_files,
-        "chat_template": hashlib.sha256(
-            inspect.getsource(render_prompt).encode()
-        ).hexdigest(),
-        "vendored_checker": _tree_sha256(list(checker_dir.rglob("*.py"))),
+        "cohorts": cohorts_digest,
+        "offsets": loaded["offsets"],
+        "pins_manifest": hashlib.sha256(pins_raw).hexdigest(),
+        "bfcl_files": actual_bfcl_files,
+        "chat_template": template_digest,
+        "vendored_checker": _canonical_sha256(checker_files),
+        "verified_bytes": verified_bytes,
     }
     return {
         "schema": 5,
@@ -1409,18 +1609,25 @@ def run(
     resume: bool = True,
     run_tag: str = "main",
     meta: dict | None = None,
+    cases: list[tuple[str, dict, list]] | None = None,
+    verified_docs: dict | None = None,
 ) -> list[dict]:
     output = Path(args.out)
     if not output.is_absolute():
         output = ROOT / "results/qwen" / output
     records_dir = output / "records"
     records_dir.mkdir(parents=True, exist_ok=True)
+    if cases is None:
+        cases, verified_inputs = _load_cases_verified(args.split, args.limit)
+    else:
+        verified_inputs = None
     if meta is None:
-        meta = bind_run_identity(artifact_meta(args))
+        meta = bind_run_identity(
+            artifact_meta(args, verified_inputs=verified_inputs)
+        )
     _check_or_write_meta(output / "meta.json", meta)
     run_identity = str(meta["run_identity_sha256"])
     records = []
-    cases = load_cases(args.split, args.limit)
     cohort_ids = [str(case["id"]) for _, case, _ in cases]
     expected_files = {f"{case_id}.json" for case_id in cohort_ids}
     extra_files = {path.name for path in records_dir.glob("*.json")} - expected_files
@@ -1455,6 +1662,7 @@ def run(
                 args,
                 f"{run_tag}_{index}",
                 run_identity,
+                verified_docs,
             )
             atomic_json(path, record)
         records.append(record)
@@ -1628,11 +1836,22 @@ def assert_dev_invariants(records: list[dict]) -> dict:
     }
 
 
-def preflight(args, model, tokenizer, scorer) -> None:
+def preflight(
+    args, model, tokenizer, scorer, *, cases=None, verified_docs=None
+) -> None:
     output = Path(args.out)
     if not output.is_absolute():
         output = ROOT / "results/qwen" / output
-    first = run(args, model, tokenizer, scorer, resume=True, run_tag="preflight_a")
+    first = run(
+        args,
+        model,
+        tokenizer,
+        scorer,
+        resume=True,
+        run_tag="preflight_a",
+        cases=cases,
+        verified_docs=verified_docs,
+    )
     try:
         invariants = assert_dev_invariants(first)
     except AssertionError as exc:
@@ -1664,7 +1883,7 @@ def preflight(args, model, tokenizer, scorer) -> None:
         }
         atomic_json(output / "preflight.json", failure)
         raise RuntimeError(failure["error"])
-    dev_cases = load_cases("dev")
+    dev_cases = cases if cases is not None else load_cases("dev")
     determinism_cases = [
         next(row for row in dev_cases if row[0] == category) for category in CATEGORIES
     ]
@@ -1679,6 +1898,7 @@ def preflight(args, model, tokenizer, scorer) -> None:
             args,
             f"preflight_b_{index}",
             "base",
+            verified_docs,
         )
         for index, (category, case, answer) in enumerate(determinism_cases)
     ]
@@ -1899,7 +2119,17 @@ def main() -> None:
     output = Path(args.out)
     if not output.is_absolute():
         output = ROOT / "results/qwen" / output
-    base_meta = artifact_meta(args)
+    cases, verified_inputs = _load_cases_verified(args.split, args.limit)
+    with (ROOT / "data/bench/pins-manifest.json").open("rb") as handle:
+        pins = json.loads(handle.read())["pins"][
+            "ShishirPatil/gorilla BFCL V3 multi-turn"
+        ]
+    verified_docs, verified_runtime = _load_verified_runtime_inputs(pins)
+    base_meta = artifact_meta(
+        args,
+        verified_inputs=verified_inputs,
+        verified_runtime=verified_runtime,
+    )
     certificate_sha256 = None
     if args.split == "sealed":
         certificate_sha256 = validate_preflight_certificate(
@@ -1912,9 +2142,24 @@ def main() -> None:
     model, tokenizer = load_model(args.trunk)
     scorer = ClassifierScorer(ROOT / "data/classifier/model/ft")
     if args.command == "preflight":
-        preflight(args, model, tokenizer, scorer)
+        preflight(
+            args,
+            model,
+            tokenizer,
+            scorer,
+            cases=cases,
+            verified_docs=verified_docs,
+        )
     else:
-        run(args, model, tokenizer, scorer, meta=meta)
+        run(
+            args,
+            model,
+            tokenizer,
+            scorer,
+            meta=meta,
+            cases=cases,
+            verified_docs=verified_docs,
+        )
 
 
 if __name__ == "__main__":

@@ -473,7 +473,13 @@ def _resource_match(
     seed: int,
     allow_role_fallback: bool,
 ) -> tuple[list[Mapping], bool, bool, list[dict]]:
-    """Nearest width/age resource matching without reuse or rotation."""
+    """Nearest width/age matching, one initial resource per target.
+
+    The first pass visits every target in registered order.  A second pass
+    deterministically supplements narrower matches until the total column
+    quota can be clamped exactly.  ``_match_target_index`` preserves the
+    target/resource grouping for consumers that clamp each target separately.
+    """
     low, high = evict_range
     selected_ids = {id(row) for row in kept}
     selected_spans = {tuple(row["span"]) for row in kept}
@@ -507,10 +513,10 @@ def _resource_match(
         )
 
     targets = list(kept)
-    target_index = 0
-    while sum(len(_row_columns(row, low, high)) for row in matches) < required:
-        target = targets[target_index % len(targets)]
-        target_index += 1
+
+    def take_nearest(target_index: int, *, required_visit: bool) -> bool:
+        nonlocal shortfall
+        target = targets[target_index]
         width = len(target.get("pinned_columns", _row_columns(target, low, high)))
         same = [row for row in available if row["role"] == target["role"]]
         pool = same
@@ -518,7 +524,7 @@ def _resource_match(
             pool = [row for row in available if row["role"] != target["role"]]
             shortfall |= bool(pool)
         if not pool:
-            return [], True, shortfall, match_rows
+            return not required_visit
         choice = min(
             pool,
             key=lambda row: (
@@ -528,7 +534,7 @@ def _resource_match(
             ),
         )
         annotated = dict(choice)
-        annotated["_match_target_index"] = (target_index - 1) % len(targets)
+        annotated["_match_target_index"] = target_index
         matches.append(annotated)
         match_rows.append(
             {
@@ -539,6 +545,31 @@ def _resource_match(
             }
         )
         available.remove(choice)
+        return True
+
+    # One-to-one pass: aggregate width must never suppress a target visit.
+    for target_index in range(len(targets)):
+        if not take_nearest(target_index, required_visit=True):
+            return [], True, shortfall, match_rows
+
+    # Supplement each narrower target group in target order, without reuse.
+    # A wide match in one group cannot satisfy a different target's quota.
+    for target_index, target in enumerate(targets):
+        target_width = len(
+            target.get("pinned_columns", _row_columns(target, low, high))
+        )
+        while (
+            sum(
+                len(_row_columns(row, low, high))
+                for row in matches
+                if row.get("_match_target_index") == target_index
+            )
+            < target_width
+        ):
+            before = len(matches)
+            take_nearest(target_index, required_visit=False)
+            if len(matches) == before:
+                return [], True, shortfall, match_rows
     return matches, False, shortfall, match_rows
 
 
@@ -590,6 +621,11 @@ def build_matched_control(
         context=context,
     )
     actual = clamped["role_counts"]
+    exact_total = sum(actual.values()) == sum(needed.values())
+    exact_roles = actual == needed
+    clamp_failed = bool(clamped["match_impossible"]) or not exact_total or (
+        not shortfall and not exact_roles
+    )
     deltas = {role: actual[role] - needed[role] for role in needed}
     return {
         "pins": clamped["pins"],
@@ -601,7 +637,7 @@ def build_matched_control(
         },
         "control_role_shortfall": shortfall,
         "role_column_deltas": deltas,
-        "match_impossible": False,
+        "match_impossible": clamp_failed,
         "matches": match_rows,
     }
 
@@ -714,14 +750,26 @@ def tool_swap_plan(
             "match_impossible": True,
             "matches": match_rows,
         }
-    tool_quota = sum(len(row["pinned_columns"]) for row in tools)
-    matched = clamp_candidate_rows(
-        matches,
-        {"user": 0, "tool": tool_quota},
-        evict_range=evict_range,
-        tokenizer=tokenizer,
-        context=context,
-    )
+    # Clamp each explicit target group separately.  A wide first match may not
+    # consume the quota belonging to a later selected TOOL chunk.
+    grouped = {
+        index: [row for row in matches if row.get("_match_target_index") == index]
+        for index in range(len(tools))
+    }
+    clamped_entries = []
+    clamp_failed = False
+    for index, target in enumerate(tools):
+        quota = len(target["pinned_columns"])
+        clamped = clamp_candidate_rows(
+            grouped[index],
+            {"user": 0, "tool": quota},
+            evict_range=evict_range,
+            tokenizer=tokenizer,
+            context=context,
+        )
+        clamp_failed |= bool(clamped["match_impossible"])
+        clamped_entries.extend(clamped["entries"])
+    matched = {"entries": clamped_entries}
     replacements: dict[int, list[dict]] = {}
     for row in matched["entries"]:
         replacements.setdefault(int(row.get("_match_target_index", 0)), []).append(row)
@@ -734,11 +782,16 @@ def tool_swap_plan(
             entries.extend(replacements.get(tool_index, []))
             tool_index += 1
     columns = [column for row in entries for column in row["pinned_columns"]]
+    expected_columns = sum(len(row["pinned_columns"]) for row in tools)
+    actual_tool_columns = sum(
+        len(row["pinned_columns"]) for row in entries if row["role"] == "tool"
+    )
+    clamp_failed |= actual_tool_columns != expected_columns
     return {
         "pins": _columns_to_spans(columns),
         "entries": entries,
         "role_shortfall": {"user": 0, "tool": 0},
-        "match_impossible": False,
+        "match_impossible": clamp_failed,
         "matches": match_rows,
     }
 
@@ -931,13 +984,30 @@ def parse_tool_calls(text: str) -> list[ParsedToolCall]:
 
 def call_to_python(call: dict[str, Any]) -> str:
     """Convert Qwen JSON calls to the call-string form consumed by BFCL."""
+    normalized = normalize_call(call)
+    name = normalized["name"]
+    args = normalized["arguments"]
+    return f"{name}({', '.join(f'{key}={value!r}' for key, value in args.items())})"
+
+
+def normalize_call(call: Mapping[str, Any]) -> dict[str, Any]:
+    """Return the exact function/argument normalization used for execution."""
+    if not isinstance(call, Mapping) or not isinstance(call.get("name"), str):
+        raise ValueError("call requires a string function name")
     name = call["name"].rsplit(".", 1)[-1]
     if not name.isidentifier():
         raise ValueError(f"invalid function name: {name!r}")
-    args = call["arguments"]
+    args = call.get("arguments")
+    if not isinstance(args, Mapping):
+        raise ValueError("call arguments must be an object")
     if not all(isinstance(key, str) and key.isidentifier() for key in args):
         raise ValueError("argument keys must be Python identifiers")
-    return f"{name}({', '.join(f'{key}={value!r}' for key, value in args.items())})"
+    return {"name": name, "arguments": dict(args)}
+
+
+def canonical_call(call: Mapping[str, Any]) -> str:
+    """Stable safety key for calls after executable normalization."""
+    return json.dumps(normalize_call(call), sort_keys=True, separators=(",", ":"))
 
 
 def control_echo(
@@ -996,17 +1066,28 @@ def load_jsonl(path: str | Path) -> list[dict]:
     return [json.loads(line) for line in Path(path).read_text().splitlines() if line]
 
 
-def load_function_docs(case: dict, docs_dir: str | Path) -> list[dict]:
+def load_function_docs(
+    case: dict,
+    docs_dir: str | Path,
+    verified_docs: Mapping[str, Sequence[Mapping]] | None = None,
+) -> list[dict]:
     docs = []
     for class_name in case["involved_classes"]:
-        docs.extend(load_jsonl(Path(docs_dir) / FUNCTION_DOCS[class_name]))
+        if verified_docs is None:
+            docs.extend(load_jsonl(Path(docs_dir) / FUNCTION_DOCS[class_name]))
+        else:
+            docs.extend(json.loads(json.dumps(verified_docs[class_name])))
     return docs
 
 
-def prepare_case(case: dict, docs_dir: str | Path) -> dict:
+def prepare_case(
+    case: dict,
+    docs_dir: str | Path,
+    verified_docs: Mapping[str, Sequence[Mapping]] | None = None,
+) -> dict:
     """Attach schemas and resolve BFCL missing-function holdouts."""
     prepared = json.loads(json.dumps(case))
-    prepared["function"] = load_function_docs(prepared, docs_dir)
+    prepared["function"] = load_function_docs(prepared, docs_dir, verified_docs)
     holdouts = prepared.get("missed_function", {})
     for turn, names in list(holdouts.items()):
         found = []
@@ -1070,8 +1151,8 @@ def assert_case_record_schema(
     if missing:
         raise ValueError(f"record fields missing: {sorted(missing)}")
     schema = int(record["schema"])
-    if schema not in {2, 3, 4, 5}:
-        raise ValueError("record schema is not BFCL LEG A v2/v3/v4/v5")
+    if schema not in {2, 3, 4, 5, 6}:
+        raise ValueError("record schema is not BFCL LEG A v2/v3/v4/v5/v6")
     if schema >= 5 and (
         not isinstance(record.get("run_identity_sha256"), str)
         or len(record["run_identity_sha256"]) != 64
@@ -1144,6 +1225,28 @@ def assert_case_record_schema(
                     raise ValueError(f"arm {name} turn v4 safety schema incomplete")
                 if not isinstance(turn["pass"], bool):
                     raise ValueError(f"arm {name} turn pass must be boolean")
+            if name in {"clf_control", "recency_pinned", "tool_swap_echo"} and (
+                not bool(turn["eviction"].get("match_impossible"))
+                and abs(int(turn["eviction"].get("echo_token_delta", 0))) > 16
+            ):
+                raise ValueError(f"arm {name} turn echo token delta exceeds 16")
+    if schema >= 6:
+        facts = record.get("turn_facts")
+        if not isinstance(facts, list):
+            raise ValueError("record schema v6 requires turn_facts")
+        for fact in facts:
+            turn_index = int(fact["turn"])
+            for name, arm in record["arms"].items():
+                turn = next(
+                    row for row in arm["turns"] if int(row["turn"]) == turn_index
+                )
+                eviction = turn["eviction"]
+                if bool(eviction.get("pressure_triggered")) != bool(
+                    fact["pressure_triggered"]
+                ) or bool(eviction.get("pin_overflow_total")) != bool(
+                    fact["pin_overflow_total"]
+                ):
+                    raise ValueError(f"arm {name} disagrees with shared turn facts")
 
 
 def _rate(values: Sequence[bool]) -> dict:
@@ -1184,7 +1287,11 @@ def _arm_summary(records: Sequence[Mapping], arm: str) -> dict:
             [
                 bool(row["final_pass"])
                 for row in arm_rows
-                if arm != "full" or not bool(row.get("position_overflow"))
+                if arm != "full"
+                or not any(
+                    turn.get("overflow_phase") == "initial_prompt"
+                    for turn in row["turns"]
+                )
             ]
         ),
         "per_turn_pass": _rate(
@@ -1210,6 +1317,10 @@ def _arm_summary(records: Sequence[Mapping], arm: str) -> dict:
             bool(turn.get("eviction", {}).get("pin_overflow_total")) for turn in turns
         ),
         "position_overflow": sum(bool(turn.get("position_overflow")) for turn in turns),
+        "position_overflow_phases": {
+            phase: sum(turn.get("overflow_phase") == phase for turn in turns)
+            for phase in ("initial_prompt", "within_generation", "tool_step")
+        },
         "control_role_shortfall": sum(
             bool(turn.get("eviction", {}).get("control_role_shortfall"))
             for turn in turns
@@ -1309,14 +1420,22 @@ def _holm(contrasts: Mapping[str, Mapping], alpha: float = 0.05) -> dict:
 
 def _primary_turns(records: Sequence[Mapping]) -> dict[str, list[int]]:
     """Case -> semantic turn indices where the base pressure trigger fired."""
-    return {
-        str(record["case_id"]): [
-            int(turn["turn"])
-            for turn in record["arms"]["base"]["turns"]
-            if bool(turn["eviction"]["evicted"])
-        ]
-        for record in records
-    }
+    primary = {}
+    for record in records:
+        facts = record.get("turn_facts")
+        if facts is not None:
+            primary[str(record["case_id"])] = [
+                int(fact["turn"])
+                for fact in facts
+                if bool(fact.get("pressure_triggered"))
+            ]
+        else:  # compatibility for registered v2--v5 artifacts
+            primary[str(record["case_id"])] = [
+                int(turn["turn"])
+                for turn in record["arms"]["base"]["turns"]
+                if bool(turn["eviction"]["evicted"])
+            ]
+    return primary
 
 
 def _turn_by_index(record: Mapping, arm: str, turn_index: int) -> Mapping:
@@ -1495,12 +1614,22 @@ def summarize_records(
                     continue
                 if (
                     a3
-                    and int(
+                    and (
                         _turn_by_index(record, "full", turn_index).get(
-                            "prompt_positions", 0
+                            "overflow_phase"
+                        )
+                        == "initial_prompt"
+                        or (
+                            "overflow_phase"
+                            not in _turn_by_index(record, "full", turn_index)
+                            and int(
+                                _turn_by_index(record, "full", turn_index).get(
+                                    "prompt_positions", 0
+                                )
+                            )
+                            > 40960
                         )
                     )
-                    > 40960
                 ):
                     excluded += 1
                     continue
@@ -1644,7 +1773,7 @@ def summarize_records(
         }
 
     return {
-        "schema": 5,
+        "schema": 6,
         "leg_status": primary_claim["status"],
         "outcome": {
             "label": primary_claim["status"],
@@ -1667,6 +1796,7 @@ def summarize_records(
             "eligible": a3_claim_eligible,
             "full_minus_base": _contrast(ceiling),
             "excluded_over_40960": excluded,
+            "excluded_initial_prompt_overflow": excluded,
             "status": (
                 "eligible"
                 if a3_claim_eligible
@@ -1713,6 +1843,14 @@ def summarize_records(
             },
         },
         "safety": safety,
+        "turn_facts": {
+            "pressure_triggered": primary_turn_count,
+            "pin_overflow_total": sum(
+                bool(fact.get("pin_overflow_total"))
+                for record in records
+                for fact in record.get("turn_facts", [])
+            ),
+        },
         "registered_contrasts_pass": primary_claim["status"]
         in {"SUPPORTED", "SUPPORTED_A1_ONLY"},
         "seconds_total": sum(float(record["seconds"]) for record in records),
