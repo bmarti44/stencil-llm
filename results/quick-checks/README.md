@@ -200,3 +200,9 @@ lifted from the probe's misses with their specifics (90-word cap, angle-bracket 
 echoing them are dropped (review/scope-exemplar-patch.jsonl), exemplars rewritten in LABELS.md and the generator;
 lineage wording narrowed. F5: patch precedence now deterministic (sorted). F7: the postscript family is the one the
 spec change did not teach (all seeds miss it).
+
+23. HELD-OUT SLICES vs the replication seed-0 model (eval_heldout_ft.py): fable-scope-validation (author-disjoint,
+   scope-specific, template-varied, 292 rows) acc 0.83 (hard 0.76); fable-validation 0.85 (hard 0.75);
+   opus-heldout 0.94; sol-heldout 0.94 (author-shared with enrichment — inflated, as sol predicted). The classifier
+   carries the scope concept beyond the training templates at ~0.83, not at the 0.94 the shared-author sets suggest.
+   Confusion: rule->fact 26, none->rule 40, none->fact 27, rule->none 21 (of 1,093).
