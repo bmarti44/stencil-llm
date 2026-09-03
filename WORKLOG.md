@@ -3397,3 +3397,8 @@ uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b
 ```
 
 The sealed command remains prohibited and is intentionally not reproduced here.
+- 2026-09-03, coder (auto, run_codex_agent.sh). Brief bfcl-evict-v6: model gpt-5.6-sol, effort medium, exit 0, session 01a0680e-6049-7a63-8fb8-ef1982a2138b, log /home/bmarti44/stencil-llm/results/logs/codex-agent-bfcl-evict-v6.log.
+- 2026-09-03: the BFCL dev preflight now on the GPU (results/qwen/bfcl-evict-v2-preflight, started 16:09) runs the v5
+  harness (exact matching) and is a SHAKEDOWN only; the registered preflight runs under the v6 harness (nearest
+  matching, token-exact echo clamp; commit 9fe7c3f) after sol/fable review, with the certificate computed over
+  v7 + A1-A3.
