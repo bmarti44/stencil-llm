@@ -2455,3 +2455,12 @@ anyway (0.854/0.860 blind; precision 0.95/0.94).
 - RB control result (results/quick-checks/README.md item 5): role rule at the finder's budget 29/56 vs finder 37 —
   the role rule's earlier +4 was budget. Selectivity at equal cost is the real question; attention-retrieval test
   (model's own query attention ranks archived spans at the finder budget) running.
+
+## 2026-09-03 — quick checks 8-11 and the generic selector result (results/quick-checks/README.md)
+- Whole-history self-extraction (1.7B: 31/37; 4B: 33/30) plateaued at coverage ~0.55; the miss was my matcher.
+- Check 10, WRITE-TIME per-turn extraction by the frozen 4B with a direct substring matcher: coverage 0.87, pinned 36
+  (finder 37), pinned_echo 43 (finder_echo 48, full 44), control 22. Generic and training-free; precision (41 extras)
+  is the remaining gap. Embedding similarity (check 11) covers 0.41 of constraints — similarity is not relevance.
+- Brian's direction: similarity retrieval for facts + a trained GENERIC classifier for rules. Data: kimi-k3 writes it by
+  hand (36 domains x 2 seeds x 120 + a with-context pass), sol and Opus review/enrich and write author-disjoint
+  held-out sets; spec data/classifier/LABELS.md. Teacher = the 4B extractor (check 10); student = the classifier.

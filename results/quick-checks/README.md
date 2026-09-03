@@ -58,3 +58,11 @@ greedy output, same eviction plumbing as the registered probe (scripts/ledger_kv
    each prior sentence, top spans at the finder's budget. Constraint-token coverage 0.41 (0.43 with an
    instruction-flavoured query prefix), 0-1 of 20 sessions >= 0.8 — vs BM25 0.37, attention 0.19-0.26, random 0.13.
    Semantic similarity finds what the new message is ABOUT; standing rules are not about the message that needs them.
+
+10. WRITE-TIME PER-TURN EXTRACTION, 4B, FIXED MATCHER (self_extract_turn2_check.py, self_extract_turn2.log): quotes
+   located by direct normalized-substring match in the prior history (fallback Jaccard). Coverage 0.87 (16/20 >= 0.8),
+   extras 41. Outcomes / 56: SELF pinned 36 (finder 37), SELF pinned_echo 43 (finder_echo 48, full 44), exact-column
+   control 22, evicted 14. A GENERIC, TRAINING-FREE selector (the frozen 4B asked, one message at a time as it arrives,
+   which sentences are instructions to keep following) matches the taxonomy finder on pins and reaches the
+   full-context ceiling with echo. Remaining gap to finder_echo (48) is precision: 41 extra spans dilute the echo.
+   Lineage: prompt fixed before the run; no tuning on this selection set; b3 remains a selection set for the CHOICE.
