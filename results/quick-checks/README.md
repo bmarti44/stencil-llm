@@ -128,3 +128,13 @@ no training rows (fable), and transfer claims reserved for the post-development 
 (c) Sol's nearest-neighbour audit: no copies of b3 rows, but ~12 constraint-family analogues among the 100 nearest —
 taxonomy-level overlap; LABELS.md's "not even by paraphrase of the taxonomy" wording is withdrawn in favour of
 item-level disjointness with deliberate type overlap (kimi + sol + Opus all concur on Opus's policy).
+
+18. CHECK 16 RETRAINED WITH THE ITEM-LEVEL POLICY (282 taxonomy-category rows restored) + fable's author-disjoint
+   validation set added to held-out (clf_probe6.log): held-out acc 0.74 overall — fable-validation 0.67 (n=363),
+   opus 0.83, sol 0.77: the author-shared held-out sets overstated generalization (sol HIGH 2 confirmed
+   empirically). Probe: coverage 0.60; CLF pinned 29, pinned_echo 36, control 15; clipped 26 / 35 / 18. WORSE than
+   check 16 (38 / 44) after a modest data change: the frozen-embedding + MLP classifier is unstable at n=56 and its
+   errors on fable's set are the one-off-imperative class ("Convert this function to TypeScript." -> rule) and
+   context-as-prefix hurting (0.58 with context vs 0.74 without). Conclusion: a frozen sentence embedding cannot draw
+   this boundary; the encoder must be fine-tuned with context as a sentence PAIR. Fine-tune queued (check 19).
+   Checks 13-18 are development results on a selection set; none is a transfer claim.
