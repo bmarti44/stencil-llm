@@ -65,13 +65,21 @@ def test_teacher_forced_context_ids_identical_across_arms_with_stub(qwen_tok):
         },
         {"role": "tool", "content": "answer-a"},
     ]
+    seen = []
+
+    def trunk(ids, *, arm):
+        seen.append((arm, tuple(ids)))
+        return len(ids)
+
     contexts = teacher_forced_turn_contexts(
         qwen_tok,
         messages + history + [{"role": "user", "content": "turn one"}],
         [],
         ("base", "clf_pinned_echo", "full"),
+        trunk,
     )
     assert len({tuple(row["context_ids"]) for row in contexts.values()}) == 1
+    assert len({row[1] for row in seen}) == 1
 
 
 def test_tool_lines_chunk_to_128_qwen_tokens_and_encoder_fit(qwen_tok):
@@ -125,6 +133,35 @@ def test_control_shortfall_fills_other_role_and_echoes_own_spans():
     assert "user: u-free" in echoed or "tool: tool-free" in echoed
 
 
+def test_control_echo_covers_exact_control_pins_under_same_cap(qwen_tok):
+    from scripts.bfcl_mt import _turn_plan
+
+    messages = [
+        {"role": "user", "content": "Keep alpha. Ignore beta."},
+        {"role": "assistant", "content": "done"},
+        {"role": "tool", "content": "alpha=17\nbeta=19"},
+        {"role": "user", "content": "answer now"},
+    ]
+
+    def scorer(texts, *, role, contexts):
+        return [0.9 if "alpha" in text else 0.1 for text in texts]
+
+    plan = _turn_plan(qwen_tok, messages, [], "clf_control", scorer, 20260903)
+    echoed_columns = {
+        column for row in plan["entries"] for column in row["pinned_columns"]
+    }
+    assert echoed_columns == _columns(plan["keep"])
+    assert plan["selector"]["echo_tokens"] <= 1024
+
+
+def test_pin_overflow_drops_newest_columns_first():
+    from stencil.bfcl import clamp_pins_newest_first
+
+    kept, dropped = clamp_pins_newest_first([(2, 5), (9, 12)], overflow=2)
+    assert kept == [(2, 5), (9, 10)]
+    assert dropped == 2
+
+
 def test_recency_and_tool_swap_are_column_matched():
     from stencil.bfcl import recency_pinned_plan, tool_swap_plan
 
@@ -165,14 +202,21 @@ def test_recency_and_tool_swap_are_column_matched():
     assert any(row["text"] == "recent tool" for row in swapped["entries"])
 
 
-def _turn(passed=True, *, evicted=True, prompt=9000, invalid=False):
+def _turn(
+    passed=True,
+    *,
+    evicted=True,
+    prompt=9000,
+    invalid=False,
+    degenerate=False,
+):
     return {
         "turn": 1,
         "responses": [{"token_ids": [1], "columns_after_step": 10}],
         "tool_calls": [{"valid": not invalid}],
         "timeout": False,
         "truncated": False,
-        "degenerate": False,
+        "degenerate": degenerate,
         "pass": passed,
         "prompt_positions": prompt,
         "eviction": {
@@ -231,6 +275,8 @@ def test_per_turn_primary_a3_exclusion_and_safety_vacuity_guard():
     assert summary["a3"]["excluded_over_40960"] == 1
     assert summary["a3"]["eligible"] is True
     assert summary["safety"]["vacuity_guard"]["timeouts"] == "full=0; judged <=1"
+    records[0]["arms"]["base"]["turns"][0]["degenerate"] = True
+    assert summarize_records(records)["safety"]["checks"]["base"]["passed"] is True
 
 
 def test_registered_meta_refuses_constant_change(tmp_path, monkeypatch):

@@ -20,11 +20,13 @@ from stencil import determinism  # noqa: F401, E402
 from stencil.bfcl import (  # noqa: E402
     ARMS,
     CATEGORIES,
+    ECHO_HEADER,
     assert_case_record_schema,
     atomic_json,
     budget_history_spans,
     build_matched_control,
     call_to_python,
+    clamp_pins_newest_first,
     context_layout,
     echo_copy_flag,
     ensure_split_allowed,
@@ -47,8 +49,8 @@ COHORT_SEED = 20260902
 CONTROL_SEED = 20260903
 CHUNK_TOKENS = 128
 ECHO_CAP = 1024
+BUDGET_FRACTION = 0.25
 SELECTOR_THRESHOLD = 0.5
-ECHO_HEADER = "Earlier context restated verbatim:"
 ADDED_FUNCTION_PROMPT = (
     "I have updated some more functions you can choose from. What about now?"
 )
@@ -75,6 +77,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         parser.error("--max-new and --deadline must be positive")
     if args.command == "preflight" and args.split != "dev":
         parser.error("--preflight is dev-only")
+    if args.command == "preflight" and args.mode != "teacher":
+        parser.error("preflight requires --mode teacher")
     if args.command == "preflight" and args.limit is not None:
         parser.error("preflight always runs the complete 32-case dev slice")
     return args
@@ -205,15 +209,7 @@ def generate(
                 0,
                 protected_end + len(active_columns) + suffix - K,
             )
-            if overflow:
-                pin_overflow = min(overflow, len(active_columns))
-                active_columns = active_columns[: len(active_columns) - pin_overflow]
-            active_keep = []
-            for column in active_columns:
-                if active_keep and active_keep[-1][1] == column:
-                    active_keep[-1] = (active_keep[-1][0], column + 1)
-                else:
-                    active_keep.append((column, column + 1))
+            active_keep, pin_overflow = clamp_pins_newest_first(keep, overflow)
             actual_range = (
                 tuple(evict_range)
                 if allow_eviction and evict_range is not None and history_end > K
@@ -272,24 +268,30 @@ def _tool_step_suffix(tokenizer, outputs: list[str]) -> list[int]:
     return list(tokenizer.encode(body).ids)
 
 
-def _echo_current_user(context: str, entries: list[dict]) -> str:
+def _echo_current_user(
+    context: str, entries: list[dict], *, close: int | None = None
+) -> str:
     if not entries:
         return context
-    marker = context.rfind("<|im_start|>user\n")
-    close = context.find("<|im_end|>", marker)
-    if marker < 0 or close < 0:
-        raise ValueError("current user turn is not closed")
+    if close is None:
+        marker = context.rfind("<|im_start|>user\n")
+        close = context.find("<|im_end|>", marker)
+        if marker < 0 or close < 0:
+            raise ValueError("current user turn is not closed")
     rendered = render_echo(entries)
     return context[:close] + "\n\n" + rendered + context[close:]
 
 
 def teacher_forced_turn_contexts(
-    tokenizer, messages: list[dict], tools: list[dict], arms
+    tokenizer, messages: list[dict], tools: list[dict], arms, trunk=None
 ) -> dict[str, dict]:
     """Build and assert the arm-independent pre-intervention context IDs."""
     context = render_prompt(messages, tools)
     ids = list(tokenizer.encode(context).ids)
     contexts = {arm: {"context": context, "context_ids": list(ids)} for arm in arms}
+    if trunk is not None:
+        for arm, row in contexts.items():
+            row["stub_output"] = trunk(row["context_ids"], arm=arm)
     if len({tuple(row["context_ids"]) for row in contexts.values()}) != 1:
         raise AssertionError("teacher-forced contexts differ across arms")
     return contexts
@@ -346,15 +348,20 @@ def build_teacher_history(
     return messages
 
 
-def _echo_cap(tokenizer, entries: list[dict]) -> tuple[list[dict], int]:
+def _echo_cap(
+    tokenizer, entries: list[dict], context: str, close: int
+) -> tuple[list[dict], int]:
     chosen: list[dict] = []
     for row in entries:
         proposed = [*chosen, row]
-        tokens = len(tokenizer.encode(render_echo(proposed)).ids)
+        echoed = _echo_current_user(context, proposed, close=close)
+        tokens = len(tokenizer.encode(echoed).ids) - len(tokenizer.encode(context).ids)
         if tokens > ECHO_CAP:
-            continue
+            break
         chosen = proposed
-    return chosen, len(tokenizer.encode(render_echo(chosen)).ids) if chosen else 0
+    echoed = _echo_current_user(context, chosen, close=close)
+    tokens = len(tokenizer.encode(echoed).ids) - len(tokenizer.encode(context).ids)
+    return chosen, tokens
 
 
 def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
@@ -377,6 +384,8 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
     }
     if arm in {"base", "full"}:
         return {
+            "context": context,
+            "echo_close": layout["current_user_close"],
             "evict_range": layout["evict_range"],
             "keep": [],
             "entries": [],
@@ -384,28 +393,62 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
             "selector": empty,
         }
     eligible, candidates, dropped = select_history_spans(
-        tokenizer, context, messages, scorer, threshold=SELECTOR_THRESHOLD
+        tokenizer,
+        context,
+        messages,
+        scorer,
+        threshold=SELECTOR_THRESHOLD,
+        chunk_tokens=CHUNK_TOKENS,
     )
     kept, classifier_pins, budget = budget_history_spans(
-        eligible, layout["evict_range"]
+        eligible, layout["evict_range"], fraction=BUDGET_FRACTION
     )
-    classifier_entries, classifier_echo_tokens = _echo_cap(tokenizer, kept)
-    echo_context = _echo_current_user(context, classifier_entries)
-    echo_layout = context_layout(tokenizer, echo_context)
+    classifier_entries, classifier_echo_tokens = _echo_cap(
+        tokenizer, kept, context, layout["current_user_close"]
+    )
+    echo_context = _echo_current_user(
+        context, classifier_entries, close=layout["current_user_close"]
+    )
+    echo_layout = context_layout(
+        tokenizer,
+        echo_context,
+        messages,
+        current_message_index=current_index,
+    )
     if echo_layout["evict_range"] != layout["evict_range"]:
         raise AssertionError("echo changed prior-history eviction coordinates")
     control = build_matched_control(
-        candidates, kept, echo_layout["evict_range"], seed=CONTROL_SEED
+        candidates,
+        kept,
+        echo_layout["evict_range"],
+        seed=CONTROL_SEED,
+        tokenizer=tokenizer,
+        context=context,
     )
-    control_entries, control_echo_tokens = _echo_cap(tokenizer, control["entries"])
+    control_entries, control_echo_tokens = _echo_cap(
+        tokenizer, control["entries"], context, layout["current_user_close"]
+    )
     classifier_columns = sum(end - start for start, end in classifier_pins)
-    role_pins = recent_user_spans(candidates, layout["evict_range"], classifier_columns)
-    recency = recency_pinned_plan(candidates, classifier_columns, layout["evict_range"])
-    recency_entries, recency_echo_tokens = _echo_cap(tokenizer, recency["entries"])
-    tool_swap = tool_swap_plan(
-        candidates, kept, layout["evict_range"], seed=CONTROL_SEED
+    role_pins = recent_user_spans(
+        candidates,
+        layout["evict_range"],
+        layout["evict_range"][1] - layout["evict_range"][0],
     )
-    swap_entries, swap_echo_tokens = _echo_cap(tokenizer, tool_swap["entries"])
+    recency = recency_pinned_plan(candidates, classifier_columns, layout["evict_range"])
+    recency_entries, recency_echo_tokens = _echo_cap(
+        tokenizer, recency["entries"], context, layout["current_user_close"]
+    )
+    tool_swap = tool_swap_plan(
+        candidates,
+        kept,
+        layout["evict_range"],
+        seed=CONTROL_SEED,
+        tokenizer=tokenizer,
+        context=context,
+    )
+    swap_entries, swap_echo_tokens = _echo_cap(
+        tokenizer, tool_swap["entries"], context, layout["current_user_close"]
+    )
     keep = {
         "clf_pinned": classifier_pins,
         "clf_pinned_echo": classifier_pins,
@@ -432,6 +475,8 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
     }[arm]
     rendered = render_echo(entries)
     return {
+        "context": context,
+        "echo_close": layout["current_user_close"],
         "evict_range": layout["evict_range"],
         "keep": keep,
         "entries": entries,
@@ -482,6 +527,8 @@ def run_case_arm(
     total_echo_added = 0
     selector_turns = []
     context_ids_by_turn = []
+    history_call_raw: set[str] = set()
+    repeated_history_calls = 0
     arm_started = time.monotonic()
     for turn_index, original_messages in enumerate(case["question"]):
         if args.mode == "teacher":
@@ -506,6 +553,12 @@ def run_case_arm(
             current_messages = original_messages
             active_case = case
         messages.extend(current_messages)
+        if args.mode == "teacher":
+            history_call_raw = {
+                json.dumps(_call_string_to_json(call, tools), separators=(",", ":"))
+                for prior_calls in ground_truth[:turn_index]
+                for call in prior_calls
+            }
         responses = []
         turn_calls = []
         decoded_steps = []
@@ -530,8 +583,10 @@ def run_case_arm(
         continuation_ids = None
         for _step in range(MAX_STEPS):
             remaining = max(1e-6, args.deadline - (time.monotonic() - turn_started))
-            base_context = render_prompt(messages, tools)
-            context = _echo_current_user(base_context, plan["entries"])
+            base_context = plan["context"]
+            context = _echo_current_user(
+                base_context, plan["entries"], close=plan["echo_close"]
+            )
             echo_added = len(tokenizer.encode(context).ids) - len(
                 tokenizer.encode(base_context).ids
             )
@@ -573,6 +628,8 @@ def run_case_arm(
             call_records = []
             for item in parsed:
                 record = asdict(item)
+                if item.raw.strip() in history_call_raw:
+                    repeated_history_calls += 1
                 if item.valid:
                     try:
                         record["python"] = call_to_python(item.call)
@@ -598,6 +655,9 @@ def run_case_arm(
                 record["execution"] = output
                 messages.append({"role": "tool", "content": output})
             continuation_ids = _tool_step_suffix(tokenizer, execution)
+        history_call_raw.update(
+            str(call.get("raw", "")).strip() for call in turn_calls if call.get("raw")
+        )
         if args.mode == "teacher":
             decoded_for_score = [
                 [list(calls)] for calls in ground_truth[:turn_index]
@@ -625,7 +685,7 @@ def run_case_arm(
                 "prompt_positions": responses[0]["prompt_tokens"] if responses else 0,
             }
         )
-        if turn_timeout:
+        if turn_timeout and args.mode == "free":
             break
     if args.mode == "teacher":
         final_score = {"valid": all(turn["pass"] for turn in turns)}
@@ -656,7 +716,7 @@ def run_case_arm(
         "seconds": time.monotonic() - arm_started,
         "final_pass": bool(final_score["valid"]),
         "final_score": final_score,
-        "repeated_history_calls": 0,
+        "repeated_history_calls": repeated_history_calls,
         "_context_ids": context_ids_by_turn,
     }
 
@@ -698,6 +758,8 @@ def run_case(model, tokenizer, scorer, category, raw_case, ground_truth, args, r
             ),
             None,
         )
+        if first_divergence is None and len(left) != len(right):
+            first_divergence = min(len(left), len(right))
     record = {
         "schema": 3,
         "mode": args.mode,
@@ -723,7 +785,7 @@ def artifact_meta(args) -> dict:
         "max_new": args.max_new,
         "deadline": args.deadline,
         "k": K,
-        "budget_fraction": 0.25,
+        "budget_fraction": BUDGET_FRACTION,
         "chunk_tokens": CHUNK_TOKENS,
         "echo_cap": ECHO_CAP,
         "selector_threshold": SELECTOR_THRESHOLD,

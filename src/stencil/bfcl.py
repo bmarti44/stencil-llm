@@ -86,10 +86,14 @@ def context_layout(
         if location is None:
             raise ValueError("current user message index not rendered")
         current_marker = int(location["pool_start"])
+        current_close = context.find("<|im_end|>", int(location["end"]))
+        if current_close < 0:
+            raise ValueError("current user message is not closed")
     else:
         current_marker = context.rfind("<|im_start|>user\n")
         if current_marker < 0:
             raise ValueError("current user marker missing")
+        current_close = context.find("<|im_end|>", current_marker)
     if not context.startswith("<|im_start|>system\n"):
         raise ValueError("BFCL context must start with a system/tools block")
     system_end = context.find("<|im_end|>")
@@ -108,6 +112,7 @@ def context_layout(
         "protected_prefix": (0, protected_end),
         "evict_range": (protected_end, eviction_end),
         "history_end": eviction_end,
+        "current_user_close": current_close,
     }
 
 
@@ -214,6 +219,7 @@ def select_history_spans(
     scorer,
     *,
     threshold: float = 0.5,
+    chunk_tokens: int = 128,
 ) -> tuple[list[dict], list[dict], int]:
     """Score prior user sentences and newline/128-token tool chunks once."""
     from stencil.selector_v2 import split_sentence_spans
@@ -234,10 +240,14 @@ def select_history_spans(
             if role == "user"
             else _tool_line_spans(location["content"])
         )
+        if chunk_tokens <= 0:
+            raise ValueError("chunk_tokens must be positive")
         local_spans = [
             chunk
             for piece in pieces
-            for chunk in _chunk_char_span(tokenizer, location["content"], piece, 128)
+            for chunk in _chunk_char_span(
+                tokenizer, location["content"], piece, chunk_tokens
+            )
         ]
         role_span = _token_span(encoding, location["pool_start"], location["pool_end"])
         for local_start, local_end in local_spans:
@@ -293,6 +303,16 @@ def _columns_to_spans(columns: Sequence[int]) -> list[tuple[int, int]]:
         else:
             spans.append((column, column + 1))
     return spans
+
+
+def clamp_pins_newest_first(
+    spans: Sequence[tuple[int, int]], overflow: int
+) -> tuple[list[tuple[int, int]], int]:
+    """Drop the highest-position pin columns first until overflow is covered."""
+    columns = [column for start, end in spans for column in range(int(start), int(end))]
+    dropped = min(max(0, overflow), len(columns))
+    kept = sorted(columns)[: len(columns) - dropped] if dropped else sorted(columns)
+    return _columns_to_spans(kept), dropped
 
 
 def budget_history_spans(
@@ -355,6 +375,8 @@ def build_matched_control(
     evict_range: tuple[int, int],
     *,
     seed: int,
+    tokenizer=None,
+    context: str | None = None,
 ) -> dict:
     """Nearest-free exact-column control with cross-role shortfall fill."""
     low, high = evict_range
@@ -376,6 +398,9 @@ def build_matched_control(
             }
         )
         for role in ("user", "tool")
+    }
+    column_roles = {
+        column: role for role, columns in pools.items() for column in columns
     }
     anchors = {
         role: [
@@ -408,11 +433,36 @@ def build_matched_control(
     if len(set(chosen)) != sum(needed.values()):
         raise AssertionError("matched control is not exact or disjoint")
     chosen_set = set(chosen)
-    entries = [
-        dict(row)
-        for row in candidates
-        if chosen_set.intersection(_candidate_columns(row, low, high))
-    ]
+    if tokenizer is not None and context is not None:
+        context_ids = list(tokenizer.encode(context).ids)
+        entries = []
+        entry_spans = [
+            span
+            for role in ("user", "tool")
+            for span in _columns_to_spans(
+                [column for column in chosen if column_roles[column] == role]
+            )
+        ]
+        for start, end in sorted(entry_spans):
+            source = next(
+                row for row in candidates if start in _candidate_columns(row, low, high)
+            )
+            row = dict(source)
+            row.update(
+                {
+                    "role": column_roles[start],
+                    "text": tokenizer.decode(context_ids[start:end]),
+                    "span": [start, end],
+                    "pinned_columns": list(range(start, end)),
+                }
+            )
+            entries.append(row)
+    else:
+        entries = [
+            dict(row)
+            for row in candidates
+            if chosen_set.intersection(_candidate_columns(row, low, high))
+        ]
     return {
         "pins": _columns_to_spans(chosen),
         "entries": entries,
@@ -474,11 +524,20 @@ def tool_swap_plan(
     evict_range: tuple[int, int],
     *,
     seed: int,
+    tokenizer=None,
+    context: str | None = None,
 ) -> dict:
     """Retain selected users and replace selected tools by matched tools."""
     users = [dict(row) for row in kept if row["role"] == "user"]
     tools = [dict(row) for row in kept if row["role"] == "tool"]
-    matched = build_matched_control(candidates, tools, evict_range, seed=seed)
+    matched = build_matched_control(
+        candidates,
+        tools,
+        evict_range,
+        seed=seed,
+        tokenizer=tokenizer,
+        context=context,
+    )
     user_columns = [column for row in users for column in row["pinned_columns"]]
     entries = users + [row for row in matched["entries"] if row["role"] == "tool"]
     return {
@@ -879,9 +938,15 @@ def _safety(records: Sequence[Mapping], primary: Mapping[str, Sequence[int]]) ->
     checks = {}
     for arm, row in counts.items():
         checks[arm] = {
-            "timeouts_zero": row["timeouts"] == 0,
+            "timeouts_registered": (
+                row["timeouts"] <= 1 if full["timeouts"] == 0 else row["timeouts"] == 0
+            ),
             "truncated_le_full_plus_one": row["truncated"] <= full["truncated"] + 1,
-            "degenerate_le_full": row["degenerate"] <= full["degenerate"],
+            "degenerate_le_full": (
+                row["degenerate"] <= 1
+                if full["degenerate"] == 0
+                else row["degenerate"] <= full["degenerate"]
+            ),
             "invalid_le_full_plus_one": row["invalid"] <= full["invalid"] + 1,
         }
         checks[arm]["passed"] = all(checks[arm].values())
@@ -1005,7 +1070,7 @@ def summarize_records(records: Sequence[Mapping]) -> dict:
         "a4_echo_minus_tool_swap": {
             **a4_contrast,
             "alpha": 0.05,
-            "passed": a4_contrast["p_one_sided"] <= 0.05,
+            "passed": safety["intact"] and a4_contrast["p_one_sided"] <= 0.05,
         },
         "reported": {
             "recency_minus_role": _contrast(
