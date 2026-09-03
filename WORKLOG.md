@@ -3708,6 +3708,8 @@ uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 1.
 # Only if the registered fallback rule requires it:
 uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b --out bfcl-evict-v9-preflight-4b
 ```
+- 2026-09-03, coder (auto, run_codex_agent.sh). Brief bfcl-evict-v9: model gpt-5.6-sol, effort medium, exit 0, session 01a068a7-0b0c-7dc0-bfb1-270e8c89b559, log /home/bmarti44/stencil-llm/results/logs/codex-agent-bfcl-evict-v9.log.
+
 ## 2026-09-03 — bfcl-evict-v10 coder handoff
 
 Commit `b755a35` closes every finding in `results/harness-v9-review-sol.md`;
@@ -3816,3 +3818,5 @@ uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 1.
 # Only if the registered fallback rule requires it:
 uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b --out bfcl-evict-v11-preflight-4b
 ```
+- 2026-09-03, coder (auto, run_codex_agent.sh). Brief bfcl-evict-v10: model gpt-5.6-sol, effort medium, exit 0, session 01a068ce-f075-7163-9735-7e22b3c9d593, log /home/bmarti44/stencil-llm/results/logs/codex-agent-bfcl-evict-v10.log.
+- 2026-09-03, coder (auto, run_codex_agent.sh). Brief bfcl-evict-v11: model gpt-5.6-sol, effort medium, exit 0, session 01a06901-5b2d-7aa2-bba0-e118ca6c7738, log /home/bmarti44/stencil-llm/results/logs/codex-agent-bfcl-evict-v11.log.
