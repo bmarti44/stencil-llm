@@ -3071,3 +3071,123 @@ selector work never returns to BFCL outcomes. No-contact family for the zero-sho
 ToolTalk, CoSQL/SParC, ConvFinQA (fable §5; sol's APIFlow-Bench and Toolathlon by landing page); the registered contact
 screen runs before any item is fetched; registered after this leg regardless of outcome.
 - 2026-09-03, coder (auto, run_codex_agent.sh). Brief bfcl-evict-v3: model gpt-5.6-sol, effort medium, exit 0, session 01a06757-08ce-7211-a4e5-c21c698991c7, log /home/bmarti44/stencil-llm/results/logs/codex-agent-bfcl-evict-v3.log.
+## 2026-09-03 — bfcl-evict-v4 coder write-ahead
+
+Implementing the brief-scoped registration-v7 + Amendment-1 delta under the
+`tools/codex-agents/bfcl-evict-v4.allow` allowlist.  The repository's active process files
+have been archived, so `archive/plan/PROTOCOL.md` and the archived LEDGER state were read;
+the scientific authority for this unit is the registered v7+A1 section in
+`LEDGER-PLAN.md`.  The `.review.lock` is held by this coder's own wrapper and will not be
+waited on or polled.  Work proceeds tests-first and will run only the four test modules
+named in the brief; no GPU/model process or sealed run will be launched.
+
+## 2026-09-03 — bfcl-evict-v4 coder handoff (registration v7 + Amendment 1)
+
+Implemented in commit `a496212` (coder wrapper model `gpt-5.6-sol`, effort `medium`,
+session `01a0676b-2b21-7ce2-9d31-2bd997290a43`, log
+`/home/bmarti44/stencil-llm/results/logs/codex-agent-bfcl-evict-v4.log`).  TDD evidence:
+`tests/test_bfcl_evict_v4.py` first ran RED with 12 failures, then the exact allowlisted
+CPU suite finished with 42 passed.  Ruff and `git diff --check` were clean.  No model
+process, GPU command, or sealed case was run; `data/bench/ifeval_input_data.jsonl` was
+never read and no `data/bench/*` file was modified.
+
+Changes by registered delta:
+
+1. Comparator resource identity and echo clamp: `src/stencil/bfcl.py:420-682` implements
+   match-order per-role column clamping, one-to-one width/source-turn-age resource matching
+   with seed 20260903 and no reuse, recorded control cross-role fallback/deltas, fail-closed
+   recency and same-role-only tool swaps. `scripts/bfcl_mt.py:402-635` builds every
+   comparator only after the treatment quantity is final, echoes its own JSON-quoted spans
+   under the common framing, records `match_impossible`, shortfall and per-role columns,
+   and clamps comparator echo to the treatment echo count. Dev preflight rejects an
+   absolute echo delta above 16; sealed summaries make that whole contrast uninformative.
+2. Pin overflow: `src/stencil/bfcl.py:685-718` drops whole entries from the reverse of the
+   registered probability/recency/stable-source ordering, distinguishes total no-echo
+   overflow, and keeps echo entries synchronized. `scripts/bfcl_mt.py:427-469` iterates the
+   treatment echo/overflow calculation before comparator construction and preserves the
+   prefix/current-turn ranges.
+3. Candidate hygiene: `src/stencil/bfcl.py:222-313` performs tool newline splitting, then
+   the registered sentence splitter, then 128-Qwen-token chunks; rejects all five markers
+   plus every trunk added/special token id; and records dropped controls and scorer
+   truncations. `src/stencil/selector_v2.py:86-139` retains `longest_first,max_length=192`
+   while counting rather than aborting on scorer truncation. The scorer still receives
+   empty context and frozen user/tool roles only.
+4. Statistics: `src/stencil/bfcl.py:721-740,1101-1165,1252-1414` uses the exact one-sided
+   paired sign-flip distribution over case means, reports numerator/`2^k`, retains zero
+   cases, counts upper-tail ties, applies Holm only to eligible A1-A3, keeps A4 separate,
+   imposes k>=6, applies the A3 40,960 exclusion and point-estimate gate, and reports the
+   continuity-corrected clustered bound descriptively.
+5. Safety: `scripts/bfcl_mt.py:638-930` removes the truncated=>degenerate shortcut and
+   records normalized repeated calls and chat-control echo events. `src/stencil/bfcl.py:
+   1179-1249` counts each event type once per case and implements timeout=0,
+   truncated<=full+1, degenerate<=full with only its registered zero-full guard,
+   invalid<=full+1, repeated-call<=full+1 and chat-control-echo=0. Treatment breach fails
+   all contrasts; comparator breach makes only its contrast(s) uninformative.
+6. Position overflow: `src/stencil/bfcl.py:742-751` and `scripts/bfcl_mt.py:720-906` prevent
+   a >40,960-position full prompt from generating and report it NA; detect physical
+   within-turn cache overflow at prefill/continuation/generation, truncate that arm and
+   force its score to fail; exclude full-overflow turns from A3 and full-overflow cases
+   from full final-pass denominators.
+7. Preflight/freeze: `scripts/bfcl_mt.py:79-84,101-116,1025-1081,1194-1410` adds the exact
+   30-GPU-hour `--arm-cut`, v7+A1 registration hashing, the complete meta identity, per-dev
+   invariants, exact full/base competence fractions, determinism, feasibility, cost
+   projection, and exposed/no-pressure plus role/budget/drop/fallback reporting. Meta is
+   written and exact-compared before model loading. The cut runs only base,
+   clf_pinned_echo, clf_control, recency_pinned and full and declares A4 uninformative.
+8. Reported fields: `src/stencil/bfcl.py:1031-1090,1252-1414` reports teacher-forced case
+   pass for every available arm, no-shortfall A1 sensitivity, non-evicting stratum,
+   recency-minus-role, validity, echo-copy with no exclusion, columns, echo quantities,
+   position/overflow/shortfall/match/drop events. Free mode remains restricted to base and
+   clf_pinned_echo with final pass and first divergence.
+
+Exact sign-flip implementation and k=6 worked example: for case means `d_i`, the observed
+statistic is `sum(d_i)`. The implementation enumerates every one of the `2^k` sign masks,
+computes `sum(s_i*d_i)`, and counts `>= observed` (including ties); it never removes zero
+means and uses no mid-p. For `[1,1,1,1,1,1]`, observed=6 and only the all-positive mask is
+in the upper tail, so the reported grid is `1/64` and p=0.015625. For
+`[1,1,1,1,1,0]`, both signs of the zero case tie at 5, so the grid is `2/64` and p=0.03125.
+Thus at k=6 only six strictly positive cases can clear Holm steps with cutoffs 0.0167 or
+0.025; the zero-containing example cannot.
+
+Frozen 1.7B meta identity computed by the CPU-only meta path:
+
+- Constants: K=8192, B=0.25, T=128, E=1024, threshold=0.5, header=`Earlier context
+  restated verbatim:`, control seed=20260903.
+- v7+A1 registration sha256: `814da70f98480518d9a89794fc5fcd1df9fa86191139abb80eda8e90ccc3beb8`.
+- `frozen_hashes`: harness `f6b94ce4ea6fcdcc905755ac89cc990f69c34d022d9e0460448e9747b25157e5`;
+  selector artifact manifest `70a7c5605402bcfd33ed36b19b949dab6f32b6e55187e40ebc21672ccb1a2c88`;
+  trunk weights `13bfabb5592c7b35383a56471fba1c74c771f57587322e60faaabb96268b2829`;
+  trunk tokenizer `aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4`;
+  cohorts.json `22cf69afea1d7711a47af9e787dddeebb0a2485b3f32f4759236ba4d8ad919da`;
+  chat template `5c77165201e18ebe604521df02f18efca8bed5e5c228522086a2eb83356089fe`;
+  vendored checker tree `d01cbb3251daab2186a802f6e9ecdde215aa711c5f2bb2db7c22c7db74677d22`.
+- Selector files: encoder config `d4b2c4e7bea1c70b5f0d212dd207478fc2422f013ba628ef47cee44589ca4ccf`;
+  weights `2232813597b889355dfbda5607bfc473590385bd96ce382939a9ee154713d830`;
+  tokenizer `56827b4e89e42ec568d48462c6c37822da5a783161893deb981b31367bbc6f00`;
+  tokenizer config `c9c2e0ff3f3a98ae86f8f4a484a48a80d11d3a9453f39de7ab58b5de5f4006de`;
+  head `191b3372010e8d151b842d2810b4be9dbd0ff34db7ae7539d6b823c69d4ebe3e`.
+
+Conservative choices/ambiguities: source-turn age is represented by equality of the stored
+source turn (equivalent age because all arms share the same current turn); final comparator
+fragments are decoded directly from their Qwen token columns; special/added ids come from
+the trunk tokenizer's added-token decoder in addition to the five literal checks; any
+resource-match failure marks the entire comparator contrast uninformative while still
+writing the turn; v7+A1 registration text is the exact level-2 v7 section through its
+Amendment-1 subsection; the cost cut is explicit (`--arm-cut`) so its presence is frozen in
+meta and cannot silently change on resume. The active process files are archived in this
+repo, so the archived protocol/STATE were read while root `LEDGER-PLAN.md` remained the
+governing science text.
+
+Deferred GPU/model commands (recorded exactly; do not run until the registered Multi-IF
+909 run and queued probes release the GPU):
+
+```bash
+uv run python scripts/bfcl_mt.py run --split dev --mode teacher --trunk 1.7b --limit 1 --out bfcl-evict-v4-smoke-1.7b
+uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 1.7b --out bfcl-evict-v4-preflight-1.7b
+uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b --out bfcl-evict-v4-preflight-4b
+BFCL_SELECTED_TRUNK=1.7b  # set to 4b only if the registered competence fallback selects it
+uv run python scripts/bfcl_mt.py run --split dev --mode free --trunk "$BFCL_SELECTED_TRUNK" --limit 1 --out bfcl-evict-v4-free-smoke
+# Add --arm-cut to the sealed command iff the selected-trunk preflight projects >30 GPU-h and its reduced projection is <=30 GPU-h.
+# Sealed remains authorization-gated and was NOT run:
+STENCIL_SEALED_RUN=1 uv run python scripts/bfcl_mt.py run --split sealed --mode teacher --trunk "$BFCL_SELECTED_TRUNK" --out bfcl-evict-v4-sealed
+```
