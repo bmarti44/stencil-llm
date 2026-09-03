@@ -1,0 +1,1 @@
+SHAKEDOWN ONLY — stopped by Brian at 16/32 dev cases; ran the v5 harness (exact matching), superseded by v6-v10 and LEG A AMENDMENTS 3-5; no gate or outcome from this directory is used. The registered preflight runs under the reviewed harness in a new directory.
