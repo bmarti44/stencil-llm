@@ -8,9 +8,15 @@ with author-disjoint held-out sets (heldout/). NEVER from any evaluation benchma
 tau-bench, S2/B3), not even by paraphrase of their instruction taxonomy.
 
 Labels (exactly one per sentence):
-- rule — a standing instruction, constraint, preference, persona, or commitment that governs the assistant's
-  FUTURE replies, including sentences that change or cancel an earlier rule. Scope words matter: "from now on",
-  "always", "never", "whenever", "for the rest of this project" → rule; "just for this reply" → none.
+- rule — an instruction, constraint, preference, persona, or commitment that governs the assistant's FUTURE
+  replies, including sentences that change or cancel an earlier rule. THREE SCOPES (v2, 2026-09-03, after quick
+  check 19): (1) conversation-scoped ("from now on", "always", "never", "whenever") → rule; (2) TASK/ARTIFACT-scoped —
+  a constraint on the piece of work in progress (a document, a piece of code, a plan, a story: "keep it under 90
+  words", "no bullet points", "begin with the title <<...>>", "use tabs in this file", "end with a P.S.") → rule,
+  because it persists while the same work continues in later turns ("now extend it", "revise the piece", "add a
+  closing section") and is echoed back precisely then; (3) explicitly single-reply scoped ("just for this one
+  answer", "this time only", "for this message") → none. When scope is unstated, a constraint on how the work must
+  be written is TASK-scoped (rule); a request to do a piece of work is a one-off task (none).
 - fact — durable information likely needed in later turns that is not an instruction: identifiers, names, numbers,
   dates, decisions, states of the world, and corrections of earlier facts. Tool-output lines carrying identifiers
   the user later relies on are facts (role tool).
