@@ -3880,3 +3880,6 @@ uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 1.
 uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b --out bfcl-evict-v12-preflight-4b
 ```
 - 2026-09-03, coder (auto, run_codex_agent.sh). Brief bfcl-evict-v12: model gpt-5.6-sol, effort medium, exit 0, session 01a06924-1461-7730-b99c-e0b502aac9d4, log /home/bmarti44/stencil-llm/results/logs/codex-agent-bfcl-evict-v12.log.
+- 2026-09-03 21:4x: LEG A harness v12 (919a8ab) cleared by sol (v10, SOUND) and fable (v12, SOUND). Registered dev
+  preflight AUTHORIZED; queued behind the Multi-IF 909 run and the function-vector probe, from a fresh directory
+  (bfcl-v10-smoke, bfcl-v10-preflight), commands as recorded in the v12 handoff.
