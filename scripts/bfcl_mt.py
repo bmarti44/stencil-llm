@@ -17,24 +17,26 @@ sys.path.insert(0, str(ROOT / "vendor"))
 
 from stencil import determinism  # noqa: F401, E402
 from stencil.bfcl import (  # noqa: E402
+    ARMS,
     CATEGORIES,
+    assert_case_record_schema,
     atomic_json,
+    budget_history_spans,
     call_to_python,
-    control_echo,
+    context_layout,
     echo_copy_flag,
     ensure_split_allowed,
     execute_call_strings,
     load_jsonl,
     parse_tool_calls,
     prepare_case,
+    recent_user_spans,
+    same_role_control_spans,
     score_case,
+    select_history_spans,
     summarize_records,
 )
-from stencil.ledger import (  # noqa: E402
-    Entry,
-    context_tokens_added,
-    text_ledger_context,
-)
+from stencil.ledger import Entry, render_text_ledger, text_ledger_context  # noqa: E402
 
 K = 8192
 MAX_STEPS = 20
@@ -49,20 +51,23 @@ ANSWER_FILES = {category: DATA / f"answers_{category}.jsonl" for category in CAT
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "command", choices=("run", "preflight"), default="run", nargs="?"
+    )
     parser.add_argument("--split", choices=("dev", "sealed"), default="dev")
-    parser.add_argument("--arm", choices=("base", "ledger", "control"), default="base")
     parser.add_argument("--trunk", choices=("1.7b", "4b"), default="1.7b")
     parser.add_argument("--max-new", type=int, default=512)
     parser.add_argument("--deadline", type=float, default=300.0)
     parser.add_argument("--limit", type=int)
-    parser.add_argument("--out", default="bfcl-mt")
-    parser.add_argument("--preflight", action="store_true")
+    parser.add_argument("--out", default="bfcl-evict-v2")
     args = parser.parse_args(argv)
     ensure_split_allowed(args.split)
     if args.max_new <= 0 or args.deadline <= 0:
         parser.error("--max-new and --deadline must be positive")
-    if args.preflight and args.split != "dev":
+    if args.command == "preflight" and args.split != "dev":
         parser.error("--preflight is dev-only")
+    if args.command == "preflight" and args.limit is not None:
+        parser.error("preflight always runs the complete 32-case dev slice")
     return args
 
 
@@ -143,179 +148,21 @@ def render_prompt(messages: list[dict], tools: list[dict]) -> str:
     return prompt + "<|im_start|>assistant\n<think>\n\n</think>\n\n"
 
 
-def _token_span(encoding, start: int, end: int) -> tuple[int, int] | None:
-    columns = [
-        index
-        for index, (left, right) in enumerate(encoding.offsets)
-        if left < end and right > start
-    ]
-    return (columns[0], columns[-1] + 1) if columns else None
-
-
-def _message_locations(
-    prompt: str, messages: list[dict]
-) -> list[tuple[dict, int, int]]:
-    locations = []
-    cursor = 0
-    for message in messages:
-        if message["role"] not in {"system", "user"}:
-            continue
-        marker = f"<|im_start|>{message['role']}\n"
-        marker_at = prompt.find(marker, cursor)
-        if marker_at < 0:
-            continue
-        start = marker_at + len(marker)
-        end = start + len(message.get("content", ""))
-        locations.append((message, start, end))
-        cursor = end
-    return locations
-
-
-def _focus_entries(tokenizer, prompt: str, messages: list[dict], tools: list[dict]):
-    from stencil.salience2 import DEFAULT_BACKEND, extract_instructions
-
-    encoding = tokenizer.encode(prompt)
-    user_entries = []
-    prior_user_columns = []
-    user_locations = [
-        item
-        for item in _message_locations(prompt, messages)
-        if item[0]["role"] == "user"
-    ]
-    for turn, (message, start, end) in enumerate(user_locations[:-1], start=1):
-        span = _token_span(encoding, start, end)
-        if span:
-            prior_user_columns.extend(range(*span))
-        for found in extract_instructions(message["content"], backend=DEFAULT_BACKEND):
-            token_span = _token_span(encoding, start + found.start, start + found.end)
-            if token_span:
-                user_entries.append(
-                    Entry(
-                        found.text(message["content"]),
-                        token_span,
-                        None,
-                        turn,
-                        provenance=f"salience2:{DEFAULT_BACKEND}",
-                    )
-                )
-    schema_entries = []
-    cursor = 0
-    for tool in tools:
-        text = json.dumps(tool)
-        start = prompt.find(text, cursor)
-        if start < 0:
-            raise ValueError(f"schema not found in rendered prompt: {tool['name']}")
-        span = _token_span(encoding, start, start + len(text))
-        if span:
-            schema_entries.append(Entry(text, span, None, 0, provenance="tool_schema"))
-        cursor = start + len(text)
-    return user_entries, schema_entries, sorted(set(prior_user_columns))
-
-
-def _columns_to_spans(columns: list[int]) -> list[tuple[int, int]]:
-    spans = []
-    for column in sorted(set(columns)):
-        if spans and spans[-1][1] == column:
-            spans[-1] = (spans[-1][0], column + 1)
-        else:
-            spans.append((column, column + 1))
-    return spans
-
-
-def _entry_columns(entries: list[Entry], budget: int) -> list[int]:
-    columns = []
-    seen = set()
-    for entry in entries:
-        for column in range(*entry.span):
-            if column not in seen:
-                columns.append(column)
-                seen.add(column)
-                if len(columns) == budget:
-                    return columns
-    return columns
-
-
-def _control_context(
-    tokenizer, base: str, prior: list[str], target_added: int, seed: int
+def generate(
+    model,
+    tokenizer,
+    prompt: str,
+    *,
+    evict_range,
+    keep,
+    allow_eviction: bool,
+    max_new: int,
+    deadline: float,
 ):
-    if target_added == 0:
-        return base, [], 0
-    overhead = context_tokens_added(
-        tokenizer, base, text_ledger_context(base, [Entry("", (0, 0), None, 0)])
-    )
-    estimate = max(1, target_added - overhead)
-    for target in range(max(1, estimate - 8), estimate + 9):
-        text, _ = control_echo(tokenizer, prior, target, seed)
-        entry = Entry(text, (0, 0), None, 0, provenance="random_user_span")
-        context = text_ledger_context(base, [entry])
-        added = context_tokens_added(tokenizer, base, context)
-        if added == target_added:
-            return context, tokenizer.encode(text).ids, added
-    raise ValueError("could not token-match random-span control echo")
-
-
-def arm_context(
-    tokenizer, messages: list[dict], tools: list[dict], arm: str, seed: int
-):
-    base = render_prompt(messages, tools)
-    if arm == "base":
-        return base, [], [], 0
-    user_entries, schema_entries, prior_columns = _focus_entries(
-        tokenizer, base, messages, tools
-    )
-    budget = min(
-        len(prior_columns),
-        len(
-            {
-                column
-                for entry in [*user_entries, *schema_entries]
-                for column in range(*entry.span)
-            }
-        ),
-    )
-    ledger_columns = _entry_columns([*user_entries, *schema_entries], budget)
-    ledger_context = text_ledger_context(base, user_entries)
-    target_added = context_tokens_added(tokenizer, base, ledger_context)
-    if arm == "ledger":
-        echo_ids = tokenizer.encode("\n".join(entry.text for entry in user_entries)).ids
-        return ledger_context, _columns_to_spans(ledger_columns), echo_ids, target_added
-    prior_texts = [
-        message["content"] for message in messages[:-1] if message["role"] == "user"
-    ]
-    control_context, echo_ids, added = _control_context(
-        tokenizer, base, prior_texts, target_added, seed
-    )
-    if budget:
-        start = seed % len(prior_columns)
-        control_columns = [
-            prior_columns[(start + i) % len(prior_columns)] for i in range(budget)
-        ]
-        if len(set(control_columns)) != budget:
-            raise AssertionError("control pin budget contains duplicate columns")
-    else:
-        control_columns = []
-    return control_context, _columns_to_spans(control_columns), echo_ids, added
-
-
-def _eviction_end(cache_columns: int, keep: list[tuple[int, int]], target: int) -> int:
-    need = cache_columns - target
-    if need <= 0:
-        return 0
-    kept = {column for start, end in keep for column in range(start, end)}
-    removed = 0
-    for end in range(1, cache_columns + 1):
-        if end - 1 not in kept:
-            removed += 1
-        if removed == need:
-            return end
-    raise ValueError("pin budget leaves too few evictable columns")
-
-
-def generate(model, tokenizer, prompt: str, keep, max_new: int, deadline: float):
     import torch
 
     from stencil.bench import EOS
-    from stencil.qwen3 import KVCache
+    from stencil.qwen3 import KVCache, prefill_with_eviction
 
     ids = tokenizer.encode(prompt).ids
     if not ids:
@@ -327,18 +174,27 @@ def generate(model, tokenizer, prompt: str, keep, max_new: int, deadline: float)
     timed_out = False
     evicted = False
     with torch.no_grad():
-        if len(ids) > 1:
-            model(torch.tensor([ids[:-1]], device=device), cache=cache)
-        if len(ids) > K:
-            clipped = [
-                (start, min(end, len(ids) - 1))
-                for start, end in keep
-                if start < len(ids) - 1
-            ]
-            drop_end = _eviction_end(len(ids) - 1, clipped, K - 1)
-            cache.evict(0, drop_end, keep=clipped)
-            evicted = True
-        logits = model(torch.tensor([[ids[-1]]], device=device), cache=cache)
+        layout = context_layout(tokenizer, prompt)
+        history_end = int(layout["history_end"])
+        actual_range = (
+            tuple(evict_range)
+            if allow_eviction and evict_range is not None and history_end > K
+            else None
+        )
+        logits, index_map, columns_before, columns_after = prefill_with_eviction(
+            model,
+            cache,
+            torch.tensor([ids], device=device),
+            history_end=history_end,
+            evict_range=actual_range,
+            keep=keep,
+        )
+        evicted = actual_range is not None
+        pinned_columns = sum(
+            column in index_map
+            for start, end in keep
+            for column in range(start, end)
+        ) if evicted else sum(end - start for start, end in keep)
         next_token = int(logits[0, -1].argmax())
         while next_token not in EOS and len(generated) < max_new:
             if time.monotonic() - started > deadline:
@@ -354,17 +210,111 @@ def generate(model, tokenizer, prompt: str, keep, max_new: int, deadline: float)
         "timeout": timed_out,
         "evicted": evicted,
         "prompt_tokens": len(ids),
+        "columns_before": columns_before,
+        "columns_after": columns_after,
+        "pinned_columns": pinned_columns,
+        "evictable_size": (
+            int(evict_range[1]) - int(evict_range[0]) if evict_range is not None else 0
+        ),
     }
 
 
-def run_case(
+def _echo_current_user(context: str, entries: list[Entry]) -> str:
+    if not entries:
+        return context
+    marker = context.rfind("<|im_start|>user\n")
+    close = context.find("<|im_end|>", marker)
+    if marker < 0 or close < 0:
+        raise ValueError("current user turn is not closed")
+    end = close + len("<|im_end|>")
+    return text_ledger_context(context[:end], entries) + context[end:]
+
+
+def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
+    context = render_prompt(messages, tools)
+    layout = context_layout(tokenizer, context)
+    empty = {
+        "candidates": 0,
+        "eligible": 0,
+        "kept": 0,
+        "budget": 0,
+        "used": 0,
+        "role_counts": {"user": 0, "tool": 0},
+    }
+    if arm in {"base", "full"}:
+        return {
+            "evict_range": layout["evict_range"],
+            "keep": [],
+            "entries": [],
+            "echo_ids": [],
+            "selector": empty,
+        }
+    eligible, candidates = select_history_spans(tokenizer, context, messages, scorer)
+    kept, classifier_pins, budget = budget_history_spans(
+        eligible, layout["evict_range"]
+    )
+    entries = [
+        Entry(
+            f"tool: {row['text']}" if row["role"] == "tool" else str(row["text"]),
+            tuple(row["span"]),
+            None,
+            int(row["turn"]),
+            provenance=f"selector_v2:{row['role']}",
+        )
+        for row in kept
+    ]
+    echo_context = _echo_current_user(context, entries)
+    echo_layout = context_layout(tokenizer, echo_context)
+    if echo_layout["evict_range"] != layout["evict_range"]:
+        raise AssertionError("echo changed prior-history eviction coordinates")
+    control, role_counts = same_role_control_spans(
+        candidates, kept, echo_layout["evict_range"], seed=seed
+    )
+    classifier_columns = sum(end - start for start, end in classifier_pins)
+    role_pins = recent_user_spans(candidates, layout["evict_range"], classifier_columns)
+    keep = {
+        "clf_pinned": classifier_pins,
+        "clf_pinned_echo": classifier_pins,
+        "clf_control": control,
+        "role_pinned": role_pins,
+    }[arm]
+    rendered = render_text_ledger(entries)
+    return {
+        "evict_range": layout["evict_range"],
+        "keep": keep,
+        "entries": entries if arm == "clf_pinned_echo" else [],
+        "echo_ids": tokenizer.encode(rendered).ids if rendered else [],
+        "selector": {
+            "candidates": len(candidates),
+            "eligible": len(eligible),
+            "kept": len(kept),
+            "budget": budget,
+            "used": classifier_columns,
+            "role_counts": role_counts,
+            "spans": kept,
+        },
+    }
+
+
+def _degenerate(ids: list[int], truncated: bool) -> bool:
+    if truncated:
+        return True
+    if len(ids) < 8:
+        return False
+    grams = [tuple(ids[index : index + 4]) for index in range(len(ids) - 3)]
+    return 1.0 - len(set(grams)) / len(grams) > 0.5
+
+
+def run_case_arm(
     model,
     tokenizer,
+    scorer,
     category: str,
     raw_case: dict,
     ground_truth: list,
     args,
     run_tag: str,
+    arm: str,
 ):
     case = prepare_case(raw_case, DATA / "function_docs")
     tools = case["function"]
@@ -375,6 +325,8 @@ def run_case(
     any_eviction = False
     copied_echo = False
     total_echo_added = 0
+    selector_turns = []
+    arm_started = time.monotonic()
     for turn_index, original_messages in enumerate(case["question"]):
         if str(turn_index) in holdouts:
             tools.extend(holdouts[str(turn_index)])
@@ -388,22 +340,49 @@ def run_case(
         turn_started = time.monotonic()
         turn_timeout = False
         turn_truncated = False
-        for step in range(MAX_STEPS + 1):
+        turn_degenerate = False
+        plan = _turn_plan(
+            tokenizer,
+            messages,
+            tools,
+            arm,
+            scorer,
+            seed=COHORT_SEED + turn_index * 101,
+        )
+        selector_turns.append(plan["selector"])
+        first_eviction = None
+        for _step in range(MAX_STEPS + 1):
             remaining = max(1e-6, args.deadline - (time.monotonic() - turn_started))
-            context, keep, echo_ids, echo_added = arm_context(
-                tokenizer,
-                messages,
-                tools,
-                args.arm,
-                seed=COHORT_SEED + turn_index * 101 + step,
+            base_context = render_prompt(messages, tools)
+            context = _echo_current_user(base_context, plan["entries"])
+            echo_added = len(tokenizer.encode(context).ids) - len(
+                tokenizer.encode(base_context).ids
             )
-            result = generate(model, tokenizer, context, keep, args.max_new, remaining)
+            result = generate(
+                model,
+                tokenizer,
+                context,
+                evict_range=plan["evict_range"],
+                keep=plan["keep"],
+                allow_eviction=turn_index >= 1 and arm != "full",
+                max_new=args.max_new,
+                deadline=remaining,
+            )
+            if first_eviction is None:
+                first_eviction = {
+                    "evicted": result["evicted"],
+                    "columns_before": result["columns_before"],
+                    "columns_after": result["columns_after"],
+                    "pinned_columns": result["pinned_columns"],
+                    "evictable_size": result["evictable_size"],
+                }
             any_eviction |= result["evicted"]
             total_echo_added += echo_added
-            copied_echo |= echo_copy_flag(result["token_ids"], echo_ids)
+            copied_echo |= echo_copy_flag(result["token_ids"], plan["echo_ids"])
             responses.append(result)
             turn_timeout |= result["timeout"]
             turn_truncated |= result["truncated"]
+            turn_degenerate |= _degenerate(result["token_ids"], result["truncated"])
             messages.append({"role": "assistant", "content": result["text"]})
             parsed = parse_tool_calls(result["text"])
             executable = []
@@ -423,7 +402,7 @@ def run_case(
             if not executable or result["timeout"] or result["truncated"]:
                 break
             execution, _ = execute_call_strings(
-                executable, case, f"stencil_{run_tag}_{args.arm}"
+                executable, case, f"stencil_{run_tag}_{arm}"
             )
             for record, output in zip(
                 [record for record in call_records if record["valid"]],
@@ -437,7 +416,7 @@ def run_case(
             case,
             decoded_turns,
             ground_truth[: turn_index + 1],
-            run_name=f"score_{run_tag}_turn_{turn_index}",
+            run_name=f"score_{run_tag}_{arm}_turn_{turn_index}",
         )
         turns.append(
             {
@@ -446,76 +425,157 @@ def run_case(
                 "tool_calls": turn_calls,
                 "timeout": turn_timeout,
                 "truncated": turn_truncated,
+                "degenerate": turn_degenerate,
                 "pass": bool(turn_score["valid"]),
                 "score": turn_score,
+                "eviction": first_eviction,
             }
         )
         if turn_timeout:
             break
     if len(decoded_turns) == len(ground_truth):
         final_score = score_case(
-            case, decoded_turns, ground_truth, run_name=f"score_{run_tag}_final"
+            case,
+            decoded_turns,
+            ground_truth,
+            run_name=f"score_{run_tag}_{arm}_final",
         )
     else:
         final_score = {"valid": False, "error_type": "stencil:incomplete_timeout"}
     return {
         "case_id": case["id"],
         "category": category,
-        "arm": args.arm,
         "turns": turns,
         "evicted": any_eviction,
         "echo_tokens_added": total_echo_added,
         "echo_copy": copied_echo,
+        "selector": {
+            "candidates": sum(row["candidates"] for row in selector_turns),
+            "eligible": sum(row.get("eligible", 0) for row in selector_turns),
+            "kept": sum(row["kept"] for row in selector_turns),
+            "budget": sum(row["budget"] for row in selector_turns),
+            "used": sum(row["used"] for row in selector_turns),
+            "turns": selector_turns,
+        },
+        "seconds": time.monotonic() - arm_started,
         "final_pass": bool(final_score["valid"]),
         "final_score": final_score,
     }
 
 
+def run_case(model, tokenizer, scorer, category, raw_case, ground_truth, args, run_tag):
+    started = time.monotonic()
+    arms = {
+        arm: run_case_arm(
+            model,
+            tokenizer,
+            scorer,
+            category,
+            raw_case,
+            ground_truth,
+            args,
+            run_tag,
+            arm,
+        )
+        for arm in ARMS
+    }
+    record = {
+        "schema": 2,
+        "case_id": raw_case["id"],
+        "category": category,
+        "arms": arms,
+        "seconds": time.monotonic() - started,
+    }
+    assert_case_record_schema(record)
+    return record
+
+
 def artifact_meta(args) -> dict:
     files = [*CASE_FILES.values(), *ANSWER_FILES.values(), DATA / "cohorts.json"]
     return {
-        "schema": 1,
+        "schema": 2,
         "split": args.split,
-        "arm": args.arm,
+        "arms": list(ARMS),
         "trunk": args.trunk,
         "max_new": args.max_new,
         "deadline": args.deadline,
         "k": K,
+        "budget_fraction": 0.25,
+        "selector_threshold": 0.5,
+        "selector_roles": ["user", "tool"],
+        "selector_context": "empty",
+        "eviction_timing": "pre-query",
+        "protected_prefix": "system_plus_tools_and_at_least_four_sink_columns",
         "greedy": True,
         "thinking": False,
         "script_sha256": sha256(__file__),
+        "classifier_sha256": assert_registered_classifier(),
         "data_sha256": {str(path.relative_to(ROOT)): sha256(path) for path in files},
     }
 
 
+def assert_registered_classifier() -> dict[str, str]:
+    manifest = ROOT / "results/quick-checks/ft_final2_s0_sha256.txt"
+    expected = {}
+    for line in manifest.read_text().splitlines():
+        if not line.strip():
+            continue
+        digest, relative = line.split(maxsplit=1)
+        path = ROOT / relative
+        if not path.is_file() or sha256(path) != digest:
+            raise RuntimeError(f"registered classifier sha256 mismatch: {relative}")
+        expected[relative] = digest
+    if not expected or not all(
+        relative.startswith("data/classifier/model/ft/") for relative in expected
+    ):
+        raise RuntimeError("registered classifier manifest is empty or out of scope")
+    return expected
+
+
+def _check_or_write_meta(path: Path, meta: dict) -> None:
+    if path.exists():
+        if json.loads(path.read_text()) != meta:
+            raise RuntimeError("resume provenance mismatch")
+    else:
+        atomic_json(path, meta)
+
+
 def run(
-    args, model, tokenizer, *, resume: bool = True, run_tag: str = "main"
+    args, model, tokenizer, scorer, *, resume: bool = True, run_tag: str = "main"
 ) -> list[dict]:
     output = Path(args.out)
     if not output.is_absolute():
         output = ROOT / "results/qwen" / output
     records_dir = output / "records"
     records_dir.mkdir(parents=True, exist_ok=True)
-    atomic_json(output / "meta.json", artifact_meta(args))
+    _check_or_write_meta(output / "meta.json", artifact_meta(args))
     records = []
     cases = load_cases(args.split, args.limit)
     for index, (category, case, answer) in enumerate(cases):
-        path = records_dir / f"{case['id']}--{args.arm}.json"
+        path = records_dir / f"{case['id']}.json"
         if resume and path.exists():
             record = json.loads(path.read_text())
+            assert_case_record_schema(record)
+            if record["case_id"] != case["id"] or record["category"] != category:
+                raise RuntimeError(f"resume identity mismatch: {case['id']}")
         else:
             record = run_case(
-                model, tokenizer, category, case, answer, args, f"{run_tag}_{index}"
+                model,
+                tokenizer,
+                scorer,
+                category,
+                case,
+                answer,
+                args,
+                f"{run_tag}_{index}",
             )
             atomic_json(path, record)
         records.append(record)
-        valid_calls = sum(
-            call["valid"] for turn in record["turns"] for call in turn["tool_calls"]
+        passes = " ".join(
+            f"{arm}={int(record['arms'][arm]['final_pass'])}" for arm in ARMS
         )
-        total_calls = sum(len(turn["tool_calls"]) for turn in record["turns"])
         print(
-            f"{index + 1}: {case['id']} {args.arm} pass={record['final_pass']} "
-            f"valid={valid_calls}/{total_calls}",
+            f"{index + 1}: {case['id']} {passes} seconds={record['seconds']:.1f}",
             flush=True,
         )
     all_records = [
@@ -525,64 +585,72 @@ def run(
     return records
 
 
-def finder_recall() -> dict:
-    from stencil.salience2 import DEFAULT_BACKEND, extract_instructions
-
-    labels = json.loads((DATA / "finder_labels.json").read_text())["labels"]
-    results = []
-    for label in labels:
-        if label["kind"] == "tool_schema":
-            hit = True  # schemas are explicitly admitted as automatic schema spans
-        else:
-            hit = bool(extract_instructions(label["text"], backend=DEFAULT_BACKEND))
-        results.append({"case_id": label["case_id"], "kind": label["kind"], "hit": hit})
-    return {
-        "backend": DEFAULT_BACKEND,
-        "labels": len(results),
-        "hits": sum(row["hit"] for row in results),
-        "recall": sum(row["hit"] for row in results) / len(results),
-        "by_kind": {
-            kind: {
-                "n": sum(row["kind"] == kind for row in results),
-                "hits": sum(row["kind"] == kind and row["hit"] for row in results),
-            }
-            for kind in sorted({row["kind"] for row in results})
-        },
-    }
-
-
-def response_ids(record: dict) -> list[list[list[int]]]:
+def response_ids(arm_record: dict) -> list[list[list[int]]]:
     return [
         [response["token_ids"] for response in turn["responses"]]
-        for turn in record["turns"]
+        for turn in arm_record["turns"]
     ]
 
 
-def preflight(args, model, tokenizer) -> None:
-    args.arm = "base"
-    args.limit = None
-    first = run(args, model, tokenizer, resume=True, run_tag="preflight_a")
+def preflight(args, model, tokenizer, scorer) -> None:
+    first = run(args, model, tokenizer, scorer, resume=True, run_tag="preflight_a")
     second = [
-        run_case(model, tokenizer, category, case, answer, args, f"preflight_b_{index}")
-        for index, (category, case, answer) in enumerate(load_cases("dev"))
+        run_case_arm(
+            model,
+            tokenizer,
+            scorer,
+            category,
+            case,
+            answer,
+            args,
+            f"preflight_b_{index}",
+            "base",
+        )
+        for index, (category, case, answer) in enumerate(load_cases("dev", 4))
     ]
     deterministic = all(
-        response_ids(left) == response_ids(right)
-        for left, right in zip(first, second, strict=True)
+        response_ids(left["arms"]["base"]) == response_ids(right)
+        for left, right in zip(first[:4], second, strict=True)
     )
+    base_rows = [record["arms"]["base"] for record in first]
+    selectors = [record["arms"]["clf_pinned"]["selector"] for record in first]
+    candidates = sum(row["candidates"] for row in selectors)
+    kept = sum(row["kept"] for row in selectors)
+    budget = sum(row["budget"] for row in selectors)
+    used = sum(row["used"] for row in selectors)
+    seconds = sum(float(record["seconds"]) for record in first)
+    competence_rate = sum(row["final_pass"] for row in base_rows) / len(base_rows)
     report = {
         "base_competence": {
-            "passed": sum(row["final_pass"] for row in first),
-            "n": len(first),
-            "rate": sum(row["final_pass"] for row in first) / len(first),
+            "passed": sum(row["final_pass"] for row in base_rows),
+            "n": len(base_rows),
+            "rate": competence_rate,
             "floor": 0.15,
-            "floor_pass": sum(row["final_pass"] for row in first) / len(first) >= 0.15,
+            "floor_pass": competence_rate >= 0.15,
+            "trunk": args.trunk,
+            "if_failed": (
+                "rerun preflight with --trunk 4b"
+                if competence_rate < 0.15
+                else None
+            ),
         },
-        "finder": finder_recall(),
-        "bitwise_base_rerun": deterministic,
+        "bitwise_base_rerun": {"cases": 4, "passed": deterministic},
+        "selector_coverage": {
+            "candidates": candidates,
+            "kept": kept,
+            "fraction_spans_kept": kept / candidates if candidates else None,
+            "budget_columns": budget,
+            "used_columns": used,
+            "fraction_budget_used": used / budget if budget else None,
+        },
+        "timing": {
+            "seconds": seconds,
+            "cases": len(first),
+            "seconds_per_case": seconds / len(first),
+            "projected_sealed_cases": 64,
+            "projected_sealed_hours": seconds / len(first) * 64 / 3600,
+        },
     }
-    report["finder"]["floor"] = 0.80
-    report["finder"]["floor_pass"] = report["finder"]["recall"] >= 0.80
     output = Path(args.out)
     if not output.is_absolute():
         output = ROOT / "results/qwen" / output
@@ -592,11 +660,16 @@ def preflight(args, model, tokenizer) -> None:
 
 def main() -> None:
     args = parse_args()
+    determinism.assert_gpu_free_or_owned()
+    assert_registered_classifier()
+    from stencil.selector_v2 import ClassifierScorer
+
     model, tokenizer = load_model(args.trunk)
-    if args.preflight:
-        preflight(args, model, tokenizer)
+    scorer = ClassifierScorer(ROOT / "data/classifier/model/ft")
+    if args.command == "preflight":
+        preflight(args, model, tokenizer, scorer)
     else:
-        run(args, model, tokenizer)
+        run(args, model, tokenizer, scorer)
 
 
 if __name__ == "__main__":

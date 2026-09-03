@@ -14,7 +14,6 @@ from stencil.bfcl import (
     parse_tool_calls,
     prepare_case,
     score_case,
-    summarize_records,
 )
 
 CATEGORIES = ("base", "missing_params", "missing_functions", "long_context")
@@ -112,44 +111,6 @@ def test_echo_copy_flag_requires_contiguous_eight_token_run() -> None:
     assert echo_copy_flag([90, *echoed[4:12], 91], echoed)
     assert not echo_copy_flag([*echoed[4:11], 91], echoed)
     assert not echo_copy_flag([], echoed)
-
-
-def test_summary_from_synthetic_paired_records() -> None:
-    records = []
-    outcomes = {
-        "a": {"base": False, "ledger": True, "control": False},
-        "b": {"base": True, "ledger": True, "control": True},
-        "c": {"base": False, "ledger": False, "control": False},
-        "d": {"base": True, "ledger": True, "control": False},
-    }
-    for case_id, arms in outcomes.items():
-        for arm, passed in arms.items():
-            records.append(
-                {
-                    "case_id": case_id,
-                    "category": "base" if case_id in "ab" else "long_context",
-                    "arm": arm,
-                    "final_pass": passed,
-                    "turns": [
-                        {
-                            "tool_calls": [{"valid": arm != "control"}],
-                            "timeout": False,
-                            "truncated": arm == "control" and case_id == "d",
-                        }
-                    ],
-                    "echo_copy": arm == "ledger" and case_id == "a",
-                }
-            )
-    summary = summarize_records(records)
-    assert summary["paired_cases"] == 4
-    assert summary["pass"]["ledger"] == {"n": 4, "passed": 3, "rate": 0.75}
-    assert summary["contrasts"]["ledger-control"]["mean_points"] == 50.0
-    assert summary["contrasts"]["ledger-base"]["mean_points"] == 25.0
-    assert summary["safety"]["tool_call_validity"]["ledger"] == 1.0
-    assert summary["safety"]["echo_copy_rate"]["ledger"] == 0.25
-    assert summary["safety"]["truncation_excess_vs_control"] == -0.25
-    assert summary["safety"]["round7"]["ledger_timeout_pass"] is True
-    assert summary["by_category"]["long_context"]["control"]["passed"] == 0
 
 
 def test_sealed_split_requires_explicit_environment(

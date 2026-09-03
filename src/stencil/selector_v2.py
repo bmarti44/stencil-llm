@@ -2,8 +2,66 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Sequence
 from pathlib import Path
+
+
+def split_sentence_spans(text: str) -> list[tuple[int, int]]:
+    """Return the frozen selector-v2 sentence spans within ``text``."""
+    out = []
+    start = 0
+    i = 0
+    n = len(text)
+    single_quote = double_quote = False
+    while i < n:
+        char = text[i]
+        if char == '"':
+            double_quote = not double_quote
+        elif char == "'":
+            if not single_quote and (i == 0 or not text[i - 1].isalnum()):
+                single_quote = True
+            elif single_quote and (i + 1 >= n or not text[i + 1].isalnum()):
+                single_quote = False
+        if char in ".!?":
+            abbreviation = (
+                i >= 1
+                and text[i - 1].isalpha()
+                and text[i - 1].isupper()
+                and (i < 2 or not text[i - 2].isalpha())
+            )
+            j = i + 1
+            while j < n and text[j] in ".!?":
+                j += 1
+            k = j
+            next_single, next_double = single_quote, double_quote
+            while k < n and text[k] in "\"')":
+                if text[k] == '"':
+                    next_double = not next_double
+                elif text[k] == "'" and next_single:
+                    next_single = False
+                k += 1
+            if (
+                not abbreviation
+                and not next_single
+                and not next_double
+                and (k >= n or text[k].isspace())
+            ):
+                out.append((start, k))
+                single_quote, double_quote = next_single, next_double
+                start = k
+                while start < n and text[start].isspace():
+                    start += 1
+                i = start
+                continue
+        i += 1
+    if start < n:
+        out.append((start, n))
+    return [
+        (begin, end)
+        for begin, end in out
+        if end > begin and len(re.findall(r"[A-Za-z]", text[begin:end])) >= 2
+    ]
 
 
 class ClassifierScorer:
