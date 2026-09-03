@@ -89,3 +89,14 @@ greedy output, same eviction plumbing as the registered probe (scripts/ledger_kv
    0.79). Coverage 0.91; CLF pinned 35, pinned_echo 39, control 22; budget-matched 27 / 29 / 20. More data with a
    linear head did NOT help (47 -> 39 with echo; n=56, noisy). The limit is head capacity / precision on one-off
    tasks, not volume. Next: reviewed + enriched data (sol, Opus) and a nonlinear head or encoder fine-tune.
+
+15. CLASSIFIER, MLP head, 14,391 rows incl. partial sol/Opus enrichment (clf_probe3.log): held-out (author-disjoint,
+   never trained on) acc 0.84 (Opus set 0.89, sol set 0.78; "none" recall 0.72). Probe: coverage 0.66; CLF pinned 34,
+   pinned_echo 39, control 22; budget-matched 28 / 34 / 20 (precision up from check 14: 29 -> 34 with echo).
+   Diagnosis of the misses (clf_scores vs true spans): (a) the postscript rule was cut at "P." by my sentence
+   splitter — the same bug that hit the extractor; splitter rewritten (quotes + abbreviations) and unit-checked;
+   (b) "Now add a brief closing section..." is a one-off task the probe counts as a constraint because the old finder
+   kept it — the classifier's "none" is correct per LABELS.md; the coverage metric conflates the two;
+   (c) "begin with the exact title <<...>>" scores 0.23 because taxonomy phrasings were (rightly) removed from
+   training; generic formatting rules in plain language belong in the enrichment. The reminder sentence scores 0.96
+   (it is rule-like) and is dropped by the echo clamp.

@@ -42,10 +42,21 @@ for o in train:
             dropped += 1; continue
         if pt.get("new_label") in LABELS:
             o["label"] = pt["new_label"]; relabelled += 1
+        if pt.get("new_role") in ROLES:
+            o["role"] = pt["new_role"]; relabelled += 1
+    # kimi-ctx generator defects (Opus review): speaker prefix leaked into text; degenerate self-context
+    if "context" in o:
+        import re as _re
+        o["text"] = _re.sub(r"^(?:user|assistant|tool|system)\s*:\s*", "", o["text"].strip(), flags=_re.I)
+        ctx = o.get("context") or ""
+        core = _re.sub(r"^(?:user|assistant|tool|system)\s*:\s*", "", ctx.strip(), flags=_re.I)
+        if not ctx.strip() or core.strip().lower() == o["text"].strip().lower():
+            o["context"] = ""; o["degenerate_ctx"] = True
     fixed.append(o)
 train = fixed
-# dedupe on text
-seen = set(); train = [o for o in train if not (o["text"].strip().lower() in seen or seen.add(o["text"].strip().lower()))]
+# dedupe on (text, label, role)
+seen = set(); train = [o for o in train if not ((o["text"].strip().lower(), o["label"], o["role"]) in seen or seen.add((o["text"].strip().lower(), o["label"], o["role"])))]
+print("degenerate-context rows demoted to no-context:", sum(1 for o in train if o.get("degenerate_ctx")))
 heldout = load(sorted(glob.glob(f"{ROOT}/heldout/*.jsonl")))
 print(f"train {len(train)} (dropped {dropped}, relabelled {relabelled}); heldout {len(heldout)}")
 if not heldout and "--no-heldout-required" not in sys.argv:
@@ -77,14 +88,19 @@ Xtr, Xho = embed(train), (embed(heldout) if heldout else None)
 ytr = torch.tensor([LABELS.index(o["label"]) for o in train]); yho = torch.tensor([LABELS.index(o["label"]) for o in heldout]) if heldout else None
 print(f"embedded in {time.time()-t0:.0f}s; dim {Xtr.shape[1]}")
 torch.manual_seed(0)
-W = torch.nn.Linear(Xtr.shape[1], 3)
-opt = torch.optim.LBFGS(W.parameters(), lr=0.5, max_iter=300)
+if "--mlp" in sys.argv:
+    W = torch.nn.Sequential(torch.nn.Linear(Xtr.shape[1], 256), torch.nn.GELU(), torch.nn.Dropout(0.2), torch.nn.Linear(256, 3))
+    opt = torch.optim.LBFGS(W.parameters(), lr=0.3, max_iter=400)
+else:
+    W = torch.nn.Linear(Xtr.shape[1], 3)
+    opt = torch.optim.LBFGS(W.parameters(), lr=0.5, max_iter=300)
 cw = torch.tensor([1.0, 1.0, 1.0])
 
 
 def closure():
     opt.zero_grad()
-    loss = torch.nn.functional.cross_entropy(W(Xtr), ytr, weight=cw) + 1e-3 * (W.weight ** 2).sum()
+    reg = sum((p ** 2).sum() for n, p in W.named_parameters() if "weight" in n)
+    loss = torch.nn.functional.cross_entropy(W(Xtr), ytr, weight=cw) + 1e-3 * reg
     loss.backward(); return loss
 
 
@@ -92,8 +108,10 @@ opt.step(closure)
 
 
 def report(X, y, rows, tag):
+    W.eval()
     with torch.no_grad():
         p = W(X).argmax(1)
+    W.train()
     acc = float((p == y).float().mean()); res = {"n": len(rows), "acc": acc, "per_class": {}, "per_source": {}}
     for k, lab in enumerate(LABELS):
         tp = int(((p == k) & (y == k)).sum()); fp = int(((p == k) & (y != k)).sum()); fn = int(((p != k) & (y == k)).sum())
@@ -113,7 +131,8 @@ metrics = {"train": report(Xtr, ytr, train, "TRAIN")}
 if heldout:
     metrics["heldout"] = report(Xho, yho, heldout, "HELDOUT")
 os.makedirs(f"{ROOT}/model", exist_ok=True)
-torch.save({"weight": W.weight.detach(), "bias": W.bias.detach(), "labels": LABELS, "roles": ROLES, "encoder": name}, f"{ROOT}/model/clf.pt")
+W.eval()
+torch.save({"head": W.state_dict(), "mlp": "--mlp" in sys.argv, "in_dim": Xtr.shape[1], "labels": LABELS, "roles": ROLES, "encoder": name}, f"{ROOT}/model/clf.pt")
 metrics["train_sha"] = hashlib.sha256("\n".join(sorted(o["text"] for o in train)).encode()).hexdigest()
 json.dump(metrics, open(f"{ROOT}/model/metrics.json", "w"), indent=1)
 print("saved", f"{ROOT}/model/clf.pt")
