@@ -206,3 +206,8 @@ spec change did not teach (all seeds miss it).
    opus-heldout 0.94; sol-heldout 0.94 (author-shared with enrichment — inflated, as sol predicted). The classifier
    carries the scope concept beyond the training templates at ~0.83, not at the 0.94 the shared-author sets suggest.
    Confusion: rule->fact 26, none->rule 40, none->fact 27, rule->none 21 (of 1,093).
+
+24. REPLICATION (same data as check 22, three seeds, clf_probe9_s*.log): pinned 33 / 33 / 33; pinned_echo 46 / 45 /
+   44; control 17 / 17 / 17 — identical to check 22 (fable F1 confirmed: the data were already identical). Per-run
+   rows retained (clf_probe_rows_<epoch>.json). The corrected run (scope-pass reviews + exemplar drop applied)
+   follows as check 25; its seed-0 artifact is the candidate registered selector.
