@@ -4220,3 +4220,4 @@ Final manifest ID: `a183aae282a7a3000830b068c902755930f2e304f69f8fa42767c30b65ee
 Final manifest file SHA-256: `779bac39080de5a59647d0842b22d6e53249811ab2b88bf022349db402c2a248`.
 
 Final executable commit: `5458350c8bc6981d9f2ae912f66982a3e0fa1387`.
+- 2026-09-04, coder (auto, run_codex_agent.sh). Brief sc1-harness-v2: model gpt-6-astra, effort xhigh, exit 0, session 01a06e4d-033b-7d80-bd79-b35b68b42aa6, log /home/bmarti44/stencil-llm/results/logs/codex-agent-sc1-harness-v2.log. Override reason: Brian 2026-09-04: astra replaces sol for all coder/reviewer roles.
