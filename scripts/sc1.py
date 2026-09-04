@@ -74,14 +74,35 @@ def bind_study(manifest, out, *, stage="production"):
             and saved["manifests"][stage] != manifest["manifest_id"]
         ):
             raise ValueError("study cannot change frozen manifest or retry new sources")
-        saved["manifests"][stage] = manifest["manifest_id"]
-        sc1.atomic_json(registry, saved)
     else:
-        sc1.atomic_json(
-            registry,
-            {**identity, "manifests": {stage: manifest["manifest_id"]}},
-            exclusive=True,
-        )
+        saved = {**identity, "manifests": {}}
+    owners = []
+    if stage == "production" and manifest.get("production"):
+        fingerprints = {
+            e.get("source_fingerprint") for e in manifest.get("episodes", [])
+        }
+        if not fingerprints or None in fingerprints:
+            raise ValueError("registered study requires frozen source fingerprints")
+        for fingerprint in fingerprints:
+            owner_path = (
+                STUDY_REGISTRY / "sources" / (sc1.digest(fingerprint) + ".json")
+            )
+            owner = {
+                "source_fingerprint": fingerprint,
+                "study_id": manifest["study_id"],
+                "registration_hash": manifest["registration_hash"],
+            }
+            if owner_path.exists() and json.loads(owner_path.read_text()) != owner:
+                raise ValueError(
+                    "new study requires new sources; "
+                    "source already bound to another study"
+                )
+            owners.append((owner_path, owner))
+    for owner_path, owner in owners:
+        if not owner_path.exists():
+            sc1.atomic_json(owner_path, owner, exclusive=True)
+    saved["manifests"][stage] = manifest["manifest_id"]
+    sc1.atomic_json(registry, saved, exclusive=not registry.exists())
     out.mkdir(parents=True, exist_ok=True)
     local = out / "study.json"
     if local.exists() and json.loads(local.read_text()) != identity:
@@ -244,6 +265,7 @@ def build_manifest(bank, trunk, episode_rows, *, stage1=None, executable=None):
                 "pool": ep["pool"],
                 "index": ep["index"],
                 "hash": sc1.digest(ep),
+                "source_fingerprint": ep["source_fingerprint"],
                 "order": episodes.commission_slot(ep["pool"], ep["index"])["order"],
                 "setup_order": episodes.commission_slot(ep["pool"], ep["index"])[
                     "setup_order"
@@ -492,6 +514,12 @@ def load_manifest_bank(manifest):
     expected = {e["id"]: e["hash"] for e in manifest["episodes"]}
     if len(rows) != len(expected) or {r["id"]: sc1.digest(r) for r in rows} != expected:
         raise ValueError("episode manifest/cohort mismatch")
+    by_id = {e["id"]: e for e in manifest["episodes"]}
+    if any(
+        by_id[r["id"]].get("source_fingerprint") != r["source_fingerprint"]
+        for r in rows
+    ):
+        raise ValueError("manifest source fingerprint mismatch")
     return rows
 
 

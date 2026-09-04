@@ -90,7 +90,9 @@ Production and determinism enforce Qwen3-4B before loading. Stage 1 must bind
 `study_id`, an absolute `execution_root`, the science hash, exact deployment,
 author versions/settings and contract/grammar hashes. A durable registry under
 `.git/sc1-studies` binds that identity to its executable and production manifests.
-Every invocation uses the same directory and cumulative cost ledger. Changing
+The registry also binds production source fingerprints across study IDs: a new
+registration cannot reuse an earlier causal source. Every invocation uses the
+same directory and cumulative cost ledger. Changing
 `--out` is refused; relocation is deliberately unsupported. Invalid, failed-setup
 and cap-exhausted studies cannot restart through a new output path. `--out` is
 required for setup/final/analyze/determinism/commission; CPU validation/smoke

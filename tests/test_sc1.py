@@ -1837,3 +1837,28 @@ def test_astra_f16_recovery_proof_survives_its_own_interruption(tmp_path, monkey
     recovered = sc1.RunStore(tmp_path, "m")
     recovered.interrupt("ep", "clf", "a", "resource_loss", 2, "CPU fault injection")
     assert sc1.RunStore(tmp_path, "m").pending("ep", ["clf"]) == ["clf"]
+
+
+def test_astra_f2_new_registration_requires_new_sources(tmp_path, monkeypatch):
+    from scripts import sc1 as cli
+
+    monkeypatch.setattr(cli, "STUDY_REGISTRY", tmp_path / "registry")
+    source_fingerprint = sc1.digest("one causal source")
+    manifest = {
+        "manifest_id": "first",
+        "study_id": "first",
+        "registration_hash": "first-registration",
+        "execution_root": str(tmp_path / "first"),
+        "production": True,
+        "episodes": [{"source_fingerprint": source_fingerprint}],
+    }
+    cli.bind_study(manifest, tmp_path / "first")
+    changed = {
+        **manifest,
+        "manifest_id": "second",
+        "study_id": "second",
+        "registration_hash": "second-registration",
+        "execution_root": str(tmp_path / "second"),
+    }
+    with pytest.raises(ValueError, match="source|study"):
+        cli.bind_study(changed, tmp_path / "second")
