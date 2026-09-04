@@ -4220,4 +4220,18 @@ Final manifest ID: `a183aae282a7a3000830b068c902755930f2e304f69f8fa42767c30b65ee
 Final manifest file SHA-256: `779bac39080de5a59647d0842b22d6e53249811ab2b88bf022349db402c2a248`.
 
 Final executable commit: `5458350c8bc6981d9f2ae912f66982a3e0fa1387`.
+
+### 2026-09-04 — sc1-harness-v3 write-ahead
+
+STATE: Implement the authorized R1–R8/N1–N10 fixes against 5f7bcbf;
+governing SC1 DRAFT v2 and AUTHOR-CONTRACT v2 remain unchanged. Read the
+archived protocol/STATE because active plan/ paths are absent. Data lineage:
+fit-on = none in this task; evaluated-on = disposable original CPU fixtures and
+the eight smoke sources only; no benchmark inputs or model execution.
+First add finding-named RED tests, then repair the consumers, document prospective
+clauses, regenerate smoke/manifest against a byte snapshot, and run only
+tests/test_sc1.py tests/test_eval_data_separation.py tests/test_sealed_guard.py
+tests/test_no_side_effect_imports.py with CUDA_VISIBLE_DEVICES='' and bytecode/cache
+writes disabled. Ruff covers the four touched Python files. No wrapper or GPU
+process is launched, waited on, or signalled. Explicit pathspec commits throughout.
 - 2026-09-04, coder (auto, run_codex_agent.sh). Brief sc1-harness-v2: model gpt-6-astra, effort xhigh, exit 0, session 01a06e4d-033b-7d80-bd79-b35b68b42aa6, log /home/bmarti44/stencil-llm/results/logs/codex-agent-sc1-harness-v2.log. Override reason: Brian 2026-09-04: astra replaces sol for all coder/reviewer roles.

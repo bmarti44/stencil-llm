@@ -1114,17 +1114,22 @@ def seed_completions(scheduling, count, spent=20000, prefill=20):
 
 def test_astra_f1_scheduler_incremental_accounting(scheduling, monkeypatch):
     s = scheduling
+    seed_completions(s, 1, spent=1, prefill=0)
     reads = []
-    original = Path.read_text
 
-    def read(path, *a, **kw):
+    def read(original, path, *a, **kw):
         raw = original(path, *a, **kw)
         if path.name == "attempts.jsonl":
             reads.append(len(raw))
             assert len(reads) <= 2, "journal replay per attempt"
         return raw
 
-    monkeypatch.setattr(Path, "read_text", read)
+    for name in ("read_text", "read_bytes"):
+        original = getattr(Path, name)
+        monkeypatch.setattr(
+            Path, name,
+            lambda path, *a, original=original, **kw: read(original, path, *a, **kw),
+        )
     original_arm = s.arm_row
 
     def realistic(*args, **kwargs):
@@ -1138,8 +1143,8 @@ def test_astra_f1_scheduler_incremental_accounting(scheduling, monkeypatch):
 
     monkeypatch.setattr(sc1, "run_arm", realistic)
     assert s.run()["status"].startswith("COMPLETE")
-    assert len(s.calls) == 512
-    assert len(reads) <= 2, (len(reads), sum(reads))
+    assert len(s.calls) == 511
+    assert 1 <= len(reads) <= 2, (len(reads), sum(reads))
     path = s.args.out / "final/cpu-0.clf.json"
     path.write_text(path.read_text() + " ")
     with pytest.raises(RuntimeError, match="hash"):
@@ -1209,7 +1214,7 @@ def test_fable_m1_setup_resume_projection(scheduling):
     del s.bank[32:]
     for ep in s.bank:
         ep["pool"] = "setup"
-    originals = seed_completions(s, 60, spent=28000, prefill=10)
+    originals = seed_completions(s, 60, spent=28000, prefill=12)
     result = s.run()
     assert len(s.calls) == 4, result
     assert (s.args.out / "setup-certificate.json").exists()
@@ -1542,9 +1547,7 @@ def test_astra_f7_numeric_key_order_and_text_negative_identity():
     )
 
 
-def test_astra_f8_validated_text_source_rejects_unauthorized_lines(
-    source, real_tokenizer
-):
+def text_source(source):
     source["task_spec"].update(kind="text", permitted_paths=[], editable_lines=[0])
     source["initial_state"] = "Draft\nHarbor"
     source["state_trace"] = {"start": source["initial_state"], "events": []}
@@ -1580,7 +1583,13 @@ def test_astra_f8_validated_text_source_rejects_unauthorized_lines(
     source["inapplicable"]["wrong entity"] = (
         "The raw artifact has no alternative target entity."
     )
-    ep = validate_source(source, real_tokenizer)
+    return source
+
+
+def test_astra_f8_validated_text_source_rejects_unauthorized_lines(
+    source, real_tokenizer
+):
+    ep = validate_source(text_source(source), real_tokenizer)
     assert episodes.run_checker(ep, ep["reference"] + "\nIntrusion")["corruption"]
     assert not episodes.run_checker(ep, "Wrong\nHarbor")["corruption"]
 
@@ -1891,3 +1900,347 @@ def test_astra_f7_six_negatives_and_unreachable_state_probe(real_tokenizer):
         "permitted_edits",
     ]
     assert "no_new_record" in report["covered"]
+
+
+@pytest.mark.parametrize("exponent", ["9999999999999999999", "-9999999999999999999"])
+def test_astra_r1_numeric_output_is_durable_failure(
+    tmp_path, source, real_tokenizer, exponent
+):
+    from scripts import sc1 as cli
+
+    ep = episodes.expand_source(source, real_tokenizer)
+    output = '[{"op":"replace","path":"/v","value":1e' + exponent + '}]'
+    ids = sc1.token_ids(real_tokenizer, output)
+    assert 0 < len(ids) < 256
+    calls = []
+
+    class Backend(DeterminismFixtureBackend):
+        def generate(self, *args):
+            calls.append(True)
+            return {**super().generate(*args), "ids": ids}
+
+    store = sc1.RunStore(tmp_path, "m")
+    store.start(ep["id"], "rule", "a")
+    row = sc1.run_arm(
+        ep, "rule", real_tokenizer, Backend(), None, manifest_id="m",
+        order=["clf", "rule"], attempt_id="a", initialization_id="i",
+    )
+    store.complete(row)
+    reopened = sc1.RunStore(tmp_path, "m")
+    assert reopened.pending(ep["id"], ["rule"]) == []
+    saved = episodes.parse_json(store.arm_path(ep["id"], "rule").read_text())
+    assert saved["raw_output"] == output and not saved["checker"]["schema_valid"]
+    assert not saved["success"] and len(calls) == 1
+    assert not (tmp_path / "invalid.json").exists()
+    assert not cli.infrastructure_exception(ValueError("numeric bounds"))
+
+
+def test_astra_r1_exact_numeric_mutations_and_bounds():
+    from decimal import Decimal, localcontext
+
+    with localcontext() as ctx:
+        ctx.prec = 2
+        for text in ("1e30", "1e-4096", "1.0000000000000000000000000001"):
+            value = episodes.parse_json(text)
+            wrong = episodes._wrong(value)
+            assert wrong != value
+            assert episodes.parse_json(sc1.canonical(wrong)) == value.copy_negate()
+        for text in ("1e4097", "1e-4097", "1" * 1025):
+            with pytest.raises(ValueError, match="numeric"):
+                episodes.parse_json(text)
+        assert episodes.parse_json("1e4096") == Decimal("1e4096")
+
+
+@pytest.mark.parametrize("mode", ["setup", "final", "determinism", "analyze"])
+def test_astra_r2_execution_owner_refuses_second_consumer(scheduling, mode):
+    s = scheduling
+    originals = seed_completions(s, 510, spent=100, prefill=0)
+
+    class First(s.backend):
+        def __init__(self, *args):
+            cost = (s.args.out / "cost.json").read_bytes()
+            saved_mode = s.args.mode
+            s.args.mode = mode
+            try:
+                with pytest.raises(ValueError, match="execution.*owned"):
+                    if mode == "determinism":
+                        s.cli.run_determinism(
+                            s.args, s.manifest, s.bank, s.tok,
+                            backend_factory=Forbidden,
+                        )
+                    elif mode == "analyze":
+                        s.cli.analyze(s.args, s.manifest)
+                    else:
+                        s.run(Forbidden)
+            finally:
+                s.args.mode = saved_mode
+            assert (s.args.out / "cost.json").read_bytes() == cost
+            assert all(p.read_bytes() == raw for p, raw in originals.items())
+            super().__init__(*args)
+
+    class Forbidden:
+        def __init__(self, *args):
+            pytest.fail("second execution constructed a backend")
+
+    assert s.run(First)["status"].startswith("COMPLETE")
+    assert len(s.calls) == 2 and len(s.inits) == 1
+    assert all(p.read_bytes() == raw for p, raw in originals.items())
+
+
+@pytest.mark.parametrize("block", [
+    '{\n "v": "impossible state",\n "p": "also wrong"\n}',
+    '[\n {"v":"untracked"}\n]',
+    '{"return":\n {"v":"untracked"}}',
+])
+def test_astra_r3_multiline_public_state_through_bank(tmp_path, real_tokenizer, block):
+    source = episodes.load_sources(ROOT / "data/sc1/smoke")[5]
+    path = tmp_path / "source.source.json"
+    source["turns"][5]["text"] += "\nAn incidental pause followed."
+    sc1.atomic_json(path, source)
+    assert episodes.validate_bank(tmp_path, real_tokenizer)[1]["references_pass"] == 1
+    source["turns"][5]["text"] += "\n" + block
+    sc1.atomic_json(path, source)
+    with pytest.raises(ValueError, match="public state|trace"):
+        episodes.validate_bank(tmp_path, real_tokenizer)
+
+
+def test_astra_r4_permissions_use_original_artifact(source, real_tokenizer, tmp_path):
+    source = text_source(source)
+    valid = validate_source(source, real_tokenizer)
+    bad = copy.deepcopy(valid)
+    bad["initial_state"] = "Draft\nOriginal protected line"
+    assert episodes.run_checker(bad, bad["reference"])["corruption"]
+    source["initial_state"] = source["state_trace"]["start"] = bad["initial_state"]
+    sc1.atomic_json(tmp_path / "text.source.json", source)
+    with pytest.raises(ValueError, match="protected|permission|reference"):
+        episodes.validate_bank(tmp_path, real_tokenizer)
+    assert not episodes.run_checker(valid, "Wrong\nHarbor")["corruption"]
+
+
+@pytest.mark.parametrize("which", ["all_timeout", "one_timeout", "one_empty", "one_failure"])
+def test_astra_r5_determinism_requires_completed_tokens(tmp_path, monkeypatch, which):
+    cli, _, cert, path = determinism_fixture(tmp_path, monkeypatch)
+    # Completed malformed nonempty outputs are sufficient; task success is irrelevant.
+    cli.verify_determinism(path, {"executable_freeze": "frozen"})
+    rows = cert["outputs"] if which == "all_timeout" else cert["outputs"][:1]
+    for row in rows:
+        arm = episodes.parse_json(Path(row["arm_path"]).read_text())
+        arm["failure"] = None if which == "one_empty" else (
+            "completed generation failure" if which == "one_failure" else "timeout"
+        )
+        if which != "one_failure":
+            arm.update(token_ids=[], raw_output="", cache=None)
+        sc1.atomic_json(row["arm_path"], arm)
+        row.update(arm_hash=sc1.file_hash(row["arm_path"]), token_ids=arm["token_ids"])
+        sc1.atomic_json(row["output_path"], {
+            k: v for k, v in row.items() if k not in {"output_path", "output_hash"}
+        })
+        row["output_hash"] = sc1.file_hash(row["output_path"])
+    sc1.atomic_json(path, cert)
+    with pytest.raises(ValueError, match="determinism.*complet|nonempty"):
+        cli.verify_determinism(path, {"executable_freeze": "frozen"})
+
+
+def test_astra_r6_caught_partial_completion_is_recovered(scheduling, monkeypatch):
+    s = scheduling
+    originals = seed_completions(s, 510, spent=100, prefill=0)
+    append = sc1.RunStore.append
+    fault = []
+
+    def partial(self, event):
+        if event["event"] == "completion_prepared" and not fault:
+            fault.append(event)
+            with self.journal.open("ab") as stream:
+                stream.write(b'{"event":"completion_prepared",')
+            raise OSError("injected partial append")
+        return append(self, event)
+
+    monkeypatch.setattr(sc1.RunStore, "append", partial)
+    with pytest.raises(OSError, match="partial append"):
+        s.run()
+    assert not (s.args.out / "invalid.json").exists()
+    recovered = sc1.RunStore(s.args.out / "final", s.manifest["manifest_id"])
+    assert recovered.is_completed("cpu-255", fault[0]["arm"])
+    prepared_bytes = recovered.arm_path("cpu-255", fault[0]["arm"]).read_bytes()
+    assert s.run()["status"].startswith("COMPLETE")
+    assert len(s.calls) == 2  # The prepared generation was not repeated.
+    assert recovered.arm_path("cpu-255", fault[0]["arm"]).read_bytes() == prepared_bytes
+    assert all(p.read_bytes() == raw for p, raw in originals.items())
+
+
+@pytest.mark.parametrize("slot,field", [
+    ("wrong scope", "obsolete_work"), ("old-ID substitution", "old_id_work"),
+    ("cancelled action executed", "cancelled_work"),
+])
+def test_astra_r7_text_scope_attack_through_bank(tmp_path, source, real_tokenizer, slot, field):
+    source = text_source(source)
+    # Smoke slot 1 draws overridden; slot 4 draws cancelled-or-completed/recent.
+    template = episodes.load_sources(ROOT / "data/sc1/smoke")[4 if slot == "cancelled action executed" else 1]
+    source.update(index=template["index"], instruction_trajectory=template["instruction_trajectory"])
+    source["literal_specs"]["OLD"] = {"type": "string"}
+    trajectory = source["instruction_trajectory"]
+    source["obligations"][0]["evidence_ids"] = [p["id"] for p in trajectory] + ["fact"]
+    for event in trajectory:
+        for old in ("obsolete_work", "cancelled_work", "old_id_work"):
+            event.pop(old, None)
+    event, governing = trajectory
+    event.update(evidence_text="The earlier text requested ${OLD}.", **{field: "${OLD}\nHarbor"})
+    governing["evidence_text"] = "Replace only line zero with the approved code; preserve Harbor."
+    fact = source["decisive_facts"][0]
+    if template["index"] == 4:
+        event["turn"], fact["turn"], governing["turn"] = 9, 10, 11
+    else:
+        event["turn"], fact["turn"], governing["turn"] = 0, 1, 2
+    for evidence in [event, governing, fact]:
+        source["turns"][evidence["turn"]] = {"role": "user", "text": evidence["evidence_text"]}
+    source["filler_turns"] = [i for i in range(12) if i not in {event["turn"], fact["turn"], governing["turn"]}]
+    source["turns"][source["filler_turns"][0]]["role"] = "tool"
+    source["attacks"][slot] = {"output": "${OLD}\r\nHarbor  ", "obligation_ids": ["target"]}
+    sc1.atomic_json(tmp_path / "text.source.json", source)
+    rows, report = episodes.validate_bank(tmp_path, real_tokenizer)
+    assert report["references_pass"] == 1
+    negative = next(m for m in rows[0]["mutations"] if m["slot"] == slot)
+    assert episodes.run_checker(rows[0], negative["output"])["schema_valid"]
+    event["evidence_text"] = "The earlier text requested another value."
+    source["turns"][event["turn"]]["text"] = event["evidence_text"]
+    sc1.atomic_json(tmp_path / "text.source.json", source)
+    with pytest.raises(ValueError, match="semantic attack"):
+        episodes.validate_bank(tmp_path, real_tokenizer)
+
+
+@pytest.mark.parametrize("turn", [0, 3])
+def test_astra_r8_all_turn_cap_through_bank(tmp_path, source, real_tokenizer, turn):
+    source["turns"][turn]["text"] += " Calm surroundings." * 400
+    sc1.atomic_json(tmp_path / "source.source.json", source)
+    with pytest.raises(ValueError, match="600.*turn|turn.*600"):
+        episodes.validate_bank(tmp_path, real_tokenizer)
+
+
+def test_fable_n1_pressure_composition_report(source, real_tokenizer, tmp_path):
+    sc1.atomic_json(tmp_path / "source.source.json", source)
+    bank, report = episodes.validate_bank(tmp_path, real_tokenizer)
+    ep = bank[0]
+    universe, _ = sc1.build_sc1_candidates(sc1.render_episode(ep, real_tokenizer), real_tokenizer)
+    real = [c for c in universe if c["message_index"] not in source["filler_turns"]]
+    assert ep["layout_audit"]["real_candidate_columns"] == sum(c["span"][1] - c["span"][0] for c in real)
+    assert report["pressure"][0]["id"] == ep["id"]
+    row = sc1.run_arm(ep, "rule", real_tokenizer, DeterminismFixtureBackend(), None,
+        manifest_id="m", order=["clf", "rule"], attempt_id="a", initialization_id="i")
+    composition = row["selection"]["pin_composition"]
+    assert composition["filler_pieces"] > composition["real_pieces"]
+    assert sum(composition[k] for k in ("filler_pieces", "real_pieces")) == len(row["selection"]["admission"]["admitted"])
+    pairs = [{"id": str(i), "arms": {a: row for a in ("clf", "rule")}} for i in range(256)]
+    assert sc1.analyze_pairs(pairs)["pin_composition"]["0"]["rule"] == composition
+
+
+def test_fable_n2_capacity_guidance_and_error(source, real_tokenizer):
+    source["filler_turns"] = [3, 4, 5]
+    base = sc1.render_episode(source, real_tokenizer)
+    base_tokens = base["H"] - base["P"]
+    required = (4608 - base_tokens + 599) // 600
+    with pytest.raises(ValueError, match=rf"base_tokens=\d+.*capacity=\d+.*turns_needed={required}"):
+        episodes.expand_source(source, real_tokenizer)
+    assert "capacity" in episodes.SCHEMA["structures"]["expansion"]
+    assert "typically >=8" in episodes.SCHEMA["structures"]["expansion"]
+
+
+def test_fable_n3_snapshot_manifest_survives_live_ledger_append(tmp_path, monkeypatch):
+    from scripts import sc1 as cli
+
+    snapshot = ROOT / "data/sc1/registration-snapshot.md"
+    ledger = (ROOT / "LEDGER-PLAN.md").read_bytes()
+    section = ledger[ledger.index(b"## SC1", ledger.index(b"## SC1") + 1):]
+    assert snapshot.read_bytes() == section + (ROOT / cli.CONTRACT).read_bytes()
+    monkeypatch.setattr(cli, "ROOT", tmp_path)
+    monkeypatch.setattr(cli, "CODE_FILES", ())
+    monkeypatch.setattr(cli, "classifier_hashes", lambda: {})
+    real_hash = sc1.file_hash
+    monkeypatch.setattr(sc1, "file_hash", lambda p: real_hash(p) if Path(p).exists() else "fixture")
+    target = tmp_path / "data/sc1/registration-snapshot.md"
+    target.parent.mkdir(parents=True)
+    target.write_bytes(snapshot.read_bytes())
+    live = tmp_path / "LEDGER-PLAN.md"
+    live.write_bytes(ledger)
+    manifest = cli.build_manifest(tmp_path / "bank", "4b", [])
+    assert "LEDGER-PLAN.md" not in manifest["files"]
+    assert manifest["files"]["data/sc1/registration-snapshot.md"] == real_hash(target)
+    path = tmp_path / "manifest.json"
+    sc1.atomic_json(path, manifest)
+    live.write_bytes(ledger + b"\nEditorial note.\n")
+    cli.verify_manifest(path)
+    target.write_bytes(target.read_bytes() + b"changed")
+    with pytest.raises(ValueError, match="snapshot"):
+        cli.verify_manifest(path)
+
+
+def test_fable_n4_discriminating_regression_bounds():
+    # The strengthened F1 test must observe a real read on an existing journal.
+    import inspect
+
+    test = inspect.getsource(test_astra_f1_scheduler_incremental_accounting)
+    assert '"read_bytes"' in test and "1 <= len(reads)" in test
+    meter = sc1.CostMeter(spent=28000, estimates={"prefill": 12, "token": 0, "cpu": 0, "check": 0})
+    assert meter.project(64) > sc1.COST_CAP > meter.project(4)
+
+
+def test_fable_n5_abandoned_determinism_disposition():
+    clauses = (ROOT / "data/sc1/STAGE1-CLAUSES.md").read_text()
+    assert "abandoned allocation" in clauses and "reported separately" in clauses
+    assert "No replacement" in clauses and "new study_id" in clauses
+
+
+def test_fable_n6_registration_audit_is_reviewable(tmp_path, monkeypatch):
+    from scripts import sc1 as cli
+
+    monkeypatch.setattr(cli, "ROOT", tmp_path)
+    monkeypatch.setattr(cli, "STUDY_REGISTRY", tmp_path / "registry")
+    manifest = {"study_id": "study", "registration_hash": "reg", "manifest_id": "manifest",
+        "execution_root": str(tmp_path / "run"), "production": True,
+        "episodes": [{"source_fingerprint": "source"}]}
+    cli.bind_study(manifest, tmp_path / "run")
+    audit = json.loads((tmp_path / "run/registration-audit.production.json").read_text())
+    assert audit["registry_hash"] == sc1.file_hash(audit["registry_path"])
+    assert audit["entry"]["manifests"] == {"production": "manifest"}
+    assert len(audit["source_owners"]) == 1
+    for path, digest in audit["source_owners"].items():
+        assert sc1.file_hash(path) == digest
+    log = (tmp_path / "WORKLOG.md").read_bytes()
+    assert sc1.digest("study").encode() in log
+    cli.bind_study(manifest, tmp_path / "run")
+    assert (tmp_path / "WORKLOG.md").read_bytes() == log
+
+
+def test_fable_n7_commission_writes_separate_author_input(tmp_path, monkeypatch):
+    from scripts import sc1 as cli
+
+    monkeypatch.setattr(cli, "verify_stage_freezes", lambda *a: ({"authors": versions()}, {}))
+    cli.main(["commission", "--stage1", "fixture", "--executable-freeze", "fixture",
+        "--pool", "setup", "--index", "0", "--out", str(tmp_path)])
+    envelope = json.loads((tmp_path / "setup-0-0.request.json").read_text())
+    input_path = tmp_path / "setup-0-0.input.json"
+    public = json.loads(input_path.read_text())
+    assert sc1.file_hash(input_path) == envelope["input_file_hash"]
+    assert sc1.digest(public) == envelope["input_hash"]
+    assert "input" not in envelope and "private_assignment" in envelope
+    assert "setup_order" not in sc1.canonical(public) and '"order"' not in sc1.canonical(public)
+
+
+def test_fable_n8_within_pool_collision_is_review_flag(real_tokenizer):
+    bank = [episodes.expand_source(s, real_tokenizer) for s in episodes.load_sources(ROOT / "data/sc1/smoke")[:2]]
+    bank[1]["entities"][0]["id"] = bank[0]["entities"][0]["id"]
+    row = episodes.independence_audit(bank)[0]
+    assert bank[0]["entities"][0]["id"] in row["within_pool_literal_collisions"]
+    assert row["flag"]
+
+
+def test_fable_n9_failure_taxonomy_disclosure():
+    text = sc1.FAILURE_DISCLOSURE
+    assert "periods 1, 2 and 4" in text
+    assert "GenerationFailure" in text and "fixtures" in text
+    assert "device" in text and "operator" in text
+    assert "scope/digest" in text
+
+
+def test_fable_n10_historical_freeze_records_data_commit():
+    log = (ROOT / "WORKLOG.md").read_text()
+    assert "code@5458350 + data@00e4942" in log
