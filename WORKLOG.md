@@ -4028,3 +4028,4 @@ No model process or GPU workload was launched; no process was signalled or lock
 waited on; no sealed IFEval input was read and no `data/bench/*` file was modified.
 Direct Codex session: exact model effort, wrapper log path and external session ID
 were not supplied, so no guessed wrapper provenance is recorded.
+- 2026-09-04, coder (auto, run_codex_agent.sh). Brief sc1-harness: model gpt-6-astra, effort xhigh, exit 0, session 01a06e17-3f18-7210-bc2c-4ca377e2844f, log /home/bmarti44/stencil-llm/results/logs/codex-agent-sc1-harness.log. Override reason: Brian 2026-09-04: astra replaces sol for all coder/reviewer roles.
