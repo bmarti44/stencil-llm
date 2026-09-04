@@ -4029,3 +4029,15 @@ waited on; no sealed IFEval input was read and no `data/bench/*` file was modifi
 Direct Codex session: exact model effort, wrapper log path and external session ID
 were not supplied, so no guessed wrapper provenance is recorded.
 - 2026-09-04, coder (auto, run_codex_agent.sh). Brief sc1-harness: model gpt-6-astra, effort xhigh, exit 0, session 01a06e17-3f18-7210-bc2c-4ca377e2844f, log /home/bmarti44/stencil-llm/results/logs/codex-agent-sc1-harness.log. Override reason: Brian 2026-09-04: astra replaces sol for all coder/reviewer roles.
+
+## 2026-09-04 — sc1-harness-v2 write-ahead
+
+Implementing astra F1–F16 and fable H1/M1–M3/L1–L6 from the two
+sc1-harness reviews, under tools/codex-agents/sc1-harness-v2.allow.
+Read archived PROTOCOL/LEDGER because active plan/ paths are absent; this brief's
+narrower scope and CPU-only policy govern. Governing registration and contract
+remain unchanged. Fit-on: none; evaluated-on: disposable SC1 CPU fixtures only,
+disjoint from all benchmark cohorts. No model loading, GPU use, lock waiting,
+process signalling, or sealed-input reads are authorized or planned.
+First checkpoint: finding-named regression tests and their RED results; then
+incremental fixes, smoke regeneration, manifest verification, and final handoff.
