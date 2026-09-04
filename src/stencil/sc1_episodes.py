@@ -150,6 +150,24 @@ SCHEMA = {
         "review",
     ],
     "task_kinds": ["json_patch", "text", "tool"],
+    "numeric_law": (
+        "finite exact Decimal values; integral decimals satisfy integer "
+        "schemas; booleans separate"
+    ),
+    "fingerprints": (
+        "joint alpha normalization/unordered permutation; <=8 entries per "
+        "unordered group, <=40320 variants"
+    ),
+    "pair_signatures": (
+        "signed=true, decision=distinct, reviewer, session_id, both "
+        "source_ids and source_hashes"
+    ),
+    "provenance_chain": (
+        "attempt_history entries bind attempt, previous entry hash, "
+        "feedback, request_hash, source_hash, transcript_path/hash, "
+        "decision/reason/reviewer; transcripts retain cumulative exact "
+        "input/response messages"
+    ),
     "predicates": sorted(PREDICATES),
     "limits": {"prefix": MAX_PREFIX, "query": MAX_QUERY, "reference": 256, "lines": 40},
     "patch": (
@@ -171,12 +189,21 @@ SCHEMA["structures"] = {
     "evidence": (
         "decisive_facts and instruction_trajectory are arrays with id, turn, "
         "evidence_text (unique verbatim substring), necessary boolean; "
-        "trajectory also has authority=user, kind and assigned scope"
+        "trajectory also has actual user authority, kind, assigned scope "
+        "and event_type. "
+        "Scope event types: continuing=instruction; "
+        "overridden=superseded then update; "
+        "cancelled-or-completed=obsolete then cancellation; "
+        "switched=switch then return. "
+        "All decisive/scope evidence is necessary and "
+        "linked by an obligation"
     ),
     "task_spec": (
         "kind=json_patch/text/tool; fields maps generic field names to "
         "string/number/integer/boolean/null; permitted_paths lists authorized JSON "
-        "pointers; operations is a subset of create/update/delete/get/list"
+        "pointers; operations is a subset of create/update/delete/get/list; "
+        "text requires editable_lines (zero-based replacement indices), "
+        "with no inserted or deleted lines"
     ),
     "work": (
         "json_patch: {patch: operation array}; text: {text: full artifact}; "
@@ -203,12 +230,19 @@ SCHEMA["structures"] = {
     "expansion": (
         "author 12–24 turns {role,text}, all causal events already in assigned age "
         "region; filler_turns selects >=3 non-evidence turns with mixed roles; "
-        "compiler never moves or invents decisive events"
+        "round-robin expansion without sentence reuse to 4608 "
+        "rendered history tokens; "
+        "600 tokens per turn; U columns >= 2B and rule budget skips required. "
+        "Compiler never moves or invents decisive events"
     ),
     "attacks": (
         "map applicable named slots to {output: structured value or text, "
         "obligation_ids}; inapplicable maps other slots to narrative reasons; "
-        "compiler generates prioritized substitutes and rejects inadequate coverage"
+        "compiler generates prioritized substitutes and rejects inadequate coverage; "
+        "permitted_edits is the implicit invariant of task_spec edit permissions. "
+        "Named obsolete attacks require an event "
+        "old_id_work/obsolete_work/cancelled_work "
+        "whose changed values/actions occur in its public evidence"
     ),
     "review": (
         "source_hash, public_render_hash, reviewer, session_id, "
@@ -581,6 +615,8 @@ def check_result(episode, result):
                 outside.append(
                     {"path": f"/lines/{i}", "before": before, "after": after}
                 )
+    if outside:
+        protected.append("permitted_edits")
     if not json_equal(result, expected):
         failures.append("complete_result")
     if json_equal(result, initial):
@@ -832,7 +868,7 @@ def generate_mutations(ep, authored):
     """
     spec, reference = ep["task_spec"], ep["reference"]
     obligations = [p["id"] for p in ep["obligations"]]
-    protected = [p["id"] for p in ep["protected_set"]]
+    protected = [p["id"] for p in ep["protected_set"]] + ["permitted_edits"]
     if not obligations or not protected:
         raise ValueError("nonempty obligations/protected set required")
     substitutes = []
@@ -868,9 +904,13 @@ def generate_mutations(ep, authored):
         substitutes = [canonical(x) for x in (missing, wrong, extra, incomplete)]
     else:
         lines = reference.split("\n")
+        wrong = list(lines)
+        editable = spec.get("editable_lines", [])
+        if editable:
+            wrong[editable[0]] = _wrong(wrong[editable[0]])
         substitutes = [
             "\n".join(lines[:-1]),
-            _wrong(reference),
+            "\n".join(wrong),
             reference + "\nextra",
             reference[:-1],
         ]
@@ -908,7 +948,9 @@ def generate_mutations(ep, authored):
                 raise ValueError(
                     "six distinct applicable negatives cannot be constructed"
                 )
-            ids = obligations
+            verdict = run_checker(ep, output)
+            failures = verdict["failed_obligations"] + verdict["failed_invariants"]
+            ids = [i for i in obligations + protected if i in failures] or obligations
         if (
             mutation_key(ep, output) in used
             or mutation_key(ep, output) == mutation_key(ep, reference)
@@ -952,8 +994,11 @@ def validate_dependencies(ep):
     by_id = {p["id"]: p for p in evidence}
     if len(by_id) != len(evidence) or not trajectory:
         raise ValueError("unique evidence and governing instruction required")
-    if any(not isinstance(p.get("necessary"), bool) for p in evidence):
-        raise ValueError("explicit necessary dependency annotation required")
+    if any(p.get("necessary") is not True for p in evidence):
+        raise ValueError(
+            "every decisive fact and governing scope event must be "
+            "a necessary dependency"
+        )
     scope = ep["assignments"]["scope"]
     for instruction in trajectory:
         if instruction.get("scope") != scope:
@@ -1029,7 +1074,13 @@ def validate_trace(ep):
                 value = parse_json(line)
             except ValueError:
                 continue
-            if isinstance(value, dict) and {"call", "return"} & value.keys():
+            state_keys = set(ep["task_spec"].get("fields", {}))
+            if isinstance(ep["initial_state"], dict):
+                state_keys.update(ep["initial_state"])
+            if (
+                isinstance(value, dict)
+                and (state_keys | {"call", "return"}) & value.keys()
+            ):
                 if (i, line) not in public or turn["role"] != "tool":
                     raise ValueError("public state return missing from trace")
     if not json_equal(state, ep["initial_state"]):
@@ -1060,6 +1111,17 @@ def required_literals(material):
     return {canonical(v): v for v in leaves(values)}
 
 
+def contains_literal(text, value):
+    if isinstance(value, (int, Decimal)) and not isinstance(value, bool):
+        numbers = re.findall(
+            r"(?<![\w.])[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?(?!\w|\.\d)", text
+        )
+        return any(Decimal(n) == value for n in numbers)
+    return str(value) in text or (
+        not isinstance(value, str) and canonical(value) in text
+    )
+
+
 def literal_inventory(material, ep):
     inventory = material["answer_literals"]
     if (
@@ -1084,7 +1146,8 @@ def literal_inventory(material, ep):
         ):
             raise ValueError("invalid typed answer literal/dependency link")
         if not any(
-            str(value) in evidence[i]["evidence_text"] for i in item["evidence_ids"]
+            contains_literal(evidence[i]["evidence_text"], value)
+            for i in item["evidence_ids"]
         ):
             raise ValueError("answer literal absent from decisive evidence")
         if not any(
@@ -1122,11 +1185,26 @@ def validate_attack(ep, slot, witness):
             "cancelled action executed": "cancelled_work",
             "old-ID substitution": "old_id_work",
         }[slot]
-        applicable = any(
-            field in p
-            and mutation_key(ep, canonical(p[field])) == mutation_key(ep, text)
-            for p in trajectory
-        )
+
+        def leaves(value):
+            if isinstance(value, dict):
+                return [x for v in value.values() for x in leaves(v)]
+            if isinstance(value, list):
+                return [x for v in value for x in leaves(v)]
+            return [value]
+
+        original = {canonical(v) for v in leaves(parse_json(ep["reference"]))}
+        applicable = False
+        for event in trajectory:
+            if field not in event or mutation_key(
+                ep, canonical(event[field])
+            ) != mutation_key(ep, text):
+                continue
+            changes = [v for v in leaves(event[field]) if canonical(v) not in original]
+            if changes and all(
+                contains_literal(event["evidence_text"], v) for v in changes
+            ):
+                applicable = True
         if slot == "wrong scope":
             applicable &= ep["assignments"]["scope"] != "continuing"
         if slot == "cancelled action executed":
@@ -1208,6 +1286,19 @@ def expand_source(source, tokenizer):
             "value": expected,
         }
     )
+    validate_trace(ep)
+    if kind == "text":
+        editable = ep["task_spec"].get("editable_lines")
+        if (
+            not isinstance(editable, list)
+            or not editable
+            or len(set(editable)) != len(editable)
+            or any(
+                type(i) is not int or not 0 <= i < len(expected.split("\n"))
+                for i in editable
+            )
+        ):
+            raise ValueError("explicit text line edit permissions required")
     fill_at = material["filler_turns"]
     evidence_turns = {
         p["turn"] for p in ep["decisive_facts"] + ep["instruction_trajectory"]
@@ -1297,10 +1388,10 @@ def expand_source(source, tokenizer):
     validate_trace(ep)
     forbidden = literal_inventory(material, ep)
     public_other = ep["system"] + canonical(ep["tools"]) + ep["final_request"]
-    leakage = [s for s in forbidden if str(s) in public_other]
+    leakage = [s for s in forbidden if contains_literal(public_other, s)]
     if verified == "old":
         recent = tokenizer.decode(layout["ids"][layout["R"] : layout["H"]])
-        leakage.extend(s for s in forbidden if str(s) in recent)
+        leakage.extend(s for s in forbidden if contains_literal(recent, s))
     universe, _ = build_sc1_candidates(layout, tokenizer)
     rule = select_policy(layout, tokenizer, "rule")
     ep["layout_audit"] = {
@@ -1372,6 +1463,8 @@ def validate_schema(ep):
     if not ep["protected_set"] or not ep["obligations"]:
         raise ValueError("empty obligation/protected set")
     ids = [p["id"] for p in ep["obligations"] + ep["protected_set"]]
+    if "permitted_edits" in ids:
+        raise ValueError("permitted_edits is the reserved edit-permission invariant")
     if len(set(ids)) != len(ids):
         raise ValueError("duplicate obligation/invariant ID")
     if ep["pool"] != "smoke":
@@ -1404,8 +1497,8 @@ def validate_schema(ep):
         review = ep["validation"]["review"]
         if (
             not review.get("reviewer")
-            or not review.get("narrative_obligations")
-            or not review.get("semantic_leakage")
+            or review.get("narrative_obligations") is not True
+            or review.get("semantic_leakage") is not True
         ):
             raise ValueError("independent semantic review required")
         if (
@@ -1420,7 +1513,7 @@ def validate_schema(ep):
             )
         if review["reviewer"] == provenance["session_id"]:
             raise ValueError("author cannot independently review own source")
-        if not ep["distinctness_review"].get("signed"):
+        if ep["distinctness_review"].get("signed") is not True:
             raise ValueError("signed distinctness review required")
 
 
@@ -1563,7 +1656,7 @@ def independence_audit(episodes, *, require_review=True):
             and (left["pool"] != "smoke" or right["pool"] != "smoke")
             and (
                 not isinstance(review, dict)
-                or not review.get("signed")
+                or review.get("signed") is not True
                 or review.get("decision") != "distinct"
                 or not review.get("reviewer")
                 or review.get("source_ids") != [left["source_id"], right["source_id"]]
@@ -1643,6 +1736,15 @@ def commissioning_request(
         raise ValueError("exact author version/settings/template must be frozen")
     if attempt and not feedback:
         raise ValueError("repair requires retained contract-only rejection feedback")
+    if feedback is not None and (
+        not isinstance(feedback, str)
+        or re.search(
+            r"\b(clf|evicted|ranking|performance|benchmark|policy|scorer)\b",
+            feedback,
+            re.I,
+        )
+    ):
+        raise ValueError("author feedback must be contract-only and policy-blind")
     assignment = {
         "pool": pool,
         "index": index,
@@ -1659,7 +1761,7 @@ def commissioning_request(
     }
     return {
         "author": author,
-        "session": "new-empty-context",
+        "session": "new-empty-context" if not attempt else "resume-isolated-author",
         "tools": [],
         "retrieval": False,
         "input": model_input,

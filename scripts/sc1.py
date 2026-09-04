@@ -95,7 +95,9 @@ def bind_study(manifest, out, *, stage="production"):
 
 
 def infrastructure_exception(exc):
-    if isinstance(exc, OSError):
+    import torch
+
+    if isinstance(exc, (OSError, torch.cuda.OutOfMemoryError)):
         return True
     if isinstance(exc, RuntimeError):
         return any(
@@ -303,6 +305,12 @@ def verify_manifest(path, *, production=False):
         stage1, _ = verify_stage_freezes(
             manifest["stage1"], manifest["executable_freeze"]
         )
+        if (
+            manifest.get("study_id") != stage1["study_id"]
+            or manifest.get("execution_root") != stage1["execution_root"]
+            or manifest.get("registration_hash") != sc1.file_hash(manifest["stage1"])
+        ):
+            raise ValueError("registered study identity mismatch")
         if stage1.get("status") != "REGISTERED" or set(
             stage1.get("authors", {})
         ) != set(episodes.AUTHORS):
@@ -405,7 +413,7 @@ def verify_stage_freezes(stage1_path, executable_path):
     return stage1, frozen
 
 
-def verify_author_chain(ep, stage1):
+def verify_author_chain(ep, stage1, *, final_decision="accepted"):
     provenance = ep["provenance"]
     author = stage1["authors"][ep["assignments"]["author"]]
     chain = provenance.get("attempt_history")
@@ -413,10 +421,13 @@ def verify_author_chain(ep, stage1):
         raise ValueError("complete three-attempt request/rejection chain required")
     session = provenance["session_id"]
     previous = None
+    messages = []
     for attempt, entry in enumerate(chain):
         if entry.get("attempt") != attempt or entry.get("previous") != previous:
             raise ValueError("attempt chain order/hash mismatch")
         feedback = entry.get("feedback")
+        if feedback != (chain[attempt - 1]["reason"] if attempt else None):
+            raise ValueError("repair feedback must match the retained rejection")
         request = episodes.commissioning_request(
             (ROOT / CONTRACT).read_text(),
             episodes.SCHEMA,
@@ -432,17 +443,19 @@ def verify_author_chain(ep, stage1):
         if sc1.file_hash(transcript_path) != entry["transcript_hash"]:
             raise ValueError("author transcript hash mismatch")
         transcript = episodes.parse_json(transcript_path.read_text())
+        messages.extend(
+            [
+                {"role": "user", "content": request["input"]},
+                {"role": "assistant", "content": transcript.get("response")},
+            ]
+        )
         if (
             transcript.get("input") != request["input"]
             or transcript.get("session_id") != session
             or transcript.get("provider") != author["provider"]
             or transcript.get("version") != author["immutable_version"]
             or transcript.get("settings") != author["settings"]
-            or transcript.get("messages")
-            != [
-                {"role": "user", "content": request["input"]},
-                {"role": "assistant", "content": transcript.get("response")},
-            ]
+            or transcript.get("messages") != messages
             or not isinstance(transcript.get("response"), dict)
         ):
             raise ValueError(
@@ -451,7 +464,7 @@ def verify_author_chain(ep, stage1):
         response = transcript["response"]
         if episodes.source_spec_hash(response) != entry.get("source_hash"):
             raise ValueError("retained attempted source hash mismatch")
-        if attempt < ep["attempt"]:
+        if attempt < ep["attempt"] or final_decision == "rejected":
             if (
                 entry.get("decision") != "rejected"
                 or not entry.get("reason")
@@ -459,7 +472,7 @@ def verify_author_chain(ep, stage1):
             ):
                 raise ValueError("prior rejected attempt/transcript missing")
         elif (
-            entry.get("decision") != "accepted"
+            entry.get("decision") != final_decision
             or entry["source_hash"] != ep["validation"]["source_hash"]
         ):
             raise ValueError("accepted attempt source mismatch")
@@ -519,7 +532,7 @@ def require_setup(path, manifest_id=None, *, committed=True):
         if sc1.file_hash(filename) != h:
             raise ValueError("setup output hash mismatch")
     pairs = [
-        json.loads(Path(p).read_text())
+        episodes.parse_json(Path(p).read_text())
         for p in cert["output_hashes"]
         if p.endswith(".pair.json")
     ]
@@ -546,6 +559,17 @@ def verify_determinism(path, manifest):
     if path is None:
         raise ValueError("separately authorized model determinism certificate required")
     cert = episodes.parse_json(Path(path).read_text())
+    required = {
+        "executable_manifest_id",
+        "outputs",
+        "allocated_seconds",
+        "study_id",
+        "initializations",
+        "allocation_path",
+        "allocation_hash",
+    }
+    if not required <= cert.keys():
+        raise ValueError("incomplete determinism certificate")
     frozen = verify_manifest(
         manifest.get("executable_freeze") or manifest["manifest_path"]
     )
@@ -555,8 +579,30 @@ def verify_determinism(path, manifest):
         (e for e in frozen["episodes"] if e["pool"] == "smoke"), key=lambda e: e["id"]
     )[:2]
     expected = {e["id"]: e["hash"] for e in expected_episodes}
+    allocation_path = Path(cert["allocation_path"])
+    if sc1.file_hash(allocation_path) != cert["allocation_hash"]:
+        raise ValueError("determinism allocation artifact hash mismatch")
+    charged = episodes.parse_json(allocation_path.read_text())
+    if (
+        sc1.digest({k: v for k, v in charged.items() if k != "hash"}) != charged["hash"]
+        or charged["meter"]["spent"] != cert["allocated_seconds"]
+        or charged["manifest_id"] != cert["study_id"]
+        or any(not interval["closed"] for interval in charged["intervals"])
+    ):
+        raise ValueError("determinism allocation ledger mismatch")
+    inputs = {ep["id"]: ep for ep in load_manifest_bank(frozen)}
+    tokenizer = load_tokenizer(frozen["trunk"])
     rows = cert["outputs"]
     processes = set(cert.get("initializations", {}))
+    if (
+        len(charged["intervals"]) != 2
+        or {i["id"] for i in charged["intervals"]} != processes
+        or any(
+            i["elapsed"] < cert["initializations"][i["id"]]["allocated_seconds"]
+            for i in charged["intervals"]
+        )
+    ):
+        raise ValueError("determinism initialization intervals not charged")
     if len(expected) != 2 or len(rows) != 8 or len(processes) != 2:
         raise ValueError(
             "determinism requires two processes x two frozen smoke sources x two arms"
@@ -584,6 +630,26 @@ def verify_determinism(path, manifest):
             k: v for k, v in row.items() if k not in {"output_path", "output_hash"}
         }:
             raise ValueError("determinism output does not match retained artifact")
+        arm_path = Path(row["arm_path"])
+        if sc1.file_hash(arm_path) != row["arm_hash"]:
+            raise ValueError("determinism retained arm hash mismatch")
+        arm_row = episodes.parse_json(arm_path.read_text())
+        if (
+            arm_row["token_ids"] != row["token_ids"]
+            or arm_row["episode_hash"] != row["episode_hash"]
+            or arm_row["arm"] != row["arm"]
+            or arm_row["initialization_id"] != row["initialization_id"]
+            or arm_row["manifest_id"] != frozen["manifest_id"]
+            or arm_row["allocated_seconds"] != row["allocated_seconds"]
+        ):
+            raise ValueError("determinism retained arm/input identity mismatch")
+        prompt = sc1.render_episode(
+            inputs[row["episode_id"]],
+            tokenizer,
+            arm_row["selection"]["echo"]["insertion"],
+        )
+        if row["input_hash"] != sc1.digest(prompt["ids"]):
+            raise ValueError("determinism frozen input hash mismatch")
         artifacts.add(artifact)
         cells[key] = row
     for episode in expected:
@@ -757,6 +823,15 @@ def run_determinism(
         },
         "outputs": [o for r in all_receipts for o in r["outputs"]],
     }
+    if len(all_receipts) == 2:
+        snapshot = root / "allocation.json"
+        sc1.atomic_json(
+            snapshot, json.loads((args.out / "cost.json").read_text()), exclusive=True
+        )
+        cert.update(
+            allocation_path=str(snapshot.resolve()),
+            allocation_hash=sc1.file_hash(snapshot),
+        )
     path = args.out / "determinism-certificate.json"
     sc1.atomic_json(path, cert)
     return {
@@ -839,7 +914,19 @@ def run_study(
     stage = args.mode
     bind_study(manifest, args.out)
     root = args.out / stage
-    store = sc1.RunStore(root, manifest["manifest_id"])
+    try:
+        store = sc1.RunStore(root, manifest["manifest_id"])
+    except RuntimeError as exc:
+        sc1.atomic_json(
+            args.out / "invalid.json",
+            {
+                "study_id": manifest["study_id"],
+                "manifest_id": manifest["manifest_id"],
+                "cause": repr(exc),
+            },
+            exclusive=True,
+        )
+        raise
     cert = (
         require_setup(args.setup_certificate, manifest["manifest_id"])
         if stage == "final"
@@ -861,9 +948,11 @@ def run_study(
         evidence = json.loads(args.interruption_evidence.read_text())
         if allocation.intervals and not allocation.intervals[-1]["closed"]:
             allocation.recover(evidence)
-        elif not evidence.get("evidence") or not evidence.get("attempts"):
-            raise ValueError("external interruption evidence required")
+        else:
+            allocation.recover(evidence, allow_closed=True)
         for attempt in evidence.get("attempts", []):
+            if store.is_completed(attempt["episode_id"], attempt["arm"]):
+                continue  # Recovered durable outputs are never classified as retries.
             store.interrupt(
                 attempt["episode_id"],
                 attempt["arm"],
@@ -902,8 +991,10 @@ def run_study(
         ]
         pending_by_id[episode["id"]] = store.pending(episode["id"], order)
     remaining = sum(map(len, pending_by_id.values()))
-    meter.remaining_initialization = max(
-        meter.remaining_initialization, meter.initialization_estimate
+    meter.remaining_initialization = (
+        max(meter.remaining_initialization, meter.initialization_estimate)
+        if remaining or stage == "setup"
+        else 0.0
     )
     if not meter.can_start(remaining):
         return stop_for_cost(
@@ -926,7 +1017,11 @@ def run_study(
     )
     try:
         backend = backend_factory(ROOT, args.trunk) if remaining else None
-        scorer = (scorer_factory or ClassifierScorer)(ROOT / "data/classifier/model/ft")
+        scorer = (
+            (scorer_factory or ClassifierScorer)(ROOT / "data/classifier/model/ft")
+            if remaining or stage == "setup"
+            else None
+        )
     except Exception as exc:
         record_exception(
             args, manifest, allocation, store, exc, initialization_id=init_id
@@ -976,6 +1071,8 @@ def run_study(
                     initialization_id=init_id,
                     prior_elapsed=store.prior_elapsed(episode["id"], arm),
                 )
+                persist_start = time.monotonic()
+                store.complete(row)
             except Exception as exc:
                 record_exception(
                     args,
@@ -988,8 +1085,6 @@ def run_study(
                     attempt_id=attempt,
                 )
                 raise
-            persist_start = time.monotonic()
-            store.complete(row)
             meter.persistence_estimate = max(
                 meter.persistence_estimate, time.monotonic() - persist_start
             )
@@ -1099,7 +1194,7 @@ def analyze(args, manifest):
     for path, h in seal["pairs"].items():
         if sc1.file_hash(path) != h:
             raise ValueError("sealed paired output hash mismatch")
-    rows = [json.loads(Path(p).read_text()) for p in seal["pairs"]]
+    rows = [episodes.parse_json(Path(p).read_text()) for p in seal["pairs"]]
     expected = {e["id"]: e for e in manifest["episodes"] if e["pool"] == "final"}
     if len(rows) != len(expected) or {r["id"] for r in rows} != set(expected):
         raise ValueError("final cohort ID mismatch")
@@ -1191,6 +1286,35 @@ def main(argv=None):
             ):
                 raise ValueError("commission rejected-attempt evidence incomplete")
         feedback = history[-1]["reason"] if history else None
+        if history:
+            last = history[-1]
+            transcript = episodes.parse_json(Path(last["transcript_path"]).read_text())
+            slot = episodes.commission_slot(args.pool, args.index, args.attempt - 1)
+            author = versions[slot["assignments"]["author"]]
+            previous_request = episodes.commissioning_request(
+                (ROOT / CONTRACT).read_text(),
+                episodes.SCHEMA,
+                versions,
+                args.pool,
+                args.index,
+                args.attempt - 1,
+                last.get("feedback"),
+            )
+            previous_ep = {
+                "attempt": args.attempt - 1,
+                "pool": args.pool,
+                "index": args.index,
+                "assignments": slot["assignments"],
+                "validation": {"source_hash": last["source_hash"]},
+                "provenance": {
+                    "session_id": transcript["session_id"],
+                    "attempt_history": history,
+                    "prompt_hash": sc1.digest(author["neutral_template"]),
+                    "input_hashes": [previous_request["input_hash"]],
+                    "transcript_hash": last["transcript_hash"],
+                },
+            }
+            verify_author_chain(previous_ep, stage1, final_decision="rejected")
         result = episodes.commissioning_request(
             (ROOT / CONTRACT).read_text(),
             episodes.SCHEMA,

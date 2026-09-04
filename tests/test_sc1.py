@@ -1188,9 +1188,18 @@ def test_astra_f2_output_cannot_reset_execution(scheduling, state):
 def test_astra_f3_resume_projects_only_missing_arms(scheduling):
     s = scheduling
     originals = seed_completions(s, 510)
+    store = sc1.RunStore(s.args.out / "final", s.manifest["manifest_id"])
+    for arm in ("clf", "rule"):
+        store.start("cpu-255", arm, "lost-" + arm)
+        store.interrupt(
+            "cpu-255", arm, "lost-" + arm, "host_loss", 1.5, "CPU fixture loss"
+        )
     assert s.run()["status"].startswith("COMPLETE")
     assert len(s.calls) == 2
     assert all(p.read_bytes() == raw for p, raw in originals.items())
+    for arm in ("clf", "rule"):
+        row = episodes.parse_json(store.arm_path("cpu-255", arm).read_text())
+        assert row["latency"]["prior_attempts"] == 1.5
 
 
 def test_fable_m1_setup_resume_projection(scheduling):
@@ -1229,7 +1238,7 @@ def test_astra_f15_projection_reserves_future_initialization(scheduling, monkeyp
 
 def test_fable_m2_device_loss_is_resumable(scheduling):
     s = scheduling
-    seed_completions(s, 510, spent=100, prefill=0)
+    originals = seed_completions(s, 510, spent=100, prefill=0)
 
     class DeviceLoss(s.backend):
         def generate(self, *args):
@@ -1241,6 +1250,31 @@ def test_fable_m2_device_loss_is_resumable(scheduling):
     store = sc1.RunStore(s.args.out / "final", s.manifest["manifest_id"])
     with pytest.raises(RuntimeError, match="interruption"):
         store.pending("cpu-255", ["clf", "rule"])
+
+    active = next(e for e in reversed(store.events()) if e["event"] == "start")
+    allocation = sc1.AllocationLedger(s.args.out / "cost.json", s.manifest["study_id"])
+    evidence = {
+        "allocation_id": allocation.intervals[-1]["id"],
+        "reason": "device_loss",
+        "elapsed": allocation.intervals[-1]["elapsed"],
+        "evidence": "CPU injected device failure",
+        "attempts": [
+            {
+                "episode_id": active["episode_id"],
+                "arm": active["arm"],
+                "attempt_id": active["attempt_id"],
+                "elapsed": 1.25,
+            }
+        ],
+    }
+    s.args.interruption_evidence = s.args.out / "interruption.json"
+    sc1.atomic_json(s.args.interruption_evidence, evidence)
+    assert s.run()["status"].startswith("COMPLETE")
+    assert all(p.read_bytes() == raw for p, raw in originals.items())
+    completed = episodes.parse_json(
+        store.arm_path(active["episode_id"], active["arm"]).read_text()
+    )
+    assert completed["latency"]["prior_attempts"] == 1.25
 
 
 def test_astra_f16_partial_journal_tail_recovery(tmp_path):
@@ -1259,30 +1293,55 @@ def test_astra_f16_partial_journal_tail_recovery(tmp_path):
 def determinism_fixture(tmp_path, monkeypatch):
     from scripts import sc1 as cli
 
+    tokenizer = CharTokenizer()
+    bank = [
+        episodes.expand_source(source, tokenizer)
+        for source in episodes.load_sources(ROOT / "data/sc1/smoke")[:2]
+    ]
     frozen = {
         "manifest_id": "frozen",
+        "trunk": "4b",
         "deployment": {"trunk": "4b"},
         "episodes": [
-            {"id": e, "pool": "smoke", "hash": e + "-hash"}
-            for e in ("smoke-00", "smoke-01")
+            {"id": ep["id"], "pool": "smoke", "hash": sc1.digest(ep)} for ep in bank
         ],
     }
     monkeypatch.setattr(cli, "verify_manifest", lambda *a, **kw: frozen)
+    monkeypatch.setattr(cli, "load_manifest_bank", lambda *a: bank)
+    monkeypatch.setattr(cli, "load_tokenizer", lambda *a: tokenizer)
     rows = []
     for process in ("p1", "p2"):
-        for episode in frozen["episodes"]:
+        for episode in bank:
             for arm in ("clf", "rule"):
+                arm_row = sc1.run_arm(
+                    episode,
+                    arm,
+                    tokenizer,
+                    DeterminismFixtureBackend(),
+                    lambda texts, **kw: [0.6] * len(texts),
+                    manifest_id="frozen",
+                    order=["clf", "rule"],
+                    attempt_id=process + episode["id"] + arm,
+                    initialization_id=process,
+                )
+                arm_path = tmp_path / f"{process}-{episode['id']}-{arm}.arm.json"
+                sc1.atomic_json(arm_path, arm_row)
+                prompt = sc1.render_episode(
+                    episode, tokenizer, arm_row["selection"]["echo"]["insertion"]
+                )
                 output = {
                     "process_id": process,
                     "initialization_id": process,
                     "episode_id": episode["id"],
-                    "episode_hash": episode["hash"],
+                    "episode_hash": sc1.digest(episode),
                     "arm": arm,
-                    "token_ids": [1, 2],
-                    "input_hash": episode["hash"] + arm,
+                    "token_ids": arm_row["token_ids"],
+                    "input_hash": sc1.digest(prompt["ids"]),
                     "deployment_hash": sc1.digest(frozen["deployment"]),
-                    "allocated_seconds": 1,
+                    "allocated_seconds": arm_row["allocated_seconds"],
                     "executable_manifest_id": "frozen",
+                    "arm_path": str(arm_path),
+                    "arm_hash": sc1.file_hash(arm_path),
                 }
                 path = tmp_path / f"{process}-{episode['id']}-{arm}.json"
                 sc1.atomic_json(path, output)
@@ -1293,10 +1352,21 @@ def determinism_fixture(tmp_path, monkeypatch):
                         "output_hash": sc1.file_hash(path),
                     }
                 )
+    ledger = sc1.AllocationLedger(
+        tmp_path / "allocation.json", "cpu-study", sc1.CostMeter(spent=10)
+    )
+    ledger.intervals = [
+        {"id": p, "closed": True, "elapsed": 5, "base": i * 5}
+        for i, p in enumerate(("p1", "p2"))
+    ]
+    ledger.checkpoint()
     cert = {
         "executable_manifest_id": "frozen",
+        "study_id": "cpu-study",
         "outputs": rows,
         "allocated_seconds": 10,
+        "allocation_path": str(ledger.path),
+        "allocation_hash": sc1.file_hash(ledger.path),
         "initializations": {p: {"allocated_seconds": 5} for p in ("p1", "p2")},
     }
     path = tmp_path / "certificate.json"
@@ -1394,6 +1464,8 @@ print(cli.run_determinism(args, manifest, bank, fixtures["CharTokenizer"](),
         )
         assert process.returncode == 0, process.stdout + process.stderr
     monkeypatch.setattr(cli, "verify_manifest", lambda *a, **k: manifest)
+    monkeypatch.setattr(cli, "load_manifest_bank", lambda *a: bank)
+    monkeypatch.setattr(cli, "load_tokenizer", lambda *a: CharTokenizer())
     path = tmp_path / "run/determinism-certificate.json"
     cert = cli.verify_determinism(path, {**manifest, "executable_freeze": "cpu-frozen"})
     assert len(cert["outputs"]) == 8
@@ -1467,3 +1539,301 @@ def test_astra_f7_numeric_key_order_and_text_negative_identity():
     assert episodes.mutation_key(ep, "x  \r\n\r\n\r\ny") == episodes.mutation_key(
         ep, "x\n\ny"
     )
+
+
+def test_astra_f8_validated_text_source_rejects_unauthorized_lines(
+    source, real_tokenizer
+):
+    source["task_spec"].update(kind="text", permitted_paths=[], editable_lines=[0])
+    source["initial_state"] = "Draft\nHarbor"
+    source["state_trace"] = {"start": source["initial_state"], "events": []}
+    source["work"] = {"text": "${VALUE}\nHarbor"}
+    instruction = (
+        "Write the approved code as the first line and Harbor as the second line. "
+        "Preserve Harbor and add no other lines."
+    )
+    source["turns"][0]["text"] = instruction
+    source["instruction_trajectory"][0]["evidence_text"] = instruction
+    source["obligations"] = [
+        {
+            "id": "target",
+            "kind": "required_lines",
+            "values": ["${VALUE}"],
+            "evidence_ids": ["governing", "fact"],
+        }
+    ]
+    source["protected_set"] = [
+        {"id": "keep", "kind": "required_lines", "values": ["Harbor"]}
+    ]
+    source["answer_literals"].append(
+        {
+            "value": "Harbor",
+            "type": "string",
+            "evidence_ids": ["governing"],
+            "obligation_ids": ["target"],
+        }
+    )
+    source["attacks"] = {
+        "collateral edit": {"output": "${VALUE}\nDamaged", "obligation_ids": ["keep"]}
+    }
+    source["inapplicable"]["wrong entity"] = (
+        "The raw artifact has no alternative target entity."
+    )
+    ep = validate_source(source, real_tokenizer)
+    assert episodes.run_checker(ep, ep["reference"] + "\nIntrusion")["corruption"]
+    assert not episodes.run_checker(ep, "Wrong\nHarbor")["corruption"]
+
+
+@pytest.mark.parametrize("kind,index", [("json_patch", 0), ("tool", 5)])
+def test_astra_f9_validated_numeric_source(kind, index, real_tokenizer):
+    source = episodes.load_sources(ROOT / "data/sc1/smoke")[index]
+    source["literal_specs"]["VALUE"] = {"type": "integer"}
+    source["answer_literals"][0]["type"] = "integer"
+    source["task_spec"]["fields"]["v"] = "number"
+    source["literal_specs"]["OLD"] = {"type": "integer"}
+    if kind == "json_patch":
+        source["task_spec"]["fields"]["p"] = "number"
+        source["initial_state"] = {"v": 0, "p": 10}
+        source["state_trace"]["start"] = copy.deepcopy(source["initial_state"])
+        source["attacks"]["collateral edit"]["output"][1]["value"] = -1
+    else:
+        for state in (source["initial_state"], source["state_trace"]["start"]):
+            state["${TARGET}"]["v"] = 0
+            state["${GUARD}"]["v"] = 7
+        event = source["state_trace"]["events"][0]
+        event["return"]["v"] = 0
+        event["public_text"] = episodes.public_return_text(
+            event["call"], event["return"]
+        )
+        source["turns"][event["turn"]]["text"] = event["public_text"]
+    ep = validate_source(source, real_tokenizer)
+    value = ep["filler_manifest"]["literal_values"]["VALUE"]
+    reference = episodes.parse_json(ep["reference"])
+    assert episodes.run_checker(ep, ep["reference"])["success"]
+    exact = ep["reference"].replace(str(value), str(value) + ".00000000000000000001")
+    assert not episodes.run_checker(ep, exact)["success"]
+    if kind == "tool":
+        reference["arguments"]["changes"]["v"] = True
+    else:
+        reference[0]["value"] = True
+    assert not episodes.run_checker(ep, sc1.canonical(reference))["schema_valid"]
+
+
+def test_astra_f13_acceptance_checks_retained_input_and_retries(tmp_path, source):
+    from scripts import sc1 as cli
+
+    version_map = versions()
+    for author in version_map.values():
+        author["provider"] = "cpu-fixture-provider"
+    slot = episodes.commission_slot("setup", 0)
+    family = slot["assignments"]["author"]
+    request = episodes.commissioning_request(
+        (ROOT / cli.CONTRACT).read_text(), episodes.SCHEMA, version_map, "setup", 0
+    )
+    transcript = {
+        "session_id": "isolated-author",
+        "provider": "cpu-fixture-provider",
+        "version": version_map[family]["immutable_version"],
+        "settings": version_map[family]["settings"],
+        "input": request["input"],
+        "response": source,
+        "messages": [
+            {"role": "user", "content": request["input"]},
+            {"role": "assistant", "content": source},
+        ],
+    }
+    path = tmp_path / "transcript.json"
+    sc1.atomic_json(path, transcript)
+    entry = {
+        "attempt": 0,
+        "previous": None,
+        "request_hash": sc1.digest(request),
+        "transcript_path": str(path),
+        "transcript_hash": sc1.file_hash(path),
+        "source_hash": episodes.source_spec_hash(source),
+        "decision": "accepted",
+    }
+    ep = {
+        "attempt": 0,
+        "pool": "setup",
+        "index": 0,
+        "assignments": slot["assignments"],
+        "validation": {"source_hash": entry["source_hash"]},
+        "provenance": {
+            "session_id": "isolated-author",
+            "attempt_history": [entry],
+            "prompt_hash": sc1.digest(version_map[family]["neutral_template"]),
+            "input_hashes": [request["input_hash"]],
+            "transcript_hash": entry["transcript_hash"],
+        },
+    }
+    stage = {"authors": version_map}
+    cli.verify_author_chain(ep, stage)
+    for issue in ("stale_prompt", "missing_attempts", "hidden_input"):
+        bad = copy.deepcopy(ep)
+        if issue == "stale_prompt":
+            bad["provenance"]["prompt_hash"] = "stale"
+        elif issue == "missing_attempts":
+            bad["attempt"] = 2
+        else:
+            transcript["messages"].insert(
+                0, {"role": "system", "content": "unallowed prior context"}
+            )
+            sc1.atomic_json(path, transcript)
+            bad["provenance"]["attempt_history"][0]["transcript_hash"] = sc1.file_hash(
+                path
+            )
+        with pytest.raises(ValueError, match="prompt|attempt|input|transcript"):
+            cli.verify_author_chain(bad, stage)
+
+
+def test_astra_f10_provenance_changes_preserve_content_signature(source):
+    changed = copy.deepcopy(source)
+    changed["provenance"]["audit_note"] = "retained external metadata"
+    assert episodes.source_spec_hash(source) == episodes.source_spec_hash(changed)
+    assert sc1.digest(source) != sc1.digest(changed)
+
+
+def test_astra_f6_necessary_update_on_wrong_side_of_recent_boundary(
+    source, real_tokenizer
+):
+    text = source["turns"][0]["text"]
+    source["turns"][0]["text"] = "An incidental courtyard observation."
+    source["turns"][10] = {"role": "user", "text": text}
+    source["instruction_trajectory"][0]["turn"] = 10
+    source["filler_turns"].remove(10)
+    source["filler_turns"].append(0)
+    with pytest.raises(ValueError, match="age"):
+        validate_source(source, real_tokenizer)
+
+
+def test_astra_f13_author_sessions_are_unique(real_tokenizer):
+    pair = reviewed_pair(real_tokenizer)
+    pair[1]["provenance"]["session_id"] = pair[0]["provenance"]["session_id"]
+    with pytest.raises(ValueError, match="session"):
+        episodes.independence_audit(pair)
+
+
+def test_astra_f15_near_cap_setup_defers_for_next_initialization(
+    scheduling, monkeypatch
+):
+    s = scheduling
+    s.args.mode = "setup"
+    del s.bank[32:]
+    for ep in s.bank:
+        ep["pool"] = "setup"
+    seed_completions(s, 64, spent=28301, prefill=0)
+    now = [1.0]
+    original = sc1.AllocationLedger.__init__
+
+    def allocation_init(self, *args, **kwargs):
+        original(self, *args, **kwargs, clock=lambda: now[0])
+
+    monkeypatch.setattr(sc1.AllocationLedger, "__init__", allocation_init)
+    monkeypatch.setattr(s.cli.time, "monotonic", lambda: now[0])
+
+    def scorer_factory(*args):
+        now[0] += 300
+        return lambda texts, **kwargs: [0.0] * len(texts)
+
+    result = s.cli.run_study(
+        s.args,
+        s.manifest,
+        s.bank,
+        s.tok,
+        backend_factory=s.backend,
+        scorer_factory=scorer_factory,
+    )
+    cert = episodes.parse_json((s.args.out / "setup-certificate.json").read_text())
+    assert result["status"] == "NOT RUN"
+    assert cert["full_passes"] == 32 and cert["evicted_passes"] == 0
+    assert cert["cost"]["spent"] < sc1.COST_CAP < cert["projection_seconds"]
+    assert cert["cost"]["remaining_initialization"] == 300
+    assert not s.calls and not s.inits
+
+
+@pytest.mark.parametrize(
+    "mutation", ["duplicate", "non_smoke", "input_hash", "token_divergence"]
+)
+def test_astra_f11_determinism_rejects_cell_artifact_mutations(
+    tmp_path, monkeypatch, mutation
+):
+    cli, frozen, cert, path = determinism_fixture(tmp_path, monkeypatch)
+    if mutation == "duplicate":
+        cert["outputs"][1] = copy.deepcopy(cert["outputs"][0])
+    elif mutation == "non_smoke":
+        cert["outputs"][0]["episode_hash"] = "not-frozen"
+    elif mutation == "input_hash":
+        cert["outputs"][0]["input_hash"] = "not-frozen-input"
+    else:
+        row = cert["outputs"][0]
+        row["token_ids"][0] += 1
+        arm = episodes.parse_json(Path(row["arm_path"]).read_text())
+        arm["token_ids"] = row["token_ids"]
+        sc1.atomic_json(row["arm_path"], arm)
+        row["arm_hash"] = sc1.file_hash(row["arm_path"])
+        sc1.atomic_json(
+            row["output_path"],
+            {k: v for k, v in row.items() if k not in {"output_path", "output_hash"}},
+        )
+        row["output_hash"] = sc1.file_hash(row["output_path"])
+    sc1.atomic_json(path, cert)
+    with pytest.raises(ValueError, match="determinism|output"):
+        cli.verify_determinism(path, {"executable_freeze": "frozen"})
+
+
+def test_astra_f16_prepared_output_survives_loss_before_journal_append(
+    tmp_path, monkeypatch
+):
+    store = sc1.RunStore(tmp_path, "m")
+    store.start("ep", "clf", "a")
+    original = store.append
+
+    def lose_append(event):
+        if event["event"] == "completion_prepared":
+            raise OSError("resource loss after atomic preparation")
+        return original(event)
+
+    monkeypatch.setattr(store, "append", lose_append)
+    row = {
+        "manifest_id": "m",
+        "episode_id": "ep",
+        "arm": "clf",
+        "attempt_id": "a",
+        "success": False,
+    }
+    with pytest.raises(OSError):
+        store.complete(row)
+    recovered = sc1.RunStore(tmp_path, "m")
+    assert recovered.pending("ep", ["clf"]) == []
+    assert (
+        recovered.arm_path("ep", "clf").read_bytes()
+        == (sc1.canonical(row) + "\n").encode()
+    )
+
+
+def test_fable_m2_typed_resource_loss_without_message():
+    from scripts.sc1 import infrastructure_exception
+
+    assert infrastructure_exception(torch.cuda.OutOfMemoryError())
+
+
+def test_astra_f16_recovery_proof_survives_its_own_interruption(tmp_path, monkeypatch):
+    store = sc1.RunStore(tmp_path, "m")
+    store.start("ep", "clf", "a")
+    with store.journal.open("ab") as f:
+        f.write(b'{"event":"completed"')
+    append = sc1.RunStore.append
+
+    def lost_recovery(self, event):
+        if event["event"] == "journal_tail_recovered":
+            raise OSError("loss while appending recovery record")
+        return append(self, event)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(sc1.RunStore, "append", lost_recovery)
+        with pytest.raises(OSError):
+            sc1.RunStore(tmp_path, "m")
+    recovered = sc1.RunStore(tmp_path, "m")
+    recovered.interrupt("ep", "clf", "a", "resource_loss", 2, "CPU fault injection")
+    assert sc1.RunStore(tmp_path, "m").pending("ep", ["clf"]) == ["clf"]

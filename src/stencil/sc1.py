@@ -25,7 +25,7 @@ from stencil.bfcl import (
 )
 from stencil.selector_v2 import split_sentence_spans
 
-VERSION = "SC1-v2.1"
+VERSION = "SC1-v2.2"
 HEADER = "Earlier context restated verbatim:"
 OPENER = "<|im_start|>assistant\n<think>\n\n</think>\n\n"
 MAX_PREFIX = 2048
@@ -753,33 +753,37 @@ class RunStore:
         elif row["event"] == "interrupted":
             self._prior[key] += row["elapsed"]
 
+    def _tail_proof(self, previous, raw):
+        payload = {
+            "previous": previous,
+            "tail_hash": hashlib.sha256(raw).hexdigest(),
+            "tail_bytes": len(raw),
+        }
+        path = self.root / "recovery" / (digest(payload) + ".json")
+        return path, payload
+
     def _open(self):
         lines = (
             self.journal.read_bytes().splitlines(keepends=True)
             if self.journal.exists()
             else []
         )
-        previous, tail = None, None
+        previous, tail, needs_newline = None, None, True
         for i, raw in enumerate(lines):
             try:
                 row = json.loads(raw)
             except (ValueError, UnicodeDecodeError):
-                # Only an incomplete *last* append or a previously certified tail.
                 if i == len(lines) - 1 and not raw.endswith(b"\n"):
                     tail = raw
                     break
-                if i + 1 >= len(lines):
-                    raise RuntimeError(
-                        "journal hash: malformed complete record"
-                    ) from None
-                recovery = json.loads(lines[i + 1])
-                if (
-                    recovery.get("event") != "journal_tail_recovered"
-                    or recovery.get("tail_hash") != hashlib.sha256(raw[:-1]).hexdigest()
-                ):
+                proof, payload = self._tail_proof(previous, raw[:-1])
+                if not proof.exists() or json.loads(proof.read_text()) != payload:
                     raise RuntimeError(
                         "journal hash: altered complete record"
                     ) from None
+                if i == len(lines) - 1:
+                    tail, needs_newline = raw[:-1], False
+                    break
                 continue
             payload = {k: v for k, v in row.items() if k != "hash"}
             if (
@@ -791,18 +795,22 @@ class RunStore:
             previous = row["hash"]
             self._index(row)
         if tail is not None:
-            with self.journal.open("ab") as f:
-                f.write(b"\n")
-                f.flush()
-                os.fsync(f.fileno())
+            proof, payload = self._tail_proof(previous, tail)
+            if not proof.exists():
+                atomic_json(proof, payload, exclusive=True)
+            # Durable proof precedes even the separating newline, so loss during
+            # recovery itself never turns an incomplete append into unexplained drift.
+            if needs_newline:
+                with self.journal.open("ab") as f:
+                    f.write(b"\n")
+                    f.flush()
+                    os.fsync(f.fileno())
             self.append(
                 {
                     "event": "journal_tail_recovered",
-                    "tail_hash": hashlib.sha256(tail).hexdigest(),
-                    "tail_bytes": len(tail),
-                    "reason": (
-                        "incomplete final append; interruption evidence still required"
-                    ),
+                    **{k: v for k, v in payload.items() if k != "previous"},
+                    "recovery_path": str(proof.relative_to(self.root)),
+                    "proof_hash": file_hash(proof),
                 }
             )
         elif lines and not lines[-1].endswith(b"\n"):
@@ -810,6 +818,36 @@ class RunStore:
                 f.write(b"\n")
                 f.flush()
                 os.fsync(f.fileno())
+        # An atomically prepared output is already completed work, even if the
+        # subsequent journal append was lost. Its filename binds its exact bytes.
+        unfinished = {
+            digest([r["episode_id"], r["arm"], r["attempt_id"]]): r
+            for r in self._last.values()
+            if r["event"] == "start"
+        }
+        for prepared in (self.root / "prepared").glob("*.json"):
+            prefix, _, expected = prepared.stem.partition("-")
+            if prefix not in unfinished:
+                continue
+            active = unfinished[prefix]
+            if not expected or file_hash(prepared) != expected:
+                raise RuntimeError("orphan prepared output hash mismatch")
+            output = json.loads(prepared.read_text(), parse_float=Decimal)
+            if any(
+                output[k] != active[k]
+                for k in ("manifest_id", "episode_id", "arm", "attempt_id")
+            ):
+                raise RuntimeError("orphan prepared output identity mismatch")
+            self.append(
+                {
+                    "event": "completion_prepared",
+                    "episode_id": active["episode_id"],
+                    "arm": active["arm"],
+                    "attempt_id": active["attempt_id"],
+                    "output_hash": expected,
+                    "prepared_path": str(prepared.relative_to(self.root)),
+                }
+            )
         # Recover prepared publications, and verify every existing completed byte.
         for key, row in list(self._last.items()):
             if row["event"] == "completion_prepared":
@@ -898,11 +936,13 @@ class RunStore:
             or (active["episode_id"], active["arm"]) != key
         ):
             raise RuntimeError("completion without matching started attempt")
+        expected = hashlib.sha256((canonical(row) + "\n").encode()).hexdigest()
         prepared = (
-            self.root / "prepared" / (digest([*key, row["attempt_id"]]) + ".json")
+            self.root
+            / "prepared"
+            / (digest([*key, row["attempt_id"]]) + "-" + expected + ".json")
         )
         atomic_json(prepared, row, exclusive=True)
-        expected = file_hash(prepared)
         event = {
             "episode_id": key[0],
             "arm": key[1],
@@ -951,6 +991,13 @@ class RunStore:
                 "evidence": evidence,
             }
         )
+
+    def is_completed(self, episode, arm):
+        key = (episode, arm)
+        if key in self._completed:
+            self._verify_completed(key)
+            return True
+        return False
 
     def pending(self, episode, arms):
         pending = []
@@ -1299,8 +1346,8 @@ class AllocationLedger:
         if close:
             self.origin = None
 
-    def recover(self, evidence):
-        if not self.intervals or self.intervals[-1]["closed"]:
+    def recover(self, evidence, *, allow_closed=False):
+        if not self.intervals or (self.intervals[-1]["closed"] and not allow_closed):
             raise ValueError("no missing allocation to recover")
         interval = self.intervals[-1]
         if (
