@@ -3905,3 +3905,23 @@ uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b
   recipe/current patches do not yet reproduce its recorded source composition. Residual-vector steering changes
   activations, not weights. Consolidation has no established result; only a bounded text-digest feasibility
   experiment is proposed.
+
+## 2026-09-04 — gpt-6-astra deep web research on the six blockers (results/astra-research-blockers.md; live web search, xhigh)
+- Brian's ruling: astra replaces sol for every role from now on. Recommendations (confidence in parentheses):
+  (1) competence floor — finish the 1.7B preflight, run the registered 4B fallback once, close Leg A INCONCLUSIVE
+  if any floor fails (high in the rule; low that 4B clears every floor); ACEBench is the pre-named alternative
+  if an executable tool-agent claim stays essential; MemoryCode for retention/update claims later.
+  (2) scope — add an explicit task/key/version register with a frozen 4B extractor and deterministic precedence
+  ("worth remembering" vs "applicable now"), no retraining (high/medium); 64-episode feasibility gate.
+  (3) learned vs rule — 256 authored, source-independent delayed-use episodes, frozen classifier+echo vs frozen
+  own-budget rule+echo (pin cap min(256, 0.25C), echo cap 256), exact McNemar; power recomputed: 78% at q=.10,
+  51% at q=.20 for a 5-point gain, 97% for 10 points — adopt the learned selector only on p<=.05 AND >=13 net
+  extra passes; otherwise "no worthwhile learned advantage demonstrated" (~3-8 GPU-h, 40-64 author-hours).
+  (4) consolidation — one feasibility study: source-linked digest (<=512 tokens) + verbatim literal/state register
+  + one bounded raw lookup, three arms, 64 episodes, >=4x smaller and >=48/64, cap 6 GPU-h.
+  (5) statistics — exact McNemar on one binary outcome per case; registration text supplied; conservative paired
+  interval via union-bound Clopper-Pearson; <5 discordant pairs cannot pass.
+  (6) Miller focus — amplification stays OFF; credible 2024-26 steering evidence concerns present instructions,
+  none shows degeneration-free recovery of evicted ones; V-Steer-on-retained-memory only as a later 64-episode
+  feasibility test. Execution order: close BFCL -> author §3 sources/checkers -> scope + digest prototypes
+  independently -> any adoption via a newly frozen package comparison.
