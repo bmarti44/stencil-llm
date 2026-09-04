@@ -3938,3 +3938,10 @@ uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b
   a conditional 35–50-hour spec/expander estimate; author-version/artifact manifests remain future prerequisites.
 - CPU/foreground checks: diff --check clean; cmp confirms preserved prefixes/v1; no code/model runs or sealed reads.
 - Next: review v2 and complete its freeze prerequisites before any production authoring or SC1 execution.
+
+## 2026-09-04 — sc1-harness write-ahead
+
+Data lineage: fit-on = unchanged LEG B classifier corpus/artifacts; evaluated-on = future independently commissioned SC1 setup/final sources, disjoint from fitting. Eight harness-authored fictional smoke sources are disposable development fixtures and may never enter either production pool.
+Read archive/plan/PROTOCOL.md and its LEDGER STATE (active paths were archived), SC1 DRAFT v2 and AUTHOR-CONTRACT v2. Scope: tools/codex-agents/sc1-harness.allow. CPU only; no model process, lock wait, process signalling or sealed benchmark reads.
+TDD RED: CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 uv run pytest -q tests/test_sc1.py -> collection fails because stencil.sc1 does not yet exist. Tests committed before implementation.
+Conservative interpretation: setup generates only full/evicted (64 outputs); clf/rule are CPU diagnostics, per v2's explicit schedule. Smoke authoring is explicitly informed harness development, never misrepresented as contract-isolated production authoring. Stage-1 exact author/deployment manifests and independent semantic sign-offs are prerequisites checked by production launch, not fabricated here. Direct Codex session; wrapper log/session ID not supplied in this environment.
