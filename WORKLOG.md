@@ -4260,3 +4260,103 @@ test contamination. No production source or policy was adjusted by these fixture
 Next: commit executable code and proposal/snapshot bytes, run CPU `scripts/sc1.py
 smoke`, run `validate data/sc1/smoke`, then the exact authorized four-file suite,
 ruff, manifest verification and explicit-pathspec artifact/handoff commits.
+
+## 2026-09-04 — sc1-harness-v3 handoff
+
+Implemented the residual review repairs against 5f7bcbf. This is implementation
+and verification evidence for the next review; reviewer-authored findings were
+not edited or declared formally closed by the coder. Governing LEDGER-PLAN.md
+and AUTHOR-CONTRACT.md are byte-unchanged. Data lineage: fit-on = none in this
+work; evaluated-on = original disposable smoke/CPU fixtures only, using the real
+local tokenizer where prescribed. No model process, GPU job, benchmark input,
+sealed IFEval input, process signal, or lock wait was used. All edits are within
+the brief's allowlist; all commits use explicit pathspecs.
+
+Provenance: CODEX_MODEL=gpt-6-astra, CODEX_EFFORT=xhigh, session/thread
+01a06ea8-f379-7023-b965-32907fa7ae7c (environment values). Wrapper log:
+results/logs/codex-agent-sc1-harness-v3.log. No new model/effort override was
+selected by this coder.
+
+Tests-first commit: **d8cbc1a**. Executable/tests/proposals/snapshot commit:
+**f470bd2c78d1c54889d951036d1d3d539e52632a**. Regenerated data and measured
+smoke cue audit: **d567eac**. The code/data distinction corrects v2 N10;
+the manifest names f470bd2 as harness_commit and hashes the data at d567eac.
+
+| Finding | Fix commit(s) | Finding-named test / evidence |
+| --- | --- | --- |
+| astra R1 | f470bd2 | `test_astra_r1_numeric_output_is_durable_failure` (both extreme exponent signs, run_arm plus durable RunStore/no retry); `test_astra_r1_exact_numeric_mutations_and_bounds` (large/tiny/long fractional exact mutations and representation limits) |
+| astra R2 | f470bd2 | `test_astra_r2_execution_owner_refuses_second_consumer` (setup/final/determinism/analyze refused before mutable consumers/backend while first allocation and arm bytes survive) |
+| astra R3 | f470bd2 | `test_astra_r3_multiline_public_state_through_bank` (canonical positive with incidental prose, extra multiline/nested blocks rejected) |
+| astra R4 | f470bd2 | `test_astra_r4_permissions_use_original_artifact`; existing valid text-source/unauthorized-line tests retained |
+| astra R5 | f470bd2 | `test_astra_r5_determinism_requires_completed_tokens` (all timeout, single timeout/empty/failure; completed malformed nonempty positive); existing one-token-divergence and two-process producer checks retained |
+| astra R6 | f470bd2 | `test_astra_r6_caught_partial_completion_is_recovered` (actual completion plus catch/annotation; prepared output recovered without regeneration, earlier bytes immutable) |
+| astra R7 | f470bd2 | `test_astra_r7_text_scope_attack_through_bank` (overridden/old-ID/cancelled/completed text with public witnesses); `test_astra_r7_text_wrong_entity_witness_through_bank` |
+| astra R8 | f470bd2, d567eac | `test_astra_r8_all_turn_cap_through_bank` (oversized governing turn and filler base); complete smoke role/position/wording audit in data/sc1/smoke/README.md |
+| fable N1 | f470bd2, d567eac | `test_fable_n1_pressure_composition_report`; per-episode `pressure` report and `layout_audit.real_candidate_columns`; runtime/final-analysis per-arm pin composition; README measured table |
+| fable N2 | f470bd2, d567eac | `test_fable_n2_capacity_guidance_and_error` (computed count, diagnostic shortfall, exported grammar equality); smoke recompiled and validated |
+| fable N3 | f470bd2, d567eac | `test_fable_n3_snapshot_manifest_survives_live_ledger_append` (build_manifest + verify_manifest + verify_stage_freezes on temporary ledger/snapshot; snapshot changes rejected) |
+| fable N4 | f470bd2 | Strengthened `test_astra_f1_scheduler_incremental_accounting` (nonzero observed reads, both read_text/read_bytes); `test_fable_m1_setup_resume_projection` (prefill=12); `test_fable_n4_discriminating_regression_bounds`; `test_fable_n4_strengthened_tests_detect_replay_and_old_projection` deliberately restores each defect to prove those assertions catch it |
+| fable N5 | f470bd2 | `test_fable_n5_abandoned_determinism_disposition`; proposed failed-schedule/no-replacement/new-study/abandoned-cost separate-reporting clause, requiring orchestrator disposition before restart |
+| fable N6 | f470bd2 | `test_fable_n6_registration_audit_is_reviewable` (immutable receipt with registry/source-owner hashes and idempotent WORKLOG entry) |
+| fable N7 | f470bd2 | `test_fable_n7_commission_writes_separate_author_input` (author input bytes/hash separate from private request envelope) |
+| fable N8 | f470bd2, d567eac | `test_fable_n8_within_pool_collision_is_review_flag`; within-pool literal reuse explicitly reported/flagged, existing cross-pool rejection retained |
+| fable N9 | f470bd2, d567eac | `test_fable_n9_failure_taxonomy_disclosure`; analysis/README disclose fixture-only GenerationFailure, provisional device classification, limited R and absent scope/digest paths |
+| fable N10 | f470bd2, d567eac | `test_fable_n10_historical_freeze_records_data_commit`; historical v2 clarification and separate v3 code/data commit identities above |
+
+Every PARTIAL row from astra's prior-finding table maps to the repairs above:
+F6 -> R3; F7 -> R7; F8 -> R4; F11 -> R5; F16 -> R6; fable H1 -> R8/N1/N2;
+fable M2 -> R6. Their existing finding-named tests remain in the authorized suite.
+The F9 numeric-equality extension is covered by R1 as well as the existing F9 tests.
+
+Manifest ID:
+`8b3bbb76a7e34ce005bd28c5a416b7e88e1c87da341b387438614d0e4b93222d`.
+Manifest file SHA-256:
+`6b929695f9472a58aa13c5f9a36c2d81073bfdf93c48da3913aaee9463ac51e9`.
+Snapshot SHA-256:
+`37c5759e4a91f45389f49e93bbc4c13bf08ddf1d5a2c82616c64b78325e58d81`.
+Snapshot is 54,017 bytes: exact SC1 DRAFT v2 section (37,375 bytes beginning at
+LEDGER-PLAN.md line 912) immediately followed by exact AUTHOR-CONTRACT.md bytes
+(16,642 bytes), with no inserted bytes. `verify_manifest` and
+`load_manifest_bank` passed: 44 frozen files and eight exact episode identities.
+The snapshot replaces the live ledger in manifest.files and Stage 1 science_hash.
+
+Both `smoke` and subsequent `validate data/sc1/smoke` passed with eight references,
+48 failing negatives, six OLD/two RECENT assignments, U=2075–2489 columns, B=256,
+184–224 budget skips, real candidate columns 45–149 for OLD/zero for RECENT, and
+all history turns <=571 tokenizer tokens. Full per-episode numbers and concrete
+role/position/wording limitations are in data/sc1/smoke/README.md and validation.json.
+Rule pins contain 96–100% filler-designated pieces. They retain no complete OLD
+necessary evidence span, but overlap 4/4/6/3 evidence columns in smoke-00/01/05/06
+respectively; decisive-fact intersections are zero. This explicitly narrows the
+review's shorthand "never the OLD evidence" to the measured result.
+
+All Stage 1 ambiguities are proposed, not enacted, in
+**data/sc1/STAGE1-CLAUSES.md**: registration JSON and snapshot, identity/registry
+and exclusive ownership, population/filler capacity and dominance, typed evidence
+and cancellation/completion, canonical public tool blocks, bounded fingerprint
+search, exact numeric bounds, baseline-anchored text edits and semantic witnesses,
+exact cumulative transcript/attempt schemas, separated author inputs, nonvacuous
+determinism and no selective replacement, abandoned-cost disclosure, failure
+schema and conservative persistence/initialization cost terms. The orchestrator
+must reconcile/adopt these prospectively before registration/production. Actual
+Qwen determinism and GPU timing remain separate unperformed prerequisites.
+
+Final acceptance on executable f470bd2 and data d567eac:
+
+- `CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 uv run pytest -q -p no:cacheprovider tests/test_sc1.py tests/test_eval_data_separation.py tests/test_sealed_guard.py tests/test_no_side_effect_imports.py --tb=short`
+  -> **136 passed, 1 expected legacy xfail**, 298.37 s. This single run includes
+  every current finding-named case and all existing tests in the four authorized
+  files. The sole warning is the unchanged scripts/b2_gsm8k.py invalid-escape
+  SyntaxWarning from the data-separation scan. No full suite was run.
+- `uv run ruff check src/stencil/sc1.py src/stencil/sc1_episodes.py scripts/sc1.py tests/test_sc1.py`
+  -> all checks passed; `git diff --check` passed.
+- `CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 uv run python scripts/sc1.py smoke`
+  and `... python scripts/sc1.py validate data/sc1/smoke` -> **PASS** with the
+  pressure report above; no classifier or trunk was instantiated.
+- Verified all 21 smoke files, registration snapshot and Stage 1 proposal file
+  are tracked, and compared their committed bytes against the working tree.
+  The code, snapshot and artifact identities above are the final candidate,
+  not a Stage 1 registration or a claim of independent reviewer concurrence.
+
+STATE: sc1-harness-v3 implementation/tests/artifacts complete; handoff ready for
+orchestrator review and prospective amendment disposition. No execution running.
