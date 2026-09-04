@@ -3945,3 +3945,86 @@ Data lineage: fit-on = unchanged LEG B classifier corpus/artifacts; evaluated-on
 Read archive/plan/PROTOCOL.md and its LEDGER STATE (active paths were archived), SC1 DRAFT v2 and AUTHOR-CONTRACT v2. Scope: tools/codex-agents/sc1-harness.allow. CPU only; no model process, lock wait, process signalling or sealed benchmark reads.
 TDD RED: CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 uv run pytest -q tests/test_sc1.py -> collection fails because stencil.sc1 does not yet exist. Tests committed before implementation.
 Conservative interpretation: setup generates only full/evicted (64 outputs); clf/rule are CPU diagnostics, per v2's explicit schedule. Smoke authoring is explicitly informed harness development, never misrepresented as contract-isolated production authoring. Stage-1 exact author/deployment manifests and independent semantic sign-offs are prerequisites checked by production launch, not fabricated here. Direct Codex session; wrapper log/session ID not supplied in this environment.
+
+## 2026-09-04 — sc1-harness handoff
+
+Implemented `src/stencil/sc1.py`, `src/stencil/sc1_episodes.py`, `scripts/sc1.py`,
+and `tests/test_sc1.py`; authored eight fictional disposable sources under
+`data/sc1/smoke/`, with expanded episodes, validation records, exported grammar,
+exact power output, README and manifest. No fit/train/select/tune operation used
+SC1, benchmark inputs or recorded benchmark responses. Smoke provenance explicitly
+identifies this informed harness session; its sampled author labels are sampler
+fixtures, not claims of isolated authorship by those providers.
+
+Executable commit: `b32e394f0761c4b13272c61a7d5f116da12833ba` (following RED-first
+commit `141e71e` and implementation commit `addf2b3`). Manifest:
+`data/sc1/smoke/manifest.json`, 44 hashed files, runtime-verified against current
+bytes including the five exact LEG B classifier records.
+
+- Canonical manifest ID (payload excluding its ID field):
+  `8f4668b6ffeb1f49f6074f220a0f9c8acadab57d8d31c323f902c20bf2c43753`.
+- SHA-256 of the complete manifest file:
+  `651d703ae61ae0215a5580e987c7b0bcecc2dc0b40baff91401042e4208c6f63`.
+- Smoke bank hash:
+  `d6a6833d0e3818c54ea07f44347ef0dbe21bb19ede12cf6f70cc2cfd426f1044`.
+
+Validation command:
+`CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 uv run pytest -q tests/test_sc1.py tests/test_eval_data_separation.py tests/test_sealed_guard.py tests/test_no_side_effect_imports.py`
+-> **31 passed, 1 xfailed**, 19.99 s. The expected failure is the existing legacy
+script-side-effect inventory; the existing `scripts/b2_gsm8k.py` escape warning
+remains. No full suite was run. Ruff check on the four edited Python files is
+clean, and `git diff --check` is clean.
+
+`CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 uv run python scripts/sc1.py validate data/sc1/smoke`
+-> **PASS: 8 episodes, 8 reference passes, 48 distinct required negative failures;
+6 OLD / 2 RECENT**. `smoke` generated the executable manifest without loading a
+model. `verify_manifest` subsequently verified all file and dependency hashes.
+Exact power N=256, q=.20, D=.05 is 0.5085745547974364 (joint statistical/size gate
+0.4972492024243923), retained in `power.json` and the manifest.
+
+Consumer coverage includes scorer-independent common candidates and a direct
+comparison to frozen LEG A segmentation, threshold equality/ties, skip-and-continue
+union admission, chronological capped echo selection, source-only rendering,
+per-layer pre-query eviction/position preservation, strict JSON/type parsing,
+complete-state/protected-set checks, positive references and six linked negatives,
+a deterministic reject-all checker, normalized consecutive repetition versus
+scattered repetition, exact statistics, setup refusal/count recomputation, a
+32-episode fake-backend setup run with CPU-only clf/rule diagnostics, durable
+first-arm preservation across interruption, and allocation recovery without
+resetting previously charged cost. All trunk execution in tests uses CPU fixtures.
+
+Conservative resolutions / open v2 dependencies (LEDGER-PLAN.md unchanged):
+
+1. The brief's four setup arm names mean 64 full/evicted generations plus clf/rule
+   CPU selection/echo diagnostics, following v2's explicit prohibition on extra
+   setup clf/rule generations.
+2. Freeze the original grammar to finite typed record operations, object-only
+   add/replace/remove patches, and complete raw text. Prefix/query bounds are
+   2,048/1,024 tokens; filler grows a designated non-evidence message to the fixed
+   4,608-token target. Unsupported structures fail source validation before freeze.
+3. The contract's bare JSON call framing governs over Qwen's native XML call
+   instructions. The renderer preserves native message/tool-result wrappers and
+   the non-thinking opener, while stating bare JSON framing in the system block.
+   Message indices count public history messages from zero, excluding the prefix.
+4. Pairwise review signatures bind semantic source content excluding review and
+   provenance metadata to avoid circular review hashes. Full source/review bytes
+   are separately covered by the manifest. Equal fingerprints reject siblings;
+   unequal fingerprints do not certify semantic independence.
+5. An unfinished allocation requires external interruption evidence and its full
+   elapsed time; completed failures/timeouts are immutable. Unknown harness
+   exceptions invalidate the study. The setup certificate must be committed and
+   its 32 actual hashed pairs agree with its counts before final/analysis access.
+6. Exact production author/provider versions/settings, independent narrative and
+   pairwise reviews, retained provider transcripts, authoring-effort feasibility,
+   and the separately authorized model determinism outputs are not supplied by
+   this CPU brief and are not fabricated. The neutral commissioning command emits
+   a request envelope for an external fresh-session provider transport; it does
+   not itself call a provider. Production registration/execution remains gated.
+   This artifact manifest is a CPU-tested executable-freeze candidate, not a
+   scientific registration or a setup pass. No model determinism or GPU timing
+   claim is made.
+
+No model process or GPU workload was launched; no process was signalled or lock
+waited on; no sealed IFEval input was read and no `data/bench/*` file was modified.
+Direct Codex session: exact model effort, wrapper log path and external session ID
+were not supplied, so no guessed wrapper provenance is recorded.
