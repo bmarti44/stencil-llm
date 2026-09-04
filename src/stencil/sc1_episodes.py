@@ -232,7 +232,7 @@ SCHEMA["structures"] = {
         "region; filler_turns selects >=3 non-evidence turns with mixed roles; "
         "round-robin expansion without sentence reuse to 4608 "
         "rendered history tokens; "
-        "600 tokens per turn; U columns >= 2B and rule budget skips required. "
+        "600 tokens per turn; candidate capacity and budget pressure are validated. "
         "Compiler never moves or invents decisive events"
     ),
     "attacks": (

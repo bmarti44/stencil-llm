@@ -648,6 +648,7 @@ def test_astra_f4_author_envelope_is_blind(pool, attempt):
         return {value} if isinstance(value, str) else set()
 
     assert not private & atoms(request["input"])
+    assert "rule budget" not in sc1.canonical(request["input"]).casefold()
     slot = episodes.commission_slot(pool, 0, attempt)
     assert assignment["assignments"] == slot["assignments"]
     assert assignment["seeds"]["literals"] == slot["seeds"]["literals"]
