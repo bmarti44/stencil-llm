@@ -55,13 +55,24 @@
   },
   "instruction_trajectory": [
     {
+      "id": "switch",
+      "authority": "user",
+      "scope": "switched",
+      "turn": 8,
+      "evidence_text": "Before the rope inspection, keep this persistent instruction: update only v of record ${TARGET} with the lantern code when we return. Keep ${GUARD} unchanged.",
+      "necessary": true,
+      "event_type": "switch",
+      "kind": "persistent_task_switch"
+    },
+    {
       "id": "governing",
       "authority": "user",
       "scope": "switched",
       "turn": 9,
       "evidence_text": "Rope inspection is over; return to the lantern task. An unrelated buoy note reads ${OLD}. When we return from rope inspection, update only v of record ${TARGET} with the lantern code. Keep ${GUARD} unchanged.",
       "necessary": true,
-      "kind": "lantern_rope_inspection_return"
+      "kind": "lantern_rope_inspection_return",
+      "event_type": "return"
     }
   ],
   "decisive_facts": [
@@ -125,6 +136,7 @@
       "path": "/${TARGET}/v",
       "value": "${VALUE}",
       "evidence_ids": [
+        "switch",
         "governing",
         "fact"
       ]
@@ -182,8 +194,8 @@
       "text": "A lantern-regatta visitor carried an empty folder."
     },
     {
-      "role": "assistant",
-      "text": "A routine pause ended without any change to the records."
+      "role": "user",
+      "text": "Before the rope inspection, keep this persistent instruction: update only v of record ${TARGET} with the lantern code when we return. Keep ${GUARD} unchanged."
     },
     {
       "role": "user",
@@ -199,7 +211,6 @@
     }
   ],
   "final_request": "Finish the lantern record work.",
-  "filler_turn": 3,
   "literal_specs": {
     "TARGET": {
       "type": "identifier"
@@ -221,7 +232,26 @@
     }
   },
   "answer_literals": [
-    "${VALUE}"
+    {
+      "value": "${VALUE}",
+      "type": "string",
+      "evidence_ids": [
+        "fact"
+      ],
+      "obligation_ids": [
+        "target"
+      ]
+    },
+    {
+      "value": "${TARGET}",
+      "type": "identifier",
+      "evidence_ids": [
+        "governing"
+      ],
+      "obligation_ids": [
+        "target"
+      ]
+    }
   ],
   "attacks": {
     "wrong entity": {
@@ -239,20 +269,6 @@
         "keep"
       ]
     },
-    "wrong scope": {
-      "output": {
-        "name": "update",
-        "arguments": {
-          "id": "${TARGET}",
-          "changes": {
-            "v": "${OLD}"
-          }
-        }
-      },
-      "obligation_ids": [
-        "target"
-      ]
-    },
     "collateral edit": {
       "output": {
         "name": "delete",
@@ -267,7 +283,8 @@
   },
   "inapplicable": {
     "old-ID substitution": "No superseded record identifier exists in this source.",
-    "cancelled action executed": "No cancelled action exists in this source."
+    "cancelled action executed": "No cancelled action exists in this source.",
+    "wrong scope": "No obsolete governing work exists: the instruction persists."
   },
   "distinctness_review": {
     "signed": false,
@@ -281,5 +298,16 @@
     "generic_safe": "I will preserve the records.",
     "recency_only": "{}",
     "coverage_probes": []
-  }
+  },
+  "filler_turns": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    11
+  ]
 }

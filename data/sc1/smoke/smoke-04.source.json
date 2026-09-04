@@ -55,13 +55,30 @@
   },
   "instruction_trajectory": [
     {
+      "id": "obsolete",
+      "authority": "user",
+      "scope": "cancelled-or-completed",
+      "turn": 9,
+      "evidence_text": "The earlier proposed action was to delete ${TARGET}; it is now cancelled.",
+      "necessary": true,
+      "event_type": "obsolete",
+      "kind": "obsolete_action",
+      "cancelled_work": {
+        "name": "delete",
+        "arguments": {
+          "id": "${TARGET}"
+        }
+      }
+    },
+    {
       "id": "governing",
       "authority": "user",
       "scope": "cancelled-or-completed",
       "turn": 9,
-      "evidence_text": "The earlier proposed action was to delete ${TARGET}; it is now cancelled. Cancel the proposed cabinet purge; keep every record. Instead update only v of record ${TARGET} with the kiln observation code. Do not change ${GUARD}.",
+      "evidence_text": "Cancel the proposed cabinet purge; keep every record. Instead update only v of record ${TARGET} with the kiln observation code. Do not change ${GUARD}.",
       "necessary": true,
-      "kind": "cancel_purge_then_record_observation"
+      "kind": "cancel_purge_then_record_observation",
+      "event_type": "cancellation"
     }
   ],
   "decisive_facts": [
@@ -125,6 +142,7 @@
       "path": "/${TARGET}/v",
       "value": "${VALUE}",
       "evidence_ids": [
+        "obsolete",
         "governing",
         "fact"
       ]
@@ -199,7 +217,6 @@
     }
   ],
   "final_request": "Carry out the remaining cabinet work.",
-  "filler_turn": 3,
   "literal_specs": {
     "TARGET": {
       "type": "identifier"
@@ -221,7 +238,26 @@
     }
   },
   "answer_literals": [
-    "${VALUE}"
+    {
+      "value": "${VALUE}",
+      "type": "string",
+      "evidence_ids": [
+        "fact"
+      ],
+      "obligation_ids": [
+        "target"
+      ]
+    },
+    {
+      "value": "${TARGET}",
+      "type": "identifier",
+      "evidence_ids": [
+        "governing"
+      ],
+      "obligation_ids": [
+        "target"
+      ]
+    }
   ],
   "attacks": {
     "wrong entity": {
@@ -237,20 +273,6 @@
       "obligation_ids": [
         "target",
         "keep"
-      ]
-    },
-    "wrong scope": {
-      "output": {
-        "name": "update",
-        "arguments": {
-          "id": "${TARGET}",
-          "changes": {
-            "v": "${OLD}"
-          }
-        }
-      },
-      "obligation_ids": [
-        "target"
       ]
     },
     "collateral edit": {
@@ -277,7 +299,8 @@
     }
   },
   "inapplicable": {
-    "old-ID substitution": "No superseded record identifier exists in this source."
+    "old-ID substitution": "No superseded record identifier exists in this source.",
+    "wrong scope": "The only obsolete work is the separately exercised cancelled deletion."
   },
   "distinctness_review": {
     "signed": false,
@@ -291,5 +314,17 @@
     "generic_safe": "I will preserve the records.",
     "recency_only": "{}",
     "coverage_probes": []
-  }
+  },
+  "filler_turns": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    11
+  ]
 }

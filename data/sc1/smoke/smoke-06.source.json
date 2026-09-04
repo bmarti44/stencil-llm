@@ -61,7 +61,8 @@
       "turn": 0,
       "evidence_text": "On the plate archive card replace only v with the observed plate serial. Preserve p.",
       "necessary": true,
-      "kind": "viewing_observation_to_archive"
+      "kind": "viewing_observation_to_archive",
+      "event_type": "instruction"
     }
   ],
   "decisive_facts": [
@@ -187,7 +188,6 @@
     }
   ],
   "final_request": "Produce the plate archive card update.",
-  "filler_turn": 3,
   "literal_specs": {
     "TARGET": {
       "type": "identifier"
@@ -209,7 +209,16 @@
     }
   },
   "answer_literals": [
-    "${VALUE}"
+    {
+      "value": "${VALUE}",
+      "type": "string",
+      "evidence_ids": [
+        "fact"
+      ],
+      "obligation_ids": [
+        "target"
+      ]
+    }
   ],
   "attacks": {
     "wrong entity": {
@@ -223,18 +232,6 @@
       "obligation_ids": [
         "target",
         "keep"
-      ]
-    },
-    "wrong scope": {
-      "output": [
-        {
-          "op": "replace",
-          "path": "/v",
-          "value": "${OLD}"
-        }
-      ],
-      "obligation_ids": [
-        "target"
       ]
     },
     "collateral edit": {
@@ -257,7 +254,8 @@
   },
   "inapplicable": {
     "old-ID substitution": "No superseded record identifier exists in this source.",
-    "cancelled action executed": "No cancelled action exists in this source."
+    "cancelled action executed": "No cancelled action exists in this source.",
+    "wrong scope": "No obsolete governing work exists: the instruction persists."
   },
   "distinctness_review": {
     "signed": false,
@@ -271,5 +269,17 @@
     "generic_safe": "I will preserve the records.",
     "recency_only": "{}",
     "coverage_probes": []
-  }
+  },
+  "filler_turns": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ]
 }

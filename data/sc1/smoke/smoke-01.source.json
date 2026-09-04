@@ -55,22 +55,31 @@
   },
   "instruction_trajectory": [
     {
-      "id": "governing",
-      "authority": "user",
-      "scope": "overridden",
-      "turn": 0,
-      "evidence_text": "The old engraving choice is withdrawn. On the tide-clock card replace only v with the replacement dial code. Keep p unchanged.",
-      "necessary": true,
-      "kind": "dial_replacement_overrides_engraving"
-    },
-    {
       "id": "event",
       "authority": "user",
       "scope": "overridden",
-      "turn": 2,
+      "turn": 0,
       "evidence_text": "Earlier I requested engraving ${OLD}. That request is superseded.",
       "necessary": true,
-      "kind": "scope_event"
+      "kind": "scope_event",
+      "event_type": "superseded",
+      "obsolete_work": [
+        {
+          "op": "replace",
+          "path": "/v",
+          "value": "${OLD}"
+        }
+      ]
+    },
+    {
+      "id": "governing",
+      "authority": "user",
+      "scope": "overridden",
+      "turn": 2,
+      "evidence_text": "The old engraving choice is withdrawn. On the tide-clock card replace only v with the replacement dial code. Keep p unchanged.",
+      "necessary": true,
+      "kind": "dial_replacement_overrides_engraving",
+      "event_type": "update"
     }
   ],
   "decisive_facts": [
@@ -122,6 +131,7 @@
       "path": "/v",
       "value": "${VALUE}",
       "evidence_ids": [
+        "event",
         "governing",
         "fact"
       ]
@@ -148,7 +158,7 @@
   "turns": [
     {
       "role": "user",
-      "text": "The old engraving choice is withdrawn. On the tide-clock card replace only v with the replacement dial code. Keep p unchanged. The card currently has v unfilled and p fixed."
+      "text": "Earlier I requested engraving ${OLD}. That request is superseded. The initial fields remain as described in the later update."
     },
     {
       "role": "user",
@@ -156,7 +166,7 @@
     },
     {
       "role": "user",
-      "text": "Earlier I requested engraving ${OLD}. That request is superseded."
+      "text": "The old engraving choice is withdrawn. On the tide-clock card replace only v with the replacement dial code. Keep p unchanged. The card currently has v unfilled and p fixed."
     },
     {
       "role": "assistant",
@@ -196,7 +206,6 @@
     }
   ],
   "final_request": "Prepare the corrected clock card.",
-  "filler_turn": 3,
   "literal_specs": {
     "TARGET": {
       "type": "identifier"
@@ -218,7 +227,16 @@
     }
   },
   "answer_literals": [
-    "${VALUE}"
+    {
+      "value": "${VALUE}",
+      "type": "string",
+      "evidence_ids": [
+        "fact"
+      ],
+      "obligation_ids": [
+        "target"
+      ]
+    }
   ],
   "attacks": {
     "wrong entity": {
@@ -280,5 +298,16 @@
     "generic_safe": "I will preserve the records.",
     "recency_only": "{}",
     "coverage_probes": []
-  }
+  },
+  "filler_turns": [
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ]
 }

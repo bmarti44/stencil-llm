@@ -13,6 +13,7 @@ import time
 import unicodedata
 from collections import Counter
 from dataclasses import dataclass, field
+from decimal import Decimal
 from pathlib import Path
 
 from stencil.bfcl import (
@@ -34,21 +35,41 @@ LIMIT = 256
 DEADLINE = 300
 COST_CAP = 8 * 3600
 INTERVENTIONS = (
-    "scope_resolver",
-    "digest",
     "attention_amplification",
     "residual_steering",
 )
 
 
 def canonical(value):
-    return json.dumps(
-        value,
-        sort_keys=True,
-        ensure_ascii=False,
-        separators=(",", ":"),
-        allow_nan=False,
-    )
+    """Canonical JSON with exact, finite decimal numbers (no binary rounding)."""
+    if isinstance(value, bool) or value is None or isinstance(value, str):
+        return json.dumps(value, ensure_ascii=False, allow_nan=False)
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, (float, Decimal)):
+        number = Decimal(str(value)) if isinstance(value, float) else value
+        if not number.is_finite():
+            raise ValueError("non-finite number")
+        sign, digits, exponent = number.as_tuple()
+        digits = list(digits)
+        if not any(digits):
+            return "0"
+        while digits[-1] == 0:
+            digits.pop()
+            exponent += 1
+        coefficient = ("-" if sign else "") + "".join(map(str, digits))
+        if exponent >= 0 and len(digits) + exponent <= 30:
+            return coefficient + "0" * exponent
+        return coefficient if exponent == 0 else coefficient + "e" + str(exponent)
+    if isinstance(value, (list, tuple)):
+        return "[" + ",".join(canonical(x) for x in value) + "]"
+    if isinstance(value, dict) and all(isinstance(k, str) for k in value):
+        return (
+            "{"
+            + ",".join(canonical(k) + ":" + canonical(value[k]) for k in sorted(value))
+            + "}"
+        )
+    raise TypeError("unsupported JSON type: " + type(value).__name__)
 
 
 def digest(value):
@@ -509,6 +530,7 @@ def prefill_sc1(model, cache, tokens, *, history_end, evict_range, pins, interve
 
 
 def output_flags(text, ids, schema_valid, tokenizer):
+    """Registered R detects period 1, 2 or 4 loops, not all repetition periods."""
     normalized = " ".join(unicodedata.normalize("NFKC", text).casefold().split())
     tokens = token_ids(tokenizer, normalized)
     repeated = any(
@@ -516,7 +538,7 @@ def output_flags(text, ids, schema_valid, tokenizer):
         for i in range(max(0, len(tokens) - 31))
     )
     invalid = not schema_valid
-    truncated = len(ids) >= 256 and invalid
+    truncated = len(ids) >= 256 and ids[-1] not in {151645, 151643} and invalid
     return {
         "I": invalid,
         "T": truncated,
@@ -590,7 +612,7 @@ def analyze_pairs(pairs):
         U += bool(clf["flags"]["F"] and not rule["flags"]["F"])
         K += bool(clf["corruption"] and not rule["corruption"])
         for arm in latency:
-            latency[arm] += row["arms"][arm]["latency"]["total"] / 256
+            latency[arm] += float(row["arms"][arm]["latency"]["total"]) / 256
             flags[arm].update({k: int(v) for k, v in row["arms"][arm]["flags"].items()})
         for factor, value in row.get("assignments", {}).items():
             group = subgroups.setdefault(
@@ -644,6 +666,8 @@ class CostMeter:
         default_factory=lambda: {"prefill": 0.0, "token": 0.0, "cpu": 0.0, "check": 0.0}
     )
     remaining_initialization: float = 0.0
+    initialization_estimate: float = 0.0
+    persistence_estimate: float = 0.0
     samples: list = field(default_factory=list)
 
     def project(self, remaining):
@@ -653,11 +677,21 @@ class CostMeter:
             + self.remaining_initialization
             + remaining
             * 1.25
-            * (e["prefill"] + 256 * e["token"] + e["cpu"] + e["check"])
+            * (
+                e["prefill"]
+                + 256 * e["token"]
+                + e["cpu"]
+                + e["check"]
+                + self.persistence_estimate
+            )
         )
 
     def can_start(self, remaining):
-        return self.spent + DEADLINE <= COST_CAP and self.project(remaining) <= COST_CAP
+        return (
+            self.spent + self.remaining_initialization + (DEADLINE if remaining else 0)
+            <= COST_CAP
+            and self.project(remaining) <= COST_CAP
+        )
 
     def observe(self, timing, measured_length, maximum_length=MAX_INPUT):
         if measured_length <= 0 or any(
@@ -684,15 +718,18 @@ class CostMeter:
 
 
 class RunStore:
-    """Append-only attempt log plus immutable arm files. No partial inference API."""
+    """Verify once on open; durable appends update constant-time attempt indexes."""
 
     def __init__(self, root, manifest_id):
         self.root, self.manifest_id = Path(root), manifest_id
         self.root.mkdir(parents=True, exist_ok=True)
         self.journal = self.root / "attempts.jsonl"
+        self._events, self._attempts, self._last = [], {}, {}
+        self._completed, self._prior, self._stats = {}, Counter(), {}
+        self._open()
 
     def arm_path(self, episode, arm):
-        if any(
+        if not episode or any(
             c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
             for c in episode
         ):
@@ -701,40 +738,141 @@ class RunStore:
             raise ValueError("unknown arm")
         return self.root / f"{episode}.{arm}.json"
 
-    def events(self):
-        rows = (
-            [json.loads(line) for line in self.journal.read_text().splitlines()]
+    def _index(self, row):
+        self._events.append(row)
+        if "attempt_id" not in row:
+            return
+        key = (row["episode_id"], row["arm"])
+        # An exception annotation leaves the attempt open until external evidence.
+        if row["event"] == "attempt_open":
+            return
+        self._attempts[row["attempt_id"]] = row
+        self._last[key] = row
+        if row["event"] in {"completed", "completion_prepared"}:
+            self._completed[key] = row["output_hash"]
+        elif row["event"] == "interrupted":
+            self._prior[key] += row["elapsed"]
+
+    def _open(self):
+        lines = (
+            self.journal.read_bytes().splitlines(keepends=True)
             if self.journal.exists()
             else []
         )
-        previous = None
-        for row in rows:
+        previous, tail = None, None
+        for i, raw in enumerate(lines):
+            try:
+                row = json.loads(raw)
+            except (ValueError, UnicodeDecodeError):
+                # Only an incomplete *last* append or a previously certified tail.
+                if i == len(lines) - 1 and not raw.endswith(b"\n"):
+                    tail = raw
+                    break
+                if i + 1 >= len(lines):
+                    raise RuntimeError(
+                        "journal hash: malformed complete record"
+                    ) from None
+                recovery = json.loads(lines[i + 1])
+                if (
+                    recovery.get("event") != "journal_tail_recovered"
+                    or recovery.get("tail_hash") != hashlib.sha256(raw[:-1]).hexdigest()
+                ):
+                    raise RuntimeError(
+                        "journal hash: altered complete record"
+                    ) from None
+                continue
             payload = {k: v for k, v in row.items() if k != "hash"}
             if (
-                row["manifest_id"] != self.manifest_id
-                or row["previous"] != previous
-                or digest(payload) != row["hash"]
+                row.get("manifest_id") != self.manifest_id
+                or row.get("previous") != previous
+                or digest(payload) != row.get("hash")
             ):
                 raise RuntimeError("journal hash/manifest mismatch")
             previous = row["hash"]
-        return rows
+            self._index(row)
+        if tail is not None:
+            with self.journal.open("ab") as f:
+                f.write(b"\n")
+                f.flush()
+                os.fsync(f.fileno())
+            self.append(
+                {
+                    "event": "journal_tail_recovered",
+                    "tail_hash": hashlib.sha256(tail).hexdigest(),
+                    "tail_bytes": len(tail),
+                    "reason": (
+                        "incomplete final append; interruption evidence still required"
+                    ),
+                }
+            )
+        elif lines and not lines[-1].endswith(b"\n"):
+            with self.journal.open("ab") as f:
+                f.write(b"\n")
+                f.flush()
+                os.fsync(f.fileno())
+        # Recover prepared publications, and verify every existing completed byte.
+        for key, row in list(self._last.items()):
+            if row["event"] == "completion_prepared":
+                path = self.arm_path(*key)
+                if not path.exists():
+                    if (
+                        "row" in row
+                    ):  # Read-only migration of the former journal format.
+                        atomic_json(path, row["row"], exclusive=True)
+                    else:
+                        prepared = self.root / row["prepared_path"]
+                        if file_hash(prepared) != row["output_hash"]:
+                            raise RuntimeError("prepared output hash mismatch")
+                        os.link(prepared, path)
+                self.append(
+                    {
+                        k: v
+                        for k, v in row.items()
+                        if k
+                        not in {"hash", "previous", "row", "prepared_path", "event"}
+                    }
+                    | {"event": "completed"}
+                )
+            if key in self._completed:
+                self._verify_completed(key, force=True)
+        for path in self.root.glob("*.json"):
+            parts = path.name.rsplit(".", 2)
+            if len(parts) == 3 and parts[1] in {"clf", "rule", "full", "evicted"}:
+                if (parts[0], parts[1]) not in self._completed:
+                    raise RuntimeError("completed output hash absent from journal")
+
+    def events(self):
+        return list(self._events)
 
     def append(self, event):
-        events = self.events()
         row = {
             **event,
             "manifest_id": self.manifest_id,
-            "previous": events[-1]["hash"] if events else None,
+            "previous": self._events[-1]["hash"] if self._events else None,
         }
         row["hash"] = digest(row)
         with self.journal.open("a") as f:
             f.write(canonical(row) + "\n")
             f.flush()
             os.fsync(f.fileno())
+        self._index(row)
+
+    def _verify_completed(self, key, *, force=False):
+        path = self.arm_path(*key)
+        if not path.exists():
+            raise RuntimeError("completed output hash: file missing")
+        stat = path.stat()
+        signature = (stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
+        if force or self._stats.get(key) != signature:
+            if file_hash(path) != self._completed[key]:
+                raise RuntimeError("completed output hash mismatch")
+            self._stats[key] = signature
 
     def start(self, episode, arm, attempt):
         if self.arm_path(episode, arm).exists():
             raise RuntimeError("completed arm cannot be retried")
+        if attempt in self._attempts:
+            raise RuntimeError("attempt identity reused")
         self.pending(episode, [arm])
         self.append(
             {
@@ -747,47 +885,58 @@ class RunStore:
         )
 
     def complete(self, row):
-        path = self.arm_path(row["episode_id"], row["arm"])
+        key = (row["episode_id"], row["arm"])
+        path = self.arm_path(*key)
         if path.exists():
             raise RuntimeError("completed arm is immutable")
         if row["manifest_id"] != self.manifest_id:
             raise RuntimeError("manifest mismatch")
-        events = [e for e in self.events() if e.get("attempt_id") == row["attempt_id"]]
-        if not events or events[-1]["event"] != "start":
+        active = self._attempts.get(row["attempt_id"])
+        if (
+            not active
+            or active["event"] != "start"
+            or (active["episode_id"], active["arm"]) != key
+        ):
             raise RuntimeError("completion without matching started attempt")
-        # Write-ahead completion binds exact bytes even if the host dies at publication.
-        expected = hashlib.sha256((canonical(row) + "\n").encode()).hexdigest()
+        prepared = (
+            self.root / "prepared" / (digest([*key, row["attempt_id"]]) + ".json")
+        )
+        atomic_json(prepared, row, exclusive=True)
+        expected = file_hash(prepared)
+        event = {
+            "episode_id": key[0],
+            "arm": key[1],
+            "attempt_id": row["attempt_id"],
+            "output_hash": expected,
+        }
         self.append(
             {
+                **event,
                 "event": "completion_prepared",
-                "episode_id": row["episode_id"],
-                "arm": row["arm"],
-                "attempt_id": row["attempt_id"],
-                "output_hash": expected,
-                "row": row,
+                "prepared_path": str(prepared.relative_to(self.root)),
             }
         )
-        atomic_json(path, row, exclusive=True)
-        self.append(
-            {
-                "event": "completed",
-                "episode_id": row["episode_id"],
-                "arm": row["arm"],
-                "attempt_id": row["attempt_id"],
-                "output_hash": expected,
-            }
-        )
+        os.link(prepared, path)
+        fd = os.open(self.root, os.O_RDONLY)
+        try:
+            os.fsync(fd)
+        finally:
+            os.close(fd)
+        self.append({**event, "event": "completed"})
+        self._verify_completed(key, force=True)
 
     def interrupt(self, episode, arm, attempt, reason, elapsed, evidence=None):
         if (
             reason not in {"host_loss", "process_loss", "device_loss", "resource_loss"}
+            or not math.isfinite(elapsed)
             or elapsed < 0
         ):
             raise ValueError("not an infrastructure interruption")
-        active = [e for e in self.events() if e.get("attempt_id") == attempt]
+        active = self._attempts.get(attempt)
         if (
             not active
-            or active[-1]["event"] != "start"
+            or active["event"] != "start"
+            or (active["episode_id"], active["arm"]) != (episode, arm)
             or self.arm_path(episode, arm).exists()
         ):
             raise RuntimeError("only a genuinely missing attempt can be interrupted")
@@ -805,26 +954,11 @@ class RunStore:
 
     def pending(self, episode, arms):
         pending = []
-        events = self.events()
         for arm in arms:
-            path = self.arm_path(episode, arm)
-            history = [
-                e
-                for e in events
-                if e.get("episode_id") == episode and e.get("arm") == arm
-            ]
-            prepared = [e for e in history if e["event"] == "completion_prepared"]
-            if prepared and not path.exists():
-                atomic_json(path, prepared[-1]["row"], exclusive=True)
-            if path.exists():
-                completed = [
-                    e
-                    for e in history
-                    if e["event"] in {"completed", "completion_prepared"}
-                ]
-                if not completed or file_hash(path) != completed[-1]["output_hash"]:
-                    raise RuntimeError("completed output hash mismatch")
-            elif history and history[-1]["event"] == "start":
+            key = (episode, arm)
+            if key in self._completed:
+                self._verify_completed(key)
+            elif self._last.get(key, {}).get("event") == "start":
                 raise RuntimeError(
                     "missing arm requires journaled external interruption evidence"
                 )
@@ -833,13 +967,7 @@ class RunStore:
         return pending
 
     def prior_elapsed(self, episode, arm):
-        return sum(
-            e["elapsed"]
-            for e in self.events()
-            if e["event"] == "interrupted"
-            and e["episode_id"] == episode
-            and e["arm"] == arm
-        )
+        return self._prior[(episode, arm)]
 
     def write_pair(self, episode, arms, assignments):
         if self.pending(episode, arms):
@@ -849,12 +977,17 @@ class RunStore:
             "manifest_id": self.manifest_id,
             "assignments": assignments,
             "arms": {
-                a: json.loads(self.arm_path(episode, a).read_text()) for a in arms
+                a: json.loads(
+                    self.arm_path(episode, a).read_text(), parse_float=Decimal
+                )
+                for a in arms
             },
         }
         path = self.root / f"{episode}.pair.json"
         if path.exists():
-            if json.loads(path.read_text()) != row:
+            if canonical(
+                json.loads(path.read_text(), parse_float=Decimal)
+            ) != canonical(row):
                 raise RuntimeError("paired output hash mismatch")
         else:
             atomic_json(path, row, exclusive=True)
@@ -960,6 +1093,14 @@ class QwenBackend:
         }
 
 
+class GenerationFailure(Exception):
+    """Completed decoder failure: preserve emitted tokens, score once, never retry."""
+
+    def __init__(self, cause, *, ids=()):
+        super().__init__(cause)
+        self.ids = list(ids)
+
+
 ARM_FIELDS = {
     "manifest_id",
     "episode_id",
@@ -1019,9 +1160,21 @@ def run_arm(
         or prompt["H"] != layout["H"]
     ):
         raise AssertionError("echo changed original history IDs/positions")
-    generated = backend.generate(
-        prompt, selection["admission"]["pins"], arm, audit, start + DEADLINE
-    )
+    generation_start = time.monotonic()
+    try:
+        generated = backend.generate(
+            prompt, selection["admission"]["pins"], arm, audit, start + DEADLINE
+        )
+    except GenerationFailure as exc:
+        generated = {
+            "ids": exc.ids,
+            "cache": None,
+            "prefill": 0.0,
+            "generation": time.monotonic() - generation_start,
+            "worst_token": 0.0,
+            "failure": str(exc),
+            "peak_device_bytes": 0,
+        }
     visible_ids = generated["ids"]
     if visible_ids and visible_ids[-1] in {151645, 151643}:
         visible_ids = visible_ids[:-1]

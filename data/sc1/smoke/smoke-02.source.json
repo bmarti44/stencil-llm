@@ -61,7 +61,8 @@
       "turn": 0,
       "evidence_text": "For the accession card keep using the packet provenance code in v, leaving p unchanged. We will return after a shelf survey.",
       "necessary": true,
-      "kind": "accession_survey_return"
+      "kind": "accession_survey_return",
+      "event_type": "switch"
     },
     {
       "id": "event",
@@ -70,7 +71,8 @@
       "turn": 2,
       "evidence_text": "Shelf survey complete; return to the accession task. The neighboring packet bears ${OLD}.",
       "necessary": true,
-      "kind": "scope_event"
+      "kind": "scope_event",
+      "event_type": "return"
     }
   ],
   "decisive_facts": [
@@ -123,6 +125,7 @@
       "value": "${VALUE}",
       "evidence_ids": [
         "governing",
+        "event",
         "fact"
       ]
     }
@@ -196,7 +199,6 @@
     }
   ],
   "final_request": "Complete the accession card we paused.",
-  "filler_turn": 3,
   "literal_specs": {
     "TARGET": {
       "type": "identifier"
@@ -218,7 +220,16 @@
     }
   },
   "answer_literals": [
-    "${VALUE}"
+    {
+      "value": "${VALUE}",
+      "type": "string",
+      "evidence_ids": [
+        "fact"
+      ],
+      "obligation_ids": [
+        "target"
+      ]
+    }
   ],
   "attacks": {
     "wrong entity": {
@@ -232,18 +243,6 @@
       "obligation_ids": [
         "target",
         "keep"
-      ]
-    },
-    "wrong scope": {
-      "output": [
-        {
-          "op": "replace",
-          "path": "/v",
-          "value": "${OLD}"
-        }
-      ],
-      "obligation_ids": [
-        "target"
       ]
     },
     "collateral edit": {
@@ -266,7 +265,8 @@
   },
   "inapplicable": {
     "old-ID substitution": "No superseded record identifier exists in this source.",
-    "cancelled action executed": "No cancelled action exists in this source."
+    "cancelled action executed": "No cancelled action exists in this source.",
+    "wrong scope": "No obsolete governing work exists: the instruction persists."
   },
   "distinctness_review": {
     "signed": false,
@@ -280,5 +280,16 @@
     "generic_safe": "I will preserve the records.",
     "recency_only": "{}",
     "coverage_probes": []
-  }
+  },
+  "filler_turns": [
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ]
 }

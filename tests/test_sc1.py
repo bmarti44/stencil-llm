@@ -229,7 +229,12 @@ def test_expander_determinism_reference_six_negatives_and_reject_all(source):
         episodes.validate_episode(first, source, tok)
     impossible_source = copy.deepcopy(source)
     impossible_source["obligations"].append(
-        {"id": "reject-all", "kind": "forbidden_substrings", "values": [""]}
+        {
+            "id": "reject-all",
+            "kind": "forbidden_substrings",
+            "values": [""],
+            "evidence_ids": ["governing", "fact"],
+        }
     )
     impossible = episodes.expand_source(impossible_source, tok)
     with pytest.raises(ValueError, match="reference failed"):
@@ -498,6 +503,7 @@ def test_setup_workflow_cpu_diagnostics_and_gate_certificate(
 
     from scripts import sc1 as cli
 
+    monkeypatch.setattr(cli, "STUDY_REGISTRY", tmp_path / "registry")
     tokenizer = CharTokenizer()
     seed_episode = episodes.expand_source(source, tokenizer)
     bank = []
@@ -542,7 +548,12 @@ def test_setup_workflow_cpu_diagnostics_and_gate_certificate(
     )
     result = cli.run_study(
         args,
-        {"manifest_id": "cpu-fixture"},
+        {
+            "manifest_id": "cpu-fixture",
+            "study_id": str(tmp_path),
+            "registration_hash": "test",
+            "execution_root": str(tmp_path),
+        },
         bank,
         tokenizer,
         backend_factory=Backend,
@@ -618,7 +629,12 @@ def versions():
 @pytest.mark.parametrize("attempt", [0, 1, 2])
 def test_astra_f4_author_envelope_is_blind(pool, attempt):
     request = episodes.commissioning_request(
-        "contract", episodes.SCHEMA, versions(), pool, 0, attempt,
+        "contract",
+        episodes.SCHEMA,
+        versions(),
+        pool,
+        0,
+        attempt,
         feedback="Fix the missing source field." if attempt else None,
     )
     assignment = request["input"]["assignment"]
@@ -668,12 +684,14 @@ def test_astra_f6_source_boundary_through_bank(tmp_path, real_tokenizer, mutatio
     elif mutation == "authority":
         source["turns"][source["instruction_trajectory"][0]["turn"]]["role"] = "tool"
     else:
-        source["state_trace"]["events"] = [{
-            "turn": 5,
-            "call": {"name": "get", "arguments": {"id": "${TARGET}"}},
-            "return": {"v": "unfilled", "p": "fixed"},
-            "public_text": '{"p":"fixed","v":"impossible state"}',
-        }]
+        source["state_trace"]["events"] = [
+            {
+                "turn": 5,
+                "call": {"name": "get", "arguments": {"id": "${TARGET}"}},
+                "return": {"v": "unfilled", "p": "fixed"},
+                "public_text": '{"p":"fixed","v":"impossible state"}',
+            }
+        ]
         source["turns"][5]["text"] = source["state_trace"]["events"][0]["public_text"]
     sc1.atomic_json(tmp_path / "bad.source.json", source)
     with pytest.raises(ValueError, match="scope|authority|trace|return"):
@@ -683,8 +701,12 @@ def test_astra_f6_source_boundary_through_bank(tmp_path, real_tokenizer, mutatio
 def test_astra_f7_whitespace_negatives_are_one_attack(source, real_tokenizer):
     bad = [{"op": "replace", "path": "/p", "value": "wrong"}]
     source["attacks"] = {
-        slot: {"output": json.dumps(bad, indent=i), "obligation_ids": ["target", "keep"]}
-        for i, slot in enumerate(episodes.ATTACKS) if slot != "empty output"
+        slot: {
+            "output": json.dumps(bad, indent=i),
+            "obligation_ids": ["target", "keep"],
+        }
+        for i, slot in enumerate(episodes.ATTACKS)
+        if slot != "empty output"
     }
     with pytest.raises(ValueError, match="duplicate|applicab|attack"):
         validate_source(source, real_tokenizer)
@@ -697,7 +719,9 @@ def text_episode():
         "expected_artifact": "Lantern\nHarbor",
         "expected_state": None,
         "checker": [{"id": "code", "kind": "required_lines", "values": ["Lantern"]}],
-        "protected_set": [{"id": "keep", "kind": "required_lines", "values": ["Harbor"]}],
+        "protected_set": [
+            {"id": "keep", "kind": "required_lines", "values": ["Harbor"]}
+        ],
     }
 
 
@@ -706,15 +730,29 @@ def test_astra_f8_text_unauthorized_insertions_and_deletions():
     assert episodes.run_checker(ep, "Lantern\nHarbor")["success"]
     assert not episodes.run_checker(ep, "Wrong\nHarbor")["corruption"]
     for text in (
-        "Intrusion\nLantern\nHarbor", "Lantern\nIntrusion\nHarbor",
-        "Lantern\nHarbor\nIntrusion", "Lantern", "Lantern\nChanged",
+        "Intrusion\nLantern\nHarbor",
+        "Lantern\nIntrusion\nHarbor",
+        "Lantern\nHarbor\nIntrusion",
+        "Lantern",
+        "Lantern\nChanged",
         "Lantern\nHarbor\n" + "Intrusion\n" * 41,
     ):
         assert episodes.run_checker(ep, text)["corruption"], text
-    pairs = [{"id": str(i), "arms": {
-        arm: {"success": arm == "clf" and i < 13, "flags": {"F": False},
-              "corruption": False, "latency": {"total": 1}}
-        for arm in ("clf", "rule")}} for i in range(256)]
+    pairs = [
+        {
+            "id": str(i),
+            "arms": {
+                arm: {
+                    "success": arm == "clf" and i < 13,
+                    "flags": {"F": False},
+                    "corruption": False,
+                    "latency": {"total": 1},
+                }
+                for arm in ("clf", "rule")
+            },
+        }
+        for i in range(256)
+    ]
     assert sc1.analyze_pairs(pairs)["adopt"] == "clf"
     pairs[0]["arms"]["clf"]["corruption"] = episodes.run_checker(
         ep, "Lantern\nHarbor\nIntrusion"
@@ -724,42 +762,66 @@ def test_astra_f8_text_unauthorized_insertions_and_deletions():
 
 @pytest.mark.parametrize("kind", ["json_patch", "tool"])
 def test_astra_f9_exact_json_numerics(kind):
-    spec = {"kind": kind, "fields": {"v": "number", "p": "string"},
-            "permitted_paths": ["/v" if kind == "json_patch" else "/target/v"],
-            "operations": ["update"]}
+    spec = {
+        "kind": kind,
+        "fields": {"v": "number", "p": "string"},
+        "permitted_paths": ["/v" if kind == "json_patch" else "/target/v"],
+        "operations": ["update"],
+    }
     initial, expected = {"v": 0, "p": "fixed"}, {"v": 9786, "p": "fixed"}
-    ep = {"task_spec": spec,
-          "initial_state": initial if kind == "json_patch" else {"target": initial},
-          "expected_artifact": expected, "expected_state": {"target": expected},
-          "checker": [], "protected_set": []}
+    ep = {
+        "task_spec": spec,
+        "initial_state": initial if kind == "json_patch" else {"target": initial},
+        "expected_artifact": expected,
+        "expected_state": {"target": expected},
+        "checker": [],
+        "protected_set": [],
+    }
     for number in ("9786", "9786.0", "9.786e3", "9786.0000000000000000000001"):
-        output = ('[{"op":"replace","path":"/v","value":' + number + '}]'
-                  if kind == "json_patch" else
-                  '{"name":"update","arguments":{"id":"target","changes":{"v":'
-                  + number + '}}}')
-        assert episodes.run_checker(ep, output)["success"] == (number != "9786.0000000000000000000001")
+        output = (
+            '[{"op":"replace","path":"/v","value":' + number + "}]"
+            if kind == "json_patch"
+            else '{"name":"update","arguments":{"id":"target","changes":{"v":'
+            + number
+            + "}}}"
+        )
+        assert episodes.run_checker(ep, output)["success"] == (
+            number != "9786.0000000000000000000001"
+        )
     assert episodes.json_equal(episodes.parse_json("-0.0"), 0)
-    assert not episodes.json_equal(episodes.parse_json("1e30"), episodes.parse_json("1000000000000000000000000000001"))
+    assert not episodes.json_equal(
+        episodes.parse_json("1e30"),
+        episodes.parse_json("1000000000000000000000000000001"),
+    )
     for bad in ("NaN", "Infinity", '{"x":1,"x":2}'):
         with pytest.raises(ValueError):
             episodes.parse_json(bad)
 
 
 def reviewed_pair(real_tokenizer):
-    pair = [episodes.expand_source(s, real_tokenizer)
-            for s in episodes.load_sources(ROOT / "data/sc1/smoke")[:2]]
+    pair = [
+        episodes.expand_source(s, real_tokenizer)
+        for s in episodes.load_sources(ROOT / "data/sc1/smoke")[:2]
+    ]
     pair.sort(key=lambda e: e["source_id"])
     left, right = pair
     left["pool"] = right["pool"] = "final"
     left["provenance"]["session_id"] = "author-left"
     right["provenance"]["session_id"] = "author-right"
-    left["distinctness_review"]["pairs"] = {right["source_id"]: {
-        "signed": True, "decision": "distinct", "reviewer": "reviewer",
-        "session_id": "independent-session",
-        "source_ids": [left["source_id"], right["source_id"]],
-        "source_hashes": [left["validation"]["source_hash"], right["validation"]["source_hash"]],
-        "other_hash": right["validation"]["source_hash"],
-    }}
+    left["distinctness_review"]["pairs"] = {
+        right["source_id"]: {
+            "signed": True,
+            "decision": "distinct",
+            "reviewer": "reviewer",
+            "session_id": "independent-session",
+            "source_ids": [left["source_id"], right["source_id"]],
+            "source_hashes": [
+                left["validation"]["source_hash"],
+                right["validation"]["source_hash"],
+            ],
+            "other_hash": right["validation"]["source_hash"],
+        }
+    }
     return pair
 
 
@@ -792,8 +854,19 @@ def test_astra_f13_commission_requires_both_freezes(tmp_path):
     draft = tmp_path / "stage1.json"
     sc1.atomic_json(draft, {"status": "DRAFT", "authors": versions()})
     with pytest.raises(ValueError, match="registered|REGISTERED|Stage|freeze"):
-        main(["commission", "--stage1", str(draft), "--pool", "setup", "--index", "0",
-              "--out", str(tmp_path / "out")])
+        main(
+            [
+                "commission",
+                "--stage1",
+                str(draft),
+                "--pool",
+                "setup",
+                "--index",
+                "0",
+                "--out",
+                str(tmp_path / "out"),
+            ]
+        )
 
 
 def test_astra_f14_unregistered_trunk_refused_before_loading(monkeypatch, tmp_path):
@@ -814,10 +887,15 @@ def test_fable_h1_pressure_binds_on_every_smoke_episode(real_tokenizer):
         universe, _ = sc1.build_sc1_candidates(layout, real_tokenizer)
         assert sum(c["span"][1] - c["span"][0] for c in universe) >= 2 * layout["B"]
         rule = sc1.select_policy(layout, real_tokenizer, "rule")
-        clf = sc1.select_policy(layout, real_tokenizer, "clf", lambda t, **kw: [1.0] * len(t))
+        clf = sc1.select_policy(
+            layout, real_tokenizer, "clf", lambda t, **kw: [1.0] * len(t)
+        )
         assert any(s["reason"] == "budget" for s in rule["admission"]["skips"])
         assert rule["admission"]["pins"] != clf["admission"]["pins"]
-        assert max(len(sc1.token_ids(real_tokenizer, t["text"])) for t in ep["turns"]) <= 600
+        assert (
+            max(len(sc1.token_ids(real_tokenizer, t["text"])) for t in ep["turns"])
+            <= 600
+        )
 
 
 def test_fable_l1_eos_at_cap_is_not_truncation():
@@ -832,7 +910,9 @@ def test_fable_l2_repetition_taxonomy_discloses_period_limit():
 def test_fable_l3_smoke_never_reused(real_tokenizer):
     from scripts import sc1 as cli
 
-    ep = episodes.expand_source(episodes.load_sources(ROOT / "data/sc1/smoke")[0], real_tokenizer)
+    ep = episodes.expand_source(
+        episodes.load_sources(ROOT / "data/sc1/smoke")[0], real_tokenizer
+    )
     ep["pool"] = "final"
     with pytest.raises(ValueError, match="smoke"):
         cli._check_cohort([ep])
@@ -847,17 +927,26 @@ def test_fable_l4_real_tokenizer_segmentation_identity(real_tokenizer):
         actual, _ = sc1.build_sc1_candidates(layout, real_tokenizer)
         messages = [{"role": t["role"], "content": t["text"]} for t in ep["turns"]]
         messages.append({"role": "user", "content": ep["final_request"]})
-        _, frozen, _ = select_history_spans(real_tokenizer, layout["text"], messages,
-                                           lambda texts, **kw: [0.6] * len(texts))
+        _, frozen, _ = select_history_spans(
+            real_tokenizer,
+            layout["text"],
+            messages,
+            lambda texts, **kw: [0.6] * len(texts),
+        )
         fields = ("text", "role", "message_index", "char_span", "span")
         assert [{k: c[k] for k in fields} for c in actual] == [
-            {k: c[k] for k in fields} for c in frozen
-            if layout["P"] <= c["span"][0] < c["span"][1] <= layout["R"]]
+            {k: c[k] for k in fields}
+            for c in frozen
+            if layout["P"] <= c["span"][0] < c["span"][1] <= layout["R"]
+        ]
         assert "candidate_columns" in ep["layout_audit"]
 
 
 def test_fable_l5_only_measured_interventions_are_reported():
-    assert set(sc1.InterventionCounter().counts) == {"attention_amplification", "residual_steering"}
+    assert set(sc1.InterventionCounter().counts) == {
+        "attention_amplification",
+        "residual_steering",
+    }
 
 
 def test_fable_l6_output_directory_required():
@@ -880,16 +969,33 @@ def scheduling(tmp_path, source, monkeypatch):
         ep = copy.deepcopy(seed)
         ep.update(id=f"cpu-{i}", pool="final", index=i)
         bank.append(ep)
-    manifest = {"manifest_id": "cpu-manifest", "study_id": "cpu-study",
-                "registration_hash": "cpu-registration", "execution_root": str(tmp_path / "run")}
-    args = SimpleNamespace(mode="final", out=tmp_path / "run", trunk="4b",
-                           setup_certificate=None, determinism_certificate=None,
-                           interruption_evidence=None)
+    manifest = {
+        "manifest_id": "cpu-manifest",
+        "study_id": "cpu-study",
+        "registration_hash": "cpu-registration",
+        "execution_root": str(tmp_path / "run"),
+    }
+    args = SimpleNamespace(
+        mode="final",
+        out=tmp_path / "run",
+        trunk="4b",
+        setup_certificate=None,
+        determinism_certificate=None,
+        interruption_evidence=None,
+    )
     monkeypatch.setattr(cli, "STUDY_REGISTRY", tmp_path / "registry", raising=False)
-    monkeypatch.setattr(cli, "require_setup", lambda *a, **k: {
-        "cost": {"spent": 1, "estimates": {"prefill": 0, "token": 0, "cpu": 0, "check": 0}},
-        "certificate_hash": "setup", "study_id": "cpu-study",
-    })
+    monkeypatch.setattr(
+        cli,
+        "require_setup",
+        lambda *a, **k: {
+            "cost": {
+                "spent": 1,
+                "estimates": {"prefill": 0, "token": 0, "cpu": 0, "check": 0},
+            },
+            "certificate_hash": "setup",
+            "study_id": "cpu-study",
+        },
+    )
     monkeypatch.setattr(cli, "verify_determinism", lambda *a: {"allocated_seconds": 1})
     calls, initializations = [], []
 
@@ -903,29 +1009,69 @@ def scheduling(tmp_path, source, monkeypatch):
 
     def arm_row(ep, arm, tokenizer, backend, scorer, **kw):
         failure = backend.generate(ep, arm)
-        latency = dict.fromkeys(("prefill", "worst_token", "render", "candidate",
-                                "scoring", "admission", "echo", "check"), 0.0)
-        latency.update(total=1 + kw.get("prior_elapsed", 0), prior_attempts=kw.get("prior_elapsed", 0))
+        latency = dict.fromkeys(
+            (
+                "prefill",
+                "worst_token",
+                "render",
+                "candidate",
+                "scoring",
+                "admission",
+                "echo",
+                "check",
+            ),
+            0.0,
+        )
+        latency.update(
+            total=1 + kw.get("prior_elapsed", 0),
+            prior_attempts=kw.get("prior_elapsed", 0),
+        )
         row = dict.fromkeys(sc1.ARM_FIELDS)
-        row.update(manifest_id=manifest["manifest_id"], episode_id=ep["id"],
-                   episode_hash=sc1.digest(ep), arm=arm, order=kw["order"],
-                   attempt_id=kw["attempt_id"], initialization_id=kw["initialization_id"],
-                   latency=latency, success=arm in {"clf", "full"} and not failure,
-                   failure=failure, input_tokens=sc1.MAX_INPUT,
-                   interventions=dict.fromkeys(sc1.INTERVENTIONS, 0),
-                   flags={"I": bool(failure), "T": False, "R": False, "F": bool(failure)},
-                   corruption=False, cache={}, token_ids=[], allocated_seconds=1)
+        row.update(
+            manifest_id=manifest["manifest_id"],
+            episode_id=ep["id"],
+            episode_hash=sc1.digest(ep),
+            arm=arm,
+            order=kw["order"],
+            attempt_id=kw["attempt_id"],
+            initialization_id=kw["initialization_id"],
+            latency=latency,
+            success=arm in {"clf", "full"} and not failure,
+            failure=failure,
+            input_tokens=sc1.MAX_INPUT,
+            interventions=dict.fromkeys(sc1.INTERVENTIONS, 0),
+            flags={"I": bool(failure), "T": False, "R": False, "F": bool(failure)},
+            corruption=False,
+            cache={},
+            token_ids=[],
+            allocated_seconds=1,
+        )
         return row
 
     monkeypatch.setattr(sc1, "run_arm", arm_row)
 
     def run(backend=Backend):
-        return cli.run_study(args, manifest, bank, tok, backend_factory=backend,
-                             scorer_factory=lambda *a: lambda t, **k: [0.0] * len(t))
+        return cli.run_study(
+            args,
+            manifest,
+            bank,
+            tok,
+            backend_factory=backend,
+            scorer_factory=lambda *a: lambda t, **k: [0.0] * len(t),
+        )
 
-    return SimpleNamespace(args=args, manifest=manifest, bank=bank, tok=tok, run=run,
-                           backend=Backend, calls=calls, inits=initializations,
-                           arm_row=arm_row, cli=cli)
+    return SimpleNamespace(
+        args=args,
+        manifest=manifest,
+        bank=bank,
+        tok=tok,
+        run=run,
+        backend=Backend,
+        calls=calls,
+        inits=initializations,
+        arm_row=arm_row,
+        cli=cli,
+    )
 
 
 def seed_completions(scheduling, count, spent=20000, prefill=20):
@@ -939,15 +1085,27 @@ def seed_completions(scheduling, count, spent=20000, prefill=20):
         attempt = f"seed-{i}"
         store.start(ep["id"], arm, attempt)
         order = episodes.commission_slot(s.args.mode, ep["index"])[
-            "order" if s.args.mode == "final" else "setup_order"]
-        row = s.arm_row(ep, arm, s.tok, s.backend(), None, order=order, attempt_id=attempt,
-                        initialization_id="seed")
+            "order" if s.args.mode == "final" else "setup_order"
+        ]
+        row = s.arm_row(
+            ep,
+            arm,
+            s.tok,
+            s.backend(),
+            None,
+            order=order,
+            attempt_id=attempt,
+            initialization_id="seed",
+        )
         store.complete(row)
         path = store.arm_path(ep["id"], arm)
         originals[path] = path.read_bytes()
-    meter = sc1.CostMeter(spent=spent,
-                          estimates={"prefill": prefill, "token": 0, "cpu": 0, "check": 0})
-    sc1.AllocationLedger(s.args.out / "cost.json", s.manifest["manifest_id"], meter).checkpoint()
+    meter = sc1.CostMeter(
+        spent=spent, estimates={"prefill": prefill, "token": 0, "cpu": 0, "check": 0}
+    )
+    sc1.AllocationLedger(
+        s.args.out / "cost.json", s.manifest["study_id"], meter
+    ).checkpoint()
     s.calls.clear()
     s.inits.clear()
     return originals
@@ -970,8 +1128,11 @@ def test_astra_f1_scheduler_incremental_accounting(scheduling, monkeypatch):
 
     def realistic(*args, **kwargs):
         row = original_arm(*args, **kwargs)
-        row["cache"] = {"layers": [
-            {"positions": list(range(1224)), "width": 1224} for _ in range(36)]}
+        row["cache"] = {
+            "layers": [
+                {"positions": list(range(1224)), "width": 1224} for _ in range(36)
+            ]
+        }
         return row
 
     monkeypatch.setattr(sc1, "run_arm", realistic)
@@ -1005,11 +1166,20 @@ def test_astra_f2_output_cannot_reset_execution(scheduling, state):
     except ValueError:
         pass
     s.inits.clear()
-    old_cost = (s.args.out / "cost.json").read_bytes() if (s.args.out / "cost.json").exists() else None
+    old_cost = (
+        (s.args.out / "cost.json").read_bytes()
+        if (s.args.out / "cost.json").exists()
+        else None
+    )
     original_out = s.args.out
     s.args.out = s.args.out.parent / "new-output"
+
+    class ForbiddenBackend:
+        def __init__(self, *args):
+            pytest.fail("backend initialized for duplicate study")
+
     with pytest.raises(ValueError, match="study|execution|output|registered"):
-        s.run()
+        s.run(ForbiddenBackend)
     assert not s.inits
     if old_cost:
         assert (original_out / "cost.json").read_bytes() == old_cost
@@ -1089,24 +1259,46 @@ def test_astra_f16_partial_journal_tail_recovery(tmp_path):
 def determinism_fixture(tmp_path, monkeypatch):
     from scripts import sc1 as cli
 
-    frozen = {"manifest_id": "frozen", "deployment": {"trunk": "4b"},
-              "episodes": [{"id": e, "pool": "smoke", "hash": e + "-hash"}
-                           for e in ("smoke-00", "smoke-01")]}
+    frozen = {
+        "manifest_id": "frozen",
+        "deployment": {"trunk": "4b"},
+        "episodes": [
+            {"id": e, "pool": "smoke", "hash": e + "-hash"}
+            for e in ("smoke-00", "smoke-01")
+        ],
+    }
     monkeypatch.setattr(cli, "verify_manifest", lambda *a, **kw: frozen)
     rows = []
     for process in ("p1", "p2"):
         for episode in frozen["episodes"]:
             for arm in ("clf", "rule"):
-                output = {"process_id": process, "initialization_id": process,
-                          "episode_id": episode["id"], "episode_hash": episode["hash"],
-                          "arm": arm, "token_ids": [1, 2], "input_hash": episode["hash"] + arm,
-                          "deployment_hash": sc1.digest(frozen["deployment"]),
-                          "allocated_seconds": 1, "executable_manifest_id": "frozen"}
+                output = {
+                    "process_id": process,
+                    "initialization_id": process,
+                    "episode_id": episode["id"],
+                    "episode_hash": episode["hash"],
+                    "arm": arm,
+                    "token_ids": [1, 2],
+                    "input_hash": episode["hash"] + arm,
+                    "deployment_hash": sc1.digest(frozen["deployment"]),
+                    "allocated_seconds": 1,
+                    "executable_manifest_id": "frozen",
+                }
                 path = tmp_path / f"{process}-{episode['id']}-{arm}.json"
                 sc1.atomic_json(path, output)
-                rows.append({**output, "output_path": str(path), "output_hash": sc1.file_hash(path)})
-    cert = {"executable_manifest_id": "frozen", "outputs": rows, "allocated_seconds": 10,
-            "initializations": {p: {"allocated_seconds": 5} for p in ("p1", "p2")}}
+                rows.append(
+                    {
+                        **output,
+                        "output_path": str(path),
+                        "output_hash": sc1.file_hash(path),
+                    }
+                )
+    cert = {
+        "executable_manifest_id": "frozen",
+        "outputs": rows,
+        "allocated_seconds": 10,
+        "initializations": {p: {"allocated_seconds": 5} for p in ("p1", "p2")},
+    }
     path = tmp_path / "certificate.json"
     sc1.atomic_json(path, cert)
     return cli, frozen, cert, path
@@ -1128,3 +1320,150 @@ def test_fable_m3_determinism_entrypoint_exists():
     assert callable(getattr(cli, "run_determinism", None))
     with pytest.raises((ValueError, SystemExit), match="out"):
         cli.main(["determinism"])
+
+
+class DeterminismFixtureBackend:
+    """CPU fixture: fixed tokens, no model construction or checkpoint access."""
+
+    def __init__(self, *args):
+        pass
+
+    def generate(self, layout, pins, arm, interventions, deadline_at):
+        return {
+            "ids": [111, 107],
+            "cache": {},
+            "prefill": 0.001,
+            "generation": 0.001,
+            "worst_token": 0.00001,
+            "failure": None,
+            "peak_device_bytes": 0,
+        }
+
+
+def test_fable_m3_two_cpu_subprocesses_emit_verifiable_certificate(
+    tmp_path, source, monkeypatch
+):
+    import os
+    import subprocess
+    import sys
+
+    from scripts import sc1 as cli
+
+    sources = episodes.load_sources(ROOT / "data/sc1/smoke")[:2]
+    bank = [episodes.expand_source(s, CharTokenizer()) for s in sources]
+    manifest = {
+        "manifest_id": "cpu-frozen",
+        "trunk": "4b",
+        "study_id": "cpu-determinism",
+        "registration_hash": "cpu-registration",
+        "execution_root": str(tmp_path / "run"),
+        "deployment": {"trunk": "4b", "greedy": True},
+        "episodes": [
+            {"id": e["id"], "hash": sc1.digest(e), "pool": "smoke"} for e in bank
+        ],
+    }
+    sc1.atomic_json(tmp_path / "manifest.json", manifest)
+    sc1.atomic_json(tmp_path / "bank.json", bank)
+    code = """
+import json, runpy, sys
+from pathlib import Path
+from types import SimpleNamespace
+from scripts import sc1 as cli
+fixtures = runpy.run_path(str(Path.cwd() / "tests/test_sc1.py"))
+root = Path(sys.argv[1])
+manifest = json.loads((root / "manifest.json").read_text())
+bank = json.loads((root / "bank.json").read_text())
+cli.STUDY_REGISTRY = root / "registry"
+args = SimpleNamespace(mode="determinism", out=root / "run", trunk="4b")
+print(cli.run_determinism(args, manifest, bank, fixtures["CharTokenizer"](),
+    backend_factory=fixtures["DeterminismFixtureBackend"],
+    scorer_factory=lambda *a: lambda texts, **kw: [0.6] * len(texts)))
+"""
+    for _ in range(2):
+        process = subprocess.run(
+            [sys.executable, "-c", code, str(tmp_path)],
+            cwd=ROOT,
+            env={
+                **os.environ,
+                "CUDA_VISIBLE_DEVICES": "",
+                "PYTHONDONTWRITEBYTECODE": "1",
+            },
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        assert process.returncode == 0, process.stdout + process.stderr
+    monkeypatch.setattr(cli, "verify_manifest", lambda *a, **k: manifest)
+    path = tmp_path / "run/determinism-certificate.json"
+    cert = cli.verify_determinism(path, {**manifest, "executable_freeze": "cpu-frozen"})
+    assert len(cert["outputs"]) == 8
+    cert["outputs"][0]["token_ids"][0] += 1
+    sc1.atomic_json(path, cert)
+    with pytest.raises(ValueError, match="determinism|output"):
+        cli.verify_determinism(path, {**manifest, "executable_freeze": "cpu-frozen"})
+
+
+def test_astra_f16_completed_generation_failure_is_not_interruption(source):
+    ep = episodes.expand_source(source, CharTokenizer())
+
+    class Backend(DeterminismFixtureBackend):
+        def generate(self, *args):
+            raise sc1.GenerationFailure("decoder stopped", ids=[111, 107])
+
+    row = sc1.run_arm(
+        ep,
+        "rule",
+        CharTokenizer(),
+        Backend(),
+        None,
+        manifest_id="m",
+        order=["rule", "clf"],
+        attempt_id="a",
+        initialization_id="i",
+    )
+    assert row["failure"] == "decoder stopped" and not row["success"]
+    assert row["token_ids"] == [111, 107]
+
+
+@pytest.mark.parametrize("issue", ["same_reviewer", "left_changed", "right_changed"])
+def test_astra_f10_independent_review_sessions(real_tokenizer, issue):
+    pair = reviewed_pair(real_tokenizer)
+    review = pair[0]["distinctness_review"]["pairs"][pair[1]["source_id"]]
+    if issue == "same_reviewer":
+        review["session_id"] = pair[1]["provenance"]["session_id"]
+    else:
+        pair[issue == "right_changed"]["validation"]["source_hash"] = "changed"
+    with pytest.raises(ValueError, match="review"):
+        episodes.independence_audit(pair)
+
+
+@pytest.mark.parametrize("issue", ["missing", "reversed", "wrong_role"])
+def test_astra_f6_nonempty_trace_has_public_correspondence(
+    tmp_path, real_tokenizer, issue
+):
+    source = episodes.load_sources(ROOT / "data/sc1/smoke")[5]
+    validate_source(source, real_tokenizer)
+    if issue == "missing":
+        source["state_trace"]["events"].clear()
+    elif issue == "wrong_role":
+        source["turns"][5]["role"] = "assistant"
+    else:
+        event = copy.deepcopy(source["state_trace"]["events"][0])
+        event["turn"] = 4
+        source["turns"][4] = {"role": "tool", "text": event["public_text"]}
+        source["filler_turns"].remove(4)
+        source["state_trace"]["events"].append(event)
+    sc1.atomic_json(tmp_path / "trace.source.json", source)
+    with pytest.raises(ValueError, match="trace|return"):
+        episodes.validate_bank(tmp_path, real_tokenizer)
+
+
+def test_astra_f7_numeric_key_order_and_text_negative_identity():
+    ep = {"task_spec": {"kind": "json_patch"}}
+    assert episodes.mutation_key(ep, '{"a":1.0,"b":2}') == episodes.mutation_key(
+        ep, '{"b":2e0,"a":1}'
+    )
+    ep["task_spec"]["kind"] = "text"
+    assert episodes.mutation_key(ep, "x  \r\n\r\n\r\ny") == episodes.mutation_key(
+        ep, "x\n\ny"
+    )

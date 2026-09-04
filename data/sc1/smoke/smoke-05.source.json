@@ -55,22 +55,33 @@
   },
   "instruction_trajectory": [
     {
-      "id": "governing",
-      "authority": "user",
-      "scope": "overridden",
-      "turn": 0,
-      "evidence_text": "The route has changed: update only v of record ${TARGET} to the new mounting tag, superseding the prior tag. Leave ${GUARD} intact.",
-      "necessary": true,
-      "kind": "route_change_revises_mount"
-    },
-    {
       "id": "event",
       "authority": "user",
       "scope": "overridden",
-      "turn": 2,
+      "turn": 0,
       "evidence_text": "The previous route specified tag ${OLD}. It no longer governs.",
       "necessary": true,
-      "kind": "scope_event"
+      "kind": "scope_event",
+      "event_type": "superseded",
+      "obsolete_work": {
+        "name": "update",
+        "arguments": {
+          "id": "${TARGET}",
+          "changes": {
+            "v": "${OLD}"
+          }
+        }
+      }
+    },
+    {
+      "id": "governing",
+      "authority": "user",
+      "scope": "overridden",
+      "turn": 2,
+      "evidence_text": "The route has changed: update only v of record ${TARGET} to the new mounting tag, superseding the prior tag. Leave ${GUARD} intact.",
+      "necessary": true,
+      "kind": "route_change_revises_mount",
+      "event_type": "update"
     }
   ],
   "decisive_facts": [
@@ -125,7 +136,22 @@
         "p": "fixed"
       }
     },
-    "events": []
+    "events": [
+      {
+        "turn": 5,
+        "call": {
+          "name": "get",
+          "arguments": {
+            "id": "${TARGET}"
+          }
+        },
+        "return": {
+          "v": "unfilled",
+          "p": "fixed"
+        },
+        "public_text": "{\"call\":{\"arguments\":{\"id\":\"${TARGET}\"},\"name\":\"get\"},\"return\":{\"p\":\"fixed\",\"v\":\"unfilled\"}}"
+      }
+    ]
   },
   "obligations": [
     {
@@ -134,6 +160,7 @@
       "path": "/${TARGET}/v",
       "value": "${VALUE}",
       "evidence_ids": [
+        "event",
         "governing",
         "fact"
       ]
@@ -160,7 +187,7 @@
   "turns": [
     {
       "role": "user",
-      "text": "The route has changed: update only v of record ${TARGET} to the new mounting tag, superseding the prior tag. Leave ${GUARD} intact. Record ${TARGET} has v unfilled and p fixed. Record ${GUARD} has v protected and p fixed."
+      "text": "The previous route specified tag ${OLD}. It no longer governs. The initial fields remain as described in the later update."
     },
     {
       "role": "user",
@@ -168,7 +195,7 @@
     },
     {
       "role": "user",
-      "text": "The previous route specified tag ${OLD}. It no longer governs."
+      "text": "The route has changed: update only v of record ${TARGET} to the new mounting tag, superseding the prior tag. Leave ${GUARD} intact. Record ${TARGET} has v unfilled and p fixed. Record ${GUARD} has v protected and p fixed."
     },
     {
       "role": "assistant",
@@ -180,14 +207,14 @@
     },
     {
       "role": "tool",
-      "text": "A tram-banner sketch shows a narrow arch."
+      "text": "{\"call\":{\"arguments\":{\"id\":\"${TARGET}\"},\"name\":\"get\"},\"return\":{\"p\":\"fixed\",\"v\":\"unfilled\"}}"
     },
     {
       "role": "user",
       "text": "The tram-banner bench faces a blank wall."
     },
     {
-      "role": "assistant",
+      "role": "tool",
       "text": "A tram-banner visitor carried an empty folder."
     },
     {
@@ -208,7 +235,6 @@
     }
   ],
   "final_request": "Apply the route revision to the display store.",
-  "filler_turn": 3,
   "literal_specs": {
     "TARGET": {
       "type": "identifier"
@@ -230,7 +256,26 @@
     }
   },
   "answer_literals": [
-    "${VALUE}"
+    {
+      "value": "${VALUE}",
+      "type": "string",
+      "evidence_ids": [
+        "fact"
+      ],
+      "obligation_ids": [
+        "target"
+      ]
+    },
+    {
+      "value": "${TARGET}",
+      "type": "identifier",
+      "evidence_ids": [
+        "governing"
+      ],
+      "obligation_ids": [
+        "target"
+      ]
+    }
   ],
   "attacks": {
     "wrong entity": {
@@ -290,5 +335,15 @@
     "generic_safe": "I will preserve the records.",
     "recency_only": "{}",
     "coverage_probes": []
-  }
+  },
+  "filler_turns": [
+    3,
+    4,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ]
 }
