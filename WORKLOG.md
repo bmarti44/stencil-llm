@@ -4190,3 +4190,33 @@ and contract not edited):**
 All changes were committed with explicit pathspecs. The registered smoke
 artifacts and this handoff accompany the final artifact commit; their tracking
 and committed bytes are checked after that commit.
+
+
+### Final artifact update — sc1-harness-v2
+
+This update supersedes the earlier candidate manifest and split test counts above.
+The final F4 inspection found that the exported grammar's pressure description
+named the rule arm. Commit `5458350` removes that policy label from author-visible
+input; `test_astra_f4_author_envelope_is_blind` now also checks the grammar prose.
+All nine pool/attempt cases were RED before the correction and GREEN afterward.
+The full finding-to-commit table above therefore additionally maps **astra F4 ->
+5458350 -> test_astra_f4_author_envelope_is_blind**. Validator pressure requirements
+and the Stage-1 ambiguities remain as recorded above.
+
+Final exact four-file command:
+
+`CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 uv run pytest -q -p no:cacheprovider tests/test_sc1.py tests/test_eval_data_separation.py tests/test_sealed_guard.py tests/test_no_side_effect_imports.py --tb=short`
+
+**102 passed, 1 expected legacy xfail**, 168.73 s; the same unchanged legacy
+SyntaxWarning was emitted. This run includes every final finding-named case,
+including the new-registration source guard and supplementary unreachable-state
+probe. Ruff and `git diff --check` passed. The regenerated smoke bank again
+passed `scripts/sc1.py validate data/sc1/smoke` (via `uv run python`): eight
+references, 48 negatives, unchanged age assignments and pressure audit counts.
+`verify_manifest` and `load_manifest_bank` passed for all 44 files/eight episodes.
+
+Final manifest ID: `a183aae282a7a3000830b068c902755930f2e304f69f8fa42767c30b65eecff6`.
+
+Final manifest file SHA-256: `779bac39080de5a59647d0842b22d6e53249811ab2b88bf022349db402c2a248`.
+
+Final executable commit: `5458350c8bc6981d9f2ae912f66982a3e0fa1387`.
