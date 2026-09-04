@@ -191,7 +191,13 @@ def test_exact_statistics_power_and_union_gates():
 
 
 def test_sampler_digest_and_assignment_attempt_invariance():
+    for bad_index in (True, 1.5):
+        with pytest.raises(ValueError):
+            episodes.stream_digest("setup", bad_index, "author")
     expected = hashlib.sha256(b"SC1-v2|20260904|setup|0|author|0").hexdigest()
+    assert expected == (
+        "5a1059b0553e7578e9e3577f90d5d1f43ecb96e118a371d912d9211d82eac83d"
+    )
     assert episodes.stream_digest("setup", 0, "author") == expected
     a = episodes.commission_slot("setup", 0, attempt=0)
     b = episodes.commission_slot("setup", 0, attempt=2)
@@ -221,6 +227,13 @@ def test_expander_determinism_reference_six_negatives_and_reject_all(source):
     )
     with pytest.raises(ValueError):
         episodes.validate_episode(first, source, tok)
+    impossible_source = copy.deepcopy(source)
+    impossible_source["obligations"].append(
+        {"id": "reject-all", "kind": "forbidden_substrings", "values": [""]}
+    )
+    impossible = episodes.expand_source(impossible_source, tok)
+    with pytest.raises(ValueError, match="reference failed"):
+        episodes.validate_episode(impossible, impossible_source, tok)
 
 
 def test_checker_strict_json_complete_protected_and_fresh_state(source):
@@ -360,3 +373,217 @@ def test_cost_projection_reserves_attempt_and_never_decreases():
         {"prefill": 1, "token": 0.001, "cpu": 0.1, "check": 0.01}, 9000, 10000
     )
     assert meter.estimates["prefill"] == 2
+
+
+def test_allocation_checkpoint_recovery_includes_crash_and_idle_time(tmp_path):
+    now = [10.0]
+    clock = lambda: now[0]  # noqa: E731
+    path = tmp_path / "cost.json"
+    allocation = sc1.AllocationLedger(path, "m", sc1.CostMeter(spent=20), clock=clock)
+    allocation.begin("process-one")
+    now[0] = 15
+    allocation.checkpoint()
+    assert allocation.meter.spent == 25
+    restored = sc1.AllocationLedger(path, "m", clock=clock)
+    with pytest.raises(ValueError, match="interruption"):
+        restored.begin("process-two")
+    restored.recover(
+        {
+            "allocation_id": "process-one",
+            "reason": "host_loss",
+            "elapsed": 12,
+            "evidence": "host event 123",
+        }
+    )
+    assert restored.meter.spent == 32
+    restored.begin("process-two")
+    now[0] = 18
+    restored.checkpoint(close=True)
+    assert restored.meter.spent == 35
+
+
+def test_fake_generation_consumer_records_all_fields_and_rechecks_interventions(source):
+    ep = episodes.expand_source(source, CharTokenizer())
+
+    class Backend:
+        def generate(self, layout, pins, arm, interventions, deadline_at):
+            return {
+                "ids": token_list,
+                "cache": {},
+                "prefill": 0.2,
+                "generation": 0.1,
+                "worst_token": 0.01,
+                "failure": None,
+                "peak_device_bytes": 0,
+            }
+
+    token_list = [ord(c) for c in ep["reference"]]
+    row = sc1.run_arm(
+        ep,
+        "rule",
+        CharTokenizer(),
+        Backend(),
+        None,
+        manifest_id="m",
+        order=["clf", "rule"],
+        attempt_id="a",
+        initialization_id="i",
+    )
+    assert set(row) == sc1.ARM_FIELDS
+    assert row["success"] and row["checker"]["success"]
+    assert row["selection"]["candidate_hash"]
+    assert row["latency"]["total"] > 0
+
+
+def test_smoke_all_styles_and_six_mutations_use_real_local_tokenizer():
+    from scripts.sc1 import load_tokenizer
+
+    bank, report = episodes.validate_bank(ROOT / "data/sc1/smoke", load_tokenizer("4b"))
+    assert len(bank) == 8 and report["mutations_fail"] == 48
+    assert {ep["task_spec"]["kind"] for ep in bank} == {"json_patch", "tool"}
+    tool = next(ep for ep in bank if ep["task_spec"]["kind"] == "tool")
+    reference = episodes.parse_json(tool["reference"])
+    before = copy.deepcopy(tool["initial_state"])
+    reference["arguments"]["changes"]["v"] = False
+    verdict = episodes.run_checker(tool, json.dumps(reference))
+    assert not verdict["schema_valid"] and not verdict["corruption"]
+    assert verdict["result"] is None and tool["initial_state"] == before
+    corrupted = copy.deepcopy(tool["expected_state"])
+    corrupted["unpermitted"] = {"v": "extra", "p": "extra"}
+    assert episodes.check_result(tool, corrupted)["corruption"]
+
+
+def test_text_checker_normalization_and_protected_extras():
+    ep = {
+        "task_spec": {"kind": "text", "permitted_paths": [""]},
+        "initial_state": "Draft",
+        "expected_artifact": "Lantern\n\nHarbor",
+        "expected_state": None,
+        "checker": [
+            {"id": "lines", "kind": "required_lines", "values": ["Lantern", "Harbor"]}
+        ],
+        "protected_set": [
+            {"id": "no_extra", "kind": "forbidden_substrings", "values": ["Extra"]}
+        ],
+    }
+    assert episodes.run_checker(ep, "Lantern  \r\n\r\n\r\nHarbor\t")["success"]
+    bad = episodes.run_checker(ep, "Lantern\n\nHarbor\nExtra")
+    assert not bad["success"] and bad["corruption"]
+
+
+def test_setup_certificate_recomputes_counts_not_claims(tmp_path):
+    from scripts.sc1 import require_setup
+
+    payload = {
+        "manifest_id": "m",
+        "full_passes": 24,
+        "evicted_passes": 16,
+        "passed": True,
+        "projection_seconds": 100,
+        "cost": {"samples": [1]},
+        "output_hashes": {},
+        "episode_hashes": {},
+    }
+    payload["certificate_hash"] = sc1.digest(payload)
+    path = tmp_path / "cert.json"
+    sc1.atomic_json(path, payload)
+    with pytest.raises(ValueError, match="32|setup"):
+        require_setup(path, "m", committed=False)
+
+
+def test_setup_workflow_cpu_diagnostics_and_gate_certificate(
+    tmp_path, source, monkeypatch
+):
+    from types import SimpleNamespace
+
+    from scripts import sc1 as cli
+
+    tokenizer = CharTokenizer()
+    seed_episode = episodes.expand_source(source, tokenizer)
+    bank = []
+    for i in range(32):
+        ep = copy.deepcopy(seed_episode)
+        ep.update(id=f"cpu-setup-{i}", pool="setup", index=i)
+        bank.append(ep)
+
+    class Backend:
+        def __init__(self, *args):
+            self.evicted = 0
+
+        def generate(self, layout, pins, arm, interventions, deadline_at):
+            assert arm in {"full", "evicted"}
+            if arm == "evicted":
+                self.evicted += 1
+            text = (
+                seed_episode["reference"]
+                if arm == "full" or self.evicted > 16
+                else "[]"
+            )
+            return {
+                "ids": [ord(c) for c in text],
+                "cache": {},
+                "prefill": 0.001,
+                "generation": 0.001,
+                "worst_token": 0.0001,
+                "failure": None,
+                "peak_device_bytes": 0,
+            }
+
+    monkeypatch.setattr(
+        cli, "verify_determinism", lambda *a: {"allocated_seconds": 1.0}
+    )
+    args = SimpleNamespace(
+        mode="setup",
+        out=tmp_path,
+        trunk="4b",
+        setup_certificate=None,
+        determinism_certificate=None,
+        interruption_evidence=None,
+    )
+    result = cli.run_study(
+        args,
+        {"manifest_id": "cpu-fixture"},
+        bank,
+        tokenizer,
+        backend_factory=Backend,
+        scorer_factory=lambda *a: lambda texts, **kw: [0.0] * len(texts),
+    )
+    assert result["status"] == "SETUP PASSED"
+    cert = cli.require_setup(
+        tmp_path / "setup-certificate.json", "cpu-fixture", committed=False
+    )
+    assert cert["full_passes"] == 32 and cert["evicted_passes"] == 16
+    assert len(list((tmp_path / "setup").glob("*.cpu.json"))) == 32
+    assert not list((tmp_path / "setup").glob("*.clf.json"))
+    cert["evicted_passes"] = 0
+    cert["certificate_hash"] = sc1.digest(
+        {k: v for k, v in cert.items() if k != "certificate_hash"}
+    )
+    sc1.atomic_json(tmp_path / "setup-certificate.json", cert)
+    with pytest.raises(ValueError, match="pass counts"):
+        cli.require_setup(
+            tmp_path / "setup-certificate.json", "cpu-fixture", committed=False
+        )
+
+
+def test_candidate_segmentation_matches_frozen_leg_a_helper():
+    from stencil.bfcl import select_history_spans
+
+    tok = CharTokenizer()
+    ep = public_history()
+    ep["turns"][0]["text"] = "amber " * 70 + ". Further copper."
+    layout = sc1.render_episode(ep, tok)
+    rows, _ = sc1.build_sc1_candidates(layout, tok)
+    messages = [{"role": t["role"], "content": t["text"]} for t in ep["turns"]]
+    messages.append({"role": "user", "content": ep["final_request"]})
+    _, frozen, _ = select_history_spans(
+        tok, layout["text"], messages, lambda texts, **kw: [0.6] * len(texts)
+    )
+    expected = [
+        {k: c[k] for k in ("text", "role", "message_index", "char_span", "span")}
+        for c in frozen
+        if layout["P"] <= c["span"][0] < c["span"][1] <= layout["R"]
+    ]
+    actual = [{k: c[k] for k in expected[0]} for c in rows]
+    assert actual == expected
+    assert all(c["span"][1] - c["span"][0] <= 128 for c in rows)

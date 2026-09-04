@@ -1011,7 +1011,9 @@ def run_arm(
     rendered = time.monotonic()
     audit = InterventionCounter()
     selection = select_policy(layout, tokenizer, arm, scorer)
+    echo_render_start = time.monotonic()
     prompt = render_episode(episode, tokenizer, selection["echo"]["insertion"])
+    echo_render_seconds = time.monotonic() - echo_render_start
     if (
         prompt["ids"][: layout["H"]] != layout["ids"][: layout["H"]]
         or prompt["H"] != layout["H"]
@@ -1034,7 +1036,7 @@ def run_arm(
     audit.assert_zero()
     latency = {
         **selection["latency"],
-        "render": rendered - start,
+        "render": rendered - start + echo_render_seconds,
         "prefill": generated["prefill"],
         "generation": generated["generation"],
         "worst_token": generated["worst_token"],
@@ -1081,3 +1083,82 @@ def run_arm(
     if set(row) != ARM_FIELDS:
         raise AssertionError("per-arm writer missing registered fields")
     return row
+
+
+class AllocationLedger:
+    """Meter the whole allocation interval, including idle/checkpoint overhead.
+
+    An unfinished process interval cannot be silently reset. Recovery requires a
+    journaled external-loss record with its full elapsed allocation, and never
+    reduces the amount already accounted. Monotonic time is used within a process.
+    """
+
+    def __init__(self, path, manifest_id, meter=None, *, clock=time.monotonic):
+        self.path, self.manifest_id, self.clock = Path(path), manifest_id, clock
+        self.origin = None
+        if self.path.exists():
+            saved = json.loads(self.path.read_text())
+            if saved["manifest_id"] != manifest_id:
+                raise ValueError("allocation manifest mismatch")
+            if digest({k: v for k, v in saved.items() if k != "hash"}) != saved["hash"]:
+                raise ValueError("allocation ledger hash mismatch")
+            self.meter = CostMeter(**saved["meter"])
+            self.intervals = saved["intervals"]
+        else:
+            self.meter = meter or CostMeter()
+            self.intervals = []
+
+    def _save(self):
+        from dataclasses import asdict
+
+        value = {
+            "manifest_id": self.manifest_id,
+            "meter": asdict(self.meter),
+            "intervals": self.intervals,
+        }
+        value["hash"] = digest(value)
+        atomic_json(self.path, value)
+
+    def begin(self, allocation_id):
+        if self.intervals and not self.intervals[-1]["closed"]:
+            raise ValueError("allocation requires external interruption evidence")
+        self.origin = self.clock()
+        self.intervals.append(
+            {
+                "id": allocation_id,
+                "wall_start": time.time(),
+                "base": self.meter.spent,
+                "elapsed": 0.0,
+                "closed": False,
+            }
+        )
+        self._save()  # Write ahead of loading any resident weights.
+
+    def checkpoint(self, *, close=False):
+        if self.origin is None:
+            self._save()
+            return
+        interval = self.intervals[-1]
+        interval["elapsed"] = max(interval["elapsed"], self.clock() - self.origin)
+        self.meter.spent = interval["base"] + interval["elapsed"]
+        interval["closed"] = close
+        self._save()
+        if close:
+            self.origin = None
+
+    def recover(self, evidence):
+        if not self.intervals or self.intervals[-1]["closed"]:
+            raise ValueError("no missing allocation to recover")
+        interval = self.intervals[-1]
+        if (
+            evidence["allocation_id"] != interval["id"]
+            or not evidence.get("evidence")
+            or evidence["reason"]
+            not in {"host_loss", "process_loss", "device_loss", "resource_loss"}
+            or not math.isfinite(evidence["elapsed"])
+            or evidence["elapsed"] < interval["elapsed"]
+        ):
+            raise ValueError("invalid external interruption accounting")
+        interval.update(elapsed=evidence["elapsed"], closed=True, recovery=evidence)
+        self.meter.spent = interval["base"] + interval["elapsed"]
+        self._save()

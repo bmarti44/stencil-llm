@@ -14,6 +14,7 @@ model-determinism certificate. CPU smoke cannot substitute for that certificate.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib.metadata
 import json
 import subprocess
@@ -105,7 +106,11 @@ def build_manifest(bank, trunk, episode_rows, *, stage1=None, executable=None):
     for path in paths:
         files[str(path.relative_to(ROOT))] = sc1.file_hash(path)
     for path in sorted(Path(bank).glob("*.json")):
-        if path.name.endswith((".source.json", ".episode.json")):
+        if path.name.endswith((".source.json", ".episode.json")) or path.name in {
+            "validation.json",
+            "power.json",
+            "grammar.json",
+        }:
             files[str(path.resolve())] = sc1.file_hash(path)
     payload = {
         "schema": "sc1-manifest-v2",
@@ -158,6 +163,12 @@ def build_manifest(bank, trunk, episode_rows, *, stage1=None, executable=None):
             files[str(path)] = sc1.file_hash(path)
             payload[name] = str(path)
     payload["manifest_id"] = sc1.digest(payload)
+    for path in CODE_FILES:
+        committed = subprocess.check_output(
+            ["git", "-C", str(ROOT), "show", f"{payload['harness_commit']}:{path}"]
+        )
+        if hashlib.sha256(committed).hexdigest() != files[path]:
+            raise ValueError("commit executable artifacts before freezing: " + path)
     return payload
 
 
@@ -200,6 +211,15 @@ def verify_manifest(path, *, production=False):
                 )
             ):
                 raise ValueError("unfrozen author configuration: " + family)
+            settings_fields = {
+                "temperature",
+                "top_p",
+                "reasoning_effort",
+                "max_output_tokens",
+                "seed_support",
+            }
+            if not settings_fields <= author["settings"].keys():
+                raise ValueError("incomplete author generation settings: " + family)
             if author["contract_hash"] != manifest["files"][CONTRACT] or author[
                 "grammar_hash"
             ] != sc1.digest(episodes.SCHEMA):
@@ -215,11 +235,14 @@ def verify_manifest(path, *, production=False):
             raise ValueError("deployment differs from Stage 2")
         # Full transcript bytes, not just caller-supplied claims, are frozen.
         for ep in load_manifest_bank(manifest):
+            episodes.validate_schema(ep)
             provenance = ep["provenance"]
             author = stage1["authors"][ep["assignments"]["author"]]
             if (
                 provenance["author_version"] != author["immutable_version"]
                 or provenance["settings"] != author["settings"]
+                or provenance["provider"] != author["provider"]
+                or provenance["contract_hash"] != manifest["files"][CONTRACT]
             ):
                 raise ValueError("episode author version/settings mismatch")
             transcript = str(Path(provenance["transcript_path"]).resolve())
@@ -254,6 +277,8 @@ def require_setup(path, manifest_id=None, *, committed=True):
         raise ValueError("setup competence/headroom gate failed: NOT RUN")
     if manifest_id is not None and cert["manifest_id"] != manifest_id:
         raise ValueError("setup manifest mismatch")
+    if len(cert.get("episode_hashes", {})) != 32:
+        raise ValueError("setup certificate requires exactly 32 episode hashes")
     if cert["projection_seconds"] > sc1.COST_CAP or not cert["cost"]["samples"]:
         raise ValueError("setup cost gate failed")
     if committed:
@@ -271,6 +296,27 @@ def require_setup(path, manifest_id=None, *, committed=True):
     for filename, h in cert["output_hashes"].items():
         if sc1.file_hash(filename) != h:
             raise ValueError("setup output hash mismatch")
+    pairs = [
+        json.loads(Path(p).read_text())
+        for p in cert["output_hashes"]
+        if p.endswith(".pair.json")
+    ]
+    if len(pairs) != 32 or {r["id"] for r in pairs} != set(cert["episode_hashes"]):
+        raise ValueError("setup paired cohort mismatch")
+    for row in pairs:
+        if set(row["arms"]) != {"full", "evicted"}:
+            raise ValueError("setup arms must be full/evicted only")
+        for arm in row["arms"].values():
+            if (
+                arm["manifest_id"] != cert["manifest_id"]
+                or arm["episode_hash"] != cert["episode_hashes"][row["id"]]
+            ):
+                raise ValueError("setup arm identity mismatch")
+    if (
+        sum(r["arms"]["full"]["success"] for r in pairs) != cert["full_passes"]
+        or sum(r["arms"]["evicted"]["success"] for r in pairs) != cert["evicted_passes"]
+    ):
+        raise ValueError("setup pass counts differ from committed outputs")
     return cert
 
 
@@ -355,16 +401,43 @@ def run_study(
         cert["cost"] if cert else {"spent": determinism["allocated_seconds"]}
     )
     cost_path = args.out / "cost.json"
-    meter = (
-        sc1.CostMeter(**json.loads(cost_path.read_text())["meter"])
-        if cost_path.exists()
-        else sc1.CostMeter(**baseline_cost)
+    allocation = sc1.AllocationLedger(
+        cost_path, manifest["manifest_id"], sc1.CostMeter(**baseline_cost)
     )
-    if (
-        cost_path.exists()
-        and json.loads(cost_path.read_text())["manifest_id"] != manifest["manifest_id"]
-    ):
-        raise ValueError("allocation ledger manifest mismatch")
+    if getattr(args, "interruption_evidence", None):
+        evidence = json.loads(args.interruption_evidence.read_text())
+        allocation.recover(evidence)
+        for attempt in evidence.get("attempts", []):
+            store.interrupt(
+                attempt["episode_id"],
+                attempt["arm"],
+                attempt["attempt_id"],
+                evidence["reason"],
+                attempt["elapsed"],
+                evidence["evidence"],
+            )
+    meter = allocation.meter
+    if (args.out / "invalid.json").exists():
+        raise ValueError(
+            "INVALID: unresolved harness defect; this bank cannot be rerun"
+        )
+    final_marker = args.out / (
+        "complete.json" if stage == "final" else "setup-certificate.json"
+    )
+    if final_marker.exists():
+        return {"status": "ALREADY COMPLETE", "artifact": str(final_marker)}
+    # Reconcile maxima from durable outputs if loss preceded the cost checkpoint.
+    for path in root.glob("*.json"):
+        if path.name.endswith((".pair.json", ".cpu.json")):
+            continue
+        row = json.loads(path.read_text())
+        if set(row) == sc1.ARM_FIELDS:
+            meter.observe(_timing(row), row["input_tokens"])
+    for path in root.glob("*.cpu.json"):
+        for cpu in json.loads(path.read_text())["arms"].values():
+            meter.estimates["cpu"] = max(
+                meter.estimates["cpu"], sum(cpu["latency"].values())
+            )
     if not meter.can_start(512 if stage == "final" else 64):
         return {
             "status": "NOT RUN" if stage == "setup" else "INCOMPLETE",
@@ -375,7 +448,13 @@ def run_study(
         raise ValueError(
             "external interruption evidence required before resuming missing output"
         )
+    selected = sorted((r for r in rows if r["pool"] == stage), key=lambda r: r["index"])
+    for episode in selected:
+        store.pending(
+            episode["id"], ["clf", "rule"] if stage == "final" else ["full", "evicted"]
+        )
     init_id = f"init-{time.time_ns()}"
+    allocation.begin(init_id)
     init_start = time.monotonic()
     store.append(
         {
@@ -387,7 +466,7 @@ def run_study(
     backend = backend_factory(ROOT, args.trunk)
     scorer = (scorer_factory or ClassifierScorer)(ROOT / "data/classifier/model/ft")
     init_seconds = time.monotonic() - init_start
-    meter.spent += init_seconds
+    allocation.checkpoint()
     store.append(
         {
             "event": "initialization_completed",
@@ -395,10 +474,7 @@ def run_study(
             "allocated_seconds": init_seconds,
         }
     )
-    sc1.atomic_json(
-        cost_path, {"manifest_id": manifest["manifest_id"], "meter": asdict(meter)}
-    )
-    selected = sorted((r for r in rows if r["pool"] == stage), key=lambda r: r["index"])
+    allocation.checkpoint()
     completed_rows = []
     for episode in selected:
         order = episodes.commission_slot(stage, episode["index"])[
@@ -415,7 +491,9 @@ def run_study(
                 )
                 for e in selected
             )
+            allocation.checkpoint()
             if not meter.can_start(remaining):
+                allocation.checkpoint(close=True)
                 return {
                     "status": "INCOMPLETE",
                     "completed_arms": 2 * len(selected) - remaining,
@@ -425,39 +503,53 @@ def run_study(
             store.start(episode["id"], arm, attempt)
             # Unknown harness exceptions deliberately leave the attempt unresolved.
             # Completed bad outputs/timeouts are persisted and never retried.
-            row = sc1.run_arm(
-                episode,
-                arm,
-                tokenizer,
-                backend,
-                scorer,
-                manifest_id=manifest["manifest_id"],
-                order=order,
-                attempt_id=attempt,
-                initialization_id=init_id,
-                prior_elapsed=store.prior_elapsed(episode["id"], arm),
-            )
+            try:
+                row = sc1.run_arm(
+                    episode,
+                    arm,
+                    tokenizer,
+                    backend,
+                    scorer,
+                    manifest_id=manifest["manifest_id"],
+                    order=order,
+                    attempt_id=attempt,
+                    initialization_id=init_id,
+                    prior_elapsed=store.prior_elapsed(episode["id"], arm),
+                )
+            except Exception as exc:
+                allocation.checkpoint(close=True)
+                sc1.atomic_json(
+                    args.out / "invalid.json",
+                    {
+                        "manifest_id": manifest["manifest_id"],
+                        "cause": repr(exc),
+                        "attempt_id": attempt,
+                    },
+                    exclusive=True,
+                )
+                raise
             store.complete(row)
-            meter.spent += row["allocated_seconds"]
             meter.observe(_timing(row), row["input_tokens"])
-            sc1.atomic_json(
-                cost_path,
-                {"manifest_id": manifest["manifest_id"], "meter": asdict(meter)},
-            )
+            allocation.checkpoint()
         pair = store.write_pair(episode["id"], order, episode["assignments"])
         completed_rows.append(pair)
         if stage == "setup":
             diagnostic = root / f"{episode['id']}.cpu.json"
             if not diagnostic.exists():
                 started = time.monotonic()
-                cpu = {
-                    arm: sc1.select_policy(
-                        sc1.render_episode(episode, tokenizer), tokenizer, arm, scorer
+                cpu = {}
+                for policy in ("clf", "rule"):
+                    render_start = time.monotonic()
+                    layout = sc1.render_episode(episode, tokenizer)
+                    render_seconds = time.monotonic() - render_start
+                    plan = sc1.select_policy(layout, tokenizer, policy, scorer)
+                    render_start = time.monotonic()
+                    sc1.render_episode(episode, tokenizer, plan["echo"]["insertion"])
+                    plan["latency"]["render"] = (
+                        render_seconds + time.monotonic() - render_start
                     )
-                    for arm in ("clf", "rule")
-                }
+                    cpu[policy] = plan
                 elapsed = time.monotonic() - started
-                meter.spent += elapsed
                 meter.estimates["cpu"] = max(
                     meter.estimates["cpu"],
                     *(sum(c["latency"].values()) for c in cpu.values()),
@@ -467,10 +559,14 @@ def run_study(
                     {"cpu_selection_only": True, "arms": cpu, "elapsed": elapsed},
                     exclusive=True,
                 )
-                sc1.atomic_json(
-                    cost_path,
-                    {"manifest_id": manifest["manifest_id"], "meter": asdict(meter)},
-                )
+                allocation.checkpoint()
+    allocation.checkpoint(close=True)
+    if meter.spent > sc1.COST_CAP:
+        return {
+            "status": "INCOMPLETE",
+            "reason": "actual allocated cost exceeded cap",
+            "cost": asdict(meter),
+        }
     if stage == "setup":
         full = sum(r["arms"]["full"]["success"] for r in completed_rows)
         evicted = sum(r["arms"]["evicted"]["success"] for r in completed_rows)
@@ -484,7 +580,9 @@ def run_study(
             "cost": asdict(meter),
             "episode_hashes": {r["id"]: sc1.digest(r) for r in selected},
             "output_hashes": {
-                str(p.resolve()): sc1.file_hash(p) for p in root.glob("*.json")
+                str(p.resolve()): sc1.file_hash(p)
+                for p in root.iterdir()
+                if p.suffix in {".json", ".jsonl"}
             },
         }
         summary["certificate_hash"] = sc1.digest(summary)
@@ -566,6 +664,7 @@ def main(argv=None):
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--setup-certificate", type=Path)
     parser.add_argument("--determinism-certificate", type=Path)
+    parser.add_argument("--interruption-evidence", type=Path)
     parser.add_argument("--stage1", type=Path)
     parser.add_argument("--executable-freeze", type=Path)
     parser.add_argument(
@@ -604,6 +703,14 @@ def main(argv=None):
             for row in rows:
                 sc1.atomic_json(args.bank / f"{row['id']}.episode.json", row)
             sc1.atomic_json(args.out / "validation.json", report)
+            sc1.atomic_json(args.bank / "grammar.json", episodes.SCHEMA)
+            sc1.atomic_json(
+                args.bank / "power.json",
+                [
+                    sc1.exact_power(256, q, d)
+                    for q, d in ((0.1, 0.05), (0.2, 0.05), (0.3, 0.05), (0.2, 0.1))
+                ],
+            )
             manifest = build_manifest(
                 args.bank,
                 args.trunk,
