@@ -1,0 +1,45 @@
+{
+ "schema": 1,
+ "registered_cohort": 909,
+ "slice": {
+  "start": 0,
+  "limit": null
+ },
+ "arms": [
+  "full",
+  "evicted",
+  "clf_pinned",
+  "clf_pinned_echo",
+  "clf_control",
+  "role_pinned"
+ ],
+ "threshold": 0.5,
+ "selector_role": "user",
+ "selector_context": "empty",
+ "classifier_files_sha256": {
+  "encoder/config.json": "d4b2c4e7bea1c70b5f0d212dd207478fc2422f013ba628ef47cee44589ca4ccf",
+  "encoder/model.safetensors": "2232813597b889355dfbda5607bfc473590385bd96ce382939a9ee154713d830",
+  "encoder/tokenizer.json": "56827b4e89e42ec568d48462c6c37822da5a783161893deb981b31367bbc6f00",
+  "encoder/tokenizer_config.json": "c9c2e0ff3f3a98ae86f8f4a484a48a80d11d3a9453f39de7ab58b5de5f4006de",
+  "head.pt": "191b3372010e8d151b842d2810b4be9dbd0ff34db7ae7539d6b823c69d4ebe3e",
+  "metrics.json": "ba2fd941620d94bdce3c7c5754dbcbf892ed287335a487644b3e388fc662d63a"
+ },
+ "data": "data/bench/multiif_en.jsonl",
+ "data_sha256": "3a3d2af30c9a7197b201b25bb86cac200a34611b66c236fa6b8484afb904816d",
+ "model_sha256": "13bfabb5592c7b35383a56471fba1c74c771f57587322e60faaabb96268b2829",
+ "tokenizer_sha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
+ "harness_sha256": "e1c08f3122c0360fef7fd3314778639403515bbf1773c70c33844641b70a65ba",
+ "ledger_sha256": "506335ab2d3657084ba1ffc584bf3c167731ffa4b91b9f67a4353f8323c42cd7",
+ "selector_sha256": "75ca13a8aa9684e73e6fcbda478969ffc4acd585d4750c1f9327c185fe8295f3",
+ "stats_sha256": "2484b07d894e0a3dff51a322086c838e2d501b631be8f6df8b86dea85a347b2f",
+ "generation": {
+  "greedy": true,
+  "thinking": false,
+  "opener": "<|im_start|>assistant\n<think>\n\n</think>\n\n",
+  "max_new": 512,
+  "deadline_seconds": 300.0
+ },
+ "position_policy": "no_reindex_positions_continue",
+ "eviction_timing": "pre-query",
+ "scoring": "vendored Multi-IF/IFEval process_results; truncations scored as-is"
+}

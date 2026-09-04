@@ -249,3 +249,9 @@ spec change did not teach (all seeds miss it).
    reading (excess degeneracy over the base arm > 2). Reading: gating the boost to selected spans at deficit moments
    reduces but does not remove degeneration; the +3 on pins is bought with 4x the degeneracy; re-injection reaches 46
    with none. The wave family is closed with data under this trunk.
+
+29. LEG B (Multi-IF 909, corrected eviction; results/qwen/multiif-evict-909-prequery-v2): full 0.652 | evicted 0.167 |
+   clf_pinned 0.572 | clf_pinned_echo 0.592 | control 0.330 | role_pinned 0.605 on 2,276 aged constraints. C1 +26.8
+   (LB +24.7), C3 +18.5 (LB +16.7) pass; C2 −3.5 fails (role rule > classifier at equal columns). Safety: one invalid
+   output in each pinned arm vs 0 for full -> registered clause breached -> REGISTERED VERDICT: not supported;
+   substance disclosed. See LEDGER-PLAN "LEG B OUTCOME".

@@ -3883,3 +3883,5 @@ uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b
 - 2026-09-03 21:4x: LEG A harness v12 (919a8ab) cleared by sol (v10, SOUND) and fable (v12, SOUND). Registered dev
   preflight AUTHORIZED; queued behind the Multi-IF 909 run and the function-vector probe, from a fresh directory
   (bfcl-v10-smoke, bfcl-v10-preflight), commands as recorded in the v12 handoff.
+
+## 2026-09-04 — LEG B OUTCOME recorded (see LEDGER-PLAN "LEG B OUTCOME"); sent to fable/sol/kimi for verdict wording

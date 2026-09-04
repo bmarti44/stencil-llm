@@ -789,3 +789,22 @@ harness assertion failure. Invariant violations of any kind on the dev path fail
 invariant_violation, never as match_impossible); on the sealed path they are recorded and make the affected contrast
 uninformative. The post-run drift check compares the harness manifest and data hashes, not git provenance; both
 provenances are recorded in evidence.
+
+## LEG B OUTCOME (2026-09-04, corrected run results/qwen/multiif-evict-909-prequery-v2, 909 conversations, 2,276 aged constraints)
+Arms (aged pass): full 1483 (0.652) | evicted 379 (0.167) | clf_pinned 1302 (0.572) | clf_pinned_echo 1348 (0.592) |
+clf_control 747/2263 (0.330; 5 conversations control_impossible, excluded from C1) | role_pinned 1377 (0.605).
+Contrasts: C1 clf_pinned_echo − clf_control = +26.8 pts, cluster LB +24.7, p ~ 0 (Holm PASS); C3 half-gap recovery
++18.5, LB +16.7, p ~ 0 (Holm PASS) — recovered fraction (0.592−0.167)/(0.652−0.167) = 0.88; C2 clf_pinned −
+role_pinned = −3.5 pts, LB −4.8 (FAIL: the role rule beats the classifier at equal columns).
+Safety (integer clause, per arm vs full): timeouts 0 everywhere; truncated 162-187 vs full 208 (ok); degenerate
+192-222 vs full 241 (ok); INVALID: clf_pinned 1, clf_pinned_echo 1, role_pinned 1 vs full 0 -> breach of
+"invalid <= full" (1 > 0). Quoting (echo-copy) 153 conversations on the echo arm (reported).
+REGISTERED VERDICT: the three pinned arms breach the safety clause on a single invalid output each (of 909), so their
+contrasts FAIL as registered; the primary benefit claim for Leg B is therefore NOT SUPPORTED under the registered
+text. C2's outcome rule applies descriptively: the parameter-free role rule is the better selector for this dialogue
+style (simpler wins); the classifier remains the candidate for Leg A.
+DISCLOSED, NOT CLAIMED: C1 and C3 pass their statistical tests by wide margins; the safety breach is one event in 909
+against a zero baseline — the vacuity that fable (harness review) and sol warned about for Leg A, which registered
+"invalid <= full + 1" and a one-event guard. Leg B's clause is not retroactively changed. A future Leg B re-run under
+a prospectively registered clause matching Leg A's would be a new registration.
+Cost: 75,124 s = 20.9 GPU-h (82.6 s/conversation), under the amended 24 GPU-h cap.
