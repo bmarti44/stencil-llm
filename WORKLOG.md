@@ -4041,3 +4041,152 @@ disjoint from all benchmark cohorts. No model loading, GPU use, lock waiting,
 process signalling, or sealed-input reads are authorized or planned.
 First checkpoint: finding-named regression tests and their RED results; then
 incremental fixes, smoke regeneration, manifest verification, and final handoff.
+
+
+## 2026-09-04 — sc1-harness-v2 handoff
+
+Implemented the fixes/disclosures for all 26 astra/fable harness findings under
+`tools/codex-agents/sc1-harness-v2.allow`. Governing `LEDGER-PLAN.md` and
+`data/sc1/AUTHOR-CONTRACT.md` are byte-unchanged. Review-authored dispositions
+are left for reviewer concurrence; this is the implementation handoff, not a
+production registration or model-determinism claim.
+
+Data lineage: fit-on = none; evaluated-on = disposable SC1 CPU fixtures and local
+Qwen3-4B tokenizer only, disjoint from benchmark cohorts. No model process or GPU
+workload was launched, no lock was waited on, no process was signalled, no sealed
+IFEval input was read, and no `data/bench/*` file was modified. Subprocess tests
+use a fixed-token Python fixture with no model construction. Exact served model/
+effort, wrapper log path and external session ID were not exposed to this session;
+no guessed wrapper provenance is recorded. No sub-agents were used.
+
+Tests-first evidence: `f9e897b` committed the initial finding-named regressions
+before implementation. Initial review-case run: 39 failed, 6 passed, 22 deselected.
+The first synthetic RED run needed test-owned journal fault records to stop
+unbounded old scheduling without signals; the corrected guards were then proven
+RED independently: the reviewed `0fe7fe7` RunStore fails at its third journal read
+(1 failed), and disabling the study binding fails before duplicate backend loading
+(4 failed). Later RED cases exposed completed-generation failure classification,
+text negative invariant links, typed OOM, prepared-publication recovery and reused
+sources under a new registration; each was fixed before its GREEN check.
+
+| Finding | Fix commit(s) | Finding-named consumer tests |
+| --- | --- | --- |
+| astra F1 | 2ac2392, 937ee6b | `test_astra_f1_scheduler_incremental_accounting` |
+| astra F2 | 2ac2392, 4a2323d | `test_astra_f2_output_cannot_reset_execution`; `test_astra_f2_new_registration_requires_new_sources` |
+| astra F3 | 2ac2392, 937ee6b | `test_astra_f3_resume_projects_only_missing_arms` |
+| astra F4 | 2ac2392, 937ee6b | `test_astra_f4_author_envelope_is_blind` |
+| astra F5 | 2ac2392, 937ee6b | `test_astra_f5_missing_literal_inventory_cannot_leak`; `test_astra_f5_every_answer_literal_excluded` |
+| astra F6 | 2ac2392, 937ee6b | `test_astra_f6_source_boundary_through_bank`; `test_astra_f6_nonempty_trace_has_public_correspondence`; `test_astra_f6_necessary_update_on_wrong_side_of_recent_boundary` |
+| astra F7 | 2ac2392, 937ee6b, e18362f | `test_astra_f7_whitespace_negatives_are_one_attack`; `test_astra_f7_numeric_key_order_and_text_negative_identity`; `test_astra_f7_six_negatives_and_unreachable_state_probe` |
+| astra F8 | 2ac2392, 937ee6b | `test_astra_f8_text_unauthorized_insertions_and_deletions`; `test_astra_f8_validated_text_source_rejects_unauthorized_lines` |
+| astra F9 | 2ac2392, 937ee6b | `test_astra_f9_exact_json_numerics`; `test_astra_f9_validated_numeric_source` |
+| astra F10 | 2ac2392, 937ee6b | `test_astra_f10_pair_signatures_bind_both_sources`; `test_astra_f10_independent_review_sessions`; `test_astra_f10_provenance_changes_preserve_content_signature` |
+| astra F11 | 2ac2392, 937ee6b | `test_astra_f11_each_determinism_cell_crosses_processes`; `test_astra_f11_determinism_rejects_cell_artifact_mutations` |
+| astra F12 | 2ac2392 | `test_astra_f12_unordered_fingerprint_alpha_equivalence` |
+| astra F13 | 2ac2392, 937ee6b | `test_astra_f13_commission_requires_both_freezes`; `test_astra_f13_acceptance_checks_retained_input_and_retries`; `test_astra_f13_author_sessions_are_unique` |
+| astra F14 | 2ac2392 | `test_astra_f14_unregistered_trunk_refused_before_loading` |
+| astra F15 | 2ac2392, 937ee6b | `test_astra_f15_projection_reserves_future_initialization`; `test_astra_f15_near_cap_setup_defers_for_next_initialization` |
+| astra F16 | 2ac2392, 937ee6b | `test_astra_f16_partial_journal_tail_recovery`; `test_astra_f16_completed_generation_failure_is_not_interruption`; `test_astra_f16_prepared_output_survives_loss_before_journal_append`; `test_astra_f16_recovery_proof_survives_its_own_interruption` |
+| fable H1 | 2ac2392, 937ee6b | `test_fable_h1_pressure_binds_on_every_smoke_episode` |
+| fable M1 | 2ac2392 | `test_fable_m1_setup_resume_projection` |
+| fable M2 | 2ac2392, 937ee6b | `test_fable_m2_device_loss_is_resumable`; `test_fable_m2_typed_resource_loss_without_message` |
+| fable M3 | 2ac2392, 937ee6b | `test_fable_m3_determinism_entrypoint_exists`; `test_fable_m3_two_cpu_subprocesses_emit_verifiable_certificate` |
+| fable L1 | 2ac2392 | `test_fable_l1_eos_at_cap_is_not_truncation` |
+| fable L2 | 2ac2392, 937ee6b | `test_fable_l2_repetition_taxonomy_discloses_period_limit` |
+| fable L3 | 2ac2392 | `test_fable_l3_smoke_never_reused` |
+| fable L4 | 2ac2392 | `test_fable_l4_real_tokenizer_segmentation_identity` |
+| fable L5 | 2ac2392, 937ee6b | `test_fable_l5_only_measured_interventions_are_reported` |
+| fable L6 | 2ac2392 | `test_fable_l6_output_directory_required` |
+
+Verification on the final implementation:
+
+- `CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 uv run pytest -q -p no:cacheprovider tests/test_sc1.py tests/test_eval_data_separation.py tests/test_sealed_guard.py tests/test_no_side_effect_imports.py --tb=short`
+  — **101 passed, 1 expected legacy xfail**, 167.29 s. The unchanged legacy
+  `scripts/b2_gsm8k.py` escape-sequence SyntaxWarning was also emitted.
+- The final addition was test-only (`e18362f`):
+  `CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 uv run pytest -q -p no:cacheprovider tests/test_sc1.py -k six_negatives_and_unreachable --tb=short`
+  — **1 passed, 92 deselected**, 3.38 s. Thus all 102 current passing test cases
+  have GREEN evidence across the four-file run and this supplemental run; the
+  four-file count above is not represented as a later 102-test invocation.
+- `uv run ruff check src/stencil/sc1.py src/stencil/sc1_episodes.py scripts/sc1.py tests/test_sc1.py`
+  — all checks passed. `git diff --check` passed. No full suite was run.
+- `CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 uv run python scripts/sc1.py smoke`
+  and `... python scripts/sc1.py validate data/sc1/smoke` — **PASS**, 8 references,
+  48 failing negatives, six OLD/two RECENT assignments preserved. Recompiled all
+  smoke episodes, grammar, validation and power artifacts.
+- `verify_manifest('data/sc1/smoke/manifest.json')` and
+  `load_manifest_bank(manifest)` both passed: 44 frozen file hashes, eight exact
+  episode hashes and their source-fingerprint metadata, plus runtime/classifier
+  identity checks. Classifier/trunk files were hashed, never instantiated.
+
+Manifest ID: `e5f072bb7908f588253ea33134c8ec3335b77ed9d10548b7c433fb9b1dbe30bb`.
+
+Manifest file SHA-256: `b39e4158c68eb2be265f3e42ec6430333d4629816796647c1cccf35760b9b101`.
+
+Executable commit: `e18362faaba999eb5459773c7615c731c692e240`.
+
+Real-tokenizer pressure audit (B=256 for every episode; 512 distinct disclosed
+filler sentences, no per-episode sentence reuse, mixed user/assistant/tool turns,
+600-token per-turn cap):
+
+| Episode | U columns | B | Rule budget skips | Rule echo omissions |
+| --- | ---: | ---: | ---: | ---: |
+| smoke-00 | 2303 | 256 | 207 | 12 |
+| smoke-01 | 2075 | 256 | 185 | 12 |
+| smoke-02 | 2086 | 256 | 184 | 12 |
+| smoke-03 | 2314 | 256 | 209 | 11 |
+| smoke-04 | 2255 | 256 | 204 | 11 |
+| smoke-05 | 2489 | 256 | 221 | 11 |
+| smoke-06 | 2327 | 256 | 208 | 11 |
+| smoke-07 | 2448 | 256 | 224 | 11 |
+
+All U/B ratios exceed 8 (the acceptance floor is 2). Constant-one classifier pins
+differ from rule pins on every smoke episode; the real-tokenizer candidate
+segmentation matches the frozen LEG A consumer. These mechanical results do not
+certify independent production stories or absence of every possible semantic cue.
+
+**Ambiguities for Stage 1 (conservative frozen interpretations; governing text
+and contract not edited):**
+
+1. The filler/pressure remedy is prospective grammar: `filler_turns` covers all
+   three roles, expands round-robin without replacement from 512 sentences to
+   the fixed 4,608-token target, caps each turn at 600 tokens, and requires
+   U>=2B plus a real rule budget skip. No policy/model outcomes informed it.
+2. Registration must bind a study ID, absolute execution root, science hash,
+   exact 4B deployment and author configurations. A durable registry binds both
+   executable/production manifests and production source fingerprints across
+   registrations. Changing output paths is refused; relocation is unsupported.
+   Initialization estimates are retained and future initialization is reserved.
+3. The source grammar makes typed answer inventories and all decisive/scope
+   dependency links mandatory. It uses explicit scope-event types and canonical
+   `{call,return}` public state envelopes in chronological tool turns. Scope,
+   role, literal and trace claims must pass these checks; independent narrative
+   and leakage sign-offs additionally bind source and public-render hashes.
+   Unsupported scope structures require pre-freeze source repair, not relabelling.
+4. Numeric equality uses finite exact decimals; integral decimal spellings count
+   as integers and booleans are separate. Text permissions authorize replacements
+   at explicit line indices, never inserted/deleted lines; `permitted_edits` is
+   the reserved invariant for these and JSON-path permissions. Named obsolete
+   attacks must match changed values/actions in their public event evidence.
+5. Fingerprinting jointly canonicalizes literal equality classes and unordered
+   relations. The finite grammar rejects unordered groups above eight entries or
+   searches above 40,320 variants before accepting a source. Pair signatures bind
+   both source IDs/hashes; full provenance bytes are independently manifest-bound.
+6. The external author transport must retain exact cumulative request/response
+   transcripts, versions/settings, request/input hashes and every rejection in a
+   maximum-three-attempt chain. Repairs resume the isolated author session;
+   sessions cannot be shared across sources. These artifacts are checked, not
+   fabricated by this CPU implementation.
+7. Determinism fixes the two lexically first frozen smoke sources and requires
+   one retained output per process/source/arm cell, full arm and input hashes,
+   matching cross-process tokens and a closed allocation snapshot. An interrupted
+   partial determinism process cannot be replaced with extra smoke generations
+   under the eight-output schedule. The actual model certificate and GPU timing
+   remain prerequisites for separately authorized execution.
+8. R retains the registered four-token algorithm: it covers periods 1, 2 and 4,
+   not all loops. Only callable attention/residual intervention counters are
+   reported; absent scope/digest intervention paths are documented as absent.
+
+All changes were committed with explicit pathspecs. The registered smoke
+artifacts and this handoff accompany the final artifact commit; their tracking
+and committed bytes are checked after that commit.
