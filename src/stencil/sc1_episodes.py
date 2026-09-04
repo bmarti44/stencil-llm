@@ -14,7 +14,7 @@ import json
 import re
 import unicodedata
 from collections import Counter
-from decimal import Decimal
+from decimal import Decimal, DecimalException
 from pathlib import Path
 
 from stencil.sc1 import (
@@ -24,12 +24,15 @@ from stencil.sc1 import (
     canonical,
     digest,
     file_hash,
+    pin_composition,
     render_episode,
     select_policy,
     token_ids,
 )
 
-COMPILER_VERSION = "SC1-source-v2.2"
+COMPILER_VERSION = "SC1-source-v3"
+MAX_NUMERIC_DIGITS = 1024
+MAX_NUMERIC_EXPONENT = 4096
 AUTHORS = ("kimi-k3", "fable", "gpt-6-astra", "Opus")
 STYLES = ("editing", "tool-work")
 ORIGINS = ("user", "tool")
@@ -152,7 +155,10 @@ SCHEMA = {
     "task_kinds": ["json_patch", "text", "tool"],
     "numeric_law": (
         "finite exact Decimal values; integral decimals satisfy integer "
-        "schemas; booleans separate"
+        "schemas; booleans separate; at most 1024 coefficient digits and "
+        "absolute stored decimal exponent <=4096; unsupported representations "
+        "are schema-invalid outputs; numeric negatives negate nonzero values "
+        "exactly and replace zero with one"
     ),
     "fingerprints": (
         "joint alpha normalization/unordered permutation; <=8 entries per "
@@ -193,7 +199,7 @@ SCHEMA["structures"] = {
         "and event_type. "
         "Scope event types: continuing=instruction; "
         "overridden=superseded then update; "
-        "cancelled-or-completed=obsolete then cancellation; "
+        "cancelled-or-completed=obsolete then cancellation or completion; "
         "switched=switch then return. "
         "All decisive/scope evidence is necessary and "
         "linked by an obligation"
@@ -212,7 +218,9 @@ SCHEMA["structures"] = {
     "state_trace": (
         "{start: full state before scripted events, events: ordered array of "
         "{turn, call, return, public_text}}; public_text is canonical {call,return}; "
-        "replay must yield initial_state"
+        "replay must yield initial_state. State-bearing JSON blocks, including "
+        "multiline/nested objects, must be exactly one canonical envelope on "
+        "its own tool-turn line; incidental prose may surround that line"
     ),
     "predicates": (
         "obligations/protected_set: arrays of {id, kind, evidence_ids}; json_equals/"
@@ -230,9 +238,13 @@ SCHEMA["structures"] = {
     "expansion": (
         "author 12–24 turns {role,text}, all causal events already in assigned age "
         "region; filler_turns selects >=3 non-evidence turns with mixed roles; "
+        "capacity: designated turns x 600 must exceed 4608 minus rendered base "
+        "history (typically >=8 turns), allowing for existing text and sentence "
+        "packing; the pool is 512 sentences (~9.8 tokens each, ~5000 tokens); "
         "round-robin expansion without sentence reuse to 4608 "
-        "rendered history tokens; "
-        "600 tokens per turn; candidate capacity and budget pressure are validated. "
+        "rendered history tokens, checked after each round-robin batch (a minimum, "
+        "not an exact length); 600 tokens per turn, including every author base; "
+        "candidate capacity and budget pressure are validated. "
         "Compiler never moves or invents decisive events"
     ),
     "attacks": (
@@ -242,7 +254,12 @@ SCHEMA["structures"] = {
         "permitted_edits is the implicit invariant of task_spec edit permissions. "
         "Named obsolete attacks require an event "
         "old_id_work/obsolete_work/cancelled_work "
-        "whose changed values/actions occur in its public evidence"
+        "whose changed values/actions occur in its public evidence. For text, "
+        "these event fields contain raw full artifacts; compare normalized lines "
+        "and require changed lines in evidence. Text wrong-entity witnesses name "
+        "an evidence_id, line, target_id and replacement_id: exactly that line "
+        "replaces the unique target ID with a different declared entity ID, both "
+        "present in the linked public evidence"
     ),
     "review": (
         "source_hash, public_render_hash, reviewer, session_id, "
@@ -385,11 +402,38 @@ def parse_json(text):
         raise ValueError("non-finite number: " + value)
 
     value = json.loads(
-        text, object_pairs_hook=pairs, parse_constant=constant, parse_float=Decimal
+        text,
+        object_pairs_hook=pairs,
+        parse_constant=constant,
+        parse_float=parse_number,
+        parse_int=parse_number,
     )
-    # Reject overflowing finite JSON spellings such as 1e999 too.
     canonical(value)
     return value
+
+
+def parse_number(text):
+    """Bound representation before construction; Decimal operations never round."""
+    coefficient, *exponent = re.split("[eE]", text)
+    digits = coefficient.lstrip("-").replace(".", "")
+    if len(digits) > MAX_NUMERIC_DIGITS or (
+        exponent and len(exponent[0].lstrip("+-").lstrip("0")) > 4
+    ):
+        raise ValueError("numeric representation outside supported bounds")
+    try:
+        value = Decimal(text)
+        canonical_exponent = value.as_tuple().exponent
+        if value:
+            canonical_exponent += len(digits) - len(digits.rstrip("0"))
+        if (
+            not value.is_finite()
+            or abs(value.as_tuple().exponent) > MAX_NUMERIC_EXPONENT
+            or abs(canonical_exponent) > MAX_NUMERIC_EXPONENT
+        ):
+            raise ValueError("numeric exponent outside supported bounds")
+        return int(value) if "." not in text and not exponent else value
+    except (DecimalException, OverflowError) as exc:
+        raise ValueError("numeric representation outside supported bounds") from exc
 
 
 def path_parts(path):
@@ -603,7 +647,7 @@ def check_result(episode, result):
     if isinstance(result, str) and isinstance(expected, str):
         # Frozen text permissions authorize replacement at listed line indices only.
         # Insertions/deletions are never an authorized value replacement.
-        wanted, actual = expected.split("\n"), result.split("\n")
+        wanted, actual = normalize_text(initial).split("\n"), result.split("\n")
         editable = episode["task_spec"].get("editable_lines", [])
         outside = []
         if len(wanted) != len(actual):
@@ -853,8 +897,10 @@ def _wrong(value):
         return not value
     if isinstance(value, str):
         return value + "x"
-    if isinstance(value, (int, float, Decimal)):
-        return value + 1
+    if isinstance(value, Decimal):
+        return value.copy_negate() if value else Decimal(1)
+    if isinstance(value, (int, float)):
+        return -value if value else 1
     if value is None:
         return "wrong"
     return {}
@@ -1012,16 +1058,22 @@ def validate_dependencies(ep):
     required = {
         "continuing": {"instruction"},
         "overridden": {"superseded", "update"},
-        "cancelled-or-completed": {"obsolete", "cancellation"},
+        "cancelled-or-completed": {"obsolete"},
         "switched": {"switch", "return"},
     }[scope]
     if not required <= event_types:
         raise ValueError("assigned scope event structure incomplete")
+    if scope == "cancelled-or-completed" and not event_types & {
+        "cancellation",
+        "completion",
+    }:
+        raise ValueError("assigned scope requires cancellation or completion")
     ordered = sorted(trajectory, key=lambda p: (p["turn"], p.get("char_span", [0])[0]))
     types = [p.get("event_type") for p in ordered]
     for before, after in (
         ("superseded", "update"),
         ("obsolete", "cancellation"),
+        ("obsolete", "completion"),
         ("switch", "return"),
     ):
         if (
@@ -1068,21 +1120,37 @@ def validate_trace(ep):
             raise ValueError("state trace public return mismatch")
         public.add((turn, expected))
         previous = turn
+    state_keys = set(ep["task_spec"].get("fields", {})) | {"call", "return"}
+    if isinstance(ep["initial_state"], dict):
+        state_keys.update(ep["initial_state"])
+
+    def state_bearing(value):
+        if isinstance(value, dict):
+            return bool(state_keys & value.keys()) or any(
+                state_bearing(v) for v in value.values()
+            )
+        return isinstance(value, list) and any(state_bearing(v) for v in value)
+
+    decoder = json.JSONDecoder()
     for i, turn in enumerate(ep["turns"]):
-        for line in turn["text"].splitlines():
+        text, cursor = turn["text"], 0
+        # Scan whole JSON values anywhere in prose, advancing past each complete
+        # block so legitimate nested envelope fields are not counted twice.
+        while match := re.search(r"[\[{]", text[cursor:]):
+            start = cursor + match.start()
             try:
-                value = parse_json(line)
+                value, end = decoder.raw_decode(text, start)
             except ValueError:
+                cursor = start + 1
                 continue
-            state_keys = set(ep["task_spec"].get("fields", {}))
-            if isinstance(ep["initial_state"], dict):
-                state_keys.update(ep["initial_state"])
-            if (
-                isinstance(value, dict)
-                and (state_keys | {"call", "return"}) & value.keys()
+            block, cursor = text[start:end], end
+            if state_bearing(value) and (
+                (i, block) not in public
+                or turn["role"] != "tool"
+                or (start and text[start - 1] != "\n")
+                or (end < len(text) and text[end] != "\n")
             ):
-                if (i, line) not in public or turn["role"] != "tool":
-                    raise ValueError("public state return missing from trace")
+                raise ValueError("public state return missing from trace")
     if not json_equal(state, ep["initial_state"]):
         raise ValueError("pre-decision state trace mismatch")
 
@@ -1193,14 +1261,30 @@ def validate_attack(ep, slot, witness):
                 return [x for v in value for x in leaves(v)]
             return [value]
 
-        original = {canonical(v) for v in leaves(parse_json(ep["reference"]))}
+        is_text = ep["task_spec"]["kind"] == "text"
+        original = {
+            canonical(v)
+            for v in (
+                normalize_text(ep["reference"]).split("\n")
+                if is_text
+                else leaves(parse_json(ep["reference"]))
+            )
+        }
         applicable = False
         for event in trajectory:
-            if field not in event or mutation_key(
-                ep, canonical(event[field])
+            if field not in event:
+                continue
+            event_output = event[field] if is_text else canonical(event[field])
+            if not isinstance(event_output, str) or mutation_key(
+                ep, event_output
             ) != mutation_key(ep, text):
                 continue
-            changes = [v for v in leaves(event[field]) if canonical(v) not in original]
+            values = (
+                normalize_text(event_output).split("\n")
+                if is_text
+                else leaves(event[field])
+            )
+            changes = [v for v in values if canonical(v) not in original]
             if changes and all(
                 contains_literal(event["evidence_text"], v) for v in changes
             ):
@@ -1211,8 +1295,34 @@ def validate_attack(ep, slot, witness):
             applicable &= ep["assignments"]["scope"] == "cancelled-or-completed"
     elif slot == "wrong entity":
         try:
-            candidate, ref = parse_json(text), parse_json(ep["reference"])
-            if ep["task_spec"]["kind"] == "tool":
+            if ep["task_spec"]["kind"] == "text":
+                candidate = normalize_text(text).split("\n")
+                ref = normalize_text(ep["reference"]).split("\n")
+                line, target, other = (
+                    witness[k] for k in ("line", "target_id", "replacement_id")
+                )
+                entity_ids = {e["id"] for e in ep["entities"]}
+                evidence = next(
+                    e
+                    for e in trajectory + ep["decisive_facts"]
+                    if e["id"] == witness["evidence_id"]
+                )
+                changed = list(ref)
+                changed[line] = ref[line].replace(target, other)
+                applicable = (
+                    type(line) is int
+                    and 0 <= line < len(ref)
+                    and ref[line].count(target) == 1
+                    and target != other
+                    and {target, other} <= entity_ids
+                    and candidate == changed
+                    and all(
+                        contains_literal(evidence["evidence_text"], v)
+                        for v in (target, other)
+                    )
+                )
+            elif ep["task_spec"]["kind"] == "tool":
+                candidate, ref = parse_json(text), parse_json(ep["reference"])
                 target = candidate["arguments"]["id"]
                 applicable = (
                     candidate["name"] == ref["name"]
@@ -1221,12 +1331,13 @@ def validate_attack(ep, slot, witness):
                     and any(e["id"] == target for e in ep["entities"])
                 )
             else:
+                candidate, ref = parse_json(text), parse_json(ep["reference"])
                 applicable = (
                     candidate[0]["path"] != ref[0]["path"]
                     and at_path(ep["initial_state"], candidate[0]["path"]) is not ABSENT
                     and candidate[0].get("value") == ref[0].get("value")
                 )
-        except (ValueError, KeyError, IndexError, TypeError):
+        except (ValueError, KeyError, IndexError, TypeError, StopIteration):
             applicable = False
     else:
         applicable = False
@@ -1299,6 +1410,14 @@ def expand_source(source, tokenizer):
             )
         ):
             raise ValueError("explicit text line edit permissions required")
+        if (
+            ep["task_spec"]["permitted_paths"]
+            or check_result(ep, expected)["unauthorized_changes"]
+        ):
+            raise ValueError(
+                "text reference violates original protected edit permissions"
+            )
+    validate_turn_cap(ep, tokenizer)
     fill_at = material["filler_turns"]
     evidence_turns = {
         p["turn"] for p in ep["decisive_facts"] + ep["instruction_trajectory"]
@@ -1322,6 +1441,9 @@ def expand_source(source, tokenizer):
     )
     filler_ids, placements = [], []
     layout = render_episode(ep, tokenizer)
+    base_tokens = layout["H"] - layout["P"]
+    capacity = sum(600 - len(token_ids(tokenizer, text)) for text in bases.values())
+    turns_needed = max(3, (4608 - base_tokens + 599) // 600)
     cursor = 0
     while layout["H"] - layout["P"] < 4608:
         if len(filler_ids) >= len(pool):
@@ -1337,7 +1459,11 @@ def expand_source(source, tokenizer):
                 placements.append(turn)
                 break
         else:
-            raise ValueError("filler turn capacity cannot realize fixed pressure")
+            raise ValueError(
+                "filler turn capacity cannot realize fixed pressure: "
+                f"base_tokens={base_tokens}, capacity={capacity}, "
+                f"turns_needed={turns_needed} (lower bound; allow sentence packing)"
+            )
         if cursor % len(fill_at) == 0:
             layout = render_episode(ep, tokenizer)
     ep["filler_manifest"] = {
@@ -1397,6 +1523,12 @@ def expand_source(source, tokenizer):
     ep["layout_audit"] = {
         "public_render_hash": public_render_hash(ep),
         "candidate_columns": sum(c["span"][1] - c["span"][0] for c in universe),
+        "real_candidate_columns": sum(
+            c["span"][1] - c["span"][0]
+            for c in universe
+            if c["message_index"] not in fill_at
+        ),
+        "rule_pin_composition": pin_composition(rule, fill_at),
         "B": layout["B"],
         "rule_budget_skips": sum(
             s["reason"] == "budget" for s in rule["admission"]["skips"]
@@ -1406,6 +1538,21 @@ def expand_source(source, tokenizer):
         "prefix_tokens": layout["P"],
         "query_tokens": len(layout["ids"]) - layout["H"],
         "reference_tokens": len(token_ids(tokenizer, ep["reference"])),
+        "turns": [
+            {
+                "index": i,
+                "role": turn["role"],
+                "text_tokens": len(token_ids(tokenizer, turn["text"])),
+                "designated_filler": i in fill_at,
+                "necessary_evidence": i in evidence_turns,
+                "candidate_columns": sum(
+                    c["span"][1] - c["span"][0]
+                    for c in universe
+                    if c["message_index"] == i
+                ),
+            }
+            for i, turn in enumerate(ep["turns"])
+        ],
         "intervals": intervals,
         "assigned_age": slot["assignments"]["age"],
         "verified_age": verified,
@@ -1522,6 +1669,7 @@ def validate_episode(ep, source, tokenizer):
     if ep != expand_source(source, tokenizer):
         raise ValueError("expander determinism/artifact mismatch")
     audit = ep["layout_audit"]
+    validate_turn_cap(ep, tokenizer)
     if not 4096 <= audit["history_tokens"] <= 8192 or audit["reference_tokens"] > 256:
         raise ValueError("history/reference token budget")
     if audit["query_tokens"] > MAX_QUERY or audit["prefix_tokens"] > MAX_PREFIX:
@@ -1598,6 +1746,12 @@ def validate_episode(ep, source, tokenizer):
         "reviewer": review.get("reviewer"),
         "source_fingerprint": ep["source_fingerprint"],
     }
+
+
+def validate_turn_cap(ep, tokenizer):
+    for i, turn in enumerate(ep["turns"]):
+        if len(token_ids(tokenizer, turn["text"])) > 600:
+            raise ValueError(f"turn {i} exceeds 600-token cap")
 
 
 def ngrams(text):
@@ -1678,7 +1832,11 @@ def independence_audit(episodes, *, require_review=True):
                 "left": left["id"],
                 "right": right["id"],
                 "jaccard": overlaps,
-                "flag": any(v >= 0.05 for v in overlaps.values()),
+                "within_pool_literal_collisions": sorted(
+                    literals_left & literals_right
+                ),
+                "flag": bool(literals_left & literals_right)
+                or any(v >= 0.05 for v in overlaps.values()),
                 "semantic_review": review,
             }
         )
@@ -1714,6 +1872,7 @@ def validate_bank(directory, tokenizer, *, check_frozen=True):
         "reports": reports,
         "counts": realized_counts(episodes),
         "pairs": pairs,
+        "pressure": [{"id": ep["id"], **ep["layout_audit"]} for ep in episodes],
         "bank_hash": digest(episodes),
     }
 

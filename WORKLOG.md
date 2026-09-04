@@ -4235,3 +4235,28 @@ tests/test_no_side_effect_imports.py with CUDA_VISIBLE_DEVICES='' and bytecode/c
 writes disabled. Ruff covers the four touched Python files. No wrapper or GPU
 process is launched, waited on, or signalled. Explicit pathspec commits throughout.
 - 2026-09-04, coder (auto, run_codex_agent.sh). Brief sc1-harness-v2: model gpt-6-astra, effort xhigh, exit 0, session 01a06e4d-033b-7d80-bd79-b35b68b42aa6, log /home/bmarti44/stencil-llm/results/logs/codex-agent-sc1-harness-v2.log. Override reason: Brian 2026-09-04: astra replaces sol for all coder/reviewer roles.
+
+### 2026-09-04 — v2 freeze clarification (fable N10)
+
+The reviewed v2 candidate was code@5458350 + data@00e4942: the latter commit
+contains the regenerated episode/grammar/validation/manifest bytes. The earlier
+"Final executable commit" identified the code commit only. The v3 handoff below
+will identify code and artifact commits separately and verify tracked hashes.
+
+### 2026-09-04 — sc1-harness-v3 implementation checkpoint
+
+Test commit d8cbc1a preceded implementation. Initial finding-only invocation:
+29 failed, 2 passed, 93 deselected (98.36 s). The already-covered nested-array
+trace variant and N4's arithmetic check passed; the R1/R3/R4/R5/R6/R7/R8
+reproductions failed at their reported consumers. R2 refused for the old late
+allocation checks or touched downstream manifest state rather than acquiring
+exclusive ownership. Subsequent finding/strengthened-test invocation: 33 passed,
+91 deselected (167.76 s). Additional numeric-bound/snapshot/text-entity checks:
+4 passed (9.60 s). N4 deliberately restored journal read_bytes replay and the old
+64-arm projection: both strengthened assertions detected them, 2 passed (3.71 s).
+The first combined N4 proof reused its cost fixture; isolated cases corrected that
+test contamination. No production source or policy was adjusted by these fixtures.
+
+Next: commit executable code and proposal/snapshot bytes, run CPU `scripts/sc1.py
+smoke`, run `validate data/sc1/smoke`, then the exact authorized four-file suite,
+ruff, manifest verification and explicit-pathspec artifact/handoff commits.

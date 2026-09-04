@@ -36,9 +36,11 @@ block; native XML function-call framing is not accepted by this grammar. Final
 message indices refer to zero-based public history messages, excluding the system
 prefix. Filler v2 contains 512 distinct sentences (16 subjects × 4 verbs × 8
 locations), disclosed in the compiler. Seeded sampling without replacement
-spreads it round-robin across at least three non-evidence turns covering user,
-assistant and tool roles, with a 600-token per-turn cap and fixed 4,608-token
-history target. It cannot move causal events or relabel age. Validation requires
+spreads it round-robin across mixed user, assistant and tool non-evidence
+turns, typically at least eight: designated turns × 600 must exceed 4,608 minus
+rendered base history, allowing room for bases and whole-sentence packing. Every
+authored base and final history turn is capped at 600 text tokens. The 4,608-token
+history minimum is checked after each round-robin batch; it is not an exact length. It cannot move causal events or relabel age. Validation requires
 candidate columns >= 2B and at least one rule budget skip. `validation.json`
 records candidate columns, B, rule budget skips and echo omissions for each source.
 The smoke audit also checks segmentation against LEG A with the real tokenizer

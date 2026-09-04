@@ -25,7 +25,7 @@ from stencil.bfcl import (
 )
 from stencil.selector_v2 import split_sentence_spans
 
-VERSION = "SC1-v2.2"
+VERSION = "SC1-v3"
 HEADER = "Earlier context restated verbatim:"
 OPENER = "<|im_start|>assistant\n<think>\n\n</think>\n\n"
 MAX_PREFIX = 2048
@@ -37,6 +37,16 @@ COST_CAP = 8 * 3600
 INTERVENTIONS = (
     "attention_amplification",
     "residual_steering",
+)
+FAILURE_DISCLOSURE = (
+    "R detects periods 1, 2 and 4 under the registered four-token-block rule; "
+    "R=0 does not exclude other loops. GenerationFailure is currently emitted "
+    "only by fixtures, not QwenBackend. QwenBackend returns timeout or raises "
+    "exceptions. RuntimeError messages mentioning cuda/nccl/device/out of memory "
+    "are provisionally infrastructure failures, including possible harness bugs; "
+    "an operator must supply journaled evidence before resumption. Only attention "
+    "amplification and residual steering have measured counters; scope/digest "
+    "paths are absent."
 )
 
 
@@ -595,6 +605,19 @@ def clopper_pearson(k, n, confidence=0.975):
     )
 
 
+def pin_composition(selection, filler_turns):
+    """Turn provenance, not semantic relevance; designated bases count as filler."""
+    rows = selection["admission"]["admitted"]
+    result = {}
+    for label, filler in (("filler", True), ("real", False)):
+        members = [c for c in rows if (c["message_index"] in filler_turns) == filler]
+        result[label + "_pieces"] = len(members)
+        result[label + "_columns"] = len(
+            {column for c in members for column in range(*c["span"])}
+        )
+    return result
+
+
 def analyze_pairs(pairs):
     if len(pairs) != 256 or len({r["id"] for r in pairs}) != 256:
         raise ValueError("analysis requires exactly 256 unique complete pairs")
@@ -652,6 +675,14 @@ def analyze_pairs(pairs):
         "mean_latency": latency,
         "gates": gates,
         "subgroups": subgroups,
+        "pin_composition": {
+            r["id"]: {
+                a: r["arms"][a].get("selection", {}).get("pin_composition")
+                for a in ("clf", "rule")
+            }
+            for r in pairs
+        },
+        "failure_taxonomy": FAILURE_DISCLOSURE,
         "adopt": "clf" if all(gates.values()) else "rule",
         "conclusion": "learned advantage demonstrated"
         if all(gates.values())
@@ -724,6 +755,10 @@ class RunStore:
         self.root, self.manifest_id = Path(root), manifest_id
         self.root.mkdir(parents=True, exist_ok=True)
         self.journal = self.root / "attempts.jsonl"
+        self.reconcile()
+
+    def reconcile(self):
+        """Reopen actual durable bytes after a caught write failure, before append."""
         self._events, self._attempts, self._last = [], {}, {}
         self._completed, self._prior, self._stats = {}, Counter(), {}
         self._open()
@@ -1199,6 +1234,9 @@ def run_arm(
     rendered = time.monotonic()
     audit = InterventionCounter()
     selection = select_policy(layout, tokenizer, arm, scorer)
+    selection["pin_composition"] = pin_composition(
+        selection, episode.get("filler_manifest", {}).get("turns", [])
+    )
     echo_render_start = time.monotonic()
     prompt = render_episode(episode, tokenizer, selection["echo"]["insertion"])
     echo_render_seconds = time.monotonic() - echo_render_start

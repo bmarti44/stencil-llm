@@ -14,13 +14,16 @@ model-determinism certificate. CPU smoke cannot substitute for that certificate.
 from __future__ import annotations
 
 import argparse
+import fcntl
 import hashlib
 import importlib.metadata
 import json
+import os
 import subprocess
 import sys
 import time
 from dataclasses import asdict
+from functools import wraps
 from pathlib import Path
 
 from stencil import sc1
@@ -41,9 +44,34 @@ CODE_FILES = (
 )
 CLASSIFIER_RECORD = "results/quick-checks/ft_final2_s0_sha256.txt"
 CONTRACT = "data/sc1/AUTHOR-CONTRACT.md"
+SCIENCE_SNAPSHOT = "data/sc1/registration-snapshot.md"
+REGISTRATION_LOG = ROOT / "WORKLOG.md"
 
 
 STUDY_REGISTRY = ROOT / ".git/sc1-studies"
+
+
+def exclusive_execution(consumer):
+    """Nonblocking ownership covers binding, recovery, allocation and publication."""
+
+    @wraps(consumer)
+    def owned(args, manifest, *a, **kw):
+        out = Path(args.out).resolve()
+        if out != Path(manifest.get("execution_root", "")).resolve():
+            raise ValueError("output differs from registered study execution root")
+        out.mkdir(parents=True, exist_ok=True)
+        # Never unlink: changing the inode would permit two simultaneous owners.
+        with (out / ".execution.lock").open("a") as lock:
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError as exc:
+                raise ValueError("study execution is already owned") from exc
+            try:
+                return consumer(args, manifest, *a, **kw)
+            finally:
+                fcntl.flock(lock, fcntl.LOCK_UN)
+
+    return owned
 
 
 def bind_study(manifest, out, *, stage="production"):
@@ -109,6 +137,23 @@ def bind_study(manifest, out, *, stage="production"):
         raise ValueError("study directory identity mismatch")
     if not local.exists():
         sc1.atomic_json(local, identity, exclusive=True)
+    audit_path = out / f"registration-audit.{stage}.json"
+    if not audit_path.exists():
+        audit = {
+            "study_digest": sc1.digest(manifest["study_id"]),
+            "registry_path": str(registry.resolve()),
+            "registry_hash": sc1.file_hash(registry),
+            "entry": saved,
+            "source_owners": {str(p.resolve()): sc1.file_hash(p) for p, _ in owners},
+        }
+        sc1.atomic_json(audit_path, audit, exclusive=True)
+    audit = json.loads(audit_path.read_text())
+    marker = f"SC1 registration {audit['study_digest']} {stage}"
+    if not REGISTRATION_LOG.exists() or marker not in REGISTRATION_LOG.read_text():
+        with REGISTRATION_LOG.open("a") as stream:
+            stream.write(f"\n- {marker}: {sc1.canonical(audit)}\n")
+            stream.flush()
+            os.fsync(stream.fileno())
     for marker in ("invalid.json", "halt.json"):
         if (out / marker).exists():
             raise ValueError("study execution is terminal: " + marker)
@@ -144,6 +189,9 @@ def stop_for_cost(args, manifest, allocation, **details):
 def record_exception(args, manifest, allocation, store, exc, **identity):
     allocation.checkpoint(close=True)
     if infrastructure_exception(exc):
+        # The failed append may have reached disk only partially (or fully).
+        # Recovery publishes any already prepared output, never regenerates it.
+        store.reconcile()
         store.append(
             {
                 "event": "attempt_open"
@@ -208,7 +256,7 @@ def dependencies():
 def build_manifest(bank, trunk, episode_rows, *, stage1=None, executable=None):
     files = {
         p: sc1.file_hash(ROOT / p)
-        for p in (*CODE_FILES, CONTRACT, "LEDGER-PLAN.md", CLASSIFIER_RECORD)
+        for p in (*CODE_FILES, CONTRACT, SCIENCE_SNAPSHOT, CLASSIFIER_RECORD)
     }
     classifier = classifier_hashes()
     files.update(classifier)
@@ -244,6 +292,8 @@ def build_manifest(bank, trunk, episode_rows, *, stage1=None, executable=None):
         "dependencies": dependencies(),
         "python": sys.version,
         "grammar": episodes.SCHEMA,
+        "science_snapshot_path": SCIENCE_SNAPSHOT,
+        "science_hash": files[SCIENCE_SNAPSHOT],
         "filler_hash": sc1.digest(episodes.FILLER),
         "deployment": {
             "dtype": "bfloat16",
@@ -310,6 +360,12 @@ def verify_manifest(path, *, production=False):
         != manifest["manifest_id"]
     ):
         raise ValueError("manifest hash mismatch")
+    if (
+        manifest.get("science_snapshot_path") != SCIENCE_SNAPSHOT
+        or manifest.get("science_hash") != manifest["files"].get(SCIENCE_SNAPSHOT)
+        or "LEDGER-PLAN.md" in manifest["files"]
+    ):
+        raise ValueError("manifest requires the frozen registration snapshot")
     for filename, h in manifest["files"].items():
         if sc1.file_hash(ROOT / filename) != h:
             raise ValueError("frozen artifact hash mismatch: " + filename)
@@ -364,7 +420,7 @@ def verify_manifest(path, *, production=False):
             ] != sc1.digest(episodes.SCHEMA):
                 raise ValueError("author contract/grammar mismatch")
         frozen = verify_manifest(manifest["executable_freeze"])
-        for key in (*CODE_FILES, CONTRACT):
+        for key in (*CODE_FILES, CONTRACT, SCIENCE_SNAPSHOT):
             if frozen["files"][key] != manifest["files"][key]:
                 raise ValueError("production executable differs from Stage 2")
         if (
@@ -401,12 +457,15 @@ def verify_stage_freezes(stage1_path, executable_path):
         stage1.get("trunk") != "4b"
         or not stage1.get("study_id")
         or not Path(stage1.get("execution_root", "")).is_absolute()
-        or stage1.get("science_hash") != sc1.file_hash(ROOT / "LEDGER-PLAN.md")
+        or stage1.get("science_snapshot_path") != SCIENCE_SNAPSHOT
+        or stage1.get("science_hash") != sc1.file_hash(ROOT / SCIENCE_SNAPSHOT)
     ):
         raise ValueError(
             "Stage 1 registered study/deployment/science identity mismatch"
         )
     frozen = verify_manifest(executable_path)
+    if frozen["files"].get(SCIENCE_SNAPSHOT) != stage1["science_hash"]:
+        raise ValueError("Stage 1 snapshot differs from executable freeze")
     if frozen["trunk"] != "4b" or stage1.get("deployment") != frozen["deployment"]:
         raise ValueError("registered Qwen3-4B deployment constants mismatch")
     if set(stage1.get("authors", {})) != set(episodes.AUTHORS):
@@ -662,6 +721,10 @@ def verify_determinism(path, manifest):
         if sc1.file_hash(arm_path) != row["arm_hash"]:
             raise ValueError("determinism retained arm hash mismatch")
         arm_row = episodes.parse_json(arm_path.read_text())
+        if arm_row.get("failure") is not None or not arm_row.get("token_ids"):
+            raise ValueError(
+                "determinism requires completed nonempty token observations"
+            )
         if (
             arm_row["token_ids"] != row["token_ids"]
             or arm_row["episode_hash"] != row["episode_hash"]
@@ -701,6 +764,7 @@ def verify_determinism(path, manifest):
     return cert
 
 
+@exclusive_execution
 def run_determinism(
     args,
     manifest,
@@ -711,8 +775,6 @@ def run_determinism(
     scorer_factory=None,
 ):
     """One fresh initialization produces four outputs; two invocations certify eight."""
-    import os
-
     from stencil.selector_v2 import ClassifierScorer
 
     bind_study(manifest, args.out, stage="executable")
@@ -927,6 +989,7 @@ def _timing(row):
     }
 
 
+@exclusive_execution
 def run_study(
     args,
     manifest,
@@ -1199,6 +1262,7 @@ def run_study(
     }
 
 
+@exclusive_execution
 def analyze(args, manifest):
     bind_study(manifest, args.out)
     allocation = sc1.AllocationLedger(args.out / "cost.json", manifest["study_id"])
@@ -1353,6 +1417,12 @@ def main(argv=None):
             feedback,
         )
         result["prior_attempts"] = history
+        input_path = args.out / f"{args.pool}-{args.index}-{args.attempt}.input.json"
+        sc1.atomic_json(input_path, result.pop("input"), exclusive=True)
+        result.update(
+            input_path=str(input_path.resolve()),
+            input_file_hash=sc1.file_hash(input_path),
+        )
         sc1.atomic_json(
             args.out / f"{args.pool}-{args.index}-{args.attempt}.request.json",
             result,
@@ -1367,7 +1437,6 @@ def main(argv=None):
             "execution_root": stage1["execution_root"],
             "registration_hash": sc1.file_hash(args.stage1),
         }
-        bind_study(execution, args.out, stage="executable")
         result = run_determinism(
             args, execution, load_manifest_bank(frozen), load_tokenizer(args.trunk)
         )
@@ -1426,6 +1495,21 @@ def main(argv=None):
             status="PASS",
             manifest_id=report.get("manifest_id"),
             age_counts={pool: count["age"] for pool, count in report["counts"].items()},
+            pressure=[
+                {
+                    k: row[k]
+                    for k in (
+                        "id",
+                        "candidate_columns",
+                        "real_candidate_columns",
+                        "B",
+                        "rule_budget_skips",
+                        "rule_echo_omissions",
+                        "rule_pin_composition",
+                    )
+                }
+                for row in report["pressure"]
+            ],
         )
     else:
         if not args.manifest:
