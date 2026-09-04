@@ -8,8 +8,10 @@ with held-out sets (heldout/; fable-validation is author-disjoint, opus/sol held
 enrichment). Disjointness policy (item-level, agreed by kimi/sol/Opus/fable reviews of 2026-09-03): no benchmark
 item, template, marker, or exact phrasing from any evaluation benchmark (IFEval, Multi-IF, BFCL, tau-bench, S2/B3)
 enters the data; plain-language formatting rules are kept and constraint-TYPE overlap with IFEval is deliberate and
-disclosed. The label spec (v2 scopes) was developed against the b3 dev probe, and the scope pass was written after
-the probe exposed the scope gap — the probe shaped the spec and the kinds of examples, never their text.
+disclosed. The three-scope spec and enrichment were developed with feedback from the b3 probe. An earlier
+scope-generation prompt included probe-specific exemplars; 38 echoing rows were dropped and the exemplars rewritten.
+This remediation does not remove development influence. The final artifact is described as item-disjoint subject to
+the recorded audits, not as development-independent (astra program review, 2026-09-04).
 Review status: kimi/ and kimi-ctx/ reviewed by sol and Opus (review/*-patch.jsonl); kimi-scope/ reviewed via
 review/scope-v2-*-patch.jsonl when present; *-enrich.jsonl are reviewer-authored.
 
@@ -39,6 +41,11 @@ Fields: text (the sentence), role (user|assistant|tool|system), label, domain, h
 source (author:domain:seed or author-enrich / author-heldout), context (optional; 1–3 preceding sentences with
 speaker prefixes, present in the kimi-ctx pass and wherever the label depends on context).
 
-Splits: train = kimi + kimi-ctx + *-enrich (after review patches applied); validation = author-disjoint heldout/*
-(never trained on); evaluation of the mechanism = the dev probe (data/b3, selection set) then Multi-IF and BFCL as
-post-development benchmarks, then a separately registered no-contact family.
+Splits: the frozen model's manifest records its training sources and patches. Fable validation is author-disjoint;
+Opus/sol validation shares authors with enrichment. These are development validation sets, not untouched mechanism
+tests. Multi-IF/BFCL are post-development evaluation families. The exact frozen training-input recipe must be
+reconciled before a new fit (astra program review, 2026-09-04: the committed recipe/current patches do not yet
+reproduce the recorded source composition). A separately registered no-contact family follows.
+Deployment limit (astra G2): the classifier scores a sentence and role without the current task or conversational
+context, so a completed, switched, or reversed instruction keeps its score; the three-scope taxonomy is an admission
+heuristic, not a scope-resolution mechanism.

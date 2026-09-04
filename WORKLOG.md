@@ -3887,3 +3887,21 @@ uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b
 ## 2026-09-04 — LEG B OUTCOME recorded (see LEDGER-PLAN "LEG B OUTCOME"); sent to fable/sol/kimi for verdict wording
 - 2026-09-04, check 30 (function-vector focus): fv_inject 14 / fv_inject_echo 35 / fv_clear 13 vs evicted 10, pins
   41, pin+echo 46; truncated 14-15/20 -> HARMFUL by the pre-registered reading. Weight-side wave closed with data.
+
+## 2026-09-04 — gpt-6-astra program review (results/astra-program-review.md): SOUND-WITH-FIXES
+- First use of gpt-6-astra (codex 0.153.3, reasoning xhigh) as reviewer. HIGH: S1 README headlined the superseded
+  wave result; G1 Leg A can pass (A1/A3) without any learned-selection advantage; G2 the three-scope taxonomy is
+  not a scope-resolution mechanism (context-free scoring); L1 residual leakage is development feedback through
+  prose/specs/briefs; R1 the sign-flip test is not distribution-free for a mean-effect null. MEDIUM R2-R6
+  (effective information at k~6-16; "vacuous" -> "brittle"; two-readable clauses; twelve rounds disproportionate;
+  source clustering sensitivity confirms Leg B signal). All ten text changes applied (README rewrite, synthesis
+  superseded banner, LABELS lineage/limit wording, quick-checks readings, LEDGER-PLAN "PROGRAM-REVIEW
+  CLARIFICATIONS" appended; registered text untouched). Ranked next actions: (1) let the preflight finish under
+  frozen rules, hard stop after; (2) benchmark-free frozen-policy comparison, classifier vs own-budget recency
+  rule, McNemar, ~256 authored episodes; (3) consolidation only as a bounded text-digest feasibility experiment.
+- PROGRAM-REVIEW CORRECTION (preserving earlier entries): the earlier "finder generalizes" wording (2026-09-02
+  entry) denotes taxonomy-aligned development performance; the current classifier was developed with probe and
+  benchmark-family feedback. The final evaluated classifier hashes remain verified, but the committed training
+  recipe/current patches do not yet reproduce its recorded source composition. Residual-vector steering changes
+  activations, not weights. Consolidation has no established result; only a bounded text-digest feasibility
+  experiment is proposed.

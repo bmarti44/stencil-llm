@@ -36,6 +36,10 @@ REWORK 2:1). Brian's directive: "we need to do something that generalizes."
   a probe only if no zero-training policy recovers enough of the oracle.
 
 ## The design: G0 audit → zero-training policies → (only if needed) G1
+SUPERSEDED DEVELOPMENT PROPOSAL (2026-09-04, astra program review): the BFCL/Multi-IF fitting and policy-selection
+suggestions below must not be executed. LEDGER-PLAN.md, G0 Amendment v2, governs: benchmark prompts, responses and
+outcomes must not select or fit policies. This synthesis records how the proposal developed; it is not the current
+training brief.
 G0 oracle (label-free, deployment-matched): for a dialogue with a reference continuation (gold tool calls for BFCL;
 the base model's OWN full-context responses for Multi-IF, i.e. self-distillation), utility of a candidate span s =
 mean over later reference tokens of [NLL with s's KV COLUMNS evicted − NLL full], teacher-forced, columns removed via

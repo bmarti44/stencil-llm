@@ -819,3 +819,40 @@ a "wrap in double quotation marks" constraint (no chat-control tokens anywhere);
 generation is counted in two arms; they are also counted under degenerate. p-values reported as 0.0 are underflow
 (t ~ 20, df ~ 900; p < 1e-15). Any future cohort registers an invalid definition that excludes degenerate loops
 and carries a one-event guard; no re-scoring of this cohort.
+
+## PROGRAM-REVIEW CLARIFICATIONS (2026-09-04, gpt-6-astra review results/astra-program-review.md; text only, appended; no registered outcome or rule changed)
+LEG B (clarifies :554, :587, :590 and the OUTCOME): Leg B was registered before outcomes from this final frozen-selector
+run; earlier Multi-IF results informed development. C1 compares selected pins plus echo against a deterministic
+equal-column complement control without echo. Full context is a reference baseline, not a ceiling. The echo arm was
+6.15 conversation-mean points below full context; its mean 38.11 pinned columns were accompanied by 48.77 added echo
+tokens. The failed safety clause was a strict zero-tolerance observed-count rule, not a statistical proof of excess
+risk and not a mathematically vacuous test (the word "vacuity" in the OUTCOME is withdrawn in favour of "brittleness").
+The registered verdict remains NOT SUPPORTED. Reapplying a different clause to these same outcomes is post hoc.
+Source clustering (astra R6, post hoc sensitivity, not a re-registration): 484 source prefixes (425 with two
+conversations); source-weighted C1 +26.68 (LB +24.15), C2 -3.37 (LB -4.88), C3 +18.21 (LB +16.16), echo-full -6.38
+(LB -8.84): the signal is not an artifact of treating variants as separate conversations.
+Two-stage prefill (clarifies :618): two-stage and one-shot fp32 logits differed by at most ~8e-5 with top-1
+agreement on the recorded diagnostic; numerical agreement, not bitwise identity; every arm shares the schedule.
+LEG A (clarifies :631-632, :681; applies before any sealed inferential use): the sign-flip enumeration is exact
+conditional on sign symmetry/exchangeability of case-mean differences; it is NOT a distribution-free test of an
+arbitrary zero-mean case-effect distribution (astra counterexample: differences +1/5 w.p. 5/6, -1 w.p. 1/6, mean 0,
+all six positive w.p. (5/6)^6 = 0.3349, each such sample gives p = 1/64). Those assumptions have not been established
+for this design. A mechanical registered pass must not be presented as assumption-free confirmation of a positive
+population mean. Any replacement endpoint or inferential procedure requires a new prospective registration before
+sealed outcomes are accessed; the registered dev preflight and its gates are unchanged.
+LEG A interpretation (consolidates v7 + amendments 1-6; conservative readings): A1/A3 support concerns only the
+registered teacher-forced package comparison and does not establish learned-selection advantage or free-running
+agentic benefit. A2 must pass for a conditional learned-ranking claim; its quotas remain classifier-derived, so even
+an A2 pass is a within-role ranking diagnostic, not a comparison of independently budgeted selectors. A1/A3 alone
+never justify keeping the classifier. Any unusable comparator on a primary turn makes its entire contrast
+uninformative (whole-contrast reading of Amendment 6; no affected cluster is selectively removed). A3 uninformative
+reasons are reported separately as insufficient eligible cases, nonpositive measured headroom, or reference/method
+failure (post_exclusion_k is recorded). Safety is scoped to the claim that uses the breaching comparator; primary
+support never means learned-ranking support. The comparator's final echo entry may extend beyond its pinned columns
+(Amendment 4): column and echo counts are not identical information pathways. The "no tool candidates selected"
+uninformative branch is defensive and effectively unreachable after a passing preflight.
+Successor design (recorded, not registered): sole primary = frozen classifier retention plus echo vs a frozen,
+independently budgeted role/recency policy plus echo, on independently authored benchmark-free delayed-use episodes;
+one prespecified binary outcome per case; exact one-sided McNemar at alpha 0.05 with paired effect interval and a
+prespecified worthwhile magnitude; resource ceilings and safety/cost limits frozen before outcomes; failure to
+demonstrate superiority is not an equivalence claim.

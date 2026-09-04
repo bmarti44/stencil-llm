@@ -218,9 +218,10 @@ spec change did not teach (all seeds miss it).
    17 / 17 / 17; coverage 0.86; held-out 0.89 each — fable-scope-validation 0.85 / 0.85 / 0.83, fable-validation
    0.87 / 0.88 / 0.88 (author-disjoint), opus/sol held-out 0.92-0.95 (author-shared). Seed 0 artifact =
    data/classifier/model/ft (sha256 list: ft_final2_s0_sha256.txt) — the SELECTOR v2 registered for the
-   post-development Multi-IF evaluation. Reading: development result on the selection set; parity-or-better with
-   the taxonomy finder on pin+echo (45 vs 48 point estimates are within n=56 noise; pins 33 vs 37 are not) at
-   0.86x its pinned columns; the mechanism reaches the full-context baseline with a benchmark-disjoint selector.
+   post-development Multi-IF evaluation. Reading (revised 2026-09-04, astra program review): development result under the old post-prefill ordering;
+   three-seed mean pin+echo 45/56 vs finder 48/56 and full 44/56, at 0.86x the finder's pinned columns, excluding
+   echo cost. These point estimates do not establish parity, superiority, or equivalence. Check 27 supplies the
+   corrected-ordering development measurement.
 
 26. MULTI-IF REAL-EVICTION PREFLIGHT (scripts/multiif_evict.py, 20 conversations, results/qwen/multiif-evict-
    preflight): aged constraints / 53 — full 30, evicted 18, clf_pinned 31, clf_pinned_echo 33, clf_control 22,
@@ -234,10 +235,10 @@ spec change did not teach (all seeds miss it).
    full 44 | evicted 10 | clf_pinned 41 | clf_pinned_echo 46 | exact-column control 13   (post-prefill ordering:
    44 | 14 | 33 | 46 | 17). The old ordering leaked history through the current turn: clean eviction costs 4 more
    (14 -> 10) and pins matter MORE (33 -> 41): pins alone recover (41-10)/(44-10) = 0.91 of the gap; pin+echo 46
-   exceeds full. Prefill diagnostic (prefill_diag.log): two-stage vs one-shot prefill on the real trunk is identical
-   in fp32 (max |d| 8e-5, top-1 agreement 1.0) and differs in bf16 by kernel accumulation (max |d| 0.67; batch-shape
-   noise floor 0.0) — a numerical, not logical, difference; all arms share the two-stage schedule, so comparisons
-   are fair; the "bitwise" test wording is narrowed to fp32-equal / bf16-top-1-equal. All checks 4-25 are now
+   exceeds full. Prefill diagnostic (prefill_diag.log): on the recorded diagnostic, two-stage and one-shot fp32 logits differed
+   by at most ~8e-5 and agreed in top-1 predictions; bf16 logits differed more (max |d| 0.67; batch-shape noise
+   floor 0.0). This is numerical agreement on that diagnostic, not bitwise identity. Every comparison arm uses the
+   same two-stage schedule; the test wording is narrowed to fp32-close / bf16-top-1-equal. All checks 4-25 are now
    labelled "post-prefill ordering"; check 27 supersedes them for the mechanism claim.
 
 28. CLASSIFIER-GATED DEFICIT WAVE (Brian's proposal; results/qwen/clf-gated-wave-prequery/clf-probe.json; corrected
@@ -248,7 +249,8 @@ spec change did not teach (all seeds miss it).
    vs 2 / 1. All three wave arms KILLED by the registered rule (degenerate > 2/20) and HARMFUL by the pre-registered
    reading (excess degeneracy over the base arm > 2). Reading: gating the boost to selected spans at deficit moments
    reduces but does not remove degeneration; the +3 on pins is bought with 4x the degeneracy; re-injection reaches 46
-   with none. The wave family is closed with data under this trunk.
+   with none. The tested attention-bias interventions failed the registered development criteria; this ends the
+   cache-column-bias branch for now (it does not rule out all activation steering).
 
 29. LEG B (Multi-IF 909, corrected eviction; results/qwen/multiif-evict-909-prequery-v2): full 0.652 | evicted 0.167 |
    clf_pinned 0.572 | clf_pinned_echo 0.592 | control 0.330 | role_pinned 0.605 on 2,276 aged constraints. C1 +26.8
@@ -266,5 +268,8 @@ spec change did not teach (all seeds miss it).
    4-gram rule). Pre-registered reading: HARMFUL (fv_inject < evicted + 5; truncation breach). Reading: switching on
    the instruction's circuit through a residual-stream direction recovers almost nothing of what forgetting costs,
    and added on top of re-injection it subtracts 11 points; one grid point only (alpha 2.0 / layer 12), chosen for
-   non-degeneracy, not tuned on the probe. With checks 4-28 this closes both wave substrates on this trunk:
-   cache-column biasing degenerates; weight-side steering under-delivers and truncates. Re-injection stands.
+   non-degeneracy, not tuned on the probe. Revised closure (astra program review, 2026-09-04): the selected sustained residual-vector intervention scored
+   14/56 without pins and 35/56 with pin+echo, with 14/20 and 15/20 truncations; clearing at 64 tokens scored 13/56
+   with 2/20 truncations. Type metadata selected these activation vectors. These outcomes justify ending this
+   engineering branch for now; they do not rule out all activation steering or test Miller's biological mechanism.
+   Note: residual-vector steering changes activations, not weights. Re-injection stands.

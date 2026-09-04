@@ -11,37 +11,36 @@ help determine which representations are active at any given time."** They
 call the control waves "mobile stencils." This project is named after that
 phrase, and it builds the split into real AI models.
 
-Today's models don't have the split: what a model knows and what job it is
-doing share one memory and compete. That may be part of why an assistant on
-a long job slowly forgets its standing instructions and drifts.
+Miller's work motivates an engineering distinction between storing
+information and selecting what to use now. Stencil studies explicit retention
+and retrieval around a frozen language model. These experiments do not test
+the biological theory or demonstrate a wave mechanism.
 
-## The headline result: the internal wave
+## Current result (2026-09-04): selective retention under cache eviction
 
-A **tiny trained controller (264k parameters — 0.015% of the model)** rides
-alongside a completely frozen Qwen3-1.7B, reads its hidden state at every
-step, and generates an "attention spotlight" pointing the model at whichever
-standing instruction matters right now. Nobody tells it when or where to
-point. It is trained by one signal only: ordinary "make the correct next
-word likelier" gradients flowing **through the frozen model itself**.
+On frozen Qwen3-1.7B, selected historical KV pins plus text reinjection
+substantially recovered aged-instruction compliance lost under pre-query
+eviction. On 909 Multi-IF conversations, the combined arm scored 59.2%,
+versus 16.7% after eviction and 65.2% with full context. Its C1/C3
+statistical components were positive, but Leg B was NOT SUPPORTED under the
+registered safety rule: one invalid output per relevant pinned arm versus
+zero for full context. A parameter-free role rule matched or beat the learned
+classifier at equal pinned columns (C2 failed), so learned selection has no
+demonstrated advantage on this dialogue style. Every amplification / "wave"
+variant tried on this trunk (attention bias on cache columns: always-on,
+dosed, deficit-gated, classifier-gated; and residual-stream function-vector
+steering) degenerated or under-delivered and is closed with data. The BFCL
+agentic leg is registered and its preflight is running; no sealed result
+exists yet. Records: `LEDGER-PLAN.md` (LEG B OUTCOME, LEG A), `WORKLOG.md`,
+`results/quick-checks/README.md`, `results/astra-program-review.md`.
 
-On a sealed, one-shot, never-touched test set (96 multi-turn coding
-sessions), the wave:
+## Earlier headline: the internal wave (superseded, kept for the record)
 
-- lifted rule-following from **25% to 45%** — recovering *more* than the
-  hand-built reference press it learned from;
-- beat the standard fix (re-pasting the rules as text), which broke more
-  code and failed the safety rule the wave passed;
-- **improved** code quality while doing it (parse rate 85% → 93%);
-- beat an identical twin trained with old-style labels — proving the
-  gradient training signal, not the architecture, is the active ingredient;
-- and in a second sealed test where its training phrasing was **completely
-  removed from every prompt**, still won (36% → 55%) — it points at
-  instructions by their role, not by memorized wording.
-
-Every number above is from a preregistered, hash-pinned, single-attempt run,
-independently recomputed by two adversarial reviewers, with a full
-reproduction audit matching every generated output. Report:
-`results/internal-wave-report.md`.
+A tiny trained controller (264k parameters) riding on the frozen trunk
+lifted rule-following 25% -> 45% on a sealed synthetic coding harness
+(`results/internal-wave-report.md`). That result stands on its harness, but
+later amplification experiments did not establish a general remedy, and it
+is no longer the program's current claim.
 
 ## The road there (each step has a rerunnable, seed-pinned record)
 
@@ -59,7 +58,9 @@ reproduction audit matching every generated output. Report:
    now?" decision failed its registered gates — threshold scoring, trained
    discrimination, learned state, blind rhythm — each closed with a full
    autopsy. The autopsies revealed the two real culprits: a brittle
-   hard-threshold actuator, and label-based training. The wave fixes both.
+   hard-threshold actuator, and label-based training. The internal-wave
+   experiment improved this synthetic task; later amplification experiments
+   did not establish a general remedy.
    `results/timed-selector-report.md`, `results/press-plan-report.md`.
 4. **Focus is steerable; its audit trail is sparse but never wrong (W3).**
    Overriding the wave's focus makes the model adopt the pointed-at rule
@@ -70,8 +71,8 @@ reproduction audit matching every generated output. Report:
 ## Honest boundaries (stated, not hidden)
 
 - All results are on one 1.7B model and a synthetic coding harness with
-  machine-checkable rules. External benchmarks are the current program
-  (`BENCH-WAVE-PLAN.md`), starting with IFEval.
+  machine-checkable rules. The current retention/selector evaluation is
+  recorded in LEDGER-PLAN.md and WORKLOG.md.
 - "Reads meaning, not wording" is proven for one unseen phrasing — not for
   arbitrary paraphrases.
 - The wave has no memory: recurrence added nothing measurable under the
@@ -96,7 +97,8 @@ decision-by-decision record, retractions included.
 
 - `WORKLOG.md` — the full decision record. `AGENTS.md` — the operating
   lessons that keep this honest.
-- `BENCH-WAVE-PLAN.md` — current program (real benchmarks).
+- `LEDGER-PLAN.md` + `WORKLOG.md` — the current retention/selector evaluation.
+  `BENCH-WAVE-PLAN.md` — the benchmark-wave program (closed).
   `INTERNAL-WAVE-PLAN.md`, `PRESS-PLAN.md`, `TIMED-SELECTOR-PLAN.md`,
   `SELECTOR-PLAN.md`, `GPT2-PLAN.md` — closed programs, oldest last.
 - `src/stencil/` — parity-proven GPT-2 and Qwen3-1.7B trunks with
