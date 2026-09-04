@@ -856,3 +856,55 @@ independently budgeted role/recency policy plus echo, on independently authored 
 one prespecified binary outcome per case; exact one-sided McNemar at alpha 0.05 with paired effect interval and a
 prespecified worthwhile magnitude; resource ceilings and safety/cost limits frozen before outcomes; failure to
 demonstrate superiority is not an equivalence claim.
+
+## SC1 — LEARNED vs RULE SELECTOR, BENCHMARK-FREE FROZEN-POLICY COMPARISON (DRAFT v1, 2026-09-04; NOT YET REGISTERED)
+Data lineage: selector = the LEG B/LEG A registered artifact data/classifier/model/ft (frozen files, threshold 0.5,
+segmentation unchanged; sha256 as recorded in LEG B). Rule = newly implemented, parameter-free (nothing learned).
+Episodes = 256 final + 32 setup, ORIGINAL fictional delayed-use episodes authored under data/sc1/AUTHOR-CONTRACT.md by
+authors (kimi-k3, fable, gpt-6-astra, Opus) who receive only the contract; no benchmark item, diagnostic, selector
+score, or repo example is shown to any author; authors do not know which policy is expected to win. Disjoint from
+every evaluation benchmark family (IFEval, Multi-IF, BFCL, S2/B3) and from the dev probe. Nothing is learned, tuned,
+or selected on SC1 outcomes.
+Source: results/astra-research-blockers.md §3/§5 (gpt-6-astra, 2026-09-04) and results/astra-program-review.md G1.
+Question: does the frozen learned selector, with its own budget, buy final-task success over a frozen parameter-free
+rule with the same budget, on histories with mixed user/tool-sourced information and scope changes?
+Trunk: Qwen3-4B (prepared; hf_compatible numerics), non-thinking, fixed decoding (temperature 0), <= 256 generated
+tokens, one output per arm per episode.
+Arms (both: pre-query eviction; protected prefix = system + tool schemas; most recent 1,024 history tokens always
+kept; pin cap B = min(256, floor(0.25 x C)) where C = evictable history columns; echo cap E = 256 tokenizer tokens
+including header and source labels; identical renderer and tokenizer; scope resolver OFF; digest OFF; all attention
+amplification and residual steering OFF with an intervention counter required to be 0):
+  clf  — frozen classifier ranks candidate spans (user sentences + 128-token tool chunks) by P(rule)+P(fact);
+         admits whole spans in rank order while they fit B, skips oversize spans, continues; echoes admitted spans
+         chronologically within E with role/turn labels.
+  rule — prior-user spans newest-first, then prior-tool spans newest-first; same admission and echo procedure; reads
+         no classifier scores, quotas, counts, or echo lengths; deterministic tie-breaks by source offset.
+  Setup-only diagnostics: full (no eviction) and evicted (no pins, no echo).
+Setup gate (32 setup episodes, run BEFORE any final outcome is opened): full success >= 24/32 AND (full - evicted)
+>= 8/32; timing measured here. If either fails, the final set is NOT run; record "instrument lacks competence /
+headroom"; any redesign uses NEW setup and final sources.
+Primary (sole confirmatory) estimand: D = P(Y_clf = 1) - P(Y_rule = 1) on a fresh episode from the frozen authoring
+mixture; both policies run on every episode from identical scripted histories. b = clf-only passes, c = rule-only
+passes, N = 256 (all paired episodes; none excluded). Test H0: D <= 0 vs D > 0, exact one-sided McNemar
+p = sum_{j=b}^{b+c} C(b+c, j) 2^{-(b+c)}; p = 1 if b + c = 0; reject at p <= 0.05. Report b, c, both marginal rates,
+D_hat = (b - c)/N, and the conservative paired 95% interval [L_b - U_c, U_b - L_c] from two-sided 97.5%
+Clopper-Pearson intervals on b/N and c/N. No mid-p, no asymptotics, no outcome-dependent stopping, no selective
+reruns, no enlargement of N after outcomes.
+Adoption rule (engineering, on the estimate): keep the learned selector only if p <= 0.05 AND b - c >= 13 (>= 5 points)
+AND operational limits pass: clf-only invalid/truncated/repetitive episodes (vs rule) <= 2; zero checker-detected
+collateral state corruption attributable to clf only. Otherwise the rule is chosen by simplicity, reported as "no
+worthwhile learned advantage demonstrated", never "equivalent". Invalid = parser/schema failure; truncated = hit the
+generation limit without a complete valid output; repetitive = a normalized 4-token block repeated >= 8 times.
+Scoring: generation failures, malformed output, truncation, exhausted budgets score 0 with cause recorded. A
+predeclared infrastructure interruption may resume the missing attempt from identical state without changing
+completed outputs. An unresolved harness defect invalidates the run; it never permits dropping pairs.
+Reported, not gated: success by style/origin/age/scope, override and exact-ID error counts, selector latency, pinned
+columns and echo tokens actually used, failure taxonomy, setup-set full/evicted rates.
+Power (astra, recomputed on CPU; sampling probabilities, not a claim about SC1's discordance): at N = 256 a true
+5-point gain has 78% power at discordance q = 0.10, 51% at q = 0.20; a 10-point gain has 97% at q = 0.20.
+Cost cap: 8 GPU-h total (setup + two final arms). Authoring: 256 + 32 episodes, ~40-64 author-hours across authors;
+each episode's checker and six mutations validated by an independent reviewer before freezing.
+Freeze sequence: (1) contract + this registration reviewed (astra, fable, kimi); (2) harness built and dry-run on
+8 synthetic smoke episodes written by the harness coder (never reused); (3) episodes authored, reviewed, hashed;
+(4) setup gate; (5) final run, one attempt; (6) outcome recorded against this text. Registration becomes binding at
+step (3): after the episode hashes are recorded, no text here changes except by dated amendment before step (5).
