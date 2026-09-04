@@ -255,3 +255,16 @@ spec change did not teach (all seeds miss it).
    (LB +24.7), C3 +18.5 (LB +16.7) pass; C2 −3.5 fails (role rule > classifier at equal columns). Safety: one invalid
    output in each pinned arm vs 0 for full -> registered clause breached -> REGISTERED VERDICT: not supported;
    substance disclosed. See LEDGER-PLAN "LEG B OUTCOME".
+
+30. FUNCTION-VECTOR FOCUS (Brian: "turn up the focus on the weights"; results/qwen/fv-vectors/{vectors.pt,grid.json,
+   report.json}, results/qwen/function-vector-focus/clf-probe.json; corrected eviction; vectors = mean residual
+   difference with/without each of 11 constraint types from 352 dev-corpus pairs; grid chose alpha 2.0 at layer 12
+   as the strongest non-degenerate cell on 4 dev conversations; pre-registered reading fixed before the run):
+   fv_inject 14 (evicted 10, clf_pinned 41; paired vs evicted 5 wins / 1 loss / 14 ties; vs clf_pinned 1 / 17 / 2);
+   fv_inject_echo 35 (clf_pinned_echo 46; 1 / 7 / 12); fv_clear 13. Safety: truncated 14-15 of 20 (full 1,
+   clf_pinned 2) — the injected vector drives generation to the 512-token limit; degenerate 1 (not killed by the
+   4-gram rule). Pre-registered reading: HARMFUL (fv_inject < evicted + 5; truncation breach). Reading: switching on
+   the instruction's circuit through a residual-stream direction recovers almost nothing of what forgetting costs,
+   and added on top of re-injection it subtracts 11 points; one grid point only (alpha 2.0 / layer 12), chosen for
+   non-degeneracy, not tuned on the probe. With checks 4-28 this closes both wave substrates on this trunk:
+   cache-column biasing degenerates; weight-side steering under-delivers and truncates. Re-injection stands.

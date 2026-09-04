@@ -1,0 +1,3226 @@
+{
+ "eviction_timing": "pre-query",
+ "scores": "/home/bmarti44/stencil-llm/results/quick-checks/clf_scores_final_s0.json",
+ "scores_sha256": "6d7608b5a8b01e1aa366179676df1889449c440a42911e2d2870ba7eee2241fd",
+ "threshold": 0.5,
+ "calibration": {
+  "selected": "t30-b3",
+  "tau": 0.3,
+  "b_max": 3.0,
+  "sha256": "f0dd561b589364a2c4c22352b4eddeb397eac93309619a57953a9d400b07cb2b"
+ },
+ "sessions": 20,
+ "totals": {
+  "full": 44,
+  "evicted": 10,
+  "clf_pinned": 41,
+  "clf_pinned_echo": 46,
+  "clf_control": 13,
+  "clf_pinned_wave": 44,
+  "clf_pinned_wave_conf": 42,
+  "clf_pinned_echo_wave": 44,
+  "fv_inject": 14,
+  "fv_inject_echo": 35,
+  "fv_clear": 13
+ },
+ "safety": {
+  "full": {
+   "truncated": 1,
+   "timeout": 0,
+   "degenerate": 1,
+   "invalid": 1
+  },
+  "evicted": {
+   "truncated": 1,
+   "timeout": 0,
+   "degenerate": 0,
+   "invalid": 0
+  },
+  "clf_pinned": {
+   "truncated": 2,
+   "timeout": 0,
+   "degenerate": 1,
+   "invalid": 1
+  },
+  "clf_pinned_echo": {
+   "truncated": 1,
+   "timeout": 0,
+   "degenerate": 0,
+   "invalid": 1
+  },
+  "clf_control": {
+   "truncated": 1,
+   "timeout": 0,
+   "degenerate": 0,
+   "invalid": 0
+  },
+  "clf_pinned_wave": {
+   "truncated": 5,
+   "timeout": 0,
+   "degenerate": 3,
+   "invalid": 1
+  },
+  "clf_pinned_wave_conf": {
+   "truncated": 5,
+   "timeout": 0,
+   "degenerate": 3,
+   "invalid": 1
+  },
+  "clf_pinned_echo_wave": {
+   "truncated": 5,
+   "timeout": 0,
+   "degenerate": 1,
+   "invalid": 1
+  },
+  "fv_inject": {
+   "truncated": 14,
+   "timeout": 0,
+   "degenerate": 1,
+   "invalid": 0
+  },
+  "fv_inject_echo": {
+   "truncated": 15,
+   "timeout": 0,
+   "degenerate": 1,
+   "invalid": 1
+  },
+  "fv_clear": {
+   "truncated": 2,
+   "timeout": 0,
+   "degenerate": 1,
+   "invalid": 0
+  }
+ },
+ "wave_kill_rule": "degenerate > 2/20 kills the arm",
+ "wave_killed": {
+  "fv_inject_echo": false,
+  "clf_pinned_echo_wave": false,
+  "fv_inject": false,
+  "clf_pinned_wave_conf": true,
+  "clf_pinned_wave": true,
+  "fv_clear": false
+ },
+ "pre_query_baseline_totals": {
+  "full": 44,
+  "evicted": 10,
+  "clf_pinned": 41,
+  "clf_pinned_echo": 46,
+  "clf_control": 13
+ },
+ "function_vectors": {
+  "vectors": "/home/bmarti44/stencil-llm/results/qwen/fv-vectors/vectors.pt",
+  "vectors_sha256": "430772ab974308f84ee65bee0069f8bae6c8f2c1f467e154c233e099139ec9fd",
+  "grid": "/home/bmarti44/stencil-llm/results/qwen/fv-vectors/grid.json",
+  "grid_sha256": "2532ead12d48ff775fe82de247fb0c79228b2a448e7758507d3f07cca7253586",
+  "constraint_types": [
+   "bullets",
+   "caps",
+   "kw_exist",
+   "kw_forbid",
+   "kw_freq",
+   "lower",
+   "n_sent",
+   "n_words_max",
+   "placeholders",
+   "postscript",
+   "title"
+  ],
+  "alpha": 2.0,
+  "layer": 12,
+  "clear_after_generated_tokens": 64
+ },
+ "elapsed_seconds": 2957.9247843578923,
+ "rows": [
+  {
+   "session": 0,
+   "n_aged": 4,
+   "aged_constraint_types": [
+    "kw_freq",
+    "n_words_max",
+    "kw_exist",
+    "postscript"
+   ],
+   "unknown_vector_constraints": 0,
+   "unknown_vector_types": [],
+   "arms": {
+    "full": {
+     "aged_pass": 3,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      true,
+      true
+     ]
+    },
+    "evicted": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false,
+      false
+     ]
+    },
+    "clf_pinned": {
+     "aged_pass": 2,
+     "pinned_cols": 46,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      true,
+      false
+     ]
+    },
+    "clf_pinned_echo": {
+     "aged_pass": 2,
+     "pinned_cols": 46,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      true,
+      false
+     ]
+    },
+    "clf_control": {
+     "aged_pass": 1,
+     "pinned_cols": 46,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false,
+      true
+     ]
+    },
+    "clf_pinned_wave": {
+     "aged_pass": 2,
+     "pinned_cols": 46,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      true,
+      false
+     ]
+    },
+    "clf_pinned_wave_conf": {
+     "aged_pass": 2,
+     "pinned_cols": 46,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      true,
+      false
+     ]
+    },
+    "clf_pinned_echo_wave": {
+     "aged_pass": 2,
+     "pinned_cols": 46,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      true,
+      false
+     ]
+    },
+    "fv_inject": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false,
+      false
+     ]
+    },
+    "fv_inject_echo": {
+     "aged_pass": 2,
+     "pinned_cols": 46,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      true,
+      false
+     ]
+    },
+    "fv_clear": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false,
+      false
+     ]
+    }
+   }
+  },
+  {
+   "session": 1,
+   "n_aged": 2,
+   "aged_constraint_types": [
+    "placeholders",
+    "kw_forbid"
+   ],
+   "unknown_vector_constraints": 0,
+   "unknown_vector_types": [],
+   "arms": {
+    "full": {
+     "aged_pass": 2,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "evicted": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true
+     ]
+    },
+    "clf_pinned": {
+     "aged_pass": 2,
+     "pinned_cols": 42,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo": {
+     "aged_pass": 2,
+     "pinned_cols": 42,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "clf_control": {
+     "aged_pass": 1,
+     "pinned_cols": 42,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true
+     ]
+    },
+    "clf_pinned_wave": {
+     "aged_pass": 2,
+     "pinned_cols": 42,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "clf_pinned_wave_conf": {
+     "aged_pass": 2,
+     "pinned_cols": 42,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo_wave": {
+     "aged_pass": 2,
+     "pinned_cols": 42,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "fv_inject": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true
+     ]
+    },
+    "fv_inject_echo": {
+     "aged_pass": 2,
+     "pinned_cols": 42,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "fv_clear": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true
+     ]
+    }
+   }
+  },
+  {
+   "session": 2,
+   "n_aged": 2,
+   "aged_constraint_types": [
+    "placeholders",
+    "postscript"
+   ],
+   "unknown_vector_constraints": 0,
+   "unknown_vector_types": [],
+   "arms": {
+    "full": {
+     "aged_pass": 2,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "evicted": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false
+     ]
+    },
+    "clf_pinned": {
+     "aged_pass": 1,
+     "pinned_cols": 24,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false
+     ]
+    },
+    "clf_pinned_echo": {
+     "aged_pass": 1,
+     "pinned_cols": 24,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false
+     ]
+    },
+    "clf_control": {
+     "aged_pass": 0,
+     "pinned_cols": 24,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false
+     ]
+    },
+    "clf_pinned_wave": {
+     "aged_pass": 1,
+     "pinned_cols": 24,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false
+     ]
+    },
+    "clf_pinned_wave_conf": {
+     "aged_pass": 1,
+     "pinned_cols": 24,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false
+     ]
+    },
+    "clf_pinned_echo_wave": {
+     "aged_pass": 1,
+     "pinned_cols": 24,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false
+     ]
+    },
+    "fv_inject": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false
+     ]
+    },
+    "fv_inject_echo": {
+     "aged_pass": 1,
+     "pinned_cols": 24,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false
+     ]
+    },
+    "fv_clear": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false
+     ]
+    }
+   }
+  },
+  {
+   "session": 3,
+   "n_aged": 2,
+   "aged_constraint_types": [
+    "kw_forbid",
+    "n_sent"
+   ],
+   "unknown_vector_constraints": 0,
+   "unknown_vector_types": [],
+   "arms": {
+    "full": {
+     "aged_pass": 2,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "evicted": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false
+     ]
+    },
+    "clf_pinned": {
+     "aged_pass": 2,
+     "pinned_cols": 27,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo": {
+     "aged_pass": 2,
+     "pinned_cols": 27,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "clf_control": {
+     "aged_pass": 1,
+     "pinned_cols": 27,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false
+     ]
+    },
+    "clf_pinned_wave": {
+     "aged_pass": 2,
+     "pinned_cols": 27,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "clf_pinned_wave_conf": {
+     "aged_pass": 2,
+     "pinned_cols": 27,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo_wave": {
+     "aged_pass": 2,
+     "pinned_cols": 27,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "fv_inject": {
+     "aged_pass": 2,
+     "pinned_cols": 0,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "fv_inject_echo": {
+     "aged_pass": 2,
+     "pinned_cols": 27,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "fv_clear": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false
+     ]
+    }
+   }
+  },
+  {
+   "session": 4,
+   "n_aged": 2,
+   "aged_constraint_types": [
+    "caps",
+    "bullets"
+   ],
+   "unknown_vector_constraints": 0,
+   "unknown_vector_types": [],
+   "arms": {
+    "full": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true
+     ]
+    },
+    "evicted": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false
+     ]
+    },
+    "clf_pinned": {
+     "aged_pass": 1,
+     "pinned_cols": 26,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false
+     ]
+    },
+    "clf_pinned_echo": {
+     "aged_pass": 1,
+     "pinned_cols": 26,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false
+     ]
+    },
+    "clf_control": {
+     "aged_pass": 0,
+     "pinned_cols": 26,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false
+     ]
+    },
+    "clf_pinned_wave": {
+     "aged_pass": 1,
+     "pinned_cols": 26,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false
+     ]
+    },
+    "clf_pinned_wave_conf": {
+     "aged_pass": 1,
+     "pinned_cols": 26,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false
+     ]
+    },
+    "clf_pinned_echo_wave": {
+     "aged_pass": 2,
+     "pinned_cols": 26,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "fv_inject": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false
+     ]
+    },
+    "fv_inject_echo": {
+     "aged_pass": 1,
+     "pinned_cols": 26,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false
+     ]
+    },
+    "fv_clear": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false
+     ]
+    }
+   }
+  },
+  {
+   "session": 5,
+   "n_aged": 3,
+   "aged_constraint_types": [
+    "lower",
+    "placeholders",
+    "n_sent"
+   ],
+   "unknown_vector_constraints": 0,
+   "unknown_vector_types": [],
+   "arms": {
+    "full": {
+     "aged_pass": 3,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "evicted": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    },
+    "clf_pinned": {
+     "aged_pass": 3,
+     "pinned_cols": 41,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo": {
+     "aged_pass": 3,
+     "pinned_cols": 41,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_control": {
+     "aged_pass": 1,
+     "pinned_cols": 41,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      false
+     ]
+    },
+    "clf_pinned_wave": {
+     "aged_pass": 3,
+     "pinned_cols": 41,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": true,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_wave_conf": {
+     "aged_pass": 3,
+     "pinned_cols": 41,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": true,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo_wave": {
+     "aged_pass": 3,
+     "pinned_cols": 41,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "fv_inject": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      true
+     ]
+    },
+    "fv_inject_echo": {
+     "aged_pass": 2,
+     "pinned_cols": 41,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      true
+     ]
+    },
+    "fv_clear": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    }
+   }
+  },
+  {
+   "session": 6,
+   "n_aged": 3,
+   "aged_constraint_types": [
+    "kw_freq",
+    "kw_exist",
+    "placeholders"
+   ],
+   "unknown_vector_constraints": 0,
+   "unknown_vector_types": [],
+   "arms": {
+    "full": {
+     "aged_pass": 3,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "evicted": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    },
+    "clf_pinned": {
+     "aged_pass": 1,
+     "pinned_cols": 59,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      true
+     ]
+    },
+    "clf_pinned_echo": {
+     "aged_pass": 3,
+     "pinned_cols": 59,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_control": {
+     "aged_pass": 1,
+     "pinned_cols": 59,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      false
+     ]
+    },
+    "clf_pinned_wave": {
+     "aged_pass": 2,
+     "pinned_cols": 59,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_wave_conf": {
+     "aged_pass": 2,
+     "pinned_cols": 59,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo_wave": {
+     "aged_pass": 3,
+     "pinned_cols": 59,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": true,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "fv_inject": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    },
+    "fv_inject_echo": {
+     "aged_pass": 3,
+     "pinned_cols": 59,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "fv_clear": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    }
+   }
+  },
+  {
+   "session": 7,
+   "n_aged": 3,
+   "aged_constraint_types": [
+    "bullets",
+    "kw_exist",
+    "kw_freq"
+   ],
+   "unknown_vector_constraints": 0,
+   "unknown_vector_types": [],
+   "arms": {
+    "full": {
+     "aged_pass": 2,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      true
+     ]
+    },
+    "evicted": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    },
+    "clf_pinned": {
+     "aged_pass": 2,
+     "pinned_cols": 54,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo": {
+     "aged_pass": 3,
+     "pinned_cols": 54,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_control": {
+     "aged_pass": 0,
+     "pinned_cols": 54,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    },
+    "clf_pinned_wave": {
+     "aged_pass": 1,
+     "pinned_cols": 54,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": true,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      true
+     ]
+    },
+    "clf_pinned_wave_conf": {
+     "aged_pass": 1,
+     "pinned_cols": 54,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": true,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      true
+     ]
+    },
+    "clf_pinned_echo_wave": {
+     "aged_pass": 2,
+     "pinned_cols": 54,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      true
+     ]
+    },
+    "fv_inject": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    },
+    "fv_inject_echo": {
+     "aged_pass": 1,
+     "pinned_cols": 54,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": true,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      false
+     ]
+    },
+    "fv_clear": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    }
+   }
+  },
+  {
+   "session": 8,
+   "n_aged": 3,
+   "aged_constraint_types": [
+    "postscript",
+    "title",
+    "kw_forbid"
+   ],
+   "unknown_vector_constraints": 0,
+   "unknown_vector_types": [],
+   "arms": {
+    "full": {
+     "aged_pass": 2,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      true
+     ]
+    },
+    "evicted": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      true
+     ]
+    },
+    "clf_pinned": {
+     "aged_pass": 2,
+     "pinned_cols": 34,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo": {
+     "aged_pass": 2,
+     "pinned_cols": 34,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      true
+     ]
+    },
+    "clf_control": {
+     "aged_pass": 1,
+     "pinned_cols": 34,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      true
+     ]
+    },
+    "clf_pinned_wave": {
+     "aged_pass": 2,
+     "pinned_cols": 34,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_wave_conf": {
+     "aged_pass": 2,
+     "pinned_cols": 34,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo_wave": {
+     "aged_pass": 2,
+     "pinned_cols": 34,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      true
+     ]
+    },
+    "fv_inject": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      true
+     ]
+    },
+    "fv_inject_echo": {
+     "aged_pass": 2,
+     "pinned_cols": 34,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      true
+     ]
+    },
+    "fv_clear": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      true
+     ]
+    }
+   }
+  },
+  {
+   "session": 9,
+   "n_aged": 3,
+   "aged_constraint_types": [
+    "n_sent",
+    "kw_forbid",
+    "kw_freq"
+   ],
+   "unknown_vector_constraints": 0,
+   "unknown_vector_types": [],
+   "arms": {
+    "full": {
+     "aged_pass": 3,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "evicted": {
+     "aged_pass": 2,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      false
+     ]
+    },
+    "clf_pinned": {
+     "aged_pass": 3,
+     "pinned_cols": 40,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo": {
+     "aged_pass": 3,
+     "pinned_cols": 40,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_control": {
+     "aged_pass": 1,
+     "pinned_cols": 40,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      false
+     ]
+    },
+    "clf_pinned_wave": {
+     "aged_pass": 3,
+     "pinned_cols": 40,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_wave_conf": {
+     "aged_pass": 3,
+     "pinned_cols": 40,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo_wave": {
+     "aged_pass": 3,
+     "pinned_cols": 40,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "fv_inject": {
+     "aged_pass": 2,
+     "pinned_cols": 0,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      false
+     ]
+    },
+    "fv_inject_echo": {
+     "aged_pass": 3,
+     "pinned_cols": 40,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "fv_clear": {
+     "aged_pass": 2,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      false
+     ]
+    }
+   }
+  },
+  {
+   "session": 10,
+   "n_aged": 3,
+   "aged_constraint_types": [
+    "placeholders",
+    "n_words_max",
+    "title"
+   ],
+   "unknown_vector_constraints": 0,
+   "unknown_vector_types": [],
+   "arms": {
+    "full": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      false
+     ]
+    },
+    "evicted": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    },
+    "clf_pinned": {
+     "aged_pass": 3,
+     "pinned_cols": 52,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo": {
+     "aged_pass": 3,
+     "pinned_cols": 52,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_control": {
+     "aged_pass": 0,
+     "pinned_cols": 52,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    },
+    "clf_pinned_wave": {
+     "aged_pass": 3,
+     "pinned_cols": 52,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_wave_conf": {
+     "aged_pass": 3,
+     "pinned_cols": 52,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo_wave": {
+     "aged_pass": 3,
+     "pinned_cols": 52,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "fv_inject": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    },
+    "fv_inject_echo": {
+     "aged_pass": 3,
+     "pinned_cols": 52,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "fv_clear": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    }
+   }
+  },
+  {
+   "session": 11,
+   "n_aged": 3,
+   "aged_constraint_types": [
+    "caps",
+    "n_sent",
+    "placeholders"
+   ],
+   "unknown_vector_constraints": 0,
+   "unknown_vector_types": [],
+   "arms": {
+    "full": {
+     "aged_pass": 3,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "evicted": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      false
+     ]
+    },
+    "clf_pinned": {
+     "aged_pass": 3,
+     "pinned_cols": 40,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo": {
+     "aged_pass": 3,
+     "pinned_cols": 40,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_control": {
+     "aged_pass": 1,
+     "pinned_cols": 40,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      false
+     ]
+    },
+    "clf_pinned_wave": {
+     "aged_pass": 3,
+     "pinned_cols": 40,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_wave_conf": {
+     "aged_pass": 3,
+     "pinned_cols": 40,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo_wave": {
+     "aged_pass": 3,
+     "pinned_cols": 40,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "fv_inject": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      false
+     ]
+    },
+    "fv_inject_echo": {
+     "aged_pass": 1,
+     "pinned_cols": 40,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      false
+     ]
+    },
+    "fv_clear": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      false
+     ]
+    }
+   }
+  },
+  {
+   "session": 12,
+   "n_aged": 3,
+   "aged_constraint_types": [
+    "caps",
+    "n_words_max",
+    "title"
+   ],
+   "unknown_vector_constraints": 0,
+   "unknown_vector_types": [],
+   "arms": {
+    "full": {
+     "aged_pass": 2,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      true
+     ]
+    },
+    "evicted": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    },
+    "clf_pinned": {
+     "aged_pass": 3,
+     "pinned_cols": 36,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo": {
+     "aged_pass": 3,
+     "pinned_cols": 36,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_control": {
+     "aged_pass": 1,
+     "pinned_cols": 36,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      false
+     ]
+    },
+    "clf_pinned_wave": {
+     "aged_pass": 3,
+     "pinned_cols": 36,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_wave_conf": {
+     "aged_pass": 3,
+     "pinned_cols": 36,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo_wave": {
+     "aged_pass": 1,
+     "pinned_cols": 36,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      true
+     ]
+    },
+    "fv_inject": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      false
+     ]
+    },
+    "fv_inject_echo": {
+     "aged_pass": 1,
+     "pinned_cols": 36,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      true
+     ]
+    },
+    "fv_clear": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    }
+   }
+  },
+  {
+   "session": 13,
+   "n_aged": 3,
+   "aged_constraint_types": [
+    "kw_forbid",
+    "n_words_max",
+    "kw_exist"
+   ],
+   "unknown_vector_constraints": 0,
+   "unknown_vector_types": [],
+   "arms": {
+    "full": {
+     "aged_pass": 2,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      true
+     ]
+    },
+    "evicted": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      false
+     ]
+    },
+    "clf_pinned": {
+     "aged_pass": 1,
+     "pinned_cols": 50,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      false
+     ]
+    },
+    "clf_pinned_echo": {
+     "aged_pass": 2,
+     "pinned_cols": 50,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      true
+     ]
+    },
+    "clf_control": {
+     "aged_pass": 1,
+     "pinned_cols": 50,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      false
+     ]
+    },
+    "clf_pinned_wave": {
+     "aged_pass": 2,
+     "pinned_cols": 50,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      true
+     ]
+    },
+    "clf_pinned_wave_conf": {
+     "aged_pass": 2,
+     "pinned_cols": 50,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      true
+     ]
+    },
+    "clf_pinned_echo_wave": {
+     "aged_pass": 2,
+     "pinned_cols": 50,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      true
+     ]
+    },
+    "fv_inject": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      false
+     ]
+    },
+    "fv_inject_echo": {
+     "aged_pass": 2,
+     "pinned_cols": 50,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      true
+     ]
+    },
+    "fv_clear": {
+     "aged_pass": 2,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      false
+     ]
+    }
+   }
+  },
+  {
+   "session": 14,
+   "n_aged": 2,
+   "aged_constraint_types": [
+    "title",
+    "n_sent"
+   ],
+   "unknown_vector_constraints": 0,
+   "unknown_vector_types": [],
+   "arms": {
+    "full": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true
+     ]
+    },
+    "evicted": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false
+     ]
+    },
+    "clf_pinned": {
+     "aged_pass": 2,
+     "pinned_cols": 25,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo": {
+     "aged_pass": 2,
+     "pinned_cols": 25,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "clf_control": {
+     "aged_pass": 0,
+     "pinned_cols": 25,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false
+     ]
+    },
+    "clf_pinned_wave": {
+     "aged_pass": 2,
+     "pinned_cols": 25,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "clf_pinned_wave_conf": {
+     "aged_pass": 2,
+     "pinned_cols": 25,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo_wave": {
+     "aged_pass": 2,
+     "pinned_cols": 25,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "fv_inject": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false
+     ]
+    },
+    "fv_inject_echo": {
+     "aged_pass": 2,
+     "pinned_cols": 25,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true
+     ]
+    },
+    "fv_clear": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false
+     ]
+    }
+   }
+  },
+  {
+   "session": 15,
+   "n_aged": 3,
+   "aged_constraint_types": [
+    "caps",
+    "n_words_max",
+    "title"
+   ],
+   "unknown_vector_constraints": 0,
+   "unknown_vector_types": [],
+   "arms": {
+    "full": {
+     "aged_pass": 3,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "evicted": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      false
+     ]
+    },
+    "clf_pinned": {
+     "aged_pass": 3,
+     "pinned_cols": 37,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo": {
+     "aged_pass": 3,
+     "pinned_cols": 37,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_control": {
+     "aged_pass": 0,
+     "pinned_cols": 37,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    },
+    "clf_pinned_wave": {
+     "aged_pass": 3,
+     "pinned_cols": 37,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_wave_conf": {
+     "aged_pass": 2,
+     "pinned_cols": 37,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      true
+     ]
+    },
+    "clf_pinned_echo_wave": {
+     "aged_pass": 3,
+     "pinned_cols": 37,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "fv_inject": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": true,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    },
+    "fv_inject_echo": {
+     "aged_pass": 2,
+     "pinned_cols": 37,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      true
+     ]
+    },
+    "fv_clear": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      false
+     ]
+    }
+   }
+  },
+  {
+   "session": 16,
+   "n_aged": 3,
+   "aged_constraint_types": [
+    "kw_forbid",
+    "lower",
+    "bullets"
+   ],
+   "unknown_vector_constraints": 0,
+   "unknown_vector_types": [],
+   "arms": {
+    "full": {
+     "aged_pass": 3,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "evicted": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      false
+     ]
+    },
+    "clf_pinned": {
+     "aged_pass": 1,
+     "pinned_cols": 45,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": true,
+     "scores": [
+      true,
+      false,
+      false
+     ]
+    },
+    "clf_pinned_echo": {
+     "aged_pass": 1,
+     "pinned_cols": 45,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": true,
+     "scores": [
+      true,
+      false,
+      false
+     ]
+    },
+    "clf_control": {
+     "aged_pass": 2,
+     "pinned_cols": 45,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      false
+     ]
+    },
+    "clf_pinned_wave": {
+     "aged_pass": 1,
+     "pinned_cols": 45,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": true,
+     "scores": [
+      true,
+      false,
+      false
+     ]
+    },
+    "clf_pinned_wave_conf": {
+     "aged_pass": 1,
+     "pinned_cols": 45,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": true,
+     "scores": [
+      true,
+      false,
+      false
+     ]
+    },
+    "clf_pinned_echo_wave": {
+     "aged_pass": 1,
+     "pinned_cols": 45,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": true,
+     "scores": [
+      true,
+      false,
+      false
+     ]
+    },
+    "fv_inject": {
+     "aged_pass": 2,
+     "pinned_cols": 0,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      false
+     ]
+    },
+    "fv_inject_echo": {
+     "aged_pass": 1,
+     "pinned_cols": 45,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": true,
+     "scores": [
+      true,
+      false,
+      false
+     ]
+    },
+    "fv_clear": {
+     "aged_pass": 2,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": true,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      false
+     ]
+    }
+   }
+  },
+  {
+   "session": 17,
+   "n_aged": 3,
+   "aged_constraint_types": [
+    "placeholders",
+    "bullets",
+    "kw_freq"
+   ],
+   "unknown_vector_constraints": 0,
+   "unknown_vector_types": [],
+   "arms": {
+    "full": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": true,
+     "invalid": true,
+     "scores": [
+      false,
+      true,
+      false
+     ]
+    },
+    "evicted": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    },
+    "clf_pinned": {
+     "aged_pass": 2,
+     "pinned_cols": 57,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": true,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      true
+     ]
+    },
+    "clf_pinned_echo": {
+     "aged_pass": 3,
+     "pinned_cols": 57,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_control": {
+     "aged_pass": 0,
+     "pinned_cols": 57,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    },
+    "clf_pinned_wave": {
+     "aged_pass": 3,
+     "pinned_cols": 57,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": true,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_wave_conf": {
+     "aged_pass": 3,
+     "pinned_cols": 57,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": true,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo_wave": {
+     "aged_pass": 3,
+     "pinned_cols": 57,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "fv_inject": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    },
+    "fv_inject_echo": {
+     "aged_pass": 1,
+     "pinned_cols": 57,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      false,
+      false
+     ]
+    },
+    "fv_clear": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    }
+   }
+  },
+  {
+   "session": 18,
+   "n_aged": 3,
+   "aged_constraint_types": [
+    "kw_exist",
+    "kw_forbid",
+    "postscript"
+   ],
+   "unknown_vector_constraints": 0,
+   "unknown_vector_types": [],
+   "arms": {
+    "full": {
+     "aged_pass": 2,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      true
+     ]
+    },
+    "evicted": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      false
+     ]
+    },
+    "clf_pinned": {
+     "aged_pass": 2,
+     "pinned_cols": 38,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      false
+     ]
+    },
+    "clf_pinned_echo": {
+     "aged_pass": 1,
+     "pinned_cols": 38,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      false
+     ]
+    },
+    "clf_control": {
+     "aged_pass": 1,
+     "pinned_cols": 38,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      false
+     ]
+    },
+    "clf_pinned_wave": {
+     "aged_pass": 2,
+     "pinned_cols": 38,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      false
+     ]
+    },
+    "clf_pinned_wave_conf": {
+     "aged_pass": 2,
+     "pinned_cols": 38,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      false
+     ]
+    },
+    "clf_pinned_echo_wave": {
+     "aged_pass": 2,
+     "pinned_cols": 38,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      false
+     ]
+    },
+    "fv_inject": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      false
+     ]
+    },
+    "fv_inject_echo": {
+     "aged_pass": 2,
+     "pinned_cols": 38,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      false
+     ]
+    },
+    "fv_clear": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      false
+     ]
+    }
+   }
+  },
+  {
+   "session": 19,
+   "n_aged": 3,
+   "aged_constraint_types": [
+    "caps",
+    "n_sent",
+    "title"
+   ],
+   "unknown_vector_constraints": 0,
+   "unknown_vector_types": [],
+   "arms": {
+    "full": {
+     "aged_pass": 3,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "evicted": {
+     "aged_pass": 0,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    },
+    "clf_pinned": {
+     "aged_pass": 2,
+     "pinned_cols": 30,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo": {
+     "aged_pass": 3,
+     "pinned_cols": 30,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_control": {
+     "aged_pass": 0,
+     "pinned_cols": 30,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      false
+     ]
+    },
+    "clf_pinned_wave": {
+     "aged_pass": 3,
+     "pinned_cols": 30,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      true,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_wave_conf": {
+     "aged_pass": 2,
+     "pinned_cols": 30,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      true
+     ]
+    },
+    "clf_pinned_echo_wave": {
+     "aged_pass": 2,
+     "pinned_cols": 30,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      true
+     ]
+    },
+    "fv_inject": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      false
+     ]
+    },
+    "fv_inject_echo": {
+     "aged_pass": 1,
+     "pinned_cols": 30,
+     "truncated": true,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      false,
+      true
+     ]
+    },
+    "fv_clear": {
+     "aged_pass": 1,
+     "pinned_cols": 0,
+     "truncated": false,
+     "timed_out": false,
+     "degenerate": false,
+     "invalid": false,
+     "scores": [
+      false,
+      true,
+      false
+     ]
+    }
+   }
+  }
+ ],
+ "preregistered_reading": {
+  "helps": "fv_inject >= 30/56; paired wins > losses vs evicted; not killed",
+  "strong": "fv_inject_echo > 46/56; paired wins > losses; not killed",
+  "harmful": "killed or fv_inject < evicted + 5"
+ },
+ "unknown_vector_constraints": 0,
+ "paired_fv_inject_vs_evicted": {
+  "wins": 5,
+  "losses": 1
+ },
+ "paired_fv_inject_echo_vs_clf_pinned_echo": {
+  "wins": 1,
+  "losses": 12
+ },
+ "reading": {
+  "helps": false,
+  "strong": false,
+  "harmful": true
+ }
+}

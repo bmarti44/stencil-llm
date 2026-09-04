@@ -3885,3 +3885,5 @@ uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b
   (bfcl-v10-smoke, bfcl-v10-preflight), commands as recorded in the v12 handoff.
 
 ## 2026-09-04 — LEG B OUTCOME recorded (see LEDGER-PLAN "LEG B OUTCOME"); sent to fable/sol/kimi for verdict wording
+- 2026-09-04, check 30 (function-vector focus): fv_inject 14 / fv_inject_echo 35 / fv_clear 13 vs evicted 10, pins
+  41, pin+echo 46; truncated 14-15/20 -> HARMFUL by the pre-registered reading. Weight-side wave closed with data.
