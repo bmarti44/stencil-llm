@@ -1862,3 +1862,31 @@ def test_astra_f2_new_registration_requires_new_sources(tmp_path, monkeypatch):
     }
     with pytest.raises(ValueError, match="source|study"):
         cli.bind_study(changed, tmp_path / "second")
+
+
+def test_astra_f7_six_negatives_and_unreachable_state_probe(real_tokenizer):
+    source = episodes.load_sources(ROOT / "data/sc1/smoke")[5]
+    source["task_spec"]["operations"].remove("create")
+    source["protected_set"].append(
+        {
+            "id": "no_new_record",
+            "kind": "protected_unchanged",
+            "path": "/unreachable",
+            "absent": True,
+        }
+    )
+    probe = copy.deepcopy(source["initial_state"])
+    probe["${TARGET}"]["v"] = "${VALUE}"
+    probe["unreachable"] = {"v": "extra", "p": "extra"}
+    source["review"]["coverage_probes"] = [
+        {"result": probe, "obligation_ids": ["no_new_record"]}
+    ]
+    ep = validate_source(source, real_tokenizer)
+    report = episodes.validate_episode(ep, source, real_tokenizer)
+    assert len({episodes.mutation_key(ep, m["output"]) for m in ep["mutations"]}) == 6
+    assert all(not v["success"] for v in report["mutations"])
+    assert report["coverage_probes"][0]["failed_invariants"] == [
+        "no_new_record",
+        "permitted_edits",
+    ]
+    assert "no_new_record" in report["covered"]
