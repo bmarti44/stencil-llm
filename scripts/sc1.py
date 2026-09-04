@@ -1,12 +1,13 @@
 """SC1 CPU validation and prospectively gated setup/final execution.
 
 Examples:
+  uv run python scripts/sc1.py snapshot
   uv run python scripts/sc1.py validate data/sc1/smoke
   uv run python scripts/sc1.py smoke
   uv run python scripts/sc1.py analyze BANK --manifest MANIFEST
       --setup-certificate CERT --out RUN
 
-No model is loaded by validate/smoke/analyze. Setup and final require a frozen
+No model is loaded by snapshot/validate/smoke/analyze. Setup and final require a frozen
 production manifest, complete review evidence and a separately budgeted smoke
 model-determinism certificate. CPU smoke cannot substitute for that certificate.
 """
@@ -45,6 +46,16 @@ CODE_FILES = (
 CLASSIFIER_RECORD = "results/quick-checks/ft_final2_s0_sha256.txt"
 CONTRACT = "data/sc1/AUTHOR-CONTRACT.md"
 SCIENCE_SNAPSHOT = "data/sc1/registration-snapshot.md"
+SNAPSHOT_PROVENANCE = "data/sc1/registration-snapshot.json"
+AMENDMENT = "data/sc1/STAGE1-CLAUSES.md"
+SCIENCE_HEADING = (
+    "## SC1 — LEARNED vs RULE SELECTOR, BENCHMARK-FREE FROZEN-POLICY "
+    "COMPARISON (DRAFT v2"
+).encode()
+AMENDMENT_HEADING = (
+    "## SC1 AMENDMENT 1 (2026-09-04) — operational and "
+    "source-validation clauses adopted for DRAFT v2"
+).encode()
 REGISTRATION_LOG = ROOT / "WORKLOG.md"
 
 
@@ -253,10 +264,112 @@ def dependencies():
     }
 
 
+def produce_snapshot():
+    """Concatenate three committed source ranges; no tokenizer/model or live tail."""
+    ledger = (ROOT / "LEDGER-PLAN.md").read_bytes()
+    amendment = (ROOT / AMENDMENT).read_bytes()
+    contract = (ROOT / CONTRACT).read_bytes()
+    if not amendment.startswith(AMENDMENT_HEADING + b"\n"):
+        raise ValueError("adopted amendment heading required")
+    start = ledger.index(SCIENCE_HEADING)
+    stop = ledger.index(AMENDMENT_HEADING, start)
+    if ledger[stop : stop + len(amendment)] != amendment:
+        raise ValueError("ledger must contain the exact adopted amendment")
+    # Reject interposed editorial sections instead of silently including them.
+    if b"\n## " in ledger[start:stop].rstrip(b"\n"):
+        raise ValueError("unexpected section inside SC1 DRAFT v2")
+    commit = git("rev-parse", "HEAD")
+    parts, chunks = [], []
+    for path, data, a, b in (
+        ("LEDGER-PLAN.md", ledger, start, stop),
+        ("LEDGER-PLAN.md", ledger, stop, stop + len(amendment)),
+        (CONTRACT, contract, 0, len(contract)),
+    ):
+        committed = subprocess.check_output(
+            ["git", "-C", str(ROOT), "show", f"{commit}:{path}"]
+        )
+        chunk = data[a:b]
+        if committed[a:b] != chunk:
+            raise ValueError("commit snapshot source ranges before producing: " + path)
+        parts.append(
+            dict(
+                source_path=path,
+                source_commit=commit,
+                byte_range=[a, b],
+                byte_length=len(chunk),
+                sha256=hashlib.sha256(chunk).hexdigest(),
+            )
+        )
+        chunks.append(chunk)
+    snapshot = b"".join(chunks)
+    provenance = {
+        "schema": "sc1-snapshot-v1",
+        "science_snapshot_path": SCIENCE_SNAPSHOT,
+        "science_hash": hashlib.sha256(snapshot).hexdigest(),
+        "byte_length": len(snapshot),
+        "parts": parts,
+    }
+    (ROOT / SCIENCE_SNAPSHOT).write_bytes(snapshot)
+    sc1.atomic_json(ROOT / SNAPSHOT_PROVENANCE, provenance)
+    verify_snapshot()
+    return provenance
+
+
+def verify_snapshot():
+    """Verify recorded immutable ranges, independent of subsequent ledger entries."""
+    record = episodes.parse_json((ROOT / SNAPSHOT_PROVENANCE).read_text())
+    snapshot = (ROOT / SCIENCE_SNAPSHOT).read_bytes()
+    if (
+        record.get("schema") != "sc1-snapshot-v1"
+        or record.get("science_snapshot_path") != SCIENCE_SNAPSHOT
+        or record.get("science_hash") != hashlib.sha256(snapshot).hexdigest()
+        or record.get("byte_length") != len(snapshot)
+        or len(record.get("parts", [])) != 3
+    ):
+        raise ValueError("snapshot provenance/bytes mismatch")
+    offset = 0
+    for part, path in zip(
+        record["parts"], ("LEDGER-PLAN.md", "LEDGER-PLAN.md", CONTRACT), strict=True
+    ):
+        a, b = part["byte_range"]
+        size = part["byte_length"]
+        chunk = snapshot[offset : offset + size]
+        if (
+            part["source_path"] != path
+            or not 0 <= a < b
+            or b - a != size
+            or hashlib.sha256(chunk).hexdigest() != part["sha256"]
+        ):
+            raise ValueError("snapshot part boundary/hash mismatch")
+        committed = subprocess.check_output(
+            ["git", "-C", str(ROOT), "show", f"{part['source_commit']}:{path}"]
+        )
+        if committed[a:b] != chunk:
+            raise ValueError("snapshot source commit/range mismatch")
+        if offset == 0 and not chunk.startswith(SCIENCE_HEADING):
+            raise ValueError("snapshot DRAFT v2 heading mismatch")
+        if (
+            path == "LEDGER-PLAN.md"
+            and offset
+            and not chunk.startswith(AMENDMENT_HEADING)
+        ):
+            raise ValueError("snapshot amendment heading mismatch")
+        offset += size
+    if offset != len(snapshot):
+        raise ValueError("snapshot has unrecorded bytes")
+    return record
+
+
 def build_manifest(bank, trunk, episode_rows, *, stage1=None, executable=None):
     files = {
         p: sc1.file_hash(ROOT / p)
-        for p in (*CODE_FILES, CONTRACT, SCIENCE_SNAPSHOT, CLASSIFIER_RECORD)
+        for p in (
+            *CODE_FILES,
+            CONTRACT,
+            SCIENCE_SNAPSHOT,
+            SNAPSHOT_PROVENANCE,
+            CLASSIFIER_RECORD,
+        )
     }
     classifier = classifier_hashes()
     files.update(classifier)
@@ -294,6 +407,7 @@ def build_manifest(bank, trunk, episode_rows, *, stage1=None, executable=None):
         "grammar": episodes.SCHEMA,
         "science_snapshot_path": SCIENCE_SNAPSHOT,
         "science_hash": files[SCIENCE_SNAPSHOT],
+        "science_parts": verify_snapshot()["parts"],
         "filler_hash": sc1.digest(episodes.FILLER),
         "deployment": {
             "dtype": "bfloat16",
@@ -364,11 +478,14 @@ def verify_manifest(path, *, production=False):
         manifest.get("science_snapshot_path") != SCIENCE_SNAPSHOT
         or manifest.get("science_hash") != manifest["files"].get(SCIENCE_SNAPSHOT)
         or "LEDGER-PLAN.md" in manifest["files"]
+        or SNAPSHOT_PROVENANCE not in manifest["files"]
     ):
         raise ValueError("manifest requires the frozen registration snapshot")
     for filename, h in manifest["files"].items():
         if sc1.file_hash(ROOT / filename) != h:
             raise ValueError("frozen artifact hash mismatch: " + filename)
+    if manifest.get("science_parts") != verify_snapshot()["parts"]:
+        raise ValueError("manifest snapshot source ranges mismatch")
     if manifest["dependencies"] != dependencies() or manifest["python"] != sys.version:
         raise ValueError("frozen dependency/runtime mismatch")
     if manifest["classifier"] != classifier_hashes():
@@ -420,7 +537,7 @@ def verify_manifest(path, *, production=False):
             ] != sc1.digest(episodes.SCHEMA):
                 raise ValueError("author contract/grammar mismatch")
         frozen = verify_manifest(manifest["executable_freeze"])
-        for key in (*CODE_FILES, CONTRACT, SCIENCE_SNAPSHOT):
+        for key in (*CODE_FILES, CONTRACT, SCIENCE_SNAPSHOT, SNAPSHOT_PROVENANCE):
             if frozen["files"][key] != manifest["files"][key]:
                 raise ValueError("production executable differs from Stage 2")
         if (
@@ -466,6 +583,8 @@ def verify_stage_freezes(stage1_path, executable_path):
     frozen = verify_manifest(executable_path)
     if frozen["files"].get(SCIENCE_SNAPSHOT) != stage1["science_hash"]:
         raise ValueError("Stage 1 snapshot differs from executable freeze")
+    if stage1.get("science_parts") != frozen["science_parts"]:
+        raise ValueError("Stage 1 snapshot source ranges differ from executable freeze")
     if frozen["trunk"] != "4b" or stage1.get("deployment") != frozen["deployment"]:
         raise ValueError("registered Qwen3-4B deployment constants mismatch")
     if set(stage1.get("authors", {})) != set(episodes.AUTHORS):
@@ -1316,6 +1435,7 @@ def main(argv=None):
     parser.add_argument(
         "mode",
         choices=(
+            "snapshot",
             "validate",
             "smoke",
             "determinism",
@@ -1344,6 +1464,10 @@ def main(argv=None):
     parser.add_argument("--attempt", type=int, default=0)
     parser.add_argument("--history", type=Path)
     args = parser.parse_args(argv)
+    if args.mode == "snapshot":
+        result = produce_snapshot()
+        print(sc1.canonical(result))
+        return result
     if (
         args.mode in {"setup", "final", "analyze", "determinism", "commission"}
         and args.out is None

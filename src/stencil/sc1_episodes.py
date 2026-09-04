@@ -155,7 +155,8 @@ SCHEMA = {
     "task_kinds": ["json_patch", "text", "tool"],
     "numeric_law": (
         "finite exact Decimal values; integral decimals satisfy integer "
-        "schemas; booleans separate; at most 1024 coefficient digits and "
+        "schemas; booleans separate; at most 1024 lexical coefficient digits "
+        "including all leading/trailing zeros before/after the decimal point and "
         "absolute stored decimal exponent <=4096; unsupported representations "
         "are schema-invalid outputs; numeric negatives negate nonzero values "
         "exactly and replace zero with one"
@@ -183,7 +184,8 @@ SCHEMA = {
     "call": "one bare object with name and arguments; create/update/delete/get/list",
     "source_literals": "${NAME} expands from a typed seed-derived literal spec",
     "provider_seed_mapping": (
-        "unsigned first 32 SHA-256 bits; recorded even without provider seed support"
+        "unsigned first eight hex digits of the current attempt's authoring-stream "
+        "SHA-256 digest; recorded even without provider seed support"
     ),
 }
 SCHEMA["structures"] = {
@@ -220,7 +222,9 @@ SCHEMA["structures"] = {
         "{turn, call, return, public_text}}; public_text is canonical {call,return}; "
         "replay must yield initial_state. State-bearing JSON blocks, including "
         "multiline/nested objects, must be exactly one canonical envelope on "
-        "its own tool-turn line; incidental prose may surround that line"
+        "its own tool-turn line; duplicate object names in any public JSON block "
+        "are invalid, including overwritten nested members; incidental prose may "
+        "surround that line. State-like non-JSON prose requires semantic review"
     ),
     "predicates": (
         "obligations/protected_set: arrays of {id, kind, evidence_ids}; json_equals/"
@@ -244,7 +248,11 @@ SCHEMA["structures"] = {
         "round-robin expansion without sentence reuse to 4608 "
         "rendered history tokens, checked after each round-robin batch (a minimum, "
         "not an exact length); 600 tokens per turn, including every author base; "
-        "candidate capacity and budget pressure are validated. "
+        "candidate capacity and budget pressure are validated. Never place "
+        "formulaic filler in the newest eligible old user turn: the last user "
+        "turn with any complete source piece in the removable old range must "
+        "contain no pool sentence and must not be filler-designated. Validate "
+        "after expansion; repair the source without moving causal evidence. "
         "Compiler never moves or invents decisive events"
     ),
     "attacks": (
@@ -256,7 +264,9 @@ SCHEMA["structures"] = {
         "old_id_work/obsolete_work/cancelled_work "
         "whose changed values/actions occur in its public evidence. For text, "
         "these event fields contain raw full artifacts; compare normalized lines "
-        "and require changed lines in evidence. Text wrong-entity witnesses name "
+        "at ordered indices, counting reused/reordered values as changes, "
+        "and require every changed witness line in evidence. "
+        "Text wrong-entity witnesses name "
         "an evidence_id, line, target_id and replacement_id: exactly that line "
         "replaces the unique target ID with a different declared entity ID, both "
         "present in the linked public evidence"
@@ -1131,7 +1141,15 @@ def validate_trace(ep):
             )
         return isinstance(value, list) and any(state_bearing(v) for v in value)
 
-    decoder = json.JSONDecoder()
+    def public_pairs(items):
+        value = {}
+        for key, member in items:
+            if key in value:
+                raise ValueError("duplicate object name in public JSON")
+            value[key] = member
+        return value
+
+    decoder = json.JSONDecoder(object_pairs_hook=public_pairs)
     for i, turn in enumerate(ep["turns"]):
         text, cursor = turn["text"], 0
         # Scan whole JSON values anywhere in prose, advancing past each complete
@@ -1140,7 +1158,7 @@ def validate_trace(ep):
             start = cursor + match.start()
             try:
                 value, end = decoder.raw_decode(text, start)
-            except ValueError:
+            except json.JSONDecodeError:
                 cursor = start + 1
                 continue
             block, cursor = text[start:end], end
@@ -1262,14 +1280,11 @@ def validate_attack(ep, slot, witness):
             return [value]
 
         is_text = ep["task_spec"]["kind"] == "text"
-        original = {
-            canonical(v)
-            for v in (
-                normalize_text(ep["reference"]).split("\n")
-                if is_text
-                else leaves(parse_json(ep["reference"]))
-            )
-        }
+        original = (
+            normalize_text(ep["reference"]).split("\n")
+            if is_text
+            else {canonical(v) for v in leaves(parse_json(ep["reference"]))}
+        )
         applicable = False
         for event in trajectory:
             if field not in event:
@@ -1284,7 +1299,15 @@ def validate_attack(ep, slot, witness):
                 if is_text
                 else leaves(event[field])
             )
-            changes = [v for v in values if canonical(v) not in original]
+            changes = (
+                [
+                    v
+                    for i, v in enumerate(values)
+                    if i >= len(original) or v != original[i]
+                ]
+                if is_text
+                else [v for v in values if canonical(v) not in original]
+            )
             if changes and all(
                 contains_literal(event["evidence_text"], v) for v in changes
             ):
@@ -1519,6 +1542,7 @@ def expand_source(source, tokenizer):
         recent = tokenizer.decode(layout["ids"][layout["R"] : layout["H"]])
         leakage.extend(s for s in forbidden if contains_literal(recent, s))
     universe, _ = build_sc1_candidates(layout, tokenizer)
+    newest_old_user = validate_filler_placement(ep, universe)
     rule = select_policy(layout, tokenizer, "rule")
     ep["layout_audit"] = {
         "public_render_hash": public_render_hash(ep),
@@ -1528,6 +1552,7 @@ def expand_source(source, tokenizer):
             for c in universe
             if c["message_index"] not in fill_at
         ),
+        "newest_eligible_old_user_turn": newest_old_user,
         "rule_pin_composition": pin_composition(rule, fill_at),
         "B": layout["B"],
         "rule_budget_skips": sum(
@@ -1752,6 +1777,19 @@ def validate_turn_cap(ep, tokenizer):
     for i, turn in enumerate(ep["turns"]):
         if len(token_ids(tokenizer, turn["text"])) > 600:
             raise ValueError(f"turn {i} exceeds 600-token cap")
+
+
+def validate_filler_placement(ep, universe):
+    """Check actual complete old pieces, including turns straddling the suffix."""
+    newest = max(
+        (c["message_index"] for c in universe if c["role"] == "user"), default=None
+    )
+    if newest is not None and (
+        newest in ep["filler_manifest"]["turns"]
+        or any(sentence in ep["turns"][newest]["text"] for sentence in FILLER)
+    ):
+        raise ValueError("formulaic filler in newest eligible old user turn")
+    return newest
 
 
 def ngrams(text):

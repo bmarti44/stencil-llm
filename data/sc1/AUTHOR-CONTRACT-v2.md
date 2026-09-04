@@ -1,4 +1,4 @@
-# SC1 authoring contract — original delayed-use episodes (v2 with Amendment 1, 2026-09-04)
+# SC1 authoring contract — original delayed-use episodes (v2 draft, 2026-09-04)
 
 Data lineage: write new fictional sources for evaluation only. No episode, reference, checker, author response,
 or setup result may be used for fitting, training, tuning, prompt selection, or policy revision. The 32 setup
@@ -71,8 +71,7 @@ Report realized counts by author, style, origin, age, scope and crossed cells, s
   another task and returns while a persistent user instruction remains applicable.
 - Supply 4–8 distinct distractor facts and benign transient chatter, mixing roles, age and durable-looking
   wording. Relevance must not be revealed by a special marker, role or position alone. Tool responses use
-  the canonical state-return boundary below when state-bearing; incidental non-state prose
-  and non-state JSON may surround a valid return. No policy-specific formatting guidance is allowed.
+  realistic JSON or plain text; no policy-specific formatting guidance is allowed.
 - The final request omits the tested earlier literal/rule. Neither it nor the system/tools prefix may contain
   any indispensable reference literal; private validation also checks semantic paraphrases. Generic schema
   keys and syntax are not answer literals. General tool schemas must not hard-code a target or answer value.
@@ -84,8 +83,8 @@ Report realized counts by author, style, origin, age, scope and crossed cells, s
 
 Author one compact original causal specification per episode (roughly 300–800 tokens is a planning target, not
 a completeness limit). Shared grammar, executor/checker primitives and disclosed irrelevant filler are allowed;
-shared instantiated stories are not. A frozen deterministic expander renders the long conversation, verifies that authored facts
-already satisfy the assigned age, samples literals/filler from their streams and generates reference witnesses;
+shared instantiated stories are not. A frozen deterministic expander renders the long conversation, places facts
+to satisfy the assigned age, samples literals/filler from their streams and generates reference witnesses;
 executable checkers and mutations are code-generated from this single specification. It must not invent a new decisive
 rule or reuse a small scenario template bank as purportedly independent sources. The grammar, expander, original
 tool families and filler pool are frozen before production authoring; no model-outcome feedback enters them.
@@ -174,70 +173,3 @@ public prefix, last 1,024 history tokens and final request that must FAIL. These
 the six negatives. Reviewers use no tested policy or trunk outputs. Record all verdicts, causes, evidence/coverage
 links and sign-offs before hashing. References, checks, mutations, factors, evidence annotations, provenance and
 hidden states never enter model, policy or echo inputs.
-
-## Operational source and transport requirements (2026-09-04)
-
-The provider seed is the unsigned integer from the first eight hexadecimal digits of the current content
-attempt's authoring-stream SHA-256 digest. Retain it for every attempt, apply it exactly when the frozen
-provider supports seeds, and otherwise record non-application. Use the same frozen version/settings.
-
-The supported transport supplies no system/developer inputs. If the provider necessarily supplies any such
-input, expose it for contract/grammar reconciliation before registration; never omit it from a transcript.
-Retain a cumulative JSON transcript with session_id, provider, version, settings, input, response (the exact
-source object), and messages containing the exact alternating user-input/assistant-source pairs from attempt
-zero through the current attempt. Repairs resume only that source's original isolated session, at most twice.
-The operator retains every request, transcript and decision and a hash-linked attempt_history with attempt,
-previous entry hash, prior rejection feedback, reconstructed request_hash, transcript_path/hash, source_hash,
-decision, reason and reviewer (rejections require both reason and reviewer). Only the commissioned *.input.json
-is delivered as author input; the separate operator envelope and private repair-history files are not inputs.
-
-Every decisive fact and scope event must be necessary, linked to an obligation, and have a unique verbatim
-public evidence span. Scope authority is in an actual user turn. Continuing requires instruction; overridden
-requires superseded then update; cancelled-or-completed requires obsolete then cancellation or completion;
-switched requires switch then return. The complete necessary dependency determines age.
-
-Every state-bearing public JSON block must be exactly the canonical {call,return} envelope on its own line in
-its chronological tool trace turn, with return equal to finite-executor replay. No additional state-bearing
-block is allowed. Complete multiline and nested values are checked. Duplicate object names in any public JSON
-block are invalid, including overwritten nested members; they cannot be incidental prose. Non-state JSON and
-incidental plain prose may surround a valid envelope but may not supply untraced state. State-like non-JSON
-prose remains an independent semantic-review responsibility.
-
-Use the frozen 512-sentence filler pool without replacement. All authored bases and all expanded history turn
-texts must fit 600 tokenizer tokens each; rendered chat delimiters count separately in history. Designate
-mixed user/assistant/tool non-evidence, non-trace turns. Designated turns times 600 must exceed 4608 minus
-rendered base history, allowing existing text and whole-sentence packing (typically at least eight turns).
-Expansion is round-robin to at least 4608 rendered history tokens, checked after each batch. The compiler
-reports capacity and a lower bound on turns needed, and validates candidate pressure before accepting a source.
-Never designate the newest eligible old user turn for filler or place any pool sentence anywhere in its text,
-including its authored base. This is the latest user turn with any complete source piece in the removable old
-range after rendering; a turn crossing the recent boundary can still qualify. Repair placement failures under
-the original assignments without moving causal evidence. The relevance rule above remains binding, including
-recognizable filler; these geometry checks do not establish semantic compliance.
-
-Typed answer inventories must cover every payload/target literal and its necessary evidence/obligation links.
-Fingerprint normalization jointly preserves literal equality classes and unordered graph permutations; groups
-above eight entries or more than 40320 joint variants are rejected. Independent pair signatures bind both
-source IDs/hashes and reviewer session; source/render hashes bind each semantic review. Within-pool literal
-reuse is a review flag and cross-pool entity/identifier collisions are rejected. Flags do not prove independence.
-
-JSON numbers have exact finite values with booleans distinct; integral decimals satisfy integer schemas.
-Supported spellings contain at most 1024 lexical coefficient digits, including every leading/trailing zero
-before/after the decimal point, excluding sign, decimal point and exponent digits. The stored Decimal exponent
-has absolute value at most 4096; exact canonical serialization must satisfy the same limits. Unsupported
-spellings/construction failures are ordinary schema-invalid outputs; representability depends on spelling too.
-Wrong-number negatives negate nonzero values exactly without context rounding and replace zero with one.
-
-Text tasks require permitted_paths: [] and nonempty zero-based editable_lines. After the production text
-normalization, only replacements at those indices are permitted. Original initial_state fixes the line count
-and all protected lines; the reference and expected artifact must preserve that baseline. Insertion/deletion
-or protected-line changes violate permitted_edits even if the parsed output is otherwise schema-invalid.
-Text old_id_work, obsolete_work and cancelled_work fields contain raw complete artifacts. Compare normalized
-reference and witness at ordered line indices. A value reused from another index still changes that line;
-reordering or repeated-value replacement is not set equality. Require a distinct normalized artifact and every
-changed witness line in the linked event's public evidence, the applicable scope, schema validity and a failed
-linked obligation. Do not mark applicable attacks inapplicable to bypass validation. Text wrong-entity witnesses
-specify line, target_id, replacement_id, evidence_id, output and obligation_ids: exactly one normalized line
-replaces the unique target ID with a different declared entity ID, both in the linked public evidence; the
-artifact must be schema-valid and violate its linked obligation. Six distinct negatives and full coverage remain
-required.

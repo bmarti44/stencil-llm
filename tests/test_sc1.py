@@ -3,6 +3,7 @@
 import copy
 import hashlib
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -2026,6 +2027,29 @@ def test_astra_r3_multiline_public_state_through_bank(tmp_path, real_tokenizer, 
         episodes.validate_bank(tmp_path, real_tokenizer)
 
 
+@pytest.mark.parametrize(
+    "block",
+    [
+        '{"payload":{"v":"impossible state","p":"also wrong"},"payload":"incidental"}',
+        '{"note":{"payload":{"v":"impossible"},"payload":"incidental"}}',
+        '[\n {"payload": {"v": "impossible"},\n "payload": "incidental"}\n]',
+        '{"note":"first","note":"second"}',
+    ],
+)
+def test_astra_r3_duplicate_public_members_through_bank(
+    tmp_path, real_tokenizer, block
+):
+    source = episodes.load_sources(ROOT / "data/sc1/smoke")[5]
+    path = tmp_path / "duplicate.source.json"
+    source["turns"][5]["text"] += '\nA pause {"note":["incidental"]} followed.'
+    sc1.atomic_json(path, source)
+    assert episodes.validate_bank(tmp_path, real_tokenizer)[1]["references_pass"] == 1
+    source["turns"][5]["text"] += "\n" + block
+    sc1.atomic_json(path, source)
+    with pytest.raises(ValueError, match="duplicate.*public JSON"):
+        episodes.validate_bank(tmp_path, real_tokenizer)
+
+
 def test_astra_r4_permissions_use_original_artifact(source, real_tokenizer, tmp_path):
     source = text_source(source)
     valid = validate_source(source, real_tokenizer)
@@ -2153,10 +2177,10 @@ def test_astra_r7_text_scope_attack_through_bank(
         }
     source["filler_turns"] = [
         i
-        for i in range(12)
+        for i in source["filler_turns"]
         if i not in {event["turn"], fact["turn"], governing["turn"]}
     ]
-    source["turns"][source["filler_turns"][0]]["role"] = "tool"
+    source["turns"][source["filler_turns"][0]]["role"] = "user"
     source["attacks"][slot] = {
         "output": "${OLD}\r\nHarbor  ",
         "obligation_ids": ["target"],
@@ -2242,29 +2266,86 @@ def test_fable_n2_capacity_guidance_and_error(source, real_tokenizer):
 def test_fable_n3_snapshot_manifest_survives_live_ledger_append(tmp_path, monkeypatch):
     from scripts import sc1 as cli
 
-    snapshot = ROOT / "data/sc1/registration-snapshot.md"
-    ledger = (ROOT / "LEDGER-PLAN.md").read_bytes()
-    section = ledger[ledger.index(b"## SC1", ledger.index(b"## SC1") + 1) :]
-    assert snapshot.read_bytes() == section + (ROOT / cli.CONTRACT).read_bytes()
+    def assert_snapshot_contains(root):
+        data = (root / cli.SCIENCE_SNAPSHOT).read_bytes()
+        record = episodes.parse_json((root / cli.SNAPSHOT_PROVENANCE).read_text())
+        assert data.startswith(cli.SCIENCE_HEADING)
+        assert data.endswith((root / cli.CONTRACT).read_bytes())
+        offset = 0
+        for part in record["parts"]:
+            size = part["byte_length"]
+            chunk = data[offset : offset + size]
+            a, b = part["byte_range"]
+            assert b - a == size
+            assert hashlib.sha256(chunk).hexdigest() == part["sha256"]
+            assert chunk == (root / part["source_path"]).read_bytes()[a:b]
+            assert chunk in (root / part["source_path"]).read_bytes()
+            offset += size
+        assert offset == len(data)
+
+    assert_snapshot_contains(ROOT)
+    for name in ("LEDGER-PLAN.md", cli.CONTRACT, cli.AMENDMENT):
+        target = tmp_path / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((ROOT / name).read_bytes())
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(tmp_path),
+            "add",
+            "--",
+            "LEDGER-PLAN.md",
+            cli.CONTRACT,
+            cli.AMENDMENT,
+        ],
+        check=True,
+    )
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(tmp_path),
+            "-c",
+            "user.name=CPU fixture",
+            "-c",
+            "user.email=fixture@localhost",
+            "commit",
+            "-qm",
+            "sources",
+            "--",
+            "LEDGER-PLAN.md",
+            cli.CONTRACT,
+            cli.AMENDMENT,
+        ],
+        check=True,
+    )
     monkeypatch.setattr(cli, "ROOT", tmp_path)
     monkeypatch.setattr(cli, "CODE_FILES", ())
-    monkeypatch.setattr(cli, "git", lambda *a: "fixture-harness")
     monkeypatch.setattr(cli, "classifier_hashes", lambda: {})
+
+    def forbidden(*a, **kw):
+        raise AssertionError("snapshot must not load a tokenizer/model")
+
+    monkeypatch.setattr(cli, "load_tokenizer", forbidden)
+    produced = cli.main(["snapshot"])
+    assert cli.verify_snapshot() == produced
     real_hash = sc1.file_hash
     monkeypatch.setattr(
         sc1, "file_hash", lambda p: real_hash(p) if Path(p).exists() else "fixture"
     )
-    target = tmp_path / "data/sc1/registration-snapshot.md"
-    target.parent.mkdir(parents=True)
-    target.write_bytes(snapshot.read_bytes())
+    target = tmp_path / cli.SCIENCE_SNAPSHOT
     live = tmp_path / "LEDGER-PLAN.md"
-    live.write_bytes(ledger)
+    ledger = live.read_bytes()
     manifest = cli.build_manifest(tmp_path / "bank", "4b", [])
     assert "LEDGER-PLAN.md" not in manifest["files"]
     assert manifest["files"]["data/sc1/registration-snapshot.md"] == real_hash(target)
     path = tmp_path / "manifest.json"
     sc1.atomic_json(path, manifest)
-    live.write_bytes(ledger + b"\nEditorial note.\n")
+    live.write_bytes(ledger + b"\n## Later editorial entry\nEditorial note.\n")
+    assert_snapshot_contains(tmp_path)
+    assert cli.main(["snapshot"]) == produced
     cli.verify_manifest(path)
     authors = versions()
     for author in authors.values():
@@ -2289,6 +2370,7 @@ def test_fable_n3_snapshot_manifest_survives_live_ledger_append(tmp_path, monkey
         "deployment": manifest["deployment"],
         "science_snapshot_path": cli.SCIENCE_SNAPSHOT,
         "science_hash": real_hash(target),
+        "science_parts": produced["parts"],
     }
     stage_path = tmp_path / "stage1.json"
     sc1.atomic_json(stage_path, registration)
@@ -2308,9 +2390,11 @@ def test_fable_n4_discriminating_regression_bounds():
 
 
 def test_fable_n5_abandoned_determinism_disposition():
-    clauses = (ROOT / "data/sc1/STAGE1-CLAUSES.md").read_text()
-    assert "abandoned allocation" in clauses and "reported separately" in clauses
-    assert "No replacement" in clauses and "new study_id" in clauses
+    clauses = (ROOT / "data/sc1/registration-snapshot.md").read_text()
+    assert "This amendment adopts separate reporting of abandoned-study cost" in clauses
+    assert "eight-hour cap applies cumulatively within each registered study" in clauses
+    assert "No replacement of an incomplete or failed determinism schedule" in clauses
+    assert "new execution root and new production sources" in clauses
 
 
 def test_fable_n6_registration_audit_is_reviewable(tmp_path, monkeypatch):
@@ -2453,3 +2537,105 @@ def test_fable_n4_strengthened_tests_detect_replay_and_old_projection(
             )
             with pytest.raises(AssertionError):
                 test_fable_m1_setup_resume_projection(scheduling)
+
+
+@pytest.mark.parametrize("replacement", ["swap", "reuse"])
+def test_astra_r7_ordered_text_witness_through_bank(
+    tmp_path, source, real_tokenizer, replacement
+):
+    source = text_source(source)
+    template = episodes.load_sources(ROOT / "data/sc1/smoke")[1]
+    source.update(
+        index=template["index"],
+        instruction_trajectory=template["instruction_trajectory"],
+    )
+    source["literal_specs"]["SECOND"] = {"type": "string"}
+    source["task_spec"]["editable_lines"] = [0, 1]
+    source["initial_state"] = "Draft\nDraft2\nHarbor"
+    source["state_trace"] = {"start": source["initial_state"], "events": []}
+    reference = "${VALUE}\n${SECOND}\nHarbor"
+    witness = (
+        "${SECOND}\n${VALUE}\nHarbor"
+        if replacement == "swap"
+        else "${SECOND}\n${SECOND}\nHarbor"
+    )
+    source["work"] = {"text": reference}
+    old, governing = source["instruction_trajectory"]
+    for event in (old, governing):
+        for field in ("old_id_work", "obsolete_work", "cancelled_work"):
+            event.pop(field, None)
+    old.update(turn=0, evidence_text="Earlier order: " + witness, obsolete_work=witness)
+    governing.update(turn=2, evidence_text="Replace both codes; preserve Harbor.")
+    fact = source["decisive_facts"][0]
+    fact.update(turn=1, evidence_text="Approved order: " + reference)
+    for event in (old, fact, governing):
+        source["turns"][event["turn"]] = {
+            "role": "user",
+            "text": event["evidence_text"],
+        }
+    source["filler_turns"] = [i for i in source["filler_turns"] if i != 2]
+    source["turns"][source["filler_turns"][0]]["role"] = "user"
+    source["obligations"] = [
+        {
+            "id": "target",
+            "kind": "json_equals",
+            "value": reference,
+            "evidence_ids": [old["id"], governing["id"], "fact"],
+        }
+    ]
+    source["answer_literals"].append(
+        {
+            "value": "${SECOND}",
+            "type": "string",
+            "evidence_ids": ["fact"],
+            "obligation_ids": ["target"],
+        }
+    )
+    source["attacks"] = {
+        "wrong scope": {"output": witness, "obligation_ids": ["target"]},
+        "collateral edit": {
+            "output": "${VALUE}\n${SECOND}\nDamaged",
+            "obligation_ids": ["keep"],
+        },
+    }
+    path = tmp_path / "ordered.source.json"
+    sc1.atomic_json(path, source)
+    rows, report = episodes.validate_bank(tmp_path, real_tokenizer)
+    assert report["references_pass"] == 1
+    negative = next(m for m in rows[0]["mutations"] if m["slot"] == "wrong scope")
+    assert episodes.run_checker(rows[0], negative["output"])["schema_valid"]
+    # The reused value must still have public evidence at the linked old event.
+    old["evidence_text"] = "Earlier order was recorded elsewhere."
+    source["turns"][0]["text"] = old["evidence_text"]
+    sc1.atomic_json(path, source)
+    with pytest.raises(ValueError, match="semantic attack"):
+        episodes.validate_bank(tmp_path, real_tokenizer)
+
+
+@pytest.mark.parametrize("violation", ["designation", "base"])
+def test_amendment_filler_newest_old_user_through_bank(
+    tmp_path, source, real_tokenizer, violation
+):
+    path = tmp_path / "placement.source.json"
+    sc1.atomic_json(path, source)
+    rows, report = episodes.validate_bank(tmp_path, real_tokenizer)
+    assert report["references_pass"] == 1
+    ep = rows[0]
+    universe, _ = sc1.build_sc1_candidates(
+        sc1.render_episode(ep, real_tokenizer), real_tokenizer
+    )
+    newest = max(c["message_index"] for c in universe if c["role"] == "user")
+    assert newest not in ep["filler_manifest"]["turns"]
+    assert not any(
+        sentence in ep["turns"][newest]["text"] for sentence in episodes.FILLER
+    )
+    if violation == "designation":
+        later = max(c["message_index"] for c in universe if c["role"] == "tool")
+        assert later > newest and later in source["filler_turns"]
+        source["turns"][later]["role"] = "user"
+    else:
+        # Authored pool text cannot evade the guard by omitting designation.
+        source["turns"][newest]["text"] += "\n" + episodes.FILLER[0]
+    sc1.atomic_json(path, source)
+    with pytest.raises(ValueError, match="newest eligible old user"):
+        episodes.validate_bank(tmp_path, real_tokenizer)
