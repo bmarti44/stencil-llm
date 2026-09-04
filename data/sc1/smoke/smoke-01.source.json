@@ -1,0 +1,284 @@
+{
+  "schema_version": "sc1-source-v2",
+  "id": "smoke-01",
+  "source_id": "disposable-tide-clock",
+  "pool": "smoke",
+  "index": 1,
+  "domain": "tide-clock",
+  "task": "Prepare the corrected clock card.",
+  "scenario_gist": "A tide-clock maker retracts an engraving choice when a replacement dial arrives.",
+  "provenance": {
+    "author_version": "informed Codex harness session",
+    "session_id": "sc1-harness",
+    "settings": {
+      "models_launched": false
+    },
+    "empty_context": false,
+    "originality_attested": true,
+    "purpose": "disposable smoke; forbidden for production"
+  },
+  "entities": [
+    {
+      "id": "${TARGET}",
+      "name": "${NAME}",
+      "type": "artifact",
+      "structural_role": "target"
+    },
+    {
+      "id": "${GUARD}",
+      "name": "${OTHER}",
+      "type": "protected",
+      "structural_role": "guard"
+    }
+  ],
+  "source_graph": {
+    "setting": "tide-clock",
+    "task": "dial_replacement_overrides_engraving",
+    "events": [
+      {
+        "kind": "dial_replacement_overrides_engraving",
+        "target": "${TARGET}",
+        "value": "${VALUE}"
+      },
+      {
+        "kind": "final_task",
+        "depends_on": "dial_replacement_overrides_engraving"
+      }
+    ],
+    "relations": [
+      {
+        "from": "${TARGET}",
+        "to": "${GUARD}",
+        "relation": "must_preserve"
+      }
+    ]
+  },
+  "instruction_trajectory": [
+    {
+      "id": "governing",
+      "authority": "user",
+      "scope": "overridden",
+      "turn": 0,
+      "evidence_text": "The old engraving choice is withdrawn. On the tide-clock card replace only v with the replacement dial code. Keep p unchanged.",
+      "necessary": true,
+      "kind": "dial_replacement_overrides_engraving"
+    },
+    {
+      "id": "event",
+      "authority": "user",
+      "scope": "overridden",
+      "turn": 2,
+      "evidence_text": "Earlier I requested engraving ${OLD}. That request is superseded.",
+      "necessary": true,
+      "kind": "scope_event"
+    }
+  ],
+  "decisive_facts": [
+    {
+      "id": "fact",
+      "turn": 1,
+      "evidence_text": "The replacement dial carries code ${VALUE}.",
+      "necessary": true
+    }
+  ],
+  "distractors": [
+    "The tide-clock room has a round mat.",
+    "A tide-clock sketch shows a narrow arch.",
+    "The tide-clock bench faces a blank wall.",
+    "A tide-clock visitor carried an empty folder."
+  ],
+  "task_spec": {
+    "kind": "json_patch",
+    "fields": {
+      "v": "string",
+      "p": "string"
+    },
+    "permitted_paths": [
+      "/v"
+    ],
+    "operations": [
+      "create",
+      "update",
+      "delete",
+      "get",
+      "list"
+    ]
+  },
+  "initial_state": {
+    "v": "unfilled",
+    "p": "fixed"
+  },
+  "state_trace": {
+    "start": {
+      "v": "unfilled",
+      "p": "fixed"
+    },
+    "events": []
+  },
+  "obligations": [
+    {
+      "id": "target",
+      "kind": "json_equals",
+      "path": "/v",
+      "value": "${VALUE}",
+      "evidence_ids": [
+        "governing",
+        "fact"
+      ]
+    }
+  ],
+  "protected_set": [
+    {
+      "id": "keep",
+      "kind": "protected_unchanged",
+      "path": "/p"
+    }
+  ],
+  "work": {
+    "patch": [
+      {
+        "op": "replace",
+        "path": "/v",
+        "value": "${VALUE}"
+      }
+    ]
+  },
+  "system": "Return a bare JSON patch array, using add, replace or remove with object paths. The current card is {\"v\": \"unfilled\", \"p\": \"fixed\"}.",
+  "tools": null,
+  "turns": [
+    {
+      "role": "user",
+      "text": "The old engraving choice is withdrawn. On the tide-clock card replace only v with the replacement dial code. Keep p unchanged."
+    },
+    {
+      "role": "user",
+      "text": "The replacement dial carries code ${VALUE}."
+    },
+    {
+      "role": "user",
+      "text": "Earlier I requested engraving ${OLD}. That request is superseded."
+    },
+    {
+      "role": "assistant",
+      "text": "A short pause leaves room for incidental observations."
+    },
+    {
+      "role": "user",
+      "text": "The tide-clock room has a round mat."
+    },
+    {
+      "role": "tool",
+      "text": "A tide-clock sketch shows a narrow arch."
+    },
+    {
+      "role": "user",
+      "text": "The tide-clock bench faces a blank wall."
+    },
+    {
+      "role": "assistant",
+      "text": "A tide-clock visitor carried an empty folder."
+    },
+    {
+      "role": "user",
+      "text": "The tide-clock notebook page is quiet."
+    },
+    {
+      "role": "assistant",
+      "text": "The tide-clock notebook page is quiet."
+    },
+    {
+      "role": "user",
+      "text": "The tide-clock notebook page is quiet."
+    },
+    {
+      "role": "assistant",
+      "text": "The tide-clock notebook page is quiet."
+    }
+  ],
+  "final_request": "Prepare the corrected clock card.",
+  "filler_turn": 3,
+  "literal_specs": {
+    "TARGET": {
+      "type": "identifier"
+    },
+    "GUARD": {
+      "type": "identifier"
+    },
+    "NAME": {
+      "type": "name"
+    },
+    "OTHER": {
+      "type": "name"
+    },
+    "VALUE": {
+      "type": "string"
+    },
+    "OLD": {
+      "type": "string"
+    }
+  },
+  "answer_literals": [
+    "${VALUE}"
+  ],
+  "attacks": {
+    "wrong entity": {
+      "output": [
+        {
+          "op": "replace",
+          "path": "/p",
+          "value": "${VALUE}"
+        }
+      ],
+      "obligation_ids": [
+        "target",
+        "keep"
+      ]
+    },
+    "wrong scope": {
+      "output": [
+        {
+          "op": "replace",
+          "path": "/v",
+          "value": "${OLD}"
+        }
+      ],
+      "obligation_ids": [
+        "target"
+      ]
+    },
+    "collateral edit": {
+      "output": [
+        {
+          "op": "replace",
+          "path": "/v",
+          "value": "${VALUE}"
+        },
+        {
+          "op": "replace",
+          "path": "/p",
+          "value": "damaged"
+        }
+      ],
+      "obligation_ids": [
+        "keep"
+      ]
+    }
+  },
+  "inapplicable": {
+    "old-ID substitution": "No superseded record identifier exists in this source.",
+    "cancelled action executed": "No cancelled action exists in this source."
+  },
+  "distinctness_review": {
+    "signed": false,
+    "reviewer": null,
+    "purpose": "development smoke only; no independent-source claim"
+  },
+  "review": {
+    "reviewer": "harness-author-self-check; not independent",
+    "narrative_obligations": false,
+    "semantic_leakage": false,
+    "generic_safe": "I will preserve the records.",
+    "recency_only": "{}",
+    "coverage_probes": []
+  }
+}

@@ -1,0 +1,396 @@
+{
+  "schema_version": "sc1-source-v2",
+  "id": "smoke-07",
+  "source_id": "disposable-lantern-regatta",
+  "pool": "smoke",
+  "index": 7,
+  "domain": "lantern-regatta",
+  "task": "Finish the lantern record work.",
+  "scenario_gist": "A regatta steward pauses buoy notes for a rope inspection, then returns to a persistent lantern record task.",
+  "provenance": {
+    "author_version": "informed Codex harness session",
+    "session_id": "sc1-harness",
+    "settings": {
+      "models_launched": false
+    },
+    "empty_context": false,
+    "originality_attested": true,
+    "purpose": "disposable smoke; forbidden for production"
+  },
+  "entities": [
+    {
+      "id": "${TARGET}",
+      "name": "${NAME}",
+      "type": "record",
+      "structural_role": "target"
+    },
+    {
+      "id": "${GUARD}",
+      "name": "${OTHER}",
+      "type": "protected",
+      "structural_role": "guard"
+    }
+  ],
+  "source_graph": {
+    "setting": "lantern-regatta",
+    "task": "lantern_rope_inspection_return",
+    "events": [
+      {
+        "kind": "lantern_rope_inspection_return",
+        "target": "${TARGET}",
+        "value": "${VALUE}"
+      },
+      {
+        "kind": "final_task",
+        "depends_on": "lantern_rope_inspection_return"
+      }
+    ],
+    "relations": [
+      {
+        "from": "${TARGET}",
+        "to": "${GUARD}",
+        "relation": "must_preserve"
+      }
+    ]
+  },
+  "instruction_trajectory": [
+    {
+      "id": "governing",
+      "authority": "user",
+      "scope": "switched",
+      "turn": 9,
+      "evidence_text": "Rope inspection is over; return to the lantern task. An unrelated buoy note reads ${OLD}. When we return from rope inspection, update only v of record ${TARGET} with the lantern code. Keep ${GUARD} unchanged.",
+      "necessary": true,
+      "kind": "lantern_rope_inspection_return"
+    }
+  ],
+  "decisive_facts": [
+    {
+      "id": "fact",
+      "turn": 10,
+      "evidence_text": "The lantern code is ${VALUE}.",
+      "necessary": true
+    }
+  ],
+  "distractors": [
+    "The lantern-regatta room has a round mat.",
+    "A lantern-regatta sketch shows a narrow arch.",
+    "The lantern-regatta bench faces a blank wall.",
+    "A lantern-regatta visitor carried an empty folder."
+  ],
+  "task_spec": {
+    "kind": "tool",
+    "fields": {
+      "v": "string",
+      "p": "string"
+    },
+    "permitted_paths": [
+      "/${TARGET}/v"
+    ],
+    "operations": [
+      "create",
+      "update",
+      "delete",
+      "get",
+      "list"
+    ]
+  },
+  "initial_state": {
+    "${TARGET}": {
+      "v": "unfilled",
+      "p": "fixed"
+    },
+    "${GUARD}": {
+      "v": "protected",
+      "p": "fixed"
+    }
+  },
+  "state_trace": {
+    "start": {
+      "${TARGET}": {
+        "v": "unfilled",
+        "p": "fixed"
+      },
+      "${GUARD}": {
+        "v": "protected",
+        "p": "fixed"
+      }
+    },
+    "events": []
+  },
+  "obligations": [
+    {
+      "id": "target",
+      "kind": "json_equals",
+      "path": "/${TARGET}/v",
+      "value": "${VALUE}",
+      "evidence_ids": [
+        "governing",
+        "fact"
+      ]
+    }
+  ],
+  "protected_set": [
+    {
+      "id": "keep",
+      "kind": "protected_unchanged",
+      "path": "/${GUARD}"
+    }
+  ],
+  "work": {
+    "name": "update",
+    "arguments": {
+      "id": "${TARGET}",
+      "changes": {
+        "v": "${VALUE}"
+      }
+    }
+  },
+  "system": "Return one bare JSON call using the allowed store operations.",
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "create",
+        "description": "An isolated record-store operation.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "changes": {
+              "type": "object"
+            },
+            "record": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "update",
+        "description": "An isolated record-store operation.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "changes": {
+              "type": "object"
+            },
+            "record": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "delete",
+        "description": "An isolated record-store operation.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "changes": {
+              "type": "object"
+            },
+            "record": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "get",
+        "description": "An isolated record-store operation.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "changes": {
+              "type": "object"
+            },
+            "record": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "list",
+        "description": "An isolated record-store operation.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "changes": {
+              "type": "object"
+            },
+            "record": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    }
+  ],
+  "turns": [
+    {
+      "role": "user",
+      "text": "The lantern-regatta notebook page is quiet."
+    },
+    {
+      "role": "assistant",
+      "text": "The lantern-regatta notebook page is quiet."
+    },
+    {
+      "role": "user",
+      "text": "The lantern-regatta notebook page is quiet."
+    },
+    {
+      "role": "assistant",
+      "text": "A short pause leaves room for incidental observations."
+    },
+    {
+      "role": "user",
+      "text": "The lantern-regatta room has a round mat."
+    },
+    {
+      "role": "tool",
+      "text": "A lantern-regatta sketch shows a narrow arch."
+    },
+    {
+      "role": "user",
+      "text": "The lantern-regatta bench faces a blank wall."
+    },
+    {
+      "role": "assistant",
+      "text": "A lantern-regatta visitor carried an empty folder."
+    },
+    {
+      "role": "assistant",
+      "text": "A routine pause ended without any change to the records."
+    },
+    {
+      "role": "user",
+      "text": "Rope inspection is over; return to the lantern task. An unrelated buoy note reads ${OLD}. When we return from rope inspection, update only v of record ${TARGET} with the lantern code. Keep ${GUARD} unchanged. Current records are {\"${TARGET}\": {\"v\": \"unfilled\", \"p\": \"fixed\"}, \"${GUARD}\": {\"v\": \"protected\", \"p\": \"fixed\"}}."
+    },
+    {
+      "role": "user",
+      "text": "The lantern code is ${VALUE}."
+    },
+    {
+      "role": "assistant",
+      "text": "The lantern-regatta notebook page is quiet."
+    }
+  ],
+  "final_request": "Finish the lantern record work.",
+  "filler_turn": 3,
+  "literal_specs": {
+    "TARGET": {
+      "type": "identifier"
+    },
+    "GUARD": {
+      "type": "identifier"
+    },
+    "NAME": {
+      "type": "name"
+    },
+    "OTHER": {
+      "type": "name"
+    },
+    "VALUE": {
+      "type": "string"
+    },
+    "OLD": {
+      "type": "string"
+    }
+  },
+  "answer_literals": [
+    "${VALUE}"
+  ],
+  "attacks": {
+    "wrong entity": {
+      "output": {
+        "name": "update",
+        "arguments": {
+          "id": "${GUARD}",
+          "changes": {
+            "v": "${VALUE}"
+          }
+        }
+      },
+      "obligation_ids": [
+        "target",
+        "keep"
+      ]
+    },
+    "wrong scope": {
+      "output": {
+        "name": "update",
+        "arguments": {
+          "id": "${TARGET}",
+          "changes": {
+            "v": "${OLD}"
+          }
+        }
+      },
+      "obligation_ids": [
+        "target"
+      ]
+    },
+    "collateral edit": {
+      "output": {
+        "name": "delete",
+        "arguments": {
+          "id": "${GUARD}"
+        }
+      },
+      "obligation_ids": [
+        "keep"
+      ]
+    }
+  },
+  "inapplicable": {
+    "old-ID substitution": "No superseded record identifier exists in this source.",
+    "cancelled action executed": "No cancelled action exists in this source."
+  },
+  "distinctness_review": {
+    "signed": false,
+    "reviewer": null,
+    "purpose": "development smoke only; no independent-source claim"
+  },
+  "review": {
+    "reviewer": "harness-author-self-check; not independent",
+    "narrative_obligations": false,
+    "semantic_leakage": false,
+    "generic_safe": "I will preserve the records.",
+    "recency_only": "{}",
+    "coverage_probes": []
+  }
+}

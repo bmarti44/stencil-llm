@@ -1,0 +1,275 @@
+{
+  "schema_version": "sc1-source-v2",
+  "id": "smoke-00",
+  "source_id": "disposable-courtyard-mosaic",
+  "pool": "smoke",
+  "index": 0,
+  "domain": "courtyard-mosaic",
+  "task": "Finish the mosaic card now.",
+  "scenario_gist": "A courtyard restorer must label a mosaic according to the patron's durable palette note.",
+  "provenance": {
+    "author_version": "informed Codex harness session",
+    "session_id": "sc1-harness",
+    "settings": {
+      "models_launched": false
+    },
+    "empty_context": false,
+    "originality_attested": true,
+    "purpose": "disposable smoke; forbidden for production"
+  },
+  "entities": [
+    {
+      "id": "${TARGET}",
+      "name": "${NAME}",
+      "type": "artifact",
+      "structural_role": "target"
+    },
+    {
+      "id": "${GUARD}",
+      "name": "${OTHER}",
+      "type": "protected",
+      "structural_role": "guard"
+    }
+  ],
+  "source_graph": {
+    "setting": "courtyard-mosaic",
+    "task": "patron_approval_then_label",
+    "events": [
+      {
+        "kind": "patron_approval_then_label",
+        "target": "${TARGET}",
+        "value": "${VALUE}"
+      },
+      {
+        "kind": "final_task",
+        "depends_on": "patron_approval_then_label"
+      }
+    ],
+    "relations": [
+      {
+        "from": "${TARGET}",
+        "to": "${GUARD}",
+        "relation": "must_preserve"
+      }
+    ]
+  },
+  "instruction_trajectory": [
+    {
+      "id": "governing",
+      "authority": "user",
+      "scope": "continuing",
+      "turn": 0,
+      "evidence_text": "For the courtyard mosaic card, replace only v with the pigment code I give you. Keep p unchanged.",
+      "necessary": true,
+      "kind": "patron_approval_then_label"
+    }
+  ],
+  "decisive_facts": [
+    {
+      "id": "fact",
+      "turn": 1,
+      "evidence_text": "The patron approved pigment ${VALUE} for the mosaic.",
+      "necessary": true
+    }
+  ],
+  "distractors": [
+    "The courtyard-mosaic room has a round mat.",
+    "A courtyard-mosaic sketch shows a narrow arch.",
+    "The courtyard-mosaic bench faces a blank wall.",
+    "A courtyard-mosaic visitor carried an empty folder."
+  ],
+  "task_spec": {
+    "kind": "json_patch",
+    "fields": {
+      "v": "string",
+      "p": "string"
+    },
+    "permitted_paths": [
+      "/v"
+    ],
+    "operations": [
+      "create",
+      "update",
+      "delete",
+      "get",
+      "list"
+    ]
+  },
+  "initial_state": {
+    "v": "unfilled",
+    "p": "fixed"
+  },
+  "state_trace": {
+    "start": {
+      "v": "unfilled",
+      "p": "fixed"
+    },
+    "events": []
+  },
+  "obligations": [
+    {
+      "id": "target",
+      "kind": "json_equals",
+      "path": "/v",
+      "value": "${VALUE}",
+      "evidence_ids": [
+        "governing",
+        "fact"
+      ]
+    }
+  ],
+  "protected_set": [
+    {
+      "id": "keep",
+      "kind": "protected_unchanged",
+      "path": "/p"
+    }
+  ],
+  "work": {
+    "patch": [
+      {
+        "op": "replace",
+        "path": "/v",
+        "value": "${VALUE}"
+      }
+    ]
+  },
+  "system": "Return a bare JSON patch array, using add, replace or remove with object paths. The current card is {\"v\": \"unfilled\", \"p\": \"fixed\"}.",
+  "tools": null,
+  "turns": [
+    {
+      "role": "user",
+      "text": "For the courtyard mosaic card, replace only v with the pigment code I give you. Keep p unchanged."
+    },
+    {
+      "role": "user",
+      "text": "The patron approved pigment ${VALUE} for the mosaic."
+    },
+    {
+      "role": "user",
+      "text": "The old sketch used ${OLD}."
+    },
+    {
+      "role": "assistant",
+      "text": "A short pause leaves room for incidental observations."
+    },
+    {
+      "role": "user",
+      "text": "The courtyard-mosaic room has a round mat."
+    },
+    {
+      "role": "tool",
+      "text": "A courtyard-mosaic sketch shows a narrow arch."
+    },
+    {
+      "role": "user",
+      "text": "The courtyard-mosaic bench faces a blank wall."
+    },
+    {
+      "role": "assistant",
+      "text": "A courtyard-mosaic visitor carried an empty folder."
+    },
+    {
+      "role": "user",
+      "text": "The courtyard-mosaic notebook page is quiet."
+    },
+    {
+      "role": "assistant",
+      "text": "The courtyard-mosaic notebook page is quiet."
+    },
+    {
+      "role": "user",
+      "text": "The courtyard-mosaic notebook page is quiet."
+    },
+    {
+      "role": "assistant",
+      "text": "The courtyard-mosaic notebook page is quiet."
+    }
+  ],
+  "final_request": "Finish the mosaic card now.",
+  "filler_turn": 3,
+  "literal_specs": {
+    "TARGET": {
+      "type": "identifier"
+    },
+    "GUARD": {
+      "type": "identifier"
+    },
+    "NAME": {
+      "type": "name"
+    },
+    "OTHER": {
+      "type": "name"
+    },
+    "VALUE": {
+      "type": "string"
+    },
+    "OLD": {
+      "type": "string"
+    }
+  },
+  "answer_literals": [
+    "${VALUE}"
+  ],
+  "attacks": {
+    "wrong entity": {
+      "output": [
+        {
+          "op": "replace",
+          "path": "/p",
+          "value": "${VALUE}"
+        }
+      ],
+      "obligation_ids": [
+        "target",
+        "keep"
+      ]
+    },
+    "wrong scope": {
+      "output": [
+        {
+          "op": "replace",
+          "path": "/v",
+          "value": "${OLD}"
+        }
+      ],
+      "obligation_ids": [
+        "target"
+      ]
+    },
+    "collateral edit": {
+      "output": [
+        {
+          "op": "replace",
+          "path": "/v",
+          "value": "${VALUE}"
+        },
+        {
+          "op": "replace",
+          "path": "/p",
+          "value": "damaged"
+        }
+      ],
+      "obligation_ids": [
+        "keep"
+      ]
+    }
+  },
+  "inapplicable": {
+    "old-ID substitution": "No superseded record identifier exists in this source.",
+    "cancelled action executed": "No cancelled action exists in this source."
+  },
+  "distinctness_review": {
+    "signed": false,
+    "reviewer": null,
+    "purpose": "development smoke only; no independent-source claim"
+  },
+  "review": {
+    "reviewer": "harness-author-self-check; not independent",
+    "narrative_obligations": false,
+    "semantic_leakage": false,
+    "generic_safe": "I will preserve the records.",
+    "recency_only": "{}",
+    "coverage_probes": []
+  }
+}
