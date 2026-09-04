@@ -3925,3 +3925,16 @@ uv run python scripts/bfcl_mt.py preflight --split dev --mode teacher --trunk 4b
   none shows degeneration-free recovery of evicted ones; V-Steer-on-retained-memory only as a later 64-episode
   feasibility test. Execution order: close BFCL -> author §3 sources/checkers -> scope + digest prototypes
   independently -> any adoption via a newly frozen package comparison.
+
+## 2026-09-04 — SC1 v2 consolidated by gpt-6-astra from three reviews
+
+- Consolidated astra/fable/kimi SOUND-WITH-FIXES reviews and the §3/§5 design source into DRAFT v2; not registered.
+- Preserved the v1 contract byte-for-byte as data/sc1/AUTHOR-CONTRACT-v1.md and appended LEDGER-PLAN v2 only.
+- Contract now requires fresh isolated authors, retained provenance, independent seeded 75:25 age sampling,
+  distinct source specs/fingerprints, explicit protected sets, bounded passing references and full negative coverage.
+- Registration pins three freezes, common candidates/key rules, new whole-span admission, chronological echo,
+  paired flag/corruption gates, the 1.25x latency gate, cap/defer behavior and immutable per-arm records.
+- Recorded every review finding's disposition, including no domain quotas, no setup-trained diagnostic and
+  a conditional 35–50-hour spec/expander estimate; author-version/artifact manifests remain future prerequisites.
+- CPU/foreground checks: diff --check clean; cmp confirms preserved prefixes/v1; no code/model runs or sealed reads.
+- Next: review v2 and complete its freeze prerequisites before any production authoring or SC1 execution.
