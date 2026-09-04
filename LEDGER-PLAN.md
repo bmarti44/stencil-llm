@@ -808,3 +808,14 @@ against a zero baseline — the vacuity that fable (harness review) and sol warn
 "invalid <= full + 1" and a one-event guard. Leg B's clause is not retroactively changed. A future Leg B re-run under
 a prospectively registered clause matching Leg A's would be a new registration.
 Cost: 75,124 s = 20.9 GPU-h (82.6 s/conversation), under the amended 24 GPU-h cap.
+LEG B OUTCOME — addendum (2026-09-04, fable's review, text only): (a) the triggered rule applies — the classifier is
+NOT iterated on Multi-IF results; the C2 diagnostic (classifier under-selects turn-2 tail text; identical columns
+in 459/909 conversations; −7.1 pts where columns differ) is DISCLOSED and is not used to author classifier data.
+(b) The role rule is NOT registered as the selector: C2 did not fail alone (the safety clause also fired), and
+role_pinned's budget was borrowed from the classifier; a deployable role rule needs its own registered budget.
+(c) The "ADVANCE to Leg A" gate is closed as moot: Leg A was authorized on 2026-09-03 17:41 on its own review
+record, before this outcome was viewed. (d) The three invalid outputs are 512-token whitespace/markdown loops after
+a "wrap in double quotation marks" constraint (no chat-control tokens anywhere); conversation 534's single
+generation is counted in two arms; they are also counted under degenerate. p-values reported as 0.0 are underflow
+(t ~ 20, df ~ 900; p < 1e-15). Any future cohort registers an invalid definition that excludes degenerate loops
+and carries a one-event guard; no re-scoring of this cohort.
