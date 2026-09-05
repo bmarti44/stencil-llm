@@ -1,0 +1,51 @@
+"""Audit retained records of the terminally invalid FOCUS-2c pilot; no model load."""
+from datetime import datetime, timezone
+from pathlib import Path
+from stencil import focus2 as f
+
+root = Path('/home/bmarti44/stencil-llm')
+base = root / 'results/qwen/focus2c'
+output = base / 'outputs'
+pre = f.preflight(base / 'freeze', base / 'launch-receipt.json', 'pilot', output)
+folder = output / 'pilot'
+start = f.parse_json((folder / 'start.json').read_text())
+end = f.parse_json((folder / 'end.json').read_text())
+rows = f.RecordStore(folder / 'records').rows()
+expected_reason = 'invalid delay: complete pair needs nonempty body and generated terminal; no replay/retry'
+f.require(end['status'] == 'INVALID' and end['reason'] == expected_reason, 'terminal status')
+f.require(end['binding'] == pre['binding'], 'terminal binding')
+f.require(end['spent_before'] == pre['spent'], 'nonadditive stage cost')
+f.require(start == dict(stage='pilot', binding=pre['binding'], spent_before=pre['spent']), 'start receipt')
+f.require(end['record_count'] == len(rows) == 28, 'retained record count')
+f.require(end['records_hash'] == f.digest(sorted(rows, key=lambda r:(r['episode'],r['arm'],r['checkpoint']))), 'terminal records hash')
+f.require(end['spent_after'] - end['spent_before'] + 1e-6 >= end['load_seconds'] + sum(r['cost']['allocation_seconds'] for r in rows), 'allocation cost')
+first, second = pre['banks']['pilot'][:2]
+first_rows = [r for r in rows if r['episode'] == first['id']]
+f.require(len(first_rows) == 27, 'first episode record count')
+f.require(len(f.validate_records(first_rows, [first], pre['tok'], pre['binding'], complete=True)) == 1, 'first episode validation')
+try:
+    f.validate_records(rows, pre['banks']['pilot'], pre['tok'], pre['binding'], complete=False)
+except f.Invalid as exc:
+    f.require(str(exc) == expected_reason, 'different raw-record validation failure')
+else:
+    raise f.Invalid('terminal failure did not reproduce')
+failed = [r for r in rows if r['episode'] == second['id']]
+f.require(len(failed) == 1, 'unexpected records after delay failure')
+bad = failed[0]
+f.require(bad['checkpoint'] == 'DELAY0' and bad['arm'] == 'shared', 'failure identity')
+f.require(len(bad['output_ids']) == f.CAP == 64 and bad['eos'] is None and bool(bad['output_text'].strip()), 'failure mechanism')
+f.require(bad['complete'] and bad['flags']['truncated'], 'generation cap receipt')
+f.require(not (folder / 'certificate.json').exists(), 'unexpected pilot certificate')
+f.require(not (output / 'run').exists(), 'unexpected final run')
+receipt = dict(status='VERIFIED_TERMINAL_INVALID', created_utc=datetime.now(timezone.utc).isoformat(), fit_on='none',
+    failure_reason=expected_reason, failure_episode=bad['episode'], failure_checkpoint=bad['checkpoint'],
+    nonempty_body=True, output_body_tokens=64, generated_terminal=None, truncated=True,
+    record_count=len(rows), records_hash=end['records_hash'], completed_pilot_episodes=1, registered_pilot_episodes=4,
+    completed_episode_records=27, completed_episode_validation='PASS; renderer, checker, interventions, pairing',
+    whole_pilot_validation='Reproduces registered INVALID delay; no passing pilot certificate',
+    spent_before=end['spent_before'], pilot_seconds=end['spent_after']-end['spent_before'],
+    spent_after=end['spent_after'], load_seconds=end['load_seconds'], gpu_cap_seconds=f.GPU_CAP,
+    completed_projection=None, final_run_started=False, analyze_invoked=False, regenerated_model_outputs=False,
+    freeze_commit=pre['binding']['freeze_commit'], manifest_sha256=pre['binding']['manifest_sha256'])
+f.atomic_json(base / 'pilot-audit.json', receipt)
+print(f.canonical(receipt))

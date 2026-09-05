@@ -1,0 +1,32 @@
+"""Read-only recomputation of the completed FOCUS-2c competence certificate."""
+from datetime import datetime, timezone
+from pathlib import Path
+from stencil import focus2 as f
+
+root = Path('/home/bmarti44/stencil-llm')
+base = root / 'results/qwen/focus2c'
+output = base / 'outputs'
+pre = f.preflight(base / 'freeze', base / 'launch-receipt.json', 'competence', output)
+folder = output / 'competence'
+end = f.parse_json((folder / 'end.json').read_text())
+cert = f.parse_json((folder / 'certificate.json').read_text())
+try:
+    verified, checked_end = f.validate_certificate(output, 'competence', pre)
+except f.Ineligible as exc:
+    f.require(cert['status'] == 'INELIGIBLE' and end['status'] == 'INELIGIBLE', 'inconsistent stop')
+    gate_result = str(exc)
+else:
+    f.require(verified == cert and checked_end == end, 'certificate mismatch')
+    gate_result = 'PASS'
+receipt = dict(
+    status='VERIFIED', created_utc=datetime.now(timezone.utc).isoformat(),
+    stage='competence', gate_status=cert['status'], gate_result=gate_result,
+    fit_on='none', cells=cert['cells'], records_count=cert['records_count'],
+    records_hash=cert['records_hash'], spent_after=end['spent_after'],
+    load_seconds=end['load_seconds'], freeze_commit=pre['binding']['freeze_commit'],
+    manifest_sha256=pre['binding']['manifest_sha256'],
+    verification='Committed dependencies and assets; deterministic banks and rendered token maps; every atomic raw-record hash and identity; complete record validation and checker recomputation; start/end receipts, allocation accounting and exact certificate equality.',
+    regenerated_model_outputs=False,
+)
+f.atomic_json(base / 'competence-audit.json', receipt)
+print(f.canonical(receipt))
