@@ -264,13 +264,17 @@ def payload(rng, family):
     return [{"left": values[i], "right": values[i + 1]} for i in (0, 2, 4)]
 
 
-def generate_banks():
+def generate_banks(development=None):
+    """Input-only rejection sampling; each request advances its own seeded RNG."""
+    seen = {}
+    if development is not None:
+        validate_development(development)
+        for label, source in sorted(development["sources"].items()):
+            for fp in source["fingerprints"]:
+                seen.setdefault(fp, dict(source=label))
     banks = {"competence": [], "pilot": [], "final": []}
-    for bank, seed, count in (
-        ("competence", 9053712, 64),
-        ("pilot", 9053713, 1),
-        ("final", 9053714, 64),
-    ):
+    for bank, count in (("competence", 64), ("pilot", 1), ("final", 64)):
+        seed = CONFIG["seeds"][bank]
         for family in SELECTED_FAMILIES:
             skills = FAMILIES[family]
             for direction in (*skills, "default") if bank == "competence" else skills:
@@ -292,10 +296,30 @@ def generate_banks():
                             memo=bank != "competence"
                             and i < (16 if bank == "final" else 1),
                         )
-                        ep["requests"] = {
-                            step: payload(rng(step, "payload"), family)
-                            for step in (("SET",) if bank == "competence" else REQUESTS)
-                        }
+                        ep["requests"] = {}
+                        ep["payload_attempts"] = {}
+                        ep["payload_rejections"] = []
+                        for step in ("SET",) if bank == "competence" else REQUESTS:
+                            payload_rng = rng(step, "payload")
+                            attempt = 0
+                            while True:
+                                value = payload(payload_rng, family)
+                                fp = fingerprint(family, value)
+                                if fp not in seen:
+                                    break
+                                ep["payload_rejections"].append(
+                                    dict(
+                                        request=step,
+                                        attempt=attempt,
+                                        payload=value,
+                                        fingerprint=fp,
+                                        collision_with=seen[fp],
+                                    )
+                                )
+                                attempt += 1
+                            ep["requests"][step] = value
+                            ep["payload_attempts"][step] = attempt
+                            seen[fp] = dict(episode=ep["id"], request=step)
                         banks[bank].append(ep)
     return banks
 
@@ -313,14 +337,17 @@ def fingerprint(family, value):
     return digest([family, value])
 
 
-def validate_banks(banks, development):
+DEVELOPMENT_COVERAGE = (*range(31, 40), "repair", "focus2", "focus2b-retired")
+
+
+def validate_development(development):
     require(development is not None, "missing outcome-free development manifest")
     require(
         set(development) == {"coverage", "fingerprints", "sources"},
         "development fields/coverage evidence",
     )
     require(
-        set(development["coverage"]) == {*range(31, 40), "repair"},
+        set(development["coverage"]) == set(DEVELOPMENT_COVERAGE),
         "development coverage",
     )
     require(
@@ -346,14 +373,21 @@ def validate_banks(banks, development):
         )
         covered.update(fps)
     require(covered == set(development["fingerprints"]), "development coverage union")
+
+
+def validate_banks(banks, development):
+    validate_development(development)
     seen = set(development["fingerprints"])
     for rows in banks.values():
         for ep in rows:
             for value in ep["requests"].values():
                 fp = fingerprint(ep["family"], value)
-                require(fp not in seen, "semantic collision (no redraw)")
+                require(fp not in seen, "semantic collision survived generation")
                 seen.add(fp)
-    require(banks == generate_banks(), "banks differ from fixed seeded laws/counts")
+    require(
+        banks == generate_banks(development),
+        "banks differ from fixed seeded laws/counts/rejection records",
+    )
     return sorted(seen)
 
 
@@ -1737,9 +1771,9 @@ PINS = dict(
     v2_commit="7d0c24413b5d9093f814071c37e5c332b3ec62dd",
     v3_commit="1b8216aab8af60e03b7d21f00ae33d90f43cce22",
     v3_section_sha256="4f80ac8a27d06507eab400ca50dabc6100fd8cd0e8e83cd906b4b786ecb99f9d",
-    focus2b_commit="d6d7be9afd2dbc28e7a8e903fb6e56f4aacd043f",
+    focus2b_commit="673876cf986979400346164ac85ac3c970444665",
     focus2b_section_sha256=(
-        "f48d7e345ed5e0c6237b8fffb12259b4f7a833f36172bfe7dcb197de58139e70"
+        "dba824acb8a4d788d578f4fe7b758ce60175dc2f67830c36280134a834006760"
     ),
     ledger="LEDGER-PLAN.md",
     v2_section_sha256=(
@@ -1783,7 +1817,10 @@ CONFIG = dict(
     cap=64,
     gpu_cap_seconds=GPU_CAP,
     arm_order=list(ARMS),
-    seeds={"competence": 9053712, "pilot": 9053713, "final": 9053714},
+    seeds={"competence": 9053715, "pilot": 9053716, "final": 9053717},
+    payload_collision_policy=(
+        "reject; advance same request RNG; log zero-based attempts"
+    ),
     namespace="focus2-v1",
     repair="placeholder",
     placeholder_ids=[13],
@@ -1924,7 +1961,13 @@ def focus2b_section(text):
     marker = "## FOCUS-2b — SORT-ONLY PLACEMENT + EVICTION (DRAFT v1"
     if marker in text:
         text = text[text.index(marker) :]
-    return text.split("\n## ", 1)[0].rstrip("\n")
+    candidate = text.split("\n## ", 1)[0].rstrip("\n")
+    amendment = "## FOCUS-2b AMENDMENT 1 (2026-09-05)"
+    if amendment in text:
+        candidate += "\n\n" + text[text.index(amendment) :].split("\n## ", 1)[0].rstrip(
+            "\n"
+        )
+    return candidate
 
 
 def repair_gate(receipt):
@@ -2138,7 +2181,7 @@ def verify_evidence(root, manifest, contents):
 
 
 @lru_cache(maxsize=2)
-def template_manifest(tok):
+def template_manifest(tok, banks_json=None):
     require(
         sha(RECAP) == RECAP_HASH
         and encode(tok, ".") == [13]
@@ -2147,7 +2190,7 @@ def template_manifest(tok):
     )
     delay_text(tok)
     strings = set(TEMPLATES.values())
-    banks = generate_banks()
+    banks = parse_json(banks_json) if banks_json is not None else generate_banks()
     for bank in banks.values():
         for ep in bank:
             history = initial_history(tok, ep)
@@ -2192,17 +2235,17 @@ def template_manifest(tok):
             )
             for s in sorted(strings)
         },
-        renderer_fixture_sha256=validate_renderers(tok),
+        renderer_fixture_sha256=validate_renderers(tok, banks),
         recap_sha256=RECAP_HASH,
         eos=EOS,
         placeholder_ids=[13],
     )
 
 
-def validate_renderers(tok):
+def validate_renderers(tok, banks=None):
     """Outcome-free closure/layout assertions before backend construction."""
     hashes = []
-    for ep in generate_banks()["pilot"]:
+    for ep in (banks if banks is not None else generate_banks())["pilot"]:
         h = initial_history(tok, ep)
         for step in ("SET", "PREHOLD"):
             if ep["delay"] and step == "PREHOLD":
@@ -2235,10 +2278,10 @@ def prepare_freeze(directory, *, tok=None, section_text=None, development=None):
     section_text = section_text or focus2b_section(
         git_bytes(ROOT, "show", f"{PINS['focus2b_commit']}:{PINS['ledger']}").decode()
     )
-    banks = generate_banks()
+    banks = generate_banks(development)
     if development is not None:
         validate_banks(banks, development)
-    templates = template_manifest(tok)
+    templates = template_manifest(tok, canonical(banks))
     directory.mkdir(parents=True)
     for name, value in (("banks", banks), ("templates", templates), ("config", CONFIG)):
         atomic_json(directory / (name + ".json"), value)
@@ -2257,7 +2300,7 @@ def prepare_freeze(directory, *, tok=None, section_text=None, development=None):
         atomic_json(directory / "development.json", development)
     manifest = dict(
         status="DRAFT",
-        version=4,
+        version=5,
         fit_on="none",
         repair="placeholder",
         anchors={
@@ -2309,7 +2352,7 @@ def preflight(
     if manifest.get("repair") != "placeholder":
         raise StopRepair("absent/unselected repair policy")
     require(
-        manifest.get("version") == 4 and manifest.get("fit_on") == "none",
+        manifest.get("version") == 5 and manifest.get("fit_on") == "none",
         "registration version/lineage",
     )
     require(manifest.get("candidate_only") is False, "unregistered candidate manifest")
@@ -2392,7 +2435,7 @@ def preflight(
         root / manifest["files"]["tokenizer"]["path"]
     )
     require(
-        parse_json(contents["templates"]) == template_manifest(tok),
+        parse_json(contents["templates"]) == template_manifest(tok, canonical(banks)),
         "complete template/rendered tokens mismatch",
     )
     binding = dict(

@@ -1,4 +1,4 @@
-"""CPU-only adversarial fixtures. No historical bank or model is a test input."""
+"""CPU-only fixtures, including the authorized input-only f86ae560 regression."""
 
 import copy
 import hashlib
@@ -39,8 +39,10 @@ def banks():
 
 def fabricated_development(extra=None):
     sources = {}
-    for label in (*range(31, 40), "repair"):
-        fps = [extra or f.sha("fabricated input " + str(label))]
+    for label in f.DEVELOPMENT_COVERAGE:
+        fps = [
+            extra if extra and label == 34 else f.sha("fabricated input " + str(label))
+        ]
         sources[str(label)] = dict(
             path="fabricated-source.py",
             sha256=f.sha("fabricated source"),
@@ -49,7 +51,7 @@ def fabricated_development(extra=None):
             fingerprints_sha256=f.digest(fps),
         )
     return dict(
-        coverage=list(range(31, 40)) + ["repair"],
+        coverage=list(f.DEVELOPMENT_COVERAGE),
         sources=sources,
         fingerprints=sorted({fp for s in sources.values() for fp in s["fingerprints"]}),
     )
@@ -71,7 +73,7 @@ def test_literal_template():
 
 
 def test_independent_stream_and_generator(banks):
-    namespace = "focus2-v1:9053714:final:sort:ascending:0:0:SET:payload"
+    namespace = "focus2-v1:9053717:final:sort:ascending:0:0:SET:payload"
     rng = random.Random(
         int.from_bytes(hashlib.sha256(namespace.encode()).digest(), "big")
     )
@@ -120,7 +122,7 @@ def test_fingerprints_ignore_tags_ids_and_sort_permutations(banks):
 def test_focus2b_operand_law_seeds_and_memo_denominators(banks):
     assert f.SELECTED_FAMILIES == ("sort",)
     assert f.CONFIG["families"] == ["sort"]
-    for name, seed in (("competence", 9053712), ("pilot", 9053713), ("final", 9053714)):
+    for name, seed in (("competence", 9053715), ("pilot", 9053716), ("final", 9053717)):
         assert {ep["seed"] for ep in banks[name]} == {seed}
         assert f.CONFIG["seeds"][name] == seed
         assert {ep["family"] for ep in banks[name]} == {"sort"}
@@ -134,6 +136,84 @@ def test_focus2b_operand_law_seeds_and_memo_denominators(banks):
         (ep["direction"], ep["delay"]) for ep in banks["final"] if ep["memo"]
     )
     assert len(memos) == 4 and set(memos.values()) == {16}
+
+
+def test_amendment1_f86ae560_rejected_and_resampled(monkeypatch, tok):
+    # Reproduce the retired seed's exact failed request, without opening outcomes.
+    monkeypatch.setitem(
+        f.CONFIG, "seeds", dict(competence=9053712, pilot=9053713, final=9053714)
+    )
+    rng = f.stream(9053714, "final", "sort", "descending", 0, 27, "BACK", "payload")
+    rejected = f.payload(rng, "sort")
+    assert rejected == [-20, 9, 17, 6, -5]
+    fp = f.fingerprint("sort", rejected)
+    assert fp == "f86ae56099ff0e4830019faeb822cd962413cc7b395ef4f259ae3de33228a824"
+    replacement = f.payload(rng, "sort")
+    dev = fabricated_development(fp)
+    banks = f.generate_banks(dev)
+    ep = next(e for e in banks["final"] if e["id"] == "final:sort:descending:0:27")
+    assert ep["requests"]["BACK"] == replacement != rejected
+    assert ep["payload_attempts"]["BACK"] == 1
+    assert ep["payload_rejections"] == [
+        dict(
+            request="BACK",
+            attempt=0,
+            payload=rejected,
+            fingerprint=fp,
+            collision_with=dict(source="34"),
+        )
+    ]
+    f.validate_banks(banks, dev)
+    # The real frozen-template consumer must bind the accepted request's tokens.
+    templates = f.template_manifest(tok, f.canonical(banks))
+    text = f.request_text(ep, "BACK")
+    assert templates["rendered"][f.sha(text)]["tokens"] == f.encode(tok, text)
+    bad = copy.deepcopy(banks)
+    bad["final"][banks["final"].index(ep)]["payload_rejections"] = []
+    with pytest.raises(f.Invalid, match="rejection records"):
+        f.validate_banks(bad, dev)
+
+
+def test_amendment1_rejects_within_and_across_banks(monkeypatch):
+    original = f.stream
+
+    def repeated(seed, bank, family, direction, delay, episode, request, purpose):
+        if (
+            direction == "ascending"
+            and delay == 0
+            and request == "SET"
+            and purpose == "payload"
+            and (episode == 0 or (bank == "competence" and episode == 1))
+        ):
+            return original(
+                9053715, "competence", family, direction, delay, 0, request, purpose
+            )
+        return original(seed, bank, family, direction, delay, episode, request, purpose)
+
+    monkeypatch.setattr(f, "stream", repeated)
+    dev = fabricated_development()
+    banks = f.generate_banks(dev)
+    episodes = [
+        banks["competence"][0],
+        banks["competence"][1],
+        banks["pilot"][0],
+        banks["final"][0],
+    ]
+    for attempt, ep in enumerate(episodes):
+        assert ep["payload_attempts"]["SET"] >= attempt
+        if attempt:
+            assert ep["payload_rejections"][0]["collision_with"] == dict(
+                episode=episodes[0]["id"], request="SET"
+            )
+    fps = [
+        f.fingerprint(ep["family"], value)
+        for bank in banks.values()
+        for ep in bank
+        for value in ep["requests"].values()
+    ]
+    assert len(fps) == len(set(fps)) == 2012
+    assert banks == f.generate_banks(dev)
+    f.validate_banks(banks, dev)
 
 
 def test_focus2b_actual_requests_state_shape_and_obligations_once(tok, banks):
