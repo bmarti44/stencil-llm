@@ -20,6 +20,7 @@ import hashlib
 import importlib.metadata
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -264,25 +265,48 @@ def dependencies():
     }
 
 
+def snapshot_ledger_ranges(ledger):
+    """DRAFT v2 plus every adopted SC1 AMENDMENT N, excluding editorial sections.
+
+    An amendment's terminal blank separator is not scientific content. End its
+    range after the last nonblank line so later appends cannot extend it.
+    """
+    headings = list(re.finditer(rb"(?m)^## .+", ledger))
+    ranges, numbers = [], []
+    for i, heading in enumerate(headings):
+        text = heading.group()
+        draft = text.startswith(SCIENCE_HEADING)
+        amendment = re.match(rb"## SC1 AMENDMENT ([1-9][0-9]*)(?: |$)", text)
+        if not draft and not amendment:
+            continue
+        start = heading.start()
+        end = headings[i + 1].start() if i + 1 < len(headings) else len(ledger)
+        if amendment:
+            end = start + len(ledger[start:end].rstrip(b"\n")) + 1
+            numbers.append(int(amendment[1]))
+        elif ranges:
+            raise ValueError("duplicate/out-of-order snapshot DRAFT v2")
+        ranges.append((start, end))
+    if (
+        not ranges
+        or not ledger[ranges[0][0] :].startswith(SCIENCE_HEADING)
+        or not numbers
+        or numbers != list(range(1, len(numbers) + 1))
+    ):
+        raise ValueError(
+            "snapshot requires DRAFT v2 and ordered SC1 AMENDMENT N sections"
+        )
+    return ranges
+
+
 def produce_snapshot():
-    """Concatenate three committed source ranges; no tokenizer/model or live tail."""
+    """Concatenate committed science sections and contract, never proposal text."""
     ledger = (ROOT / "LEDGER-PLAN.md").read_bytes()
-    amendment = (ROOT / AMENDMENT).read_bytes()
     contract = (ROOT / CONTRACT).read_bytes()
-    if not amendment.startswith(AMENDMENT_HEADING + b"\n"):
-        raise ValueError("adopted amendment heading required")
-    start = ledger.index(SCIENCE_HEADING)
-    stop = ledger.index(AMENDMENT_HEADING, start)
-    if ledger[stop : stop + len(amendment)] != amendment:
-        raise ValueError("ledger must contain the exact adopted amendment")
-    # Reject interposed editorial sections instead of silently including them.
-    if b"\n## " in ledger[start:stop].rstrip(b"\n"):
-        raise ValueError("unexpected section inside SC1 DRAFT v2")
     commit = git("rev-parse", "HEAD")
     parts, chunks = [], []
     for path, data, a, b in (
-        ("LEDGER-PLAN.md", ledger, start, stop),
-        ("LEDGER-PLAN.md", ledger, stop, stop + len(amendment)),
+        *(("LEDGER-PLAN.md", ledger, a, b) for a, b in snapshot_ledger_ranges(ledger)),
         (CONTRACT, contract, 0, len(contract)),
     ):
         committed = subprocess.check_output(
@@ -324,12 +348,14 @@ def verify_snapshot():
         or record.get("science_snapshot_path") != SCIENCE_SNAPSHOT
         or record.get("science_hash") != hashlib.sha256(snapshot).hexdigest()
         or record.get("byte_length") != len(snapshot)
-        or len(record.get("parts", [])) != 3
+        or len(record.get("parts", [])) < 3
     ):
         raise ValueError("snapshot provenance/bytes mismatch")
     offset = 0
     for part, path in zip(
-        record["parts"], ("LEDGER-PLAN.md", "LEDGER-PLAN.md", CONTRACT), strict=True
+        record["parts"],
+        ["LEDGER-PLAN.md"] * (len(record["parts"]) - 1) + [CONTRACT],
+        strict=True,
     ):
         a, b = part["byte_range"]
         size = part["byte_length"]
@@ -351,12 +377,27 @@ def verify_snapshot():
         if (
             path == "LEDGER-PLAN.md"
             and offset
-            and not chunk.startswith(AMENDMENT_HEADING)
+            and not re.match(rb"## SC1 AMENDMENT [1-9][0-9]*(?: |\n)", chunk)
         ):
             raise ValueError("snapshot amendment heading mismatch")
         offset += size
     if offset != len(snapshot):
         raise ValueError("snapshot has unrecorded bytes")
+    ledger_parts = record["parts"][:-1]
+    commits = {p["source_commit"] for p in ledger_parts}
+    if len(commits) != 1:
+        raise ValueError("snapshot science sections require one source commit")
+    ledger = subprocess.check_output(
+        [
+            "git",
+            "-C",
+            str(ROOT),
+            "show",
+            f"{ledger_parts[0]['source_commit']}:LEDGER-PLAN.md",
+        ]
+    )
+    if [tuple(p["byte_range"]) for p in ledger_parts] != snapshot_ledger_ranges(ledger):
+        raise ValueError("snapshot omitted or changed adopted science sections")
     return record
 
 
@@ -408,7 +449,14 @@ def build_manifest(bank, trunk, episode_rows, *, stage1=None, executable=None):
         "science_snapshot_path": SCIENCE_SNAPSHOT,
         "science_hash": files[SCIENCE_SNAPSHOT],
         "science_parts": verify_snapshot()["parts"],
-        "filler_hash": sc1.digest(episodes.FILLER),
+        "incidental_content": {
+            "version": episodes.FILLER_VERSION,
+            "source_sentence_hashes": {
+                ep["id"]: ep["filler_manifest"]["authored_sentences_hash"]
+                for ep in episode_rows
+            },
+            "legacy_guard_hash": sc1.digest(episodes.LEGACY_FILLER),
+        },
         "deployment": {
             "dtype": "bfloat16",
             "numerics": "hf_compatible",

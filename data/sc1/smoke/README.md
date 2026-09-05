@@ -1,275 +1,102 @@
-# Disposable SC1 harness fixtures
+# Disposable SC1 round-5 cue repair
 
-Current status: Amendment 1 is appended; the round-4 candidate and audit below
-supersede historical v2/v3 snapshot and cue measurements. Stage 2 acceptance
-awaits the next independent review of this frozen law and smoke evidence.
+Candidate status: Amendment 2 is proposed in `../STAGE1-CLAUSES.md`; the orchestrator must adopt it, regenerate the snapshot/manifest and obtain independent review before Stage 2 acceptance. The current snapshot contains adopted DRAFT v2 + Amendment 1 + the revised contract, with committed byte-range provenance. The proposed law is not falsely presented as already adopted.
 
-These eight fictional sources were written for this implementation by an informed
-harness session. They are not isolated production authoring and must never be
-reused for setup or final. The recorded author/factor draws exercise the sampler;
-they do not claim those providers authored these fixtures. Independent semantic
-review, author construction effort, and model determinism are not certified here.
+These eight fictional sources are informed harness fixtures, never isolated production authoring or reusable setup/final sources. The sampled author names are factor draws, not claims about who wrote the fixtures. Source identities have a round5 suffix. Work, task specifications, reference outputs, seeds and factor assignments match the reviewed bank. Data lineage: fit-on = none; evaluated-on = disposable SC1 smoke and CPU fixtures only. No benchmark prompts/responses, model/scorer execution or policy-outcome tuning supplied this repair.
 
-CPU commands:
+Each source now supplies its entire `incidental_sentences` array. Expansion orders only those authored sentences with the existing filler seed and uses the source's ordered `filler_turns` layout. There is no executable prose generator or shared padding bank. Authored incidental named-card and preserved-record templates match necessary templates; the same fictional task domains occur in necessary and incidental contexts across these disposable sources. Bases preserve source-authored causal order; necessary and incidental pieces may share a turn. The historical 512-item recognizer is retained solely for regression and the newest-user guard. Exhausted source text or capacity fails; the compiler cannot invent more text.
 
+All turns remain capped at 600 text tokens; history acceptance is 4096–8192 tokens, expansion targets at least 4608 after a complete round-robin batch, and every episode has U >= 2B and a budget skip. The newest eligible old user is never expansion-designated and contains no historical pool sentence. Its base is necessary in smoke-01 and smoke-03 and incidental in the other six sources. OLD decisive-fact positions are 1, 4, 3, 7, 1 and 1, preserving causal ordering and all original age draws.
+
+## Cue contingency audit
+
+Method: `cue_candidate_rows` renders public messages with the real local Qwen3-4B tokenizer, rebuilds necessary-evidence offsets from unique authored quotes, and calls the common unscored `build_sc1_candidates`. Positive means token overlap with necessary decisive-fact/trajectory evidence; negative means outside those intervals, not necessarily semantically useless. Initial-state prose and the canonical smoke-05 trace are outside that label. Public form uses fixed, unfitted regular expressions for these disposable fixtures; labels never enter policy selection. Exact pool membership is the original unfitted recognizer. All tables count eligible old candidate pieces, including pieces from RECENT sources.
+
+The regression reads all eight actual historical episodes using `git show 318a90c26e5f5fcf241ad23e3007eb61da1b0273`, re-tokenizes them and rebuilds evidence spans; saved historical candidate coordinates are not trusted. `../cue-regression-318a90c.json` retains the complete recomputed before tables. `validation.json` contains the complete after tables, including every joint form/role/position cell.
+
+| Public stratum | Before positive | Before negative | After positive | After negative |
+| --- | ---: | ---: | ---: | ---: |
+| All old candidates | 25 | 1590 | 16 | 579 |
+| Historical pool form | 0 | 1539 | 0 | 0 |
+| Index 1, all sources | 6 | 0 | 3 | 49 |
+| Index 1, OLD sources | 6 | 0 | 3 | 49 |
+| Newest old user, all sources | 0 | 8 | 2 | 7 |
+| Newest old user, OLD sources | 0 | 6 | 2 | 5 |
+
+The historical bank fails all three registered counterexamples: pool membership marks 1,539 negatives with no positives; index 1 has six positives and no negatives; newest-old-user has eight negatives and no positives. The new bank passes the mixed-label assertions. This is a smoke regression, never a production balancing quota, factor-resampling rule or policy-retention filter.
+
+| Public form (after) | Positive | Negative |
+| --- | ---: | ---: |
+| code | 6 | 179 |
+| edit | 6 | 155 |
+| other | 0 | 8 |
+| previous | 2 | 80 |
+| return | 1 | 79 |
+| switch | 1 | 78 |
+
+| Role | Before positive | Before negative | After positive | After negative |
+| --- | ---: | ---: | ---: | ---: |
+| tool | 2 | 1182 | 2 | 367 |
+| user | 23 | 408 | 14 | 212 |
+
+| Message index | Before positive | Before negative | After positive | After negative |
+| --- | ---: | ---: | ---: | ---: |
+| 0 | 12 | 101 | 7 | 43 |
+| 1 | 6 | 0 | 3 | 49 |
+| 2 | 7 | 236 | 1 | 114 |
+| 3 | 0 | 158 | 1 | 35 |
+| 4 | 0 | 391 | 1 | 116 |
+| 5 | 0 | 1 | 0 | 1 |
+| 6 | 0 | 391 | 1 | 114 |
+| 7 | 0 | 8 | 2 | 7 |
+| 9 | 0 | 296 | 0 | 98 |
+| 11 | 0 | 8 | 0 | 2 |
+
+Every joint form/role/position cell with positives also has negatives. Those cells are shown below; zero-positive cells are retained in the full JSON report.
+
+| Public form | Role | Index | Positive | Negative |
+| --- | --- | ---: | ---: | ---: |
+| code | tool | 1 | 1 | 5 |
+| code | tool | 3 | 1 | 1 |
+| code | user | 1 | 2 | 12 |
+| code | user | 4 | 1 | 1 |
+| code | user | 7 | 1 | 5 |
+| edit | user | 0 | 4 | 9 |
+| edit | user | 2 | 1 | 19 |
+| edit | user | 7 | 1 | 1 |
+| previous | user | 0 | 2 | 7 |
+| return | user | 6 | 1 | 4 |
+| switch | user | 0 | 1 | 5 |
+
+`test_round5_matched_contexts_through_bank` supplies two disposable causal contexts with byte-identical code observations at user positions 1 and 7. The same full edit instructions also switch relevance at user position 0. Each observation/instruction is necessary in one context and incidental in the other. Both pass references and all six negatives, including type-valid semantic negatives. `test_round5_incidental_expansion_can_share_evidence_turn` also checks that appended source text and necessary evidence share turn 1, and reconstructs every appended byte from the submitted source array. Missing, empty, duplicate, exhausted and historical-pool content are rejected through the bank consumer.
+
+## Regenerated geometry
+
+| Episode | Age | Fact index | History | U columns | B | Budget skips | Max turn | Newest old user |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| smoke-00 | OLD | 1 | 4869 | 2067 | 256 | 61 | 524 | 7 |
+| smoke-01 | OLD | 4 | 4648 | 2375 | 256 | 71 | 482 | 7 |
+| smoke-02 | OLD | 3 | 4775 | 2237 | 256 | 68 | 524 | 7 |
+| smoke-03 | OLD | 7 | 4645 | 2168 | 256 | 65 | 434 | 7 |
+| smoke-04 | RECENT | 11 | 4883 | 1997 | 256 | 58 | 493 | 7 |
+| smoke-05 | OLD | 1 | 4702 | 2461 | 256 | 77 | 584 | 7 |
+| smoke-06 | OLD | 1 | 4875 | 1938 | 256 | 60 | 511 | 7 |
+| smoke-07 | RECENT | 11 | 4777 | 2017 | 256 | 60 | 535 | 7 |
+
+All eight references pass and all 48 generated negatives fail. Designation in `rule_pin_composition` means membership in expansion-designated turns; it is not a semantic relevance label. Existing policy/pressure diagnostics remain in validation.json and do not govern source selection.
+
+## Reproduction and limits
+
+After committing source/code/contract changes, run on CPU:
+
+```sh
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 uv run python scripts/sc1.py snapshot
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 uv run python scripts/sc1.py smoke
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 uv run python scripts/sc1.py validate data/sc1/smoke
 ```
-uv run pytest -q tests/test_sc1.py tests/test_eval_data_separation.py tests/test_sealed_guard.py tests/test_no_side_effect_imports.py
-CUDA_VISIBLE_DEVICES='' uv run python scripts/sc1.py snapshot
-CUDA_VISIBLE_DEVICES='' uv run python scripts/sc1.py smoke
-CUDA_VISIBLE_DEVICES='' uv run python scripts/sc1.py validate data/sc1/smoke
-```
 
-`smoke` validates all eight sources, writes the expanded episodes and validation
-report, exports the original source/API grammar and exact power enumeration, and
-writes an executable manifest. It loads a tokenizer and hashes checkpoint bytes;
-it never instantiates a model. Code must be committed before manifest creation.
-`manifest_id` hashes canonical manifest content excluding that field; the file's
-ordinary SHA-256 additionally covers the field and trailing newline.
+The snapshot producer automatically includes every adopted `SC1 AMENDMENT N` section, even across unrelated editorial sections, and records immutable commit/range hashes. It does not consume the proposal file. A consumer regression invokes the actual CLI in a temporary Git repository with Amendments 1–3, verifies later editorial appends are excluded, and rejects a self-consistent record that omits an adopted amendment. The pre-repair contract is preserved byte-for-byte in `../AUTHOR-CONTRACT-v3.md`.
 
-The original grammar is exported as `grammar.json` from `SCHEMA` in
-`src/stencil/sc1_episodes.py`. Record operations are create/update/delete/get/list;
-editing supports object-only JSON-pointer patches or complete raw text. Patch
-arrays are bounded to 40 operations and 40 output lines; text has 40 output lines.
-References use the same parser, executor, complete-result checker and explicit
-protected predicates as generated outputs. Source-provided attack witnesses are
-compiled with deterministic, ordered substitutes for inapplicable slots.
+`smoke` loads only the local tokenizer and hashes checkpoint/classifier files; no model or trained scorer is instantiated. Manifest SHA-256, manifest ID, snapshot hashes, commit IDs and exact test results are recorded in WORKLOG.md. The two sealed-guard hash tests require separate clarification of the user's no-read rule; they are not silently mocked or counted as passed.
 
-The renderer writes Qwen message delimiters directly and derives token boundaries
-from one encoding's offsets. Tool results retain semantic tool roles even inside
-the native user wrapper. SC1's bare JSON call requirement is stated in the system
-block; native XML function-call framing is not accepted by this grammar. Final
-message indices refer to zero-based public history messages, excluding the system
-prefix. Filler v2 contains 512 distinct sentences (16 subjects × 4 verbs × 8
-locations), disclosed in the compiler. Seeded sampling without replacement
-spreads it round-robin across mixed user, assistant and tool non-evidence
-turns, typically at least eight: designated turns × 600 must exceed 4,608 minus
-rendered base history, allowing room for bases and whole-sentence packing. Every
-authored base and final history turn is capped at 600 text tokens. The 4,608-token
-history minimum is checked after each round-robin batch; it is not an exact length. It cannot move causal events or relabel age. Validation requires
-candidate columns >= 2B and at least one rule budget skip. `validation.json`
-records candidate columns, B, rule budget skips and echo omissions for each source.
-The smoke audit also checks segmentation against LEG A with the real tokenizer
-and verifies that constant-one classifier ranking produces different pins from
-rule ranking. These are pressure/implementation checks, not model results.
-
-For future production use, `validate BANK --freeze --stage1 FILE
---executable-freeze FILE --out DIR` creates a manifest after all 288 sources and
-independent source reviews exist. Exact served author versions/settings and
-retained transcript hashes are mandatory. Pairwise review keys use source IDs in
-lexical order. Signatures bind both source IDs and both `source_spec_hash` values, plus the
-independent reviewer/session and decision (content excludes review and provenance
-metadata); the manifest separately hashes full source bytes, avoiding
-circular signatures between reviews. The `commission` command exports a neutral
-request envelope for an external fresh-session provider transport; it makes no
-provider requests and cannot attest to provider-side context isolation.
-
-`determinism --stage1 REGISTERED --manifest EXECUTABLE --out REGISTERED_RUN`
-records four outputs per fresh process. Exactly two invocations form the eight
-cells (two frozen smoke sources × two arms × two fresh processes). The verifier
-checks retained full arm/output artifacts, episode/deployment/input hashes,
-cross-process token identity, and an immutable allocation snapshot. An interrupted
-partial process cannot be replaced by extra smoke generations under this schedule.
-CPU tests exercise this producer twice in subprocesses with a fixed-token fixture;
-they are not model determinism evidence.
-
-`setup` requires the frozen production manifest and that model-determinism
-certificate (two fresh processes, two smoke sources, two arms, eight outputs).
-It generates only full/evicted outputs and measures clf/rule CPU paths. Its
-certificate must be committed before `final` or `analyze` can read final outcomes.
-`final` writes each arm durably, then its pair, and publishes a complete seal only
-at 256 pairs. `analyze` refuses incomplete, changed, ungated or over-budget runs.
-
-An external interruption is not an ordinary timeout or a failed response. Resume
-uses `--interruption-evidence FILE`: allocation_id, infrastructure reason
-(host_loss/process_loss/device_loss/resource_loss), total elapsed allocation,
-external evidence, and an attempts array with episode_id/arm/attempt_id/elapsed.
-Previously accounted time cannot decrease; completed arm bytes cannot change.
-Device/resource exceptions retain an open attempt and require interruption
-evidence before resume; completed generation failures are immutable scored rows.
-Harness defects invalidate the bank. A hash-bound prepared output is recovered
-without regeneration even when the subsequent journal append was interrupted.
-Torn journal bytes remain in place with a durable recovery proof and appended
-recovery event. No locks are waited on and no
-process is signalled. The allocation ledger charges initialization, selector work,
-checking, persistence and idle time while the allocation is held.
-
-Production and determinism enforce Qwen3-4B before loading. Stage 1 must bind
-`study_id`, an absolute `execution_root`, the science hash, exact deployment,
-author versions/settings and contract/grammar hashes. A durable registry under
-`.git/sc1-studies` binds that identity to its executable and production manifests.
-The registry also binds production source fingerprints across study IDs: a new
-registration cannot reuse an earlier causal source. Every invocation uses the
-same directory and cumulative cost ledger. Changing
-`--out` is refused; relocation is deliberately unsupported. Invalid, failed-setup
-and cap-exhausted studies cannot restart through a new output path. `--out` is
-required for setup/final/analyze/determinism/commission; CPU validation/smoke
-output defaults to the supplied bank directory.
-
-The grammar now requires typed answer literals linked to decisive evidence and
-obligations, including call target IDs. Scope events require actual user turns;
-state-bearing tool returns use canonical `{call,return}` envelopes reconciled with
-the trace. JSON numerics stay exact Decimal values; integer schemas accept any
-integral numeric spelling, with booleans distinct. Text permissions list editable
-line indices, forbid insertion/deletion, and expose the `permitted_edits`
-invariant. Negative identity uses canonical parsed JSON or production text
-normalization; named obsolete attacks bind public source evidence. Review
-signatures bind source and public-render hashes, and production sessions are
-unique across sources. `commission --attempt N --history FILE` requires every
-prior rejected request/transcript; repair transcripts retain the cumulative
-input/response messages from the isolated author session.
-
-Failure taxonomy: T excludes an EOS-terminated 255-token answer. The registered
-four-token repetition detector covers periods 1, 2 and 4; R=0 does not establish
-absence of other loops. Only the attention and residual intervention counters
-have callable instrumented paths and appear in output records. SC1 has no
-scope-resolver or digest intervention call path; no measured zero is claimed for
-those absent functions.
-
-Amendment 1 now enacts the grammar/enforcement dispositions previously recorded
-as Stage 1 ambiguities in WORKLOG.md, with a reconciled author contract. Exact
-author/provider versions and settings still require a completed Stage 1 registration.
-Neither production source commissioning nor model execution is authorized by this
-CPU implementation handoff. This directory is an executable-freeze candidate;
-independent Stage 2 acceptance remains pending, and it is not a production setup pass.
-
-## Historical V3 pressure and cue audit (eff241b; superseded below)
-
-`validation.json` now contains a per-episode `pressure` report. Each episode's
-`layout_audit` includes `real_candidate_columns`, rule pin composition, and each
-turn's role, position, token count, filler designation and necessary-evidence
-status. Runtime arm records retain pin composition for both policies;
-`analysis.json` reports it per episode/arm. "Real" here means a non-designated
-turn, not semantic relevance. Original incidental base prose in a filler turn
-counts with that turn. No classifier/model results were used in this audit.
-
-| Episode | U columns | Real columns | B | Rule budget skips | Echo omissions | Rule filler/total pieces | Max turn tokens |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| smoke-00 | 2303 | 47 | 256 | 207 | 12 | 26/27 | 462 |
-| smoke-01 | 2075 | 83 | 256 | 185 | 12 | 26/27 | 505 |
-| smoke-02 | 2086 | 78 | 256 | 184 | 12 | 26/26 | 508 |
-| smoke-03 | 2314 | 45 | 256 | 209 | 11 | 25/25 | 459 |
-| smoke-04 | 2255 | 0 | 256 | 204 | 11 | 26/26 | 461 |
-| smoke-05 | 2489 | 149 | 256 | 221 | 11 | 25/26 | 571 |
-| smoke-06 | 2327 | 45 | 256 | 208 | 11 | 25/26 | 468 |
-| smoke-07 | 2448 | 0 | 256 | 224 | 11 | 26/26 | 504 |
-
-Role audit: all eight histories mix user, tool and assistant filler turns, but
-only user/tool pieces enter U and user pieces have priority in the comparator.
-Every governing event is in a user turn. Mixed roles do not remove the resulting
-priority advantage for irrelevant old user prose. The largest turn is 571 tokens;
-every authored base and final expanded history turn is now mechanically checked
-against the 600-token text cap.
-
-Position audit: the OLD dependencies occupy turns 0–2, with smoke-05's additional
-canonical tool trace at turn 5; RECENT dependencies occupy turns 9–10 (smoke-04) and 8–10 (smoke-07). The newest
-eligible old user turn is filler-designated in each smoke source. The comparator
-therefore admits 25–26 filler pieces plus zero or one short non-designated piece,
-and no complete OLD necessary evidence span. Pins overlap four governing-evidence
-columns in smoke-00 and smoke-01, six obsolete-event columns in smoke-05, and
-three governing columns in smoke-06; all decisive-fact intersections are zero.
-This distinguishes fragment retention from complete dependency retention.
-Real candidate content is only 1.9–6.0% of U on
-OLD sources; RECENT evidence is in the suffix and contributes no old candidates.
-U/B is 8.11–9.72 and every episode has a budget skip. These are measured smoke
-geometry properties, not a constraint imposed on production author turn order.
-
-Wording audit: shared filler uses the explicitly disclosed subject/verb/place
-sentence template. Governing messages contain direct edit/cancellation/switch
-instructions and exact seeded values; irrelevant prose has markedly different
-wording. This gives a potential relevance cue even without a special marker.
-The smoke geometry makes the pressure predominantly a competition against that
-formulaic filler. These cues require prospective Stage 1/2 reconciliation with
-the contract's no-position-only-relevance requirement; this audit does not
-certify its absence or establish independent production sources. The proposal in
-`../STAGE1-CLAUSES.md` records that limitation without changing the governing text.
-
-V3 manifests bind `../registration-snapshot.md`, the byte concatenation of the
-SC1 DRAFT v2 section and author contract, rather than the live ledger. Live
-editorial notes cannot invalidate those hashes. Snapshot changes still invalidate
-the freeze. This is a candidate snapshot; the proposal clauses have no effect
-until the orchestrator adopts/reconciles them prospectively.
-
-Commissioning publishes only author-visible input in `*.input.json`, with both
-canonical input and file hashes recorded in the separate `*.request.json`
-operator envelope. Private order streams remain in that envelope. The durable
-registry remains local to `.git/sc1-studies`; each registration produces an
-immutable execution-root audit receipt and a WORKLOG entry with registry and
-source-owner hashes. Within-pool identifier reuse is explicitly reported as a
-Stage 3 review flag; across-pool reuse remains a rejection.
-
-QwenBackend itself returns timeout or raises exceptions; `GenerationFailure`
-is currently exercised only by CPU fixtures. RuntimeError messages containing
-cuda/nccl/device/out-of-memory indicators are provisionally infrastructure errors,
-including possible harness bugs, and need operator evidence before missing work
-can resume. Analysis carries this disclosure, the limited R periods, and the
-absence of scope/digest execution paths. The determinism verifier requires
-completed nonempty generated token observations, not successful task answers;
-eight empty timeouts cannot qualify. No actual model determinism or GPU timing
-has been performed by this CPU task.
-
-## Round-4 source law and cue audit (CPU, 2026-09-04)
-
-AMENDMENT 1 is adopted in LEDGER-PLAN.md and reproduced in STAGE1-CLAUSES.md.
-AUTHOR-CONTRACT-v2.md preserves the prior contract bytes. The reconciled contract
-and exported grammar enact the author-facing source/transport restrictions.
-The relevance prohibition remains binding, including recognizable filler. The
-next independent review round on this output must disposition compliance before
-Stage 2 acceptance; this candidate does not authorize production or model runs.
-
-Snapshot production is `scripts/sc1.py snapshot`: concatenate the recorded SC1
-DRAFT v2 range, the exact adopted amendment range, and the reconciled contract,
-without inserted bytes. registration-snapshot.json records three source paths,
-full commits, half-open byte ranges, lengths and hashes. The snapshot, provenance,
-contract and grammar are manifest-bound. Stage 1 must copy the producer's parts
-array into science_parts. Later ledger entries do not extend those ranges or
-invalidate tests. Source ranges and executable files must be committed before
-snapshot/manifest production respectively.
-
-All eight disposable sources retain their sampled assignments and causal text
-and event order. Each now includes a separately authored incidental user turn
-at index 7; later indices shift by one. Filler user turns precede that turn; later
-designated filler turns use tool/assistant roles. This is a disclosed smoke repair,
-not a mandatory production ordering. No policy/model outcomes selected these edits.
-The expander rejects any final layout whose newest eligible old user turn is
-filler-designated or contains a pool sentence, even in undesignated authored text.
-Eligibility comes from complete unscored old candidate pieces; straddling turns
-can qualify. Both violation paths have bank-consumer regressions, and all eight
-positive layouts are tested. Duplicate public JSON names are rejected before
-member loss, including nested/pretty wrappers; text witness changes use ordered
-normalized line indices and retain public-evidence requirements.
-
-Measured from the real Qwen3-4B tokenizer and frozen validation report:
-
-| Episode | History tokens | U | Non-designated U | B | Budget skips | Echo omissions | Rule filler/total pieces | Max turn tokens | Newest old user |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| smoke-00 | 4649 | 1866 | 62 | 256 | 164 | 11 | 24/25 | 462 | 7 |
-| smoke-01 | 4656 | 2086 | 101 | 256 | 187 | 11 | 24/26 | 505 | 7 |
-| smoke-02 | 4686 | 2105 | 95 | 256 | 186 | 11 | 24/25 | 508 | 7 |
-| smoke-03 | 4664 | 1879 | 62 | 256 | 164 | 11 | 24/25 | 459 | 7 |
-| smoke-04 | 4629 | 1783 | 14 | 256 | 156 | 11 | 24/25 | 452 | 7 |
-| smoke-05 | 4627 | 2432 | 163 | 256 | 217 | 11 | 24/25 | 560 | 7 |
-| smoke-06 | 4681 | 1887 | 61 | 256 | 163 | 11 | 24/26 | 468 | 7 |
-| smoke-07 | 4659 | 1970 | 16 | 256 | 175 | 11 | 25/26 | 504 | 7 |
-
-The newest eligible old user is now non-designated turn 7 in every smoke episode,
-with no pool sentence and no necessary evidence. This excludes the particular
-formulaic-newest-user shortcut. It does not remove the shared-position cue: this
-incidental turn occupies the same position in all eight fixtures. The OLD evidence
-still occurs at turns 0–2 (the additional smoke-05 tool trace remains at 5); the
-RECENT evidence is at 10–11 for smoke-04 and 9–11 for smoke-07. All 6 OLD/2 RECENT
-assignments remain valid. Each source still uses mixed-role filler and satisfies
-U >= 2B with actual budget skips and every turn <=600 text tokens.
-
-Shared filler remains formulaic and dominates old candidates and rule pins.
-Necessary governing messages use direct instructions and seeded values, while
-incidental turns use distinct prose. These are remaining wording/position cues
-for the independent review, not evidence of a classifier advantage or compliance
-by declaration. Non-designated columns describe provenance, not necessity. Rule
-composition above is a CPU implementation diagnostic; runtime records provide
-both arms' composition, but no trained classifier or trunk was executed here.
-Non-JSON state-like prose remains a Stage 3 semantic-review responsibility.
-
-Abandoned studies retain their charged ledgers. Amendment 1 adopts separate
-reporting with the 8 GPU-hour cap cumulative within each registered study; new
-registration/root/sources require predecessor hashes, loss evidence, abandoned
-seconds and total cumulative program cost disclosure before any restart.
+This bank establishes the recorded regressions, not production-wide semantic cue compliance, source independence, model determinism or provider isolation. Independent source-law review remains binding. Earlier rejection and measurements remain in the historical commit, the review file, WORKLOG and the before-audit JSON. Endpoint N=256, policies, exact test and all gates are unchanged.

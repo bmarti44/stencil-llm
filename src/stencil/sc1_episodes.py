@@ -1,7 +1,7 @@
 """SC1 structured-source compiler, finite executor and production checker.
 
-The grammar contains generic primitives and irrelevant filler, never a scenario
-bank. Production stories and independent review evidence must be supplied by
+The grammar contains generic primitives, never a scenario or padding bank.
+All public content and independent review evidence must be supplied by
 isolated commissioning sessions; this module cannot attest to their semantics.
 """
 
@@ -30,7 +30,7 @@ from stencil.sc1 import (
     token_ids,
 )
 
-COMPILER_VERSION = "SC1-source-v3"
+COMPILER_VERSION = "SC1-source-v4"
 MAX_NUMERIC_DIGITS = 1024
 MAX_NUMERIC_EXPONENT = 4096
 AUTHORS = ("kimi-k3", "fable", "gpt-6-astra", "Opus")
@@ -63,8 +63,9 @@ SUBSTITUTES = (
     "forbidden extra output",
     "incomplete artifact/call",
 )
-# Disclosed incidental prose; none can introduce an instruction or decisive fact.
-FILLER = tuple(
+# Historical recognizer ONLY: the rejected 318a90c pool is never expansion input.
+# Retained for the no-formulaic-newest-user guard and the before/after regression.
+LEGACY_FILLER = tuple(
     f"{subject} {verb} {place}."
     for subject in (
         "A pale reflection",
@@ -101,7 +102,7 @@ FILLER = tuple(
         "the unused room",
     )
 )
-FILLER_VERSION = "SC1-incidental-v2"
+FILLER_VERSION = "SC1-source-authored-incidental-v1"
 
 REQUIRED_FIELDS = set(
     """schema_version id source_id pool index assignments seeds attempt provenance
@@ -148,6 +149,7 @@ SCHEMA = {
         "turns",
         "final_request",
         "filler_turns",
+        "incidental_sentences",
         "answer_literals",
         "distinctness_review",
         "review",
@@ -241,17 +243,25 @@ SCHEMA["structures"] = {
     ),
     "expansion": (
         "author 12–24 turns {role,text}, all causal events already in assigned age "
-        "region; filler_turns selects >=3 non-evidence turns with mixed roles; "
+        "region; author incidental_sentences as distinct, self-contained public "
+        "sentences with no cross-sentence causal ordering dependency. Their public "
+        "templates, roles and eligible positions must overlap necessary content; "
+        "no sentence/template family is reserved for irrelevant padding. Ordered "
+        "incidental events belong in authored turn bases. filler_turns supplies a "
+        "source-specific ordered layout of >=3 mixed-role turns, which may also "
+        "contain necessary evidence or canonical trace envelopes; "
         "capacity: designated turns x 600 must exceed 4608 minus rendered base "
         "history (typically >=8 turns), allowing for existing text and sentence "
-        "packing; the pool is 512 sentences (~9.8 tokens each, ~5000 tokens); "
-        "round-robin expansion without sentence reuse to 4608 "
+        "packing; supply enough authored incidental text to reach 4608 tokens. "
+        "The filler seed orders only this source's authored sentences, then "
+        "round-robin expansion follows its placement order without reuse to 4608 "
         "rendered history tokens, checked after each round-robin batch (a minimum, "
         "not an exact length); 600 tokens per turn, including every author base; "
         "candidate capacity and budget pressure are validated. Never place "
         "formulaic filler in the newest eligible old user turn: the last user "
         "turn with any complete source piece in the removable old range must "
-        "contain no pool sentence and must not be filler-designated. Validate "
+        "contain no historical pool sentence and must not be filler-designated. "
+        "Its authored base may be necessary or incidental. Validate "
         "after expansion; repair the source without moving causal evidence. "
         "Compiler never moves or invents decisive events"
     ),
@@ -1450,14 +1460,23 @@ def expand_source(source, tokenizer):
         not isinstance(fill_at, list)
         or len(set(fill_at)) != len(fill_at)
         or len(fill_at) < 3
-        or any(i in evidence_turns or not 0 <= i < len(ep["turns"]) for i in fill_at)
+        or any(type(i) is not int or not 0 <= i < len(ep["turns"]) for i in fill_at)
         or not {"user", "assistant", "tool"}
         <= {ep["turns"][i]["role"] for i in fill_at}
     ):
-        raise ValueError("filler requires >=3 mixed-role non-evidence/non-trace turns")
+        raise ValueError("filler requires >=3 mixed-role source-layout turns")
+    incidental = material["incidental_sentences"]
+    if (
+        not isinstance(incidental, list)
+        or not incidental
+        or any(not isinstance(s, str) or not s.strip() for s in incidental)
+        or len(set(incidental)) != len(incidental)
+        or any(s in LEGACY_FILLER for s in incidental)
+    ):
+        raise ValueError("distinct source-authored incidental sentences required")
     bases = {str(i): ep["turns"][i]["text"] for i in fill_at}
     pool = sorted(
-        range(len(FILLER)),
+        range(len(incidental)),
         key=lambda n: hashlib.sha256(
             (slot["seeds"]["filler"] + "|" + str(n)).encode()
         ).digest(),
@@ -1470,12 +1489,12 @@ def expand_source(source, tokenizer):
     cursor = 0
     while layout["H"] - layout["P"] < 4608:
         if len(filler_ids) >= len(pool):
-            raise ValueError("distinct filler pool exhausted")
+            raise ValueError("source-authored incidental sentences exhausted")
         filler_id = pool[len(filler_ids)]
         for _ in fill_at:
             turn = fill_at[cursor % len(fill_at)]
             cursor += 1
-            proposed = ep["turns"][turn]["text"] + "\n" + FILLER[filler_id]
+            proposed = ep["turns"][turn]["text"] + "\n" + incidental[filler_id]
             if len(token_ids(tokenizer, proposed)) <= 600:
                 ep["turns"][turn]["text"] = proposed
                 filler_ids.append(filler_id)
@@ -1491,6 +1510,7 @@ def expand_source(source, tokenizer):
             layout = render_episode(ep, tokenizer)
     ep["filler_manifest"] = {
         "version": FILLER_VERSION,
+        "authored_sentences_hash": digest(incidental),
         "seed": slot["seeds"]["filler"],
         "turns": fill_at,
         "ids": filler_ids,
@@ -1786,7 +1806,7 @@ def validate_filler_placement(ep, universe):
     )
     if newest is not None and (
         newest in ep["filler_manifest"]["turns"]
-        or any(sentence in ep["turns"][newest]["text"] for sentence in FILLER)
+        or any(sentence in ep["turns"][newest]["text"] for sentence in LEGACY_FILLER)
     ):
         raise ValueError("formulaic filler in newest eligible old user turn")
     return newest
@@ -1888,6 +1908,122 @@ def load_sources(directory):
     return [parse_json(path.read_text()) for path in paths]
 
 
+def cue_candidate_rows(bank, tokenizer):
+    """Unfitted, public-form smoke diagnostics; never used in policy selection.
+
+    Positive means overlap with authored necessary evidence, not a model outcome.
+    Negative means outside those spans, not proof of semantic uselessness. The
+    explicit forms below describe disposable fixtures, not a production grammar.
+    Rebuild even historical evidence offsets from public text and the tokenizer.
+    """
+    from stencil.bfcl import _token_span
+
+    forms = (
+        ("code", r"The .+ code is .+\."),
+        ("edit", r"For .+, replace only v with the .+ code; preserve .+\."),
+        (
+            "previous",
+            r"For .+, the earlier v choice was .+; that choice is superseded\.",
+        ),
+        (
+            "cancel",
+            r"For .+, the earlier action was delete; that action is cancelled\.",
+        ),
+        ("switch", r"For .+, keep the .+ instruction through the .+ inspection\."),
+        ("return", r"The .+ inspection is complete; return to .+\."),
+    )
+    for ep in bank:
+        layout = render_episode(ep, tokenizer)
+        encoding = type("Offsets", (), {"offsets": layout["offsets"]})()
+        intervals = []
+        for evidence in ep["decisive_facts"] + ep["instruction_trajectory"]:
+            if not evidence.get("necessary", True):
+                continue
+            turn = evidence["turn"]
+            text, quote = ep["turns"][turn]["text"], evidence["evidence_text"]
+            if text.count(quote) != 1:
+                raise ValueError("cue audit requires unique public evidence")
+            start = layout["locations"][turn]["start"] + text.index(quote)
+            span = _token_span(encoding, start, start + len(quote))
+            if not span:
+                raise ValueError("cue audit has empty necessary evidence")
+            intervals.append(span)
+        universe, _ = build_sc1_candidates(layout, tokenizer)
+        newest = max(
+            (c["message_index"] for c in universe if c["role"] == "user"),
+            default=None,
+        )
+        for c in universe:
+            text = c["text"].strip()
+            legacy = text in LEGACY_FILLER
+            form = (
+                "legacy_pool"
+                if legacy
+                else next(
+                    (name for name, pattern in forms if re.fullmatch(pattern, text)),
+                    "other",
+                )
+            )
+            yield {
+                "id": ep["id"],
+                "text": text,
+                "form": form,
+                "role": c["role"],
+                "position": c["message_index"],
+                "legacy_pool": legacy,
+                "newest_old_user": c["role"] == "user" and c["message_index"] == newest,
+                "old": ep["assignments"]["age"] == "old",
+                "positive": any(
+                    c["span"][0] < b and a < c["span"][1] for a, b in intervals
+                ),
+            }
+
+
+def cue_contingencies(bank, tokenizer):
+    """Counts from the real common candidate consumer; no fit or policy filter."""
+
+    def empty():
+        return {"positive": 0, "negative": 0}
+
+    report = {
+        key: empty()
+        for key in (
+            "all",
+            "legacy_pool",
+            "index_1",
+            "old_index_1",
+            "newest_old_user",
+            "old_newest_old_user",
+        )
+    }
+    report.update(
+        {key: {} for key in ("form", "role", "position", "form_role_position")}
+    )
+    for row in cue_candidate_rows(bank, tokenizer):
+        label = "positive" if row["positive"] else "negative"
+        for key, use in (
+            ("all", True),
+            ("legacy_pool", row["legacy_pool"]),
+            ("index_1", row["position"] == 1),
+            ("old_index_1", row["old"] and row["position"] == 1),
+            ("newest_old_user", row["newest_old_user"]),
+            ("old_newest_old_user", row["old"] and row["newest_old_user"]),
+        ):
+            if use:
+                report[key][label] += 1
+        for key, value in (
+            ("form", row["form"]),
+            ("role", row["role"]),
+            ("position", str(row["position"])),
+            (
+                "form_role_position",
+                canonical([row["form"], row["role"], row["position"]]),
+            ),
+        ):
+            report[key].setdefault(value, empty())[label] += 1
+    return report
+
+
 def validate_bank(directory, tokenizer, *, check_frozen=True):
     sources = load_sources(directory)
     episodes, reports = [], []
@@ -1912,6 +2048,11 @@ def validate_bank(directory, tokenizer, *, check_frozen=True):
         "pairs": pairs,
         "pressure": [{"id": ep["id"], **ep["layout_audit"]} for ep in episodes],
         "bank_hash": digest(episodes),
+        **(
+            {"cue_contingencies": cue_contingencies(episodes, tokenizer)}
+            if all(ep["pool"] == "smoke" for ep in episodes)
+            else {}
+        ),
     }
 
 

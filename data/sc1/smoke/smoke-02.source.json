@@ -1,21 +1,21 @@
 {
-  "schema_version": "sc1-source-v2",
+  "schema_version": "sc1-source-v4",
   "id": "smoke-02",
-  "source_id": "disposable-seed-vault",
+  "source_id": "disposable-seed-vault-round5",
   "pool": "smoke",
   "index": 2,
   "domain": "seed-vault",
   "task": "Complete the accession card we paused.",
-  "scenario_gist": "A seed archivist suspends accession work for a shelf survey and returns under a persistent provenance rule.",
+  "scenario_gist": "A seed archivist suspends accession work for a shelf survey and returns under a persistent provenance rule. Other named cards and records have their own independent instructions and observations; the final request concerns only this task.",
   "provenance": {
     "author_version": "informed Codex harness session",
-    "session_id": "sc1-harness",
+    "session_id": "sc1-round5-disposable",
     "settings": {
       "models_launched": false
     },
     "empty_context": false,
     "originality_attested": true,
-    "purpose": "disposable smoke; forbidden for production"
+    "purpose": "Round-5 authored smoke repair; never commissioned production or reused"
   },
   "entities": [
     {
@@ -59,7 +59,7 @@
       "authority": "user",
       "scope": "switched",
       "turn": 0,
-      "evidence_text": "For the accession card keep using the packet provenance code in v, leaving p unchanged. We will return after a shelf survey.",
+      "evidence_text": "For the seed-vault card named ${NAME}, replace only v with the ${NAME} code; preserve p. For the seed-vault card named ${NAME}, keep the restoration instruction through the shelf inspection.",
       "necessary": true,
       "kind": "accession_survey_return",
       "event_type": "switch"
@@ -68,8 +68,8 @@
       "id": "event",
       "authority": "user",
       "scope": "switched",
-      "turn": 2,
-      "evidence_text": "Shelf survey complete; return to the accession task. The neighboring packet bears ${OLD}.",
+      "turn": 6,
+      "evidence_text": "The shelf inspection is complete; return to the seed-vault card named ${NAME}.",
       "necessary": true,
       "kind": "scope_event",
       "event_type": "return"
@@ -78,16 +78,16 @@
   "decisive_facts": [
     {
       "id": "fact",
-      "turn": 1,
-      "evidence_text": "Packet observation: provenance code ${VALUE}.",
+      "turn": 3,
+      "evidence_text": "The ${NAME} code is ${VALUE}.",
       "necessary": true
     }
   ],
   "distractors": [
-    "The seed-vault room has a round mat.",
-    "A seed-vault sketch shows a narrow arch.",
-    "The seed-vault bench faces a blank wall.",
-    "A seed-vault visitor carried an empty folder."
+    "The ${SIDE_NAME_403} code is ${SIDE_CODE_403}.",
+    "For the paper-observatory card named ${SIDE_NAME_404}, keep the restoration instruction through the ${SIDE_CODE_404} inspection.",
+    "The ${SIDE_CODE_405} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_405}.",
+    "The ${SIDE_NAME_406} code is ${SIDE_CODE_406}."
   ],
   "task_spec": {
     "kind": "json_patch",
@@ -151,78 +151,58 @@
   "turns": [
     {
       "role": "user",
-      "text": "For the accession card keep using the packet provenance code in v, leaving p unchanged. We will return after a shelf survey. The card currently has v unfilled and p fixed."
+      "text": "For the seed-vault card named ${NAME}, replace only v with the ${NAME} code; preserve p. For the seed-vault card named ${NAME}, keep the restoration instruction through the shelf inspection. The card currently has v unfilled and p fixed.\nThe ${SIDE_NAME_470} code is ${SIDE_CODE_470}."
     },
     {
       "role": "tool",
-      "text": "Packet observation: provenance code ${VALUE}."
+      "text": "The ${SIDE_NAME_451} code is ${SIDE_CODE_451}."
     },
     {
       "role": "user",
-      "text": "Shelf survey complete; return to the accession task. The neighboring packet bears ${OLD}."
+      "text": "The ${SIDE_NAME_452} code is ${SIDE_CODE_452}."
+    },
+    {
+      "role": "tool",
+      "text": "The ${NAME} code is ${VALUE}.\nThe ${SIDE_NAME_473} code is ${SIDE_CODE_473}."
+    },
+    {
+      "role": "tool",
+      "text": "For the paper-observatory card named ${SIDE_NAME_404}, keep the restoration instruction through the ${SIDE_CODE_404} inspection."
+    },
+    {
+      "role": "assistant",
+      "text": "The ${SIDE_CODE_405} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_405}."
     },
     {
       "role": "user",
-      "text": "A short pause leaves room for incidental observations."
-    },
-    {
-      "role": "tool",
-      "text": "The seed-vault room has a round mat."
-    },
-    {
-      "role": "assistant",
-      "text": "A seed-vault sketch shows a narrow arch."
-    },
-    {
-      "role": "tool",
-      "text": "The seed-vault bench faces a blank wall."
+      "text": "The shelf inspection is complete; return to the seed-vault card named ${NAME}.\nThe ${SIDE_NAME_476} code is ${SIDE_CODE_476}."
     },
     {
       "role": "user",
-      "text": "The delivery satchel is drying beside my desk after the walk from the depot."
+      "text": "The ${SIDE_NAME_407} code is ${SIDE_CODE_407}."
     },
     {
       "role": "assistant",
-      "text": "A seed-vault visitor carried an empty folder."
+      "text": "For the shadow-theatre card named ${SIDE_NAME_408}, the earlier v choice was ${SIDE_CODE_408}; that choice is superseded."
     },
     {
       "role": "tool",
-      "text": "The seed-vault notebook page is quiet."
+      "text": "For record ${SIDE_GUARD_409}, replace only v with the ${SIDE_NAME_409} code; preserve record ${SIDE_KEEP_409}."
     },
     {
       "role": "assistant",
-      "text": "The seed-vault notebook page is quiet."
+      "text": "The ${SIDE_NAME_410} code is ${SIDE_CODE_410}."
     },
     {
       "role": "tool",
-      "text": "The seed-vault notebook page is quiet."
+      "text": "For the paper-observatory card named ${SIDE_NAME_411}, keep the restoration instruction through the ${SIDE_CODE_411} inspection."
     },
     {
       "role": "assistant",
-      "text": "The seed-vault notebook page is quiet."
+      "text": "The ${SIDE_CODE_412} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_412}."
     }
   ],
   "final_request": "Complete the accession card we paused.",
-  "literal_specs": {
-    "TARGET": {
-      "type": "identifier"
-    },
-    "GUARD": {
-      "type": "identifier"
-    },
-    "NAME": {
-      "type": "name"
-    },
-    "OTHER": {
-      "type": "name"
-    },
-    "VALUE": {
-      "type": "string"
-    },
-    "OLD": {
-      "type": "string"
-    }
-  },
   "answer_literals": [
     {
       "value": "${VALUE}",
@@ -286,14 +266,2366 @@
     "coverage_probes": []
   },
   "filler_turns": [
-    3,
     4,
     5,
-    6,
     8,
     9,
     10,
     11,
-    12
-  ]
+    12,
+    1,
+    2
+  ],
+  "incidental_sentences": [
+    "The ${SIDE_NAME_0} code is ${SIDE_CODE_0}.",
+    "For the tide-clock card named ${SIDE_NAME_1}, replace only v with the ${SIDE_NAME_1} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_2}, the earlier v choice was ${SIDE_CODE_2}; that choice is superseded.",
+    "For record ${SIDE_GUARD_3}, replace only v with the ${SIDE_NAME_3} code; preserve record ${SIDE_KEEP_3}.",
+    "The ${SIDE_NAME_4} code is ${SIDE_CODE_4}.",
+    "For the paper-observatory card named ${SIDE_NAME_5}, keep the restoration instruction through the ${SIDE_CODE_5} inspection.",
+    "The ${SIDE_CODE_6} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_6}.",
+    "The ${SIDE_NAME_7} code is ${SIDE_CODE_7}.",
+    "For the tide-clock card named ${SIDE_NAME_8}, replace only v with the ${SIDE_NAME_8} code; preserve p.",
+    "For record ${SIDE_GUARD_9}, the earlier v choice was ${SIDE_CODE_9}; that choice is superseded.",
+    "For record ${SIDE_GUARD_10}, replace only v with the ${SIDE_NAME_10} code; preserve record ${SIDE_KEEP_10}.",
+    "The ${SIDE_NAME_11} code is ${SIDE_CODE_11}.",
+    "For the paper-observatory card named ${SIDE_NAME_12}, keep the restoration instruction through the ${SIDE_CODE_12} inspection.",
+    "The ${SIDE_CODE_13} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_13}.",
+    "The ${SIDE_NAME_14} code is ${SIDE_CODE_14}.",
+    "For the tide-clock card named ${SIDE_NAME_15}, replace only v with the ${SIDE_NAME_15} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_16}, the earlier v choice was ${SIDE_CODE_16}; that choice is superseded.",
+    "For record ${SIDE_GUARD_17}, replace only v with the ${SIDE_NAME_17} code; preserve record ${SIDE_KEEP_17}.",
+    "The ${SIDE_NAME_18} code is ${SIDE_CODE_18}.",
+    "For the paper-observatory card named ${SIDE_NAME_19}, keep the restoration instruction through the ${SIDE_CODE_19} inspection.",
+    "The ${SIDE_CODE_20} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_20}.",
+    "The ${SIDE_NAME_21} code is ${SIDE_CODE_21}.",
+    "For the tide-clock card named ${SIDE_NAME_22}, replace only v with the ${SIDE_NAME_22} code; preserve p.",
+    "For record ${SIDE_GUARD_23}, the earlier v choice was ${SIDE_CODE_23}; that choice is superseded.",
+    "For record ${SIDE_GUARD_24}, replace only v with the ${SIDE_NAME_24} code; preserve record ${SIDE_KEEP_24}.",
+    "The ${SIDE_NAME_25} code is ${SIDE_CODE_25}.",
+    "For the paper-observatory card named ${SIDE_NAME_26}, keep the restoration instruction through the ${SIDE_CODE_26} inspection.",
+    "The ${SIDE_CODE_27} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_27}.",
+    "The ${SIDE_NAME_28} code is ${SIDE_CODE_28}.",
+    "For the tide-clock card named ${SIDE_NAME_29}, replace only v with the ${SIDE_NAME_29} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_30}, the earlier v choice was ${SIDE_CODE_30}; that choice is superseded.",
+    "For record ${SIDE_GUARD_31}, replace only v with the ${SIDE_NAME_31} code; preserve record ${SIDE_KEEP_31}.",
+    "The ${SIDE_NAME_32} code is ${SIDE_CODE_32}.",
+    "For the paper-observatory card named ${SIDE_NAME_33}, keep the restoration instruction through the ${SIDE_CODE_33} inspection.",
+    "The ${SIDE_CODE_34} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_34}.",
+    "The ${SIDE_NAME_35} code is ${SIDE_CODE_35}.",
+    "For the tide-clock card named ${SIDE_NAME_36}, replace only v with the ${SIDE_NAME_36} code; preserve p.",
+    "For record ${SIDE_GUARD_37}, the earlier v choice was ${SIDE_CODE_37}; that choice is superseded.",
+    "For record ${SIDE_GUARD_38}, replace only v with the ${SIDE_NAME_38} code; preserve record ${SIDE_KEEP_38}.",
+    "The ${SIDE_NAME_39} code is ${SIDE_CODE_39}.",
+    "For the paper-observatory card named ${SIDE_NAME_40}, keep the restoration instruction through the ${SIDE_CODE_40} inspection.",
+    "The ${SIDE_CODE_41} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_41}.",
+    "The ${SIDE_NAME_42} code is ${SIDE_CODE_42}.",
+    "For the tide-clock card named ${SIDE_NAME_43}, replace only v with the ${SIDE_NAME_43} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_44}, the earlier v choice was ${SIDE_CODE_44}; that choice is superseded.",
+    "For record ${SIDE_GUARD_45}, replace only v with the ${SIDE_NAME_45} code; preserve record ${SIDE_KEEP_45}.",
+    "The ${SIDE_NAME_46} code is ${SIDE_CODE_46}.",
+    "For the paper-observatory card named ${SIDE_NAME_47}, keep the restoration instruction through the ${SIDE_CODE_47} inspection.",
+    "The ${SIDE_CODE_48} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_48}.",
+    "The ${SIDE_NAME_49} code is ${SIDE_CODE_49}.",
+    "For the tide-clock card named ${SIDE_NAME_50}, replace only v with the ${SIDE_NAME_50} code; preserve p.",
+    "For record ${SIDE_GUARD_51}, the earlier v choice was ${SIDE_CODE_51}; that choice is superseded.",
+    "For record ${SIDE_GUARD_52}, replace only v with the ${SIDE_NAME_52} code; preserve record ${SIDE_KEEP_52}.",
+    "The ${SIDE_NAME_53} code is ${SIDE_CODE_53}.",
+    "For the paper-observatory card named ${SIDE_NAME_54}, keep the restoration instruction through the ${SIDE_CODE_54} inspection.",
+    "The ${SIDE_CODE_55} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_55}.",
+    "The ${SIDE_NAME_56} code is ${SIDE_CODE_56}.",
+    "For the tide-clock card named ${SIDE_NAME_57}, replace only v with the ${SIDE_NAME_57} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_58}, the earlier v choice was ${SIDE_CODE_58}; that choice is superseded.",
+    "For record ${SIDE_GUARD_59}, replace only v with the ${SIDE_NAME_59} code; preserve record ${SIDE_KEEP_59}.",
+    "The ${SIDE_NAME_60} code is ${SIDE_CODE_60}.",
+    "For the paper-observatory card named ${SIDE_NAME_61}, keep the restoration instruction through the ${SIDE_CODE_61} inspection.",
+    "The ${SIDE_CODE_62} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_62}.",
+    "The ${SIDE_NAME_63} code is ${SIDE_CODE_63}.",
+    "For the tide-clock card named ${SIDE_NAME_64}, replace only v with the ${SIDE_NAME_64} code; preserve p.",
+    "For record ${SIDE_GUARD_65}, the earlier v choice was ${SIDE_CODE_65}; that choice is superseded.",
+    "For record ${SIDE_GUARD_66}, replace only v with the ${SIDE_NAME_66} code; preserve record ${SIDE_KEEP_66}.",
+    "The ${SIDE_NAME_67} code is ${SIDE_CODE_67}.",
+    "For the paper-observatory card named ${SIDE_NAME_68}, keep the restoration instruction through the ${SIDE_CODE_68} inspection.",
+    "The ${SIDE_CODE_69} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_69}.",
+    "The ${SIDE_NAME_70} code is ${SIDE_CODE_70}.",
+    "For the tide-clock card named ${SIDE_NAME_71}, replace only v with the ${SIDE_NAME_71} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_72}, the earlier v choice was ${SIDE_CODE_72}; that choice is superseded.",
+    "For record ${SIDE_GUARD_73}, replace only v with the ${SIDE_NAME_73} code; preserve record ${SIDE_KEEP_73}.",
+    "The ${SIDE_NAME_74} code is ${SIDE_CODE_74}.",
+    "For the paper-observatory card named ${SIDE_NAME_75}, keep the restoration instruction through the ${SIDE_CODE_75} inspection.",
+    "The ${SIDE_CODE_76} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_76}.",
+    "The ${SIDE_NAME_77} code is ${SIDE_CODE_77}.",
+    "For the tide-clock card named ${SIDE_NAME_78}, replace only v with the ${SIDE_NAME_78} code; preserve p.",
+    "For record ${SIDE_GUARD_79}, the earlier v choice was ${SIDE_CODE_79}; that choice is superseded.",
+    "For record ${SIDE_GUARD_80}, replace only v with the ${SIDE_NAME_80} code; preserve record ${SIDE_KEEP_80}.",
+    "The ${SIDE_NAME_81} code is ${SIDE_CODE_81}.",
+    "For the paper-observatory card named ${SIDE_NAME_82}, keep the restoration instruction through the ${SIDE_CODE_82} inspection.",
+    "The ${SIDE_CODE_83} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_83}.",
+    "The ${SIDE_NAME_84} code is ${SIDE_CODE_84}.",
+    "For the tide-clock card named ${SIDE_NAME_85}, replace only v with the ${SIDE_NAME_85} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_86}, the earlier v choice was ${SIDE_CODE_86}; that choice is superseded.",
+    "For record ${SIDE_GUARD_87}, replace only v with the ${SIDE_NAME_87} code; preserve record ${SIDE_KEEP_87}.",
+    "The ${SIDE_NAME_88} code is ${SIDE_CODE_88}.",
+    "For the paper-observatory card named ${SIDE_NAME_89}, keep the restoration instruction through the ${SIDE_CODE_89} inspection.",
+    "The ${SIDE_CODE_90} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_90}.",
+    "The ${SIDE_NAME_91} code is ${SIDE_CODE_91}.",
+    "For the tide-clock card named ${SIDE_NAME_92}, replace only v with the ${SIDE_NAME_92} code; preserve p.",
+    "For record ${SIDE_GUARD_93}, the earlier v choice was ${SIDE_CODE_93}; that choice is superseded.",
+    "For record ${SIDE_GUARD_94}, replace only v with the ${SIDE_NAME_94} code; preserve record ${SIDE_KEEP_94}.",
+    "The ${SIDE_NAME_95} code is ${SIDE_CODE_95}.",
+    "For the paper-observatory card named ${SIDE_NAME_96}, keep the restoration instruction through the ${SIDE_CODE_96} inspection.",
+    "The ${SIDE_CODE_97} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_97}.",
+    "The ${SIDE_NAME_98} code is ${SIDE_CODE_98}.",
+    "For the tide-clock card named ${SIDE_NAME_99}, replace only v with the ${SIDE_NAME_99} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_100}, the earlier v choice was ${SIDE_CODE_100}; that choice is superseded.",
+    "For record ${SIDE_GUARD_101}, replace only v with the ${SIDE_NAME_101} code; preserve record ${SIDE_KEEP_101}.",
+    "The ${SIDE_NAME_102} code is ${SIDE_CODE_102}.",
+    "For the paper-observatory card named ${SIDE_NAME_103}, keep the restoration instruction through the ${SIDE_CODE_103} inspection.",
+    "The ${SIDE_CODE_104} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_104}.",
+    "The ${SIDE_NAME_105} code is ${SIDE_CODE_105}.",
+    "For the tide-clock card named ${SIDE_NAME_106}, replace only v with the ${SIDE_NAME_106} code; preserve p.",
+    "For record ${SIDE_GUARD_107}, the earlier v choice was ${SIDE_CODE_107}; that choice is superseded.",
+    "For record ${SIDE_GUARD_108}, replace only v with the ${SIDE_NAME_108} code; preserve record ${SIDE_KEEP_108}.",
+    "The ${SIDE_NAME_109} code is ${SIDE_CODE_109}.",
+    "For the paper-observatory card named ${SIDE_NAME_110}, keep the restoration instruction through the ${SIDE_CODE_110} inspection.",
+    "The ${SIDE_CODE_111} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_111}.",
+    "The ${SIDE_NAME_112} code is ${SIDE_CODE_112}.",
+    "For the tide-clock card named ${SIDE_NAME_113}, replace only v with the ${SIDE_NAME_113} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_114}, the earlier v choice was ${SIDE_CODE_114}; that choice is superseded.",
+    "For record ${SIDE_GUARD_115}, replace only v with the ${SIDE_NAME_115} code; preserve record ${SIDE_KEEP_115}.",
+    "The ${SIDE_NAME_116} code is ${SIDE_CODE_116}.",
+    "For the paper-observatory card named ${SIDE_NAME_117}, keep the restoration instruction through the ${SIDE_CODE_117} inspection.",
+    "The ${SIDE_CODE_118} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_118}.",
+    "The ${SIDE_NAME_119} code is ${SIDE_CODE_119}.",
+    "For the tide-clock card named ${SIDE_NAME_120}, replace only v with the ${SIDE_NAME_120} code; preserve p.",
+    "For record ${SIDE_GUARD_121}, the earlier v choice was ${SIDE_CODE_121}; that choice is superseded.",
+    "For record ${SIDE_GUARD_122}, replace only v with the ${SIDE_NAME_122} code; preserve record ${SIDE_KEEP_122}.",
+    "The ${SIDE_NAME_123} code is ${SIDE_CODE_123}.",
+    "For the paper-observatory card named ${SIDE_NAME_124}, keep the restoration instruction through the ${SIDE_CODE_124} inspection.",
+    "The ${SIDE_CODE_125} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_125}.",
+    "The ${SIDE_NAME_126} code is ${SIDE_CODE_126}.",
+    "For the tide-clock card named ${SIDE_NAME_127}, replace only v with the ${SIDE_NAME_127} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_128}, the earlier v choice was ${SIDE_CODE_128}; that choice is superseded.",
+    "For record ${SIDE_GUARD_129}, replace only v with the ${SIDE_NAME_129} code; preserve record ${SIDE_KEEP_129}.",
+    "The ${SIDE_NAME_130} code is ${SIDE_CODE_130}.",
+    "For the paper-observatory card named ${SIDE_NAME_131}, keep the restoration instruction through the ${SIDE_CODE_131} inspection.",
+    "The ${SIDE_CODE_132} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_132}.",
+    "The ${SIDE_NAME_133} code is ${SIDE_CODE_133}.",
+    "For the tide-clock card named ${SIDE_NAME_134}, replace only v with the ${SIDE_NAME_134} code; preserve p.",
+    "For record ${SIDE_GUARD_135}, the earlier v choice was ${SIDE_CODE_135}; that choice is superseded.",
+    "For record ${SIDE_GUARD_136}, replace only v with the ${SIDE_NAME_136} code; preserve record ${SIDE_KEEP_136}.",
+    "The ${SIDE_NAME_137} code is ${SIDE_CODE_137}.",
+    "For the paper-observatory card named ${SIDE_NAME_138}, keep the restoration instruction through the ${SIDE_CODE_138} inspection.",
+    "The ${SIDE_CODE_139} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_139}.",
+    "The ${SIDE_NAME_140} code is ${SIDE_CODE_140}.",
+    "For the tide-clock card named ${SIDE_NAME_141}, replace only v with the ${SIDE_NAME_141} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_142}, the earlier v choice was ${SIDE_CODE_142}; that choice is superseded.",
+    "For record ${SIDE_GUARD_143}, replace only v with the ${SIDE_NAME_143} code; preserve record ${SIDE_KEEP_143}.",
+    "The ${SIDE_NAME_144} code is ${SIDE_CODE_144}.",
+    "For the paper-observatory card named ${SIDE_NAME_145}, keep the restoration instruction through the ${SIDE_CODE_145} inspection.",
+    "The ${SIDE_CODE_146} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_146}.",
+    "The ${SIDE_NAME_147} code is ${SIDE_CODE_147}.",
+    "For the tide-clock card named ${SIDE_NAME_148}, replace only v with the ${SIDE_NAME_148} code; preserve p.",
+    "For record ${SIDE_GUARD_149}, the earlier v choice was ${SIDE_CODE_149}; that choice is superseded.",
+    "For record ${SIDE_GUARD_150}, replace only v with the ${SIDE_NAME_150} code; preserve record ${SIDE_KEEP_150}.",
+    "The ${SIDE_NAME_151} code is ${SIDE_CODE_151}.",
+    "For the paper-observatory card named ${SIDE_NAME_152}, keep the restoration instruction through the ${SIDE_CODE_152} inspection.",
+    "The ${SIDE_CODE_153} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_153}.",
+    "The ${SIDE_NAME_154} code is ${SIDE_CODE_154}.",
+    "For the tide-clock card named ${SIDE_NAME_155}, replace only v with the ${SIDE_NAME_155} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_156}, the earlier v choice was ${SIDE_CODE_156}; that choice is superseded.",
+    "For record ${SIDE_GUARD_157}, replace only v with the ${SIDE_NAME_157} code; preserve record ${SIDE_KEEP_157}.",
+    "The ${SIDE_NAME_158} code is ${SIDE_CODE_158}.",
+    "For the paper-observatory card named ${SIDE_NAME_159}, keep the restoration instruction through the ${SIDE_CODE_159} inspection.",
+    "The ${SIDE_CODE_160} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_160}.",
+    "The ${SIDE_NAME_161} code is ${SIDE_CODE_161}.",
+    "For the tide-clock card named ${SIDE_NAME_162}, replace only v with the ${SIDE_NAME_162} code; preserve p.",
+    "For record ${SIDE_GUARD_163}, the earlier v choice was ${SIDE_CODE_163}; that choice is superseded.",
+    "For record ${SIDE_GUARD_164}, replace only v with the ${SIDE_NAME_164} code; preserve record ${SIDE_KEEP_164}.",
+    "The ${SIDE_NAME_165} code is ${SIDE_CODE_165}.",
+    "For the paper-observatory card named ${SIDE_NAME_166}, keep the restoration instruction through the ${SIDE_CODE_166} inspection.",
+    "The ${SIDE_CODE_167} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_167}.",
+    "The ${SIDE_NAME_168} code is ${SIDE_CODE_168}.",
+    "For the tide-clock card named ${SIDE_NAME_169}, replace only v with the ${SIDE_NAME_169} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_170}, the earlier v choice was ${SIDE_CODE_170}; that choice is superseded.",
+    "For record ${SIDE_GUARD_171}, replace only v with the ${SIDE_NAME_171} code; preserve record ${SIDE_KEEP_171}.",
+    "The ${SIDE_NAME_172} code is ${SIDE_CODE_172}.",
+    "For the paper-observatory card named ${SIDE_NAME_173}, keep the restoration instruction through the ${SIDE_CODE_173} inspection.",
+    "The ${SIDE_CODE_174} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_174}.",
+    "The ${SIDE_NAME_175} code is ${SIDE_CODE_175}.",
+    "For the tide-clock card named ${SIDE_NAME_176}, replace only v with the ${SIDE_NAME_176} code; preserve p.",
+    "For record ${SIDE_GUARD_177}, the earlier v choice was ${SIDE_CODE_177}; that choice is superseded.",
+    "For record ${SIDE_GUARD_178}, replace only v with the ${SIDE_NAME_178} code; preserve record ${SIDE_KEEP_178}.",
+    "The ${SIDE_NAME_179} code is ${SIDE_CODE_179}.",
+    "For the paper-observatory card named ${SIDE_NAME_180}, keep the restoration instruction through the ${SIDE_CODE_180} inspection.",
+    "The ${SIDE_CODE_181} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_181}.",
+    "The ${SIDE_NAME_182} code is ${SIDE_CODE_182}.",
+    "For the tide-clock card named ${SIDE_NAME_183}, replace only v with the ${SIDE_NAME_183} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_184}, the earlier v choice was ${SIDE_CODE_184}; that choice is superseded.",
+    "For record ${SIDE_GUARD_185}, replace only v with the ${SIDE_NAME_185} code; preserve record ${SIDE_KEEP_185}.",
+    "The ${SIDE_NAME_186} code is ${SIDE_CODE_186}.",
+    "For the paper-observatory card named ${SIDE_NAME_187}, keep the restoration instruction through the ${SIDE_CODE_187} inspection.",
+    "The ${SIDE_CODE_188} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_188}.",
+    "The ${SIDE_NAME_189} code is ${SIDE_CODE_189}.",
+    "For the tide-clock card named ${SIDE_NAME_190}, replace only v with the ${SIDE_NAME_190} code; preserve p.",
+    "For record ${SIDE_GUARD_191}, the earlier v choice was ${SIDE_CODE_191}; that choice is superseded.",
+    "For record ${SIDE_GUARD_192}, replace only v with the ${SIDE_NAME_192} code; preserve record ${SIDE_KEEP_192}.",
+    "The ${SIDE_NAME_193} code is ${SIDE_CODE_193}.",
+    "For the paper-observatory card named ${SIDE_NAME_194}, keep the restoration instruction through the ${SIDE_CODE_194} inspection.",
+    "The ${SIDE_CODE_195} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_195}.",
+    "The ${SIDE_NAME_196} code is ${SIDE_CODE_196}.",
+    "For the tide-clock card named ${SIDE_NAME_197}, replace only v with the ${SIDE_NAME_197} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_198}, the earlier v choice was ${SIDE_CODE_198}; that choice is superseded.",
+    "For record ${SIDE_GUARD_199}, replace only v with the ${SIDE_NAME_199} code; preserve record ${SIDE_KEEP_199}.",
+    "The ${SIDE_NAME_200} code is ${SIDE_CODE_200}.",
+    "For the paper-observatory card named ${SIDE_NAME_201}, keep the restoration instruction through the ${SIDE_CODE_201} inspection.",
+    "The ${SIDE_CODE_202} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_202}.",
+    "The ${SIDE_NAME_203} code is ${SIDE_CODE_203}.",
+    "For the tide-clock card named ${SIDE_NAME_204}, replace only v with the ${SIDE_NAME_204} code; preserve p.",
+    "For record ${SIDE_GUARD_205}, the earlier v choice was ${SIDE_CODE_205}; that choice is superseded.",
+    "For record ${SIDE_GUARD_206}, replace only v with the ${SIDE_NAME_206} code; preserve record ${SIDE_KEEP_206}.",
+    "The ${SIDE_NAME_207} code is ${SIDE_CODE_207}.",
+    "For the paper-observatory card named ${SIDE_NAME_208}, keep the restoration instruction through the ${SIDE_CODE_208} inspection.",
+    "The ${SIDE_CODE_209} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_209}.",
+    "The ${SIDE_NAME_210} code is ${SIDE_CODE_210}.",
+    "For the tide-clock card named ${SIDE_NAME_211}, replace only v with the ${SIDE_NAME_211} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_212}, the earlier v choice was ${SIDE_CODE_212}; that choice is superseded.",
+    "For record ${SIDE_GUARD_213}, replace only v with the ${SIDE_NAME_213} code; preserve record ${SIDE_KEEP_213}.",
+    "The ${SIDE_NAME_214} code is ${SIDE_CODE_214}.",
+    "For the paper-observatory card named ${SIDE_NAME_215}, keep the restoration instruction through the ${SIDE_CODE_215} inspection.",
+    "The ${SIDE_CODE_216} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_216}.",
+    "The ${SIDE_NAME_217} code is ${SIDE_CODE_217}.",
+    "For the tide-clock card named ${SIDE_NAME_218}, replace only v with the ${SIDE_NAME_218} code; preserve p.",
+    "For record ${SIDE_GUARD_219}, the earlier v choice was ${SIDE_CODE_219}; that choice is superseded.",
+    "For record ${SIDE_GUARD_220}, replace only v with the ${SIDE_NAME_220} code; preserve record ${SIDE_KEEP_220}.",
+    "The ${SIDE_NAME_221} code is ${SIDE_CODE_221}.",
+    "For the paper-observatory card named ${SIDE_NAME_222}, keep the restoration instruction through the ${SIDE_CODE_222} inspection.",
+    "The ${SIDE_CODE_223} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_223}.",
+    "The ${SIDE_NAME_224} code is ${SIDE_CODE_224}.",
+    "For the tide-clock card named ${SIDE_NAME_225}, replace only v with the ${SIDE_NAME_225} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_226}, the earlier v choice was ${SIDE_CODE_226}; that choice is superseded.",
+    "For record ${SIDE_GUARD_227}, replace only v with the ${SIDE_NAME_227} code; preserve record ${SIDE_KEEP_227}.",
+    "The ${SIDE_NAME_228} code is ${SIDE_CODE_228}.",
+    "For the paper-observatory card named ${SIDE_NAME_229}, keep the restoration instruction through the ${SIDE_CODE_229} inspection.",
+    "The ${SIDE_CODE_230} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_230}.",
+    "The ${SIDE_NAME_231} code is ${SIDE_CODE_231}.",
+    "For the tide-clock card named ${SIDE_NAME_232}, replace only v with the ${SIDE_NAME_232} code; preserve p.",
+    "For record ${SIDE_GUARD_233}, the earlier v choice was ${SIDE_CODE_233}; that choice is superseded.",
+    "For record ${SIDE_GUARD_234}, replace only v with the ${SIDE_NAME_234} code; preserve record ${SIDE_KEEP_234}.",
+    "The ${SIDE_NAME_235} code is ${SIDE_CODE_235}.",
+    "For the paper-observatory card named ${SIDE_NAME_236}, keep the restoration instruction through the ${SIDE_CODE_236} inspection.",
+    "The ${SIDE_CODE_237} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_237}.",
+    "The ${SIDE_NAME_238} code is ${SIDE_CODE_238}.",
+    "For the tide-clock card named ${SIDE_NAME_239}, replace only v with the ${SIDE_NAME_239} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_240}, the earlier v choice was ${SIDE_CODE_240}; that choice is superseded.",
+    "For record ${SIDE_GUARD_241}, replace only v with the ${SIDE_NAME_241} code; preserve record ${SIDE_KEEP_241}.",
+    "The ${SIDE_NAME_242} code is ${SIDE_CODE_242}.",
+    "For the paper-observatory card named ${SIDE_NAME_243}, keep the restoration instruction through the ${SIDE_CODE_243} inspection.",
+    "The ${SIDE_CODE_244} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_244}.",
+    "The ${SIDE_NAME_245} code is ${SIDE_CODE_245}.",
+    "For the tide-clock card named ${SIDE_NAME_246}, replace only v with the ${SIDE_NAME_246} code; preserve p.",
+    "For record ${SIDE_GUARD_247}, the earlier v choice was ${SIDE_CODE_247}; that choice is superseded.",
+    "For record ${SIDE_GUARD_248}, replace only v with the ${SIDE_NAME_248} code; preserve record ${SIDE_KEEP_248}.",
+    "The ${SIDE_NAME_249} code is ${SIDE_CODE_249}.",
+    "For the paper-observatory card named ${SIDE_NAME_250}, keep the restoration instruction through the ${SIDE_CODE_250} inspection.",
+    "The ${SIDE_CODE_251} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_251}.",
+    "The ${SIDE_NAME_252} code is ${SIDE_CODE_252}.",
+    "For the tide-clock card named ${SIDE_NAME_253}, replace only v with the ${SIDE_NAME_253} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_254}, the earlier v choice was ${SIDE_CODE_254}; that choice is superseded.",
+    "For record ${SIDE_GUARD_255}, replace only v with the ${SIDE_NAME_255} code; preserve record ${SIDE_KEEP_255}.",
+    "The ${SIDE_NAME_256} code is ${SIDE_CODE_256}.",
+    "For the paper-observatory card named ${SIDE_NAME_257}, keep the restoration instruction through the ${SIDE_CODE_257} inspection.",
+    "The ${SIDE_CODE_258} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_258}.",
+    "The ${SIDE_NAME_259} code is ${SIDE_CODE_259}.",
+    "For the tide-clock card named ${SIDE_NAME_260}, replace only v with the ${SIDE_NAME_260} code; preserve p.",
+    "For record ${SIDE_GUARD_261}, the earlier v choice was ${SIDE_CODE_261}; that choice is superseded.",
+    "For record ${SIDE_GUARD_262}, replace only v with the ${SIDE_NAME_262} code; preserve record ${SIDE_KEEP_262}.",
+    "The ${SIDE_NAME_263} code is ${SIDE_CODE_263}.",
+    "For the paper-observatory card named ${SIDE_NAME_264}, keep the restoration instruction through the ${SIDE_CODE_264} inspection.",
+    "The ${SIDE_CODE_265} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_265}.",
+    "The ${SIDE_NAME_266} code is ${SIDE_CODE_266}.",
+    "For the tide-clock card named ${SIDE_NAME_267}, replace only v with the ${SIDE_NAME_267} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_268}, the earlier v choice was ${SIDE_CODE_268}; that choice is superseded.",
+    "For record ${SIDE_GUARD_269}, replace only v with the ${SIDE_NAME_269} code; preserve record ${SIDE_KEEP_269}.",
+    "The ${SIDE_NAME_270} code is ${SIDE_CODE_270}.",
+    "For the paper-observatory card named ${SIDE_NAME_271}, keep the restoration instruction through the ${SIDE_CODE_271} inspection.",
+    "The ${SIDE_CODE_272} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_272}.",
+    "The ${SIDE_NAME_273} code is ${SIDE_CODE_273}.",
+    "For the tide-clock card named ${SIDE_NAME_274}, replace only v with the ${SIDE_NAME_274} code; preserve p.",
+    "For record ${SIDE_GUARD_275}, the earlier v choice was ${SIDE_CODE_275}; that choice is superseded.",
+    "For record ${SIDE_GUARD_276}, replace only v with the ${SIDE_NAME_276} code; preserve record ${SIDE_KEEP_276}.",
+    "The ${SIDE_NAME_277} code is ${SIDE_CODE_277}.",
+    "For the paper-observatory card named ${SIDE_NAME_278}, keep the restoration instruction through the ${SIDE_CODE_278} inspection.",
+    "The ${SIDE_CODE_279} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_279}.",
+    "The ${SIDE_NAME_280} code is ${SIDE_CODE_280}.",
+    "For the tide-clock card named ${SIDE_NAME_281}, replace only v with the ${SIDE_NAME_281} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_282}, the earlier v choice was ${SIDE_CODE_282}; that choice is superseded.",
+    "For record ${SIDE_GUARD_283}, replace only v with the ${SIDE_NAME_283} code; preserve record ${SIDE_KEEP_283}.",
+    "The ${SIDE_NAME_284} code is ${SIDE_CODE_284}.",
+    "For the paper-observatory card named ${SIDE_NAME_285}, keep the restoration instruction through the ${SIDE_CODE_285} inspection.",
+    "The ${SIDE_CODE_286} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_286}.",
+    "The ${SIDE_NAME_287} code is ${SIDE_CODE_287}.",
+    "For the tide-clock card named ${SIDE_NAME_288}, replace only v with the ${SIDE_NAME_288} code; preserve p.",
+    "For record ${SIDE_GUARD_289}, the earlier v choice was ${SIDE_CODE_289}; that choice is superseded.",
+    "For record ${SIDE_GUARD_290}, replace only v with the ${SIDE_NAME_290} code; preserve record ${SIDE_KEEP_290}.",
+    "The ${SIDE_NAME_291} code is ${SIDE_CODE_291}.",
+    "For the paper-observatory card named ${SIDE_NAME_292}, keep the restoration instruction through the ${SIDE_CODE_292} inspection.",
+    "The ${SIDE_CODE_293} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_293}.",
+    "The ${SIDE_NAME_294} code is ${SIDE_CODE_294}.",
+    "For the tide-clock card named ${SIDE_NAME_295}, replace only v with the ${SIDE_NAME_295} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_296}, the earlier v choice was ${SIDE_CODE_296}; that choice is superseded.",
+    "For record ${SIDE_GUARD_297}, replace only v with the ${SIDE_NAME_297} code; preserve record ${SIDE_KEEP_297}.",
+    "The ${SIDE_NAME_298} code is ${SIDE_CODE_298}.",
+    "For the paper-observatory card named ${SIDE_NAME_299}, keep the restoration instruction through the ${SIDE_CODE_299} inspection.",
+    "The ${SIDE_CODE_300} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_300}.",
+    "The ${SIDE_NAME_301} code is ${SIDE_CODE_301}.",
+    "For the tide-clock card named ${SIDE_NAME_302}, replace only v with the ${SIDE_NAME_302} code; preserve p.",
+    "For record ${SIDE_GUARD_303}, the earlier v choice was ${SIDE_CODE_303}; that choice is superseded.",
+    "For record ${SIDE_GUARD_304}, replace only v with the ${SIDE_NAME_304} code; preserve record ${SIDE_KEEP_304}.",
+    "The ${SIDE_NAME_305} code is ${SIDE_CODE_305}.",
+    "For the paper-observatory card named ${SIDE_NAME_306}, keep the restoration instruction through the ${SIDE_CODE_306} inspection.",
+    "The ${SIDE_CODE_307} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_307}.",
+    "The ${SIDE_NAME_308} code is ${SIDE_CODE_308}.",
+    "For the tide-clock card named ${SIDE_NAME_309}, replace only v with the ${SIDE_NAME_309} code; preserve p.",
+    "For the shadow-theatre card named ${SIDE_NAME_310}, the earlier v choice was ${SIDE_CODE_310}; that choice is superseded.",
+    "For record ${SIDE_GUARD_311}, replace only v with the ${SIDE_NAME_311} code; preserve record ${SIDE_KEEP_311}.",
+    "The ${SIDE_NAME_312} code is ${SIDE_CODE_312}.",
+    "For the paper-observatory card named ${SIDE_NAME_313}, keep the restoration instruction through the ${SIDE_CODE_313} inspection.",
+    "The ${SIDE_CODE_314} inspection is complete; return to the lantern-regatta card named ${SIDE_NAME_314}.",
+    "The ${SIDE_NAME_315} code is ${SIDE_CODE_315}.",
+    "For the tide-clock card named ${SIDE_NAME_316}, replace only v with the ${SIDE_NAME_316} code; preserve p.",
+    "For record ${SIDE_GUARD_317}, the earlier v choice was ${SIDE_CODE_317}; that choice is superseded.",
+    "For record ${SIDE_GUARD_318}, replace only v with the ${SIDE_NAME_318} code; preserve record ${SIDE_KEEP_318}.",
+    "The ${SIDE_NAME_319} code is ${SIDE_CODE_319}."
+  ],
+  "literal_specs": {
+    "TARGET": {
+      "type": "identifier"
+    },
+    "GUARD": {
+      "type": "identifier"
+    },
+    "NAME": {
+      "type": "name"
+    },
+    "OTHER": {
+      "type": "name"
+    },
+    "VALUE": {
+      "type": "string"
+    },
+    "SIDE_NAME_403": {
+      "type": "name"
+    },
+    "SIDE_CODE_403": {
+      "type": "string"
+    },
+    "SIDE_NAME_404": {
+      "type": "name"
+    },
+    "SIDE_CODE_404": {
+      "type": "string"
+    },
+    "SIDE_NAME_405": {
+      "type": "name"
+    },
+    "SIDE_CODE_405": {
+      "type": "string"
+    },
+    "SIDE_NAME_406": {
+      "type": "name"
+    },
+    "SIDE_CODE_406": {
+      "type": "string"
+    },
+    "SIDE_NAME_407": {
+      "type": "name"
+    },
+    "SIDE_CODE_407": {
+      "type": "string"
+    },
+    "SIDE_NAME_408": {
+      "type": "name"
+    },
+    "SIDE_CODE_408": {
+      "type": "string"
+    },
+    "SIDE_NAME_409": {
+      "type": "name"
+    },
+    "SIDE_GUARD_409": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_410": {
+      "type": "name"
+    },
+    "SIDE_CODE_410": {
+      "type": "string"
+    },
+    "SIDE_NAME_411": {
+      "type": "name"
+    },
+    "SIDE_CODE_411": {
+      "type": "string"
+    },
+    "SIDE_NAME_412": {
+      "type": "name"
+    },
+    "SIDE_CODE_412": {
+      "type": "string"
+    },
+    "SIDE_NAME_451": {
+      "type": "name"
+    },
+    "SIDE_CODE_451": {
+      "type": "string"
+    },
+    "SIDE_NAME_452": {
+      "type": "name"
+    },
+    "SIDE_CODE_452": {
+      "type": "string"
+    },
+    "SIDE_NAME_470": {
+      "type": "name"
+    },
+    "SIDE_CODE_470": {
+      "type": "string"
+    },
+    "SIDE_NAME_473": {
+      "type": "name"
+    },
+    "SIDE_CODE_473": {
+      "type": "string"
+    },
+    "SIDE_NAME_476": {
+      "type": "name"
+    },
+    "SIDE_CODE_476": {
+      "type": "string"
+    },
+    "SIDE_NAME_0": {
+      "type": "name"
+    },
+    "SIDE_CODE_0": {
+      "type": "string"
+    },
+    "SIDE_NAME_1": {
+      "type": "name"
+    },
+    "SIDE_NAME_2": {
+      "type": "name"
+    },
+    "SIDE_CODE_2": {
+      "type": "string"
+    },
+    "SIDE_NAME_3": {
+      "type": "name"
+    },
+    "SIDE_GUARD_3": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_4": {
+      "type": "name"
+    },
+    "SIDE_CODE_4": {
+      "type": "string"
+    },
+    "SIDE_NAME_5": {
+      "type": "name"
+    },
+    "SIDE_CODE_5": {
+      "type": "string"
+    },
+    "SIDE_NAME_6": {
+      "type": "name"
+    },
+    "SIDE_CODE_6": {
+      "type": "string"
+    },
+    "SIDE_NAME_7": {
+      "type": "name"
+    },
+    "SIDE_CODE_7": {
+      "type": "string"
+    },
+    "SIDE_NAME_8": {
+      "type": "name"
+    },
+    "SIDE_CODE_9": {
+      "type": "string"
+    },
+    "SIDE_GUARD_9": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_10": {
+      "type": "name"
+    },
+    "SIDE_GUARD_10": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_11": {
+      "type": "name"
+    },
+    "SIDE_CODE_11": {
+      "type": "string"
+    },
+    "SIDE_NAME_12": {
+      "type": "name"
+    },
+    "SIDE_CODE_12": {
+      "type": "string"
+    },
+    "SIDE_NAME_13": {
+      "type": "name"
+    },
+    "SIDE_CODE_13": {
+      "type": "string"
+    },
+    "SIDE_NAME_14": {
+      "type": "name"
+    },
+    "SIDE_CODE_14": {
+      "type": "string"
+    },
+    "SIDE_NAME_15": {
+      "type": "name"
+    },
+    "SIDE_NAME_16": {
+      "type": "name"
+    },
+    "SIDE_CODE_16": {
+      "type": "string"
+    },
+    "SIDE_NAME_17": {
+      "type": "name"
+    },
+    "SIDE_GUARD_17": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_18": {
+      "type": "name"
+    },
+    "SIDE_CODE_18": {
+      "type": "string"
+    },
+    "SIDE_NAME_19": {
+      "type": "name"
+    },
+    "SIDE_CODE_19": {
+      "type": "string"
+    },
+    "SIDE_NAME_20": {
+      "type": "name"
+    },
+    "SIDE_CODE_20": {
+      "type": "string"
+    },
+    "SIDE_NAME_21": {
+      "type": "name"
+    },
+    "SIDE_CODE_21": {
+      "type": "string"
+    },
+    "SIDE_NAME_22": {
+      "type": "name"
+    },
+    "SIDE_CODE_23": {
+      "type": "string"
+    },
+    "SIDE_GUARD_23": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_24": {
+      "type": "name"
+    },
+    "SIDE_GUARD_24": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_25": {
+      "type": "name"
+    },
+    "SIDE_CODE_25": {
+      "type": "string"
+    },
+    "SIDE_NAME_26": {
+      "type": "name"
+    },
+    "SIDE_CODE_26": {
+      "type": "string"
+    },
+    "SIDE_NAME_27": {
+      "type": "name"
+    },
+    "SIDE_CODE_27": {
+      "type": "string"
+    },
+    "SIDE_NAME_28": {
+      "type": "name"
+    },
+    "SIDE_CODE_28": {
+      "type": "string"
+    },
+    "SIDE_NAME_29": {
+      "type": "name"
+    },
+    "SIDE_NAME_30": {
+      "type": "name"
+    },
+    "SIDE_CODE_30": {
+      "type": "string"
+    },
+    "SIDE_NAME_31": {
+      "type": "name"
+    },
+    "SIDE_GUARD_31": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_32": {
+      "type": "name"
+    },
+    "SIDE_CODE_32": {
+      "type": "string"
+    },
+    "SIDE_NAME_33": {
+      "type": "name"
+    },
+    "SIDE_CODE_33": {
+      "type": "string"
+    },
+    "SIDE_NAME_34": {
+      "type": "name"
+    },
+    "SIDE_CODE_34": {
+      "type": "string"
+    },
+    "SIDE_NAME_35": {
+      "type": "name"
+    },
+    "SIDE_CODE_35": {
+      "type": "string"
+    },
+    "SIDE_NAME_36": {
+      "type": "name"
+    },
+    "SIDE_CODE_37": {
+      "type": "string"
+    },
+    "SIDE_GUARD_37": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_38": {
+      "type": "name"
+    },
+    "SIDE_GUARD_38": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_39": {
+      "type": "name"
+    },
+    "SIDE_CODE_39": {
+      "type": "string"
+    },
+    "SIDE_NAME_40": {
+      "type": "name"
+    },
+    "SIDE_CODE_40": {
+      "type": "string"
+    },
+    "SIDE_NAME_41": {
+      "type": "name"
+    },
+    "SIDE_CODE_41": {
+      "type": "string"
+    },
+    "SIDE_NAME_42": {
+      "type": "name"
+    },
+    "SIDE_CODE_42": {
+      "type": "string"
+    },
+    "SIDE_NAME_43": {
+      "type": "name"
+    },
+    "SIDE_NAME_44": {
+      "type": "name"
+    },
+    "SIDE_CODE_44": {
+      "type": "string"
+    },
+    "SIDE_NAME_45": {
+      "type": "name"
+    },
+    "SIDE_GUARD_45": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_46": {
+      "type": "name"
+    },
+    "SIDE_CODE_46": {
+      "type": "string"
+    },
+    "SIDE_NAME_47": {
+      "type": "name"
+    },
+    "SIDE_CODE_47": {
+      "type": "string"
+    },
+    "SIDE_NAME_48": {
+      "type": "name"
+    },
+    "SIDE_CODE_48": {
+      "type": "string"
+    },
+    "SIDE_NAME_49": {
+      "type": "name"
+    },
+    "SIDE_CODE_49": {
+      "type": "string"
+    },
+    "SIDE_NAME_50": {
+      "type": "name"
+    },
+    "SIDE_CODE_51": {
+      "type": "string"
+    },
+    "SIDE_GUARD_51": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_52": {
+      "type": "name"
+    },
+    "SIDE_GUARD_52": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_53": {
+      "type": "name"
+    },
+    "SIDE_CODE_53": {
+      "type": "string"
+    },
+    "SIDE_NAME_54": {
+      "type": "name"
+    },
+    "SIDE_CODE_54": {
+      "type": "string"
+    },
+    "SIDE_NAME_55": {
+      "type": "name"
+    },
+    "SIDE_CODE_55": {
+      "type": "string"
+    },
+    "SIDE_NAME_56": {
+      "type": "name"
+    },
+    "SIDE_CODE_56": {
+      "type": "string"
+    },
+    "SIDE_NAME_57": {
+      "type": "name"
+    },
+    "SIDE_NAME_58": {
+      "type": "name"
+    },
+    "SIDE_CODE_58": {
+      "type": "string"
+    },
+    "SIDE_NAME_59": {
+      "type": "name"
+    },
+    "SIDE_GUARD_59": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_60": {
+      "type": "name"
+    },
+    "SIDE_CODE_60": {
+      "type": "string"
+    },
+    "SIDE_NAME_61": {
+      "type": "name"
+    },
+    "SIDE_CODE_61": {
+      "type": "string"
+    },
+    "SIDE_NAME_62": {
+      "type": "name"
+    },
+    "SIDE_CODE_62": {
+      "type": "string"
+    },
+    "SIDE_NAME_63": {
+      "type": "name"
+    },
+    "SIDE_CODE_63": {
+      "type": "string"
+    },
+    "SIDE_NAME_64": {
+      "type": "name"
+    },
+    "SIDE_CODE_65": {
+      "type": "string"
+    },
+    "SIDE_GUARD_65": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_66": {
+      "type": "name"
+    },
+    "SIDE_GUARD_66": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_67": {
+      "type": "name"
+    },
+    "SIDE_CODE_67": {
+      "type": "string"
+    },
+    "SIDE_NAME_68": {
+      "type": "name"
+    },
+    "SIDE_CODE_68": {
+      "type": "string"
+    },
+    "SIDE_NAME_69": {
+      "type": "name"
+    },
+    "SIDE_CODE_69": {
+      "type": "string"
+    },
+    "SIDE_NAME_70": {
+      "type": "name"
+    },
+    "SIDE_CODE_70": {
+      "type": "string"
+    },
+    "SIDE_NAME_71": {
+      "type": "name"
+    },
+    "SIDE_NAME_72": {
+      "type": "name"
+    },
+    "SIDE_CODE_72": {
+      "type": "string"
+    },
+    "SIDE_NAME_73": {
+      "type": "name"
+    },
+    "SIDE_GUARD_73": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_74": {
+      "type": "name"
+    },
+    "SIDE_CODE_74": {
+      "type": "string"
+    },
+    "SIDE_NAME_75": {
+      "type": "name"
+    },
+    "SIDE_CODE_75": {
+      "type": "string"
+    },
+    "SIDE_NAME_76": {
+      "type": "name"
+    },
+    "SIDE_CODE_76": {
+      "type": "string"
+    },
+    "SIDE_NAME_77": {
+      "type": "name"
+    },
+    "SIDE_CODE_77": {
+      "type": "string"
+    },
+    "SIDE_NAME_78": {
+      "type": "name"
+    },
+    "SIDE_CODE_79": {
+      "type": "string"
+    },
+    "SIDE_GUARD_79": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_80": {
+      "type": "name"
+    },
+    "SIDE_GUARD_80": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_81": {
+      "type": "name"
+    },
+    "SIDE_CODE_81": {
+      "type": "string"
+    },
+    "SIDE_NAME_82": {
+      "type": "name"
+    },
+    "SIDE_CODE_82": {
+      "type": "string"
+    },
+    "SIDE_NAME_83": {
+      "type": "name"
+    },
+    "SIDE_CODE_83": {
+      "type": "string"
+    },
+    "SIDE_NAME_84": {
+      "type": "name"
+    },
+    "SIDE_CODE_84": {
+      "type": "string"
+    },
+    "SIDE_NAME_85": {
+      "type": "name"
+    },
+    "SIDE_NAME_86": {
+      "type": "name"
+    },
+    "SIDE_CODE_86": {
+      "type": "string"
+    },
+    "SIDE_NAME_87": {
+      "type": "name"
+    },
+    "SIDE_GUARD_87": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_88": {
+      "type": "name"
+    },
+    "SIDE_CODE_88": {
+      "type": "string"
+    },
+    "SIDE_NAME_89": {
+      "type": "name"
+    },
+    "SIDE_CODE_89": {
+      "type": "string"
+    },
+    "SIDE_NAME_90": {
+      "type": "name"
+    },
+    "SIDE_CODE_90": {
+      "type": "string"
+    },
+    "SIDE_NAME_91": {
+      "type": "name"
+    },
+    "SIDE_CODE_91": {
+      "type": "string"
+    },
+    "SIDE_NAME_92": {
+      "type": "name"
+    },
+    "SIDE_CODE_93": {
+      "type": "string"
+    },
+    "SIDE_GUARD_93": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_94": {
+      "type": "name"
+    },
+    "SIDE_GUARD_94": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_95": {
+      "type": "name"
+    },
+    "SIDE_CODE_95": {
+      "type": "string"
+    },
+    "SIDE_NAME_96": {
+      "type": "name"
+    },
+    "SIDE_CODE_96": {
+      "type": "string"
+    },
+    "SIDE_NAME_97": {
+      "type": "name"
+    },
+    "SIDE_CODE_97": {
+      "type": "string"
+    },
+    "SIDE_NAME_98": {
+      "type": "name"
+    },
+    "SIDE_CODE_98": {
+      "type": "string"
+    },
+    "SIDE_NAME_99": {
+      "type": "name"
+    },
+    "SIDE_NAME_100": {
+      "type": "name"
+    },
+    "SIDE_CODE_100": {
+      "type": "string"
+    },
+    "SIDE_NAME_101": {
+      "type": "name"
+    },
+    "SIDE_GUARD_101": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_102": {
+      "type": "name"
+    },
+    "SIDE_CODE_102": {
+      "type": "string"
+    },
+    "SIDE_NAME_103": {
+      "type": "name"
+    },
+    "SIDE_CODE_103": {
+      "type": "string"
+    },
+    "SIDE_NAME_104": {
+      "type": "name"
+    },
+    "SIDE_CODE_104": {
+      "type": "string"
+    },
+    "SIDE_NAME_105": {
+      "type": "name"
+    },
+    "SIDE_CODE_105": {
+      "type": "string"
+    },
+    "SIDE_NAME_106": {
+      "type": "name"
+    },
+    "SIDE_CODE_107": {
+      "type": "string"
+    },
+    "SIDE_GUARD_107": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_108": {
+      "type": "name"
+    },
+    "SIDE_GUARD_108": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_109": {
+      "type": "name"
+    },
+    "SIDE_CODE_109": {
+      "type": "string"
+    },
+    "SIDE_NAME_110": {
+      "type": "name"
+    },
+    "SIDE_CODE_110": {
+      "type": "string"
+    },
+    "SIDE_NAME_111": {
+      "type": "name"
+    },
+    "SIDE_CODE_111": {
+      "type": "string"
+    },
+    "SIDE_NAME_112": {
+      "type": "name"
+    },
+    "SIDE_CODE_112": {
+      "type": "string"
+    },
+    "SIDE_NAME_113": {
+      "type": "name"
+    },
+    "SIDE_NAME_114": {
+      "type": "name"
+    },
+    "SIDE_CODE_114": {
+      "type": "string"
+    },
+    "SIDE_NAME_115": {
+      "type": "name"
+    },
+    "SIDE_GUARD_115": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_116": {
+      "type": "name"
+    },
+    "SIDE_CODE_116": {
+      "type": "string"
+    },
+    "SIDE_NAME_117": {
+      "type": "name"
+    },
+    "SIDE_CODE_117": {
+      "type": "string"
+    },
+    "SIDE_NAME_118": {
+      "type": "name"
+    },
+    "SIDE_CODE_118": {
+      "type": "string"
+    },
+    "SIDE_NAME_119": {
+      "type": "name"
+    },
+    "SIDE_CODE_119": {
+      "type": "string"
+    },
+    "SIDE_NAME_120": {
+      "type": "name"
+    },
+    "SIDE_CODE_121": {
+      "type": "string"
+    },
+    "SIDE_GUARD_121": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_122": {
+      "type": "name"
+    },
+    "SIDE_GUARD_122": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_123": {
+      "type": "name"
+    },
+    "SIDE_CODE_123": {
+      "type": "string"
+    },
+    "SIDE_NAME_124": {
+      "type": "name"
+    },
+    "SIDE_CODE_124": {
+      "type": "string"
+    },
+    "SIDE_NAME_125": {
+      "type": "name"
+    },
+    "SIDE_CODE_125": {
+      "type": "string"
+    },
+    "SIDE_NAME_126": {
+      "type": "name"
+    },
+    "SIDE_CODE_126": {
+      "type": "string"
+    },
+    "SIDE_NAME_127": {
+      "type": "name"
+    },
+    "SIDE_NAME_128": {
+      "type": "name"
+    },
+    "SIDE_CODE_128": {
+      "type": "string"
+    },
+    "SIDE_NAME_129": {
+      "type": "name"
+    },
+    "SIDE_GUARD_129": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_130": {
+      "type": "name"
+    },
+    "SIDE_CODE_130": {
+      "type": "string"
+    },
+    "SIDE_NAME_131": {
+      "type": "name"
+    },
+    "SIDE_CODE_131": {
+      "type": "string"
+    },
+    "SIDE_NAME_132": {
+      "type": "name"
+    },
+    "SIDE_CODE_132": {
+      "type": "string"
+    },
+    "SIDE_NAME_133": {
+      "type": "name"
+    },
+    "SIDE_CODE_133": {
+      "type": "string"
+    },
+    "SIDE_NAME_134": {
+      "type": "name"
+    },
+    "SIDE_CODE_135": {
+      "type": "string"
+    },
+    "SIDE_GUARD_135": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_136": {
+      "type": "name"
+    },
+    "SIDE_GUARD_136": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_137": {
+      "type": "name"
+    },
+    "SIDE_CODE_137": {
+      "type": "string"
+    },
+    "SIDE_NAME_138": {
+      "type": "name"
+    },
+    "SIDE_CODE_138": {
+      "type": "string"
+    },
+    "SIDE_NAME_139": {
+      "type": "name"
+    },
+    "SIDE_CODE_139": {
+      "type": "string"
+    },
+    "SIDE_NAME_140": {
+      "type": "name"
+    },
+    "SIDE_CODE_140": {
+      "type": "string"
+    },
+    "SIDE_NAME_141": {
+      "type": "name"
+    },
+    "SIDE_NAME_142": {
+      "type": "name"
+    },
+    "SIDE_CODE_142": {
+      "type": "string"
+    },
+    "SIDE_NAME_143": {
+      "type": "name"
+    },
+    "SIDE_GUARD_143": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_144": {
+      "type": "name"
+    },
+    "SIDE_CODE_144": {
+      "type": "string"
+    },
+    "SIDE_NAME_145": {
+      "type": "name"
+    },
+    "SIDE_CODE_145": {
+      "type": "string"
+    },
+    "SIDE_NAME_146": {
+      "type": "name"
+    },
+    "SIDE_CODE_146": {
+      "type": "string"
+    },
+    "SIDE_NAME_147": {
+      "type": "name"
+    },
+    "SIDE_CODE_147": {
+      "type": "string"
+    },
+    "SIDE_NAME_148": {
+      "type": "name"
+    },
+    "SIDE_CODE_149": {
+      "type": "string"
+    },
+    "SIDE_GUARD_149": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_150": {
+      "type": "name"
+    },
+    "SIDE_GUARD_150": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_151": {
+      "type": "name"
+    },
+    "SIDE_CODE_151": {
+      "type": "string"
+    },
+    "SIDE_NAME_152": {
+      "type": "name"
+    },
+    "SIDE_CODE_152": {
+      "type": "string"
+    },
+    "SIDE_NAME_153": {
+      "type": "name"
+    },
+    "SIDE_CODE_153": {
+      "type": "string"
+    },
+    "SIDE_NAME_154": {
+      "type": "name"
+    },
+    "SIDE_CODE_154": {
+      "type": "string"
+    },
+    "SIDE_NAME_155": {
+      "type": "name"
+    },
+    "SIDE_NAME_156": {
+      "type": "name"
+    },
+    "SIDE_CODE_156": {
+      "type": "string"
+    },
+    "SIDE_NAME_157": {
+      "type": "name"
+    },
+    "SIDE_GUARD_157": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_158": {
+      "type": "name"
+    },
+    "SIDE_CODE_158": {
+      "type": "string"
+    },
+    "SIDE_NAME_159": {
+      "type": "name"
+    },
+    "SIDE_CODE_159": {
+      "type": "string"
+    },
+    "SIDE_NAME_160": {
+      "type": "name"
+    },
+    "SIDE_CODE_160": {
+      "type": "string"
+    },
+    "SIDE_NAME_161": {
+      "type": "name"
+    },
+    "SIDE_CODE_161": {
+      "type": "string"
+    },
+    "SIDE_NAME_162": {
+      "type": "name"
+    },
+    "SIDE_CODE_163": {
+      "type": "string"
+    },
+    "SIDE_GUARD_163": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_164": {
+      "type": "name"
+    },
+    "SIDE_GUARD_164": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_165": {
+      "type": "name"
+    },
+    "SIDE_CODE_165": {
+      "type": "string"
+    },
+    "SIDE_NAME_166": {
+      "type": "name"
+    },
+    "SIDE_CODE_166": {
+      "type": "string"
+    },
+    "SIDE_NAME_167": {
+      "type": "name"
+    },
+    "SIDE_CODE_167": {
+      "type": "string"
+    },
+    "SIDE_NAME_168": {
+      "type": "name"
+    },
+    "SIDE_CODE_168": {
+      "type": "string"
+    },
+    "SIDE_NAME_169": {
+      "type": "name"
+    },
+    "SIDE_NAME_170": {
+      "type": "name"
+    },
+    "SIDE_CODE_170": {
+      "type": "string"
+    },
+    "SIDE_NAME_171": {
+      "type": "name"
+    },
+    "SIDE_GUARD_171": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_172": {
+      "type": "name"
+    },
+    "SIDE_CODE_172": {
+      "type": "string"
+    },
+    "SIDE_NAME_173": {
+      "type": "name"
+    },
+    "SIDE_CODE_173": {
+      "type": "string"
+    },
+    "SIDE_NAME_174": {
+      "type": "name"
+    },
+    "SIDE_CODE_174": {
+      "type": "string"
+    },
+    "SIDE_NAME_175": {
+      "type": "name"
+    },
+    "SIDE_CODE_175": {
+      "type": "string"
+    },
+    "SIDE_NAME_176": {
+      "type": "name"
+    },
+    "SIDE_CODE_177": {
+      "type": "string"
+    },
+    "SIDE_GUARD_177": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_178": {
+      "type": "name"
+    },
+    "SIDE_GUARD_178": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_179": {
+      "type": "name"
+    },
+    "SIDE_CODE_179": {
+      "type": "string"
+    },
+    "SIDE_NAME_180": {
+      "type": "name"
+    },
+    "SIDE_CODE_180": {
+      "type": "string"
+    },
+    "SIDE_NAME_181": {
+      "type": "name"
+    },
+    "SIDE_CODE_181": {
+      "type": "string"
+    },
+    "SIDE_NAME_182": {
+      "type": "name"
+    },
+    "SIDE_CODE_182": {
+      "type": "string"
+    },
+    "SIDE_NAME_183": {
+      "type": "name"
+    },
+    "SIDE_NAME_184": {
+      "type": "name"
+    },
+    "SIDE_CODE_184": {
+      "type": "string"
+    },
+    "SIDE_NAME_185": {
+      "type": "name"
+    },
+    "SIDE_GUARD_185": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_186": {
+      "type": "name"
+    },
+    "SIDE_CODE_186": {
+      "type": "string"
+    },
+    "SIDE_NAME_187": {
+      "type": "name"
+    },
+    "SIDE_CODE_187": {
+      "type": "string"
+    },
+    "SIDE_NAME_188": {
+      "type": "name"
+    },
+    "SIDE_CODE_188": {
+      "type": "string"
+    },
+    "SIDE_NAME_189": {
+      "type": "name"
+    },
+    "SIDE_CODE_189": {
+      "type": "string"
+    },
+    "SIDE_NAME_190": {
+      "type": "name"
+    },
+    "SIDE_CODE_191": {
+      "type": "string"
+    },
+    "SIDE_GUARD_191": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_192": {
+      "type": "name"
+    },
+    "SIDE_GUARD_192": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_193": {
+      "type": "name"
+    },
+    "SIDE_CODE_193": {
+      "type": "string"
+    },
+    "SIDE_NAME_194": {
+      "type": "name"
+    },
+    "SIDE_CODE_194": {
+      "type": "string"
+    },
+    "SIDE_NAME_195": {
+      "type": "name"
+    },
+    "SIDE_CODE_195": {
+      "type": "string"
+    },
+    "SIDE_NAME_196": {
+      "type": "name"
+    },
+    "SIDE_CODE_196": {
+      "type": "string"
+    },
+    "SIDE_NAME_197": {
+      "type": "name"
+    },
+    "SIDE_NAME_198": {
+      "type": "name"
+    },
+    "SIDE_CODE_198": {
+      "type": "string"
+    },
+    "SIDE_NAME_199": {
+      "type": "name"
+    },
+    "SIDE_GUARD_199": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_200": {
+      "type": "name"
+    },
+    "SIDE_CODE_200": {
+      "type": "string"
+    },
+    "SIDE_NAME_201": {
+      "type": "name"
+    },
+    "SIDE_CODE_201": {
+      "type": "string"
+    },
+    "SIDE_NAME_202": {
+      "type": "name"
+    },
+    "SIDE_CODE_202": {
+      "type": "string"
+    },
+    "SIDE_NAME_203": {
+      "type": "name"
+    },
+    "SIDE_CODE_203": {
+      "type": "string"
+    },
+    "SIDE_NAME_204": {
+      "type": "name"
+    },
+    "SIDE_CODE_205": {
+      "type": "string"
+    },
+    "SIDE_GUARD_205": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_206": {
+      "type": "name"
+    },
+    "SIDE_GUARD_206": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_207": {
+      "type": "name"
+    },
+    "SIDE_CODE_207": {
+      "type": "string"
+    },
+    "SIDE_NAME_208": {
+      "type": "name"
+    },
+    "SIDE_CODE_208": {
+      "type": "string"
+    },
+    "SIDE_NAME_209": {
+      "type": "name"
+    },
+    "SIDE_CODE_209": {
+      "type": "string"
+    },
+    "SIDE_NAME_210": {
+      "type": "name"
+    },
+    "SIDE_CODE_210": {
+      "type": "string"
+    },
+    "SIDE_NAME_211": {
+      "type": "name"
+    },
+    "SIDE_NAME_212": {
+      "type": "name"
+    },
+    "SIDE_CODE_212": {
+      "type": "string"
+    },
+    "SIDE_NAME_213": {
+      "type": "name"
+    },
+    "SIDE_GUARD_213": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_214": {
+      "type": "name"
+    },
+    "SIDE_CODE_214": {
+      "type": "string"
+    },
+    "SIDE_NAME_215": {
+      "type": "name"
+    },
+    "SIDE_CODE_215": {
+      "type": "string"
+    },
+    "SIDE_NAME_216": {
+      "type": "name"
+    },
+    "SIDE_CODE_216": {
+      "type": "string"
+    },
+    "SIDE_NAME_217": {
+      "type": "name"
+    },
+    "SIDE_CODE_217": {
+      "type": "string"
+    },
+    "SIDE_NAME_218": {
+      "type": "name"
+    },
+    "SIDE_CODE_219": {
+      "type": "string"
+    },
+    "SIDE_GUARD_219": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_220": {
+      "type": "name"
+    },
+    "SIDE_GUARD_220": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_221": {
+      "type": "name"
+    },
+    "SIDE_CODE_221": {
+      "type": "string"
+    },
+    "SIDE_NAME_222": {
+      "type": "name"
+    },
+    "SIDE_CODE_222": {
+      "type": "string"
+    },
+    "SIDE_NAME_223": {
+      "type": "name"
+    },
+    "SIDE_CODE_223": {
+      "type": "string"
+    },
+    "SIDE_NAME_224": {
+      "type": "name"
+    },
+    "SIDE_CODE_224": {
+      "type": "string"
+    },
+    "SIDE_NAME_225": {
+      "type": "name"
+    },
+    "SIDE_NAME_226": {
+      "type": "name"
+    },
+    "SIDE_CODE_226": {
+      "type": "string"
+    },
+    "SIDE_NAME_227": {
+      "type": "name"
+    },
+    "SIDE_GUARD_227": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_228": {
+      "type": "name"
+    },
+    "SIDE_CODE_228": {
+      "type": "string"
+    },
+    "SIDE_NAME_229": {
+      "type": "name"
+    },
+    "SIDE_CODE_229": {
+      "type": "string"
+    },
+    "SIDE_NAME_230": {
+      "type": "name"
+    },
+    "SIDE_CODE_230": {
+      "type": "string"
+    },
+    "SIDE_NAME_231": {
+      "type": "name"
+    },
+    "SIDE_CODE_231": {
+      "type": "string"
+    },
+    "SIDE_NAME_232": {
+      "type": "name"
+    },
+    "SIDE_CODE_233": {
+      "type": "string"
+    },
+    "SIDE_GUARD_233": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_234": {
+      "type": "name"
+    },
+    "SIDE_GUARD_234": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_235": {
+      "type": "name"
+    },
+    "SIDE_CODE_235": {
+      "type": "string"
+    },
+    "SIDE_NAME_236": {
+      "type": "name"
+    },
+    "SIDE_CODE_236": {
+      "type": "string"
+    },
+    "SIDE_NAME_237": {
+      "type": "name"
+    },
+    "SIDE_CODE_237": {
+      "type": "string"
+    },
+    "SIDE_NAME_238": {
+      "type": "name"
+    },
+    "SIDE_CODE_238": {
+      "type": "string"
+    },
+    "SIDE_NAME_239": {
+      "type": "name"
+    },
+    "SIDE_NAME_240": {
+      "type": "name"
+    },
+    "SIDE_CODE_240": {
+      "type": "string"
+    },
+    "SIDE_NAME_241": {
+      "type": "name"
+    },
+    "SIDE_GUARD_241": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_242": {
+      "type": "name"
+    },
+    "SIDE_CODE_242": {
+      "type": "string"
+    },
+    "SIDE_NAME_243": {
+      "type": "name"
+    },
+    "SIDE_CODE_243": {
+      "type": "string"
+    },
+    "SIDE_NAME_244": {
+      "type": "name"
+    },
+    "SIDE_CODE_244": {
+      "type": "string"
+    },
+    "SIDE_NAME_245": {
+      "type": "name"
+    },
+    "SIDE_CODE_245": {
+      "type": "string"
+    },
+    "SIDE_NAME_246": {
+      "type": "name"
+    },
+    "SIDE_CODE_247": {
+      "type": "string"
+    },
+    "SIDE_GUARD_247": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_248": {
+      "type": "name"
+    },
+    "SIDE_GUARD_248": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_249": {
+      "type": "name"
+    },
+    "SIDE_CODE_249": {
+      "type": "string"
+    },
+    "SIDE_NAME_250": {
+      "type": "name"
+    },
+    "SIDE_CODE_250": {
+      "type": "string"
+    },
+    "SIDE_NAME_251": {
+      "type": "name"
+    },
+    "SIDE_CODE_251": {
+      "type": "string"
+    },
+    "SIDE_NAME_252": {
+      "type": "name"
+    },
+    "SIDE_CODE_252": {
+      "type": "string"
+    },
+    "SIDE_NAME_253": {
+      "type": "name"
+    },
+    "SIDE_NAME_254": {
+      "type": "name"
+    },
+    "SIDE_CODE_254": {
+      "type": "string"
+    },
+    "SIDE_NAME_255": {
+      "type": "name"
+    },
+    "SIDE_GUARD_255": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_256": {
+      "type": "name"
+    },
+    "SIDE_CODE_256": {
+      "type": "string"
+    },
+    "SIDE_NAME_257": {
+      "type": "name"
+    },
+    "SIDE_CODE_257": {
+      "type": "string"
+    },
+    "SIDE_NAME_258": {
+      "type": "name"
+    },
+    "SIDE_CODE_258": {
+      "type": "string"
+    },
+    "SIDE_NAME_259": {
+      "type": "name"
+    },
+    "SIDE_CODE_259": {
+      "type": "string"
+    },
+    "SIDE_NAME_260": {
+      "type": "name"
+    },
+    "SIDE_CODE_261": {
+      "type": "string"
+    },
+    "SIDE_GUARD_261": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_262": {
+      "type": "name"
+    },
+    "SIDE_GUARD_262": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_263": {
+      "type": "name"
+    },
+    "SIDE_CODE_263": {
+      "type": "string"
+    },
+    "SIDE_NAME_264": {
+      "type": "name"
+    },
+    "SIDE_CODE_264": {
+      "type": "string"
+    },
+    "SIDE_NAME_265": {
+      "type": "name"
+    },
+    "SIDE_CODE_265": {
+      "type": "string"
+    },
+    "SIDE_NAME_266": {
+      "type": "name"
+    },
+    "SIDE_CODE_266": {
+      "type": "string"
+    },
+    "SIDE_NAME_267": {
+      "type": "name"
+    },
+    "SIDE_NAME_268": {
+      "type": "name"
+    },
+    "SIDE_CODE_268": {
+      "type": "string"
+    },
+    "SIDE_NAME_269": {
+      "type": "name"
+    },
+    "SIDE_GUARD_269": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_270": {
+      "type": "name"
+    },
+    "SIDE_CODE_270": {
+      "type": "string"
+    },
+    "SIDE_NAME_271": {
+      "type": "name"
+    },
+    "SIDE_CODE_271": {
+      "type": "string"
+    },
+    "SIDE_NAME_272": {
+      "type": "name"
+    },
+    "SIDE_CODE_272": {
+      "type": "string"
+    },
+    "SIDE_NAME_273": {
+      "type": "name"
+    },
+    "SIDE_CODE_273": {
+      "type": "string"
+    },
+    "SIDE_NAME_274": {
+      "type": "name"
+    },
+    "SIDE_CODE_275": {
+      "type": "string"
+    },
+    "SIDE_GUARD_275": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_276": {
+      "type": "name"
+    },
+    "SIDE_GUARD_276": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_277": {
+      "type": "name"
+    },
+    "SIDE_CODE_277": {
+      "type": "string"
+    },
+    "SIDE_NAME_278": {
+      "type": "name"
+    },
+    "SIDE_CODE_278": {
+      "type": "string"
+    },
+    "SIDE_NAME_279": {
+      "type": "name"
+    },
+    "SIDE_CODE_279": {
+      "type": "string"
+    },
+    "SIDE_NAME_280": {
+      "type": "name"
+    },
+    "SIDE_CODE_280": {
+      "type": "string"
+    },
+    "SIDE_NAME_281": {
+      "type": "name"
+    },
+    "SIDE_NAME_282": {
+      "type": "name"
+    },
+    "SIDE_CODE_282": {
+      "type": "string"
+    },
+    "SIDE_NAME_283": {
+      "type": "name"
+    },
+    "SIDE_GUARD_283": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_284": {
+      "type": "name"
+    },
+    "SIDE_CODE_284": {
+      "type": "string"
+    },
+    "SIDE_NAME_285": {
+      "type": "name"
+    },
+    "SIDE_CODE_285": {
+      "type": "string"
+    },
+    "SIDE_NAME_286": {
+      "type": "name"
+    },
+    "SIDE_CODE_286": {
+      "type": "string"
+    },
+    "SIDE_NAME_287": {
+      "type": "name"
+    },
+    "SIDE_CODE_287": {
+      "type": "string"
+    },
+    "SIDE_NAME_288": {
+      "type": "name"
+    },
+    "SIDE_CODE_289": {
+      "type": "string"
+    },
+    "SIDE_GUARD_289": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_290": {
+      "type": "name"
+    },
+    "SIDE_GUARD_290": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_291": {
+      "type": "name"
+    },
+    "SIDE_CODE_291": {
+      "type": "string"
+    },
+    "SIDE_NAME_292": {
+      "type": "name"
+    },
+    "SIDE_CODE_292": {
+      "type": "string"
+    },
+    "SIDE_NAME_293": {
+      "type": "name"
+    },
+    "SIDE_CODE_293": {
+      "type": "string"
+    },
+    "SIDE_NAME_294": {
+      "type": "name"
+    },
+    "SIDE_CODE_294": {
+      "type": "string"
+    },
+    "SIDE_NAME_295": {
+      "type": "name"
+    },
+    "SIDE_NAME_296": {
+      "type": "name"
+    },
+    "SIDE_CODE_296": {
+      "type": "string"
+    },
+    "SIDE_NAME_297": {
+      "type": "name"
+    },
+    "SIDE_GUARD_297": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_298": {
+      "type": "name"
+    },
+    "SIDE_CODE_298": {
+      "type": "string"
+    },
+    "SIDE_NAME_299": {
+      "type": "name"
+    },
+    "SIDE_CODE_299": {
+      "type": "string"
+    },
+    "SIDE_NAME_300": {
+      "type": "name"
+    },
+    "SIDE_CODE_300": {
+      "type": "string"
+    },
+    "SIDE_NAME_301": {
+      "type": "name"
+    },
+    "SIDE_CODE_301": {
+      "type": "string"
+    },
+    "SIDE_NAME_302": {
+      "type": "name"
+    },
+    "SIDE_CODE_303": {
+      "type": "string"
+    },
+    "SIDE_GUARD_303": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_304": {
+      "type": "name"
+    },
+    "SIDE_GUARD_304": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_305": {
+      "type": "name"
+    },
+    "SIDE_CODE_305": {
+      "type": "string"
+    },
+    "SIDE_NAME_306": {
+      "type": "name"
+    },
+    "SIDE_CODE_306": {
+      "type": "string"
+    },
+    "SIDE_NAME_307": {
+      "type": "name"
+    },
+    "SIDE_CODE_307": {
+      "type": "string"
+    },
+    "SIDE_NAME_308": {
+      "type": "name"
+    },
+    "SIDE_CODE_308": {
+      "type": "string"
+    },
+    "SIDE_NAME_309": {
+      "type": "name"
+    },
+    "SIDE_NAME_310": {
+      "type": "name"
+    },
+    "SIDE_CODE_310": {
+      "type": "string"
+    },
+    "SIDE_NAME_311": {
+      "type": "name"
+    },
+    "SIDE_GUARD_311": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_312": {
+      "type": "name"
+    },
+    "SIDE_CODE_312": {
+      "type": "string"
+    },
+    "SIDE_NAME_313": {
+      "type": "name"
+    },
+    "SIDE_CODE_313": {
+      "type": "string"
+    },
+    "SIDE_NAME_314": {
+      "type": "name"
+    },
+    "SIDE_CODE_314": {
+      "type": "string"
+    },
+    "SIDE_NAME_315": {
+      "type": "name"
+    },
+    "SIDE_CODE_315": {
+      "type": "string"
+    },
+    "SIDE_NAME_316": {
+      "type": "name"
+    },
+    "SIDE_CODE_317": {
+      "type": "string"
+    },
+    "SIDE_GUARD_317": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_318": {
+      "type": "name"
+    },
+    "SIDE_GUARD_318": {
+      "type": "identifier"
+    },
+    "SIDE_NAME_319": {
+      "type": "name"
+    },
+    "SIDE_CODE_319": {
+      "type": "string"
+    },
+    "SIDE_KEEP_3": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_10": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_17": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_24": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_31": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_38": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_45": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_52": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_59": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_66": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_73": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_80": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_87": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_94": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_101": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_108": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_115": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_122": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_129": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_136": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_143": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_150": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_157": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_164": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_171": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_178": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_185": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_192": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_199": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_206": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_213": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_220": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_227": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_234": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_241": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_248": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_255": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_262": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_269": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_276": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_283": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_290": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_297": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_304": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_311": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_318": {
+      "type": "identifier"
+    },
+    "SIDE_KEEP_409": {
+      "type": "identifier"
+    }
+  }
 }

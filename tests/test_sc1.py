@@ -889,7 +889,6 @@ def test_astra_f14_unregistered_trunk_refused_before_loading(monkeypatch, tmp_pa
 
 
 def test_fable_h1_pressure_binds_on_every_smoke_episode(real_tokenizer):
-    assert len(set(episodes.FILLER)) >= 256
     for source in episodes.load_sources(ROOT / "data/sc1/smoke"):
         ep = validate_source(source, real_tokenizer)
         layout = sc1.render_episode(ep, real_tokenizer)
@@ -898,7 +897,7 @@ def test_fable_h1_pressure_binds_on_every_smoke_episode(real_tokenizer):
         newest = max(c["message_index"] for c in universe if c["role"] == "user")
         assert ep["layout_audit"]["newest_eligible_old_user_turn"] == newest
         assert newest not in ep["filler_manifest"]["turns"]
-        assert not any(s in ep["turns"][newest]["text"] for s in episodes.FILLER)
+        assert not any(s in ep["turns"][newest]["text"] for s in episodes.LEGACY_FILLER)
         rule = sc1.select_policy(layout, real_tokenizer, "rule")
         clf = sc1.select_policy(
             layout, real_tokenizer, "clf", lambda t, **kw: [1.0] * len(t)
@@ -2645,7 +2644,7 @@ def test_amendment_filler_newest_old_user_through_bank(
     newest = max(c["message_index"] for c in universe if c["role"] == "user")
     assert newest not in ep["filler_manifest"]["turns"]
     assert not any(
-        sentence in ep["turns"][newest]["text"] for sentence in episodes.FILLER
+        sentence in ep["turns"][newest]["text"] for sentence in episodes.LEGACY_FILLER
     )
     if violation == "designation":
         later = max(c["message_index"] for c in universe if c["role"] == "tool")
@@ -2653,7 +2652,253 @@ def test_amendment_filler_newest_old_user_through_bank(
         source["turns"][later]["role"] = "user"
     else:
         # Authored pool text cannot evade the guard by omitting designation.
-        source["turns"][newest]["text"] += "\n" + episodes.FILLER[0]
+        source["turns"][newest]["text"] += "\n" + episodes.LEGACY_FILLER[0]
     sc1.atomic_json(path, source)
     with pytest.raises(ValueError, match="newest eligible old user"):
         episodes.validate_bank(tmp_path, real_tokenizer)
+
+
+def assert_smoke_cue_compliance(audit):
+    # Disposable smoke regression, never a production factor quota or retention filter.
+    assert audit["legacy_pool"] == {"positive": 0, "negative": 0}, "pool-form"
+    for key in ("old_index_1", "newest_old_user", "old_newest_old_user"):
+        assert all(audit[key][label] > 0 for label in ("positive", "negative")), key
+    for form in ("code", "edit", "previous", "switch", "return"):
+        assert all(audit["form"][form][label] > 0 for label in ("positive", "negative"))
+    for role in ("user", "tool"):
+        assert all(audit["role"][role][label] > 0 for label in ("positive", "negative"))
+    for key, counts in audit["form_role_position"].items():
+        if counts["positive"]:
+            assert counts["negative"] > 0, key
+
+
+def test_round5_bank_cue_regression_318a90c_and_regenerated(real_tokenizer):
+    historical = [
+        episodes.parse_json(
+            subprocess.check_output(
+                [
+                    "git",
+                    "-C",
+                    str(ROOT),
+                    "show",
+                    f"318a90c26e5f5fcf241ad23e3007eb61da1b0273:data/sc1/smoke/smoke-{i:02d}.episode.json",
+                ],
+                text=True,
+            )
+        )
+        for i in range(8)
+    ]
+    # Recompute from public text, real offsets and the common unscored candidates;
+    # do not trust the old artifact's saved layout_audit or candidate coordinates.
+    before = episodes.cue_contingencies(historical, real_tokenizer)
+    assert before["legacy_pool"] == {"negative": 1539, "positive": 0}
+    assert before["index_1"] == {"negative": 0, "positive": 6}
+    assert before["newest_old_user"] == {"negative": 8, "positive": 0}
+    saved = episodes.parse_json(
+        (ROOT / "data/sc1/cue-regression-318a90c.json").read_text()
+    )
+    assert saved["cue_contingencies"] == before
+    with pytest.raises(AssertionError, match="pool-form"):
+        assert_smoke_cue_compliance(before)
+    for key in ("old_index_1", "newest_old_user"):
+        with pytest.raises(AssertionError, match=key):
+            assert all(before[key][label] > 0 for label in ("positive", "negative")), (
+                key
+            )
+    bank, report = episodes.validate_bank(ROOT / "data/sc1/smoke", real_tokenizer)
+    assert (report["references_pass"], report["mutations_fail"]) == (8, 48)
+    for before_ep, after_ep in zip(historical, bank, strict=True):
+        for field in ("assignments", "seeds", "task_spec", "reference"):
+            assert before_ep[field] == after_ep[field]
+    after = episodes.cue_contingencies(bank, real_tokenizer)
+    assert_smoke_cue_compliance(after)
+    assert report["cue_contingencies"] == after
+
+
+def test_round5_matched_contexts_through_bank(source, real_tokenizer, tmp_path):
+    # Materialize once so both contexts expose byte-identical public sentences.
+    left, literals = episodes._literal_expand(
+        source, episodes.commission_slot("smoke", source["index"])
+    )
+    left["literal_specs"] = {}
+    left["id"], left["source_id"] = "cue-left", "disposable-cue-left"
+    right = copy.deepcopy(left)
+    right.update(id="cue-right", source_id="disposable-cue-right", index=3)
+    name, value = "N8c31dae", "a2e46c19bd"
+    right["entities"][0]["name"] = name
+    right["instruction_trajectory"][0]["evidence_text"] = right[
+        "instruction_trajectory"
+    ][0]["evidence_text"].replace(literals["NAME"], name)
+    right["turns"][0]["text"] = right["turns"][0]["text"].replace(
+        literals["NAME"], name
+    )
+    right["decisive_facts"][0].update(
+        turn=7, evidence_text=f"The {name} code is {value}."
+    )
+    left["turns"][7]["text"] = right["turns"][7]["text"] = (
+        f"The {name} code is {value}."
+    )
+    for field in ("work", "obligations", "attacks", "answer_literals", "source_graph"):
+        right[field] = json.loads(
+            json.dumps(right[field]).replace(literals["VALUE"], value)
+        )
+    left_rule = left["instruction_trajectory"][0]["evidence_text"]
+    right_rule = right["instruction_trajectory"][0]["evidence_text"]
+    # Exact full instruction templates also change relevance by target context.
+    left["turns"][0]["text"] += "\n" + right_rule
+    right["turns"][0]["text"] += "\n" + left_rule
+    left["final_request"] = f"Finish the {literals['NAME']} card now."
+    right["final_request"] = f"Finish the {name} card now."
+    # The first public observation is now about a different card from the task.
+    # No role, position, sentence text or syntactic form changes at that position.
+    banks = []
+    for label, authored in (("left", left), ("right", right)):
+        directory = tmp_path / label
+        sc1.atomic_json(directory / "matched.source.json", authored)
+        rows, report = episodes.validate_bank(directory, real_tokenizer)
+        assert (report["references_pass"], report["mutations_fail"]) == (1, 6)
+        assert sum(m["schema_valid"] for m in report["reports"][0]["mutations"]) >= 2
+        banks.append(rows)
+    for position, sentence, labels, form in (
+        (1, left["decisive_facts"][0]["evidence_text"], [True, False], "code"),
+        (7, right["decisive_facts"][0]["evidence_text"], [False, True], "code"),
+        (0, left_rule, [True, False], "edit"),
+        (0, right_rule, [False, True], "edit"),
+    ):
+        observed = []
+        for bank in banks:
+            candidates = [
+                r
+                for r in episodes.cue_candidate_rows(bank, real_tokenizer)
+                if r["position"] == position and r["text"] == sentence
+            ]
+            assert len(candidates) == 1
+            assert candidates[0]["role"] == "user"
+            assert candidates[0]["form"] == form
+            observed.append(candidates[0]["positive"])
+        assert observed == labels
+
+
+@pytest.mark.parametrize(
+    "defect", ["missing", "empty", "duplicate", "exhausted", "legacy"]
+)
+def test_round5_expansion_requires_authored_content(
+    source, real_tokenizer, tmp_path, defect
+):
+    if defect == "missing":
+        source.pop("incidental_sentences")
+    elif defect == "empty":
+        source["incidental_sentences"] = []
+    elif defect == "duplicate":
+        source["incidental_sentences"].append(source["incidental_sentences"][0])
+    elif defect == "exhausted":
+        source["incidental_sentences"] = source["incidental_sentences"][:1]
+    else:
+        source["incidental_sentences"][0] = episodes.LEGACY_FILLER[0]
+    sc1.atomic_json(tmp_path / "source.source.json", source)
+    with pytest.raises(ValueError, match="incidental"):
+        episodes.validate_bank(tmp_path, real_tokenizer)
+
+
+def test_round5_incidental_expansion_can_share_evidence_turn(
+    source, real_tokenizer, tmp_path
+):
+    source["filler_turns"].insert(0, 1)
+    sc1.atomic_json(tmp_path / "source.source.json", source)
+    bank, report = episodes.validate_bank(tmp_path, real_tokenizer)
+    assert report["references_pass"] == 1
+    ep = bank[0]
+    assert 1 in ep["filler_manifest"]["placements"]
+    material, _ = episodes._literal_expand(source, episodes.commission_slot("smoke", 0))
+    # Every appended byte comes from the submitted source, including mixed turns.
+    for turn in source["filler_turns"]:
+        indices = [
+            i
+            for i, t in zip(
+                ep["filler_manifest"]["ids"],
+                ep["filler_manifest"]["placements"],
+                strict=True,
+            )
+            if t == turn
+        ]
+        assert ep["turns"][turn]["text"] == material["turns"][turn]["text"] + "".join(
+            "\n" + material["incidental_sentences"][i] for i in indices
+        )
+    candidates = [
+        r
+        for r in episodes.cue_candidate_rows(bank, real_tokenizer)
+        if r["position"] == 1 and r["form"] == "code"
+    ]
+    assert {r["positive"] for r in candidates} == {True, False}
+
+
+def test_round5_snapshot_includes_all_adopted_numbered_amendments(
+    tmp_path, monkeypatch
+):
+    from scripts import sc1 as cli
+
+    contract = tmp_path / cli.CONTRACT
+    contract.parent.mkdir(parents=True)
+    contract.write_bytes(b"Author contract fixture.\n")
+    ledger = tmp_path / "LEDGER-PLAN.md"
+    chunks = [cli.SCIENCE_HEADING + b")\nScience.\n\n"] + [
+        f"## SC1 AMENDMENT {n} (fixture)\nAdopted clause {n}.\n".encode()
+        for n in (1, 2, 3)
+    ]
+    ledger.write_bytes(
+        b"## Preamble\nOmit.\n"
+        + chunks[0]
+        + chunks[1]
+        + b"\n## Editorial note\nOmit this too.\n\n"
+        + chunks[2]
+        + b"\n"
+        + chunks[3]
+    )
+    # No STAGE1-CLAUSES.md exists: proposal files are not adoption evidence.
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "add", "--", "LEDGER-PLAN.md", cli.CONTRACT],
+        check=True,
+    )
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(tmp_path),
+            "-c",
+            "user.name=CPU fixture",
+            "-c",
+            "user.email=fixture@localhost",
+            "commit",
+            "-qm",
+            "adopted sources",
+            "--",
+            "LEDGER-PLAN.md",
+            cli.CONTRACT,
+        ],
+        check=True,
+    )
+    monkeypatch.setattr(cli, "ROOT", tmp_path)
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("snapshot must not load a model/tokenizer")
+
+    monkeypatch.setattr(cli, "load_tokenizer", forbidden)
+    result = cli.main(["snapshot"])
+    snapshot = tmp_path / cli.SCIENCE_SNAPSHOT
+    assert snapshot.read_bytes() == b"".join(chunks) + contract.read_bytes()
+    assert len(result["parts"]) == 5
+    assert cli.verify_snapshot() == result
+    ledger.write_bytes(ledger.read_bytes() + b"\n## Later editorial\nNo science.\n")
+    assert cli.main(["snapshot"]) == result
+    # A self-consistent snapshot/hash record still cannot omit an adopted section.
+    removed = result["parts"].pop(2)
+    reduced = snapshot.read_bytes().replace(chunks[2], b"", 1)
+    assert removed["byte_length"] == len(chunks[2])
+    snapshot.write_bytes(reduced)
+    result.update(
+        byte_length=len(reduced), science_hash=hashlib.sha256(reduced).hexdigest()
+    )
+    sc1.atomic_json(tmp_path / cli.SNAPSHOT_PROVENANCE, result)
+    with pytest.raises(ValueError, match="omitted"):
+        cli.verify_snapshot()
