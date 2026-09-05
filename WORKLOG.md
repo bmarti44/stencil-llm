@@ -4634,3 +4634,60 @@ clarification for the two prohibited sealed-file hash reads if full-command
 coverage is required. The code/source repair and permitted CPU checks are ready
 for that review. No Stage 2 acceptance or production semantic-independence claim
 is made by this implementation handoff.
+
+## 2026-09-04 — SC1 frozen at Stage 2 and SHELVED (Brian's ruling)
+
+STATE: SC1 is SHELVED at the Stage 2 artifact freeze by Brian's ruling. No
+production episode authoring, setup runs or final runs are authorized. Nothing
+about SC1 is a result: the frozen artifacts establish CPU harness/regression
+checks only, not selector efficacy, production semantic compliance, model
+determinism or GPU timing. Future resumption must begin with Stage 3 authoring
+under the reconciled contract, use fresh isolated author sessions and obtain
+independent cue review of production sources. Program pointer: `LEDGER-PLAN.md`
+section `FOCUS-1 — SET/HOLD/SWITCH/CLEAR SCREEN ON FROZEN QWEN` (DRAFT v1,
+not yet registered), with CPU brief `tools/codex-agents/focus1-harness.md`.
+
+Amendment 2 adoption/source commit: `842073928340c26b153a2484f4b50079cc78c7ae`.
+The proposal section body from `data/sc1/STAGE1-CLAUSES.md` was adopted verbatim
+under Brian's requested heading. The snapshot producer requires committed source
+ranges, so adoption precedes artifact generation. Freeze commit: this artifact
+freeze commit (immutable ID to be recorded by the immediate ledger follow-up).
+The follow-up records the freeze ID without amending that commit or regenerating
+its artifacts; editorial status text is excluded from the science snapshot.
+
+Data lineage: fit-on = none; evaluated-on = existing fictional disposable SC1
+smoke/CPU fixtures only. Only the explicitly authorized `tests/test_sealed_guard.py`
+read the sealed IFEval path for integrity checks. This task did not inspect that
+input or sealed BFCL cohort contents. No fitting, training, production authoring,
+model/GPU process, background shell job, process signal or push was performed.
+
+Validation (all commands foreground, CPU only):
+
+- `CUDA_VISIBLE_DEVICES='' uv run python scripts/sc1.py snapshot` — PASS;
+  DRAFT v2 + adopted Amendment 1 + adopted Amendment 2 + the current reconciled
+  author contract, 90,429 bytes, four committed byte ranges.
+- `CUDA_VISIBLE_DEVICES='' uv run python scripts/sc1.py smoke` and
+  `CUDA_VISIBLE_DEVICES='' uv run python scripts/sc1.py validate data/sc1/smoke`
+  — PASS: 8 references, 48 rejected negatives, 6 OLD / 2 RECENT, B=256 throughout.
+- Actual `verify_snapshot`, `verify_manifest` and `load_manifest_bank` consumers
+  — PASS: 45 file hashes, 8 episode identities and all four source ranges.
+  Snapshot excludes FOCUS-1 and editorial status; it ends with the byte-exact
+  current author contract. Source, episode and contract bytes are unchanged.
+- `CUDA_VISIBLE_DEVICES='' uv run pytest -q tests/test_sc1.py tests/test_eval_data_separation.py tests/test_sealed_guard.py tests/test_no_side_effect_imports.py`
+  — **153 passed, 1 xfailed, 1 warning in 278.63s** (exit 0). No exclusions or
+  deselections; all sealed-guard tests ran. The existing xfail inventories legacy
+  import-side-effect debt; the warning is the invalid escape in `scripts/b2_gsm8k.py:9`.
+
+Manifest ID: `671bb5cf199bc5b1bfc19f7ab3c3925541c6ed8635b95887ccbd81834565fbb1`.
+Bank identity (unchanged): `33ac697c5eab1d931dd66b3a18cb29a52ed8a18d2426012ae18c2123e0c0ba30`.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| `data/sc1/registration-snapshot.md` | `12a1eab17115032153f21f551e33501461fc2997ce1e7f75b7acf825e1063a8b` |
+| `data/sc1/registration-snapshot.json` | `767bd2f49ceab67ac8482ab4ae906a018016d8ddfe69b529a0ff4f9fffab751c` |
+| `data/sc1/smoke/manifest.json` | `a598392b90b871ed3558c262d3c293f905e08e16b67ae53da0d1a9c257676bb9` |
+| `data/sc1/smoke/validation.json` | `e4758586d6165baacd5ab941181849f0b2a46f3e8b761d90537b8437e068f96a` |
+| `data/sc1/AUTHOR-CONTRACT.md` | `e37b7fee872bf2d2ff1b50c8455b513624e74a680ed90a5478b3bc3a238cab90` |
+
+The freeze and pointer commits use explicit pathspecs limited to `LEDGER-PLAN.md`,
+`WORKLOG.md` and `data/sc1/`. Nothing was pushed.
