@@ -1943,3 +1943,84 @@ Freeze sequence: (0) Preserve DRAFT v1 commit 2ea04e9 as the earliest immutable 
 Artifacts per generated request in the same run: episode/arm/checkpoint, family/direction/delay, input and emitted token IDs/text/EOS, shared-prior correctness and hash, actual fact source, live-rule/scope/turn/token-position maps, removed body IDs/hashes and replacement tokens, task/constraint/fact/imposition/placeholder/breakage flags, cost/peak-memory and all freeze hashes. Persist raw records before aggregation; analyze verifies completeness, pairing, integrity and recomputes decisions. Partial runs retain original denominators and status; no overwritten/reselected outputs or hidden imputation.
 
 Review disposition (design decisions, not reviewer closure): carry forward v1 fable F1–F13 and kimi K1–K6 except the explicit updates here. Fable check-36 ACCURATE-WITH-CORRECTIONS satisfies the independent-accuracy prerequisite; its confounded-ordering interpretation is corrected by check 38. Fable check-38 (a) accepted—31->12->2 decay/demo decomposition, role 2/1, before/after +10/0, inside/adjacent 27/11 and sort-present default 12/32 replace the broad precedence slogan; (b) accepted—cross-check/list/demo/cache differences, unanswered-turn confound, age after demos untested, imitation vs inferred rule unresolved, and T2 whole-turn deletion does not certify placeholder repair; (c) accepted—inside-request placement, demonstration-share/headroom expectation, complete pairs and unchanged both-correct stratum; optional extra no-answer/one-neutral-pair readout deferred to a separate registration to preserve the five-arm/count/cost design. Check 38's reading was fixed by run-time copy/hash, not a prior commit; no false prelaunch anchor. Kimi's four wording fixes in results/focus-synthesis-review-kimi.md: Fix 1 accepted—check 32 presence, not task identity; Fix 2 accepted—retained HOLD 32/32 ascending, 23/32 descending and joint 3/32, 5/32; Fix 3 accepted-with-change per Brian—keep >=5 points over text-restate only, label <5-point component gains MARGINAL ADDED CONTROL and withhold headline joint-control claim; Fix 4 satisfied—check 36 independently reviewed, check 33 review not asserted. Optional Fix 5 remains accepted—later requests cannot recover a failed endpoint. F4/F8 freeze/provenance now bind original anchor 2ea04e9 plus prospective check 39 and this v2; historical check 37's coarse n=32 STOP stands. F6/F9/F11/F12 safety, all other gates, seeds (including the focus2-v1 RNG namespace), families, claim ceiling and freeze sequence (2)–(4) are retained. No finding refuted; independent registration review remains required.
+
+### CPU implementation handoff — 2026-09-05 (write-ahead)
+
+Fit-on: none. Direct foreground Codex implementation under the focus2-harness v2
+brief; no wrapper or delegated agent. Tests precede implementation. Only the three
+new harness/test paths and this append-only handoff are in scope. DRAFT / NOT
+REGISTERED remains in force; no model execution is authorized. Governing legacy
+protocol/state files were located under archive/; the current v2 section at
+7d0c244 governs this task. Check-36 and check-38 reviews and the outcome-limited
+check-39 receipt/reading at e30343d were read; historical runner sources are
+inspected only. No historical raw response banks are development inputs.
+
+CPU handoff complete (implementation acceptance only). Code commit:
+`8f4b76cb7711ee033dc66fcdc57bc62e1519c7d5`; tracked membership verified for
+`scripts/focus2.py`, `src/stencil/focus2.py`, and `tests/test_focus2.py`.
+Implemented the five text-history arms, whole-body period replacement with
+retained closures and persisted token maps, fixed seeded banks/disjointness,
+strict task/collateral/breakage checks, paired primary/secondary/stratified
+readings, competence/timing certificates checked against raw records, committed
+provenance checks before backend construction, exclusive durable request records,
+cooperative budgets/interruption accounting, and CPU analysis. All four modes
+were exercised only through injected fake trunks; the real tokenizer was used
+locally for delay, closure, complete rendered-template hashes and gold cap checks.
+`--prepare-freeze` emits candidates only and cannot register this draft.
+
+Red/green evidence: the initial tests failed at collection because the new helper
+module did not exist. Later adversarial refinements recorded 4 failed / 43 passed
+in `/tmp/focus2-red-refinements.log` (immediate competence placement, counter
+validation, output-directory binding, malformed tool groups), subsequently fixed.
+Exact final acceptance outcomes, all foreground from the repo root:
+
+- `CUDA_VISIBLE_DEVICES='' .venv/bin/python -m pytest -q tests/test_focus2.py`
+  exited 0: **60 passed in 195.69s**. Log: `/tmp/focus2-acceptance-pytest.log`.
+- `CUDA_VISIBLE_DEVICES='' .venv/bin/python scripts/focus2.py --help`
+  exited 0. Log: `/tmp/focus2-acceptance-help.log`.
+- `.venv/bin/python -m ruff check scripts/focus2.py src/stencil/focus2.py tests/test_focus2.py`
+  exited 0, All checks passed. Log: `/tmp/focus2-acceptance-ruff.log`.
+- `git diff --check -- scripts/focus2.py src/stencil/focus2.py tests/test_focus2.py LEDGER-PLAN.md`
+  exited 0; repeated after this handoff append. No test-runner pipe or full suite.
+
+Actual session metadata from the environment: model `gpt-6-astra`, effort `xhigh`,
+Codex session/thread `01a070d8-03f3-7de1-b9ec-c04f7983c289`. Direct foreground
+session as required by this brief; no wrapper log exists and no model/effort
+relaunch or override was performed. The logs above are actual CPU test/check
+logs; temporary Git repositories contain fabricated provenance and receipts.
+Fit-on: none. No GPU/model launch, fitting/training, benchmark/sealed-input access,
+process signals, background work, additional coder/reviewer/agent launch, or push.
+Historical sources and `results/quick-checks/*` were not edited; no real outcome
+artifacts were produced. The pre-existing untracked `scripts/focus_check32.py`
+was left untouched.
+
+Fixed development material read: check-36 independent accuracy review
+`results/check36-review-fable.md` (ACCURATE-WITH-CORRECTIONS, reviewed source
+c294688; prerequisite satisfied), check-38 interpretive corrections in
+`results/check38-review-fable.md`, and the outcome-limited check-39 README,
+4b/summary and prewritten reading at e30343d. Check-39 repair is satisfied as
+**PROCEED_PLACEHOLDER**, e24afd4 -> e30343d; its net-discordance repair rule remains
+separate from main F6's raw h<=2 and p>.05 gate. Check-37 **STOP remains unchanged,
+not pooled and not a v2 launch veto**. Historical runner/repair source inspection
+was limited to the authorized implementation dependencies; no historical raw
+response banks, SC1 inputs or benchmark metadata were generator inputs.
+
+Limitations and remaining prerequisites: CPU fixtures do not certify a real
+FOCUS-2 result, model compatibility, competence, timing, efficacy or safety.
+Conservative implementation choices for CPU review: every pilot cell exercises
+the memo path for timing, and the third-both-only-breakage scheduling stop is
+applied within each stage, without pooling pilot observations into final counts.
+The current preflight requires Git membership for every declared dependency,
+including model/tokenizer assets; final freeze must satisfy that contract.
+Dependency hashes/commit membership and historical launch chronology must be
+verified again at freeze; the outcome-free development dedup manifest covering
+checks 31–39 plus repair fixtures is still required. Final template/bank/model/
+tokenizer/config hashes, independent registration review and a committed freeze
+remain outstanding. Preserve original template/readings anchor **2ea04e9**;
+v2 readings were already committed at **7d0c244**, before any real FOCUS-2 outcome.
+Registration binds an immutable section snapshot and the external launch receipt
+binds its manifest/freeze commit and one output directory; later unrelated ledger
+appendices do not invalidate the snapshot. **FOCUS-2 remains DRAFT / NOT REGISTERED.**
+Next action: CPU review of this implementation and draft, followed by the governed
+freeze sequence only when prerequisites are satisfied. No GPU next command is
+authorized by this handoff, and no outstanding review is declared closed.
