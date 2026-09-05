@@ -4694,3 +4694,14 @@ The freeze and pointer commits use explicit pathspecs limited to `LEDGER-PLAN.md
 Final pointer verification: the freeze commit tracks all 29 `data/sc1/` files;
 `git diff --check` passed. The exact freeze ID above is recorded in this
 documentation-only follow-up; the frozen snapshot and manifest remain unchanged.
+
+## 2026-09-04 — FOCUS-1 v2 consolidated (fable + kimi reviews)
+
+Data lineage: fit-on=none; evaluated-on=none; documentation and pure-CPU arithmetic only (gpt-6-astra, direct foreground session).
+Appended 71-line DRAFT v2 to LEDGER-PLAN.md, preserving every prior byte; dispositioned all 14 fable and 20 kimi findings and aligned the harness brief; .allow unchanged.
+Adopted residual-harm CLEAR, stricter setup gates, intervention-only breakage stops, setup transplant certification, descriptive transient hold and the sustained-signal claim ceiling.
+Retained conservative joint setup-copy screening; removed KEEP-imposition gates; froze neutral-prefix semantics, labels, short-circuit selection and prospective asc/reverse fallback only.
+Validation: stdlib exact binomial/McNemar recomputation, conditional power, count/normalization arithmetic, endpoint-feasibility witness, disposition/line-limit/preservation checks and git diff --check passed; no harness/model tests run.
+Draft v2 SHA-256 (heading through final newline): 746b354436a2007984f394fa995c68c6a455312c80bc4493dca9f9bc5f0e67fb.
+STATE: NOT YET REGISTERED; dispositions await independent review/closure; actual registration and recorded BFCL terminal evidence precede any model/GPU work.
+No fitting/training, model/GPU process, sealed IFEval/BFCL input read, background job, process signal, delegated agent or push; explicit-pathspec documentation commit only.
