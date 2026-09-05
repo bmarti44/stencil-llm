@@ -5152,3 +5152,9 @@ Frozen k=200/g=3/T=1 after all 36 cells; SET JS correct 14/32 (7 broken), swappe
 Mean delta-c correct +20.596, swapped +20.911, shuffled +0.224, OFF 0, text +41.900; 23/32 correct first tokens are ` moduleId`, so the reading is parser-level.
 All 16 histories complete: correct HOLD/BACK JS 7/16, SWITCH Python 8/16, CLEAR JS 7/16; same seven JS episodes persist through all four stages.
 40.30/90 GPU-min, foreground, RUNNING.flag removed; 800-record/attribution audit and CPU fixtures PASS, import guard 3 passed/1 known xfail, lint clean; explicit-path local commit, no push/signals.
+
+### 2026-09-05 — Check40c: POSSIBLE (gpt-6-astra)
+Fit/train none; same frozen 40b JS direction and reused 32 exploratory tasks; four arms/reading fixed before outcomes, no sealed inputs.
+Sustained alpha2 JS25/32 broken0, alpha3 JS32/32 broken0; alpha2 frozen by first-qualifying order. First3 JS25/broken4; first8 JS26/broken6.
+First3 repairs two breaks as Python lambdas; four Dart-style breaks persist. Recorded sustained JS26/broken6 and OFF JS0/broken0 reused; family/arrows reported.
+128 new generations, 3850 tokens, 629.25/1800 GPU seconds; pinned .venv transformers5.16.1/raw-slot48, CPU audit PASS; flag removed, scoped local commit, no push.

@@ -387,3 +387,8 @@ pass/fail reading written before running; one accuracy review of the RESULT from
    Correct broken 4/64; shuffled non-default 0/64; correct CLEAR impositions 0/64; no setup cell induced both languages, and g=2 mostly increased breakage.
    Cued competence 32/32 each; all neuron-set overlaps 0%; layer counts/grid/task checks saved; counting only on disjoint synthetic profile/setup slices.
    All 2,528 records audited; 83.86/120 GPU-min including preserved empty attempt; check40 cost-stopped before behavior; no training, benchmarks, signals or push.
+
+40c. ROUTER DOSE / FIRST TOKENS ([check40c](check40c/README.md)): **POSSIBLE**; same exploratory 32-task bank.
+   Sustained alpha2 JS25/32, broken0; alpha3 JS32/32, broken0; freeze alpha2 by prewritten first-qualifying order.
+   Alpha4 first3 JS25/broken4, first8 JS26/broken6; recorded sustained JS26/broken6, OFF JS0/broken0; family/arrow counts saved.
+   128 new generations +64 recorded references audited; 10.49 GPU-min incl. load; unregistered, no training/sealed reads/signals/push.
