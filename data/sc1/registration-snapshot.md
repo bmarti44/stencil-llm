@@ -733,13 +733,15 @@ Report realized counts by author, style, origin, age, scope and crossed cells, s
 
 ## Structured source specification and expansion
 
-Author one compact original causal specification per episode (roughly 300–800 tokens is a planning target, not
-a completeness limit). Shared grammar, executor/checker primitives and disclosed irrelevant filler are allowed;
-shared instantiated stories are not. A frozen deterministic expander renders the long conversation, verifies that authored facts
-already satisfy the assigned age, samples literals/filler from their streams and generates reference witnesses;
+Author one original causal specification plus its incidental public sentences per episode. Roughly 300–800
+tokens remains a planning target for the causal specification alone, not a limit on authored content. Shared
+grammar and executor/checker primitives are allowed; shared instantiated stories or a closed prose pool
+reserved for irrelevant padding are not. A frozen deterministic expander renders the long conversation,
+verifies that authored facts already satisfy the assigned age, samples typed literals from their stream,
+orders only that source's authored incidental sentences with the filler stream and generates reference witnesses;
 executable checkers and mutations are code-generated from this single specification. It must not invent a new decisive
 rule or reuse a small scenario template bank as purportedly independent sources. The grammar, expander, original
-tool families and filler pool are frozen before production authoring; no model-outcome feedback enters them.
+tool families and source-authored expansion law are frozen before production authoring; no model-outcome feedback enters them.
 
 Each episode record contains these fields (all but the four public renderer fields are private):
 
@@ -751,7 +753,7 @@ Each episode record contains these fields (all but the four public renderer fiel
 | `domain`, `task`, `scenario_gist` | Domain tag, final-task one-liner and one-line causal story summary for cross-source review. |
 | `entities`, `source_graph` | Fictional typed entities/relations; individually authored setting, task, governing rules, events and dependency edges. |
 | `instruction_trajectory`, `decisive_facts` | Scope events, authority, active/superseded/cancelled values, original and rendered evidence coordinates. |
-| `distractors`, `filler_manifest` | 4–8 original distractors; sampled filler IDs/seeds and shared-pool version, kept separate from decisive content. |
+| `distractors`, `filler_manifest` | 4–8 original distractors; source-authored sentence hash, indices, seed, placements and base texts. Designation describes expansion, not relevance. |
 | `task_spec`, `initial_state`, `state_trace` | Output kind/schema, permitted operations and edits, full pre-decision state and consistent scripted event trace. |
 | `obligations` | Stable obligation IDs, narrative evidence, required/forbidden outputs and target values, executable predicates. |
 | `protected_set` | Explicit nonempty protected records/fields for tool-work; protected artifact fields/lines or forbidden extra keys/lines/content for editing; expected values/absence and invariant IDs. |
@@ -778,7 +780,7 @@ source specifications pairwise, with signed decisions on suspected siblings. Che
 collisions across pools; regenerate colliding literals without changing the scenario or factors.
 
 Record history 8-gram Jaccard overlap (Unicode NFKC, casefold, whitespace tokenization), excluding the system/tools
-prefix and separately accounting for disclosed shared filler. Values >=0.05 flag pairs for semantic review, not
+prefix and separately accounting for source-authored incidental expansion. Values >=0.05 flag pairs for semantic review, not
 automatic source independence or rejection. Record author/domain counts without capping them. Generic primitives
 and filler do not by themselves make siblings; a shared task+setting+rule graph does. Validity repair is allowed
 only before episode freeze without policy/trunk feedback. After freeze, discovered source dependence invalidates
@@ -854,17 +856,35 @@ block are invalid, including overwritten nested members; they cannot be incident
 incidental plain prose may surround a valid envelope but may not supply untraced state. State-like non-JSON
 prose remains an independent semantic-review responsibility.
 
-Use the frozen 512-sentence filler pool without replacement. All authored bases and all expanded history turn
-texts must fit 600 tokenizer tokens each; rendered chat delimiters count separately in history. Designate
-mixed user/assistant/tool non-evidence, non-trace turns. Designated turns times 600 must exceed 4608 minus
-rendered base history, allowing existing text and whole-sentence packing (typically at least eight turns).
-Expansion is round-robin to at least 4608 rendered history tokens, checked after each batch. The compiler
-reports capacity and a lower bound on turns needed, and validates candidate pressure before accepting a source.
-Never designate the newest eligible old user turn for filler or place any pool sentence anywhere in its text,
-including its authored base. This is the latest user turn with any complete source piece in the removable old
-range after rendering; a turn crossing the recent boundary can still qualify. Repair placement failures under
-the original assignments without moving causal evidence. The relevance rule above remains binding, including
-recognizable filler; these geometry checks do not establish semantic compliance.
+Supply `incidental_sentences`: a nonempty array of distinct, self-contained authored sentences. These are
+source content, not instructions to the expander to invent prose. Do not reserve any recognizable sentence
+or template family for irrelevant padding. Necessary and incidental content must have overlapping public
+forms, roles and eligible positions; relevance depends on the task and causal context. Put incidental content
+with causal ordering dependencies in authored turn bases, not in the independently ordered sentence array.
+
+Supply `filler_turns` as a source-specific ordered list of at least three distinct zero-based turn indices,
+covering user/assistant/tool roles. Necessary evidence and canonical trace envelopes may share those turns
+with incidental sentences. The expander preserves all authored bases and causal events, orders only the
+source's incidental sentence indices by the registered filler seed and appends them without reuse in the
+source's round-robin placement order, skipping only turns at capacity. It never supplies decisive facts or
+chooses placements by evidence labels or policy retention. Vary lawful source layouts: index 1 must not
+uniformly identify OLD decisive facts, and the newest eligible old user must sometimes carry necessary
+content and sometimes incidental content. These are source-law obligations reviewed for semantics, not
+production balancing quotas, factor resampling, or policy-retention filters.
+
+All authored bases and expanded history turn texts fit 600 tokenizer tokens each; chat delimiters count
+separately. Designated turns times 600 must exceed 4608 minus rendered base history, allowing existing text
+and whole-sentence packing (typically at least eight turns). Supply enough authored sentences to reach
+4608 rendered history tokens, checked after each round-robin batch. Exhausted content or capacity fails;
+the compiler cannot fabricate more. Candidate pressure and the registered age/turn/length laws still apply.
+
+Never designate the newest eligible old user turn for expansion or put any sentence from the historical
+512-sentence formulaic pool anywhere in its text, including its authored base. This is the latest user turn
+with a complete source piece in the removable old range after rendering; a straddling turn can qualify.
+Its base may contain necessary or incidental source-authored content with overlapping public forms.
+Repair placement failures under the original assignments while preserving causal order and age; the
+expander never moves evidence. Recognizable filler has no relevance exception. Independent source review
+must verify semantic cue compliance; smoke contingency counts alone cannot certify production sources.
 
 Typed answer inventories must cover every payload/target literal and its necessary evidence/obligation links.
 Fingerprint normalization jointly preserves literal equality classes and unordered graph permutations; groups
