@@ -95,3 +95,6 @@ short, imperative, and evidence-linked; prune entries that stop paying rent.
   and only aggregates written, forcing reproduction audits. Put the
   registered output field list in the artifact writer and dry-assert it
   on a smoke run before sealing (2026-08-30).
+- Process ownership (Brian, 2026-09-05): the orchestrator may stop processes it launched. Register every background
+  launch (`echo $! >> .stencil-owned-pids`, gitignored); the PreToolUse guard treats registry pids and their /proc
+  descendants as owned. Name-based termination stays denied; never stop a process you did not launch without Brian.

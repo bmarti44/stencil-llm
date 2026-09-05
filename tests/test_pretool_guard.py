@@ -103,6 +103,37 @@ def test_decision_table(guard, command, env, gpu_pids, owned_pids, reason):
         assert reason in got
 
 
+def _tree(parents):
+    return lambda pid: parents.get(pid)
+
+
+def test_registry_pid_is_owned(guard, tmp_path):
+    registry = tmp_path / "owned"
+    registry.write_text("4242\n")
+    assert guard.decision("kill -TERM 4242", env={}, gpu_pids=[], registry=registry,
+                          parent_of=_tree({})) is None
+    assert "pid" in guard.decision("kill -TERM 4243", env={}, gpu_pids=[],
+                                   registry=registry, parent_of=_tree({}))
+
+
+def test_descendant_of_registered_pid_is_owned(guard, tmp_path):
+    registry = tmp_path / "owned"
+    registry.write_text("100\n")
+    parents = {300: 200, 200: 100, 999: 1}
+    assert guard.decision("kill -KILL 300", env={}, gpu_pids=[], registry=registry,
+                          parent_of=_tree(parents)) is None
+    assert "pid" in guard.decision("kill -KILL 999", env={}, gpu_pids=[],
+                                   registry=registry, parent_of=_tree(parents))
+    # Name-based termination stays denied regardless of ownership.
+    assert "name-based" in guard.decision("pkill codex", env={}, gpu_pids=[],
+                                          registry=registry, parent_of=_tree(parents))
+
+
+def test_missing_registry_is_empty(guard, tmp_path):
+    assert "pid" in guard.decision("kill 7", env={}, gpu_pids=[],
+                                   registry=tmp_path / "absent", parent_of=_tree({}))
+
+
 def test_deny_payload_is_one_line_json(guard):
     payload = guard.deny_payload("sealed input denied")
     assert "\n" not in payload

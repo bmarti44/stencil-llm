@@ -21,6 +21,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SEALED_NAME = "data/bench/ifeval_input_data.jsonl"
 OWNED_PIDS_ENV = "STENCIL_OWNED_PIDS"
+OWNED_REGISTRY = ROOT / ".stencil-owned-pids"  # gitignored; one pid per line
 EVAL_DATA = re.compile(
     r"(?:data/bench(?:/|\b)|results/qwen/b4-multiif-base(?:/|\b))"
 )
@@ -101,6 +102,46 @@ def _allowed_sealed_segment(segment, allowlist):
 def _owned_from_env(env):
     values = env.get(OWNED_PIDS_ENV, "")
     return {int(value) for value in re.findall(r"\d+", values)}
+
+
+def _owned_from_registry(registry):
+    """PIDs the orchestrator registered at launch (``echo $! >> .stencil-owned-pids``).
+
+    Brian's ruling (2026-09-05): processes this session launches are the
+    session's to stop. The registry is a plain, gitignored text file; it is
+    defense in depth like the rest of this hook, not a security boundary.
+    """
+    try:
+        text = Path(registry).read_text()
+    except OSError:
+        return set()
+    return {int(value) for value in re.findall(r"\d+", text)}
+
+
+def _parent_of(pid):
+    """Parent pid from /proc/<pid>/stat, or ``None`` when unavailable."""
+    try:
+        stat = Path(f"/proc/{pid}/stat").read_text()
+    except OSError:
+        return None
+    # comm may contain spaces/parens; the fields after the last ')' are stable.
+    try:
+        return int(stat.rsplit(")", 1)[1].split()[1])
+    except (IndexError, ValueError):
+        return None
+
+
+def _descends_from(pid, roots, parent_of, limit=64):
+    """True when ``pid`` or one of its ancestors is in ``roots``."""
+    seen = set()
+    current = pid
+    while current and current not in seen and limit:
+        if current in roots:
+            return True
+        seen.add(current)
+        current = parent_of(current)
+        limit -= 1
+    return False
 
 
 def _consume_options(tokens, index, *, operands=(), attached=()):
@@ -210,8 +251,18 @@ def _kill_targets(tokens, index, *, piped_pids=(), placeholder=None):
     return targets
 
 
-def _process_reason(command, owned_pids):
-    """Reject process-control targets unless every literal PID is caller-owned."""
+def _process_reason(command, owned_pids, parent_of=_parent_of):
+    """Reject process-control targets unless every literal PID is caller-owned.
+
+    Owned means: listed in the environment/registry, or a descendant of a
+    listed pid (a registered ``codex exec`` launch owns the model process it
+    spawns).
+    """
+    owned_pids = set(owned_pids)
+
+    def _owned(targets):
+        return all(_descends_from(pid, owned_pids, parent_of) for pid in targets)
+
     # Scan only the unquoted command surface: drop heredoc bodies and quoted
     # strings first. shlex normalizes an escaped command name such as ``\kill``.
     scan = re.sub(r"<<-?\s*'?\"?(\w+)'?\"?\n.*?\n\1(?=\n|$)", " ", command, flags=re.S)
@@ -238,7 +289,7 @@ def _process_reason(command, owned_pids):
                     piped_pids=piped_pids,
                     placeholder=placeholder,
                 )
-                if not targets or not set(targets).issubset(owned_pids):
+                if not targets or not _owned(targets):
                     return "pid isolation: target pid is not owned by this launch"
             previous_tokens = tokens
 
@@ -249,7 +300,7 @@ def _process_reason(command, owned_pids):
         name in command for name in ("os.kill(", "os.killpg(", "signal.pthread_kill(")
     )
     if python_api and (
-        python_target is None or int(python_target.group(1)) not in owned_pids
+        python_target is None or not _owned([int(python_target.group(1))])
     ):
         return "pid isolation: target pid is not owned by this launch"
     return None
@@ -286,9 +337,12 @@ def _background_launch(command):
             or bool(re.search(r"(?<!&)&(?!&)", command)))
 
 
-def decision(command, *, env=None, gpu_pids=None, owned_pids=None):
+def decision(command, *, env=None, gpu_pids=None, owned_pids=None,
+             registry=None, parent_of=None):
     """Return a deny reason, or ``None``. Injected state keeps CPU tests hermetic."""
     env = os.environ if env is None else env
+    registry = OWNED_REGISTRY if registry is None else registry
+    parent_of = _parent_of if parent_of is None else parent_of
     eval_fit_reason = _eval_fit_reason(command)
     if eval_fit_reason:
         return eval_fit_reason
@@ -301,7 +355,8 @@ def decision(command, *, env=None, gpu_pids=None, owned_pids=None):
             )
 
     owned = _owned_from_env(env) if owned_pids is None else set(owned_pids)
-    process_reason = _process_reason(command, owned)
+    owned |= _owned_from_registry(registry)
+    process_reason = _process_reason(command, owned, parent_of)
     if process_reason:
         return process_reason
 
