@@ -2103,3 +2103,6 @@ Brian's combined task authorizes these prospective dispositions. The v2 body abo
 - Astra unnumbered LOW items, accepted: the immutable DRAFT v3 snapshot is promoted by the separate committed registration/launch record. “Compact” is a prompting instruction; score semantic JSON structure/exact values, not whitespace. PASS establishes a relative effect, not absolute reliability; error-only gains retain the error-cleanup reading; no globally optimal reminder claim. No new arm, benchmark stage, prompt search or repair variant.
 
 Implementation closure and freeze verification remain to be evidenced in finding-named CPU tests and the receipt. No real model outcome has been observed in this leg.
+
+
+## FOCUS-2 REGISTERED (2026-09-05 10:57:09 UTC, commit 8b860952cd190d0ba5aece96f719b50b64726127)
