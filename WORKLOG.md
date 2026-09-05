@@ -5115,3 +5115,11 @@ Primary, fixed secondaries, separate F6 rows, collateral gates, assistant-fact/s
 
 Final verification completed at 4800380f9efa71c7ff1c60023bb44f2c978fa635: all 7,653 result files (394,097,524 bytes) are present in git ls-files and match exact HEAD blob hashes; no .partial files. All seven prepared input files remain byte-identical to ff67b78, and the preserved failed script retains SHA-256 03b8f2e11ae9f501f9316648eaa5969988a574257abe21ceff16f2c317803fae. Scoped diff checks are clean. Other agents' relation/check40 work and pre-existing untracked files were left untouched. STATE: FOCUS-2d authorized resume fully handled; registered final outcome FAIL-SAFETY; no pending launch, analysis, artifact staging or verification; no push.
 - 2026-09-05, check40 runtime repair: attempt1 loaded successfully but metadata read hf_device_map was absent; ZERO generated records. Preserved attempt1 script/freeze/log/weights/error summary. Derive placement from actual parameters when absent; charge 422 s (measured 411.82 + rounded 10 s cleanup reserve) to the SAME 4 GPU-h cap before retry. No signals or outcome-based tuning.
+- 2026-09-05, check40 DONE — COST STOP: grouped_mm + router dispatch/OFF verified; pilot 16.0187/17.2677/17.3747 tok/s. Full capped projection 14.4341 h; required 32/{1,4}/all reduction 7.5569 h, both >4 h, so no competence/profiles/grid/screen. Charged 869.90 s including 422 s preserved empty-record load failure. 11 CPU groups + lint; raw 384-token/timing/projection/source audit PASS. Reports/receipts committed with explicit paths; no push or signals.
+
+### 2026-09-05 — Quick check 42 preparation (gpt-6-astra)
+Data lineage: fit-on none; evaluated-on reused FOCUS-2d final bank, other-arm outcomes seen; A/B/C fresh generations.
+Frozen reading in results/quick-checks/check42/README.md; 192 balanced episodes selected before output, projection 3.349 h / 3.5 h cap.
+A every-request live task rule; B adds schema/tag; C exact text-restate; all own assistant answers kept, no masking.
+CPU smoke 204 records; replay verified all 1632 original C trajectories on the selected 192 episodes; no GPU inference yet.
+STATE: CPU READY; foreground 600-second GPU/check40/check41 priority wait next. No sealed inputs, fitting, signals or push.

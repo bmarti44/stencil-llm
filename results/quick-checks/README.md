@@ -324,11 +324,11 @@ spec change did not teach (all seeds miss it).
    Paired b/c surviving 0/4, rebuilt 0/4; both modes' neutral gates PASS; full strict/lenient cells in report.
    16.59/30 GPU-min; 1,152 records/384 edits audited; fresh disjoint episodes, no fitting/training/sealed inputs/signals/push.
 
-40. BRUTE-FORCE MoE SKILL ROUTING (seed 40040; Qwen3-30B-A3B; [check40](check40/README.md)): **CPU PREPARED / WAITING**.
-   Memo P1 Python/English ranked first; Python/JavaScript retained; shared-suffix frequencies x pooled logit SD; no fitting/training/benchmarks.
-   Throughput pilot first (3x128); verify installed grouped_mm + hook; project whole screen, scale to 32/{1,4}/all or STOP above four GPU-h.
-   Retained KV SET→HOLD→SWITCH→BACK→CLEAR; original thresholds preserved; post-selection token profiles are the primary alternative explanation.
-   Foreground idle-GPU/download wait at 10-minute intervals; no signals or push; no model outcome yet.
+40. BRUTE-FORCE MoE SKILL ROUTING (seed 40040; Qwen3-30B-A3B; [check40](check40/README.md)): **PARTIAL / COST STOP**.
+   Installed grouped_mm adopted; nonzero dispatch and exact OFF logits verified; 3x128 pilot measured 16.02 / 17.27 / 17.37 tokens/s.
+   Full capped screen projects to 14.43 GPU-h; prescribed 32-episode / alpha {1,4} / all-layer reduction still 7.56 h > 4 h: STOPPED before competence/extraction.
+   Memo pair ranking, shared-suffix frequency/SD profiles, retained-KV bias placement, and post-selection-token risk adopted; no skill-steering verdict or pair selection.
+   14.50 GPU-min charged including preserved metadata-failure retry; 384 pilot tokens audited; no training, benchmarks, sealed reads, signals, or push.
 
 ## QUEUE (2026-09-05, Brian's quick-test-first ruling; merged from results/hypotheses-{astra,fable,kimi}.md)
 Skill pair for all: ascending sort vs REVERSE input order (1.7B cannot do descending: 10/32); value-exact,
@@ -363,3 +363,9 @@ pass/fail reading written before running; one accuracy review of the RESULT from
    Separate 16-task setup freezes one cell; 64 retained-history episodes x correct/swapped/shuffled/OFF/text-cue; original check40 531030a tasks/checkers.
    Fixed reading: SET/SWITCH >=40/64, broken <=4/64, shuffled non-default/CLEAR impositions <=8/64; competence >=28/32 and overlap <=50%.
    CPU consumer/decoding/checker/threshold fixtures passed; no model outcomes; foreground 600-second GPU/check40 wait, two GPU-hour cap, no signals/push.
+
+42. EVERY-REQUEST LIVE RULE (seed 9053723; Qwen3-4B; [check42](check42/README.md)): **CPU READY / WAITING**.
+   Reused FOCUS-2d bank/certificate; fresh A placement, B plus schema/tag, C exact text-restate; all own answers retained.
+   Preselected 192/256 balanced episodes: 72.9 s x 3/5 x 1.4 x N + 300 s projects 3.349 h; cap 3.5 GPU-h.
+   Fixed closure: A or B all-five >= C, exact McNemar p(worse) > .05, constraint failures <= C + 2; B vs A secondary.
+   Recorded BOTH/neither references only; no fitting or sealed inputs; foreground priority wait behind checks 40/41, no signals/push.

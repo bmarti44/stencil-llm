@@ -31,6 +31,30 @@ Four-hour wall allocation starts before load. Cooperative deadline checks betwee
 
 **Primary alternative explanation:** profiles may describe tokens produced AFTER a task has already been selected, while task choice lives in shared attention/residual computation. A bias could change syntax or damage processing without selecting a skill. Shared-suffix primary measurements and separate answer-token diagnostics address this risk; even a positive result is only externally maintained oracle control on these synthetic output modes.
 
-## Results
 
-PENDING — CPU amendment; no model output exists.
+## Results — PARTIAL / COST STOP
+
+**The capped screen does not fit the four-hour budget, even after the prescribed reduction.** The runner stopped after the throughput pilot, before competence, profile extraction, pair selection, dose selection, or behavioral screening. This is a cost result; it does not decide whether expert-routing bias can select a skill.
+
+The installed `grouped_mm` expert implementation was available and adopted. The GPU checks verified changed dispatch under nonzero router bias and exact OFF next-token logits. The expert-output comparison passed (recorded relative error 0.0 on the compatibility probe). No eager-versus-optimized speedup was measured.
+
+| Pilot | Generated tokens | Wall seconds | Tokens/s |
+|---|---:|---:|---:|
+| 1 | 128 | 7.9907 | 16.0187 |
+| 2 | 128 | 7.4127 | 17.2677 |
+| 3 | 128 | 7.3670 | 17.3747 |
+
+Projection uses the slowest trial, **16.0187 tokens/s**, plus the measured 2,048-token prefill cost (0.7469 seconds), already charged load/pilot time, and a 25% reserve. Every generated reply is charged at its 256-token cap, including neutral turns and fresh defaults; these are conservative capped projections, not measured screen runtimes.
+
+| Design | Episodes | Alpha / layers | Capped decode tokens | Projected total GPU hours | Fits 4 h? |
+|---|---:|---|---:|---:|---|
+| Full | 64 | 0.5, 1, 2, 4 / all, upper half | 622,592 | 14.4341 | No |
+| Required reduction | 32 | 1, 4 / all | 319,488 | 7.5569 | No |
+
+The full projection includes 192 competence generations across the two candidate pairs, 256 teacher-forced profile forwards, 256 grid generations, and 1,984 final/default generations. The reduced projection retains competence/profile work and uses 64 grid plus 992 final/default generations. The reduced design and refusal were recorded before any extraction; no additional recipe or token-cap reduction was tried.
+
+Actual charged GPU allocation: **869.90 seconds (14.50 minutes)** of 14,400 seconds; no cap overrun. This includes 422 seconds for the preserved first attempt: loading succeeded, but an absent `hf_device_map` metadata attribute stopped it before generation. The repair reads actual parameter placement; the first attempt has zero generated records and its script, freeze, log, weights receipt, and summary are retained under `attempt1/`. Current-attempt peak allocated memory was 57.64 GiB.
+
+Eleven CPU check groups and lint passed. The final audit reproduced the raw-record summary, verified all 384 pilot token records and prompt hashes, recomputed timing/projection arithmetic, and verified the executed source freeze. The initial `selected_pair` placeholder was removed during reporting because no pair was selected. There are no behavioral success counts, overlap measurements, profiles, or bias/grid tensors to interpret.
+
+Artifacts: [summary](summary.json), [throughput and projections](throughput.json), [pilot records](records.jsonl), [kernel checks](kernel.json), [audit](audit.json), [runtime](runtime.json), and [prior attempt charge](prior-attempts.json).
