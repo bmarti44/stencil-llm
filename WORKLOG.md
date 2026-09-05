@@ -4546,3 +4546,91 @@ pass: 150 passed, 3 deselected, 1 xfailed, 1 warning in 283.61s (snapshot/manife
 consumer temporarily deferred pending source commit; two sealed hash tests
 excluded under the no-read rule). After the full-template/matched-instruction
 precision, 14 affected tests passed in 11.98s. Final freeze checks follow below.
+
+Executable/contract/source repair commit (manifest harness_commit):
+`45ff02b99f6b4725f12fbce0017b25ad21d56306`.
+Candidate artifact snapshot/grammar/episodes/manifest commit:
+`e95075b9d9a751d2b35a174acd09450a844bacb9`.
+This subsequent WORKLOG-only handoff records those immutable commit IDs. All
+commits use explicit pathspecs; nothing was pushed. All 29 data/sc1 files are
+tracked, verified with git ls-files. At repair verification, LEDGER-PLAN.md matched the pre-repair bytes;
+this task made no ledger edits. AUTHOR-CONTRACT-v3.md matches the 318a90c contract byte-for-byte,
+SHA-256 `2f0b81cf1800f0e0168940630909dc797ea91ec4b7a4970a650e938878ede6d3`.
+
+CPU artifact validation:
+
+- `CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 uv run python scripts/sc1.py snapshot`
+  — PASS. Committed DRAFT v2 + Amendment 1 + revised contract; Amendment 2 is
+  intentionally pending orchestrator adoption and subsequent regeneration.
+- `CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 uv run python scripts/sc1.py smoke`
+  and `CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 uv run python scripts/sc1.py validate data/sc1/smoke`
+  — PASS: 8 references, 48 failing negatives, 6 OLD / 2 RECENT, B=256 throughout.
+- Actual verify_manifest / load_manifest_bank / verify_snapshot — PASS: all
+  45 bound file hashes, 8 episode identities and 3 committed source ranges.
+- `CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 uv run ruff check scripts/sc1.py src/stencil/sc1.py src/stencil/sc1_episodes.py tests/test_sc1.py`
+  and `git diff --check` — PASS.
+- `src/stencil/sc1.py` is byte-identical to 318a90c (SHA-256
+  `4b241237a62f2fb2ea28c22f4e4415e3e88f87813d3c21a5551ceaaff3eaa57a`).
+  run_study, analyze and verify_determinism have unchanged ASTs. No endpoint,
+  sample size, policy, test, adoption/setup gate, cost cap or age draw changed.
+
+Manifest ID: `932691f0b1338e66594ec32cb8d41434f388bac2edae1f53490072723e2fcca5`.
+Bank identity: `33ac697c5eab1d931dd66b3a18cb29a52ed8a18d2426012ae18c2123e0c0ba30`.
+Snapshot: 85737 bytes.
+
+| Artifact | File SHA-256 |
+| --- | --- |
+| data/sc1/registration-snapshot.md | `dc7ad3eb5873b577918a935155fbad0e9bf3ab5c133156269f9a6f1c819425c4` |
+| data/sc1/registration-snapshot.json | `6b0189e93641e4c2693c7210e665d87bf685f98a95486ed782ca2155ed22d8a5` |
+| data/sc1/smoke/manifest.json | `b83a4aeb3a6754ed11332fd59b3d9bbbe40298980e575a64b7921743e331554f` |
+| data/sc1/smoke/validation.json | `e4758586d6165baacd5ab941181849f0b2a46f3e8b761d90537b8437e068f96a` |
+| data/sc1/smoke/grammar.json | `6d27f7cfe5d5698d01d497fb6ad4db94a0eab3292b56ab995c5363c5d4ab46e8` |
+| data/sc1/cue-regression-318a90c.json | `1f6186e865a6f53f567a5b76f292f04a50aa054db1609bc7a15752f3248c5291` |
+
+| Snapshot source at 45ff02b | Half-open range | SHA-256 |
+| --- | --- | --- |
+| LEDGER-PLAN.md | [91091, 128466] | `3365b4f983f5c0f60431075d46477112d84bc5a6beebf0b45177f621c6b78f38` |
+| LEDGER-PLAN.md | [128466, 152203] | `c6d4a8e118d90a67bcbee5d74ac1f06509f0c3824e95958a9c1e7e43aa42a04a` |
+| data/sc1/AUTHOR-CONTRACT.md | [0, 24625] | `e37b7fee872bf2d2ff1b50c8455b513624e74a680ed90a5478b3bc3a238cab90` |
+
+| Source | Source file SHA-256 | Expanded episode file SHA-256 |
+| --- | --- | --- |
+| smoke-00 | `fa6cae5968a868483ab25a7aee3d40850a617f8c4d45a37b8f6c89aa10f389b7` | `8f7beae56e7b8a956db12e7bf583cc498d1fd36ea7aee3044a6754a61bb55c30` |
+| smoke-01 | `11eec1900e565a01aee74806f7016dbacb2bc4cc86b0580f90ae35c6849751f2` | `50e0dde49a1f47ba55995715b79e02ded39fb57048968ed47390cf2efc356946` |
+| smoke-02 | `3fa2eda188860213418819c4f9eed0bdd18455242894136c6e4df6f07683bade` | `d274fb6fd04934d206978c71787b81a96b4bbc3e020e99c0e151b6ab2f482d6a` |
+| smoke-03 | `a84ff5629567657e0aaac5fd665bdf056109d47124c21e21d9573d89ed6f44db` | `7b583274af33b5f28cf93b4bfba49866adab439ace561521b04beb7d6388aa9a` |
+| smoke-04 | `0a533dfd09559b79acfc5862e7b28354ef3ef0533bfb29dca80916b6b7b6e20a` | `a3be010535bfec76a188663310c6eea39eed1590416781478cbdd39f7687c70a` |
+| smoke-05 | `febebe69ce657654c8b84af747c607f7e33302950f6a27ab2c0dc8567b62ddd6` | `4f7c6ddfb841859997e9b99460e12aa048f936a5e318bc439239fdfa33043641` |
+| smoke-06 | `bfbcf75c21f742ee8f7bee4a7b2176770f87825ece13666f76f7266400e56868` | `0950f838b2925c8404ea4aed5dd3f34badcff32324dd7b557017ed67d82f3dfe` |
+| smoke-07 | `e90f37fe7995e91cfb31daf8ade601c799375083d0ebc69c7254dbe0222c913a` | `04d2249ac9451f631f4ac29e1dc624107b43977f2382ba76895ae156539bd250` |
+
+Final CPU test command:
+`CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 uv run pytest -q -p no:cacheprovider tests/test_sc1.py tests/test_eval_data_separation.py tests/test_sealed_guard.py tests/test_no_side_effect_imports.py -k 'not test_sealed_ifeval_hash_matches_manifest and not test_sealed_ifeval_mode_is_read_only_after_hash_validation'`
+— **151 passed, 2 deselected, 1 xfailed, 1 warning in 271.21 seconds**. The xfail
+is the existing legacy import-side-effect inventory; the warning is the existing
+invalid escape in scripts/b2_gsm8k.py:9. The snapshot/manifest consumer is included
+in this final pass. No test failures, silent skips, sealed-check mocks or GPU
+execution were used.
+
+The exact unmodified four-file command remains unrun: two existing sealed-guard
+tests read the sealed IFEval file to hash it, conflicting with the user's hard
+"never read" rule. An early clarification asking whether those existing hash-only
+reads were permitted received no answer. Those two tests were explicitly
+deselected and are not counted as passed. No sealed IFEval input or sealed BFCL
+cohort contents were read by this task. All other requested tests passed or had
+the existing declared xfail. No fitting, training, model/scorer process, GPU work,
+background shell job, process signal, wrapper or delegated agent was launched.
+
+Concurrent-work note: after the SC1 artifact commit, the orchestrator committed
+`73c64ef` (FOCUS-1 ledger/brief work) while the final tests were finishing. Those
+ledger/tools changes were not authored, staged, reverted or included in this
+SC1 handoff's explicit pathspec commits. Earlier concurrent assessment commits
+also landed before 45ff02b. Frozen SC1 science ranges remain bound to 45ff02b and
+the snapshot remains independent of the later editorial/FOCUS ledger tail.
+
+Remaining external handoff: orchestrator adoption of the AMENDMENT 2 proposal,
+then snapshot/manifest regeneration and independent Stage 2 source-law review;
+clarification for the two prohibited sealed-file hash reads if full-command
+coverage is required. The code/source repair and permitted CPU checks are ready
+for that review. No Stage 2 acceptance or production semantic-independence claim
+is made by this implementation handoff.
