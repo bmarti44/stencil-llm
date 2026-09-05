@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FOCUS-2c CLI. Import/help/prepare/analyze never construct a trunk."""
+"""FOCUS-2d CLI. Import/help/prepare/analyze never construct a trunk."""
 
 import argparse
 import json

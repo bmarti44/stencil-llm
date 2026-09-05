@@ -1,4 +1,4 @@
-"""FOCUS-2c: spaced-payload re-registration of the FOCUS-2 v3 consumers.
+"""FOCUS-2d: split-cue re-registration of the FOCUS-2 v3 consumers.
 
 No script imports, bank reads, device access or output writes at import time.
 History/fork/map logic is a narrow adaptation of focus_check35.Engine; repair
@@ -27,9 +27,9 @@ from stencil.stats import mcnemar_exact_one_sided, tango_upper_bound
 ROOT = Path(__file__).resolve().parents[2]
 EOS = 151645
 END = 151643
-CAP = 64
+CAP = 128
 DELAY_CAPS = (160, 320)
-GPU_CAP = 6 * 3600
+GPU_CAP = 8 * 3600
 ARMS = ("neither", "placement-only", "eviction-only", "both", "text-restate")
 EVICTION_ARMS = ("eviction-only", "both")
 CHECKPOINTS = ("SWITCH", "HOLD", "BACK", "CLEAR", "NEUTRAL2")
@@ -344,6 +344,7 @@ DEVELOPMENT_COVERAGE = (
     "focus2",
     "focus2b-retired",
     "focus2b-amendment1",
+    "focus2c",
 )
 
 
@@ -461,12 +462,14 @@ def rule(ep, step):
     return TEMPLATES[active(ep, step)]
 
 
+def persistent_rules(ep):
+    """Unchanged obligations survive every cue retirement and body mask."""
+    return TEMPLATES["schema"] + "\n" + TEMPLATES["tag"].format(tag=ep["tag"])
+
+
 def live_rules(ep, step, *, include_obligations=True):
-    lines = [
-        rule(ep, step),
-        TEMPLATES["schema"],
-        TEMPLATES["tag"].format(tag=ep["tag"]),
-    ]
+    """Movable task cue; request obligations retain their once-per-request law."""
+    lines = [rule(ep, step)]
     if include_obligations:
         lines.append(obligations(ep, step))
     return "\n".join(lines)
@@ -579,10 +582,11 @@ def memo_source(text):
 
 
 def score(ep, step, text, ids, eos, *, source_memo=None):
+    json_invalid = False
     try:
         value = parse_json(text)
     except (ValueError, TypeError, RecursionError):
-        value = None
+        value, json_invalid = None, True
     schema = (
         isinstance(value, dict)
         and {"answer", "tag"} <= value.keys()
@@ -601,11 +605,12 @@ def score(ep, step, text, ids, eos, *, source_memo=None):
     flags = dict(
         empty=not text.strip(),
         placeholder=text.strip() == ".",
+        json_invalid=json_invalid,
         schema_invalid=not schema,
         truncated=eos not in (EOS, END),
         repetitive=repetitive(ids),
     )
-    broken = any(flags.values())
+    broken = any(flags[k] for k in ("json_invalid", "empty", "truncated", "repetitive"))
     collateral = {}
     for key in optional_keys(ep, step):
         if key == "memo":
@@ -836,7 +841,14 @@ def initial_history(tok, ep):
         [
             (
                 "base",
-                encode(tok, TEMPLATES["system"] + TEMPLATES["tools"] + "\n"),
+                encode(
+                    tok,
+                    TEMPLATES["system"]
+                    + "\n"
+                    + persistent_rules(ep)
+                    + TEMPLATES["tools"]
+                    + "\n",
+                ),
                 "base",
             ),
             (
@@ -893,7 +905,16 @@ def competence_history(tok, ep):
     """Immediate visible-cue trials have no intervening facts or delays."""
     h = History(tok)
     h.message(
-        "system", "rules", "base", [("base", encode(tok, TEMPLATES["system"]), "base")]
+        "system",
+        "rules",
+        "base",
+        [
+            (
+                "base",
+                encode(tok, TEMPLATES["system"] + "\n" + persistent_rules(ep)),
+                "base",
+            )
+        ],
     )
     return h
 
@@ -1881,9 +1902,9 @@ PINS = dict(
     v2_commit="7d0c24413b5d9093f814071c37e5c332b3ec62dd",
     v3_commit="1b8216aab8af60e03b7d21f00ae33d90f43cce22",
     v3_section_sha256="4f80ac8a27d06507eab400ca50dabc6100fd8cd0e8e83cd906b4b786ecb99f9d",
-    candidate_commit="14f63cc5cc6b6d659e6b3a18f2b32351ca3b7333",
+    candidate_commit="a458e229bb6346153123ac7638a6f8949d7d7226",
     candidate_section_sha256=(
-        "907faf72a8ce1091bf4b9b32a6042494d14e1ffd2ecab3b1d035cad6efa05eb1"
+        "0a235542b1adf19e0e2498cb587bf5d66239f2af3c23e7829a515c8a5a3c0fbb"
     ),
     ledger="LEDGER-PLAN.md",
     v2_section_sha256=(
@@ -1917,19 +1938,21 @@ PINS = dict(
     launch="2026-09-05T08:43:10Z",
 )
 CONFIG = dict(
-    experiment="FOCUS-2c",
+    experiment="FOCUS-2d",
     families=list(SELECTED_FAMILIES),
     model="Qwen3-4B",
     dtype="bf16",
     hf_compatible=True,
     greedy=True,
     thinking=False,
-    cap=64,
+    cap=CAP,
+    unchanged_rule_carrier="base system in every arm",
+    breakage_flags=["json_invalid", "empty", "truncated", "repetitive"],
     delay_caps=list(DELAY_CAPS),
     delay_failure="one deterministic retry, then paired episode exclusion",
     gpu_cap_seconds=GPU_CAP,
     arm_order=list(ARMS),
-    seeds={"competence": 9053718, "pilot": 9053719, "final": 9053720},
+    seeds={"competence": 9053721, "pilot": 9053722, "final": 9053723},
     payload_collision_policy=(
         "reject; advance same request RNG; log zero-based attempts"
     ),
@@ -2078,6 +2101,8 @@ def candidate_section(text):
         "## FOCUS-2b AMENDMENT 1 (2026-09-05)",
         "## FOCUS-2c — PAYLOAD RENDERING FIX (DRAFT v1",
         "## FOCUS-2c AMENDMENT 1 (2026-09-05)",
+        "## FOCUS-2c AMENDMENT 2 (2026-09-05)",
+        "## FOCUS-2d — SPLIT CUE (DRAFT v1",
     ):
         if marker in text:
             section = text[text.index(marker) :].split("\n## ", 1)[0].rstrip("\n")
@@ -2187,7 +2212,7 @@ def verify_evidence(root, manifest, contents):
     require(
         sha(candidate) == PINS["candidate_section_sha256"]
         and contents["section"].decode() == candidate,
-        "immutable FOCUS-2b/Amendment 1/FOCUS-2c section snapshot",
+        "immutable inherited amendments/FOCUS-2d section snapshot",
     )
     require(
         contents["readings"].decode()
@@ -2310,6 +2335,7 @@ def template_manifest(tok, banks_json=None):
         for ep in bank:
             history = initial_history(tok, ep)
             history.validate()
+            strings.add(persistent_rules(ep))
             strings.add(TEMPLATES["user_fact"].format(value=ep["user_fact"]))
             strings.add(
                 TEMPLATES["tool_return"].replace("{value}", str(ep["tool_fact"]))
@@ -2591,7 +2617,7 @@ def preflight(
                 result["projection"] = cert["projection_seconds"]
                 result["worst_cell_seconds"] = cert["worst_cell_seconds"]
         if result["spent"] + result["projection"] >= GPU_CAP:
-            raise Incomplete("cost/projection over six GPU-hour cap")
+            raise Incomplete("cost/projection over eight GPU-hour cap")
     return result
 
 
@@ -2959,7 +2985,47 @@ def execute_stage(
     return end
 
 
+def f6_rows(records, summaries):
+    """Separate structural and schema flags; only broken drives F6 stopping."""
+    identities = [s["id"] for s in summaries if not s.get("delay_invalid")]
+    indexed = {}
+    for row in records:
+        if row["arm"] in ARMS and row["checkpoint"] in CHECKPOINTS:
+            indexed.setdefault((row["episode"], row["arm"]), []).append(row)
+    report = {}
+    for flag in (
+        "broken",
+        "json_invalid",
+        "schema_invalid",
+        "empty",
+        "placeholder",
+        "truncated",
+        "repetitive",
+    ):
+        events = {}
+        for arm in ARMS:
+            events[arm] = []
+            for identity in identities:
+                rs = indexed.get((identity, arm), [])
+                require(
+                    len(rs) == 5 and all(r["complete"] for r in rs),
+                    "incomplete F6 episode",
+                )
+                events[arm].append(any(r["flags"][flag] for r in rs))
+        table = paired(events["both"], events["text-restate"])
+        report[flag] = dict(
+            **table,
+            h=table["b"],
+            r=table["c"],
+            fixed_n=256,
+            by_arm={arm: sum(values) for arm, values in events.items()},
+            drives_breakage_gate=flag == "broken",
+        )
+    return report
+
+
 def analyze(folder, launch, output, *, tok=None, tokenizer_factory=None):
+    started = time.monotonic()
     pre = preflight(
         folder, launch, "run", output, tok=tok, tokenizer_factory=tokenizer_factory
     )
@@ -3004,6 +3070,7 @@ def analyze(folder, launch, output, *, tok=None, tokenizer_factory=None):
         if r["checkpoint"].startswith("DELAY")
     ]
     rows = [r for r in rows if r["episode"] not in excluded_ids]
+    report["F6_rows"] = f6_rows(rows, summaries)
     report["binding"] = pre["binding"]
     report["allocation_seconds"] = end.get("spent_after")
     report["historical_check37"] = pre["historical_check37"]
@@ -3026,6 +3093,7 @@ def analyze(folder, launch, output, *, tok=None, tokenizer_factory=None):
                     for k in (
                         "empty",
                         "placeholder",
+                        "json_invalid",
                         "schema_invalid",
                         "truncated",
                         "repetitive",
@@ -3080,4 +3148,20 @@ def analyze(folder, launch, output, *, tok=None, tokenizer_factory=None):
                         },
                         placeholder=sum(r["flags"]["placeholder"] for r in rs),
                     )
+    report["analysis_seconds"] = time.monotonic() - started
+    report["gpu_cap_seconds"] = GPU_CAP
+    report["total_charged_seconds"] = (
+        end["spent_after"] + report["analysis_seconds"]
+        if "spent_after" in end
+        else None
+    )
+    if report["total_charged_seconds"] is not None and (
+        report["total_charged_seconds"] >= GPU_CAP
+    ):
+        report.update(
+            status="INCOMPLETE",
+            complete=False,
+            cost_stop="run plus analyze exceeds eight GPU-hour cap",
+        )
+        report["headline"] = "INCOMPLETE; " + report["headline"].split("; ", 1)[1]
     return report

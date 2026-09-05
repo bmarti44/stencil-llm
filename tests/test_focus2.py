@@ -73,7 +73,7 @@ def test_literal_template():
 
 
 def test_independent_stream_and_generator(banks):
-    namespace = "focus2-v1:9053720:final:sort:ascending:0:0:SET:payload"
+    namespace = "focus2-v1:9053723:final:sort:ascending:0:0:SET:payload"
     rng = random.Random(
         int.from_bytes(hashlib.sha256(namespace.encode()).digest(), "big")
     )
@@ -122,7 +122,7 @@ def test_fingerprints_ignore_tags_ids_and_sort_permutations(banks):
 def test_focus2b_operand_law_seeds_and_memo_denominators(banks):
     assert f.SELECTED_FAMILIES == ("sort",)
     assert f.CONFIG["families"] == ["sort"]
-    for name, seed in (("competence", 9053718), ("pilot", 9053719), ("final", 9053720)):
+    for name, seed in (("competence", 9053721), ("pilot", 9053722), ("final", 9053723)):
         assert {ep["seed"] for ep in banks[name]} == {seed}
         assert f.CONFIG["seeds"][name] == seed
         assert {ep["family"] for ep in banks[name]} == {"sort"}
@@ -245,8 +245,9 @@ def test_focus2b_actual_requests_state_shape_and_obligations_once(tok, banks):
             )
             assert text.count("Additional requested keys:") == 1
             assert f.obligations(ep, step) in text
-            if cue:
-                assert schema in text
+            assert schema not in text
+            system = tok.decode([t for p in h.messages[0]["parts"] for t in p["ids"]])
+            assert system.count(schema) == 1
             if step == "SET":
                 full = tok.decode(
                     h.render(current=True)["ids"], skip_special_tokens=False
@@ -303,7 +304,9 @@ def test_all_gold_caps_defaults_and_real_delay(tok, banks):
                     ep["family"], payload, f.FAMILIES[ep["family"]][1]
                 )
                 text = f.gold(ep, step, memo="abcdef")
-                assert len(f.encode(tok, text)) < 64
+                assert len(f.encode(tok, text)) < 128
+                spaced = json.dumps(json.loads(text))
+                assert len(f.encode(tok, spaced)) < 128
                 assert f.score(
                     ep, step, text, f.encode(tok, text), f.EOS, source_memo="abcdef"
                 )["success"]
@@ -325,7 +328,6 @@ def test_all_gold_caps_defaults_and_real_delay(tok, banks):
         "NaN",
         '{"answer":NaN,"tag":3}',
         '{"answer":[],"tag":3,"tag":3}',
-        '{"answer":[],"tag":true}',
     ],
 )
 def test_malformed_breaks(tok, banks, text):
@@ -342,7 +344,9 @@ def test_checker_mutations_and_collateral_separation(tok, banks):
         score = f.score(ep, "SWITCH", text, f.encode(tok, text), f.EOS)
         assert not score["success"] and not score["broken"]
     text = json.dumps({**value, "unasked": 1})
-    assert f.score(ep, "SWITCH", text, f.encode(tok, text), f.EOS)["broken"]
+    scored = f.score(ep, "SWITCH", text, f.encode(tok, text), f.EOS)
+    assert scored["schema_invalid"] and not scored["broken"]
+    assert not scored["success"] and not scored["constraint"]
     text = f.gold(ep, "NEUTRAL2", memo="abcdef")
     parsed = json.loads(text)
     for key in ("user_fact", "tool_fact", "assistant_fact"):
@@ -1015,6 +1019,10 @@ def test_full_fake_pipeline_and_analyzer(frozen, tok, capsys):
     assert report["n"] == 256 and report["status"] == "FAIL"
     assert report["prewritten_readings"] == f.READINGS
     assert report["checkpoint_counts"]["both"]["SWITCH"]["n"] == 256
+    assert report["F6_rows"]["schema_invalid"]["n"] == 256
+    assert report["F6_rows"]["truncated"]["n"] == 256
+    assert report["F6_rows"]["broken"]["h"] == report["safety"]["h"] == 0
+    assert report["total_charged_seconds"] >= report["allocation_seconds"]
     ends = [
         json.loads((root / "outputs" / mode / "end.json").read_text())
         for mode in ("competence", "pilot", "run")
@@ -1634,14 +1642,14 @@ def test_amendment_delay_prompt_only_and_task_cap(tok, banks, tmp_path):
     assert f.delay_text(tok).endswith("Answer in one sentence.")
     assert len(f.encode(tok, f.delay_text(tok))) == 512
     ep = banks["competence"][0]
-    backend = FakeBackend(tok, lambda *_: "x " * 100)
+    backend = FakeBackend(tok, lambda *_: "x " * 200)
     engine = f.Engine(
         tok, backend, f.RecordStore(tmp_path / "rows"), f.Budget(Clock()), {}
     )
     h = f.competence_history(tok, ep)
     h.request(ep, "SET", cue=f.live_rules(ep, "SET") + "\n")
     row = engine.answer(h, ep, "shared", "SET")
-    assert row["generation_cap"] == 64 and len(row["output_ids"]) == 64
+    assert row["generation_cap"] == 128 and len(row["output_ids"]) == 128
     assert row["eos"] is None and row["flags"]["truncated"]
     assert "Answer in one sentence." not in row["input_text"]
 
@@ -1689,3 +1697,115 @@ def test_amendment_paired_exclusion_denominators():
     assert all(p["n"] == 255 for p in report["primary"].values())
     assert report["safety"]["eligible_n"] == 255
     assert report["collateral"]["assistant_fact"]["n"] == 63
+
+
+def test_focus2d_persistent_carrier_survives_all_masks(tok, banks):
+    ep = banks["final"][0]
+    for arm in f.ARMS:
+        h = f.initial_history(tok, ep)
+        base = next(p for p in h.messages[0]["parts"] if p["kind"] == "base")
+        base_ids = base["ids"][:]
+        for step in f.REQUESTS:
+            if step in ("SWITCH", "BACK", "CLEAR"):
+                edit = f.intervene(h, ep, arm, step)
+                segment = next(
+                    s for s in edit["original"]["segments"] if s["id"] == base["id"]
+                )
+                mapped = edit["original_to_edited"][segment["start"] : segment["end"]]
+                assert mapped and all(i is not None for i in mapped)
+                assert [edit["edited"]["ids"][i] for i in mapped] == base_ids
+                assert all(
+                    f.TEMPLATES["schema"] not in tok.decode(c["ids"])
+                    and "Keep tag" not in tok.decode(c["ids"])
+                    for c in edit["retired_cues"]
+                )
+            cue = f.current_cue(ep, arm, step) if step in f.CHECKPOINTS else None
+            h.request(ep, step, cue=cue)
+            system = tok.decode([t for p in h.messages[0]["parts"] for t in p["ids"]])
+            user = tok.decode([t for p in h.messages[-2]["parts"] for t in p["ids"]])
+            assert system.count(f.TEMPLATES["schema"]) == 1
+            assert system.count(f.TEMPLATES["tag"].format(tag=ep["tag"])) == 1
+            assert f.TEMPLATES["schema"] not in user and "Keep tag" not in user
+            if step in f.CHECKPOINTS:
+                assert (f.rule(ep, step) in system) == (
+                    arm in ("neither", "eviction-only")
+                )
+                assert (f.rule(ep, step) in user) == (
+                    arm == "text-restate"
+                    or arm in ("both", "placement-only")
+                    and step in ("SWITCH", "BACK", "CLEAR")
+                )
+            h.answer(f.encode(tok, f.gold(ep, step)), f.EOS)
+
+
+@pytest.mark.parametrize("value", [None, [], {}, {"answer": [], "tag": True}])
+def test_focus2d_well_formed_schema_failures_are_collateral(tok, banks, value):
+    text = json.dumps(value)
+    scored = f.score(banks["final"][0], "HOLD", text, f.encode(tok, text), f.EOS)
+    assert scored["schema_invalid"] and not scored["json_invalid"]
+    assert not scored["broken"] and not scored["success"] and not scored["constraint"]
+
+
+def test_focus2d_missing_tag_does_not_stop_but_fails_unchanged_gate(
+    tok, banks, tmp_path
+):
+    def policy(ctx, ids, text):
+        if ctx["arm"] == "both" and ctx["checkpoint"] in ("HOLD", "NEUTRAL2"):
+            value = json.loads(text)
+            del value["tag"]
+            return json.dumps(value)
+        return text
+
+    engine = f.Engine(
+        tok,
+        FakeBackend(tok, policy),
+        f.RecordStore(tmp_path / "rows"),
+        f.Budget(Clock()),
+        {},
+    )
+    episodes = banks["final"][:7]
+    assert f.run_episodes(engine, episodes) == "COMPLETE"
+    rows = engine.store.rows()
+    summaries = f.validate_records(rows, episodes, tok, {}, complete=True)
+    assert len(summaries) == 7
+    assert all(
+        s["arms"]["both"]["constraint"]
+        and not s["arms"]["both"]["broken"]
+        and not s["arms"]["both"]["Y"]
+        for s in summaries
+    )
+    flags = f.f6_rows(rows, summaries)
+    assert flags["schema_invalid"]["h"] == 7
+    assert flags["truncated"]["h"] == flags["broken"]["h"] == 0
+    assert not flags["schema_invalid"]["drives_breakage_gate"]
+    complete = hand_episodes()
+    for i, row in enumerate(complete):
+        row["arms"]["both"]["constraint"] = i < 7
+        row["arms"]["both"]["broken"] = False
+    report = f.decisions(complete)
+    assert report["status"] == "FAIL-SAFETY"
+    assert report["collateral"]["constraint"]["b"] == 7
+    assert not report["collateral"]["constraint"]["passes"]
+
+
+@pytest.mark.parametrize("body_tokens, truncated", [(127, False), (128, True)])
+def test_focus2d_actual_128_token_boundary(
+    tok, banks, tmp_path, body_tokens, truncated
+):
+    ep = banks["competence"][0]
+    text = "x " * (body_tokens - 1) + "x"
+    assert len(f.encode(tok, text)) == body_tokens
+    engine = f.Engine(
+        tok,
+        FakeBackend(tok, lambda *_: text),
+        f.RecordStore(tmp_path / "rows"),
+        f.Budget(Clock()),
+        {},
+    )
+    h = f.competence_history(tok, ep)
+    h.request(ep, "SET", cue=f.live_rules(ep, "SET") + "\n")
+    row = engine.answer(h, ep, "shared", "SET")
+    assert row["generation_cap"] == f.CONFIG["cap"] == 128
+    assert row["flags"]["truncated"] is truncated
+    assert (row["eos"] == f.EOS) is not truncated
+    assert f.GPU_CAP == f.CONFIG["gpu_cap_seconds"] == 28800
