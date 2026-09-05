@@ -59,3 +59,32 @@ Held-out annotations receive an independent non-training reviewer; no held-out w
 The 64 final mechanism episodes and 12 setup episodes are separate scenario families from this entire corpus and each other; final episodes are never classifier calibration. Freeze episode inputs/checkers before model outcomes. Any overlap invalidates the affected bank before running, not grounds for outcome-based replacement.
 
 Review disposition (2026-09-05, [fable](../../results/focus3-design-review-fable.md)): L1 accepted (conflict-test key identity); L2 accepted (live-version none, derived shadowing); L3 accepted (wrong-task meaning, one-reply pairs/admission none); L4 accepted (none prevalence, held-out power, null labels and binding gate); L6 accepted (illustrations remain development-only); L7 accepted (both hard cases). D1 accepted, D2 accepted, D3 accepted, D4 accepted, D7 accepted and D8 accepted in the companion design, with D2/D3 reflected here; D5 accepted-with-change (exception mechanics cut, task-resume risk retained); D6 accepted-with-change (the review contains no numbered D6; its section 2 packaging fixes are applied in the design). The review contains no L5. Cuts accepted: one-reply exception mechanics and sub-unit completes; retain reinstates and complete-reopen because Brian explicitly requested reinstatement in v1. No findings refuted.
+
+## v3 clarifications — 2026-09-05
+
+- Scoped suspensions: “for this release, skip X” does not cancel a global X
+  requirement outside that release. An explicit replacement value on an
+  identifiable overlapping task is `supersedes`; explicit withdrawal covering
+  the targeted obligation's whole scope, without replacement, is `cancels`.
+  A narrower bare suspension of a global rule is `none` in v1 because there is
+  no suspension operation. Single-reply exceptions remain `none`. If scope or
+  persistence cannot be established from visible context, choose `none`.
+- Hedged proposals: “I think we should switch”, “maybe”, and tentative questions
+  are `none` unless the same visible user context unambiguously commits to the
+  change. Preference or speculation alone authorizes neither a transition nor
+  persistent admission. Do not infer commitment from an assistant response.
+- Whole-task closure plus global promotion: label the closed task's pair
+  `completes` only when the whole named task explicitly closes. Independently
+  annotate `message_new_rule=true` and the verbatim persistent global span;
+  that admission does not preserve or relabel the closed task version. Closing
+  only a sub-unit is `none`; global target rules never receive `completes`.
+
+Reconciliation status test: an inactive (`cancelled`, `completed`, `superseded`)
+target plus changed value/scope receives `none` + `message_new_rule`, with the
+new supported span; only a live same-key target may receive `supersedes`.
+`reinstates` requires unambiguous restoration of the original version. Where a
+modified restoration could instead require a new version, use `none` and admit
+the explicit persistent span; do not silently discard the modifier by copying
+the old version. The 2026-09-05 CPU task uses the available 594-row held-out set
+once, below the prospective 2,000-row target; this does not waive the data minima
+or the separate section-5 FOCUS-3 gate. The admission head is not fitted here.

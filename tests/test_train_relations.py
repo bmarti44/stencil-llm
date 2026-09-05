@@ -62,6 +62,80 @@ def test_patch_conflicts_stale_and_unmatched_refused():
             tr.apply_patches([a], patches)
 
 
+def test_indexed_patch_repairs_reach_loader_without_dropping_same_text_version(
+    tmp_path,
+):
+    a = row(message="Continue. Use square bullets instead.")
+    a["new_rule_spans"] = []
+    a["message_new_rule"] = False
+    b = dict(a, status="cancelled")
+    span = {
+        "start": 10,
+        "end": len(a["message"]),
+        "text": "Use square bullets instead.",
+    }
+    p = {k: a[k] for k in ("source", "message", "old_rule")}
+    p.update(
+        row_index=1,
+        old_label="supersedes",
+        new_label="supersedes",
+        drop=False,
+        old_target_span=a["target_span"],
+        new_target_span=span,
+        old_new_rule_spans=[],
+        new_new_rule_spans=[span["text"]],
+        old_message_new_rule=False,
+        new_message_new_rule=True,
+    )
+    q = {k: b[k] for k in ("source", "message", "old_rule")}
+    q.update(row_index=2, old_label="supersedes", new_label="supersedes", drop=True)
+    base = write_rows(tmp_path / "base.jsonl", [a, b])
+    patch = write_rows(tmp_path / "patch.jsonl", [p, q])
+    loaded, receipt = tr.load_training([base], [patch], [])
+    assert len(loaded) == 1 and receipt["dropped"] == 1
+    assert loaded[0]["target_span"] == span
+    assert loaded[0]["new_rule_spans"] == [span["text"]]
+    assert loaded[0]["message_new_rule"] is True
+    assert "[span] Use square bullets instead." in tr.render_pair(loaded[0])[1]
+    with pytest.raises(ValueError, match="stale patch old_target_span"):
+        tr.apply_patches([a, b], [dict(p, old_target_span={})])
+    with pytest.raises(ValueError, match="conflicting"):
+        tr.apply_patches([a, b], [p, dict(p, new_target_span=a["target_span"])])
+
+
+def test_development_and_final_evaluation_are_separate_modes():
+    assert tr.parse_args(["--dev-only", "--seed", "1"]).dev_only
+    assert tr.parse_args(["--evaluate-only"]).evaluate_only
+    with pytest.raises(SystemExit):
+        tr.parse_args(["--dev-only", "--evaluate-only"])
+
+
+@pytest.mark.parametrize(
+    "state,count,seed,reason",
+    [
+        ("heldout_evaluation_started", 1, 0, "one final evaluation"),
+        ("complete", 1, 0, "one final evaluation"),
+        ("development_complete_frozen", 0, 1, "predesignated seed 0"),
+    ],
+)
+def test_final_evaluation_refuses_repeats_and_stability_seeds_before_input_read(
+    tmp_path, monkeypatch, state, count, seed, reason
+):
+    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "")
+    tr.write_json(
+        tmp_path / "manifest.json",
+        {"state": state, "heldout_evaluation_count": count, "recipe": {"seed": seed}},
+    )
+
+    def forbidden_read(*args, **kwargs):
+        raise AssertionError("No corpus may be read for an ineligible evaluation")
+
+    monkeypatch.setattr(tr, "read_jsonl", forbidden_read)
+    args = tr.parse_args(["--evaluate-only", "--output", str(tmp_path)])
+    with pytest.raises(ValueError, match=reason):
+        tr.evaluate_frozen(args)
+
+
 def test_semantic_dedup_ignores_case_source_and_drops_all_label_conflicts():
     a = tr.normalize_row(row())
     b = tr.normalize_row(

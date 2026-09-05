@@ -28,6 +28,7 @@ import math
 import os
 import random
 import re
+import time
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -141,16 +142,37 @@ def patch_key(row):
 def apply_patches(rows, patches):
     changes = {}
     for patch in patches:
-        key = patch_key(patch)
-        if any(not isinstance(part, str) for part in key):
+        identity = patch_key(patch)
+        if any(not isinstance(part, str) for part in identity):
             raise ValueError("patch needs exact source/old_rule/message strings")
+        index = patch.get("row_index")
+        if index is not None:
+            if type(index) is not int or not 1 <= index <= len(rows):
+                raise ValueError("invalid patch row_index")
+            if patch_key(rows[index - 1]) != identity:
+                raise ValueError("patch row_index identity mismatch")
+        key = (index, identity)
         if not isinstance(patch.get("drop", False), bool):
             raise ValueError("patch drop must be boolean")
         if patch.get("old_label") not in LABELS:
             raise ValueError("patch old_label must be a relation label")
         if not patch.get("drop") and patch.get("new_label") not in LABELS:
             raise ValueError("patch new_label must be a relation label")
-        action = (patch["old_label"], patch.get("new_label"), patch.get("drop", False))
+        action = {
+            k: v
+            for k, v in patch.items()
+            if k in ("old_label", "new_label", "drop")
+            or k.startswith(
+                (
+                    "old_target_",
+                    "new_target_",
+                    "old_new_rule_",
+                    "new_new_rule_",
+                    "old_message_new_",
+                    "new_message_new_",
+                )
+            )
+        }
         if key in changes and changes[key] != action:
             raise ValueError(
                 "conflicting review patches require adjudication: "
@@ -159,14 +181,34 @@ def apply_patches(rows, patches):
         changes[key] = action
     result, matched = [], set()
     audit = {"dropped": 0, "relabeled": 0, "patches": len(patches)}
-    for original in rows:
+    for index, original in enumerate(rows, 1):
         row = copy.deepcopy(original)
-        key = patch_key(row)
-        if key in changes:
-            old, new, drop = changes[key]
+        keys = [
+            key
+            for key in ((None, patch_key(row)), (index, patch_key(row)))
+            if key in changes
+        ]
+        if len(keys) > 1:
+            raise ValueError("overlapping indexed and unindexed patches")
+        if keys:
+            key = keys[0]
+            action = changes[key]
+            old, new, drop = (
+                action["old_label"],
+                action.get("new_label"),
+                action.get("drop", False),
+            )
             if row.get("label") != old:
                 raise ValueError("stale patch old_label disagrees with source row")
             matched.add(key)
+            for field in ("target_span", "new_rule_spans", "message_new_rule"):
+                if "new_" + field in action:
+                    if (
+                        "old_" + field not in action
+                        or row.get(field) != action["old_" + field]
+                    ):
+                        raise ValueError(f"stale patch old_{field}")
+                    row[field] = copy.deepcopy(action["new_" + field])
             if drop:
                 audit["dropped"] += 1
                 continue
@@ -255,6 +297,10 @@ def normalize_row(original):
         target_span={"start": start, "end": end, "text": quote},
         span_offsets_repaired=not valid,
         development_only=development_only(row),
+        new_rule_spans=[
+            s if isinstance(s, str) else s.get("text", s.get("quote"))
+            for s in row.get("new_rule_spans", [])
+        ],
     )
     return row
 
@@ -630,6 +676,10 @@ def parse_args(argv=None):
     parser.add_argument("--cpu-threads", type=int, default=4)
     parser.add_argument("--cpu-smoke", action="store_true")
     parser.add_argument("--local-files-only", action="store_true")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--dev-only", action="store_true")
+    mode.add_argument("--evaluate-only", action="store_true")
+    parser.add_argument("--max-cpu-minutes", type=float, default=90)
     args = parser.parse_args(argv)
     args.epochs = (
         args.epochs if args.epochs is not None else (1 if args.cpu_smoke else 3)
@@ -638,6 +688,8 @@ def parse_args(argv=None):
         parser.error("--cpu-smoke requires CPU and one epoch")
     if min(args.epochs, args.batch_size, args.cpu_threads) < 1 or args.lr <= 0:
         parser.error("epochs, batch size, threads and lr must be positive")
+    if not 0 < args.max_cpu_minutes <= 90:
+        parser.error("CPU budget must be in (0, 90] minutes")
     if not re.fullmatch(r"[0-9a-f]{40}", args.base_revision):
         parser.error("--base-revision must be an immutable base-BGE commit SHA")
     args.output = args.output or data / "model" / (
@@ -651,6 +703,7 @@ def write_json(path, value):
 
 
 def train(args):
+    cpu_start, wall_start = time.process_time(), time.monotonic()
     # Import heavyweight libraries only when explicitly invoked, never on import.
     if args.device == "cuda":
         os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
@@ -666,7 +719,7 @@ def train(args):
     missing = [str(p) for p in [*args.patch, *args.enrich] if not p.is_file()]
     if missing and not args.cpu_smoke:
         raise ValueError(f"review/enrichment inputs missing: {missing}")
-    if not args.cpu_smoke and not args.heldout.is_file():
+    if not args.cpu_smoke and not args.dev_only and not args.heldout.is_file():
         raise ValueError("held-out file missing; no fitting started")
     rows, receipt = load_training(
         args.train,
@@ -783,11 +836,20 @@ def train(args):
             for name, part in (("fit", fit), ("development", dev))
         },
         "overflow_fit": int(fit_overflow.sum()),
+        "source_sha256": {
+            str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in (Path(__file__), ROOT / "data/classifier/LABELS-RELATIONS.md")
+        },
+        "heldout_evaluation_count": 0,
         "exclusion_coverage": "lexical markers only; no sealed corpus access",
     }
     if args.cpu_smoke:
         manifest["data_lineage"] = LINEAGE.split("evaluated-on=")[0] + (
             "evaluated-on=development only in CPU smoke; held-out never opened"
+        )
+    elif args.dev_only:
+        manifest["data_lineage"] = LINEAGE.split("evaluated-on=")[0] + (
+            "evaluated-on=development only; reserved held-out unopened"
         )
     write_json(args.output / "manifest.json", manifest)
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=0.01)
@@ -797,11 +859,16 @@ def train(args):
         lambda s: min(1.0, (s + 1) / (0.06 * steps)) * max(0.0, (steps - s) / steps),
     )
     weight_tensor = torch.tensor(weights, device=args.device, dtype=torch.float32)
+    completed_steps, completed_epochs, stopped_for_budget = 0, 0, False
+    fitting_limit = args.max_cpu_minutes * 60 * 0.80
     for epoch in range(args.epochs):
         model.train()
         random.shuffle(eligible)
         total = 0.0
         for start in range(0, len(eligible), args.batch_size):
+            if time.process_time() - cpu_start >= fitting_limit:
+                stopped_for_budget = True
+                break
             ii = eligible[start : start + args.batch_size]
             targets = torch.tensor(
                 [LABEL_MAP[fit[i]["label"]] for i in ii], device=args.device
@@ -819,7 +886,27 @@ def train(args):
             opt.step()
             sched.step()
             total += float(loss.detach()) * len(ii)
+            completed_steps += 1
+            if completed_steps % 25 == 0:
+                print(
+                    f"step={completed_steps}/{steps} cpu_minutes="
+                    f"{(time.process_time() - cpu_start) / 60:.2f} "
+                    f"wall_minutes={(time.monotonic() - wall_start) / 60:.2f}",
+                    flush=True,
+                )
         print(f"epoch={epoch + 1} loss={total / len(eligible):.6f}", flush=True)
+        if stopped_for_budget:
+            break
+        completed_epochs += 1
+    manifest["budget"] = {
+        "max_cpu_minutes": args.max_cpu_minutes,
+        "fitting_fraction": 0.80,
+        "completed_steps": completed_steps,
+        "planned_steps": steps,
+        "completed_epochs": completed_epochs,
+        "reduced_for_budget": stopped_for_budget,
+        "policy": "Batch-boundary stop; 20% for calibration/save; no signals",
+    }
     dev_logits = infer(dev, dev_tokens)
     thresholds = calibrate_thresholds(
         dev_logits,
@@ -846,6 +933,11 @@ def train(args):
             dev, predict(dev_logits, thresholds, dev_overflow), dev_overflow
         )
     }
+    metrics["development_argmax"] = evaluation_report(
+        dev,
+        np.where(dev_overflow, 0, probabilities(dev_logits).argmax(axis=1)),
+        dev_overflow,
+    )
     manifest["artifact_sha256"] = {
         str(path.relative_to(args.output)): hashlib.sha256(
             path.read_bytes()
@@ -856,7 +948,7 @@ def train(args):
     manifest["state"] = "checkpoint_and_thresholds_frozen"
     write_json(args.output / "manifest.json", manifest)
     # First held-out read happens only AFTER checkpoint and thresholds freeze.
-    if not args.cpu_smoke:
+    if not args.cpu_smoke and not args.dev_only:
         raw, sha = read_jsonl(args.heldout, evaluation=True)
         normalized = []
         for row in raw:
@@ -883,14 +975,147 @@ def train(args):
         (args.output / "metrics.json").read_bytes()
     ).hexdigest()
     manifest["state"] = "cpu_smoke_complete" if args.cpu_smoke else "complete"
+    if args.dev_only:
+        manifest["state"] = "development_complete_frozen"
+    manifest["budget"]["cpu_minutes"] = (time.process_time() - cpu_start) / 60
+    manifest["budget"]["wall_minutes"] = (time.monotonic() - wall_start) / 60
     write_json(args.output / "manifest.json", manifest)
     print(
         json.dumps({"output": str(args.output), "state": manifest["state"]}), flush=True
     )
 
 
+def evaluate_frozen(args):
+    """One final CPU evaluation of a previously frozen development-only run."""
+    if args.device != "cpu" or os.environ.get("CUDA_VISIBLE_DEVICES") != "":
+        raise ValueError("final evaluation requires CPU and CUDA_VISIBLE_DEVICES=''")
+    import torch
+    from safetensors.torch import load_file
+    from transformers import AutoModel, AutoTokenizer
+
+    started = time.process_time()
+    manifest = json.loads((args.output / "manifest.json").read_text())
+    if (
+        manifest["state"] != "development_complete_frozen"
+        or manifest["heldout_evaluation_count"]
+    ):
+        raise ValueError("checkpoint is not eligible for its one final evaluation")
+    if manifest["recipe"]["seed"] != 0:
+        raise ValueError("only predesignated seed 0 may evaluate held-out")
+    for name, expected in manifest["artifact_sha256"].items():
+        if hashlib.sha256((args.output / name).read_bytes()).hexdigest() != expected:
+            raise ValueError(f"frozen artifact changed: {name}")
+    for name, expected in manifest["data_audit"]["input_sha256"].items():
+        if hashlib.sha256(Path(name).read_bytes()).hexdigest() != expected:
+            raise ValueError("frozen development input changed")
+    for name, expected in manifest["source_sha256"].items():
+        if hashlib.sha256((ROOT / name).read_bytes()).hexdigest() != expected:
+            raise ValueError("frozen trainer/spec changed")
+    training, _ = load_training(args.train, args.patch, args.enrich)
+    torch.set_num_threads(args.cpu_threads)
+    torch.use_deterministic_algorithms(True)
+    tokenizer = AutoTokenizer.from_pretrained(
+        args.output / "encoder", local_files_only=True
+    )
+    encoder = (
+        AutoModel.from_pretrained(args.output / "encoder", local_files_only=True)
+        .cpu()
+        .eval()
+    )
+    head = torch.nn.Sequential(
+        torch.nn.Dropout(0.1), torch.nn.Linear(encoder.config.hidden_size + 4, 5)
+    )
+    head.load_state_dict(load_file(str(args.output / "head.safetensors")))
+    head.cpu().eval()
+    thresholds = json.loads((args.output / "thresholds.json").read_text())["thresholds"]
+    manifest["state"] = "heldout_evaluation_started"
+    manifest["heldout_evaluation_count"] = 1
+    write_json(args.output / "manifest.json", manifest)
+    raw, sha = read_jsonl(args.heldout, evaluation=True)
+    normalized = []
+    for row in raw:
+        refuse_benchmark(row)
+        pair = normalize_row(row)
+        if pair is not None:
+            normalized.append(pair)
+    assert_heldout_disjoint(training, normalized)
+    heldout, decisions = deduplicate(normalized, reject_conflicts=True)
+    tokens, overflow = encode_rows(heldout, tokenizer)
+    logits = np.zeros((len(heldout), 5), dtype=np.float64)
+    indices = [i for i, t in enumerate(tokens) if t is not None]
+    with torch.inference_mode():
+        for start in range(0, len(indices), args.batch_size):
+            ii = indices[start : start + args.batch_size]
+            inputs = tokenizer.pad(
+                [tokens[i] for i in ii], padding=True, return_tensors="pt"
+            )
+            roles = torch.tensor(
+                [[float(heldout[i]["role"] == r) for r in ROLES] for i in ii]
+            )
+            cls = encoder(**inputs).last_hidden_state[:, 0]
+            logits[ii] = head(torch.cat([cls, roles], dim=1)).numpy()
+    metrics = json.loads((args.output / "metrics.json").read_text())
+    metrics["heldout"] = evaluation_report(
+        heldout, predict(logits, thresholds, overflow), overflow
+    )
+    metrics["heldout_at_098"] = evaluation_report(
+        heldout, predict(logits, dict.fromkeys(LABELS[1:], 0.98), overflow), overflow
+    )
+    metrics["heldout_argmax"] = evaluation_report(
+        heldout, np.where(overflow, 0, probabilities(logits).argmax(axis=1)), overflow
+    )
+    metrics["new_rule_admission"] = {
+        "implemented": False,
+        "evaluated": False,
+        "reason": "Pairwise head only; no admission head loaded, trained or evaluated.",
+    }
+    np.savez_compressed(
+        args.output / "heldout_predictions.npz",
+        logits=logits,
+        gold=np.array([LABEL_MAP[r["label"]] for r in heldout]),
+        overflow=overflow,
+    )
+    write_json(args.output / "metrics.json", metrics)
+    manifest["heldout"] = {
+        "path": str(args.heldout),
+        "sha256": sha,
+        "raw_rows": len(raw),
+        "pairs": len(heldout),
+        "dedup_decisions": decisions,
+        "admission_rows_excluded": len(raw) - len(normalized),
+        "authors": ["fable"],
+    }
+    manifest["data_lineage"] = (
+        "fit-on = kimi+enrich after merged patch; calibrated-on = dev split "
+        "(scenario-disjoint 10%, fit-author-shared); evaluated-on = fable held-out, "
+        "author-disjoint, seed 0 once; no benchmark inputs/responses; "
+        "admission not trained"
+    )
+    manifest["evaluation_cpu_minutes"] = (time.process_time() - started) / 60
+    for name in ("metrics.json", "heldout_predictions.npz"):
+        manifest["artifact_sha256"][name] = hashlib.sha256(
+            (args.output / name).read_bytes()
+        ).hexdigest()
+    manifest["state"] = "complete"
+    write_json(args.output / "manifest.json", manifest)
+    print(
+        json.dumps(
+            {
+                "heldout_accuracy": metrics["heldout"]["accuracy"],
+                "none_fp": metrics["heldout"]["none_fp"],
+                "state": "complete",
+            }
+        ),
+        flush=True,
+    )
+
+
 def main():
-    train(parse_args())
+    args = parse_args()
+    if args.evaluate_only:
+        evaluate_frozen(args)
+    else:
+        train(args)
 
 
 if __name__ == "__main__":
