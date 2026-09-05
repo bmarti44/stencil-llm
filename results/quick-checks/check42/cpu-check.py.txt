@@ -1,0 +1,77 @@
+import copy
+import importlib.util
+import json
+import tempfile
+from pathlib import Path
+
+spec = importlib.util.spec_from_file_location('check42', '/home/bmarti44/stencil-llm/scripts/focus_check42.py')
+c = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(c)
+f = c.f
+tok = f.load_tokenizer(c.ROOT / 'models/qwen3-4b-hf/tokenizer.json')
+
+
+class GoldBackend:
+    peak_memory = 0
+
+    def empty(self):
+        return {}
+
+    def prefill(self, ids, cache, layout, context):
+        ep, step = context['episode'], context['checkpoint']
+        text = 'The room remains quiet.' if step.startswith('DELAY') else f.gold(ep, step)
+        self.tokens = iter(f.encode(tok, text) + [f.EOS])
+        return next(self.tokens)
+
+    def decode(self, token, cache):
+        return next(self.tokens)
+
+
+episodes = [e for e in c.bank() if e['index'] in (0, 1)]
+with tempfile.TemporaryDirectory(prefix='check42-cpu-') as tmp:
+    store = f.RecordStore(Path(tmp) / 'records')
+    engine = f.Engine(tok, GoldBackend(), store, f.Budget(), {})
+    for ep in episodes:
+        for arm in c.ARMS:
+            assert c.episode(engine, ep, arm)
+    rows = store.rows()
+    replay = c.Replay(tok, rows)
+    for ep in episodes:
+        for arm in c.ARMS:
+            assert c.episode(replay, ep, arm)
+    assert replay.used == set(replay.rows)
+    for arm in c.ARMS:
+        a, _ = c.aggregate(rows, episodes, arm)
+        assert a['counts']['all_five'] == len(episodes)
+        assert a['counts']['constraint'] == a['counts']['broken'] == 0
+    # Perturb an actual consumer input and require the audit to reject it.
+    bad = copy.deepcopy(rows)
+    bad[0]['input_ids'][0] += 1
+    rejected = False
+    try:
+        replay = c.Replay(tok, bad)
+        for ep in episodes:
+            for arm in c.ARMS:
+                c.episode(replay, ep, arm)
+    except f.Invalid:
+        rejected = True
+    assert rejected
+
+old = f.RecordStore(c.OLD / 'outputs/run/records').rows()
+ids = {e['id'] for e in c.bank()}
+comparator = []
+for row in old:
+    if row['episode'] in ids and row['arm'] in ('shared', 'text-restate'):
+        row['arm'] = 'C'
+        comparator.append(row)
+replay = c.Replay(tok, comparator)
+for ep in c.bank():
+    assert c.episode(replay, ep, 'C')
+assert replay.used == set(replay.rows)
+assert c.paired([False]*8, [True]*8)['p_worse'] == 1/256
+assert c.paired([True]*8, [False]*8)['p_worse'] == 1
+assert c.paired([True]*8, [True]*8)['p_worse'] == 1
+print(json.dumps(dict(status='PASS', smoke_episodes=len(episodes),
+    smoke_records=len(rows), comparator_episodes=len(ids),
+    comparator_records=len(comparator), comparator_exact_original_trajectory=True,
+    changed_input_rejected=True, exact_test_direction_verified=True)))

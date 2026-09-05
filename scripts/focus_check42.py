@@ -1,0 +1,631 @@
+#!/usr/bin/env python3
+"""Disclosed check 42: frozen FOCUS-2d bank, three fresh unmasked arms."""
+
+import argparse
+import fcntl
+import hashlib
+import json
+import re
+import subprocess
+import time
+from pathlib import Path
+
+from stencil import focus2 as f
+
+ROOT = f.ROOT
+OLD = ROOT / "results/qwen/focus2d"
+OUT = ROOT / "results/quick-checks/check42"
+ARMS = ("A", "B", "C")
+FLAGS = (
+    "broken",
+    "json_invalid",
+    "schema_invalid",
+    "empty",
+    "placeholder",
+    "truncated",
+    "repetitive",
+)
+N = 192
+CAP = 3.5 * 3600
+
+
+def read(path):
+    return json.loads(Path(path).read_text())
+
+
+def file_hash(path):
+    h = hashlib.sha256()
+    with Path(path).open("rb") as handle:
+        for chunk in iter(lambda: handle.read(8 * 1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def bank():
+    full = read(OLD / "freeze/banks.json")["final"]
+    f.require(len(full) == 256 and all(e["seed"] == 9053723 for e in full), "bank")
+    selected = [e for e in full if e["index"] < 48]
+    f.require(len(selected) == N, "balanced preselected subset")
+    return selected
+
+
+def block(ep, step, arm, *, delay=False):
+    lines = [f.rule(ep, step)]
+    if arm == "B":
+        lines.append(f.persistent_rules(ep))
+    # Neutral delay requests have no task-specific requested keys.
+    if not delay:
+        lines.append(f.obligations(ep, step))
+    return "\n".join(lines) + "\n"
+
+
+def assistant_bodies(h):
+    return [
+        (m["turn"], p["id"], list(p["ids"]))
+        for m in h.messages
+        if m["role"] == "assistant"
+        for p in m["parts"]
+        if p["kind"] in ("body", "generated_eos", "closure")
+    ]
+
+
+def episode(engine, ep, arm):
+    """Keep FOCUS-2d's isolated delay generation/replay, changing only its user text.
+
+    Each arm generates its own delays and priors. C's complete prompt trajectory
+    is the original text-restate trajectory; A/B add cues at SET/PREHOLD too.
+    """
+    delay_records = {}
+    delay_texts = {}
+    if ep["delay"]:
+        for name, step in (
+            ("DELAY0", "SET"),
+            ("DELAY1", "SWITCH"),
+            ("DELAY2", "CLEAR"),
+        ):
+            text = f.delay_text(engine.tok)
+            if arm != "C":
+                text = block(ep, step, arm, delay=True) + text
+            delay_texts[name] = text
+            for attempt in (name, name + "_RETRY"):
+                h = f.neutral_history(engine.tok, text, attempt)
+                r = engine.answer(h, ep, arm, attempt)
+                if not f.delay_capped(r):
+                    delay_records[name] = r
+                    break
+            else:
+                return False
+
+    h = f.initial_history(engine.tok, ep)
+    if arm != "C":
+        # Remove only the system task cue; base schema/tag and all facts survive.
+        h.messages[0]["parts"] = [
+            p for p in h.messages[0]["parts"] if p["kind"] != "cue"
+        ]
+    priors = []
+    memo = None
+    for step in f.REQUESTS:
+        edit = None
+        if step in ("SWITCH", "BACK", "CLEAR"):
+            before = assistant_bodies(h)
+            edit = f.intervene(
+                h, ep, "text-restate" if arm == "C" else "placement-only", step
+            )
+            f.require(
+                not edit["removed_bodies"] and before == assistant_bodies(h),
+                "assistant content changed",
+            )
+        delay = {"PREHOLD": "DELAY0", "HOLD": "DELAY1", "NEUTRAL2": "DELAY2"}.get(step)
+        if delay in delay_records:
+            r = delay_records[delay]
+            h.pair("neutral", delay, delay_texts[delay], r["output_ids"], r["eos"])
+            if arm != "C":
+                # Own the inserted block as a retireable cue, not neutral prose.
+                # Keep the generated assistant body and exact rendered token IDs.
+                msg = h.messages[-2]
+                original = [t for p in msg["parts"] for t in p["ids"]]
+                event_step = {"DELAY0": "SET", "DELAY1": "SWITCH", "DELAY2": "CLEAR"}[
+                    delay
+                ]
+                msg["kind"] = "task"
+                msg["parts"][1]["ids"] = f.encode(engine.tok, f.delay_text(engine.tok))
+                msg["parts"].insert(
+                    1,
+                    h.part(
+                        "cue",
+                        f.encode(engine.tok, block(ep, event_step, arm, delay=True)),
+                        f.scope(event_step),
+                    ),
+                )
+                f.require(
+                    original == [t for p in msg["parts"] for t in p["ids"]],
+                    "delay cue segmentation changed tokens",
+                )
+                h.validate()
+        cue = (
+            (f.current_cue(ep, "text-restate", step) if step in f.CHECKPOINTS else None)
+            if arm == "C"
+            else block(ep, step, arm)
+        )
+        h.request(ep, step, cue=cue)
+        r = engine.answer(
+            h,
+            ep,
+            arm,
+            step,
+            edit=edit,
+            prior=f.prior_packet(priors) if step in f.CHECKPOINTS else None,
+            source=memo if step in f.CHECKPOINTS else None,
+        )
+        if step in ("SET", "PREHOLD"):
+            priors.append(r)
+            if step == "SET" and ep["memo"]:
+                memo = f.memo_source(r["output_text"])
+    return True
+
+
+class Replay:
+    """Audit the actual consumer trajectory and recompute every saved score."""
+
+    def __init__(self, tok, rows):
+        self.tok = tok
+        self.rows = {(r["episode"], r["arm"], r["checkpoint"]): r for r in rows}
+        f.require(len(self.rows) == len(rows), "duplicate records")
+        self.used = set()
+
+    def answer(self, h, ep, arm, step, *, edit=None, prior=None, source=None):
+        key = (ep["id"], arm, step)
+        r = self.rows[key]
+        layout = h.render(current=True)
+        f.require(
+            r["complete"]
+            and r["input_layout"] == layout
+            and r["input_ids"] == layout["ids"]
+            and r["edit"] == edit
+            and r["input_text"]
+            == self.tok.decode(layout["ids"], skip_special_tokens=False),
+            "replay input/edit mismatch",
+        )
+        f.require(
+            r["output_text"]
+            == self.tok.decode(r["output_ids"], skip_special_tokens=False),
+            "output token/text mismatch",
+        )
+        flags = (
+            f.neutral_flags(r["output_text"], r["output_ids"], r["eos"])
+            if step.startswith("DELAY")
+            else f.score(
+                ep,
+                step,
+                r["output_text"],
+                r["output_ids"],
+                r["eos"],
+                source_memo=source,
+            )
+        )
+        f.require(
+            flags == r["flags"] and r["source_facts"]["assistant_fact"] == source,
+            "score/source mismatch",
+        )
+        f.require(
+            r["shared_prior_hash"] == (f.digest(prior) if prior is not None else None),
+            "prior mismatch",
+        )
+        self.used.add(key)
+        if not f.delay_capped(r):
+            if step.startswith("DELAY"):
+                f.validate_delay(r)
+            h.answer(r["output_ids"], r["eos"])
+        return r
+
+
+def paired(x, y):
+    b = sum(a and not c for a, c in zip(x, y, strict=True))
+    c = sum(not a and d for a, d in zip(x, y, strict=True))
+    return dict(
+        n=len(x),
+        candidate=sum(x),
+        comparator=sum(y),
+        b=b,
+        c=c,
+        delta_count=b - c,
+        p_better=f.mcnemar_exact_one_sided(b, c),
+        p_worse=f.mcnemar_exact_one_sided(c, b),
+    )
+
+
+def aggregate(rows, episodes, arm):
+    idx = {(r["episode"], r["checkpoint"]): r for r in rows if r["arm"] == arm}
+    events = {
+        k: []
+        for k in (
+            "all_five",
+            "constraint",
+            *FLAGS,
+            "user_fact",
+            "tool_fact",
+            "assistant_fact",
+        )
+    }
+    checkpoints = {}
+    for step in f.CHECKPOINTS:
+        rs = [idx[e["id"], step] for e in episodes]
+        checkpoints[step] = dict(
+            n=len(rs),
+            success=sum(r["flags"]["success"] for r in rs),
+            constraint_failures=sum(not r["flags"]["constraint"] for r in rs),
+            **{flag: sum(r["flags"][flag] for r in rs) for flag in FLAGS},
+        )
+    for ep in episodes:
+        rs = [idx[ep["id"], s] for s in f.CHECKPOINTS]
+        events["all_five"].append(all(r["flags"]["success"] for r in rs))
+        events["constraint"].append(any(not r["flags"]["constraint"] for r in rs))
+        for flag in FLAGS:
+            events[flag].append(any(r["flags"][flag] for r in rs))
+        for fact in ("user_fact", "tool_fact", "assistant_fact"):
+            if fact != "assistant_fact" or ep["memo"]:
+                events[fact].append(not rs[-1]["flags"]["collateral"].get(fact, False))
+    return dict(
+        n=len(episodes),
+        counts={k: sum(v) for k, v in events.items()},
+        denominators={k: len(v) for k, v in events.items()},
+        checkpoints=checkpoints,
+    ), events
+
+
+def analyze(output):
+    episodes = bank()
+    rows = f.RecordStore(output / "records").rows()
+    tok = f.load_tokenizer(ROOT / "models/qwen3-4b-hf/tokenizer.json")
+    audit = Replay(tok, rows)
+    included, excluded, unfinished = [], [], []
+    for ep in episodes:
+        rs = [r for r in rows if r["episode"] == ep["id"]]
+        terminated = all(
+            any(
+                r["arm"] == arm
+                and r["complete"]
+                and (
+                    r["checkpoint"] == "NEUTRAL2"
+                    or (r["checkpoint"].endswith("_RETRY") and f.delay_capped(r))
+                )
+                for r in rs
+            )
+            for arm in ARMS
+        )
+        if not terminated:
+            unfinished.append(ep)
+            continue
+        complete = [episode(audit, ep, arm) for arm in ARMS]
+        (included if all(complete) else excluded).append(ep)
+    unfinished_ids = {e["id"] for e in unfinished}
+    f.require(
+        all(key in audit.used or key[0] in unfinished_ids for key in audit.rows),
+        "orphan records",
+    )
+    summary = dict(
+        status="INCOMPLETE" if unfinished else "COMPLETE",
+        planned_n=N,
+        included_n=len(included),
+        excluded_ids=[e["id"] for e in excluded],
+        unfinished_ids=sorted(unfinished_ids),
+        arms={},
+        contrasts={},
+        audit=dict(
+            records=len(rows),
+            audited_records=len(audit.used),
+            trajectory_and_scores_verified=not unfinished,
+        ),
+    )
+    events = {}
+    for arm in ARMS:
+        summary["arms"][arm], events[arm] = aggregate(rows, included, arm)
+    old_rows = f.RecordStore(OLD / "outputs/run/records").rows()
+    for arm in ("both", "neither"):
+        summary["arms"][arm], _ = aggregate(old_rows, included, arm)
+        summary["arms"][arm]["recorded_reference_only"] = True
+    for candidate, comparator in (("A", "C"), ("B", "C"), ("B", "A")):
+        contrasts = {
+            key: paired(events[candidate][key], events[comparator][key])
+            for key in events[candidate]
+        }
+        test = contrasts["all_five"]
+        contrasts["closes_masking"] = (
+            not excluded
+            and not unfinished
+            and test["candidate"] >= test["comparator"]
+            and test["p_worse"] > 0.05
+            and contrasts["constraint"]["delta_count"] <= 2
+        )
+        summary["contrasts"][candidate + "_vs_" + comparator] = contrasts
+    summary["masking_closed"] = any(
+        summary["contrasts"][a + "_vs_C"]["closes_masking"] for a in ("A", "B")
+    )
+    summary["run"] = read(output / "run-end.json")
+    summary["lineage"] = read(output / "freeze.json")
+    f.atomic_json(output / "summary.json", summary)
+    render_report(output, summary)
+    return summary
+
+
+def render_report(output, s):
+    lines = [
+        "",
+        "## Results",
+        "",
+        f"Completed paired episodes: {s['included_n']}/{N}; "
+        f"new records: {s['audit']['records']}. CPU replay verified every prompt, "
+        "retained answer, cue retirement and score.",
+        "",
+        "| Arm | All-five | SWITCH | HOLD | BACK | CLEAR | NEUTRAL2 "
+        "| Constraint failures | Broken |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
+    ]
+    for arm, a in s["arms"].items():
+        label = arm + (" (recorded reference)" if arm in ("both", "neither") else "")
+        vals = [
+            a["counts"]["all_five"],
+            *[a["checkpoints"][k]["success"] for k in f.CHECKPOINTS],
+            a["counts"]["constraint"],
+            a["counts"]["broken"],
+        ]
+        lines.append("| " + label + " | " + " | ".join(map(str, vals)) + " |")
+    lines += [
+        "",
+        "| Contrast | All-five b/c | p(worse) | p(better) "
+        "| Constraint excess | Closure |",
+        "|---|---:|---:|---:|---:|---|",
+    ]
+    for name, contrast in s["contrasts"].items():
+        t = contrast["all_five"]
+        lines.append(
+            f"| {name} | {t['b']}/{t['c']} | {t['p_worse']:.6g} | "
+            f"{t['p_better']:.6g} | {contrast['constraint']['delta_count']} | "
+            f"{contrast['closes_masking'] if name != 'B_vs_A' else 'secondary'} |"
+        )
+    lines += [
+        "",
+        "| Arm | user_fact failures | tool_fact failures | assistant_fact failures |",
+        "|---|---:|---:|---:|",
+    ]
+    for arm, a in s["arms"].items():
+        vals = [
+            f"{a['counts'][k]}/{a['denominators'][k]}"
+            for k in ("user_fact", "tool_fact", "assistant_fact")
+        ]
+        lines.append(f"| {arm} | " + " | ".join(vals) + " |")
+    lines += ["", "| Arm | " + " | ".join(FLAGS) + " |", "|---|" + "---:|" * len(FLAGS)]
+    for arm, a in s["arms"].items():
+        lines.append(
+            f"| {arm} | " + " | ".join(str(a["counts"][k]) for k in FLAGS) + " |"
+        )
+    lines += [
+        "",
+        "Per-checkpoint constraint and F6 counts, paired collateral contrasts, "
+        "and exact denominators are in summary.json. F6 counts above are episodes "
+        "with any flagged checkpoint; schema_invalid alone is not structural breakage.",
+        "",
+    ]
+    if s["masking_closed"]:
+        lines.append(
+            "**MASKING CLOSED on this family under the fixed quick-check reading.** "
+            "FOCUS-3 should render the live-rule block in every request and retain "
+            "prior answers; this check supplies no reason to add custom masking "
+            "to that ship path."
+        )
+    else:
+        lines.append(
+            "**MASKING NOT CLOSED by the fixed reading.** The measured gaps above "
+            "remain for FOCUS-3; do not claim per-request placement matches "
+            "the comparator. "
+            "This result does not establish that masking fixes those gaps."
+        )
+    t = s["contrasts"]["B_vs_A"]["all_five"]
+    lines += [
+        "",
+        f"Repeating schema/tag changes all-five by {t['delta_count']:+d} episodes "
+        f"(B versus A; discordances {t['b']}/{t['c']}). "
+        "This is the schema-carrier contrast.",
+        "",
+        "These are reused synthetic bank outcomes with fresh generations, a scaled "
+        "192-episode quick check, and an operational closure decision. "
+        "A nonsignificant McNemar test does not prove equivalence, general safety, "
+        "benchmark transfer, or "
+        "autonomous detection of rule changes.",
+        "",
+        f"GPU allocation: {s['run']['seconds'] / 3600:.4f} h / 3.5 h, "
+        "including loading.",
+    ]
+    with (output / "README.md").open("a") as handle:
+        handle.write("\n".join(lines) + "\n")
+
+
+def prepare(output):
+    episodes = bank()
+    certificate = read(OLD / "outputs/competence/certificate.json")
+    f.require(certificate["status"] == "PASS", "reused competence certificate")
+    assets = read(OLD / "freeze/assets.json")
+    hashes = {}
+    for key in ("model", "model_config", "tokenizer", "tokenizer_config"):
+        asset = assets[key]
+        hashes[key] = file_hash(ROOT / asset["path"])
+        f.require(hashes[key] == asset["sha256"], "frozen asset drift: " + key)
+    pins = certificate["binding"]["hashes"]
+    for name, path in (
+        ("generator", ROOT / "src/stencil/focus2.py"),
+        ("qwen", ROOT / "src/stencil/qwen3.py"),
+        ("stats", ROOT / "src/stencil/stats.py"),
+        ("banks", OLD / "freeze/banks.json"),
+    ):
+        hashes[name] = file_hash(path)
+        f.require(hashes[name] == pins[name], "frozen dependency drift: " + name)
+    hashes["check42_source"] = file_hash(__file__)
+    hashes["prewritten_reading"] = file_hash(output / "README.md")
+    hashes["competence_certificate"] = file_hash(
+        OLD / "outputs/competence/certificate.json"
+    )
+    freeze = dict(
+        fit_on="none",
+        evaluated_on="reused FOCUS-2d final bank; other-arm outcomes seen",
+        fresh_generations=list(ARMS),
+        certificate_reused=True,
+        hashes=hashes,
+        selected_ids=[e["id"] for e in episodes],
+        seed=9053723,
+        selection="index < 48 in each direction/delay cell, 12 memo episodes per cell",
+        projection_256_seconds=72.9 * 3 / 5 * 1.4 * 256 + 300,
+        projection_192_seconds=72.9 * 3 / 5 * 1.4 * 192 + 300,
+        cap_seconds=CAP,
+        created_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    )
+    f.atomic_json(output / "freeze.json", freeze)
+    return freeze
+
+
+def run(output):
+    freeze = read(output / "freeze.json")
+    f.require(
+        file_hash(__file__) == freeze["hashes"]["check42_source"],
+        "source changed after freeze",
+    )
+    f.require(
+        file_hash(output / "README.md") == freeze["hashes"]["prewritten_reading"],
+        "reading changed",
+    )
+    f.require(not (output / "records").exists(), "refusing regeneration")
+    f.atomic_json(
+        output / "run-start.json",
+        dict(
+            utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            freeze_sha256=file_hash(output / "freeze.json"),
+        ),
+    )
+    budget = f.Budget(cap=CAP)
+    backend = None
+    status = "COMPLETE"
+    try:
+        tok = f.load_tokenizer(ROOT / "models/qwen3-4b-hf/tokenizer.json")
+        backend = f.load_backend(
+            tok,
+            dict(
+                config_path=str(ROOT / "models/qwen3-4b-hf/config.json"),
+                weights_path="models/qwen3-4b.pt",
+            ),
+        )
+        engine = f.Engine(
+            tok, backend, f.RecordStore(output / "records"), budget, freeze
+        )
+        for i, ep in enumerate(bank()):
+            for arm in ARMS:
+                budget.check(60)
+                valid = episode(engine, ep, arm)
+                print(
+                    json.dumps(
+                        dict(
+                            episode=i + 1,
+                            arm=arm,
+                            valid=valid,
+                            elapsed=budget.elapsed(),
+                        )
+                    ),
+                    flush=True,
+                )
+    except Exception as exc:
+        status = "INCOMPLETE"
+        print(repr(exc), flush=True)
+        raise
+    finally:
+        if backend is not None:
+            backend.close()
+        f.atomic_json(
+            output / "run-end.json",
+            dict(status=status, seconds=budget.elapsed(), cap_seconds=CAP),
+        )
+
+
+def readiness():
+    gpu = subprocess.check_output(
+        [
+            "nvidia-smi",
+            "--query-compute-apps=pid,process_name",
+            "--format=csv,noheader",
+        ],
+        text=True,
+    ).strip()
+    processes = subprocess.check_output(["ps", "-eo", "pid,args"], text=True)
+    checks = {}
+    for number in (40, 41):
+        path = ROOT / f"results/quick-checks/check{number}/README.md"
+        result_text = path.read_text().split("## Results", 1)[-1]
+        terminal = bool(
+            re.search(
+                r"\*\*(?:INELIGIBLE|NOT POSSIBLE|MARGINAL|POSSIBLE|PARTIAL|STOP|"
+                r"INCOMPLETE|COMPLETE)[^*]*\*\*",
+                result_text,
+            )
+        )
+        live = [
+            line.strip()
+            for line in processes.splitlines()
+            if re.search(rf"(?:^|/)focus_check{number}\.py\s", line)
+            and re.search(r"--mode\s+run(?:\s|$)", line)
+            and "python" in line
+            and "bash -c" not in line
+        ]
+        checks[str(number)] = dict(terminal_reading=terminal, live_processes=live)
+    return dict(
+        utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        gpu=gpu,
+        checks=checks,
+        ready=not gpu
+        and all(
+            c["terminal_reading"] or not c["live_processes"] for c in checks.values()
+        ),
+    )
+
+
+def acquire_gpu(wait):
+    """Foreground, 600-second resource polls; never signal a process."""
+    receipts = []
+    while True:
+        receipt = readiness()
+        receipts.append(receipt)
+        print(json.dumps(receipt), flush=True)
+        if receipt["ready"]:
+            lock = (ROOT / ".review.lock").open("a")
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                return lock, receipts
+            except BlockingIOError:
+                lock.close()
+                receipt["lock_busy"] = True
+        f.require(wait, "GPU/priority check/review lock unavailable")
+        for _ in range(10):
+            time.sleep(60)
+            print(
+                "Waiting; next resource poll remains on the 600-second cadence.",
+                flush=True,
+            )
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--mode", choices=("prepare", "run", "analyze"), required=True)
+    parser.add_argument("--output", type=Path, default=OUT)
+    parser.add_argument("--wait", action="store_true")
+    args = parser.parse_args()
+    if args.mode == "prepare":
+        print(json.dumps(prepare(args.output), indent=2))
+    elif args.mode == "run":
+        lock, receipts = acquire_gpu(args.wait)
+        try:
+            f.atomic_json(args.output / "gpu-readiness.json", receipts)
+            run(args.output)
+        finally:
+            lock.close()
+    else:
+        print(json.dumps(analyze(args.output), indent=2))
+
+
+if __name__ == "__main__":
+    main()
