@@ -192,27 +192,13 @@ def choose_grid(cells):
     )
 
 
-def encode_messages(tokenizer, messages):
-    ids = tokenizer.apply_chat_template(
-        messages,
-        tokenize=True,
-        add_generation_prompt=True,
-        enable_thinking=False,
-        return_dict=False,
-    )
-    assert (
-        isinstance(ids, list) and ids and all(isinstance(token, int) for token in ids)
-    )
-    return ids
-
-
 class Engine:
-    def __init__(self, start, prior_seconds=0):
+    def __init__(self, start):
         import torch
         from transformers import AutoTokenizer, Qwen3ForCausalLM
 
         self.start = start
-        self.deadline = start + GPU_SECONDS - prior_seconds
+        self.deadline = start + GPU_SECONDS
         self.torch = torch
         self.device = torch.device("cuda")
         self.cap = CAP
@@ -248,7 +234,9 @@ class Engine:
         if time.monotonic() >= self.deadline - 30:
             raise BudgetStop("30-second reserve: no new request")
         torch = self.torch
-        ids = encode_messages(self.tokenizer, messages)
+        ids = self.tokenizer.apply_chat_template(
+            messages, tokenize=True, add_generation_prompt=True, enable_thinking=False
+        )
         inputs = torch.tensor([ids], device=self.device)
         h = self.hooks
         h.scale = (
@@ -485,11 +473,7 @@ def save_report(summary):
     lines += ["", conclusions[summary["verdict"]], ""]
     other = ROOT / "results/quick-checks/check40/summary.json"
     c40 = json.loads(other.read_text()) if other.exists() else {}
-    if c40.get("status") == "COST_STOP_BEFORE_COMPETENCE":
-        lines += [
-            f"Check 40 stopped on cost before competence or expert extraction: measured {c40['conservative_tokens_per_second']:.2f} tokens/s; its prescribed reduced design projected {c40['projected_scaled_hours']:.2f} hours against a four-hour cap. It has no behavioral result to compare. This dense-MLP check uses a smaller model, a different intervention, and the original 531030a task bank."
-        ]
-    elif c40.get("verdict") in ("POSSIBLE", "MARGINAL", "NOT POSSIBLE", "INELIGIBLE"):
+    if c40.get("verdict") in ("POSSIBLE", "MARGINAL", "NOT POSSIBLE", "INELIGIBLE"):
         lines += [
             f"Check 40 currently reads **{c40['verdict']}** on Qwen3-30B-A3B router bias. Check 41 uses the task banks/checkers pinned to check 40 commit 531030a on dense Qwen3-4B MLP neurons; model size, architecture and intervention site differ, so this is not an isolated causal comparison."
         ]
@@ -536,7 +520,6 @@ def run():
     rows, competence, eligibility, stop_reason = [], {}, None, None
     engine = None
     journal = (OUT / "records.jsonl").open("x")
-    prior_seconds = json.loads((OUT / "prior-attempts.json").read_text())["gpu_seconds"]
     start = time.monotonic()
     write_json(
         OUT / "launch.json",
@@ -608,7 +591,7 @@ def run():
         return rec, prof
 
     try:
-        engine = Engine(start, prior_seconds)
+        engine = Engine(start)
         write_json(
             OUT / "runtime.json",
             dict(
@@ -639,9 +622,7 @@ def run():
                         pilot_records=3,
                         total_requests=expected,
                         worst_request_seconds=worst,
-                        projected_seconds=prior_seconds
-                        + engine.load_seconds
-                        + 1.25 * expected * worst,
+                        projected_seconds=engine.load_seconds + 1.25 * expected * worst,
                         cap_seconds=GPU_SECONDS,
                         policy="fixed full design; cooperative cap can produce PARTIAL",
                     ),
@@ -803,7 +784,7 @@ def run():
             partial = summarize(rows)
             partial.update(
                 competence=competence,
-                gpu_seconds=prior_seconds + time.monotonic() - start,
+                gpu_seconds=time.monotonic() - start,
                 stop_reason="RUNNING",
             )
             write_json(OUT / "summary.json", partial)
@@ -814,14 +795,12 @@ def run():
         raise
     finally:
         journal.close()
-        elapsed = prior_seconds + time.monotonic() - start
+        elapsed = time.monotonic() - start
         summary = summarize(rows, eligibility)
         summary.update(
             competence=competence,
             gpu_seconds=elapsed,
             gpu_cap_seconds=GPU_SECONDS,
-            prior_attempt_gpu_seconds=prior_seconds,
-            current_attempt_gpu_seconds=elapsed - prior_seconds,
             cap_overrun_seconds=max(0, elapsed - GPU_SECONDS),
             stop_reason=stop_reason,
             peak_memory_bytes=torch.cuda.max_memory_allocated()
@@ -846,16 +825,6 @@ def cpu_tests():
     torch.set_num_threads(2)
     torch.manual_seed(SEED)
     checks = []
-    from transformers import AutoTokenizer
-
-    tokenizer = AutoTokenizer.from_pretrained(MODEL, local_files_only=True)
-    token_ids = encode_messages(
-        tokenizer, [dict(role="user", content="Write a square function.")]
-    )
-    assert torch.tensor([token_ids]).dtype == torch.int64
-    checks.append(
-        "actual local tokenizer through production encode_messages: explicit return_dict=False yields integer token IDs"
-    )
     config = Qwen3Config(
         hidden_size=8,
         intermediate_size=16,
@@ -1173,7 +1142,6 @@ def prepare():
             "banks.json",
             "prewritten-reading.md",
             "cpu.json",
-            "prior-attempts.json",
         )
     ]
     write_json(
@@ -1189,10 +1157,7 @@ def prepare():
     )
     summary = summarize([])
     summary.update(
-        stop_reason="PREPARED_WAITING_FOR_IDLE_GPU_AND_CHECK40",
-        gpu_seconds=json.loads((OUT / "prior-attempts.json").read_text())[
-            "gpu_seconds"
-        ],
+        stop_reason="PREPARED_WAITING_FOR_IDLE_GPU_AND_CHECK40", gpu_seconds=0
     )
     write_json(OUT / "summary.json", summary)
     print(json.dumps(cpu, indent=2), flush=True)

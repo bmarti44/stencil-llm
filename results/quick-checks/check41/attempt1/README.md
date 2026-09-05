@@ -33,20 +33,56 @@ Local HF Qwen3ForCausalLM, bf16, SDPA, single sequence, greedy decoding, thinkin
 
 CPU preparation and commit precede GPU use. Foreground run waits with **600-second GPU/check40 polls**, requiring no NVIDIA compute process and no live `focus_check40.py --mode run` process (including a waiting check40 process, to give it priority). No process termination, signalling, background launch or push. Review/coder lock respected. On completion, recompute scores, summaries, profile frequencies, neuron selection and grid choice from raw artifacts on CPU.
 
-## Pre-generation compatibility repair (2026-09-05)
 
-The first GPU attempt loaded the model but failed before any forward/generation because Transformers 5.16.1 defaults `apply_chat_template` to a BatchEncoding return. Preserve that complete attempt under `attempt1/`; request `return_dict=False` explicitly and test the actual local tokenizer on CPU. Charge its **46.37001516507007 seconds** to the same 7200-second allocation; all task banks, selectors, grid, thresholds and decoding settings remain fixed. No model response exists to select from or repair against.
+## Observed results
 
-## Results
+**PARTIAL**; complete screen: False; GPU allocation 46.37/7200 seconds.
 
-PENDING — CPU preparation; no model outcomes exist.
+ERROR RuntimeError: Could not infer dtype of tokenizers.Encoding
 
-| Arm | SET /64 | HOLD /64 | SWITCH /64 | BACK /64 | Broken episodes /64 | CLEAR impositions /64 |
+
+| Arm | SET | HOLD | SWITCH | BACK | Broken episodes | CLEAR impositions |
 |---|---:|---:|---:|---:|---:|---:|
-| correct | pending | pending | pending | pending | pending | pending |
-| swapped | pending | pending | pending | pending | pending | pending |
-| shuffled | pending | pending | pending | pending | pending | pending |
-| OFF | pending | pending | pending | pending | pending | pending |
-| text-cue | pending | pending | pending | pending | pending | pending |
+| correct | 0/64 (n=0) | 0/64 (n=0) | 0/64 (n=0) | 0/64 (n=0) | 0/64 | 0/64 (0 eligible pairs) |
+| swapped | 0/64 (n=0) | 0/64 (n=0) | 0/64 (n=0) | 0/64 (n=0) | 0/64 | 0/64 (0 eligible pairs) |
+| shuffled | 0/64 (n=0) | 0/64 (n=0) | 0/64 (n=0) | 0/64 (n=0) | 0/64 | 0/64 (0 eligible pairs) |
+| OFF | 0/64 (n=0) | 0/64 (n=0) | 0/64 (n=0) | 0/64 (n=0) | 0/64 | 0/64 (0 eligible pairs) |
+| text-cue | 0/64 (n=0) | 0/64 (n=0) | 0/64 (n=0) | 0/64 (n=0) | 0/64 | 0/64 (0 eligible pairs) |
 
-Per-layer counts, overlap, competence/default language counts, all setup cells and task-check tables will be populated from saved outputs. No feasibility conclusion yet. Check 40's terminal reading, if available, will be compared with the caveat that model size, architecture and intervention site differ; check 41 keeps the original committed task bank even if check 40 later amends its bank.
+| Arm/stage | Task check | Target + task | Broken | Parse identity |
+|---|---:|---:|---:|---|
+| correct/SET | 0/64 | 0 | 0/64 | {} |
+| correct/HOLD | 0/64 | 0 | 0/64 | {} |
+| correct/SWITCH | 0/64 | 0 | 0/64 | {} |
+| correct/BACK | 0/64 | 0 | 0/64 | {} |
+| correct/CLEAR | 0/64 | None | 0/64 | {} |
+| swapped/SET | 0/64 | 0 | 0/64 | {} |
+| swapped/HOLD | 0/64 | 0 | 0/64 | {} |
+| swapped/SWITCH | 0/64 | 0 | 0/64 | {} |
+| swapped/BACK | 0/64 | 0 | 0/64 | {} |
+| swapped/CLEAR | 0/64 | None | 0/64 | {} |
+| shuffled/SET | 0/64 | 0 | 0/64 | {} |
+| shuffled/HOLD | 0/64 | 0 | 0/64 | {} |
+| shuffled/SWITCH | 0/64 | 0 | 0/64 | {} |
+| shuffled/BACK | 0/64 | 0 | 0/64 | {} |
+| shuffled/CLEAR | 0/64 | None | 0/64 | {} |
+| OFF/SET | 0/64 | 0 | 0/64 | {} |
+| OFF/HOLD | 0/64 | 0 | 0/64 | {} |
+| OFF/SWITCH | 0/64 | 0 | 0/64 | {} |
+| OFF/BACK | 0/64 | 0 | 0/64 | {} |
+| OFF/CLEAR | 0/64 | None | 0/64 | {} |
+| text-cue/SET | 0/64 | 0 | 0/64 | {} |
+| text-cue/HOLD | 0/64 | 0 | 0/64 | {} |
+| text-cue/SWITCH | 0/64 | 0 | 0/64 | {} |
+| text-cue/BACK | 0/64 | 0 | 0/64 | {} |
+| text-cue/CLEAR | 0/64 | None | 0/64 | {} |
+
+Competence/defaults: `{}`.
+
+Fresh screen defaults: `{}`; shuffled paired non-default counts: `{"SET": 0, "HOLD": 0, "SWITCH": 0, "BACK": 0}`.
+
+The screen is incomplete; its prefix cannot decide full-screen feasibility.
+
+Check 40 has no terminal feasibility reading yet; an empirical comparison is unavailable. Check 41 addresses dense MLP neurons, while check 40 addresses MoE routing on a different model.
+
+records.jsonl preserves text, tokens, complete histories, parser/task/breakage flags and timing; profile task files preserve neuron counts in the original run. Generated programs are parsed, never executed.

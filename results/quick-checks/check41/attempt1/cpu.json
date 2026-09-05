@@ -1,7 +1,5 @@
 {
-  "passed": true,
   "checks": [
-    "actual local tokenizer through production encode_messages: explicit return_dict=False yields integer token IDs",
     "real Qwen3MLP consumer: exact OFF; final prefill only; decode scaling; positive product counts excluding prompt",
     "tiny CPU Qwen3ForCausalLM all-layer hooks change logits, preserve earlier prompt logits, restore exact OFF",
     "production generation loop on CPU: EOS excluded, capped final token counted, prompt excluded, raw output/profile fields present",
@@ -10,9 +8,10 @@
     "committed check40 exact task bank, disjoint exact statements, distinct rotated episode tasks, complete history pairs",
     "actual summary consumer: SET/SWITCH/breakage/CLEAR/shuffled exact boundary fixtures; partial and ineligible precedence"
   ],
-  "torch": "2.13.0+cu130",
-  "transformers": "5.16.1",
-  "node": "v22.22.2",
+  "cuda_initialized": false,
   "mlp_source": "class Qwen3MLP(nn.Module):\n    def __init__(self, config):\n        super().__init__()\n        self.config = config\n        self.hidden_size = config.hidden_size\n        self.intermediate_size = config.intermediate_size\n        self.gate_proj = nn.Linear(self.hidden_size, self.intermediate_size, bias=False)\n        self.up_proj = nn.Linear(self.hidden_size, self.intermediate_size, bias=False)\n        self.down_proj = nn.Linear(self.intermediate_size, self.hidden_size, bias=False)\n        self.act_fn = ACT2FN[config.hidden_act]\n\n    def forward(self, x):\n        down_proj = self.down_proj(self.act_fn(self.gate_proj(x)) * self.up_proj(x))\n        return down_proj\n",
-  "cuda_initialized": false
+  "node": "v22.22.2",
+  "passed": true,
+  "torch": "2.13.0+cu130",
+  "transformers": "5.16.1"
 }

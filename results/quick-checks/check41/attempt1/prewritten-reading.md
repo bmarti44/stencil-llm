@@ -33,10 +33,6 @@ Local HF Qwen3ForCausalLM, bf16, SDPA, single sequence, greedy decoding, thinkin
 
 CPU preparation and commit precede GPU use. Foreground run waits with **600-second GPU/check40 polls**, requiring no NVIDIA compute process and no live `focus_check40.py --mode run` process (including a waiting check40 process, to give it priority). No process termination, signalling, background launch or push. Review/coder lock respected. On completion, recompute scores, summaries, profile frequencies, neuron selection and grid choice from raw artifacts on CPU.
 
-## Pre-generation compatibility repair (2026-09-05)
-
-The first GPU attempt loaded the model but failed before any forward/generation because Transformers 5.16.1 defaults `apply_chat_template` to a BatchEncoding return. Preserve that complete attempt under `attempt1/`; request `return_dict=False` explicitly and test the actual local tokenizer on CPU. Charge its **46.37001516507007 seconds** to the same 7200-second allocation; all task banks, selectors, grid, thresholds and decoding settings remain fixed. No model response exists to select from or repair against.
-
 ## Results
 
 PENDING — CPU preparation; no model outcomes exist.

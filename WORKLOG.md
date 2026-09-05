@@ -5123,3 +5123,10 @@ Frozen reading in results/quick-checks/check42/README.md; 192 balanced episodes 
 A every-request live task rule; B adds schema/tag; C exact text-restate; all own assistant answers kept, no masking.
 CPU smoke 204 records; replay verified all 1632 original C trajectories on the selected 192 episodes; no GPU inference yet.
 STATE: CPU READY; foreground 600-second GPU/check40/check41 priority wait next. No sealed inputs, fitting, signals or push.
+
+## 2026-09-05 — Check 41 pre-generation tokenizer repair
+STATE: GPU became idle after FOCUS-2d/check40; initial attempt stopped before any forward or generated record because apply_chat_template defaults to BatchEncoding.
+Preserved attempt1 source/freeze/runtime/empty records/log/summary; 46.37001516507007 seconds charged to the original 7200-second cap via prior-attempts.json.
+Explicit return_dict=False now tested through the actual local tokenizer on CPU; eight fixture groups and ruff pass. Scientific tasks/selector/grid/reading remain unchanged.
+Fit-on still none observed; counting remains planned only on the disjoint profile slice. Commit repair/freeze, then foreground python -B -u scripts/focus_check41.py --mode run --wait, CPU audit and final explicit-path commit.
+Check40 ended COST_STOP_BEFORE_COMPETENCE; no behavioral comparison available. No process signal/background launch/push or sealed-input read.
