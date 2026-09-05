@@ -30,7 +30,8 @@ MODEL = ROOT / "models/qwen3-30b-a3b-hf"
 SEED = 40040
 LANGS = ("Python", "JavaScript")
 PAIRS = (("Python", "English"), ("Python", "JavaScript"))
-SCREEN_N = 64
+RUNTIME_GUARD = "@runtime/check40-memo-v2"
+RUNTIME_DIGEST = hashlib.sha256(b"check40 memo runtime v2").hexdigest()
 SUFFIX = "\nGive only the requested answer. Keep it concise and complete."
 ARMS = ("correct", "swapped", "shuffled", "OFF", "text-cue")
 STEPS = ("SET", "NEUTRAL", "HOLD", "SWITCH", "BACK", "CLEAR")
@@ -286,6 +287,17 @@ def sha(path):
         for chunk in iter(lambda: f.read(8 << 20), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+def validate_freeze(files):
+    # Deliberately incompatible with the already-waiting v1 runner: its old
+    # file-only validator fails on this virtual entry BEFORE opening a journal
+    # or constructing Engine. No process signal is necessary or authorized.
+    assert files.get(RUNTIME_GUARD) == RUNTIME_DIGEST, "Memo runtime freeze required"
+    for name, digest in files.items():
+        if name == RUNTIME_GUARD:
+            continue
+        assert sha(ROOT / name) == digest, f"Pre-outcome freeze drift: {name}"
 
 
 def write_json(path, data):
@@ -1444,8 +1456,7 @@ def run(weights):
         "Refuse rerun / overwrite of model outcomes"
     )
     manifest = json.loads((OUT / "freeze.json").read_text())
-    for name, digest in manifest["files"].items():
-        assert sha(ROOT / name) == digest, f"Pre-outcome freeze drift: {name}"
+    validate_freeze(manifest["files"])
     cpu = json.loads((OUT / "cpu.json").read_text())
     for path, digest in cpu["source_hashes"].items():
         assert sha(Path(path)) == digest, f"Dependency source drift: {path}"
@@ -1822,6 +1833,15 @@ def cpu_tests():
     from transformers.models.qwen3_moe.modeling_qwen3_moe import Qwen3MoeTopKRouter
 
     checks = []
+    validate_freeze({RUNTIME_GUARD: RUNTIME_DIGEST})
+    try:
+        sha(ROOT / RUNTIME_GUARD)  # Exact original runner consumer semantics.
+        raise RuntimeError("Stale v1 runner would pass runtime marker")
+    except FileNotFoundError:
+        pass
+    checks += [
+        "v2 freeze validates; original v1 file-only consumer rejects before GPU loading"
+    ]
     cfg = Qwen3MoeConfig(
         hidden_size=4, num_experts=4, num_experts_per_tok=2, norm_topk_prob=True
     )
@@ -2229,7 +2249,10 @@ def prepare():
             seed=SEED,
             status="UNREGISTERED_PRE_OUTCOME_FREEZE",
             created_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            files={name: sha(ROOT / name) for name in files},
+            files={
+                **{name: sha(ROOT / name) for name in files},
+                RUNTIME_GUARD: RUNTIME_DIGEST,
+            },
         ),
     )
     summary = summarize([])
