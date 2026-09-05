@@ -4377,3 +4377,92 @@ binding, snapshot producer and newest eligible old user filler guard; enact the
 binding dispositions, commit executable bytes before the manifest consumer requires
 them, produce snapshot/smoke/validation, run the four authorized test files and ruff,
 verify hashes and commit artifacts/handoff with explicit pathspecs.
+
+## 2026-09-04 — SC1 round-4 handoff: AMENDMENT 1 appended; R3/R7/V1-V3 closed; Stage 2 candidate
+
+STATE: Implementation repairs and CPU freeze candidate committed; independent
+Stage 2 source-law/smoke-cue disposition belongs to the NEXT review round on this
+output. This handoff records implementation closure and passing regressions;
+reviewer-authored findings remain untouched. No production authoring, registration
+of unresolved author versions, model determinism or GPU execution is authorized.
+The exact requested test command has one unresolved instruction conflict below.
+
+Data lineage: fit-on = none in this work; evaluated-on = disposable original SC1
+smoke and CPU fixtures only. Neither sealed benchmark contents nor recorded
+benchmark responses were read or used. No fitting, training, model/scorer process,
+GPU work, background job, process signal, wrapper or delegated agent was launched.
+Direct Codex work followed the combined gpt-6-astra text/code brief. Archived
+protocol/STATE were read because active plan/ paths are absent; the explicit
+allowlist and commit authorization in this brief govern this direct handoff.
+
+Executable/science/contract/source repair commit:
+`022c0347c46f0ac59a5bbffb000627193c908e9a`.
+Final executable/test commit (manifest harness_commit):
+`c7f9b387c2acdf11325f638d43fd08890c81321c`.
+**Exact Stage 2 candidate artifact freeze commit: `75dec30ed46af7dabba05cdd86139cbcf39be3bf`.**
+This later WORKLOG-only commit records that immutable freeze ID; it does not
+change the snapshot, executable or manifest. All commits use explicit pathspecs;
+no push was performed. All data/sc1 artifacts are tracked (verified with git
+ls-files and committed-byte hashes, including the new provenance sidecar and
+pre-change author contract).
+
+| Finding / decision | Fix commit | Consumer regression / evidence |
+| --- | --- | --- |
+| astra residual R3 / F6 | 022c034 | `test_astra_r3_duplicate_public_members_through_bank` (four former acceptance paths: duplicate wrapper, nested wrapper, pretty array and non-state duplicate); existing multiline positives/negatives retained. All four new duplicate cases first failed with DID NOT RAISE under the old decoder. Semantic duplicate rejection propagates; only JSON syntax errors can be treated as incidental prose. |
+| astra residual R7 / F7 | 022c034 | `test_astra_r7_ordered_text_witness_through_bank` (swap and repeated-value replacement pass the actual bank; missing linked public evidence fails); existing raw scope/entity tests retained. Changes compare normalized lines at ordered indices. |
+| fable V1 / N3 | 022c034 + c7f9b38 | `test_fable_n3_snapshot_manifest_survives_live_ledger_append`: exact recorded parts/containment, snapshot ends with contract, later top-level ledger entry preserves producer bytes/manifest/Stage 1, changed snapshot rejected; missing Stage 1 source ranges rejected. |
+| fable V2 | 022c034 + c7f9b38 | Same consumer test invokes actual `main(["snapshot"])` in a committed temporary repository with a tokenizer trap, then verifies provenance, manifest and Stage 1; actual CLI snapshot regeneration/reconstruction passed. |
+| fable V3 / N5 | 022c034 + c7f9b38 | `test_fable_n5_abandoned_determinism_disposition` reads the adopted snapshot. The N3 producer fixture also reconstructs its amendment from the frozen snapshot, so no registered test depends on the proposal path. Historical N10 remains an append-only WORKLOG check. |
+| Binding filler-placement decision (a) | 022c034 + c7f9b38 | `test_amendment_filler_newest_old_user_through_bank` rejects both late designated filler promoted to user and pool text inserted in an undesignated base; `test_fable_h1_pressure_binds_on_every_smoke_episode` verifies all eight positive final layouts and measured newest eligible user indices. |
+| Amendment decisions (a)–(d) | 022c034 | Verbatim decisions and A–H passages, fable clause-1 replacement and exact clause 3/6/11 precisions checked; 13 numbered clauses. Ledger bytes above the amendment equal 1612f69 exactly. AUTHOR-CONTRACT-v2.md equals the pre-change contract exactly. |
+
+Revised smoke: 8 references PASS, 48 distinct per-episode negatives FAIL; 6 OLD
+and 2 RECENT assignments preserved. Work, task specifications, obligations,
+protected sets, seed specifications, entity/causal graphs and evidence text/order
+match the previous sources. Added incidental turn 7 shifts later turn indices by
+one; filler role changes preserve mixed roles. Every newest eligible old user
+turn is non-designated and contains no pool sentence. History 4627–4686 tokens,
+U 1783–2432, B=256, actual budget skips in every episode, max turn 560 tokens.
+The README retains historical measurements and supplies the new measured audit.
+Formulaic filler still dominates; common position and wording cues remain for
+independent compliance review. No exception to the relevance rule was adopted.
+
+Snapshot SHA-256: `c610e67f4f7fd25f3a7263bcb9b6644cbbdc2881ddec1323f8a58221acb7e653`.
+Manifest file SHA-256: `2c7aa51d086ac9eb9200a32a102bb3d2f92ac4822d22c8a2c4516f3126d699d0`.
+Manifest ID: `a3966c05d50c878bb3cda64e817fc8e6476a8b767ee21738fa04baa94bc7d04c`.
+Snapshot provenance file SHA-256: `4cf019a3514d9b4cf6b0c5f7c92c786bc5c5b3b595921aecea149abdb4bd1d98`.
+Snapshot length: 83953 bytes; three ordered part lengths 37375, 23737,
+22841 bytes. Fable's two-part grouping is 61112 ledger bytes + 22841 contract
+bytes, with no inserted bytes. Exact half-open source ranges and hashes:
+
+| Source at commit 022c0347c46f0ac59a5bbffb000627193c908e9a | Byte range | SHA-256 |
+| --- | --- | --- |
+| LEDGER-PLAN.md | [91091, 128466) | `3365b4f983f5c0f60431075d46477112d84bc5a6beebf0b45177f621c6b78f38` |
+| LEDGER-PLAN.md | [128466, 152203) | `c6d4a8e118d90a67bcbee5d74ac1f06509f0c3824e95958a9c1e7e43aa42a04a` |
+| data/sc1/AUTHOR-CONTRACT.md | [0, 22841) | `2f0b81cf1800f0e0168940630909dc797ea91ec4b7a4970a650e938878ede6d3` |
+
+CPU verification:
+
+- `CUDA_VISIBLE_DEVICES='' uv run python scripts/sc1.py snapshot` — PASS;
+  independently reconstructed all three parts from their git source commits.
+- `CUDA_VISIBLE_DEVICES='' uv run python scripts/sc1.py smoke`, then
+  `CUDA_VISIBLE_DEVICES='' uv run python scripts/sc1.py validate data/sc1/smoke`
+  — PASS. Smoke was regenerated after the final executable/test commit.
+- Actual `verify_manifest`, `load_manifest_bank`, and `verify_snapshot` consumers
+  — PASS: 45 frozen file hashes, 8 episode identities, 3 source ranges.
+- `CUDA_VISIBLE_DEVICES='' uv run pytest -q tests/test_sc1.py tests/test_eval_data_separation.py tests/test_sealed_guard.py tests/test_no_side_effect_imports.py -k 'not test_sealed_ifeval_hash_matches_manifest and not test_sealed_ifeval_mode_is_read_only_after_hash_validation'`
+  — **142 passed, 2 deselected, 1 xfailed in 301.57 seconds**. The expected failure
+  is the existing legacy script side-effect inventory. One pre-existing invalid
+  escape SyntaxWarning points to scripts/b2_gsm8k.py, outside this edit scope.
+- `CUDA_VISIBLE_DEVICES='' uv run ruff check scripts/sc1.py src/stencil/sc1.py src/stencil/sc1_episodes.py tests/test_sc1.py`
+  — PASS. `git diff --check` — PASS.
+
+Unresolved command conflict: tests/test_sealed_guard.py contains two tests that
+call `_assert_sealed_hash_matches_manifest`, which reads the sealed IFEval input
+bytes. The user's hard rule says never read that file. A clarification asking
+whether those two hash-only reads are permitted remains unanswered; they were
+explicitly deselected, not mocked, passed, or silently bypassed. The unmodified
+four-file command and its all-green claim remain pending that clarification.
+If permitted, run the two omitted tests to finish coverage (all other tests have
+passed); otherwise retain this disclosed limitation. No sealed IFEval input or
+sealed BFCL cohort contents were opened in this work.
