@@ -298,6 +298,12 @@ spec change did not teach (all seeds miss it).
    Stickiness NOT SUPPORTED: fresh B / B after A / A after B = 60/60/60 of 64; gap 0 pp, conservative 95% Wilson-based CI [-14.53, 14.53] pp.
    Cache-transplant route alive; prior packets were inadequate. 21.44/45 GPU-min, 1,728 records audited; no fitting/training or benchmark access.
 
+35. RECENT CUE ADDRESSES + ANSWER RELEASE (seed 35035; 4B; [check35](check35/README.md)): **TEXT solves SWITCH; no cache arm does; none solves CLEAR**.
+   SWITCH→BACK successes: S1 3→32, S2 0→32, S3 12→18, S5 9→30, TEXT 27→29 (n=32); S4 still A 27/32, control valid.
+   Restore+evict CLEAR/next impositions: S2 3/6, S3 4/1, S5 3/5 of 32; first-copy gains do not meet the two-request rule.
+   Joint SET/HOLD/SWITCH/BACK/CLEAR: S5/c2 8/32, S3/c2 3/32, all others 0; SET/HOLD 29/31 of 32 throughout.
+   27.52/45 GPU-min; all 1,536 records, 1,600 cache operations and 286 donors audited; no fitting, training, benchmark access or push.
+
 ## QUEUE (2026-09-05, Brian's quick-test-first ruling; merged from results/hypotheses-{astra,fable,kimi}.md)
 Skill pair for all: ascending sort vs REVERSE input order (1.7B cannot do descending: 10/32); value-exact,
 format-lenient scorer (check 31 lost 28/32 correct ascending sorts to quotes/fences). Own seeds; no benchmark data;

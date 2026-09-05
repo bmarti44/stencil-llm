@@ -4765,3 +4765,12 @@ GPU compute query empty; no review lock; archived protocol/ledger read, WORKLOG 
 Pilot: 13-arm episode 4.26 s, single-shot projection 4.55 min, peak CUDA 8,926,750,208 bytes; cap unchanged.
 STATE: complete, 21.44/45 GPU-min; POSITIVE A/B 59/60 of 64, OFF 0; retained joint 3/5 of 32; stickiness NOT SUPPORTED (60/60/60, gap 0 pp).
 All 1,728 scores/histories/lineage audited; HOLD/CLEAR columns bitwise verified; CPU/lint/import checks passed; explicit-path commit, no push/signals.
+
+## 2026-09-05 — Quick check 35, recent addresses + answer release
+STATE: fixed readings prewritten in results/quick-checks/check35/README.md; seed 35035, Qwen3-4B only.
+Lineage: fit-on=none; operand-free cue donors, 192 fresh paired synthetic lists; no benchmark access/training.
+GPU idle/no compute apps; no wrapper lock; archived protocol/ledger read; foreground 45 GPU-min cap, no signals.
+Command: .venv/bin/python scripts/focus_check35.py --run; outputs check35/4b/{summary.json,records.jsonl,operations.jsonl,donors.jsonl}.
+Choices: release again at BACK; CLEAR forks after BACK; c3 append-only OFF; cue-absent Process requests target copy.
+Pilot: 43.40 s/48-decision episode, 23.15 min projected for 32 episodes plus load; cooperative 45-minute cap unchanged.
+STATE: complete, 27.52/45 GPU-min; TEXT SWITCH/BACK 27/29 passes; cache arms fail SWITCH, all fail CLEAR; S4 A=27/32 valid; joint best S5/c2=8/32. All 1,536 records/1,600 operations audited; lint/CPU/import checks pass; explicit-path commit, no push/signals.
