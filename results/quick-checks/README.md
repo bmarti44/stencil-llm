@@ -357,3 +357,9 @@ pass/fail reading written before running; one accuracy review of the RESULT from
 - Q4b DONE = check 34: POSITIVE (real cue-column K/V transplant A/B 59/60 of 64; OFF 0/64); see item 34.
   The cache-transplant route is alive; the earlier final-token/four-column representations were inadequate.
   User-turn stickiness NOT SUPPORTED: B-first and B-after-three-A-turns both 60/64; no system-cue confound.
+
+41. LANGUAGE-SPECIFIC MLP NEURON SCALING (seed 41041; Qwen3-4B; [check41](check41/README.md)): **CPU READY / WAITING**.
+   Count on 32 cued tasks/language; entropy-weighted frequency differences; k={200,500,1000}, gains={0.5,1,2}, deactivate-other.
+   Separate 16-task setup freezes one cell; 64 retained-history episodes x correct/swapped/shuffled/OFF/text-cue; original check40 531030a tasks/checkers.
+   Fixed reading: SET/SWITCH >=40/64, broken <=4/64, shuffled non-default/CLEAR impositions <=8/64; competence >=28/32 and overlap <=50%.
+   CPU consumer/decoding/checker/threshold fixtures passed; no model outcomes; foreground 600-second GPU/check40 wait, two GPU-hour cap, no signals/push.
