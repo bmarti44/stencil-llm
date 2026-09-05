@@ -4890,3 +4890,7 @@ Cost: 1043.705557 seconds = 17.3951 GPU-min = 0.289918 GPU-h of the 6-hour cap, 
 Plain language: this frozen four-family setup did not meet the competence prerequisite. The placement/eviction comparison therefore did not run, and these results cannot establish either benefit or absence of benefit for that mechanism. Per the hard stop instruction, retain the registration unchanged and report this eligibility failure without a new experiment.
 
 Fit-on=none. No training, benchmark/sealed-cohort contents outside the explicitly permitted sealed-guard tests, check/SC1 edits, signals, termination, background jobs, delegation or push. Original untracked scripts/focus_check32.py remains untouched. Force-adding all generated FOCUS-2 artifacts and committing this terminal record with explicit pathspecs.
+
+## 2026-09-05 — FOCUS-2b step 1 registration candidate
+
+STATE: sort-only FOCUS-2b candidate appended to LEDGER-PLAN.md under Brian's combined task. Fit-on=none; disclosed development diagnosis at 7887cce; fresh fixed synthetic seeds 9053712/9053713/9053714. Inherited process/state files are archived; current operational record is this WORKLOG. No wrapper holds .review.lock. Pre-existing untracked scripts/focus_check32.py is preserved. This direct gpt-6-astra task authorizes the stated code/freeze/GPU sequence without a new wrapper/review cycle. Next: minimal FOCUS-2b harness changes and exact required CPU checks, including only the explicitly exempt sealed guard reader; stop on failure.
