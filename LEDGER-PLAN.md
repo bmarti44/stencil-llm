@@ -2301,3 +2301,65 @@ Data lineage FIRST — fit-on: none; evaluated-on: the same prepared synthetic F
 ## FOCUS-2d REGISTERED (2026-09-05 14:07:27 UTC, 8a1176f2055b494299a325f42d9f533ae75d582e)
 
 Data lineage FIRST — fit-on: none; evaluated-on: fresh synthetic FOCUS-2d banks disjoint from development and each other. Candidate a458e22 and accepted code ed80743 stand; resumed assembly predicate repair 7b8eef4 is authorized by Brian. Freeze manifest 3e9ae3c1c23bd47e10526d8cca694f27645aac9d0574ea582669b6fec7af6902 binds all 80 dependencies; tracked dependencies verified by git ls-files and exact committed byte/hash equality, external assets freshly hashed. All seven prepared input files remain byte-identical to ff67b78, including seeds 9053721/9053722/9053723 and 192/4/256 banks. No competence/pilot/final outcomes or prior certificates are reused. Sole output directory: results/qwen/focus2d/outputs. Launch receipt is written after the freeze commit and before model launch; commit this header/receipt, verify idle GPU, then foreground competence -> pilot -> projection -> run -> analyze. Gates and hard 28,800-second cap unchanged; old assembly stop and FOCUS-2c FAIL-SAFETY remain recorded.
+
+## FOCUS-2d OUTCOME (2026-09-05) — AUTHORIZED RESUME
+
+Data lineage FIRST — fit-on: none; evaluated-on: fresh synthetic FOCUS-2d competence/pilot/final banks, disjoint from development and each other. Seeds 9053721/9053722/9053723 unchanged; no prior outputs or certificates reused, no fitting/training or benchmark evaluation. The required earlier sealed-guard acceptance test was the sole authorized sealed-input reader.
+
+**FAIL-SAFETY**, from final analysis of a **COMPLETE** 256 x five-arm run; not an early scheduling stop. All 7,296 final raw records were validated; all 256 scheduled episodes are eligible, with zero delay-invalid exclusions. The 384 delay generations ended at cap 160 or earlier; no 320-token retries. The sixth-break stop did not trigger.
+
+Candidate a458e22; implementation/CPU acceptance ed80743 (104 passed, 1 existing xfail, ruff clean); authorized predicate repair 7b8eef4 (nine predicate checks). Freeze 8a1176f2055b494299a325f42d9f533ae75d582e, manifest 3e9ae3c1c23bd47e10526d8cca694f27645aac9d0574ea582669b6fec7af6902; REGISTERED/receipt f0f796f, pilot authorization 5685fa7, complete run/analysis/audit 30211a6. All seven prepared input files remain byte-identical to ff67b78. The prior assembly stop and old script are preserved under stop-at-freeze; FOCUS-2c Amendment 2 remains FAIL-SAFETY at 11/256.
+
+Competence PASS: ascending 61/64 (bar 52), descending 57/64 (bar 52), default 64/64 (bar 56). Pilot PASS: four valid cells, 114 records, worst cell 72.87206026306376 seconds; registered total projection 24,013.651209137985 seconds (6.670459 hours), including 25% reserve. Actual charged allocation: competence 373.7267173510045 + pilot 287.2916367829311 + final 16351.383859334048 = 17012.402213467984 seconds; analyzer 29.708377194125205 seconds; total **17042.11059066211 seconds = 4.733920 hours**, below the 28,800-second cap. Prior legs remain separately disclosed development in freeze/freeze-receipt.json.
+
+All-five success totals: neither 0/256; placement-only 32/256; eviction-only 108/256; BOTH 143/256; text-restate 176/256.
+
+| BOTH vs | All-five Y | Delta (pp) | b/c | Exact one-sided p | Holm p |
+| --- | --- | --- | --- | --- | --- |
+| placement-only | 143 vs 32 / 256 | +43.359375 | 121/10 | 1.15311103e-25 | 3.45933309e-25 |
+| eviction-only | 143 vs 108 / 256 | +13.671875 | 71/36 | 0.000461578998 | 0.000923157996 |
+| text-restate | 143 vs 176 / 256 | -12.890625 | 33/66 | 0.999718896 | 0.999718896 |
+
+
+Primary FAIL: BOTH beats both component arms after Holm, but does not beat text-restate and misses the required >=5-point advantage (observed -12.890625 pp). Nominal paired-score 95% intervals are preserved in analysis.json; the registered exact tests and magnitude rule decide the result.
+
+Fixed secondaries: placement-only >= text-restate is NOT observed (32/256 vs 176/256, delta -56.25 pp; b/c=11/155, exact one-sided p=1). Eviction-only vs neither is 108/256 vs 0/256, +42.1875 pp; b/c=108/0, p=3.0814879110195774e-33. These descriptive readings cannot rescue primary/safety failure or carry the headline; no noninferiority/equivalence claim.
+
+The structural F6 gate passes: h=1, r=0, exact p=.5, h<=5; registered one-sided upper h rate 0.018395769886273616. The combined safety result is FAIL because the unchanged-constraint endpoint has h=59, r=0 (net 59 > 2), p=1.734723475976807e-18. F6 schema_invalid is reported separately and does not drive the sixth-break stop; its one truncated invalid-JSON case overlaps the structural row.
+
+| F6 episode flag | neither | placement-only | eviction-only | both | text-restate |
+| --- | --- | --- | --- | --- | --- |
+| broken | 0 | 0 | 0 | 1 | 0 |
+| json_invalid | 0 | 0 | 0 | 1 | 0 |
+| schema_invalid | 1 | 1 | 0 | 59 | 0 |
+| truncated | 0 | 0 | 0 | 1 | 0 |
+| empty | 0 | 0 | 0 | 0 | 0 |
+| repetitive | 0 | 0 | 0 | 0 | 0 |
+| placeholder | 0 | 0 | 0 | 0 | 0 |
+
+
+| Failure endpoint | BOTH / text-restate | h/r | Exact p | Gate |
+| --- | --- | --- | --- | --- |
+| constraint | 59/256 vs 0/256 | 59/0 | 1.73472348e-18 | FAIL |
+| user_fact | 1/256 vs 0/256 | 1/0 | 0.5 | PASS |
+| tool_fact | 1/256 vs 0/256 | 1/0 | 0.5 | PASS |
+| assistant_fact | 64/64 vs 42/64 | 22/0 | 2.38418579e-07 | disclosed, not gated |
+
+
+Assistant-fact cost is disclosed, not gated: failures 64/64 BOTH versus 42/64 text-restate, +34.375 pp, b/c=22/0, p=2.384185791015625e-7. Of 64 memo-source episodes, 36 lack a valid source memo (36/36 failures in both arms); among 28 valid sources, failures are 28/28 versus 6/28. Do not attribute the 36 invalid-source failures to eviction; the observed paired excess is 22 episodes.
+
+| Stratum | n | BOTH Y | Placement Y | Eviction Y | Text-restate Y |
+| --- | --- | --- | --- | --- | --- |
+| both_correct=False | 58 | 35 | 10 | 25 | 41 |
+| both_correct=True | 198 | 108 | 22 | 83 | 135 |
+| direction=ascending | 128 | 69 | 14 | 59 | 80 |
+| direction=descending | 128 | 74 | 18 | 49 | 96 |
+| delay=0 | 128 | 89 | 24 | 46 | 91 |
+| delay=512 | 128 | 54 | 8 | 62 | 85 |
+
+
+F11: both-correct prior stratum n=198 has BOTH-minus-placement +43.434343 pp (b/c=94/8, p=4.7173150125305585e-20); the other n=58 has +43.103448 pp (27/2, p=8.121132850646973e-7). The gain versus placement is present in the both-correct stratum, so the observed component-arm benefit is not confined to wrong-prior cleanup. These stratified tests are descriptive and do not rescue the failed text-restate contrast or safety gate. The sort-family stratum is the full sample.
+
+Plain language: the split-cue configuration completed the full registered experiment, but failed the unchanged-constraint safety gate. At CLEAR, 58 BOTH responses returned the payload as a bare JSON array, losing the required answer/tag object despite its persistent system instruction; 57 of these occurred after a 512-token delay and one without a delay. One further SWITCH response was truncated and invalid JSON. BOTH beat the placement-only and eviction-only component arms on the all-five endpoint, but scored below text-restate, so it failed the registered efficacy rule as well. Do not promote this configuration or claim extra control over text-restate. These observations do not establish a causal explanation for the remaining schema failures, equivalence, absence of a mechanism, benchmark transfer or general safety; no rescue or successor run was attempted.
+
+Artifacts: results/qwen/focus2d/{outcome.md,analysis.json,analysis-audit.json,run-exit.json,outputs/,freeze/,launch-receipt.json,run-authorization.json}; outcome.md includes checkpoint success, direction/default impositions and full F11 contrasts. All files are force-added with explicit pathspecs and verified against committed blobs. No push, process signals, background launches, completed-output regeneration, SC1/check-file edits or writes to data/classifier/relations/*.
