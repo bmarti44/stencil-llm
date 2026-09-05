@@ -1,0 +1,96 @@
+"""CPU-only FOCUS-2d freeze, direct verification under Brian's execution ruling."""
+from datetime import datetime, timezone
+from pathlib import Path
+import re
+from stencil import focus2 as f
+
+root = Path('/home/bmarti44/stencil-llm')
+base = root/'results/qwen/focus2d'
+folder = base/'freeze'
+prior = f.parse_json(f.member(root, 'HEAD', 'results/qwen/focus2c/freeze/manifest.json'))
+manifest = f.parse_json((folder/'manifest.json').read_text())
+acceptance = (base/'cpu/acceptance.txt').read_text()
+def acceptance_passed(text, exit_code):
+    """Parse whole pytest result labels; xfailed is distinct from failed."""
+    lines = [line.strip().strip("=").strip() for line in text.splitlines()]
+    summaries = [line for line in lines if re.search(r"\b\d+ (?:passed|failed|xfailed|skipped|error|errors)\b.*\bin \d", line)]
+    if not summaries:
+        return False
+    summary = summaries[-1].split(" in ", 1)[0]
+    counts = dict((label, int(count)) for count, label in re.findall(r"(?:^|,\s*)(\d+) ([a-z]+)\b", summary))
+    return exit_code == 0 and counts.get("failed", 0) == 0
+
+
+acceptance_status = f.parse_json((base/'resume/acceptance-status.json').read_text())
+f.require(acceptance_passed(acceptance, acceptance_status['exit_code']), 'required CPU acceptance')
+f.require((base/'cpu/ruff.txt').read_text().strip() == 'All checks passed!', 'required ruff')
+(folder/'assembly.py.txt').write_text(Path(__file__).read_text())
+assets = f.parse_json(f.member(root, 'HEAD', 'results/qwen/focus2c/freeze/assets.json'))
+for role, old in assets.items():
+    actual = f.asset_descriptor(root, old['path'], old['source_revision'])
+    f.require(actual == old, 'asset changed: '+role)
+    assets[role] = actual
+f.atomic_json(folder/'assets.json', assets)
+paths = {k: str((folder/d['path']).relative_to(root)) for k,d in manifest['files'].items()}
+paths.update({k: str(p.relative_to(root)) for k,p in f.RUNTIME_SOURCES.items() if k not in f.ASSET_ROLES})
+for role, descriptor in prior['files'].items():
+    if role.startswith(('check', 'repair_code', 'development_evidence_', 'review_')) and role != 'checker_tests':
+        f.member(root, 'HEAD', descriptor['path'], descriptor['sha256'])
+        paths[role] = descriptor['path']
+for leg in ('focus2','focus2b','focus2c'):
+    suffix = 'safety' if leg == 'focus2c' else 'competence'
+    paths[leg+'_diagnosis'] = f'results/{leg}-{suffix}-diagnosis-fable.md'
+paths['development_manifest_source'] = 'results/qwen/focus2d/development/manifest.json'
+paths['development_assembly'] = 'results/qwen/focus2d/development/assembly.py.txt'
+for name in ('acceptance','ruff'):
+    paths['cpu_'+name] = f'results/qwen/focus2d/cpu/{name}.txt'
+for name in ('acceptance-status.json', 'predicate-checks.json'):
+    paths['resume_'+name.replace('.', '_')] = str((base/'resume'/name).relative_to(root))
+development = f.parse_json((folder/'development.json').read_text())
+for label, source in development['sources'].items():
+    f.member(root, 'HEAD', source['path'], source['sha256'])
+    paths['excluded_inputs_'+label] = source['path']
+for name in ('assets.json','assembly.py.txt'):
+    paths['freeze_'+name.replace('.','_')] = str((folder/name).relative_to(root))
+manifest['files'] = {k: dict(path=p, sha256=f.sha((root/p).read_bytes())) for k,p in paths.items()}
+manifest['files'].update(assets)
+contents = {k: b'' if k == 'model' else (root/d['path']).read_bytes() for k,d in manifest['files'].items()}
+f.verify_evidence(root, manifest, contents)
+banks = f.parse_json(contents['banks'])
+f.validate_banks(banks, development)
+f.require(set(banks) == {'competence','pilot','final'}, 'fresh stages')
+rejections = [dict(episode=ep['id'], **r) for bank in banks.values() for ep in bank for r in ep['payload_rejections']]
+f.require(sum(sum(ep['payload_attempts'].values()) for bank in banks.values() for ep in bank) == len(rejections), 'rejection logs')
+fps = {f.fingerprint(ep['family'],value) for bank in banks.values() for ep in bank for value in ep['requests'].values()}
+f.require(len(fps) == 2012 and not fps & set(development['fingerprints']), 'payload disjointness')
+tok = f.load_tokenizer(root/assets['tokenizer']['path'])
+f.require(f.parse_json(contents['templates']) == f.template_manifest(tok, f.canonical(banks)), 'template drift')
+for role,d in manifest['files'].items():
+    if d.get('tracked', True) and not d['path'].startswith('results/qwen/focus2d/freeze/'):
+        f.member(root, 'HEAD', d['path'], d['sha256'])
+receipt = dict(
+    status='VERIFIED', created_utc=datetime.now(timezone.utc).isoformat(), fit_on='none',
+    acceptance_command="CUDA_VISIBLE_DEVICES='' uv run pytest -q tests/test_focus2.py tests/test_eval_data_separation.py tests/test_sealed_guard.py tests/test_no_side_effect_imports.py",
+    acceptance=acceptance.strip().splitlines()[-1], ruff='All checks passed!',
+    bank_counts={k: len(v) for k,v in banks.items()}, payload_count=len(fps),
+    development_unique=len(development['fingerprints']), prior_2c_inputs=2012, prior_2c_overlap=0,
+    collision_rejections=rejections, cap=f.CAP, delay_caps=f.DELAY_CAPS, gpu_cap_seconds=f.GPU_CAP,
+    check39=dict(status='PROCEED_PLACEHOLDER', prereg_commit=f.PINS['prereg_commit'], receipt_commit=f.PINS['receipt_commit'], gate_recomputed=True),
+    check37='STOP unchanged, not pooled', section_sha256=f.sha(contents['section']), no_model_outcomes=True,
+    historical_costs=dict(focus2_gpu_hours=0.289918, focus2b_gpu_hours=0.096616, focus2c_charged_seconds=1281.4510332397185, checks_gpu_minutes=f.HISTORICAL_COST_MIN),
+    scope='Only required sealed-guard tests read sealed input; no fit/train, benchmark inputs, SC1/check edits or relations writes.',
+)
+f.atomic_json(folder/'freeze-receipt.json', receipt)
+manifest['files']['freeze_receipt'] = dict(path=str((folder/'freeze-receipt.json').relative_to(root)), sha256=f.sha((folder/'freeze-receipt.json').read_bytes()))
+review = dict(
+    status='APPROVED', open_high_critical=0, section_sha256=f.sha(contents['section']),
+    verification_basis="Brian's explicit FOCUS-2d execution ruling authorizes direct registration verification; required CPU acceptance and source/dependency verification. Historical reviewers have not re-reviewed this implementation.",
+    text_commit=f.PINS['candidate_commit'], fix_commit=f.git_bytes(root, 'rev-parse','HEAD').decode().strip(),
+    verified_changes=['Persistent base-system schema/tag in every arm, competence included; only task cue moved/retired; existing body eviction and obligation rendering.', 'Task cap 128, delay 160/320 unchanged; JSON/schema distinction with separate F6 rows and generation-only sixth-break stop.', 'Fresh 9053721/9053722/9053723 banks and prior-2c input exclusions; no carry receipt/certificate/output reuse.', 'Eight-hour cost cap including new competence, pilot, run and analysis; unchanged worst-cell projection and reserve; prior costs disclosed separately.'],
+    dependencies={k:v['sha256'] for k,v in manifest['files'].items()},
+)
+f.atomic_json(folder/'review.json', review)
+manifest['files']['review'] = dict(path=str((folder/'review.json').relative_to(root)), sha256=f.sha((folder/'review.json').read_bytes()))
+manifest.update(status='REGISTERED', candidate_only=False, remaining=[], output_path='results/qwen/focus2d/outputs')
+(folder/'manifest.json').write_text(f.canonical(manifest))
+print(f.canonical(dict(status='FREEZE_READY', manifest_sha256=f.sha((folder/'manifest.json').read_bytes()), dependencies=len(manifest['files']), receipt=receipt)))
