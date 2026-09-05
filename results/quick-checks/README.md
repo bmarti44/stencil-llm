@@ -307,3 +307,15 @@ pass/fail reading written before running; one accuracy review of the RESULT from
 - Q5 = learned address prefix / controller-in-the-loop (fable #2, astra #2, kimi H2) — only after Q2 or Q4 supplies a
   reliable actuator; <= 4 GPU-h.
 - Q6 = head-gate patterns (fable #4, astra #5, kimi H5), <= 4 GPU-h, closure test.
+
+## QUEUE UPDATE (2026-09-05, after checks 32-33)
+- Q4 (check 32, KV packet) and Q3 (check 33, coordinate replacement, sustained AND one-shot) both induced NOTHING on
+  either trunk (0/64 any induction; outputs copy the input); fable's check-32 review: the write channel is live, the
+  packet content encodes "instruction present" not "which"; the cache-transplant hypothesis is NOT disconfirmed
+  without a positive control (donor's actual cue columns). The "stickiness" reading of the text bar was mostly
+  B-task (reverse) difficulty + a system-prompt precedence confound (fable).
+- Skill pair from check 34 on: ascending vs DESCENDING on 4B (27/32, 30/32 competent); reverse-order made the 48/64
+  text bar unreachable by construction. 1.7B secondary only.
+- Q4b = check 34: POSITIVE-CONTROL transplant (donor's real cue K/V columns, all layers, into a cue-absent context) +
+  the 3-minute stickiness isolation test (B-first fresh vs B-after-three-A-turns, cue in a USER turn, not system).
+  If even real cue columns do not carry the task, the failure is about where the decision is made, not the actuator.
