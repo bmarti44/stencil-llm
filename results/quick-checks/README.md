@@ -304,6 +304,11 @@ spec change did not teach (all seeds miss it).
    Joint SET/HOLD/SWITCH/BACK/CLEAR: S5/c2 8/32, S3/c2 3/32, all others 0; SET/HOLD 29/31 of 32 throughout.
    27.52/45 GPU-min; all 1,536 records, 1,600 cache operations and 286 donors audited; no fitting, training, benchmark access or push.
 
+36. DOWNSTREAM RECOMPUTATION (seed 36036; 4B; [check36](check36/README.md)): **PRECEDENCE_PATTERN; no SWITCH rescue**.
+   SWITCH→BACK exact: R1 3→32, R2 2→32, R3 2→32, R4 17→14, R5 0→32 (n=32); R2/R3 outputs identical.
+   R1/S1 and R5/S2 replicate every SWITCH/BACK output; R4 improves SWITCH but BACK strict exact is 5/32; all breakage 0.
+   7.57/15 GPU-min; 320 records and 64 source-history hashes audited; reused S1 histories, no fitting/training/sealed inputs/push.
+
 ## QUEUE (2026-09-05, Brian's quick-test-first ruling; merged from results/hypotheses-{astra,fable,kimi}.md)
 Skill pair for all: ascending sort vs REVERSE input order (1.7B cannot do descending: 10/32); value-exact,
 format-lenient scorer (check 31 lost 28/32 correct ascending sorts to quotes/fences). Own seeds; no benchmark data;

@@ -4774,3 +4774,10 @@ Command: .venv/bin/python scripts/focus_check35.py --run; outputs check35/4b/{su
 Choices: release again at BACK; CLEAR forks after BACK; c3 append-only OFF; cue-absent Process requests target copy.
 Pilot: 43.40 s/48-decision episode, 23.15 min projected for 32 episodes plus load; cooperative 45-minute cap unchanged.
 STATE: complete, 27.52/45 GPU-min; TEXT SWITCH/BACK 27/29 passes; cache arms fail SWITCH, all fail CLEAR; S4 A=27/32 valid; joint best S5/c2=8/32. All 1,536 records/1,600 operations audited; lint/CPU/import checks pass; explicit-path commit, no push/signals.
+
+## 2026-09-05 — Quick check 36, downstream recomputation
+STATE: fixed reading prewritten in check36/README.md; seed 36036; 32 recorded check35 S1 histories, five SWITCH/BACK arms.
+Lineage: fit-on=none; evaluated-on=reused synthetic S1 lists/answers; operand-free donors; no sealed inputs, fitting or training.
+GPU idle/no compute apps; no review lock; archived protocol/ledger located; foreground cooperative 15 GPU-min cap, no signals.
+Choices: preserve RoPE gaps; repeat interventions at BACK on actual SWITCH output. Pilot 14.75 s/episode, 7.87 min projected, peak recorded in summary; cap unchanged.
+STATE: complete, 7.57/15 GPU-min; PRECEDENCE_PATTERN, SWITCH R1–R5=3/2/2/17/0, BACK=32/32/32/14/32; all 320 records/576 operations audited; CPU/lint/import checks pass; explicit-path commit, no push.
