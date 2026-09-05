@@ -1807,3 +1807,17 @@ Choices and unresolved points for review, with draft thresholds preserved:
 - Arithmetic wording for review: with N=64, treatment success >=48 and net gain >=16, exhaustive feasible paired tables have maximum McNemar p=`0.01465247336026465` at `(b,c)=(32,16)`, already below 1/60. Thus the draft's “paired tests can still bind” sentence does not hold once these particular count/net floors are enforced. The requested `(33,17)`/`(34,18)` standalone boundaries are correct but cannot also satisfy the >=48/64 treatment floor. All registered tests and thresholds remain implemented unchanged; no science correction was silently applied.
 
 No shared-hook defect or unimplemented actuator/controller dependency was found or substituted. This is a CPU harness handoff, not acceptance of scientific claims: **1.7B skill competence, real determinism, transient hold, CLEAR residual behavior, measured costs and every scientific endpoint remain unmeasured.** Actual registration and BFCL terminal evidence remain prerequisites. No fitting/training, additional coder/reviewer/model, GPU job, watcher, background chain, process signal, external timeout or push was launched by this coder.
+
+## LEG A PREFLIGHT OUTCOME (2026-09-05; registered 1.7B dev preflight, results/qwen/bfcl-v10-preflight, harness v12 = 919ab8a)
+Run terminated by infrastructure at case 28/32 (a long-context case): fp32 attention matrix allocation of 71.4 GiB
+exceeded the free device memory; the remaining five cases are all long-context and would meet the same limit. 27
+cases recorded; every arm (base, clf_pinned, clf_pinned_echo, clf_control, recency_pinned, tool_swap_echo,
+role_pinned, full) scored 0 on all 27, including the full-context reference. The registered competence floors (full
+case pass >= 5/32 and >= 2/8 long-context; base >= 5/32) are unreachable on this evidence: the 1.7B trunk is not
+competent on this task family. DISPOSITION (orchestrator, under Brian's 2026-09-04 ruling adopting the astra
+assessments — BFCL secondary): (a) the 1.7B preflight is closed FAILED-COMPETENCE / TERMINATED-INFRASTRUCTURE; no
+sealed read occurred; no contrast evaluated. (b) The registered one-shot 4B fallback remains authorized but is DEFERRED
+behind FOCUS-1; before any 4B attempt an infrastructure-only amendment (memory-bounded attention for long-context
+cases; no scientific clause changed) must be registered and reviewed, because the limit scales with context length,
+not trunk size. (c) The preflight records (27 cases) are retained, never re-scored. No GPU-h is spent on BFCL until
+FOCUS-1 has run.

@@ -4705,3 +4705,10 @@ Validation: stdlib exact binomial/McNemar recomputation, conditional power, coun
 Draft v2 SHA-256 (heading through final newline): 746b354436a2007984f394fa995c68c6a455312c80bc4493dca9f9bc5f0e67fb.
 STATE: NOT YET REGISTERED; dispositions await independent review/closure; actual registration and recorded BFCL terminal evidence precede any model/GPU work.
 No fitting/training, model/GPU process, sealed IFEval/BFCL input read, background job, process signal, delegated agent or push; explicit-pathspec documentation commit only.
+- 2026-09-05, coder (auto, run_codex_agent.sh). Brief focus1-harness: model gpt-6-astra, effort xhigh, exit 0, session 01a06f25-6b08-7d90-9673-c2d9b6e10de3, log /home/bmarti44/stencil-llm/results/logs/codex-agent-focus1-harness.log. Override reason: Brian 2026-09-04: astra replaces sol for all coder/reviewer roles.
+
+## 2026-09-05 — LEG A 1.7B preflight terminated (OOM at case 28); 0/27 in every arm; closed FAILED-COMPETENCE; 4B fallback deferred behind FOCUS-1
+- See LEDGER-PLAN "LEG A PREFLIGHT OUTCOME". Records retained under results/qwen/bfcl-v10-preflight/records (27).
+- FOCUS-1 harness landed (astra coder, d723365 + e3cd09e): src/stencil/focus1.py, scripts/focus1.py,
+  tests/test_focus1.py; CPU-validated; model stages deferred. Sent to fable (text v2 + harness) and a fresh astra
+  session (harness) for review. GPU idle since the preflight ended.
