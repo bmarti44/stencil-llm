@@ -4818,3 +4818,8 @@ Verified committed check-39 reading/source hashes and launch chronology, v1 anch
 Fit-on=none; foreground documentation checks only; no model/GPU launch, sealed-input reads, fitting/training, background work, signals or push.
 Next: CPU implementation/registration review, dependency manifest and committed freeze; no experiment authorized. Explicit-pathspec commit of this task only.
 - 2026-09-05, coder (auto, run_codex_agent.sh). Brief focus2-harness: model gpt-6-astra, effort xhigh, exit 0, session 01a070d8-03f3-7de1-b9ec-c04f7983c289, log /home/bmarti44/stencil-llm/results/logs/codex-agent-focus2-harness.log. Override reason: Brian 2026-09-04: astra replaces sol for all coder/reviewer roles.
+
+## 2026-09-05 — FOCUS-2 combined task: v3 candidate (gpt-6-astra)
+STATE: STEP 1 TEXT COMPLETE; not registered, no outcomes. Appended exact A1–A3 edits, A4 and all review dispositions; v2/handoff preserved. Archived protocol/state read; WORKLOG is current operational state.
+Fit-on=none; foreground CPU work, no model/GPU, benchmark/sealed contents, SC1/check edits, signals, background jobs or push. Existing untracked scripts/focus_check32.py preserved.
+Verified original prefix, exact replacement counts and independently recomputed 5/256 upper bound (4.0626%). Initial edit command found no bare python executable and wrote nothing; used the existing .venv/bin/python. The prescribed acceptance command has two sealed-file readers; Brian was asked whether exactly those two may be deselected, as in the astra review. No dependent acceptance run until resolved. Next: finding-named RED tests, fixes and CPU checks; freeze/run only after prerequisites pass.
