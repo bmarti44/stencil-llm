@@ -71,28 +71,28 @@ def test_literal_template():
 
 
 def test_independent_stream_and_generator(banks):
-    namespace = "focus2-v1:9053703:final:sort:ascending:0:0:SET:payload"
+    namespace = "focus2-v1:9053714:final:sort:ascending:0:0:SET:payload"
     rng = random.Random(
         int.from_bytes(hashlib.sha256(namespace.encode()).digest(), "big")
     )
     while True:
-        values = rng.sample(range(-99, 100), rng.randint(4, 6))
+        values = rng.sample(range(-20, 21), rng.randint(5, 8))
         if values != sorted(values) and values != sorted(values, reverse=True):
             break
     first = banks["final"][0]
     assert first["requests"]["SET"] == values
     assert first["requests"]["SET"] != first["requests"]["SWITCH"]
     assert len(banks["final"]) == 256
-    assert len(banks["pilot"]) == 16
-    assert len(banks["competence"]) == 768
-    for name, count in (("final", 16), ("pilot", 1)):
+    assert len(banks["pilot"]) == 4
+    assert len(banks["competence"]) == 192
+    for name, count in (("final", 64), ("pilot", 1)):
         cells = Counter((e["family"], e["direction"], e["delay"]) for e in banks[name])
-        assert len(cells) == 16 and set(cells.values()) == {count}
+        assert len(cells) == 4 and set(cells.values()) == {count}
     assert Counter(e["family"] for e in banks["final"] if e["memo"]) == {
-        k: 16 for k in f.FAMILIES
+        k: 64 for k in f.SELECTED_FAMILIES
     }
     cells = Counter((e["family"], e["direction"]) for e in banks["competence"])
-    assert len(cells) == 12 and set(cells.values()) == {64}
+    assert len(cells) == 3 and set(cells.values()) == {64}
     f.validate_banks(banks, fabricated_development())
     assert f.generate_banks() == banks
 
@@ -115,6 +115,64 @@ def test_fingerprints_ignore_tags_ids_and_sort_permutations(banks):
     bad["pilot"][0]["requests"]["SET"] = ep["requests"]["SET"]
     with pytest.raises(f.Invalid):
         f.validate_banks(bad, dev)
+
+
+def test_focus2b_operand_law_seeds_and_memo_denominators(banks):
+    assert f.SELECTED_FAMILIES == ("sort",)
+    assert f.CONFIG["families"] == ["sort"]
+    for name, seed in (("competence", 9053712), ("pilot", 9053713), ("final", 9053714)):
+        assert {ep["seed"] for ep in banks[name]} == {seed}
+        assert f.CONFIG["seeds"][name] == seed
+        assert {ep["family"] for ep in banks[name]} == {"sort"}
+        for ep in banks[name]:
+            for values in ep["requests"].values():
+                assert 5 <= len(values) <= 8 and len(set(values)) == len(values)
+                assert all(type(v) is int and -20 <= v <= 20 for v in values)
+                assert values != sorted(values)
+                assert values != sorted(values, reverse=True)
+    memos = Counter(
+        (ep["direction"], ep["delay"]) for ep in banks["final"] if ep["memo"]
+    )
+    assert len(memos) == 4 and set(memos.values()) == {16}
+
+
+def test_focus2b_actual_requests_state_shape_and_obligations_once(tok, banks):
+    schema = (
+        'Output compact JSON of the form {"answer": <JSON array of integers>, '
+        '"tag": <integer>}; no prose or unrequested keys.'
+    )
+    assert f.TEMPLATES["schema"] == schema
+    assert f.TEMPLATES["default"] == "Return the payload list unchanged."
+    for direction in (*f.FAMILIES["sort"], "default"):
+        ep = next(e for e in banks["competence"] if e["direction"] == direction)
+        h = f.competence_history(tok, ep)
+        h.request(ep, "SET", cue=f.live_rules(ep, "SET") + "\n")
+        text = tok.decode(h.render(current=True)["ids"], skip_special_tokens=False)
+        assert schema in text and f.rule(ep, "SET") in text
+        assert text.count("Additional requested keys:") == 1
+    ep = banks["final"][0]
+    for arm in f.ARMS:
+        h = f.initial_history(tok, ep)
+        for step in f.REQUESTS:
+            if step in ("SWITCH", "BACK", "CLEAR"):
+                f.intervene(h, ep, arm, step)
+            cue = f.current_cue(ep, arm, step) if step in f.CHECKPOINTS else None
+            h.request(ep, step, cue=cue)
+            user = h.messages[-2]
+            text = tok.decode(
+                [t for part in user["parts"] for t in part["ids"]],
+                skip_special_tokens=False,
+            )
+            assert text.count("Additional requested keys:") == 1
+            assert f.obligations(ep, step) in text
+            if cue:
+                assert schema in text
+            if step == "SET":
+                full = tok.decode(
+                    h.render(current=True)["ids"], skip_special_tokens=False
+                )
+                assert full.count("Additional requested keys:") == 1
+            h.answer(f.encode(tok, f.gold(ep, step)), f.EOS)
 
 
 def test_all_gold_caps_defaults_and_real_delay(tok, banks):
@@ -582,6 +640,8 @@ def frozen(tmp_path, tok, monkeypatch):
         v1_commit=v1,
         v2_commit=v2,
         v3_commit=v2,
+        focus2b_commit=v2,
+        focus2b_section_sha256=f.sha(section),
         ledger="LEDGER-PLAN.md",
         v2_section_sha256=f.sha(section),
         v3_section_sha256=f.sha(section),
@@ -604,6 +664,7 @@ def frozen(tmp_path, tok, monkeypatch):
         launch="2026-09-05T08:43:10Z",
     )
     monkeypatch.setattr(f, "PINS", pins)
+    monkeypatch.setattr(f, "ROOT", root)
     # CPU tokenizer injection still uses real Qwen token IDs. Fixture token file
     # is a small marker hashed/committed through the same dependency checks.
     folder = root / "freeze"
@@ -639,7 +700,11 @@ def frozen(tmp_path, tok, monkeypatch):
         k: "freeze/" + k + ".json"
         for k in ("banks", "templates", "config", "development", "review")
     }
-    paths.update(section="freeze/section.md", readings="freeze/readings.txt")
+    paths.update(
+        section="freeze/section.md",
+        inherited_section="freeze/inherited_section.md",
+        readings="freeze/readings.txt",
+    )
     paths.update(
         {
             k: "freeze/" + k + ".fixture"
@@ -688,6 +753,7 @@ def frozen(tmp_path, tok, monkeypatch):
             "v1_commit",
             "v2_commit",
             "v3_commit",
+            "focus2b_commit",
             "check36_source",
             "prereg_commit",
             "receipt_commit",
@@ -802,7 +868,8 @@ def test_competence_boundaries():
             "direction": direction,
             "success": i < (56 if direction == "default" else 52),
         }
-        for family, directions in f.FAMILIES.items()
+        for family in f.SELECTED_FAMILIES
+        for directions in (f.FAMILIES[family],)
         for direction in (*directions, "default")
         for i in range(64)
     ]
@@ -884,7 +951,7 @@ def test_fable_A2_sixth_h_stops_scheduling_without_rescue(tok, banks, tmp_path):
 
 
 def test_competence_prompt_is_immediate(tok, banks):
-    for family in f.FAMILIES:
+    for family in f.SELECTED_FAMILIES:
         ep = next(e for e in banks["competence"] if e["family"] == family)
         h = f.competence_history(tok, ep)
         h.request(ep, "SET", cue=f.live_rules(ep, "SET") + "\n")
@@ -925,7 +992,10 @@ def test_output_directory_and_review_hash_binding(frozen, tok):
 
 def test_score_old_field_and_representation_are_task_errors(tok, banks):
     for family in ("fields", "representation"):
-        ep = next(e for e in banks["final"] if e["family"] == family)
+        ep = copy.deepcopy(banks["final"][0])
+        ep["family"] = family
+        ep["direction"] = f.FAMILIES[family][0]
+        ep["requests"]["CLEAR"] = f.payload(random.Random(42), family)
         for old in f.FAMILIES[family]:
             value = {
                 "answer": f.target(family, ep["requests"]["CLEAR"], old),
@@ -985,7 +1055,7 @@ def test_incomplete_decisions_never_upgrade_and_projection():
     assert not f.decisions(rows, "INCOMPLETE")["complete"]
     with pytest.raises(f.Incomplete):
         f.Budget(Clock(), spent=f.GPU_CAP).check()
-    summaries = [{"id": str(i)} for i in range(16)]
+    summaries = [{"id": str(i)} for i in range(4)]
     records = [
         {
             "episode": str(i),
@@ -996,16 +1066,16 @@ def test_incomplete_decisions_never_upgrade_and_projection():
                 "cumulative_seconds": 3 + (i + 1) * (i + 2) / 2,
             },
         }
-        for i in range(16)
+        for i in range(4)
     ]
     cert = f.certificate(
         "pilot",
         records,
         summaries,
-        {"load_seconds": 3, "spent_before": 0, "spent_after": 139},
+        {"load_seconds": 3, "spent_before": 0, "spent_after": 13},
         {},
     )
-    assert cert["projection_seconds"] == 1.25 * (256 * 16 + 3)
+    assert cert["projection_seconds"] == 1.25 * (256 * 4 + 3)
 
 
 def test_numerical_inversion_error_is_explicit(monkeypatch):
@@ -1020,7 +1090,7 @@ def test_numerical_inversion_error_is_explicit(monkeypatch):
 
 
 def test_pilot_projection_includes_allocation_between_requests():
-    summaries = [{"id": str(i)} for i in range(16)]
+    summaries = [{"id": str(i)} for i in range(4)]
     records = [
         {
             "episode": str(i),
@@ -1028,9 +1098,9 @@ def test_pilot_projection_includes_allocation_between_requests():
             "checkpoint": "SWITCH",
             "cost": {"allocation_seconds": 10, "cumulative_seconds": 3 + 20 * (i + 1)},
         }
-        for i in range(16)
+        for i in range(4)
     ]
-    end = {"load_seconds": 3, "spent_before": 0, "spent_after": 323}
+    end = {"load_seconds": 3, "spent_before": 0, "spent_after": 83}
     cert = f.certificate("pilot", records, summaries, end, {})
     assert cert["projection_seconds"] == 1.25 * (256 * 20 + 3)
 
@@ -1304,7 +1374,7 @@ def test_fable_B3_pilot_breakage_does_not_stop(tok, banks, tmp_path):
     assert f.run_episodes(engine, banks["pilot"]) == "COMPLETE"
     rows = engine.store.rows()
     summaries = f.validate_records(rows, banks["pilot"], tok, {}, complete=True)
-    assert len(summaries) == 16 and all(r["arms"]["both"]["broken"] for r in summaries)
+    assert len(summaries) == 4 and all(r["arms"]["both"]["broken"] for r in summaries)
     end = dict(spent_before=0, load_seconds=0, spent_after=engine.budget.elapsed())
     assert f.certificate("pilot", rows, summaries, end, {})["status"] == "PASS"
 

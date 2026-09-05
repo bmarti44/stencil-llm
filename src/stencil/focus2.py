@@ -1,4 +1,4 @@
-"""FOCUS-2 v3: answer-blind text edits and auditable paired CPU consumers.
+"""FOCUS-2b: sort-only re-registration of the FOCUS-2 v3 consumers.
 
 No script imports, bank reads, device access or output writes at import time.
 History/fork/map logic is a narrow adaptation of focus_check35.Engine; repair
@@ -39,6 +39,7 @@ FAMILIES = {
     "fields": ("left", "right"),
     "representation": ("array", "string"),
 }
+SELECTED_FAMILIES = ("sort",)
 RECAP = (
     "Cancel the superseded task rule: {superseded_rule}.\n"
     "Your earlier answers under that rule followed a rule that no longer "
@@ -67,16 +68,13 @@ TEMPLATES = {
         "Represent the items as a comma-separated decimal string without "
         "spaces, retaining item order."
     ),
-    "default": (
-        "Copy the current payload exactly as a JSON value without the "
-        "canceled transformation."
-    ),
+    "default": "Return the payload list unchanged.",
     "schema": (
-        'Output compact JSON with "answer" and integer "tag", without '
-        "prose or unrequested keys."
+        'Output compact JSON of the form {"answer": <JSON array of integers>, '
+        '"tag": <integer>}; no prose or unrequested keys.'
     ),
     "tag": "Keep tag equal to {tag}.",
-    "request": "Process this payload: {payload}\n{obligations}",
+    "request": "Process this payload: {payload}",
     "obligations": "Additional requested keys: {keys}.",
     "memo": 'Invent a six-letter ASCII memo and include it as "memo".',
     "recall": "Retrieve the earlier user and tool facts as user_fact and tool_fact.",
@@ -240,7 +238,11 @@ def stream(seed, bank, family, direction, delay, episode, request, purpose):
 def payload(rng, family):
     if family in ("sort", "representation"):
         while True:
-            values = rng.sample(range(-99, 100), rng.randint(4, 6))
+            values = (
+                rng.sample(range(-20, 21), rng.randint(5, 8))
+                if family == "sort"
+                else rng.sample(range(-99, 100), rng.randint(4, 6))
+            )
             if family == "representation":
                 return {"items": values}
             if values != sorted(values) and values != sorted(values, reverse=True):
@@ -265,11 +267,12 @@ def payload(rng, family):
 def generate_banks():
     banks = {"competence": [], "pilot": [], "final": []}
     for bank, seed, count in (
-        ("competence", 9053702, 64),
-        ("pilot", 9053702, 1),
-        ("final", 9053703, 16),
+        ("competence", 9053712, 64),
+        ("pilot", 9053713, 1),
+        ("final", 9053714, 64),
     ):
-        for family, skills in FAMILIES.items():
+        for family in SELECTED_FAMILIES:
+            skills = FAMILIES[family]
             for direction in (*skills, "default") if bank == "competence" else skills:
                 for delay in (0,) if bank == "competence" else (0, 512):
                     for i in range(count):
@@ -287,7 +290,7 @@ def generate_banks():
                             user_fact=facts[0],
                             tool_fact=facts[1],
                             memo=bank != "competence"
-                            and i < (4 if bank == "final" else 1),
+                            and i < (16 if bank == "final" else 1),
                         )
                         ep["requests"] = {
                             step: payload(rng(step, "payload"), family)
@@ -417,15 +420,15 @@ def rule(ep, step):
     return TEMPLATES[active(ep, step)]
 
 
-def live_rules(ep, step):
-    return "\n".join(
-        (
-            rule(ep, step),
-            TEMPLATES["schema"],
-            TEMPLATES["tag"].format(tag=ep["tag"]),
-            obligations(ep, step),
-        )
-    )
+def live_rules(ep, step, *, include_obligations=True):
+    lines = [
+        rule(ep, step),
+        TEMPLATES["schema"],
+        TEMPLATES["tag"].format(tag=ep["tag"]),
+    ]
+    if include_obligations:
+        lines.append(obligations(ep, step))
+    return "\n".join(lines)
 
 
 def current_cue(ep, arm, step):
@@ -449,10 +452,9 @@ def current_cue(ep, arm, step):
     return None
 
 
-def request_text(ep, step):
-    return TEMPLATES["request"].format(
-        payload=canonical(ep["requests"][step]), obligations=obligations(ep, step)
-    )
+def request_text(ep, step, *, include_obligations=True):
+    text = TEMPLATES["request"].format(payload=canonical(ep["requests"][step]))
+    return text + "\n" + obligations(ep, step) if include_obligations else text
 
 
 def gold(ep, step, memo="abcdef"):
@@ -641,7 +643,13 @@ class History:
         pieces = []
         if cue:
             pieces.append(("cue", encode(self.tok, cue), event))
-        pieces.append(("input", encode(self.tok, request_text(ep, step)), event))
+        pieces.append(
+            (
+                "input",
+                encode(self.tok, request_text(ep, step, include_obligations=not cue)),
+                event,
+            )
+        )
         self.message("user", "task", event, pieces)
         self.message(
             "assistant",
@@ -790,7 +798,11 @@ def initial_history(tok, ep):
                 encode(tok, TEMPLATES["system"] + TEMPLATES["tools"] + "\n"),
                 "base",
             ),
-            ("cue", encode(tok, live_rules(ep, "SET") + "\n"), "SET"),
+            (
+                "cue",
+                encode(tok, live_rules(ep, "SET", include_obligations=False) + "\n"),
+                "SET",
+            ),
         ],
     )
     h.pair(
@@ -883,7 +895,12 @@ def intervene(history, ep, arm, step):
         history.messages[0]["parts"].insert(
             -1,
             history.part(
-                "cue", encode(history.tok, live_rules(ep, step) + "\n"), scope(step)
+                "cue",
+                encode(
+                    history.tok,
+                    live_rules(ep, step, include_obligations=False) + "\n",
+                ),
+                scope(step),
             ),
         )
     edited = history.render()
@@ -1720,6 +1737,10 @@ PINS = dict(
     v2_commit="7d0c24413b5d9093f814071c37e5c332b3ec62dd",
     v3_commit="1b8216aab8af60e03b7d21f00ae33d90f43cce22",
     v3_section_sha256="4f80ac8a27d06507eab400ca50dabc6100fd8cd0e8e83cd906b4b786ecb99f9d",
+    focus2b_commit="d6d7be9afd2dbc28e7a8e903fb6e56f4aacd043f",
+    focus2b_section_sha256=(
+        "f48d7e345ed5e0c6237b8fffb12259b4f7a833f36172bfe7dcb197de58139e70"
+    ),
     ledger="LEDGER-PLAN.md",
     v2_section_sha256=(
         "5ddfd57854045bf17219ba4f1626bfc04cac9e2322c9784bb753cdec2ecbb40c"
@@ -1752,6 +1773,8 @@ PINS = dict(
     launch="2026-09-05T08:43:10Z",
 )
 CONFIG = dict(
+    experiment="FOCUS-2b",
+    families=list(SELECTED_FAMILIES),
     model="Qwen3-4B",
     dtype="bf16",
     hf_compatible=True,
@@ -1760,7 +1783,7 @@ CONFIG = dict(
     cap=64,
     gpu_cap_seconds=GPU_CAP,
     arm_order=list(ARMS),
-    seeds={"competence": 9053702, "pilot": 9053702, "final": 9053703},
+    seeds={"competence": 9053712, "pilot": 9053713, "final": 9053714},
     namespace="focus2-v1",
     repair="placeholder",
     placeholder_ids=[13],
@@ -1784,7 +1807,8 @@ ASSET_ROLES = {
 }
 REQUIRED_FILES = set(
     (
-        "banks templates section readings development review config model model_config "
+        "banks templates section inherited_section readings development review "
+        "config model model_config "
         "tokenizer tokenizer_config qwen qwen_default_config stats generator cli "
         "checker_tests check36_review check38_review check39_summary check39_reading "
         "check39_readme check39_code repair_code check37_readme"
@@ -1896,6 +1920,13 @@ def v3_section(text):
     return text.split("\n## ", 1)[0].rstrip("\n")
 
 
+def focus2b_section(text):
+    marker = "## FOCUS-2b — SORT-ONLY PLACEMENT + EVICTION (DRAFT v1"
+    if marker in text:
+        text = text[text.index(marker) :]
+    return text.split("\n## ", 1)[0].rstrip("\n")
+
+
 def repair_gate(receipt):
     if (
         receipt.get("verdict") != "PROCEED_PLACEHOLDER"
@@ -1955,6 +1986,7 @@ def verify_evidence(root, manifest, contents):
         "v1_commit",
         "v2_commit",
         "v3_commit",
+        "focus2b_commit",
         "check36_source",
         "prereg_commit",
         "receipt_commit",
@@ -1984,12 +2016,20 @@ def verify_evidence(root, manifest, contents):
     )
     require(
         sha(original) == PINS["v3_section_sha256"]
-        and contents["section"].decode() == original,
+        and contents["inherited_section"].decode() == original,
         "immutable v3 section snapshot",
     )
     require(
         all(x in original for x in (RECAP, READINGS, EXPECTATION, CLAIM_CEILING)),
         "v3 prewritten readings",
+    )
+    candidate = focus2b_section(
+        git_bytes(root, "show", f"{PINS['focus2b_commit']}:{PINS['ledger']}").decode()
+    )
+    require(
+        sha(candidate) == PINS["focus2b_section_sha256"]
+        and contents["section"].decode() == candidate,
+        "immutable FOCUS-2b section snapshot",
     )
     require(
         contents["readings"].decode()
@@ -2120,8 +2160,10 @@ def template_manifest(tok):
                 strings.update(
                     (
                         request_text(ep, step),
+                        request_text(ep, step, include_obligations=False),
                         live_rules(ep, step),
                         live_rules(ep, step) + "\n",
+                        live_rules(ep, step, include_obligations=False) + "\n",
                     )
                 )
                 if step in CHECKPOINTS:
@@ -2190,8 +2232,8 @@ def prepare_freeze(directory, *, tok=None, section_text=None, development=None):
     directory = Path(directory)
     require(not directory.exists(), "candidate directory already exists")
     tok = tok or load_tokenizer(ROOT / "models/qwen3-4b-hf/tokenizer.json")
-    section_text = section_text or v3_section(
-        git_bytes(ROOT, "show", f"{PINS['v3_commit']}:{PINS['ledger']}").decode()
+    section_text = section_text or focus2b_section(
+        git_bytes(ROOT, "show", f"{PINS['focus2b_commit']}:{PINS['ledger']}").decode()
     )
     banks = generate_banks()
     if development is not None:
@@ -2201,6 +2243,12 @@ def prepare_freeze(directory, *, tok=None, section_text=None, development=None):
     for name, value in (("banks", banks), ("templates", templates), ("config", CONFIG)):
         atomic_json(directory / (name + ".json"), value)
     (directory / "section.md").write_text(section_text, encoding="utf-8")
+    (directory / "inherited_section.md").write_text(
+        v3_section(
+            git_bytes(ROOT, "show", f"{PINS['v3_commit']}:{PINS['ledger']}").decode()
+        ),
+        encoding="utf-8",
+    )
     (directory / "readings.txt").write_text(
         READINGS + "\n" + EXPECTATION + "\nClaim ceiling: " + CLAIM_CEILING,
         encoding="utf-8",
@@ -2209,7 +2257,7 @@ def prepare_freeze(directory, *, tok=None, section_text=None, development=None):
         atomic_json(directory / "development.json", development)
     manifest = dict(
         status="DRAFT",
-        version=3,
+        version=4,
         fit_on="none",
         repair="placeholder",
         anchors={
@@ -2218,6 +2266,7 @@ def prepare_freeze(directory, *, tok=None, section_text=None, development=None):
                 "v1_commit",
                 "v2_commit",
                 "v3_commit",
+                "focus2b_commit",
                 "check36_source",
                 "prereg_commit",
                 "receipt_commit",
@@ -2260,7 +2309,7 @@ def preflight(
     if manifest.get("repair") != "placeholder":
         raise StopRepair("absent/unselected repair policy")
     require(
-        manifest.get("version") == 3 and manifest.get("fit_on") == "none",
+        manifest.get("version") == 4 and manifest.get("fit_on") == "none",
         "registration version/lineage",
     )
     require(manifest.get("candidate_only") is False, "unregistered candidate manifest")
@@ -2320,6 +2369,7 @@ def preflight(
         PINS["v1_commit"],
         PINS["v2_commit"],
         PINS["v3_commit"],
+        PINS["focus2b_commit"],
         PINS["receipt_commit"],
     ):
         git_bytes(root, "merge-base", "--is-ancestor", anchor, commit)
@@ -2385,7 +2435,8 @@ def preflight(
 
 def competence_gate(rows):
     cells = {}
-    for family, directions in FAMILIES.items():
+    for family in SELECTED_FAMILIES:
+        directions = FAMILIES[family]
         for direction in (*directions, "default"):
             chosen = [
                 r for r in rows if r["family"] == family and r["direction"] == direction
@@ -2399,7 +2450,7 @@ def competence_gate(rows):
                 success=sum(r["success"] for r in chosen),
                 threshold=56 if direction == "default" else 52,
             )
-    require(len(rows) == 768, "competence total")
+    require(len(rows) == 192, "competence total")
     return dict(
         status="PASS"
         if all(c["success"] >= c["threshold"] for c in cells.values())
@@ -2437,7 +2488,7 @@ def certificate(stage, rows, summaries, end, binding):
     if stage == "competence":
         value = competence_gate(summaries)
     else:
-        require(stage == "pilot" and len(summaries) == 16, "pilot complete cells")
+        require(stage == "pilot" and len(summaries) == 4, "pilot complete cells")
         cells = {}
         endpoints = []
         for summary in summaries:
@@ -2720,7 +2771,8 @@ def analyze(folder, launch, output, *, tok=None, tokenizer_factory=None):
             cell["broken"] += r["flags"]["broken"]
             cell["constraint_failure"] += not r["flags"]["constraint"]
         report["checkpoint_strata"][field] = cells
-    for family, directions in FAMILIES.items():
+    for family in SELECTED_FAMILIES:
+        directions = FAMILIES[family]
         for direction in directions:
             for arm in ARMS:
                 for step in ("CLEAR", "NEUTRAL2"):
