@@ -4781,3 +4781,10 @@ Lineage: fit-on=none; evaluated-on=reused synthetic S1 lists/answers; operand-fr
 GPU idle/no compute apps; no review lock; archived protocol/ledger located; foreground cooperative 15 GPU-min cap, no signals.
 Choices: preserve RoPE gaps; repeat interventions at BACK on actual SWITCH output. Pilot 14.75 s/episode, 7.87 min projected, peak recorded in summary; cap unchanged.
 STATE: complete, 7.57/15 GPU-min; PRECEDENCE_PATTERN, SWITCH R1–R5=3/2/2/17/0, BACK=32/32/32/14/32; all 320 records/576 operations audited; CPU/lint/import checks pass; explicit-path commit, no push.
+
+## 2026-09-05 — Quick check 37, eviction repair
+STATE: reading fixed in check37/README.md; 32 fresh seed-9053701 episodes, Qwen3-4B; fit-on=none, no benchmark contents/training.
+GPU idle/no compute apps or review lock; archived protocol/ledger read; WORKLOG is the quick-check operational record.
+Conservative choices: strict nonbroken success and no additional broken episodes; placeholder must pass in both matched modes; rebuilds shadow surviving histories.
+Command: .venv/bin/python scripts/focus_check37.py --run; foreground 30 GPU-min cap; pilot 26.63 s/episode, 14.65 min total projected; no signals/push.
+STATE: complete, STOP; 14.72/30 GPU-min; placeholder adds broken episode 24 in both modes, rebuilt release-1 loss 2/32; copies 32/32 twice. All 1,088 records/384 edits audited; CPU/lint/import checks pass; explicit-path commit, no larger test/push.

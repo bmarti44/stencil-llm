@@ -309,6 +309,11 @@ spec change did not teach (all seeds miss it).
    R1/S1 and R5/S2 replicate every SWITCH/BACK output; R4 improves SWITCH but BACK strict exact is 5/32; all breakage 0.
    7.57/15 GPU-min; 320 records and 64 source-history hashes audited; reused S1 histories, no fitting/training/sealed inputs/push.
 
+37. EVICTION REPAIR (seed 9053701; Qwen3-4B; [check37](check37/README.md)): **STOP; do not preselect placeholder**.
+   Placeholder releases surviving 30/30, rebuilt 28/29 vs intact 30/30 (n=32); rebuilt release-1 loss 2 exceeds 1.
+   Both modes copy 32/32 at BOTH neutral requests, but add broken episode 24 (duplicate integer); intact breaks elsewhere.
+   14.72/30 GPU-min; all 1,088 records/384 edit records audited; no fitting/training/sealed inputs/signals/push; no larger test.
+
 ## QUEUE (2026-09-05, Brian's quick-test-first ruling; merged from results/hypotheses-{astra,fable,kimi}.md)
 Skill pair for all: ascending sort vs REVERSE input order (1.7B cannot do descending: 10/32); value-exact,
 format-lenient scorer (check 31 lost 28/32 correct ascending sorts to quotes/fences). Own seeds; no benchmark data;
