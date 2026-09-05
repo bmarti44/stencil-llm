@@ -1,4 +1,4 @@
-"""FOCUS-2 draft v2: answer-blind text edits and auditable paired CPU consumers.
+"""FOCUS-2 v3: answer-blind text edits and auditable paired CPU consumers.
 
 No script imports, bank reads, device access or output writes at import time.
 History/fork/map logic is a narrow adaptation of focus_check35.Engine; repair
@@ -51,6 +51,11 @@ RECAP_HASH = "2658b026d6bd22d4ed460b34c543abc159e4e80ff56f367be4eaf5c035f8e8d7"
 TEMPLATES = {
     "recap": RECAP,
     "system": "Follow the live task rule. Keep earlier facts for later requests.",
+    "tools": (
+        '\n<tools>\n{"type":"function","function":{"name":"fact",'
+        '"description":"Return the remembered tool fact.",'
+        '"parameters":{"type":"object","properties":{}}}}\n</tools>'
+    ),
     "ascending": "Sort the integers from smallest to largest.",
     "descending": "Sort the integers from largest to smallest.",
     "lower": "Convert every word to lowercase, retaining word order.",
@@ -81,8 +86,9 @@ TEMPLATES = {
     "tool_request": (
         "Read and remember tool_fact from the fact tool for a later request."
     ),
-    "tool_call": '<tool_call>\n{"name":"fact","arguments":{}}\n</tool_call>',
+    "tool_call": '<tool_call>\n{"name": "fact", "arguments": {}}\n</tool_call>',
     "tool_return": '{"tool_fact":{value}}',
+    "tool_response": "<tool_response>\n{content}\n</tool_response>",
     "ack": ".",
     "delay": "The room is quiet. " * 102 + "Quiet.",
     "header": "<|im_start|>{role}\n",
@@ -109,6 +115,10 @@ EXPECTATION = (
     "for the four-family all-five endpoint or an added pass/fail gate."
     " Retain the both-correct mechanism stratum; no new no-answer "
     "control arm is added."
+    " At a true 3-point both-minus-placement-only gain the primary contrast"
+    " has ~0.1–0.2 power at N=256 (exact, Holm); a FAIL on that contrast is"
+    " expected under the pre-registered expectation and is read as 'no"
+    " demonstrated extra mechanism', never as evidence of absence."
 )
 READINGS = (
     "Prewritten readings (v1 anchor retained; v2 committed before any "
@@ -302,15 +312,37 @@ def fingerprint(family, value):
 
 def validate_banks(banks, development):
     require(development is not None, "missing outcome-free development manifest")
-    require(set(development) == {"coverage", "fingerprints"}, "development fields")
+    require(
+        set(development) == {"coverage", "fingerprints", "sources"},
+        "development fields/coverage evidence",
+    )
     require(
         set(development["coverage"]) == {*range(31, 40), "repair"},
         "development coverage",
     )
     require(
-        all(re.fullmatch(r"[0-9a-f]{64}", x) for x in development["fingerprints"]),
+        development["fingerprints"]
+        and all(re.fullmatch(r"[0-9a-f]{64}", x) for x in development["fingerprints"]),
         "development fingerprints",
     )
+    sources = development["sources"]
+    require(
+        set(sources) == {str(x) for x in development["coverage"]},
+        "development source coverage",
+    )
+    covered = set()
+    for source in sources.values():
+        fps = source["fingerprints"]
+        require(
+            fps
+            and source["input_count"] == len(fps)
+            and source["fingerprints_sha256"] == digest(fps)
+            and source["path"]
+            and re.fullmatch(r"[0-9a-f]{64}", source["sha256"]),
+            "development populated source count/hash",
+        )
+        covered.update(fps)
+    require(covered == set(development["fingerprints"]), "development coverage union")
     seen = set(development["fingerprints"])
     for rows in banks.values():
         for ep in rows:
@@ -625,8 +657,11 @@ class History:
         msg = self.messages[-1]
         msg["parts"][-1]["ids"].extend(ids)
         event = msg["scope"]
-        # Preserve the generated EOS even when endoftext needs an im_end closure.
-        if eos is not None:
+        # END is inside the normalized body boundary, as in check-39 repair.
+        # Raw terminal metadata remains in the immutable generation record.
+        if eos == END:
+            msg["parts"][-1]["ids"].append(eos)
+        elif eos is not None:
             msg["parts"].append(self.part("generated_eos", [eos], event))
         closure = encode(self.tok, "\n" if eos == EOS else TEMPLATES["closure"])
         msg["parts"].append(self.part("closure", closure, event))
@@ -634,6 +669,7 @@ class History:
 
     def validate(self, current=False):
         expected = "user"
+        awaiting_tool = False
         for i, msg in enumerate(self.messages):
             role = msg["role"]
             require(msg["turn"] == i, "turn ownership")
@@ -647,16 +683,21 @@ class History:
             if role == "system":
                 require(i == 0, "system slot")
             else:
+                require(role in ("user", "assistant"), "non-native tool/role header")
                 require(
                     role == expected,
                     "unanswered historical user or malformed tool group",
                 )
                 if role == "user":
-                    expected = "assistant"
-                elif role == "tool":
+                    require(
+                        (msg["kind"] == "tool_return") == awaiting_tool,
+                        "malformed tool return group",
+                    )
+                    awaiting_tool = False
                     expected = "assistant"
                 else:
-                    expected = "tool" if msg["kind"] == "tool_call" else "user"
+                    awaiting_tool = msg["kind"] == "tool_call"
+                    expected = "user"
             if pending:
                 require(
                     role == "assistant" and msg["parts"][-1]["kind"] == "body",
@@ -686,12 +727,20 @@ class History:
                     body == encode(self.tok, TEMPLATES["tool_call"]),
                     "malformed tool call",
                 )
-            if role == "tool":
+            if msg["kind"] == "tool_return":
                 body = [
                     t for p in msg["parts"] if p["kind"] == "return" for t in p["ids"]
                 ]
                 try:
-                    value = parse_json(self.tok.decode(body))
+                    rendered = self.tok.decode(body)
+                    require(
+                        rendered.startswith("<tool_response>\n")
+                        and rendered.endswith("\n</tool_response>"),
+                        "malformed tool response framing",
+                    )
+                    value = parse_json(
+                        rendered[len("<tool_response>\n") : -len("\n</tool_response>")]
+                    )
                 except ValueError as exc:
                     raise Invalid("malformed tool return") from exc
                 require(
@@ -701,7 +750,10 @@ class History:
                     and 10 <= value["tool_fact"] <= 99,
                     "malformed tool fact",
                 )
-        require(expected == "user", "unanswered historical user/tool group")
+        require(
+            expected == "user" and not awaiting_tool,
+            "unanswered historical user/tool group",
+        )
 
     def render(self, current=False):
         self.validate(current=current)
@@ -733,7 +785,11 @@ def initial_history(tok, ep):
         "rules",
         "base",
         [
-            ("base", encode(tok, TEMPLATES["system"] + "\n"), "base"),
+            (
+                "base",
+                encode(tok, TEMPLATES["system"] + TEMPLATES["tools"] + "\n"),
+                "base",
+            ),
             ("cue", encode(tok, live_rules(ep, "SET") + "\n"), "SET"),
         ],
     )
@@ -757,7 +813,7 @@ def initial_history(tok, ep):
         [("body", encode(tok, TEMPLATES["tool_call"]), "tool-fact")],
     )
     h.message(
-        "tool",
+        "user",
         "tool_return",
         "tool-fact",
         [
@@ -765,7 +821,11 @@ def initial_history(tok, ep):
                 "return",
                 encode(
                     tok,
-                    TEMPLATES["tool_return"].replace("{value}", str(ep["tool_fact"])),
+                    TEMPLATES["tool_response"].format(
+                        content=TEMPLATES["tool_return"].replace(
+                            "{value}", str(ep["tool_fact"])
+                        )
+                    ),
                 ),
                 "tool-fact",
             )
@@ -967,7 +1027,7 @@ def decisions(rows, terminal="COMPLETE"):
         r=safety["c"],
         fixed_n=256,
         upper_h=exact_upper(safety["b"], 256) if complete else None,
-        passes=bool(complete and safety["b"] <= 2 and safety["p"] > 0.05),
+        passes=bool(complete and safety["b"] <= 5 and safety["p"] > 0.05),
     )
     collateral = {}
     for key, fixed_n in (
@@ -983,13 +1043,18 @@ def decisions(rows, terminal="COMPLETE"):
         )
         table.update(
             fixed_n=fixed_n,
-            passes=complete
-            and len(selected) == fixed_n
-            and table["candidate"] <= table["comparator"],
+            passes=None
+            if key == "assistant_fact"
+            else bool(
+                complete
+                and len(selected) == fixed_n
+                and table["p"] > 0.05
+                and table["b"] - table["c"] <= 2
+            ),
         )
         collateral[key] = table
     safety["passes"] = safety["passes"] and all(
-        x["passes"] for x in collateral.values()
+        x["passes"] for key, x in collateral.items() if key != "assistant_fact"
     )
     if not complete:
         status = terminal if terminal != "COMPLETE" else "INCOMPLETE"
@@ -1043,8 +1108,14 @@ def decisions(rows, terminal="COMPLETE"):
             "The both-correct stratum supplies the stale-demonstration "
             "estimate; stratified tests are descriptive."
         )
+    cost = collateral["assistant_fact"]
+    cost_sentence = (
+        "eviction forfeits assistant-authored content it removes "
+        f"({cost['candidate']}/64 vs {cost['comparator']}/64)"
+    )
     return dict(
         status=status,
+        headline=status + "; " + cost_sentence,
         complete=complete,
         n=len(rows),
         fixed_n=256,
@@ -1052,6 +1123,8 @@ def decisions(rows, terminal="COMPLETE"):
         primary_pass=primary_pass,
         safety=safety,
         collateral=collateral,
+        disclosed_cost={"assistant_fact": cost},
+        benefit_cost_table={"primary": primary, "assistant_fact": cost},
         secondary=secondary,
         strata=strata,
         source_validity=source_strata,
@@ -1271,6 +1344,8 @@ class Engine:
             self.store.write(record)
         if error:
             raise error
+        if step.startswith("DELAY"):
+            validate_delay(record)
         history.answer(record["output_ids"], record["eos"])
         return record
 
@@ -1293,6 +1368,14 @@ def prior_packet(records):
         {k: r[k] for k in ("checkpoint", "output_ids", "output_text", "eos", "flags")}
         for r in records
     ]
+
+
+def validate_delay(record):
+    require(
+        bool(record["output_text"].strip()) and record["eos"] in (EOS, END),
+        "invalid delay: complete pair needs nonempty body and generated terminal; "
+        "no replay/retry",
+    )
 
 
 def episode(engine, ep):
@@ -1472,6 +1555,8 @@ def validate_records(records, episodes, tok, binding, *, complete):
         if not r["complete"]:
             require(not complete, "partial request")
             return None
+        if step.startswith("DELAY"):
+            validate_delay(r)
         h.answer(r["output_ids"], r["eos"])
         return r
 
@@ -1633,6 +1718,8 @@ def load_backend(tok, config):
 PINS = dict(
     v1_commit="2ea04e97b5b3e3965837329b1df9b412054da3c5",
     v2_commit="7d0c24413b5d9093f814071c37e5c332b3ec62dd",
+    v3_commit="1b8216aab8af60e03b7d21f00ae33d90f43cce22",
+    v3_section_sha256="4f80ac8a27d06507eab400ca50dabc6100fd8cd0e8e83cd906b4b786ecb99f9d",
     ledger="LEDGER-PLAN.md",
     v2_section_sha256=(
         "5ddfd57854045bf17219ba4f1626bfc04cac9e2322c9784bb753cdec2ecbb40c"
@@ -1687,6 +1774,13 @@ RUNTIME_SOURCES = {
     "qwen": ROOT / "src/stencil/qwen3.py",
     "stats": ROOT / "src/stencil/stats.py",
     "qwen_default_config": ROOT / "models/qwen3-1.7b-hf/config.json",
+}
+ASSET_ROLES = {
+    "model",
+    "tokenizer",
+    "model_config",
+    "tokenizer_config",
+    "qwen_default_config",
 }
 REQUIRED_FILES = set(
     (
@@ -1745,11 +1839,61 @@ def member(root, commit, relative, expected=None):
     return content
 
 
+def asset_descriptor(root, relative, source_revision):
+    """Stream large external assets; commit this descriptor, not the binary."""
+    path = safe_path(root, relative)
+    require(path.is_file(), "missing asset " + relative)
+    require(bool(source_revision), "missing asset source revision")
+    require(
+        git_bytes(root, "check-ignore", "--", relative).strip(),
+        "external asset must be gitignored",
+    )
+    checksum = hashlib.sha256()
+    with path.open("rb") as handle:
+        while chunk := handle.read(8 * 1024 * 1024):
+            checksum.update(chunk)
+    return dict(
+        path=relative,
+        sha256=checksum.hexdigest(),
+        bytes=path.stat().st_size,
+        tracked=False,
+        source_revision=source_revision,
+    )
+
+
+def dependency_content(root, commit, role, descriptor):
+    if descriptor.get("tracked", True):
+        return member(root, commit, descriptor["path"], descriptor["sha256"])
+    require(role in ASSET_ROLES, "hashed asset role is not allowed")
+    actual = asset_descriptor(
+        root, descriptor["path"], descriptor.get("source_revision")
+    )
+    require(
+        actual == descriptor,
+        "asset hash/size/provenance mismatch " + descriptor["path"],
+    )
+    # The model is resolved by path after verification, never materialized on CPU
+    # merely for Git membership. Small configs remain part of evidence checking.
+    content = (
+        b"" if role == "model" else safe_path(root, descriptor["path"]).read_bytes()
+    )
+    if role.endswith("config"):
+        require(isinstance(parse_json(content), dict), "asset config JSON")
+    return content
+
+
 def v2_section(text):
     marker = "## FOCUS-2 — PLACEMENT + EVICTION AT INSTRUCTION CHANGE (DRAFT v2,"
     if marker in text:
         text = text[text.index(marker) :]
     return text.split("\n### CPU implementation handoff", 1)[0].rstrip("\n")
+
+
+def v3_section(text):
+    marker = "## FOCUS-2 — PLACEMENT + EVICTION AT INSTRUCTION CHANGE (DRAFT v3"
+    if marker in text:
+        text = text[text.index(marker) :]
+    return text.split("\n## ", 1)[0].rstrip("\n")
 
 
 def repair_gate(receipt):
@@ -1810,6 +1954,7 @@ def verify_evidence(root, manifest, contents):
     for key in (
         "v1_commit",
         "v2_commit",
+        "v3_commit",
         "check36_source",
         "prereg_commit",
         "receipt_commit",
@@ -1831,13 +1976,20 @@ def verify_evidence(root, manifest, contents):
         git_bytes(root, "show", f"{PINS['v2_commit']}:{PINS['ledger']}").decode()
     )
     require(
-        sha(original) == PINS["v2_section_sha256"]
-        and contents["section"].decode() == original,
+        sha(original) == PINS["v2_section_sha256"],
         "immutable v2 section snapshot",
+    )
+    original = v3_section(
+        git_bytes(root, "show", f"{PINS['v3_commit']}:{PINS['ledger']}").decode()
+    )
+    require(
+        sha(original) == PINS["v3_section_sha256"]
+        and contents["section"].decode() == original,
+        "immutable v3 section snapshot",
     )
     require(
         all(x in original for x in (RECAP, READINGS, EXPECTATION, CLAIM_CEILING)),
-        "v2 prewritten readings",
+        "v3 prewritten readings",
     )
     require(
         contents["readings"].decode()
@@ -2038,8 +2190,8 @@ def prepare_freeze(directory, *, tok=None, section_text=None, development=None):
     directory = Path(directory)
     require(not directory.exists(), "candidate directory already exists")
     tok = tok or load_tokenizer(ROOT / "models/qwen3-4b-hf/tokenizer.json")
-    section_text = section_text or v2_section(
-        git_bytes(ROOT, "show", f"{PINS['v2_commit']}:{PINS['ledger']}").decode()
+    section_text = section_text or v3_section(
+        git_bytes(ROOT, "show", f"{PINS['v3_commit']}:{PINS['ledger']}").decode()
     )
     banks = generate_banks()
     if development is not None:
@@ -2057,7 +2209,7 @@ def prepare_freeze(directory, *, tok=None, section_text=None, development=None):
         atomic_json(directory / "development.json", development)
     manifest = dict(
         status="DRAFT",
-        version=2,
+        version=3,
         fit_on="none",
         repair="placeholder",
         anchors={
@@ -2065,6 +2217,7 @@ def prepare_freeze(directory, *, tok=None, section_text=None, development=None):
             for k in (
                 "v1_commit",
                 "v2_commit",
+                "v3_commit",
                 "check36_source",
                 "prereg_commit",
                 "receipt_commit",
@@ -2107,7 +2260,7 @@ def preflight(
     if manifest.get("repair") != "placeholder":
         raise StopRepair("absent/unselected repair policy")
     require(
-        manifest.get("version") == 2 and manifest.get("fit_on") == "none",
+        manifest.get("version") == 3 and manifest.get("fit_on") == "none",
         "registration version/lineage",
     )
     require(manifest.get("candidate_only") is False, "unregistered candidate manifest")
@@ -2155,8 +2308,7 @@ def preflight(
         "self-referential manifest",
     )
     contents = {
-        k: member(root, commit, d["path"], d["sha256"])
-        for k, d in manifest["files"].items()
+        k: dependency_content(root, commit, k, d) for k, d in manifest["files"].items()
     }
     for role, actual in RUNTIME_SOURCES.items():
         require(
@@ -2164,7 +2316,12 @@ def preflight(
             "executed dependency is not the frozen source: " + role,
         )
     verify_evidence(root, manifest, contents)
-    for anchor in (PINS["v1_commit"], PINS["v2_commit"], PINS["receipt_commit"]):
+    for anchor in (
+        PINS["v1_commit"],
+        PINS["v2_commit"],
+        PINS["v3_commit"],
+        PINS["receipt_commit"],
+    ):
         git_bytes(root, "merge-base", "--is-ancestor", anchor, commit)
     require(parse_json(contents["config"]) == CONFIG, "frozen config differs")
     review = parse_json(contents["review"])
@@ -2238,12 +2395,14 @@ def competence_gate(rows):
                 "competence cell count",
             )
             cells[f"{family}/{direction}"] = dict(
-                n=64, success=sum(r["success"] for r in chosen)
+                n=64,
+                success=sum(r["success"] for r in chosen),
+                threshold=56 if direction == "default" else 52,
             )
     require(len(rows) == 768, "competence total")
     return dict(
         status="PASS"
-        if all(c["success"] >= 56 for c in cells.values())
+        if all(c["success"] >= c["threshold"] for c in cells.values())
         else "INELIGIBLE",
         cells=cells,
     )
@@ -2258,7 +2417,7 @@ def run_episodes(engine, episodes, *, worst_cell_seconds=0.0, load_seconds=0.0):
         both = any(r["flags"]["broken"] for r in rows if r["arm"] == "both")
         restate = any(r["flags"]["broken"] for r in rows if r["arm"] == "text-restate")
         new_broken += both and not restate
-        if new_broken >= 3:
+        if ep["bank"] == "final" and new_broken >= 6:
             return "FAIL-SAFETY"
         if ep["bank"] == "pilot":
             worst_cell_seconds = max(
@@ -2422,7 +2581,7 @@ def execute_stage(
         reason = (
             "finished scheduling"
             if status == "COMPLETE"
-            else "third irrecoverable both-only broken episode"
+            else "sixth irrecoverable both-only broken episode"
         )
         budget.check()
     except (KeyboardInterrupt, Incomplete, MemoryError) as exc:

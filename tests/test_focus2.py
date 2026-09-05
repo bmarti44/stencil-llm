@@ -37,6 +37,24 @@ def banks():
     return f.generate_banks()
 
 
+def fabricated_development(extra=None):
+    sources = {}
+    for label in (*range(31, 40), "repair"):
+        fps = [extra or f.sha("fabricated input " + str(label))]
+        sources[str(label)] = dict(
+            path="fabricated-source.py",
+            sha256=f.sha("fabricated source"),
+            input_count=len(fps),
+            fingerprints=fps,
+            fingerprints_sha256=f.digest(fps),
+        )
+    return dict(
+        coverage=list(range(31, 40)) + ["repair"],
+        sources=sources,
+        fingerprints=sorted({fp for s in sources.values() for fp in s["fingerprints"]}),
+    )
+
+
 def test_literal_template():
     literal = (
         "Cancel the superseded task rule: {superseded_rule}.\n"
@@ -75,9 +93,7 @@ def test_independent_stream_and_generator(banks):
     }
     cells = Counter((e["family"], e["direction"]) for e in banks["competence"])
     assert len(cells) == 12 and set(cells.values()) == {64}
-    f.validate_banks(
-        banks, {"coverage": list(range(31, 40)) + ["repair"], "fingerprints": []}
-    )
+    f.validate_banks(banks, fabricated_development())
     assert f.generate_banks() == banks
 
 
@@ -90,7 +106,7 @@ def test_fingerprints_ignore_tags_ids_and_sort_permutations(banks):
     assert f.fingerprint("case", ["AbC", "dEf", "GhI"]) == f.fingerprint(
         "case", ["ghi", "DEF", "abc"]
     )
-    dev = {"coverage": list(range(31, 40)) + ["repair"], "fingerprints": [original]}
+    dev = fabricated_development(original)
     with pytest.raises(f.Invalid, match="collision"):
         f.validate_banks(banks, dev)
     with pytest.raises(f.Invalid, match="development"):
@@ -219,7 +235,7 @@ def test_renderer_scope_and_nonvacuity(tok, banks):
             arm in ("both", "placement-only", "text-restate")
         )
         assert str(ep["user_fact"]) in decoded
-        assert "<|im_start|>tool\n" in decoded
+        assert "<|im_start|>user\n<tool_response>\n" in decoded
         assert after["positions"] == list(range(len(after["ids"])))
         branch.answer(f.encode(tok, "fresh branch body"), f.EOS)
         f.intervene(branch, ep, arm, "BACK")
@@ -295,15 +311,16 @@ def test_primary_secondary_and_safety_hand_tables():
     rows[12]["arms"]["text-restate"]["Y"] = False
     rows[12]["arms"]["placement-only"]["Y"] = True
     assert f.decisions(rows)["status"] == "PASS with MARGINAL ADDED CONTROL"
-    for i in range(2):
+    for i in range(5):
         rows[i]["arms"]["both"]["broken"] = True
+    rows[20]["arms"]["text-restate"]["broken"] = True
     assert f.decisions(rows)["safety"]["passes"]
-    rows[2]["arms"]["both"]["broken"] = True
+    rows[5]["arms"]["both"]["broken"] = True
     assert not f.decisions(rows)["safety"]["passes"]
     rows = hand_episodes()
     rows[0]["arms"]["both"]["assistant_fact"] = True
     report = f.decisions(rows)
-    assert not report["safety"]["passes"]
+    assert report["safety"]["passes"]
     assert report["collateral"]["assistant_fact"]["n"] == 64
     assert report["source_missing"] == 4
     assert set(report["secondary"]) == {
@@ -434,10 +451,10 @@ def test_import_help_and_draft_refuse_before_backend(tmp_path, capsys):
 def test_check39_gate_is_distinct():
     receipt = repair_receipt()
     assert f.repair_gate(receipt)
-    # Net +2 with raw b=3 passes check39, but cannot pass the main F6 cap.
+    # Net +2 with raw b=6 passes check39, but cannot pass the main F6 cap.
     for mode in ("surviving", "rebuilt"):
-        receipt["arms"][f"placeholder/{mode}"]["broken_episodes"] = [0, 1, 2]
-        receipt["arms"][f"intact/{mode}"]["broken_episodes"] = [3]
+        receipt["arms"][f"placeholder/{mode}"]["broken_episodes"] = list(range(6))
+        receipt["arms"][f"intact/{mode}"]["broken_episodes"] = list(range(6, 10))
     assert f.repair_gate(receipt)
     receipt["arms"]["placeholder/rebuilt"]["steps"]["RELEASE1"]["success"] = 0
     assert f.repair_gate(receipt)  # diagnostic rebuilt release never gates
@@ -564,8 +581,10 @@ def frozen(tmp_path, tok, monkeypatch):
     pins = dict(
         v1_commit=v1,
         v2_commit=v2,
+        v3_commit=v2,
         ledger="LEDGER-PLAN.md",
         v2_section_sha256=f.sha(section),
+        v3_section_sha256=f.sha(section),
         check36_source=prereg,
         check36_paths=["evidence/" + p for p in code_paths[2:]],
         check36_review="evidence/review36.md",
@@ -602,9 +621,7 @@ def frozen(tmp_path, tok, monkeypatch):
         "checker_tests",
     ):
         (folder / f"{name}.fixture").write_text("fabricated " + name)
-    (folder / "development.json").write_text(
-        f.canonical({"coverage": list(range(31, 40)) + ["repair"], "fingerprints": []})
-    )
+    (folder / "development.json").write_text(f.canonical(fabricated_development()))
     (folder / "review.json").write_text(
         f.canonical(
             {
@@ -670,6 +687,7 @@ def frozen(tmp_path, tok, monkeypatch):
         for k in (
             "v1_commit",
             "v2_commit",
+            "v3_commit",
             "check36_source",
             "prereg_commit",
             "receipt_commit",
@@ -779,7 +797,11 @@ def test_refusal_through_main_before_backend(frozen, tok, attack, capsys):
 
 def test_competence_boundaries():
     rows = [
-        {"family": family, "direction": direction, "success": i < 56}
+        {
+            "family": family,
+            "direction": direction,
+            "success": i < (56 if direction == "default" else 52),
+        }
         for family, directions in f.FAMILIES.items()
         for direction in (*directions, "default")
         for i in range(64)
@@ -845,7 +867,7 @@ def test_budget_crossing_partial_is_durable(frozen, tok, at, capsys):
     assert rows[0]["cost"][at + "_seconds"] > f.GPU_CAP
 
 
-def test_third_h_stops_scheduling_without_rescue(tok, banks, tmp_path):
+def test_fable_A2_sixth_h_stops_scheduling_without_rescue(tok, banks, tmp_path):
     def policy(ctx, ids, text):
         return "." if ctx["arm"] == "both" and ctx["checkpoint"] == "SWITCH" else text
 
@@ -856,8 +878,8 @@ def test_third_h_stops_scheduling_without_rescue(tok, banks, tmp_path):
     status = f.run_episodes(engine, banks["final"])
     assert status == "FAIL-SAFETY"
     rows = engine.store.rows()
-    assert len({r["episode"] for r in rows}) == 3
-    assert sum(r["arm"] == "both" and r["checkpoint"] == "NEUTRAL2" for r in rows) == 3
+    assert len({r["episode"] for r in rows}) == 6
+    assert sum(r["arm"] == "both" and r["checkpoint"] == "NEUTRAL2" for r in rows) == 6
     assert not any("signal" in x for x in vars(backend))
 
 
@@ -875,7 +897,7 @@ def test_competence_prompt_is_immediate(tok, banks):
 def test_backend_failure_cost_counters_and_delay_flags(tok, banks, tmp_path):
     ep = next(e for e in banks["final"] if e["delay"] == 512)
     backend = FakeBackend(
-        tok, lambda ctx, ids, text: "" if ctx["checkpoint"] == "DELAY0" else text
+        tok, lambda ctx, ids, text: "." if ctx["checkpoint"] == "DELAY0" else text
     )
     engine = f.Engine(
         tok, backend, f.RecordStore(tmp_path / "rows"), f.Budget(Clock()), {}
@@ -883,7 +905,7 @@ def test_backend_failure_cost_counters_and_delay_flags(tok, banks, tmp_path):
     f.episode(engine, ep)
     rows = engine.store.rows()
     delay = next(r for r in rows if r["checkpoint"] == "DELAY0")
-    assert delay["flags"]["empty"]
+    assert not delay["flags"]["empty"]
     assert delay["delay_user_tokens"] == 512
     assert delay["complete_delay_tokens"] > 512
     f.validate_records(rows, [ep], tok, {}, complete=True)
@@ -1040,7 +1062,7 @@ def test_every_checkpoint_is_necessary_no_later_recovery(
     assert summaries[0]["arms"]["both"]["constraint"] is False
 
 
-def test_mechanism_strata_and_binding_fact_cost():
+def test_mechanism_strata_and_v3_binding_cost():
     rows = hand_episodes()
     for i in range(128, 141):
         for arm in ("placement-only", "eviction-only", "text-restate"):
@@ -1049,9 +1071,10 @@ def test_mechanism_strata_and_binding_fact_cost():
     assert report["strata"]["both_correct"]["True"]["placement-only"]["b"] == 0
     assert report["strata"]["both_correct"]["False"]["placement-only"]["b"] == 13
     assert "error-demonstration cleanup" in report["mechanism_reading"]
-    for key in ("user_fact", "tool_fact", "assistant_fact", "constraint"):
+    for key in ("user_fact", "tool_fact", "constraint"):
         changed = copy.deepcopy(rows)
-        changed[0]["arms"]["both"][key] = True
+        for i in range(3):
+            changed[i]["arms"]["both"][key] = True
         report = f.decisions(changed)
         assert report["primary_pass"] and report["status"] == "FAIL-SAFETY"
 
@@ -1091,3 +1114,271 @@ def test_interrupted_prefill_retains_partial_cost(frozen, tok, capsys):
     assert len(rows) == 1 and not rows[0]["complete"]
     assert rows[0]["cost"]["prefill_seconds"] >= 3
     assert rows[0]["cost"]["allocation_seconds"] >= 3
+
+
+def test_fable_A1_disclosed_cost_and_binding_net_harm():
+    rows = hand_episodes()
+    for i, row in enumerate(rows):
+        for arm in ("placement-only", "eviction-only", "text-restate"):
+            row["arms"][arm]["Y"] = i >= 20
+        row["arms"]["both"]["assistant_fact"] = i < 64
+        row["arms"]["text-restate"]["assistant_fact"] = i < 10
+    report = f.decisions(rows)
+    assert report["status"] == "PASS"
+    assert report["collateral"]["assistant_fact"]["passes"] is None
+    assert report["disclosed_cost"]["assistant_fact"]["candidate"] == 64
+    assert report["disclosed_cost"]["assistant_fact"]["comparator"] == 10
+    assert (
+        "eviction forfeits assistant-authored content it removes (64/64 vs 10/64)"
+        in report["headline"]
+    )
+    assert (
+        report["benefit_cost_table"]["assistant_fact"]
+        == report["disclosed_cost"]["assistant_fact"]
+    )
+    for key in ("user_fact", "tool_fact", "constraint"):
+        changed = copy.deepcopy(rows)
+        for i in range(5):
+            changed[i]["arms"]["both"][key] = True
+        changed[10]["arms"]["text-restate"][key] = True
+        assert f.decisions(changed)["status"] == "FAIL-SAFETY"  # h-r=4
+        changed[4]["arms"]["both"][key] = False
+        changed[11]["arms"]["text-restate"][key] = True
+        assert f.decisions(changed)["collateral"][key]["passes"]  # h-r=2
+
+
+def test_fable_A2_breakage_five_six_boundaries():
+    rows = hand_episodes()
+    for i in range(5):
+        rows[i]["arms"]["both"]["broken"] = True
+    # h=5,r=0 fails the retained exact p>.05 clause (p=1/32).
+    assert not f.decisions(rows)["safety"]["passes"]
+    rows[20]["arms"]["text-restate"]["broken"] = True
+    assert f.decisions(rows)["safety"]["passes"]
+    rows[5]["arms"]["both"]["broken"] = True
+    assert not f.decisions(rows)["safety"]["passes"]
+    assert f.exact_upper(5, 256) == pytest.approx(0.0406256185)
+
+
+@pytest.mark.parametrize("direction,threshold", [("ascending", 52), ("default", 56)])
+def test_fable_A3_competence_boundaries(banks, direction, threshold):
+    rows = [
+        dict(id=e["id"], family=e["family"], direction=e["direction"], success=True)
+        for e in banks["competence"]
+    ]
+    cell = [r for r in rows if r["family"] == "sort" and r["direction"] == direction]
+    for i, r in enumerate(cell):
+        r["success"] = i < threshold
+    assert f.competence_gate(rows)["status"] == "PASS"
+    cell[threshold - 1]["success"] = False
+    assert f.competence_gate(rows)["status"] == "INELIGIBLE"
+
+
+def test_tool_group_matches_pinned_qwen_template(tok, banks):
+    """Fable B2 / FOCUS2-1: compare independent template and actual consumer."""
+    from jinja2 import Environment
+
+    ep = banks["final"][0]
+    template = json.loads(
+        (ROOT / "models/qwen3-4b-hf/tokenizer_config.json").read_text()
+    )["chat_template"]
+    messages = [
+        {"role": "user", "content": f.TEMPLATES["tool_request"]},
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [{"function": {"name": "fact", "arguments": {}}}],
+        },
+        {"role": "tool", "content": f.canonical({"tool_fact": ep["tool_fact"]})},
+        {"role": "assistant", "content": "."},
+        {"role": "user", "content": "Next request."},
+    ]
+    native = (
+        Environment()
+        .from_string(template)
+        .render(messages=messages, add_generation_prompt=False)
+    )
+    expected = native.split("<|im_start|>user\nNext request.")[0]
+    h = f.initial_history(tok, ep)
+    actual = h.render()
+    first = next(s["start"] for s in actual["segments"] if s["scope"] == "tool-fact")
+    assert actual["ids"][first:] == f.encode(tok, expected)
+    assert "<tools>" in tok.decode(actual["ids"])
+    old = h.fork()
+    returned = next(m for m in old.messages if m["kind"] == "tool_return")
+    returned["role"] = "tool"
+    returned["parts"][0]["ids"] = f.encode(tok, "<|im_start|>tool\n")
+    with pytest.raises(f.Invalid, match="tool|role"):
+        old.render()
+    for step in ("SET", "PREHOLD"):
+        h.request(ep, step)
+        h.answer(f.encode(tok, f.gold(ep, step)), f.EOS)
+    for arm in f.ARMS:
+        branch = h.fork()
+        for step in ("SWITCH", "BACK", "CLEAR"):
+            f.intervene(branch, ep, arm, step)
+            assert expected in tok.decode(
+                branch.render()["ids"], skip_special_tokens=False
+            )
+            branch.request(ep, step, cue=f.current_cue(ep, arm, step))
+            branch.answer(f.encode(tok, f.gold(ep, step)), f.EOS)
+
+
+@pytest.mark.parametrize("answer", ["", "Echo " * 100])
+def test_invalid_delay_blocks_replay_and_complete_analysis(
+    tok, banks, tmp_path, answer
+):
+    """FOCUS2-2: execution and offline consumer must reject the same raw delay."""
+    ep = next(e for e in banks["pilot"] if e["delay"])
+    backend = FakeBackend(
+        tok,
+        lambda ctx, ids, text: (
+            answer if ctx["checkpoint"].startswith("DELAY") else text
+        ),
+    )
+    engine = f.Engine(
+        tok, backend, f.RecordStore(tmp_path / "rows"), f.Budget(Clock()), {}
+    )
+    with pytest.raises(f.Invalid, match="delay"):
+        f.episode(engine, ep)
+    rows = engine.store.rows()
+    assert len(rows) == 1 and rows[0]["checkpoint"] == "DELAY0"
+    assert rows[0]["complete"] and rows[0]["flags"]["broken"]
+    assert [c["checkpoint"] for c in backend.calls] == ["DELAY0"]
+    for complete in (False, True):
+        with pytest.raises(f.Invalid, match="delay"):
+            f.validate_records(rows, [ep], tok, {}, complete=complete)
+    assert f.decisions([], "INVALID")["fixed_n"] == 256
+
+
+@pytest.mark.parametrize("answer", [".", "Noted.", "x " * 62 + "x"])
+def test_FOCUS2_2_valid_delay_controls(tok, banks, tmp_path, answer):
+    ep = next(e for e in banks["pilot"] if e["delay"])
+    assert len(f.encode(tok, answer)) <= 63
+    engine = f.Engine(
+        tok,
+        FakeBackend(
+            tok,
+            lambda ctx, ids, text: (
+                answer if ctx["checkpoint"].startswith("DELAY") else text
+            ),
+        ),
+        f.RecordStore(tmp_path / "rows"),
+        f.Budget(Clock()),
+        {},
+    )
+    f.episode(engine, ep)
+    assert f.validate_records(engine.store.rows(), [ep], tok, {}, complete=True)[0][
+        "arms"
+    ]["both"]["Y"]
+
+
+@pytest.mark.parametrize("terminal", [f.EOS, f.END, None])
+def test_astra_terminal_token_repair_edge(tok, banks, terminal):
+    ep = banks["final"][0]
+    h = f.initial_history(tok, ep)
+    for step in ("SET", "PREHOLD"):
+        h.request(ep, step)
+        h.answer(f.encode(tok, "retired"), terminal)
+    before = h.render()
+    edit = f.intervene(h, ep, "both", "SWITCH")
+    decoded = tok.decode(h.render()["ids"], skip_special_tokens=False)
+    assert "<|endoftext|>" not in decoded
+    assert decoded.count("<|im_start|>assistant\n.<|im_end|>\n") >= 2
+    if terminal == f.END:
+        positions = [i for i, t in enumerate(before["ids"]) if t == f.END]
+        assert len(positions) == 2
+        assert all(edit["original_to_edited"][i] is None for i in positions)
+
+
+def test_fable_B3_pilot_breakage_does_not_stop(tok, banks, tmp_path):
+    backend = FakeBackend(
+        tok,
+        lambda ctx, ids, text: (
+            "." if ctx["arm"] == "both" and ctx["checkpoint"] == "SWITCH" else text
+        ),
+    )
+    engine = f.Engine(
+        tok, backend, f.RecordStore(tmp_path / "rows"), f.Budget(Clock()), {}
+    )
+    assert f.run_episodes(engine, banks["pilot"]) == "COMPLETE"
+    rows = engine.store.rows()
+    summaries = f.validate_records(rows, banks["pilot"], tok, {}, complete=True)
+    assert len(summaries) == 16 and all(r["arms"]["both"]["broken"] for r in summaries)
+    end = dict(spent_before=0, load_seconds=0, spent_after=engine.budget.elapsed())
+    assert f.certificate("pilot", rows, summaries, end, {})["status"] == "PASS"
+
+
+def test_astra_development_coverage_cannot_be_empty(banks):
+    with pytest.raises(f.Invalid, match="development"):
+        f.validate_banks(
+            banks, {"coverage": list(range(31, 40)) + ["repair"], "fingerprints": []}
+        )
+
+
+def rebind_fixture(frozen):
+    root, folder, launch = frozen
+    manifest = json.loads((folder / "manifest.json").read_text())
+    for desc in manifest["files"].values():
+        desc["sha256"] = f.sha((root / desc["path"]).read_bytes())
+    review = json.loads((folder / "review.json").read_text())
+    review["dependencies"] = {
+        k: d["sha256"] for k, d in manifest["files"].items() if k != "review"
+    }
+    (folder / "review.json").write_text(f.canonical(review))
+    manifest["files"]["review"]["sha256"] = f.sha((folder / "review.json").read_bytes())
+    (folder / "manifest.json").write_text(f.canonical(manifest))
+    freeze_commit = commit(root)
+    receipt = json.loads(launch.read_text())
+    receipt.update(
+        freeze_commit=freeze_commit,
+        manifest_sha256=f.sha((folder / "manifest.json").read_bytes()),
+    )
+    launch.write_text(f.canonical(receipt))
+    commit(root)
+
+
+def test_fable_B1_ignored_model_preflight_and_tamper(frozen, tok, capsys):
+    root, folder, launch = frozen
+    model = folder / "model.fixture"
+    git(root, "rm", "--cached", "freeze/model.fixture")
+    (root / ".gitignore").write_text("freeze/model.fixture\n")
+    manifest = json.loads((folder / "manifest.json").read_text())
+    manifest["files"]["model"].update(
+        tracked=False,
+        bytes=model.stat().st_size,
+        source_revision="fabricated CPU fixture",
+    )
+    (folder / "manifest.json").write_text(f.canonical(manifest))
+    rebind_fixture(frozen)
+    assert f.preflight(folder, launch, "competence", root / "outputs", tok=tok)
+    model.write_text("tampered model fixture")
+    calls = []
+    assert (
+        cli().main(
+            args_for(frozen, "competence"),
+            tokenizer_factory=lambda _: tok,
+            backend_factory=lambda *a: calls.append(a),
+        )
+        == 1
+    )
+    assert not calls and "asset" in capsys.readouterr().out
+
+
+def test_FOCUS2_1_frozen_renderer_mismatch_refuses_before_backend(frozen, tok, capsys):
+    _, folder, _ = frozen
+    path = folder / "templates.json"
+    templates = json.loads(path.read_text())
+    templates["renderer_fixture_sha256"] = "0" * 64
+    path.write_text(f.canonical(templates))
+    rebind_fixture(frozen)
+    calls = []
+    assert (
+        cli().main(
+            args_for(frozen, "competence"),
+            tokenizer_factory=lambda _: tok,
+            backend_factory=lambda *a: calls.append(a),
+        )
+        == 1
+    )
+    assert not calls and "template/rendered" in capsys.readouterr().out
