@@ -4650,8 +4650,7 @@ not yet registered), with CPU brief `tools/codex-agents/focus1-harness.md`.
 Amendment 2 adoption/source commit: `842073928340c26b153a2484f4b50079cc78c7ae`.
 The proposal section body from `data/sc1/STAGE1-CLAUSES.md` was adopted verbatim
 under Brian's requested heading. The snapshot producer requires committed source
-ranges, so adoption precedes artifact generation. Freeze commit: this artifact
-freeze commit (immutable ID to be recorded by the immediate ledger follow-up).
+ranges, so adoption precedes artifact generation. Freeze commit: `1756465b268add4a3945b75c6015554008525ae8`.
 The follow-up records the freeze ID without amending that commit or regenerating
 its artifacts; editorial status text is excluded from the science snapshot.
 
@@ -4691,3 +4690,7 @@ Bank identity (unchanged): `33ac697c5eab1d931dd66b3a18cb29a52ed8a18d2426012ae18c
 
 The freeze and pointer commits use explicit pathspecs limited to `LEDGER-PLAN.md`,
 `WORKLOG.md` and `data/sc1/`. Nothing was pushed.
+
+Final pointer verification: the freeze commit tracks all 29 `data/sc1/` files;
+`git diff --check` passed. The exact freeze ID above is recorded in this
+documentation-only follow-up; the frozen snapshot and manifest remain unchanged.
