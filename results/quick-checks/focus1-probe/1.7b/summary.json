@@ -1,0 +1,3477 @@
+{
+  "trunk": "1.7b",
+  "seed": 31031,
+  "lineage": "UNREGISTERED quick check 31. Vector fit-on: 32 synthetic operand triples from probe seed 31031; evaluated-on: separate 32 competence and 16 steering lists, disjoint by unordered operand set. No benchmark inputs or recorded benchmark responses. No fitting, training, or selection for registered FOCUS-1; best-cell choice is descriptive within this probe only.",
+  "status": "complete",
+  "vector_stats": {
+    "12": {
+      "asc_norm": 13.202558517456055,
+      "desc_norm": 14.72642993927002,
+      "cosine": 0.9650200605392456
+    },
+    "16": {
+      "asc_norm": 31.92829132080078,
+      "desc_norm": 34.05216979980469,
+      "cosine": 0.9497504234313965
+    },
+    "20": {
+      "asc_norm": 103.79176330566406,
+      "desc_norm": 115.51362609863281,
+      "cosine": 0.8937017917633057
+    }
+  },
+  "pid": 271110,
+  "numerics": "hf_compatible=True on trunk, blocks, and all RMSNorms; bf16 weights",
+  "vector_dtype": "float32; addition computed in fp32 then cast to residual dtype",
+  "layers": [
+    12,
+    16,
+    20
+  ],
+  "layer_indexing": "zero-based layer-input residual",
+  "alphas": [
+    0.5,
+    1.0,
+    2.0
+  ],
+  "max_new_tokens": 48,
+  "greedy": true,
+  "prompt_template": "<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+  "budget_minutes": 30,
+  "arm_reuse": "Each actual vector generation reused as correct/swapped; OFF reused across cells",
+  "delay_semantics": "Prompt final-position hook only; no decode hook; prompt KV retained",
+  "source_commit": "98824112131dc061ed2d81ad53ce126a2005e8c3",
+  "script_sha256": "80b3e8e29565a76c04bdbfc56aac7e22efce4ecf30d914ebb62c4d4dd1fdb3e7",
+  "elapsed_seconds": 319.6355850629043,
+  "pilot": {
+    "seconds": 1.1846075330395252,
+    "tokens": 22,
+    "projected_432_generation_seconds": 511.75045427307487,
+    "tokens_per_second": 18.571551662812155
+  },
+  "peak_cuda_allocated_bytes": 3500177920,
+  "delay_cell": {
+    "layer": 12,
+    "alpha": 0.5
+  },
+  "competence": {
+    "asc": {
+      "n": 32,
+      "counts": {
+        "asc": 0,
+        "desc": 0,
+        "copy": 0,
+        "other": 32
+      },
+      "rates": {
+        "asc": 0.0,
+        "desc": 0.0,
+        "copy": 0.0,
+        "other": 1.0
+      },
+      "invalid_json": {
+        "count": 1,
+        "rate": 0.03125
+      },
+      "integer_schema_invalid": {
+        "count": 31,
+        "rate": 0.96875
+      },
+      "strict_output_failure": {
+        "count": 32,
+        "rate": 1.0
+      },
+      "truncated": {
+        "count": 0,
+        "rate": 0.0
+      },
+      "repetition": {
+        "count": 0,
+        "rate": 0.0
+      },
+      "breakage": {
+        "count": 1,
+        "rate": 0.03125
+      },
+      "copy_or_other_rate": 1.0,
+      "target_task": "asc",
+      "follows_target_count": 0,
+      "follows_target_rate": 0.0,
+      "follows_other_rate": 0.0,
+      "injected_task": null,
+      "follows_other_than_injected_rate": null,
+      "follows_injected_task_rate": null
+    },
+    "desc": {
+      "n": 32,
+      "counts": {
+        "asc": 0,
+        "desc": 0,
+        "copy": 0,
+        "other": 32
+      },
+      "rates": {
+        "asc": 0.0,
+        "desc": 0.0,
+        "copy": 0.0,
+        "other": 1.0
+      },
+      "invalid_json": {
+        "count": 6,
+        "rate": 0.1875
+      },
+      "integer_schema_invalid": {
+        "count": 26,
+        "rate": 0.8125
+      },
+      "strict_output_failure": {
+        "count": 32,
+        "rate": 1.0
+      },
+      "truncated": {
+        "count": 0,
+        "rate": 0.0
+      },
+      "repetition": {
+        "count": 2,
+        "rate": 0.0625
+      },
+      "breakage": {
+        "count": 8,
+        "rate": 0.25
+      },
+      "copy_or_other_rate": 1.0,
+      "target_task": "desc",
+      "follows_target_count": 0,
+      "follows_target_rate": 0.0,
+      "follows_other_rate": 0.0,
+      "injected_task": null,
+      "follows_other_than_injected_rate": null,
+      "follows_injected_task_rate": null
+    },
+    "off": {
+      "n": 32,
+      "counts": {
+        "asc": 0,
+        "desc": 0,
+        "copy": 26,
+        "other": 6
+      },
+      "rates": {
+        "asc": 0.0,
+        "desc": 0.0,
+        "copy": 0.8125,
+        "other": 0.1875
+      },
+      "invalid_json": {
+        "count": 0,
+        "rate": 0.0
+      },
+      "integer_schema_invalid": {
+        "count": 4,
+        "rate": 0.125
+      },
+      "strict_output_failure": {
+        "count": 4,
+        "rate": 0.125
+      },
+      "truncated": {
+        "count": 0,
+        "rate": 0.0
+      },
+      "repetition": {
+        "count": 3,
+        "rate": 0.09375
+      },
+      "breakage": {
+        "count": 3,
+        "rate": 0.09375
+      },
+      "copy_or_other_rate": 1.0
+    }
+  },
+  "steering_off": {
+    "n": 16,
+    "counts": {
+      "asc": 0,
+      "desc": 0,
+      "copy": 12,
+      "other": 4
+    },
+    "rates": {
+      "asc": 0.0,
+      "desc": 0.0,
+      "copy": 0.75,
+      "other": 0.25
+    },
+    "invalid_json": {
+      "count": 1,
+      "rate": 0.0625
+    },
+    "integer_schema_invalid": {
+      "count": 1,
+      "rate": 0.0625
+    },
+    "strict_output_failure": {
+      "count": 2,
+      "rate": 0.125
+    },
+    "truncated": {
+      "count": 1,
+      "rate": 0.0625
+    },
+    "repetition": {
+      "count": 1,
+      "rate": 0.0625
+    },
+    "breakage": {
+      "count": 1,
+      "rate": 0.0625
+    },
+    "copy_or_other_rate": 1.0
+  },
+  "cells": [
+    {
+      "layer": 12,
+      "alpha": 0.5,
+      "tasks": {
+        "asc": {
+          "correct": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 11,
+              "other": 5
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.6875,
+              "other": 0.3125
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 3,
+              "rate": 0.1875
+            },
+            "strict_output_failure": {
+              "count": 4,
+              "rate": 0.25
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "asc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "swapped": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 11,
+              "other": 5
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.6875,
+              "other": 0.3125
+            },
+            "invalid_json": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "integer_schema_invalid": {
+              "count": 4,
+              "rate": 0.25
+            },
+            "strict_output_failure": {
+              "count": 4,
+              "rate": 0.25
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "desc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "OFF": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 12,
+              "other": 4
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.75,
+              "other": 0.25
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "strict_output_failure": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": null,
+            "follows_other_than_injected_rate": null,
+            "follows_injected_task_rate": null
+          }
+        },
+        "desc": {
+          "correct": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 11,
+              "other": 5
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.6875,
+              "other": 0.3125
+            },
+            "invalid_json": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "integer_schema_invalid": {
+              "count": 4,
+              "rate": 0.25
+            },
+            "strict_output_failure": {
+              "count": 4,
+              "rate": 0.25
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "desc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "swapped": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 11,
+              "other": 5
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.6875,
+              "other": 0.3125
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 3,
+              "rate": 0.1875
+            },
+            "strict_output_failure": {
+              "count": 4,
+              "rate": 0.25
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "asc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "OFF": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 12,
+              "other": 4
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.75,
+              "other": 0.25
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "strict_output_failure": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": null,
+            "follows_other_than_injected_rate": null,
+            "follows_injected_task_rate": null
+          }
+        }
+      },
+      "complete": true,
+      "both_target_threshold": false
+    },
+    {
+      "layer": 12,
+      "alpha": 1.0,
+      "tasks": {
+        "asc": {
+          "correct": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 9,
+              "other": 7
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.5625,
+              "other": 0.4375
+            },
+            "invalid_json": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "integer_schema_invalid": {
+              "count": 7,
+              "rate": 0.4375
+            },
+            "strict_output_failure": {
+              "count": 7,
+              "rate": 0.4375
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "asc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "swapped": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 7,
+              "other": 9
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.4375,
+              "other": 0.5625
+            },
+            "invalid_json": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "integer_schema_invalid": {
+              "count": 7,
+              "rate": 0.4375
+            },
+            "strict_output_failure": {
+              "count": 9,
+              "rate": 0.5625
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "desc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "OFF": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 12,
+              "other": 4
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.75,
+              "other": 0.25
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "strict_output_failure": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": null,
+            "follows_other_than_injected_rate": null,
+            "follows_injected_task_rate": null
+          }
+        },
+        "desc": {
+          "correct": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 7,
+              "other": 9
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.4375,
+              "other": 0.5625
+            },
+            "invalid_json": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "integer_schema_invalid": {
+              "count": 7,
+              "rate": 0.4375
+            },
+            "strict_output_failure": {
+              "count": 9,
+              "rate": 0.5625
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "desc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "swapped": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 9,
+              "other": 7
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.5625,
+              "other": 0.4375
+            },
+            "invalid_json": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "integer_schema_invalid": {
+              "count": 7,
+              "rate": 0.4375
+            },
+            "strict_output_failure": {
+              "count": 7,
+              "rate": 0.4375
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "asc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "OFF": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 12,
+              "other": 4
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.75,
+              "other": 0.25
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "strict_output_failure": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": null,
+            "follows_other_than_injected_rate": null,
+            "follows_injected_task_rate": null
+          }
+        }
+      },
+      "complete": true,
+      "both_target_threshold": false
+    },
+    {
+      "layer": 12,
+      "alpha": 2.0,
+      "tasks": {
+        "asc": {
+          "correct": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 12,
+              "other": 4
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.75,
+              "other": 0.25
+            },
+            "invalid_json": {
+              "count": 3,
+              "rate": 0.1875
+            },
+            "integer_schema_invalid": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "strict_output_failure": {
+              "count": 3,
+              "rate": 0.1875
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 3,
+              "rate": 0.1875
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "asc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "swapped": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 2,
+              "other": 14
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.125,
+              "other": 0.875
+            },
+            "invalid_json": {
+              "count": 13,
+              "rate": 0.8125
+            },
+            "integer_schema_invalid": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "strict_output_failure": {
+              "count": 13,
+              "rate": 0.8125
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 13,
+              "rate": 0.8125
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "desc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "OFF": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 12,
+              "other": 4
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.75,
+              "other": 0.25
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "strict_output_failure": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": null,
+            "follows_other_than_injected_rate": null,
+            "follows_injected_task_rate": null
+          }
+        },
+        "desc": {
+          "correct": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 2,
+              "other": 14
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.125,
+              "other": 0.875
+            },
+            "invalid_json": {
+              "count": 13,
+              "rate": 0.8125
+            },
+            "integer_schema_invalid": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "strict_output_failure": {
+              "count": 13,
+              "rate": 0.8125
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 13,
+              "rate": 0.8125
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "desc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "swapped": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 12,
+              "other": 4
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.75,
+              "other": 0.25
+            },
+            "invalid_json": {
+              "count": 3,
+              "rate": 0.1875
+            },
+            "integer_schema_invalid": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "strict_output_failure": {
+              "count": 3,
+              "rate": 0.1875
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 3,
+              "rate": 0.1875
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "asc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "OFF": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 12,
+              "other": 4
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.75,
+              "other": 0.25
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "strict_output_failure": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": null,
+            "follows_other_than_injected_rate": null,
+            "follows_injected_task_rate": null
+          }
+        }
+      },
+      "complete": true,
+      "both_target_threshold": false
+    },
+    {
+      "layer": 16,
+      "alpha": 0.5,
+      "tasks": {
+        "asc": {
+          "correct": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 7,
+              "other": 9
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.4375,
+              "other": 0.5625
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 7,
+              "rate": 0.4375
+            },
+            "strict_output_failure": {
+              "count": 8,
+              "rate": 0.5
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "asc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "swapped": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 4,
+              "other": 12
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.25,
+              "other": 0.75
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 10,
+              "rate": 0.625
+            },
+            "strict_output_failure": {
+              "count": 11,
+              "rate": 0.6875
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "desc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "OFF": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 12,
+              "other": 4
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.75,
+              "other": 0.25
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "strict_output_failure": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": null,
+            "follows_other_than_injected_rate": null,
+            "follows_injected_task_rate": null
+          }
+        },
+        "desc": {
+          "correct": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 4,
+              "other": 12
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.25,
+              "other": 0.75
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 10,
+              "rate": 0.625
+            },
+            "strict_output_failure": {
+              "count": 11,
+              "rate": 0.6875
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "desc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "swapped": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 7,
+              "other": 9
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.4375,
+              "other": 0.5625
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 7,
+              "rate": 0.4375
+            },
+            "strict_output_failure": {
+              "count": 8,
+              "rate": 0.5
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "asc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "OFF": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 12,
+              "other": 4
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.75,
+              "other": 0.25
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "strict_output_failure": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": null,
+            "follows_other_than_injected_rate": null,
+            "follows_injected_task_rate": null
+          }
+        }
+      },
+      "complete": true,
+      "both_target_threshold": false
+    },
+    {
+      "layer": 16,
+      "alpha": 1.0,
+      "tasks": {
+        "asc": {
+          "correct": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 1,
+              "other": 15
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.0625,
+              "other": 0.9375
+            },
+            "invalid_json": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "integer_schema_invalid": {
+              "count": 15,
+              "rate": 0.9375
+            },
+            "strict_output_failure": {
+              "count": 15,
+              "rate": 0.9375
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "asc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "swapped": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 0,
+              "other": 16
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.0,
+              "other": 1.0
+            },
+            "invalid_json": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "integer_schema_invalid": {
+              "count": 16,
+              "rate": 1.0
+            },
+            "strict_output_failure": {
+              "count": 16,
+              "rate": 1.0
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "desc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "OFF": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 12,
+              "other": 4
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.75,
+              "other": 0.25
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "strict_output_failure": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": null,
+            "follows_other_than_injected_rate": null,
+            "follows_injected_task_rate": null
+          }
+        },
+        "desc": {
+          "correct": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 0,
+              "other": 16
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.0,
+              "other": 1.0
+            },
+            "invalid_json": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "integer_schema_invalid": {
+              "count": 16,
+              "rate": 1.0
+            },
+            "strict_output_failure": {
+              "count": 16,
+              "rate": 1.0
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "desc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "swapped": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 1,
+              "other": 15
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.0625,
+              "other": 0.9375
+            },
+            "invalid_json": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "integer_schema_invalid": {
+              "count": 15,
+              "rate": 0.9375
+            },
+            "strict_output_failure": {
+              "count": 15,
+              "rate": 0.9375
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "asc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "OFF": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 12,
+              "other": 4
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.75,
+              "other": 0.25
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "strict_output_failure": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": null,
+            "follows_other_than_injected_rate": null,
+            "follows_injected_task_rate": null
+          }
+        }
+      },
+      "complete": true,
+      "both_target_threshold": false
+    },
+    {
+      "layer": 16,
+      "alpha": 2.0,
+      "tasks": {
+        "asc": {
+          "correct": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 0,
+              "other": 16
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.0,
+              "other": 1.0
+            },
+            "invalid_json": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "integer_schema_invalid": {
+              "count": 16,
+              "rate": 1.0
+            },
+            "strict_output_failure": {
+              "count": 16,
+              "rate": 1.0
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "asc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "swapped": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 0,
+              "other": 16
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.0,
+              "other": 1.0
+            },
+            "invalid_json": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "integer_schema_invalid": {
+              "count": 14,
+              "rate": 0.875
+            },
+            "strict_output_failure": {
+              "count": 16,
+              "rate": 1.0
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "desc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "OFF": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 12,
+              "other": 4
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.75,
+              "other": 0.25
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "strict_output_failure": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": null,
+            "follows_other_than_injected_rate": null,
+            "follows_injected_task_rate": null
+          }
+        },
+        "desc": {
+          "correct": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 0,
+              "other": 16
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.0,
+              "other": 1.0
+            },
+            "invalid_json": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "integer_schema_invalid": {
+              "count": 14,
+              "rate": 0.875
+            },
+            "strict_output_failure": {
+              "count": 16,
+              "rate": 1.0
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "desc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "swapped": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 0,
+              "other": 16
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.0,
+              "other": 1.0
+            },
+            "invalid_json": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "integer_schema_invalid": {
+              "count": 16,
+              "rate": 1.0
+            },
+            "strict_output_failure": {
+              "count": 16,
+              "rate": 1.0
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "asc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "OFF": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 12,
+              "other": 4
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.75,
+              "other": 0.25
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "strict_output_failure": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": null,
+            "follows_other_than_injected_rate": null,
+            "follows_injected_task_rate": null
+          }
+        }
+      },
+      "complete": true,
+      "both_target_threshold": false
+    },
+    {
+      "layer": 20,
+      "alpha": 0.5,
+      "tasks": {
+        "asc": {
+          "correct": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 4,
+              "other": 12
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.25,
+              "other": 0.75
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 11,
+              "rate": 0.6875
+            },
+            "strict_output_failure": {
+              "count": 12,
+              "rate": 0.75
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "asc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "swapped": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 3,
+              "other": 13
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.1875,
+              "other": 0.8125
+            },
+            "invalid_json": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "integer_schema_invalid": {
+              "count": 13,
+              "rate": 0.8125
+            },
+            "strict_output_failure": {
+              "count": 13,
+              "rate": 0.8125
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "desc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "OFF": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 12,
+              "other": 4
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.75,
+              "other": 0.25
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "strict_output_failure": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": null,
+            "follows_other_than_injected_rate": null,
+            "follows_injected_task_rate": null
+          }
+        },
+        "desc": {
+          "correct": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 3,
+              "other": 13
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.1875,
+              "other": 0.8125
+            },
+            "invalid_json": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "integer_schema_invalid": {
+              "count": 13,
+              "rate": 0.8125
+            },
+            "strict_output_failure": {
+              "count": 13,
+              "rate": 0.8125
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "desc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "swapped": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 4,
+              "other": 12
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.25,
+              "other": 0.75
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 11,
+              "rate": 0.6875
+            },
+            "strict_output_failure": {
+              "count": 12,
+              "rate": 0.75
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "asc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "OFF": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 12,
+              "other": 4
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.75,
+              "other": 0.25
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "strict_output_failure": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": null,
+            "follows_other_than_injected_rate": null,
+            "follows_injected_task_rate": null
+          }
+        }
+      },
+      "complete": true,
+      "both_target_threshold": false
+    },
+    {
+      "layer": 20,
+      "alpha": 1.0,
+      "tasks": {
+        "asc": {
+          "correct": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 0,
+              "other": 16
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.0,
+              "other": 1.0
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 15,
+              "rate": 0.9375
+            },
+            "strict_output_failure": {
+              "count": 16,
+              "rate": 1.0
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "asc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "swapped": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 0,
+              "other": 16
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.0,
+              "other": 1.0
+            },
+            "invalid_json": {
+              "count": 4,
+              "rate": 0.25
+            },
+            "integer_schema_invalid": {
+              "count": 12,
+              "rate": 0.75
+            },
+            "strict_output_failure": {
+              "count": 16,
+              "rate": 1.0
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 4,
+              "rate": 0.25
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "desc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "OFF": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 12,
+              "other": 4
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.75,
+              "other": 0.25
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "strict_output_failure": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": null,
+            "follows_other_than_injected_rate": null,
+            "follows_injected_task_rate": null
+          }
+        },
+        "desc": {
+          "correct": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 0,
+              "other": 16
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.0,
+              "other": 1.0
+            },
+            "invalid_json": {
+              "count": 4,
+              "rate": 0.25
+            },
+            "integer_schema_invalid": {
+              "count": 12,
+              "rate": 0.75
+            },
+            "strict_output_failure": {
+              "count": 16,
+              "rate": 1.0
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 4,
+              "rate": 0.25
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "desc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "swapped": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 0,
+              "other": 16
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.0,
+              "other": 1.0
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 15,
+              "rate": 0.9375
+            },
+            "strict_output_failure": {
+              "count": 16,
+              "rate": 1.0
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "asc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "OFF": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 12,
+              "other": 4
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.75,
+              "other": 0.25
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "strict_output_failure": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": null,
+            "follows_other_than_injected_rate": null,
+            "follows_injected_task_rate": null
+          }
+        }
+      },
+      "complete": true,
+      "both_target_threshold": false
+    },
+    {
+      "layer": 20,
+      "alpha": 2.0,
+      "tasks": {
+        "asc": {
+          "correct": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 0,
+              "other": 16
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.0,
+              "other": 1.0
+            },
+            "invalid_json": {
+              "count": 12,
+              "rate": 0.75
+            },
+            "integer_schema_invalid": {
+              "count": 4,
+              "rate": 0.25
+            },
+            "strict_output_failure": {
+              "count": 16,
+              "rate": 1.0
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 12,
+              "rate": 0.75
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "asc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "swapped": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 0,
+              "other": 16
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.0,
+              "other": 1.0
+            },
+            "invalid_json": {
+              "count": 16,
+              "rate": 1.0
+            },
+            "integer_schema_invalid": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "strict_output_failure": {
+              "count": 16,
+              "rate": 1.0
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 16,
+              "rate": 1.0
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "desc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "OFF": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 12,
+              "other": 4
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.75,
+              "other": 0.25
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "strict_output_failure": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "asc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": null,
+            "follows_other_than_injected_rate": null,
+            "follows_injected_task_rate": null
+          }
+        },
+        "desc": {
+          "correct": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 0,
+              "other": 16
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.0,
+              "other": 1.0
+            },
+            "invalid_json": {
+              "count": 16,
+              "rate": 1.0
+            },
+            "integer_schema_invalid": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "strict_output_failure": {
+              "count": 16,
+              "rate": 1.0
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 16,
+              "rate": 1.0
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "desc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "swapped": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 0,
+              "other": 16
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.0,
+              "other": 1.0
+            },
+            "invalid_json": {
+              "count": 12,
+              "rate": 0.75
+            },
+            "integer_schema_invalid": {
+              "count": 4,
+              "rate": 0.25
+            },
+            "strict_output_failure": {
+              "count": 16,
+              "rate": 1.0
+            },
+            "truncated": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "repetition": {
+              "count": 0,
+              "rate": 0.0
+            },
+            "breakage": {
+              "count": 12,
+              "rate": 0.75
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": "asc",
+            "follows_other_than_injected_rate": 0.0,
+            "follows_injected_task_rate": 0.0,
+            "paired_vs_OFF": {
+              "n": 16,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "OFF": {
+            "n": 16,
+            "counts": {
+              "asc": 0,
+              "desc": 0,
+              "copy": 12,
+              "other": 4
+            },
+            "rates": {
+              "asc": 0.0,
+              "desc": 0.0,
+              "copy": 0.75,
+              "other": 0.25
+            },
+            "invalid_json": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "integer_schema_invalid": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "strict_output_failure": {
+              "count": 2,
+              "rate": 0.125
+            },
+            "truncated": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "repetition": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "breakage": {
+              "count": 1,
+              "rate": 0.0625
+            },
+            "copy_or_other_rate": 1.0,
+            "target_task": "desc",
+            "follows_target_count": 0,
+            "follows_target_rate": 0.0,
+            "follows_other_rate": 0.0,
+            "injected_task": null,
+            "follows_other_than_injected_rate": null,
+            "follows_injected_task_rate": null
+          }
+        }
+      },
+      "complete": true,
+      "both_target_threshold": false
+    }
+  ],
+  "best_cell": {
+    "layer": 12,
+    "alpha": 0.5,
+    "tasks": {
+      "asc": {
+        "correct": {
+          "n": 16,
+          "counts": {
+            "asc": 0,
+            "desc": 0,
+            "copy": 11,
+            "other": 5
+          },
+          "rates": {
+            "asc": 0.0,
+            "desc": 0.0,
+            "copy": 0.6875,
+            "other": 0.3125
+          },
+          "invalid_json": {
+            "count": 1,
+            "rate": 0.0625
+          },
+          "integer_schema_invalid": {
+            "count": 3,
+            "rate": 0.1875
+          },
+          "strict_output_failure": {
+            "count": 4,
+            "rate": 0.25
+          },
+          "truncated": {
+            "count": 1,
+            "rate": 0.0625
+          },
+          "repetition": {
+            "count": 1,
+            "rate": 0.0625
+          },
+          "breakage": {
+            "count": 1,
+            "rate": 0.0625
+          },
+          "copy_or_other_rate": 1.0,
+          "target_task": "asc",
+          "follows_target_count": 0,
+          "follows_target_rate": 0.0,
+          "follows_other_rate": 0.0,
+          "injected_task": "asc",
+          "follows_other_than_injected_rate": 0.0,
+          "follows_injected_task_rate": 0.0,
+          "paired_vs_OFF": {
+            "n": 16,
+            "wins": 0,
+            "losses": 0
+          }
+        },
+        "swapped": {
+          "n": 16,
+          "counts": {
+            "asc": 0,
+            "desc": 0,
+            "copy": 11,
+            "other": 5
+          },
+          "rates": {
+            "asc": 0.0,
+            "desc": 0.0,
+            "copy": 0.6875,
+            "other": 0.3125
+          },
+          "invalid_json": {
+            "count": 0,
+            "rate": 0.0
+          },
+          "integer_schema_invalid": {
+            "count": 4,
+            "rate": 0.25
+          },
+          "strict_output_failure": {
+            "count": 4,
+            "rate": 0.25
+          },
+          "truncated": {
+            "count": 0,
+            "rate": 0.0
+          },
+          "repetition": {
+            "count": 0,
+            "rate": 0.0
+          },
+          "breakage": {
+            "count": 0,
+            "rate": 0.0
+          },
+          "copy_or_other_rate": 1.0,
+          "target_task": "asc",
+          "follows_target_count": 0,
+          "follows_target_rate": 0.0,
+          "follows_other_rate": 0.0,
+          "injected_task": "desc",
+          "follows_other_than_injected_rate": 0.0,
+          "follows_injected_task_rate": 0.0,
+          "paired_vs_OFF": {
+            "n": 16,
+            "wins": 0,
+            "losses": 0
+          }
+        },
+        "OFF": {
+          "n": 16,
+          "counts": {
+            "asc": 0,
+            "desc": 0,
+            "copy": 12,
+            "other": 4
+          },
+          "rates": {
+            "asc": 0.0,
+            "desc": 0.0,
+            "copy": 0.75,
+            "other": 0.25
+          },
+          "invalid_json": {
+            "count": 1,
+            "rate": 0.0625
+          },
+          "integer_schema_invalid": {
+            "count": 1,
+            "rate": 0.0625
+          },
+          "strict_output_failure": {
+            "count": 2,
+            "rate": 0.125
+          },
+          "truncated": {
+            "count": 1,
+            "rate": 0.0625
+          },
+          "repetition": {
+            "count": 1,
+            "rate": 0.0625
+          },
+          "breakage": {
+            "count": 1,
+            "rate": 0.0625
+          },
+          "copy_or_other_rate": 1.0,
+          "target_task": "asc",
+          "follows_target_count": 0,
+          "follows_target_rate": 0.0,
+          "follows_other_rate": 0.0,
+          "injected_task": null,
+          "follows_other_than_injected_rate": null,
+          "follows_injected_task_rate": null
+        }
+      },
+      "desc": {
+        "correct": {
+          "n": 16,
+          "counts": {
+            "asc": 0,
+            "desc": 0,
+            "copy": 11,
+            "other": 5
+          },
+          "rates": {
+            "asc": 0.0,
+            "desc": 0.0,
+            "copy": 0.6875,
+            "other": 0.3125
+          },
+          "invalid_json": {
+            "count": 0,
+            "rate": 0.0
+          },
+          "integer_schema_invalid": {
+            "count": 4,
+            "rate": 0.25
+          },
+          "strict_output_failure": {
+            "count": 4,
+            "rate": 0.25
+          },
+          "truncated": {
+            "count": 0,
+            "rate": 0.0
+          },
+          "repetition": {
+            "count": 0,
+            "rate": 0.0
+          },
+          "breakage": {
+            "count": 0,
+            "rate": 0.0
+          },
+          "copy_or_other_rate": 1.0,
+          "target_task": "desc",
+          "follows_target_count": 0,
+          "follows_target_rate": 0.0,
+          "follows_other_rate": 0.0,
+          "injected_task": "desc",
+          "follows_other_than_injected_rate": 0.0,
+          "follows_injected_task_rate": 0.0,
+          "paired_vs_OFF": {
+            "n": 16,
+            "wins": 0,
+            "losses": 0
+          }
+        },
+        "swapped": {
+          "n": 16,
+          "counts": {
+            "asc": 0,
+            "desc": 0,
+            "copy": 11,
+            "other": 5
+          },
+          "rates": {
+            "asc": 0.0,
+            "desc": 0.0,
+            "copy": 0.6875,
+            "other": 0.3125
+          },
+          "invalid_json": {
+            "count": 1,
+            "rate": 0.0625
+          },
+          "integer_schema_invalid": {
+            "count": 3,
+            "rate": 0.1875
+          },
+          "strict_output_failure": {
+            "count": 4,
+            "rate": 0.25
+          },
+          "truncated": {
+            "count": 1,
+            "rate": 0.0625
+          },
+          "repetition": {
+            "count": 1,
+            "rate": 0.0625
+          },
+          "breakage": {
+            "count": 1,
+            "rate": 0.0625
+          },
+          "copy_or_other_rate": 1.0,
+          "target_task": "desc",
+          "follows_target_count": 0,
+          "follows_target_rate": 0.0,
+          "follows_other_rate": 0.0,
+          "injected_task": "asc",
+          "follows_other_than_injected_rate": 0.0,
+          "follows_injected_task_rate": 0.0,
+          "paired_vs_OFF": {
+            "n": 16,
+            "wins": 0,
+            "losses": 0
+          }
+        },
+        "OFF": {
+          "n": 16,
+          "counts": {
+            "asc": 0,
+            "desc": 0,
+            "copy": 12,
+            "other": 4
+          },
+          "rates": {
+            "asc": 0.0,
+            "desc": 0.0,
+            "copy": 0.75,
+            "other": 0.25
+          },
+          "invalid_json": {
+            "count": 1,
+            "rate": 0.0625
+          },
+          "integer_schema_invalid": {
+            "count": 1,
+            "rate": 0.0625
+          },
+          "strict_output_failure": {
+            "count": 2,
+            "rate": 0.125
+          },
+          "truncated": {
+            "count": 1,
+            "rate": 0.0625
+          },
+          "repetition": {
+            "count": 1,
+            "rate": 0.0625
+          },
+          "breakage": {
+            "count": 1,
+            "rate": 0.0625
+          },
+          "copy_or_other_rate": 1.0,
+          "target_task": "desc",
+          "follows_target_count": 0,
+          "follows_target_rate": 0.0,
+          "follows_other_rate": 0.0,
+          "injected_task": null,
+          "follows_other_than_injected_rate": null,
+          "follows_injected_task_rate": null
+        }
+      }
+    },
+    "complete": true,
+    "both_target_threshold": false
+  },
+  "reading": "INFEASIBLE",
+  "reading_rule": "FEASIBLE: same layer/alpha correct arms achieve both tasks >=12/16, each breakage <=1/16. OFF and paired flips reported separately; a task already the default need not improve. Otherwise MARGINAL if weaker-task success >=8/16 or run partial; INFEASIBLE otherwise. Descriptive only.",
+  "delay": {
+    "asc": {
+      "n": 16,
+      "counts": {
+        "asc": 0,
+        "desc": 0,
+        "copy": 10,
+        "other": 6
+      },
+      "rates": {
+        "asc": 0.0,
+        "desc": 0.0,
+        "copy": 0.625,
+        "other": 0.375
+      },
+      "invalid_json": {
+        "count": 1,
+        "rate": 0.0625
+      },
+      "integer_schema_invalid": {
+        "count": 4,
+        "rate": 0.25
+      },
+      "strict_output_failure": {
+        "count": 5,
+        "rate": 0.3125
+      },
+      "truncated": {
+        "count": 1,
+        "rate": 0.0625
+      },
+      "repetition": {
+        "count": 1,
+        "rate": 0.0625
+      },
+      "breakage": {
+        "count": 1,
+        "rate": 0.0625
+      },
+      "copy_or_other_rate": 1.0,
+      "target_task": "asc",
+      "follows_target_count": 0,
+      "follows_target_rate": 0.0,
+      "follows_other_rate": 0.0,
+      "injected_task": "asc",
+      "follows_other_than_injected_rate": 0.0,
+      "follows_injected_task_rate": 0.0
+    },
+    "desc": {
+      "n": 16,
+      "counts": {
+        "asc": 0,
+        "desc": 0,
+        "copy": 9,
+        "other": 7
+      },
+      "rates": {
+        "asc": 0.0,
+        "desc": 0.0,
+        "copy": 0.5625,
+        "other": 0.4375
+      },
+      "invalid_json": {
+        "count": 1,
+        "rate": 0.0625
+      },
+      "integer_schema_invalid": {
+        "count": 5,
+        "rate": 0.3125
+      },
+      "strict_output_failure": {
+        "count": 6,
+        "rate": 0.375
+      },
+      "truncated": {
+        "count": 1,
+        "rate": 0.0625
+      },
+      "repetition": {
+        "count": 1,
+        "rate": 0.0625
+      },
+      "breakage": {
+        "count": 1,
+        "rate": 0.0625
+      },
+      "copy_or_other_rate": 1.0,
+      "target_task": "desc",
+      "follows_target_count": 0,
+      "follows_target_rate": 0.0,
+      "follows_other_rate": 0.0,
+      "injected_task": "desc",
+      "follows_other_than_injected_rate": 0.0,
+      "follows_injected_task_rate": 0.0
+    }
+  },
+  "scoring_correction": {
+    "description": "After generation, separate JSON syntax invalidity from integer-array schema invalidity. Exact labels unchanged. Original all-output-failure tie-break retained as strict_output_failure; original selected delay cell unchanged. Original score retained per row; original summary and execution source archived.",
+    "corrected_scoring_script_sha256": "2f98b72a7da9a5674ed2daffb02d9724a6ee6a126ec050b4c678f0e91c5938d8"
+  }
+}

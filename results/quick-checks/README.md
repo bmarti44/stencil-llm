@@ -273,3 +273,9 @@ spec change did not teach (all seeds miss it).
    with 2/20 truncations. Type metadata selected these activation vectors. These outcomes justify ending this
    engineering branch for now; they do not rule out all activation steering or test Miller's biological mechanism.
    Note: residual-vector steering changes activations, not weights. Re-injection stands.
+
+31. UNREGISTERED FOCUS-1 feasibility (Brian approved 2026-09-05; seed 31031; focus1-probe/README.md):
+   1.7B cue asc/desc 0/32, 0/32; 4B 27/32, 30/32. Held cue-absent copy: 12/16 and 16/16.
+   Both trunks: every sustained steering direction 0/16 exact; prompt-only directions also 0/16 -> INFEASIBLE.
+   4B is the better competence baseline; no useful steering cell. Complete in 5.33 / 9.73 GPU-min, respectively.
+   Probe-only disjoint synthetic fit/eval lists; no registered FOCUS-1 selection. JSON/schema correction disclosed.

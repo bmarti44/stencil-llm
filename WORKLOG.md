@@ -4712,3 +4712,12 @@ No fitting/training, model/GPU process, sealed IFEval/BFCL input read, backgroun
 - FOCUS-1 harness landed (astra coder, d723365 + e3cd09e): src/stencil/focus1.py, scripts/focus1.py,
   tests/test_focus1.py; CPU-validated; model stages deferred. Sent to fable (text v2 + harness) and a fresh astra
   session (harness) for review. GPU idle since the preflight ended.
+
+## 2026-09-05 — Quick check 31 — unregistered FOCUS-1 feasibility
+Data lineage: fit-on=32 seed-31031 synthetic triples; evaluated-on=32 competence + 16 disjoint held lists; no benchmark inputs.
+Brian-approved foreground probe on idle GPU; bf16/hf_compatible trunks, fp32 vectors, greedy ≤48 tokens; no registered FOCUS-1 selection.
+1.7B: cue asc/desc 0/32, 0/32; 4B: 27/32, 30/32. Every sustained/delay direction 0/16 exact: both INFEASIBLE on this grid.
+Completed in 5.33 / 9.73 GPU-min. 4B has better competence; no useful cell (descriptive tie-break L16, α=2).
+1.7B JSON/schema scoring correction preserves exact scores and chosen delay cell; original scores/source retained.
+Validation: 864 rows, 192 extraction prompts, 12 fp32 vectors, caps/hooks, all summaries, source hashes and CPU/lint smokes passed.
+Artifacts: results/quick-checks/focus1-probe/; explicit-pathspec commit only; no sealed input read, process signal, or push.
