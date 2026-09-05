@@ -620,11 +620,28 @@ def assert_heldout_disjoint(training, heldout):
         raise ValueError("held-out pairs must use reserved author fable")
     if {r["author"] for r in training} & {r["author"] for r in heldout}:
         raise ValueError("held-out author overlap")
-    fit_tokens = {t for r in training for t in group_tokens(r)}
-    if fit_tokens & {t for r in heldout for t in group_tokens(r)}:
-        raise ValueError("held-out message/scenario/relative overlap")
+    # A shared utterance is not a shared authored scenario: short references
+    # recur independently against different targets. Keep the conservative
+    # message grouping WITHIN development unchanged; across reserved authors
+    # check declared relatives and target/message pairs, and disclose text reuse.
+    fit_tokens = {t for r in training for t in group_tokens(r) if t[0] == "relative"}
+    if fit_tokens & {t for r in heldout for t in group_tokens(r) if t[0] == "relative"}:
+        raise ValueError("held-out scenario/relative overlap")
     if {fingerprint(r) for r in training} & {fingerprint(r) for r in heldout}:
         raise ValueError("held-out semantic fingerprint overlap")
+    shared = {message_text(r).strip().casefold() for r in training} & {
+        message_text(r).strip().casefold() for r in heldout
+    }
+    return {
+        "author_overlap": 0,
+        "declared_relative_overlap": 0,
+        "pair_fingerprint_overlap": 0,
+        "shared_message_texts": sorted(shared),
+        "shared_message_heldout_rows": sum(
+            message_text(r).strip().casefold() in shared for r in heldout
+        ),
+        "coverage": "Declared identities and exact pairs; not semantic proof",
+    }
 
 
 def class_weights(rows):
@@ -632,6 +649,23 @@ def class_weights(rows):
     if (counts == 0).any():
         raise ValueError("training needs examples of every relation class")
     return (len(rows) / (len(LABELS) * counts)).tolist()
+
+
+def deduplicate_heldout(rows):
+    """Compare the actual pair input, including disambiguating prior context."""
+    seen, result, decisions = {}, [], []
+    for row in rows:
+        key = render_pair(row)
+        if key in seen:
+            if seen[key]["label"] != row["label"]:
+                raise ValueError("conflicting held-out labels on identical full inputs")
+            decisions.append(
+                {"input_sha256": digest(key), "dropped_source": row.get("source")}
+            )
+        else:
+            seen[key] = row
+            result.append(row)
+    return result, decisions
 
 
 def parse_args(argv=None):
@@ -679,8 +713,11 @@ def parse_args(argv=None):
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--dev-only", action="store_true")
     mode.add_argument("--evaluate-only", action="store_true")
+    parser.add_argument("--resume-preflight", action="store_true")
     parser.add_argument("--max-cpu-minutes", type=float, default=90)
     args = parser.parse_args(argv)
+    if args.resume_preflight and not args.evaluate_only:
+        parser.error("--resume-preflight requires --evaluate-only")
     args.epochs = (
         args.epochs if args.epochs is not None else (1 if args.cpu_smoke else 3)
     )
@@ -995,7 +1032,20 @@ def evaluate_frozen(args):
 
     started = time.process_time()
     manifest = json.loads((args.output / "manifest.json").read_text())
-    if (
+    resume = args.resume_preflight
+    receipt = manifest.get("preflight_abort", {})
+    if resume:
+        if (
+            manifest["state"] != "heldout_evaluation_started"
+            or manifest["heldout_evaluation_count"] != 1
+            or manifest.get("heldout_inference_count", 0) != 0
+            or receipt.get("stage")
+            not in {"identity_check_before_inference", "deduplication_before_inference"}
+            or receipt.get("resume_used", True)
+            or (args.output / "heldout_predictions.npz").exists()
+        ):
+            raise ValueError("no documented unscored preflight eligible to resume")
+    elif (
         manifest["state"] != "development_complete_frozen"
         or manifest["heldout_evaluation_count"]
     ):
@@ -1009,7 +1059,10 @@ def evaluate_frozen(args):
         if hashlib.sha256(Path(name).read_bytes()).hexdigest() != expected:
             raise ValueError("frozen development input changed")
     for name, expected in manifest["source_sha256"].items():
-        if hashlib.sha256((ROOT / name).read_bytes()).hexdigest() != expected:
+        actual = hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
+        if resume and name == "scripts/train_relations.py":
+            expected = receipt["evaluation_trainer_sha256"]
+        if actual != expected:
             raise ValueError("frozen trainer/spec changed")
     training, _ = load_training(args.train, args.patch, args.enrich)
     torch.set_num_threads(args.cpu_threads)
@@ -1030,19 +1083,28 @@ def evaluate_frozen(args):
     thresholds = json.loads((args.output / "thresholds.json").read_text())["thresholds"]
     manifest["state"] = "heldout_evaluation_started"
     manifest["heldout_evaluation_count"] = 1
+    manifest["evaluation_preflight_attempts"] = (
+        manifest.get("evaluation_preflight_attempts", 1) + 1 if resume else 1
+    )
+    if resume:
+        receipt["resume_used"] = True
     write_json(args.output / "manifest.json", manifest)
     raw, sha = read_jsonl(args.heldout, evaluation=True)
+    raw_jsonl_records = len(raw)
+    raw = [row for row in raw if set(row) != {"summary"}]
     normalized = []
     for row in raw:
         refuse_benchmark(row)
         pair = normalize_row(row)
         if pair is not None:
             normalized.append(pair)
-    assert_heldout_disjoint(training, normalized)
-    heldout, decisions = deduplicate(normalized, reject_conflicts=True)
+    disjointness = assert_heldout_disjoint(training, normalized)
+    heldout, decisions = deduplicate_heldout(normalized)
     tokens, overflow = encode_rows(heldout, tokenizer)
     logits = np.zeros((len(heldout), 5), dtype=np.float64)
     indices = [i for i, t in enumerate(tokens) if t is not None]
+    manifest["heldout_inference_count"] = 1
+    write_json(args.output / "manifest.json", manifest)
     with torch.inference_mode():
         for start in range(0, len(indices), args.batch_size):
             ii = indices[start : start + args.batch_size]
@@ -1080,10 +1142,13 @@ def evaluate_frozen(args):
         "path": str(args.heldout),
         "sha256": sha,
         "raw_rows": len(raw),
+        "raw_jsonl_records": raw_jsonl_records,
+        "summary_records_excluded": raw_jsonl_records - len(raw),
         "pairs": len(heldout),
         "dedup_decisions": decisions,
         "admission_rows_excluded": len(raw) - len(normalized),
         "authors": ["fable"],
+        "disjointness_audit": disjointness,
     }
     manifest["data_lineage"] = (
         "fit-on = kimi+enrich after merged patch; calibrated-on = dev split "

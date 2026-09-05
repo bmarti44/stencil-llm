@@ -272,6 +272,40 @@ def test_admission_separate_and_heldout_disjointness():
         tr.assert_heldout_disjoint(fit, held)
 
 
+def test_cross_author_shared_utterance_requires_distinct_pairs_and_relatives():
+    fit = [tr.normalize_row(row(message="Continue.", scenario_id="fit-scene"))]
+    held = [
+        tr.normalize_row(
+            row(
+                message="Continue.",
+                old_rule="Use blue ink",
+                author="fable",
+                scenario_id="held-scene",
+            )
+        )
+    ]
+    audit = tr.assert_heldout_disjoint(fit, held)
+    assert audit["shared_message_texts"] == ["continue."]
+    assert audit["pair_fingerprint_overlap"] == 0
+    with pytest.raises(ValueError, match="scenario/relative"):
+        tr.assert_heldout_disjoint(fit, [dict(held[0], scenario_id="fit-scene")])
+    with pytest.raises(ValueError, match="fingerprint"):
+        tr.assert_heldout_disjoint(fit, [dict(held[0], old_rule=fit[0]["old_rule"])])
+
+
+def test_heldout_dedup_preserves_distinct_visible_context_and_rejects_conflicts():
+    a = tr.normalize_row(
+        row(
+            message="Continue.", prev_user="Use blue ink.", label="none", author="fable"
+        )
+    )
+    b = dict(a, prev_user="Use square bullets instead.", label="supersedes")
+    kept, decisions = tr.deduplicate_heldout([a, b, dict(a)])
+    assert kept == [a, b] and len(decisions) == 1
+    with pytest.raises(ValueError, match="identical full inputs"):
+        tr.deduplicate_heldout([a, dict(a, label="cancels")])
+
+
 def test_import_safe_and_cpu_defaults():
     from tests.test_no_side_effect_imports import top_level_work
 

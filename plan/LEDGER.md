@@ -99,3 +99,33 @@ pair fingerprints; record message-only collisions rather than conflating
 independently authored targets. Resume this unscored evaluation through an
 explicit preflight-resume receipt, retaining the evaluation counter of one and
 recording two preflight attempts. No data row, split, weight or threshold changes.
+
+2026-09-05 — STATE: FINAL EVALUATION COMPLETE; REPORT/METADATA READY TO COMMIT.
+A second preflight aborted before inference: two coarse old-rule/message keys
+had different prior-user contexts and thus different full model inputs. Fixed
+evaluation-only dedup to use render_pair; all 594 pairs retained with original
+labels. Training functions verified AST-identical to commit 10c2d39. One metadata
+header excluded separately (595 JSONL records / 594 pair rows / 0 admission-only).
+Both aborted preflights and source hashes remain in manifest receipts. The third
+preflight succeeded: exactly ONE inference pass, evaluation counter 1, inference
+counter 1, 1.163 CPU-minutes. Seed 0 held-out argmax 482/594 = 81.14%; registered
+.98 operating accuracy 255/594 = 42.93%, zero positive predictions/recall,
+0/255 none-FP, 0/234 hard-negative FP, zero overflow. Argmax none-FP 84/255.
+No held-out scores informed training, calibration, checkpoint selection or repairs;
+all repairs preceded the first inference and affected identity preflight only.
+Report is 50 lines and says NOT READY for the register; the 64-episode gate and
+admission are untested. Metadata includes all dev stability measurements, source,
+data/checkpoint hashes, effective label/scope/admission counts and full metrics.
+Final local commit will include metadata/report/evaluation repair with explicit
+pathspecs; safetensors and raw predictions remain local, WORKLOG.md untouched,
+no push. Fitting source/data/spec/reconciliation already committed in 10c2d39.
+
+2026-09-05 — STATE: CPU RELATION TASK COMPLETE IN THIS COMMIT; REGISTER NOT READY.
+Final verification: 33 targeted tests pass, one expected failure; lint and diff
+checks green. Verified every seed-0 artifact/input hash, both stability checkpoint
+hashes, preserved fitting source via 10c2d39, current evaluation source hash,
+per-seed CPU budgets, 594-row confusion total, and report length (50 lines).
+One held-out inference after two documented unscored preflight failures; no
+post-score changes to data/model/thresholds. This commit lands final metadata,
+report and evaluation-only guard fixes. Next: no further run authorized by this
+task; any future development must preserve the already-used held-out boundary.
