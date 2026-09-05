@@ -895,6 +895,10 @@ def test_fable_h1_pressure_binds_on_every_smoke_episode(real_tokenizer):
         layout = sc1.render_episode(ep, real_tokenizer)
         universe, _ = sc1.build_sc1_candidates(layout, real_tokenizer)
         assert sum(c["span"][1] - c["span"][0] for c in universe) >= 2 * layout["B"]
+        newest = max(c["message_index"] for c in universe if c["role"] == "user")
+        assert ep["layout_audit"]["newest_eligible_old_user_turn"] == newest
+        assert newest not in ep["filler_manifest"]["turns"]
+        assert not any(s in ep["turns"][newest]["text"] for s in episodes.FILLER)
         rule = sc1.select_policy(layout, real_tokenizer, "rule")
         clf = sc1.select_policy(
             layout, real_tokenizer, "clf", lambda t, **kw: [1.0] * len(t)
@@ -2247,6 +2251,7 @@ def test_fable_n1_pressure_composition_report(source, real_tokenizer, tmp_path):
 
 def test_fable_n2_capacity_guidance_and_error(source, real_tokenizer):
     source["filler_turns"] = [3, 4, 5]
+    source["turns"][3]["role"] = "user"
     base = sc1.render_episode(source, real_tokenizer)
     base_tokens = base["H"] - base["P"]
     required = (4608 - base_tokens + 599) // 600
@@ -2284,10 +2289,17 @@ def test_fable_n3_snapshot_manifest_survives_live_ledger_append(tmp_path, monkey
         assert offset == len(data)
 
     assert_snapshot_contains(ROOT)
-    for name in ("LEDGER-PLAN.md", cli.CONTRACT, cli.AMENDMENT):
+    for name in ("LEDGER-PLAN.md", cli.CONTRACT):
         target = tmp_path / name
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes((ROOT / name).read_bytes())
+    # Reconstruct the adopted text from frozen parts; no proposal-file dependency.
+    record = episodes.parse_json((ROOT / cli.SNAPSHOT_PROVENANCE).read_text())
+    start = record["parts"][0]["byte_length"]
+    stop = start + record["parts"][1]["byte_length"]
+    (tmp_path / cli.AMENDMENT).write_bytes(
+        (ROOT / cli.SCIENCE_SNAPSHOT).read_bytes()[start:stop]
+    )
     subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
     subprocess.run(
         [
@@ -2375,6 +2387,12 @@ def test_fable_n3_snapshot_manifest_survives_live_ledger_append(tmp_path, monkey
     stage_path = tmp_path / "stage1.json"
     sc1.atomic_json(stage_path, registration)
     cli.verify_stage_freezes(stage_path, path)
+    missing_ranges = dict(registration)
+    missing_ranges.pop("science_parts")
+    sc1.atomic_json(stage_path, missing_ranges)
+    with pytest.raises(ValueError, match="source ranges"):
+        cli.verify_stage_freezes(stage_path, path)
+    sc1.atomic_json(stage_path, registration)
     target.write_bytes(target.read_bytes() + b"changed")
     with pytest.raises(ValueError, match="snapshot"):
         cli.verify_manifest(path)
