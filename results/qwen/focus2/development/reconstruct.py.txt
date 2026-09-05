@@ -1,0 +1,85 @@
+import ast
+import hashlib
+import random
+from pathlib import Path
+from stencil import focus2 as f
+
+root = Path('/home/bmarti44/stencil-llm')
+out = root / 'results/qwen/focus2/development'
+paths = {'31': 'scripts/focus1_probe.py', **{str(i): f'scripts/focus_check{i}.py' for i in range(32, 40)}, '32kv': 'scripts/focus_check32_kv.py'}
+texts = {k: (root / p).read_text() for k, p in paths.items()}
+trees = {k: ast.parse(t) for k, t in texts.items()}
+
+def generate(key, names, variables, *, remove39=False):
+    nodes = [n for n in trees[key].body if isinstance(n, ast.FunctionDef) and n.name in names]
+    assert {n.name for n in nodes} == set(names)
+    if remove39:
+        fn = nodes[0]
+        assert [ast.unparse(n.targets[0]) for n in fn.body[:2]] == ['prior', 'old']
+        fn.body = fn.body[2:]
+    namespace = {'random': random, 'hashlib': hashlib, **variables}
+    exec(compile(ast.Module(body=nodes, type_ignores=[]), paths[key] + ':input-generators-only', 'exec'), namespace)
+    return namespace[names[-1]]()
+
+def flatten(value):
+    if isinstance(value, list) and value and all(type(x) is int for x in value):
+        return [value]
+    if isinstance(value, dict):
+        return [v for x in value.values() for v in flatten(x)]
+    if isinstance(value, (list, tuple)):
+        return [v for x in value for v in flatten(x)]
+    return []
+
+b = {}
+b['31'] = flatten(generate('31', ['banks'], {'SEED': 31031}))
+rows32 = generate('32', ['episodes'], {'SEED': 32032, 'N': 64, 'ARMS': ('address', 'spotlight', 'reminder', 'removed', 'wrong', 'wrong_spotlight', 'off')})
+b['32'] = [v for ep in rows32 for v in ep['values']]
+b['32'] += [v for ep in generate('32kv', ['episodes'], {'SEED': 32040, 'N': 64}) for v in ep['values']]
+b['33'] = flatten(generate('33', ['seed', 'banks'], {'SEED': 33033}))
+b['34'] = flatten(generate('34', ['banks'], {'SEED': 34034}))
+b['35'] = flatten(generate('35', ['bank'], {'SEED': 35035}))
+b['36'] = b['35'][:]
+b['37'] = flatten(generate('37', ['bank'], {'SEED': 9053701}))
+b['38'] = b['35'][:]
+b['39'] = flatten(generate('39', ['bank'], {'SEED': 39039, 'N': 64, 'old': {tuple(sorted(v)) for v in b['37']}}, remove39=True))
+assert {k: len(v) for k, v in b.items()} == {'31': 80, '32': 640, '33': 960, '34': 480, '35': 192, '36': 192, '37': 192, '38': 192, '39': 384}
+# Conservatively exclude every literal integer-list fixture of length >=3 in
+# the development/repair source, including token-list fixtures. This expands
+# exclusion only; it does not consume historical response records or scores.
+fixtures = []
+for key, tree in trees.items():
+    for node in ast.walk(tree):
+        if isinstance(node, ast.List):
+            try:
+                value = ast.literal_eval(node)
+            except (ValueError, TypeError):
+                continue
+            if len(value) >= 3 and all(type(x) is int for x in value):
+                fixtures.append((key, node.lineno, value))
+b['repair'] = [x[2] for x in fixtures]
+assert [3, 1, 2, 0, 4] in b['repair'] and [2, 4, 0, 3, 1] in b['repair']
+source_keys = {k: [k] for k in b if k != 'repair'}
+source_keys.update({'32': ['32', '32kv'], '36': ['36', '35'], '38': ['38', '36', '35'], '39': ['39', '37'], 'repair': list(paths)})
+# Preserve exact source bytes, including the pre-existing untracked check32,
+# under the freeze artifact tree without editing or staging original scripts.
+for key, text in texts.items():
+    (out / f'source-{key}.txt').write_text(text)
+manifest = {'coverage': [*range(31, 40), 'repair'], 'fingerprints': [], 'sources': {}}
+for key, values in b.items():
+    fps = [f.fingerprint('sort', v) for v in values]
+    packet = {'input_values': values, 'fit_on': 'none', 'method': 'deterministic source reconstruction; no historical response/score files opened', 'sources': [{'path': paths[k], 'sha256': f.sha(texts[k]), 'snapshot': str((out / f'source-{k}.txt').relative_to(root))} for k in source_keys[key]]}
+    if key in ('36', '38'):
+        packet['scope'] = 'Conservative complete check35 payload bank; source references reuse its SET/HOLD and subsequent requests.'
+    if key == '39':
+        packet['scope'] = 'Original seeded draw function; old-bank freshness assertion uses reconstructed check37 inputs in memory.'
+    if key == 'repair':
+        packet['scope'] = 'Conservative superset of literal integer-list fixtures in checks31–39 and imported check32-kv; some literals represent tokens rather than task operands.'
+        packet['fixture_locations'] = [{'source': paths[k], 'line': line} for k, line, _ in fixtures]
+    p = out / f'inputs-{key}.json'
+    f.atomic_json(p, packet)
+    manifest['sources'][key] = {'path': str(p.relative_to(root)), 'sha256': f.sha(p.read_bytes()), 'input_count': len(fps), 'fingerprints': fps, 'fingerprints_sha256': f.digest(fps)}
+manifest['fingerprints'] = sorted({v for s in manifest['sources'].values() for v in s['fingerprints']})
+f.validate_banks(f.generate_banks(), manifest)
+f.atomic_json(out / 'manifest.json', manifest)
+(out / 'reconstruct.py.txt').write_text(Path(__file__).read_text())
+print(f.canonical({'status': 'VALIDATED', 'source_counts': {k: len(v) for k, v in b.items()}, 'unique_fingerprints': len(manifest['fingerprints']), 'manifest_sha256': f.sha((out / 'manifest.json').read_bytes())}))

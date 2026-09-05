@@ -1,0 +1,40 @@
+from datetime import datetime, timezone
+from pathlib import Path
+from stencil import focus2 as f
+
+root = Path('/home/bmarti44/stencil-llm')
+folder = root / 'results/qwen/focus2/freeze'
+acceptance = Path('/tmp/focus2-resume-acceptance.log').read_text()
+f.require('86 passed, 1 xfailed' in acceptance, 'required four-file acceptance not passed')
+(folder / 'acceptance.txt').write_text(acceptance)
+(folder / 'assembly.py.txt').write_text(Path(__file__).read_text())
+manifest = f.parse_json((folder / 'manifest.json').read_text())
+paths = {k: str((folder / v['path']).relative_to(root)) for k, v in manifest['files'].items()}
+paths.update({k: str(p.relative_to(root)) for k, p in f.RUNTIME_SOURCES.items() if k != 'qwen_default_config'})
+paths.update(check36_review=f.PINS['check36_review'], check38_review=f.PINS['check38_review'], check39_summary=f.PINS['summary'], check39_reading=f.PINS['repair_reading'], check39_readme=f.PINS['repair_readme'], check39_code=f.PINS['check39_code'], repair_code=f.PINS['repair_code'], check37_readme=f.PINS['check37_readme'])
+paths.update({f'check36_source_{i}': p for i, p in enumerate(f.PINS['check36_paths'])})
+paths.update(review_astra='results/focus2-review-astra.md', review_fable='results/focus2-review-fable.md')
+for p in sorted((root / 'results/qwen/focus2/development').iterdir()):
+    paths['development_evidence_' + p.name.replace('.', '_').replace('-', '_')] = str(p.relative_to(root))
+for name in ('assets.json', 'acceptance.txt', 'assembly.py.txt'):
+    paths['freeze_' + name.replace('.', '_')] = str((folder / name).relative_to(root))
+manifest['files'] = {k: {'path': p, 'sha256': f.sha((root / p).read_bytes())} for k, p in paths.items()}
+manifest['files'].update(f.parse_json((folder / 'assets.json').read_text()))
+contents = {k: (b'' if k == 'model' else (root / d['path']).read_bytes()) for k, d in manifest['files'].items()}
+f.verify_evidence(root, manifest, contents)
+f.validate_banks(f.parse_json(contents['banks']), f.parse_json(contents['development']))
+f.require(f.parse_json(contents['templates']) == f.template_manifest(f.load_tokenizer(root / manifest['files']['tokenizer']['path'])), 'template drift')
+# Verify every pre-existing tracked source/review/receipt before adding new
+# registration artifacts. The isolated source32 snapshot is new evidence.
+for role, d in manifest['files'].items():
+    if d.get('tracked', True) and not d['path'].startswith('results/qwen/focus2/'):
+        f.member(root, 'HEAD', d['path'], d['sha256'])
+receipt = {'status': 'VERIFIED', 'created_utc': datetime.now(timezone.utc).isoformat(), 'fit_on': 'none', 'acceptance_command': "CUDA_VISIBLE_DEVICES='' uv run pytest -q tests/test_focus2.py tests/test_eval_data_separation.py tests/test_sealed_guard.py tests/test_no_side_effect_imports.py", 'acceptance': acceptance.strip().splitlines()[-1], 'ruff': 'All checks passed: scripts/focus2.py src/stencil/focus2.py tests/test_focus2.py', 'prepare_freeze': 'exit 0; exact CLI with development manifest', 'bank_counts': {k: len(v) for k, v in f.parse_json(contents['banks']).items()}, 'development_unique_fingerprints': len(f.parse_json(contents['development'])['fingerprints']), 'check39': {'status': 'PROCEED_PLACEHOLDER', 'prereg_commit': f.PINS['prereg_commit'], 'receipt_commit': f.PINS['receipt_commit'], 'summary_sha256': f.PINS['summary_sha256'], 'gate_recomputed': True}, 'check37': 'STOP unchanged, not pooled', 'section_sha256': f.sha(contents['section']), 'no_model_outcomes': True, 'sealing_scope': 'Only the explicitly authorized sealed-guard tests read sealed IFEval input; no other benchmark or sealed-cohort content access.'}
+f.atomic_json(folder / 'freeze-receipt.json', receipt)
+manifest['files']['freeze_receipt'] = {'path': str((folder / 'freeze-receipt.json').relative_to(root)), 'sha256': f.sha((folder / 'freeze-receipt.json').read_bytes())}
+review = {'status': 'APPROVED', 'open_high_critical': 0, 'section_sha256': f.sha(contents['section']), 'verification_basis': "Brian's combined-task authorization and resume at step3; verify exact conditional SOUND-WITH-FIXES dispositions against committed v3/fixes and the required finding-named CPU suite. This is direct registration verification, not a claim that either original reviewer reran its review.", 'source_reviews': ['results/focus2-review-fable.md', 'results/focus2-review-astra.md'], 'text_commit': f.PINS['v3_commit'], 'fix_commit': '3d68ed3', 'findings': {'fable-A1': 'verified: disclosed nonbinding assistant cost; paired exact/net binding collateral; finding-named test', 'fable-A2': 'verified: h<=5, exact p>.05 and final-only sixth-breakage stop; boundary tests', 'fable-A3': 'verified: eight 52/64 skill cells and four 56/64 default cells; boundary tests', 'fable-A4': 'verified: power disclosure in immutable v3', 'fable-A5': 'verified: delay-slot, cue-retirement, chronology and cost disclosures', 'fable-B1/astra-model-assets': 'verified: real streaming asset hashes, sizes, ignored paths and source revisions; tamper/refusal test', 'fable-B2/FOCUS2-1': 'verified: native pinned Qwen tool template and frozen token comparison; pre-backend refusal test', 'fable-B3': 'verified: no pilot safety stop; final-only stopping test', 'fable-B4/astra-resume': 'verified: one-attempt policy; completed-stage continuation only', 'FOCUS2-2': 'verified: durable invalid-delay response; no replay; offline refusal; valid/EOS-cap controls', 'astra-terminal-edge': 'verified: whole-body END removal and preserved closure/raw evidence; boundary tests', 'astra-development': 'verified: populated per-source input fingerprints and source-only reconstruction; no collision/redraw', 'astra-lows': 'verified: immutable section; semantic JSON; relative effect and claim limits'}, 'dependencies': {k: v['sha256'] for k, v in manifest['files'].items()}}
+f.atomic_json(folder / 'review.json', review)
+manifest['files']['review'] = {'path': str((folder / 'review.json').relative_to(root)), 'sha256': f.sha((folder / 'review.json').read_bytes())}
+manifest.update(status='REGISTERED', candidate_only=False, remaining=[], output_path='results/qwen/focus2/outputs')
+(folder / 'manifest.json').write_text(f.canonical(manifest))
+print(f.canonical({'status': 'FREEZE_READY', 'manifest_sha256': f.sha((folder / 'manifest.json').read_bytes()), 'dependencies': len(manifest['files'])}))
