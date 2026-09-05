@@ -1,5 +1,9 @@
 # Disposable SC1 harness fixtures
 
+Current status: Amendment 1 is appended; the round-4 candidate and audit below
+supersede historical v2/v3 snapshot and cue measurements. Stage 2 acceptance
+awaits the next independent review of this frozen law and smoke evidence.
+
 These eight fictional sources were written for this implementation by an informed
 harness session. They are not isolated production authoring and must never be
 reused for setup or final. The recorded author/factor draws exercise the sampler;
@@ -10,8 +14,9 @@ CPU commands:
 
 ```
 uv run pytest -q tests/test_sc1.py tests/test_eval_data_separation.py tests/test_sealed_guard.py tests/test_no_side_effect_imports.py
-uv run python scripts/sc1.py validate data/sc1/smoke
-uv run python scripts/sc1.py smoke
+CUDA_VISIBLE_DEVICES='' uv run python scripts/sc1.py snapshot
+CUDA_VISIBLE_DEVICES='' uv run python scripts/sc1.py smoke
+CUDA_VISIBLE_DEVICES='' uv run python scripts/sc1.py validate data/sc1/smoke
 ```
 
 `smoke` validates all eight sources, writes the expanded episodes and validation
@@ -120,13 +125,14 @@ have callable instrumented paths and appear in output records. SC1 has no
 scope-resolver or digest intervention call path; no measured zero is claimed for
 those absent functions.
 
-These grammar/enforcement interpretations are listed as Stage-1 ambiguities in
-WORKLOG.md. LEDGER-PLAN.md and the author contract are unchanged.
+Amendment 1 now enacts the grammar/enforcement dispositions previously recorded
+as Stage 1 ambiguities in WORKLOG.md, with a reconciled author contract. Exact
+author/provider versions and settings still require a completed Stage 1 registration.
 Neither production source commissioning nor model execution is authorized by this
-CPU implementation handoff. Stage 1 is still prospective text; this directory is
-an executable-freeze candidate, not a registration or a production setup pass.
+CPU implementation handoff. This directory is an executable-freeze candidate;
+independent Stage 2 acceptance remains pending, and it is not a production setup pass.
 
-## V3 pressure and cue audit (CPU, 2026-09-04)
+## Historical V3 pressure and cue audit (eff241b; superseded below)
 
 `validation.json` now contains a per-episode `pressure` report. Each episode's
 `layout_audit` includes `real_candidate_columns`, rule pin composition, and each
@@ -200,3 +206,70 @@ absence of scope/digest execution paths. The determinism verifier requires
 completed nonempty generated token observations, not successful task answers;
 eight empty timeouts cannot qualify. No actual model determinism or GPU timing
 has been performed by this CPU task.
+
+## Round-4 source law and cue audit (CPU, 2026-09-04)
+
+AMENDMENT 1 is adopted in LEDGER-PLAN.md and reproduced in STAGE1-CLAUSES.md.
+AUTHOR-CONTRACT-v2.md preserves the prior contract bytes. The reconciled contract
+and exported grammar enact the author-facing source/transport restrictions.
+The relevance prohibition remains binding, including recognizable filler. The
+next independent review round on this output must disposition compliance before
+Stage 2 acceptance; this candidate does not authorize production or model runs.
+
+Snapshot production is `scripts/sc1.py snapshot`: concatenate the recorded SC1
+DRAFT v2 range, the exact adopted amendment range, and the reconciled contract,
+without inserted bytes. registration-snapshot.json records three source paths,
+full commits, half-open byte ranges, lengths and hashes. The snapshot, provenance,
+contract and grammar are manifest-bound. Stage 1 must copy the producer's parts
+array into science_parts. Later ledger entries do not extend those ranges or
+invalidate tests. Source ranges and executable files must be committed before
+snapshot/manifest production respectively.
+
+All eight disposable sources retain their sampled assignments and causal text
+and event order. Each now includes a separately authored incidental user turn
+at index 7; later indices shift by one. Filler user turns precede that turn; later
+designated filler turns use tool/assistant roles. This is a disclosed smoke repair,
+not a mandatory production ordering. No policy/model outcomes selected these edits.
+The expander rejects any final layout whose newest eligible old user turn is
+filler-designated or contains a pool sentence, even in undesignated authored text.
+Eligibility comes from complete unscored old candidate pieces; straddling turns
+can qualify. Both violation paths have bank-consumer regressions, and all eight
+positive layouts are tested. Duplicate public JSON names are rejected before
+member loss, including nested/pretty wrappers; text witness changes use ordered
+normalized line indices and retain public-evidence requirements.
+
+Measured from the real Qwen3-4B tokenizer and frozen validation report:
+
+| Episode | History tokens | U | Non-designated U | B | Budget skips | Echo omissions | Rule filler/total pieces | Max turn tokens | Newest old user |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| smoke-00 | 4649 | 1866 | 62 | 256 | 164 | 11 | 24/25 | 462 | 7 |
+| smoke-01 | 4656 | 2086 | 101 | 256 | 187 | 11 | 24/26 | 505 | 7 |
+| smoke-02 | 4686 | 2105 | 95 | 256 | 186 | 11 | 24/25 | 508 | 7 |
+| smoke-03 | 4664 | 1879 | 62 | 256 | 164 | 11 | 24/25 | 459 | 7 |
+| smoke-04 | 4629 | 1783 | 14 | 256 | 156 | 11 | 24/25 | 452 | 7 |
+| smoke-05 | 4627 | 2432 | 163 | 256 | 217 | 11 | 24/25 | 560 | 7 |
+| smoke-06 | 4681 | 1887 | 61 | 256 | 163 | 11 | 24/26 | 468 | 7 |
+| smoke-07 | 4659 | 1970 | 16 | 256 | 175 | 11 | 25/26 | 504 | 7 |
+
+The newest eligible old user is now non-designated turn 7 in every smoke episode,
+with no pool sentence and no necessary evidence. This excludes the particular
+formulaic-newest-user shortcut. It does not remove the shared-position cue: this
+incidental turn occupies the same position in all eight fixtures. The OLD evidence
+still occurs at turns 0–2 (the additional smoke-05 tool trace remains at 5); the
+RECENT evidence is at 10–11 for smoke-04 and 9–11 for smoke-07. All 6 OLD/2 RECENT
+assignments remain valid. Each source still uses mixed-role filler and satisfies
+U >= 2B with actual budget skips and every turn <=600 text tokens.
+
+Shared filler remains formulaic and dominates old candidates and rule pins.
+Necessary governing messages use direct instructions and seeded values, while
+incidental turns use distinct prose. These are remaining wording/position cues
+for the independent review, not evidence of a classifier advantage or compliance
+by declaration. Non-designated columns describe provenance, not necessity. Rule
+composition above is a CPU implementation diagnostic; runtime records provide
+both arms' composition, but no trained classifier or trunk was executed here.
+Non-JSON state-like prose remains a Stage 3 semantic-review responsibility.
+
+Abandoned studies retain their charged ledgers. Amendment 1 adopts separate
+reporting with the 8 GPU-hour cap cumulative within each registered study; new
+registration/root/sources require predecessor hashes, loss evidence, abandoned
+seconds and total cumulative program cost disclosure before any restart.
