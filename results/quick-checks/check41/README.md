@@ -37,16 +37,128 @@ CPU preparation and commit precede GPU use. Foreground run waits with **600-seco
 
 The first GPU attempt loaded the model but failed before any forward/generation because Transformers 5.16.1 defaults `apply_chat_template` to a BatchEncoding return. Preserve that complete attempt under `attempt1/`; request `return_dict=False` explicitly and test the actual local tokenizer on CPU. Charge its **46.37001516507007 seconds** to the same 7200-second allocation; all task banks, selectors, grid, thresholds and decoding settings remain fixed. No model response exists to select from or repair against.
 
-## Results
 
-PENDING — CPU preparation; no model outcomes exist.
+## Observed results
 
-| Arm | SET /64 | HOLD /64 | SWITCH /64 | BACK /64 | Broken episodes /64 | CLEAR impositions /64 |
+**NOT POSSIBLE**; complete screen: True; GPU allocation 5031.58/7200 seconds.
+
+
+
+
+| Arm | SET | HOLD | SWITCH | BACK | Broken episodes | CLEAR impositions |
 |---|---:|---:|---:|---:|---:|---:|
-| correct | pending | pending | pending | pending | pending | pending |
-| swapped | pending | pending | pending | pending | pending | pending |
-| shuffled | pending | pending | pending | pending | pending | pending |
-| OFF | pending | pending | pending | pending | pending | pending |
-| text-cue | pending | pending | pending | pending | pending | pending |
+| correct | 0/64 (n=64) | 0/64 (n=64) | 63/64 (n=64) | 0/64 (n=64) | 4/64 | 0/64 (64 eligible pairs) |
+| swapped | 0/64 (n=64) | 0/64 (n=64) | 64/64 (n=64) | 0/64 (n=64) | 4/64 | 0/64 (64 eligible pairs) |
+| shuffled | 0/64 (n=64) | 0/64 (n=64) | 64/64 (n=64) | 0/64 (n=64) | 2/64 | 0/64 (64 eligible pairs) |
+| OFF | 0/64 (n=64) | 0/64 (n=64) | 64/64 (n=64) | 0/64 (n=64) | 2/64 | 0/64 (64 eligible pairs) |
+| text-cue | 64/64 (n=64) | 64/64 (n=64) | 64/64 (n=64) | 64/64 (n=64) | 0/64 | 25/64 (64 eligible pairs) |
 
-Per-layer counts, overlap, competence/default language counts, all setup cells and task-check tables will be populated from saved outputs. No feasibility conclusion yet. Check 40's terminal reading, if available, will be compared with the caveat that model size, architecture and intervention site differ; check 41 keeps the original committed task bank even if check 40 later amends its bank.
+| Arm/stage | Task check | Target + task | Broken | Parse identity |
+|---|---:|---:|---:|---|
+| correct/SET | 60/64 | 0 | 0/64 | {"Python": 64} |
+| correct/HOLD | 60/64 | 0 | 0/64 | {"Python": 64} |
+| correct/SWITCH | 58/64 | 58 | 1/64 | {"Python": 63, "invalid": 1} |
+| correct/BACK | 60/64 | 0 | 1/64 | {"Python": 63, "invalid": 1} |
+| correct/CLEAR | 58/64 | None | 2/64 | {"Python": 62, "invalid": 2} |
+| swapped/SET | 61/64 | 0 | 0/64 | {"Python": 64} |
+| swapped/HOLD | 60/64 | 0 | 1/64 | {"Python": 63, "invalid": 1} |
+| swapped/SWITCH | 61/64 | 61 | 0/64 | {"Python": 64} |
+| swapped/BACK | 59/64 | 0 | 1/64 | {"Python": 63, "invalid": 1} |
+| swapped/CLEAR | 58/64 | None | 2/64 | {"Python": 62, "invalid": 2} |
+| shuffled/SET | 61/64 | 0 | 0/64 | {"Python": 64} |
+| shuffled/HOLD | 60/64 | 0 | 0/64 | {"Python": 64} |
+| shuffled/SWITCH | 61/64 | 61 | 0/64 | {"Python": 64} |
+| shuffled/BACK | 61/64 | 0 | 0/64 | {"Python": 64} |
+| shuffled/CLEAR | 58/64 | None | 2/64 | {"Python": 62, "invalid": 2} |
+| OFF/SET | 61/64 | 0 | 0/64 | {"Python": 64} |
+| OFF/HOLD | 60/64 | 0 | 0/64 | {"Python": 64} |
+| OFF/SWITCH | 61/64 | 61 | 0/64 | {"Python": 64} |
+| OFF/BACK | 60/64 | 0 | 0/64 | {"Python": 64} |
+| OFF/CLEAR | 58/64 | None | 2/64 | {"Python": 62, "invalid": 2} |
+| text-cue/SET | 55/64 | 55 | 0/64 | {"JavaScript": 64} |
+| text-cue/HOLD | 59/64 | 59 | 0/64 | {"JavaScript": 64} |
+| text-cue/SWITCH | 61/64 | 61 | 0/64 | {"Python": 64} |
+| text-cue/BACK | 59/64 | 59 | 0/64 | {"JavaScript": 64} |
+| text-cue/CLEAR | 59/64 | None | 0/64 | {"JavaScript": 25, "Python": 39} |
+
+Competence/defaults: `{"Python": {"valid": 32, "task_check": 32, "n": 32}, "JavaScript": {"valid": 32, "task_check": 25, "n": 32}, "default": {"Python": 31, "broken": 1}}`.
+
+Fresh screen defaults: `{"Python": 64}`; shuffled paired non-default counts: `{"SET": 0, "HOLD": 0, "SWITCH": 0, "BACK": 0}`.
+
+| Layer | Python k200 | JS k200 | Python k500 | JS k500 | Python k1000 | JS k1000 |
+|---|---:|---:|---:|---:|---:|---:|
+| 0 | 1 | 0 | 1 | 1 | 2 | 3 |
+| 1 | 0 | 0 | 1 | 3 | 2 | 5 |
+| 2 | 0 | 3 | 0 | 5 | 4 | 10 |
+| 3 | 3 | 5 | 10 | 16 | 22 | 31 |
+| 4 | 32 | 33 | 76 | 90 | 138 | 160 |
+| 5 | 6 | 9 | 10 | 18 | 26 | 27 |
+| 6 | 0 | 2 | 2 | 3 | 3 | 4 |
+| 7 | 0 | 0 | 0 | 2 | 2 | 2 |
+| 8 | 0 | 0 | 1 | 0 | 2 | 1 |
+| 9 | 2 | 3 | 5 | 4 | 10 | 7 |
+| 10 | 1 | 4 | 3 | 6 | 11 | 8 |
+| 11 | 0 | 1 | 0 | 2 | 1 | 4 |
+| 12 | 1 | 0 | 1 | 2 | 1 | 3 |
+| 13 | 0 | 0 | 1 | 0 | 1 | 0 |
+| 14 | 0 | 0 | 1 | 0 | 1 | 0 |
+| 15 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 16 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 17 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 18 | 1 | 0 | 1 | 0 | 1 | 0 |
+| 19 | 2 | 0 | 2 | 0 | 2 | 0 |
+| 20 | 0 | 0 | 0 | 0 | 1 | 0 |
+| 21 | 2 | 0 | 2 | 0 | 2 | 0 |
+| 22 | 2 | 2 | 2 | 2 | 4 | 4 |
+| 23 | 1 | 1 | 1 | 1 | 1 | 2 |
+| 24 | 7 | 6 | 16 | 15 | 39 | 32 |
+| 25 | 11 | 13 | 22 | 29 | 46 | 53 |
+| 26 | 25 | 16 | 54 | 38 | 93 | 86 |
+| 27 | 34 | 30 | 72 | 60 | 120 | 99 |
+| 28 | 17 | 7 | 59 | 28 | 101 | 75 |
+| 29 | 17 | 14 | 48 | 42 | 88 | 86 |
+| 30 | 11 | 12 | 32 | 34 | 82 | 82 |
+| 31 | 8 | 7 | 32 | 31 | 67 | 60 |
+| 32 | 5 | 6 | 15 | 17 | 43 | 50 |
+| 33 | 5 | 7 | 12 | 11 | 41 | 33 |
+| 34 | 4 | 10 | 12 | 21 | 25 | 34 |
+| 35 | 2 | 9 | 6 | 19 | 18 | 39 |
+
+Set overlaps (intersection/k): `{"1000": 0.0, "200": 0.0, "500": 0.0}`.
+
+Frozen cell: `{"broken": 2, "gain": 1.0, "k": 200, "successes": {"JavaScript": 0, "Python": 15}, "variant": "deactivate-other"}`.
+
+| k | g | Variant | Python /16 | JS /16 | Broken /32 |
+|---:|---:|---|---:|---:|---:|
+| 200 | 0.5 | both | 14 | 0 | 3 |
+| 200 | 1.0 | both | 13 | 0 | 4 |
+| 200 | 2.0 | both | 9 | 1 | 19 |
+| 200 | 1.0 | deactivate-other | 15 | 0 | 2 |
+| 500 | 0.5 | both | 14 | 0 | 3 |
+| 500 | 1.0 | both | 14 | 0 | 3 |
+| 500 | 2.0 | both | 11 | 1 | 16 |
+| 500 | 1.0 | deactivate-other | 15 | 0 | 2 |
+| 1000 | 0.5 | both | 14 | 0 | 3 |
+| 1000 | 1.0 | both | 14 | 0 | 4 |
+| 1000 | 2.0 | both | 5 | 1 | 23 |
+| 1000 | 1.0 | deactivate-other | 15 | 0 | 2 |
+
+This neuron-counting and scaling construction did not meet the pre-written feasibility threshold. This does not rule out other neuron selectors or interventions.
+
+Check 40 stopped on cost before competence or expert extraction: measured 16.02 tokens/s; its prescribed reduced design projected 7.56 hours against a four-hour cap. It has no behavioral result to compare. This dense-MLP check uses a smaller model, a different intervention, and the original 531030a task bank.
+
+records.jsonl preserves text, tokens, complete histories, parser/task/breakage flags and timing; profile task files preserve neuron counts in the original run. Generated programs are parsed, never executed.
+
+## Interpretation and verification
+
+Qwen3-4B could produce both languages when asked, but this neuron-counting construction did not provide language control. The frozen 200-neuron deactivate-other cell produced **0/64 JavaScript at SET, 0/64 at HOLD, 63/64 Python at SWITCH, and 0/64 JavaScript at BACK**. Every fresh screen default was Python (64/64); OFF also gave 64/64 Python at SWITCH, so the successful Python count reflects the default language. Correct had 4/64 broken episodes versus 2/64 for OFF and shuffled. Shuffled non-default outputs and correct CLEAR impositions were both 0/64. CLEAR stayed Python after an arm that never induced JavaScript.
+
+Text cues reached **64/64 at every addressed stage**, with zero broken episodes; JavaScript persisted at CLEAR on 25/64 tasks whose fresh defaults were Python. Coarse task passes remain separate from language identity: for example, correct SET/SWITCH were 60/64 and 58/64, while text-cue SET/SWITCH were 55/64 and 61/64. These checks establish syntactic plausibility, not semantic correctness.
+
+No setup cell induced both languages. The strongest amplification (g=2) produced only 1/16 valid JavaScript response at each k and broke 19/32, 16/32, and 23/32 responses for k=200, 500, and 1000 respectively. All correct-set overlaps were zero and all selected specificity scores were positive; the small-set winner was chosen by the frozen breakage/tie rules. This is a negative result for the specified selector and intervention, with no claim about all possible neuron selectors.
+
+Charged GPU allocation was **5031.579599860124 seconds (83.86 minutes)**, including the preserved 46.37001516507007-second empty first attempt; no cap overrun. Check 40 ended on a throughput cost stop before behavior was measured, so it supplies no behavioral comparison (details above).
+
+Both CPU audits passed for all 2,528 records: complete rescoring and summary reproduction; profile frequencies, entropy, neuron sets and grid choice recomputation; exact prompt-token/hash and answer-text reconstruction; every retained history pair; arm cues/scaling flags; frozen scaling tensors; launch-commit bytes; and the cumulative GPU charge. Receipts were computed outside the repository while another quick check held its lock, then copied byte-identically. See `audit.json`, `audit-extra.json`, their console logs and `audit-extra.py`; the initial lock refusal is retained in `audit-lock-wait.txt`. No CUDA context was initialized by these audits.
+
+Binary artifacts: each `profiles-by-task/*.pt` stores int64 positive-activation counts of shape [36,9728] and its generated-position denominator. `profiles.pt` stores Python/JavaScript frequencies [2,36,9728], counts, normalized entropy [36,9728], and specificity [2,36,9728] as fp64 tensors. `frozen-scales.pt` stores correct/shuffled fp32 multipliers [2,36,9728] and the selected cell. `neuron-sets.json` records indices, per-layer sizes, overlaps and shuffled RNG; `grid.json` records all 12 cells and its pre-screen freeze. The raw `target` field names the stage address; pre-screen competence/grid directions are identified by their cue/arm fields.

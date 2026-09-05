@@ -375,3 +375,9 @@ pass/fail reading written before running; one accuracy review of the RESULT from
    Correct valid JS 26/32, broken 6/32 (>2 limit), coarse task pass 25/32; swapped valid Python 29/32, broken 3/32.
    OFF and matched-norm shuffled Python 32/32; text-cue JS 32/32; no truncation at 64 tokens, no screen reduction.
    12.41 GPU-min; 224 generations and 32 teacher-forced profiles audited; unregistered, no fitting/sealed reads/signals/push.
+
+41 (FINAL). LANGUAGE-SPECIFIC MLP NEURON SCALING ([check41](check41/README.md)): **NOT POSSIBLE**; all 64 episodes complete.
+   Frozen k=200 deactivate-other: SET/HOLD/SWITCH/BACK = 0/0/63/0 of 64; text-cue = 64/64 at all four stages; fresh defaults Python 64/64.
+   Correct broken 4/64; shuffled non-default 0/64; correct CLEAR impositions 0/64; no setup cell induced both languages, and g=2 mostly increased breakage.
+   Cued competence 32/32 each; all neuron-set overlaps 0%; layer counts/grid/task checks saved; counting only on disjoint synthetic profile/setup slices.
+   All 2,528 records audited; 83.86/120 GPU-min including preserved empty attempt; check40 cost-stopped before behavior; no training, benchmarks, signals or push.

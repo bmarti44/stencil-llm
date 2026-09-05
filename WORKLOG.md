@@ -5137,3 +5137,11 @@ Competence Python/JS 16/16 each; alpha4 all layers: correct JS26/32, broken6/32 
 64-token cap, zero truncations; 224 generations +32 teacher-forced profiles audited; 744.53s /5400s; no dose/cap/screen rescue.
 Foreground wait behind check41; initial zero-outcome waiter naturally exited on busy lock; pre-outcome JSON repair preserved, no signals/training/push.
 STATE: check40b and CPU audit complete; this scoped commit carries all artifacts; RUNNING.flag removed; no push.
+
+## 2026-09-05 — Check 41 FINAL: NOT POSSIBLE
+STATE: 64 episodes x five arms complete; 2,528 records independently reconstructed on CPU, including scores, histories/tokens, profile counts, sets, grid, frozen scales and launch provenance.
+Fit-on: activation counting on 32 cued tasks/language; cell selected on separate 16 tasks; evaluated on 32 competence and 64 fresh screen statements; no training or benchmarks/sealed reads.
+Competence 32/32 each; zero set overlap. Frozen k200 deactivate-other SET/HOLD/SWITCH/BACK = 0/0/63/0; fresh defaults Python 64/64; text-cue 64/64 at all four stages.
+Correct broken 4/64, shuffled non-default 0/64, correct CLEAR impositions 0/64; g2 setup only 1/16 JS with 19/16/23 broken of 32 across k200/500/1000. Check40 has only a cost result.
+GPU 5031.579599860124/7200 s (83.86 min), including preserved 46.37001516507007 s empty attempt; no overrun. Audits staged outside repo while another quick check held its lock.
+Final artifacts force-added and committed with explicit paths; shared README/WORKLOG updates append only. No process signal, background launch, push or scientific recipe change after outputs.
