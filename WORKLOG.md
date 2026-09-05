@@ -5165,3 +5165,10 @@ Primary SET/HOLD/BACK JS32/32, SWITCH/CLEAR Python0/32; zero broken and coarse32
 Shuffled JS0 everywhere, one numeric-answer history broken each step; OFF Python32/32; text SWITCH Python32/32/CLEAR JS32/32; alpha2 JS6/32 unchanged.
 992 generations/26242 tokens, 2088.00/7200 GPU seconds; pinned .venv transformers5.16.1/raw-slot48, full CPU record/bias/history audit PASS.
 RUNNING.flag removed after cleanup; no signals, sealed reads, training, background launch or push; script/results/index/ledger committed with explicit paths.
+
+### 2026-09-05 — Check43 concept-level SUM/PRODUCT SET (gpt-6-astra), CPU READY
+No fit/train: Python profiles95061; separate Python setup95062; fresh balanced Python/JS evaluation95063/95064; no sealed/benchmark data.
+Source §4 items1–11 frozen with full banks/checker; native handwritten-function parity, bounded rejection fixtures, actual router dispatch/OFF parity pass.
+Last-four-neutral prompt tokens, example means, layers7–34, alpha1/2/3, paired6/8 setup; seven-arm final and 16 collateral tasks; 96-token cap.
+392 scored generations plus one disclosed OFF instrumentation replay; source projection1.1885h, measured >1.5h refusal; foreground RUNNING.flag protocol.
+STATE: recipe committing before model load; selected profiles/dose/artifacts must commit before final generation; no signals/background/push.

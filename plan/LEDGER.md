@@ -193,3 +193,10 @@ exited before model load. No training/sealed reads/signals/push. This scoped com
 2026-09-05 22:56 UTC — check40d FROZEN/LAUNCH: CPU real-consumer KV/schedule, raw-slot, cap-closure and verdict checks PASS; 32 episodes/992 generations, capped projection 7002.679/7200 s. README/prewritten-reading/tasks/biases/source hashed before outcomes. Memory changed externally to 115.7 GiB available, GPU process list empty, no flags; no process touched by this task. Foreground runner acquires review lock and publishes RUNNING.flag; complete user/assistant pairs and actual KV, fresh CLEAR OFF baselines, alpha3 primary/alpha2 secondary.
 
 2026-09-05 — check40d COMPLETE: PARTIAL; SET/HOLD/BACK JS32/32 with broken0, SWITCH/CLEAR Python0/32, 32 paired CLEAR impositions. Shuffled JS0 throughout; text SWITCH Python32/32 but CLEAR JS32/32; alpha2 JS6/32 throughout. All 992 records, frozen biases, permutations, fresh tasks, retained KV histories and reading CPU-audited; 2088.0014/7200 GPU s, no overrun. Primary broken0/coarse32 each step; shuffled numeric history ambiguous and lambda history coarse-failed disclosed. RUNNING.flag removed; no signals/sealed reads/fitting/push. Scoped local commit closes the requested check.
+
+2026-09-05 — check43 write-ahead (gpt-6-astra). STATE: CPU recipe/checker ready; next foreground scripts/focus_check43.py --mode run after scoped freeze commit.
+Fit/train none; profile seed95061 Python, dose seed95062 Python, fresh evaluation seeds95063/95064 Python/JS; no benchmark/sealed reads.
+Source results/neuron-granularity-research-astra.md §4 items1–11 governs this unregistered check; bounded AST fixtures/native parity and actual small-model dispatch/OFF checks pass.
+Freeze 96 tokens, layers7–34, alpha1/2/3, paired6/8 setup; 392 scored generations plus one disclosed OFF instrumentation replay; reject projection >5400s.
+Source arithmetic recomputed1.1885h; RUNNING.flag acquired atomically under review lock, Brian pid2705 exempt; no signals/background/push.
+CPU recipe committed before load; any selected profiles/dose/setup and full final binding committed before final generation; stop gates applied without rescue.

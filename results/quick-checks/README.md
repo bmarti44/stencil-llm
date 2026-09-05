@@ -398,3 +398,9 @@ pass/fail reading written before running; one accuracy review of the RESULT from
    Primary JS32/32 at SET/HOLD/BACK, Python0/32 at SWITCH/CLEAR; zero broken, coarse32/32 every step; CLEAR impositions32/32.
    Shuffled JS0/32 everywhere (broken1/32 each scored step); OFF Python32/32; text SWITCH Python32/32, CLEAR JS32/32; alpha2 JS6/32 throughout.
    992 generations, 34.80/120 GPU-min; all-record CPU audit PASS; family/token/fence/arrows saved; unregistered, no fitting/sealed reads/signals/push.
+
+43. CONCEPT-LEVEL SUM / PRODUCT ROUTING ([check43](check43/README.md)): **CPU READY**; unregistered, no fitting/training.
+   Python donor95061/setup95062; fresh Python/JS banks95063/95064; identical language/explicit-loop text in all non-text arms.
+   Frozen last-four-neutral-token example means, layers7–34, alpha{1,2,3}; smallest paired >=6/8 safe setup dose transfers unchanged to JS.
+   Bounded AST/native-fixture checker; seven final arms, 16-task collateral, paired counts/McNemar/Holm gates frozen before outcomes.
+   392 scored generations plus OFF parity replay; 96-token cap, measured projection refusal >1.5 GPU-h; foreground, no signals/sealed reads/push.
