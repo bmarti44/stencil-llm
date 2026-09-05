@@ -1,0 +1,63 @@
+"""Independent bookkeeping audit of the frozen analyzer's safety-stop prefix."""
+
+from pathlib import Path
+
+from stencil import focus2 as f
+
+
+def main():
+    root = Path('/home/bmarti44/stencil-llm')
+    base = root / 'results/qwen/focus2c/amendment1'
+    out = root / 'results/qwen/focus2c/amendment2'
+    rows = f.RecordStore(base / 'outputs/run/records').rows()
+    end = f.parse_json((base / 'outputs/run/end.json').read_text())
+    start = f.parse_json((base / 'outputs/run/start.json').read_text())
+    report = f.parse_json((out / 'analysis.json').read_text())
+    banks = f.parse_json((base / 'freeze/banks.json').read_text())
+    ids = [ep['id'] for ep in banks['final'][:11]]
+    assert {r['episode'] for r in rows} == set(ids)
+    assert len(rows) == 297 and all(r['complete'] for r in rows)
+    assert not any('carried_from' in r for r in rows)
+    assert all(r['binding'] == end['binding'] == report['binding'] for r in rows)
+    assert start == dict(stage='run', binding=end['binding'], spent_before=end['spent_before'])
+    assert end['records_hash'] == f.digest(sorted(rows, key=lambda r:(r['episode'],r['arm'],r['checkpoint'])))
+    assert end['record_count'] == len(rows)
+    assert end['status'] == report['status'] == 'FAIL-SAFETY'
+    assert end['reason'] == 'sixth irrecoverable both-only broken episode'
+    assert end['spent_after'] - end['spent_before'] >= end['load_seconds'] + sum(r['cost']['allocation_seconds'] for r in rows)
+    assert report['allocation_seconds'] == end['spent_after']
+    assert report['total_charged_seconds'] == report['allocation_seconds'] + report['analysis_seconds'] < 28800
+    assert report['fixed_n'] == 256 and report['n'] == 11 and not report['complete']
+    counts = {arm: 0 for arm in f.ARMS}
+    harmful, reverse, chronology = [], [], []
+    schema_details = []
+    for identity in ids:
+        selected = [r for r in rows if r['episode'] == identity]
+        assert len(selected) == 27
+        assert {r['checkpoint'] for r in selected if r['arm'] == 'shared'} == {'SET','PREHOLD'}
+        branches = {arm: [r for r in selected if r['arm'] == arm] for arm in f.ARMS}
+        for arm, records in branches.items():
+            assert len(records) == 5 and {r['checkpoint'] for r in records} == set(f.CHECKPOINTS)
+            counts[arm] += all(r['flags']['success'] for r in records)
+        broken = {arm: any(r['flags']['broken'] for r in records) for arm, records in branches.items()}
+        if broken['both'] and not broken['text-restate']:
+            harmful.append(identity)
+        if broken['text-restate'] and not broken['both']:
+            reverse.append(identity)
+        chronology.append(dict(episode=identity, both_broken=broken['both'], text_restate_broken=broken['text-restate'], cumulative_h=len(harmful)))
+        r = next(r for r in branches['both'] if r['checkpoint'] == 'NEUTRAL2')
+        value = f.parse_json(r['output_text'])
+        schema_details.append(dict(episode=identity, missing_tag='tag' not in value, schema_invalid=r['flags']['schema_invalid'], truncated=r['flags']['truncated']))
+    assert len(harmful) == 6 and not reverse
+    assert all(x['cumulative_h'] < 6 for x in chronology[:-1]) and chronology[-1]['cumulative_h'] == 6
+    assert report['safety']['h'] == 6 and report['safety']['r'] == 0 and report['safety']['p'] == 0.5**6
+    for arm in ('placement-only','eviction-only','text-restate'):
+        assert report['primary'][arm]['candidate'] == counts['both']
+        assert report['primary'][arm]['comparator'] == counts[arm]
+    result = dict(status='VERIFIED_MECHANICAL_SAFETY_STOP', observed_episodes=11, fixed_episodes=256, unscheduled_episodes=245, records=len(rows), all_records_complete=True, no_final_response_carry_or_regeneration=True, observed_cells=[dict(family='sort',direction='ascending',delay=0,n=11)], harmful_episodes=harmful, reverse_harm_episodes=reverse, breakage_chronology=chronology, all_five_successes=counts, both_neutral2_schema_details=schema_details, cumulative_gpu_seconds=end['spent_after'], new_run_gpu_seconds=end['spent_after']-end['spent_before'], analysis_cpu_seconds=report['analysis_seconds'], charged_seconds_including_analysis=report['total_charged_seconds'], charged_hours_including_analysis=report['total_charged_seconds']/3600, analysis_sha256=f.sha((out/'analysis.json').read_bytes()), raw_records_hash=end['records_hash'])
+    f.atomic_json(out/'terminal-audit.json',result)
+    print(f.canonical(result))
+
+
+if __name__ == '__main__':
+    main()
