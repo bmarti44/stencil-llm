@@ -1821,3 +1821,12 @@ behind FOCUS-1; before any 4B attempt an infrastructure-only amendment (memory-b
 cases; no scientific clause changed) must be registered and reviewed, because the limit scales with context length,
 not trunk size. (c) The preflight records (27 cases) are retained, never re-scored. No GPU-h is spent on BFCL until
 FOCUS-1 has run.
+
+## FOCUS-1 STATUS (2026-09-05): ON HOLD, NOT REGISTERED — actuator family infeasible on quick check 31
+Quick check 31 (unregistered, disclosed; results/quick-checks/focus1-probe/): oracle A/B/OFF steering with extracted
+mean-difference residual vectors induced neither skill in any of 18 cells on either trunk (1.7B or 4B); asc/desc
+vectors are near-collinear (cosine 0.89-0.98); 4B is competent with the cue visible (27/32, 30/32), 1.7B is not on
+descending (10/32 lenient). The FOCUS-1 DRAFT v2 actuator (same extraction) is therefore not worth registering; the
+harness reviews (results/focus1-harness-review-{astra,fable}.md) stand as recorded and their fixes are NOT applied
+unless a later quick test revives this actuator. Under Brian's quick-test-first ruling the program proceeds down the
+QUEUE in results/quick-checks/README.md (Q2 = content-free slot address over a fixed skill menu, check 32).

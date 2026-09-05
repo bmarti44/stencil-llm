@@ -4721,3 +4721,7 @@ Completed in 5.33 / 9.73 GPU-min. 4B has better competence; no useful cell (desc
 1.7B JSON/schema scoring correction preserves exact scores and chosen delay cell; original scores/source retained.
 Validation: 864 rows, 192 extraction prompts, 12 fp32 vectors, caps/hooks, all summaries, source hashes and CPU/lint smokes passed.
 Artifacts: results/quick-checks/focus1-probe/; explicit-pathspec commit only; no sealed input read, process signal, or push.
+
+## 2026-09-05 — check 31 INFEASIBLE on both trunks; FOCUS-1 on hold; hypothesis queue Q2-Q6 recorded; check 32 launched
+- Three independent rankings (results/hypotheses-{astra,fable,kimi}.md) merged into results/quick-checks/README.md QUEUE.
+- Check 31 result sent to fable for a raw-record accuracy review (one round). Check 32 (Q2) brief -> astra, GPU idle.

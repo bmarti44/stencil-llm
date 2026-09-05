@@ -279,3 +279,20 @@ spec change did not teach (all seeds miss it).
    Both trunks: every sustained steering direction 0/16 exact; prompt-only directions also 0/16 -> INFEASIBLE.
    4B is the better competence baseline; no useful steering cell. Complete in 5.33 / 9.73 GPU-min, respectively.
    Probe-only disjoint synthetic fit/eval lists; no registered FOCUS-1 selection. JSON/schema correction disclosed.
+
+## QUEUE (2026-09-05, Brian's quick-test-first ruling; merged from results/hypotheses-{astra,fable,kimi}.md)
+Skill pair for all: ascending sort vs REVERSE input order (1.7B cannot do descending: 10/32); value-exact,
+format-lenient scorer (check 31 lost 28/32 correct ascending sorts to quotes/fences). Own seeds; no benchmark data;
+pass/fail reading written before running; one accuracy review of the RESULT from raw records before the next item.
+- Q1 DONE = check 31 (extracted mean-difference residual steering, oracle A/B/OFF): INFEASIBLE on both trunks; vectors
+  near-collinear (cosine 0.89-0.98); zero task inductions in all 18 cells x 2 trunks. Extracted-vector family closed.
+- Q2 = check 32: content-free slot address over a fixed skill menu via the native interface (astra #1) with the SELECTOR
+  spotlight as an optional actuator arm (fable #1); controls: randomized slot assignment, bank-removed arm, full-text
+  reminder bar; set/hold/switch/clear on retained history. ~2 GPU-h.
+- Q3 = coordinate replacement instead of addition (astra #3), ~2 GPU-h — only if Q2 is marginal and a non-text route is
+  still wanted.
+- Q4 = one-shot KV address / operand-free KV packet transplant, hold without reapplication, clear by restore
+  (fable #3, astra #4), ~2 GPU-h.
+- Q5 = learned address prefix / controller-in-the-loop (fable #2, astra #2, kimi H2) — only after Q2 or Q4 supplies a
+  reliable actuator; <= 4 GPU-h.
+- Q6 = head-gate patterns (fable #4, astra #5, kimi H5), <= 4 GPU-h, closure test.
