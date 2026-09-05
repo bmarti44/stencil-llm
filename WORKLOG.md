@@ -5130,3 +5130,10 @@ Preserved attempt1 source/freeze/runtime/empty records/log/summary; 46.370015165
 Explicit return_dict=False now tested through the actual local tokenizer on CPU; eight fixture groups and ruff pass. Scientific tasks/selector/grid/reading remain unchanged.
 Fit-on still none observed; counting remains planned only on the disjoint profile slice. Commit repair/freeze, then foreground python -B -u scripts/focus_check41.py --mode run --wait, CPU audit and final explicit-path commit.
 Check40 ended COST_STOP_BEFORE_COMPETENCE; no behavioral comparison available. No process signal/background launch/push or sealed-input read.
+
+### 2026-09-05 — Check40b minimal router SET: MARGINAL (gpt-6-astra)
+Fit/train-on none; profiles on 32 cued synthetic replies, alpha on 8 setup tasks, screen on 32 disjoint statements; no sealed inputs.
+Competence Python/JS 16/16 each; alpha4 all layers: correct JS26/32, broken6/32 (>2), coarse task25/32; shuffled/OFF Python32/32, text JS32/32.
+64-token cap, zero truncations; 224 generations +32 teacher-forced profiles audited; 744.53s /5400s; no dose/cap/screen rescue.
+Foreground wait behind check41; initial zero-outcome waiter naturally exited on busy lock; pre-outcome JSON repair preserved, no signals/training/push.
+STATE: check40b and CPU audit complete; this scoped commit carries all artifacts; RUNNING.flag removed; no push.

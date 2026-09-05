@@ -161,3 +161,17 @@ precision, 25/259 combined none-FP; diagnostic because primary qualifies.
 The old .98 floor, not the 2% cap alone, caused abstention: DEV 2%-without-floor
 thresholds [.94,.91,.87,.50] recover 229/317 positives, precision 229/246.
 These are descriptive DEV measurements, no population guarantee.
+
+2026-09-05 — check40b WRITE-AHEAD: user's minimal unregistered foreground SET pass.
+Archived PROTOCOL read; no review/coder wrapper owns the lock. Fit/train-on none;
+profile-on same 32 cued competence replies, choose alpha on 8 setup tasks, evaluate
+32 disjoint synthetic expression statements from check40 cf8c38ae. No sealed reads.
+Interpret four grid cells as two directions x two alphas; choose alpha from JS
+cells by JS-valid count, then breakage. Mean raw logits, generated-token positions;
+no new profile decoding. Fixed reading/projection in check40b/prewritten-reading.md.
+Initial GPU empty and check41 process absent; RUNNING.flag written for check42.
+
+2026-09-05 — check40b COMPLETE: MARGINAL, correct JS26/32 but broken6/32 >2;
+OFF/shuffled Python32/32, text JS32/32. 224 records/32 teacher-forced profiles audited;
+744.53/5400 GPU seconds. Lock queue fixed before outcomes; original waiter naturally
+exited before model load. No training/sealed reads/signals/push. This scoped commit closes check40b.

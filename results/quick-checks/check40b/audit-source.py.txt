@@ -1,0 +1,86 @@
+import hashlib
+import json
+from pathlib import Path
+import sys
+sys.path.insert(0, '/home/bmarti44/stencil-llm/scripts')
+import focus_check40 as base
+import torch
+from transformers import AutoTokenizer
+tokenizer = AutoTokenizer.from_pretrained(base.MODEL, local_files_only=True)
+root = base.ROOT
+out = root / 'results/quick-checks/check40b'
+rows = [json.loads(s) for s in (out/'records.jsonl').read_text().splitlines()]
+bank = json.loads((out/'banks.json').read_text())
+tasks = {t['id']: t for ts in bank.values() for t in ts}
+for i,r in enumerate(rows):
+    assert r['id'] == i
+    assert tokenizer.decode(r['generated_token_ids'], skip_special_tokens=True) == r['text']
+    rendered = tokenizer.apply_chat_template(r['history'], tokenize=True, return_dict=False, add_generation_prompt=True, enable_thinking=False)
+    assert rendered == r['input_token_ids'] == r['rendered_input_token_ids']
+    assert r['score'] == base.score(r['text'], tasks[r['task_id']], r['truncated'])
+    assert len(r['history']) == 2 and not r['retained_kv']
+    assert r['cache_prefix_token_ids'] == []
+    assert r['input_sha256'] == hashlib.sha256(json.dumps(r['input_token_ids']).encode()).hexdigest()
+    assert len(r['generated_token_ids']) <= r['token_cap']
+    if r['phase'] in ('grid','screen') and r['arm'] != 'text-cue':
+        assert not any(x in r['history'][1]['content'].lower() for x in ('python','javascript'))
+checks = dict(records=len(rows), scores_reproduced=True, fresh_requests=True, uncued_requests=True, token_caps=True)
+if (out/'profiles.pt').exists():
+    p = torch.load(out/'profiles.pt', weights_only=False, map_location='cpu')
+    means=[]
+    for lang in base.LANGS:
+        items=[v for v in p['per_task'] if v['language']==lang]
+        assert len(items)==16
+        for v in items:
+            r=rows[v['record_id']]
+            assert r['task_id']==v['task_id'] and r['arm']==lang
+            assert v['count']==len(r['generated_token_ids'])-int(r['eos'])
+            saved=torch.load(out/'profiles'/f"{lang}-{v['task_id']}.pt", weights_only=False)
+            assert torch.equal(saved['logit_sums'],v['logit_sums'])
+        means.append(sum(v['logit_sums'] for v in items)/sum(v['count'] for v in items))
+    assert torch.equal(torch.stack(means).float(),p['means'])
+    norm,shuf=base.make_biases(p['means'])
+    assert torch.equal(norm,p['normal']) and torch.equal(shuf,p['shuffled'])
+    assert torch.allclose(norm.norm(dim=-1),shuf.norm(dim=-1))
+    stats=json.loads((out/'profile-statistics.json').read_text())
+    for l,v in enumerate(stats['layers']):
+        top=[torch.topk(m[l],8).indices.tolist() for m in p['means']]
+        assert v['overlap']==len(set(top[0])&set(top[1]))/8
+        assert v['top_experts']==dict(zip(base.LANGS,top))
+    checks.update(profiles_recomputed=True, overlaps_recomputed=True, shuffled_norm_match=True)
+if (out/'grid.json').exists():
+    g=json.loads((out/'grid.json').read_text())
+    for c in g['cells']:
+        rs=[r for r in rows if r['phase']=='grid' and r['arm']==c['direction'] and r['alpha']==c['alpha']]
+        assert len(rs)==8
+        assert c['js']==sum(r['score']['valid_language']=='JavaScript' for r in rs)
+        assert c['broken']==sum(r['score']['broken'] for r in rs)
+    if g['frozen']:
+        assert g['selected']==min([c for c in g['cells'] if c['direction']=='JavaScript'],key=lambda c:(-c['js'],c['broken'],c['alpha']))
+        assert g['screen_records_at_freeze']==0
+        frozen=torch.load(out/'frozen-biases.pt',weights_only=False)
+        for r in rows:
+            if r['phase']=='screen' and r['arm'] in frozen:
+                assert r['bias_sha256']==hashlib.sha256(frozen[r['arm']].float().numpy().tobytes()).hexdigest()
+    checks['grid_recomputed']=True
+summary=json.loads((out/'summary.json').read_text())
+if summary['arms']:
+    for a,v in summary['arms'].items():
+        rs=[r for r in rows if r['phase']=='screen' and r['arm']==a]
+        assert v['n']==len(rs)==summary['screen_n']
+        assert len({r['task_id'] for r in rs})==len(rs)
+        assert v['js']==sum(r['score']['valid_language']=='JavaScript' for r in rs)
+        assert v['broken']==sum(r['score']['broken'] for r in rs)
+        assert v['task_check']==sum(r['score']['valid_task'] for r in rs)
+    c,s=summary['arms']['correct'],summary['arms']['shuffled']
+    expected='POSSIBLE' if c['js']>=20 and c['broken']<=2 and s['js']<=4 else 'MARGINAL' if c['js']>=12 else 'NOT POSSIBLE'
+    if summary['screen_n']!=32:
+        expected='PARTIAL'
+    assert expected==summary['reading']
+assert summary['records']==len(rows)
+assert summary['generated_tokens']==sum(len(r['generated_token_ids']) for r in rows)
+for name,digest in json.loads((out/'freeze.json').read_text())['files'].items():
+    assert base.sha(root/name)==digest
+checks.update(summary_recomputed=True, reading_recomputed=True, source_freeze_verified=True, token_text_and_prompt_replay=True)
+base.write_json(out/'audit.json',checks)
+print(json.dumps(checks))

@@ -1,0 +1,332 @@
+#!/usr/bin/env python3
+"""Minimal disclosed router-bias SET screen; no training or benchmark inputs."""
+from __future__ import annotations
+
+import argparse
+from collections import Counter
+import json
+import math
+import os
+from pathlib import Path
+import re
+import subprocess
+import time
+
+import focus_check40 as base
+
+ROOT = base.ROOT
+OUT = ROOT / 'results/quick-checks/check40b'
+LIMIT = 5400
+READING = '''# Check 40b — minimal brute-force expert routing, single-shot SET
+
+Unregistered, disclosed; Brian's 2026-09-05 brief. Qwen3-30B-A3B, seed 40040.
+Fit/train-on: none. Profile measurements reuse only the 32 cued competence
+responses; alpha selection uses eight separate synthetic setup tasks. Evaluation:
+32 fresh-to-this-run uncued tasks, disjoint statements and expression/tree families
+from competence/setup. These are the first 16/8/32 rows of check 40's cf8c38ae
+arithmetic competence/grid/screen bank, not a held-out benchmark. No sealed input
+or recorded benchmark response is read. No weights fitted or trained.
+
+## Pre-written reading (fixed before model outcomes)
+
+Competence: 16 paired tasks per language, cue visible, >=14/16 unbroken parser-valid
+target-language replies each; otherwise INELIGIBLE. Coarse task checks separate.
+64-token cap for every generation. If either language has >4/16 truncations,
+raise to 128 ONCE, regenerate all 32 competence replies, preserve the initial
+attempt separately, and use 128 thereafter. No other cap or outcome rescue.
+Profiles: teacher-force the final 32 actual cued replies, no new decoding or
+success filtering. Pool raw router logits at all generated non-EOS tokens' own
+positions (including the final token), exclude prompt/EOS, then take the per-layer
+mean per expert per language. Longer replies weigh more. Top-k uses model k=8;
+if overlap intersection/8 >90% in EVERY layer, INELIGIBLE: same experts.
+Bias = alpha * (language mean logits - two-language mean logits), all 48 layers.
+No normalization or learned parameters. Shuffled permutes expert indices within
+each layer with seed 40042, preserving every layer's norm and the paired opposition.
+Grid: four cells = Python/JavaScript direction x alpha {1,4}, eight uncued tasks
+per cell, 32 generations. Select alpha from the JS-direction cells by highest
+valid unbroken JS count, then fewest broken replies, then smaller alpha. Python
+cells are direction controls, not eligible substitutes for the JS address. Freeze
+before screen. This resolves the brief's four-cell/two-alpha ambiguity explicitly.
+Screen: 32 tasks x correct(JS), swapped(Python), shuffled(JS permutation), OFF,
+text-cue("Use JavaScript.") =160 generations. Every response starts a fresh
+system/user request and fresh KV, with no retained history. Bias covers prefill
+and decode. Parser identity ignores fence labels; task checks reuse check40's
+coarse syntax/expression checker, not general execution correctness. Breakage
+includes truncation, invalid/ambiguous parse, fence errors and repetition.
+POSSIBLE iff correct valid unbroken JS >=20/32, correct breakage <=2/32,
+and shuffled valid unbroken JS <=4/32. Otherwise MARGINAL iff correct >=12/32;
+else NOT POSSIBLE. Report OFF identity distribution and all task checks.
+Incomplete runs are PARTIAL. If the cost projection requires 16 screen tasks,
+report descriptive counts with PARTIAL (literal 32-task thresholds unchanged).
+
+## Pre-run cost and execution
+
+At check40's measured conservative 16 tok/s, (32+32+160)*64=14,336 capped tokens
+cost 896 seconds =14.93 decode minutes. Charge a conservative 600 seconds for
+load/kernel checks and 1 second per generation/profile prefill, then a 25% reserve:
+(600+896+256)*1.25=2,190 seconds =0.6083 GPU-h, below 1.5 GPU-h.
+The once-raised-cap branch, including discarded 64-token competence, projects
+(600+(32*64+224*128)/16+288)*1.25=3,510 seconds =0.975 GPU-h.
+Reproject with elapsed allocation before each next stage; halve screen to 16 only
+if projected >5,400 seconds, and stop PARTIAL if that still does not fit.
+Cooperative deadline checked per token/forward; no signals or process termination.
+Load and all GPU stages count; a blocking operation can overrun and is disclosed.
+Reuse check40 model loader, tuple-aware router hook, grouped_mm parity/dispatch/OFF
+checks, parsers, prompts, arithmetic bank and seed. No extra throughput decoding.
+Foreground only. Poll GPU/check41 at 600-second intervals if unavailable; require
+no compute process AND (check41 terminal reading OR its runner absent). Hold the
+repo review lock during execution; RUNNING.flag reserves check40b through reporting.
+
+## Results
+
+PENDING.
+'''
+
+
+def write(name, obj):
+    base.write_json(OUT / name, obj)
+
+
+def aggregate(rows):
+    return dict(n=len(rows), identity=dict(Counter(r['score']['language'] for r in rows)),
+                valid=dict(Counter(r['score']['valid_language'] for r in rows)),
+                js=sum(r['score']['valid_language'] == 'JavaScript' for r in rows),
+                broken=sum(r['score']['broken'] for r in rows),
+                task_check=sum(r['score']['valid_task'] for r in rows),
+                js_task_check=sum(r['score']['valid_task'] and r['score']['language'] == 'JavaScript' for r in rows),
+                truncated=sum(r['truncated'] for r in rows))
+
+
+def verdict(arms, n):
+    if n != 32 or any(arms[a]['n'] != n for a in base.ARMS):
+        return 'PARTIAL'
+    c, s = arms['correct'], arms['shuffled']
+    if c['js'] >= 20 and c['broken'] <= 2 and s['js'] <= 4:
+        return 'POSSIBLE'
+    return 'MARGINAL' if c['js'] >= 12 else 'NOT POSSIBLE'
+
+
+def projection(cap=64, n=32, elapsed=0, remaining=224, profile=32):
+    return elapsed + 1.25 * (remaining * cap / 16 + remaining + profile)
+
+
+def prepare():
+    assert not (OUT / 'records.jsonl').exists()
+    OUT.mkdir(exist_ok=True, parents=True)
+    b = base.expression_bank()
+    bank = {s: b[s][:n] for s, n in [('competence', 16), ('grid', 8), ('screen', 32)]}
+    assert len({t['prompt'] for ts in bank.values() for t in ts}) == 56
+    write('banks.json', bank)
+    (OUT / 'prewritten-reading.md').write_text(READING)
+    (OUT / 'README.md').write_text(READING)
+    # Test the real parser and reading boundaries before model outcomes.
+    task = bank['competence'][0]
+    for language, code in [('Python', f"def {task['name']}():\n    return {task['expression']}"),
+                           ('JavaScript', f"function {task['name']}() {{ return {task['expression']}; }}")]:
+        s = base.score(code, task)
+        assert s['valid_language'] == language and s['valid_task'], s
+        assert base.score(code, task, truncated=True)['broken']
+    arms = {a: dict(n=32, js=0, broken=0) for a in base.ARMS}
+    arms['correct']['js'] = 20
+    assert verdict(arms, 32) == 'POSSIBLE'
+    arms['shuffled']['js'] = 5
+    assert verdict(arms, 32) == 'MARGINAL'
+    arms['correct']['js'] = 11
+    assert verdict(arms, 32) == 'NOT POSSIBLE'
+    assert verdict(arms, 16) == 'PARTIAL'
+    write('cpu.json', dict(parser_and_truncation=True, reading_boundaries=True, bank_disjoint=True))
+    files = [Path(__file__).resolve(), ROOT / 'scripts/focus_check40.py', OUT / 'banks.json', OUT / 'prewritten-reading.md']
+    write('freeze.json', dict(seed=40040, utc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+                             files={str(p.relative_to(ROOT)): base.sha(p) for p in files}))
+    write('projection.json', dict(tokens=14336, decode_seconds=896, total_seconds=2190,
+                                   raised_cap_total_seconds=3510, cap_seconds=LIMIT))
+    print('CPU checks and pre-outcome freeze ready.', flush=True)
+
+
+def ready():
+    gpu = base.gpu_pids()
+    live = []
+    for p in Path('/proc').iterdir():
+        if p.name.isdigit():
+            try:
+                args = (p / 'cmdline').read_bytes().replace(b'\0', b' ').decode()
+                if re.search(r'(?:^|/)focus_check41\.py\s', args) and '--mode run' in args and 'python' in args and 'bash -c' not in args:
+                    live.append(int(p.name))
+            except (OSError, UnicodeError):
+                pass
+    readme = ROOT / 'results/quick-checks/check41/README.md'
+    result = readme.read_text().split('## Results', 1)[-1] if readme.exists() else ''
+    terminal = bool(re.search(r'\*\*(?:INELIGIBLE|NOT POSSIBLE|MARGINAL|POSSIBLE|PARTIAL|STOP|INCOMPLETE|COMPLETE)[^*]*\*\*', result))
+    return dict(gpu_pids=gpu, check41_pids=live, check41_terminal=terminal,
+                ready=not gpu and (terminal or not live), utc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()))
+
+
+def run():
+    import torch
+    for name, digest in json.loads((OUT / 'freeze.json').read_text())['files'].items():
+        assert base.sha(ROOT / name) == digest, name
+    receipts = []
+    while True:
+        receipt = ready()
+        receipts.append(receipt)
+        write('readiness.json', receipts)
+        print(json.dumps(receipt), flush=True)
+        if receipt['ready']:
+            break
+        for _ in range(10):
+            time.sleep(60)
+            print('Waiting; GPU/check41 poll interval remains 600 seconds.', flush=True)
+    with base.review_lock():
+        assert ready()['ready'], 'Resource race; no model loaded'
+        execute(torch)
+
+
+def execute(torch):
+    assert not (OUT / 'records.jsonl').exists(), 'Refuse outcome overwrite'
+    b = json.loads((OUT / 'banks.json').read_text())
+    base.GPU_SECONDS = LIMIT
+    start = time.monotonic()
+    engine = None
+    rows, projections = [], []
+    cap, n = 64, 32
+    summary = dict(reading='PARTIAL', reason='interrupted', competence={}, profiles=None, arms={})
+    journal = (OUT / 'records.jsonl').open('x')
+
+    def elapsed():
+        return time.monotonic() - start
+
+    def admit(stage, remaining, profile=0):
+        nonlocal n
+        estimate = projection(cap, n, elapsed(), remaining, profile)
+        if estimate > LIMIT and n == 32:
+            n = 16
+            remaining -= 80
+            estimate = projection(cap, n, elapsed(), remaining, profile)
+        projections.append(dict(stage=stage, cap=cap, screen_n=n, elapsed=elapsed(), projected_seconds=estimate))
+        write('cost-updates.json', projections)
+        if estimate > LIMIT:
+            raise base.BudgetStop('remaining projection exceeds allocation cap')
+
+    def request(task, phase, arm, cue=None, bias=None, alpha=None):
+        record, _ = engine.generate(base.messages_for(task, cue), bias=bias, cap=cap)
+        record.update(id=len(rows), task_id=task['id'], phase=phase, arm=arm, alpha=alpha,
+                      score=base.score(record['text'], task, record['truncated']))
+        assert not record['retained_kv'] and len(record['history']) == 2
+        journal.write(json.dumps(record) + '\n')
+        journal.flush()
+        rows.append(record)
+        print(json.dumps(dict(event=phase, arm=arm, task=task['id'], cap=cap,
+                              language=record['score']['valid_language'], truncated=record['truncated'], elapsed=elapsed())), flush=True)
+        if record['cost_stopped']:
+            raise base.BudgetStop('generation deadline')
+        return record
+
+    try:
+        engine = base.Engine(start)
+        kernel = engine.verify_kernel()
+        write('kernel.json', kernel)
+        assert kernel['adopted'], 'Required grouped_mm unavailable'
+        write('runtime.json', dict(load_seconds=engine.load_seconds, torch=torch.__version__,
+                                  model=str(base.MODEL), pid=os.getpid(), config=engine.model.config.to_dict()))
+        admit('competence', 224, 32)
+        while True:
+            comp = {lang: [request(t, f'competence-{cap}', lang, cue=lang) for t in b['competence']] for lang in base.LANGS}
+            summary['competence'][str(cap)] = {lang: aggregate(rs) for lang, rs in comp.items()}
+            write('competence.json', summary['competence'])
+            if cap == 64 and any(sum(r['truncated'] for r in rs) > 4 for rs in comp.values()):
+                cap = 128
+                admit('raised-cap-competence', 64 + 5*n, 32)
+                continue
+            break
+        if any(sum(r['score']['valid_language'] == lang for r in rs) < 14 for lang, rs in comp.items()):
+            summary.update(reading='INELIGIBLE', reason='cued competence below 14/16')
+            return
+        admit('profiles', 32 + 5*n, 32)
+        per_task, means = [], []
+        for lang in base.LANGS:
+            total, count = None, 0
+            for r in comp[lang]:
+                if elapsed() >= LIMIT - 30:
+                    raise base.BudgetStop('profile deadline')
+                generated = [t for t in r['generated_token_ids'] if t not in engine.eos]
+                assert generated
+                ids = r['input_token_ids'] + generated
+                h = engine.hooks
+                h.reset_capture()
+                h.capture_slice = slice(len(r['input_token_ids']), len(ids))
+                h.capture, h.bias = True, None
+                with torch.inference_mode():
+                    engine.model(input_ids=torch.tensor([ids], device=engine.device), use_cache=False, logits_to_keep=1)
+                torch.cuda.synchronize()
+                h.capture, h.capture_slice = False, None
+                assert all(c == len(generated) for c in h.counts)
+                sums = h.sums.cpu().clone()
+                item = dict(record_id=r['id'], language=lang, task_id=r['task_id'], count=len(generated), logit_sums=sums)
+                per_task.append(item)
+                # Persist each teacher-forced record during this same run.
+                directory = OUT / 'profiles'
+                directory.mkdir(exist_ok=True)
+                torch.save(item, directory / f"{lang}-{r['task_id']}.pt")
+                total = sums if total is None else total + sums
+                count += len(generated)
+            means.append(total / count)
+        profiles = torch.stack(means).float()
+        normal, shuffled = base.make_biases(profiles)
+        assert torch.allclose(normal.norm(dim=-1), shuffled.norm(dim=-1))
+        overlaps = []
+        for layer in range(profiles.shape[1]):
+            top = [torch.topk(p[layer], 8).indices.tolist() for p in profiles]
+            overlaps.append(dict(layer=layer, top_experts=dict(zip(base.LANGS, top)), overlap=len(set(top[0]) & set(top[1])) / 8))
+        stats = dict(layers=overlaps, same_experts=all(r['overlap'] > .90 for r in overlaps), positions='generated non-EOS own positions', pooling='token weighted')
+        write('profile-statistics.json', stats)
+        torch.save(dict(means=profiles, normal=normal, shuffled=shuffled, per_task=per_task), OUT / 'profiles.pt')
+        summary['profiles'] = stats
+        if stats['same_experts']:
+            summary.update(reading='INELIGIBLE', reason='same experts: overlap >90% in every layer')
+            return
+        admit('grid', 32 + 5*n)
+        cells = []
+        for alpha in (1, 4):
+            for j, lang in enumerate(base.LANGS):
+                rs = [request(t, 'grid', lang, bias=alpha * normal[j], alpha=alpha) for t in b['grid']]
+                cells.append(dict(alpha=alpha, direction=lang, **aggregate(rs)))
+                write('grid.json', dict(cells=cells, frozen=False))
+        selected = min((c for c in cells if c['direction'] == 'JavaScript'), key=lambda c: (-c['js'], c['broken'], c['alpha']))
+        write('grid.json', dict(cells=cells, selected=selected, frozen=True, screen_records_at_freeze=0))
+        alpha = selected['alpha']
+        summary['selected'] = selected
+        torch.save(dict(correct=alpha*normal[1], swapped=alpha*normal[0], shuffled=alpha*shuffled[1]), OUT / 'frozen-biases.pt')
+        admit('screen', 5*n)
+        for t in b['screen'][:n]:
+            for arm in base.ARMS:
+                bias = {'correct': alpha*normal[1], 'swapped': alpha*normal[0], 'shuffled': alpha*shuffled[1]}.get(arm)
+                request(t, 'screen', arm, cue='JavaScript' if arm == 'text-cue' else None, bias=bias, alpha=alpha if bias is not None else None)
+        summary['arms'] = {a: aggregate([r for r in rows if r['phase'] == 'screen' and r['arm'] == a]) for a in base.ARMS}
+        summary.update(reading=verdict(summary['arms'], n), reason='completed frozen screen')
+    except base.BudgetStop as exc:
+        summary.update(reading='PARTIAL', reason=str(exc))
+    except Exception as exc:
+        summary.update(reading='PARTIAL', reason=repr(exc))
+        raise
+    finally:
+        journal.close()
+        if engine is not None:
+            engine.hooks.close()
+            summary['peak_allocated_gib'] = torch.cuda.max_memory_allocated() / 2**30
+        summary.update(gpu_seconds=elapsed(), cap_seconds=LIMIT, cap_overrun_seconds=max(0, elapsed()-LIMIT), token_cap=cap, screen_n=n, records=len(rows), generated_tokens=sum(len(r['generated_token_ids']) for r in rows))
+        write('summary.json', summary)
+        print(json.dumps(summary), flush=True)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--mode', choices=['prepare', 'run'], required=True)
+    args = parser.parse_args()
+    if args.mode == 'prepare':
+        prepare()
+    else:
+        run()
+
+
+if __name__ == '__main__':
+    main()

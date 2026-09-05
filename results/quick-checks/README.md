@@ -369,3 +369,9 @@ pass/fail reading written before running; one accuracy review of the RESULT from
    Preselected 192/256 balanced episodes: 72.9 s x 3/5 x 1.4 x N + 300 s projects 3.349 h; cap 3.5 GPU-h.
    Fixed closure: A or B all-five >= C, exact McNemar p(worse) > .05, constraint failures <= C + 2; B vs A secondary.
    Recorded BOTH/neither references only; no fitting or sealed inputs; foreground priority wait behind checks 40/41, no signals/push.
+
+40b. MINIMAL MoE ROUTER SET (seed 40040; Qwen3-30B-A3B; [check40b](check40b/README.md)): **MARGINAL**.
+   Cued competence Python/JS 16/16 each; raw-logit profiles; alpha 4 frozen from JS grid 7/8, breakage 1/8.
+   Correct valid JS 26/32, broken 6/32 (>2 limit), coarse task pass 25/32; swapped valid Python 29/32, broken 3/32.
+   OFF and matched-norm shuffled Python 32/32; text-cue JS 32/32; no truncation at 64 tokens, no screen reduction.
+   12.41 GPU-min; 224 generations and 32 teacher-forced profiles audited; unregistered, no fitting/sealed reads/signals/push.
