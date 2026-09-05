@@ -1,0 +1,22 @@
+{
+  "files": {
+    "/home/bmarti44/stencil-llm/results/quick-checks/check40b/banks.json": "7f02ca1fc2b01a2884a795c1ec64befbc526fc047f6f0950a5acb67fe3ad9fca",
+    "/home/bmarti44/stencil-llm/results/quick-checks/check40b/frozen-biases.pt": "930a7ab9f322b9e172695f6e647891313c437f8d8fc2e649ad31c9ab7a6edc2b",
+    "/home/bmarti44/stencil-llm/results/quick-checks/check40d/biases.pt": "093487cba6555b7bbe578055e09997e738bd35d314f8629b8ac28d33726122e8",
+    "/home/bmarti44/stencil-llm/results/quick-checks/check40d/prewritten-reading.md": "14979c775f26569483c5be2957e746cd2fbae151deeb7e848eebdcd599b120e0",
+    "/home/bmarti44/stencil-llm/results/quick-checks/check40d/projection.json": "45b1430214630fe312bc3db783f190b16a8122df623b7e20acb0ce6b8ebb0cd4",
+    "/home/bmarti44/stencil-llm/results/quick-checks/check40d/tasks.json": "8c2bd059aadeba961229587e42ccd24778f654fc7911a26f519070c81f8ec9dc",
+    "/home/bmarti44/stencil-llm/scripts/focus_check40.py": "1888a75742f926d980ecc8884016d319feaf359f218a5fd442f21b39cc0e09a4",
+    "/home/bmarti44/stencil-llm/scripts/focus_check40b.py": "23a6838eae46c61cebbb7d543572b275fbeee0c8645f2c013fe67b146293e1a6",
+    "/home/bmarti44/stencil-llm/scripts/focus_check40c.py": "40fc186e3e44269aff8f82738340fafd30514bc63b628d447bf28d750ab4c05d",
+    "/home/bmarti44/stencil-llm/scripts/focus_check40d.py": "72b30b0f0a95b3f15791ac41ce7fe48cb2fbd0908d29a75e8c5009b71ba867a3"
+  },
+  "runtime": {
+    "python": "/home/bmarti44/stencil-llm/.venv/bin/python",
+    "router_source": "    def forward(self, hidden_states):\n        hidden_states = hidden_states.reshape(-1, self.hidden_dim)\n        router_logits = F.linear(hidden_states, self.weight)  # (seq_len, num_experts)\n        router_probs = torch.nn.functional.softmax(router_logits, dtype=torch.float, dim=-1)\n        router_top_value, router_indices = torch.topk(router_probs, self.top_k, dim=-1)  # (seq_len, top_k)\n        if self.norm_topk_prob:\n            router_top_value /= router_top_value.sum(dim=-1, keepdim=True)\n        router_top_value = router_top_value.to(router_logits.dtype)\n        router_scores = router_top_value\n        return router_logits, router_scores, router_indices\n",
+    "router_source_sha256": "b2666af64b7b31a02a152e9187ed2c5671262543b61510d0359c26fa491105ca",
+    "transformers": "5.16.1",
+    "transformers_path": "/home/bmarti44/stencil-llm/.venv/lib/python3.12/site-packages/transformers/__init__.py"
+  },
+  "utc": "2026-09-05T22:55:15Z"
+}

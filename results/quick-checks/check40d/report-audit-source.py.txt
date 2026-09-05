@@ -1,0 +1,110 @@
+"""CPU-only report and additional artifact audit; no generation or fitting."""
+import hashlib
+import json
+import sys
+from collections import Counter
+from pathlib import Path
+
+ROOT = Path('/home/bmarti44/stencil-llm')
+sys.path.insert(0, str(ROOT / 'scripts'))
+import focus_check40d as check
+import torch
+
+OUT = check.OUT
+summary = json.loads((OUT / 'summary.json').read_text())
+rows = [json.loads(line) for line in (OUT / 'records.jsonl').read_text().splitlines()]
+tasks = json.loads((OUT / 'tasks.json').read_text())
+biases = torch.load(OUT / 'biases.pt', map_location='cpu', weights_only=True)
+prior = torch.load(check.OLD / 'frozen-biases.pt', map_location='cpu', weights_only=True)
+assert torch.equal(biases['js'], prior['correct'] * .75)
+assert torch.equal(biases['python'], prior['swapped'] * .75)
+assert torch.equal(biases['js'] * (2/3), prior['correct'] * .5)
+assert torch.equal(biases['python'] * (2/3), prior['swapped'] * .5)
+generator = torch.Generator().manual_seed(check.SEED)
+for episode in biases['shuffled']:
+    for step in episode:
+        expected = torch.stack([row[torch.randperm(len(row), generator=generator)] for row in biases['js']])
+        assert torch.equal(expected, step)
+        assert torch.allclose(step.norm(dim=-1), biases['js'].norm(dim=-1))
+assert tasks == check.make_tasks(len(tasks))
+previous_expressions = {t['expression'] for bank in check.base.expression_bank().values() for t in bank}
+assert previous_expressions.isdisjoint(t['expression'] for episode in tasks for t in episode.values())
+assert len({t['expression'] for e in tasks for t in e.values()}) == len(tasks)*5
+for row in rows:
+    ids = row['generated_token_ids']
+    assert 0 < len(ids) <= 64 and row['token_cap'] == 64
+    assert row['truncated'] == (not row['eos'] and len(ids) == 64)
+    assert not row['cost_stopped'] if summary['complete'] else True
+    prefix = row['cache_prefix_token_ids']
+    assert row['cache_prefix_sha256'] == hashlib.sha256(json.dumps(prefix).encode()).hexdigest()
+    assert row['input_sha256'] == hashlib.sha256(json.dumps(row['input_token_ids']).encode()).hexdigest()
+    assert row['cue'] == check.cue_for(row['arm'], row['step'])
+    assert row['bias_active'] == (row['bias_sha256'] is not None)
+    if row['arm'] == 'fresh-OFF':
+        assert len(row['history']) == 2 and not row['retained_kv']
+    else:
+        assert len(row['history']) == 2 + 2 * check.STEPS.index(row['step'])
+    if row['eos']:
+        assert not row['appended_terminal_token_ids']
+    else:
+        assert len(row['appended_terminal_token_ids']) == int(row['retained_kv'])
+    assert [m['role'] for m in row['history']] == ['system'] + ['user', 'assistant'] * ((len(row['history'])-2)//2) + ['user']
+assert json.loads((OUT / 'runtime.json').read_text())['raw_slot_verified_layers'] == 48
+kernel = json.loads((OUT / 'kernel.json').read_text())
+assert kernel['adopted'] and kernel['exact_off_next_logits'] and kernel['nonzero_dispatch_verified']
+audit = json.loads((OUT / 'audit.json').read_text())
+audit.update(frozen_biases_rederived=True, every_shuffled_permutation_rederived=True,
+             task_bank_and_lineage_rederived=True, token_caps_pair_closures_hashes=True,
+             real_48_layer_raw_slot_and_exact_off=True)
+check.write('audit.json', audit)
+
+parts = [f"**{summary['reading']}**. Primary failed conditions: " +
+         (', '.join(summary['failed_conditions']) or 'none') + '.\n\n']
+parts.append('The primary schedule passes SET/HOLD/BACK and the shuffled specificity bar, but fails BOTH release questions: flipping to the frozen Python direction never changed the initial JS history, and turning the bias OFF never restored the fresh Python default. All 32 primary histories remain JS at every scored step. These observations do not isolate whether earlier biased KV or the retained JS answers dominate the current bias; both are retained by design.\n\n')
+parts.append('The text-cue bar switches to Python on 32/32 SWITCH requests, showing that these retained histories can change language under an explicit request. Its uncued CLEAR also remains JS32/32, so CLEAR persistence is shared with text-cued histories. Alpha2 induces JS in only 6/32 fresh episodes and preserves those same six through every scored step; its Python26/32 at SWITCH/CLEAR reflects initial Python defaults, not successful release of the six induced JS histories. This bank is fresh and has new function names; the drop from 40c alpha2 JS25/32 is descriptive, not an isolated estimate of a history effect. Nothing was retuned.\n\n')
+parts.append('Primary, OFF, text-cue and alpha2 have zero scored breakage and 32/32 coarse task passes at each step. Shuffled episode8 returns bare numbers at all five steps (accepted by both parsers, therefore ambiguous/broken); episode24 uses valid Python lambda assignments, which the frozen named-def coarse checker rejects. These account for shuffled broken1/32 and coarse30/32 per step. Every arm has zero => and zero literal -> replies at every scored step.\n\n')
+parts.append('| Arm | Step | N | Valid JS | Valid Python | Broken | Coarse task pass | Truncated | => replies | -> replies |\n')
+parts.append('|---|---|---:|---:|---:|---:|---:|---:|---:|---:|\n')
+for arm in check.ARMS:
+    for step in check.SCORED:
+        r = summary['arms'][arm][step]
+        parts.append(f"| {arm} | {step} | {r['n']} | {r['js']} | {r['valid'].get('Python',0)} | {r['broken']} | {r['task_check']} | {r['truncated']} | {r['arrow_function_replies']} | {r['arrow_neighbour_replies']} |\n")
+parts.append('\nBreakage by family (broken / family N; unchanged two-parser category):\n\n')
+parts.append('| Arm | Step | screen_0: ((a+b)*(c-d)) | screen_1: ((a*b)+(c*d)) | screen_2: ((a-b)-(c+d)) |\n|---|---|---:|---:|---:|\n')
+for arm in check.ARMS:
+    for step in check.SCORED:
+        fam = summary['arms'][arm][step]['breakage_by_family']
+        cells = [f"{fam.get(f'screen_{i}',{}).get('broken',0)}/{fam.get(f'screen_{i}',{}).get('n',0)}" for i in range(3)]
+        parts.append(f"| {arm} | {step} | " + ' | '.join(cells) + ' |\n')
+parts.append('\nCLEAR release and fresh OFF baselines:\n\n')
+f = summary['fresh_off']
+parts.append(f"Fresh OFF: Python {f['valid'].get('Python',0)}/{f['n']}, JS {f['js']}/{f['n']}, broken {f['broken']}/{f['n']}. ")
+parts.append('Paired CLEAR impositions (JS where fresh OFF is Python): ' + '; '.join(f"{a} {v['js_impositions']}/{v['python_default_pairs']}" for a,v in summary['clear_imposition'].items()) + '.\n')
+parts.append('\nNeutral delay: literal OK replies ' + '; '.join(f'{a} {n}/{len(tasks)}' for a,n in summary['neutral_ok'].items()) + '. Neutral parser results are diagnostic only and code-breakage bars exclude this deliberately non-code request.\n')
+parts.append('\nFirst-token, first-three-token, and fence counts (literal strings):\n\n')
+parts.append('| Arm | Step | First token | First three tokens | Fence |\n|---|---|---|---|---|\n')
+for arm in check.ARMS:
+    for step in check.SCORED:
+        r = summary['arms'][arm][step]
+        cells = [json.dumps(r[k], ensure_ascii=False).replace('|', '&#124;').replace('`','&#96;') for k in ('first_tokens','first_three_tokens','fence_labels')]
+        parts.append(f'| {arm} | {step} | ' + ' | '.join(cells) + ' |\n')
+parts.append('\nAdjacent scored-step language transitions (broken means no valid unbroken language):\n\n')
+parts.append('| Arm | Transition | Counts |\n|---|---|---|\n')
+for arm, transitions in summary['transitions'].items():
+    for transition, counts in transitions.items():
+        parts.append(f'| {arm} | {transition} | {json.dumps(counts)} |\n')
+broken_rows = [r for r in rows if r['step'] != 'NEUTRAL' and r['score']['broken']]
+parts.append('\nBroken scored replies by parser identity and fence: ' + json.dumps(dict(Counter(f"{r['arm']}/{r['step']}: {r['score']['language']}, {r['fence_label']}" for r in broken_rows))) + '. ')
+parts.append('Flags (a reply can have multiple): ' + json.dumps(dict(Counter(k for r in broken_rows for k,v in r['score']['flags'].items() if v))) + '.\n')
+parts.append(f"\nExecution: {summary['records']} generations, {summary['generated_tokens']} generated tokens; "
+             f"{summary['gpu_seconds']:.2f} s = {summary['gpu_seconds']/60:.2f} GPU-min /120 cap, "
+             f"{summary['cap_overrun_seconds']:.2f} s overrun; load "
+             f"{json.loads((OUT/'runtime.json').read_text())['load_seconds']:.2f} s, peak allocated "
+             f"{summary['peak_allocated_gib']:.2f} GiB. {summary['reason']}.\n")
+parts.append('\nAudit: every parser score, decoded token text, rendered message history, actual retained KV prefix, bias schedule/hash, first/fence/arrow field, aggregate and reading reconstructed on CPU. Frozen profile scaling and every shuffled permutation rederived; fresh task lineage and complete pair closures checked. Real router slot0 equality on all 48 layers, changed dispatch, exact OFF logits and grouped_mm adoption passed before generation. Import guard: 3 passed, 1 known legacy xfail; lint and CPU real-consumer checks passed.\n')
+parts.append('\nOperational disclosure: initially Brian\'s server reported 93,445 MiB allocated and only ~20 GiB system memory available, so no model load was attempted. Memory changed externally to 115.7 GiB available with an empty GPU process list before launch. No process was touched by this task. Foreground only; no signals, training, fitting, sealed reads, or push. RUNNING.flag removed after GPU cleanup.\n')
+parts.append('\nArtifacts: [summary](summary.json), [records](records.jsonl), [fixed reading](prewritten-reading.md), [tasks](tasks.json), [biases](biases.pt), [projection](projection.json), [source freeze](freeze.json), [runtime](runtime.json), [kernel](kernel.json), [CPU checks](cpu.json), [audit](audit.json), [run log](run.log), [inventory](artifact-inventory.json). biases.pt holds CPU float32 js/python [48,128] scaled from the saved 40b tensors and shuffled [32,6,48,128] within-layer permutations; no learned values. Shapes, bytes and SHA-256 in the inventory; retained records include all text and actual token/cache provenance.\n')
+pre = (OUT/'prewritten-reading.md').read_text()
+assert pre.endswith('PENDING; no outcome observed.\n')
+(OUT/'README.md').write_text(pre.removesuffix('PENDING; no outcome observed.\n') + ''.join(parts))
+print(json.dumps({'audit': audit, 'reading': summary['reading']}))

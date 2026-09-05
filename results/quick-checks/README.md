@@ -392,3 +392,9 @@ pass/fail reading written before running; one accuracy review of the RESULT from
    Sustained alpha2 JS25/32, broken0; alpha3 JS32/32, broken0; freeze alpha2 by prewritten first-qualifying order.
    Alpha4 first3 JS25/broken4, first8 JS26/broken6; recorded sustained JS26/broken6, OFF JS0/broken0; family/arrow counts saved.
    128 new generations +64 recorded references audited; 10.49 GPU-min incl. load; unregistered, no training/sealed reads/signals/push.
+
+40d. ROUTER SET / HOLD / SWITCH / BACK / CLEAR ([check40d](check40d/README.md)): **PARTIAL**, both release steps fail.
+   32 fresh retained-KV episodes; alpha3 primary by explicit override of 40c's first-eligible alpha2; alpha2 secondary, 64-token caps.
+   Primary JS32/32 at SET/HOLD/BACK, Python0/32 at SWITCH/CLEAR; zero broken, coarse32/32 every step; CLEAR impositions32/32.
+   Shuffled JS0/32 everywhere (broken1/32 each scored step); OFF Python32/32; text SWITCH Python32/32, CLEAR JS32/32; alpha2 JS6/32 throughout.
+   992 generations, 34.80/120 GPU-min; all-record CPU audit PASS; family/token/fence/arrows saved; unregistered, no fitting/sealed reads/signals/push.

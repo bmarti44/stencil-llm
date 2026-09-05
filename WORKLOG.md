@@ -5158,3 +5158,10 @@ Fit/train none; same frozen 40b JS direction and reused 32 exploratory tasks; fo
 Sustained alpha2 JS25/32 broken0, alpha3 JS32/32 broken0; alpha2 frozen by first-qualifying order. First3 JS25/broken4; first8 JS26/broken6.
 First3 repairs two breaks as Python lambdas; four Dart-style breaks persist. Recorded sustained JS26/broken6 and OFF JS0/broken0 reused; family/arrows reported.
 128 new generations, 3850 tokens, 629.25/1800 GPU seconds; pinned .venv transformers5.16.1/raw-slot48, CPU audit PASS; flag removed, scoped local commit, no push.
+
+### 2026-09-05 — Check40d: PARTIAL router history control (gpt-6-astra)
+Fit/train none; frozen 40b profiles/directions, 160 fresh synthetic tasks in 32 retained-KV episodes; explicit alpha3 override, alpha2 secondary.
+Primary SET/HOLD/BACK JS32/32, SWITCH/CLEAR Python0/32; zero broken and coarse32/32 each step; CLEAR impositions32/32.
+Shuffled JS0 everywhere, one numeric-answer history broken each step; OFF Python32/32; text SWITCH Python32/32/CLEAR JS32/32; alpha2 JS6/32 unchanged.
+992 generations/26242 tokens, 2088.00/7200 GPU seconds; pinned .venv transformers5.16.1/raw-slot48, full CPU record/bias/history audit PASS.
+RUNNING.flag removed after cleanup; no signals, sealed reads, training, background launch or push; script/results/index/ledger committed with explicit paths.
