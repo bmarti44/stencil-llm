@@ -945,6 +945,13 @@ def train(args):
         "policy": "Batch-boundary stop; 20% for calibration/save; no signals",
     }
     dev_logits = infer(dev, dev_tokens)
+    np.savez_compressed(
+        args.output / "dev_predictions.npz",
+        logits=dev_logits,
+        labels=np.array([LABEL_MAP[r["label"]] for r in dev]),
+        overflow=dev_overflow,
+        split_sha256=np.array(digest(dev)),
+    )
     thresholds = calibrate_thresholds(
         dev_logits,
         np.array([LABEL_MAP[r["label"]] for r in dev]),

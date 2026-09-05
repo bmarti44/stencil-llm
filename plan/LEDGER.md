@@ -129,3 +129,35 @@ One held-out inference after two documented unscored preflight failures; no
 post-score changes to data/model/thresholds. This commit lands final metadata,
 report and evaluation-only guard fixes. Next: no further run authorized by this
 task; any future development must preserve the already-used held-out boundary.
+
+2026-09-05 18:53 UTC — STATE: DEV OPERATING-POINT REVISION STARTED.
+User authorizes revising the orchestrator development choice and GPU seeds
+0/1/2 for three full epochs; this is not an archived science phase gate.
+Fit-on = unchanged patched Kimi + Astra/Opus enrichment; calibrated/evaluated-on
+= original seed-specific scenario-disjoint DEV only. Held-out-1 was seen once
+previously and is now development history. No held-out or benchmark input opened
+in this task; held-out-2 reserved for a later final check. No background launch,
+signals, WORKLOG edit or push. GPU wait 18:53 UTC to 2026-09-06 00:53 UTC;
+600-second polls. Initially GPU empty but check40/check41 run scripts live and
+readings PENDING; check40 then acquired the review lock for its GPU run.
+Initial source edits preceded noticing that lock; after detection all subsequent
+calibration/source work stayed in /tmp pending release. No review/coder wrapper
+was running. The protocol is archived; the user's foreground CPU-now instruction
+governs this narrow development revision, with no new science-gate claim.
+
+2026-09-05 19:01 UTC — STATE: CPU RULE FROZEN; GPU PRIORITY WAIT.
+DEV split hashes and unchanged input hashes reproduce; CPU seed-0 logits were
+recomputed on CPU only, no held-out access. Freeze lowest per-class threshold
+on .50:.01:.98 with empirical none-FP <=.05; require correct-positive recall
+>=.60, a conservative interpretation of positive coverage. Else lowest single
+margin on .00:.01:.98 satisfying both requirements. If neither qualifies retain
+per-class and explicitly fail usefulness. Each seed recalibrates this exact
+rule on its original DEV; seed 0 always ships, without selection on scores.
+CPU selected [.89,.50,.50,.50]: 283/317 correct-positive recall, 283/322 precision,
+322/576 emitted/all coverage, 286/317 emitted/gold-positive coverage, 36/259
+combined none-FP; per-class FP counts 12/10/9/5 (denominator 259). Qualified.
+Margin .80 is the first feasible margin: 280/317 correct positives, 280/305
+precision, 25/259 combined none-FP; diagnostic because primary qualifies.
+The old .98 floor, not the 2% cap alone, caused abstention: DEV 2%-without-floor
+thresholds [.94,.91,.87,.50] recover 229/317 positives, precision 229/246.
+These are descriptive DEV measurements, no population guarantee.
