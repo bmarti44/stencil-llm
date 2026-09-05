@@ -4802,3 +4802,9 @@ STATE: reading prewritten in check38/README.md; seed 38038, 32 recorded historie
 GPU idle/no compute apps; review lock unheld; archived protocol/ledger read; foreground `.venv/bin/python scripts/focus_check38.py --run`, 15 GPU-min cap, no signals.
 Source has two prior A exchanges, not three; preserve exact source. T3 BACK uses old system A cue; WORKLOG is the operational record.
 STATE: complete, 8.02/15 GPU-min; NONE of the three fixed thresholds met; SWITCH B T1/T2/T3/T4/R3=1/12/0/11/2, default A=12/32; 320 records audited, R3 64/64 token matches; CPU/lint/import checks pass; explicit-path commit, no push.
+
+## 2026-09-05 — Quick check 39, fresh paired eviction repair
+STATE: prewritten check39/README.md; n=64, seed 39039; fit-on=none, fresh synthetic evaluation, no training/benchmarks.
+GPU idle/no compute apps; review lock unheld; archived protocol/ledger read; WORKLOG is the operational record.
+Rule: net discordance <=2 and one-sided McNemar p>=.05 per mode; surviving release losses <=2; both neutral copies >=56/64.
+Command: .venv/bin/python scripts/focus_check39.py --run; foreground 30 GPU-min cap, cooperative exit; no signals/push; check37 STOP stands.
