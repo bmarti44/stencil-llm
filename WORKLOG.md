@@ -4741,3 +4741,11 @@ CPU scorer/verdict boundaries, unique banks, cache edits/audits and six full fak
 Artifacts: results/quick-checks/check32-kv/; both summaries explicitly aborted, empty records, no invented packet/residual measurements.
 Q2 was declined by Brian and never run to completion; existing Q2 script/partial work and prior WORKLOG entry preserved.
 Fixed reading preceded all execution; explicit-pathspec commit, no push; actual packet mechanism remains unmeasured.
+
+## 2026-09-05 — Quick check 32 Q4 authorized rerun
+STATE: launching unchanged 4f039a4 script and fixed reading; prior zero-GPU abort archived under check32-kv/prior-abort-4f039a4/.
+Lineage: fit-on=nothing; operand-free extraction only; 320 fresh seed-32040 operand sets; no benchmark access.
+GPU verified idle with no compute apps; no review wrapper lock; foreground 4B then 1.7B, cooperative 90 GPU-minute cap.
+4B pilot: 51.84 s/six-arm episode; 55.30 min/64 projected; peak CUDA 8,422,177,792 bytes; shared cap unchanged.
+STATE: complete, 4B 47.93 and 1.7B 25.80 GPU-min; shared clock including transition 73.74 min; both INELIGIBLE (text joint 29/6 of 64); correct joint/HOLD 0/64 each.
+All 3,840 raw scores/histories and packet/residual artifacts audited; restored columns exact, downstream/control residuals disclosed; CPU/lint/import checks passed; explicit-pathspec commit, no push.
