@@ -319,6 +319,11 @@ spec change did not teach (all seeds miss it).
    BACK A: 32/23/32/30/32 of 32; R3 token outputs 64/64 identical; Wilson intervals in report.
    8.02/15 GPU-min; 320 records audited; two actual source exchanges (request said three); no fitting/training/sealed inputs/signals/push.
 
+39. EVICTION REPAIR RERUN (seed 39039; n=64; 4B; [check39](check39/README.md)): **PROCEED_PLACEHOLDER**; check37 STOP stands.
+   Strict releases placeholder surviving 60/59, rebuilt 58/57; intact surviving 59/58.
+   Paired b/c surviving 0/4, rebuilt 0/4; both modes' neutral gates PASS; full strict/lenient cells in report.
+   16.59/30 GPU-min; 1,152 records/384 edits audited; fresh disjoint episodes, no fitting/training/sealed inputs/signals/push.
+
 ## QUEUE (2026-09-05, Brian's quick-test-first ruling; merged from results/hypotheses-{astra,fable,kimi}.md)
 Skill pair for all: ascending sort vs REVERSE input order (1.7B cannot do descending: 10/32); value-exact,
 format-lenient scorer (check 31 lost 28/32 correct ascending sorts to quotes/fences). Own seeds; no benchmark data;

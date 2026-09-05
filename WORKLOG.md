@@ -4807,4 +4807,5 @@ STATE: complete, 8.02/15 GPU-min; NONE of the three fixed thresholds met; SWITCH
 STATE: prewritten check39/README.md; n=64, seed 39039; fit-on=none, fresh synthetic evaluation, no training/benchmarks.
 GPU idle/no compute apps; review lock unheld; archived protocol/ledger read; WORKLOG is the operational record.
 Rule: net discordance <=2 and one-sided McNemar p>=.05 per mode; surviving release losses <=2; both neutral copies >=56/64.
-Command: .venv/bin/python scripts/focus_check39.py --run; foreground 30 GPU-min cap, cooperative exit; no signals/push; check37 STOP stands.
+Command: .venv/bin/python scripts/focus_check39.py --run; foreground 30 GPU-min cap; pilot 14.77 s/episode, 16.23 min projected; no signals/push; check37 STOP stands.
+STATE: complete, PROCEED_PLACEHOLDER; 16.59/30 GPU-min; all 1,152 records/384 edits audited; CPU/lint/import checks passed; explicit-path commit, no larger test/push.
