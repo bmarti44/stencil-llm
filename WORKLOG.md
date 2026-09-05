@@ -4749,3 +4749,11 @@ GPU verified idle with no compute apps; no review wrapper lock; foreground 4B th
 4B pilot: 51.84 s/six-arm episode; 55.30 min/64 projected; peak CUDA 8,422,177,792 bytes; shared cap unchanged.
 STATE: complete, 4B 47.93 and 1.7B 25.80 GPU-min; shared clock including transition 73.74 min; both INELIGIBLE (text joint 29/6 of 64); correct joint/HOLD 0/64 each.
 All 3,840 raw scores/histories and packet/residual artifacts audited; restored columns exact, downstream/control residuals disclosed; CPU/lint/import checks passed; explicit-pathspec commit, no push.
+
+## 2026-09-05 — Quick check 33 Q3, coordinate replacement
+STATE: reading frozen in results/quick-checks/check33/README.md before execution; foreground 4B then 1.7B, 90 GPU-min total.
+Lineage: extraction=128 paired triples; selection=32 separate lists; test=64 fresh five-list episodes/trunk; globally disjoint synthetic sets, seed 33033; no benchmark access/training.
+One-shot has no HOLD reapplication; sustained continues through filler; per-variant setup selection, swapped/random controls and conditional fresh text bar fixed before outcomes.
+GPU compute query empty, 0% utilization; no review lock. Archived protocol/ledger located; WORKLOG is this authorized quick check's operational record.
+4B pilot: 64 setup decisions in 19.43 s; 3,904-decision projection 19.76 min (retained batches differ); extraction 128/128 positive margins at every layer; cap unchanged.
+STATE: complete, 4B 33.77 + 1.7B 18.27 min (52.07 total); both variants INELIGIBLE on both trunks; correct joint/one-shot HOLD 0/64; retained/fresh text 34/7 and 7/6. All 7,808 records CPU-audited; lint/import checks passed; explicit-path commit, no push.

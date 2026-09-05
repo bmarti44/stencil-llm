@@ -286,6 +286,12 @@ spec change did not teach (all seeds miss it).
    Restored columns bitwise equal; downstream residuals and replay-control discrepancies reported; 73.74 GPU-min total.
    Q2 was declined by Brian and never run to completion; existing Q2 partial work is preserved, not a Q4 result.
 
+33. Q3 COORDINATE REPLACEMENT (seed 33033; check33/README.md): **INELIGIBLE on both trunks and variants**.
+   Correct joint and one-shot HOLD 0/64 throughout; all 32 setup cells across the two trunks induced neither task.
+   Retained/fresh text joint: 4B 34/7 of 64; 1.7B 7/6 of 64 (bar 48/64); fresh contexts do not rescue eligibility.
+   Fit separates 128/128 pairs at every layer; correct CLEAR impositions 0; breakage sustained/one-shot: 4B 0/0, 1.7B 2/3.
+   Completed in 52.07/90 GPU-min; all 7,808 raw records audited; bf16 cast residuals and 1.7B batch differences disclosed.
+
 ## QUEUE (2026-09-05, Brian's quick-test-first ruling; merged from results/hypotheses-{astra,fable,kimi}.md)
 Skill pair for all: ascending sort vs REVERSE input order (1.7B cannot do descending: 10/32); value-exact,
 format-lenient scorer (check 31 lost 28/32 correct ascending sorts to quotes/fences). Own seeds; no benchmark data;
@@ -294,8 +300,8 @@ pass/fail reading written before running; one accuracy review of the RESULT from
   near-collinear (cosine 0.89-0.98); zero task inductions in all 18 cells x 2 trunks. Extracted-vector family closed.
 - Q2 DECLINED by Brian: content-free slot address over a fixed skill menu; never run to completion.
   Existing partial work under check32/ is preserved. Item 32 now refers to Q4 below.
-- Q3 = coordinate replacement instead of addition (astra #3), ~2 GPU-h — only if Q2 is marginal and a non-text route is
-  still wanted.
+- Q3 DONE = check 33, coordinate replacement (astra #3), explicitly authorized by Brian after Q2 was declined.
+  Both trunks/variants INELIGIBLE; correct joint and one-shot HOLD 0/64; 52.07/90 GPU-min. See item 33.
 - Q4 = check 32: one-shot KV address / operand-free KV packet transplant, hold without reapplication, clear by restore
   (fable #3, astra #4). DONE: both trunks INELIGIBLE; zero correct-packet task induction; 73.74/90 GPU-min. See item 32.
 - Q5 = learned address prefix / controller-in-the-loop (fable #2, astra #2, kimi H2) — only after Q2 or Q4 supplies a
