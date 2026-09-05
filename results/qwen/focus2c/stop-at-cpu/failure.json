@@ -1,0 +1,41 @@
+{
+  "acceptance_command": "CUDA_VISIBLE_DEVICES='' uv run pytest -q tests/test_focus2.py tests/test_eval_data_separation.py tests/test_sealed_guard.py tests/test_no_side_effect_imports.py",
+  "acceptance_exit_code": 1,
+  "action": "Stop at the failed required CPU acceptance under the explicit hard rule; preserve implementation and logs; no fix/retest or subsequent stage.",
+  "actual_payload": "[7, 13, -20, -19, 2]",
+  "analyze_invoked": false,
+  "candidate_commit": "0c8e2ffe53ca7548d06b1a05719a7a530617b21c",
+  "competence_invoked": false,
+  "created_utc": "2026-09-05T12:19:00.443729+00:00",
+  "development_manifest_sha256": "ac93e191254d4392164766cdcc053750ecd7f72b56693e0647a3f8db930bcc0d",
+  "development_unique_fingerprints": 9630,
+  "expected_by_stale_test": "[7,13,-20,-19,2]",
+  "failed": 1,
+  "failing_test": "tests/test_focus2.py::test_competence_prompt_is_immediate",
+  "failure_assertion": "f.rule(ep, \"SET\") in user and f.canonical(ep[\"requests\"][\"SET\"]) in user",
+  "fit_on": "none",
+  "freeze_created": false,
+  "gpu_seconds": 0,
+  "historical_outcomes_reused": false,
+  "log_hashes": {
+    "acceptance.txt": "06bdd6b4dd5636b615f163c39dbcf0194e8b62a03c09c3d2cdde876c13192e56",
+    "ruff.txt": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+  },
+  "model_loaded": false,
+  "new_token_map_regression": "PASSED within the failed four-file acceptance suite",
+  "passed": 90,
+  "pilot_invoked": false,
+  "prior_focus2b_input_count": 2012,
+  "reason": "Existing test asserts canonical compact payload occurs in the actual prompt; the authorized renderer now uses default spaced json.dumps. This stale assertion was missed during implementation.",
+  "registered": false,
+  "ruff": "PASS after two preliminary edit-time E501 formatting fixes; no failed-test repair/retest",
+  "run_invoked": false,
+  "seconds": 191.94,
+  "source_hashes": {
+    "scripts/focus2.py": "422d52ad1ecd672355c34724ed3d8e4212523372ed7ff458a8aa63218ea58167",
+    "src/stencil/focus2.py": "da1a664e40f8fd883b87cee8cb899b5e0ffbf66ba53914d0f741fdfa9b23fd9e",
+    "tests/test_focus2.py": "43eca4737a35d73b2b80eff6492befc4d9c1933c7f556d433ae23a8ab5aea2ad"
+  },
+  "status": "STOPPED-CPU-ACCEPTANCE",
+  "xfailed": 1
+}

@@ -1,4 +1,4 @@
-"""FOCUS-2b: sort-only re-registration of the FOCUS-2 v3 consumers.
+"""FOCUS-2c: spaced-payload re-registration of the FOCUS-2 v3 consumers.
 
 No script imports, bank reads, device access or output writes at import time.
 History/fork/map logic is a narrow adaptation of focus_check35.Engine; repair
@@ -337,7 +337,9 @@ def fingerprint(family, value):
     return digest([family, value])
 
 
-DEVELOPMENT_COVERAGE = (*range(31, 40), "repair", "focus2", "focus2b-retired")
+DEVELOPMENT_COVERAGE = (
+    *range(31, 40), "repair", "focus2", "focus2b-retired", "focus2b-amendment1"
+)
 
 
 def validate_development(development):
@@ -487,7 +489,7 @@ def current_cue(ep, arm, step):
 
 
 def request_text(ep, step, *, include_obligations=True):
-    text = TEMPLATES["request"].format(payload=canonical(ep["requests"][step]))
+    text = TEMPLATES["request"].format(payload=json.dumps(ep["requests"][step]))
     return text + "\n" + obligations(ep, step) if include_obligations else text
 
 
@@ -1771,9 +1773,9 @@ PINS = dict(
     v2_commit="7d0c24413b5d9093f814071c37e5c332b3ec62dd",
     v3_commit="1b8216aab8af60e03b7d21f00ae33d90f43cce22",
     v3_section_sha256="4f80ac8a27d06507eab400ca50dabc6100fd8cd0e8e83cd906b4b786ecb99f9d",
-    focus2b_commit="673876cf986979400346164ac85ac3c970444665",
-    focus2b_section_sha256=(
-        "dba824acb8a4d788d578f4fe7b758ce60175dc2f67830c36280134a834006760"
+    candidate_commit="0c8e2ffe53ca7548d06b1a05719a7a530617b21c",
+    candidate_section_sha256=(
+        "c7be5de49eae2ca8a4bb9746a1ab92573b8bcd8ecd06339ae428fc3f33fccfc2"
     ),
     ledger="LEDGER-PLAN.md",
     v2_section_sha256=(
@@ -1807,7 +1809,7 @@ PINS = dict(
     launch="2026-09-05T08:43:10Z",
 )
 CONFIG = dict(
-    experiment="FOCUS-2b",
+    experiment="FOCUS-2c",
     families=list(SELECTED_FAMILIES),
     model="Qwen3-4B",
     dtype="bf16",
@@ -1817,7 +1819,7 @@ CONFIG = dict(
     cap=64,
     gpu_cap_seconds=GPU_CAP,
     arm_order=list(ARMS),
-    seeds={"competence": 9053715, "pilot": 9053716, "final": 9053717},
+    seeds={"competence": 9053718, "pilot": 9053719, "final": 9053720},
     payload_collision_policy=(
         "reject; advance same request RNG; log zero-based attempts"
     ),
@@ -1957,16 +1959,18 @@ def v3_section(text):
     return text.split("\n## ", 1)[0].rstrip("\n")
 
 
-def focus2b_section(text):
+def candidate_section(text):
     marker = "## FOCUS-2b — SORT-ONLY PLACEMENT + EVICTION (DRAFT v1"
     if marker in text:
         text = text[text.index(marker) :]
     candidate = text.split("\n## ", 1)[0].rstrip("\n")
-    amendment = "## FOCUS-2b AMENDMENT 1 (2026-09-05)"
-    if amendment in text:
-        candidate += "\n\n" + text[text.index(amendment) :].split("\n## ", 1)[0].rstrip(
-            "\n"
-        )
+    for marker in (
+        "## FOCUS-2b AMENDMENT 1 (2026-09-05)",
+        "## FOCUS-2c — PAYLOAD RENDERING FIX (DRAFT v1",
+    ):
+        if marker in text:
+            section = text[text.index(marker) :].split("\n## ", 1)[0].rstrip("\n")
+            candidate += "\n\n" + section
     return candidate
 
 
@@ -2029,7 +2033,7 @@ def verify_evidence(root, manifest, contents):
         "v1_commit",
         "v2_commit",
         "v3_commit",
-        "focus2b_commit",
+        "candidate_commit",
         "check36_source",
         "prereg_commit",
         "receipt_commit",
@@ -2066,13 +2070,13 @@ def verify_evidence(root, manifest, contents):
         all(x in original for x in (RECAP, READINGS, EXPECTATION, CLAIM_CEILING)),
         "v3 prewritten readings",
     )
-    candidate = focus2b_section(
-        git_bytes(root, "show", f"{PINS['focus2b_commit']}:{PINS['ledger']}").decode()
+    candidate = candidate_section(
+        git_bytes(root, "show", f"{PINS['candidate_commit']}:{PINS['ledger']}").decode()
     )
     require(
-        sha(candidate) == PINS["focus2b_section_sha256"]
+        sha(candidate) == PINS["candidate_section_sha256"]
         and contents["section"].decode() == candidate,
-        "immutable FOCUS-2b section snapshot",
+        "immutable FOCUS-2b/Amendment 1/FOCUS-2c section snapshot",
     )
     require(
         contents["readings"].decode()
@@ -2275,8 +2279,8 @@ def prepare_freeze(directory, *, tok=None, section_text=None, development=None):
     directory = Path(directory)
     require(not directory.exists(), "candidate directory already exists")
     tok = tok or load_tokenizer(ROOT / "models/qwen3-4b-hf/tokenizer.json")
-    section_text = section_text or focus2b_section(
-        git_bytes(ROOT, "show", f"{PINS['focus2b_commit']}:{PINS['ledger']}").decode()
+    section_text = section_text or candidate_section(
+        git_bytes(ROOT, "show", f"{PINS['candidate_commit']}:{PINS['ledger']}").decode()
     )
     banks = generate_banks(development)
     if development is not None:
@@ -2300,7 +2304,7 @@ def prepare_freeze(directory, *, tok=None, section_text=None, development=None):
         atomic_json(directory / "development.json", development)
     manifest = dict(
         status="DRAFT",
-        version=5,
+        version=6,
         fit_on="none",
         repair="placeholder",
         anchors={
@@ -2309,7 +2313,7 @@ def prepare_freeze(directory, *, tok=None, section_text=None, development=None):
                 "v1_commit",
                 "v2_commit",
                 "v3_commit",
-                "focus2b_commit",
+                "candidate_commit",
                 "check36_source",
                 "prereg_commit",
                 "receipt_commit",
@@ -2352,7 +2356,7 @@ def preflight(
     if manifest.get("repair") != "placeholder":
         raise StopRepair("absent/unselected repair policy")
     require(
-        manifest.get("version") == 5 and manifest.get("fit_on") == "none",
+        manifest.get("version") == 6 and manifest.get("fit_on") == "none",
         "registration version/lineage",
     )
     require(manifest.get("candidate_only") is False, "unregistered candidate manifest")
@@ -2412,7 +2416,7 @@ def preflight(
         PINS["v1_commit"],
         PINS["v2_commit"],
         PINS["v3_commit"],
-        PINS["focus2b_commit"],
+        PINS["candidate_commit"],
         PINS["receipt_commit"],
     ):
         git_bytes(root, "merge-base", "--is-ancestor", anchor, commit)

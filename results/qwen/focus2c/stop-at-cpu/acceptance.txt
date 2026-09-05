@@ -1,0 +1,35 @@
+Uninstalled 1 package in 0.50ms
+Installed 1 package in 1ms
+..............................................F......................... [ 78%]
+..................x.                                                     [100%]
+=================================== FAILURES ===================================
+_____________________ test_competence_prompt_is_immediate ______________________
+
+tok = Tokenizer(version="1.0", truncation=None, padding=None, added_tokens=[{"id":151643, "content":"<|endoftext|>", "single..."), ("c", "e"), ("o", "d"), ("Ġ", "v"), ("at", "e"), ("Ġ", "T"), ("a", "g"), ("a", "y"), ("Ġ", "*"), ("o", "t"), ...]))
+banks = {'competence': [{'id': 'competence:sort:ascending:0:0', 'family': 'sort', 'direction': 'ascending', 'delay': 0, ...}, ...delay': 0, ...}, {'id': 'final:sort:ascending:0:5', 'family': 'sort', 'direction': 'ascending', 'delay': 0, ...}, ...]}
+
+    def test_competence_prompt_is_immediate(tok, banks):
+        for family in f.SELECTED_FAMILIES:
+            ep = next(e for e in banks["competence"] if e["family"] == family)
+            h = f.competence_history(tok, ep)
+            h.request(ep, "SET", cue=f.live_rules(ep, "SET") + "\n")
+            text = tok.decode(h.render(current=True)["ids"], skip_special_tokens=False)
+            assert text.count("<|im_start|>user\n") == 1
+            user = text.split("<|im_start|>user\n")[1]
+>           assert f.rule(ep, "SET") in user and f.canonical(ep["requests"]["SET"]) in user
+E           assert ('Sort the integers from smallest to largest.' in 'Sort the integers from smallest to largest.\nOutput compact JSON of the form {"answer": <JSON array of integers>, "ta...sted keys: none.\nProcess this payload: [7, 13, -20, -19, 2]<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n' and '[7,13,-20,-19,2]' in 'Sort the integers from smallest to largest.\nOutput compact JSON of the form {"answer": <JSON array of integers>, "ta...sted keys: none.\nProcess this payload: [7, 13, -20, -19, 2]<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n')
+E            +  where 'Sort the integers from smallest to largest.' = <function rule at 0xf28196b38c20>({'id': 'competence:sort:ascending:0:0', 'family': 'sort', 'direction': 'ascending', 'delay': 0, ...}, 'SET')
+E            +    where <function rule at 0xf28196b38c20> = f.rule
+E            +  and   '[7,13,-20,-19,2]' = <function canonical at 0xf28196a6b600>([7, 13, -20, -19, 2])
+E            +    where <function canonical at 0xf28196a6b600> = f.canonical
+
+tests/test_focus2.py:1076: AssertionError
+=============================== warnings summary ===============================
+tests/test_eval_data_separation.py::test_evaluation_data_never_reaches_fitting_or_selection_code
+  scripts/b2_gsm8k.py:9: SyntaxWarning: invalid escape sequence '\.'
+    LAST match of -?[0-9][0-9,]*\.?[0-9]* after removing "$", commas
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_focus2.py::test_competence_prompt_is_immediate - assert ('S...
+1 failed, 90 passed, 1 xfailed, 1 warning in 191.94s (0:03:11)

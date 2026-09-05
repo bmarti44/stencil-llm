@@ -73,7 +73,7 @@ def test_literal_template():
 
 
 def test_independent_stream_and_generator(banks):
-    namespace = "focus2-v1:9053717:final:sort:ascending:0:0:SET:payload"
+    namespace = "focus2-v1:9053720:final:sort:ascending:0:0:SET:payload"
     rng = random.Random(
         int.from_bytes(hashlib.sha256(namespace.encode()).digest(), "big")
     )
@@ -122,7 +122,7 @@ def test_fingerprints_ignore_tags_ids_and_sort_permutations(banks):
 def test_focus2b_operand_law_seeds_and_memo_denominators(banks):
     assert f.SELECTED_FAMILIES == ("sort",)
     assert f.CONFIG["families"] == ["sort"]
-    for name, seed in (("competence", 9053715), ("pilot", 9053716), ("final", 9053717)):
+    for name, seed in (("competence", 9053718), ("pilot", 9053719), ("final", 9053720)):
         assert {ep["seed"] for ep in banks[name]} == {seed}
         assert f.CONFIG["seeds"][name] == seed
         assert {ep["family"] for ep in banks[name]} == {"sort"}
@@ -253,6 +253,41 @@ def test_focus2b_actual_requests_state_shape_and_obligations_once(tok, banks):
                 )
                 assert full.count("Additional requested keys:") == 1
             h.answer(f.encode(tok, f.gold(ep, step)), f.EOS)
+
+
+def test_focus2c_spaced_payload_tokens_and_frozen_maps(tok, banks):
+    ep = copy.deepcopy(banks["competence"][0])
+    values = [19, -17, 13, -2, 5]
+    ep["requests"]["SET"] = values
+    request = f.request_text(ep, "SET", include_obligations=False)
+    assert request == "Process this payload: [19, -17, 13, -2, 5]"
+    # Canonical identity, output gold, schema and tag retain their compact law.
+    assert f.canonical(values) == "[19,-17,13,-2,5]"
+    assert f.gold(ep, "SET") == f.canonical(
+        {"answer": sorted(values), "tag": ep["tag"]}
+    )
+    spaced = [tok.decode([i]) for i in f.encode(tok, request)]
+    compact = [
+        tok.decode([i])
+        for i in f.encode(tok, "Process this payload: " + f.canonical(values))
+    ]
+    assert ",-" in compact and ",-" not in spaced
+    pairs = zip(spaced, spaced[1:], strict=False)
+    assert sum(a == "," and b == " -" for a, b in pairs) == 2
+    fixture = {"competence": [ep], "pilot": banks["pilot"], "final": []}
+    templates = f.template_manifest(tok, f.canonical(fixture))
+    bound = templates["rendered"][f.sha(request)]
+    assert bound == dict(
+        text=request,
+        tokens=f.encode(tok, request),
+        tokens_sha256=f.digest(f.encode(tok, request)),
+    )
+    h = f.competence_history(tok, ep)
+    h.request(ep, "SET", cue=f.live_rules(ep, "SET") + "\n")
+    rendered = h.render(current=True)
+    text = tok.decode(rendered["ids"], skip_special_tokens=False)
+    assert request in text and f.obligations(ep, "SET") in text
+    assert len(rendered["tokens"]) == len(rendered["ids"])
 
 
 def test_all_gold_caps_defaults_and_real_delay(tok, banks):
@@ -720,8 +755,8 @@ def frozen(tmp_path, tok, monkeypatch):
         v1_commit=v1,
         v2_commit=v2,
         v3_commit=v2,
-        focus2b_commit=v2,
-        focus2b_section_sha256=f.sha(section),
+        candidate_commit=v2,
+        candidate_section_sha256=f.sha(section),
         ledger="LEDGER-PLAN.md",
         v2_section_sha256=f.sha(section),
         v3_section_sha256=f.sha(section),
@@ -833,7 +868,7 @@ def frozen(tmp_path, tok, monkeypatch):
             "v1_commit",
             "v2_commit",
             "v3_commit",
-            "focus2b_commit",
+            "candidate_commit",
             "check36_source",
             "prereg_commit",
             "receipt_commit",
