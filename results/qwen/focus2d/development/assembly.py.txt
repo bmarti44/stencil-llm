@@ -1,0 +1,21 @@
+"""Input-only exclusion lineage; never inspect earlier generated responses."""
+from pathlib import Path
+from stencil import focus2 as f
+root = Path('/home/bmarti44/stencil-llm')
+prior_path = 'results/qwen/focus2c/development/manifest.json'
+prior = f.parse_json(f.member(root, 'HEAD', prior_path))
+path = 'results/qwen/focus2c/amendment1/freeze/banks.json'
+banks = f.parse_json(f.member(root, 'HEAD', path))
+original = f.parse_json(f.member(root, 'HEAD', 'results/qwen/focus2c/freeze/banks.json'))
+f.require(banks == original, 'prior 2c inputs differ; exclusion coverage incomplete')
+fps = sorted({f.fingerprint(ep['family'], value) for bank in banks.values() for ep in bank for value in ep['requests'].values()})
+f.require(len(fps) == 2012, 'prior 2c payload count')
+prior['coverage'].append('focus2c')
+prior['sources']['focus2c'] = dict(path=path, sha256=f.sha((root/path).read_bytes()), input_count=len(fps), fingerprints=fps, fingerprints_sha256=f.digest(fps))
+prior['fingerprints'] = sorted(set(prior['fingerprints']) | set(fps))
+f.validate_development(prior)
+folder = root/'results/qwen/focus2d/development'
+folder.mkdir(parents=True, exist_ok=True)
+f.atomic_json(folder/'manifest.json', prior)
+(folder/'assembly.py.txt').write_text(Path(__file__).read_text())
+print(f.canonical(dict(status='VERIFIED_INPUT_ONLY', prior_2c_count=len(fps), development_unique=len(prior['fingerprints']), fit_on='none')))
