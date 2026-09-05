@@ -4862,3 +4862,31 @@ All five ignored assets were freshly streamed and matched step2 hashes; model SH
 Registration verification records all fable/astra dispositions against committed fixes and required named tests; it does not claim either original reviewer reran its review. Brian's combined-task and resume authorization governs continuation. Freeze receipt: results/qwen/focus2/freeze/freeze-receipt.json; manifest SHA-256 315fc6e5ed222315e381fed41e7e7c912bb57927d4e96717ffe214f2da6e0d0a. Committing the immutable package now, before launch receipt/REGISTERED header and before any real model outcome.
 
 STATE: STEP 3 FROZEN/REGISTERED at 2026-09-05 10:57:09 UTC. Freeze commit 8b860952cd190d0ba5aece96f719b50b64726127; all 57 dependencies bound, every tracked dependency confirmed with git ls-files and byte equality in that commit. External launch receipt binds manifest 315fc6e5ed222315e381fed41e7e7c912bb57927d4e96717ffe214f2da6e0d0a and the sole output directory results/qwen/focus2/outputs. REGISTERED header appended only after passing CPU checks and existing freeze receipt. Next: verify GPU has no compute process, then foreground competence -> pilot/projection -> final -> analyze; stop mechanically on any failure. No new model outcome yet.
+
+Step 4 competence launch: GPU0 NVIDIA GB10 idle (0%, no compute processes), review lock unheld. Foreground command: uv run python scripts/focus2.py --mode competence --freeze results/qwen/focus2/freeze --launch-receipt results/qwen/focus2/launch-receipt.json --output results/qwen/focus2/outputs. Registration commit 7203294; cooperative cumulative cap 21,600 seconds. No signals, external timeout, output regeneration or tuning.
+
+
+## 2026-09-05 — FOCUS-2 STOP at step 4 competence: INELIGIBLE
+
+STATE: STOPPED under the registered competence gate and Brian's hard rule to stop at a failed step. Freeze 8b860952cd190d0ba5aece96f719b50b64726127 and registration 7203294 are complete. Foreground competence returned exit 1 / INELIGIBLE after all 768 fixed fixtures. Seven of twelve cells missed their registered thresholds. No pilot, timing projection, final run or analyze invocation occurred. Step 5 final-run OUTCOME is not performed after this failed step; no primary, secondary, stratified or safety effect is estimable from competence. No efficacy/mechanism claim. No family dropping, retesting, prompt edits, new samples, diagnostics, rescue variant or interrupted-stage resume.
+
+| Competence cell | Success / 64 | Required | Gate |
+|---|---:|---:|---|
+| case/default | 7 | 56 | FAIL |
+| case/lower | 2 | 52 | FAIL |
+| case/upper | 0 | 52 | FAIL |
+| fields/default | 59 | 56 | PASS |
+| fields/left | 0 | 52 | FAIL |
+| fields/right | 0 | 52 | FAIL |
+| representation/array | 55 | 52 | PASS |
+| representation/default | 0 | 56 | FAIL |
+| representation/string | 64 | 52 | PASS |
+| sort/ascending | 56 | 52 | PASS |
+| sort/default | 64 | 56 | PASS |
+| sort/descending | 44 | 52 | FAIL |
+
+Cost: 1043.705557 seconds = 17.3951 GPU-min = 0.289918 GPU-h of the 6-hour cap, including 29.735897 seconds model load. Historical checks37/38/39 costs remain separately disclosed at 14.715/8.02/16.591 GPU-min. Records, certificate, start/end receipts and actual console output are preserved at results/qwen/focus2/outputs/competence/. All 768 durable records have verified atomic hashes and identical freeze bindings; recomputed record-set hash cf7479837132056564fe2f3f0bd9cc9a6e5d01803125d359cfa17b2f5cc96c9f matches both end receipt and certificate. No completed output regenerated or overwritten.
+
+Plain language: this frozen four-family setup did not meet the competence prerequisite. The placement/eviction comparison therefore did not run, and these results cannot establish either benefit or absence of benefit for that mechanism. Per the hard stop instruction, retain the registration unchanged and report this eligibility failure without a new experiment.
+
+Fit-on=none. No training, benchmark/sealed-cohort contents outside the explicitly permitted sealed-guard tests, check/SC1 edits, signals, termination, background jobs, delegation or push. Original untracked scripts/focus_check32.py remains untouched. Force-adding all generated FOCUS-2 artifacts and committing this terminal record with explicit pathspecs.
