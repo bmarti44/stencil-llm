@@ -1,0 +1,59 @@
+"""CPU-only terminal audit of the amended pilot budget stop; no final analysis."""
+from pathlib import Path
+from stencil import focus2 as f
+root=Path('/home/bmarti44/stencil-llm')
+base=root/'results/qwen/focus2c/amendment1'
+pre=f.preflight(base/'freeze',base/'launch-receipt.json','pilot',base/'outputs')
+folder=base/'outputs/pilot'
+rows=f.RecordStore(folder/'records').rows()
+end=f.parse_json((folder/'end.json').read_text())
+start=f.parse_json((folder/'start.json').read_text())
+f.require(end['status']=='INCOMPLETE' and end['reason']=='GPU allocation budget exhausted/projected over cap','terminal reason')
+f.require(start==dict(stage='pilot',binding=pre['binding'],spent_before=pre['spent']),'start receipt')
+f.require(end['binding']==pre['binding'] and end['spent_before']==pre['spent'],'end binding')
+f.require(end['record_count']==len(rows) and end['records_hash']==f.digest(sorted(rows,key=lambda r:(r['episode'],r['arm'],r['checkpoint']))),'end row hash')
+f.require(end['spent_after']-end['spent_before']+1e-6>=end['load_seconds']+sum(r['cost']['allocation_seconds'] for r in rows),'allocation counters')
+summaries=f.validate_records(rows,pre['banks']['pilot'],pre['tok'],pre['binding'],complete=False,carried=pre['carried'])
+f.require(len(summaries)==2 and not any(s.get('delay_invalid') for s in summaries),'completed prefix')
+carried=[r for r in rows if 'carried_from' in r]
+f.require(len(carried)==27 and len(rows)==57,'carry/new counts')
+delays=[r for r in rows if r['checkpoint'].startswith('DELAY')]
+for r in delays:
+    f.validate_delay(r)
+f.require(len(delays)==3 and all(r['generation_cap']==160 for r in delays),'amended delays')
+new_identity='pilot:sort:ascending:512:0'
+new_rows=[r for r in rows if r['episode']==new_identity]
+first=min(r['cost']['cumulative_seconds']-r['cost']['allocation_seconds'] for r in new_rows)
+last=max(r['cost']['cumulative_seconds'] for r in new_rows)
+cell_lower_bound=last-first
+# This omits initial rendering/final record publication and is therefore a
+# strict conservative lower bound on run_episodes' observed elapsed cell time.
+projection_lower_bound=1.25*(256*cell_lower_bound+end['load_seconds'])
+remaining_pilot_lower_bound=1.25*2*cell_lower_bound
+f.require(last+projection_lower_bound>f.GPU_CAP,'budget stop not justified even ignoring remaining pilot work')
+old_rows=list(pre['carried'].values())
+old_first=min(r['cost']['cumulative_seconds']-r['cost']['allocation_seconds'] for r in old_rows)
+old_last=max(r['cost']['cumulative_seconds'] for r in old_rows)
+f.require(cell_lower_bound>old_last-old_first,'new cell is not the more costly observed cell')
+f.require(not (folder/'certificate.json').exists() and not (base/'outputs/run').exists(),'prohibited next stage')
+audit=dict(status='VERIFIED_BUDGET_STOP', terminal='INCOMPLETE',
+           freeze_commit=pre['binding']['freeze_commit'], manifest_sha256=pre['binding']['manifest_sha256'],
+           records_hash=end['records_hash'], records_count=len(rows), carried_records=len(carried), new_records=len(rows)-len(carried),
+           complete_pilot_episodes=[s['id'] for s in summaries], scheduled_pilot_n=4, completed_pilot_n=2,
+           delay_attempts=[dict(episode=r['episode'],checkpoint=r['checkpoint'],cap=r['generation_cap'],output_tokens=len(r['output_ids']),eos=r['eos'],complete_delay_tokens=r['complete_delay_tokens']) for r in delays],
+           delay_retries=0, delay_invalid_count=0, unscheduled_pilot_episodes=2,
+           competence='original 63/59/64 certificate CPU revalidated; never rerun',
+           prior_gpu_seconds=end['spent_before'], new_gpu_seconds=end['spent_after']-end['spent_before'],
+           load_seconds=end['load_seconds'], cumulative_gpu_seconds=end['spent_after'], cumulative_gpu_hours=end['spent_after']/3600,
+           observed_new_cell_seconds_lower_bound=cell_lower_bound, original_carried_cell_seconds_lower_bound=old_last-old_first,
+           final_plus_load_projection_seconds_lower_bound=projection_lower_bound,
+           cumulative_plus_final_projection_seconds_lower_bound=last+projection_lower_bound,
+           cumulative_plus_final_projection_hours_lower_bound=(last+projection_lower_bound)/3600,
+           remaining_pilot_projection_seconds_lower_bound=remaining_pilot_lower_bound,
+           full_stop_projection_seconds_lower_bound=last+projection_lower_bound+remaining_pilot_lower_bound,
+           projection_precision='lower bound from durable timestamps; scheduler also includes initial rendering/final publication; exact in-memory projection was not serialized',
+           cap_seconds=f.GPU_CAP, final_run_invoked=False, final_analyze_invoked=False,
+           raw_validation='all record hashes/identities/bindings; current exact renderer/checker/interventions; 27 carries verified against old committed responses; full additive costs')
+f.atomic_json(base/'pilot-audit.json',audit)
+(base/'pilot-audit.py.txt').write_text(Path(__file__).read_text())
+print(f.canonical(audit))
