@@ -175,3 +175,15 @@ Initial GPU empty and check41 process absent; RUNNING.flag written for check42.
 OFF/shuffled Python32/32, text JS32/32. 224 records/32 teacher-forced profiles audited;
 744.53/5400 GPU seconds. Lock queue fixed before outcomes; original waiter naturally
 exited before model load. No training/sealed reads/signals/push. This scoped commit closes check40b.
+
+2026-09-05 — check41b WRITE-AHEAD: direct user-authorized foreground causal-neuron check; archived protocol read. No fit/train. Gradient readout 32 synthetic tasks, select 8 setup, evaluate 32 distinct prompts; seed 41042. Fixed reading in check41b/prewritten-reading.md; no sealed reads, signals or push; 5400-second cooperative cap.
+
+2026-09-05 — check41b PILOT: {"pilot_seconds": 2.3100071551743895, "worst_fit_or_pilot_seconds": 6.602241795975715, "mean_fit_or_pilot_seconds": 2.5802316907652174, "pilot_tokens": 44, "projected_seconds_with_optional_history": 2638.4149435981863, "peak_memory_bytes": 8519124992, "cap_seconds": 5400}; fixed design, cooperative cap, no outcome redesign.
+
+2026-09-05 — check41b SET COMPLETE: all 36 grid cells frozen before 160 fresh SET records. Selected k=200/g=3/T=1 multiply (setup JS 4/8, broken 1/8). SET correct JS 14/32, broken 7/32 => MARGINAL; swapped/shuffled/OFF JS 0/32; text cue 32/32. Mean c shifts correct +20.5957, swapped +20.9110, shuffled +0.2237, OFF 0, text +41.8997. Correct token 1 is ` moduleId` on 23/32: registered parser-level result, not clean runnable-program evidence. Required >=12 trigger met: continue the frozen 16 retained-history episodes, no adjustments or signals.
+
+2026-09-05 — check40c WRITE-AHEAD: frozen 40b JS direction, same 32 exploratory screen tasks; fit/train none, prior profile/setup disjoint. Four arms and reading frozen in check40c/prewritten-reading.md; CPU real-HF slot/schedule checks pass. Foreground 1800-second GPU cap, 300-second flag polls; no sealed inputs, signals or push.
+
+2026-09-05 — check41b COMPLETE: MARGINAL; all 800 generation records and 32 per-task attribution files saved. GPU 2418.0495/5400 seconds; flag removed, no signals. Full consumer audit PASS. Seven correct JS histories persist at HOLD/SWITCH/BACK/CLEAR; text cue active-stage target success 16/16. Final report, five-line index and six-line WORKLOG ready for explicit-path local commit; no push.
+
+2026-09-05 — check40c COMPLETE: POSSIBLE; alpha2 sustained JS25/32 broken0 frozen by prewritten order, alpha3 JS32/32 broken0. First3 JS25/broken4; first8 JS26/broken6. All 128 new/64 reference records CPU-audited; 629.2471514409408/1800 GPU seconds, no overrun. RUNNING.flag removed; no fitting/sealed reads/signals/push.
