@@ -1,19 +1,26 @@
 {
   "accelerate": "1.14.0",
-  "count": 7,
+  "count": 10,
   "cuda_initialized": false,
   "go": null,
   "node": "v22.22.2",
   "passed": [
     "actual router tuple consumer changes under bias; OFF restores exactly",
     "capture excludes prefill and counts generated positions",
-    "normalized centered directions; independent deterministic norm-matched random stream; zero difference safe",
+    "unamplified centered directions; deterministic expert permutations preserve opposition/norm; zero difference safe",
     "parser, misleading fence, JS arrow, stub, unrelated function, ambiguous, empty, syntax, truncation, repetition fixtures",
     "bank disjointness, history rotations, grid priority, partial verdict, exact summary thresholds, paired CLEAR impositions",
     "weight-index membership, exact safetensors byte lengths, missing and truncated shard fixtures",
-    "tiny random HF checkpoint loads with bf16/device_map; actual MoE model bias changes logits; exact OFF restoration"
+    "arithmetic lineage/canonical grammar and operands; cost refusal/scaling; suffix-only capture with logit SD",
+    "actual tiny model incremental KV preserves old keys under switched bias; final sampled token consumed; truncated and natural-EOS paths",
+    "tiny random HF checkpoint loads with bf16/device_map; actual MoE model bias changes logits; exact OFF restoration",
+    "local tokenizer explicit list return, identical suffix, standalone new-turn template/terminal and historical re-render trap; same-run raw writer contract"
   ],
   "python": "3.12.13 (main, Apr 14 2026, 14:26:08) [Clang 22.1.3 ]",
   "router_source": "class Qwen3MoeTopKRouter(nn.Module):\n    def __init__(self, config):\n        super().__init__()\n        self.top_k = config.num_experts_per_tok\n        self.num_experts = config.num_experts\n        self.norm_topk_prob = config.norm_topk_prob\n        self.hidden_dim = config.hidden_size\n        self.weight = nn.Parameter(torch.zeros(self.num_experts, self.hidden_dim))\n\n    def forward(self, hidden_states):\n        hidden_states = hidden_states.reshape(-1, self.hidden_dim)\n        router_logits = F.linear(hidden_states, self.weight)  # (seq_len, num_experts)\n        router_probs = torch.nn.functional.softmax(router_logits, dtype=torch.float, dim=-1)\n        router_top_value, router_indices = torch.topk(router_probs, self.top_k, dim=-1)  # (seq_len, top_k)\n        if self.norm_topk_prob:\n            router_top_value /= router_top_value.sum(dim=-1, keepdim=True)\n        router_top_value = router_top_value.to(router_logits.dtype)\n        router_scores = router_top_value\n        return router_logits, router_scores, router_indices\n",
+  "source_hashes": {
+    "/home/bmarti44/stencil-llm/.venv/lib/python3.12/site-packages/transformers/integrations/moe.py": "2c8894f6d1392980a61ff265f90f7a99fa90678e0eec461d958b4d32fda9628c",
+    "/home/bmarti44/stencil-llm/.venv/lib/python3.12/site-packages/transformers/models/qwen3_moe/modeling_qwen3_moe.py": "b2666af64b7b31a02a152e9187ed2c5671262543b61510d0359c26fa491105ca"
+  },
   "transformers": "5.16.1"
 }

@@ -324,11 +324,11 @@ spec change did not teach (all seeds miss it).
    Paired b/c surviving 0/4, rebuilt 0/4; both modes' neutral gates PASS; full strict/lenient cells in report.
    16.59/30 GPU-min; 1,152 records/384 edits audited; fresh disjoint episodes, no fitting/training/sealed inputs/signals/push.
 
-40. BRUTE-FORCE MoE LANGUAGE ROUTING (seed 40040; Qwen3-30B-A3B; [check40](check40/README.md)): **CPU PREPARED / WAITING**.
-   Python/JavaScript; tuple-aware router bias; parser identity + coarse task check; no fitting, training, or benchmarks.
-   32 competence / 32 profile / 16 independent dose / 64 screen tasks; correct, swapped, norm-matched shuffled, OFF, text cue.
-   SET→HOLD→SWITCH→BACK→CLEAR retains complete pairs; reading and thresholds pre-written; no model outcome yet.
-   Foreground idle-GPU/download wait at 10-minute intervals; four-hour GPU cap; no signals or push.
+40. BRUTE-FORCE MoE SKILL ROUTING (seed 40040; Qwen3-30B-A3B; [check40](check40/README.md)): **CPU PREPARED / WAITING**.
+   Memo P1 Python/English ranked first; Python/JavaScript retained; shared-suffix frequencies x pooled logit SD; no fitting/training/benchmarks.
+   Throughput pilot first (3x128); verify installed grouped_mm + hook; project whole screen, scale to 32/{1,4}/all or STOP above four GPU-h.
+   Retained KV SET→HOLD→SWITCH→BACK→CLEAR; original thresholds preserved; post-selection token profiles are the primary alternative explanation.
+   Foreground idle-GPU/download wait at 10-minute intervals; no signals or push; no model outcome yet.
 
 ## QUEUE (2026-09-05, Brian's quick-test-first ruling; merged from results/hypotheses-{astra,fable,kimi}.md)
 Skill pair for all: ascending sort vs REVERSE input order (1.7B cannot do descending: 10/32); value-exact,
