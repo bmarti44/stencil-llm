@@ -4757,3 +4757,11 @@ One-shot has no HOLD reapplication; sustained continues through filler; per-vari
 GPU compute query empty, 0% utilization; no review lock. Archived protocol/ledger located; WORKLOG is this authorized quick check's operational record.
 4B pilot: 64 setup decisions in 19.43 s; 3,904-decision projection 19.76 min (retained batches differ); extraction 128/128 positive margins at every layer; cap unchanged.
 STATE: complete, 4B 33.77 + 1.7B 18.27 min (52.07 total); both variants INELIGIBLE on both trunks; correct joint/one-shot HOLD 0/64; retained/fresh text 34/7 and 7/6. All 7,808 records CPU-audited; lint/import checks passed; explicit-path commit, no push.
+
+## 2026-09-05 — Quick check 34, cue-column positive control + stickiness
+STATE: prewritten readings in results/quick-checks/check34/README.md; seed 34034, 4B only; foreground 45 GPU-min cap.
+Lineage: fit-on=none; operand-free donor text; fresh disjoint synthetic evaluation banks; no benchmark input access/training.
+GPU compute query empty; no review lock; archived protocol/ledger read, WORKLOG used as current quick-check record.
+Pilot: 13-arm episode 4.26 s, single-shot projection 4.55 min, peak CUDA 8,926,750,208 bytes; cap unchanged.
+STATE: complete, 21.44/45 GPU-min; POSITIVE A/B 59/60 of 64, OFF 0; retained joint 3/5 of 32; stickiness NOT SUPPORTED (60/60/60, gap 0 pp).
+All 1,728 scores/histories/lineage audited; HOLD/CLEAR columns bitwise verified; CPU/lint/import checks passed; explicit-path commit, no push/signals.

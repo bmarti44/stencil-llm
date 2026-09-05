@@ -292,6 +292,12 @@ spec change did not teach (all seeds miss it).
    Fit separates 128/128 pairs at every layer; correct CLEAR impositions 0; breakage sustained/one-shot: 4B 0/0, 1.7B 2/3.
    Completed in 52.07/90 GPU-min; all 7,808 raw records audited; bf16 cast residuals and 1.7B batch differences disclosed.
 
+34. CUE-COLUMN POSITIVE CONTROL (seed 34034; 4B only; [check34](check34/README.md)): **POSITIVE**.
+   Transplant A/B 59/60 of 64, text 59/60, shuffled donors 60/60; OFF induction 0/64; breakage A/B 1/0.
+   Retained A/B joint 3/5 of 32; HOLD 32/23; SWITCH 3/17; CLEAR copy 0/0 (columns restored exactly).
+   Stickiness NOT SUPPORTED: fresh B / B after A / A after B = 60/60/60 of 64; gap 0 pp, conservative 95% Wilson-based CI [-14.53, 14.53] pp.
+   Cache-transplant route alive; prior packets were inadequate. 21.44/45 GPU-min, 1,728 records audited; no fitting/training or benchmark access.
+
 ## QUEUE (2026-09-05, Brian's quick-test-first ruling; merged from results/hypotheses-{astra,fable,kimi}.md)
 Skill pair for all: ascending sort vs REVERSE input order (1.7B cannot do descending: 10/32); value-exact,
 format-lenient scorer (check 31 lost 28/32 correct ascending sorts to quotes/fences). Own seeds; no benchmark data;
@@ -316,6 +322,6 @@ pass/fail reading written before running; one accuracy review of the RESULT from
   B-task (reverse) difficulty + a system-prompt precedence confound (fable).
 - Skill pair from check 34 on: ascending vs DESCENDING on 4B (27/32, 30/32 competent); reverse-order made the 48/64
   text bar unreachable by construction. 1.7B secondary only.
-- Q4b = check 34: POSITIVE-CONTROL transplant (donor's real cue K/V columns, all layers, into a cue-absent context) +
-  the 3-minute stickiness isolation test (B-first fresh vs B-after-three-A-turns, cue in a USER turn, not system).
-  If even real cue columns do not carry the task, the failure is about where the decision is made, not the actuator.
+- Q4b DONE = check 34: POSITIVE (real cue-column K/V transplant A/B 59/60 of 64; OFF 0/64); see item 34.
+  The cache-transplant route is alive; the earlier final-token/four-column representations were inadequate.
+  User-turn stickiness NOT SUPPORTED: B-first and B-after-three-A-turns both 60/64; no system-cue confound.
