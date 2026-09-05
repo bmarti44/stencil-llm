@@ -1073,7 +1073,7 @@ def test_competence_prompt_is_immediate(tok, banks):
         text = tok.decode(h.render(current=True)["ids"], skip_special_tokens=False)
         assert text.count("<|im_start|>user\n") == 1
         user = text.split("<|im_start|>user\n")[1]
-        assert f.rule(ep, "SET") in user and f.canonical(ep["requests"]["SET"]) in user
+        assert f.rule(ep, "SET") in user and json.dumps(ep["requests"]["SET"]) in user
 
 
 def test_backend_failure_cost_counters_and_delay_flags(tok, banks, tmp_path):
