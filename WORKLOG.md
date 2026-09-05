@@ -4788,3 +4788,11 @@ GPU idle/no compute apps or review lock; archived protocol/ledger read; WORKLOG 
 Conservative choices: strict nonbroken success and no additional broken episodes; placeholder must pass in both matched modes; rebuilds shadow surviving histories.
 Command: .venv/bin/python scripts/focus_check37.py --run; foreground 30 GPU-min cap; pilot 26.63 s/episode, 14.65 min total projected; no signals/push.
 STATE: complete, STOP; 14.72/30 GPU-min; placeholder adds broken episode 24 in both modes, rebuilt release-1 loss 2/32; copies 32/32 twice. All 1,088 records/384 edits audited; CPU/lint/import checks pass; explicit-path commit, no larger test/push.
+
+
+## 2026-09-05 — FOCUS-2 registration draft (gpt-6-astra, CPU only)
+- Appended DRAFT v1 placement+eviction protocol and CPU harness brief/allowlist; not registered or run.
+- Incorporated fable F1–F13 and all kimi fixes/notes; Multi-IF cut; check-36 review and check-37 preselected decision remain prerequisites.
+- Froze verbatim text-restate and prewritten readings before accessing any check-37 outcome; template SHA-256 2658b026d6bd22d4ed460b34c543abc159e4e80ff56f367be4eaf5c035f8e8d7.
+- Verified draft/brief contracts, template hash, paired-gate arithmetic and tokenizer-only compact output feasibility on CPU; no model/GPU, fitting, sealed/benchmark/check-37 outcome access, signals or background work.
+- Existing WORKLOG changes preserved separately; explicit-path commit of this task only, no push. Next: draft/CPU implementation review, then prerequisite receipts and committed registration freeze.
