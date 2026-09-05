@@ -832,7 +832,6 @@ class BudgetStop(Exception):
 
 class Engine:
     def __init__(self, start):
-        load_started = time.monotonic()
         import torch
         from transformers import AutoTokenizer, Qwen3MoeForCausalLM
 
@@ -864,7 +863,7 @@ class Engine:
         eos = self.model.generation_config.eos_token_id
         self.eos = set(eos if isinstance(eos, list) else [eos])
         self.eos.add(self.tokenizer.eos_token_id)
-        self.load_seconds = time.monotonic() - load_started
+        self.load_seconds = time.monotonic() - start
 
     def generate(
         self,
@@ -1464,13 +1463,7 @@ def run(weights):
     write_json(OUT / "weights.json", weights)
     b = json.loads((OUT / "banks.json").read_text())
     rows, competence, eligibility, stop_reason = [], {}, None, None
-    prior_path = OUT / "prior-attempts.json"
-    prior_seconds = (
-        json.loads(prior_path.read_text())["charged_gpu_seconds"]
-        if prior_path.exists()
-        else 0
-    )
-    start = time.monotonic() - prior_seconds
+    start = time.monotonic()
     engine = None
     journal = (OUT / "records.jsonl").open("x")
 
@@ -1563,11 +1556,7 @@ def run(weights):
             dict(
                 torch=torch.__version__,
                 load_seconds=engine.load_seconds,
-                device_map=getattr(
-                    engine.model,
-                    "hf_device_map",
-                    {"": str(next(engine.model.parameters()).device)},
-                ),
+                device_map=engine.model.hf_device_map,
                 model_class=type(engine.model).__name__,
                 dtype=str(engine.model.dtype),
                 eos=sorted(engine.eos),
@@ -1824,7 +1813,6 @@ def run(weights):
             competence=competence,
             selected_pair=list(LANGS),
             gpu_seconds=elapsed,
-            prior_attempt_gpu_seconds=prior_seconds,
             gpu_cap_seconds=GPU_SECONDS,
             cap_overrun_seconds=max(0, elapsed - GPU_SECONDS),
             stop_reason=stop_reason,
@@ -2255,8 +2243,6 @@ def prepare():
         "results/quick-checks/check40/cpu.json",
         "results/moe-routing-research-astra.md",
     ]
-    if (OUT / "prior-attempts.json").exists():
-        files.append("results/quick-checks/check40/prior-attempts.json")
     write_json(
         OUT / "freeze.json",
         dict(
