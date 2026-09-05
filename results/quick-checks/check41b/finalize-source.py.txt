@@ -1,0 +1,70 @@
+import hashlib
+import json
+from pathlib import Path
+ROOT=Path('/home/bmarti44/stencil-llm')
+OUT=ROOT/'results/quick-checks/check41b'
+s=json.loads((OUT/'summary.json').read_text())
+g=json.loads((OUT/'grid.json').read_text())
+d=json.loads((OUT/'attribution-summary.json').read_text())
+a=json.loads((OUT/'audit.json').read_text())
+assert a['status']=='PASS' and s['reading']!='PARTIAL'
+s['attribution_diagnostics']=d
+s['audit_sha256']=hashlib.sha256((OUT/'audit.json').read_bytes()).hexdigest()
+s['model_provenance_sha256']=hashlib.sha256((OUT/'model-provenance.json').read_bytes()).hexdigest()
+(OUT/'summary.json').write_text(json.dumps(s,indent=2,sort_keys=True)+'\n')
+lines=['\nObserved results\n',f"**{s['reading']}** under the prewritten SET reading. Completed in {s['gpu_seconds']/60:.2f}/90 GPU minutes.",
+       '\n| Arm | Valid JS | Valid Python | Broken | Coarse task | JS + task | Mean c | Mean Δc |',
+       '|---|---:|---:|---:|---:|---:|---:|---:|']
+for arm,v in s['arms'].items():
+    lines.append(f"| {arm} | {v['javascript']}/32 | {v['python']}/32 | {v['broken']}/32 | {v['task_check']}/32 | {v['javascript_task']}/32 | {v['mean_c']:.3f} | {v['mean_c_shift']:+.3f} |")
+lines+=['\nΔc compares each request with an unmodified forward pass on the same history and current task without a new cue. For fresh SET this also equals the paired OFF-arm difference. Raw logits are recorded before token 1.',
+        '\n| Arm | Actual first token counts |','|---|---|']
+for arm,v in s['arms'].items():
+    text=json.dumps(v['first_tokens'],ensure_ascii=False).replace('`','&#96;').replace('|','\\|')
+    lines.append(f'| {arm} | {text} |')
+lines += ['\nObserved qualification: correct SET starts with ` moduleId` on 23/32 responses; the other first tokens are shown above. These prefixes are not clean code-only answers. The reused checker can accept a labeled JavaScript statement or ignore text outside a fenced code block. Thus the fixed language reading is parser-level evidence, not a claim that the entire response is a runnable program.',
+          '\nBoth correct and swapped raise c by about 21 logits at g=3, while only correct induces JavaScript. The first-order attribution sign does not predict the direction of this large finite perturbation. The scalar contrast and the emitted-token context must be distinguished.']
+cell=s['selected']
+chosen=next(c for c in g['cells'] if all(c[k]==v for k,v in cell.items()))
+lines += [f"\nFrozen setting: k={cell['k']}, g={cell['gain']}, T={cell['T']}, {cell['variant']}; setup valid JS {chosen['javascript']}/8, broken {chosen['broken']}/8. All 36 cells completed; zero screen records existed at freeze."]
+if s['reading']=='NOT POSSIBLE':
+    lines += ['\nThe language decision is not carried by identifiable MLP neurons at the decision position on this trunk under this registered selector and intervention at the stated feasibility threshold. The observed counts above bound that conclusion; it does not exclude other contrasts, sites or distributed representations.']
+elif s['reading']=='MARGINAL':
+    lines += ['\nCausal selection produced some language induction, but it failed the full feasibility reading. The logit effect and parser outcomes must be distinguished; these results do not establish a reliable language actuator.']
+else:
+    lines += ['\nThe frozen causal-neuron intervention meets the prewritten feasibility reading on this screen. This establishes this construction on this task bank, not an automatic skill controller or semantic program correctness.']
+if s['history_triggered']:
+    assert s['history_complete']
+    lines += ['\nThe correct SET count triggered all 16 retained-history episodes. Each arm retained its own SET response and subsequent answers.',
+              '\n| Arm / stage | Valid JS | Valid Python | Broken | Coarse task | Mean Δc |',
+              '|---|---:|---:|---:|---:|---:|']
+    for arm in ('correct','swapped','shuffled','OFF','text-cue'):
+        for step in ('HOLD','SWITCH','BACK','CLEAR'):
+            v=s['history'][arm][step]
+            lines.append(f"| {arm} / {step} | {v['javascript']}/16 | {v['python']}/16 | {v['broken']}/16 | {v['task_check']}/16 | {v['mean_c_shift']:+.3f} |")
+else:
+    lines += ['\nCorrect SET was below 12/32, so the registered rule skipped retained-history episodes.']
+lines += ['\nDecision readout and neuron distribution\n',
+          f"The uncued first token was a code fence on {d['actual_uncued_first_tokens'].get('```',0)}/32 fit tasks; the remaining token counts are in attribution-summary.json. The readout stayed at the registered first prediction position.",
+          f"Mean fit c: uncued {d['mean_c']['uncued']:.3f}, cued JS {d['mean_c']['JavaScript']:.3f}, cued Python {d['mean_c']['Python']:.3f}.",
+          '\n| Layer | k50 + | k50 − | k200 + | k200 − | k800 + | k800 − |',
+          '|---|---:|---:|---:|---:|---:|---:|']
+for layer in range(36):
+    values=[d['sets'][str(k)]['layer_counts'][layer][sign] for k in (50,200,800) for sign in ('positive','negative')]
+    lines.append(f'| {layer} | '+' | '.join(map(str,values))+' |')
+lines += ['\nSigns refer to the signed mean activation × gradient. Counts total 28+/22−, 104+/96− and 403+/397− for k=50/200/800.',
+          '\n| Causal k | Frequency k | JS intersection | Python intersection |','|---|---|---:|---:|']
+for k in (50,200,800):
+    for fk in (200,500,1000):
+        overlap=d['sets'][str(k)]['frequency_overlap'][str(fk)]
+        lines.append(f"| {k} | {fk} | {overlap['JavaScript']['intersection']} | {overlap['Python']['intersection']} |")
+lines += ['\nSetup grid\n','| k | g | T | Variant | Valid JS /8 | Broken /8 | Mean Δc |','|---:|---:|---:|---|---:|---:|---:|']
+for c in g['cells']:
+    lines.append(f"| {c['k']} | {c['gain']} | {c['T']} | {c['variant']} | {c['javascript']} | {c['broken']} | {c['mean_c_shift']:+.3f} |")
+lines += ['\nValidation and artifacts\n',
+          f"Consumer audit PASS: {a['records']} generations, 32 decision tasks, all 36 setup cells. Recomputed all attribution products/means, selected sets and overlaps; rescored every parser result; checked every intervention position, OFF identity, frozen choice, screen reading and conditional histories. CPU gradient/decoding fixtures and import-side-effect checks passed (one known legacy inventory xfail). Ruff passed.",
+          'Model/tokenizer hashes match all ten assets in check41’s frozen reference. No weights were fitted or updated. No sealed inputs were read; no process was signaled; foreground execution only. RUNNING.flag was removed at completion.',
+          'records.jsonl preserves full prompts, histories, outputs, tokens, intervention counts, timing, parser/task/breakage flags and c shifts. decision-records.jsonl and attributions/ preserve the per-task gradient readout; attributions/README.md describes all arrays. Coarse task checks are syntax/operation witnesses; generated programs were never executed.',
+          'The reported first-T release disables new hooks after T predictions; intervened cache states persist naturally. Operation families overlap across otherwise disjoint fit/setup/screen prompts. The keyword-set contrast can move while the actual first token remains a fence. These are limits of this registered construction.']
+(OUT/'README.md').write_text((OUT/'prewritten-reading.md').read_text()+'\n'+'\n'.join(lines)+'\n')
+print(json.dumps({'reading':s['reading'],'gpu_minutes':s['gpu_seconds']/60,'selected':cell,'correct':s['arms']['correct']}))

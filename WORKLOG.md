@@ -5145,3 +5145,10 @@ Competence 32/32 each; zero set overlap. Frozen k200 deactivate-other SET/HOLD/S
 Correct broken 4/64, shuffled non-default 0/64, correct CLEAR impositions 0/64; g2 setup only 1/16 JS with 19/16/23 broken of 32 across k200/500/1000. Check40 has only a cost result.
 GPU 5031.579599860124/7200 s (83.86 min), including preserved 46.37001516507007 s empty attempt; no overrun. Audits staged outside repo while another quick check held its lock.
 Final artifacts force-added and committed with explicit paths; shared README/WORKLOG updates append only. No process signal, background launch, push or scientific recipe change after outputs.
+
+## 2026-09-05 — Quick check 41b: MARGINAL causal decision-token neurons
+No fitting/training: gradient readout on 32 synthetic tasks, selection on 8 separate setup tasks, evaluation on 32 disjoint fresh prompts; no sealed reads.
+Frozen k=200/g=3/T=1 after all 36 cells; SET JS correct 14/32 (7 broken), swapped/shuffled/OFF 0/32, text 32/32; JS + coarse task 13/32.
+Mean delta-c correct +20.596, swapped +20.911, shuffled +0.224, OFF 0, text +41.900; 23/32 correct first tokens are ` moduleId`, so the reading is parser-level.
+All 16 histories complete: correct HOLD/BACK JS 7/16, SWITCH Python 8/16, CLEAR JS 7/16; same seven JS episodes persist through all four stages.
+40.30/90 GPU-min, foreground, RUNNING.flag removed; 800-record/attribution audit and CPU fixtures PASS, import guard 3 passed/1 known xfail, lint clean; explicit-path local commit, no push/signals.

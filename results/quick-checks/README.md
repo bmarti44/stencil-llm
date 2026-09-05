@@ -364,6 +364,12 @@ pass/fail reading written before running; one accuracy review of the RESULT from
    Fixed reading: SET/SWITCH >=40/64, broken <=4/64, shuffled non-default/CLEAR impositions <=8/64; competence >=28/32 and overlap <=50%.
    CPU consumer/decoding/checker/threshold fixtures passed; no model outcomes; foreground 600-second GPU/check40 wait, two GPU-hour cap, no signals/push.
 
+41b. CAUSAL DECISION-TOKEN MLP NEURONS (seed 41042; Qwen3-4B; [check41b](check41b/README.md)): **MARGINAL**.
+   32 gradient-readout tasks; 36 cells on 8 setup tasks; frozen k=200/g=3/T=1; 32 fresh SET tasks plus 16 retained-history episodes.
+   SET valid JS: correct 14/32, swapped/shuffled/OFF 0/32, text cue 32/32; correct broken 7/32 and JS + coarse task 13/32.
+   Mean delta-c: correct +20.596, swapped +20.911, shuffled +0.224, OFF 0, text +41.900; correct starts ` moduleId` on 23/32.
+   Correct HOLD/BACK JS 7/16, SWITCH Python 8/16, CLEAR JS 7/16; 40.30/90 GPU-min; 800-record audit PASS; parser-level induction only.
+
 42. EVERY-REQUEST LIVE RULE (seed 9053723; Qwen3-4B; [check42](check42/README.md)): **CPU READY / WAITING**.
    Reused FOCUS-2d bank/certificate; fresh A placement, B plus schema/tag, C exact text-restate; all own answers retained.
    Preselected 192/256 balanced episodes: 72.9 s x 3/5 x 1.4 x N + 300 s projects 3.349 h; cap 3.5 GPU-h.

@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "cpu_fixture_receipt": "cpu-tests.json",
+  "full_consumer_audit": "audit.json",
+  "model_assets": "model-provenance.json",
+  "import_guard": {
+    "command": ".venv/bin/python -B -m pytest -q tests/test_no_side_effect_imports.py",
+    "passed": 3,
+    "expected_failures": 1,
+    "note": "Executed during CPU preparation; expected failure is the existing legacy side-effect inventory."
+  },
+  "ruff": {
+    "command": ".venv/bin/ruff check scripts/focus_check41b.py",
+    "exit_code": 0
+  },
+  "final_assertions": [
+    "800 records and all 16 histories",
+    "fixed MARGINAL reading",
+    "immutable prewritten reading/source/task freeze",
+    "records and audit hashes",
+    "frequency reference hash",
+    "RUNNING.flag removed"
+  ]
+}

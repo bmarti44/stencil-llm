@@ -1,0 +1,94 @@
+"""Read-only consumer audit; run after complete check41b."""
+import importlib.util
+import json
+from pathlib import Path
+import numpy as np
+import torch
+
+ROOT=Path('/home/bmarti44/stencil-llm')
+OUT=ROOT/'results/quick-checks/check41b'
+spec=importlib.util.spec_from_file_location('audit_check41b',ROOT/'scripts/focus_check41b.py')
+m=importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+p=m.plumbing()
+rows=[json.loads(s) for s in (OUT/'records.jsonl').read_text().splitlines()]
+decisions=[json.loads(s) for s in (OUT/'decision-records.jsonl').read_text().splitlines()]
+summary=json.loads((OUT/'summary.json').read_text())
+grid=json.loads((OUT/'grid.json').read_text())
+banks=json.loads((OUT/'banks.json').read_text())
+freeze=json.loads((OUT/'freeze.json').read_text())
+for path,digest in freeze.items():
+    assert p.sha(ROOT/path)==digest,path
+assert len(decisions)==32
+assert {r['task_id'] for r in rows if r['phase']=='fit'}=={t['id'] for t in banks['fit']}
+assert {r['task_id'] for r in rows if r['phase']=='grid'}=={t['id'] for t in banks['setup']}
+assert {r['task_id'] for r in rows if r['phase']=='screen'}=={t['id'] for t in banks['screen']}
+accum=[]
+xs={lang:[] for lang in ('uncued','JavaScript','Python')}
+for d in decisions:
+    with np.load(OUT/d['artifact']) as f:
+        assert set(f.files)=={'x','gradient','attribution','JavaScript_x','Python_x','JavaScript_difference','Python_difference'}
+        assert f['x'].shape==(36,9728)
+        assert np.isfinite(f['gradient']).all() and np.count_nonzero(f['gradient'])>0
+        assert np.array_equal(f['x']*f['gradient'],f['attribution'])
+        accum.append(f['attribution'].astype(np.float64))
+        xs['uncued'].append(f['x'].astype(np.float64))
+        for lang in ('JavaScript','Python'):
+            assert np.array_equal(f[lang+'_x']-f['x'],f[lang+'_difference'])
+            xs[lang].append(f[lang+'_x'].astype(np.float64))
+    rr=next(r for r in rows if r['phase']=='fit' and r['task_id']==d['task_id'])
+    assert rr['first_token_id']==d['uncued']['top1_id']
+with np.load(OUT/'attributions/aggregate.npz') as f:
+    assert np.array_equal(np.mean(accum,axis=0).astype(np.float32),f['attribution'])
+    attr=torch.from_numpy(f['attribution'].copy())
+    for lang in xs:
+        assert np.array_equal(np.mean(xs[lang],axis=0).astype(np.float32),f[lang+'_mean'])
+reference=json.loads((ROOT/'results/quick-checks/check41/neuron-sets.json').read_text())
+sets=m.select(attr,reference)
+assert sets==json.loads((OUT/'neuron-sets.json').read_text())['correct']
+assert len(grid['cells'])==36 and grid['frozen'] and grid['screen_records_at_freeze']==0
+chosen={k:m.choose(grid['cells'])[k] for k in ('k','T','variant','gain')}
+assert chosen==grid['selected']==summary['selected']
+for c in grid['cells']:
+    cell={k:c[k] for k in ('k','T','variant','gain')}
+    rs=[r for r in rows if r['phase']=='grid' and r['cell']==cell]
+    assert len(rs)==8
+    assert m.aggregate(rs)=={k:v for k,v in c.items() if k not in cell}
+alltasks={t['id']:t for group in banks.values() for t in group}
+for r in rows:
+    assert p.score(r['text'],alltasks[r['task_id']],r['truncated'])==r['score']
+    assert abs(r['c']-r['c_same_history_off']-r['c_shift'])<1e-10
+    assert r['generated_token_ids'][0]==r['first_token_id']
+    intervention=r['arm'] in ('correct','swapped','shuffled') and r['cell'] is not None and r['step']!='CLEAR'
+    if intervention:
+        selected=sets[str(r['cell']['k'])]
+        indices=selected['shuffled_indices'] if r['arm']=='shuffled' else selected['indices']
+        layers={i//9728 for i in indices}
+        expected={(layer,pos) for layer in layers for pos in range(min(r['cell']['T'],len(r['generated_token_ids'])))}
+        assert {(x['layer'],x['prediction_index']) for x in r['intervention_calls']}==expected
+        assert all(x['calls']==1 for x in r['intervention_calls'])
+    else:
+        assert not r['intervention_calls']
+    if r['arm']=='OFF':
+        assert r['c_shift']==0
+arms={a:m.aggregate([r for r in rows if r['phase']=='screen' and r['arm']==a]) for a in m.ARMS}
+assert m.verdict(arms)==summary['reading']
+for arm in arms:
+    assert all(summary['arms'][arm][k]==v for k,v in arms[arm].items())
+if summary['history_triggered']:
+    for i in range(16):
+        for arm in m.ARMS:
+            prior=next(r for r in rows if r['phase']=='screen' and r['episode']==i and r['arm']==arm)
+            for step in ('HOLD','SWITCH','BACK','CLEAR'):
+                current=next(r for r in rows if r['phase']=='history' and r['episode']==i and r['arm']==arm and r['step']==step)
+                assert current['history'][:-1]==prior['history']+[dict(role='assistant',content=prior['text'])]
+                prior=current
+else:
+    assert not any(r['phase']=='history' for r in rows)
+assert summary['gpu_seconds']<=5400
+assert not (OUT/'RUNNING.flag').exists()
+print(json.dumps(dict(status='PASS',records=len(rows),decision_tasks=len(decisions),grid_cells=len(grid['cells']),
+    reading=summary['reading'],checks=['frozen hashes','per-task x*gradient and cued differences','aggregate means',
+    'exact selected neurons and overlap','all 36 grid scores and frozen winner','parser rescore all generations',
+    'contrast deltas','all first-T intervention counts','OFF contrast identity','screen reading',
+    'conditional retained histories','budget and flag cleanup'])))
