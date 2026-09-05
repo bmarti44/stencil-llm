@@ -4725,3 +4725,19 @@ Artifacts: results/quick-checks/focus1-probe/; explicit-pathspec commit only; no
 ## 2026-09-05 — check 31 INFEASIBLE on both trunks; FOCUS-1 on hold; hypothesis queue Q2-Q6 recorded; check 32 launched
 - Three independent rankings (results/hypotheses-{astra,fable,kimi}.md) merged into results/quick-checks/README.md QUEUE.
 - Check 31 result sent to fable for a raw-record accuracy review (one round). Check 32 (Q2) brief -> astra, GPU idle.
+
+## 2026-09-05 — Quick check 32 (Q2), unregistered, write-ahead
+STATE: reading frozen in results/quick-checks/check32/README.md before GPU execution; 4B then 1.7B, 90 GPU-min total.
+Lineage: fit-on=nothing; evaluated-on=320 fresh seed-32032 synthetic operand sets paired across arms/trunks; no benchmark access.
+64 retained-cache episodes/trunk; A/A/B/A/OFF; seven arms include paired OFF and separate wrong-address/spotlight controls.
+CPU self-test passed scorer, unique operands, retained EOS/filler/cache accounting, CLEAR hook removal, and verdict boundaries.
+GPU compute query empty; no review lock held; foreground only, cooperative cap, no process signals. Results pending.
+
+## 2026-09-05 — Quick check 32 Q4, operand-free KV (aborted before GPU)
+STATE: NOT RUN on both trunks; fixed reading and six-arm script prepared; final pre-launch query found compute PID 281741.
+Lineage: fit-on=none; planned extraction=96 operand/answer-free cues; planned eval=320 seed-32040 lists; no benchmark access.
+GPU execution aborted as instructed; PID belongs to Q2 resume_segments.py; 0 Q4 GPU-min; no process signals or background jobs.
+CPU scorer/verdict boundaries, unique banks, cache edits/audits and six full fake-trunk retained episodes passed; ruff/import checks passed.
+Artifacts: results/quick-checks/check32-kv/; both summaries explicitly aborted, empty records, no invented packet/residual measurements.
+Q2 was declined by Brian and never run to completion; existing Q2 script/partial work and prior WORKLOG entry preserved.
+Fixed reading preceded all execution; explicit-pathspec commit, no push; actual packet mechanism remains unmeasured.
