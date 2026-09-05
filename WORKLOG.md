@@ -4809,3 +4809,11 @@ GPU idle/no compute apps; review lock unheld; archived protocol/ledger read; WOR
 Rule: net discordance <=2 and one-sided McNemar p>=.05 per mode; surviving release losses <=2; both neutral copies >=56/64.
 Command: .venv/bin/python scripts/focus_check39.py --run; foreground 30 GPU-min cap; pilot 14.77 s/episode, 16.23 min projected; no signals/push; check37 STOP stands.
 STATE: complete, PROCEED_PLACEHOLDER; 16.59/30 GPU-min; all 1,152 records/384 edits audited; CPU/lint/import checks passed; explicit-path commit, no larger test/push.
+
+## 2026-09-05 — FOCUS-2 DRAFT v2 (gpt-6-astra, CPU only)
+STATE: appended 57-line v2; v1 preserved; NOT YET REGISTERED. Check-36 accuracy review satisfied; check-39 PROCEED_PLACEHOLDER bound to e24afd4 -> e30343d; check-37 STOP stands, not pooled.
+Corrected check-38 ordering/decay/default reading; inside-request placement, complete pairs, demonstration-share expectation and secondary readings; fable (a)(b)(c)/kimi dispositions recorded.
+Updated focus2-harness.md to v2; unchanged .allow retains four implementation paths; protected v1 science, seeds, safety, primary gates and template bytes retained.
+Verified committed check-39 reading/source hashes and launch chronology, v1 anchor 2ea04e9, append-only preservation, document contracts, gate arithmetic and git diff --check on CPU.
+Fit-on=none; foreground documentation checks only; no model/GPU launch, sealed-input reads, fitting/training, background work, signals or push.
+Next: CPU implementation/registration review, dependency manifest and committed freeze; no experiment authorized. Explicit-pathspec commit of this task only.
