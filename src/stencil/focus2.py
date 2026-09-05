@@ -28,6 +28,7 @@ ROOT = Path(__file__).resolve().parents[2]
 EOS = 151645
 END = 151643
 CAP = 64
+DELAY_CAPS = (160, 320)
 GPU_CAP = 6 * 3600
 ARMS = ("neither", "placement-only", "eviction-only", "both", "text-restate")
 EVICTION_ARMS = ("eviction-only", "both")
@@ -88,7 +89,7 @@ TEMPLATES = {
     "tool_return": '{"tool_fact":{value}}',
     "tool_response": "<tool_response>\n{content}\n</tool_response>",
     "ack": ".",
-    "delay": "The room is quiet. " * 102 + "Quiet.",
+    "delay": "The room is quiet. " * 101 + "Quiet. Answer in one sentence.",
     "header": "<|im_start|>{role}\n",
     "closure": "<|im_end|>\n",
     "thinking": "<think>\n\n</think>\n\n",
@@ -338,7 +339,11 @@ def fingerprint(family, value):
 
 
 DEVELOPMENT_COVERAGE = (
-    *range(31, 40), "repair", "focus2", "focus2b-retired", "focus2b-amendment1"
+    *range(31, 40),
+    "repair",
+    "focus2",
+    "focus2b-retired",
+    "focus2b-amendment1",
 )
 
 
@@ -1059,18 +1064,19 @@ def contrasts(rows):
 
 def decisions(rows, terminal="COMPLETE"):
     require(len({r["id"] for r in rows}) == len(rows), "duplicate episode")
+    excluded = [r for r in rows if r.get("delay_invalid")]
+    rows = [r for r in rows if not r.get("delay_invalid")]
+    n = len(rows)
+    memo_n = sum(r["memo"] for r in rows)
     primary = contrasts(rows)
-    complete = len(rows) == 256 and terminal == "COMPLETE"
+    complete = n + len(excluded) == 256 and terminal == "COMPLETE"
     if rows:
         for a, p in zip(primary, holm([x["p"] for x in primary.values()]), strict=True):
             primary[a]["adjusted_p"] = p
     primary_pass = complete and all(
         x["b"] > x["c"] and x["adjusted_p"] <= 0.05 for x in primary.values()
     )
-    primary_pass = (
-        primary_pass
-        and primary["text-restate"]["b"] - primary["text-restate"]["c"] >= 13
-    )
+    primary_pass = primary_pass and primary["text-restate"]["delta"] >= 0.05
     safety = paired(
         [r["arms"]["both"]["broken"] for r in rows],
         [r["arms"]["text-restate"]["broken"] for r in rows],
@@ -1079,8 +1085,9 @@ def decisions(rows, terminal="COMPLETE"):
         h=safety["b"],
         r=safety["c"],
         fixed_n=256,
-        upper_h=exact_upper(safety["b"], 256) if complete else None,
-        passes=bool(complete and safety["b"] <= 5 and safety["p"] > 0.05),
+        eligible_n=n,
+        upper_h=exact_upper(safety["b"], n) if complete and n else None,
+        passes=bool(complete and n and safety["b"] <= 5 and safety["p"] > 0.05),
     )
     collateral = {}
     for key, fixed_n in (
@@ -1096,11 +1103,12 @@ def decisions(rows, terminal="COMPLETE"):
         )
         table.update(
             fixed_n=fixed_n,
+            eligible_n=memo_n if key == "assistant_fact" else n,
             passes=None
             if key == "assistant_fact"
             else bool(
                 complete
-                and len(selected) == fixed_n
+                and n > 0
                 and table["p"] > 0.05
                 and table["b"] - table["c"] <= 2
             ),
@@ -1164,7 +1172,7 @@ def decisions(rows, terminal="COMPLETE"):
     cost = collateral["assistant_fact"]
     cost_sentence = (
         "eviction forfeits assistant-authored content it removes "
-        f"({cost['candidate']}/64 vs {cost['comparator']}/64)"
+        f"({cost['candidate']}/{memo_n} vs {cost['comparator']}/{memo_n})"
     )
     return dict(
         status=status,
@@ -1172,6 +1180,8 @@ def decisions(rows, terminal="COMPLETE"):
         complete=complete,
         n=len(rows),
         fixed_n=256,
+        delay_invalid_count=len(excluded),
+        delay_invalid_episodes=excluded,
         primary=primary,
         primary_pass=primary_pass,
         safety=safety,
@@ -1274,13 +1284,15 @@ class Budget:
 
 
 class Engine:
-    def __init__(self, tok, backend, store, budget, binding):
+    def __init__(self, tok, backend, store, budget, binding, carried=None):
         self.tok, self.backend, self.store = tok, backend, store
         self.budget, self.binding = budget, binding
+        self.carried = carried or {}
 
     def answer(self, history, ep, arm, step, *, edit=None, prior=None, source=None):
         layout = history.render(current=True)
         require(layout["ids"], "empty prefill")
+        cap = generation_cap(step)
         record = dict(
             stage=ep["bank"],
             episode=ep["id"],
@@ -1315,7 +1327,29 @@ class Engine:
             both_correct=bool(prior and all(p["flags"]["success"] for p in prior)),
             complete=False,
             cost={},
+            generation_cap=cap,
         )
+        key = (ep["id"], arm, step)
+        if key in self.carried:
+            original = self.carried[key]
+            for field in (
+                "input_layout",
+                "input_ids",
+                "input_text",
+                "edit",
+                "live_rules",
+                "source_facts",
+                "source_status",
+                "shared_prior_hash",
+                "prior_correctness",
+                "both_correct",
+                "event_scope",
+            ):
+                require(record[field] == original[field], "carried input drift")
+            record = carried_record(original, self.binding, self.budget.elapsed())
+            self.store.write(record)
+            history.answer(record["output_ids"], record["eos"])
+            return record
         start, prefill_seconds, decode_seconds, steps = self.budget.clock(), 0.0, 0.0, 0
         decode_calls = 0
         error = None
@@ -1333,7 +1367,7 @@ class Engine:
             finally:
                 prefill_seconds = self.budget.clock() - before
             self.budget.check()
-            for i in range(CAP):
+            for i in range(cap):
                 self.budget.check()
                 require(type(token) is int and token >= 0, "invalid greedy token")
                 steps += 1
@@ -1341,7 +1375,7 @@ class Engine:
                     record["eos"] = token
                     break
                 record["output_ids"].append(token)
-                if i < CAP - 1:
+                if i < cap - 1:
                     self.budget.check()
                     before = self.budget.clock()
                     decode_calls += 1
@@ -1398,6 +1432,8 @@ class Engine:
         if error:
             raise error
         if step.startswith("DELAY"):
+            if delay_capped(record):
+                return record
             validate_delay(record)
         history.answer(record["output_ids"], record["eos"])
         return record
@@ -1427,8 +1463,48 @@ def validate_delay(record):
     require(
         bool(record["output_text"].strip()) and record["eos"] in (EOS, END),
         "invalid delay: complete pair needs nonempty body and generated terminal; "
-        "no replay/retry",
+        "no replay of invalid body",
     )
+
+
+def generation_cap(step):
+    if step.startswith("DELAY"):
+        return DELAY_CAPS[1 if step.endswith("_RETRY") else 0]
+    return CAP
+
+
+def delay_capped(record):
+    return (
+        record["complete"]
+        and record["eos"] is None
+        and len(record["output_ids"]) == generation_cap(record["checkpoint"])
+    )
+
+
+def delay_exclusion(ep, step):
+    return dict(
+        id=ep["id"],
+        family=ep["family"],
+        direction=ep["direction"],
+        delay=ep["delay"],
+        memo=ep["memo"],
+        delay_invalid=True,
+        failed_delay=step,
+        reason="no terminal after recorded 160/320 attempts",
+    )
+
+
+def carried_record(original, binding, cumulative):
+    record = copy.deepcopy(original)
+    record.update(binding=binding, generation_cap=CAP, carried_from=digest(original))
+    record["carried_allocation_seconds"] = original["cost"]["allocation_seconds"]
+    record["cost"].update(
+        allocation_seconds=0.0,
+        prefill_seconds=0.0,
+        decode_seconds=0.0,
+        cumulative_seconds=cumulative,
+    )
+    return record
 
 
 def episode(engine, ep):
@@ -1438,6 +1514,12 @@ def episode(engine, ep):
         for step in ("DELAY0", "DELAY1", "DELAY2"):
             h = neutral_history(engine.tok, text, step)
             delays[step] = engine.answer(h, ep, "shared", step)
+            if delay_capped(delays[step]):
+                retry = step + "_RETRY"
+                h = neutral_history(engine.tok, text, retry)
+                delays[step] = engine.answer(h, ep, "shared", retry)
+                if delay_capped(delays[step]):
+                    return []
 
     def replay(h, step):
         if step in delays:
@@ -1472,7 +1554,7 @@ def episode(engine, ep):
     return rows
 
 
-def validate_records(records, episodes, tok, binding, *, complete):
+def validate_records(records, episodes, tok, binding, *, complete, carried=None):
     """Replay the exact renderer/removal consumer from immutable raw responses."""
     indexed = {}
     by_id = {ep["id"]: ep for ep in episodes}
@@ -1482,6 +1564,17 @@ def validate_records(records, episodes, tok, binding, *, complete):
             "record binding/fields",
         )
         key = r["episode"], r["arm"], r["checkpoint"]
+        if "carried_from" in r:
+            require(carried is not None and key in carried, "unbound carried response")
+            require(
+                r
+                == carried_record(
+                    carried[key], binding, r["cost"]["cumulative_seconds"]
+                ),
+                "altered carried response",
+            )
+        elif carried and key in carried:
+            raise Invalid("completed response was regenerated")
         require(
             key not in indexed and r["episode"] in by_id, "duplicate/unpaired record"
         )
@@ -1496,7 +1589,9 @@ def validate_records(records, episodes, tok, binding, *, complete):
             "output text/token mismatch",
         )
         require(
-            len(r["output_ids"]) + (r["eos"] is not None) <= CAP
+            len(r["output_ids"]) + (r["eos"] is not None)
+            <= generation_cap(r["checkpoint"])
+            and r.get("generation_cap", CAP) == generation_cap(r["checkpoint"])
             and r["eos"] in (None, EOS, END),
             "output cap/EOS",
         )
@@ -1518,7 +1613,7 @@ def validate_records(records, episodes, tok, binding, *, complete):
             type(r["complete"]) is bool
             and cost["emitted_tokens"] == len(r["output_ids"]) + (r["eos"] is not None)
             and cost["prefill_tokens"] == len(r["input_ids"])
-            and cost["decode_calls"] <= CAP - 1,
+            and cost["decode_calls"] <= generation_cap(r["checkpoint"]) - 1,
             "inconsistent token counter",
         )
         if r["complete"]:
@@ -1609,15 +1704,28 @@ def validate_records(records, episodes, tok, binding, *, complete):
             require(not complete, "partial request")
             return None
         if step.startswith("DELAY"):
+            if delay_capped(r):
+                return r
             validate_delay(r)
         h.answer(r["output_ids"], r["eos"])
         return r
 
     for ep in episodes:
         delays = {}
+        excluded = False
         for step in ("DELAY0", "DELAY1", "DELAY2") if ep["delay"] else ():
             h = neutral_history(tok, delay_text(tok), step)
             delays[step] = consume(ep, "shared", step, h)
+            if delays[step] is not None and delay_capped(delays[step]):
+                retry = step + "_RETRY"
+                h = neutral_history(tok, delay_text(tok), retry)
+                delays[step] = consume(ep, "shared", retry, h)
+                if delays[step] is not None and delay_capped(delays[step]):
+                    summaries.append(delay_exclusion(ep, step))
+                    excluded = True
+                    break
+        if excluded:
+            continue
 
         def replay(h, step, ep=ep, delays=delays):
             if not ep["delay"]:
@@ -1773,9 +1881,9 @@ PINS = dict(
     v2_commit="7d0c24413b5d9093f814071c37e5c332b3ec62dd",
     v3_commit="1b8216aab8af60e03b7d21f00ae33d90f43cce22",
     v3_section_sha256="4f80ac8a27d06507eab400ca50dabc6100fd8cd0e8e83cd906b4b786ecb99f9d",
-    candidate_commit="0c8e2ffe53ca7548d06b1a05719a7a530617b21c",
+    candidate_commit="14f63cc5cc6b6d659e6b3a18f2b32351ca3b7333",
     candidate_section_sha256=(
-        "c7be5de49eae2ca8a4bb9746a1ab92573b8bcd8ecd06339ae428fc3f33fccfc2"
+        "907faf72a8ce1091bf4b9b32a6042494d14e1ffd2ecab3b1d035cad6efa05eb1"
     ),
     ledger="LEDGER-PLAN.md",
     v2_section_sha256=(
@@ -1817,6 +1925,8 @@ CONFIG = dict(
     greedy=True,
     thinking=False,
     cap=64,
+    delay_caps=list(DELAY_CAPS),
+    delay_failure="one deterministic retry, then paired episode exclusion",
     gpu_cap_seconds=GPU_CAP,
     arm_order=list(ARMS),
     seeds={"competence": 9053718, "pilot": 9053719, "final": 9053720},
@@ -1967,6 +2077,7 @@ def candidate_section(text):
     for marker in (
         "## FOCUS-2b AMENDMENT 1 (2026-09-05)",
         "## FOCUS-2c — PAYLOAD RENDERING FIX (DRAFT v1",
+        "## FOCUS-2c AMENDMENT 1 (2026-09-05)",
     ):
         if marker in text:
             section = text[text.index(marker) :].split("\n## ", 1)[0].rstrip("\n")
@@ -2304,7 +2415,7 @@ def prepare_freeze(directory, *, tok=None, section_text=None, development=None):
         atomic_json(directory / "development.json", development)
     manifest = dict(
         status="DRAFT",
-        version=6,
+        version=7,
         fit_on="none",
         repair="placeholder",
         anchors={
@@ -2356,7 +2467,7 @@ def preflight(
     if manifest.get("repair") != "placeholder":
         raise StopRepair("absent/unselected repair policy")
     require(
-        manifest.get("version") == 6 and manifest.get("fit_on") == "none",
+        manifest.get("version") == 7 and manifest.get("fit_on") == "none",
         "registration version/lineage",
     )
     require(manifest.get("candidate_only") is False, "unregistered candidate manifest")
@@ -2459,6 +2570,8 @@ def preflight(
         spent=0.0,
         projection=0.0,
     )
+    if "competence_carry" in contents:
+        result.update(validate_carry(parse_json(contents["competence_carry"]), result))
     if certificates:
         for previous in (
             ("competence", "pilot")
@@ -2467,6 +2580,8 @@ def preflight(
             if stage == "pilot"
             else ()
         ):
+            if previous == "competence" and "carried" in result:
+                continue
             cert, end = validate_certificate(output, previous, result)
             require(
                 end["spent_before"] == result["spent"], "nonadditive allocation costs"
@@ -2478,6 +2593,76 @@ def preflight(
         if result["spent"] + result["projection"] >= GPU_CAP:
             raise Incomplete("cost/projection over six GPU-hour cap")
     return result
+
+
+def validate_carry(packet, pre):
+    """Bind the unchanged competence and completed pilot prefix to old Git bytes."""
+    root, commit = pre["root"], packet["commit"]
+    for descriptor in packet["files"].values():
+        member(root, commit, descriptor["path"], descriptor["sha256"])
+    original = root / packet["output_path"]
+    required_paths = {
+        str(p.relative_to(root))
+        for stage in ("competence", "pilot")
+        for p in (original / stage).rglob("*.json")
+    }
+    require(
+        required_paths <= {d["path"] for d in packet["files"].values()},
+        "unbound original records/receipts",
+    )
+
+    def original_json(role):
+        return parse_json((root / packet["files"][role]["path"]).read_text())
+
+    require(original_json("banks") == pre["banks"], "amendment changed input bank")
+    old_config = original_json("config")
+    require(
+        old_config
+        == {
+            k: v for k, v in CONFIG.items() if k not in ("delay_caps", "delay_failure")
+        },
+        "amendment changed task generation config",
+    )
+    cert = parse_json((original / "competence/certificate.json").read_text())
+    require(
+        cert["binding"]["manifest_sha256"] == packet["files"]["manifest"]["sha256"],
+        "original freeze binding",
+    )
+    for role in ASSET_ROLES | {"qwen", "stats"}:
+        require(
+            cert["binding"]["hashes"][role] == pre["binding"]["hashes"][role],
+            "competence model/runtime changed",
+        )
+    old_pre = {**pre, "binding": cert["binding"]}
+    cert, competence_end = validate_certificate(original, "competence", old_pre)
+    require(cert["status"] == "PASS", "carried competence failed")
+    pilot_end = parse_json((original / "pilot/end.json").read_text())
+    pilot_rows = RecordStore(original / "pilot/records").rows()
+    require(
+        pilot_end["binding"] == cert["binding"]
+        and pilot_end["status"] == "INVALID"
+        and pilot_end["spent_before"] == competence_end["spent_after"]
+        and pilot_end["records_hash"]
+        == digest(
+            sorted(pilot_rows, key=lambda r: (r["episode"], r["arm"], r["checkpoint"]))
+        )
+        and pilot_end["record_count"] == len(pilot_rows),
+        "carried pilot provenance/cost",
+    )
+    require(
+        pilot_end["spent_after"] - pilot_end["spent_before"]
+        >= pilot_end["load_seconds"]
+        + sum(r["cost"]["allocation_seconds"] for r in pilot_rows),
+        "carried pilot allocation",
+    )
+    ep = next(e for e in pre["banks"]["pilot"] if e["id"] == packet["pilot_episode"])
+    require(ep["delay"] == 0, "only unchanged zero-delay pilot can carry")
+    rows = [r for r in pilot_rows if r["episode"] == ep["id"]]
+    validate_records(rows, [ep], pre["tok"], cert["binding"], complete=True)
+    return dict(
+        spent=pilot_end["spent_after"],
+        carried={(r["episode"], r["arm"], r["checkpoint"]): r for r in rows},
+    )
 
 
 def competence_gate(rows):
@@ -2535,7 +2720,12 @@ def certificate(stage, rows, summaries, end, binding):
     if stage == "competence":
         value = competence_gate(summaries)
     else:
-        require(stage == "pilot" and len(summaries) == 4, "pilot complete cells")
+        require(
+            stage == "pilot"
+            and len(summaries) == 4
+            and not any(s.get("delay_invalid") for s in summaries),
+            "pilot requires four valid complete cells for projection",
+        )
         cells = {}
         endpoints = []
         for summary in summaries:
@@ -2554,6 +2744,17 @@ def certificate(stage, rows, summaries, end, binding):
         # publication gaps between requests, in the measured allocation cost.
         require(end["spent_after"] >= previous, "pilot terminal allocation")
         cells[max(endpoints)[1]] += end["spent_after"] - previous
+        for identity in cells:
+            carried = [
+                r for r in rows if r["episode"] == identity and "carried_from" in r
+            ]
+            if carried:
+                # Original pilot cost is already in spent_before; measure this
+                # cell using its original generation timing, never replay speed.
+                cells[identity] = max(
+                    cells[identity],
+                    sum(r["carried_allocation_seconds"] for r in carried),
+                )
         worst = max(cells.values())
         # Include the next load and all 256 final episodes, with 25% reserve.
         value = dict(
@@ -2596,7 +2797,12 @@ def validate_certificate(output, stage, pre):
         "stage start receipt",
     )
     summaries = validate_records(
-        rows, pre["banks"][stage], pre["tok"], pre["binding"], complete=True
+        rows,
+        pre["banks"][stage],
+        pre["tok"],
+        pre["binding"],
+        complete=True,
+        carried=pre.get("carried"),
     )
     require(
         end["record_count"] == len(rows)
@@ -2637,6 +2843,10 @@ def execute_stage(
 ):
     require(stage in ("competence", "pilot", "run"), "stage")
     pre = preflight(folder, launch, stage, output, tokenizer_factory=tokenizer_factory)
+    require(
+        stage != "competence" or "carried" not in pre,
+        "competence certificate stands; rerun prohibited",
+    )
     destination = Path(output) / stage
     require(not destination.exists(), "refusing output overwrite/retry")
     budget = Budget(clock, spent=pre["spent"])
@@ -2661,7 +2871,14 @@ def execute_stage(
         backend = (backend_factory or load_backend)(pre["tok"], config)
         load_seconds = clock() - loading_start
         budget.check()
-        engine = Engine(pre["tok"], backend, store, budget, pre["binding"])
+        engine = Engine(
+            pre["tok"],
+            backend,
+            store,
+            budget,
+            pre["binding"],
+            carried=pre.get("carried"),
+        )
         if stage == "competence":
             for ep in pre["banks"][stage]:
                 budget.check()
@@ -2725,7 +2942,12 @@ def execute_stage(
                     pre["tok"],
                     pre["binding"],
                     complete=True,
+                    carried=pre.get("carried"),
                 )
+                end["delay_invalid_episodes"] = [
+                    s for s in summaries if s.get("delay_invalid")
+                ]
+                end["delay_invalid_count"] = len(end["delay_invalid_episodes"])
                 if stage != "run":
                     cert = certificate(stage, rows, summaries, end, pre["binding"])
                     atomic_json(destination / "certificate.json", cert)
@@ -2756,6 +2978,7 @@ def analyze(folder, launch, output, *, tok=None, tokenizer_factory=None):
         pre["tok"],
         pre["binding"],
         complete=terminal == "COMPLETE",
+        carried=pre.get("carried"),
     )
     if path.is_file():
         require(
@@ -2774,6 +2997,13 @@ def analyze(folder, launch, output, *, tok=None, tokenizer_factory=None):
         if end["spent_after"] >= GPU_CAP:
             terminal = "INCOMPLETE" if terminal != "INVALID" else terminal
     report = decisions(summaries, terminal)
+    excluded_ids = {r["id"] for r in summaries if r.get("delay_invalid")}
+    report["delay_attempts"] = [
+        {k: r[k] for k in ("episode", "checkpoint", "generation_cap", "eos", "cost")}
+        for r in rows
+        if r["checkpoint"].startswith("DELAY")
+    ]
+    rows = [r for r in rows if r["episode"] not in excluded_ids]
     report["binding"] = pre["binding"]
     report["allocation_seconds"] = end.get("spent_after")
     report["historical_check37"] = pre["historical_check37"]
@@ -2789,6 +3019,7 @@ def analyze(folder, launch, output, *, tok=None, tokenizer_factory=None):
             report["checkpoint_counts"][arm][step] = dict(
                 n=len(rs),
                 fixed_n=256,
+                eligible_n=256 - len(excluded_ids),
                 success=sum(r["flags"]["success"] for r in rs),
                 flags={
                     k: sum(r["flags"][k] for r in rs)
@@ -2836,7 +3067,13 @@ def analyze(folder, launch, output, *, tok=None, tokenizer_factory=None):
                         f"{family}/{direction}/{arm}/{step}"
                     ] = dict(
                         n=len(rs),
-                        fixed_n=32,
+                        fixed_n=128,
+                        eligible_n=sum(
+                            e["family"] == family
+                            and e["direction"] == direction
+                            and e["id"] not in excluded_ids
+                            for e in pre["banks"]["final"]
+                        ),
                         impositions={
                             d: sum(r["flags"]["imposition"][d] for r in rs)
                             for d in (*directions, "default")

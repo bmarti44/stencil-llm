@@ -1409,7 +1409,7 @@ def test_tool_group_matches_pinned_qwen_template(tok, banks):
             branch.answer(f.encode(tok, f.gold(ep, step)), f.EOS)
 
 
-@pytest.mark.parametrize("answer", ["", "Echo " * 100])
+@pytest.mark.parametrize("answer", [""])
 def test_invalid_delay_blocks_replay_and_complete_analysis(
     tok, banks, tmp_path, answer
 ):
@@ -1567,3 +1567,125 @@ def test_FOCUS2_1_frozen_renderer_mismatch_refuses_before_backend(frozen, tok, c
         == 1
     )
     assert not calls and "template/rendered" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "tokens,retries,excluded",
+    [
+        (159, 0, False),
+        (160, 3, False),
+        (319, 3, False),
+        (320, 1, True),
+    ],
+)
+def test_amendment_delay_cap_retry_and_exclusion(
+    tok, banks, tmp_path, tokens, retries, excluded
+):
+    ep = next(e for e in banks["pilot"] if e["delay"])
+    answer = "x " * (tokens - 1) + "x"
+    assert len(f.encode(tok, answer)) == tokens
+    backend = FakeBackend(
+        tok,
+        lambda ctx, ids, text: (
+            answer if ctx["checkpoint"].startswith("DELAY") else text
+        ),
+    )
+    engine = f.Engine(
+        tok, backend, f.RecordStore(tmp_path / "rows"), f.Budget(Clock()), {}
+    )
+    f.episode(engine, ep)
+    rows = engine.store.rows()
+    retry_rows = [r for r in rows if r["checkpoint"].endswith("_RETRY")]
+    assert len(retry_rows) == retries
+    for retry in retry_rows:
+        first = next(
+            r
+            for r in rows
+            if r["checkpoint"] == retry["checkpoint"].removesuffix("_RETRY")
+        )
+        assert first["generation_cap"] == 160 and first["eos"] is None
+        assert retry["generation_cap"] == 320
+        assert retry["input_ids"] == first["input_ids"]
+        assert len(first["output_ids"]) == 160
+        assert retry["output_ids"][:160] == first["output_ids"]
+    summaries = f.validate_records(rows, [ep], tok, {}, complete=True)
+    assert bool(summaries[0].get("delay_invalid")) == excluded
+    if excluded:
+        assert not any(r["arm"] in f.ARMS for r in rows)
+        report = f.decisions(summaries, "INCOMPLETE")
+        assert report["n"] == 0 and report["delay_invalid_count"] == 1
+        assert all(p["n"] == 0 for p in report["primary"].values())
+        assert all(p["n"] == 0 for p in report["secondary"].values())
+    else:
+        assert summaries[0]["arms"]["both"]["Y"]
+    if retries:
+        missing_retry = [r for r in rows if r is not retry_rows[0]]
+        with pytest.raises(f.Invalid):
+            f.validate_records(missing_retry, [ep], tok, {}, complete=True)
+        bad_cap = copy.deepcopy(rows)
+        next(r for r in bad_cap if r["checkpoint"].endswith("_RETRY"))[
+            "generation_cap"
+        ] = 640
+        with pytest.raises(f.Invalid, match="cap"):
+            f.validate_records(bad_cap, [ep], tok, {}, complete=True)
+
+
+def test_amendment_delay_prompt_only_and_task_cap(tok, banks, tmp_path):
+    assert f.delay_text(tok).endswith("Answer in one sentence.")
+    assert len(f.encode(tok, f.delay_text(tok))) == 512
+    ep = banks["competence"][0]
+    backend = FakeBackend(tok, lambda *_: "x " * 100)
+    engine = f.Engine(
+        tok, backend, f.RecordStore(tmp_path / "rows"), f.Budget(Clock()), {}
+    )
+    h = f.competence_history(tok, ep)
+    h.request(ep, "SET", cue=f.live_rules(ep, "SET") + "\n")
+    row = engine.answer(h, ep, "shared", "SET")
+    assert row["generation_cap"] == 64 and len(row["output_ids"]) == 64
+    assert row["eos"] is None and row["flags"]["truncated"]
+    assert "Answer in one sentence." not in row["input_text"]
+
+
+def test_amendment_carry_reuses_outputs_and_checks_provenance(tok, banks, tmp_path):
+    ep = next(e for e in banks["pilot"] if not e["delay"])
+    old = f.Engine(
+        tok,
+        FakeBackend(tok),
+        f.RecordStore(tmp_path / "old"),
+        f.Budget(Clock()),
+        {"original": True},
+    )
+    f.episode(old, ep)
+    carried = {(r["episode"], r["arm"], r["checkpoint"]): r for r in old.store.rows()}
+    backend = FakeBackend(tok, lambda *_: pytest.fail("regenerated completed output"))
+    new = f.Engine(
+        tok,
+        backend,
+        f.RecordStore(tmp_path / "new"),
+        f.Budget(Clock()),
+        {"amended": True},
+        carried=carried,
+    )
+    f.episode(new, ep)
+    rows = new.store.rows()
+    assert len(rows) == 27 and not backend.calls
+    assert all(r["cost"]["allocation_seconds"] == 0 for r in rows)
+    assert f.validate_records(
+        rows, [ep], tok, new.binding, complete=True, carried=carried
+    )[0]["arms"]["both"]["Y"]
+    with pytest.raises(f.Invalid, match="unbound carried"):
+        f.validate_records(rows, [ep], tok, new.binding, complete=True)
+    rows[0]["carried_from"] = "forged"
+    with pytest.raises(f.Invalid, match="altered carried"):
+        f.validate_records(rows, [ep], tok, new.binding, complete=True, carried=carried)
+
+
+def test_amendment_paired_exclusion_denominators():
+    rows = hand_episodes()
+    rows[0] = dict(id=rows[0]["id"], delay_invalid=True, memo=True)
+    report = f.decisions(rows)
+    assert report["complete"] and report["n"] == 255
+    assert report["delay_invalid_count"] == 1
+    assert all(p["n"] == 255 for p in report["primary"].values())
+    assert report["safety"]["eligible_n"] == 255
+    assert report["collateral"]["assistant_fact"]["n"] == 63
