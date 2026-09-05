@@ -314,6 +314,11 @@ spec change did not teach (all seeds miss it).
    Both modes copy 32/32 at BOTH neutral requests, but add broken episode 24 (duplicate integer); intact breaks elsewhere.
    14.72/30 GPU-min; all 1,088 records/384 edit records audited; no fitting/training/sealed inputs/signals/push; no larger test.
 
+38. ROLE / RECENCY / PATTERN (seed 38038; 4B; [check38](check38/README.md)): **NONE of the three fixed thresholds met**.
+   SWITCH B: T1/T2/T3/T4/R3=1/12/0/11/2 of 32; T3 A=31/32; ascending default T2 A=12/32.
+   BACK A: 32/23/32/30/32 of 32; R3 token outputs 64/64 identical; Wilson intervals in report.
+   8.02/15 GPU-min; 320 records audited; two actual source exchanges (request said three); no fitting/training/sealed inputs/signals/push.
+
 ## QUEUE (2026-09-05, Brian's quick-test-first ruling; merged from results/hypotheses-{astra,fable,kimi}.md)
 Skill pair for all: ascending sort vs REVERSE input order (1.7B cannot do descending: 10/32); value-exact,
 format-lenient scorer (check 31 lost 28/32 correct ascending sorts to quotes/fences). Own seeds; no benchmark data;
