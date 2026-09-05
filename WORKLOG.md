@@ -4817,3 +4817,4 @@ Updated focus2-harness.md to v2; unchanged .allow retains four implementation pa
 Verified committed check-39 reading/source hashes and launch chronology, v1 anchor 2ea04e9, append-only preservation, document contracts, gate arithmetic and git diff --check on CPU.
 Fit-on=none; foreground documentation checks only; no model/GPU launch, sealed-input reads, fitting/training, background work, signals or push.
 Next: CPU implementation/registration review, dependency manifest and committed freeze; no experiment authorized. Explicit-pathspec commit of this task only.
+- 2026-09-05, coder (auto, run_codex_agent.sh). Brief focus2-harness: model gpt-6-astra, effort xhigh, exit 0, session 01a070d8-03f3-7de1-b9ec-c04f7983c289, log /home/bmarti44/stencil-llm/results/logs/codex-agent-focus2-harness.log. Override reason: Brian 2026-09-04: astra replaces sol for all coder/reviewer roles.
