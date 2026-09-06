@@ -206,3 +206,9 @@ Donor SUM/PRODUCT16/16 each; alpha1/2/3 each paired0/8 and malformed0; each sign
 Last-four-neutral-token example means, 7–34 band and shuffle recomputed exactly; consumer route/weight changes real, OFF unchanged; 81-record CPU audit PASS.
 Final/JS-transfer/selected-dose controls/collateral branches not reached; no post-outcome rescue. 700.2435/5400s; 82 total generations incl. one OFF replay.
 Recipe a993adbc committed before outcomes. All output artifacts force-added with explicit paths; no signals/background/termination/push; RUNNING.flag absent.
+
+2026-09-05 — check40e WRITE-AHEAD (gpt-6-astra): user-authorized quick check; archived protocol/science and current state read; no wrapper active.
+Fit/train none; profile-on 16 paired synthetic competence tasks per pair; evaluate-on 32 disjoint synthetic tasks per pair, seed40050; no sealed/benchmark reads.
+Go/gofmt absent: frozen P1 Python/TypeScript fallback; P2 JSON rows/SQL. Both executable semantic checkers, OFF-first distribution, alpha3 sustained, cap64, five arms.
+192 canonical CPU cases plus negative fixtures and inherited real-HF router/consumer checks pass. Frozen reading uses semantic success/breakage, matched shuffle40052, >=14/16 competence.
+Full cap-based projection3351.196/3600s; measured resource-only16-task fallback uses proportional thresholds with reduced-screen disclosure. Foreground/no signals/no push; all flags coordinated; pid2705 exempt.
