@@ -92,3 +92,54 @@ The replacement DEV fixture test checks the same real dry-run accounting/render/
 event/workspace fields without that evaluation subcheck. Scoped Ruff and diff
 checks pass. [validation.json](validation.json) and [validation.log](validation.log)
 record final results; the earlier guard rejection is not hidden or called a pass.
+
+## Amendment 2 — registered 2026-09-06 before code (CPU fix pass)
+
+Authority: Brian's CPU fix brief and the full [fable review](../../composition-pilot-2-review-fable.md).
+Fit/train: none; replay inputs are frozen pilot-1 DEV-00 outputs only; no benchmark
+or evaluation episode content. This section is the write-ahead task record (the
+root protocol is archived; this brief's explicit file allowlist governs).
+
+1. Arm-neutral `edit` appends Python on a new line: add a newline after a nonempty
+   existing file lacking one, then append the supplied code unchanged. `replace`
+   remains exact replacement. Include the separator in the byte bound. Refresh
+   DEV fixtures, retaining the old golden. Replay pilot-1 to a separate amendment-2
+   fixture: preserve the pre-fix 0/8 success, 0/8 integration baseline. Expect
+   integration recovery in executed lanes with style-only final residue.
+2. Registered renderer value amendment: for kind=style, indent values receive
+   ONE gloss sentence, `indent N = block bodies indented by exactly N spaces.`
+   Use the shared value renderer for obligation event prose in every arm and
+   active/T value text; no layout change or obligation relaxation. Preserve the
+   frozen golden and register a new amendment-2 DEV golden. CPU replay cannot
+   establish model compliance. **Required next GPU pilot gate: round-0 compliance
+   check on the DEV screen.** Record per-arm compliant/attempted counts; if
+   compliance stays 0, stop before the larger test and swap the style trait
+   (e.g. naming convention or docstring-first) under a new frozen registration.
+3. Backend selection is outcome-blind: choose on DEV throughput and determinism,
+   freeze before evaluation; no arm outcome may inform selection. This explicitly
+   supersedes the registered <=1-divergence gate, which measured computational
+   equivalence, not the paired science. Historical 4/64 failure is retained.
+   Schedule-level determinism must be verified: cold/warm single-stream and
+   mixed-arm concurrency 4, D=0; use only single-stream until mixed-arm D=0 passes.
+   EOS is only im_end (151645), cap 512, context 32,768, identical across arms.
+   Ship claims must report backend version/build/flags/kernels, HF<->backend
+   divergence with first positions by arm/context (per-prompt is not episode
+   equivalence), run-to-run D=0 under the actual schedule, per-episode output-ID
+   hashes, and identical controller/register/renderer/checker/executor hashes.
+   Require either an end-to-end registered DEV subset on HF custom_generate with
+   its own answers fed forward and outcome agreement, or the explicit line
+   **package path outcome-unvalidated**; then outcomes attach only to the named
+   backend. Hidden-state artifacts are HF-only, teacher-forced prefill; register
+   replay cost separately, never attribute those measurements to served inference.
+4. Journal Python-literal True/False as rejected interface residue; never repair
+   them into JSON. T's cumulative re-emission stays as-is: T is the comparator,
+   and its truncation counts as breakage symmetrically with every other arm.
+   Batch-N fabricated trailing arrays are moot because batch was dropped; no
+   tolerance is added. Preserve old format/process residue in the replay report.
+
+Validation: newline boundary/byte bound/replace tests, shared style value and
+supersede tests plus new DEV golden, strict-JSON residue and symmetric truncation
+regressions, registered backend/gate contract tests; run all test_focus_*.py and
+no-side-effect-import tests on CPU with forbidden-content access guarded. Tests
+that require evaluation episode construction must skip before construction and
+be reported separately. No GPU, process signals, container/flag changes, or push.
