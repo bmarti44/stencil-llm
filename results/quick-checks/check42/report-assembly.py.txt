@@ -1,0 +1,133 @@
+import hashlib,json,shutil,subprocess
+from pathlib import Path
+root=Path('/home/bmarti44/stencil-llm');out=root/'results/quick-checks/check42'
+read=lambda p:json.loads(p.read_text())
+s=read(out/'summary.json'); base=dict(s)
+d=read(out/'coverage-diagnostic.json'); accounting=read(out/'input-accounting.json');audit=read(out/'final-audit.json')
+assert not (out/'analyzer-summary.json').exists()
+shutil.copyfile(out/'summary.json',out/'analyzer-summary.json')
+s['frozen_analyzer_summary_sha256']=hashlib.sha256((out/'analyzer-summary.json').read_bytes()).hexdigest()
+s['coverage_diagnostic']=d
+s['input_accounting']=accounting
+s['independent_audit']=audit
+s['verdict_basis']='The numeric all-five/McNemar/constraint conditions pass for A and B on 124 common episodes, but the frozen no-exclusion guard fails: B twice capped in 68 delay episodes. Full A/C coverage is reported descriptively without overriding that verdict.'
+assert all(s[k]==v for k,v in base.items())
+(out/'summary.json').write_text(json.dumps(s,sort_keys=True,separators=(',',':'))+'\n')
+reading=subprocess.check_output(['git','show','9803c032:results/quick-checks/check42/README.md'],cwd=root).decode()
+p=out/'README.md'; original=p.read_text();assert original.startswith(reading)
+rest=original[len(reading):]
+intro='''**Final status: COMPLETE schedule; MASKING NOT CLOSED under the frozen reading.**
+The pre-run PENDING text above is preserved history. All 192 scheduled episodes
+were attempted; 124 have all three arms. Both candidates meet the numeric
+all-five/McNemar/constraint conditions on those 124, but B's 68 twice-capped delay
+episodes violate the additional no-exclusion condition fixed before generation.
+
+**Input-accounting correction, with no sample change:** the frozen first 48
+indices in each cell retain **16 memo episodes/cell, 64 total**, not the
+12/cell and 48 total stated in the preparation prose and freeze's descriptive
+selection string. All selected IDs, bank bytes, seeds and scores are unchanged.
+The subset retains all 64 original memo episodes and 128 of 192 non-memo episodes;
+it is balanced by direction/delay but has a higher memo fraction than the full
+bank. Counts and indices are in `input-accounting.json`; every table uses actual
+denominators. The historical freeze and prewritten text remain intact for audit.
+
+| Arm | Scheduled | Complete checkpoint trajectories | Twice-capped delay episodes | Capped delay attempts |
+|---|---:|---:|---:|---:|
+| A | 192 | 192 | 0 | 0 |
+| B | 192 | 124 | 68 | 152 |
+| C | 192 | 192 | 0 | 0 |
+
+B's exclusions are 68/96 delay episodes (36 ascending, 32 descending). Each
+excluded episode failed to emit an ending at both the 160-token first attempt
+and the 320-token retry. All attempts are preserved. These are the harness's
+**isolated neutral-delay generations**, which are later replayed into retained
+history. They are not included in the scored-checkpoint F6 rows below. Thus zero
+checkpoint truncations does not mean no capped generations.
+
+The following primary and recorded-reference tables use the **same 124 eligible
+episodes** (41 memo episodes). They are conditional on B completing its delays.
+
+'''
+rest=rest.replace('## Results\n\n','## Results\n\n'+intro,1)
+old='**MASKING NOT CLOSED by the fixed reading.** The measured gaps above remain for FOCUS-3; do not claim per-request placement matches the comparator. This result does not establish that masking fixes those gaps.'
+new='**MASKING NOT CLOSED by the frozen reading:** the no-exclusion condition fails. Both A and B score 99/124 versus C 88/124, with zero constraint failures; their numeric conditions pass on this common subset. Missing B trajectories prevent the complete-sample closure claim. This result supplies no evidence that masking fixes B\'s delay failures.'
+assert old in rest;rest=rest.replace(old,new)
+x=d['A_C_complete_pair_diagnostic'];contrast=x['A_vs_C']['all_five']
+extra='''
+## Full A/C coverage diagnostic and FOCUS-3 conclusion
+
+This additional coverage view was declared after B's delay exclusions appeared,
+before aggregate task scores were inspected. It uses all 192 planned A/C pairs
+and is descriptive; it does not replace the frozen common-sample decision.
+
+| Arm | All-five | Constraint failures | Broken | User-fact failures | Tool-fact failures | Assistant-fact failures |
+|---|---:|---:|---:|---:|---:|---:|
+'''
+for arm in ('A','C'):
+ a=x['arms'][arm]; z=a['counts'];den=a['denominators']
+ extra+=f"| {arm} | {z['all_five']}/192 | {z['constraint']}/192 | {z['broken']}/192 | {z['user_fact']}/192 | {z['tool_fact']}/192 | {z['assistant_fact']}/{den['assistant_fact']} |\n"
+extra+=f'''
+A versus C: **+{contrast['delta_count']} all-five episodes (+{100*contrast['delta_count']/192:.4f} percentage points)**;
+paired discordances **{contrast['b']}/{contrast['c']}**, exact p(worse) **{contrast['p_worse']:.10g}**,
+p(better) **{contrast['p_better']:.10g}**. A meets the requested numeric efficacy and
+constraint screen on its complete A/C pairs. The extra frozen all-arm
+no-exclusion guard still blocks the check's formal MASKING CLOSED label.
+
+**FOCUS-3:** A, the plain live task rule in every request with own answers kept,
+is the useful text-only ship candidate on this family. Its complete A/C comparison
+improves all-five success with zero observed schema/tag failures; this check
+demonstrates no need for a custom cache/mask to reach that result. It does **not**
+establish zero collateral harm: A loses both the user and tool fact in one
+NEUTRAL2 episode, and assistant-fact failures remain 39/64 (C: 42/64).
+
+Adding schema/tag locally (B) gives **no net all-five improvement over A** on
+124 common episodes (99 each; discordances 4/4). It improves assistant-fact recall
+there (3 failures versus A's 23, denominator 41), but its 68 delay exclusions make
+the exact all-turn B carrier unsuitable as a validated ship recipe. Preserve the
+request type distinction in any future design; do not infer that these isolated
+neutral-delay failures will be repaired by masking. No follow-up design or experiment
+was performed.
+
+The retained-answer claim is verified through exact trajectory replay, not
+inferred from a mask setting. All **4,471 records** passed replay and score audit;
+independent arithmetic reproduced every primary/reference count and McNemar p.
+All **1,632 fresh C records** have exactly the original prompt IDs, output IDs,
+terminals and flags. The 2,560 recorded BOTH/neither files match their git blobs.
+`summary.json` includes the completion/input corrections and full A/C diagnostic;
+`analyzer-summary.json` preserves the frozen analyzer's output unchanged.
+
+Total charged allocation **{s['run']['seconds']:.3f} s / 12,600 s
+({s['run']['seconds']/3600:.6f} h)**: new run {s['run']['current_run_seconds']:.3f} s plus
+299 s conservative pre-outage allowance. RUNNING.flag removed after natural
+completion; no signals, sealed reads, fitting/training, background launch or push.
+'''
+p.write_text(reading+rest+extra)
+assert p.read_text().startswith(reading)
+# Replace exactly the existing five-line index entry, preserving other work.
+p=root/'results/quick-checks/README.md';text=p.read_text();start=text.index('42. EVERY-REQUEST LIVE RULE');end=text.index('\n\n',start)
+entry='''42. EVERY-REQUEST LIVE RULE ([check42](check42/README.md)): **NOT CLOSED under frozen no-exclusion reading**; 192 scheduled, 124 common pairs.
+   Common all-five A/B99 vs C88; recorded BOTH78/neither0; A/B/C constraint0. B twice caps in 68/96 delay episodes; 4,471 records audited.
+   Full A/C diagnostic: 151/192 vs131/192, b/c39/19, p(worse)=.997323; constraint0 each, A user/tool fact failures1 each; no verdict override.
+   B vs A all-five99 each; assistant-fact failures3 vs23/41, but 68 exclusions. Actual subset64 memo (not prose48); frozen IDs unchanged.
+   Qwen3-4B, reused seed9053723 bank (prior outcomes seen), no fit/train; 193.855/210 GPU-min incl.299s recovery; flag removed, no signals/sealed reads/push.'''
+assert len(entry.splitlines())==5;p.write_text(text[:start]+entry+text[end:])
+p=root/'WORKLOG.md';p.open('a').write('''
+### 2026-09-05 — Check42 COMPLETE; frozen MASKING NOT CLOSED (gpt-6-astra)
+Fit/train none; reused seed9053723 FOCUS-2d bank, other-arm outcomes seen; frozen192 IDs unchanged, actual64 memo (preparation prose48 corrected).
+4,471 records replayed; all1,632 C prompts/outputs/terminals/flags match original; counts/McNemar independently audited, BOTH/neither git blobs verified.
+Common124: A/B99 all-five vs C88, constraints0; B68 twice-capped delays block frozen no-exclusion guard. B vs A99 each; assistant failures3 vs23/41.
+Full A/C coverage diagnostic151 vs131/192, b/c39/19, p(worse).997323; constraints0, A user/tool failures1 each, assistant39/64 vsC42/64; no verdict rescue.
+Charge11631.287/12600s incl.299s interrupted allowance; four old uncommitted records preserved separately; prefix commits protect completed output.
+STATE: all192 scheduled attempts and CPU analysis complete; final report/index/artifacts committing explicitly; flag absent, no signals/sealed reads/background/push.
+''')
+p=root/'plan/LEDGER.md';p.open('a').write('''
+2026-09-06 — check42 COMPLETE / FINAL AUDIT PASS; frozen MASKING NOT CLOSED.
+All192 scheduled attempts; B68 twice-capped delays, common124. A/B99 vsC88,
+constraint0 each; numeric gates pass but frozen no-exclusion condition fails.
+Full A/C diagnostic151 vs131/192, b/c39/19, p(worse).99732257; A user/tool failures1 each.
+All4471 records replayed, all1632 C trajectories match original, exact stats independently checked.
+Input-only correction: selected IDs contain64 memo, not preparation prose48; IDs/bank/recipe unchanged.
+Charge11631.286656/12600s incl.299s old bound; natural exit, flag absent, no signals/sealed reads/fit/push.
+Final explicit-path local commit carries complete report/index/WORKLOG and forced result artifacts; no next run.
+''')
+print('Report, enriched summary, five-line index, seven-line WORKLOG and ledger prepared.')

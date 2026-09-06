@@ -5179,3 +5179,11 @@ P1 competence Python/TS16/16 each; TS correct/swapped/shuffled0/32, text32/32; b
 P2 competence JSON15/16, SQL0/16 (all wrong table name); no profiles/bias screen or rescue, so non-language transfer untested.
 Frozen recipe6d28b09c; 256 records/6546 tokens/32 profiles, 803.824/3600 GPU seconds; full CPU score/token/profile/bias audit PASS.
 Flag removed after cleanup; no fit/train, sealed inputs, background launches, signals or push; explicit-path local commits.
+
+### 2026-09-05 — Check42 COMPLETE; frozen MASKING NOT CLOSED (gpt-6-astra)
+Fit/train none; reused seed9053723 FOCUS-2d bank, other-arm outcomes seen; frozen192 IDs unchanged, actual64 memo (preparation prose48 corrected).
+4,471 records replayed; all1,632 C prompts/outputs/terminals/flags match original; counts/McNemar independently audited, BOTH/neither git blobs verified.
+Common124: A/B99 all-five vs C88, constraints0; B68 twice-capped delays block frozen no-exclusion guard. B vs A99 each; assistant failures3 vs23/41.
+Full A/C coverage diagnostic151 vs131/192, b/c39/19, p(worse).997323; constraints0, A user/tool failures1 each, assistant39/64 vsC42/64; no verdict rescue.
+Charge11631.287/12600s incl.299s interrupted allowance; four old uncommitted records preserved separately; prefix commits protect completed output.
+STATE: all192 scheduled attempts and CPU analysis complete; final report/index/artifacts committing explicitly; flag absent, no signals/sealed reads/background/push.

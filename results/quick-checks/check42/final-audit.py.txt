@@ -1,0 +1,89 @@
+import hashlib
+import importlib.util
+import json
+import math
+import subprocess
+from pathlib import Path
+
+ROOT = Path('/home/bmarti44/stencil-llm')
+spec = importlib.util.spec_from_file_location('check42', ROOT/'scripts/focus_check42.py')
+c = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(c)
+f = c.f
+s = c.read(c.OUT/'summary.json')
+freeze = c.read(c.OUT/'freeze.json')
+assert c.read(c.OUT/'run-start.json')['freeze_sha256'] == c.file_hash(c.OUT/'freeze.json')
+assert s['status'] == 'COMPLETE' and not s['unfinished_ids']
+assert s['included_n'] == 192-len(s['excluded_ids'])
+assert c.file_hash(c.__file__) == freeze['hashes']['check42_source']
+assert c.file_hash(c.OUT/'recovery.json') == freeze['recovery_sha256']
+reading = subprocess.check_output(['git','show','9803c032:results/quick-checks/check42/README.md'],cwd=ROOT)
+assert hashlib.sha256(reading).hexdigest() == freeze['hashes']['prewritten_reading']
+assert (c.OUT/'README.md').read_bytes().startswith(reading)
+assert not (c.OUT/'RUNNING.flag').exists()
+rows = f.RecordStore(c.OUT/'records').rows()
+old = f.RecordStore(c.OLD/'outputs/run/records').rows()
+reference_root=c.OLD/'outputs/run/records'
+tracked=subprocess.check_output(['git','ls-files','-s',str(reference_root.relative_to(ROOT))],cwd=ROOT,text=True).splitlines()
+blobs={line.split('\t',1)[1]:line.split()[1] for line in tracked}
+reference_files=0
+for r in old:
+    if r['arm'] not in ('both','neither'):continue
+    p=reference_root/(f.digest([r['episode'],r['arm'],r['checkpoint']])+'.json')
+    data=p.read_bytes()
+    blob=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+    assert blob==blobs[str(p.relative_to(ROOT))]
+    reference_files+=1
+assert reference_files==2560
+planned = c.bank()
+eps = [e for e in planned if e['id'] not in s['excluded_ids']]
+ids = {e['id'] for e in eps}
+assert len(rows) == s['audit']['records'] == s['audit']['audited_records']
+assert {r['episode'] for r in rows} == {e['id'] for e in planned}
+assert all(r['binding'] == freeze and r['complete'] for r in rows)
+assert all(r['generation_cap'] == f.generation_cap(r['checkpoint']) for r in rows)
+events = {}
+for arm in ('A','B','C','both','neither'):
+    source = rows if arm in c.ARMS else old
+    ix = {(r['episode'],r['checkpoint']):r for r in source if r['arm']==arm and r['episode'] in ids}
+    ev = {k:[] for k in s['arms'][arm]['counts']}
+    for ep in eps:
+        checkpoints = [ix[ep['id'],step]['flags'] for step in f.CHECKPOINTS]
+        ev['all_five'].append(all(x['success'] for x in checkpoints))
+        ev['constraint'].append(any(not x['constraint'] for x in checkpoints))
+        for flag in c.FLAGS:
+            ev[flag].append(any(x[flag] for x in checkpoints))
+        for fact in ('user_fact','tool_fact','assistant_fact'):
+            if fact != 'assistant_fact' or ep['memo']:
+                ev[fact].append(not checkpoints[-1]['collateral'].get(fact,False))
+    assert {k:sum(v) for k,v in ev.items()} == s['arms'][arm]['counts']
+    assert {k:len(v) for k,v in ev.items()} == s['arms'][arm]['denominators']
+    for step in f.CHECKPOINTS:
+        fs = [ix[e['id'],step]['flags'] for e in eps]
+        expected = dict(n=len(eps),success=sum(r['success'] for r in fs),constraint_failures=sum(not r['constraint'] for r in fs),**{flag:sum(r[flag] for r in fs) for flag in c.FLAGS})
+        assert expected == s['arms'][arm]['checkpoints'][step]
+    events[arm] = ev
+for name,cs in s['contrasts'].items():
+    a,b = name.split('_vs_')
+    for key in events[a]:
+        x,y = events[a][key],events[b][key]
+        wins = sum(u and not v for u,v in zip(x,y,strict=True))
+        losses = sum(v and not u for u,v in zip(x,y,strict=True))
+        n = wins+losses
+        exact = lambda k:sum(math.comb(n,i) for i in range(k,n+1))/2**n if n else 1.
+        result = cs[key]
+        assert result['b']==wins and result['c']==losses
+        assert result['delta_count']==sum(x)-sum(y)
+        assert math.isclose(result['p_worse'],exact(losses),rel_tol=1e-12,abs_tol=0.0)
+        assert math.isclose(result['p_better'],exact(wins),rel_tol=1e-12,abs_tol=0.0)
+    expected = not s['excluded_ids'] and sum(events[a]['all_five'])>=sum(events[b]['all_five']) and cs['all_five']['p_worse']>.05 and sum(events[a]['constraint'])<=sum(events[b]['constraint'])+2
+    assert cs['closes_masking']==expected
+assert s['masking_closed']==any(s['contrasts'][a+'_vs_C']['closes_masking'] for a in ('A','B'))
+old_c = {(r['episode'],r['checkpoint']):r for r in old if r['episode'] in {e['id'] for e in planned} and r['arm'] in ('shared','text-restate')}
+new_c = [r for r in rows if r['arm']=='C']
+assert all((r['episode'],r['checkpoint']) in old_c for r in new_c)
+comparison = {field:sum(r[field]==old_c[r['episode'],r['checkpoint']][field] for r in new_c) for field in ('input_ids','output_ids','eos','flags')}
+assert s['run']['seconds'] < s['run']['cap_seconds'] == 12600
+result = dict(status='PASS',records=len(rows),episodes=len(eps),excluded_ids=s['excluded_ids'],record_hashes_bindings_caps_verified=True,all_arm_all_five_constraint_collateral_f6_counts_independently_recomputed=True,exact_mcnemar_independently_recomputed=True,source_reading_recovery_binding_verified=True,recorded_reference_files_git_blob_verified=reference_files,comparator_versus_original=dict(records=len(new_c),identical_counts=comparison),gpu_cap_pass=True,flag_absent=True)
+f.atomic_json(c.OUT/'final-audit.json',result)
+print(json.dumps(result,indent=2))

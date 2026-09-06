@@ -1,0 +1,15 @@
+import importlib.util,json
+from pathlib import Path
+root=Path('/home/bmarti44/stencil-llm')
+spec=importlib.util.spec_from_file_location('c',root/'scripts/focus_check42.py');c=importlib.util.module_from_spec(spec);spec.loader.exec_module(c)
+f=c.f;rows=f.RecordStore(c.OUT/'records').rows();eps=c.bank()
+ix={(r['episode'],r['arm'],r['checkpoint']):r for r in rows}
+complete={a:[e for e in eps if all((e['id'],a,k) in ix and ix[e['id'],a,k]['complete'] for k in f.CHECKPOINTS)] for a in c.ARMS}
+caps={a:[dict(episode=r['episode'],checkpoint=r['checkpoint'],tokens=len(r['output_ids']),cap=r['generation_cap']) for r in rows if r['arm']==a and r['checkpoint'].startswith('DELAY') and f.delay_capped(r)] for a in c.ARMS}
+ac=[e for e in eps if e in complete['A'] and e in complete['C']]
+arms={};events={}
+for a in ('A','C'):arms[a],events[a]=c.aggregate(rows,ac,a)
+contrasts={k:c.paired(events['A'][k],events['C'][k]) for k in events['A']}
+result=dict(purpose='Completion/censoring diagnostic, declared after delay failures but before task-score aggregation; does not replace the frozen common-sample reading',scheduled_n=len(eps),complete_checkpoints_by_arm={a:len(es) for a,es in complete.items()},capped_delay_attempts=caps,twice_capped_episodes={a:sorted({r['episode'] for r in caps[a] if r['checkpoint'].endswith('_RETRY')}) for a in c.ARMS},A_C_complete_pair_diagnostic=dict(n=len(ac),arms=arms,A_vs_C=contrasts))
+f.atomic_json(c.OUT/'coverage-diagnostic.json',result)
+print(json.dumps({k:v for k,v in result.items() if k!='capped_delay_attempts'},indent=2))

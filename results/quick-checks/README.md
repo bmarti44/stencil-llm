@@ -370,11 +370,11 @@ pass/fail reading written before running; one accuracy review of the RESULT from
    Mean delta-c: correct +20.596, swapped +20.911, shuffled +0.224, OFF 0, text +41.900; correct starts ` moduleId` on 23/32.
    Correct HOLD/BACK JS 7/16, SWITCH Python 8/16, CLEAR JS 7/16; 40.30/90 GPU-min; 800-record audit PASS; parser-level induction only.
 
-42. EVERY-REQUEST LIVE RULE (seed 9053723; Qwen3-4B; [check42](check42/README.md)): **CPU READY / WAITING**.
-   Reused FOCUS-2d bank/certificate; fresh A placement, B plus schema/tag, C exact text-restate; all own answers retained.
-   Preselected 192/256 balanced episodes: 72.9 s x 3/5 x 1.4 x N + 300 s projects 3.349 h; cap 3.5 GPU-h.
-   Fixed closure: A or B all-five >= C, exact McNemar p(worse) > .05, constraint failures <= C + 2; B vs A secondary.
-   Recorded BOTH/neither references only; no fitting or sealed inputs; foreground priority wait behind checks 40/41, no signals/push.
+42. EVERY-REQUEST LIVE RULE ([check42](check42/README.md)): **NOT CLOSED under frozen no-exclusion reading**; 192 scheduled, 124 common pairs.
+   Common all-five A/B99 vs C88; recorded BOTH78/neither0; A/B/C constraint0. B twice caps in 68/96 delay episodes; 4,471 records audited.
+   Full A/C diagnostic: 151/192 vs131/192, b/c39/19, p(worse)=.997323; constraint0 each, A user/tool fact failures1 each; no verdict override.
+   B vs A all-five99 each; assistant-fact failures3 vs23/41, but 68 exclusions. Actual subset64 memo (not prose48); frozen IDs unchanged.
+   Qwen3-4B, reused seed9053723 bank (prior outcomes seen), no fit/train; 193.855/210 GPU-min incl.299s recovery; flag removed, no signals/sealed reads/push.
 
 40b. MINIMAL MoE ROUTER SET (seed 40040; Qwen3-30B-A3B; [check40b](check40b/README.md)): **MARGINAL**.
    Cued competence Python/JS 16/16 each; raw-logit profiles; alpha 4 frozen from JS grid 7/8, breakage 1/8.
