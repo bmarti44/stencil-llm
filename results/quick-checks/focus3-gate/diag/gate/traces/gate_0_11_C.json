@@ -1,0 +1,1858 @@
+[
+  {
+    "agreement": {
+      "contradictory": false,
+      "exact": true,
+      "false_retirement": false
+    },
+    "gold_live": [
+      {
+        "id": "0:21",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 649.",
+        "version": 1
+      },
+      {
+        "id": "0:92",
+        "scope": "G0n11A",
+        "task_id": "G0n11A",
+        "text": "Whenever you sort for task G0n11A, use descending order.",
+        "version": 1
+      }
+    ],
+    "gold_trace": {
+      "after": [
+        {
+          "id": "0:21",
+          "key": "new:0:21",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 21,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 649.",
+          "version": 1
+        },
+        {
+          "id": "0:92",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G0n11A",
+          "span_start": 92,
+          "status": "live",
+          "text": "Whenever you sort for task G0n11A, use descending order.",
+          "version": 1
+        }
+      ],
+      "applied": [
+        {
+          "gold_key": "tag",
+          "key": "new:0:21",
+          "kind": "sort",
+          "label": "admit",
+          "scope": "*",
+          "span": "For every sorting request in this conversation, keep tag equal to 649."
+        },
+        {
+          "gold_key": "order:G0n11A",
+          "key": "new:0:92",
+          "kind": "sort",
+          "label": "admit",
+          "scope": "G0n11A",
+          "span": "Whenever you sort for task G0n11A, use descending order."
+        }
+      ],
+      "before": []
+    },
+    "live": [
+      {
+        "id": "0:21",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 649.",
+        "version": 1
+      },
+      {
+        "id": "0:92",
+        "scope": "G0n11A",
+        "task_id": "G0n11A",
+        "text": "Whenever you sort for task G0n11A, use descending order.",
+        "version": 1
+      }
+    ],
+    "trace": {
+      "admissions": [
+        {
+          "accepted": false,
+          "logits": [
+            3.6697640419006348,
+            -2.8840830326080322,
+            -0.8998427391052246
+          ],
+          "model_input": [
+            "(no context)",
+            "[user] Work on task G0n11A."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.9883506490428251,
+            0.0014080284566384826,
+            0.010241322500536365
+          ],
+          "span": "Work on task G0n11A.",
+          "start": 0,
+          "token_count": 19
+        },
+        {
+          "accepted": true,
+          "logits": [
+            -2.1878573894500732,
+            4.275228977203369,
+            -2.153330087661743
+          ],
+          "model_input": [
+            "user: Work on task G0n11A.",
+            "[user] For every sorting request in this conversation, keep tag equal to 649."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.0015550367699732875,
+            0.9968352975690765,
+            0.0016096656609500414
+          ],
+          "span": "For every sorting request in this conversation, keep tag equal to 649.",
+          "start": 21,
+          "token_count": 32
+        },
+        {
+          "accepted": true,
+          "logits": [
+            -2.0568337440490723,
+            4.183996200561523,
+            -2.1842427253723145
+          ],
+          "model_input": [
+            "user: Work on task G0n11A. user: For every sorting request in this conversation, keep tag equal to 649.",
+            "[user] Whenever you sort for task G0n11A, use descending order."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.001941126769107603,
+            0.9963499565804937,
+            0.0017089166503987266
+          ],
+          "span": "Whenever you sort for task G0n11A, use descending order.",
+          "start": 92,
+          "token_count": 49
+        },
+        {
+          "accepted": false,
+          "logits": [
+            0.8130030632019043,
+            1.3170936107635498,
+            -2.3089489936828613
+          ],
+          "model_input": [
+            "user: Work on task G0n11A. user: For every sorting request in this conversation, keep tag equal to 649. user: Whenever you sort for task G0n11A, use descending order.",
+            "[user] Sort request for task G0n11A: payload [203, 523, 893, 409, 213]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.37043206635619946,
+            0.6132426016027623,
+            0.016325332041038147
+          ],
+          "span": "Sort request for task G0n11A: payload [203, 523, 893, 409, 213]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "start": 149,
+          "token_count": 107
+        }
+      ],
+      "admitted_beside_live": 1,
+      "after": [
+        {
+          "id": "0:21",
+          "key": "new:0:21",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 21,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 649.",
+          "version": 1
+        },
+        {
+          "id": "0:92",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G0n11A",
+          "span_start": 92,
+          "status": "live",
+          "text": "Whenever you sort for task G0n11A, use descending order.",
+          "version": 1
+        }
+      ],
+      "applied": [
+        {
+          "label": "admit",
+          "span": "For every sorting request in this conversation, keep tag equal to 649."
+        },
+        {
+          "label": "admit",
+          "span": "Whenever you sort for task G0n11A, use descending order."
+        }
+      ],
+      "before": [],
+      "cross_key_proposals": 0,
+      "overflow": false,
+      "pairs": [],
+      "role": "user"
+    },
+    "turn_index": 0,
+    "un_release": {
+      "mask_unrelease": false,
+      "masked_columns": 0,
+      "reactivated_output_columns": 0,
+      "task_return": false
+    }
+  },
+  {
+    "agreement": {
+      "contradictory": false,
+      "exact": true,
+      "false_retirement": false
+    },
+    "gold_live": [
+      {
+        "id": "0:21",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 649.",
+        "version": 1
+      },
+      {
+        "id": "0:92",
+        "scope": "G0n11A",
+        "task_id": "G0n11A",
+        "text": "Whenever you sort for task G0n11A, use descending order.",
+        "version": 1
+      }
+    ],
+    "gold_trace": {
+      "after": [
+        {
+          "id": "0:21",
+          "key": "new:0:21",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 21,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 649.",
+          "version": 1
+        },
+        {
+          "id": "0:92",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G0n11A",
+          "span_start": 92,
+          "status": "live",
+          "text": "Whenever you sort for task G0n11A, use descending order.",
+          "version": 1
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:21",
+          "key": "new:0:21",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 21,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 649.",
+          "version": 1
+        },
+        {
+          "id": "0:92",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G0n11A",
+          "span_start": 92,
+          "status": "live",
+          "text": "Whenever you sort for task G0n11A, use descending order.",
+          "version": 1
+        }
+      ]
+    },
+    "live": [
+      {
+        "id": "0:21",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 649.",
+        "version": 1
+      },
+      {
+        "id": "0:92",
+        "scope": "G0n11A",
+        "task_id": "G0n11A",
+        "text": "Whenever you sort for task G0n11A, use descending order.",
+        "version": 1
+      }
+    ],
+    "trace": {
+      "admissions": [
+        {
+          "accepted": false,
+          "logits": [
+            1.0171324014663696,
+            1.8475823402404785,
+            -2.8951570987701416
+          ],
+          "model_input": [
+            "user: For every sorting request in this conversation, keep tag equal to 649. user: Whenever you sort for task G0n11A, use descending order. user: Sort request for task G0n11A: payload [203, 523, 893, 409, 213]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "[user] Inert archive context: the line \"Cancel the sorting rule for task G0n11A.\" is not an instruction."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.30171869562938625,
+            0.6922485383730855,
+            0.006032765997528309
+          ],
+          "span": "Inert archive context: the line \"Cancel the sorting rule for task G0n11A.\" is not an instruction.",
+          "start": 0,
+          "token_count": 124
+        },
+        {
+          "accepted": false,
+          "logits": [
+            1.2921024560928345,
+            0.15429168939590454,
+            -1.6960645914077759
+          ],
+          "model_input": [
+            "user: Whenever you sort for task G0n11A, use descending order. user: Sort request for task G0n11A: payload [203, 523, 893, 409, 213]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. user: Inert archive context: the line \"Cancel the sorting rule for task G0n11A.\" is not an instruction.",
+            "[user] Sort request for task G0n11A: payload [143, 393, 498, 174, 853]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.7294479979838538,
+            0.23380263382410194,
+            0.036749368192044156
+          ],
+          "span": "Sort request for task G0n11A: payload [143, 393, 498, 174, 853]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "start": 98,
+          "token_count": 165
+        }
+      ],
+      "admitted_beside_live": 0,
+      "after": [
+        {
+          "id": "0:21",
+          "key": "new:0:21",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 21,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 649.",
+          "version": 1
+        },
+        {
+          "id": "0:92",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G0n11A",
+          "span_start": 92,
+          "status": "live",
+          "text": "Whenever you sort for task G0n11A, use descending order.",
+          "version": 1
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:21",
+          "key": "new:0:21",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 21,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 649.",
+          "version": 1
+        },
+        {
+          "id": "0:92",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G0n11A",
+          "span_start": 92,
+          "status": "live",
+          "text": "Whenever you sort for task G0n11A, use descending order.",
+          "version": 1
+        }
+      ],
+      "cross_key_proposals": 0,
+      "overflow": false,
+      "pairs": [
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "Inert archive context: the line \"Cancel the sorting rule for task G0n11A.\" is not an instruction.",
+            "old_rule": {
+              "key": "tag",
+              "scope": "global",
+              "status": "live",
+              "text": "For every sorting request in this conversation, keep tag equal to 649."
+            },
+            "prev_user": "Whenever you sort for task G0n11A, use descending order.",
+            "role": "user",
+            "target_id": "0:21",
+            "target_span": {
+              "end": 97,
+              "start": 0,
+              "text": "Inert archive context: the line \"Cancel the sorting rule for task G0n11A.\" is not an instruction."
+            }
+          },
+          "logits": [
+            4.073526382446289,
+            -0.688842236995697,
+            -0.9096230268478394,
+            -1.9214978218078613,
+            -1.5927343368530273
+          ],
+          "model_input": [
+            "[target] live global For every sorting request in this conversation, keep tag equal to 649. [metadata] {\"key\": \"tag\"}",
+            "[message] user: Inert archive context: the line \"Cancel the sorting rule for task G0n11A.\" is not an instruction. [span] Inert archive context: the line \"Cancel the sorting rule for task G0n11A.\" is not an instruction. [prev_user] Whenever you sort for task G0n11A, use descending order."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.9790965905883002,
+            0.008366717898039354,
+            0.006709207863401113,
+            0.0024390438455082503,
+            0.003388439804750991
+          ],
+          "proposal_key": "sort-order",
+          "proposed": "none",
+          "token_count": 116
+        },
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "Inert archive context: the line \"Cancel the sorting rule for task G0n11A.\" is not an instruction.",
+            "old_rule": {
+              "key": "sort-order",
+              "scope": "task:G0n11A",
+              "status": "live",
+              "text": "Whenever you sort for task G0n11A, use descending order."
+            },
+            "prev_user": "Whenever you sort for task G0n11A, use descending order.",
+            "role": "user",
+            "target_id": "0:92",
+            "target_span": {
+              "end": 97,
+              "start": 0,
+              "text": "Inert archive context: the line \"Cancel the sorting rule for task G0n11A.\" is not an instruction."
+            }
+          },
+          "logits": [
+            4.060441493988037,
+            -1.0241711139678955,
+            -0.6209255456924438,
+            -1.6657466888427734,
+            -1.7617298364639282
+          ],
+          "model_input": [
+            "[target] live task:G0n11A Whenever you sort for task G0n11A, use descending order. [metadata] {\"key\": \"sort-order\"}",
+            "[message] user: Inert archive context: the line \"Cancel the sorting rule for task G0n11A.\" is not an instruction. [span] Inert archive context: the line \"Cancel the sorting rule for task G0n11A.\" is not an instruction. [prev_user] Whenever you sort for task G0n11A, use descending order."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.9787817064295565,
+            0.006059916575963745,
+            0.009069721898039394,
+            0.003190317554696125,
+            0.0028983375417444453
+          ],
+          "proposal_key": "sort-order",
+          "proposed": "none",
+          "token_count": 124
+        }
+      ],
+      "role": "user"
+    },
+    "turn_index": 1,
+    "un_release": {
+      "mask_unrelease": false,
+      "masked_columns": 0,
+      "reactivated_output_columns": 0,
+      "task_return": false
+    }
+  },
+  {
+    "agreement": {
+      "contradictory": false,
+      "exact": true,
+      "false_retirement": false
+    },
+    "gold_live": [
+      {
+        "id": "0:21",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 649.",
+        "version": 1
+      },
+      {
+        "id": "2:0",
+        "scope": "G0n11A",
+        "task_id": "G0n11A",
+        "text": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+        "version": 2
+      }
+    ],
+    "gold_trace": {
+      "after": [
+        {
+          "id": "0:21",
+          "key": "new:0:21",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 21,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 649.",
+          "version": 1
+        },
+        {
+          "id": "0:92",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G0n11A",
+          "span_start": 92,
+          "status": "superseded",
+          "text": "Whenever you sort for task G0n11A, use descending order.",
+          "version": 1
+        },
+        {
+          "id": "2:0",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "G0n11A",
+          "span_start": 0,
+          "status": "live",
+          "text": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+          "version": 2
+        }
+      ],
+      "applied": [
+        {
+          "kind": "sort",
+          "label": "supersedes",
+          "scope": "G0n11A",
+          "span": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+          "target": "0:92"
+        }
+      ],
+      "before": [
+        {
+          "id": "0:21",
+          "key": "new:0:21",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 21,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 649.",
+          "version": 1
+        },
+        {
+          "id": "0:92",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G0n11A",
+          "span_start": 92,
+          "status": "live",
+          "text": "Whenever you sort for task G0n11A, use descending order.",
+          "version": 1
+        }
+      ]
+    },
+    "live": [
+      {
+        "id": "0:21",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 649.",
+        "version": 1
+      },
+      {
+        "id": "2:0",
+        "scope": "G0n11A",
+        "task_id": "G0n11A",
+        "text": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+        "version": 2
+      }
+    ],
+    "trace": {
+      "admissions": [
+        {
+          "accepted": false,
+          "logits": [
+            -1.4402199983596802,
+            4.009731769561768,
+            -2.537644386291504
+          ],
+          "model_input": [
+            "user: Inert archive context: the line \"Cancel the sorting rule for task G0n11A.\" is not an instruction. user: Sort request for task G0n11A: payload [143, 393, 498, 174, 853]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "[user] For task G0n11A, keep all payloads in ascending order from now on instead."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.00427203153072952,
+            0.9943022653707794,
+            0.001425703098491148
+          ],
+          "span": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+          "start": 0,
+          "token_count": 112
+        },
+        {
+          "accepted": false,
+          "logits": [
+            1.1805973052978516,
+            0.5536422729492188,
+            -1.834019660949707
+          ],
+          "model_input": [
+            "user: Inert archive context: the line \"Cancel the sorting rule for task G0n11A.\" is not an instruction. user: Sort request for task G0n11A: payload [143, 393, 498, 174, 853]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. user: For task G0n11A, keep all payloads in ascending order from now on instead.",
+            "[user] Sort request for task G0n11A: payload [615, 708, 211, 300, 339]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.6315999739302324,
+            0.3374108100120685,
+            0.030989216057699078
+          ],
+          "span": "Sort request for task G0n11A: payload [615, 708, 211, 300, 339]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "start": 75,
+          "token_count": 169
+        }
+      ],
+      "admitted_beside_live": 0,
+      "after": [
+        {
+          "id": "0:21",
+          "key": "new:0:21",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 21,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 649.",
+          "version": 1
+        },
+        {
+          "id": "0:92",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G0n11A",
+          "span_start": 92,
+          "status": "superseded",
+          "text": "Whenever you sort for task G0n11A, use descending order.",
+          "version": 1
+        },
+        {
+          "id": "2:0",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "G0n11A",
+          "span_start": 0,
+          "status": "live",
+          "text": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+          "version": 2
+        }
+      ],
+      "applied": [
+        {
+          "label": "supersedes",
+          "span": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+          "target": "0:92"
+        }
+      ],
+      "before": [
+        {
+          "id": "0:21",
+          "key": "new:0:21",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 21,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 649.",
+          "version": 1
+        },
+        {
+          "id": "0:92",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G0n11A",
+          "span_start": 92,
+          "status": "live",
+          "text": "Whenever you sort for task G0n11A, use descending order.",
+          "version": 1
+        }
+      ],
+      "cross_key_proposals": 1,
+      "overflow": false,
+      "pairs": [
+        {
+          "applied": "none",
+          "cross_key": true,
+          "gold": "none",
+          "input": {
+            "message": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+            "old_rule": {
+              "key": "tag",
+              "scope": "global",
+              "status": "live",
+              "text": "For every sorting request in this conversation, keep tag equal to 649."
+            },
+            "prev_user": "Inert archive context: the line \"Cancel the sorting rule for task G0n11A.\" is not an instruction.",
+            "role": "user",
+            "target_id": "0:21",
+            "target_span": {
+              "end": 74,
+              "start": 0,
+              "text": "For task G0n11A, keep all payloads in ascending order from now on instead."
+            }
+          },
+          "logits": [
+            1.0764882564544678,
+            3.897873640060425,
+            -1.5281291007995605,
+            -1.768062710762024,
+            -1.9947431087493896
+          ],
+          "model_input": [
+            "[target] live global For every sorting request in this conversation, keep tag equal to 649. [metadata] {\"key\": \"tag\"}",
+            "[message] user: For task G0n11A, keep all payloads in ascending order from now on instead. [span] For task G0n11A, keep all payloads in ascending order from now on instead. [prev_user] Inert archive context: the line \"Cancel the sorting rule for task G0n11A.\" is not an instruction."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.055621791901824716,
+            0.9344521752505623,
+            0.004112198119868706,
+            0.0032349843749191437,
+            0.002578850352825108
+          ],
+          "proposal_key": "sort-order",
+          "proposed": "supersedes",
+          "token_count": 115
+        },
+        {
+          "applied": "supersedes",
+          "cross_key": false,
+          "gold": "supersedes",
+          "input": {
+            "message": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+            "old_rule": {
+              "key": "sort-order",
+              "scope": "task:G0n11A",
+              "status": "live",
+              "text": "Whenever you sort for task G0n11A, use descending order."
+            },
+            "prev_user": "Inert archive context: the line \"Cancel the sorting rule for task G0n11A.\" is not an instruction.",
+            "role": "user",
+            "target_id": "0:92",
+            "target_span": {
+              "end": 74,
+              "start": 0,
+              "text": "For task G0n11A, keep all payloads in ascending order from now on instead."
+            }
+          },
+          "logits": [
+            0.18927016854286194,
+            4.208860397338867,
+            -1.3825328350067139,
+            -1.3133624792099,
+            -1.759088158607483
+          ],
+          "model_input": [
+            "[target] live task:G0n11A Whenever you sort for task G0n11A, use descending order. [metadata] {\"key\": \"sort-order\"}",
+            "[message] user: For task G0n11A, keep all payloads in ascending order from now on instead. [span] For task G0n11A, keep all payloads in ascending order from now on instead. [prev_user] Inert archive context: the line \"Cancel the sorting rule for task G0n11A.\" is not an instruction."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.017466941505988362,
+            0.9725293611072429,
+            0.0036273669757928917,
+            0.0038871544646280564,
+            0.002489175946348073
+          ],
+          "proposal_key": "sort-order",
+          "proposed": "supersedes",
+          "token_count": 123
+        }
+      ],
+      "role": "user"
+    },
+    "turn_index": 2,
+    "un_release": {
+      "mask_unrelease": false,
+      "masked_columns": 0,
+      "reactivated_output_columns": 0,
+      "task_return": false
+    }
+  },
+  {
+    "agreement": {
+      "contradictory": false,
+      "exact": true,
+      "false_retirement": false
+    },
+    "gold_live": [
+      {
+        "id": "0:21",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 649.",
+        "version": 1
+      },
+      {
+        "id": "2:0",
+        "scope": "G0n11A",
+        "task_id": "G0n11A",
+        "text": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+        "version": 2
+      }
+    ],
+    "gold_trace": {
+      "after": [
+        {
+          "id": "0:21",
+          "key": "new:0:21",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 21,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 649.",
+          "version": 1
+        },
+        {
+          "id": "0:92",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G0n11A",
+          "span_start": 92,
+          "status": "superseded",
+          "text": "Whenever you sort for task G0n11A, use descending order.",
+          "version": 1
+        },
+        {
+          "id": "2:0",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "G0n11A",
+          "span_start": 0,
+          "status": "live",
+          "text": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+          "version": 2
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:21",
+          "key": "new:0:21",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 21,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 649.",
+          "version": 1
+        },
+        {
+          "id": "0:92",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G0n11A",
+          "span_start": 92,
+          "status": "superseded",
+          "text": "Whenever you sort for task G0n11A, use descending order.",
+          "version": 1
+        },
+        {
+          "id": "2:0",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "G0n11A",
+          "span_start": 0,
+          "status": "live",
+          "text": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+          "version": 2
+        }
+      ]
+    },
+    "live": [
+      {
+        "id": "0:21",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 649.",
+        "version": 1
+      },
+      {
+        "id": "2:0",
+        "scope": "G0n11A",
+        "task_id": "G0n11A",
+        "text": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+        "version": 2
+      }
+    ],
+    "trace": {
+      "admissions": [
+        {
+          "accepted": false,
+          "logits": [
+            0.6152867078781128,
+            0.2537762522697449,
+            -1.1047381162643433
+          ],
+          "model_input": [
+            "user: For task G0n11A, keep all payloads in ascending order from now on instead. user: Sort request for task G0n11A: payload [615, 708, 211, 300, 339]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "[user] Continue task G0n11A; Sort request for task G0n11A: payload [638, 263, 895, 401, 544]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.5331385557199845,
+            0.37139674666280875,
+            0.09546469761720672
+          ],
+          "span": "Continue task G0n11A; Sort request for task G0n11A: payload [638, 263, 895, 401, 544]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "start": 0,
+          "token_count": 149
+        }
+      ],
+      "admitted_beside_live": 0,
+      "after": [
+        {
+          "id": "0:21",
+          "key": "new:0:21",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 21,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 649.",
+          "version": 1
+        },
+        {
+          "id": "0:92",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G0n11A",
+          "span_start": 92,
+          "status": "superseded",
+          "text": "Whenever you sort for task G0n11A, use descending order.",
+          "version": 1
+        },
+        {
+          "id": "2:0",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "G0n11A",
+          "span_start": 0,
+          "status": "live",
+          "text": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+          "version": 2
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:21",
+          "key": "new:0:21",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 21,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 649.",
+          "version": 1
+        },
+        {
+          "id": "0:92",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G0n11A",
+          "span_start": 92,
+          "status": "superseded",
+          "text": "Whenever you sort for task G0n11A, use descending order.",
+          "version": 1
+        },
+        {
+          "id": "2:0",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "G0n11A",
+          "span_start": 0,
+          "status": "live",
+          "text": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+          "version": 2
+        }
+      ],
+      "cross_key_proposals": 0,
+      "overflow": false,
+      "pairs": [
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "Continue task G0n11A;",
+            "old_rule": {
+              "key": "tag",
+              "scope": "global",
+              "status": "live",
+              "text": "For every sorting request in this conversation, keep tag equal to 649."
+            },
+            "prev_user": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+            "role": "user",
+            "target_id": "0:21",
+            "target_span": {
+              "end": 21,
+              "start": 0,
+              "text": "Continue task G0n11A;"
+            }
+          },
+          "logits": [
+            3.9954891204833984,
+            -0.3366469740867615,
+            -1.0979945659637451,
+            -1.827779769897461,
+            -1.847441554069519
+          ],
+          "model_input": [
+            "[target] live global For every sorting request in this conversation, keep tag equal to 649. [metadata] {\"key\": \"tag\"}",
+            "[message] user: Continue task G0n11A; [span] Continue task G0n11A; [prev_user] For task G0n11A, keep all payloads in ascending order from now on instead."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.9754819390084449,
+            0.012817296537217868,
+            0.005986146954601298,
+            0.002885397738949907,
+            0.002829219760785927
+          ],
+          "proposal_key": "tag",
+          "proposed": "none",
+          "token_count": 85
+        },
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "Continue task G0n11A;",
+            "old_rule": {
+              "key": "sort-order",
+              "scope": "task:G0n11A",
+              "status": "superseded",
+              "text": "Whenever you sort for task G0n11A, use descending order."
+            },
+            "prev_user": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+            "role": "user",
+            "target_id": "0:92",
+            "target_span": {
+              "end": 21,
+              "start": 0,
+              "text": "Continue task G0n11A;"
+            }
+          },
+          "logits": [
+            -0.3038945496082306,
+            -1.4838050603866577,
+            -1.4657262563705444,
+            -1.1971261501312256,
+            4.125851631164551
+          ],
+          "model_input": [
+            "[target] superseded task:G0n11A Whenever you sort for task G0n11A, use descending order. [metadata] {\"key\": \"sort-order\"}",
+            "[message] user: Continue task G0n11A; [span] Continue task G0n11A; [prev_user] For task G0n11A, keep all payloads in ascending order from now on instead."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.011636070389743888,
+            0.003575837016187728,
+            0.003641071779260295,
+            0.0047630022270869,
+            0.9763840185877213
+          ],
+          "proposal_key": "sort-order",
+          "proposed": "reinstates",
+          "token_count": 93
+        },
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "Continue task G0n11A;",
+            "old_rule": {
+              "key": "sort-order",
+              "scope": "task:G0n11A",
+              "status": "live",
+              "text": "For task G0n11A, keep all payloads in ascending order from now on instead."
+            },
+            "prev_user": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+            "role": "user",
+            "target_id": "2:0",
+            "target_span": {
+              "end": 21,
+              "start": 0,
+              "text": "Continue task G0n11A;"
+            }
+          },
+          "logits": [
+            3.2239830493927,
+            1.6771199703216553,
+            -1.2916843891143799,
+            -1.882863998413086,
+            -2.560262680053711
+          ],
+          "model_input": [
+            "[target] live task:G0n11A For task G0n11A, keep all payloads in ascending order from now on instead. [metadata] {\"key\": \"sort-order\"}",
+            "[message] user: Continue task G0n11A; [span] Continue task G0n11A; [prev_user] For task G0n11A, keep all payloads in ascending order from now on instead."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.8110419129316495,
+            0.17268284640781237,
+            0.00886980041401461,
+            0.004910975928664954,
+            0.0024944643178584566
+          ],
+          "proposal_key": "sort-order",
+          "proposed": "none",
+          "token_count": 98
+        }
+      ],
+      "role": "user"
+    },
+    "turn_index": 3,
+    "un_release": {
+      "mask_unrelease": false,
+      "masked_columns": 0,
+      "reactivated_output_columns": 0,
+      "task_return": false
+    }
+  },
+  {
+    "agreement": {
+      "contradictory": false,
+      "exact": true,
+      "false_retirement": false
+    },
+    "gold_live": [],
+    "gold_trace": {
+      "after": [
+        {
+          "id": "0:21",
+          "key": "new:0:21",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 21,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 649.",
+          "version": 1
+        },
+        {
+          "id": "0:92",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G0n11A",
+          "span_start": 92,
+          "status": "superseded",
+          "text": "Whenever you sort for task G0n11A, use descending order.",
+          "version": 1
+        },
+        {
+          "id": "2:0",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "G0n11A",
+          "span_start": 0,
+          "status": "live",
+          "text": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+          "version": 2
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:21",
+          "key": "new:0:21",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 21,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 649.",
+          "version": 1
+        },
+        {
+          "id": "0:92",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G0n11A",
+          "span_start": 92,
+          "status": "superseded",
+          "text": "Whenever you sort for task G0n11A, use descending order.",
+          "version": 1
+        },
+        {
+          "id": "2:0",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "G0n11A",
+          "span_start": 0,
+          "status": "live",
+          "text": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+          "version": 2
+        }
+      ]
+    },
+    "live": [],
+    "trace": {
+      "admissions": [
+        {
+          "accepted": false,
+          "logits": [
+            0.1653856635093689,
+            2.6259799003601074,
+            -2.7132983207702637
+          ],
+          "model_input": [
+            "user: Continue task G0n11A; Sort request for task G0n11A: payload [638, 263, 895, 401, 544]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "[user] Reply exactly pause."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.0783209386555413,
+            0.9172767443201821,
+            0.00440231702427663
+          ],
+          "span": "Reply exactly pause.",
+          "start": 0,
+          "token_count": 76
+        }
+      ],
+      "admitted_beside_live": 0,
+      "after": [
+        {
+          "id": "0:21",
+          "key": "new:0:21",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 21,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 649.",
+          "version": 1
+        },
+        {
+          "id": "0:92",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G0n11A",
+          "span_start": 92,
+          "status": "superseded",
+          "text": "Whenever you sort for task G0n11A, use descending order.",
+          "version": 1
+        },
+        {
+          "id": "2:0",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "G0n11A",
+          "span_start": 0,
+          "status": "live",
+          "text": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+          "version": 2
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:21",
+          "key": "new:0:21",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 21,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 649.",
+          "version": 1
+        },
+        {
+          "id": "0:92",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G0n11A",
+          "span_start": 92,
+          "status": "superseded",
+          "text": "Whenever you sort for task G0n11A, use descending order.",
+          "version": 1
+        },
+        {
+          "id": "2:0",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "G0n11A",
+          "span_start": 0,
+          "status": "live",
+          "text": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+          "version": 2
+        }
+      ],
+      "cross_key_proposals": 0,
+      "overflow": false,
+      "pairs": [
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "Reply exactly pause.",
+            "old_rule": {
+              "key": "tag",
+              "scope": "global",
+              "status": "live",
+              "text": "For every sorting request in this conversation, keep tag equal to 649."
+            },
+            "prev_user": "Continue task G0n11A;",
+            "role": "user",
+            "target_id": "0:21",
+            "target_span": {
+              "end": 20,
+              "start": 0,
+              "text": "Reply exactly pause."
+            }
+          },
+          "logits": [
+            4.050693988800049,
+            -0.8339565396308899,
+            -0.8831921219825745,
+            -1.8156349658966064,
+            -1.5865551233291626
+          ],
+          "model_input": [
+            "[target] live global For every sorting request in this conversation, keep tag equal to 649. [metadata] {\"key\": \"tag\"}",
+            "[message] user: Reply exactly pause. [span] Reply exactly pause. [prev_user] Continue task G0n11A;"
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.9792821584067042,
+            0.007405102453987791,
+            0.007049337924933969,
+            0.0027745563405664527,
+            0.0034888448738075294
+          ],
+          "proposal_key": "tag",
+          "proposed": "none",
+          "token_count": 65
+        },
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "Reply exactly pause.",
+            "old_rule": {
+              "key": "sort-order",
+              "scope": "task:G0n11A",
+              "status": "superseded",
+              "text": "Whenever you sort for task G0n11A, use descending order."
+            },
+            "prev_user": "Continue task G0n11A;",
+            "role": "user",
+            "target_id": "0:92",
+            "target_span": {
+              "end": 20,
+              "start": 0,
+              "text": "Reply exactly pause."
+            }
+          },
+          "logits": [
+            0.940903902053833,
+            -1.8578996658325195,
+            -1.5424256324768066,
+            -1.5558538436889648,
+            3.397855043411255
+          ],
+          "model_input": [
+            "[target] superseded task:G0n11A Whenever you sort for task G0n11A, use descending order. [metadata] {\"key\": \"sort-order\"}",
+            "[message] user: Reply exactly pause. [span] Reply exactly pause. [prev_user] Continue task G0n11A;"
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.0775441527027429,
+            0.004721109891891251,
+            0.0064722121047752715,
+            0.006385882794940839,
+            0.9048766425056497
+          ],
+          "proposal_key": "sort-order",
+          "proposed": "reinstates",
+          "token_count": 73
+        },
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "Reply exactly pause.",
+            "old_rule": {
+              "key": "sort-order",
+              "scope": "task:G0n11A",
+              "status": "live",
+              "text": "For task G0n11A, keep all payloads in ascending order from now on instead."
+            },
+            "prev_user": "Continue task G0n11A;",
+            "role": "user",
+            "target_id": "2:0",
+            "target_span": {
+              "end": 20,
+              "start": 0,
+              "text": "Reply exactly pause."
+            }
+          },
+          "logits": [
+            3.935422420501709,
+            -0.22157450020313263,
+            -0.7622956037521362,
+            -1.6046162843704224,
+            -2.27813720703125
+          ],
+          "model_input": [
+            "[target] live task:G0n11A For task G0n11A, keep all payloads in ascending order from now on instead. [metadata] {\"key\": \"sort-order\"}",
+            "[message] user: Reply exactly pause. [span] Reply exactly pause. [prev_user] Continue task G0n11A;"
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.9702153323343418,
+            0.015188235049540292,
+            0.008844537304435695,
+            0.00380942909502696,
+            0.001942466216655192
+          ],
+          "proposal_key": "sort-order",
+          "proposed": "none",
+          "token_count": 78
+        }
+      ],
+      "role": "user"
+    },
+    "turn_index": 4,
+    "un_release": {
+      "mask_unrelease": false,
+      "masked_columns": 0,
+      "reactivated_output_columns": 0,
+      "task_return": false
+    }
+  },
+  {
+    "agreement": {
+      "contradictory": false,
+      "exact": true,
+      "false_retirement": false
+    },
+    "gold_live": [
+      {
+        "id": "0:21",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 649.",
+        "version": 1
+      },
+      {
+        "id": "2:0",
+        "scope": "G0n11A",
+        "task_id": "G0n11A",
+        "text": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+        "version": 2
+      }
+    ],
+    "gold_trace": {
+      "after": [
+        {
+          "id": "0:21",
+          "key": "new:0:21",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 21,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 649.",
+          "version": 1
+        },
+        {
+          "id": "0:92",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G0n11A",
+          "span_start": 92,
+          "status": "superseded",
+          "text": "Whenever you sort for task G0n11A, use descending order.",
+          "version": 1
+        },
+        {
+          "id": "2:0",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "G0n11A",
+          "span_start": 0,
+          "status": "live",
+          "text": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+          "version": 2
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:21",
+          "key": "new:0:21",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 21,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 649.",
+          "version": 1
+        },
+        {
+          "id": "0:92",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G0n11A",
+          "span_start": 92,
+          "status": "superseded",
+          "text": "Whenever you sort for task G0n11A, use descending order.",
+          "version": 1
+        },
+        {
+          "id": "2:0",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "G0n11A",
+          "span_start": 0,
+          "status": "live",
+          "text": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+          "version": 2
+        }
+      ]
+    },
+    "live": [
+      {
+        "id": "0:21",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 649.",
+        "version": 1
+      },
+      {
+        "id": "2:0",
+        "scope": "G0n11A",
+        "task_id": "G0n11A",
+        "text": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+        "version": 2
+      }
+    ],
+    "trace": {
+      "admissions": [
+        {
+          "accepted": false,
+          "logits": [
+            -0.7936413288116455,
+            2.305814266204834,
+            -1.4624695777893066
+          ],
+          "model_input": [
+            "user: Reply exactly pause.",
+            "[user] Work on task G0n11A; Sort request for task G0n11A: payload [221, 577, 389, 129, 646]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.042197336111973516,
+            0.9361846088967556,
+            0.021618054991270848
+          ],
+          "span": "Work on task G0n11A; Sort request for task G0n11A: payload [221, 577, 389, 129, 646]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "start": 0,
+          "token_count": 77
+        }
+      ],
+      "admitted_beside_live": 0,
+      "after": [
+        {
+          "id": "0:21",
+          "key": "new:0:21",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 21,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 649.",
+          "version": 1
+        },
+        {
+          "id": "0:92",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G0n11A",
+          "span_start": 92,
+          "status": "superseded",
+          "text": "Whenever you sort for task G0n11A, use descending order.",
+          "version": 1
+        },
+        {
+          "id": "2:0",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "G0n11A",
+          "span_start": 0,
+          "status": "live",
+          "text": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+          "version": 2
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:21",
+          "key": "new:0:21",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 21,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 649.",
+          "version": 1
+        },
+        {
+          "id": "0:92",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G0n11A",
+          "span_start": 92,
+          "status": "superseded",
+          "text": "Whenever you sort for task G0n11A, use descending order.",
+          "version": 1
+        },
+        {
+          "id": "2:0",
+          "key": "new:0:92",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "G0n11A",
+          "span_start": 0,
+          "status": "live",
+          "text": "For task G0n11A, keep all payloads in ascending order from now on instead.",
+          "version": 2
+        }
+      ],
+      "cross_key_proposals": 0,
+      "overflow": false,
+      "pairs": [
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "Work on task G0n11A;",
+            "old_rule": {
+              "key": "tag",
+              "scope": "global",
+              "status": "live",
+              "text": "For every sorting request in this conversation, keep tag equal to 649."
+            },
+            "prev_user": "Reply exactly pause.",
+            "role": "user",
+            "target_id": "0:21",
+            "target_span": {
+              "end": 20,
+              "start": 0,
+              "text": "Work on task G0n11A;"
+            }
+          },
+          "logits": [
+            4.065019130706787,
+            -0.8573636412620544,
+            -0.996392011642456,
+            -1.6664326190948486,
+            -1.6700356006622314
+          ],
+          "model_input": [
+            "[target] live global For every sorting request in this conversation, keep tag equal to 649. [metadata] {\"key\": \"tag\"}",
+            "[message] user: Work on task G0n11A; [span] Work on task G0n11A; [prev_user] Reply exactly pause."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.9803042726044283,
+            0.007138339838901559,
+            0.006211807170639986,
+            0.0031785059391231728,
+            0.003167074446907034
+          ],
+          "proposal_key": "tag",
+          "proposed": "none",
+          "token_count": 71
+        },
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "Work on task G0n11A;",
+            "old_rule": {
+              "key": "sort-order",
+              "scope": "task:G0n11A",
+              "status": "superseded",
+              "text": "Whenever you sort for task G0n11A, use descending order."
+            },
+            "prev_user": "Reply exactly pause.",
+            "role": "user",
+            "target_id": "0:92",
+            "target_span": {
+              "end": 20,
+              "start": 0,
+              "text": "Work on task G0n11A;"
+            }
+          },
+          "logits": [
+            -0.23858027160167694,
+            -1.4759702682495117,
+            -1.4402785301208496,
+            -1.2694450616836548,
+            4.119419097900391
+          ],
+          "model_input": [
+            "[target] superseded task:G0n11A Whenever you sort for task G0n11A, use descending order. [metadata] {\"key\": \"sort-order\"}",
+            "[message] user: Work on task G0n11A; [span] Work on task G0n11A; [prev_user] Reply exactly pause."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.012492465588127697,
+            0.003624570189931301,
+            0.0037562737839340935,
+            0.004456041962006119,
+            0.9756706484760009
+          ],
+          "proposal_key": "sort-order",
+          "proposed": "reinstates",
+          "token_count": 79
+        },
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "Work on task G0n11A;",
+            "old_rule": {
+              "key": "sort-order",
+              "scope": "task:G0n11A",
+              "status": "live",
+              "text": "For task G0n11A, keep all payloads in ascending order from now on instead."
+            },
+            "prev_user": "Reply exactly pause.",
+            "role": "user",
+            "target_id": "2:0",
+            "target_span": {
+              "end": 20,
+              "start": 0,
+              "text": "Work on task G0n11A;"
+            }
+          },
+          "logits": [
+            3.8736581802368164,
+            -0.17761211097240448,
+            -0.9199188947677612,
+            -1.3904876708984375,
+            -2.4457294940948486
+          ],
+          "model_input": [
+            "[target] live task:G0n11A For task G0n11A, keep all payloads in ascending order from now on instead. [metadata] {\"key\": \"sort-order\"}",
+            "[message] user: Work on task G0n11A; [span] Work on task G0n11A; [prev_user] Reply exactly pause."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.9683749186619777,
+            0.01684997265163185,
+            0.008020832744389621,
+            0.00501018817274946,
+            0.0017440877692513623
+          ],
+          "proposal_key": "sort-order",
+          "proposed": "none",
+          "token_count": 84
+        }
+      ],
+      "role": "user"
+    },
+    "turn_index": 5,
+    "un_release": {
+      "mask_unrelease": false,
+      "masked_columns": 0,
+      "reactivated_output_columns": 0,
+      "task_return": false
+    }
+  }
+]

@@ -792,3 +792,26 @@ Registered projection64=4924.217873s (gate3937.412888s +392probe allowance
 selection.json written before gate inference; full64 seed30322 x5arms launched.
 Prior v8 eligibility unchanged. Foreground session, diag/RUNNING.flag owned;
 no process signals, no new fitting, no benchmark/sealed reads, no push.
+
+2026-09-06 — STATE: CHECK44 ADMISSION QUICK TEST WRITE-AHEAD.
+Direct user authorizes frozen1.7B extractor vs ft-v3 message-wise head, optional
+Kimi detector if1500rows at arm construction; fresh24Astra DEV, held-out338Fable
+one look after recipe freeze. Fit-on A/B=none; demo/timing-on=fresh Astra only;
+evaluated-on=reserved Fable admission, no bench/sealed reads. Archived governing
+protocol/PLAN and current STATE read; no wrapper lock. User quick bar supersedes
+memo800-message deeper gate: overlap recall>=.85, payload/quote FPR<=.03 each,
+non-user false admissions0; failure cuts unattended first-ship admission.
+Implement isolated script/validator, preserve raw JSON, source offsets, all
+rejections; B head and unchanged register consumer reported separately because
+its task binding is specialized. A keys NEW/opaque; do not claim semantic slug
+accuracy. GPU diagnostic flag active; CPU preparation only, then foreground
+exclusive flag and5400s cooperative cap, never signal any process; no push.
+
+2026-09-06 — STATE: DIAGNOSTIC OVERRIDE FAMILY CHECKPOINT; RUN CONTINUES.
+All480 override records (16episodes x5arms x6turns) complete, checkpointing
+immutable records/traces while cancellation runs. Override C exact6/16,
+final12/16, stale4/16, false retirement4/16, false admissions6actions;
+C' exact7/16, final13/16, stale3/16; O/T final16/16 and stale0/16.
+These are descriptive family readings; causal current-render probes pending.
+No threshold/runtime change, no full-gate decision. All96 new setup candidate
+traces exactly equal committed v8 CPU traces (setup-runtime-parity.json).
