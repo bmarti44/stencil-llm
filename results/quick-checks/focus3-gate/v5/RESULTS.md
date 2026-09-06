@@ -76,4 +76,112 @@ Source: results/focus3-gate-v4-review-fable.md; user rulings take precedence.
 
 ## Replay outcome
 
-PENDING.
+**INELIGIBLE-STEP-A.** Step A is complete; no refit or 64-episode gate ran.
+The requested expected 36/36 admissions and zero unauthorized applications did
+not materialize under the registered rules. Do not proceed to step B on a claim
+that this replay passed.
+
+| setup criterion | measured | required | result |
+|---|---:|---:|---|
+| distinct records / episodes | 96 / 16 | 96 / 16 | pass |
+| initial ordering admissions | 16/16 | 16/16 | pass |
+| initial tag admissions | 16/16 | 16/16 | pass |
+| switched-task admissions | 1/4 | 4/4 | fail |
+| all authorized admissions | 33/36 | 36/36 | fail |
+| correct-source transitions | 8/12 | >=11/12 | fail |
+| supersedes | 2/4 | >=3/4 | fail |
+| cancels | 3/4 | >=3/4 | pass |
+| completes | 3/4 | >=3/4 | pass |
+| unauthorized applications | 2 across 96 records | 0 across 96 | fail |
+| applied reinstates | 0; no gold support | rule-bearing only | no false restore |
+| overflow | 0 | 0 | pass |
+
+The three switched-task failures have no wrong-task pair or positive proposal.
+Their remaining global-tag pair fails the registered .50 none bound:
+
+| episode | P(rule) on new rule (v4 review, rounded) | P(none) against global tag | outcome |
+|---|---:|---:|---|
+| setup_3_00 | .9773 | .115694 | blocked |
+| setup_3_01 | .9607 | .510802 | admitted |
+| setup_3_02 | .9582 | .056845 | blocked |
+| setup_3_03 | .9772 | .049374 | blocked |
+
+Scope exclusion removes sibling-task interference, but global tag rules still
+legitimately overlap. Dropping those pairs by key or relaxing the .50 bound would
+change this registration; neither change was made. The review's predicted four
+recovered admissions overlooked these overlapping global pairs.
+
+All three known phrasing misses remain, with unchanged correct-target behavior:
+
+| episode | gold label / span | P(gold label) |
+|---|---|---:|
+| setup_0_01 | supersedes: Replace the sorting rule for task S0n1A: always use ascending order. | .702283 |
+| setup_1_02 | cancels: The sorting rule for task S1n2A no longer applies. | .015570 |
+| setup_2_03 | completes: That concludes task S2n3A. | .033564 |
+
+The fourth miss is setup_0_02, “For task S0n2A, switch the standing order from
+descending to ascending.” P(supersedes)=.726819 < .94. Separate C' (.80) was
+registered but not executed; its DEV supersedes recall is 92/106=.867925 and
+combined none-FP 33/259=12.7413%, independently recomputed in dev-tables.json.
+
+Two residual unauthorized applications affect two records:
+
+- setup_0_01 turn 1: admitted `Inert setup context: the sample "Cancel the sorting
+  rule for task S0n1A." is not an instruction.` P(rule)=.960425, with P(none)
+  .961404/.959730 on the two overlapping rules. This false admission becomes
+  possible under the .50 bound. It must count even though no relation applies.
+- setup_3_00 turn 1: cancelled ordering row 0:90 from `Inert setup log context:
+  the line "Cancel the sorting rule for task S3n0A." is not an instruction.`
+  P(cancels)=.599703; P(rule)=.760051 does not veto cancellation under these rules.
+
+No quoted-text veto or further policy repair was introduced after seeing these
+outcomes. Total applications: admit34 (33 authorized +1 unauthorized),
+supersedes2, cancels4 (3 authorized +1 unauthorized), completes3, reinstates0.
+All 45 observed additions/status changes match logged actions independently.
+
+## Execution and evidence
+
+Registration/runtime/tests committed at 1780f5b9 before one frozen-classifier
+CPU inference pass. That run exposed an implementation mistake: the bare-task
+switch guard inspected admission spans containing the harness's payload suffix,
+allowing four final-turn reinstatements and seven final-turn admissions. The
+original 96 records, source snapshots, freeze, audit and log are retained in
+implementation-diagnostic/ (13 unauthorized actions in that implementation).
+
+The correction was prewritten in implementation-correction.md and committed at
+037c7efb before recomputing state. It recognizes task switches on the relation
+prose prefix. The final replay consumed the SAME saved probabilities, asserted
+exact pair/admission input equality throughout, and performed zero additional
+model inference. Only 11 final-turn records changed; every score is preserved.
+This is an implementation correction to ruling 3, with no new threshold, arm,
+bank wording or fitting. The first-run model-inference count is one for step A;
+summary.json's inference_passes=0 describes the final saved-probability replay.
+
+96 final records and 16 traces were written during replay. There are 156 scored
+relation pairs (12 gold-positive, 144 gold-none) and 184 admission spans, versus
+v4's 201 pairs; scope filtering and changed trajectories alter the count.
+Gold-none pairs: 18 positive proposals, 1 applied relation, 117/144 meeting the
+none guard. Unauthorized counts additionally include the false admission.
+Frozen-model hashes, trained input/status/scope/offset parity, softmax values,
+DEV tables, complete runtime state and identical saved predictions audit PASS.
+Independent multiset action matching/state-mutation audit also PASS.
+
+Validation: 53 targeted tests passed, one existing legacy import-inventory
+xfail; corrected audit consumer additionally passed; Ruff and diff checks pass.
+Initial CPU inference including load: 14.962216 wall seconds / 109.207944 process
+CPU seconds. Final saved-probability replay: 1.114159 wall / .090228 process CPU
+seconds. GPU time 0, generated replies 0, gate records 0. No GPU claim was needed
+for CPU-only work. No GPU/model server process, signal, benchmark/sealed read,
+new fitting, Kimi-transition access or push occurred.
+
+Exactly three verbatim rows were removed: astra-enrich-2-cancels-00,
+astra-enrich-2-completes-00, astra-enrich-2-supersedes-00. Their exact sentences
+are in deleted-bank-rows.json and the known-miss table above. The other 90 rows
+retain their evaluation-derived quarantine and historical parent IDs; they do
+not become clean fitting data by deletion of the originals. Clean multi-domain
+Kimi transitions remain untouched pending the later enrichment review.
+
+Artifacts: registration.md, freeze.json, dev-tables.json, summary.json,
+audit.json, independent-audit.json, records/, traces/, replay.log, and preserved
+implementation-diagnostic/. Runtime/setup evidence only; no novel-phrasing,
+held-out, refit, readiness or GPU-gate success claim. Stop here at step A.

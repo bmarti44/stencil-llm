@@ -1,0 +1,246 @@
+{
+  "agreement": {
+    "contradictory": false,
+    "exact": true,
+    "false_retirement": false
+  },
+  "arm": "C",
+  "episode": "setup_1_03",
+  "event_checks": [],
+  "family": "cancel",
+  "gold_live": [],
+  "gold_trace": {
+    "after": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 65.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S1n3A",
+        "span_start": 90,
+        "status": "cancelled",
+        "text": "Use ascending order for all payloads in task S1n3A from now on.",
+        "version": 1
+      }
+    ],
+    "applied": [],
+    "before": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 65.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S1n3A",
+        "span_start": 90,
+        "status": "cancelled",
+        "text": "Use ascending order for all payloads in task S1n3A from now on.",
+        "version": 1
+      }
+    ]
+  },
+  "live": [],
+  "trace": {
+    "admissions": [
+      {
+        "accepted": false,
+        "logits": [
+          -0.046633586287498474,
+          2.877842664718628,
+          -2.7447972297668457
+        ],
+        "model_input": [
+          "user: Continue task S1n3A; Sort request for task S1n3A: payload [62, 21, 44, 15, 13]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "[user] Reply exactly even."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.050782564427779384,
+          0.9457982942907208,
+          0.00341914128149974
+        ],
+        "span": "Reply exactly even.",
+        "start": 0,
+        "token_count": 73
+      }
+    ],
+    "admitted_beside_live": 0,
+    "after": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 65.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S1n3A",
+        "span_start": 90,
+        "status": "cancelled",
+        "text": "Use ascending order for all payloads in task S1n3A from now on.",
+        "version": 1
+      }
+    ],
+    "applied": [],
+    "before": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 65.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S1n3A",
+        "span_start": 90,
+        "status": "cancelled",
+        "text": "Use ascending order for all payloads in task S1n3A from now on.",
+        "version": 1
+      }
+    ],
+    "overflow": false,
+    "pairs": [
+      {
+        "applied": "none",
+        "gold": "none",
+        "input": {
+          "message": "Reply exactly even.",
+          "old_rule": {
+            "key": "tag",
+            "scope": "global",
+            "status": "live",
+            "text": "For every sorting request in this conversation, keep tag equal to 65."
+          },
+          "prev_user": "Continue task S1n3A;",
+          "role": "user",
+          "target_id": "0:20",
+          "target_span": {
+            "end": 19,
+            "start": 0,
+            "text": "Reply exactly even."
+          }
+        },
+        "logits": [
+          3.625903844833374,
+          0.11828505992889404,
+          -0.9129154682159424,
+          -1.817491054534912,
+          -2.0478732585906982
+        ],
+        "model_input": [
+          "[target] live global For every sorting request in this conversation, keep tag equal to 65. [metadata] {\"key\": \"tag\"}",
+          "[message] user: Reply exactly even. [span] Reply exactly even. [prev_user] Continue task S1n3A;"
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.9538218144787776,
+          0.028584313599692275,
+          0.010192555120850008,
+          0.004125065825511332,
+          0.0032762509751686616
+        ],
+        "proposed": "none",
+        "token_count": 64
+      },
+      {
+        "applied": "none",
+        "gold": "none",
+        "input": {
+          "message": "Reply exactly even.",
+          "old_rule": {
+            "key": "sort-order",
+            "scope": "task:S1n3A",
+            "status": "cancelled",
+            "text": "Use ascending order for all payloads in task S1n3A from now on."
+          },
+          "prev_user": "Continue task S1n3A;",
+          "role": "user",
+          "target_id": "0:90",
+          "target_span": {
+            "end": 19,
+            "start": 0,
+            "text": "Reply exactly even."
+          }
+        },
+        "logits": [
+          2.466862916946411,
+          -1.6609290838241577,
+          -1.8033227920532227,
+          -1.582011103630066,
+          2.0170650482177734
+        ],
+        "model_input": [
+          "[target] cancelled task:S1n3A Use ascending order for all payloads in task S1n3A from now on. [metadata] {\"key\": \"sort-order\"}",
+          "[message] user: Reply exactly even. [span] Reply exactly even. [prev_user] Continue task S1n3A;"
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.5933673393872039,
+          0.009564149354339933,
+          0.008294792908848337,
+          0.010349514868179121,
+          0.37842420348142863
+        ],
+        "proposed": "none",
+        "token_count": 76
+      }
+    ],
+    "role": "user"
+  },
+  "turn": {
+    "direction": "default",
+    "events": [],
+    "hard_none": false,
+    "kind": "prose",
+    "payload": [
+      44,
+      17,
+      79,
+      31,
+      60
+    ],
+    "post_change": true,
+    "stale": [],
+    "tag": 65,
+    "task": "S1n3A",
+    "text": "Reply exactly even."
+  },
+  "turn_index": 4
+}

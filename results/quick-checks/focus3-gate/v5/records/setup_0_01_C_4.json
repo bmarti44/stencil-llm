@@ -1,0 +1,332 @@
+{
+  "agreement": {
+    "contradictory": false,
+    "exact": true,
+    "false_retirement": false
+  },
+  "arm": "C",
+  "episode": "setup_0_01",
+  "event_checks": [],
+  "family": "override",
+  "gold_live": [],
+  "gold_trace": {
+    "after": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 12.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S0n1A",
+        "span_start": 90,
+        "status": "superseded",
+        "text": "Always sort payloads in descending order for task S0n1A.",
+        "version": 1
+      },
+      {
+        "id": "2:0",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 2,
+        "scope": "S0n1A",
+        "span_start": 0,
+        "status": "live",
+        "text": "Replace the sorting rule for task S0n1A: always use ascending order.",
+        "version": 2
+      }
+    ],
+    "applied": [],
+    "before": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 12.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S0n1A",
+        "span_start": 90,
+        "status": "superseded",
+        "text": "Always sort payloads in descending order for task S0n1A.",
+        "version": 1
+      },
+      {
+        "id": "2:0",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 2,
+        "scope": "S0n1A",
+        "span_start": 0,
+        "status": "live",
+        "text": "Replace the sorting rule for task S0n1A: always use ascending order.",
+        "version": 2
+      }
+    ]
+  },
+  "live": [],
+  "trace": {
+    "admissions": [
+      {
+        "accepted": false,
+        "logits": [
+          1.0734288692474365,
+          2.1981379985809326,
+          -3.2042150497436523
+        ],
+        "model_input": [
+          "user: Continue task S0n1A; Sort request for task S0n1A: payload [76, 32, 17, 18, 51]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "[user] Reply exactly calm."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.244307850058112,
+          0.7523023015724317,
+          0.003389848369456322
+        ],
+        "span": "Reply exactly calm.",
+        "start": 0,
+        "token_count": 73
+      }
+    ],
+    "admitted_beside_live": 0,
+    "after": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 12.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S0n1A",
+        "span_start": 90,
+        "status": "live",
+        "text": "Always sort payloads in descending order for task S0n1A.",
+        "version": 1
+      },
+      {
+        "id": "1:0",
+        "key": "new:1:0",
+        "kind": "sort",
+        "provenance_turn": 1,
+        "scope": "S0n1A",
+        "span_start": 0,
+        "status": "live",
+        "text": "Inert setup context: the sample \"Cancel the sorting rule for task S0n1A.\" is not an instruction.",
+        "version": 1
+      }
+    ],
+    "applied": [],
+    "before": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 12.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S0n1A",
+        "span_start": 90,
+        "status": "live",
+        "text": "Always sort payloads in descending order for task S0n1A.",
+        "version": 1
+      },
+      {
+        "id": "1:0",
+        "key": "new:1:0",
+        "kind": "sort",
+        "provenance_turn": 1,
+        "scope": "S0n1A",
+        "span_start": 0,
+        "status": "live",
+        "text": "Inert setup context: the sample \"Cancel the sorting rule for task S0n1A.\" is not an instruction.",
+        "version": 1
+      }
+    ],
+    "overflow": false,
+    "pairs": [
+      {
+        "applied": "none",
+        "gold": "none",
+        "input": {
+          "message": "Reply exactly calm.",
+          "old_rule": {
+            "key": "tag",
+            "scope": "global",
+            "status": "live",
+            "text": "For every sorting request in this conversation, keep tag equal to 12."
+          },
+          "prev_user": "Continue task S0n1A;",
+          "role": "user",
+          "target_id": "0:20",
+          "target_span": {
+            "end": 19,
+            "start": 0,
+            "text": "Reply exactly calm."
+          }
+        },
+        "logits": [
+          3.6536977291107178,
+          -0.10032777488231659,
+          -0.8363990187644958,
+          -1.7640546560287476,
+          -1.9817959070205688
+        ],
+        "model_input": [
+          "[target] live global For every sorting request in this conversation, keep tag equal to 12. [metadata] {\"key\": \"tag\"}",
+          "[message] user: Reply exactly calm. [span] Reply exactly calm. [prev_user] Continue task S0n1A;"
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.9590956752216284,
+          0.02246515251548654,
+          0.010760629832544784,
+          0.004255611437873836,
+          0.0034229309924663975
+        ],
+        "proposed": "none",
+        "token_count": 64
+      },
+      {
+        "applied": "none",
+        "gold": "none",
+        "input": {
+          "message": "Reply exactly calm.",
+          "old_rule": {
+            "key": "sort-order",
+            "scope": "task:S0n1A",
+            "status": "live",
+            "text": "Always sort payloads in descending order for task S0n1A."
+          },
+          "prev_user": "Continue task S0n1A;",
+          "role": "user",
+          "target_id": "0:90",
+          "target_span": {
+            "end": 19,
+            "start": 0,
+            "text": "Reply exactly calm."
+          }
+        },
+        "logits": [
+          3.734290838241577,
+          -0.3719692528247833,
+          -0.7243447303771973,
+          -1.4622243642807007,
+          -2.0512046813964844
+        ],
+        "model_input": [
+          "[target] live task:S0n1A Always sort payloads in descending order for task S0n1A. [metadata] {\"key\": \"sort-order\"}",
+          "[message] user: Reply exactly calm. [span] Reply exactly calm. [prev_user] Continue task S0n1A;"
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.964641069036998,
+          0.015886917819303882,
+          0.01116875909605593,
+          0.005340081315308331,
+          0.0029631727323338056
+        ],
+        "proposed": "none",
+        "token_count": 73
+      },
+      {
+        "applied": "none",
+        "gold": "none",
+        "input": {
+          "message": "Reply exactly calm.",
+          "old_rule": {
+            "key": "sort-order",
+            "scope": "task:S0n1A",
+            "status": "live",
+            "text": "Inert setup context: the sample \"Cancel the sorting rule for task S0n1A.\" is not an instruction."
+          },
+          "prev_user": "Continue task S0n1A;",
+          "role": "user",
+          "target_id": "1:0",
+          "target_span": {
+            "end": 19,
+            "start": 0,
+            "text": "Reply exactly calm."
+          }
+        },
+        "logits": [
+          3.798114061355591,
+          -0.7893765568733215,
+          -0.6867727041244507,
+          -1.185149908065796,
+          -1.9426583051681519
+        ],
+        "model_input": [
+          "[target] live task:S0n1A Inert setup context: the sample \"Cancel the sorting rule for task S0n1A.\" is not an instruction. [metadata] {\"key\": \"sort-order\"}",
+          "[message] user: Reply exactly calm. [span] Reply exactly calm. [prev_user] Continue task S0n1A;"
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.9694426998485246,
+          0.009867344325290323,
+          0.010933534267406533,
+          0.0066422940994836635,
+          0.0031141274592950217
+        ],
+        "proposed": "none",
+        "token_count": 84
+      }
+    ],
+    "role": "user"
+  },
+  "turn": {
+    "direction": "ascending",
+    "events": [],
+    "hard_none": false,
+    "kind": "prose",
+    "payload": [
+      54,
+      84,
+      58,
+      74,
+      51
+    ],
+    "post_change": true,
+    "stale": [],
+    "tag": 12,
+    "task": "S0n1A",
+    "text": "Reply exactly calm."
+  },
+  "turn_index": 4
+}

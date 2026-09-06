@@ -5248,3 +5248,12 @@ Z SWITCH Python24/24, BACK JS23/24, CLEAR Python24/24; paired real SWITCH24, CLE
 Zc OFF+mask and S shuffle+mask BACK JS0/24 each; OFF Python24/24 every step. Fences480/480 actual (672 logical), missing-parenthesis/bare/ambiguous/echo/OK0.
 All672 records/480 generations/14152 tokens audited for scores/tokens/history/bias/masks/positions; independent counts/paired reading/Python parses PASS. Coarse checks all24/24; arithmetic syntax only.
 Cost1319.301/1800s=21.99/30 GPU-min (0.3665h), no overrun; natural foreground exit, own flag removed, explicit-path local commit/no push/signals/fitting/sealed reads.
+
+### 2026-09-06 — FOCUS-3 v5 step A (gpt-6-astra): COMPLETE / INELIGIBLE
+Registration1780f5b9 fixed positive-side none>=.50, overlapping scopes, rule-bearing reinstates, C=.94/.50/.50/.50; C-prime=.80 registered separately, unrun. DEV217/259 none and5/317 positives pass; full sweep reproduced.
+Frozen v4 CPU setup33/36 admissions (orders16,tags16,switched1/4),8/12 correct-source transitions (supersedes2/4,cancels3/4,completes3/4),2 unauthorized actions across96 records. All3 known misses plus standing-order switch retained.
+Global-tag P(none)=.115694/.056845/.049374 blocks three new-task rules despite excluded wrong-task pairs; quoted inert text causes one false admission and one cancellation. Zero reinstates; no post-result threshold/quote/key rescue.
+One inference pass exposed a payload-suffixed task-switch implementation bug (13 unauthorized); full initial records/sources preserved. Prewritten correction037c7efb reused exact saved probabilities with input-equality assertions, changing only11 final-turn states; no second inference.
+96 final records/16 traces/156 pairs/184 admission spans: runtime/trainer/softmax/DEV/frozen-model and saved-score parity PASS; independent action/state audit accounts45 mutations.53 tests pass,1 legacy xfail; corrected audit consumer passes;ruff/diff clean.
+Deleted exactly three verbatim astra-enrich-2-*-00 rows with receipt;90 relatives remain quarantined, Kimi transitions untouched. Initial14.962216 wall/109.207944 CPU seconds; saved replay1.114159/.090228. GPU0,generations0,gate0; no fitting,sealed/bench reads,signals,push.
+STATE: step A terminal; RESULTS prewritten section/outcome, README, WORKLOG and force-added raw evidence committed with explicit pathspecs. Step B refit/gate not started; remaining admission/unauthorized failures are not a pass certificate.

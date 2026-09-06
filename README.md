@@ -40,6 +40,12 @@ and DEV calibration: transitions applied to the correct source rows were 8/12
 evaluation; the 64-episode v4 gate remains unrun.
 [Results and diagnostics](results/quick-checks/focus3-gate/v4/RESULTS.md).
 
+FOCUS-3 v5 step A is complete and **INELIGIBLE**: frozen-v4 CPU replay gives
+33/36 admissions, 8/12 transitions, and 2 unauthorized applications across 96
+records; reinstatements are zero. Global-tag pair scores still block three
+admissions, and quoted inert text causes both unauthorized actions. No refit or
+GPU gate ran. [v5 registration and results](results/quick-checks/focus3-gate/v5/RESULTS.md).
+
 ## Earlier headline: the internal wave (superseded, kept for the record)
 
 A tiny trained controller (264k parameters) riding on the frozen trunk

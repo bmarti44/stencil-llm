@@ -556,3 +556,17 @@ freeze and sources under v5/implementation-diagnostic; correct switch recognitio
 to relation prose prefix. Prewritten implementation-correction.md binds next
 CPU saved-probability replay: exact same inputs required, no new model inference.
 Expected effect limited to final-turn switches; no policy/bank/threshold change.
+
+2026-09-06 — STATE: FOCUS-3 V5 STEP A COMPLETE / INELIGIBLE; FINAL COMMIT.
+Final saved-score CPU replay33/36 admissions,8/12 transitions,2 unauthorized/96;
+reinstates0. Supersedes2/4 fails per-label floor; cancels/completes3/4 each.
+Three admissions still vetoed by overlapping global-tag none probabilities;
+quoted inert text yields false admit+cancel. No further policy repair/refit/gate.
+Single CPU inference at1780f5b9 retained as implementation-diagnostic; correction
+037c7efb obeys task-switch ruling on prose prefix, recomputes only11 final-turn
+states from identical stored predictions with exact input assertions.96 records,
+16 traces,156 pairs,184 spans audited; independent counter/state checks PASS.
+53 tests pass,1 existing xfail;ruff/diff clean.Three verbatim bank rows deleted;
+90 relatives quarantined,Kimi untouched.No GPU,sealed/bench reads,signals,push.
+This scoped commit lands final RESULTS,README,WORKLOG and force-added evidence.
+No next command: stop at authorized step A; step B awaits enrichment review.

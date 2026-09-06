@@ -1,0 +1,226 @@
+{
+  "agreement": {
+    "contradictory": false,
+    "exact": true,
+    "false_retirement": false
+  },
+  "arm": "C",
+  "episode": "setup_3_03",
+  "event_checks": [],
+  "family": "switch-and-return",
+  "gold_live": [],
+  "gold_trace": {
+    "after": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 66.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S3n3A",
+        "span_start": 90,
+        "status": "live",
+        "text": "Use ascending order for all payloads in task S3n3A from now on.",
+        "version": 1
+      },
+      {
+        "id": "2:20",
+        "key": "new:2:20",
+        "kind": "sort",
+        "provenance_turn": 2,
+        "scope": "S3n3B",
+        "span_start": 20,
+        "status": "live",
+        "text": "From now on, for task S3n3B keep the payload sorted in descending order.",
+        "version": 1
+      }
+    ],
+    "applied": [],
+    "before": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 66.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S3n3A",
+        "span_start": 90,
+        "status": "live",
+        "text": "Use ascending order for all payloads in task S3n3A from now on.",
+        "version": 1
+      },
+      {
+        "id": "2:20",
+        "key": "new:2:20",
+        "kind": "sort",
+        "provenance_turn": 2,
+        "scope": "S3n3B",
+        "span_start": 20,
+        "status": "live",
+        "text": "From now on, for task S3n3B keep the payload sorted in descending order.",
+        "version": 1
+      }
+    ]
+  },
+  "live": [],
+  "trace": {
+    "admissions": [
+      {
+        "accepted": false,
+        "logits": [
+          0.09271854162216187,
+          2.5563600063323975,
+          -2.7157955169677734
+        ],
+        "model_input": [
+          "user: Continue task S3n3B; Sort request for task S3n3B: payload [55, 73, 56, 61, 10]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "[user] Reply exactly set."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.0780773824535106,
+          0.9172149792498817,
+          0.004707638296607744
+        ],
+        "span": "Reply exactly set.",
+        "start": 0,
+        "token_count": 73
+      }
+    ],
+    "admitted_beside_live": 0,
+    "after": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 66.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S3n3A",
+        "span_start": 90,
+        "status": "live",
+        "text": "Use ascending order for all payloads in task S3n3A from now on.",
+        "version": 1
+      }
+    ],
+    "applied": [],
+    "before": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 66.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S3n3A",
+        "span_start": 90,
+        "status": "live",
+        "text": "Use ascending order for all payloads in task S3n3A from now on.",
+        "version": 1
+      }
+    ],
+    "overflow": false,
+    "pairs": [
+      {
+        "applied": "none",
+        "gold": "none",
+        "input": {
+          "message": "Reply exactly set.",
+          "old_rule": {
+            "key": "tag",
+            "scope": "global",
+            "status": "live",
+            "text": "For every sorting request in this conversation, keep tag equal to 66."
+          },
+          "prev_user": "Continue task S3n3B;",
+          "role": "user",
+          "target_id": "0:20",
+          "target_span": {
+            "end": 18,
+            "start": 0,
+            "text": "Reply exactly set."
+          }
+        },
+        "logits": [
+          3.7128498554229736,
+          -0.12833121418952942,
+          -0.9230147004127502,
+          -1.7263948917388916,
+          -1.9346338510513306
+        ],
+        "model_input": [
+          "[target] live global For every sorting request in this conversation, keep tag equal to 66. [metadata] {\"key\": \"tag\"}",
+          "[message] user: Reply exactly set. [span] Reply exactly set. [prev_user] Continue task S3n3B;"
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.9624314025946771,
+          0.020661699567423857,
+          0.009333389485148261,
+          0.004179610441702595,
+          0.0033938979110480915
+        ],
+        "proposed": "none",
+        "token_count": 64
+      }
+    ],
+    "role": "user"
+  },
+  "turn": {
+    "direction": "descending",
+    "events": [],
+    "hard_none": false,
+    "kind": "prose",
+    "payload": [
+      68,
+      34,
+      85,
+      71,
+      46
+    ],
+    "post_change": true,
+    "stale": [],
+    "tag": 66,
+    "task": "S3n3B",
+    "text": "Reply exactly set."
+  },
+  "turn_index": 4
+}
