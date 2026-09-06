@@ -659,3 +659,11 @@ thresholds unchanged. Loader audit qualifies earlier 'reproduced' claim: pinned
 six manifest admission patches yield20054, present broad historical script glob
 also loads later relation patches (20069). This is ft lineage, not verified
 historical row-byte reconstruction; correction receipt documents distinction.
+
+2026-09-06 — STATE: V7 THREE ADMISSION SEEDS FROZEN; FABLE EVALUATION NEXT.
+All3epochs/1743updates per seed; DEV1954/1959/1961 of2063 correct; .95 admissions
+seed0 709/765rules,16/1298nonrules; seed1 733/784,12/1279; seed2 703/757,8/1306.
+Seed0 unchanged designation. No heldout/setup outcomes read; GPU run exited
+naturally and removed its flag. Freeze binds all checkpoint/DEV metadata hashes.
+62 targeted CPU tests pass. Next one CPU evaluate on fable-validation* with
+same-pass original-ft comparator, then ONE CPU setup replay and mechanical stop.
