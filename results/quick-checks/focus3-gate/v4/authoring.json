@@ -1,0 +1,5574 @@
+{
+  "artifact": "focus3_gate_episode_author_templates",
+  "author_role": "gpt-6-astra v3 re-author",
+  "authoring_seed": 30311,
+  "compiler_placeholders": {
+    "direction": "ascending or descending",
+    "final_request": "request_templates.final_sort with task and payload filled",
+    "opposite": "the opposite of direction",
+    "payload": "fresh short array of distinct integers for the current request slot",
+    "payload_1": "fresh payload for turn 1 sort request",
+    "payload_2": "fresh payload for turn 2 hard-none sort request",
+    "payload_3": "fresh payload for turn 3 changed sort request",
+    "payload_4": "fresh payload for turn 4 unrefreshed continuation",
+    "payload_5": "fresh payload for turn 6 final request",
+    "request": "request_templates.standard_sort with task and payload filled",
+    "tag": "fresh integer tag",
+    "task_a": "fresh task name such as Alder, Birch, Cedar, Dogwood, Elm, Fir, Grove, or Hazel",
+    "task_b": "fresh task name different from task_a"
+  },
+  "families": {
+    "cancel": [
+      {
+        "change_template": "Cancel the sorting rule for task {task_a}.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "cancel_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert training context: the example \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_gate_1_00",
+        "initial_rule_template": "For task {task_a}, always sort the payload in {direction} order.",
+        "neutral_template": "Reply exactly clear.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "bin audit cancels an increasing rule and keeps later bins in input order",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Drop the ordering requirement for task {task_a}.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "cancel_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert draft context: the line \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_gate_1_01",
+        "initial_rule_template": "Going forward, keep every payload for task {task_a} in {direction} order.",
+        "neutral_template": "Reply exactly steady.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "route sheet cancels a descending route sort before later route checks",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "The sorting rule for task {task_a} no longer applies.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "cancel_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert quotation context: the line \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_gate_1_02",
+        "initial_rule_template": "Each time you handle a payload for task {task_a}, sort it in {direction} order.",
+        "neutral_template": "Reply exactly plain.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "crate review removes an increasing sort before two later crate payloads",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Stop following the earlier sorting rule for task {task_a}.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "cancel_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert note context: the line \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_gate_1_03",
+        "initial_rule_template": "Use {direction} order for all payloads in task {task_a} from now on.",
+        "neutral_template": "Reply exactly done.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "index-card review cancels descending order and preserves later card order",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Cancel the sorting rule for task {task_a}.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "cancel_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert training context: the example \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_gate_1_04",
+        "initial_rule_template": "From now on, for task {task_a} keep the payload sorted in {direction} order.",
+        "neutral_template": "Reply exactly clear.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "bin audit cancels an increasing rule and keeps later bins in input order",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Drop the ordering requirement for task {task_a}.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "cancel_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert draft context: the line \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_gate_1_05",
+        "initial_rule_template": "Always sort payloads in {direction} order for task {task_a}.",
+        "neutral_template": "Reply exactly steady.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "route sheet cancels a descending route sort before later route checks",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "The sorting rule for task {task_a} no longer applies.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "cancel_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert quotation context: the line \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_gate_1_06",
+        "initial_rule_template": "For task {task_a}, the payload must be in {direction} order until I say otherwise.",
+        "neutral_template": "Reply exactly plain.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "crate review removes an increasing sort before two later crate payloads",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Stop following the earlier sorting rule for task {task_a}.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "cancel_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert note context: the line \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_gate_1_07",
+        "initial_rule_template": "Whenever you sort for task {task_a}, use {direction} order.",
+        "neutral_template": "Reply exactly done.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "index-card review cancels descending order and preserves later card order",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Cancel the sorting rule for task {task_a}.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "cancel_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert training context: the example \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_gate_1_08",
+        "initial_rule_template": "For task {task_a}, always sort the payload in {direction} order.",
+        "neutral_template": "Reply exactly clear.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "bin audit cancels an increasing rule and keeps later bins in input order",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Drop the ordering requirement for task {task_a}.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "cancel_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert draft context: the line \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_gate_1_09",
+        "initial_rule_template": "Going forward, keep every payload for task {task_a} in {direction} order.",
+        "neutral_template": "Reply exactly steady.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "route sheet cancels a descending route sort before later route checks",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "The sorting rule for task {task_a} no longer applies.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "cancel_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert quotation context: the line \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_gate_1_10",
+        "initial_rule_template": "Each time you handle a payload for task {task_a}, sort it in {direction} order.",
+        "neutral_template": "Reply exactly plain.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "crate review removes an increasing sort before two later crate payloads",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Stop following the earlier sorting rule for task {task_a}.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "cancel_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert note context: the line \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_gate_1_11",
+        "initial_rule_template": "Use {direction} order for all payloads in task {task_a} from now on.",
+        "neutral_template": "Reply exactly done.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "index-card review cancels descending order and preserves later card order",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Cancel the sorting rule for task {task_a}.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "cancel_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert training context: the example \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_gate_1_12",
+        "initial_rule_template": "From now on, for task {task_a} keep the payload sorted in {direction} order.",
+        "neutral_template": "Reply exactly clear.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "bin audit cancels an increasing rule and keeps later bins in input order",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Drop the ordering requirement for task {task_a}.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "cancel_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert draft context: the line \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_gate_1_13",
+        "initial_rule_template": "Always sort payloads in {direction} order for task {task_a}.",
+        "neutral_template": "Reply exactly steady.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "route sheet cancels a descending route sort before later route checks",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "The sorting rule for task {task_a} no longer applies.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "cancel_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert quotation context: the line \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_gate_1_14",
+        "initial_rule_template": "For task {task_a}, the payload must be in {direction} order until I say otherwise.",
+        "neutral_template": "Reply exactly plain.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "crate review removes an increasing sort before two later crate payloads",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Stop following the earlier sorting rule for task {task_a}.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "cancel_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert note context: the line \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_gate_1_15",
+        "initial_rule_template": "Whenever you sort for task {task_a}, use {direction} order.",
+        "neutral_template": "Reply exactly done.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "index-card review cancels descending order and preserves later card order",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      }
+    ],
+    "complete_and_move_on": [
+      {
+        "change_template": "Task {task_a} is complete. Work on task {task_b}.",
+        "completion_template": "Task {task_a} is complete.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "complete_task_a",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert closeout context: the sample \"Task {task_a} is complete.\" is not an instruction.",
+        "id": "v3_gate_2_00",
+        "initial_rule_template": "From now on, for task {task_a} keep the payload sorted in {direction} order.",
+        "neutral_template": "Reply exactly okay.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_b",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "batch close completes one task and starts a new task with unchanged payloads",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_b}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "We are finished with task {task_a}. Switch to task {task_b}.",
+        "completion_template": "We are finished with task {task_a}.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "complete_task_a",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert note-card context: the line \"Task {task_a} is complete.\" is not an instruction.",
+        "id": "v3_gate_2_01",
+        "initial_rule_template": "Always sort payloads in {direction} order for task {task_a}.",
+        "neutral_template": "Reply exactly hold.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_b",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "station handoff finishes a descending task and opens a fresh station task",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_b}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Task {task_a} is done now. Work on task {task_b}.",
+        "completion_template": "Task {task_a} is done now.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "complete_task_a",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert example context: the line \"Task {task_a} is complete.\" is not an instruction.",
+        "id": "v3_gate_2_02",
+        "initial_rule_template": "For task {task_a}, the payload must be in {direction} order until I say otherwise.",
+        "neutral_template": "Reply exactly later.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_b",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "packet shift ends an increasing task and keeps the next task in arrival order",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_b}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "That concludes task {task_a}. Switch to task {task_b}.",
+        "completion_template": "That concludes task {task_a}.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "complete_task_a",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert rollover context: the line \"Task {task_a} is complete.\" is not an instruction.",
+        "id": "v3_gate_2_03",
+        "initial_rule_template": "Whenever you sort for task {task_a}, use {direction} order.",
+        "neutral_template": "Reply exactly brief.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_b",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "slot rollover closes a descending task and checks no rule leaks to the next task",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_b}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Task {task_a} is complete. Work on task {task_b}.",
+        "completion_template": "Task {task_a} is complete.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "complete_task_a",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert closeout context: the sample \"Task {task_a} is complete.\" is not an instruction.",
+        "id": "v3_gate_2_04",
+        "initial_rule_template": "For task {task_a}, always sort the payload in {direction} order.",
+        "neutral_template": "Reply exactly okay.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_b",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "batch close completes one task and starts a new task with unchanged payloads",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_b}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "We are finished with task {task_a}. Switch to task {task_b}.",
+        "completion_template": "We are finished with task {task_a}.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "complete_task_a",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert note-card context: the line \"Task {task_a} is complete.\" is not an instruction.",
+        "id": "v3_gate_2_05",
+        "initial_rule_template": "Going forward, keep every payload for task {task_a} in {direction} order.",
+        "neutral_template": "Reply exactly hold.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_b",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "station handoff finishes a descending task and opens a fresh station task",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_b}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Task {task_a} is done now. Work on task {task_b}.",
+        "completion_template": "Task {task_a} is done now.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "complete_task_a",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert example context: the line \"Task {task_a} is complete.\" is not an instruction.",
+        "id": "v3_gate_2_06",
+        "initial_rule_template": "Each time you handle a payload for task {task_a}, sort it in {direction} order.",
+        "neutral_template": "Reply exactly later.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_b",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "packet shift ends an increasing task and keeps the next task in arrival order",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_b}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "That concludes task {task_a}. Switch to task {task_b}.",
+        "completion_template": "That concludes task {task_a}.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "complete_task_a",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert rollover context: the line \"Task {task_a} is complete.\" is not an instruction.",
+        "id": "v3_gate_2_07",
+        "initial_rule_template": "Use {direction} order for all payloads in task {task_a} from now on.",
+        "neutral_template": "Reply exactly brief.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_b",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "slot rollover closes a descending task and checks no rule leaks to the next task",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_b}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Task {task_a} is complete. Work on task {task_b}.",
+        "completion_template": "Task {task_a} is complete.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "complete_task_a",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert closeout context: the sample \"Task {task_a} is complete.\" is not an instruction.",
+        "id": "v3_gate_2_08",
+        "initial_rule_template": "From now on, for task {task_a} keep the payload sorted in {direction} order.",
+        "neutral_template": "Reply exactly okay.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_b",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "batch close completes one task and starts a new task with unchanged payloads",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_b}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "We are finished with task {task_a}. Switch to task {task_b}.",
+        "completion_template": "We are finished with task {task_a}.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "complete_task_a",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert note-card context: the line \"Task {task_a} is complete.\" is not an instruction.",
+        "id": "v3_gate_2_09",
+        "initial_rule_template": "Always sort payloads in {direction} order for task {task_a}.",
+        "neutral_template": "Reply exactly hold.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_b",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "station handoff finishes a descending task and opens a fresh station task",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_b}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Task {task_a} is done now. Work on task {task_b}.",
+        "completion_template": "Task {task_a} is done now.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "complete_task_a",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert example context: the line \"Task {task_a} is complete.\" is not an instruction.",
+        "id": "v3_gate_2_10",
+        "initial_rule_template": "For task {task_a}, the payload must be in {direction} order until I say otherwise.",
+        "neutral_template": "Reply exactly later.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_b",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "packet shift ends an increasing task and keeps the next task in arrival order",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_b}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "That concludes task {task_a}. Switch to task {task_b}.",
+        "completion_template": "That concludes task {task_a}.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "complete_task_a",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert rollover context: the line \"Task {task_a} is complete.\" is not an instruction.",
+        "id": "v3_gate_2_11",
+        "initial_rule_template": "Whenever you sort for task {task_a}, use {direction} order.",
+        "neutral_template": "Reply exactly brief.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_b",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "slot rollover closes a descending task and checks no rule leaks to the next task",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_b}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Task {task_a} is complete. Work on task {task_b}.",
+        "completion_template": "Task {task_a} is complete.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "complete_task_a",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert closeout context: the sample \"Task {task_a} is complete.\" is not an instruction.",
+        "id": "v3_gate_2_12",
+        "initial_rule_template": "For task {task_a}, always sort the payload in {direction} order.",
+        "neutral_template": "Reply exactly okay.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_b",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "batch close completes one task and starts a new task with unchanged payloads",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_b}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "We are finished with task {task_a}. Switch to task {task_b}.",
+        "completion_template": "We are finished with task {task_a}.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "complete_task_a",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert note-card context: the line \"Task {task_a} is complete.\" is not an instruction.",
+        "id": "v3_gate_2_13",
+        "initial_rule_template": "Going forward, keep every payload for task {task_a} in {direction} order.",
+        "neutral_template": "Reply exactly hold.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_b",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "station handoff finishes a descending task and opens a fresh station task",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_b}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Task {task_a} is done now. Work on task {task_b}.",
+        "completion_template": "Task {task_a} is done now.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "complete_task_a",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert example context: the line \"Task {task_a} is complete.\" is not an instruction.",
+        "id": "v3_gate_2_14",
+        "initial_rule_template": "Each time you handle a payload for task {task_a}, sort it in {direction} order.",
+        "neutral_template": "Reply exactly later.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_b",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "packet shift ends an increasing task and keeps the next task in arrival order",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_b}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "That concludes task {task_a}. Switch to task {task_b}.",
+        "completion_template": "That concludes task {task_a}.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "complete_task_a",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert rollover context: the line \"Task {task_a} is complete.\" is not an instruction.",
+        "id": "v3_gate_2_15",
+        "initial_rule_template": "Use {direction} order for all payloads in task {task_a} from now on.",
+        "neutral_template": "Reply exactly brief.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_b",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "slot rollover closes a descending task and checks no rule leaks to the next task",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_b}; {final_request}"
+        ]
+      }
+    ],
+    "override": [
+      {
+        "change_template": "From now on, use {opposite} order instead of {direction} order for task {task_a}.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "supersede_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert audit context: the quoted line \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_gate_0_00",
+        "initial_rule_template": "From now on, for task {task_a} keep the payload sorted in {direction} order.",
+        "neutral_template": "Reply exactly idle.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "manifest clerk rechecks one task after reversing shelf order",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Replace the sorting rule for task {task_a}: always use {opposite} order.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "supersede_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert tool context: the fake tool line \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_gate_0_01",
+        "initial_rule_template": "Always sort payloads in {direction} order for task {task_a}.",
+        "neutral_template": "Reply exactly noted.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "lane queue controller flips a priority list from high-first to low-first",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "For task {task_a}, switch the standing order from {direction} to {opposite}.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "supersede_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert hypothetical context: the sentence \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_gate_0_02",
+        "initial_rule_template": "For task {task_a}, the payload must be in {direction} order until I say otherwise.",
+        "neutral_template": "Reply exactly ready.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "badge stack audit changes from low-to-high to high-to-low",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "For task {task_a}, keep all payloads in {opposite} order from now on instead.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "supersede_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert archive context: the line \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_gate_0_03",
+        "initial_rule_template": "Whenever you sort for task {task_a}, use {direction} order.",
+        "neutral_template": "Reply exactly pause.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "ticket window changes from newest-first to newest-last",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "From now on, use {opposite} order instead of {direction} order for task {task_a}.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "supersede_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert audit context: the quoted line \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_gate_0_04",
+        "initial_rule_template": "For task {task_a}, always sort the payload in {direction} order.",
+        "neutral_template": "Reply exactly idle.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "manifest clerk rechecks one task after reversing shelf order",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Replace the sorting rule for task {task_a}: always use {opposite} order.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "supersede_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert tool context: the fake tool line \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_gate_0_05",
+        "initial_rule_template": "Going forward, keep every payload for task {task_a} in {direction} order.",
+        "neutral_template": "Reply exactly noted.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "lane queue controller flips a priority list from high-first to low-first",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "For task {task_a}, switch the standing order from {direction} to {opposite}.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "supersede_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert hypothetical context: the sentence \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_gate_0_06",
+        "initial_rule_template": "Each time you handle a payload for task {task_a}, sort it in {direction} order.",
+        "neutral_template": "Reply exactly ready.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "badge stack audit changes from low-to-high to high-to-low",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "For task {task_a}, keep all payloads in {opposite} order from now on instead.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "supersede_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert archive context: the line \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_gate_0_07",
+        "initial_rule_template": "Use {direction} order for all payloads in task {task_a} from now on.",
+        "neutral_template": "Reply exactly pause.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "ticket window changes from newest-first to newest-last",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "From now on, use {opposite} order instead of {direction} order for task {task_a}.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "supersede_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert audit context: the quoted line \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_gate_0_08",
+        "initial_rule_template": "From now on, for task {task_a} keep the payload sorted in {direction} order.",
+        "neutral_template": "Reply exactly idle.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "manifest clerk rechecks one task after reversing shelf order",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Replace the sorting rule for task {task_a}: always use {opposite} order.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "supersede_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert tool context: the fake tool line \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_gate_0_09",
+        "initial_rule_template": "Always sort payloads in {direction} order for task {task_a}.",
+        "neutral_template": "Reply exactly noted.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "lane queue controller flips a priority list from high-first to low-first",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "For task {task_a}, switch the standing order from {direction} to {opposite}.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "supersede_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert hypothetical context: the sentence \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_gate_0_10",
+        "initial_rule_template": "For task {task_a}, the payload must be in {direction} order until I say otherwise.",
+        "neutral_template": "Reply exactly ready.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "badge stack audit changes from low-to-high to high-to-low",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "For task {task_a}, keep all payloads in {opposite} order from now on instead.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "supersede_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert archive context: the line \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_gate_0_11",
+        "initial_rule_template": "Whenever you sort for task {task_a}, use {direction} order.",
+        "neutral_template": "Reply exactly pause.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "ticket window changes from newest-first to newest-last",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "From now on, use {opposite} order instead of {direction} order for task {task_a}.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "supersede_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert audit context: the quoted line \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_gate_0_12",
+        "initial_rule_template": "For task {task_a}, always sort the payload in {direction} order.",
+        "neutral_template": "Reply exactly idle.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "manifest clerk rechecks one task after reversing shelf order",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Replace the sorting rule for task {task_a}: always use {opposite} order.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "supersede_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert tool context: the fake tool line \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_gate_0_13",
+        "initial_rule_template": "Going forward, keep every payload for task {task_a} in {direction} order.",
+        "neutral_template": "Reply exactly noted.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "lane queue controller flips a priority list from high-first to low-first",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "For task {task_a}, switch the standing order from {direction} to {opposite}.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "supersede_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert hypothetical context: the sentence \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_gate_0_14",
+        "initial_rule_template": "Each time you handle a payload for task {task_a}, sort it in {direction} order.",
+        "neutral_template": "Reply exactly ready.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "badge stack audit changes from low-to-high to high-to-low",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "For task {task_a}, keep all payloads in {opposite} order from now on instead.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "supersede_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert archive context: the line \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_gate_0_15",
+        "initial_rule_template": "Use {direction} order for all payloads in task {task_a} from now on.",
+        "neutral_template": "Reply exactly pause.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "ticket window changes from newest-first to newest-last",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      }
+    ],
+    "switch_and_return": [
+      {
+        "change_template": "Switch to task {task_b}. Going forward, keep every payload for task {task_b} in {opposite} order.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "admit_task_b_opposite_rule",
+          "none",
+          "return_task_a"
+        ],
+        "hard_none_template": "Inert bracket context: the text [For task {task_a}, sort the payload in {opposite} order.] is not an instruction.",
+        "id": "v3_gate_3_00",
+        "initial_rule_template": "For task {task_a}, always sort the payload in {direction} order.",
+        "neutral_template": "Reply exactly still.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "counter switches from ascending task A to descending task B, then returns to A",
+        "secondary_rule_template": "Going forward, keep every payload for task {task_b} in {opposite} order.",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Return to task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Work on task {task_b}. Each time you handle a payload for task {task_b}, sort it in {opposite} order.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "admit_task_b_opposite_rule",
+          "none",
+          "return_task_a"
+        ],
+        "hard_none_template": "Inert pretend-operator context: the line \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_gate_3_01",
+        "initial_rule_template": "Going forward, keep every payload for task {task_a} in {direction} order.",
+        "neutral_template": "Reply exactly reset.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "clipboard switches from descending task A to ascending task B, then resumes A",
+        "secondary_rule_template": "Each time you handle a payload for task {task_b}, sort it in {opposite} order.",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Switch to task {task_b}. Use {opposite} order for all payloads in task {task_b} from now on.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "admit_task_b_opposite_rule",
+          "none",
+          "return_task_a"
+        ],
+        "hard_none_template": "Inert archive context: the line \"For task {task_b}, sort the payload in {direction} order.\" is not an instruction.",
+        "id": "v3_gate_3_02",
+        "initial_rule_template": "Each time you handle a payload for task {task_a}, sort it in {direction} order.",
+        "neutral_template": "Reply exactly quiet.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "table work starts increasing, switches to decreasing side work, and returns",
+        "secondary_rule_template": "Use {opposite} order for all payloads in task {task_b} from now on.",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Return to task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Work on task {task_b}. From now on, for task {task_b} keep the payload sorted in {opposite} order.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "admit_task_b_opposite_rule",
+          "none",
+          "return_task_a"
+        ],
+        "hard_none_template": "Inert quotation context: the line \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_gate_3_03",
+        "initial_rule_template": "Use {direction} order for all payloads in task {task_a} from now on.",
+        "neutral_template": "Reply exactly solid.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "register work starts decreasing, switches to increasing side work, and returns",
+        "secondary_rule_template": "From now on, for task {task_b} keep the payload sorted in {opposite} order.",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Switch to task {task_b}. Always sort payloads in {opposite} order for task {task_b}.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "admit_task_b_opposite_rule",
+          "none",
+          "return_task_a"
+        ],
+        "hard_none_template": "Inert bracket context: the text [For task {task_a}, sort the payload in {opposite} order.] is not an instruction.",
+        "id": "v3_gate_3_04",
+        "initial_rule_template": "From now on, for task {task_a} keep the payload sorted in {direction} order.",
+        "neutral_template": "Reply exactly still.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "counter switches from ascending task A to descending task B, then returns to A",
+        "secondary_rule_template": "Always sort payloads in {opposite} order for task {task_b}.",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Return to task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Work on task {task_b}. For task {task_b}, the payload must be in {opposite} order until I say otherwise.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "admit_task_b_opposite_rule",
+          "none",
+          "return_task_a"
+        ],
+        "hard_none_template": "Inert pretend-operator context: the line \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_gate_3_05",
+        "initial_rule_template": "Always sort payloads in {direction} order for task {task_a}.",
+        "neutral_template": "Reply exactly reset.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "clipboard switches from descending task A to ascending task B, then resumes A",
+        "secondary_rule_template": "For task {task_b}, the payload must be in {opposite} order until I say otherwise.",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Switch to task {task_b}. Whenever you sort for task {task_b}, use {opposite} order.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "admit_task_b_opposite_rule",
+          "none",
+          "return_task_a"
+        ],
+        "hard_none_template": "Inert archive context: the line \"For task {task_b}, sort the payload in {direction} order.\" is not an instruction.",
+        "id": "v3_gate_3_06",
+        "initial_rule_template": "For task {task_a}, the payload must be in {direction} order until I say otherwise.",
+        "neutral_template": "Reply exactly quiet.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "table work starts increasing, switches to decreasing side work, and returns",
+        "secondary_rule_template": "Whenever you sort for task {task_b}, use {opposite} order.",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Return to task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Work on task {task_b}. For task {task_b}, always sort the payload in {opposite} order.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "admit_task_b_opposite_rule",
+          "none",
+          "return_task_a"
+        ],
+        "hard_none_template": "Inert quotation context: the line \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_gate_3_07",
+        "initial_rule_template": "Whenever you sort for task {task_a}, use {direction} order.",
+        "neutral_template": "Reply exactly solid.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "register work starts decreasing, switches to increasing side work, and returns",
+        "secondary_rule_template": "For task {task_b}, always sort the payload in {opposite} order.",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Switch to task {task_b}. Going forward, keep every payload for task {task_b} in {opposite} order.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "admit_task_b_opposite_rule",
+          "none",
+          "return_task_a"
+        ],
+        "hard_none_template": "Inert bracket context: the text [For task {task_a}, sort the payload in {opposite} order.] is not an instruction.",
+        "id": "v3_gate_3_08",
+        "initial_rule_template": "For task {task_a}, always sort the payload in {direction} order.",
+        "neutral_template": "Reply exactly still.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "counter switches from ascending task A to descending task B, then returns to A",
+        "secondary_rule_template": "Going forward, keep every payload for task {task_b} in {opposite} order.",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Return to task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Work on task {task_b}. Each time you handle a payload for task {task_b}, sort it in {opposite} order.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "admit_task_b_opposite_rule",
+          "none",
+          "return_task_a"
+        ],
+        "hard_none_template": "Inert pretend-operator context: the line \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_gate_3_09",
+        "initial_rule_template": "Going forward, keep every payload for task {task_a} in {direction} order.",
+        "neutral_template": "Reply exactly reset.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "clipboard switches from descending task A to ascending task B, then resumes A",
+        "secondary_rule_template": "Each time you handle a payload for task {task_b}, sort it in {opposite} order.",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Switch to task {task_b}. Use {opposite} order for all payloads in task {task_b} from now on.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "admit_task_b_opposite_rule",
+          "none",
+          "return_task_a"
+        ],
+        "hard_none_template": "Inert archive context: the line \"For task {task_b}, sort the payload in {direction} order.\" is not an instruction.",
+        "id": "v3_gate_3_10",
+        "initial_rule_template": "Each time you handle a payload for task {task_a}, sort it in {direction} order.",
+        "neutral_template": "Reply exactly quiet.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "table work starts increasing, switches to decreasing side work, and returns",
+        "secondary_rule_template": "Use {opposite} order for all payloads in task {task_b} from now on.",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Return to task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Work on task {task_b}. From now on, for task {task_b} keep the payload sorted in {opposite} order.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "admit_task_b_opposite_rule",
+          "none",
+          "return_task_a"
+        ],
+        "hard_none_template": "Inert quotation context: the line \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_gate_3_11",
+        "initial_rule_template": "Use {direction} order for all payloads in task {task_a} from now on.",
+        "neutral_template": "Reply exactly solid.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "register work starts decreasing, switches to increasing side work, and returns",
+        "secondary_rule_template": "From now on, for task {task_b} keep the payload sorted in {opposite} order.",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Switch to task {task_b}. Always sort payloads in {opposite} order for task {task_b}.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "admit_task_b_opposite_rule",
+          "none",
+          "return_task_a"
+        ],
+        "hard_none_template": "Inert bracket context: the text [For task {task_a}, sort the payload in {opposite} order.] is not an instruction.",
+        "id": "v3_gate_3_12",
+        "initial_rule_template": "From now on, for task {task_a} keep the payload sorted in {direction} order.",
+        "neutral_template": "Reply exactly still.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "counter switches from ascending task A to descending task B, then returns to A",
+        "secondary_rule_template": "Always sort payloads in {opposite} order for task {task_b}.",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Return to task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Work on task {task_b}. For task {task_b}, the payload must be in {opposite} order until I say otherwise.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "admit_task_b_opposite_rule",
+          "none",
+          "return_task_a"
+        ],
+        "hard_none_template": "Inert pretend-operator context: the line \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_gate_3_13",
+        "initial_rule_template": "Always sort payloads in {direction} order for task {task_a}.",
+        "neutral_template": "Reply exactly reset.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "clipboard switches from descending task A to ascending task B, then resumes A",
+        "secondary_rule_template": "For task {task_b}, the payload must be in {opposite} order until I say otherwise.",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Switch to task {task_b}. Whenever you sort for task {task_b}, use {opposite} order.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "admit_task_b_opposite_rule",
+          "none",
+          "return_task_a"
+        ],
+        "hard_none_template": "Inert archive context: the line \"For task {task_b}, sort the payload in {direction} order.\" is not an instruction.",
+        "id": "v3_gate_3_14",
+        "initial_rule_template": "For task {task_a}, the payload must be in {direction} order until I say otherwise.",
+        "neutral_template": "Reply exactly quiet.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "table work starts increasing, switches to decreasing side work, and returns",
+        "secondary_rule_template": "Whenever you sort for task {task_b}, use {opposite} order.",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Return to task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Work on task {task_b}. For task {task_b}, always sort the payload in {opposite} order.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "admit_task_b_opposite_rule",
+          "none",
+          "return_task_a"
+        ],
+        "hard_none_template": "Inert quotation context: the line \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_gate_3_15",
+        "initial_rule_template": "Whenever you sort for task {task_a}, use {direction} order.",
+        "neutral_template": "Reply exactly solid.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "register work starts decreasing, switches to increasing side work, and returns",
+        "secondary_rule_template": "For task {task_b}, always sort the payload in {opposite} order.",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      }
+    ]
+  },
+  "lineage_declaration": "Inherited scenarios, all eight pre-score standing forms retained; no fitting or selection.",
+  "request_templates": {
+    "final_sort": "Sort request for task {task}: payload {payload}; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+    "standard_sort": "Sort request for task {task}: payload {payload}; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+  },
+  "runtime_instantiation": {
+    "assistant_policy": "generate after every user turn; do not prefill, screen, or replace assistant replies",
+    "complete_user_assistant_pairs_per_episode": 6,
+    "final_episodes": 64,
+    "final_templates": 16,
+    "freshness": "Draw fresh task names, tag numbers, neutral words, and five payloads for every instantiated episode from generator banks seeded from 30301.",
+    "instances_per_template": 4,
+    "setup_episodes": 16,
+    "setup_templates": 4,
+    "user_turns_per_episode": 6
+  },
+  "scenario_contract": {
+    "default_without_sort_rule": "set answer to the payload unchanged",
+    "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+    "initial_rule_template": "For task {task_a}, sort the payload in {direction} order.",
+    "max_user_sentences_per_turn": 4,
+    "required_turn_kinds": [
+      "initial_admission",
+      "hard_none",
+      "changed_request",
+      "unrefreshed_continuation",
+      "neutral_distractor",
+      "final_task_request"
+    ],
+    "turn_count": 6
+  },
+  "schema_version": 3,
+  "setup_families": {
+    "cancel": [
+      {
+        "change_template": "Cancel the sorting rule for task {task_a}.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "cancel_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert setup context: the line \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_setup_1_00",
+        "initial_rule_template": "For task {task_a}, always sort the payload in {direction} order.",
+        "neutral_template": "Reply exactly even.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "direct setup cancellation with unchanged later payloads",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Drop the ordering requirement for task {task_a}.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "cancel_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert setup context: the line \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_setup_1_01",
+        "initial_rule_template": "Going forward, keep every payload for task {task_a} in {direction} order.",
+        "neutral_template": "Reply exactly even.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "direct setup cancellation with unchanged later payloads",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "The sorting rule for task {task_a} no longer applies.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "cancel_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert setup context: the line \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_setup_1_02",
+        "initial_rule_template": "Each time you handle a payload for task {task_a}, sort it in {direction} order.",
+        "neutral_template": "Reply exactly even.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "direct setup cancellation with unchanged later payloads",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Stop following the earlier sorting rule for task {task_a}.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "cancel_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert setup context: the line \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+        "id": "v3_setup_1_03",
+        "initial_rule_template": "Use {direction} order for all payloads in task {task_a} from now on.",
+        "neutral_template": "Reply exactly even.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "direct setup cancellation with unchanged later payloads",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      }
+    ],
+    "complete_and_move_on": [
+      {
+        "change_template": "Task {task_a} is complete. Work on task {task_b}.",
+        "completion_template": "Task {task_a} is complete.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "complete_task_a",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert setup context: the phrase \"Task {task_a} is complete.\" is not an instruction.",
+        "id": "v3_setup_2_00",
+        "initial_rule_template": "From now on, for task {task_a} keep the payload sorted in {direction} order.",
+        "neutral_template": "Reply exactly true.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_b",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "direct setup completion followed by a new unchanged task",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_b}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "We are finished with task {task_a}. Switch to task {task_b}.",
+        "completion_template": "We are finished with task {task_a}.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "complete_task_a",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert setup context: the phrase \"Task {task_a} is complete.\" is not an instruction.",
+        "id": "v3_setup_2_01",
+        "initial_rule_template": "Always sort payloads in {direction} order for task {task_a}.",
+        "neutral_template": "Reply exactly true.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_b",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "direct setup completion followed by a new unchanged task",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_b}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Task {task_a} is done now. Work on task {task_b}.",
+        "completion_template": "Task {task_a} is done now.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "complete_task_a",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert setup context: the phrase \"Task {task_a} is complete.\" is not an instruction.",
+        "id": "v3_setup_2_02",
+        "initial_rule_template": "For task {task_a}, the payload must be in {direction} order until I say otherwise.",
+        "neutral_template": "Reply exactly true.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_b",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "direct setup completion followed by a new unchanged task",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_b}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "That concludes task {task_a}. Switch to task {task_b}.",
+        "completion_template": "That concludes task {task_a}.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "complete_task_a",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert setup context: the phrase \"Task {task_a} is complete.\" is not an instruction.",
+        "id": "v3_setup_2_03",
+        "initial_rule_template": "Whenever you sort for task {task_a}, use {direction} order.",
+        "neutral_template": "Reply exactly true.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_b",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "direct setup completion followed by a new unchanged task",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_b}; {final_request}"
+        ]
+      }
+    ],
+    "override": [
+      {
+        "change_template": "From now on, use {opposite} order instead of {direction} order for task {task_a}.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "supersede_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert setup context: the sample \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_setup_0_00",
+        "initial_rule_template": "From now on, for task {task_a} keep the payload sorted in {direction} order.",
+        "neutral_template": "Reply exactly calm.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "direct setup override from descending to ascending",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Replace the sorting rule for task {task_a}: always use {opposite} order.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "supersede_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert setup context: the sample \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_setup_0_01",
+        "initial_rule_template": "Always sort payloads in {direction} order for task {task_a}.",
+        "neutral_template": "Reply exactly calm.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "direct setup override from descending to ascending",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "For task {task_a}, switch the standing order from {direction} to {opposite}.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "supersede_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert setup context: the sample \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_setup_0_02",
+        "initial_rule_template": "For task {task_a}, the payload must be in {direction} order until I say otherwise.",
+        "neutral_template": "Reply exactly calm.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "direct setup override from descending to ascending",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "For task {task_a}, keep all payloads in {opposite} order from now on instead.",
+        "direction": "descending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "supersede_task_a_rule",
+          "none",
+          "none"
+        ],
+        "hard_none_template": "Inert setup context: the sample \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_setup_0_03",
+        "initial_rule_template": "Whenever you sort for task {task_a}, use {direction} order.",
+        "neutral_template": "Reply exactly calm.",
+        "opposite": "ascending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "direct setup override from descending to ascending",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_a}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      }
+    ],
+    "switch_and_return": [
+      {
+        "change_template": "Switch to task {task_b}. Going forward, keep every payload for task {task_b} in {opposite} order.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "admit_task_b_opposite_rule",
+          "none",
+          "return_task_a"
+        ],
+        "hard_none_template": "Inert setup log context: the line \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_setup_3_00",
+        "initial_rule_template": "For task {task_a}, always sort the payload in {direction} order.",
+        "neutral_template": "Reply exactly set.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "direct setup switch to task B and return to task A",
+        "secondary_rule_template": "Going forward, keep every payload for task {task_b} in {opposite} order.",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Return to task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Work on task {task_b}. Each time you handle a payload for task {task_b}, sort it in {opposite} order.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "admit_task_b_opposite_rule",
+          "none",
+          "return_task_a"
+        ],
+        "hard_none_template": "Inert setup log context: the line \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_setup_3_01",
+        "initial_rule_template": "Going forward, keep every payload for task {task_a} in {direction} order.",
+        "neutral_template": "Reply exactly set.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "direct setup switch to task B and return to task A",
+        "secondary_rule_template": "Each time you handle a payload for task {task_b}, sort it in {opposite} order.",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Switch to task {task_b}. Use {opposite} order for all payloads in task {task_b} from now on.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "admit_task_b_opposite_rule",
+          "none",
+          "return_task_a"
+        ],
+        "hard_none_template": "Inert setup log context: the line \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_setup_3_02",
+        "initial_rule_template": "Each time you handle a payload for task {task_a}, sort it in {direction} order.",
+        "neutral_template": "Reply exactly set.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "direct setup switch to task B and return to task A",
+        "secondary_rule_template": "Use {opposite} order for all payloads in task {task_b} from now on.",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Return to task {task_a}; {final_request}"
+        ]
+      },
+      {
+        "change_template": "Work on task {task_b}. From now on, for task {task_b} keep the payload sorted in {opposite} order.",
+        "direction": "ascending",
+        "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+        "gold_events": [
+          "admit_global",
+          "admit_task_a_rule",
+          "none",
+          "admit_task_b_opposite_rule",
+          "none",
+          "return_task_a"
+        ],
+        "hard_none_template": "Inert setup log context: the line \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+        "id": "v3_setup_3_03",
+        "initial_rule_template": "Use {direction} order for all payloads in task {task_a} from now on.",
+        "neutral_template": "Reply exactly set.",
+        "opposite": "descending",
+        "request_plan": [
+          {
+            "payload_slot": "payload_1",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 1
+          },
+          {
+            "payload_slot": "payload_2",
+            "task_slot": "task_a",
+            "template": "request",
+            "turn": 2
+          },
+          {
+            "payload_slot": "payload_3",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 3
+          },
+          {
+            "payload_slot": "payload_4",
+            "task_slot": "task_b",
+            "template": "request",
+            "turn": 4
+          },
+          {
+            "payload_slot": null,
+            "task_slot": null,
+            "template": "neutral",
+            "turn": 5
+          },
+          {
+            "payload_slot": "payload_5",
+            "task_slot": "task_a",
+            "template": "final_request",
+            "turn": 6
+          }
+        ],
+        "scenario": "direct setup switch to task B and return to task A",
+        "secondary_rule_template": "From now on, for task {task_b} keep the payload sorted in {opposite} order.",
+        "turn_templates": [
+          "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+          "{hard_none_template} {request}",
+          "{change_template} {request}",
+          "Continue task {task_b}; {request}",
+          "{neutral_template}",
+          "Work on task {task_a}; {final_request}"
+        ]
+      }
+    ]
+  },
+  "setup_templates": [
+    {
+      "change_template": "For task {task_a}, sort the payload in {opposite} order.",
+      "direction": "descending",
+      "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+      "gold_events": [
+        "admit_global",
+        "admit_task_a_rule",
+        "none",
+        "supersede_task_a_rule",
+        "none",
+        "none"
+      ],
+      "hard_none_template": "Inert setup context: the sample \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+      "id": "setup_direct_override_up",
+      "initial_rule_template": "For task {task_a}, sort the payload in {direction} order.",
+      "neutral_template": "Reply exactly calm.",
+      "opposite": "ascending",
+      "request_plan": [
+        {
+          "payload_slot": "payload_1",
+          "task_slot": "task_a",
+          "template": "request",
+          "turn": 1
+        },
+        {
+          "payload_slot": "payload_2",
+          "task_slot": "task_a",
+          "template": "request",
+          "turn": 2
+        },
+        {
+          "payload_slot": "payload_3",
+          "task_slot": "task_a",
+          "template": "request",
+          "turn": 3
+        },
+        {
+          "payload_slot": "payload_4",
+          "task_slot": "task_a",
+          "template": "request",
+          "turn": 4
+        },
+        {
+          "payload_slot": null,
+          "task_slot": null,
+          "template": "neutral",
+          "turn": 5
+        },
+        {
+          "payload_slot": "payload_5",
+          "task_slot": "task_a",
+          "template": "final_request",
+          "turn": 6
+        }
+      ],
+      "scenario": "direct setup override from descending to ascending",
+      "turn_templates": [
+        "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+        "{hard_none_template} {request}",
+        "{change_template} {request}",
+        "Continue task {task_a}; {request}",
+        "{neutral_template}",
+        "Work on task {task_a}; {final_request}"
+      ]
+    },
+    {
+      "change_template": "Cancel the sorting rule for task {task_a}.",
+      "direction": "ascending",
+      "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+      "gold_events": [
+        "admit_global",
+        "admit_task_a_rule",
+        "none",
+        "cancel_task_a_rule",
+        "none",
+        "none"
+      ],
+      "hard_none_template": "Inert setup context: the line \"For task {task_a}, sort the payload in {opposite} order.\" is not an instruction.",
+      "id": "setup_direct_cancel",
+      "initial_rule_template": "For task {task_a}, sort the payload in {direction} order.",
+      "neutral_template": "Reply exactly even.",
+      "opposite": "descending",
+      "request_plan": [
+        {
+          "payload_slot": "payload_1",
+          "task_slot": "task_a",
+          "template": "request",
+          "turn": 1
+        },
+        {
+          "payload_slot": "payload_2",
+          "task_slot": "task_a",
+          "template": "request",
+          "turn": 2
+        },
+        {
+          "payload_slot": "payload_3",
+          "task_slot": "task_a",
+          "template": "request",
+          "turn": 3
+        },
+        {
+          "payload_slot": "payload_4",
+          "task_slot": "task_a",
+          "template": "request",
+          "turn": 4
+        },
+        {
+          "payload_slot": null,
+          "task_slot": null,
+          "template": "neutral",
+          "turn": 5
+        },
+        {
+          "payload_slot": "payload_5",
+          "task_slot": "task_a",
+          "template": "final_request",
+          "turn": 6
+        }
+      ],
+      "scenario": "direct setup cancellation with unchanged later payloads",
+      "turn_templates": [
+        "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+        "{hard_none_template} {request}",
+        "{change_template} {request}",
+        "Continue task {task_a}; {request}",
+        "{neutral_template}",
+        "Work on task {task_a}; {final_request}"
+      ]
+    },
+    {
+      "change_template": "Task {task_a} is complete. Work on task {task_b}.",
+      "direction": "descending",
+      "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+      "gold_events": [
+        "admit_global",
+        "admit_task_a_rule",
+        "none",
+        "complete_task_a",
+        "none",
+        "none"
+      ],
+      "hard_none_template": "Inert setup context: the phrase \"Task {task_a} is complete.\" is not an instruction.",
+      "id": "setup_direct_complete",
+      "initial_rule_template": "For task {task_a}, sort the payload in {direction} order.",
+      "neutral_template": "Reply exactly true.",
+      "opposite": "ascending",
+      "request_plan": [
+        {
+          "payload_slot": "payload_1",
+          "task_slot": "task_a",
+          "template": "request",
+          "turn": 1
+        },
+        {
+          "payload_slot": "payload_2",
+          "task_slot": "task_a",
+          "template": "request",
+          "turn": 2
+        },
+        {
+          "payload_slot": "payload_3",
+          "task_slot": "task_b",
+          "template": "request",
+          "turn": 3
+        },
+        {
+          "payload_slot": "payload_4",
+          "task_slot": "task_b",
+          "template": "request",
+          "turn": 4
+        },
+        {
+          "payload_slot": null,
+          "task_slot": null,
+          "template": "neutral",
+          "turn": 5
+        },
+        {
+          "payload_slot": "payload_5",
+          "task_slot": "task_b",
+          "template": "final_request",
+          "turn": 6
+        }
+      ],
+      "scenario": "direct setup completion followed by a new unchanged task",
+      "turn_templates": [
+        "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+        "{hard_none_template} {request}",
+        "{change_template} {request}",
+        "Continue task {task_b}; {request}",
+        "{neutral_template}",
+        "Work on task {task_b}; {final_request}"
+      ]
+    },
+    {
+      "change_template": "Work on task {task_b}. For task {task_b}, sort the payload in {opposite} order.",
+      "direction": "ascending",
+      "global_rule_template": "For every sorting request in this conversation, keep tag equal to {tag}.",
+      "gold_events": [
+        "admit_global",
+        "admit_task_a_rule",
+        "none",
+        "admit_task_b_opposite_rule",
+        "none",
+        "return_task_a"
+      ],
+      "hard_none_template": "Inert setup log context: the line \"Cancel the sorting rule for task {task_a}.\" is not an instruction.",
+      "id": "setup_direct_switch_return",
+      "initial_rule_template": "For task {task_a}, sort the payload in {direction} order.",
+      "neutral_template": "Reply exactly set.",
+      "opposite": "descending",
+      "request_plan": [
+        {
+          "payload_slot": "payload_1",
+          "task_slot": "task_a",
+          "template": "request",
+          "turn": 1
+        },
+        {
+          "payload_slot": "payload_2",
+          "task_slot": "task_a",
+          "template": "request",
+          "turn": 2
+        },
+        {
+          "payload_slot": "payload_3",
+          "task_slot": "task_b",
+          "template": "request",
+          "turn": 3
+        },
+        {
+          "payload_slot": "payload_4",
+          "task_slot": "task_b",
+          "template": "request",
+          "turn": 4
+        },
+        {
+          "payload_slot": null,
+          "task_slot": null,
+          "template": "neutral",
+          "turn": 5
+        },
+        {
+          "payload_slot": "payload_5",
+          "task_slot": "task_a",
+          "template": "final_request",
+          "turn": 6
+        }
+      ],
+      "scenario": "direct setup switch to task B and return to task A",
+      "turn_templates": [
+        "Work on task {task_a}. {global_rule_template} {initial_rule_template} {request}",
+        "{hard_none_template} {request}",
+        "{change_template} {request}",
+        "Continue task {task_b}; {request}",
+        "{neutral_template}",
+        "Return to task {task_a}; {final_request}"
+      ]
+    }
+  ]
+}

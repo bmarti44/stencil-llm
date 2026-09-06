@@ -19,6 +19,7 @@ from stencil import focus2
 LABELS = ("none", "supersedes", "cancels", "completes", "reinstates")
 THRESHOLDS = dict(supersedes=0.94, cancels=0.50, completes=0.50, reinstates=0.50)
 ROOT = Path(__file__).resolve().parents[2]
+NONE_PAIR_THRESHOLD = 0.9711621345086118  # v4 DEV gold-none linear 90th percentile.
 ORDER_DEFAULT = "Ordering: return the list in the given order."
 
 
@@ -48,6 +49,20 @@ def sentences(text):
     return [
         (m.start(), m.group()) for m in re.finditer(r"\S.*?(?:[.!?](?=\s|$)|$)", text)
     ]
+
+
+def prose_message(text):
+    """Relation message: prose before the harness's sort request/payload block."""
+    return re.split(r"\bSort request for task [A-Z]", text, maxsplit=1)[0].rstrip()
+
+
+def relation_key(text):
+    """Semantic metadata only; register provenance/identity stays separate."""
+    if re.search(r"\btag\b", text, re.I):
+        return "tag"
+    if re.search(r"sort|order|payload", text, re.I):
+        return "sort-order"
+    return "instruction"
 
 
 def admission_inputs(spans, previous):
@@ -235,22 +250,25 @@ class Runtime:
             self.previous = text
             return dict(trace, after=before, overflow=True)
         pairs = []
-        for start, span in spans:
+        prose = prose_message(text)
+        prior_sentences = sentences(prose_message(self.previous))
+        previous_sentence = prior_sentences[-1][1] if prior_sentences else None
+        for start, span in sentences(prose):
             for rule in eligible:
                 pairs.append(
                     dict(
                         old_rule=dict(
                             text=rule.text,
-                            status=("active" if rule.status == "live" else rule.status),
-                            scope="user-global" if rule.scope == "*" else "task",
-                            key=rule.key,
-                            version=rule.version,
-                            task_id=None if rule.scope == "*" else rule.scope,
+                            status=rule.status,
+                            scope="global"
+                            if rule.scope == "*"
+                            else f"task:{rule.scope}",
+                            key=relation_key(rule.text),
                         ),
-                        message=text,
+                        message=prose,
                         role=role,
-                        target_span=dict(text=span, start=start),
-                        prev_user=self.previous,
+                        target_span=dict(text=span, start=start, end=start + len(span)),
+                        prev_user=previous_sentence,
                         target_id=rule.id,
                     )
                 )
@@ -277,7 +295,17 @@ class Runtime:
             rows = [
                 p for p in trace["pairs"] if p["input"]["target_span"]["start"] == start
             ]
-            positive = [p for p in rows if p["proposed"] != "none"]
+            positive = [
+                p
+                for p in rows
+                if p["proposed"] != "none"
+                and self.register.get(p["input"]["target_id"]).kind
+                in ("all", kind_of(span))
+            ]
+            # Task-completion prose has no request-kind word. It can address
+            # all obligations; retain the pre-existing atomic completion check.
+            if kind_of(span) == "all":
+                positive = [p for p in rows if p["proposed"] != "none"]
             scope = scope_of(span, self.task)
             blocked = any(p["overflow"] for p in rows)
             # Multiple completes form one whole-task transaction only when all
@@ -302,9 +330,12 @@ class Runtime:
                         self.register.retire(rid, "completed")
                         p["applied"] = "completes"
                         trace["applied"].append(dict(label="completes", target=rid))
-                continue
+                    continue
             if positive and not blocked:
-                p = positive[0]
+                p = max(
+                    positive,
+                    key=lambda p: p["probabilities"][LABELS.index(p["proposed"])],
+                )
                 old = self.register.get(p["input"]["target_id"])
                 label = p["proposed"]
                 if scope is None or not overlaps(old.scope, scope):
@@ -338,7 +369,9 @@ class Runtime:
                 p["applied"] = label
                 trace["applied"].append(dict(label=label, target=old.id, span=span))
                 continue
-            confident_none = all(p["probabilities"][0] >= 0.98 for p in rows)
+            confident_none = all(
+                p["probabilities"][0] >= NONE_PAIR_THRESHOLD for p in rows
+            )
             accept = (
                 not positive
                 and not blocked

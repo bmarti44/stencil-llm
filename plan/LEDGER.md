@@ -469,3 +469,51 @@ Inherited40h generator/scorer/cache/mask unchanged; only seed/arm schedule and
 primary reading differ. All168 expressions disjoint incl40h; ruff/diff clean.
 Next foreground scripts/focus_check40i.py --mode run, cap1800s, own flag under
 review lock after resource recheck; no outcome retries/signals/sealed reads/push.
+
+2026-09-06 — STATE: FOCUS-3 V4 CPU WRITE-AHEAD (gpt-6-astra).
+User-authorized runtime-value/constant repair supersedes v3 stop; archived protocol
+read for context, direct foreground task governs. No review/coder wrapper active;
+check40i is a direct GPU runner, so scoped CPU work proceeds without GPU claim.
+Fit/train none. Calibrate ONLY committed frozen GPU seed0 DEV predictions;
+evaluate unchanged v3 wording with fresh lists30321 setup/30322 gate,16/64.
+Register before calibration/inference: relation status passes through live,
+superseded,cancelled,completed; scope global or task:<visible semantic task name>;
+metadata key-only, semantic sort-order/tag (generic instruction otherwise).
+Message is the entire current prose prefix before the Sort request/payload block,
+retaining all prose sentences; payload-only spans generate no relation pairs.
+prev_user is the last sentence of the previous user's prose prefix, or None;
+it is not the entire previous message nor earlier sentences of this message.
+Source span offsets remain original; pairs also carry exact end offsets.
+Admission inputs/threshold.95 unchanged. None-pair threshold = NumPy linear90th
+percentile of DEV gold-none P(none); if >5% DEV positives meet >=threshold use
+linear95th. If95th still exceeds5%, report and stop ineligible, never retune.
+Select highest proposed-label probability among same request-kind targets;
+retain whole-task atomic completion rule and existing scope/status guards;
+stable source order breaks equal-probability ties. No extra key/scope rescue.
+Eligibility: all36 gold admissions plus >=11/12 correctly applied transitions
+with exact gold source retirement/replacement state; no overflow;96 records.
+Known three phrasings are present in inherited setup: disclose, never remove.
+Gate endpoints/competence/cap unchanged (C/O/N/T,64,10800 GPU seconds); mechanical
+setup failure stops GPU/gate. Brian pid2705 exempt from GPU readiness; no signals.
+Enrichment: exact3 known misses +90 individually handwritten paraphrases for a
+LATER refit only, explicitly evaluation-derived/development-only relatives; never
+used by current classifier/calibration. This authorized exception does not make
+these families eligible as independent future evaluation. No sealed inputs,
+background launch or push; force-add artifacts, explicit-path commits only.
+
+2026-09-06 — STATE: FOCUS-3 V4 CPU READY; FREEZE BEFORE SETUP.
+DEV576-row committed-logit hash matches frozen manifest. Linear90th cutoff
+0.9711621345086118:26/259 gold-none admitted,0/317 positives admitted;95th fallback
+not selected (0.97256607268076,13/259,0/317). No weights/positive thresholds changed.
+CPU parity/target/guard/stop tests PASS; actual dummy preflight writer->audit
+consumer saves/replays96 records. Targeted suite31 passed/1 legacy inventory xfail,
+plus new writer/audit test passed (32 total applicable);ruff/diff clean.
+All3 known phrasing misses present in exact inherited authoring; only30321/30322
+lists change.93-row handwritten enrichment quarantined for later refit, family
+links and evaluation-derived provenance explicit; source templates not edited.
+Pre-inference freeze includes source/model/DEV/bank/reading/enrichment hashes.
+Next ONE foreground CPU preflight: CUDA_VISIBLE_DEVICES='' .venv/bin/python -u
+-m scripts.focus3_gate_v4 --mode preflight. Log v4/preflight.log via pipefail.
+If setup misses>1 transition or any of36 admissions, stop INELIGIBLE-ADMISSION;
+otherwise wait for flags/other compute (pid2705 exempt), then foreground GPU run.
+No sealed reads/fitting/signals/background/push; explicit-path local commit next.
