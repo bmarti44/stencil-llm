@@ -1,0 +1,415 @@
+[
+  {
+    "id": "shelfBands",
+    "name": "shelfBands",
+    "prompt": "Write a function named shelfBands that takes an array of integers and returns the sums of maximal consecutive runs of equal sign, treating zero as its own sign. Empty input returns an empty array.",
+    "split": "dev",
+    "tests": [
+      {
+        "args": [
+          [
+            2,
+            3,
+            -1,
+            -4,
+            0,
+            0,
+            7
+          ]
+        ],
+        "expected": [
+          5,
+          -5,
+          0,
+          7
+        ]
+      },
+      {
+        "args": [
+          []
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            0,
+            -2,
+            0,
+            3
+          ]
+        ],
+        "expected": [
+          0,
+          -2,
+          0,
+          3
+        ]
+      },
+      {
+        "args": [
+          [
+            -1,
+            -1,
+            2,
+            -3
+          ]
+        ],
+        "expected": [
+          -2,
+          2,
+          -3
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ticketSuffix",
+    "name": "ticketSuffix",
+    "prompt": "Write a function named ticketSuffix that takes a string and returns the longest suffix containing no repeated ASCII character; case matters and spaces count. Empty input returns an empty string.",
+    "split": "dev",
+    "tests": [
+      {
+        "args": [
+          "abca"
+        ],
+        "expected": "bca"
+      },
+      {
+        "args": [
+          "ab ba"
+        ],
+        "expected": " ba"
+      },
+      {
+        "args": [
+          "aaaa"
+        ],
+        "expected": "a"
+      },
+      {
+        "args": [
+          ""
+        ],
+        "expected": ""
+      }
+    ]
+  },
+  {
+    "id": "crateFields",
+    "name": "crateFields",
+    "prompt": "Write a function named crateFields that takes a string of fields separated by semicolons outside double quotes. Double quotes toggle quoted mode and are not included in output; inside quoted mode two consecutive double quotes produce one literal quote without toggling. Backslash has no special meaning. Preserve empty fields, including trailing ones. Return null for an unclosed quote. The empty string means one empty field.",
+    "split": "dev",
+    "tests": [
+      {
+        "args": [
+          "a;\"b;c\";"
+        ],
+        "expected": [
+          "a",
+          "b;c",
+          ""
+        ]
+      },
+      {
+        "args": [
+          "\"a\"\"b\";x"
+        ],
+        "expected": [
+          "a\"b",
+          "x"
+        ]
+      },
+      {
+        "args": [
+          "\"oops"
+        ],
+        "expected": null
+      },
+      {
+        "args": [
+          ""
+        ],
+        "expected": [
+          ""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "paintWindows",
+    "name": "paintWindows",
+    "prompt": "Write a function named paintWindows that takes an array of [start,end,label] integer intervals with start < end. Intervals are half-open. Later entries overwrite earlier ones. Return sorted nonempty [start,end,label] segments covering the union, merging adjacent segments with equal labels, and omit uncovered gaps. Do not mutate the input.",
+    "split": "dev",
+    "tests": [
+      {
+        "args": [
+          [
+            [
+              0,
+              5,
+              "a"
+            ],
+            [
+              2,
+              3,
+              "b"
+            ]
+          ]
+        ],
+        "expected": [
+          [
+            0,
+            2,
+            "a"
+          ],
+          [
+            2,
+            3,
+            "b"
+          ],
+          [
+            3,
+            5,
+            "a"
+          ]
+        ]
+      },
+      {
+        "args": [
+          [
+            [
+              0,
+              2,
+              "a"
+            ],
+            [
+              2,
+              4,
+              "a"
+            ]
+          ]
+        ],
+        "expected": [
+          [
+            0,
+            4,
+            "a"
+          ]
+        ]
+      },
+      {
+        "args": [
+          []
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            [
+              1,
+              8,
+              "x"
+            ],
+            [
+              0,
+              9,
+              "y"
+            ],
+            [
+              3,
+              5,
+              "x"
+            ]
+          ]
+        ],
+        "expected": [
+          [
+            0,
+            3,
+            "y"
+          ],
+          [
+            3,
+            5,
+            "x"
+          ],
+          [
+            5,
+            9,
+            "y"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "routePieces",
+    "name": "routePieces",
+    "prompt": "Write a function named routePieces that takes an absolute slash-separated path string. Remove empty and dot components; dot-dot removes the most recent ordinary component if one exists, otherwise is ignored. A component whose first character is ! is a barrier: preserve it, and a later dot-dot may not remove it or cross it. Return the normalized absolute path without a trailing slash unless it is root.",
+    "split": "dev",
+    "tests": [
+      {
+        "args": [
+          "/a/!b/c/../../d"
+        ],
+        "expected": "/a/!b/d"
+      },
+      {
+        "args": [
+          "/../../x"
+        ],
+        "expected": "/x"
+      },
+      {
+        "args": [
+          "/a//./b/.."
+        ],
+        "expected": "/a"
+      },
+      {
+        "args": [
+          "/!x/../!y/../"
+        ],
+        "expected": "/!x/!y"
+      }
+    ]
+  },
+  {
+    "id": "stampShift",
+    "name": "stampShift",
+    "prompt": "Write a function named stampShift that takes a valid date string YYYY-MM-DD and a signed integer minute offset. Interpret the date as midnight on a fictional calendar with twelve 30-day months, no leap years, and 24-hour days. Return YYYY-MM-DD HH:mm after applying the offset, padding all fields. Inputs and results have years 0001 through 9999.",
+    "split": "dev",
+    "tests": [
+      {
+        "args": [
+          "2024-01-01",
+          -1
+        ],
+        "expected": "2023-12-30 23:59"
+      },
+      {
+        "args": [
+          "2024-02-30",
+          1440
+        ],
+        "expected": "2024-03-01 00:00"
+      },
+      {
+        "args": [
+          "0099-12-30",
+          1501
+        ],
+        "expected": "0100-01-01 01:01"
+      },
+      {
+        "args": [
+          "2000-01-01",
+          0
+        ],
+        "expected": "2000-01-01 00:00"
+      }
+    ]
+  },
+  {
+    "id": "ribbonExpand",
+    "name": "ribbonExpand",
+    "prompt": "Write a function named ribbonExpand that takes a string in this grammar: a sequence of lowercase letters and decimal-count bracketed sequences, nested to arbitrary finite depth; a count repeats its bracket contents that many times, including zero. Counts have one or more digits; bare brackets, unmatched brackets, and other characters are invalid. Return the expansion, or null for invalid syntax even inside a zero-count group. Empty input is valid. Expansions are at most 1000 characters.",
+    "split": "dev",
+    "tests": [
+      {
+        "args": [
+          "a2[b3[c]]"
+        ],
+        "expected": "abcccbccc"
+      },
+      {
+        "args": [
+          "0[2[a!]x]"
+        ],
+        "expected": null
+      },
+      {
+        "args": [
+          "12[a]"
+        ],
+        "expected": "aaaaaaaaaaaa"
+      },
+      {
+        "args": [
+          "2[a"
+        ],
+        "expected": null
+      }
+    ]
+  },
+  {
+    "id": "counterUndo",
+    "name": "counterUndo",
+    "prompt": "Write a function named counterUndo that takes an array of command strings. A command +n adds signed decimal integer n to a counter initially zero; save pushes its current value; undo restores and pops the latest saved value if any; an addition does not change the save stack. Unknown commands are ignored. Return an array containing the counter after every command. Integer additions use strings such as +3 and +-2; a bare plus is unknown.",
+    "split": "dev",
+    "tests": [
+      {
+        "args": [
+          [
+            "+3",
+            "save",
+            "+-2",
+            "save",
+            "+5",
+            "undo",
+            "undo",
+            "undo"
+          ]
+        ],
+        "expected": [
+          3,
+          3,
+          1,
+          1,
+          6,
+          1,
+          3,
+          3
+        ]
+      },
+      {
+        "args": [
+          [
+            "+",
+            "+2x",
+            "+0"
+          ]
+        ],
+        "expected": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "args": [
+          []
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            "save",
+            "+7",
+            "undo",
+            "+1"
+          ]
+        ],
+        "expected": [
+          0,
+          7,
+          0,
+          1
+        ]
+      }
+    ]
+  }
+]
