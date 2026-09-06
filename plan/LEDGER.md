@@ -934,3 +934,19 @@ package hashes and100/200 checkpoints audited; scope/key limits disclosed.
 Own flag absent; no fitting, benchmark/sealed reads, signals, background launches
 or push. Final explicit-path artifact/README/WORKLOG commit and membership check
 next; no further inference, threshold/prompt selection or bank authoring.
+
+2026-09-06 — STATE: CHECK44B REGISTERING, heldout-2 unopened/uncommitted.
+User's new GPU/foreground/no-signals brief supersedes prior task CPU limits;
+archive protocol is historical. No .review.lock or other Stencil flag/process.
+Fit-on = patched Kimi admission + Opus admission enrichment; DEV = 2/20 whole
+source domains, Random(0), same split all seeds; evaluated-on = new Fable-2 once.
+No scenario IDs: whole-domain grouping conservatively retains all matched pairs
+and source batches together. Patch drop removes rules, not negative examples,
+consistent with audited counts. Seed0 designated; seeds1/2 DEV stability only.
+Frozen splitter, 512-token full-message/candidate pairs, overflow abstention;
+GO/threshold/resource rules prewritten in check44b/README.md. No benchmark reads.
+2026-09-06 — CHECK44B PRE-FIT VALIDATION: six focused tests + scoped lint PASS;
+real CPU base-model smoke verifies pair encoding, overflow abstention and role
+veto. Corpus 3103 messages/1493 spans; fit2794/dev309 (9.958% messages),
+DEV183 gold-empty messages allow at most3 false admits. Frozen splitter overlap
+ceiling fit1281/1346=95.17%, DEV141/147=95.92%; no splitter changes.
