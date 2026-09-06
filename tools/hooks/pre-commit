@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+"""Reject newly staged blobs above 10 MB; inspect index bytes, not worktree."""
+import subprocess
+import sys
+
+LIMIT = 10_000_000
+
+
+def main():
+    paths = subprocess.check_output([
+        'git', 'diff', '--cached', '--name-only', '--diff-filter=ACMRT', '-z'
+    ]).split(b'\0')
+    bad = []
+    for path in filter(None, paths):
+        size = int(subprocess.check_output(['git', 'cat-file', '-s', b':' + path]))
+        if size > LIMIT:
+            bad.append((path.decode(errors='replace'), size))
+    for path, size in bad:
+        print(f'Refusing staged file >10 MB: {path} ({size} bytes); retain locally with size+sha256 manifest.', file=sys.stderr)
+    return bool(bad)
+
+
+if __name__ == '__main__':
+    sys.exit(main())

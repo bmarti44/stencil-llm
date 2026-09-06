@@ -188,3 +188,48 @@ normalizes IDs to a list. The full scheduling/episode-writer path is CPU-smoked
 before restart. Backend command/env remain unchanged; no model/prompt/checker
 changes. First GPU-held spend 500.353s is subtracted from the restart's9000s
 allowance and included in all cost totals. No completed DEV episode is repeated.
+
+## Amendment 3 — registered 2026-09-06 before code / pilot 4
+
+Authority: Brian's explicit pilot-4 brief. Fit/train-on: none; CPU regression
+evaluated-on: pilot-3 literal DEV outputs only; GPU evaluated-on: frozen authored
+DEV00,01,06,07,02,03,04,05. No evaluation bank or data/bench access.
+Fable diagnosis read fully, including Sections1–4 and adapter/hygiene notes
+(results/composition-pilot-3-review-fable.md); source loci: slab.py:96–113
+(prompt),687–712(parser),775–812(edit feedback),844–845(error),966–985(check).
+
+Arm-neutral fixes: prompt explicitly defines verbose task as workshop letter A/B
+with literal verbose B example; delivery is the current short obligation string
+(e.g. staged), only for the scoped workshop letter, never file content. Preserve
+exact task checker equality; non-string delivery is a format violation. Replace
+preservation/re-emission instruction with append only the new function, never
+re-emit existing functions; replace only for a tested existing-function failure.
+Edit feedback lists post-edit top-level function names (null if syntax invalid).
+Envelope errors include precise parse/schema reason and rejected tail.
+Third tolerance: raw_decode accepts exactly one trailing } or ] after a complete
+object, ignoring surrounding JSON whitespace; journal trailing_closer and literal
+closer. No prefix repair, Python literals, multiple closers or other suffixes.
+Existing lift_report/test_path semantics unchanged.
+
+CPU replay uses every pilot-3 literal response through Executor.run/check, in
+per-lane round order with fresh amended execution state; reports original and
+amended execution, unchanged observed caps and per-kind violations. These are
+DEV regression results, not counterfactual new-model trajectories. Tests exercise
+all fixes and a pre-commit staged-blob size guard at tools/hooks (>10,000,000 bytes
+refused). Never add oversized files; retain HTTP journals locally with size and
+SHA256 manifests. No history rewrite or deletion of prior results.
+
+Pilot4 retains renderer layout/value gloss, T text, register, 512 cap, band,
+qualified image/flags/parameters and frozen episode order. 9000 GPU-seconds covers
+startup, checks, calls, cleanup; RUNNING.flag coordinates, Brian's server is not
+a Stencil job. No host signals; stop/rm only this pilot's created container.
+Before warm checks, replay last eight long frozen qualification prompts in
+reverse order at C4 on the fresh empty-cache server, compare exact IDs to the
+committed qualification baseline; also retain cold/warm/mixed first-eight gate.
+Gates as pilot3: complete R/N/T; per-arm execution>=90%, truncation<=2%; R
+round0 indentation>=4/8; R final>=5/8; opportunity/context gates and measured
+projection<=12GPU-h including prior spend and reserve. O only if time remains.
+HF teacher-forced hidden-state capture deferred, no timing credit; distinguish
+served-only projection from unestablished full check45 cost. If indentation fails,
+apply the already registered fixed ALPHA/BETA/GAMMA trait swap on CPU afterwards;
+original outcomes stand and swapped GPU screen is outside this requested run.

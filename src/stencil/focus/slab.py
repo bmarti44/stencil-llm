@@ -99,12 +99,19 @@ SYSTEM_PROMPT = (
     "Style indentation denotes a block width; continuation alignment is free. "
     "A valid receipt requires public tests after the last edit; read is optional. "
     "Each new function needs a docstring describing input/output and boundary/order "
-    "semantics, a named result and return. Preserve earlier operations, repairing "
-    "with whole-file replace as needed. Reply with calls/report JSON; report status "
+    "semantics, a named result and return. Append only the new function; never "
+    "re-emit earlier functions. Use replace only when a test reports a failure "
+    "in an existing function. Reply with calls/report JSON; report status "
     "is ok, verbose includes task, compact omits task. Include delivery only for "
     "the task named in the request. Style applies to emitted changes. "
     'report is an object with keys status (always "ok"), task (verbose format '
-    "only), and delivery (named task only). test takes no path. Literal envelope "
+    'only: task is the workshop LETTER "A" or "B", never the request text), '
+    'and delivery (a short current obligation value string, e.g. "staged", only '
+    "when the workshop letter equals the delivery-scoped task letter; never "
+    "file content or an object). test takes no path. Literal verbose example "
+    'for workshop B with delivery scoped to B and value staged: '
+    '{"calls":[{"op":"test"}],"report":{"status":"ok","task":"B","delivery":"staged"}}. '
+    "Literal compact envelope "
     'example: {"calls":[{"op":"test"}],"report":{"status":"ok"}}. '
     + EXECUTION_POLICY
     + " Tool schema: "
@@ -685,21 +692,28 @@ class EnvelopeError(ValueError):
 
 
 def parse_envelope(output, tolerances=None):
-    """Normalize only the two registered Day5b tolerances; never repair JSON."""
+    """Apply only the three registered tolerances; never repair an incomplete object."""
     journal = tolerances if tolerances is not None else []
     try:
-        payload = json.loads(output)
-    except ValueError:
-        raise EnvelopeError("envelope") from None
+        text = output.lstrip(" \t\r\n")
+        payload, end = json.JSONDecoder().raw_decode(text)
+    except ValueError as exc:
+        raise EnvelopeError(f"invalid JSON: {exc}") from None
+    tail = text[end:].strip(" \t\r\n")
+    if tail:
+        if isinstance(payload, dict) and tail in ("}", "]"):
+            journal.append(dict(tolerance="trailing_closer", closer=tail))
+        else:
+            raise EnvelopeError(f"unexpected trailing {json.dumps(tail)}")
     if not isinstance(payload, dict):
-        raise EnvelopeError("envelope")
+        raise EnvelopeError("expected exactly calls and report object")
     if "report" not in payload and "calls" in payload:
         lifted = {k: payload[k] for k in ("status", "task", "delivery") if k in payload}
         dropped = {k: v for k, v in payload.items() if k not in {"calls", *lifted}}
         journal.append(dict(tolerance="lift_report", lifted=lifted, dropped=dropped))
         payload = dict(calls=payload["calls"], report=lifted)
     if set(payload) != {"calls", "report"} or not isinstance(payload["report"], dict):
-        raise EnvelopeError("envelope")
+        raise EnvelopeError("expected exactly calls and report object")
     if isinstance(payload["calls"], list):
         for index, call in enumerate(payload["calls"]):
             if isinstance(call, dict) and call.get("op") == "test" and "path" in call:
@@ -802,8 +816,14 @@ class Executor:
                     except (SyntaxError, RecursionError):
                         pass
                     self.receipt = None
+                    try:
+                        functions = [node.name for node in ast.parse(path.read_text()).body
+                                     if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))]
+                    except (SyntaxError, RecursionError):
+                        functions = None
                     result = dict(
-                        op=op, path=call["path"], sha256=self.hashes()[call["path"]]
+                        op=op, path=call["path"], sha256=self.hashes()[call["path"]],
+                        functions=functions,
                     )
                 else:
                     passed, failed = 0, 0
@@ -841,8 +861,9 @@ class Executor:
                     )
                 self.executed.append(call)
                 self.results.append(result)
-        except EnvelopeError:
-            self.results.append(dict(error="envelope", expected=ENVELOPE_EXPECTED))
+        except EnvelopeError as exc:
+            self.results.append(dict(error="envelope", reason=str(exc),
+                                     expected=ENVELOPE_EXPECTED))
         except (ValueError, TypeError, AttributeError, OSError) as exc:
             self.results.append(dict(error=str(exc)))
         codes = [c["code"] for c in self.executed if c["op"] in {"edit", "replace"}]
@@ -967,7 +988,7 @@ def check(episode, turn, output, executor, executed=True, truncated=False):
             expected_report["task"] = t.task
         if "delivery" in rules:
             expected_report["delivery"] = rules["delivery"]
-        violations["format"] = not isinstance(report, dict) or {
+        violations["format"] = ("delivery" in report and not isinstance(report["delivery"], str)) or {
             k: v for k, v in report.items() if k != "delivery"
         } != {k: v for k, v in expected_report.items() if k != "delivery"}
         relapse["format"] = (
