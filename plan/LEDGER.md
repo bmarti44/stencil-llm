@@ -1093,3 +1093,10 @@ Post-run edits affect only reporting/audit/golden test; inference bank/renderer/
 Pilot README explicitly INELIGIBLE/INCOMPLETE: stop before labels/hidden states/fitting. Source reports128 calls from DEV00, also below150; >=25 violation gate not assessed.
 Planned fit-on DEV pilot only; evaluated-on held-out DEV episodes by fold. Actual input pilot README only; no benchmark/evaluation-bank reads, model/GPU, signals or push.
 CPU gate script emits source/script hashes, zero-fold records and empty weight manifest. No metrics or meter; R1–R3 not evaluated. Scoped result/index/WORKLOG/script commit closes task.
+
+2026-09-06 — STATE: DAY5B CPU AMENDMENT REGISTERED BEFORE CODE.
+User's explicit Day5b scope governs; protocol/PLAN are archived. Exactly two
+strict-JSON tolerances and grouped_mm gate registered in composition-pilot README.
+No fitting; frozen DEV00 CPU recovery and authored DEV-only re-pilot. Conservative
+projection carries prior pilot spend; O proxy R disclosed if unrun. No signals,
+bench reads, batch4 or push; 7200s one-load GPU cap; explicit-path commits.

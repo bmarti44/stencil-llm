@@ -133,3 +133,45 @@ IDs, repeated CPU checker/executor results, workspace hashes, live views and 256
 hidden hashes/shapes. Targeted tests 47 passed, 1 expected legacy xfail; scoped Ruff
 and diff checks pass. Reproduce on CPU with `scripts/composition_pilot_audit.py` and
 `scripts/composition_pilot_report.py`; no trunk load. Numerical gates unchanged.
+
+## Registered Day 5b amendment — 2026-09-06 (before code changes)
+
+Fit/train-on none; recovery-on frozen DEV-00 records; re-pilot-on authored DEV
+00,01,06,07,02,03,04,05 only. No evaluation/benchmark content or responses.
+Fable's CPU review establishes correct programs in all 101 parseable replies;
+the original zero-execution result is an interface defect, not a capability finding.
+
+Register exactly two JSON-strict tolerances: (1) remove only an extra `path` key
+from a `test` call; (2) only when `report` is absent and `calls` is present, lift
+present top-level status/task/delivery into `report`, dropping other top-level
+keys (including verbose, with dropped keys/values preserved in the tolerance
+journal). Do not interpret nested verbose as task/delivery. Every application
+is journaled, including on subsequently rejected outputs. No Python-literal
+fallback or stray-bracket repair. Execution and checker share normalization.
+Other envelope/schema defects remain errors. JSON/envelope errors return stable,
+informative expected-envelope feedback, never json-module exception text.
+Add a literal envelope example and explicit report keys to the system prompt.
+Renderer layout, T obligation text, cap512 and band100–300 stay frozen.
+Recovery replays each frozen lane cumulatively on CPU: report tool and call
+execution, final integration and all-obligation success, violations and prior-trait
+relapse denominators; no claim these are newly generated amended trajectories.
+
+Trunk default grouped_mm, explicit eager fallback flag (no automatic retry/load).
+One GPU load, 7200s inclusive wall cap, sequential only, no signals. First replay
+all64 frozen sequential prompts using retained prefixes while they match; reset
+a lane's cache if a prior divergence prevents reuse. Compare complete body+EOS
+int64 bytes, journal exact IDs and first difference. Proceed only after all64
+complete with <=1 divergent prompt, disclosing its first-divergence analysis;
+otherwise STOP (no fallback run). Re-pilot R/N/T in frozen episode order; O only
+after all R/N/T episodes if time remains. Collect the existing layer8/16/24/32/40
+prompt/mean hidden records and hashes. Frozen renderer check replays original
+system and original tool feedback so amendment-induced inputs aren't layout drift.
+
+Projection uses prior pilot spent + this run spent + measured reload allowance
++1.25*[64(cR+cN)+16(cT+cO)], largest completed per-arm episode costs; O=R proxy
+under DEV gold if O unrun (disclose). No batching credit. ELIGIBLE requires <=12h,
+truncation<=2%, executed-call rate>=90%, nonzero executed-trait denominators in
+>=2 episodes and completed fixed fallback00/01/06/07 including both lengths.
+Observed threshold failure is INELIGIBLE; unavailable evidence/gate failure is
+INCOMPLETE. DEV mask trigger retains >=20 opportunities, >=15% relapse and >=2
+relapsing episodes in R and O; unrun O cannot establish that trigger.
