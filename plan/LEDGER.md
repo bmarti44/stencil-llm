@@ -283,3 +283,20 @@ blob, and writes per-row raw logits/metadata/predictions in the same pass.
 Next: explicit-path freeze commit, then ONE foreground CPU inference via
 CUDA_VISIBLE_DEVICES='' .venv/bin/python -m scripts.evaluate_relations_heldout2.
 No held-out-2 input opened yet; no WORKLOG edits or benchmark/sealed inputs.
+
+2026-09-06 — STATE: RELATIONS RETRAIN + HELD-OUT-2 COMPLETE; COMMITTING.
+Freeze commit0829665c preceded the only held-out-2 open/inference (03:55 UTC).
+357/357 pair records saved during that CPU pass; one excluded summary, zero
+pair drops/overflow/author or declared-relative/pair/message overlap with fit+DEV.
+Seed0 frozen-policy337/357=94.40%; argmax338/357=94.68%. Operational none-FP10/151,
+hard-none10/107; positive precision196/206, correct-positive recall196/206;
+emitted/all206/357. No outcome-based fitting, threshold changes or seed selection.
+Descriptive v3 replay: bare suspensions5/6, scoped replacements15/22, hedges22/22,
+closure+global-admission relation22/22; admission untested; subunit cell unsupported.
+All357 raw records and independent confusion counts audited; all hashes match;
+37 targeted tests and lint pass. Useful offline scorer; scope errors remain,
+runtime/admission and64-episode FOCUS-3 gate untested, so no gate PASS/readiness.
+Canonical metrics/thresholds/manifest and dated report updated; historical CPU
+metadata/calibration preserved. Safetensors local only, flag absent, WORKLOG
+unchanged; explicit-path commits only, no push/signals/benchmark/sealed reads.
+No further training or held-out inference is part of this task.

@@ -36,8 +36,11 @@
     "encoder/tokenizer.json": "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66",
     "encoder/tokenizer_config.json": "06707cea10aacadb28082be3d9a93a2c80b7c504a3045220ad44748a5683d2b6",
     "head.safetensors": "933503633b7216b7eafaa17d0806be279b1aead483b723191828154a7d03803e",
-    "metrics.json": "1787a217fc5d08bd6825f2e04bcd7dd3281a0155ccbd37d22f76986df0dabd40",
-    "operating-point.json": "601b0a788a791e1bede4fb86492a9816c1b8ba584755e1486c5b44044554552d",
+    "heldout2-records.jsonl": "3743abf9299451522819de4b768f7bfd4653407ea391ff5cba01de9dabc1ec32",
+    "heldout2-started.json": "6d8dd54e7d0cea7f8049a1bd0ff6ab5abbf76ff76bc80fac8bea3ce8c404b701",
+    "heldout2-v3-cells.json": "722a7ec33e44ed667ed36da14e9016af2d1007789f332f59fad630092207f60e",
+    "metrics.json": "3d0e3a4fcc4e5ca619d04cc60eeb2077851c50d50c475ddaead25765f087877d",
+    "operating-point.json": "9e235cdf877da6d50255021163f3a2d70b6903e97e6ba5aac628402455ff71dd",
     "thresholds.json": "e13bb3c9a910d794a4621f9d97403c769fce263b5cedb86c1af6c63a8fe8e08c"
   },
   "base_model": "BAAI/bge-small-en-v1.5",
@@ -5276,11 +5279,96 @@
     ],
     "span_offsets_repaired": 0
   },
-  "data_lineage": "fit-on = kimi+enrich after merged patch; calibrated-on = dev (original seed-specific scenario-disjoint split, fit-author-shared); evaluated-on = held-out-2 reserved for one pending evaluation; held-out-1 = development; no benchmark inputs/responses; admission not trained",
+  "data_lineage": "fit-on = kimi+enrich after merged patch; calibrated-on = dev (original seed-specific scenario-disjoint split, fit-author-shared); evaluated-on = held-out-2 once; held-out-1 = development; no benchmark inputs/responses; admission not trained",
+  "evaluation_completed_utc": "2026-09-06T03:55:32.115088+00:00",
+  "evaluation_device": "cpu",
+  "evaluation_wall_seconds": 4.43366549500206,
   "exclusion_coverage": "lexical markers only; no sealed corpus access",
+  "heldout": {
+    "admission_rows_excluded": 0,
+    "dedup_decisions": [],
+    "disjointness_audit": {
+      "author_overlap": 0,
+      "coverage": "Declared identities and exact pairs; not semantic proof",
+      "declared_relative_overlap": 0,
+      "pair_fingerprint_overlap": 0,
+      "shared_message_heldout_rows": 0,
+      "shared_message_texts": []
+    },
+    "git_blob": "0008dbe51853c4a2075076c4f30cdd433ebd5e76",
+    "pairs": 357,
+    "path": "data/classifier/heldout/fable-relations-heldout-2.jsonl",
+    "raw_jsonl_records": 358,
+    "sha256": "4bd8af0847795a3421dc17ce0aa97b5538d5f18da731641ccc7a7f77fd61a82c",
+    "summary_headers": [
+      {
+        "summary": {
+          "author": "fable",
+          "authored": "hand-written second author-disjoint set; disjoint scenarios, rules, messages and domains from fable-relations-heldout.jsonl and from gen_relations.sh domains; offsets computed from the hand-written span text",
+          "domains": [
+            "archery-club",
+            "blacksmithing",
+            "calligraphy",
+            "cheesemaking",
+            "dog-agility",
+            "falconry",
+            "glassblowing",
+            "kite-building",
+            "letterpress-printing",
+            "lifeguarding",
+            "lighthouse-restoration",
+            "marching-band",
+            "orienteering",
+            "paragliding",
+            "puppetry",
+            "rock-climbing-gym",
+            "roller-derby",
+            "soap-making",
+            "stained-glass",
+            "tattoo-studio",
+            "typewriter-repair",
+            "weather-station"
+          ],
+          "excludes": "no benchmark content (IFEval, Multi-IF, BFCL, tau-bench, S2/B3); data/bench never opened",
+          "hard_none": 107,
+          "hard_total": 157,
+          "labels": {
+            "cancels": 47,
+            "completes": 45,
+            "none": 151,
+            "reinstates": 46,
+            "supersedes": 68
+          },
+          "message_new_rule_true": 105,
+          "n_domains": 22,
+          "roles": {
+            "assistant": 11,
+            "tool": 11,
+            "user": 335
+          },
+          "rows": 357,
+          "scope": {
+            "global": 99,
+            "task": 258
+          },
+          "set": 2,
+          "spec": "data/classifier/LABELS-RELATIONS.md (incl. v3 clarifications 2026-09-05)",
+          "split": "heldout",
+          "status": {
+            "cancelled": 46,
+            "completed": 2,
+            "live": 305,
+            "superseded": 4
+          }
+        }
+      }
+    ],
+    "summary_records_excluded": 1
+  },
   "heldout1_status": "seen once previously; development only; not reopened or rescored",
   "heldout2_expected_git_blob": "0008dbe51853c4a2075076c4f30cdd433ebd5e76",
-  "heldout_evaluation_count": 0,
+  "heldout_evaluation_count": 1,
+  "heldout_inference_count": 1,
   "historical_cpu_artifacts": "calibration/cpu-seed0-historical-*.json; complete prior checkpoint retained locally under results/quick-checks/relations-retrain/historical-cpu-seed0",
   "labels": {
     "cancels": 2,
@@ -5292,6 +5380,8 @@
   "missing_smoke_inputs": [],
   "operating_point_rule_frozen_commit": "b134f6f8751d18d865bfff4199b9af18500dfd1f",
   "overflow_fit": 0,
+  "post_evaluation_analysis": "Saved-record replay and descriptive v3 slices only; no refit, recalibration, seed selection, or further model inference.",
+  "pre_evaluation_freeze_commit": "0829665c",
   "preselected_seed": 0,
   "recipe": {
     "batch_size": 32,
@@ -5323,6 +5413,7 @@
   ],
   "source_sha256": {
     "data/classifier/LABELS-RELATIONS.md": "fb28beb1c12465379566932cc8e5ffd55a5ccdaeb57ba1d5eff4a0b3e6887be5",
+    "scripts/audit_relations_heldout2.py": "97b3a27c09f9f728f2b066dad74823ef14f1cbeb45740966f60d3a814b78016e",
     "scripts/calibrate_relations.py": "19bb23f862d7e2024b0da1f7afc95916f1f2876923ec9d75ab7cd6f298f9b5ad",
     "scripts/evaluate_relations_heldout2.py": "d5e4edf89c4eea7e69852373de2ddbcdd1a07299600c924831f0ceb86ef3cb5d",
     "scripts/train_relations.py": "d9c73c60b3c723bca559310e9fa1c6c6a5e8983fe25a7bdaf313219181b2fc46",
@@ -10942,7 +11033,7 @@
       "sha256": "43ea18a85378c916fa7f0b596eb4f3d261cdba9de14340843a6aa0aed7e80a1e"
     }
   },
-  "state": "development_complete_frozen",
+  "state": "complete",
   "versions": {
     "torch": "2.13.0+cu130",
     "transformers": "5.16.1"

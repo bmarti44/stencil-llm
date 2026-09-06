@@ -122,8 +122,8 @@
     "predicted_positive": 321
   },
   "dev_logits_sha256": "cc9fc6112107e9309447a5235842df818ba438d47b5587dabe6563766587985c",
-  "heldout_evaluations_this_task": 0,
-  "lineage": "fit: unchanged patched Kimi+Astra/Opus; calibration/evaluation: original DEV only; heldout-1 historical development; heldout-2 reserved",
+  "heldout_evaluations_this_task": 1,
+  "lineage": "fit-on = kimi+enrich after merged patch; calibrated-on = dev (original seed-specific scenario-disjoint split, fit-author-shared); evaluated-on = held-out-2 once; held-out-1 = development; no benchmark inputs/responses; admission not trained",
   "model_dir": "/home/bmarti44/stencil-llm/data/classifier/model/relations",
   "none_fp_allowance_per_class": 12,
   "policy": {
@@ -135,6 +135,7 @@
       "supersedes": 0.94
     }
   },
+  "pre_evaluation_freeze_commit": "0829665c",
   "primary_dev": {
     "accuracy": 0.9114583333333334,
     "correct_positive": 292,
@@ -367,5 +368,5 @@
   "rule_frozen_utc": "2026-09-05T19:01:00+00:00",
   "seed": 0,
   "split_sha256": "71bbabc82fb798222ca02b12b7f89dc9cd01ff7b8ae59b46e73af5f30272a553",
-  "status": "Three GPU epochs; DEV policy frozen before held-out-2"
+  "status": "Three GPU epochs; DEV-selected policy unchanged after one held-out-2 evaluation"
 }
