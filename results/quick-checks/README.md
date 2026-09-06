@@ -434,6 +434,12 @@ F8 — Q1 extracted-vector closure: Further work on the tested mean-difference r
    −b PRODUCT0/8 both doses, malformed0; shuffled− PRODUCT0/8; +b SUM8/7 with malformed0/1, shuffled+ malformed0/4; no safe cell, final/collateral skipped.
    80 generations/3963 tokens, 11.21/24 GPU-min; all scores/profiles/biases/dispatch audited; recipe da131791 precedes outcomes; flag removed, no signals/sealed reads/push.
 
+FOCUS-3 v8 step D ([results](focus3-gate/v8/RESULTS.md), [Brian escalation](focus3-gate/v8/ESCALATION.md)): **INELIGIBLE; final-iteration stop-loss exhausted**.
+CPU admissions 36/36, transitions 11/12, unauthorized 12 (8 payload admissions, 3 quote admissions, 1 polluted-row completion); reinstatements 0.
+Hand-written 200 NONE + 100 standing rules across 10 domains; ft-v3 seeds 0/1/2 fitted once, seed 0 fixed; new-family DEV NONE admissions 0/21, 0/20, 0/18.
+Fable accuracy unchanged at 318/363, non-rule admissions worsen 5→8/239; diagnostic only. GPU 269.749/10800 seconds; no trunk/O/gate or further iteration.
+122 targeted tests pass, 1 existing xfail; 96 records/16 traces and both saved-data audits pass; manifests/head/metadata committed, encoder safetensors local.
+
 FOCUS-3 v7 step C ([results](focus3-gate/v7/RESULTS.md)): **INELIGIBLE**, CPU stop after the admission refit and key-identity guard.
 Authorized admissions36/36, transitions11/12, unauthorized19 (14admit/4reinstate/1complete);10cross-key proposals dropped.
 Seed0 Fable diagnostic318/363 vs315/363, no held-out selection; seeds0/1/2 each3epochs. 264.590/10800GPUseconds; no trunk/O/gate.

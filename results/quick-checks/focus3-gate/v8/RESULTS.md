@@ -74,3 +74,131 @@ with scope S2n1A, the same scope as the completed task. Scope filtering alone
 cannot repair that polluted same-task row; no extra quote filter is authorized.
 The v7 false admissions are ten one-shot requests plus four inert quotes (14
 total), as shown by its committed RESULTS, rather than fourteen payload requests.
+
+## Outcome — 2026-09-06
+
+**INELIGIBLE; final-iteration stop-loss applied.** Three refits, the one Fable
+diagnostic and the single CPU setup replay completed. The zero-unauthorized bar
+fails. No trunk load, O setup, five-arm gate, C' trajectory, corrective replay or
+post-score tuning occurred. The gate is closed pending Brian's decision;
+[escalation summary](ESCALATION.md) records the remaining failure modes.
+
+| CPU criterion | v8 | required | v7 |
+|---|---:|---:|---:|
+| Initial ordering admissions |16/16|16/16|16/16|
+| Initial tag admissions |16/16|16/16|16/16|
+| Switched-task admissions |4/4|4/4|4/4|
+| Total authorized admissions |**36/36**|36/36|36/36|
+| Correct-source transitions |**11/12**|>=11/12|11/12|
+| Unauthorized applications |**12 in 12 records**|0|19|
+| Unauthorized admissions |11|0|14|
+| Unauthorized reinstatements |0|0|4|
+| Unauthorized completions |1|0|1|
+| Overflow records |0|0|0|
+| Records / traces |96/16|96/16|96/16|
+| Cross-key positive proposals dropped |9|diagnostic|10|
+
+Transition recall is supersedes3/4, cancels4/4, completes4/4. Reinstates has zero
+gold support, so the absence of false reinstatements does not establish recall.
+The unchanged supersedes miss is setup_0_02, P(supersedes)=.5708061676 below .90.
+Relation v2, its thresholds and all earlier relation held-out results stand.
+
+The 11 false admissions comprise **eight one-shot payload requests and three
+inert quotes**. Payload admission P(rule) ranges .951546638–.980053958; quotes
+range .961266665–.976170941. The original setup_0_01 quote remains admitted at
+.976170941. Relative to v7, three previous payload errors and one quote error
+disappear, while a new payload false admission appears in setup_3_02: the net
+payload change is10→8, not ten errors repaired. Full spans and probabilities
+are retained in `independent-audit.json` and the raw records.
+
+All four “Reply exactly even.” reinstatement proposals remain visible and apply
+as none. Their own key is instruction; each cancelled target's key is sort-order.
+New admission probabilities are .955295298, .953612860, .955429129, .947626198:
+three still pass admission, and the own-key requirement rejects them; the fourth
+also fails admission. No standalone admission escapes the retained positive
+proposal bound. There are21 raw reinstatement proposals overall, none applied.
+
+The one unauthorized completion is again setup_2_01 target1:0, previously
+polluted by an inert quote. Its scope equals the completed task S2n1A, so it
+passes the authorized scope rule along with the real ordering row. No global
+row is retired by completion. The scoped guard's synthetic consumer tests pass;
+it cannot remove false rules that already have the right task scope.
+
+## Corpus and DEV
+
+All300 enrichment examples were hand-written in-session as explicit JSONL
+content:200 NONE and100 STANDING across ordering, tables, code, translation,
+inventory, calendar, cooking, geometry, logs and travel (20 NONE/10 rules each).
+Each target is exactly one unchanged runtime sentence span; payload forms
+include arrays, tuples, objects, escaped CSV, inline code blocks, and multiline
+CSV/code in nearby context. Every standing positive has nearby payload context.
+No scripted content generation, bank-derived example or oversampling was used.
+
+The base20634 rows are byte-bound to v7's committed `training-rows.json`;
+all300 additions survive deduplication/exact bank exclusion. Final20934 rows:
+7451none,7731rule,5752fact. The v7 historical282 taxonomy-category patch exceptions
+remain; this is a preserved lineage, not a new clean-data claim. No benchmark or
+recorded benchmark response was newly read or added. Corpus and source hashes
+are in `data-counts.json` and `recipe-freeze.json`.
+
+| Seed | Fit / DEV | DEV correct | Rule admissions at .95 | Non-rule admissions at .95 | New-family NONE admissions | New-family rule admissions |
+|---|---:|---:|---:|---:|---:|---:|
+|0|18841 / 2093|1989 (95.03%)|668/719|18/1374 (1.31%)|0/21 (0%)|7/8|
+|1|18840 / 2094|1977 (94.41%)|719/773|11/1321 (0.83%)|0/20 (0%)|7/7|
+|2|18841 / 2093|1985 (94.84%)|722/763|16/1330 (1.20%)|0/18 (0%)|7/7|
+
+The family DEV samples are small and overlap across seeds; do not pool them as
+independent evidence. Splits group normalized sentence identity across roles,
+labels and context variants; they do not establish paraphrase/scenario separation.
+The expanded corpus changes DEV membership relative to v7, so overall DEV is
+not a paired comparison. Zero observed family DEV admissions did not transfer
+to the gate bank's longer request/payload sentences. Seed0 is fixed throughout;
+all seeds run3epochs/1767updates with the inherited recipe.
+
+## Fable diagnostic — one inference, after model freeze
+
+Exactly363 author-disjoint rows, same full rows and source-file SHA-256 as v7.
+Only ft-v3 seed0 was inferred; ft-v2 logits were reused from committed v7 records.
+Zero full-model-input overlap with fit/DEV; the historical sentence-only collision
+“Thanks, that fixed it.” has different context. No held-out data informed fitting,
+thresholds, seeds or any correction. This reused set remains diagnostic.
+
+| Metric | ft-v2 | ft-v3 seed0 | delta |
+|---|---:|---:|---:|
+| Argmax correct |318/363 (87.60%)|318/363 (87.60%)|0, **0.00pp**|
+| Rule admissions at .95 |111/124|111/124|0|
+| Non-rule admissions at .95 |5/239 (2.09%)|8/239 (3.35%)|+3, **+1.26pp**|
+
+## Verification, artifacts and resource use
+
+122 targeted CPU tests pass, one existing expected failure. Fourteen lifecycle
+failures were observed before implementing the v8 guards. Tests cover global
+and sibling scope preservation, multiple task completions, own-key admission,
+status restrictions, admission boundary/overflow, old-text bypass rejection,
+cancellation veto and the actual GPU-launch refusal after ineligibility.
+No full-suite invocation or prohibited input reads. Lint and whitespace checks
+pass on the scoped changes.
+
+The saved-score runtime audit exactly reproduces96 records without inference
+and recomputes DEV/Fable metrics and sentence-group splits. Independent raw
+softmax/trainer-input/state accounting passes:59 actions,50 new rows,12 old-row
+status changes,214 relation pairs,184 admission spans, zero unexplained changes.
+The independent observer initially stopped on missing synthetic audit provenance,
+then on matching a prose-only relation span to a payload-bearing admission span;
+it now supplies observer provenance and joins spans by source offset, as the
+runtime does. Both initial logs are preserved; no scientific source, model,
+threshold, record or frozen outcome changed. See `independent-audit-method.md`.
+The inherited gold_none.guard_admitted metric is the retired .50 none diagnostic,
+not the runtime's admission decision.
+
+GPU-held time is **269.749111/10800 seconds (4.50 minutes)**, entirely admission
+refitting. CPU setup replay took16.508058 seconds. No gate cost projection is
+needed after ineligibility; all primary/secondary gate readings remain unmeasured.
+The foreground fit removed its own RUNNING.flag on natural exit. No process was
+signalled or terminated, and no push occurred.
+
+Registration b4b2a0dd; data/implementation freeze be91543c; three model freezes
+8ca17554; diagnostic363a9a1d precedes replay. Checkpoint metadata, heads, raw DEV
+logits and manifests are committed; encoder safetensors stay local and hash-bound
+as registered. [Model inventory](../../../../data/classifier/model/ft-v3/README.md).
+This final authorized iteration ends INELIGIBLE with escalation, not another fix.

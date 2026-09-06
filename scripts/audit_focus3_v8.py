@@ -115,7 +115,9 @@ def main():
                     p, pred["probabilities"], rtol=1e-12, atol=1e-12
                 )
         for pair in trace["pairs"]:
-            row = train.normalize_row(dict(pair["input"], label="none"))
+            row = train.normalize_row(
+                dict(pair["input"], label="none", source="astra-v8-saved-record-audit")
+            )
             assert list(train.render_pair(row)) == pair["model_input"]
             if pair.get("cross_key"):
                 assert pair["applied"] == "none"
@@ -131,8 +133,12 @@ def main():
             if pair["proposed"] == "reinstates":
                 target = pair["input"]["target_id"]
                 old = before[target]
-                span = pair["input"]["target_span"]["text"]
-                admission = next(a for a in trace["admissions"] if a["span"] == span)
+                admission = next(
+                    a
+                    for a in trace["admissions"]
+                    if a["start"] == pair["input"]["target_span"]["start"]
+                )
+                span = admission["span"]
                 own_key = f.relation_key(f.prose_message(span))
                 target_key = keymap.get(target, f.relation_key(old["text"]))
                 reinstatement_checks.append(

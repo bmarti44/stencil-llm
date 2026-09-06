@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/bmarti44/stencil-llm/scripts/audit_focus3_v8.py", line 182, in <module>
+    main()
+  File "/home/bmarti44/stencil-llm/scripts/audit_focus3_v8.py", line 118, in main
+    row = train.normalize_row(dict(pair["input"], label="none"))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bmarti44/stencil-llm/scripts/train_relations.py", line 295, in normalize_row
+    author=author_of(row),
+           ^^^^^^^^^^^^^^
+  File "/home/bmarti44/stencil-llm/scripts/train_relations.py", line 230, in author_of
+    raise ValueError("missing author and source provenance")
+ValueError: missing author and source provenance

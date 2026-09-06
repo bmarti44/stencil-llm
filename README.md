@@ -58,6 +58,13 @@ actions. Ten cross-key proposals are dropped. Fable accuracy improves86.78%→87
 on a disclosed diagnostic comparison; this does not repair runtime safety.
 No GPU gate ran. [v7 results and audit](results/quick-checks/focus3-gate/v7/RESULTS.md).
 
+FOCUS-3 v8 step D is **INELIGIBLE; the final-iteration stop-loss is exhausted**.
+The 300-example admission enrichment and lifecycle guards retain36/36 admissions
+and11/12 transitions, but12 unauthorized actions remain (v7:19). False
+reinstatements fall to zero; payload/quote admissions still pollute the register.
+The GPU gate was not launched. [v8 results](results/quick-checks/focus3-gate/v8/RESULTS.md)
+and [Brian escalation summary](results/quick-checks/focus3-gate/v8/ESCALATION.md).
+
 ## Earlier headline: the internal wave (superseded, kept for the record)
 
 A tiny trained controller (264k parameters) riding on the frozen trunk

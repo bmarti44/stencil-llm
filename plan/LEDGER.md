@@ -739,3 +739,29 @@ admissions111/124 unchanged; nonrule admissions5→8/239 (+3). Existing generic
 sentence collision has different context; zero full-input overlap and authors
 disjoint. No extra heldout/model inference or tuning. Fit269.749111GPU seconds.
 Next CPU-only setup replay:36/36,>=11/12,0unauthorized/overflow or INELIGIBLE STOP.
+
+2026-09-06 — STATE: V8 CPU INELIGIBLE; STOP-LOSS APPLIED, AUDIT/ESCALATION NEXT.
+Single CPU replay36/36admissions,11/12transitions,12unauthorized in12records:
+11admit (8payload requests/3inert quotes),1same-task polluted-row completion;
+0reinstatements. V7 unauthorized19→12; no safety pass.96records/16traces saved.
+No trunk/O setup/gate/C' execution, corrective replay, tuning or next iteration.
+User's final-iteration stop closes the gate for Brian escalation; only saved-data
+audits and requested reporting/artifact commits remain. GPU269.749111s;
+CPU16.508058s. No signals/background/bench/sealed reads/push.
+
+2026-09-06 — STATE: V8 STEP D COMPLETE / INELIGIBLE; FINAL ITERATION STOPPED.
+All authorized fitting/evaluation/replay work completed; CPU36/36admissions,
+11/12transitions,12unauthorized (8payload/3quote admissions +1same-task complete),
+0reinstatements/overflow. Required zero-unauthorized bar fails; no GPU gate or
+further iteration. Escalation for Brian is in v8/ESCALATION.md with full evidence.
+Both saved-data audits pass:96records,16traces,59actions,50new rows,12status
+changes,214pairs,184admission spans,zero unexplained mutations. Observer-only
+repairs and initial logs preserved; frozen recipe/models verified unchanged.
+122targeted tests pass/1existing xfail; final import check3pass/1same xfail; lint
+and diff clean. Models/source/data counts and unchanged v7 results verified in
+validation.json.269.749111GPU seconds,16.508058CPU replay seconds; own flag absent.
+All requested outputs, raw records, reports and metadata are force-staged for
+this explicit-path final commit; safetensors local/hash-bound per registration.
+No pending launch, inference, tuning or repair; Brian escalation is the next
+program decision. No signals, termination, background jobs, bench/sealed reads,
+external messages or push. Post-commit membership/byte verification follows.

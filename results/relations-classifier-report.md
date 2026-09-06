@@ -218,3 +218,63 @@ accounts66actions/57new rows/12status changes with zero unexplained mutations.
 all admission fitting; flag removed naturally. No post-score tuning, signals,
 benchmark/sealed reads or push. [Full v7 registration/results](quick-checks/focus3-gate/v7/RESULTS.md),
 [admission model metadata](../data/classifier/model/ft-v2/README.md).
+
+## 2026-09-06 — FOCUS-3 v8 step D: INELIGIBLE, final-iteration stop-loss
+
+The last authorized admission/lifecycle iteration stops before the GPU gate.
+CPU setup passes 36/36 authorized admissions and 11/12 correct-source transitions,
+but has 12 unauthorized actions: eight one-shot payload admissions, three inert
+quote admissions, and one completion of a polluted row in the completed task.
+V7 had 19 unauthorized actions; false reinstatements fall from four to zero.
+This does not meet the required zero-unauthorized bar. No further iteration,
+corrective replay, threshold change or post-score tuning was performed.
+
+Fit lineage: exact committed v7 admission corpus (20,634 rows) plus 300 explicit
+in-session hand-written JSONL examples: 200 NONE requests carrying payloads and
+100 STANDING rules with nearby payload context across ten domains. All targets
+are single runtime sentence spans; no duplicates or exact bank overlap. The
+historical taxonomy-category patch exceptions remain disclosed. No benchmark,
+sealed input or recorded benchmark response supplied new examples. DEV groups
+normalized sentence identity across role/label/context; no paraphrase-disjoint
+claim. Seed 0 ships by prior designation; seeds 1/2 are stability checks only.
+
+| Admission DEV | Seed 0 | Seed 1 | Seed 2 |
+|---|---:|---:|---:|
+| Correct / total |1989/2093|1977/2094|1985/2093|
+| Non-rule admissions at .95 |18/1374|11/1321|16/1330|
+| New-family NONE admissions |0/21|0/20|0/18|
+| New-family standing admissions |7/8|7/7|7/7|
+
+The new family has small, overlapping DEV supports across seeds; its zero
+observed admissions do not establish safety on longer bank request sentences.
+One Fable seed0 inference after all three final checkpoints froze: 318/363
+(87.60%), equal to ft-v2; rule admissions unchanged at 111/124; non-rule
+admissions worsen 5→8/239 (+1.26 percentage points). The comparator reuses
+committed v7 logits after exact row/file-hash verification. Full paired inputs
+and authors are disjoint; the existing generic sentence collision has different
+context. This historically used held-out remains diagnostic.
+
+Completion proposals now require the completed task's exact non-global scope
+before precedence. Reinstatements require the span's own .95 rule admission,
+semantic key equality without generic-key borrowing, cancelled/completed target
+status, and absence of cancellation language/proposals in the message. The four
+v7 generic replies had borrowed their sorting target's key; in v8 three still
+pass admission but are rejected by own-key mismatch, and the fourth also falls
+below .95. No true reinstatement support exists in setup, so recall is unmeasured.
+The one extra completion remains because the previously false quote has the
+completed task's scope. Relation v2 and C/C' thresholds are unchanged; its
+standing-order supersedes miss remains .570806 below .90. No relation refit or
+additional relation held-out evaluation occurred.
+
+122 targeted CPU tests pass, one existing expected failure. The saved runtime
+audit reproduces all 96 records and recomputes splits/DEV/Fable metrics. The
+independent observer accounts for 59 actions, 50 added rows, 12 status changes,
+214 relation pairs and 184 admission spans, with zero unexplained mutations.
+Two observer-only input-association errors were corrected with initial logs
+preserved; frozen scientific code/data/models/records did not change.
+GPU fitting used 269.749111 seconds (4.50 minutes) of 10,800; replay used 16.508058
+CPU wall seconds. Own flag removed naturally, no signals, background job or push.
+The five-arm gate and its primary/secondary readings remain unmeasured.
+[Full results](quick-checks/focus3-gate/v8/RESULTS.md),
+[escalation for Brian](quick-checks/focus3-gate/v8/ESCALATION.md),
+[ft-v3 metadata](../data/classifier/model/ft-v3/README.md).
