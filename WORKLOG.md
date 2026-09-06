@@ -5387,3 +5387,9 @@ Explicit immutable register, authenticated transactions, every-request renderer,
 HF custom_generate scaffold imports/runs with a fake decoder; assets remain hash placeholders, actuators OFF, no model-backed shipping claim.
 Lineage: independently authored CPU fixtures only; no fitting, benchmark reads, model launches, GPU use, process signals or push.
 Validation: pytest tests/test_focus_*.py tests/test_no_side_effect_imports.py -q — 35 passed, 1 expected legacy xfail; scoped Ruff clean.
+
+### 2026-09-06 — Composition v2 Day 2 CPU event-log hardening (gpt-6-astra)
+Added timed immutable-event replay/history evidence, derived session views/bindings, journal cursor and experimental flag records.
+Added AST/import/legacy-call fences, 12 randomized lifecycle sequences and a 12-request golden episode with assistive abstain/disagree.
+Legacy helpers remain in focus3.py: moving them requires edits outside the brief allowlist; explicit modules cannot import/call them.
+Validation: targeted focus + focus3 + no-side-effect tests: 158 passed, 1 expected legacy xfail; Ruff clean. Synthetic fixtures only; no GPU/bench reads/signals/push.

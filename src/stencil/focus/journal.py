@@ -6,6 +6,11 @@ from pathlib import Path
 FIELDS = frozenset(
     {
         "request_id",
+        "journal_cursor",
+        "request_bindings",
+        "register_events",
+        "event_generations",
+        "experimental_flag_state",
         "raw_messages",
         "rendered_messages",
         "raw_token_ids",

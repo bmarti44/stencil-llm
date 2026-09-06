@@ -1,7 +1,7 @@
 """Explicit lifecycle register. No natural-language interpretation or model imports.
 
-Reuses focus3.Register's append/version/live/default design, with immutable
-records and transactional validation instead of its mutable classifier runtime.
+Owns immutable records and transactional validation. The historical FOCUS-3
+gate runtime (stencil.focus3) is legacy-only and must never be imported here.
 """
 
 from dataclasses import asdict, dataclass, replace
@@ -144,6 +144,13 @@ class Retirement:
 
 
 @dataclass(frozen=True)
+class VersionHistory:
+    version: Version
+    transitions: tuple[Entry, ...]
+    retirement: Retirement | None
+
+
+@dataclass(frozen=True)
 class Register:
     defaults: tuple[Entry, ...] = ()
     task_handles: frozenset[str] = frozenset()
@@ -151,9 +158,16 @@ class Register:
     versions: tuple[Version, ...] = ()
     retirements: tuple[Retirement, ...] = ()
     generation: int = 0
+    event_generations: tuple[int, ...] = ()
 
     def __post_init__(self):
-        for name in ("defaults", "events", "versions", "retirements"):
+        for name in (
+            "defaults",
+            "events",
+            "versions",
+            "retirements",
+            "event_generations",
+        ):
             object.__setattr__(self, name, tuple(getattr(self, name)))
         object.__setattr__(self, "task_handles", frozenset(self.task_handles))
         for d in self.defaults:
@@ -174,6 +188,66 @@ class Register:
                     )
                 ):
                     raise InvalidEntry("ambiguous defaults")
+
+    @classmethod
+    def replay(
+        cls,
+        events,
+        *,
+        defaults=(),
+        task_handles=(),
+        event_generations=None,
+        generation=None,
+    ):
+        """Rebuild from source entries and their append clocks, never cached views.
+
+        Clocks are optional for lifecycle-only replay; retain them to reproduce
+        the renderer's three-generation retirement window as well.
+        """
+        events = tuple(events)
+        clocks = (
+            (0,) * len(events)
+            if event_generations is None
+            else tuple(event_generations)
+        )
+        if (
+            len(clocks) != len(events)
+            or any(type(t) is not int or t < 0 for t in clocks)
+            or tuple(sorted(clocks)) != clocks
+        ):
+            raise InvalidEntry("invalid event generations")
+        end = clocks[-1] if clocks else 0
+        generation = end if generation is None else generation
+        if type(generation) is not int or generation < end:
+            raise InvalidEntry("invalid replay generation")
+        state = cls(defaults=defaults, task_handles=task_handles)
+        for event, clock in zip(events, clocks, strict=True):
+            state = replace(state, generation=clock).apply((event,))
+        return replace(state, generation=generation)
+
+    def history(self, key=None):
+        """Every created version plus original and incoming transition evidence."""
+        return tuple(
+            VersionHistory(
+                v,
+                (v.entry,)
+                + tuple(
+                    e
+                    for e in self.events
+                    if e.key == v.entry.key and e.target_version == v.version
+                ),
+                next(
+                    (
+                        r
+                        for r in self.retirements
+                        if r.key == v.entry.key and r.version == v.version
+                    ),
+                    None,
+                ),
+            )
+            for v in self.versions
+            if key is None or v.entry.key == key
+        )
 
     @property
     def live_mask(self):
@@ -270,7 +344,11 @@ class Register:
                 ),
             )
         return replace(
-            self, events=self.events + (e,), versions=versions, retirements=retirements
+            self,
+            events=self.events + (e,),
+            versions=versions,
+            retirements=retirements,
+            event_generations=self.event_generations + (self.generation,),
         )
 
     def live(self, task_handle, request_kind):
@@ -315,6 +393,9 @@ class Register:
 
     def snapshot(self):
         return dict(
+            events=[asdict(e) for e in self.events],
+            event_generations=list(self.event_generations),
+            retirements=[asdict(r) for r in self.retirements],
             versions=[asdict(v) for v in self.versions],
             live_mask=list(self.live_mask),
             generation=self.generation,

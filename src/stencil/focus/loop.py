@@ -49,8 +49,28 @@ class Actuator(Protocol):
     def restore(self) -> None: ...
 
 
+@dataclass(frozen=True)
+class RequestBindings:
+    kind: str
+    task_handle: str | None
+    template_id: str | None
+
+
+@dataclass(frozen=True)
+class ExperimentalFlagState:
+    requested: str = "off"
+    applied: str = "off"
+
+
 @dataclass
 class Session:
+    """Session state; views/bindings are derived to avoid stale duplicate caches.
+
+    journal_cursor counts successfully appended records in this session; callers
+    resuming an existing journal must supply its cursor and request_count.
+    Experimental flags describe the most recent attempt, even after restoration.
+    """
+
     register: Register
     request: Request
     journal: Journal
@@ -60,6 +80,24 @@ class Session:
     rendered_history: list = field(default_factory=list)
     history_ids: tuple[int, ...] = ()
     request_count: int = 0
+    journal_cursor: int = 0
+    experimental_flag_state: ExperimentalFlagState = field(
+        default_factory=ExperimentalFlagState
+    )
+
+    @property
+    def register_events(self):
+        return self.register.events
+
+    @property
+    def live_view(self):
+        return self.register.live(self.request.task_handle, self.request.kind)
+
+    @property
+    def request_bindings(self):
+        return RequestBindings(
+            self.request.kind, self.request.task_handle, self.request.template_id
+        )
 
 
 def authenticate(messages):
@@ -95,6 +133,11 @@ def generate_once(session, new_messages, decoder, tools=None, actuator="off"):
     before = session.register.snapshot()
     record = dict(
         request_id=session.request_count,
+        journal_cursor=session.journal_cursor,
+        request_bindings=asdict(session.request_bindings),
+        register_events=before["events"],
+        event_generations=before["event_generations"],
+        experimental_flag_state=None,
         raw_messages=[asdict(m) for m in messages],
         rendered_messages=None,
         raw_token_ids=None,
@@ -134,6 +177,7 @@ def generate_once(session, new_messages, decoder, tools=None, actuator="off"):
     )
     session.request_count += 1
     hook = None
+    session.experimental_flag_state = ExperimentalFlagState(actuator)
     try:
         if actuator not in {"off", "mask_only", "js_bias_mask"}:
             raise ValueError("unsupported actuator")
@@ -156,7 +200,10 @@ def generate_once(session, new_messages, decoder, tools=None, actuator="off"):
         session.register = session.register.apply(entries)
         after = session.register.snapshot()
         record.update(
-            after_versions=after["versions"], after_live_mask=after["live_mask"]
+            after_versions=after["versions"],
+            after_live_mask=after["live_mask"],
+            register_events=after["events"],
+            event_generations=after["event_generations"],
         )
         content = session.request.text
         if messages:
@@ -210,6 +257,9 @@ def generate_once(session, new_messages, decoder, tools=None, actuator="off"):
                 if set(metadata) != allowed:
                     raise ValueError("incomplete actuator provenance")
                 record.update(metadata)
+                session.experimental_flag_state = ExperimentalFlagState(
+                    actuator, actuator
+                )
         # A generation request consumes the tombstone window even if decoding fails.
         session.register = replace(
             session.register, generation=session.register.generation + 1
@@ -263,8 +313,10 @@ def generate_once(session, new_messages, decoder, tools=None, actuator="off"):
             raise
         finally:
             record.update(
+                experimental_flag_state=asdict(session.experimental_flag_state),
                 finished_at=time.time(),
                 cpu_seconds=time.process_time() - cpu,
                 wall_seconds=time.monotonic() - wall,
             )
             session.journal.append(record)
+            session.journal_cursor += 1
