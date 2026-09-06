@@ -871,3 +871,29 @@ Own check44 flag acquired, pid754171, run-start receipt precedes model loading.
 Recipe hashes verified unchanged; first GPU DEV outputs0.25–4.88s. No prompt
 revision or fitting; source held-out remains gated on completed24DEV and frozen
 elapsed+1.25*338*slowest projection.5400s GPU cap; foreground only, never signal.
+
+2026-09-06 — STATE: DIAGNOSTIC GPU COMPLETE; SAVED-RECORD AUDITS VERIFIED.
+Foreground process exited naturally:4099.336234s (68.322271min/1.1387056GPU-h),
+peakTorch8956313600bytes; all1920gate +96setup +220probe generations complete.
+Ownflag removed. Eacharm25false rows(20payload/5quote),110exposures,11semantic/
+text/token changes,9score changes,7rows with semantic effect. Success removal
+changes5false->true and3true->false; stale1false->true/4true->false; no tag or
+breakage changes. Later-turn exposures9/85semanticchanges vs2/25on admission
+turn. Quote probes0/10changes; payload11/100 in each arm. These are conditional
+current-render effects preserving original history, not total de-admission cost.
+Runtime audit replays1920records, recomputes metrics/probe scores and verifies
+frozen hashes. Independent calculation verifies2236prompt/output sequences,
+3389rawsoftmax vectors, O/N/T rendering, trace identity and resource choice.
+No inference in either audit; both complete without correction. All96setup
+candidate traces exactly match committed v8 CPU traces. Reporting/final commit
+next; no further inference or model changes, no signals or push.
+
+2026-09-06 — STATE: FOCUS-3 DIAGNOSTIC COMPLETE; FINAL ARTIFACT COMMIT.
+All requested five-arm and per-admission readings are reported in diag/RESULTS.md;
+README item and WORKLOG complete.220probes,1920gate/96setup records,320gate/
+16setup traces;50arm-specific false-admission cases fully documented. No missing
+work, no gate label, no pending inference.4099.336234/7200GPU seconds, ownflag
+absent;27targeted tests/1existing xfail, both saved-data audits and lint verified.
+Force-stage only named diagnostic/report paths; manifest binds every diagnostic
+leaf except itself. Post-commit HEAD-blob and tracked-membership verification
+follows. Prior results and unrelated files preserved; never signalled, no push.

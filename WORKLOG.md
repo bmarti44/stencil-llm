@@ -5299,3 +5299,50 @@ admission rendering effects without feeding probes into arm histories.
 27 targeted tests pass, one pre-existing xfail; scoped lint clean.
 Freeze before O setup, fresh7200s GPU cap, resource-only64/48 decision;
 foreground only, own RUNNING.flag, no signals, explicit-path commits, no push.
+
+## 2026-09-06 — FOCUS-3 v8 diagnostic completed (no gate label)
+
+Completed the user-authorized diagnostic with the v8 runtime as-is: relation-v2
+seed0, admission ft-v3 seed0, inherited Qwen3-4B dense bf16 trunk, all v8 guards,
+greedy64 and five independent C/C′/O/N/T histories. Registration and hash freeze
+6041e2d7 preceded inference. All 96 setup candidate traces exactly match the
+committed v8 CPU replay. Nothing fit, trained, calibrated, selected by outcomes
+or tuned. No benchmark/sealed input or recorded benchmark answer was read.
+
+O setup was 16/16; resource-only projection 4924.218 seconds selected all 64
+seed30322 episodes. Actual GPU-held time was 4099.336 seconds (68.32 minutes,
+1.139 GPU-h), including setup and all probes, below the 7200-second cap. Peak
+PyTorch allocation 8.341 GiB. The foreground process exited naturally and
+removed its own flag; no process was signalled or terminated. No push.
+
+All 1920 gate records and 320 traces are saved and checkpointed in Git. Final
+success C/C′/O/N/T = 57/58/63/29/31 of 64; stale = 7/6/2/33/32. Register-exact
+C/C′/O = 38/32/64; false retirement C/C′ = 8/14; candidate breakage zero, five
+contradictory episodes each. C has 27 unauthorized actions: 25 admissions
+(20 payload requests, five inert quotes) in 21 episodes, plus two completions
+of spurious rows. C′ adds seven unauthorized supersedes actions (34 total).
+C minus O: six fewer final successes, five more stale episodes. C minus T:
+26 more final successes, 25 fewer stale episodes. These are descriptive counts.
+All per-family readings and paired discordances are in diag/RESULTS.md.
+
+All 220 exposed-row probes completed (110 per candidate arm), each removing
+one false row from the current recap while retaining exact original history.
+In each arm seven of 25 rows changed at least one answer; 11/110 semantic,
+text and token changes, nine score changes. Removal repaired five task-success
+answers and lost three; stale changes were four true→false and one false→true;
+no tag or breakage changes. Later-turn exposures changed 9/85 answers versus
+2/25 admission-turn answers. All changes arose from payload rows (11/100);
+inert quote removal changed 0/10 answers. This identifies conditional current
+rendering effects, not the total causal effect of never admitting a row.
+Every false row has downstream answers, statuses, O/N/T comparators and linked
+raw probe records in false-admissions.md and false-admission-effects.json.
+
+Saved-runtime audit verifies all 1920 records, frozen hashes, endpoint counts,
+probe scores and histories. A separate calculation in this same agent session
+checks all 2236 prompt/output sequences, 3389 raw-logit softmax vectors, O/N/T
+rendering, trace identity and resource selection; no new inference. Both audits
+completed without correction. Initial targeted checks: 27 passed, one existing
+expected failure; scoped lint and whitespace checks clean. README and ledger
+updated; final artifact manifest and tracked-byte verification accompany the
+explicit-path force-add commit. Prior v8 INELIGIBLE state stands; no PASS/FAIL
+label is assigned to this diagnostic. No further inference is pending.

@@ -49,6 +49,18 @@ def run():
         "The registered v8 eligibility stop remains unmet. These are development "
         "diagnostics for admission-detector redesign, with no gate label assigned.\n\n"
     )
+    report += (
+        "C finished 57/64 episodes successfully, compared with O’s 63/64 and "
+        "T’s 31/64. C was register-exact in 38/64 episodes. Its 25 false "
+        "admissions occurred in 21 episodes; all were rendered at least once. "
+        "C′ finished 58/64 successfully but was register-exact in 32/64, with "
+        "seven extra unauthorized supersedes actions.\n\n"
+        "In each candidate arm, seven of 25 false rows changed at least one "
+        "answer when removed from the current recap: 11/110 exposed row-turns "
+        "(10%), including 9/85 later-turn exposures. Five probes repaired task "
+        "success and three lost success. These are conditional current-render "
+        "effects, not the total effect of never admitting a row.\n\n"
+    )
     headers = [
         "Arm",
         "Register exact",
@@ -76,7 +88,8 @@ def run():
         "episode indicator; action counts appear below. N/T register "
         "endpoints are not applicable under the inherited v3 reading.\n\n"
     )
-    for family, support in summary["family_support"].items():
+    for family in ("pooled", *d.g.FAMILIES):
+        support = summary["family_support"][family]
         report += f"**{family} ({support} episodes)**\n\n"
         report += (
             table(
@@ -94,7 +107,8 @@ def run():
         )
     report += "### Unauthorized runtime actions\n\n"
     rows = []
-    for family, arms in summary["unauthorized"].items():
+    for family in ("pooled", *d.g.FAMILIES):
+        arms = summary["unauthorized"][family]
         for arm, value in arms.items():
             rows.append(
                 [
@@ -141,7 +155,8 @@ def run():
     report += "### Descriptive paired contrasts\n\n"
     rows = []
     for reference, values in summary["contrasts"].items():
-        for endpoint, v in values.items():
+        for endpoint in ("stale", "final_success", "broken"):
+            v = values[endpoint]
             delta = v["c_minus_reference"]
             rows.append(
                 [
@@ -149,6 +164,7 @@ def run():
                     endpoint,
                     f"{delta:+d}",
                     f"{100 * delta / n:+.2f}pp",
+                    rate(abs(delta), n),
                     v["c_only"],
                     v["reference_only"],
                 ]
@@ -160,6 +176,7 @@ def run():
                 "Endpoint",
                 "C minus reference",
                 "Difference",
+                "Absolute distance",
                 "C only",
                 "Reference only",
             ],
@@ -203,6 +220,7 @@ def run():
                 values["false_admissions"],
                 values["categories"].get("one-shot payload request", 0),
                 values["categories"].get("inert quote", 0),
+                values["categories"].get("other", 0),
                 values["exposed_row_turns"],
                 values["completed_probes"],
                 values["token_changes"],
@@ -219,6 +237,7 @@ def run():
                 "False rows",
                 "Payload requests",
                 "Inert quotes",
+                "Other",
                 "Rendered row-turns",
                 "Probes",
                 "Token changes",
@@ -264,6 +283,126 @@ def run():
         "prompts/tokens/answers. All exposed-row probes completed; "
         "unrendered row-turns were logged without claiming no historical "
         "effect. Probe outputs never entered an arm’s history.\n\n"
+    )
+    category_rows = []
+    for arm in ("C", "C'"):
+        for category in ("one-shot payload request", "inert quote"):
+            cases = [
+                c
+                for c in effects["details"]
+                if c["arm"] == arm and c["category"] == category
+            ]
+            probes = [t["probe"] for c in cases for t in c["turns"] if t["probe"]]
+            category_rows.append(
+                [
+                    arm,
+                    category,
+                    len(cases),
+                    len(probes),
+                    sum(p["semantic_changed"] for p in probes),
+                    sum(bool(p["score_changes"]) for p in probes),
+                ]
+            )
+    report += (
+        table(
+            [
+                "Arm",
+                "False-admission category",
+                "Rows",
+                "Probes",
+                "Semantic changes",
+                "Score changes",
+            ],
+            category_rows,
+        )
+        + "\n"
+    )
+    temporal = {}
+    for arm in ("C", "C'"):
+        temporal[arm] = {}
+        for later in (False, True):
+            turns = [
+                t
+                for case in effects["details"]
+                if case["arm"] == arm
+                for t in case["turns"]
+                if t["probe"] and t["later_than_admission"] == later
+            ]
+            temporal[arm]["later turns" if later else "admission turn"] = dict(
+                probes=len(turns),
+                semantic_changes=sum(t["probe"]["semantic_changed"] for t in turns),
+                score_changes=sum(bool(t["probe"]["score_changes"]) for t in turns),
+            )
+    report += (
+        table(
+            [
+                "Arm",
+                "Timing",
+                "Exposed-row probes",
+                "Semantic changes",
+                "Score changes",
+            ],
+            [
+                [
+                    arm,
+                    timing,
+                    values["probes"],
+                    values["semantic_changes"],
+                    values["score_changes"],
+                ]
+                for arm, timings in temporal.items()
+                for timing, values in timings.items()
+            ],
+        )
+        + "\n"
+    )
+    d.g.write(d.OUT / "temporal-probe-summary.json", temporal)
+    report += "### Runtime and history diagnostics\n\n"
+    records = [d.read(p) for p in sorted((d.OUT / "gate/records").glob("*.json"))]
+    runtime_rows = []
+    for arm in d.ARMS:
+        rr = [r for r in records if r["arm"] == arm]
+        runtime_rows.append(
+            [
+                arm,
+                sum(r["un_release"]["task_return"] for r in rr),
+                sum(r["un_release"]["reactivated_output_columns"] for r in rr),
+                sum(r["un_release"]["masked_columns"] for r in rr),
+                sum(r["generation"]["eos"] is None for r in rr),
+                sum(r["trace"].get("overflow", False) for r in rr),
+                sum(r["trace"].get("admitted_beside_live", 0) for r in rr)
+                if arm in ("C", "C'")
+                else "n/a",
+            ]
+        )
+    report += (
+        table(
+            [
+                "Arm",
+                "Task returns",
+                "Reactivated own-output columns",
+                "Masked columns",
+                "Capped replies",
+                "Classifier overflow turns",
+                "Admitted beside live",
+            ],
+            runtime_rows,
+        )
+        + "\n"
+    )
+    report += (
+        "Reactivated columns describe restored task applicability in the "
+        "full history; no attention masking or mask un-release occurred. "
+        "Admitted-beside-live includes legitimate rows and is separate "
+        "from false admissions and contradictory recaps.\n\n"
+    )
+    parity = d.read(d.OUT / "setup-runtime-parity.json")
+    assert parity["compared_records"] == parity["exact_trace_matches"] == 96
+    assert not parity["mismatches"]
+    report += (
+        "All 96 newly recorded O-setup candidate traces exactly match the "
+        "committed v8 CPU traces, including classifier outputs and actions "
+        "([runtime parity](setup-runtime-parity.json)).\n\n"
     )
     report += "### Verification and artifacts\n\n"
     audit = d.read(d.OUT / "audit.json")

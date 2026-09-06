@@ -62,12 +62,15 @@ FOCUS-3 v8 step D is **INELIGIBLE; the final-iteration stop-loss is exhausted**.
 The 300-example admission enrichment and lifecycle guards retain36/36 admissions
 and11/12 transitions, but12 unauthorized actions remain (v7:19). False
 reinstatements fall to zero; payload/quote admissions still pollute the register.
-The GPU gate was not launched. [v8 results](results/quick-checks/focus3-gate/v8/RESULTS.md)
+Its registered GPU gate was not launched. [v8 results](results/quick-checks/focus3-gate/v8/RESULTS.md)
 and [Brian escalation summary](results/quick-checks/focus3-gate/v8/ESCALATION.md).
 
-FOCUS-3 v8 **diagnostic** is registered under separate user authorization: five
-arms measure false-admission cost; no PASS/FAIL label is assigned.
-[Diagnostic registration and results](results/quick-checks/focus3-gate/diag/RESULTS.md).
+FOCUS-3 v8 **diagnostic** completed all 64 episodes × five arms in 68.32 GPU
+minutes; no PASS/FAIL label is assigned. Final success: C 57/64, C′ 58/64,
+O 63/64, N 29/64, T 31/64. C made 25 false admissions in 21 episodes. In each
+candidate arm, removing one false row from the current recap changed 11/110
+answers (five success repairs, three losses), conditional on original history.
+[Full readings and per-admission effects](results/quick-checks/focus3-gate/diag/RESULTS.md).
 
 ## Earlier headline: the internal wave (superseded, kept for the record)
 
