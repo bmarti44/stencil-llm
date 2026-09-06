@@ -75,10 +75,15 @@ def main():
             final_integration=detail(selected[-1])['outcome']['integration'] if ep['complete'] else None))
     total_tokens=sum(s['tokens'] for s in stages);wall=sum(s['wall_seconds'] for s in stages)
     aggregate=rate(total_tokens,wall)
+    for e in endpoints:
+        e['metrics']['allocated_schedule_gpu_seconds']=rate(e['metrics']['output_tokens'],aggregate)
+    for s in per_arm.values():
+        s['allocated_schedule_gpu_seconds']=rate(s['output_tokens'],aggregate)
     perarm_tokens={a:max((e['metrics']['output_tokens'] for e in endpoints if e['arm']==a and e['complete']),default=None) for a in 'RNTO'}
     prior_paths=['composition-pilot/run.json','composition-pilot-2/run.json','vllm-qual/lifecycle.json']
     prior={s:json.loads((OUT.parent/s).read_text())['gpu_held_seconds'] for s in prior_paths}
     # Failed first startup was separate from qualification's successful lifecycle.
+    prior['pilot3_interrupted_start']=json.loads((OUT/'initial-attempt/run.json').read_text())['gpu_held_seconds']
     initial=json.loads((OUT.parent/'vllm-qual/initial-lifecycle.json').read_text())
     prior['vllm-qual/initial-lifecycle.json']=initial['gpu_held_seconds']
     weighted=64*(perarm_tokens['R']+perarm_tokens['N'])+16*(perarm_tokens['T']+perarm_tokens['O']) if all(v is not None for v in perarm_tokens.values()) else None
@@ -113,7 +118,7 @@ def main():
         R_final_success=r_success,R_opportunity_kinds=eligible_kinds,run=run,determinism=gate,
         cost=dict(aggregate_tok_s=aggregate,stage_wall_seconds=wall,tokens=total_tokens,prior_seconds=prior,
             max_episode_tokens=perarm_tokens,weighted_future_tokens=weighted,served_projection_hours=projected,
-            HF_recovery_seconds=None,full_projection_hours=None,charged_pilot_hours=run['gpu_held_seconds']/3600),
+            HF_recovery_seconds=None,full_projection_hours=None,charged_pilot_hours=(run['gpu_held_seconds']+prior['pilot3_interrupted_start'])/3600),
         DEV_mask_trigger=dict(met=bool(trigger),kinds=trigger,requires_state_audit=True),
         output_band='100-300 diagnostic, unchanged',backend='qualified vLLM; package path outcome-unvalidated')
     p.write(OUT/'summary.json',summary)
@@ -133,7 +138,7 @@ def main():
     for e in endpoints:
         m=e['metrics'];vi='/'.join(str(m['violations'][k]) for k in KINDS);rel=', '.join(f"{m['relapse'][k]['numerator']}/{m['relapse'][k]['denominator']}" for k in KINDS)
         body+=f"|{e['episode']}/{e['arm']}|{e['final_success']}|{e['final_integration']}|{m['stale_execution_rounds']}|{m['wrong_skill_rounds']}|{m['violations']['breakage']}|{vi}|{rel}|\n"
-    body+=f"\nActual fixed C4 schedule (including C2 long tails, HTTP, tools/checker and barriers) **{aggregate or 0:.3f} tok/s**. GPU-held **{run['gpu_held_seconds']:.3f}/9000s**, load **{run['load_seconds']:.3f}s**. Served-only conservative projection **{projected} GPU-h**. Formula and all per-episode timing/token costs are in [summary.json](summary.json): prior spend + this run + measured reload +1.25 × [64(max R+max N tokens)+16(max O+max T tokens)] / measured aggregate rate. Max per-arm counts include32-round episodes. Overlapping request seconds are latency, not summed GPU cost. HF recovery remains unmeasured; full check45-inclusive eligibility receives no unmeasured credit.\n"
+    body+=f"\nActual fixed C4 schedule (including C2 long tails, HTTP, tools/checker and barriers) **{aggregate or 0:.3f} tok/s**. GPU-held **{run['gpu_held_seconds']+prior['pilot3_interrupted_start']:.3f}/9000s** (both starts), load **{run['load_seconds']:.3f}s**. Served-only conservative projection **{projected} GPU-h**. Formula and all per-episode timing/token costs are in [summary.json](summary.json): prior spend + this run + measured reload +1.25 × [64(max R+max N tokens)+16(max O+max T tokens)] / measured aggregate rate. Max per-arm counts include32-round episodes. Overlapping request seconds are latency, not summed GPU cost. HF recovery remains unmeasured; full check45-inclusive eligibility receives no unmeasured credit.\n"
     body+=f"\nDEV mask trigger **{'MET' if trigger else 'NOT ESTABLISHED'}**, kinds={trigger}; all four kinds and executed-prior-trait denominators are in summary. No masks enabled. T cumulative multi-function re-emissions: {len(per_arm['T']['multi_function_reemissions'])} parseable responses (names listed in summary); capped malformed responses are counted as breakage, not silently repaired.\n"
     body+='\nGold events drive R in DEV only; no fitting, evaluation episode construction or data/bench reads. **package path outcome-unvalidated**. Backend uses qualification image digest `sha256:3dbe092ec5b2cef63b6104d33fa75d6ce53a7870962529ada69f78bbbc38e776`, exact flags/env and request parameters in [registration.json](registration.json). Prior HF divergence5/64 (R1/16) stands; this pilot does not remeasure HF trajectories.\n'
     body+='\n[records.jsonl](records.jsonl) contains same-run v2 records, execution/tolerances, checker and per-call timings; [http/records.jsonl](http/records.jsonl) retains actual streamed token IDs/chunks/usage. [schedule.jsonl](schedule.jsonl) fixes episode lanes and round barriers. Hidden states are **not captured** on vLLM; check45 needs teacher-forced HF prefill. [transcript-manifest.json](transcript-manifest.json) lists the exact final transcript, per-episode output and every prompt+body+EOS hash required, with layer/body-position convention.\n'

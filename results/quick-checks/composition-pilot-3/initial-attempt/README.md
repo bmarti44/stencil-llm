@@ -73,15 +73,3 @@ per-episode final transcript/output hashes. No HF-recovery timing is invented.
 DEV mask trigger uses v2 section3: R >=15% relapse, >=20 executed-trait
 opportunities of a kind, relapse in >=2 episodes; O same kind in >=2 episodes
 with verified state/render. All kinds/denominators reported. No mask run authorized.
-
-## Pre-trajectory startup correction
-
-The first owned start was stopped during determinism, before any DEV trajectory,
-after a CPU check exposed tuple+list concatenation in the episode output-hash
-writer. Exact interrupted calls/logs/lifecycle and original source registration
-are preserved under initial-attempt/. This is an orchestration defect, not a
-backend determinism failure or an outcome-selected change. The hash writer now
-normalizes IDs to a list. The full scheduling/episode-writer path is CPU-smoked
-before restart. Backend command/env remain unchanged; no model/prompt/checker
-changes. First GPU-held spend 500.353s is subtracted from the restart's9000s
-allowance and included in all cost totals. No completed DEV episode is repeated.

@@ -86,7 +86,7 @@ def main():
             assert a['output_token_ids']==b['output_token_ids']
     assert det['passed'] and det['D']==0
     run=json.loads((OUT/'run.json').read_text())
-    assert run['gpu_held_seconds']<=9000
+    assert run['gpu_held_seconds']+json.loads((OUT/'initial-attempt/run.json').read_text())['gpu_held_seconds']<=9000
     assert run['stop']['returncode']==run['remove']['returncode']==0
     inspection=json.loads((OUT/'container-inspect.json').read_text())[0]
     assert inspection['Image']=='sha256:ffa30d66ff5c9346c6389507cc529827fc9934a6d2ee37855934f94fe1061cdc'

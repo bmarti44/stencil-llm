@@ -169,7 +169,7 @@ def trajectories(client, deadline, tokenizer):
                     p.append(OUT/'episodes.jsonl',dict(episode=lane.episode.episode_id,arm=arm,
                         scheduled_rounds=len(lane.episode.turns),rounds=len(lane.rows),
                         complete=len(lane.rows)==len(lane.episode.turns),
-                        output_sha256=ids_hash([x for r in lane.rows for x in list(r['output_token_ids'])+([] if r['eos'] is None else [r['eos']])]),
+                        output_sha256=ids_hash([x for r in lane.rows for x in r['output_token_ids']+([] if r['eos'] is None else [r['eos']])]),
                         transcript_sha256=ids_hash(transcript),
                         transcript_path=str((lane.directory/'final-transcript.json').relative_to(OUT))))
                 if not complete:return
@@ -189,7 +189,7 @@ def main():
         assert gpu['returncode']==0,gpu
         if not flags and not any('python' in s for s in gpu['output'].splitlines()):break
         print('waiting for Stencil GPU occupancy',flags,gpu,flush=True);time.sleep(30)
-    start=time.time();deadline=start+9000-json.loads((OUT/'initial-attempt/run.json').read_text())['gpu_held_seconds']
+    start=time.time();deadline=start+9000
     flag=OUT/'RUNNING.flag'
     with flag.open('x') as f:json.dump(dict(pid=os.getpid(),start=start,deadline=deadline),f)
     receipt=dict(start=start,deadline=deadline,status='starting',occupancy=gpu)
