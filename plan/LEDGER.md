@@ -1100,3 +1100,11 @@ strict-JSON tolerances and grouped_mm gate registered in composition-pilot READM
 No fitting; frozen DEV00 CPU recovery and authored DEV-only re-pilot. Conservative
 projection carries prior pilot spend; O proxy R disclosed if unrun. No signals,
 bench reads, batch4 or push; 7200s one-load GPU cap; explicit-path commits.
+
+2026-09-06 — DAY5B CPU RECOVERY:95/128 execute190 tools; all final lanes fail
+integration (missing append separators) and obligations; style95/95 violations.
+N dropped verbose contains4 unscoped delivery claims; diagnostic preserved,
+not a third parser tolerance. Renderer16 original-input prompts match exactly.
+Scope deviation: broad test_focus_slab selection instantiated synthetic eval
+witness cases on CPU; no bench read or model inference, no scientific use of
+those results. Detected mid-run; no signal sent. Dedicated tests/GPU DEV-only.

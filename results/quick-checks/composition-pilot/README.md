@@ -175,3 +175,36 @@ truncation<=2%, executed-call rate>=90%, nonzero executed-trait denominators in
 Observed threshold failure is INELIGIBLE; unavailable evidence/gate failure is
 INCOMPLETE. DEV mask trigger retains >=20 opportunities, >=15% relapse and >=2
 relapsing episodes in R and O; unrun O cannot establish that trigger.
+
+### Day5b recovered outcomes (CPU, amended parser; frozen outputs)
+
+95/128 responses execute190 tool operations: sequential R/N/O16 each, T0;
+batch R/O16 each, T15, N0. All eight lanes finish with final all-obligation
+success=false and integration=false. These are cumulative replays of original
+outputs, not counterfactual model continuations with successful tool feedback.
+All95 recovered responses violate indentation. Sequential R/N/O each have
+style16, format12, process15 and breakage15 violations; batch R/O identical;
+batch T style15, format13, process15, breakage15. Unparsed sequential T and
+batch N have format16/breakage16; their zero style counts are unmeasured.
+Language/wrong-family flags are0 on parsed rows. All executed-trait relapse
+opportunities are0: no recovered obsolete trait establishes retention pressure.
+
+The frozen snippets omit separating newlines: the second append to a module
+joins `return ...]def step_1...`, invalidating cumulative integration. Individual
+function correctness in Fable's review does not establish cumulative success.
+No edit-append semantics were changed. N places delivery inside discarded
+`verbose` entries; four sequential N turns make that claim when delivery is
+unscoped. The exact claims and `dropped_unscoped_delivery` diagnostic are saved;
+they are not silently lifted by a third tolerance. The normalized process
+checker separately measures actual receipts and top-level lifted report fields.
+Reproduce with `python -m stencil.focus.pilot_recovery`; deterministic results
+and all128 per-row execution/tolerance/outcome records are in
+[recovered-summary.json](recovered-summary.json) and
+[recovered-records.jsonl](recovered-records.jsonl).
+
+Test-selection deviation: the broad CPU `tests/test_focus_slab.py` invocation
+included synthetic evaluation-bank generator/witness cases before this was
+noticed. No data/bench content was read and no evaluation prompt went to the
+trunk; no evaluation result informed code, registration, tuning or selection.
+The run was allowed to finish without signals. Dedicated new tests and GPU
+work are DEV-only. The recovery/interface result does not erase this deviation.

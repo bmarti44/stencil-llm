@@ -102,6 +102,9 @@ SYSTEM_PROMPT = (
     "with whole-file replace as needed. Reply with calls/report JSON; report status "
     "is ok, verbose includes task, compact omits task. Include delivery only for "
     "the task named in the request. Style applies to emitted changes. "
+    'report is an object with keys status (always "ok"), task (verbose format '
+    "only), and delivery (named task only). test takes no path. Literal envelope "
+    'example: {"calls":[{"op":"test"}],"report":{"status":"ok"}}. '
     + EXECUTION_POLICY
     + " Tool schema: "
     + compact(TOOL_SCHEMA)
@@ -669,6 +672,38 @@ def reference(episode, turn):
     )
 
 
+ENVELOPE_EXPECTED = '{"calls":[...],"report":{"status":"ok"}}'
+
+
+class EnvelopeError(ValueError):
+    pass
+
+
+def parse_envelope(output, tolerances=None):
+    """Normalize only the two registered Day5b tolerances; never repair JSON."""
+    journal = tolerances if tolerances is not None else []
+    try:
+        payload = json.loads(output)
+    except ValueError:
+        raise EnvelopeError("envelope") from None
+    if not isinstance(payload, dict):
+        raise EnvelopeError("envelope")
+    if "report" not in payload and "calls" in payload:
+        lifted = {k: payload[k] for k in ("status", "task", "delivery") if k in payload}
+        dropped = {k: v for k, v in payload.items() if k not in {"calls", *lifted}}
+        journal.append(dict(tolerance="lift_report", lifted=lifted, dropped=dropped))
+        payload = dict(calls=payload["calls"], report=lifted)
+    if set(payload) != {"calls", "report"} or not isinstance(payload["report"], dict):
+        raise EnvelopeError("envelope")
+    if isinstance(payload["calls"], list):
+        for index, call in enumerate(payload["calls"]):
+            if isinstance(call, dict) and call.get("op") == "test" and "path" in call:
+                journal.append(
+                    dict(tolerance="test_path", call=index, path=call.pop("path"))
+                )
+    return payload
+
+
 class Executor:
     """Agent-visible tools. Private expectations never enter this instance."""
 
@@ -703,12 +738,11 @@ class Executor:
         self.before_parsable = dict(self.last_parsable)
         self.emitted_codes = []
         self.executed, self.results, self.receipt = [], [], None
+        self.tolerances = []
         try:
             if len(output.encode()) > TOOL_SCHEMA["max_output_bytes"]:
                 raise ValueError("output bound")
-            payload = json.loads(output)
-            if not isinstance(payload, dict) or set(payload) != {"calls", "report"}:
-                raise ValueError("envelope")
+            payload = parse_envelope(output, self.tolerances)
             calls = payload["calls"]
             if (
                 not isinstance(calls, list)
@@ -802,6 +836,8 @@ class Executor:
                     )
                 self.executed.append(call)
                 self.results.append(result)
+        except EnvelopeError:
+            self.results.append(dict(error="envelope", expected=ENVELOPE_EXPECTED))
         except (ValueError, TypeError, AttributeError, OSError) as exc:
             self.results.append(dict(error=str(exc)))
         codes = [c["code"] for c in self.executed if c["op"] in {"edit", "replace"}]
@@ -815,6 +851,7 @@ class Executor:
             )
         return dict(
             results=self.results,
+            tolerances=self.tolerances,
             executed=self.executed,
             wall_seconds=time.monotonic() - started,
         )
@@ -894,7 +931,7 @@ def check(episode, turn, output, executor, executed=True, truncated=False):
     rules, stale = dict(t.live), dict(t.retired)
     prior, compliance = prior_traits(executor, rules, stale)
     try:
-        payload = json.loads(output)
+        payload = parse_envelope(output)
         calls, report = payload["calls"], payload["report"]
         edits = [c for c in calls if c.get("op") in {"edit", "replace"}]
         code = "\n".join(
