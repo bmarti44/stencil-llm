@@ -827,3 +827,11 @@ onepass remains5400s cap, resource-only projection before source held-out read.
 No package-wide monkeypatch: direct LMFE tokenizer adapter passes both empty
 and rule JSON paths; legal merged string-ending tokens can be overrestricted
 by LMFE, recorded in cpu-smoke.json. Frozen recipe is committed before inference.
+
+2026-09-06 — STATE: DIAGNOSTIC CANCELLATION CHECKPOINT; HALF GATE COMPLETE.
+All480 cancellation records complete; first32episodes/960gate records now
+finished. C/C' cancel exact11/16, final14/16, stale2/16, false retirement1/16,
+contradictory1/16, breakage0; each6unauthorized admissions. O final16/16,
+stale1/16; T final0/16, stale16/16; N final0/16, stale14/16, breakage1/16.
+No outcome selection or repair. Completion-and-move-on family now running;
+conditional rendering probes remain after allfive arms. Descriptive only.
