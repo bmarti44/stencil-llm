@@ -605,3 +605,10 @@ per-class caps verified. Seed0 remains predetermined. Natural exit, flag removed
 Next commit freezes all checkpoints/hashes/calibration; then one CPU command
 CUDA_VISIBLE_DEVICES=empty .venv/bin/python -m scripts.focus3_gate_v6
 --mode second-look. Durable SECOND LOOK receipt before heldout2 open, no tuning.
+
+2026-09-06 — STATE: V6 DISCLOSED SECOND LOOK COMPLETE; CPU REPLAY NEXT.
+Freeze54e09f25 preceded one new357-pair CPU inference with durable look2 receipt.
+Primary343/357 accuracy,201/206 correct-positive,9/151 none-FP; vs first look
++6correct overall,+5positive,-1none-FP. Diagnostic only; no policy/model changes.
+Raw357 records written in same inference pass; identities match first-look inputs.
+Next ONE CPU pre-gate replay --mode replay; required36/36,>=11/12,0unauthorized.
