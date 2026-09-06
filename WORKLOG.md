@@ -5216,3 +5216,10 @@ Initial ordering admission0/64,global tags64/64; all480 available pairs none,48 
 19 applicable tests pass,2 sealed-byte hash tests excluded,ruff clean; both audits PASS on1632 records/272 episode-arms,all131 v1 files preserved against8f0c550b.
 Freeze27003fda precedes outputs; projection3504.527s selects64;2965.079/10800s charged incl.v1,46047 total tokens. RESULTS v2/summary/index complete; natural exit/own flag removed.
 STATE: completed FAIL,results land in this explicit-path local commit; no further repair/rerun,fitting,sealed reads,signals or push.
+
+### 2026-09-06 — Check40h (gpt-6-astra): PARTIAL release closure
+No fit/train; frozen40b directions/alpha3, fresh seed40070/24 episodes, every-change masks; pre-inference recipe3f1a8aac, no sealed inputs.
+M SWITCH Python20/24 (broken4), BACK JS19/24, CLEAR Python24/24 =19 actual releases +5 default-persistence; HOLD_AFTER_SWITCH repeats four missing parentheses.
+Z mask+OFF SWITCH Python24/24, later BACK JS23/24; Python routing unnecessary for default. T′ every language target24/24, broken0, CLEAR coarse23/24 (lambda).
+M/Z fences retained; T′ bare valid BACK/HOLD_AFTER_BACK/CLEAR1 each; ambiguous echoes/OK0. Every record/token/mask/cue span audited; midpoint62c0ad1d preserved.
+528 records/480 generations/14603 tokens;1347.560/1800 GPU seconds, no overrun; CPU consumer/writer + independent reading PASS, flag removed, explicit commits/no push/signals.

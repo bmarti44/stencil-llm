@@ -35,3 +35,13 @@ FOCUS-3 naturally released its GPU and flag; resources ready with
 checkpoint12 preserves264 records/240 actual generations; production audit
 recomputed every score/token/history/bias/mask/cue span and summary on CPU.
 No production record edits or outcome retries; frozen denominator remains24.
+
+2026-09-06 — STATE: COMPLETE / PARTIAL; FINAL ARTIFACT COMMIT NEXT.
+24 episodes,528 rows/480 actual generations/14603 tokens;1347.560218608s,
+no overrun/truncation/cost stop; foreground natural exit and own flag removed.
+M SWITCH20 Python/broken4, BACK19 JS, CLEAR24 Python; paired actual release19.
+Z SWITCH24 Python, BACK23 JS; Tprime every language target24, breakage0.
+No ambiguous echoes/OK; all M/Z fenced; three valid bare Tprime outputs.
+Final production audit verifies every record/mask/cue/forward and summary;
+independent literal-threshold reading PARTIAL and checkpoint prefix identical.
+Index5 lines, WORKLOG6 lines; finalize explicit paths, no push or signals.

@@ -446,3 +446,9 @@ FOCUS-3 gate ([results v2](focus3-gate/RESULTS.md), [frozen reading](focus3-gate
    R1 Python0/24 SWITCH/CLEAR; R3 Python0/24, broken6 each; R4 period copies/broken24 each; T SWITCH24/24, CLEAR0/24 (broken1).
    Masking enables SWITCH in addition to routing; R2 BACK JS0/24 means CLEAR is23 Python-persistence +1 broken-to-Python, not an independent JS release.
    648 generations/864 records/14406 tokens,22.95/90 GPU-min; full CPU audit PASS; recipe e570e74c, flag removed, no signals/sealed reads/push.
+
+40h. RELEASE CLOSURE ([check40h](check40h/README.md)): **PARTIAL**; M SWITCH Python20/24 (broken4), BACK JS19/24, CLEAR Python24/24.
+   CLEAR is19 actual restored-JS releases +5 Python-persistence cases; four missing-parenthesis defects persist at HOLD_AFTER_SWITCH; no rescue.
+   Z mask+OFF SWITCH Python24/24: masking restores DEFAULT without new Python routing; later JS-biased BACK23/24. T′ every language target24/24, broken0.
+   M/Z fence loss0; T′ bare valid BACK/HOLD_AFTER_BACK/CLEAR1 each; ambiguous echoes/OK0. T′ CLEAR coarse23/24 (valid lambda rejected by unchanged checker).
+   528 records/480 generations/14603 tokens,22.46/30 GPU-min; full CPU audit PASS, freeze3f1a8aac; flag removed, no fit/train/sealed reads/signals/push.

@@ -15,17 +15,45 @@ def main():
     ]
     assert audit["records"] == len(rows) == summary["records"]
     prewritten = (OUT / "prewritten-reading.md").read_text()
+    m = summary["arms"]["M"]
     lines = [
         f"**Result: {summary['reading']}.**",
         "",
         f"Complete: {summary['complete']}; {summary['reason']}.",
         "",
+        f"M SWITCH Python {m['SWITCH']['valid'].get('Python', 0)}/24, "
+        f"broken {m['SWITCH']['broken']}/24; "
+        f"BACK JS {m['BACK']['valid'].get('JavaScript', 0)}/24, "
+        f"broken {m['BACK']['broken']}/24; "
+        f"CLEAR Python {m['CLEAR']['valid'].get('Python', 0)}/24, "
+        f"broken {m['CLEAR']['broken']}/24.",
+        "",
+        "The prescribed M schedule does not close release: SWITCH exceeds the",
+        "breakage bar and the decisive non-default BACK misses20/24. CLEAR is",
+        "19 actual reestablished-JS releases plus5 Python-persistence cases.",
+        "Z's later masked BACK restores JS23/24 and CLEAR Python24/24, with zero",
+        "breakage throughout; this secondary schedule does not rescue the frozen M",
+        "reading. T′ meets every target24/24, zero breakage, including CLEAR after",
+        "masking all six cue-bearing user turns and all assistant code bodies.",
+        "These are language targets: T′ CLEAR passes the coarse task check23/24.",
+        "Episode5 is a valid bare Python lambda; the inherited coarse checker",
+        "requires a return statement and rejects that form. No scorer was changed.",
+        "",
         "| Arm | Step | JS | Python | Broken | Coarse task | Bare (valid) | "
         "Ambiguous / exact echoes |",
         "|---|---|---:|---:|---:|---:|---:|---:|",
     ]
-    for arm, steps in summary["arms"].items():
-        for step, cell in steps.items():
+    for arm in ("M", "Z", "Tprime"):
+        for step in (
+            "SET",
+            "HOLD",
+            "SWITCH",
+            "HOLD_AFTER_SWITCH",
+            "BACK",
+            "HOLD_AFTER_BACK",
+            "CLEAR",
+        ):
+            cell = summary["arms"][arm][step]
             diag = summary["diagnostics"][arm][step]
             coarse = sum(
                 r["score"]["valid_task"]
@@ -72,6 +100,13 @@ def main():
         "Fence loss and R3-style echoes are separate diagnostics, not unnamed",
         "parser failures. The table reports all bare outputs and bare valid outputs;",
         "ambiguous means both language parsers accept the extracted code.",
+        "No ambiguous expression echoes or OK imitation occurred in any arm.",
+        "M/Z retain fences on every reply. T′ loses fences on one valid reply at",
+        "BACK and HOLD_AFTER_BACK (episode13), and one at CLEAR (episode5).",
+        "M's broken episodes2,5,10,14 all omit a closing parenthesis at SWITCH",
+        "and repeat that defect at HOLD_AFTER_SWITCH: eight invalid replies from",
+        "four episodes, not ambiguous R3-style echoes. SWITCH onset families are",
+        "screen_1 (three of eight) and screen_0 (one of eight).",
         "",
     ]
     for arm in summary["arms"]:
@@ -122,7 +157,7 @@ def main():
         "",
     ]
     (OUT / "README.md").write_text(
-        prewritten.replace("Results PENDING.", "\n".join(lines))
+        prewritten.replace("Results PENDING.", "\n".join(lines)).rstrip() + "\n"
     )
 
 
