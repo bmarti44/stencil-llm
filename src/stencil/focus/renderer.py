@@ -27,6 +27,8 @@ class Request:
     max_tokens: int | None = None
     template_id: str | None = None
     needs_old_body: bool = False
+    rule_mode: str = "R"
+    rule_text: str = ""
 
 
 @dataclass(frozen=True)
@@ -99,6 +101,12 @@ def render(register: Register, request: Request) -> RenderedRequest:
         + "\nApply the active rules while answering the request below."
         "\nCurrent user request:\n" + request.text
     )
+    if request.rule_mode == "N":
+        text = request.text
+    elif request.rule_mode == "T":
+        text = request.rule_text + "\n" + request.text
+    elif request.rule_mode not in {"R", "O"}:
+        raise ValueError("unknown rule mode")
     envelope = (
         "<|im_start|>user\n" + text + "<|im_end|>\n"
         "<|im_start|>assistant\n<think>\n\n</think>\n\n"

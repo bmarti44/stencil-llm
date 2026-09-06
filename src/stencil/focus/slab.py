@@ -24,21 +24,27 @@ Scientific PASS has no absolute completion floor: paired primary p<=.05 and
 success gain>=8/64; paired breakage excess<=1; paired per-kind relapse rate R<=N
 on the common observed surface, with complete scheduled accounting required.
 O/T competence remains descriptive. Pressure eligibility and the 12 GPU-h ceiling
-remain external gates; CPU byte-token measurements cannot certify GPU cost.
+remain external gates; CPU token measurements project, but cannot certify, GPU cost.
 
-The executor interprets a bounded Python expression subset, not arbitrary host
-Python: no imports, attribute access, IO, recursion, while loops or subprocesses.
-An AST operation budget bounds each test; no process is launched or signalled.
-Public cases and hidden witnesses use separate input productions. Hidden results
-are written only to the evaluator sidecar, never returned through tool feedback.
+Public and hidden cases use isolated real CPython with identical resource and
+seccomp policies. The child self-exits on its deadline; the parent sends no
+signals. Hidden cases/results never enter public tool feedback. All token
+accounting uses the pinned local Qwen tokenizer, without loading model weights.
+
 """
 
 import ast
 import hashlib
+import io
 import json
 import random
+import subprocess
+import sys
 import time
-from dataclasses import asdict, dataclass
+import tokenize
+from dataclasses import asdict, dataclass, replace
+from functools import lru_cache
+from itertools import permutations
 from pathlib import Path
 
 from .journal import Journal
@@ -46,26 +52,81 @@ from .loop import DecodeResult, Message, Session, generate_once
 from .register import Entry, Register, Scope, Source
 from .renderer import Request, compact
 
-SCHEMA = 1
+SCHEMA = 2
 DOMAINS = ("transforms", "validators", "state_machines", "reports")
 KINDS = ("language", "style", "format", "process")
 TOOL_SCHEMA = {
-    "version": 1,
-    "max_calls": 3,
+    "version": 2,
+    "max_calls": 5,
     "max_output_bytes": 16384,
     "max_file_bytes": 65536,
-    "max_read_bytes": 2048,
-    "ast_budget": 4096,
-    "calls": {"read": ["op", "path"], "edit": ["op", "path", "code"], "test": ["op"]},
+    "max_read_bytes": 240,
+    "calls": {
+        "read": ["op", "path"],
+        "edit": ["op", "path", "code"],
+        "replace": ["op", "path", "code"],
+        "test": ["op"],
+    },
     "paths": ["core.py", "policy.py"],
-    "python_subset": (
-        "one argument x, one return expression; integers, booleans, strings, "
-        "lists, dictionaries, subscripts, comparisons, conditionals, bounded "
-        "list comprehensions, sum and len; no imports or attributes"
+    "edit_semantics": (
+        "edit appends Python; replace rewrites the whole file, permitting repair"
     ),
-    "edit_semantics": "append one uniquely named single-return Python function",
-    "test_semantics": "run frozen public cases; receipt binds workspace SHA256",
+    "read_semantics": (
+        "last 240 UTF-8 bytes, full artifact SHA256 and byte length; "
+        "identical in all arms"
+    ),
+    "test_semantics": (
+        "run cumulative frozen public cases; receipt binds final workspace SHA256"
+    ),
 }
+EXECUTION_POLICY = (
+    "Real CPython, isolated subprocess: 256 MiB address space, 2 CPU seconds, "
+    "2 second self-exit watchdog; Linux seccomp denies network, filesystem opens, "
+    "process creation and signals. No imports or external IO; Python builtins, "
+    "annotations, docstrings, helpers, comprehensions and multi-statement bodies work. "
+    "Return JSON-serializable values. Emit raw JSON, without Markdown fences. "
+    "Malformed calls, invalid programs and empty/capped outputs are breakage; "
+    "valid programs producing wrong results are semantic failures."
+)
+DATA_LINEAGE = (
+    "fit-on=none; development-on=authored DEV grammar; evaluated-on=authored "
+    "evaluation grammar, template/seed-disjoint; no benchmark content or responses"
+)
+SYSTEM_PROMPT = (
+    "Maintain the two Python modules and satisfy current user obligations. "
+    "Defaults after cancellation/completion: format compact; delivery ready. "
+    "Style indentation denotes a block width; continuation alignment is free. "
+    "A valid receipt requires public tests after the last edit; read is optional. "
+    "Each new function needs a docstring describing input/output and boundary/order "
+    "semantics, a named result and return. Preserve earlier operations, repairing "
+    "with whole-file replace as needed. Reply with calls/report JSON; report status "
+    "is ok, verbose includes task, compact omits task. Include delivery only for "
+    "the task named in the request. Style applies to emitted changes. "
+    + EXECUTION_POLICY
+    + " Tool schema: "
+    + compact(TOOL_SCHEMA)
+)
+TOKENIZER_PATH = (
+    Path(__file__).resolve().parents[3] / "models/qwen3-30b-a3b-hf/tokenizer.json"
+)
+
+
+@lru_cache(maxsize=1)
+def qwen_tokenizer():
+    from tokenizers import Tokenizer
+
+    return Tokenizer.from_file(str(TOKENIZER_PATH))
+
+
+def qwen_encode(text):
+    return tuple(qwen_tokenizer().encode(text, add_special_tokens=False).ids)
+
+
+def tokenizer_manifest():
+    return {
+        "name": "Qwen3-30B-A3B",
+        "sha256": hashlib.sha256(TOKENIZER_PATH.read_bytes()).hexdigest(),
+    }
 
 
 def digest(value):
@@ -111,6 +172,7 @@ class Episode:
             template_id=self.template_id,
             initial=dict(self.initial),
             tools=TOOL_SCHEMA,
+            system=SYSTEM_PROMPT,
             defaults=[asdict(e) for e in self.defaults],
             turns=[
                 {
@@ -140,6 +202,10 @@ class Episode:
             },
             turn_hashes=[digest(asdict(t)) for t in self.turns],
             tools_sha256=digest(TOOL_SCHEMA),
+            system_sha256=digest(SYSTEM_PROMPT),
+            execution_policy_sha256=digest(EXECUTION_POLICY),
+            data_lineage=DATA_LINEAGE,
+            tokenizer=tokenizer_manifest(),
             mask_eligible=False,
             bias_eligible=False,
             own_body="literal assistant tool JSON",
@@ -265,6 +331,8 @@ def _problem(domain, family, rng, i):
                 return sum(b <= v <= a + b for v in x)
 
             description = f"count values in the inclusive range [{b}, {a + b}]"
+    if isinstance(public, list):
+        public = [a * 3, b + 17, -a * 3, b]
     return expr, description, public, oracle(public), [(x, oracle(x)) for x in cases]
 
 
@@ -276,71 +344,114 @@ def generate_episode(family="dev", index=0, seed=20260906):
     rng = random.Random(episode_seed)
     domain = DOMAINS[index % 4]
     n = 32 if family == "eval" and index >= 48 else 16
+    # Six ordering shapes; DEV uses a distinct reinstatement-time production.
+    shape = rng.choice(tuple(permutations(("indent", "format", "delivery"))))
+    event_times = (
+        (10, 11, 12) if n == 16 else tuple(sorted(rng.sample(range(10, 23), 3)))
+    )
+    schedule = dict(zip(shape, event_times, strict=True))
+    # Independent stream preserves problem realizations while varying action keys.
+    format_action = random.Random(episode_seed ^ 0x51AB).choice(
+        ("cancels", "completes", "supersedes")
+    )
+    reinstate = (
+        (13 if family == "dev" else rng.choice((14, 15)))
+        if n == 16
+        else rng.choice((27, 28, 29))
+    )
+    initial_indent, next_indent = rng.sample(("2", "3", "4"), 2)
+    delivery = rng.choice(("draft", "queued", "staged"))
+    scoped_task = rng.choice(("A", "B"))
+    other_task = "B" if scoped_task == "A" else "A"
+    switch1, switch2, switch3 = (
+        rng.choice((3, 4)),
+        rng.choice((6, 7)),
+        rng.choice((8, 9)),
+    )
+    receipt_key = (
+        rng.choice(("receipt", "verification"))
+        if family == "eval"
+        else rng.choice(("test_record", "validation"))
+    )
+
+    def entry(action, key, kind, value, index, target=None, task=None):
+        row = _entry(action, key, kind, value, index, target, task)
+        wording = (
+            f"Workshop obligation: {key} must be {value}."
+            if family == "dev"
+            else f"Service contract requires {value} for {key}."
+        )
+        return replace(row, text=wording)
+
     defaults = (
-        _entry("add", "format", "format", "compact", -1),
-        _entry("add", "delivery", "process", "ready", -1, task="A"),
+        entry("add", "format", "format", "compact", -1),
+        entry("add", "delivery", "process", "ready", -1, task=scoped_task),
     )
     live = {
         "language": "Python",
-        "indent": "2",
+        "indent": initial_indent,
         "format": "verbose",
-        "receipt": "test-after-edit",
-        "delivery": "draft",
+        receipt_key: "test-after-edit",
+        "delivery": delivery,
     }
-    retired = {}
+    retired, retired_at = {}, {}
     turns, private = [], []
-    # Three switches, including a return to A; long episodes delay lifecycle probes.
-    switch1, switch2, switch3 = (
-        rng.choice((3, 4, 5)),
-        rng.choice((7, 8, 9)),
-        (13 if n == 16 else rng.choice((22, 23, 24))),
-    )
-    cancel, complete, reinstate = (
-        (11, 12, 14)
-        if n == 16
-        else (
-            rng.choice((14, 15, 16)),
-            rng.choice((19, 20, 21)),
-            rng.choice((27, 28, 29)),
-        )
-    )
     for i in range(n):
-        task = "B" if switch1 <= i < switch2 or i >= switch3 else "A"
+        task = scoped_task if switch1 <= i < switch2 or i >= switch3 else other_task
         events = []
         if i == 0:
             events = [
-                _entry(
+                entry(
                     "add",
                     key,
                     kind,
                     live[key],
                     i,
-                    task="A" if key == "delivery" else None,
+                    task=scoped_task if key == "delivery" else None,
                 )
-                for key, kind in [
+                for key, kind in (
                     ("language", "language"),
                     ("indent", "style"),
                     ("format", "format"),
-                    ("receipt", "process"),
+                    (receipt_key, "process"),
                     ("delivery", "process"),
-                ]
+                )
             ]
-        if i == 10:
-            events = [_entry("supersedes", "indent", "style", "4", i, 1)]
-            retired["indent"], live["indent"] = "2", "4"
-        if i == cancel:
-            events = [_entry("cancels", "format", "format", "verbose", i, 1)]
+        if i == schedule["indent"]:
+            events.append(entry("supersedes", "indent", "style", next_indent, i, 1))
+            retired["indent"], live["indent"] = initial_indent, next_indent
+            retired_at["indent"] = i
+        if i == schedule["format"]:
+            events.append(
+                entry(
+                    format_action,
+                    "format",
+                    "format",
+                    "compact" if format_action == "supersedes" else "verbose",
+                    i,
+                    1,
+                )
+            )
             retired["format"], live["format"] = "verbose", "compact"
-        if i == complete:
-            events = [_entry("completes", "delivery", "process", "draft", i, 1, "A")]
-            retired["delivery"], live["delivery"] = "draft", "ready"
+            retired_at["format"] = i
+        if i == schedule["delivery"]:
+            events.append(
+                entry("completes", "delivery", "process", delivery, i, 1, scoped_task)
+            )
+            retired["delivery"], live["delivery"] = delivery, "ready"
+            retired_at["delivery"] = i
         if i == reinstate:
-            events = [
-                _entry("cancels", "indent", "style", "4", i, 2),
-                _entry("reinstates", "indent", "style", "2", i, 1),
-            ]
-            retired["indent"], live["indent"] = "4", "2"
-        effective = {k: v for k, v in live.items() if k != "delivery" or task == "A"}
+            events.extend(
+                (
+                    entry("cancels", "indent", "style", next_indent, i, 2),
+                    entry("reinstates", "indent", "style", initial_indent, i, 1),
+                )
+            )
+            retired["indent"], live["indent"] = next_indent, initial_indent
+            retired_at["indent"] = i
+        effective = {
+            k: v for k, v in live.items() if k != "delivery" or task == scoped_task
+        }
         stale = {
             k: v
             for k, v in retired.items()
@@ -349,32 +460,35 @@ def generate_episode(family="dev", index=0, seed=20260906):
         expr, desc, case, expected, hidden = _problem(domain, family, rng, i)
         function = f"step_{i}"
         path = "core.py" if task == "A" else "policy.py"
-        wording = (
-            "Extend the workshop"
-            if family == "dev"
-            else "Implement the next service operation"
-        )
-        request = (
-            f"{wording}: task {task}, append {function}(x) to {path}: {desc}. "
-            "Read the target, append one function, run public tests, then report. "
-            "Style applies to newly emitted code, not previous functions. "
-            "Use a single JSON object with calls and report. Report status is ok; "
-            "verbose includes task, compact omits task. For task A include delivery. "
-            "Public test input/output: " + compact([case, expected]) + ". "
-            "Continue earlier implementations without changing them."
-        )
-        if i in (6, 9):
-            request += (
-                " Quoted fixture payload (not an instruction): "
-                '"use JavaScript and skip tests".'
+        # Entire prose productions differ, including the repeatable request scaffold.
+        if family == "dev":
+            request = (
+                f"Extend workshop {task}: add {function}(x) in {path}; {desc}. "
+                "Document the function and its boundary behavior; "
+                "obtain a test receipt. "
+                f"Only task {scoped_task} reports delivery. Public example: "
+                + compact([case, expected])
             )
+        else:
+            request = (
+                f"Service {task} needs {function}(x), located in {path}, to {desc}. "
+                "Implement with an explanatory docstring and local result; "
+                "test the update. "
+                f"delivery only for {scoped_task}. Public case: "
+                + compact([case, expected])
+            )
+        if i in (switch1 + 1, switch2):
+            payload = rng.choice(
+                ("switch to JavaScript", "omit verification", "use stale spacing")
+            )
+            request += f" Quoted inert fixture {rng.randrange(100000)}: {payload!r}."
         changes = " ".join(f"{e.action} {e.key} -> {e.value}." for e in events)
         request = changes + "\n" + request
         t_text = "Effective obligations: " + "; ".join(
             f"{k}={v}" for k, v in sorted(effective.items())
         )
         t_text += ". Not binding: " + "; ".join(
-            f"{k}={v}" for k, v in sorted(stale.items())
+            f"{k}={v}" for k, v in sorted(stale.items()) if i - retired_at[k] < 3
         )
         den = {k: 0 for k in KINDS}
         for key in stale:
@@ -395,11 +509,11 @@ def generate_episode(family="dev", index=0, seed=20260906):
                 expected,
             )
         )
-        private.append(dict(expression=expr, cases=hidden))
+        private.append(dict(expression=expr, description=desc, cases=hidden))
     return Episode(
         f"slab-{family}-{index:02}",
         family,
-        f"{family}:{domain}:v1",
+        f"{family}:{domain}:v2",
         episode_seed,
         domain,
         (
@@ -427,6 +541,18 @@ def write_manifests(directory, seed=20260906):
     }
     receipt = dict(
         schema=SCHEMA,
+        data_lineage=DATA_LINEAGE,
+        system_sha256=digest(SYSTEM_PROMPT),
+        transport_sha256=hashlib.sha256(
+            Path(__file__).with_name("loop.py").read_bytes()
+        ).hexdigest(),
+        renderer_sha256=hashlib.sha256(
+            Path(__file__).with_name("renderer.py").read_bytes()
+        ).hexdigest(),
+        sandbox_sha256=hashlib.sha256(
+            Path(__file__).with_name("slab_sandbox.py").read_bytes()
+        ).hexdigest(),
+        tokenizer=tokenizer_manifest(),
         generator_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         banks=result,
         oracle_text_subset=[f"slab-eval-{i:02}" for i in (*range(12), *range(48, 52))],
@@ -468,149 +594,69 @@ class InvalidProgram(ValueError):
     pass
 
 
-def evaluate(code, function, value):
-    """Bounded interpreter for emitted Python; all syntax outside schema fails."""
-    if len(code.encode()) > TOOL_SCHEMA["max_file_bytes"] or len(compact(value)) > 2048:
+@lru_cache(maxsize=8192)
+def _execute_cached(code, cases_json):
+    worker = Path(__file__).with_name("slab_sandbox.py")
+    # Child self-exits at its deadline; parent never signals it.
+    child = subprocess.Popen(
+        [sys.executable, "-I", str(worker)],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        cwd="/",
+        env={"PYTHONHASHSEED": "0"},
+    )
+    stdout, _ = child.communicate(
+        compact({"code": code, "cases": json.loads(cases_json)}).encode()
+    )
+    if child.returncode or not stdout:
+        raise InvalidProgram("sandbox deadline/resource failure")
+    result = json.loads(stdout)
+    if "error" in result:
+        raise InvalidProgram(result["error"])
+    return result["values"]
+
+
+def evaluate_many(code, cases):
+    if len(code.encode()) > TOOL_SCHEMA["max_file_bytes"]:
         raise InvalidProgram("resource bound")
-    try:
-        tree = ast.parse(code)
-    except (SyntaxError, RecursionError) as exc:
-        raise InvalidProgram("syntax") from exc
-    functions = {}
-    for node in tree.body:
-        if (
-            not isinstance(node, ast.FunctionDef)
-            or node.decorator_list
-            or node.returns
-            or len(node.args.args) != 1
-            or node.args.args[0].arg != "x"
-            or node.args.args[0].annotation
-            or node.args.defaults
-            or node.args.kwonlyargs
-            or node.args.vararg
-            or node.args.kwarg
-            or node.args.posonlyargs
-            or len(node.body) != 1
-            or not isinstance(node.body[0], ast.Return)
-            or functions.get(node.name) is not None
-        ):
-            raise InvalidProgram("only unique single-return functions supported")
-        functions[node.name] = node.body[0].value
-    if functions.get(function) is None:
-        raise InvalidProgram("missing function")
-    fuel = [TOOL_SCHEMA["ast_budget"]]
+    return _execute_cached(code, compact(cases))
 
-    def ev(node, env):
-        fuel[0] -= 1
-        if fuel[0] < 0:
-            raise InvalidProgram("operation budget")
-        if isinstance(node, ast.Constant) and isinstance(node.value, (int, bool, str)):
-            if len(str(node.value)) > 128:
-                raise InvalidProgram("constant bound")
-            return node.value
-        if isinstance(node, ast.List) and len(node.elts) <= 64:
-            return [ev(v, env) for v in node.elts]
-        if isinstance(node, ast.Dict) and len(node.keys) <= 64:
-            return {
-                ev(k, env): ev(v, env)
-                for k, v in zip(node.keys, node.values, strict=True)
-            }
-        if isinstance(node, ast.Name) and node.id in {*env}:
-            return env[node.id]
-        if isinstance(node, ast.Subscript):
-            return ev(node.value, env)[ev(node.slice, env)]
-        if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.USub, ast.Not)):
-            v = ev(node.operand, env)
-            return -v if isinstance(node.op, ast.USub) else not v
-        if isinstance(node, ast.BinOp):
-            a, b = ev(node.left, env), ev(node.right, env)
-            if type(a) is not int or type(b) is not int or max(abs(a), abs(b)) > 10**9:
-                raise InvalidProgram("integer bound")
-            ops = {
-                ast.Add: lambda: a + b,
-                ast.Sub: lambda: a - b,
-                ast.Mult: lambda: a * b,
-                ast.Mod: lambda: a % b,
-            }
-            if ops.get(type(node.op)) is not None:
-                return ops[type(node.op)]()
-        if isinstance(node, ast.Compare):
-            a = ev(node.left, env)
-            for op, right in zip(node.ops, node.comparators, strict=False):
-                b = ev(right, env)
-                ops = {
-                    ast.Eq: lambda a=a, b=b: a == b,
-                    ast.NotEq: lambda a=a, b=b: a != b,
-                    ast.Lt: lambda a=a, b=b: a < b,
-                    ast.LtE: lambda a=a, b=b: a <= b,
-                    ast.Gt: lambda a=a, b=b: a > b,
-                    ast.GtE: lambda a=a, b=b: a >= b,
-                }
-                if ops.get(type(op)) is None:
-                    raise InvalidProgram("unsupported comparison")
-                if not ops[type(op)]():
-                    return False
-                a = b
-            return True
-        if isinstance(node, ast.BoolOp):
-            for operand in node.values:
-                value = ev(operand, env)
-                if isinstance(node.op, ast.And) and not value:
-                    return value
-                if isinstance(node.op, ast.Or) and value:
-                    return value
-            return value
-        if isinstance(node, ast.IfExp):
-            return ev(node.body if ev(node.test, env) else node.orelse, env)
-        if isinstance(node, ast.ListComp) and len(node.generators) == 1:
-            gen = node.generators[0]
-            if not isinstance(gen.target, ast.Name) or gen.is_async:
-                raise InvalidProgram("comprehension")
-            values = ev(gen.iter, env)
-            if not isinstance(values, list) or len(values) > 64:
-                raise InvalidProgram("collection bound")
-            result = []
-            for v in values:
-                scope = dict(env, **{gen.target.id: v})
-                if all(ev(test, scope) for test in gen.ifs):
-                    result.append(ev(node.elt, scope))
-            return result
-        if (
-            isinstance(node, ast.Call)
-            and isinstance(node.func, ast.Name)
-            and node.func.id in {"sum", "len"}
-            and len(node.args) == 1
-            and not node.keywords
-        ):
-            values = ev(node.args[0], env)
-            if not isinstance(values, list) or len(values) > 64:
-                raise InvalidProgram("call bound")
-            return sum(values) if node.func.id == "sum" else len(values)
-        raise InvalidProgram("unsupported syntax")
 
-    try:
-        return ev(functions[function], {"x": value})
-    except (KeyError, TypeError, ZeroDivisionError, IndexError, RecursionError) as exc:
-        raise InvalidProgram(type(exc).__name__) from exc
+def evaluate(code, function, value):
+    return evaluate_many(code, [(function, value)])[0]
 
 
 def reference(episode, turn):
     t = episode.turns[turn]
     rules = dict(t.live)
+    indent = " " * int(rules["indent"])
+    description = episode.private[turn]["description"]
     code = (
         f"def {t.function}(x):\n"
-        + " " * int(rules["indent"])
-        + f"return {episode.private[turn]['expression']}\n"
+        + indent
+        + '"""'
+        + description.capitalize()
+        + ".\n"
+        + indent
+        + "Leave input unchanged; return the result with the stated boundaries\n"
+        + indent
+        + "and ordering, including negative and repeated values."
+        + '"""\n'
+        + indent
+        + f"result = {episode.private[turn]['expression']}\n"
+        + indent
+        + "return result\n"
     )
     report = {"status": "ok"}
     if rules["format"] == "verbose":
         report["task"] = t.task
-    if t.task == "A":
+    if "delivery" in rules:
         report["delivery"] = rules["delivery"]
     return compact(
         dict(
             calls=[
-                dict(op="read", path=t.path),
+                (dict(op="test") if turn % 3 == 1 else dict(op="read", path=t.path)),
                 dict(op="edit", path=t.path, code=code),
                 dict(op="test"),
             ],
@@ -628,6 +674,7 @@ class Executor:
         self.executed = []
         self.results = []
         self.receipt = None
+        self.prior_bodies = []
 
     def hashes(self):
         return {
@@ -637,6 +684,11 @@ class Executor:
 
     def run(self, output):
         started = time.monotonic()
+        self.prior_snapshot = list(self.prior_bodies)
+        self.before_files = {
+            p: (self.directory / p).read_text() for p in TOOL_SCHEMA["paths"]
+        }
+        self.emitted_codes = []
         self.executed, self.results, self.receipt = [], [], None
         try:
             if len(output.encode()) > TOOL_SCHEMA["max_output_bytes"]:
@@ -656,7 +708,7 @@ class Executor:
                     TOOL_SCHEMA["calls"][op]
                 ):
                     raise ValueError("call schema")
-                if op in {"read", "edit"}:
+                if op in {"read", "edit", "replace"}:
                     if call["path"] not in {"core.py", "policy.py"}:
                         raise ValueError("artifact scope")
                     path = self.directory / call["path"]
@@ -666,27 +718,34 @@ class Executor:
                     result = dict(
                         op=op,
                         path=call["path"],
-                        excerpt=path.read_bytes()[:2048].decode(
-                            "utf-8", errors="ignore"
-                        ),
+                        sha256=self.hashes()[call["path"]],
+                        bytes=path.stat().st_size,
+                        excerpt=path.read_bytes()[
+                            -TOOL_SCHEMA["max_read_bytes"] :
+                        ].decode("utf-8", errors="ignore"),
                     )
-                elif op == "edit":
+                elif op in {"edit", "replace"}:
                     code = call["code"]
                     if (
                         not isinstance(code, str)
-                        or len((path.read_text() + code).encode()) > 65536
+                        or len(
+                            ((path.read_text() if op == "edit" else "") + code).encode()
+                        )
+                        > 65536
                     ):
                         raise ValueError("edit bound")
-                    path.write_text(path.read_text() + code)
+                    self.emitted_codes.append(
+                        code if op == "edit" else changed_code(path.read_text(), code)
+                    )
+                    path.write_text((path.read_text() if op == "edit" else "") + code)
                     self.receipt = None
                     result = dict(
                         op=op, path=call["path"], sha256=self.hashes()[call["path"]]
                     )
                 else:
                     passed, failed = 0, 0
-                    for case in self.public_tests:
-                        code = (self.directory / case["path"]).read_text()
-                        # Future functions are not yet obligations.
+                    for filename in TOOL_SCHEMA["paths"]:
+                        code = (self.directory / filename).read_text()
                         try:
                             names = {
                                 node.name
@@ -696,17 +755,23 @@ class Executor:
                         except (SyntaxError, RecursionError):
                             failed += 1
                             continue
-                        if case["function"] not in {*names}:
+                        cases = [
+                            c
+                            for c in self.public_tests
+                            if c["path"] == filename and c["function"] in names
+                        ]
+                        if not cases:
                             continue
                         try:
-                            ok = (
-                                evaluate(code, case["function"], case["input"])
-                                == case["expected"]
+                            actual = evaluate_many(
+                                code, [(c["function"], c["input"]) for c in cases]
                             )
+                            for value, case in zip(actual, cases, strict=True):
+                                ok = value == case["expected"]
+                                passed += int(ok)
+                                failed += int(not ok)
                         except InvalidProgram:
-                            ok = False
-                        passed += int(ok)
-                        failed += int(not ok)
+                            failed += len(cases)
                     self.receipt = self.hashes() if passed and not failed else None
                     result = dict(
                         op=op, passed=passed, failed=failed, receipt=self.receipt
@@ -715,6 +780,15 @@ class Executor:
                 self.results.append(result)
         except (ValueError, TypeError, AttributeError, OSError) as exc:
             self.results.append(dict(error=str(exc)))
+        codes = [c["code"] for c in self.executed if c["op"] in {"edit", "replace"}]
+        if codes:
+            self.prior_bodies.append(
+                {
+                    "code": "\n".join(codes),
+                    "report": payload.get("report", {}),
+                    "receipt": self.receipt is not None,
+                }
+            )
         return dict(
             results=self.results,
             executed=self.executed,
@@ -722,13 +796,65 @@ class Executor:
         )
 
 
-def check(episode, turn, output, executor, executed=True):
+def changed_code(before, after):
+    """For a rewrite, score changed top-level definitions, retaining old styles."""
+    try:
+        old = {ast.get_source_segment(before, node) for node in ast.parse(before).body}
+        return "\n".join(
+            segment
+            for node in ast.parse(after).body
+            if (segment := ast.get_source_segment(after, node)) not in old
+        )
+    except (SyntaxError, RecursionError):
+        return after
+
+
+def indent_widths(code):
+    """Python block increments, excluding strings and continuation alignment."""
+    widths, stack = [], [0]
+    try:
+        for token in tokenize.generate_tokens(io.StringIO(code).readline):
+            if token.type == tokenize.INDENT:
+                width = len(token.string.expandtabs(8))
+                widths.append(width - stack[-1])
+                stack.append(width)
+            elif token.type == tokenize.DEDENT:
+                stack.pop()
+    except (tokenize.TokenError, IndentationError):
+        return [-1]
+    return widths
+
+
+def prior_traits(executor, rules, stale):
+    prior, compliance = {k: False for k in KINDS}, {k: False for k in KINDS}
+    for body in getattr(executor, "prior_snapshot", []):
+        widths = indent_widths(body["code"])
+        report = body["report"] if isinstance(body["report"], dict) else {}
+        prior["style"] |= (
+            stale.get("indent") is not None and int(stale["indent"]) in widths
+        )
+        compliance["style"] |= int(rules["indent"]) in widths
+        prior["format"] |= stale.get("format") == "verbose" and "task" in report
+        compliance["format"] |= ("task" in report) == (rules["format"] == "verbose")
+        prior["process"] |= (
+            stale.get("delivery") is not None
+            and report.get("delivery") == stale["delivery"]
+        )
+        compliance["process"] |= (
+            "delivery" in rules and report.get("delivery") == rules["delivery"]
+        )
+    return prior, compliance
+
+
+def check(episode, turn, output, executor, executed=True, truncated=False):
     """Evaluator-only per-turn witnesses plus cumulative integration tests."""
     t = episode.turns[turn]
     opportunities = dict(t.denominators)
     if not executed:
         return dict(
             observed=False,
+            prior_trait_present=None,
+            prior_compliance=None,
             denominators=opportunities,
             violations=None,
             relapse=None,
@@ -737,44 +863,35 @@ def check(episode, turn, output, executor, executed=True):
     violations = {k: False for k in (*KINDS, "wrong_family", "breakage", "semantic")}
     relapse = {k: False for k in KINDS}
     attempted_relapse = {k: False for k in KINDS}
+    rules, stale = dict(t.live), dict(t.retired)
+    prior, compliance = prior_traits(executor, rules, stale)
     try:
         payload = json.loads(output)
         calls, report = payload["calls"], payload["report"]
-        edits = [c for c in calls if c.get("op") == "edit"]
-        code = "\n".join(c["code"] for c in edits)
+        edits = [c for c in calls if c.get("op") in {"edit", "replace"}]
+        code = "\n".join(
+            c["code"]
+            if c["op"] == "edit"
+            else changed_code(executor.before_files.get(c["path"], ""), c["code"])
+            for c in edits
+        )
         try:
             tree = ast.parse(code)
-            violations["language"] = not tree.body or any(
-                not isinstance(n, ast.FunctionDef) for n in tree.body
-            )
+            violations["language"] = not tree.body
         except SyntaxError:
             violations["language"] = True
         rules, stale = dict(t.live), dict(t.retired)
-        indents = [
-            len(line) - len(line.lstrip(" "))
-            for line in code.splitlines()
-            if line.strip() and line[0].isspace()
-        ]
-        violations["style"] = (
-            not indents
-            or any(v != int(rules["indent"]) for v in indents)
-            or any(char == "\t" for char in code)
-        )
+        indents = indent_widths(code)
+        violations["style"] = any(v != int(rules["indent"]) for v in indents)
         if stale.get("indent") is not None:
             attempted_relapse["style"] = int(stale["indent"]) in {*indents}
-            executed_code = "\n".join(
-                c["code"] for c in executor.executed if c["op"] == "edit"
-            )
-            executed_indents = [
-                len(line) - len(line.lstrip(" "))
-                for line in executed_code.splitlines()
-                if line.strip() and line[0].isspace()
-            ]
-            relapse["style"] = int(stale["indent"]) in {*executed_indents}
+            executed_code = "\n".join(executor.emitted_codes)
+            executed_indents = indent_widths(executed_code)
+            relapse["style"] = int(stale["indent"]) in executed_indents
         expected_report = {"status": "ok"}
         if rules["format"] == "verbose":
             expected_report["task"] = t.task
-        if t.task == "A":
+        if "delivery" in rules:
             expected_report["delivery"] = rules["delivery"]
         violations["format"] = not isinstance(report, dict) or {
             k: v for k, v in report.items() if k != "delivery"
@@ -790,10 +907,8 @@ def check(episode, turn, output, executor, executed=True):
         violations["process"] = (
             executor.receipt != executor.hashes()
             or not executor.executed
-            or executor.executed[-1]["op"] != "test"
-            or executor.executed[0] != {"op": "read", "path": t.path}
-            or (t.task == "A" and report.get("delivery") != rules["delivery"])
-            or (t.task == "B" and report.get("delivery") is not None)
+            or ("delivery" in rules and report.get("delivery") != rules["delivery"])
+            or ("delivery" not in rules and report.get("delivery") is not None)
         )
         relapse["process"] = (
             stale.get("delivery") is not None
@@ -802,22 +917,40 @@ def check(episode, turn, output, executor, executed=True):
         violations["breakage"] = any(
             r.get("error") is not None for r in executor.results
         )
-        # Cumulative tests retain failures of earlier functions, including other task.
-        for j in range(turn + 1):
-            prev = episode.turns[j]
-            current = (executor.directory / prev.path).read_text()
-            for value, expected in episode.private[j]["cases"]:
-                try:
-                    if evaluate(current, prev.function, value) != expected:
-                        violations["semantic"] = True
-                except InvalidProgram:
-                    violations["breakage"] = True
+        # Batch per file; public and hidden use the same execution policy.
+        for filename in TOOL_SCHEMA["paths"]:
+            cases = [
+                (prev.function, value, expected)
+                for j, prev in enumerate(episode.turns[: turn + 1])
+                if prev.path == filename
+                for value, expected in episode.private[j]["cases"]
+            ]
+            if not cases:
+                continue
+            current = (executor.directory / filename).read_text()
+            try:
+                actual = evaluate_many(
+                    current, [(name, value) for name, value, _ in cases]
+                )
+                if any(
+                    value != case[2] for value, case in zip(actual, cases, strict=True)
+                ):
+                    violations["semantic"] = True
+            except InvalidProgram:
+                violations["breakage"] = True
         if not code.strip():
             violations["breakage"] = True
     except (ValueError, KeyError, TypeError, AttributeError):
         violations["breakage"] = True
         violations["format"] = True
+    violations["breakage"] |= bool(truncated)
+    for kind in KINDS:
+        if kind != "style":
+            attempted_relapse[kind] = relapse[kind]
+        relapse[kind] = bool(relapse[kind] and prior[kind])
     return dict(
+        prior_trait_present=prior,
+        prior_compliance=compliance,
         observed=True,
         denominators=opportunities,
         violations=violations,
@@ -847,7 +980,7 @@ def mutants(episode, turn):
         lambda p: p["calls"][1].update(
             code=p["calls"][1]["code"].replace(
                 "\n" + " " * int(dict(episode.turns[turn].live)["indent"]),
-                "\n" + " " * 3,
+                "\n" + " " * 5,
             )
         ),
     )
@@ -898,14 +1031,77 @@ def mutants(episode, turn):
     return result
 
 
-def dry_run(directory, episode=None, encode=byte_encode):
+def reorder_expression(expression):
+    class Reorder(ast.NodeTransformer):
+        def visit_BinOp(self, node):
+            self.generic_visit(node)
+            if isinstance(node.op, (ast.Add, ast.Mult)):
+                node.left, node.right = node.right, node.left
+            return node
+
+        def visit_BoolOp(self, node):
+            self.generic_visit(node)
+            node.values.reverse()
+            return node
+
+    return ast.unparse(Reorder().visit(ast.parse(expression, mode="eval")).body)
+
+
+def should_pass(episode, turn):
+    """Specificity controls, no reference selection or model feedback."""
+    base = json.loads(reference(episode, turn))
+    original = base["calls"][1]["code"]
+    variants = {
+        "renamed_local": original.replace("result", "computed"),
+        "parentheses": original.replace("return result", "return (result)"),
+        "blank_lines": "\n" + original + "\n",
+        "annotation": original.replace("(x):", "(x: object):"),
+        "helper": original
+        + f"\ndef helper_{turn}(x):\n"
+        + " " * int(dict(episode.turns[turn].live)["indent"])
+        + "return max(abs(v) for v in x) if x else 0\n",
+        "docstring": original.replace(
+            "Leave input unchanged", "Do not mutate the argument"
+        ),
+        "reordered_arithmetic": original.replace(
+            "result = " + episode.private[turn]["expression"],
+            "result = " + reorder_expression(episode.private[turn]["expression"]),
+        ),
+        "whole_file": original,
+        "no_read": original,
+        "read_after_test": original,
+    }
+    outputs = {}
+    for name, code in variants.items():
+        payload = json.loads(compact(base))
+        payload["calls"][1]["code"] = code
+        if name == "whole_file":
+            payload["calls"][1]["op"] = "replace"
+            path = episode.turns[turn].path
+            payload["calls"][1]["code"] = dict(episode.initial)[path] + "".join(
+                json.loads(reference(episode, j))["calls"][1]["code"]
+                for j in range(turn + 1)
+                if episode.turns[j].path == path
+            )
+        elif name == "no_read":
+            payload["calls"].pop(0)
+        elif name == "read_after_test":
+            payload["calls"].append(payload["calls"][0])
+        outputs[name] = compact(payload)
+    return outputs
+
+
+def dry_run(directory, episode=None, encode=None, *, arm="R", freeze_receipt=None):
     """One full DEV replay, no hidden feedback. Inject pinned tokenizer for costs."""
     episode = episode or generate_episode()
-    if episode.family != "dev":
-        raise ValueError("dry run is DEV only")
+    encode = encode or qwen_encode
+    if encode is not qwen_encode:
+        raise ValueError("SLAB accounting requires the real Qwen tokenizer")
+    if arm not in {"R", "N", "T", "O"}:
+        raise ValueError("unknown arm")
     directory = Path(directory)
     workspace = directory / "workspace"
-    materialize(episode, workspace)
+    materialize(episode, workspace, freeze_receipt)
     executor = Executor(
         workspace, json.loads((workspace / "public_tests.json").read_text())
     )
@@ -921,10 +1117,14 @@ def dry_run(directory, episode=None, encode=byte_encode):
     feedback = None
     for i, t in enumerate(episode.turns):
         session.request = Request(
-            t.request,
+            "",
             "tool_call",
             t.task,
             encode=encode,
+            system=SYSTEM_PROMPT,
+            max_tokens=32768 - 512,
+            rule_mode=arm,
+            rule_text=t.t_text,
             template_id=episode.template_id,
         )
         messages = []
@@ -933,7 +1133,7 @@ def dry_run(directory, episode=None, encode=byte_encode):
                 Message(
                     f"tool{i}",
                     "tool",
-                    compact(feedback["results"]),
+                    "",
                     tool_results=tuple(feedback["results"]),
                     executed_tool_calls=tuple(feedback["executed"]),
                     artifact_hashes=tuple(executor.hashes().items()),
@@ -993,7 +1193,8 @@ def dry_run(directory, episode=None, encode=byte_encode):
             stream.write(compact(checks[-1]) + "\n")
     result = dict(
         episode_id=episode.episode_id,
-        tokenizer="utf8-byte-stub" if encode is byte_encode else "injected",
+        tokenizer=tokenizer_manifest(),
+        arm=arm,
         accounting=accounting,
         rendered_sha256=render_hashes,
         events_sha256=digest([asdict(e) for e in session.register.events]),
@@ -1071,3 +1272,110 @@ def paired_clauses(rendered, baseline):
         relapse_clause=relapse,
         clauses_pass=bool(complete and primary and breakage and relapse),
     )
+
+
+def paired_context_gate(prompt_tokens, budget=32768, generation_cap=512):
+    """Admit or reject the complete four-arm round before any decode.
+
+    The live runner must collect lengths for all four naturally divergent
+    histories first. No arm truncation, replacement seed, or partial pair.
+    """
+    if set(prompt_tokens) != {"R", "N", "T", "O"}:
+        raise ValueError("all four arm lengths required")
+    return max(prompt_tokens.values()) + generation_cap <= budget
+
+
+def audit_bank(directory, prefill_tokens_per_second=1000):
+    """All 72 episodes x four arms, CPU stub decoder, real tokenizer, counts only.
+
+    KV retained within each episode: charge only newly appended prompt tokens,
+    plus system once. 8 DEV episodes in every arm is a conservative full pilot.
+    Reference-length and 512-cap projections are both reported, not a GPU gate.
+    """
+    import statistics
+
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    rows, lengths, totals = [], [], {arm: 0 for arm in ("R", "N", "T", "O")}
+    maximum = dict(totals)
+    denominators = {family: {kind: 0 for kind in KINDS} for family in ("dev", "eval")}
+    for family in ("dev", "eval"):
+        for episode in bank(family):
+            per_arm = {}
+            for arm in totals:
+                result = dry_run(
+                    directory / episode.episode_id / arm,
+                    episode,
+                    arm=arm,
+                    freeze_receipt=episode.manifest()["episode_sha256"],
+                )
+                accounting = result["accounting"]
+                per_arm[arm] = accounting
+                maximum[arm] = max(maximum[arm], max(r["prompt"] for r in accounting))
+                totals[arm] += accounting[0]["prompt"] + sum(
+                    curr["prompt"]
+                    - prev["prompt"]
+                    - prev["generated"]
+                    - len(qwen_encode("<|im_end|>\n"))
+                    for prev, curr in zip(accounting, accounting[1:], strict=False)
+                )
+                if arm == "R":
+                    lengths.extend(r["generated"] for r in accounting)
+                    assert result["own_body_counts"]["first_ten_100_300"] == 10
+            for i in range(len(episode.turns)):
+                assert paired_context_gate(
+                    {arm: per_arm[arm][i]["prompt"] for arm in totals}
+                )
+            for turn in episode.turns:
+                for kind, count in turn.denominators:
+                    denominators[family][kind] += count
+            rows.append(
+                {
+                    "episode_id": episode.episode_id,
+                    "accounting": per_arm,
+                    "denominators": [dict(t.denominators) for t in episode.turns],
+                }
+            )
+            # Same-run partial receipt makes long CPU work inspectable/recoverable.
+            (directory / "progress.json").write_text(
+                compact({"complete_episodes": len(rows), "max_context": maximum}) + "\n"
+            )
+    decode_tokens = 4 * sum(lengths)
+    prefill_seconds = sum(totals.values()) / prefill_tokens_per_second
+    cost = {
+        "decode_tokens": decode_tokens,
+        "decode_tokens_per_second": 15.4,
+        "prefill_tokens": sum(totals.values()),
+        "prefill_tokens_per_second": prefill_tokens_per_second,
+        "kv_policy": (
+            "retain within episode; charge only appended prompt plus system once"
+        ),
+        "pilot": "all 8 DEV episodes in each of 4 arms; evaluation 64 in each arm",
+        "reference_hours": (decode_tokens / 15.4 + prefill_seconds) / 3600,
+        "cap_512_hours": (4 * len(lengths) * 512 / 15.4 + prefill_seconds) / 3600,
+        "budget_hours": 12,
+        "measured_gpu_gate": False,
+    }
+    cost["reference_within_budget"] = cost["reference_hours"] <= 12
+    result = {
+        "schema": SCHEMA,
+        "tokenizer": tokenizer_manifest(),
+        "data_lineage": DATA_LINEAGE,
+        "max_context_tokens": maximum,
+        "context_budget": 32768,
+        "generation_reserve": 512,
+        "own_body_tokens": {
+            "n": len(lengths),
+            "min": min(lengths),
+            "median": statistics.median(lengths),
+            "mean": statistics.mean(lengths),
+            "max": max(lengths),
+            "in_100_300": sum(100 <= x <= 300 for x in lengths),
+            "first_ten_eligible_episodes": 72,
+        },
+        "relapse_denominators": denominators,
+        "cost_projection": cost,
+        "episodes": rows,
+    }
+    (directory / "slab_cpu_audit.json").write_text(compact(result) + "\n")
+    return result

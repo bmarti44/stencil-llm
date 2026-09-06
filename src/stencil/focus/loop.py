@@ -228,7 +228,22 @@ def generate_once(session, new_messages, decoder, tools=None, actuator="off"):
             content = (
                 compact(
                     [
-                        dict(role=m.role, text=m.text, tool_results=m.tool_results)
+                        dict(
+                            role=m.role,
+                            **(
+                                {"tool_results": m.tool_results}
+                                if m.tool_results
+                                and (not m.text or m.text == compact(m.tool_results))
+                                else {
+                                    "text": m.text,
+                                    **(
+                                        {"tool_results": m.tool_results}
+                                        if m.tool_results
+                                        else {}
+                                    ),
+                                }
+                            ),
+                        )
                         for m in messages
                     ]
                 )
