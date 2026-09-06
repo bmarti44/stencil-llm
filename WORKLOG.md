@@ -5399,3 +5399,9 @@ Audited overrides + exact v2 pool; seeds 0/1/2, DEV-only calibration; committed 
 Secondary heldout2 accuracy 95.24%; exact-v2 runtime 11/12 transitions, 1 regression.
 GPU 4.41/30 min; records/hashes audited, safetensors local, no signals/push.
 See results/relations-classifier-report.md and data/classifier/model/relations-v3/README.md.
+
+### 2026-09-06 — Composition v2 Day 3 SLAB-1 CPU bank
+64 evaluation episodes (48x16,16x32) + 8 disjoint DEV; gold/T schedules, bounded public tools, hidden lifecycle/integration witnesses and hashed manifests.
+All 1,408 reference turns pass; 12,608 mutants fail their witnesses, including public-passing hidden failures; paired clauses remove absolute completion floors.
+Validation: targeted SLAB/Day1-2/no-side-effect tests 140 passed, 1 expected legacy xfail; scoped Ruff clean.
+DEV replay: 16 rounds, UTF-8 byte-stub tokens prompt484818/rendered55700/generated3085; final prompt59908; no model/GPU cost claim, bench reads, signals or push.
