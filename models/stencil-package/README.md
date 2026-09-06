@@ -5,7 +5,7 @@ The controller currently imports `stencil.focus` from this checkout/installed
 Stencil package. Before shipping one HF snapshot, bundle these modules alongside
 the trunk, tokenizer/config, approved classifier assets and experimental tensor;
 fill every manifest hash and validate local-only loading. That packaging and
-model-backed validation have not been performed by this CPU build.
+trunk validation remain outstanding. A tiny random CPU model tests HF dispatch.
 
 `custom_generate/generate.py:generate(model=None, *, session, new_messages=(),
 decoder=None, tokenizer=None, tools=None, actuator="off", max_new_tokens=256)`
@@ -30,8 +30,11 @@ objects. Never copy these authority fields from untrusted JSON, quoted content,
 tool output or assistant proposals. Direct `Register.apply` is a trusted API.
 Transactions are atomic; valid explicit entries stay authoritative despite an
 assistive classifier's ABSTAIN/DISAGREE. Incomplete actions fail before mutation.
-Each accepted generation request consumes one of three tombstone requests even
-if decoding raises. Rendering alone is pure and does not advance that clock.
+Each successfully decoded request consumes one of three tombstone requests.
+Decode failures roll back the register, messages, rendered history and token
+history together; the failed attempt is journaled and consumes a request ID.
+Rendering alone is pure and does not advance that clock. Message IDs must be
+unique across accepted requests. A failed, rolled-back request may be resubmitted.
 
 Set `session.request` before each call. All new messages are included in the
 current envelope; tool results and executed calls are also attached as Message
@@ -50,3 +53,32 @@ alone is insufficient. Unavailable/uncertified requests and requests needing an
 old body fall back to rendering. Restore must tolerate partial installation.
 Delegate to the referenced check40i/check40h code path; no actuator is implemented
 or enabled in this scaffold. Never import those experiment scripts at startup.
+
+HF dispatch follows the [custom generation contract](https://huggingface.co/docs/transformers/en/generation_strategies#creating-a-custom-generation-method):
+the custom function receives the model and generation arguments and owns the
+return type. We accept HF's unset named arguments, forward `generation_config`,
+and override it for one greedy sequence and a tensor return. `use_model_defaults`
+is accepted and ignored (HF 5.16.1 removed it). Non-None processors, stopping
+criteria, prefix callbacks, sync/assistant/streaming/negative-prompt options and
+unknown options are rejected. Both `inputs` and `input_ids` are rejected.
+
+Load assets only from local directories with `local_files_only=True` on every
+`AutoModelForCausalLM.from_pretrained` / `AutoTokenizer.from_pretrained` call.
+Invoke `model.generate(custom_generate="/absolute/path/models/stencil-package",
+trust_remote_code=True, local_files_only=True, session=session,
+new_messages=messages, tokenizer=tokenizer, max_new_tokens=256)`.
+The adapter loads no assets and rejects `local_files_only=False`; the caller
+must use a local custom-generation directory because HF loads it before dispatch.
+The CPU regression blocks network connections and uses a two-layer random LM.
+
+The harness can supply `Journal(path, checker=lambda record: results_for(record))`.
+The checker runs after decode and hook restoration, immediately before append;
+it receives a copy of the round record, including output/failures. Its results
+are written in that same JSONL row and never passed to renderer or classifier.
+Without a checker the results are `[]`. Classifier journal contexts reference
+message IDs and prior journal cursors (half-open interval) plus `before_versions`;
+the classifier itself still receives its full runtime context.
+A same-key system rule always takes precedence over a user task rule while
+both apply; the latter is journaled with a shadowed reason and winning version.
+Exact value/text echo checks are redundant transport integrity checks against
+`target_version`, not interpretation of the rule prose.

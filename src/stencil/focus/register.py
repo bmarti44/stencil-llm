@@ -300,6 +300,9 @@ class Register:
                     if v.entry.action == "reinstates"
                 ):
                     raise InvalidEntry("stale reinstatement target")
+                # Exact echo integrity only: never infer an action from prose.
+                # target_version identifies the event; these redundant checks
+                # reject a transport payload that contradicts its addressed value.
                 if e.value != target.entry.value or e.text != target.entry.text:
                     raise InvalidEntry(
                         "reinstatement must preserve original value/text"

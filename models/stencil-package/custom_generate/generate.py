@@ -10,6 +10,18 @@ def generate(
     input_ids=None,
     *,
     session,
+    inputs=None,
+    generation_config=None,
+    logits_processor=None,
+    stopping_criteria=None,
+    prefix_allowed_tokens_fn=None,
+    synced_gpus=None,
+    assistant_model=None,
+    streamer=None,
+    negative_prompt_ids=None,
+    negative_prompt_attention_mask=None,
+    use_model_defaults=None,
+    local_files_only=True,
     new_messages=(),
     decoder=None,
     tokenizer=None,
@@ -24,15 +36,31 @@ def generate(
     its tokenizer. input_ids is deliberately unsupported: it would bypass the
     authoritative renderer. This custom entry has a session-oriented return.
     """
-    if input_ids is not None:
+    # HF forwards its named parameters even when unset. Contract:
+    # https://huggingface.co/docs/transformers/en/generation_strategies#creating-a-custom-generation-method
+    # Config is forwarded; use_model_defaults is ignored (removed in HF 5.16.1).
+    # Optional generation extensions are unsupported.
+    unsupported = (
+        logits_processor,
+        stopping_criteria,
+        prefix_allowed_tokens_fn,
+        synced_gpus,
+        assistant_model,
+        streamer,
+        negative_prompt_ids,
+        negative_prompt_attention_mask,
+    )
+    if any(option is not None for option in unsupported) or kwargs:
+        raise ValueError("unsupported generation options")
+    if not local_files_only:
+        raise ValueError("assets must be loaded locally")
+    if input_ids is not None or inputs is not None:
         raise ValueError(
             "use session.request; externally prepared input_ids bypass rendering"
         )
     if decoder is None:
         if model is None or tokenizer is None:
             raise ValueError("provide decoder or model and tokenizer")
-        if kwargs:
-            raise ValueError("unsupported generation options")
         if max_new_tokens < 1:
             raise ValueError("max_new_tokens must be positive")
         session.request = replace(
@@ -52,6 +80,8 @@ def generate(
             with torch.inference_mode():
                 output = model.generate(
                     input_ids=ids,
+                    generation_config=generation_config,
+                    return_dict_in_generate=False,
                     max_new_tokens=max_new_tokens,
                     do_sample=False,
                     num_beams=1,
@@ -59,7 +89,7 @@ def generate(
                     custom_generate=None,
                 )
             generated = tuple(output[0, ids.shape[1] :].tolist())
-            eos_ids = model.generation_config.eos_token_id
+            eos_ids = (generation_config or model.generation_config).eos_token_id
             eos_ids = (eos_ids,) if isinstance(eos_ids, int) else tuple(eos_ids or ())
             eos = generated[-1] if generated and generated[-1] in eos_ids else None
             body = generated[:-1] if eos is not None else generated

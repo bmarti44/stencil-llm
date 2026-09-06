@@ -1,4 +1,4 @@
-"""Twelve-request synthetic CPU episode; goldens authored without the renderer."""
+"""Twelve-request synthetic CPU episode; goldens are renderer regression snapshots."""
 
 import json
 from pathlib import Path

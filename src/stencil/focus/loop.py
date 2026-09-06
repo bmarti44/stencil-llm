@@ -10,7 +10,7 @@ from dataclasses import asdict, dataclass, field, replace
 from typing import Protocol
 
 from .journal import Journal
-from .register import Decision, Entry, InvalidEntry, Register
+from .register import Decision, Entry, InvalidEntry, Register, Scope
 from .renderer import Request, compact, render
 
 
@@ -128,6 +128,10 @@ def generate_once(session, new_messages, decoder, tools=None, actuator="off"):
     tools is metadata only; the caller executes DecodeResult.attempted_tool_calls
     and submits results in the next Message. No retries or output selection.
     """
+    if actuator not in {"off", "mask_only", "js_bias_mask"}:
+        raise ValueError("unsupported actuator")
+    original_register = session.register
+    committed = False
     started, cpu, wall = time.time(), time.process_time(), time.monotonic()
     messages = tuple(new_messages)
     before = session.register.snapshot()
@@ -173,21 +177,35 @@ def generate_once(session, new_messages, decoder, tools=None, actuator="off"):
         absolute_positions=None,
         failures=[],
         fallback_reasons=[],
-        oracle_checker_results=None,
+        oracle_checker_results=[],
     )
     session.request_count += 1
     hook = None
     session.experimental_flag_state = ExperimentalFlagState(actuator)
     try:
-        if actuator not in {"off", "mask_only", "js_bias_mask"}:
-            raise ValueError("unsupported actuator")
+        ids = {
+            m["message_id"] for m in session.messages if m.get("message_id") is not None
+        }
+        if any(m.message_id in ids for m in messages):
+            raise InvalidEntry("duplicate source message ID across requests")
         entries = authenticate(messages)
         context = {
             "messages": session.messages + [asdict(m) for m in messages],
             "register": before,
         }
+        context_reference = {
+            "message_ids": [
+                m["message_id"]
+                for m in context["messages"]
+                if m.get("message_id") is not None
+            ],
+            "history_journal_cursors": [0, session.journal_cursor],
+            "register": "before_versions",
+        }
         for e in entries:
-            record["classifier_inputs"].append({"entry": asdict(e), "context": context})
+            record["classifier_inputs"].append(
+                {"entry": asdict(e), "context": context_reference}
+            )
             decision = (
                 session.classifier.validate(e, context)
                 if session.classifier
@@ -234,6 +252,27 @@ def generate_once(session, new_messages, decoder, tools=None, actuator="off"):
             if rendered.prompt_ids is not None
             else None,
         )
+        scope = Scope(request.task_handle, (request.kind,))
+        for v, live in zip(
+            session.register.versions, session.register.live_mask, strict=True
+        ):
+            if (
+                live
+                and v.entry.scope.contains(scope)
+                and all(v != selected for selected in rendered.live)
+            ):
+                winner = next(
+                    selected
+                    for selected in rendered.live
+                    if selected.entry.key == v.entry.key
+                )
+                record["applicability"].append(
+                    dict(
+                        **asdict(v),
+                        reason="shadowed by same-key authority/scope precedence",
+                        shadowed_by=dict(key=winner.entry.key, version=winner.version),
+                    )
+                )
         if actuator != "off":
             candidate = session.actuator_hook
             if (
@@ -260,12 +299,6 @@ def generate_once(session, new_messages, decoder, tools=None, actuator="off"):
                 session.experimental_flag_state = ExperimentalFlagState(
                     actuator, actuator
                 )
-        # A generation request consumes the tombstone window even if decoding fails.
-        session.register = replace(
-            session.register, generation=session.register.generation + 1
-        )
-        session.messages.extend(asdict(m) for m in messages)
-        session.rendered_history.append(dict(role="user", text=rendered.text))
         result = decoder(rendered)
         if isinstance(result, str):
             result = DecodeResult(result)
@@ -282,8 +315,7 @@ def generate_once(session, new_messages, decoder, tools=None, actuator="off"):
             if result.output_ids is not None
             else None,
         )
-        session.messages.append(dict(role="assistant", text=result.text))
-        session.rendered_history.append(dict(role="assistant", text=result.text))
+        history_ids = session.history_ids
         if request.encode and rendered.prefix_ids is not None:
             output_ids = (
                 result.output_ids
@@ -297,9 +329,31 @@ def generate_once(session, new_messages, decoder, tools=None, actuator="off"):
                 else ((result.eos,) if result.eos is not None else ())
                 + tuple(request.encode("<|im_end|>\n"))
             )
-            session.history_ids += rendered.prefix_ids + tuple(output_ids) + closure
+            history_ids += rendered.prefix_ids + tuple(output_ids) + closure
+        # Commit all retained views together only after decoding/encoding succeeds.
+        session.history_ids = history_ids
+        session.messages.extend(asdict(m) for m in messages)
+        session.messages.append(dict(role="assistant", text=result.text))
+        session.rendered_history.extend(
+            [
+                dict(role="user", text=rendered.text),
+                dict(role="assistant", text=result.text),
+            ]
+        )
+        session.register = replace(
+            session.register, generation=session.register.generation + 1
+        )
+        committed = True
         return result.text, session
     except BaseException as exc:
+        if not committed:
+            session.register = original_register
+            record.update(
+                after_versions=before["versions"],
+                after_live_mask=before["live_mask"],
+                register_events=before["events"],
+                event_generations=before["event_generations"],
+            )
         record["failures"].append({"type": type(exc).__name__, "message": str(exc)})
         raise
     finally:

@@ -475,3 +475,183 @@ def test_historical_tombstones_and_literal_tokens_survive_expiry(tmp_path):
     assert "Retired: indent v1" in captured[-1].history_messages[0]["text"]
     assert b"Retired: indent v1" in bytes(captured[-1].prompt_ids)
     assert b"literal<|im_end|>\n" in bytes(s.history_ids)
+
+
+def test_package_real_hf_dispatch_cpu_local(tmp_path, monkeypatch):
+    import socket
+
+    from transformers import GenerationConfig, GPT2Config, GPT2LMHeadModel
+
+    def no_network(*args, **kwargs):
+        raise AssertionError("assets must be local")
+
+    monkeypatch.setattr(socket.socket, "connect", no_network)
+    model = (
+        GPT2LMHeadModel(
+            GPT2Config(
+                vocab_size=256,
+                n_positions=2048,
+                n_embd=16,
+                n_layer=2,
+                n_head=2,
+                bos_token_id=1,
+                eos_token_id=255,
+                pad_token_id=0,
+            )
+        )
+        .cpu()
+        .eval()
+    )
+
+    class Tokenizer:
+        def encode(self, text, add_special_tokens=False):
+            return list(text.encode())
+
+        def decode(self, ids, skip_special_tokens=False):
+            return bytes(ids).decode("latin1")
+
+    calls = []
+    handle = model.register_forward_hook(lambda *args: calls.append(1))
+    s = session(tmp_path)
+    try:
+        output, returned = model.generate(
+            custom_generate=str(
+                Path(__file__).resolve().parents[1] / "models/stencil-package"
+            ),
+            trust_remote_code=True,
+            local_files_only=True,
+            session=s,
+            new_messages=[message(entry())],
+            tokenizer=Tokenizer(),
+            generation_config=GenerationConfig(eos_token_id=255, pad_token_id=0),
+            use_model_defaults=False,
+            max_new_tokens=1,
+        )
+    finally:
+        handle.remove()
+    assert calls == [1] and returned is s
+    rows = [json.loads(line) for line in s.journal.path.read_text().splitlines()]
+    assert len(rows) == 1 and rows[0]["output"] == output
+    assert rows[0]["failures"] == [] and rows[0]["gpu_held_seconds"] == 0
+    assert s.request_count == s.journal_cursor == 1
+
+
+@pytest.mark.parametrize("prior_success", [False, True])
+@pytest.mark.parametrize("failure", [RuntimeError("decode failed"), None])
+def test_failed_decode_rolls_back_and_next_prompt_matches_fresh(
+    tmp_path, failure, prior_success
+):
+    s = session(tmp_path)
+    s.request = replace(s.request, encode=lambda text: tuple(text.encode()))
+    if prior_success:
+        generate_once(
+            s, [Message("prior", "user", "old request")], lambda r: "old answer"
+        )
+    original = s.register
+    old_messages, old_rendered, old_ids = (
+        list(s.messages),
+        list(s.rendered_history),
+        s.history_ids,
+    )
+
+    def broken(rendered):
+        if failure:
+            raise failure
+        return object()
+
+    with pytest.raises((RuntimeError, TypeError)):
+        generate_once(s, [message(entry())], broken)
+    assert s.register == original
+    assert (s.messages, s.rendered_history, s.history_ids) == (
+        old_messages,
+        old_rendered,
+        old_ids,
+    )
+    assert s.request_count == s.journal_cursor == 1 + prior_success
+    fresh = Session(
+        original,
+        s.request,
+        Journal(tmp_path / "fresh.jsonl"),
+        messages=old_messages,
+        rendered_history=old_rendered,
+        history_ids=old_ids,
+    )
+    captured = []
+    for state in (s, fresh):
+        generate_once(state, [message(entry())], lambda r: captured.append(r) or "ok")
+    assert captured[0] == captured[1]
+    assert s.history_ids == fresh.history_ids
+    assert s.messages == fresh.messages and s.rendered_history == fresh.rendered_history
+    assert json.loads(s.journal.path.read_text().splitlines()[int(prior_success)])[
+        "failures"
+    ]
+
+
+def test_hidden_checker_written_same_round_only_to_journal(tmp_path):
+    hidden = "HARNESS ONLY secret"
+    checked = []
+
+    def checker(record):
+        checked.append(record["request_id"])
+        return {
+            "round": record["request_id"],
+            "matches": record["output"] == "ok",
+            "secret": hidden,
+        }
+
+    class Classifier:
+        def validate(self, e, context):
+            assert hidden not in repr(context)
+            return Decision()
+
+    s = session(tmp_path, classifier=Classifier())
+    s.journal = Journal(tmp_path / "checked.jsonl", checker=checker)
+    for i in range(2):
+
+        def decoder(rendered):
+            assert hidden not in repr(rendered)
+            return "ok"
+
+        generate_once(s, [message(entry(key=str(i), eid=str(i)))], decoder)
+        rows = [json.loads(line) for line in s.journal.path.read_text().splitlines()]
+        assert rows[-1]["oracle_checker_results"] == {
+            "round": i,
+            "matches": True,
+            "secret": hidden,
+        }
+        context = rows[-1]["classifier_inputs"][0]["context"]
+        assert context["message_ids"] == [str(j) for j in range(i + 1)]
+        assert "messages" not in context and context["register"] == "before_versions"
+    assert checked == [0, 1] and hidden not in repr(s.messages)
+
+
+def test_duplicate_message_id_across_requests(tmp_path):
+    s = session(tmp_path)
+    generate_once(s, [message(entry())], lambda r: "ok")
+    before = (s.register, list(s.messages), list(s.rendered_history), s.history_ids)
+    with pytest.raises(InvalidEntry, match="duplicate source"):
+        generate_once(
+            s, [message(entry(eid="e1", key="other"))], lambda r: pytest.fail("decoded")
+        )
+    assert (s.register, s.messages, s.rendered_history, s.history_ids) == before
+
+
+def test_invalid_actuator_does_not_record_or_consume_request(tmp_path):
+    s = session(tmp_path)
+    with pytest.raises(ValueError, match="unsupported actuator"):
+        generate_once(s, [], lambda r: pytest.fail("decoded"), actuator="typo")
+    assert s.request_count == s.journal_cursor == 0
+    assert s.experimental_flag_state.requested == "off"
+    assert not s.journal.path.exists()
+
+
+def test_user_task_rule_under_system_rule_journaled_as_shadowed(tmp_path):
+    s = session(tmp_path)
+    system = entry(role="system", eid="sys")
+    user = entry(scope=Scope("A"), value="8", eid="usr")
+    generate_once(s, [message(system), message(user)], lambda r: "ok")
+    assert s.live_view[0].entry == system
+    rows = json.loads(s.journal.path.read_text())["applicability"]
+    shadowed = next(row for row in rows if row["entry"]["event_id"] == "usr")
+    assert shadowed["reason"] == "shadowed by same-key authority/scope precedence"
+    assert shadowed["shadowed_by"] == {"key": "indent", "version": 1}

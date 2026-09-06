@@ -1,6 +1,7 @@
 """Same-run JSONL provenance; null means unavailable, never reconstructed."""
 
 import json
+from copy import deepcopy
 from pathlib import Path
 
 FIELDS = frozenset(
@@ -52,12 +53,22 @@ FIELDS = frozenset(
 
 
 class Journal:
-    def __init__(self, path):
+    def __init__(self, path, *, checker=None):
+        """checker(record) returns hidden harness results for this round.
+
+        Invoked after generation/restoration, before this record is serialized.
+        The callback receives an isolated copy; results never enter model inputs.
+        No checker means an empty result list, not a reconstructed placeholder.
+        """
         self.path = Path(path)
+        self._checker = checker
 
     def append(self, record):
         if set(record) != FIELDS:
             raise ValueError(f"journal field mismatch: {set(record) ^ FIELDS}")
+        record = deepcopy(record)
+        if self._checker is not None:
+            record["oracle_checker_results"] = self._checker(deepcopy(record))
         encoded = (
             json.dumps(record, ensure_ascii=False, sort_keys=True, allow_nan=False)
             + "\n"

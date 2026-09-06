@@ -5405,3 +5405,9 @@ See results/relations-classifier-report.md and data/classifier/model/relations-v
 All 1,408 reference turns pass; 12,608 mutants fail their witnesses, including public-passing hidden failures; paired clauses remove absolute completion floors.
 Validation: targeted SLAB/Day1-2/no-side-effect tests 140 passed, 1 expected legacy xfail; scoped Ruff clean.
 DEV replay: 16 rounds, UTF-8 byte-stub tokens prompt484818/rendered55700/generated3085; final prompt59908; no model/GPU cost claim, bench reads, signals or push.
+2026-09-06 — Composition v2 Day 4 CPU package fixes (gpt-6-astra); Fable H1/M1/M2/M4/M5 and requested LOW items addressed.
+Real HF local dispatch: tiny two-layer random causal LM, exactly one forward and one journal row; contract cited in package README.
+Decode rollback; same-run hidden checker API; honest AST deterrent and guarded golden episode; duplicate IDs/context references/shadow reasons/actuator validation.
+Validation: baseline focus 140 passed; final focus + no-side-effect suite 159 passed, 1 expected xfail; controller/package subset 76 passed; scoped Ruff clean.
+Count clarification: Day 2 had 60 new package tests; its 158-pass claim was the broader legacy-inclusive union, not package-only.
+M3 renderer bytes unchanged; scaffold-only status retained. Synthetic CPU inputs only; no GPU, data/bench reads, process signals or push; explicit-path commit.
