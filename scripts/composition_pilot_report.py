@@ -47,16 +47,29 @@ def report(out):
     main = [r for r in rows if r["_detail"]["mode"] == mode]
     costs = {}
     for m in ("sequential", "batch"):
-        complete = [e for e in episodes if e["mode"] == m and e["complete"]]
-        if not complete:
+        interrupted = {
+            r["_detail"]["episode"]
+            for r in rows
+            if r["_detail"]["mode"] == m
+            and r["_detail"]["measurements"]["deadline_hit"]
+        }
+        complete = [
+            e
+            for e in episodes
+            if e["mode"] == m and e["complete"] and e["episode"] not in interrupted
+        ]
+        observed = [e for e in episodes if e["mode"] == m and e["rounds"] > 0]
+        if not observed:
             costs[m] = None
             continue
+        complete_available = bool(complete)
+        basis = complete or observed
         # Registered c is the largest completed episode cost. Also disclose
         # length-normalized (32 round) projection if only short batch is measured.
         c = {
             a: max(
                 (e["arm_seconds"][a] if m == "sequential" else e["wall_seconds"] / 4)
-                for e in complete
+                for e in basis
             )
             for a in ARMS
         }
@@ -65,7 +78,7 @@ def report(out):
                 (e["arm_seconds"][a] if m == "sequential" else e["wall_seconds"] / 4)
                 * 32
                 / e["rounds"]
-                for e in complete
+                for e in basis
             )
             for a in ARMS
         }
@@ -80,13 +93,17 @@ def report(out):
             return (spent + load + 1.25 * allocated) / 3600
 
         costs[m] = dict(
-            max_full_episode_seconds=c,
+            max_full_episode_seconds=c if complete_available else None,
+            observed_prefix_seconds=c,
+            observed_prefix_nested_lower_bound_hours=project(c),
+            observed_prefix_full_four_lower_bound_hours=project(c, True),
+            completed_episode_cost_available=complete_available,
             normalized_32_round_seconds=normalized,
-            registered_nested_hours=project(c),
-            full_four_by_64_hours=project(c, True),
+            registered_nested_hours=project(c) if complete_available else None,
+            full_four_by_64_hours=project(c, True) if complete_available else None,
             normalized_nested_hours=project(normalized),
             normalized_full_four_by_64_hours=project(normalized, True),
-            long_episode_measured=any(e["rounds"] == 32 for e in complete),
+            long_episode_measured=any(e["rounds"] == 32 for e in basis),
             usable=m == "sequential" or invariance["passed"],
             policy=(
                 "spent + measured load + 1.25 * [64(cR+cN)+16(cT+cO)]; "
@@ -186,6 +203,13 @@ def report(out):
             rounds=len(chosen),
             max_context_tokens=max((r["input_token_count"] for r in chosen), default=0),
             own_body_tokens=distribution(lengths),
+            executed_batches=sum(
+                bool(r["_detail"]["execution"]["executed"]) for r in chosen
+            ),
+            max_physical_cache_tokens=max(
+                (r["_detail"]["measurements"]["cache_physical_tokens"] for r in chosen),
+                default=0,
+            ),
             in_band=sum(100 <= n <= 300 for n in lengths),
             pressure=pressure,
             truncations=sum(bool(r["truncated"]) for r in chosen),
@@ -238,6 +262,7 @@ def report(out):
     if (
         cost is None
         or not cost["long_episode_measured"]
+        or cost["registered_nested_hours"] is None
         or cost["registered_nested_hours"] > 12
         or not cost["usable"]
     ):
@@ -271,6 +296,8 @@ def report(out):
         failed.append("nonzero style/format/process opportunities")
     if run["status"] != "finished" or run["gpu_held_seconds"] > 5400:
         failed.append("consumer/deadline")
+    if any(r["_detail"]["measurements"]["deadline_hit"] for r in rows):
+        failed.append("cooperative deadline interrupted diagnostic comparison")
     trigger = []
     for k in KINDS:
         v = per_arm["R"]["relapse"][k]
@@ -311,10 +338,90 @@ def report(out):
     (out / "hidden-manifest.json").write_text(
         json.dumps(manifest, sort_keys=True, indent=2) + "\n"
     )
-    # Golden is exact UTF-8 rendered text, losslessly JSON-encoded once per round.
-    source = out / mode / "slab-dev-00/R/rendered.jsonl"
-    if source.exists():
-        (out / "renderer-golden.jsonl").write_bytes(source.read_bytes())
+    # Exact same-run text and token IDs; no missing provenance reconstructed.
+    golden = []
+    for r in main:
+        d = r["_detail"]
+        if d["arm"] == "R" and d["episode"] == "slab-dev-00":
+            golden.append(
+                dict(
+                    round=d["round"],
+                    text=r["rendered_messages"],
+                    utf8_sha256=hashlib.sha256(
+                        r["rendered_messages"].encode()
+                    ).hexdigest(),
+                    prompt_ids=r["rendered_token_ids"],
+                    output=r["output"],
+                    output_ids=r["output_token_ids"],
+                    eos=r["eos"],
+                    truncated=r["truncated"],
+                )
+            )
+    if golden:
+        path = out / "renderer-golden.jsonl"
+        path.write_text(
+            "".join(
+                json.dumps(x, ensure_ascii=False, sort_keys=True) + "\n" for x in golden
+            )
+        )
+        summary["renderer_golden_sha256"] = hashlib.sha256(
+            path.read_bytes()
+        ).hexdigest()
+    summary["max_context_all_calls"] = {
+        a: max(
+            (r["input_token_count"] for r in rows if r["_detail"]["arm"] == a),
+            default=0,
+        )
+        for a in ARMS
+    }
+    summary["max_physical_cache_all_calls"] = {
+        a: max(
+            (
+                r["_detail"]["measurements"]["cache_physical_tokens"]
+                for r in rows
+                if r["_detail"]["arm"] == a
+            ),
+            default=0,
+        )
+        for a in ARMS
+    }
+    summary["unrun_dev_episodes"] = [
+        f"slab-dev-{i:02}" for i in range(8) if f"slab-dev-{i:02}" not in completed
+    ]
+    summary["diagnostic_batch"] = {}
+    for a in ARMS:
+        chosen = [
+            r
+            for r in rows
+            if r["_detail"]["mode"] == "batch" and r["_detail"]["arm"] == a
+        ]
+        summary["diagnostic_batch"][a] = dict(
+            rounds=len(chosen),
+            executed_batches=sum(
+                bool(r["_detail"]["execution"]["executed"]) for r in chosen
+            ),
+            max_context=max((r["input_token_count"] for r in chosen), default=0),
+            own_body_tokens=distribution([r["output_token_count"] for r in chosen]),
+            truncations=sum(bool(r["truncated"]) for r in chosen),
+            deadline_interrupted=any(
+                r["_detail"]["measurements"]["deadline_hit"] for r in chosen
+            ),
+            final_checker_success=chosen[-1]["_detail"]["outcome"]["success"]
+            if chosen
+            else None,
+            breakage=any(
+                r["_detail"]["outcome"]["violations"]["breakage"] for r in chosen
+            ),
+            wrong_skill=any(
+                r["_detail"]["outcome"]["violations"]["wrong_family"] for r in chosen
+            ),
+            stale_execution=any(
+                any(r["_detail"]["outcome"]["relapse"].values()) for r in chosen
+            ),
+        )
+    (out / "summary.json").write_text(
+        json.dumps(summary, sort_keys=True, indent=2) + "\n"
+    )
     print(
         json.dumps(
             {

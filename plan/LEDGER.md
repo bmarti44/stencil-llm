@@ -1081,3 +1081,10 @@ Freeze four-episode fallback before GPU with both shapes; measure batch4 versus 
 All committed DEV were16 rounds; user-required long shape authored for DEV06/07 (32, distinct reinstatement26); fallback00/01/06/07,then02/03/04/05 frozen before outcomes.
 DEV manifests/accounting re-frozen; evaluation manifest hashes and prior accounting preserved without constructing/opening evaluation episodes. CPU total13.637h includes enlarged DEV.
 Prewritten readings, source/runtime hashes and all16 trunk-shard SHA256s frozen in composition-pilot/recipe.json. Next: foreground scripts/composition_pilot.py --mode run, one load,5400s inclusive.
+2026-09-06 — composition-pilot STATE: INELIGIBLE / INCOMPLETE, GPU work finished; no evaluation launch authorized by this result.
+5385.346/5400 GPU-held seconds including322.758 load/cleanup, one load; RUNNING.flag removed, exit0, no signals. DEV00 sequential RNTO64 calls; batch64 diagnostic calls, last T deadline-interrupted at343 tokens.
+Batch N/T differ all16 rounds (first mismatch round0); R/O match16/16. Frozen full comparison consumed remaining budget; no later episode/32-round GPU shape fit. No history/sample rescue.
+Sequential nested20.794h>12, full4x64=37.180h; interrupted batch occupied-lane proxy>=49.583/78.381h, not a qualified full batch cost. All128 tool envelopes rejected; no edits or prior executed traits; main trunc10/64.
+R first10 bodies in band; observed prompt max11050+512 fits, not a long-shape certificate. Language0/0 by design; style/format/process0/5,0/4,0/6 each; mask trigger not met.
+CPU audit reproduces128 scores/executions/hashes/live views and256 hidden hashes;11 means explicitly partial. Exact R golden consumer replay passes;47 targeted tests+1 expected xfail, lint/diff checked.
+Post-run edits affect only reporting/audit/golden test; inference bank/renderer/decoder/custom-entry match d1fb0660 recipe. No evaluation episode/bench reads or push. Final commit closes this bounded pilot; no further inference.

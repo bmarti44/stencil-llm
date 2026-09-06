@@ -5429,3 +5429,9 @@ Fit-on24DEV replies (15pass/9fail), equal-reply centred router logits; evaluated
 Text-only/competence1/3/competence2/3/shuffle2/3 success[16, 14, 13, 15]; broken[0, 0, 1, 2]; paired W/L/T 1/3 1/3/28; 2/3 3/6/23; shuffle 1/2/29.
 Recipeaa1fa772, profile freeze74086c43;120new+32baseline records and raw-profile/norm audits pass.
 1345.206/2700GPU-s,one load; no enlargement,signals or push; see check40l README for readings and exact inference.
+2026-09-06 — composition DEV pilot (gpt-6-astra): INELIGIBLE/INCOMPLETE; only DEV00,64 sequential+64 diagnostic batch calls; other7/long GPU shape unrun.
+N1 last-parsable repair red→green; DEV06/07 made32/re-frozen before outcomes, eval hashes unchanged; CPU448 dispatch calls; freeze d1fb0660.
+Sequential nested20.794GPU-h>12; non-invariant batch proxy>=49.583h; truncation10/64; final success0/1 per arm, no edits executed; R first10 bodies in band.
+Gold explicit R=O on DEV only; language relapse0/0 by design; style/format/process0/5,0/4,0/6 with prior-trait0; mask trigger not met, actuator OFF.
+5385.346/5400GPU-s,one load;128 records and256 local hidden hashes audited;11 body means partial at cap/deadline; renderer bytes frozen;47 pass+1xfail.
+Fit/train none; authored DEV only, no eval/bench reads/signals/push; scoped local artifacts commit; report under results/quick-checks/composition-pilot/.

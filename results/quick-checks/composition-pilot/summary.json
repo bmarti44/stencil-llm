@@ -1,0 +1,663 @@
+{
+  "batch_invariance": {
+    "comparisons": [
+      {
+        "arm": "R",
+        "batch_rounds": 16,
+        "differing_rounds": [],
+        "identical": true,
+        "sequential_rounds": 16
+      },
+      {
+        "arm": "N",
+        "batch_rounds": 16,
+        "differing_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "identical": false,
+        "sequential_rounds": 16
+      },
+      {
+        "arm": "T",
+        "batch_rounds": 16,
+        "differing_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "identical": false,
+        "sequential_rounds": 16
+      },
+      {
+        "arm": "O",
+        "batch_rounds": 16,
+        "differing_rounds": [],
+        "identical": true,
+        "sequential_rounds": 16
+      }
+    ],
+    "passed": false,
+    "policy": "batch used prospectively only if all four full DEV-00 trajectories match; otherwise sequential"
+  },
+  "complete_episodes": [
+    "slab-dev-00"
+  ],
+  "contingent_mask_trigger": false,
+  "cost_projections": {
+    "batch": {
+      "completed_episode_cost_available": false,
+      "full_four_by_64_hours": null,
+      "limitation": "Batch amortization assumes four occupied lanes; if invariance fails these numbers are diagnostic only.",
+      "long_episode_measured": false,
+      "max_full_episode_seconds": null,
+      "normalized_32_round_seconds": {
+        "N": 1727.9014543625017,
+        "O": 1727.9014543625017,
+        "R": 1727.9014543625017,
+        "T": 1727.9014543625017
+      },
+      "normalized_full_four_by_64_hours": 155.17682497453015,
+      "normalized_nested_hours": 97.58010982911341,
+      "observed_prefix_full_four_lower_bound_hours": 78.38120478064117,
+      "observed_prefix_nested_lower_bound_hours": 49.58284720793282,
+      "observed_prefix_seconds": {
+        "N": 863.9507271812508,
+        "O": 863.9507271812508,
+        "R": 863.9507271812508,
+        "T": 863.9507271812508
+      },
+      "policy": "spent + measured load + 1.25 * [64(cR+cN)+16(cT+cO)]; full4 also reported; no optional actuator",
+      "registered_nested_hours": null,
+      "usable": false
+    },
+    "sequential": {
+      "completed_episode_cost_available": true,
+      "full_four_by_64_hours": 37.18037453688548,
+      "limitation": "Batch amortization assumes four occupied lanes; if invariance fails these numbers are diagnostic only.",
+      "long_episode_measured": false,
+      "max_full_episode_seconds": {
+        "N": 304.93172372149456,
+        "O": 310.55916096352485,
+        "R": 313.66891614748783,
+        "T": 672.6057469234893
+      },
+      "normalized_32_round_seconds": {
+        "N": 609.8634474429891,
+        "O": 621.1183219270497,
+        "R": 627.3378322949757,
+        "T": 1345.2114938469786
+      },
+      "normalized_full_four_by_64_hours": 72.77516448701873,
+      "normalized_nested_hours": 40.00300089078493,
+      "observed_prefix_full_four_lower_bound_hours": 37.18037453688548,
+      "observed_prefix_nested_lower_bound_hours": 20.794292738768572,
+      "observed_prefix_seconds": {
+        "N": 304.93172372149456,
+        "O": 310.55916096352485,
+        "R": 313.66891614748783,
+        "T": 672.6057469234893
+      },
+      "policy": "spent + measured load + 1.25 * [64(cR+cN)+16(cT+cO)]; full4 also reported; no optional actuator",
+      "registered_nested_hours": 20.794292738768572,
+      "usable": true
+    }
+  },
+  "diagnostic_batch": {
+    "N": {
+      "breakage": true,
+      "deadline_interrupted": true,
+      "executed_batches": 0,
+      "final_checker_success": false,
+      "max_context": 7144,
+      "own_body_tokens": {
+        "max": 304,
+        "mean": 303.375,
+        "median": 303.0,
+        "min": 303,
+        "n": 16
+      },
+      "rounds": 16,
+      "stale_execution": false,
+      "truncations": 0,
+      "wrong_skill": false
+    },
+    "O": {
+      "breakage": true,
+      "deadline_interrupted": true,
+      "executed_batches": 0,
+      "final_checker_success": false,
+      "max_context": 11050,
+      "own_body_tokens": {
+        "max": 198,
+        "mean": 197.375,
+        "median": 197.0,
+        "min": 197,
+        "n": 16
+      },
+      "rounds": 16,
+      "stale_execution": false,
+      "truncations": 0,
+      "wrong_skill": false
+    },
+    "R": {
+      "breakage": true,
+      "deadline_interrupted": true,
+      "executed_batches": 0,
+      "final_checker_success": false,
+      "max_context": 11050,
+      "own_body_tokens": {
+        "max": 198,
+        "mean": 197.375,
+        "median": 197.0,
+        "min": 197,
+        "n": 16
+      },
+      "rounds": 16,
+      "stale_execution": false,
+      "truncations": 0,
+      "wrong_skill": false
+    },
+    "T": {
+      "breakage": true,
+      "deadline_interrupted": true,
+      "executed_batches": 0,
+      "final_checker_success": false,
+      "max_context": 10224,
+      "own_body_tokens": {
+        "max": 493,
+        "mean": 482.375,
+        "median": 491.0,
+        "min": 343,
+        "n": 16
+      },
+      "rounds": 16,
+      "stale_execution": false,
+      "truncations": 1,
+      "wrong_skill": false
+    }
+  },
+  "endpoints": [
+    {
+      "arm": "R",
+      "breakage": true,
+      "complete": true,
+      "episode": "slab-dev-00",
+      "final_success": false,
+      "final_violations": {
+        "breakage": true,
+        "format": true,
+        "language": false,
+        "process": false,
+        "semantic": false,
+        "style": false,
+        "wrong_family": false
+      },
+      "rounds": 16,
+      "scheduled": 16,
+      "stale_execution": false,
+      "wrong_skill": false
+    },
+    {
+      "arm": "N",
+      "breakage": true,
+      "complete": true,
+      "episode": "slab-dev-00",
+      "final_success": false,
+      "final_violations": {
+        "breakage": true,
+        "format": true,
+        "language": false,
+        "process": false,
+        "semantic": false,
+        "style": false,
+        "wrong_family": false
+      },
+      "rounds": 16,
+      "scheduled": 16,
+      "stale_execution": false,
+      "wrong_skill": false
+    },
+    {
+      "arm": "T",
+      "breakage": true,
+      "complete": true,
+      "episode": "slab-dev-00",
+      "final_success": false,
+      "final_violations": {
+        "breakage": true,
+        "format": true,
+        "language": false,
+        "process": false,
+        "semantic": false,
+        "style": false,
+        "wrong_family": false
+      },
+      "rounds": 16,
+      "scheduled": 16,
+      "stale_execution": false,
+      "wrong_skill": false
+    },
+    {
+      "arm": "O",
+      "breakage": true,
+      "complete": true,
+      "episode": "slab-dev-00",
+      "final_success": false,
+      "final_violations": {
+        "breakage": true,
+        "format": true,
+        "language": false,
+        "process": false,
+        "semantic": false,
+        "style": false,
+        "wrong_family": false
+      },
+      "rounds": 16,
+      "scheduled": 16,
+      "stale_execution": false,
+      "wrong_skill": false
+    }
+  ],
+  "failures": [
+    "incomplete fixed four-episode fallback",
+    "measured cost / long-episode projection",
+    "truncation >2%",
+    "cooperative deadline interrupted diagnostic comparison"
+  ],
+  "hidden_files": 256,
+  "incomplete_hidden_means": 11,
+  "language": "zero relapse opportunities by design; live-rule violations still scored",
+  "max_context_all_calls": {
+    "N": 7144,
+    "O": 11050,
+    "R": 11050,
+    "T": 10224
+  },
+  "max_physical_cache_all_calls": {
+    "N": 15807,
+    "O": 15807,
+    "R": 15807,
+    "T": 15807
+  },
+  "per_arm": {
+    "N": {
+      "decode_seconds": 292.32080144290376,
+      "decode_tokens": 3244,
+      "decode_tokens_per_second": 11.097397051415856,
+      "executed_batches": 0,
+      "in_band": 16,
+      "max_context_tokens": 5394,
+      "max_physical_cache_tokens": 5598,
+      "own_body_tokens": {
+        "max": 204,
+        "mean": 202.75,
+        "median": 202.0,
+        "min": 202,
+        "n": 16
+      },
+      "prefill_seconds": 11.761069986998336,
+      "prefill_tokens": 2354,
+      "prefill_tokens_per_second": 200.15185715264914,
+      "pressure": [
+        {
+          "eligible": true,
+          "episode": "slab-dev-00",
+          "first_ten_in_band": 10
+        }
+      ],
+      "relapse": {
+        "format": {
+          "applicable_turns": 16,
+          "attempted": 0,
+          "episodes": [],
+          "opportunities": 4,
+          "prior_trait_opportunities": 0,
+          "rate": 0.0,
+          "relapse": 0,
+          "violations": 16
+        },
+        "language": {
+          "applicable_turns": 16,
+          "attempted": 0,
+          "episodes": [],
+          "opportunities": 0,
+          "prior_trait_opportunities": 0,
+          "rate": null,
+          "relapse": 0,
+          "violations": 0
+        },
+        "process": {
+          "applicable_turns": 16,
+          "attempted": 0,
+          "episodes": [],
+          "opportunities": 6,
+          "prior_trait_opportunities": 0,
+          "rate": 0.0,
+          "relapse": 0,
+          "violations": 0
+        },
+        "style": {
+          "applicable_turns": 16,
+          "attempted": 0,
+          "episodes": [],
+          "opportunities": 5,
+          "prior_trait_opportunities": 0,
+          "rate": 0.0,
+          "relapse": 0,
+          "violations": 0
+        }
+      },
+      "rounds": 16,
+      "seconds_per_round": {
+        "max": 19.659155465000367,
+        "mean": 19.02982895056266,
+        "median": 18.99369479249799,
+        "min": 18.429347793004126,
+        "n": 16
+      },
+      "truncations": 0
+    },
+    "O": {
+      "decode_seconds": 294.24038433383976,
+      "decode_tokens": 3158,
+      "decode_tokens_per_second": 10.732721163173139,
+      "executed_batches": 0,
+      "in_band": 16,
+      "max_context_tokens": 11050,
+      "max_physical_cache_tokens": 11248,
+      "own_body_tokens": {
+        "max": 198,
+        "mean": 197.375,
+        "median": 197.0,
+        "min": 197,
+        "n": 16
+      },
+      "prefill_seconds": 15.502509033001843,
+      "prefill_tokens": 8090,
+      "prefill_tokens_per_second": 521.8510102318247,
+      "pressure": [
+        {
+          "eligible": true,
+          "episode": "slab-dev-00",
+          "first_ten_in_band": 10
+        }
+      ],
+      "relapse": {
+        "format": {
+          "applicable_turns": 16,
+          "attempted": 0,
+          "episodes": [],
+          "opportunities": 4,
+          "prior_trait_opportunities": 0,
+          "rate": 0.0,
+          "relapse": 0,
+          "violations": 16
+        },
+        "language": {
+          "applicable_turns": 16,
+          "attempted": 0,
+          "episodes": [],
+          "opportunities": 0,
+          "prior_trait_opportunities": 0,
+          "rate": null,
+          "relapse": 0,
+          "violations": 0
+        },
+        "process": {
+          "applicable_turns": 16,
+          "attempted": 0,
+          "episodes": [],
+          "opportunities": 6,
+          "prior_trait_opportunities": 0,
+          "rate": 0.0,
+          "relapse": 0,
+          "violations": 0
+        },
+        "style": {
+          "applicable_turns": 16,
+          "attempted": 0,
+          "episodes": [],
+          "opportunities": 5,
+          "prior_trait_opportunities": 0,
+          "rate": 0.0,
+          "relapse": 0,
+          "violations": 0
+        }
+      },
+      "rounds": 16,
+      "seconds_per_round": {
+        "max": 20.760931140997855,
+        "mean": 19.381543778189553,
+        "median": 19.34826325550239,
+        "min": 18.158289724997303,
+        "n": 16
+      },
+      "truncations": 0
+    },
+    "R": {
+      "decode_seconds": 294.3434142217593,
+      "decode_tokens": 3158,
+      "decode_tokens_per_second": 10.728964357329742,
+      "executed_batches": 0,
+      "in_band": 16,
+      "max_context_tokens": 11050,
+      "max_physical_cache_tokens": 11248,
+      "own_body_tokens": {
+        "max": 198,
+        "mean": 197.375,
+        "median": 197.0,
+        "min": 197,
+        "n": 16
+      },
+      "prefill_seconds": 18.29283022997697,
+      "prefill_tokens": 8090,
+      "prefill_tokens_per_second": 442.24977208516873,
+      "pressure": [
+        {
+          "eligible": true,
+          "episode": "slab-dev-00",
+          "first_ten_in_band": 10
+        }
+      ],
+      "relapse": {
+        "format": {
+          "applicable_turns": 16,
+          "attempted": 0,
+          "episodes": [],
+          "opportunities": 4,
+          "prior_trait_opportunities": 0,
+          "rate": 0.0,
+          "relapse": 0,
+          "violations": 16
+        },
+        "language": {
+          "applicable_turns": 16,
+          "attempted": 0,
+          "episodes": [],
+          "opportunities": 0,
+          "prior_trait_opportunities": 0,
+          "rate": null,
+          "relapse": 0,
+          "violations": 0
+        },
+        "process": {
+          "applicable_turns": 16,
+          "attempted": 0,
+          "episodes": [],
+          "opportunities": 6,
+          "prior_trait_opportunities": 0,
+          "rate": 0.0,
+          "relapse": 0,
+          "violations": 0
+        },
+        "style": {
+          "applicable_turns": 16,
+          "attempted": 0,
+          "episodes": [],
+          "opportunities": 5,
+          "prior_trait_opportunities": 0,
+          "rate": 0.0,
+          "relapse": 0,
+          "violations": 0
+        }
+      },
+      "rounds": 16,
+      "seconds_per_round": {
+        "max": 20.954304769002192,
+        "mean": 19.57590347718724,
+        "median": 19.436079054499714,
+        "min": 18.312748879005085,
+        "n": 16
+      },
+      "truncations": 0
+    },
+    "T": {
+      "decode_seconds": 658.6394785858647,
+      "decode_tokens": 7108,
+      "decode_tokens_per_second": 10.79194343962082,
+      "executed_batches": 0,
+      "in_band": 2,
+      "max_context_tokens": 9727,
+      "max_physical_cache_tokens": 10238,
+      "own_body_tokens": {
+        "max": 512,
+        "mean": 444.875,
+        "median": 512.0,
+        "min": 192,
+        "n": 16
+      },
+      "prefill_seconds": 12.738301135985239,
+      "prefill_tokens": 3130,
+      "prefill_tokens_per_second": 245.71565443353066,
+      "pressure": [
+        {
+          "eligible": false,
+          "episode": "slab-dev-00",
+          "first_ten_in_band": 2
+        }
+      ],
+      "relapse": {
+        "format": {
+          "applicable_turns": 16,
+          "attempted": 0,
+          "episodes": [],
+          "opportunities": 4,
+          "prior_trait_opportunities": 0,
+          "rate": 0.0,
+          "relapse": 0,
+          "violations": 16
+        },
+        "language": {
+          "applicable_turns": 16,
+          "attempted": 0,
+          "episodes": [],
+          "opportunities": 0,
+          "prior_trait_opportunities": 0,
+          "rate": null,
+          "relapse": 0,
+          "violations": 0
+        },
+        "process": {
+          "applicable_turns": 16,
+          "attempted": 0,
+          "episodes": [],
+          "opportunities": 6,
+          "prior_trait_opportunities": 0,
+          "rate": 0.0,
+          "relapse": 0,
+          "violations": 0
+        },
+        "style": {
+          "applicable_turns": 16,
+          "attempted": 0,
+          "episodes": [],
+          "opportunities": 5,
+          "prior_trait_opportunities": 0,
+          "rate": 0.0,
+          "relapse": 0,
+          "violations": 0
+        }
+      },
+      "rounds": 16,
+      "seconds_per_round": {
+        "max": 50.773397056997055,
+        "mean": 42.00945540068733,
+        "median": 47.97950530950038,
+        "min": 17.757327585000894,
+        "n": 16
+      },
+      "truncations": 10
+    }
+  },
+  "performance": {
+    "batch": {
+      "decode_seconds": 3422.150802543176,
+      "decode_tok_s": 5.519043750487004,
+      "decode_tokens": 18887,
+      "prefill_seconds": 31.803142383992963,
+      "prefill_tok_s": 679.9013675731367,
+      "prefill_tokens": 21623
+    },
+    "sequential": {
+      "decode_seconds": 1539.5440785843675,
+      "decode_tok_s": 10.826581863980445,
+      "decode_tokens": 16668,
+      "prefill_seconds": 58.29471038596239,
+      "prefill_tok_s": 371.6289154979108,
+      "prefill_tokens": 21664
+    }
+  },
+  "primary_rows": 64,
+  "reading": "INELIGIBLE",
+  "renderer_golden_sha256": "2a6f4c5bf067ba96829cdcf33d9f64dccd67cb6352ded68a3032b371f0879059",
+  "rows": 128,
+  "run": {
+    "cap_seconds": 5400,
+    "finished_at": 1788715189.9835887,
+    "gpu_held_seconds": 5385.346048473992,
+    "load_seconds": 322.75846383399767,
+    "peak_cuda_bytes": 68460523520,
+    "selected_mode": "sequential",
+    "started_at": 1788709804.6375394,
+    "status": "finished"
+  },
+  "selected_mode": "sequential",
+  "trigger_kinds": [],
+  "unrun_dev_episodes": [
+    "slab-dev-01",
+    "slab-dev-02",
+    "slab-dev-03",
+    "slab-dev-04",
+    "slab-dev-05",
+    "slab-dev-06",
+    "slab-dev-07"
+  ]
+}

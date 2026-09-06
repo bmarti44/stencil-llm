@@ -85,3 +85,38 @@ def test_retained_batch_padding_and_hidden_against_sequential():
             rtol=1e-3,
         )
     batch.close()
+
+
+def test_frozen_gpu_renderer_replay(tmp_path):
+    """Replay recorded DEV bodies through the real loop; no trunk inference."""
+    import hashlib
+    import json
+    from pathlib import Path
+
+    from scripts.composition_pilot import TOOL_SCHEMA, Lane
+    from stencil.focus.loop import DecodeResult, generate_once
+
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "results/quick-checks/composition-pilot/renderer-golden.jsonl"
+    )
+    golden = [json.loads(line) for line in path.read_text().splitlines()]
+    assert len(golden) == 16
+    lane = Lane(tmp_path, bank()[0], "R", "golden-replay")
+    for index, row in enumerate(golden):
+        lane.prepare(index)
+        lane.gate = dict(allowed=True)
+        lane.measurement = dict(cpu_stub=True)
+
+        def decoder(rendered, row=row):
+            assert rendered.text.encode() == row["text"].encode()
+            assert (
+                hashlib.sha256(rendered.text.encode()).hexdigest() == row["utf8_sha256"]
+            )
+            assert list(rendered.prompt_ids) == row["prompt_ids"]
+            return DecodeResult(
+                row["output"], tuple(row["output_ids"]), row["eos"], row["truncated"]
+            )
+
+        generate_once(lane.session, lane.messages, decoder, tools=TOOL_SCHEMA)
+    assert len(lane.rows) == 16

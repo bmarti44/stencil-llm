@@ -90,3 +90,6 @@ renderer or enable an actuator. `scripts/composition_pilot.py` owns sandboxed to
 same-run hidden checks and optional residual capture. The default convenience
 backend above still re-prefills; retained KV requires the explicit decoder adapter.
 This local pilot does not change the scaffold-only snapshot status.
+The [DEV pilot](../../results/quick-checks/composition-pilot/README.md) did not
+qualify: batch4 was not byte-invariant, cost exceeded budget, and tool envelopes
+failed. Its decoder adapter is not a batch-parity or shipping certificate.

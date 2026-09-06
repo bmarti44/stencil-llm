@@ -522,3 +522,9 @@ FOCUS-3 gate ([results v2](focus3-gate/RESULTS.md), [frozen reading](focus3-gate
    Paired wins/losses/ties: 1/3 1/3/28; 2/3 3/6/23; shuffle 1/2/29; exact sign tests and conservative paired95%CIs in report.
    R2 unreachable (ARM A cut); R4 INCONCLUSIVE, line stays parked; no enlargement or shipping change.
    24DEV+96eval records,raw48-layer token profiles/norms audited;1345.206/2700GPU-s,one load; no signals/push.
+
+Composition DEV pilot ([composition-pilot](composition-pilot/README.md)): **INELIGIBLE / INCOMPLETE**; DEV00 only, R/N/T/O,64 primary +64 batch-diagnostic calls.
+   Sequential nested projection20.794GPU-h>12; non-invariant batch proxy>=49.583h; truncation10/64=15.625%; final success0/1 each, no executed edits.
+   R own bodies197–198, first10 in band; max actual context11050+512 fits; GPU32-round shape and remaining7DEV episodes unrun; relapse pressure not established.
+   N1 fixed on CPU; DEV06/07 extended/re-frozen pre-GPU; gold explicit R=O on DEV only; language relapse0/0 by design; mask trigger not met, actuator OFF.
+   5385.346/5400GPU-s,one load;128 records/256 hidden hashes audited; renderer golden frozen, .npy local;47 tests pass+1xfail; no eval/bench reads,signals,push.
