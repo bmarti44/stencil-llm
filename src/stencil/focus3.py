@@ -251,6 +251,7 @@ class Runtime:
         self.classifier = classifier
         self.thresholds = getattr(classifier, "thresholds", THRESHOLDS)
         self.admission_bound = getattr(classifier, "admission_bound", "legacy_none")
+        self.key_identity = getattr(classifier, "key_identity", False)
         assert self.admission_bound in ("legacy_none", "positive_proposal")
         self.register = Register()
         self.task = None
@@ -267,6 +268,8 @@ class Runtime:
             overflow=False,
             role=role,
         )
+        if self.key_identity:
+            trace["cross_key_proposals"] = 0
         if role != "user":
             return dict(trace, after=before)
         self.task = selected_task(text, self.task)
@@ -332,6 +335,22 @@ class Runtime:
                 and scope is not None
                 and overlaps(self.register.get(p["input"]["target_id"]).scope, scope)
             ]
+            if self.key_identity:
+                # Explicit semantic fields constrain a relation; anaphoric or
+                # whole-task prose inherits the relation's nominated target key.
+                span_key = relation_key(prose_message(span))
+                for p in rows:
+                    target = self.register.get(p["input"]["target_id"])
+                    target_key = target.key
+                    proposal_key = target_key if span_key == "instruction" else span_key
+                    p["proposal_key"] = proposal_key
+                    p["cross_key"] = (
+                        p["proposed"] != "none" and proposal_key != target_key
+                    )
+                    trace["cross_key_proposals"] += int(p["cross_key"])
+                # Preserve raw proposals for diagnostics, drop from both
+                # precedence and the positive-proposal admission bound.
+                rows = [p for p in rows if not p["cross_key"]]
             positive = [
                 p
                 for p in rows
@@ -440,7 +459,14 @@ class Runtime:
                 )
                 trace["admitted_beside_live"] += int(beside)
                 self.register.add(
-                    span, f"new:{turn}:{start}", scope, kind_of(span), turn, start
+                    span,
+                    relation_key(prose_message(span))
+                    if self.key_identity
+                    else f"new:{turn}:{start}",
+                    scope,
+                    kind_of(span),
+                    turn,
+                    start,
                 )
                 trace["applied"].append(dict(label="admit", span=span))
         self.previous = text
@@ -490,7 +516,12 @@ class FrozenClassifier:
     """Exact CPU architecture/input encoding used by the two frozen heads."""
 
     def __init__(
-        self, relations_path=None, thresholds=None, admission_bound="legacy_none"
+        self,
+        relations_path=None,
+        thresholds=None,
+        admission_bound="legacy_none",
+        admission_path=None,
+        key_identity=False,
     ):
         import torch
         from safetensors.torch import load_file
@@ -500,13 +531,14 @@ class FrozenClassifier:
         self.torch = torch
         self.thresholds = THRESHOLDS if thresholds is None else thresholds
         self.admission_bound = admission_bound
+        self.key_identity = key_identity
         relations_path = relations_path or ROOT / "data/classifier/model/relations"
         self.branches = {}
         for branch, classes in [("relations", 5), ("ft", 3)]:
             path = (
                 relations_path
                 if branch == "relations"
-                else ROOT / "data/classifier/model" / branch
+                else admission_path or ROOT / "data/classifier/model" / branch
             )
             tok = AutoTokenizer.from_pretrained(path / "encoder", local_files_only=True)
             enc = AutoModel.from_pretrained(

@@ -629,3 +629,22 @@ README/WORKLOG/model evaluation metadata ready; registration prefix and frozen
 model/source hashes unchanged. User input corpora and historical models unchanged.
 195.999037/10800 GPU-held seconds; own flag absent, no signals/background/sealed/
 bench reads/push. Explicit-path force-added commit closes step B at required stop.
+
+2026-09-06 — STATE: V7 STEP C REGISTERED, IMPLEMENTATION NEXT.
+Archived protocol/science and current ledger read; direct user quick-check scope
+applies, no wrapper active. Fit original admission lineage + source quoted NONE;
+DEV sentence-group disjoint; fable-validation* diagnostic once after freeze;
+never gate-bank fit, benchmark/sealed reads. Register key slug identity before
+precedence, cross-key dropped also excluded from admission veto. Seed0 fixed,
+3epochs/3seeds, .95 admission fixed, no relation refit/second look. v7/RESULTS.md
+freezes inherited stop/readings and 10800s budget. No signals/background/push.
+
+2026-09-06 — STATE: V7 RECIPE FROZEN, GPU REFIT NEXT.
+61 targeted CPU tests pass. Original20054 rows reproduced;150Opus+61transition+
+273relation messages yield582 sentence negatives; final20634rows after2dedup,
+zero gate-sentence exclusions. Seeds each18571fit/2063DEV, sentence identities
+cannot cross. Training tokenization preflight passes with unchanged192 recipe.
+Original282 taxonomy-category drop exceptions preserved/disclosed per ft lineage.
+Next foreground .venv/bin/python -u -m scripts.focus3_gate_v7 --mode fit;
+3full epochs per seed, seed0 fixed, no heldout input read. No flags/compute now;
+claim helper exempts only Brian2705, never signals, saves elapsed in finally.
