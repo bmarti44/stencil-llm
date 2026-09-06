@@ -437,3 +437,12 @@ V2 accuracy was 96.08%; v3 change -0.84 points.
 GPU allocation: 264.77/1800 seconds (4.41 minutes), including calibration/save/CPU work while flagged. Flag removed on natural completion. 11 targeted tests passed; all 2,694 DEV scores, held-out records, binomial bounds, and runtime state replay audited. Source/model/data hashes verified; no post-score model or policy changes, signals, background jobs or push. Safetensors remain local.
 
 [Model README and checkpoint hashes](../data/classifier/model/relations-v3/README.md), [evaluation and reading](../data/classifier/model/relations-v3/evaluation.json), [freeze](quick-checks/relations-v3/freeze.json), [audit](quick-checks/relations-v3/audit.json).
+
+### Orchestrator addendum after the fable accuracy review (2026-09-06; results/relations-v3-review-fable.md)
+Numbers and freeze order verified. Disclosed diagnostic: relations-v2 on held-out-3 = 87.95% accuracy, supersedes
+recall 126/172 = 73.26% with the identical miss profile (39 to none, 7 to cancels; 39/46 misses shared) — held-out-3
+is a HARDER bank, not a v3 regression. The none-precision drop is arithmetic from the supersedes-to-none misses.
+Miss families: bare new value + temporal (13), retire/withdraw + replacement (12; a spec ruling is needed), explicit
+meta-override wording cut by the 0.92 threshold (10), task-scoped override of global (8), "actually, B" (3).
+DECISION: relation refits parked; v2 ships (assistive mode; explicit actions specify their own operation). Reopening
+requires a spec ruling on "withdraw + replace" and calibration transfer work, not another refit.
