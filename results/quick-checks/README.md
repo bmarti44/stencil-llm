@@ -486,3 +486,9 @@ FOCUS-3 gate ([results v2](focus3-gate/RESULTS.md), [frozen reading](focus3-gate
    B ft-v3 head overlap P/R98.31%/80.28%, payload2/102, quoted1/52; both non-user0/12. Unbound v8 register consumer writes0; C skipped at870 rows<1500.
    All338 one-pass records/raw JSON audited;18.071GPU-min incl83.269s header preflight; CPU timing capped1801s. Recipe242140fb, pre-prediction header repair39731964; no fitting/signals/push.
    Cut unattended admission from first ship; explicit structured rule entry. No output salvage/rerun or800-message deeper bank; corrupted evidence prevents an isolated judgment of LLM semantics.
+
+44b. MESSAGE ADMISSION C ([check44b](check44b/RESULTS.md)): **PENDING-HELDOUT**; audited Kimi+Opus fit complete, Fable-2 uncommitted.
+   Whole-domain DEV309/3103; seed0 overlap P/R97.83%/91.84%, seeds1/2 97.87%/93.88%; each gold-empty FP3/183, no overflow.
+   Seed0 designated; DEV thresholds .9883976741/.9768228883/.9565492833 frozen in bab43b0d after recipe f03c4398; no held-out look.
+   Three epochs/468 updates each,212.346/3600 GPU-seconds; six tests, CPU smoke and saved-DEV audit PASS; safetensors local, own flag removed.
+   Awaiting committed heldout-2 for one CPU pass of C+B and96 SETUP turns; GO bar unchanged, structured first-ship entry remains pending decision; no signals/push.

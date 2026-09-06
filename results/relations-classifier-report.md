@@ -278,3 +278,35 @@ The five-arm gate and its primary/secondary readings remain unmeasured.
 [Full results](quick-checks/focus3-gate/v8/RESULTS.md),
 [escalation for Brian](quick-checks/focus3-gate/v8/ESCALATION.md),
 [ft-v3 metadata](../data/classifier/model/ft-v3/README.md).
+
+## 2026-09-06 — Check44b: contextual message admission trained, evaluation pending
+
+Arm C now uses base bge-small-en-v1.5 with full-message/candidate sentence pairs,
+trained on2872 Kimi messages after53 Opus label replacements plus231 Opus
+messages. All20 domains were kept whole across sources; marketing/travel form
+DEV309 (9.96%), with2794 fit messages. Domain grouping conservatively substitutes
+for absent author scenario IDs and keeps matched quote/adoption variants together.
+The frozen sentence splitter and full512-token pairs are used throughout;
+non-user roles reject, overflows abstain. No training or DEV pair overflowed.
+
+Seed0 is designated in advance. At the lowest DEV threshold allowing at most
+3/183 gold-empty false admissions, seed0 overlap precision/recall is97.83%/91.84%
+(135/147 gold spans), and seeds1/2 score97.87%/93.88% (138/147). Thresholds are
+.9883976740722434, .9768228882950498, .956549283252651. The sentence splitter's
+DEV representability ceiling is141/147=95.92%; macro metrics do not replace the
+registered micro recall bar. These development outcomes cannot establish GO.
+
+Pre-written recipe f03c4398 and all-model freeze bab43b0d precede any Fable-2
+contents. Three complete468-update fits, CPU calibration and saving cost212.346
+GPU-allocation seconds of3600; peak torch allocation4.342GiB. Six focused tests,
+actual CPU smoke, saved-DEV calibration/score replay and frozen hashes pass.
+All ft-v3 baseline checkpoint bytes match check44's original freeze.
+
+The new Fable-2 bank is not yet committed. Evaluation remains pending, with
+five-minute commit polling and no held-out or SETUP inference. The unchanged
+GO bar requires C held-out overlap recall>=85%, payload/quote FP<=3%, zero
+non-user admissions, plus<=2/96 false-admission SETUP turns. First ship remains
+explicit structured entry until that decision; C has not replaced the runtime.
+[Pre-written reading](quick-checks/check44b/README.md),
+[pending results](quick-checks/check44b/RESULTS.md),
+[model metadata](../data/classifier/model/admission-v1/README.md).
