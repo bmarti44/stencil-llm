@@ -373,3 +373,36 @@ ASTs unchanged. New default live rows and agreement audited through consumer.
 Pre-inference freeze includes independent audit source; charge prior181.012s.
 Next foreground scripts/focus3_gate.py --mode run when compute/flags empty;
 setup15/16 required,then frozen64/48 resource decision/gate;no rescue/signals.
+
+2026-09-06 — STATE: FOCUS-3 V2 FOREGROUND GPU LAUNCH.
+Freeze27003fda precedes inference;check40f naturally finished,empty compute list
+and no quick-check RUNNING.flag observed. Runner atomically claims its own flag.
+Command:.venv/bin/python -u /home/bmarti44/stencil-llm/scripts/focus3_gate.py --mode run
+Log:results/quick-checks/focus3-gate/console.log;pipefail preserves raw exit.
+
+2026-09-06 — STATE: FOCUS-3 V2 SETUP PASS / FULL64 GATE RUNNING.
+Setup16/16 final,4/4 every family;96 records retained,prior setup preserved.
+Frozen resource rule projects3504.526747/10800s,select64 before gate output.
+Foreground same process continues all C/O/N/T arms;no output-based changes.
+
+2026-09-06 — FOCUS-3 V2 GATE QUARTER:16 override episodes/all4 arms complete;
+384 gate records preserved before cancellation family. Recipe unchanged,
+foreground process continues;full-cohort verdict/audit await remaining48.
+
+2026-09-06 — FOCUS-3 V2 GATE HALF:32 override/cancel episodes/all4 arms
+complete,768 gate records preserved;completion/move family now running.
+No retries/exclusions/source changes;final agreement/endpoint audit pending.
+
+2026-09-06 — FOCUS-3 V2 GATE THREE-QUARTERS:48 episodes/all4 arms complete,
+1152 gate records preserved;final16 switch/return episodes underway unchanged.
+Charged2321.907s incl.prior181.012;no budget pressure,retries,exclusions/signals.
+
+2026-09-06 — STATE: FOCUS-3 V2 COMPLETE / FAIL; FINAL ARTIFACTS IN THIS COMMIT.
+Setup16/16 passes;full64 gate C/O final27/61,stale27/2,C exact0/64 and false
+retirements64/64;breakage0,contradictory0,C beatsT stale27<32;conjunction FAIL.
+Raw admission:initial order0/64,tag64/64;no positive relation targets admitted,
+48 gold change events unpaired;do not infer relation-transition recall.
+Both audits PASS1632 records/272 episode-arms;19 tests,2 forbidden reads excluded.
+2965.079361649/10800s incl.prior181.012;natural exit,own flag removed.
+RESULTS v2/summary/README/WORKLOG ready;source/model/bank hashes match freeze.
+No further run or repair authorized;explicit paths only,no fitting/sealed/signals/push.

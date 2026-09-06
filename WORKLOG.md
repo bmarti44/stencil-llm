@@ -5208,3 +5208,11 @@ R2 SWITCH/HOLD_AFTER_SWITCH Python23/24, broken1 each; CLEAR24/24, broken0. R1 P
 R2 BACK JS0/24: CLEAR is23 Python->Python +1 broken->Python, so no independent release from restored JS. T SWITCH24/24, CLEAR0/24/broken1.
 All864 records/648 generations audited;14406 tokens,1376.875s (22.95/90 GPU-min); SDPA mask/eviction equivalence, every-forward provenance and raw gates pass.
 Checkpoint1f32b6c9 preserved11 episodes; final artifacts/index/ledger committed explicitly; flag removed, no fitting/sealed reads/signals/background/push.
+
+### 2026-09-06 — FOCUS-3 gate v2 (gpt-6-astra): FAIL; renderer setup passes
+Authorized shared C/O explicit-default repair, N/T unchanged; setup16/16 (all families4/4), stale0/broken0; requested30302 already used in v1, reuse disclosed; gate30301 unchanged/fresh.
+Full64 gate: C/O final27/61,stale27/2; N25/38,T31/32. C exact0/64,false retirements64/64 (includes initial misses),broken0,contradictory0; mechanical FAIL.
+Initial ordering admission0/64,global tags64/64; all480 available pairs none,48 gold changes lack targets; relation-transition recall not measured. Switch-back C6/16,O/N/T16/16; no masking.
+19 applicable tests pass,2 sealed-byte hash tests excluded,ruff clean; both audits PASS on1632 records/272 episode-arms,all131 v1 files preserved against8f0c550b.
+Freeze27003fda precedes outputs; projection3504.527s selects64;2965.079/10800s charged incl.v1,46047 total tokens. RESULTS v2/summary/index complete; natural exit/own flag removed.
+STATE: completed FAIL,results land in this explicit-path local commit; no further repair/rerun,fitting,sealed reads,signals or push.

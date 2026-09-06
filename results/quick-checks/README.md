@@ -434,12 +434,12 @@ F8 — Q1 extracted-vector closure: Further work on the tested mean-difference r
    −b PRODUCT0/8 both doses, malformed0; shuffled− PRODUCT0/8; +b SUM8/7 with malformed0/1, shuffled+ malformed0/4; no safe cell, final/collateral skipped.
    80 generations/3963 tokens, 11.21/24 GPU-min; all scores/profiles/biases/dispatch audited; recipe da131791 precedes outcomes; flag removed, no signals/sealed reads/push.
 
-FOCUS-3 gate ([results](focus3-gate/RESULTS.md), [frozen reading](focus3-gate/README.md)): **INELIGIBLE at setup**, 8/16 final successes (<15/16).
-   Classifier register, gold oracle and C/O/N/T runner built; no masking, live rules every task request, format/tag only for governed request kinds.
-   Oracle setup override4/4, cancel0/4, complete/move0/4, switch/return4/4; stale8/16, breakage0, tags80/80; all96 records retained and audited.
-   Frozen64-episode gate did not run; C/O endpoints and register-agreement PASS remain untested. Switch-back4/4 is setup-only; mask un-release untested.
-   15 targeted tests pass,2 sealed-file hash tests deselected; Ruff clean. Pre-inference loader repair92ccb104 preserves original freeze and unchanged episode/reading bytes.
-   181.012/10800 charged GPU seconds including failed initialization;64-episode projection3320.879s fit. Natural exit/flag removed; no fitting/sealed reads/signals/push.
+FOCUS-3 gate ([results v2](focus3-gate/RESULTS.md), [frozen reading](focus3-gate/README.md)): **FAIL** after the authorized default-rendering repair; setup16/16 passes15/16.
+   C/O now render explicit ordering defaults on every governed request; N/T unchanged, no masking. Setup30302 reused as requested (already used in v1); fresh gate30301 unchanged.
+   Full64 gate: C/O final27/61, stale27/2; N final25/stale38, T final31/stale32. C exact0/64, false retirements64/64 (includes admission misses), broken0, contradictory0.
+   Admission bottleneck: initial ordering0/64, global tag64/64; no ordering relation targets, so transition recall unmeasured. Switch-back C6/16 versus O/N/T16/16; mask un-release untested.
+   19 tests pass,2 forbidden sealed-byte hash tests excluded; Ruff clean. Both audits PASS on1632 records/272 episode-arms; v1 evidence preserved, freeze27003fda precedes inference.
+   2965.079/10800 charged GPU seconds incl.v1; full64 projection3504.527s. RESULTS v2/summary/records/traces complete; natural exit/own flag removed, no fit/sealed reads/signals/push.
 
 40f. ROUTER RELEASE + ANSWER MASKING ([check40f](check40f/README.md)): **RELEASE WORKS by fixed rule (R2)**; unregistered, no fit/train.
    Pre-run cost fallback24 episodes, seed40060/alpha3/cap64; R2 Python23/24 SWITCH + HOLD_AFTER_SWITCH (broken1), CLEAR24/24 (broken0).
