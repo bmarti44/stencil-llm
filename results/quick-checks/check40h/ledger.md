@@ -18,3 +18,10 @@ Next command: PYTHONNOUSERSITE=1 .venv/bin/python -s -B -u
 /home/bmarti44/stencil-llm/scripts/focus_check40h.py --mode run
 The foreground runner polls resource/lock availability every45s before claiming
 its flag; GPU clock starts only after claim. No background launches or signals.
+
+2026-09-06 — STATE: FROZEN3f1a8aac; FOREGROUND WAIT CONTINUES.
+CPU dummy-writer fixture completed528 records/480 generations in a temporary
+directory; production audit verifies every mask/cue/forward/summary and report
+rendering, CUDA uninitialized. A fixture-factory construction error was fixed
+before that CPU test; no production runner change or GPU inference.
+Report/writer smoke receipt retained separately; no scientific results yet.
