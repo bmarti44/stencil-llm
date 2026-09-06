@@ -1,0 +1,1283 @@
+[
+  {
+    "id": "shelfBands",
+    "name": "shelfBands",
+    "split": "dev",
+    "prompt": "Write a function named shelfBands that takes an array of integers and returns the sums of maximal consecutive runs of equal sign, treating zero as its own sign. Empty input returns an empty array.",
+    "tests": [
+      {
+        "args": [
+          [
+            2,
+            3,
+            -1,
+            -4,
+            0,
+            0,
+            7
+          ]
+        ],
+        "expected": [
+          5,
+          -5,
+          0,
+          7
+        ]
+      },
+      {
+        "args": [
+          []
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            0,
+            -2,
+            0,
+            3
+          ]
+        ],
+        "expected": [
+          0,
+          -2,
+          0,
+          3
+        ]
+      },
+      {
+        "args": [
+          [
+            -1,
+            -1,
+            2,
+            -3
+          ]
+        ],
+        "expected": [
+          -2,
+          2,
+          -3
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ticketSuffix",
+    "name": "ticketSuffix",
+    "split": "dev",
+    "prompt": "Write a function named ticketSuffix that takes a string and returns the longest suffix containing no repeated ASCII character; case matters and spaces count. Empty input returns an empty string.",
+    "tests": [
+      {
+        "args": [
+          "abca"
+        ],
+        "expected": "bca"
+      },
+      {
+        "args": [
+          "ab ba"
+        ],
+        "expected": " ba"
+      },
+      {
+        "args": [
+          "aaaa"
+        ],
+        "expected": "a"
+      },
+      {
+        "args": [
+          ""
+        ],
+        "expected": ""
+      }
+    ]
+  },
+  {
+    "id": "crateFields",
+    "name": "crateFields",
+    "split": "dev",
+    "prompt": "Write a function named crateFields that takes a string of fields separated by semicolons outside double quotes. Double quotes toggle quoted mode and are not included in output; inside quoted mode two consecutive double quotes produce one literal quote without toggling. Backslash has no special meaning. Preserve empty fields, including trailing ones. Return null for an unclosed quote. The empty string means one empty field.",
+    "tests": [
+      {
+        "args": [
+          "a;\"b;c\";"
+        ],
+        "expected": [
+          "a",
+          "b;c",
+          ""
+        ]
+      },
+      {
+        "args": [
+          "\"a\"\"b\";x"
+        ],
+        "expected": [
+          "a\"b",
+          "x"
+        ]
+      },
+      {
+        "args": [
+          "\"oops"
+        ],
+        "expected": null
+      },
+      {
+        "args": [
+          ""
+        ],
+        "expected": [
+          ""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "paintWindows",
+    "name": "paintWindows",
+    "split": "dev",
+    "prompt": "Write a function named paintWindows that takes an array of [start,end,label] integer intervals with start < end. Intervals are half-open. Later entries overwrite earlier ones. Return sorted nonempty [start,end,label] segments covering the union, merging adjacent segments with equal labels, and omit uncovered gaps. Do not mutate the input.",
+    "tests": [
+      {
+        "args": [
+          [
+            [
+              0,
+              5,
+              "a"
+            ],
+            [
+              2,
+              3,
+              "b"
+            ]
+          ]
+        ],
+        "expected": [
+          [
+            0,
+            2,
+            "a"
+          ],
+          [
+            2,
+            3,
+            "b"
+          ],
+          [
+            3,
+            5,
+            "a"
+          ]
+        ]
+      },
+      {
+        "args": [
+          [
+            [
+              0,
+              2,
+              "a"
+            ],
+            [
+              2,
+              4,
+              "a"
+            ]
+          ]
+        ],
+        "expected": [
+          [
+            0,
+            4,
+            "a"
+          ]
+        ]
+      },
+      {
+        "args": [
+          []
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            [
+              1,
+              8,
+              "x"
+            ],
+            [
+              0,
+              9,
+              "y"
+            ],
+            [
+              3,
+              5,
+              "x"
+            ]
+          ]
+        ],
+        "expected": [
+          [
+            0,
+            3,
+            "y"
+          ],
+          [
+            3,
+            5,
+            "x"
+          ],
+          [
+            5,
+            9,
+            "y"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "routePieces",
+    "name": "routePieces",
+    "split": "dev",
+    "prompt": "Write a function named routePieces that takes an absolute slash-separated path string. Remove empty and dot components; dot-dot removes the most recent ordinary component if one exists, otherwise is ignored. A component whose first character is ! is a barrier: preserve it, and a later dot-dot may not remove it or cross it. Return the normalized absolute path without a trailing slash unless it is root.",
+    "tests": [
+      {
+        "args": [
+          "/a/!b/c/../../d"
+        ],
+        "expected": "/a/!b/d"
+      },
+      {
+        "args": [
+          "/../../x"
+        ],
+        "expected": "/x"
+      },
+      {
+        "args": [
+          "/a//./b/.."
+        ],
+        "expected": "/a"
+      },
+      {
+        "args": [
+          "/!x/../!y/../"
+        ],
+        "expected": "/!x/!y"
+      }
+    ]
+  },
+  {
+    "id": "stampShift",
+    "name": "stampShift",
+    "split": "dev",
+    "prompt": "Write a function named stampShift that takes a valid date string YYYY-MM-DD and a signed integer minute offset. Interpret the date as midnight on a fictional calendar with twelve 30-day months, no leap years, and 24-hour days. Return YYYY-MM-DD HH:mm after applying the offset, padding all fields. Inputs and results have years 0001 through 9999.",
+    "tests": [
+      {
+        "args": [
+          "2024-01-01",
+          -1
+        ],
+        "expected": "2023-12-30 23:59"
+      },
+      {
+        "args": [
+          "2024-02-30",
+          1440
+        ],
+        "expected": "2024-03-01 00:00"
+      },
+      {
+        "args": [
+          "0099-12-30",
+          1501
+        ],
+        "expected": "0100-01-01 01:01"
+      },
+      {
+        "args": [
+          "2000-01-01",
+          0
+        ],
+        "expected": "2000-01-01 00:00"
+      }
+    ]
+  },
+  {
+    "id": "ribbonExpand",
+    "name": "ribbonExpand",
+    "split": "dev",
+    "prompt": "Write a function named ribbonExpand that takes a string in this grammar: a sequence of lowercase letters and decimal-count bracketed sequences, nested to arbitrary finite depth; a count repeats its bracket contents that many times, including zero. Counts have one or more digits; bare brackets, unmatched brackets, and other characters are invalid. Return the expansion, or null for invalid syntax even inside a zero-count group. Empty input is valid. Expansions are at most 1000 characters.",
+    "tests": [
+      {
+        "args": [
+          "a2[b3[c]]"
+        ],
+        "expected": "abcccbccc"
+      },
+      {
+        "args": [
+          "0[2[a!]x]"
+        ],
+        "expected": null
+      },
+      {
+        "args": [
+          "12[a]"
+        ],
+        "expected": "aaaaaaaaaaaa"
+      },
+      {
+        "args": [
+          "2[a"
+        ],
+        "expected": null
+      }
+    ]
+  },
+  {
+    "id": "counterUndo",
+    "name": "counterUndo",
+    "split": "dev",
+    "prompt": "Write a function named counterUndo that takes an array of command strings. A command +n adds signed decimal integer n to a counter initially zero; save pushes its current value; undo restores and pops the latest saved value if any; an addition does not change the save stack. Unknown commands are ignored. Return an array containing the counter after every command. Integer additions use strings such as +3 and +-2; a bare plus is unknown.",
+    "tests": [
+      {
+        "args": [
+          [
+            "+3",
+            "save",
+            "+-2",
+            "save",
+            "+5",
+            "undo",
+            "undo",
+            "undo"
+          ]
+        ],
+        "expected": [
+          3,
+          3,
+          1,
+          1,
+          6,
+          1,
+          3,
+          3
+        ]
+      },
+      {
+        "args": [
+          [
+            "+",
+            "+2x",
+            "+0"
+          ]
+        ],
+        "expected": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "args": [
+          []
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            "save",
+            "+7",
+            "undo",
+            "+1"
+          ]
+        ],
+        "expected": [
+          0,
+          7,
+          0,
+          1
+        ]
+      }
+    ]
+  },
+  {
+    "id": "lPositiveSquares",
+    "name": "lPositiveSquares",
+    "split": "dev",
+    "prompt": "Write a function named lPositiveSquares that takes an integer array and returns the squares of strictly positive entries in original order.",
+    "tests": [
+      {
+        "args": [
+          [
+            2,
+            -3,
+            0,
+            4
+          ]
+        ],
+        "expected": [
+          4,
+          16
+        ]
+      },
+      {
+        "args": [
+          []
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            -1,
+            0
+          ]
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            1,
+            1,
+            3
+          ]
+        ],
+        "expected": [
+          1,
+          1,
+          9
+        ]
+      }
+    ]
+  },
+  {
+    "id": "lEdgeJoin",
+    "name": "lEdgeJoin",
+    "split": "dev",
+    "prompt": "Write a function named lEdgeJoin that takes an array of strings and returns their first and last characters concatenated in order; a one-character string contributes that character twice and an empty string contributes nothing.",
+    "tests": [
+      {
+        "args": [
+          [
+            "ab",
+            "x",
+            ""
+          ]
+        ],
+        "expected": "abxx"
+      },
+      {
+        "args": [
+          []
+        ],
+        "expected": ""
+      },
+      {
+        "args": [
+          [
+            "hello",
+            "ok"
+          ]
+        ],
+        "expected": "hook"
+      },
+      {
+        "args": [
+          [
+            "",
+            "a",
+            "bc"
+          ]
+        ],
+        "expected": "aabc"
+      }
+    ]
+  },
+  {
+    "id": "lIndexDebt",
+    "name": "lIndexDebt",
+    "split": "dev",
+    "prompt": "Write a function named lIndexDebt that takes an integer array and returns the sum of index times value, using zero-based indices.",
+    "tests": [
+      {
+        "args": [
+          [
+            4,
+            2,
+            3
+          ]
+        ],
+        "expected": 8
+      },
+      {
+        "args": [
+          []
+        ],
+        "expected": 0
+      },
+      {
+        "args": [
+          [
+            -9
+          ]
+        ],
+        "expected": 0
+      },
+      {
+        "args": [
+          [
+            0,
+            -2,
+            5,
+            -1
+          ]
+        ],
+        "expected": 5
+      }
+    ]
+  },
+  {
+    "id": "lStrictDrops",
+    "name": "lStrictDrops",
+    "split": "dev",
+    "prompt": "Write a function named lStrictDrops that takes an integer array and returns indices i greater than zero where a[i] is strictly less than a[i-1].",
+    "tests": [
+      {
+        "args": [
+          [
+            4,
+            3,
+            3,
+            1
+          ]
+        ],
+        "expected": [
+          1,
+          3
+        ]
+      },
+      {
+        "args": [
+          []
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            1,
+            2,
+            3
+          ]
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            0,
+            -1,
+            0,
+            -2
+          ]
+        ],
+        "expected": [
+          1,
+          3
+        ]
+      }
+    ]
+  },
+  {
+    "id": "lPadChunks",
+    "name": "lPadChunks",
+    "split": "dev",
+    "prompt": "Write a function named lPadChunks that takes a string s and positive integer width. Split into consecutive width-character chunks, padding only the final short chunk on the right with dots. Empty s returns [].",
+    "tests": [
+      {
+        "args": [
+          "abcde",
+          3
+        ],
+        "expected": [
+          "abc",
+          "de."
+        ]
+      },
+      {
+        "args": [
+          "",
+          2
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          "abcd",
+          2
+        ],
+        "expected": [
+          "ab",
+          "cd"
+        ]
+      },
+      {
+        "args": [
+          "x",
+          4
+        ],
+        "expected": [
+          "x..."
+        ]
+      }
+    ]
+  },
+  {
+    "id": "lOddMultiplicity",
+    "name": "lOddMultiplicity",
+    "split": "dev",
+    "prompt": "Write a function named lOddMultiplicity that takes an integer array and returns distinct values occurring an odd number of times, in increasing numeric order.",
+    "tests": [
+      {
+        "args": [
+          [
+            2,
+            1,
+            2,
+            3,
+            3,
+            3
+          ]
+        ],
+        "expected": [
+          1,
+          3
+        ]
+      },
+      {
+        "args": [
+          []
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            5,
+            5
+          ]
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            -2,
+            10,
+            -2,
+            1
+          ]
+        ],
+        "expected": [
+          1,
+          10
+        ]
+      }
+    ]
+  },
+  {
+    "id": "lTransposeRagged",
+    "name": "lTransposeRagged",
+    "split": "dev",
+    "prompt": "Write a function named lTransposeRagged that takes an array of arrays of integers. Return its transpose up to the longest row, filling absent entries with null. No rows or only empty rows yields [].",
+    "tests": [
+      {
+        "args": [
+          [
+            [
+              1,
+              2
+            ],
+            [
+              3
+            ]
+          ]
+        ],
+        "expected": [
+          [
+            1,
+            3
+          ],
+          [
+            2,
+            null
+          ]
+        ]
+      },
+      {
+        "args": [
+          []
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            [],
+            []
+          ]
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            [],
+            [
+              4,
+              5
+            ]
+          ]
+        ],
+        "expected": [
+          [
+            null,
+            4
+          ],
+          [
+            null,
+            5
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "lDigitWeight",
+    "name": "lDigitWeight",
+    "split": "dev",
+    "prompt": "Write a function named lDigitWeight that takes a nonempty decimal digit string and returns the sum of its digits weighted 1,2,3,... from right to left.",
+    "tests": [
+      {
+        "args": [
+          "123"
+        ],
+        "expected": 10
+      },
+      {
+        "args": [
+          "0"
+        ],
+        "expected": 0
+      },
+      {
+        "args": [
+          "9001"
+        ],
+        "expected": 37
+      },
+      {
+        "args": [
+          "0012"
+        ],
+        "expected": 4
+      }
+    ]
+  },
+  {
+    "id": "lUndoBag",
+    "name": "lUndoBag",
+    "split": "dev",
+    "prompt": "Write a function named lUndoBag that takes operations [kind,value], where kind is add, remove, or undo (value ignored for undo). Add appends value; remove removes only its last occurrence if present. Undo reverses the last non-undo operation, including a no-op removal, and discards that history entry. Undo on empty history does nothing. Return the final bag in order.",
+    "tests": [
+      {
+        "args": [
+          [
+            [
+              "add",
+              1
+            ],
+            [
+              "remove",
+              9
+            ],
+            [
+              "undo",
+              0
+            ]
+          ]
+        ],
+        "expected": [
+          1
+        ]
+      },
+      {
+        "args": [
+          [
+            [
+              "add",
+              1
+            ],
+            [
+              "add",
+              2
+            ],
+            [
+              "remove",
+              1
+            ],
+            [
+              "undo",
+              0
+            ]
+          ]
+        ],
+        "expected": [
+          1,
+          2
+        ]
+      },
+      {
+        "args": [
+          [
+            [
+              "add",
+              4
+            ],
+            [
+              "undo",
+              0
+            ],
+            [
+              "undo",
+              0
+            ]
+          ]
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            [
+              "add",
+              1
+            ],
+            [
+              "add",
+              2
+            ],
+            [
+              "add",
+              1
+            ],
+            [
+              "remove",
+              1
+            ]
+          ]
+        ],
+        "expected": [
+          1,
+          2
+        ]
+      }
+    ]
+  },
+  {
+    "id": "lDecimalStep",
+    "name": "lDecimalStep",
+    "split": "dev",
+    "prompt": "Write a function named lDecimalStep that takes a signed canonical decimal integer string s and returns the canonical string for s minus one, with no precision loss; input may have up to 100 digits.",
+    "tests": [
+      {
+        "args": [
+          "0"
+        ],
+        "expected": "-1"
+      },
+      {
+        "args": [
+          "-999"
+        ],
+        "expected": "-1000"
+      },
+      {
+        "args": [
+          "100000000000000000000"
+        ],
+        "expected": "99999999999999999999"
+      },
+      {
+        "args": [
+          "1"
+        ],
+        "expected": "0"
+      }
+    ]
+  },
+  {
+    "id": "lQuotedSplit",
+    "name": "lQuotedSplit",
+    "split": "dev",
+    "prompt": "Write a function named lQuotedSplit that takes a string. Split on commas outside double quotes, omit quote delimiters, and interpret doubled quotes inside quotes as one literal quote. Quotes are balanced; preserve empty fields and all spaces. Empty input returns [\"\"].",
+    "tests": [
+      {
+        "args": [
+          "a,\"b,c\",d"
+        ],
+        "expected": [
+          "a",
+          "b,c",
+          "d"
+        ]
+      },
+      {
+        "args": [
+          ""
+        ],
+        "expected": [
+          ""
+        ]
+      },
+      {
+        "args": [
+          "\"a\"\"b\",,"
+        ],
+        "expected": [
+          "a\"b",
+          "",
+          ""
+        ]
+      },
+      {
+        "args": [
+          " x ,\" y \""
+        ],
+        "expected": [
+          " x ",
+          " y "
+        ]
+      }
+    ]
+  },
+  {
+    "id": "lCycleAnchor",
+    "name": "lCycleAnchor",
+    "split": "dev",
+    "prompt": "Write a function named lCycleAnchor that takes an array next of valid zero-based indices and a start index. Follow next from start. Return [number of edges before entering the eventual cycle, length of that cycle, smallest index on that cycle].",
+    "tests": [
+      {
+        "args": [
+          [
+            1,
+            2,
+            1
+          ],
+          0
+        ],
+        "expected": [
+          1,
+          2,
+          1
+        ]
+      },
+      {
+        "args": [
+          [
+            0
+          ],
+          0
+        ],
+        "expected": [
+          0,
+          1,
+          0
+        ]
+      },
+      {
+        "args": [
+          [
+            2,
+            2,
+            3,
+            2
+          ],
+          1
+        ],
+        "expected": [
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "args": [
+          [
+            1,
+            2,
+            3,
+            3
+          ],
+          0
+        ],
+        "expected": [
+          3,
+          1,
+          3
+        ]
+      }
+    ]
+  },
+  {
+    "id": "lBackspaceRuns",
+    "name": "lBackspaceRuns",
+    "split": "dev",
+    "prompt": "Write a function named lBackspaceRuns that takes a string where each # deletes the previous surviving character if one exists. After processing, return lengths of maximal runs of equal characters in the surviving string.",
+    "tests": [
+      {
+        "args": [
+          "ab#baa##"
+        ],
+        "expected": [
+          1,
+          1
+        ]
+      },
+      {
+        "args": [
+          "###"
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          "aab##a"
+        ],
+        "expected": [
+          2
+        ]
+      },
+      {
+        "args": [
+          "abba#"
+        ],
+        "expected": [
+          1,
+          2
+        ]
+      }
+    ]
+  },
+  {
+    "id": "lIntervalParity",
+    "name": "lIntervalParity",
+    "split": "dev",
+    "prompt": "Write a function named lIntervalParity that takes integer half-open intervals [start,end] with start<=end. Return maximal half-open intervals covered by an odd number of inputs, in ascending order. Ignore zero-length intervals and merge touching odd regions.",
+    "tests": [
+      {
+        "args": [
+          [
+            [
+              0,
+              4
+            ],
+            [
+              2,
+              6
+            ]
+          ]
+        ],
+        "expected": [
+          [
+            0,
+            2
+          ],
+          [
+            4,
+            6
+          ]
+        ]
+      },
+      {
+        "args": [
+          [
+            [
+              0,
+              2
+            ],
+            [
+              2,
+              4
+            ]
+          ]
+        ],
+        "expected": [
+          [
+            0,
+            4
+          ]
+        ]
+      },
+      {
+        "args": [
+          [
+            [
+              1,
+              3
+            ],
+            [
+              1,
+              3
+            ]
+          ]
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            [
+              0,
+              0
+            ],
+            [
+              -2,
+              2
+            ],
+            [
+              -1,
+              1
+            ]
+          ]
+        ],
+        "expected": [
+          [
+            -2,
+            -1
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "lStableTopo",
+    "name": "lStableTopo",
+    "split": "dev",
+    "prompt": "Write a function named lStableTopo that takes distinct string node names in preferred order and directed edges [before,after] between them. Repeated edges count once. Repeatedly emit the earliest preferred un-emitted node with all predecessors emitted. Return the order, or null if a cycle prevents emitting all nodes.",
+    "tests": [
+      {
+        "args": [
+          [
+            "c",
+            "b",
+            "a"
+          ],
+          [
+            [
+              "a",
+              "c"
+            ]
+          ]
+        ],
+        "expected": [
+          "b",
+          "a",
+          "c"
+        ]
+      },
+      {
+        "args": [
+          [
+            "a",
+            "b"
+          ],
+          [
+            [
+              "a",
+              "b"
+            ],
+            [
+              "a",
+              "b"
+            ]
+          ]
+        ],
+        "expected": [
+          "a",
+          "b"
+        ]
+      },
+      {
+        "args": [
+          [
+            "a"
+          ],
+          [
+            [
+              "a",
+              "a"
+            ]
+          ]
+        ],
+        "expected": null
+      },
+      {
+        "args": [
+          [],
+          []
+        ],
+        "expected": []
+      }
+    ]
+  },
+  {
+    "id": "lNestedMass",
+    "name": "lNestedMass",
+    "split": "dev",
+    "prompt": "Write a function named lNestedMass that takes a string of decimal single digits and balanced parentheses. Return the sum of digit values times 2 to the power of their parenthesis nesting depth. Empty groups are allowed; adjacent digits are separate, never multi-digit numbers.",
+    "tests": [
+      {
+        "args": [
+          "1(23)"
+        ],
+        "expected": 11
+      },
+      {
+        "args": [
+          "((4)1)2"
+        ],
+        "expected": 20
+      },
+      {
+        "args": [
+          "()"
+        ],
+        "expected": 0
+      },
+      {
+        "args": [
+          "12((3))"
+        ],
+        "expected": 15
+      }
+    ]
+  }
+]

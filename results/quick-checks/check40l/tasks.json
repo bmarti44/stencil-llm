@@ -1,0 +1,1899 @@
+[
+  {
+    "id": "labelLedger",
+    "name": "labelLedger",
+    "split": "eval",
+    "prompt": "Write a function named labelLedger that takes an array of [key,value] pairs, with string keys and integer or null values. An integer sets the key; null removes it. Return surviving pairs in the order of their most recent assignment, oldest first. Reassigning moves a key to the end. Keys such as __proto__ are ordinary data.",
+    "tests": [
+      {
+        "args": [
+          [
+            [
+              "a",
+              1
+            ],
+            [
+              "b",
+              2
+            ],
+            [
+              "a",
+              3
+            ]
+          ]
+        ],
+        "expected": [
+          [
+            "b",
+            2
+          ],
+          [
+            "a",
+            3
+          ]
+        ]
+      },
+      {
+        "args": [
+          [
+            [
+              "x",
+              1
+            ],
+            [
+              "x",
+              null
+            ],
+            [
+              "y",
+              4
+            ]
+          ]
+        ],
+        "expected": [
+          [
+            "y",
+            4
+          ]
+        ]
+      },
+      {
+        "args": [
+          [
+            [
+              "__proto__",
+              5
+            ],
+            [
+              "toString",
+              6
+            ]
+          ]
+        ],
+        "expected": [
+          [
+            "__proto__",
+            5
+          ],
+          [
+            "toString",
+            6
+          ]
+        ]
+      },
+      {
+        "args": [
+          []
+        ],
+        "expected": []
+      }
+    ]
+  },
+  {
+    "id": "dashTokens",
+    "name": "dashTokens",
+    "split": "eval",
+    "prompt": "Write a function named dashTokens that takes a string and splits on hyphens, except a pair of consecutive hyphens represents one literal hyphen within the current token. Scan left to right, consuming pairs before single separators. Preserve empty tokens.",
+    "tests": [
+      {
+        "args": [
+          "a---b"
+        ],
+        "expected": [
+          "a-",
+          "b"
+        ]
+      },
+      {
+        "args": [
+          "--"
+        ],
+        "expected": [
+          "-"
+        ]
+      },
+      {
+        "args": [
+          "-a-"
+        ],
+        "expected": [
+          "",
+          "a",
+          ""
+        ]
+      },
+      {
+        "args": [
+          ""
+        ],
+        "expected": [
+          ""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quietSpans",
+    "name": "quietSpans",
+    "split": "eval",
+    "prompt": "Write a function named quietSpans that takes sorted distinct integer minute marks and an integer horizon >= 0. Return the half-open gaps in [0,horizon) not covered by any mark and its following minute; marks outside that range have no effect. Merge adjacent uncovered minutes into [start,end] intervals.",
+    "tests": [
+      {
+        "args": [
+          [
+            1,
+            4
+          ],
+          6
+        ],
+        "expected": [
+          [
+            0,
+            1
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            5,
+            6
+          ]
+        ]
+      },
+      {
+        "args": [
+          [
+            -2,
+            0,
+            5
+          ],
+          3
+        ],
+        "expected": [
+          [
+            1,
+            3
+          ]
+        ]
+      },
+      {
+        "args": [
+          [],
+          0
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            0,
+            1,
+            2
+          ],
+          3
+        ],
+        "expected": []
+      }
+    ]
+  },
+  {
+    "id": "foldParcel",
+    "name": "foldParcel",
+    "split": "eval",
+    "prompt": "Write a function named foldParcel that takes a string containing ordinary ASCII characters, backslashes, and parentheses. Backslash quotes the next character, making it literal; a trailing backslash is invalid. Each unescaped parenthesized group reverses its fully processed contents, nested groups first. Return the resulting string or null for unmatched parentheses. Escaped parentheses are ordinary output characters.",
+    "tests": [
+      {
+        "args": [
+          "a(b(cd)e)f"
+        ],
+        "expected": "aecdbf"
+      },
+      {
+        "args": [
+          "x\\(ab\\)"
+        ],
+        "expected": "x(ab)"
+      },
+      {
+        "args": [
+          "(ab"
+        ],
+        "expected": null
+      },
+      {
+        "args": [
+          "a\\"
+        ],
+        "expected": null
+      }
+    ]
+  },
+  {
+    "id": "patchRows",
+    "name": "patchRows",
+    "split": "eval",
+    "prompt": "Write a function named patchRows that takes base rows and patch rows, each an array of objects with string id fields. Base ids are unique. Process patches in order: a patch with remove:true deletes that id; otherwise shallow-merge its own fields except remove onto an existing row or append a new row. Existing rows keep position; deleted then recreated rows append. Return new rows without mutating either input.",
+    "tests": [
+      {
+        "args": [
+          [
+            {
+              "id": "a",
+              "x": 1
+            },
+            {
+              "id": "b",
+              "x": 2
+            }
+          ],
+          [
+            {
+              "id": "a",
+              "x": 3
+            }
+          ]
+        ],
+        "expected": [
+          {
+            "id": "a",
+            "x": 3
+          },
+          {
+            "id": "b",
+            "x": 2
+          }
+        ]
+      },
+      {
+        "args": [
+          [
+            {
+              "id": "a"
+            }
+          ],
+          [
+            {
+              "id": "a",
+              "remove": true
+            },
+            {
+              "id": "b",
+              "z": 1
+            },
+            {
+              "id": "a",
+              "z": 2
+            }
+          ]
+        ],
+        "expected": [
+          {
+            "id": "b",
+            "z": 1
+          },
+          {
+            "id": "a",
+            "z": 2
+          }
+        ]
+      },
+      {
+        "args": [
+          [],
+          [
+            {
+              "id": "x",
+              "remove": true
+            }
+          ]
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [],
+          [
+            {
+              "id": "__proto__",
+              "x": 2
+            }
+          ]
+        ],
+        "expected": [
+          {
+            "id": "__proto__",
+            "x": 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "roundTag",
+    "name": "roundTag",
+    "split": "eval",
+    "prompt": "Write a function named roundTag that takes a signed decimal string with at least one digit before the optional dot and at least one after it, and an integer precision 0..4. Return a decimal string rounded to that precision using ties-to-even; preserve exactly that many fractional digits, remove leading integer zeros, and never emit negative zero. Avoid binary floating-point rounding errors; inputs have at most 18 digits total.",
+    "tests": [
+      {
+        "args": [
+          "2.345",
+          2
+        ],
+        "expected": "2.34"
+      },
+      {
+        "args": [
+          "-0.005",
+          2
+        ],
+        "expected": "0.00"
+      },
+      {
+        "args": [
+          "99999999999999.995",
+          2
+        ],
+        "expected": "100000000000000.00"
+      },
+      {
+        "args": [
+          "0003.5",
+          0
+        ],
+        "expected": "4"
+      }
+    ]
+  },
+  {
+    "id": "alternatingBins",
+    "name": "alternatingBins",
+    "split": "eval",
+    "prompt": "Write a function named alternatingBins that takes integers and partitions them into the fewest contiguous bins such that within each bin adjacent nonzero numbers have opposite signs, ignoring zeros for sign comparisons. When a repeated nonzero sign appears, start a new bin at that number; intervening zeros stay in the preceding bin. Return the bins, with empty input producing none.",
+    "tests": [
+      {
+        "args": [
+          [
+            1,
+            0,
+            2,
+            -3,
+            0,
+            -4
+          ]
+        ],
+        "expected": [
+          [
+            1,
+            0
+          ],
+          [
+            2,
+            -3,
+            0
+          ],
+          [
+            -4
+          ]
+        ]
+      },
+      {
+        "args": [
+          [
+            0,
+            0
+          ]
+        ],
+        "expected": [
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      {
+        "args": [
+          []
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            -1,
+            2,
+            -3
+          ]
+        ],
+        "expected": [
+          [
+            -1,
+            2,
+            -3
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checksumTiles",
+    "name": "checksumTiles",
+    "split": "eval",
+    "prompt": "Write a function named checksumTiles that takes a string of ASCII letters and decimal digits. Letters reset an accumulator to zero and are copied as-is. Each digit is replaced by the running sum of digits since the last letter, modulo 10. Return the transformed string.",
+    "tests": [
+      {
+        "args": [
+          "129a56"
+        ],
+        "expected": "132a51"
+      },
+      {
+        "args": [
+          "999"
+        ],
+        "expected": "987"
+      },
+      {
+        "args": [
+          "a0B12"
+        ],
+        "expected": "a0B13"
+      },
+      {
+        "args": [
+          ""
+        ],
+        "expected": ""
+      }
+    ]
+  },
+  {
+    "id": "mirrorKeys",
+    "name": "mirrorKeys",
+    "split": "eval",
+    "prompt": "Write a function named mirrorKeys that takes an object whose own values are arrays of strings. Return [value,keys] pairs in first-seen value order while visiting own keys in Object.keys order and each array left to right. For each value list each contributing key only once, also in encounter order. Treat prototype-like strings as ordinary values.",
+    "tests": [
+      {
+        "args": [
+          {
+            "a": [
+              "x",
+              "x",
+              "y"
+            ],
+            "b": [
+              "y",
+              "z"
+            ]
+          }
+        ],
+        "expected": [
+          [
+            "x",
+            [
+              "a"
+            ]
+          ],
+          [
+            "y",
+            [
+              "a",
+              "b"
+            ]
+          ],
+          [
+            "z",
+            [
+              "b"
+            ]
+          ]
+        ]
+      },
+      {
+        "args": [
+          {
+            "a": [
+              "__proto__"
+            ],
+            "b": [
+              "__proto__"
+            ]
+          }
+        ],
+        "expected": [
+          [
+            "__proto__",
+            [
+              "a",
+              "b"
+            ]
+          ]
+        ]
+      },
+      {
+        "args": [
+          {}
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          {
+            "z": [],
+            "y": [
+              "q"
+            ]
+          }
+        ],
+        "expected": [
+          [
+            "q",
+            [
+              "y"
+            ]
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "clockGaps",
+    "name": "clockGaps",
+    "split": "eval",
+    "prompt": "Write a function named clockGaps that takes an array of valid HH:mm strings. Return the largest clockwise gap in minutes between consecutive distinct times on a 1440-minute circle, including wraparound. Empty input returns null; one distinct time gives 1440.",
+    "tests": [
+      {
+        "args": [
+          [
+            "23:00",
+            "01:00",
+            "12:00"
+          ]
+        ],
+        "expected": 660
+      },
+      {
+        "args": [
+          [
+            "00:00",
+            "00:00"
+          ]
+        ],
+        "expected": 1440
+      },
+      {
+        "args": [
+          []
+        ],
+        "expected": null
+      },
+      {
+        "args": [
+          [
+            "00:00",
+            "06:00",
+            "12:00",
+            "18:00"
+          ]
+        ],
+        "expected": 360
+      }
+    ]
+  },
+  {
+    "id": "weightedSeat",
+    "name": "weightedSeat",
+    "split": "eval",
+    "prompt": "Write a function named weightedSeat that takes positive integer weights and a nonnegative integer number of seats. Give each index floor(seats*weight/total) seats, then assign remaining seats by descending fractional remainder, ties to lower index. Return integer allocations. An empty weights array returns an empty array. Products stay within safe integer range.",
+    "tests": [
+      {
+        "args": [
+          [
+            1,
+            1,
+            1
+          ],
+          2
+        ],
+        "expected": [
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "args": [
+          [
+            2,
+            3,
+            5
+          ],
+          7
+        ],
+        "expected": [
+          1,
+          2,
+          4
+        ]
+      },
+      {
+        "args": [
+          [
+            5
+          ],
+          0
+        ],
+        "expected": [
+          0
+        ]
+      },
+      {
+        "args": [
+          [],
+          3
+        ],
+        "expected": []
+      }
+    ]
+  },
+  {
+    "id": "noteLinks",
+    "name": "noteLinks",
+    "split": "eval",
+    "prompt": "Write a function named noteLinks that takes [from,to] string pairs representing directed edges, plus a start string. Follow an edge only when the current node has exactly one DISTINCT outgoing neighbor. Stop at a node with zero or multiple neighbors, or just before revisiting any node. Return the visited node list including start. Duplicate identical edges do not create branching.",
+    "tests": [
+      {
+        "args": [
+          [
+            [
+              "a",
+              "b"
+            ],
+            [
+              "a",
+              "b"
+            ],
+            [
+              "b",
+              "c"
+            ],
+            [
+              "c",
+              "a"
+            ]
+          ],
+          "a"
+        ],
+        "expected": [
+          "a",
+          "b",
+          "c"
+        ]
+      },
+      {
+        "args": [
+          [
+            [
+              "a",
+              "b"
+            ],
+            [
+              "a",
+              "c"
+            ]
+          ],
+          "a"
+        ],
+        "expected": [
+          "a"
+        ]
+      },
+      {
+        "args": [
+          [],
+          "x"
+        ],
+        "expected": [
+          "x"
+        ]
+      },
+      {
+        "args": [
+          [
+            [
+              "__proto__",
+              "z"
+            ]
+          ],
+          "__proto__"
+        ],
+        "expected": [
+          "__proto__",
+          "z"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "escapedPairs",
+    "name": "escapedPairs",
+    "split": "eval",
+    "prompt": "Write a function named escapedPairs that takes a string of key=value entries separated by unescaped commas. Backslash escapes exactly the next character anywhere and is removed. The first unescaped equals in each entry divides key from value; further equals are literal. Return [key,value] pairs. Empty input returns []; missing equals or a trailing backslash anywhere returns null. Empty keys and values are allowed.",
+    "tests": [
+      {
+        "args": [
+          "a=x\\,y,b=c=d"
+        ],
+        "expected": [
+          [
+            "a",
+            "x,y"
+          ],
+          [
+            "b",
+            "c=d"
+          ]
+        ]
+      },
+      {
+        "args": [
+          "a\\=b=c"
+        ],
+        "expected": [
+          [
+            "a=b",
+            "c"
+          ]
+        ]
+      },
+      {
+        "args": [
+          "x=1,"
+        ],
+        "expected": null
+      },
+      {
+        "args": [
+          "="
+        ],
+        "expected": [
+          [
+            "",
+            ""
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "peakShelves",
+    "name": "peakShelves",
+    "split": "eval",
+    "prompt": "Write a function named peakShelves that takes an integer array. A plateau is a maximal run of equal values; return [start,endExclusive,value] for plateaus strictly greater than each existing adjacent value. Missing neighbors impose no condition, so a constant nonempty array is one peak.",
+    "tests": [
+      {
+        "args": [
+          [
+            1,
+            3,
+            3,
+            2,
+            4
+          ]
+        ],
+        "expected": [
+          [
+            1,
+            3,
+            3
+          ],
+          [
+            4,
+            5,
+            4
+          ]
+        ]
+      },
+      {
+        "args": [
+          [
+            2,
+            2
+          ]
+        ],
+        "expected": [
+          [
+            0,
+            2,
+            2
+          ]
+        ]
+      },
+      {
+        "args": [
+          []
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            4,
+            2,
+            2,
+            1
+          ]
+        ],
+        "expected": [
+          [
+            0,
+            1,
+            4
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "serialNext",
+    "name": "serialNext",
+    "split": "eval",
+    "prompt": "Write a function named serialNext that takes a string made of an optional lowercase prefix followed by one or more decimal digits. Increment the decimal suffix exactly, preserving its original width unless it grows. Return null for any other input; the prefix may be empty and suffix length is at most 30.",
+    "tests": [
+      {
+        "args": [
+          "ab0099"
+        ],
+        "expected": "ab0100"
+      },
+      {
+        "args": [
+          "99999999999999999999"
+        ],
+        "expected": "100000000000000000000"
+      },
+      {
+        "args": [
+          "a1b2"
+        ],
+        "expected": null
+      },
+      {
+        "args": [
+          "000"
+        ],
+        "expected": "001"
+      }
+    ]
+  },
+  {
+    "id": "cappedWalk",
+    "name": "cappedWalk",
+    "split": "eval",
+    "prompt": "Write a function named cappedWalk that takes an integer starting balance, integer bounds low <= high containing that balance, and integer deltas. Apply each delta but clamp the resulting balance to the bounds. Return an object with final equal to the final balance and spill equal to the signed total amount discarded by clamping; overshoots above high add spill, below low subtract it.",
+    "tests": [
+      {
+        "args": [
+          5,
+          0,
+          10,
+          [
+            8,
+            -20,
+            3
+          ]
+        ],
+        "expected": {
+          "final": 3,
+          "spill": -7
+        }
+      },
+      {
+        "args": [
+          0,
+          0,
+          0,
+          [
+            2,
+            -1
+          ]
+        ],
+        "expected": {
+          "final": 0,
+          "spill": 1
+        }
+      },
+      {
+        "args": [
+          2,
+          0,
+          4,
+          []
+        ],
+        "expected": {
+          "final": 2,
+          "spill": 0
+        }
+      },
+      {
+        "args": [
+          1,
+          -2,
+          3,
+          [
+            -2,
+            1
+          ]
+        ],
+        "expected": {
+          "final": 0,
+          "spill": 0
+        }
+      }
+    ]
+  },
+  {
+    "id": "nestDepths",
+    "name": "nestDepths",
+    "split": "eval",
+    "prompt": "Write a function named nestDepths that takes a string and returns the maximum simultaneous nesting depth of unquoted square brackets. Single quotes toggle quoted mode; inside quotes a backslash escapes the following character. Brackets in quotes do not count. Outside quotes backslash is ordinary. Return null for unmatched brackets, an unclosed quote, or a trailing escape inside a quote.",
+    "tests": [
+      {
+        "args": [
+          "['['] [[]]"
+        ],
+        "expected": 2
+      },
+      {
+        "args": [
+          "'[\\'x]'[]"
+        ],
+        "expected": 1
+      },
+      {
+        "args": [
+          "]["
+        ],
+        "expected": null
+      },
+      {
+        "args": [
+          "'abc\\"
+        ],
+        "expected": null
+      }
+    ]
+  },
+  {
+    "id": "windowVotes",
+    "name": "windowVotes",
+    "split": "eval",
+    "prompt": "Write a function named windowVotes that takes strings and a positive integer window size. For every complete consecutive window return its most frequent string, ties to whichever tied string appears latest within that window. Return [] when no complete window exists.",
+    "tests": [
+      {
+        "args": [
+          [
+            "a",
+            "b",
+            "a",
+            "b"
+          ],
+          3
+        ],
+        "expected": [
+          "a",
+          "b"
+        ]
+      },
+      {
+        "args": [
+          [
+            "x",
+            "y",
+            "z"
+          ],
+          2
+        ],
+        "expected": [
+          "y",
+          "z"
+        ]
+      },
+      {
+        "args": [
+          [],
+          1
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            "__proto__",
+            "x",
+            "__proto__"
+          ],
+          3
+        ],
+        "expected": [
+          "__proto__"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rangeBadges",
+    "name": "rangeBadges",
+    "split": "eval",
+    "prompt": "Write a function named rangeBadges that takes sorted distinct nonnegative integers. Encode each maximal consecutive run of length at least three as start..end, but length-one or length-two runs as separate numbers; join all parts with commas. Empty input returns an empty string.",
+    "tests": [
+      {
+        "args": [
+          [
+            1,
+            2,
+            3,
+            5,
+            6,
+            8
+          ]
+        ],
+        "expected": "1..3,5,6,8"
+      },
+      {
+        "args": [
+          [
+            0,
+            1
+          ]
+        ],
+        "expected": "0,1"
+      },
+      {
+        "args": [
+          []
+        ],
+        "expected": ""
+      },
+      {
+        "args": [
+          [
+            4,
+            5,
+            6,
+            7
+          ]
+        ],
+        "expected": "4..7"
+      }
+    ]
+  },
+  {
+    "id": "orderCrates",
+    "name": "orderCrates",
+    "split": "eval",
+    "prompt": "Write a function named orderCrates that takes unique string labels and [before,after] dependencies among them. Return a topological ordering, choosing at each step the earliest label in the original labels array among currently available labels. Duplicate dependencies count once; unknown endpoints are ignored. Return null if a cycle exists.",
+    "tests": [
+      {
+        "args": [
+          [
+            "c",
+            "b",
+            "a"
+          ],
+          [
+            [
+              "a",
+              "c"
+            ]
+          ]
+        ],
+        "expected": [
+          "b",
+          "a",
+          "c"
+        ]
+      },
+      {
+        "args": [
+          [
+            "a",
+            "b"
+          ],
+          [
+            [
+              "a",
+              "b"
+            ],
+            [
+              "a",
+              "b"
+            ]
+          ]
+        ],
+        "expected": [
+          "a",
+          "b"
+        ]
+      },
+      {
+        "args": [
+          [
+            "x"
+          ],
+          [
+            [
+              "x",
+              "x"
+            ]
+          ]
+        ],
+        "expected": null
+      },
+      {
+        "args": [
+          [
+            "q"
+          ],
+          [
+            [
+              "z",
+              "q"
+            ]
+          ]
+        ],
+        "expected": [
+          "q"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "softWrap",
+    "name": "softWrap",
+    "split": "eval",
+    "prompt": "Write a function named softWrap that takes an array of words, possibly empty strings, and a positive integer width. Build lines greedily by joining words with one space while line length stays at most width. An overlong word occupies a line alone. Every input word must appear, including empty ones. Return [] for no words.",
+    "tests": [
+      {
+        "args": [
+          [
+            "ab",
+            "cd",
+            "e"
+          ],
+          5
+        ],
+        "expected": [
+          "ab cd",
+          "e"
+        ]
+      },
+      {
+        "args": [
+          [
+            "",
+            "a",
+            ""
+          ],
+          2
+        ],
+        "expected": [
+          " a",
+          ""
+        ]
+      },
+      {
+        "args": [
+          [
+            "longword",
+            "x"
+          ],
+          3
+        ],
+        "expected": [
+          "longword",
+          "x"
+        ]
+      },
+      {
+        "args": [
+          [],
+          4
+        ],
+        "expected": []
+      }
+    ]
+  },
+  {
+    "id": "mergeDots",
+    "name": "mergeDots",
+    "split": "eval",
+    "prompt": "Write a function named mergeDots that takes a string of decimal dotted version components and another such string. Components are nonnegative integers of arbitrary length. Compare numerically left-to-right with missing trailing components treated as zero; return -1, 0, or 1. Leading zeroes are insignificant.",
+    "tests": [
+      {
+        "args": [
+          "1.02",
+          "1.2.0"
+        ],
+        "expected": 0
+      },
+      {
+        "args": [
+          "99999999999999999999",
+          "100000000000000000000"
+        ],
+        "expected": -1
+      },
+      {
+        "args": [
+          "0.0.1",
+          "0"
+        ],
+        "expected": 1
+      },
+      {
+        "args": [
+          "000",
+          "0.0"
+        ],
+        "expected": 0
+      }
+    ]
+  },
+  {
+    "id": "deltaFrames",
+    "name": "deltaFrames",
+    "split": "eval",
+    "prompt": "Write a function named deltaFrames that takes arrays of integer arrays. The first output frame is a copy of the first input frame. Each later output frame contains current[i] minus previous[i], treating missing positions in either frame as zero and extending to the greater of their lengths. Each difference uses the immediately previous ORIGINAL frame. Return the output frames.",
+    "tests": [
+      {
+        "args": [
+          [
+            [
+              1,
+              2
+            ],
+            [
+              4
+            ],
+            [
+              4,
+              5,
+              6
+            ]
+          ]
+        ],
+        "expected": [
+          [
+            1,
+            2
+          ],
+          [
+            3,
+            -2
+          ],
+          [
+            0,
+            5,
+            6
+          ]
+        ]
+      },
+      {
+        "args": [
+          []
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            [],
+            [
+              2
+            ],
+            []
+          ]
+        ],
+        "expected": [
+          [],
+          [
+            2
+          ],
+          [
+            -2
+          ]
+        ]
+      },
+      {
+        "args": [
+          [
+            [
+              1
+            ],
+            [
+              2
+            ],
+            [
+              3
+            ]
+          ]
+        ],
+        "expected": [
+          [
+            1
+          ],
+          [
+            1
+          ],
+          [
+            1
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "digitBudget",
+    "name": "digitBudget",
+    "split": "eval",
+    "prompt": "Write a function named digitBudget that takes a nonnegative integer budget and an array of positive integer costs. Scan left to right buying any item whose cost is at most the remaining budget; skip others and continue. Return [purchasedIndices,remainingBudget].",
+    "tests": [
+      {
+        "args": [
+          5,
+          [
+            6,
+            2,
+            4,
+            3
+          ]
+        ],
+        "expected": [
+          [
+            1,
+            3
+          ],
+          0
+        ]
+      },
+      {
+        "args": [
+          0,
+          [
+            1
+          ]
+        ],
+        "expected": [
+          [],
+          0
+        ]
+      },
+      {
+        "args": [
+          4,
+          []
+        ],
+        "expected": [
+          [],
+          4
+        ]
+      },
+      {
+        "args": [
+          7,
+          [
+            3,
+            3,
+            3
+          ]
+        ],
+        "expected": [
+          [
+            0,
+            1
+          ],
+          1
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rowRotations",
+    "name": "rowRotations",
+    "split": "eval",
+    "prompt": "Write a function named rowRotations that takes a rectangular matrix and signed integer offsets, one per row. Rotate each row right by its offset modulo row length; negative offsets rotate left. Return a new matrix and do not mutate inputs. Empty rows are allowed.",
+    "tests": [
+      {
+        "args": [
+          [
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              4,
+              5,
+              6
+            ]
+          ],
+          [
+            1,
+            -1
+          ]
+        ],
+        "expected": [
+          [
+            3,
+            1,
+            2
+          ],
+          [
+            5,
+            6,
+            4
+          ]
+        ]
+      },
+      {
+        "args": [
+          [
+            [],
+            []
+          ],
+          [
+            3,
+            -2
+          ]
+        ],
+        "expected": [
+          [],
+          []
+        ]
+      },
+      {
+        "args": [
+          [],
+          []
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            [
+              1,
+              2
+            ]
+          ],
+          [
+            5
+          ]
+        ],
+        "expected": [
+          [
+            2,
+            1
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "palletNames",
+    "name": "palletNames",
+    "split": "eval",
+    "prompt": "Write a function named palletNames that takes a list of requested nonempty names. Assign names in order: use a request unchanged if unused; otherwise append ~k for the smallest positive integer k making it unused. All earlier assigned names are reserved, including requests that already contain suffixes. Return assigned names.",
+    "tests": [
+      {
+        "args": [
+          [
+            "a",
+            "a~1",
+            "a",
+            "a"
+          ]
+        ],
+        "expected": [
+          "a",
+          "a~1",
+          "a~2",
+          "a~3"
+        ]
+      },
+      {
+        "args": [
+          [
+            "x",
+            "x",
+            "x~1"
+          ]
+        ],
+        "expected": [
+          "x",
+          "x~1",
+          "x~1~1"
+        ]
+      },
+      {
+        "args": [
+          []
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            "__proto__",
+            "__proto__"
+          ]
+        ],
+        "expected": [
+          "__proto__",
+          "__proto__~1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rebaseClock",
+    "name": "rebaseClock",
+    "split": "eval",
+    "prompt": "Write a function named rebaseClock that takes a valid HH:mm time and an integer minute delta. Return an object with time as wrapped HH:mm and days as the signed number of midnight boundaries crossed, using floor division for negative times. Deltas may exceed one day.",
+    "tests": [
+      {
+        "args": [
+          "00:10",
+          -20
+        ],
+        "expected": {
+          "time": "23:50",
+          "days": -1
+        }
+      },
+      {
+        "args": [
+          "23:59",
+          2882
+        ],
+        "expected": {
+          "time": "00:01",
+          "days": 3
+        }
+      },
+      {
+        "args": [
+          "12:00",
+          0
+        ],
+        "expected": {
+          "time": "12:00",
+          "days": 0
+        }
+      },
+      {
+        "args": [
+          "00:00",
+          -1440
+        ],
+        "expected": {
+          "time": "00:00",
+          "days": -1
+        }
+      }
+    ]
+  },
+  {
+    "id": "holeFill",
+    "name": "holeFill",
+    "split": "eval",
+    "prompt": "Write a function named holeFill that takes an array of integers or null. Replace each null by the nearest ORIGINAL non-null value, ties to the left. Return a new array; when all entries are null leave them null. Filled positions never become sources.",
+    "tests": [
+      {
+        "args": [
+          [
+            1,
+            null,
+            null,
+            null,
+            9
+          ]
+        ],
+        "expected": [
+          1,
+          1,
+          1,
+          9,
+          9
+        ]
+      },
+      {
+        "args": [
+          [
+            null,
+            null,
+            4
+          ]
+        ],
+        "expected": [
+          4,
+          4,
+          4
+        ]
+      },
+      {
+        "args": [
+          [
+            null,
+            null
+          ]
+        ],
+        "expected": [
+          null,
+          null
+        ]
+      },
+      {
+        "args": [
+          []
+        ],
+        "expected": []
+      }
+    ]
+  },
+  {
+    "id": "bracketTotals",
+    "name": "bracketTotals",
+    "split": "eval",
+    "prompt": "Write a function named bracketTotals that takes a string of signed decimal integers separated by commas with optional nested square-bracket lists and ASCII spaces. Each list contributes the sum of its elements multiplied by its depth, where the implicit outer list has depth one. Nested contributions already include their own depth multiplier before their parent multiplier is applied. Empty lists and empty input contribute zero. Return null for syntax errors, including trailing commas or adjacent values without commas. Return the computed integer.",
+    "tests": [
+      {
+        "args": [
+          "1,[2,[3]],4"
+        ],
+        "expected": 27
+      },
+      {
+        "args": [
+          "[]"
+        ],
+        "expected": 0
+      },
+      {
+        "args": [
+          "1,"
+        ],
+        "expected": null
+      },
+      {
+        "args": [
+          "[1 2]"
+        ],
+        "expected": null
+      }
+    ]
+  },
+  {
+    "id": "cancelMarks",
+    "name": "cancelMarks",
+    "split": "eval",
+    "prompt": "Write a function named cancelMarks that takes a string. Ordinary characters are appended; # deletes the most recently appended character if any. Backslash escapes the next character so it is appended literally, including # or backslash; a final unmatched backslash is appended literally. Return the resulting string.",
+    "tests": [
+      {
+        "args": [
+          "ab#c"
+        ],
+        "expected": "ac"
+      },
+      {
+        "args": [
+          "a\\##"
+        ],
+        "expected": "a"
+      },
+      {
+        "args": [
+          "###x"
+        ],
+        "expected": "x"
+      },
+      {
+        "args": [
+          "a\\"
+        ],
+        "expected": "a\\"
+      }
+    ]
+  },
+  {
+    "id": "runInventory",
+    "name": "runInventory",
+    "split": "eval",
+    "prompt": "Write a function named runInventory that takes a string and an array of [character,count] replacements with nonnegative integer counts. Each replacement changes only the FIRST maximal run of that character in the current string to exactly count copies; count zero deletes that run. Subsequent replacements operate on the changed string, so runs may merge. If the character is absent do nothing. Characters are single ASCII characters.",
+    "tests": [
+      {
+        "args": [
+          "aabbaa",
+          [
+            [
+              "b",
+              0
+            ],
+            [
+              "a",
+              1
+            ]
+          ]
+        ],
+        "expected": "a"
+      },
+      {
+        "args": [
+          "xxzxx",
+          [
+            [
+              "x",
+              0
+            ]
+          ]
+        ],
+        "expected": "zxx"
+      },
+      {
+        "args": [
+          "abc",
+          [
+            [
+              "q",
+              4
+            ]
+          ]
+        ],
+        "expected": "abc"
+      },
+      {
+        "args": [
+          "aa",
+          [
+            [
+              "a",
+              0
+            ],
+            [
+              "a",
+              2
+            ]
+          ]
+        ],
+        "expected": ""
+      }
+    ]
+  },
+  {
+    "id": "batchCredits",
+    "name": "batchCredits",
+    "split": "eval",
+    "prompt": "Write a function named batchCredits that takes an array of [time,amount] integer events and a nonnegative integer lifetime. An event adds a credit amount that remains live on [time,time+lifetime); at every distinct event time, expire old credits then add all events at that time and report [time,totalLive]. Sort times ascending regardless of input order; lifetime zero gives zero at every event time. Amounts may be negative.",
+    "tests": [
+      {
+        "args": [
+          [
+            [
+              3,
+              4
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              3,
+              -1
+            ],
+            [
+              5,
+              7
+            ]
+          ],
+          2
+        ],
+        "expected": [
+          [
+            1,
+            2
+          ],
+          [
+            3,
+            3
+          ],
+          [
+            5,
+            7
+          ]
+        ]
+      },
+      {
+        "args": [
+          [
+            [
+              1,
+              5
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          0
+        ],
+        "expected": [
+          [
+            1,
+            0
+          ]
+        ]
+      },
+      {
+        "args": [
+          [],
+          3
+        ],
+        "expected": []
+      },
+      {
+        "args": [
+          [
+            [
+              0,
+              2
+            ],
+            [
+              1,
+              3
+            ],
+            [
+              2,
+              -1
+            ]
+          ],
+          3
+        ],
+        "expected": [
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            2,
+            4
+          ]
+        ]
+      }
+    ]
+  }
+]
