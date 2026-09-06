@@ -534,3 +534,12 @@ Composition DEV pilot ([composition-pilot](composition-pilot/README.md)): **INEL
    No fitting, CV, AUROC/calibration/operating-point metrics or baselines; no meter registered, no signal conclusion.
    Planned fit-on DEV pilot only / evaluated-on held-out DEV episodes; actual read = pilot README, fit/evaluation none.
    CPU gate script + hashed manifest; zero folds, empty per-fold records, no weights/model/GPU/bench reads/signals/push.
+
+- **Day5b composition-pilot-2 (2026-09-06, astra): INCOMPLETE — parity STOP.**
+  Registered CPU interface repair recovers95/128 responses/190 tools; cumulative
+  final success0/8. Grouped_mm matches60/64 frozen DEV00 prompts (4 divergences,
+  allowed<=1);16.813tok/s,16.156s/call, one load1362.257/7200s. No amended re-pilot.
+  Frozen16-round diagnostic nested projection14.391GPU-h>12; actual re-pilot
+  projection unavailable, no batching credit.128 local hidden hashes audited;
+  CPU broad-test synthetic-evaluation scope deviation disclosed, no bench/GPU-eval.
+  [Report, exact records, renderer check and manifest](composition-pilot-2/README.md).

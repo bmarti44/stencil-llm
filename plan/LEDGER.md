@@ -1116,3 +1116,17 @@ Command: /home/bmarti44/stencil-llm/.venv/bin/python -m stencil.focus.pilot2
 --out /home/bmarti44/stencil-llm/results/quick-checks/composition-pilot-2
 Log: same directory/run.log; own PID registered by runner; flag/lock held until
 normal/cooperative exit. One load7200s; STOP unless all64 parity with<=1 divergence.
+
+2026-09-06 — STATE: DAY5B COMPLETE / RE-PILOT INCOMPLETE, PARITY STOP.
+Freezea3fd8613 grouped_mm compares64/64;4 divergences (R/N/T/O round0 at
+191/72/0/191), all60 later outputs identical. No amended re-pilot authorized
+past failed<=1 gate; no extra load/backend. GPU1362.257/7200s incl323.293load;
+16.813tok/s; diagnostic old-interface16-round projection14.391h>12, actual
+re-pilot projection unavailable.128 hidden arrays hash/shape/nonzero audited,
+10 partial means; flag removed, normal exit, no signals/push.
+CPU recovery95responses/190tools; final lanes0/8.56 final guardedDEV tests pass.
+Broad CPU synthetic-eval test deviation recorded; subsequent guard blocked a
+legacy eval-freeze subcheck before construction (55pass/1guard rejection).
+Metadata-only fixture repair used prior generated hash receipt, preserving
+all episode/hidden/turn hashes; system adds49tokens, DEV consumer verified.
+Frozen GPU golden/inference sources unchanged; local explicit-path final commit.

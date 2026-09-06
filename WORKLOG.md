@@ -5441,3 +5441,9 @@ Source reports128 calls/one DEV episode, below150; violation count not assessed;
 No AUROC/calibration/baselines, no signal claim or meter registration; zero folds/weights recorded in hashed manifest.
 Planned lineage DEV-only fit / held-out DEV episodes; actual pilot README only, no evaluation or benchmark reads.
 CPU stdlib gate reproduced; no model/GPU, process signals or push; explicit-path local commit.
+2026-09-06 — Day5b composition-pilot-2 (astra): INCOMPLETE, parity STOP; amendment0edebc74, implementation freezea3fd8613.
+CPU strict-JSON recovery95/128 responses/190 tools; final success/integration0/8 lanes; style95/95;4 dropped unscoped N delivery claims.
+Grouped_mm60/64 exact (4 round0 divergences>1);16.813tok/s,16.156s/call; diagnostic frozen16-round nested14.391h>12, re-pilot UNRUN.
+One load1362.257/7200GPU-s;64 token records/128 local hidden hashes audited,10 partial means; renderer16 frozen prompts match; no signals/push.
+Final56 tests pass under DEV-only guard; earlier broad CPU synthetic-eval test scope deviation disclosed; stale fixture metadata repaired without new eval generation.
+No fitting/bench reads/GPU evaluation; no mask trigger/check45 re-pilot labels; report results/quick-checks/composition-pilot-2/README.md.

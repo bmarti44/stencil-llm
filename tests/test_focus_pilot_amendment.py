@@ -139,3 +139,16 @@ def test_parity_gate_threshold_and_literal_records(
     assert result["divergences"] == len(changed)
     actual = pilot2.lines(tmp_path / "parity-records.jsonl")
     assert all(actual[i]["first_divergence"] == 0 for i in changed)
+
+
+def test_amended_dev_fixture_without_evaluation_construction(tmp_path):
+    from pathlib import Path
+
+    from stencil.focus.slab import dry_run
+
+    fixture = Path(__file__).parent / "fixtures/slab_dev_golden.json"
+    frozen = json.loads(fixture.read_text())
+    actual = dry_run(tmp_path)
+    for key in ("accounting", "rendered_sha256", "events_sha256", "final_hashes"):
+        assert actual[key] == frozen[key]
+    assert all(row["outcome"]["success"] for row in actual["checks"])
