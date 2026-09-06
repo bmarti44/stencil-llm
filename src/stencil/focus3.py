@@ -376,6 +376,11 @@ class FrozenClassifier:
                 if branch == "relations"
                 else torch.load(path / "head.pt", map_location="cpu", weights_only=True)
             )
+            if branch == "ft":
+                assert state["labels"] == ["none", "rule", "fact"]
+                assert state["roles"] == ["user", "assistant", "tool", "system"]
+                assert state["hidden"] == enc.config.hidden_size
+                state = state["head"]
             head.load_state_dict(state)
             head.requires_grad_(False)
             self.branches[branch] = (tok, enc, head, classes)

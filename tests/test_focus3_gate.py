@@ -246,3 +246,14 @@ def test_writer_runs_complete_pairs_and_keeps_bad_answers(tmp_path, monkeypatch)
     assert len(json.loads((tmp_path / "gate/traces/smoke_N.json").read_text())) == 6
     assert all(r["generation"]["text"] == "{}" for r in records)
     assert all(not r["provenance"]["mask_used"] for r in records)
+
+
+def test_frozen_checkpoint_loader_consumes_wrapped_admission_head():
+    classifier = f.FrozenClassifier()
+    assert classifier.branches["ft"][2][1].out_features == 3
+    assert classifier.branches["relations"][2][1].out_features == 5
+    assert all(
+        not p.requires_grad
+        for _, encoder, head, _ in classifier.branches.values()
+        for p in (*encoder.parameters(), *head.parameters())
+    )

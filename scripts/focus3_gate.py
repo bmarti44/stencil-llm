@@ -167,6 +167,14 @@ def sources():
             )
         )
     paths.extend(OUT / p for p in ("README.md", "authoring.json", "bank.json"))
+    paths.extend(
+        p
+        for p in (
+            OUT / "initialization-failure/summary.json",
+            OUT / "loader-repair.json",
+        )
+        if p.exists()
+    )
     return {str(p.relative_to(ROOT)): digest(p) for p in paths}
 
 
@@ -510,7 +518,13 @@ def run():
     bank = json.loads((OUT / "bank.json").read_text())
     validate_bank(bank)
     with claim_gpu():
-        started = time.monotonic()
+        prior_receipt = OUT / "initialization-failure/summary.json"
+        prior_charge = (
+            json.loads(prior_receipt.read_text())["gpu_held_seconds"]
+            if prior_receipt.exists()
+            else 0.0
+        )
+        started = time.monotonic() - prior_charge
         write(
             OUT / "started.json",
             dict(
