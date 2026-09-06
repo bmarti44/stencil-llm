@@ -233,7 +233,16 @@ def main():
             body+=f"|{e['episode']}/{e['arm']}|UNRUN|—|—|—|—|—|—|\n"
             continue
         vi='/'.join(str(m['violations'][k]) for k in KINDS);rel=', '.join(f"{m['relapse'][k]['numerator']}/{m['relapse'][k]['denominator']}" for k in KINDS)
-        body+=f"|{e['episode']}/{e['arm']}|{e['final_success']}|{e['final_integration']}|{m['stale_execution_rounds']}|{m['wrong_skill_rounds']}|{m['violations']['breakage']}|{vi}|{rel}|\n"
+        success=e['final_success'] if e['complete'] else 'INCOMPLETE'
+        integration=e['final_integration'] if e['complete'] else '—'
+        body+=f"|{e['episode']}/{e['arm']}|{success}|{integration}|{m['stale_execution_rounds']}|{m['wrong_skill_rounds']}|{m['violations']['breakage']}|{vi}|{rel}|\n"
+    body+='\nPer-episode timing and cost allocation (observed calls only). Allocated seconds = output tokens / measured whole-schedule aggregate rate; this partitions shared schedule cost by tokens, rather than measuring isolated episode GPU use. Startup/checks/cleanup are charged separately in the total.\n\n'
+    body+='| Episode/arm | Calls | Tokens | Decode tok/s | Seconds/call | Allocated schedule seconds |\n|---|---:|---:|---:|---:|---:|\n'
+    for e in endpoints:
+        m=e['metrics']
+        if m['calls']:
+            body+=f"|{e['episode']}/{e['arm']}|{m['calls']}|{m['output_tokens']}|{m['decode_tok_s']:.3f}|{m['seconds_per_call']:.3f}|{m['allocated_schedule_gpu_seconds']:.3f}|\n"
+    body+=f"\nPassing main-run gates: determinism D=0; maximum actual context {max(row['input_token_count'] for row in rows)} <=32256; executed-trait opportunities in at least two R episodes for kinds {eligible_kinds}. These do not override the failed gates.\n"
     body+=f"\nActual fixed C4 schedule (including C2 long tails, HTTP, tools/checker and barriers) **{aggregate or 0:.3f} tok/s**. GPU-held **{pilot3_total:.3f}/9000s** (all starts), load **{run['load_seconds']:.3f}s**. Served-only conservative projection **{projection_text} GPU-h**. Formula and all per-episode timing/token costs are in [summary.json](summary.json): prior spend + this run + measured reload +1.25 × [64(max R+max N tokens)+16(max O+max T tokens)] / measured aggregate rate. Max per-arm counts include32-round episodes. Overlapping request seconds are latency, not summed GPU cost. The known R/N/T contribution gives a registered-projection floor of **{floor_text}h** even setting O cost to zero; this is a lower bound on that conservative projection, not a complete workload forecast. HF recovery remains unmeasured; full check45-inclusive eligibility receives no unmeasured credit.\n"
     body+=f"\nDEV mask trigger **{'MET' if trigger else 'NOT ESTABLISHED'}**, kinds={trigger}; all four kinds and executed-prior-trait denominators are in summary. No masks enabled. T cumulative multi-function re-emissions: {len(per_arm['T']['multi_function_reemissions'])} parseable responses (names listed in summary); capped malformed responses are counted as breakage, not silently repaired.\n"
     body+='\nRejected Python-literal boolean residues (outside quoted code strings): '+str({a:len(v['python_literal_bool_rejections']) for a,v in per_arm.items()})+'. These are CPU classifications of literal journaled outputs, not parser repairs.\n'
@@ -245,6 +254,7 @@ def main():
     if 'trait_swap' in summary:
         ts=summary['trait_swap']
         body+=f"\nConditional lexical style screen: **{ts['reading']}**, {ts['responses']}/8 compliant required responses, {ts['compliant_edits']}/{ts['eligible_executed_edits']} eligible executed edits. This is round-zero competence only and does not change pilot3 ineligibility. [Style records, CPU witnesses, audit and summary](trait-swap/README.md); full HF input hashes are in trait-swap/transcripts.jsonl. Its {ts['gpu_held_seconds']:.3f}s is included in the total above.\n"
+    body+='\nValidation: [targeted DEV-only tests](validation.log), [96-call CPU smoke](smoke.json), [640-call/32-receipt scheduling smoke](schedule-smoke.json), and [adapter EOS/cap cases](adapter-smoke.json). The final [CPU audit](audit.json) replays each saved actual prompt, controller state, output, execution and checker result and verifies backend identity, determinism, transcript hashes and cleanup. No full pytest suite or evaluation episodes were run.\n'
     body+='\n[Prewritten registration](prewritten.md) follows unchanged.\n\n'+prereg.read_text()
     (OUT/'README.md').write_text(body)
     print(json.dumps({k:summary[k] for k in ('reading','failures','R_final_success','cost')},indent=2))

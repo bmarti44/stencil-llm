@@ -1,0 +1,4498 @@
+{
+  "DEV_mask_trigger": {
+    "kinds": [],
+    "met": false,
+    "requires_state_audit": true
+  },
+  "R_O_repeat": {
+    "calls": 0,
+    "same_output": 0,
+    "same_prompt": 0
+  },
+  "R_final_success": 0,
+  "R_opportunity_kinds": [
+    "style",
+    "format"
+  ],
+  "backend": "qualified vLLM; package path outcome-unvalidated",
+  "cost": {
+    "HF_recovery_seconds": null,
+    "aggregate_tok_s": 27.957596838698752,
+    "charged_pilot_hours": 2.4434105441967646,
+    "full_projection_hours": null,
+    "known_RNT_projection_floor_hours": 33.93349097952794,
+    "max_episode_tokens": {
+      "N": 15966,
+      "O": null,
+      "R": 16270,
+      "T": 15922
+    },
+    "prior_seconds": {
+      "composition-pilot-2/run.json": 1362.257056478993,
+      "composition-pilot/run.json": 5385.346048473992,
+      "pilot3_interrupted_start": 500.35338020324707,
+      "pilot3_trait_screen": 764.9571387767792,
+      "vllm-qual/initial-lifecycle.json": 28.363599061965942,
+      "vllm-qual/lifecycle.json": 2527.1318759918213
+    },
+    "served_projection_hours": null,
+    "stage_wall_seconds": 6170.12975025177,
+    "tokens": 172502,
+    "total_pilot3_gpu_seconds": 8796.277959108353,
+    "weighted_future_tokens": null
+  },
+  "determinism": {
+    "D": 0,
+    "calls": 48,
+    "passed": true,
+    "phases": [
+      {
+        "D": 0,
+        "calls": 24,
+        "differences": [],
+        "frozen_indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "frozen_sha256": "09a0025fedc262d52366f0457f8f543d88cee303cbffda3c3d73a8e9a013b71e",
+        "passed": true
+      },
+      {
+        "D": 0,
+        "calls": 24,
+        "differences": [],
+        "frozen_indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "frozen_sha256": "09a0025fedc262d52366f0457f8f543d88cee303cbffda3c3d73a8e9a013b71e",
+        "passed": true
+      }
+    ],
+    "restart_differences": []
+  },
+  "endpoints": [
+    {
+      "arm": "R",
+      "complete": true,
+      "episode": "slab-dev-00",
+      "final_integration": false,
+      "final_success": false,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-00/R.json",
+      "hf_final_transcript_sha256": "e2309304ff6ff8803a0e17cd0a1c4964da05778e6418af5bdacab44018911b70",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 282.89269802518953,
+        "calls": 16,
+        "decode_tok_s": 11.191324115905223,
+        "executed_responses": 3,
+        "executed_tools": 6,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-00",
+            "first_retirement_round": 10,
+            "prior_100_300_bodies": 0,
+            "prior_own_tokens": 4834,
+            "ten_body_pressure_met": false
+          }
+        ],
+        "in_100_300": 0,
+        "max_context": 16612,
+        "multi_function_reemissions": [
+          {
+            "episode": "slab-dev-00",
+            "names": [
+              "step_3",
+              "step_4"
+            ],
+            "op": "attempted edits/replaces",
+            "round": 4
+          }
+        ],
+        "output_tokens": 7909,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 4,
+            "numerator": 0,
+            "opportunity_episodes": [
+              "slab-dev-00"
+            ],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 716.0339418979856,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [
+            {
+              "compliant": false,
+              "episode": "slab-dev-00",
+              "widths": [
+                4,
+                4
+              ]
+            }
+          ],
+          "eligible_edits": 1,
+          "executed_edits": 1,
+          "parsed_edit_attempts": 1,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 1,
+          "required": 1
+        },
+        "seconds_per_call": 44.7521213686241,
+        "stale_execution_rounds": 0,
+        "tolerances": {
+          "test_path": 3
+        },
+        "truncated": 13,
+        "violations": {
+          "breakage": 15,
+          "format": 16,
+          "language": 0,
+          "process": 3,
+          "semantic": 0,
+          "style": 3,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": "bc7b69484bbf50aed35db99eaaef4f34706397f441111e46a6cc80fe86d38751",
+      "retained_history_sha256": "570f9ee3ef79b0f862633a18b2a0b0020130230010df2d39b0913f1f0922639f",
+      "rounds": 16,
+      "scheduled_rounds": 16,
+      "transcript_path": "continuation/c4/slab-dev-00/R/final-transcript.json",
+      "transcript_sha256": "570f9ee3ef79b0f862633a18b2a0b0020130230010df2d39b0913f1f0922639f"
+    },
+    {
+      "arm": "R",
+      "complete": true,
+      "episode": "slab-dev-01",
+      "final_integration": false,
+      "final_success": false,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-01/R.json",
+      "hf_final_transcript_sha256": "840a22a78706bdc3e91ed72f8db721bf5c9b6c53c7a6eef7193e988a39c0d77c",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 130.55485494903803,
+        "calls": 16,
+        "decode_tok_s": 9.538329897120219,
+        "executed_responses": 16,
+        "executed_tools": 32,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-01",
+            "first_retirement_round": 10,
+            "prior_100_300_bodies": 10,
+            "prior_own_tokens": 2227,
+            "ten_body_pressure_met": true
+          }
+        ],
+        "in_100_300": 16,
+        "max_context": 12635,
+        "multi_function_reemissions": [],
+        "output_tokens": 3650,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 6,
+            "numerator": 0,
+            "opportunity_episodes": [
+              "slab-dev-01"
+            ],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 3,
+            "numerator": 0,
+            "opportunity_episodes": [
+              "slab-dev-01"
+            ],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 398.0778116079746,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [
+            {
+              "compliant": false,
+              "episode": "slab-dev-01",
+              "widths": [
+                4
+              ]
+            }
+          ],
+          "eligible_edits": 1,
+          "executed_edits": 1,
+          "parsed_edit_attempts": 1,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 1,
+          "required": 1
+        },
+        "seconds_per_call": 24.87986322549841,
+        "stale_execution_rounds": 0,
+        "tolerances": {
+          "test_path": 16
+        },
+        "truncated": 0,
+        "violations": {
+          "breakage": 16,
+          "format": 16,
+          "language": 0,
+          "process": 16,
+          "semantic": 0,
+          "style": 11,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": "0095869967cb7f7aed8231ebea40c1cba2785e7971433308a1e337a3eae77cc0",
+      "retained_history_sha256": "597cbf84e13395a810527714133a24f3e3ad7aa75ff3a71bbd0755b716ba6192",
+      "rounds": 16,
+      "scheduled_rounds": 16,
+      "transcript_path": "continuation/c4/slab-dev-01/R/final-transcript.json",
+      "transcript_sha256": "597cbf84e13395a810527714133a24f3e3ad7aa75ff3a71bbd0755b716ba6192"
+    },
+    {
+      "arm": "R",
+      "complete": true,
+      "episode": "slab-dev-06",
+      "final_integration": false,
+      "final_success": false,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-06/R.json",
+      "hf_final_transcript_sha256": "4fe4239e80f7edcc339a3a123a289bc1403b97011303847410bba447edd63579",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 581.9527369920133,
+        "calls": 32,
+        "decode_tok_s": 10.746948911863575,
+        "executed_responses": 1,
+        "executed_tools": 2,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-06",
+            "first_retirement_round": 13,
+            "prior_100_300_bodies": 0,
+            "prior_own_tokens": 6541,
+            "ten_body_pressure_met": false
+          }
+        ],
+        "in_100_300": 0,
+        "max_context": 31949,
+        "multi_function_reemissions": [],
+        "output_tokens": 16270,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 14,
+            "numerator": 0,
+            "opportunity_episodes": [
+              "slab-dev-06"
+            ],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 13,
+            "numerator": 0,
+            "opportunity_episodes": [
+              "slab-dev-06"
+            ],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 1579.448178154984,
+        "round0_indent": {
+          "compliant": 1,
+          "compliant_edits": 1,
+          "details": [
+            {
+              "compliant": true,
+              "episode": "slab-dev-06",
+              "widths": [
+                4,
+                4,
+                4
+              ]
+            }
+          ],
+          "eligible_edits": 1,
+          "executed_edits": 2,
+          "parsed_edit_attempts": 2,
+          "raw_prefix_compliant_edits": 1,
+          "raw_prefix_eligible_edits": 1,
+          "required": 1
+        },
+        "seconds_per_call": 49.35775556734325,
+        "stale_execution_rounds": 0,
+        "tolerances": {},
+        "truncated": 31,
+        "violations": {
+          "breakage": 32,
+          "format": 32,
+          "language": 0,
+          "process": 1,
+          "semantic": 0,
+          "style": 0,
+          "wrong_family": 1
+        },
+        "wrong_skill_rounds": 1
+      },
+      "output_sha256": "da3e5dd21d8e1c0d2a13597758e6f063b1a54e6191592f989cd60cb61f180422",
+      "retained_history_sha256": "2b8fb5238bc02504310ffda4a2440e61466df5587fdd3c8e6008bfb846803b0b",
+      "rounds": 32,
+      "scheduled_rounds": 32,
+      "transcript_path": "continuation/c4/slab-dev-06/R/final-transcript.json",
+      "transcript_sha256": "2b8fb5238bc02504310ffda4a2440e61466df5587fdd3c8e6008bfb846803b0b"
+    },
+    {
+      "arm": "R",
+      "complete": true,
+      "episode": "slab-dev-07",
+      "final_integration": false,
+      "final_success": false,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-07/R.json",
+      "hf_final_transcript_sha256": "6d0f18fdbab4a25f5155c32bd310d90664557f9c4a05cf2812f8c8db1d41481a",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 274.20096384639055,
+        "calls": 32,
+        "decode_tok_s": 9.337051799440996,
+        "executed_responses": 32,
+        "executed_tools": 64,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-07",
+            "first_retirement_round": 17,
+            "prior_100_300_bodies": 17,
+            "prior_own_tokens": 4040,
+            "ten_body_pressure_met": true
+          }
+        ],
+        "in_100_300": 32,
+        "max_context": 27589,
+        "multi_function_reemissions": [],
+        "output_tokens": 7666,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 15,
+            "numerator": 0,
+            "opportunity_episodes": [
+              "slab-dev-07"
+            ],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 13,
+            "numerator": 7,
+            "opportunity_episodes": [
+              "slab-dev-07"
+            ],
+            "relapsing_episodes": [
+              "slab-dev-07"
+            ]
+          }
+        },
+        "request_seconds": 873.1592004420236,
+        "round0_indent": {
+          "compliant": 1,
+          "compliant_edits": 1,
+          "details": [
+            {
+              "compliant": true,
+              "episode": "slab-dev-07",
+              "widths": [
+                4,
+                4
+              ]
+            }
+          ],
+          "eligible_edits": 1,
+          "executed_edits": 1,
+          "parsed_edit_attempts": 1,
+          "raw_prefix_compliant_edits": 1,
+          "raw_prefix_eligible_edits": 1,
+          "required": 1
+        },
+        "seconds_per_call": 27.286225013813237,
+        "stale_execution_rounds": 7,
+        "tolerances": {
+          "test_path": 32
+        },
+        "truncated": 0,
+        "violations": {
+          "breakage": 13,
+          "format": 32,
+          "language": 7,
+          "process": 26,
+          "semantic": 0,
+          "style": 7,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": "b32878ba754e6e37646629dc8e491d9cf632ec0a7a0995fcea8f9e6dd1eea3b0",
+      "retained_history_sha256": "eeaf00394f35ac43efde475176b9ee4ad682c66b7b382adf6c6e3f5693938cfe",
+      "rounds": 32,
+      "scheduled_rounds": 32,
+      "transcript_path": "continuation/c4/slab-dev-07/R/final-transcript.json",
+      "transcript_sha256": "eeaf00394f35ac43efde475176b9ee4ad682c66b7b382adf6c6e3f5693938cfe"
+    },
+    {
+      "arm": "N",
+      "complete": true,
+      "episode": "slab-dev-00",
+      "final_integration": false,
+      "final_success": false,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-00/N.json",
+      "hf_final_transcript_sha256": "2af2c893df8da4aebaf00351b0a03b5bf07c8713a0e969bbac0aa0e4fd74039b",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 282.4992450376719,
+        "calls": 16,
+        "decode_tok_s": 10.472998777994107,
+        "executed_responses": 2,
+        "executed_tools": 2,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-00",
+            "first_retirement_round": 10,
+            "prior_100_300_bodies": 0,
+            "prior_own_tokens": 4823,
+            "ten_body_pressure_met": false
+          }
+        ],
+        "in_100_300": 0,
+        "max_context": 10205,
+        "multi_function_reemissions": [
+          {
+            "episode": "slab-dev-00",
+            "names": [
+              "step_0",
+              "step_1"
+            ],
+            "op": "attempted edits/replaces",
+            "round": 1
+          },
+          {
+            "episode": "slab-dev-00",
+            "names": [
+              "step_0",
+              "step_3"
+            ],
+            "op": "attempted edits/replaces",
+            "round": 3
+          }
+        ],
+        "output_tokens": 7898,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 4,
+            "numerator": 0,
+            "opportunity_episodes": [
+              "slab-dev-00"
+            ],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 6,
+            "numerator": 0,
+            "opportunity_episodes": [
+              "slab-dev-00"
+            ],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 759.297216076011,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [
+            {
+              "compliant": false,
+              "episode": "slab-dev-00",
+              "widths": []
+            }
+          ],
+          "eligible_edits": 0,
+          "executed_edits": 0,
+          "parsed_edit_attempts": 0,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 0,
+          "required": 1
+        },
+        "seconds_per_call": 47.456076004750685,
+        "stale_execution_rounds": 0,
+        "tolerances": {},
+        "truncated": 13,
+        "violations": {
+          "breakage": 15,
+          "format": 16,
+          "language": 0,
+          "process": 2,
+          "semantic": 0,
+          "style": 2,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": "9e0230d84e716f47d853a3fe06c462e40cbcba6059ca96d4a04eb6962d5946f1",
+      "retained_history_sha256": "7a72c7e119f3e35306f7b81c758fdd3f0691263152199eca0ae9592c54706e7b",
+      "rounds": 16,
+      "scheduled_rounds": 16,
+      "transcript_path": "continuation/c4/slab-dev-00/N/final-transcript.json",
+      "transcript_sha256": "7a72c7e119f3e35306f7b81c758fdd3f0691263152199eca0ae9592c54706e7b"
+    },
+    {
+      "arm": "N",
+      "complete": true,
+      "episode": "slab-dev-01",
+      "final_integration": false,
+      "final_success": false,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-01/N.json",
+      "hf_final_transcript_sha256": "d901ecd3c64f56424bf600f6d9a496bccf76bf2ad22ad1165930e1c517043bf9",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 254.38524065686536,
+        "calls": 16,
+        "decode_tok_s": 10.060910060173013,
+        "executed_responses": 7,
+        "executed_tools": 15,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-01",
+            "first_retirement_round": 10,
+            "prior_100_300_bodies": 2,
+            "prior_own_tokens": 4033,
+            "ten_body_pressure_met": false
+          }
+        ],
+        "in_100_300": 2,
+        "max_context": 10405,
+        "multi_function_reemissions": [
+          {
+            "episode": "slab-dev-01",
+            "names": [
+              "step_0",
+              "step_0"
+            ],
+            "op": "attempted edits/replaces",
+            "round": 0
+          },
+          {
+            "episode": "slab-dev-01",
+            "names": [
+              "step_0",
+              "step_1"
+            ],
+            "op": "attempted edits/replaces",
+            "round": 1
+          },
+          {
+            "episode": "slab-dev-01",
+            "names": [
+              "step_0",
+              "step_1",
+              "step_2"
+            ],
+            "op": "attempted edits/replaces",
+            "round": 2
+          },
+          {
+            "episode": "slab-dev-01",
+            "names": [
+              "step_0",
+              "step_3"
+            ],
+            "op": "attempted edits/replaces",
+            "round": 3
+          },
+          {
+            "episode": "slab-dev-01",
+            "names": [
+              "step_0",
+              "step_3",
+              "step_4"
+            ],
+            "op": "attempted edits/replaces",
+            "round": 4
+          },
+          {
+            "episode": "slab-dev-01",
+            "names": [
+              "step_0",
+              "step_3",
+              "step_4",
+              "step_5"
+            ],
+            "op": "attempted edits/replaces",
+            "round": 5
+          },
+          {
+            "episode": "slab-dev-01",
+            "names": [
+              "step_0",
+              "step_1",
+              "step_2",
+              "step_6"
+            ],
+            "op": "attempted edits/replaces",
+            "round": 6
+          }
+        ],
+        "output_tokens": 7112,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 6,
+            "numerator": 0,
+            "opportunity_episodes": [
+              "slab-dev-01"
+            ],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 715.0662347189354,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [
+            {
+              "compliant": false,
+              "episode": "slab-dev-01",
+              "widths": [
+                4,
+                4
+              ]
+            }
+          ],
+          "eligible_edits": 2,
+          "executed_edits": 2,
+          "parsed_edit_attempts": 2,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 2,
+          "required": 1
+        },
+        "seconds_per_call": 44.691639669933465,
+        "stale_execution_rounds": 0,
+        "tolerances": {
+          "test_path": 7
+        },
+        "truncated": 9,
+        "violations": {
+          "breakage": 9,
+          "format": 16,
+          "language": 0,
+          "process": 3,
+          "semantic": 0,
+          "style": 7,
+          "wrong_family": 1
+        },
+        "wrong_skill_rounds": 1
+      },
+      "output_sha256": "54a1681b31ba2d74e558836ec9b9a7f1efa5ddaeb35de66e89b674f06d088920",
+      "retained_history_sha256": "6f9bd5bbaad8cb5ab0d8771307d6ac66c1b24104398f8d22f60136db5cc89f15",
+      "rounds": 16,
+      "scheduled_rounds": 16,
+      "transcript_path": "continuation/c4/slab-dev-01/N/final-transcript.json",
+      "transcript_sha256": "6f9bd5bbaad8cb5ab0d8771307d6ac66c1b24104398f8d22f60136db5cc89f15"
+    },
+    {
+      "arm": "N",
+      "complete": true,
+      "episode": "slab-dev-06",
+      "final_integration": false,
+      "final_success": false,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-06/N.json",
+      "hf_final_transcript_sha256": "704f185597583e3f9a4dd4b3e7e67e6f745fe8f33655f898405b6c1cd4706d8d",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 571.079127155162,
+        "calls": 32,
+        "decode_tok_s": 11.433567849059019,
+        "executed_responses": 3,
+        "executed_tools": 9,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-06",
+            "first_retirement_round": 13,
+            "prior_100_300_bodies": 1,
+            "prior_own_tokens": 6235,
+            "ten_body_pressure_met": false
+          }
+        ],
+        "in_100_300": 1,
+        "max_context": 20348,
+        "multi_function_reemissions": [
+          {
+            "episode": "slab-dev-06",
+            "names": [
+              "step_0",
+              "step_1"
+            ],
+            "op": "attempted edits/replaces",
+            "round": 1
+          },
+          {
+            "episode": "slab-dev-06",
+            "names": [
+              "step_0",
+              "step_1",
+              "step_2"
+            ],
+            "op": "attempted edits/replaces",
+            "round": 2
+          }
+        ],
+        "output_tokens": 15966,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 14,
+            "numerator": 0,
+            "opportunity_episodes": [
+              "slab-dev-06"
+            ],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 16,
+            "numerator": 0,
+            "opportunity_episodes": [
+              "slab-dev-06"
+            ],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 13,
+            "numerator": 0,
+            "opportunity_episodes": [
+              "slab-dev-06"
+            ],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 1409.7374312720203,
+        "round0_indent": {
+          "compliant": 1,
+          "compliant_edits": 1,
+          "details": [
+            {
+              "compliant": true,
+              "episode": "slab-dev-06",
+              "widths": [
+                4,
+                4,
+                4
+              ]
+            }
+          ],
+          "eligible_edits": 1,
+          "executed_edits": 2,
+          "parsed_edit_attempts": 2,
+          "raw_prefix_compliant_edits": 1,
+          "raw_prefix_eligible_edits": 1,
+          "required": 1
+        },
+        "seconds_per_call": 44.054294727250635,
+        "stale_execution_rounds": 0,
+        "tolerances": {
+          "test_path": 3
+        },
+        "truncated": 29,
+        "violations": {
+          "breakage": 32,
+          "format": 32,
+          "language": 0,
+          "process": 3,
+          "semantic": 0,
+          "style": 0,
+          "wrong_family": 3
+        },
+        "wrong_skill_rounds": 3
+      },
+      "output_sha256": "572b36d6d491a72bdffaf4ac539b4b3b2cf46c3d6ae739008a8236ebf5867ddf",
+      "retained_history_sha256": "5f2e26f59f23dcb2893014b5120dc3c0549dfa86538b16649be8495c19e53ad0",
+      "rounds": 32,
+      "scheduled_rounds": 32,
+      "transcript_path": "continuation/c4/slab-dev-06/N/final-transcript.json",
+      "transcript_sha256": "5f2e26f59f23dcb2893014b5120dc3c0549dfa86538b16649be8495c19e53ad0"
+    },
+    {
+      "arm": "N",
+      "complete": true,
+      "episode": "slab-dev-07",
+      "final_integration": false,
+      "final_success": false,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-07/N.json",
+      "hf_final_transcript_sha256": "bcc2fb53623f7cc8b6c5f2aa3aa72d2e7efecfddd13b560d1d7363ddce9e304b",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 281.9984866899222,
+        "calls": 32,
+        "decode_tok_s": 10.95017717994124,
+        "executed_responses": 32,
+        "executed_tools": 65,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-07",
+            "first_retirement_round": 17,
+            "prior_100_300_bodies": 16,
+            "prior_own_tokens": 4220,
+            "ten_body_pressure_met": true
+          }
+        ],
+        "in_100_300": 31,
+        "max_context": 16330,
+        "multi_function_reemissions": [
+          {
+            "episode": "slab-dev-07",
+            "names": [
+              "step_0",
+              "step_0"
+            ],
+            "op": "attempted edits/replaces",
+            "round": 0
+          }
+        ],
+        "output_tokens": 7884,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 15,
+            "numerator": 0,
+            "opportunity_episodes": [
+              "slab-dev-07"
+            ],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 11,
+            "numerator": 11,
+            "opportunity_episodes": [
+              "slab-dev-07"
+            ],
+            "relapsing_episodes": [
+              "slab-dev-07"
+            ]
+          },
+          "style": {
+            "denominator": 13,
+            "numerator": 7,
+            "opportunity_episodes": [
+              "slab-dev-07"
+            ],
+            "relapsing_episodes": [
+              "slab-dev-07"
+            ]
+          }
+        },
+        "request_seconds": 736.1441983519908,
+        "round0_indent": {
+          "compliant": 1,
+          "compliant_edits": 2,
+          "details": [
+            {
+              "compliant": true,
+              "episode": "slab-dev-07",
+              "widths": [
+                4,
+                4,
+                4,
+                4
+              ]
+            }
+          ],
+          "eligible_edits": 2,
+          "executed_edits": 2,
+          "parsed_edit_attempts": 2,
+          "raw_prefix_compliant_edits": 2,
+          "raw_prefix_eligible_edits": 2,
+          "required": 1
+        },
+        "seconds_per_call": 23.004506198499712,
+        "stale_execution_rounds": 13,
+        "tolerances": {
+          "test_path": 32
+        },
+        "truncated": 0,
+        "violations": {
+          "breakage": 13,
+          "format": 32,
+          "language": 7,
+          "process": 19,
+          "semantic": 0,
+          "style": 7,
+          "wrong_family": 1
+        },
+        "wrong_skill_rounds": 1
+      },
+      "output_sha256": "287e920171d9949686e6c3cbc3195530ea51646d2d31b335e126ececc9443fcd",
+      "retained_history_sha256": "5d09445b9647da64f50b0d478eda1727dde206e06534686d2b8c594f66a6533e",
+      "rounds": 32,
+      "scheduled_rounds": 32,
+      "transcript_path": "continuation/c4/slab-dev-07/N/final-transcript.json",
+      "transcript_sha256": "5d09445b9647da64f50b0d478eda1727dde206e06534686d2b8c594f66a6533e"
+    },
+    {
+      "arm": "T",
+      "complete": true,
+      "episode": "slab-dev-00",
+      "final_integration": true,
+      "final_success": false,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-00/T.json",
+      "hf_final_transcript_sha256": "2357cd7cf374290ab8b8deb00eaafbf4f94c66dab83d24ac51a249f220007ecf",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 127.47876795571824,
+        "calls": 16,
+        "decode_tok_s": 10.064122477821563,
+        "executed_responses": 16,
+        "executed_tools": 32,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-00",
+            "first_retirement_round": 10,
+            "prior_100_300_bodies": 10,
+            "prior_own_tokens": 2210,
+            "ten_body_pressure_met": true
+          }
+        ],
+        "in_100_300": 16,
+        "max_context": 9518,
+        "multi_function_reemissions": [],
+        "output_tokens": 3564,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 4,
+            "numerator": 0,
+            "opportunity_episodes": [
+              "slab-dev-00"
+            ],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 5,
+            "numerator": 0,
+            "opportunity_episodes": [
+              "slab-dev-00"
+            ],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 358.7255675620254,
+        "round0_indent": {
+          "compliant": 1,
+          "compliant_edits": 1,
+          "details": [
+            {
+              "compliant": true,
+              "episode": "slab-dev-00",
+              "widths": [
+                3,
+                3
+              ]
+            }
+          ],
+          "eligible_edits": 1,
+          "executed_edits": 1,
+          "parsed_edit_attempts": 1,
+          "raw_prefix_compliant_edits": 1,
+          "raw_prefix_eligible_edits": 1,
+          "required": 1
+        },
+        "seconds_per_call": 22.420347972626587,
+        "stale_execution_rounds": 0,
+        "tolerances": {
+          "test_path": 16
+        },
+        "truncated": 0,
+        "violations": {
+          "breakage": 0,
+          "format": 16,
+          "language": 0,
+          "process": 12,
+          "semantic": 0,
+          "style": 0,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": "c37c7cfb70611924f264f24a8b8daf8e95f9abc6337cb1a027b8b152f3fb5fd1",
+      "retained_history_sha256": "cbcd6441eb1162591b51461ceff752cc0a0d3069dd0d0ce8473b59c384a13dd4",
+      "rounds": 16,
+      "scheduled_rounds": 16,
+      "transcript_path": "continuation/c4/slab-dev-00/T/final-transcript.json",
+      "transcript_sha256": "cbcd6441eb1162591b51461ceff752cc0a0d3069dd0d0ce8473b59c384a13dd4"
+    },
+    {
+      "arm": "T",
+      "complete": true,
+      "episode": "slab-dev-01",
+      "final_integration": false,
+      "final_success": false,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-01/T.json",
+      "hf_final_transcript_sha256": "9ffb2666727f79415f0692cf753fc23bb36f5bc6bb342506a23a6da5b3485253",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 278.493178255674,
+        "calls": 16,
+        "decode_tok_s": 12.150278865672623,
+        "executed_responses": 5,
+        "executed_tools": 10,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-01",
+            "first_retirement_round": 10,
+            "prior_100_300_bodies": 1,
+            "prior_own_tokens": 4709,
+            "ten_body_pressure_met": false
+          }
+        ],
+        "in_100_300": 1,
+        "max_context": 11290,
+        "multi_function_reemissions": [],
+        "output_tokens": 7786,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 6,
+            "numerator": 0,
+            "opportunity_episodes": [
+              "slab-dev-01"
+            ],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 650.6100787859759,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [
+            {
+              "compliant": false,
+              "episode": "slab-dev-01",
+              "widths": [
+                4,
+                4,
+                4
+              ]
+            }
+          ],
+          "eligible_edits": 1,
+          "executed_edits": 1,
+          "parsed_edit_attempts": 1,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 1,
+          "required": 1
+        },
+        "seconds_per_call": 40.663129924123496,
+        "stale_execution_rounds": 0,
+        "tolerances": {
+          "test_path": 5
+        },
+        "truncated": 11,
+        "violations": {
+          "breakage": 12,
+          "format": 16,
+          "language": 0,
+          "process": 4,
+          "semantic": 0,
+          "style": 5,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": "f1aafa276e5098b68148d2e66b1caa62795836c5aa2d29eb042706dc7dcec1db",
+      "retained_history_sha256": "0bce538fb6b0091f57da1396ba6098e944f5481184d09a36eab307f18868deb7",
+      "rounds": 16,
+      "scheduled_rounds": 16,
+      "transcript_path": "continuation/c4/slab-dev-01/T/final-transcript.json",
+      "transcript_sha256": "0bce538fb6b0091f57da1396ba6098e944f5481184d09a36eab307f18868deb7"
+    },
+    {
+      "arm": "T",
+      "complete": true,
+      "episode": "slab-dev-06",
+      "final_integration": false,
+      "final_success": false,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-06/T.json",
+      "hf_final_transcript_sha256": "da1efff8c75275cab186cefa97c07e9ccd5786be756ca1022f500d88d298c0b2",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 569.5053152050914,
+        "calls": 32,
+        "decode_tok_s": 12.197125625761643,
+        "executed_responses": 0,
+        "executed_tools": 0,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-06",
+            "first_retirement_round": 13,
+            "prior_100_300_bodies": 1,
+            "prior_own_tokens": 6191,
+            "ten_body_pressure_met": false
+          }
+        ],
+        "in_100_300": 1,
+        "max_context": 21233,
+        "multi_function_reemissions": [],
+        "output_tokens": 15922,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 1320.9584371299425,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [
+            {
+              "compliant": false,
+              "episode": "slab-dev-06",
+              "widths": []
+            }
+          ],
+          "eligible_edits": 0,
+          "executed_edits": 0,
+          "parsed_edit_attempts": 0,
+          "raw_prefix_compliant_edits": 1,
+          "raw_prefix_eligible_edits": 1,
+          "required": 1
+        },
+        "seconds_per_call": 41.2799511603107,
+        "stale_execution_rounds": 0,
+        "tolerances": {},
+        "truncated": 29,
+        "violations": {
+          "breakage": 32,
+          "format": 32,
+          "language": 0,
+          "process": 0,
+          "semantic": 0,
+          "style": 0,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": "c55c96e6be2853d204663dba144ad4c21383ab7ba1bc027a5c4e98b22696838e",
+      "retained_history_sha256": "cbdd89676f56cc57b5166b0554a4160b189fb2d7366a3bcf4fc19bd2cc5bde10",
+      "rounds": 32,
+      "scheduled_rounds": 32,
+      "transcript_path": "continuation/c4/slab-dev-06/T/final-transcript.json",
+      "transcript_sha256": "cbdd89676f56cc57b5166b0554a4160b189fb2d7366a3bcf4fc19bd2cc5bde10"
+    },
+    {
+      "arm": "T",
+      "complete": true,
+      "episode": "slab-dev-07",
+      "final_integration": true,
+      "final_success": false,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-07/T.json",
+      "hf_final_transcript_sha256": "2a25a65e6fbb4981a723ebca5bf95563418f8c00b6f4c7e4a18ac62cf0e6ea55",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 284.0372885343318,
+        "calls": 32,
+        "decode_tok_s": 10.783730986374861,
+        "executed_responses": 32,
+        "executed_tools": 64,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-07",
+            "first_retirement_round": 17,
+            "prior_100_300_bodies": 17,
+            "prior_own_tokens": 4182,
+            "ten_body_pressure_met": true
+          }
+        ],
+        "in_100_300": 32,
+        "max_context": 19155,
+        "multi_function_reemissions": [],
+        "output_tokens": 7941,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 15,
+            "numerator": 0,
+            "opportunity_episodes": [
+              "slab-dev-07"
+            ],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 13,
+            "numerator": 7,
+            "opportunity_episodes": [
+              "slab-dev-07"
+            ],
+            "relapsing_episodes": [
+              "slab-dev-07"
+            ]
+          }
+        },
+        "request_seconds": 757.1335684580408,
+        "round0_indent": {
+          "compliant": 1,
+          "compliant_edits": 1,
+          "details": [
+            {
+              "compliant": true,
+              "episode": "slab-dev-07",
+              "widths": [
+                4,
+                4,
+                4,
+                4
+              ]
+            }
+          ],
+          "eligible_edits": 1,
+          "executed_edits": 1,
+          "parsed_edit_attempts": 1,
+          "raw_prefix_compliant_edits": 1,
+          "raw_prefix_eligible_edits": 1,
+          "required": 1
+        },
+        "seconds_per_call": 23.660424014313776,
+        "stale_execution_rounds": 7,
+        "tolerances": {
+          "test_path": 32
+        },
+        "truncated": 0,
+        "violations": {
+          "breakage": 0,
+          "format": 32,
+          "language": 0,
+          "process": 30,
+          "semantic": 0,
+          "style": 7,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": "aae75990976a01324299b515f508c1bed3bfbf2ba99a724a3fb35da3a129d9ca",
+      "retained_history_sha256": "667dc3a60e429c4dc4ca80dde01a0412f47228582230c3a4201277a72c200bff",
+      "rounds": 32,
+      "scheduled_rounds": 32,
+      "transcript_path": "continuation/c4/slab-dev-07/T/final-transcript.json",
+      "transcript_sha256": "667dc3a60e429c4dc4ca80dde01a0412f47228582230c3a4201277a72c200bff"
+    },
+    {
+      "arm": "R",
+      "complete": true,
+      "episode": "slab-dev-02",
+      "final_integration": false,
+      "final_success": false,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-02/R.json",
+      "hf_final_transcript_sha256": "162c400be1c8a70c1cc998efd050b1141b7c482d0f4909f611f8cc7360803196",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 156.84466820589913,
+        "calls": 16,
+        "decode_tok_s": 9.566554293497624,
+        "executed_responses": 0,
+        "executed_tools": 0,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-02",
+            "first_retirement_round": 10,
+            "prior_100_300_bodies": 9,
+            "prior_own_tokens": 2702,
+            "ten_body_pressure_met": false
+          }
+        ],
+        "in_100_300": 14,
+        "max_context": 12500,
+        "multi_function_reemissions": [],
+        "output_tokens": 4385,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 465.2398573489918,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [
+            {
+              "compliant": false,
+              "episode": "slab-dev-02",
+              "widths": []
+            }
+          ],
+          "eligible_edits": 0,
+          "executed_edits": 0,
+          "parsed_edit_attempts": 0,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 1,
+          "required": 1
+        },
+        "seconds_per_call": 29.077491084311987,
+        "stale_execution_rounds": 0,
+        "tolerances": {},
+        "truncated": 0,
+        "violations": {
+          "breakage": 16,
+          "format": 16,
+          "language": 0,
+          "process": 0,
+          "semantic": 0,
+          "style": 0,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": "87da8405639411a3a1c92f7d8dc94f87da029742580ecad031848e1ed8b0af32",
+      "retained_history_sha256": "a985c8e2c58812a04c7a6445176735a7131d0527e631b2c4e91d272ecf6f8f2e",
+      "rounds": 16,
+      "scheduled_rounds": 16,
+      "transcript_path": "continuation/c4/slab-dev-02/R/final-transcript.json",
+      "transcript_sha256": "a985c8e2c58812a04c7a6445176735a7131d0527e631b2c4e91d272ecf6f8f2e"
+    },
+    {
+      "arm": "R",
+      "complete": true,
+      "episode": "slab-dev-03",
+      "final_integration": false,
+      "final_success": false,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-03/R.json",
+      "hf_final_transcript_sha256": "e6f6afa3b470bef2677f11d9d24d379e53a7a47cb9eaf2427a3340b60453dad1",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 139.9977266494616,
+        "calls": 16,
+        "decode_tok_s": 9.721386021795048,
+        "executed_responses": 0,
+        "executed_tools": 0,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-03",
+            "first_retirement_round": 10,
+            "prior_100_300_bodies": 10,
+            "prior_own_tokens": 2405,
+            "ten_body_pressure_met": true
+          }
+        ],
+        "in_100_300": 16,
+        "max_context": 11877,
+        "multi_function_reemissions": [],
+        "output_tokens": 3914,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 417.38904351904057,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [
+            {
+              "compliant": false,
+              "episode": "slab-dev-03",
+              "widths": []
+            }
+          ],
+          "eligible_edits": 0,
+          "executed_edits": 0,
+          "parsed_edit_attempts": 0,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 1,
+          "required": 1
+        },
+        "seconds_per_call": 26.086815219940036,
+        "stale_execution_rounds": 0,
+        "tolerances": {},
+        "truncated": 0,
+        "violations": {
+          "breakage": 16,
+          "format": 16,
+          "language": 0,
+          "process": 0,
+          "semantic": 0,
+          "style": 0,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": "7bb9d10e9d68207f5270fd0dd49cafbd5c0229c40f66c73f5926949742af5d79",
+      "retained_history_sha256": "1432abda0860507468e93b1275ee159ba0bee5fb9be3f5aa6bf653b9b41421f9",
+      "rounds": 16,
+      "scheduled_rounds": 16,
+      "transcript_path": "continuation/c4/slab-dev-03/R/final-transcript.json",
+      "transcript_sha256": "1432abda0860507468e93b1275ee159ba0bee5fb9be3f5aa6bf653b9b41421f9"
+    },
+    {
+      "arm": "R",
+      "complete": true,
+      "episode": "slab-dev-04",
+      "final_integration": false,
+      "final_success": false,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-04/R.json",
+      "hf_final_transcript_sha256": "c78443ada6969e119c80130bbd5cf5f63d4b7537dced7c9ef3d47636b61ecfff",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 215.683774066493,
+        "calls": 16,
+        "decode_tok_s": 10.579770316098399,
+        "executed_responses": 1,
+        "executed_tools": 2,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-04",
+            "first_retirement_round": 10,
+            "prior_100_300_bodies": 1,
+            "prior_own_tokens": 3644,
+            "ten_body_pressure_met": false
+          }
+        ],
+        "in_100_300": 1,
+        "max_context": 14366,
+        "multi_function_reemissions": [],
+        "output_tokens": 6030,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 5,
+            "numerator": 0,
+            "opportunity_episodes": [
+              "slab-dev-04"
+            ],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 585.1432950440212,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [
+            {
+              "compliant": false,
+              "episode": "slab-dev-04",
+              "widths": []
+            }
+          ],
+          "eligible_edits": 0,
+          "executed_edits": 0,
+          "parsed_edit_attempts": 0,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 1,
+          "required": 1
+        },
+        "seconds_per_call": 36.571455940251326,
+        "stale_execution_rounds": 0,
+        "tolerances": {
+          "test_path": 1
+        },
+        "truncated": 0,
+        "violations": {
+          "breakage": 16,
+          "format": 16,
+          "language": 0,
+          "process": 0,
+          "semantic": 0,
+          "style": 1,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": "b8bd5ec83881d3354dd3c87e63ade705b82799d38f06fea2a50756aff02750a8",
+      "retained_history_sha256": "20e3f51086975f31c8cea08b43e7e62722449f295122513528134f1d1fb31ea7",
+      "rounds": 16,
+      "scheduled_rounds": 16,
+      "transcript_path": "continuation/c4/slab-dev-04/R/final-transcript.json",
+      "transcript_sha256": "20e3f51086975f31c8cea08b43e7e62722449f295122513528134f1d1fb31ea7"
+    },
+    {
+      "arm": "R",
+      "complete": true,
+      "episode": "slab-dev-05",
+      "final_integration": false,
+      "final_success": false,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-05/R.json",
+      "hf_final_transcript_sha256": "f7ae91ca0c1cebd3ee6e2229531b7693efe8eda19284b1565b0df6350723f288",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 290.5113786016677,
+        "calls": 16,
+        "decode_tok_s": 11.858304602143203,
+        "executed_responses": 0,
+        "executed_tools": 0,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-05",
+            "first_retirement_round": 10,
+            "prior_100_300_bodies": 0,
+            "prior_own_tokens": 5049,
+            "ten_body_pressure_met": false
+          }
+        ],
+        "in_100_300": 0,
+        "max_context": 15868,
+        "multi_function_reemissions": [],
+        "output_tokens": 8122,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 700.5207645550254,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [
+            {
+              "compliant": false,
+              "episode": "slab-dev-05",
+              "widths": []
+            }
+          ],
+          "eligible_edits": 0,
+          "executed_edits": 0,
+          "parsed_edit_attempts": 0,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 1,
+          "required": 1
+        },
+        "seconds_per_call": 43.782547784689086,
+        "stale_execution_rounds": 0,
+        "tolerances": {},
+        "truncated": 15,
+        "violations": {
+          "breakage": 16,
+          "format": 16,
+          "language": 0,
+          "process": 0,
+          "semantic": 0,
+          "style": 0,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": "31425e459759a1df1ce312467793e56e0cbcbc93f2c90fb0f28fd3982cb994a5",
+      "retained_history_sha256": "2f3785910b7dfb5f2b93a215ec2fedd836b3489305d1646714bc026abc62720e",
+      "rounds": 16,
+      "scheduled_rounds": 16,
+      "transcript_path": "continuation/c4/slab-dev-05/R/final-transcript.json",
+      "transcript_sha256": "2f3785910b7dfb5f2b93a215ec2fedd836b3489305d1646714bc026abc62720e"
+    },
+    {
+      "arm": "N",
+      "complete": true,
+      "episode": "slab-dev-02",
+      "final_integration": false,
+      "final_success": false,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-02/N.json",
+      "hf_final_transcript_sha256": "62dcefe3f8bd0b1634d450c66720f7a861e40f119642ef062718c791095d1a40",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 286.1833957389735,
+        "calls": 16,
+        "decode_tok_s": 11.018585115675522,
+        "executed_responses": 0,
+        "executed_tools": 0,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-02",
+            "first_retirement_round": 10,
+            "prior_100_300_bodies": 0,
+            "prior_own_tokens": 4927,
+            "ten_body_pressure_met": false
+          }
+        ],
+        "in_100_300": 0,
+        "max_context": 9991,
+        "multi_function_reemissions": [],
+        "output_tokens": 8001,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 730.2536424029677,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [
+            {
+              "compliant": false,
+              "episode": "slab-dev-02",
+              "widths": []
+            }
+          ],
+          "eligible_edits": 0,
+          "executed_edits": 0,
+          "parsed_edit_attempts": 0,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 2,
+          "required": 1
+        },
+        "seconds_per_call": 45.64085265018548,
+        "stale_execution_rounds": 0,
+        "tolerances": {},
+        "truncated": 14,
+        "violations": {
+          "breakage": 16,
+          "format": 16,
+          "language": 0,
+          "process": 0,
+          "semantic": 0,
+          "style": 0,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": "efda6b94c154a9f22e7a343d1b44bf7aca50cf57694da2b70f2f33fb6e41d758",
+      "retained_history_sha256": "9f73e1e62c65108c188f33485184f611153bc662a853bd4c21850574b16d7f5d",
+      "rounds": 16,
+      "scheduled_rounds": 16,
+      "transcript_path": "continuation/c4/slab-dev-02/N/final-transcript.json",
+      "transcript_sha256": "9f73e1e62c65108c188f33485184f611153bc662a853bd4c21850574b16d7f5d"
+    },
+    {
+      "arm": "N",
+      "complete": true,
+      "episode": "slab-dev-03",
+      "final_integration": false,
+      "final_success": false,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-03/N.json",
+      "hf_final_transcript_sha256": "6d19070cb8b8cf65d1c57810a36053127e78ff6d7cd7e26b89b2775cb7cf4925",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 141.24962251883596,
+        "calls": 16,
+        "decode_tok_s": 10.369434351675018,
+        "executed_responses": 0,
+        "executed_tools": 0,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-03",
+            "first_retirement_round": 10,
+            "prior_100_300_bodies": 10,
+            "prior_own_tokens": 2426,
+            "ten_body_pressure_met": true
+          }
+        ],
+        "in_100_300": 16,
+        "max_context": 6158,
+        "multi_function_reemissions": [],
+        "output_tokens": 3949,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 387.2535849560081,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [
+            {
+              "compliant": false,
+              "episode": "slab-dev-03",
+              "widths": []
+            }
+          ],
+          "eligible_edits": 0,
+          "executed_edits": 0,
+          "parsed_edit_attempts": 0,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 1,
+          "required": 1
+        },
+        "seconds_per_call": 24.203349059750508,
+        "stale_execution_rounds": 0,
+        "tolerances": {},
+        "truncated": 0,
+        "violations": {
+          "breakage": 16,
+          "format": 16,
+          "language": 0,
+          "process": 0,
+          "semantic": 0,
+          "style": 0,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": "c341a93bc218f64e2a9dbabd5afb9d320d5eb7196f75cb993f385d5aea625918",
+      "retained_history_sha256": "98d48f73a130bd7d9adb70028fe4525b354253f88e154f08a281c16b8a7add7c",
+      "rounds": 16,
+      "scheduled_rounds": 16,
+      "transcript_path": "continuation/c4/slab-dev-03/N/final-transcript.json",
+      "transcript_sha256": "98d48f73a130bd7d9adb70028fe4525b354253f88e154f08a281c16b8a7add7c"
+    },
+    {
+      "arm": "N",
+      "complete": true,
+      "episode": "slab-dev-04",
+      "final_integration": false,
+      "final_success": false,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-04/N.json",
+      "hf_final_transcript_sha256": "20c7eb1b04cf8b6cb9c4f0e62546a34c9583dd4d07d76c80972830f6f4b69288",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 273.87904776569434,
+        "calls": 16,
+        "decode_tok_s": 10.811183207772885,
+        "executed_responses": 5,
+        "executed_tools": 11,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-04",
+            "first_retirement_round": 10,
+            "prior_100_300_bodies": 0,
+            "prior_own_tokens": 4580,
+            "ten_body_pressure_met": false
+          }
+        ],
+        "in_100_300": 0,
+        "max_context": 10229,
+        "multi_function_reemissions": [
+          {
+            "episode": "slab-dev-04",
+            "names": [
+              "step_0",
+              "step_0"
+            ],
+            "op": "attempted edits/replaces",
+            "round": 0
+          },
+          {
+            "episode": "slab-dev-04",
+            "names": [
+              "step_0",
+              "step_1"
+            ],
+            "op": "attempted edits/replaces",
+            "round": 1
+          },
+          {
+            "episode": "slab-dev-04",
+            "names": [
+              "step_0",
+              "step_1",
+              "step_2"
+            ],
+            "op": "attempted edits/replaces",
+            "round": 2
+          },
+          {
+            "episode": "slab-dev-04",
+            "names": [
+              "step_0",
+              "step_4"
+            ],
+            "op": "attempted edits/replaces",
+            "round": 4
+          },
+          {
+            "episode": "slab-dev-04",
+            "names": [
+              "step_0",
+              "step_4",
+              "step_5"
+            ],
+            "op": "attempted edits/replaces",
+            "round": 5
+          }
+        ],
+        "output_tokens": 7657,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 5,
+            "numerator": 0,
+            "opportunity_episodes": [
+              "slab-dev-04"
+            ],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 6,
+            "numerator": 0,
+            "opportunity_episodes": [
+              "slab-dev-04"
+            ],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 716.0332035140163,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [
+            {
+              "compliant": false,
+              "episode": "slab-dev-04",
+              "widths": [
+                4,
+                4,
+                4,
+                4
+              ]
+            }
+          ],
+          "eligible_edits": 2,
+          "executed_edits": 2,
+          "parsed_edit_attempts": 2,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 2,
+          "required": 1
+        },
+        "seconds_per_call": 44.75207521962602,
+        "stale_execution_rounds": 0,
+        "tolerances": {},
+        "truncated": 11,
+        "violations": {
+          "breakage": 16,
+          "format": 16,
+          "language": 0,
+          "process": 5,
+          "semantic": 0,
+          "style": 5,
+          "wrong_family": 1
+        },
+        "wrong_skill_rounds": 1
+      },
+      "output_sha256": "43d2b040c70f06d1983c3ec1c63aae73f07bc07331fd415132e85fc190376cb6",
+      "retained_history_sha256": "d877e46e6c5bc568a9d5531639d32a8a5815dd67751c0f7064f9f1102cdc5bcb",
+      "rounds": 16,
+      "scheduled_rounds": 16,
+      "transcript_path": "continuation/c4/slab-dev-04/N/final-transcript.json",
+      "transcript_sha256": "d877e46e6c5bc568a9d5531639d32a8a5815dd67751c0f7064f9f1102cdc5bcb"
+    },
+    {
+      "arm": "N",
+      "complete": true,
+      "episode": "slab-dev-05",
+      "final_integration": false,
+      "final_success": false,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-05/N.json",
+      "hf_final_transcript_sha256": "fb8012291d5aaf5601599df9daee731dff80387651a950aa8c68c5bcc884cecd",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 225.87778328854117,
+        "calls": 16,
+        "decode_tok_s": 10.141103125367819,
+        "executed_responses": 0,
+        "executed_tools": 0,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-05",
+            "first_retirement_round": 10,
+            "prior_100_300_bodies": 4,
+            "prior_own_tokens": 3277,
+            "ten_body_pressure_met": false
+          }
+        ],
+        "in_100_300": 4,
+        "max_context": 8203,
+        "multi_function_reemissions": [],
+        "output_tokens": 6315,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 630.350998645983,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [
+            {
+              "compliant": false,
+              "episode": "slab-dev-05",
+              "widths": []
+            }
+          ],
+          "eligible_edits": 0,
+          "executed_edits": 0,
+          "parsed_edit_attempts": 0,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 1,
+          "required": 1
+        },
+        "seconds_per_call": 39.39693741537394,
+        "stale_execution_rounds": 0,
+        "tolerances": {},
+        "truncated": 6,
+        "violations": {
+          "breakage": 16,
+          "format": 16,
+          "language": 0,
+          "process": 0,
+          "semantic": 0,
+          "style": 0,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": "040d2488ad3e0898c448a7e323192513edfe9307dce2d12431d811275a939e86",
+      "retained_history_sha256": "2d9d5de53a2fc97f46a5455ee0db40f19c7d2c5a1dd44cea232644056c97bd45",
+      "rounds": 16,
+      "scheduled_rounds": 16,
+      "transcript_path": "continuation/c4/slab-dev-05/N/final-transcript.json",
+      "transcript_sha256": "2d9d5de53a2fc97f46a5455ee0db40f19c7d2c5a1dd44cea232644056c97bd45"
+    },
+    {
+      "arm": "T",
+      "complete": false,
+      "episode": "slab-dev-02",
+      "final_integration": null,
+      "final_success": null,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-02/T.json",
+      "hf_final_transcript_sha256": "b07a548fb84250554b37939e54375ac50656216d9af7e78c8526d8339abaf31d",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 168.11173103026817,
+        "calls": 11,
+        "decode_tok_s": 12.717505218832487,
+        "executed_responses": 0,
+        "executed_tools": 0,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-02",
+            "first_retirement_round": 10,
+            "prior_100_300_bodies": 2,
+            "prior_own_tokens": 4182,
+            "ten_body_pressure_met": false
+          }
+        ],
+        "in_100_300": 2,
+        "max_context": 6468,
+        "multi_function_reemissions": [],
+        "output_tokens": 4700,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 373.0225483649847,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [
+            {
+              "compliant": false,
+              "episode": "slab-dev-02",
+              "widths": []
+            }
+          ],
+          "eligible_edits": 0,
+          "executed_edits": 0,
+          "parsed_edit_attempts": 0,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 1,
+          "required": 1
+        },
+        "seconds_per_call": 33.91114076045315,
+        "stale_execution_rounds": 0,
+        "tolerances": {},
+        "truncated": 5,
+        "violations": {
+          "breakage": 11,
+          "format": 11,
+          "language": 0,
+          "process": 0,
+          "semantic": 0,
+          "style": 0,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": "a48cacb1ea4fdcb7e6928ff2eed82764ee42c94498182e85be4107f36ece07f1",
+      "retained_history_sha256": "471864bf35377a1e6403e044ac5aa6f51a178b456beacb0b67979d1b8c49427e",
+      "rounds": 11,
+      "scheduled_rounds": 16,
+      "transcript_path": "continuation/c4/slab-dev-02/T/final-transcript.json",
+      "transcript_sha256": "471864bf35377a1e6403e044ac5aa6f51a178b456beacb0b67979d1b8c49427e"
+    },
+    {
+      "arm": "T",
+      "complete": false,
+      "episode": "slab-dev-03",
+      "final_integration": null,
+      "final_success": null,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-03/T.json",
+      "hf_final_transcript_sha256": "7d0e8d065d1389619a580653703e4ad0884d539811db28633cb298668ef398be",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 82.30321129801001,
+        "calls": 11,
+        "decode_tok_s": 10.867876451940798,
+        "executed_responses": 11,
+        "executed_tools": 22,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-03",
+            "first_retirement_round": 10,
+            "prior_100_300_bodies": 10,
+            "prior_own_tokens": 2080,
+            "ten_body_pressure_met": true
+          }
+        ],
+        "in_100_300": 11,
+        "max_context": 6116,
+        "multi_function_reemissions": [],
+        "output_tokens": 2301,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 216.47754186103703,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [
+            {
+              "compliant": false,
+              "episode": "slab-dev-03",
+              "widths": [
+                4,
+                4
+              ]
+            }
+          ],
+          "eligible_edits": 1,
+          "executed_edits": 1,
+          "parsed_edit_attempts": 1,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 1,
+          "required": 1
+        },
+        "seconds_per_call": 19.67977653282155,
+        "stale_execution_rounds": 0,
+        "tolerances": {
+          "test_path": 11
+        },
+        "truncated": 0,
+        "violations": {
+          "breakage": 0,
+          "format": 11,
+          "language": 0,
+          "process": 4,
+          "semantic": 0,
+          "style": 11,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": "ba61fcde1db7400294f9e549c256516b95c9763b3e38c27888bb4c5997498473",
+      "retained_history_sha256": "f0f2bf74d5585a80d1008e5428d2910bd3a6ef82910b039aa1cf12aaac1034ac",
+      "rounds": 11,
+      "scheduled_rounds": 16,
+      "transcript_path": "continuation/c4/slab-dev-03/T/final-transcript.json",
+      "transcript_sha256": "f0f2bf74d5585a80d1008e5428d2910bd3a6ef82910b039aa1cf12aaac1034ac"
+    },
+    {
+      "arm": "T",
+      "complete": false,
+      "episode": "slab-dev-04",
+      "final_integration": null,
+      "final_success": null,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-04/T.json",
+      "hf_final_transcript_sha256": "8830c205b86590bb1a40fb57ec8b6dedf5f1147a403ffac89dff21ee05267fe6",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 90.49418712905924,
+        "calls": 11,
+        "decode_tok_s": 10.830245584033964,
+        "executed_responses": 1,
+        "executed_tools": 2,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-04",
+            "first_retirement_round": 10,
+            "prior_100_300_bodies": 10,
+            "prior_own_tokens": 2275,
+            "ten_body_pressure_met": true
+          }
+        ],
+        "in_100_300": 11,
+        "max_context": 4843,
+        "multi_function_reemissions": [],
+        "output_tokens": 2530,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 238.9346851119917,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [
+            {
+              "compliant": false,
+              "episode": "slab-dev-04",
+              "widths": []
+            }
+          ],
+          "eligible_edits": 0,
+          "executed_edits": 0,
+          "parsed_edit_attempts": 0,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 1,
+          "required": 1
+        },
+        "seconds_per_call": 21.721335010181065,
+        "stale_execution_rounds": 0,
+        "tolerances": {
+          "test_path": 1
+        },
+        "truncated": 0,
+        "violations": {
+          "breakage": 11,
+          "format": 11,
+          "language": 0,
+          "process": 0,
+          "semantic": 0,
+          "style": 1,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": "ffb4a67e7884e822ac9b86857d5cd9a6bc05f4fb9d0c7b86eaada9f31c2557ae",
+      "retained_history_sha256": "b1f9b0fc894a6c454cd35f88850a89ca0c5c65b72387bb160c24c11779acef97",
+      "rounds": 11,
+      "scheduled_rounds": 16,
+      "transcript_path": "continuation/c4/slab-dev-04/T/final-transcript.json",
+      "transcript_sha256": "b1f9b0fc894a6c454cd35f88850a89ca0c5c65b72387bb160c24c11779acef97"
+    },
+    {
+      "arm": "T",
+      "complete": false,
+      "episode": "slab-dev-05",
+      "final_integration": null,
+      "final_success": null,
+      "hf_final_transcript_path": "hf-transcripts/slab-dev-05/T.json",
+      "hf_final_transcript_sha256": "2b8e81095d984ac2b2fd930f04aba909b4aa505f162bf5c4bbe6f04d6a719fdc",
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 179.91532065579761,
+        "calls": 11,
+        "decode_tok_s": 13.164827505971259,
+        "executed_responses": 0,
+        "executed_tools": 0,
+        "first_retirement_pressure": [
+          {
+            "episode": "slab-dev-05",
+            "first_retirement_round": 10,
+            "prior_100_300_bodies": 1,
+            "prior_own_tokens": 4514,
+            "ten_body_pressure_met": false
+          }
+        ],
+        "in_100_300": 1,
+        "max_context": 6716,
+        "multi_function_reemissions": [],
+        "output_tokens": 5030,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 387.5617423129879,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [
+            {
+              "compliant": false,
+              "episode": "slab-dev-05",
+              "widths": []
+            }
+          ],
+          "eligible_edits": 0,
+          "executed_edits": 0,
+          "parsed_edit_attempts": 0,
+          "raw_prefix_compliant_edits": 1,
+          "raw_prefix_eligible_edits": 1,
+          "required": 1
+        },
+        "seconds_per_call": 35.23288566481708,
+        "stale_execution_rounds": 0,
+        "tolerances": {},
+        "truncated": 7,
+        "violations": {
+          "breakage": 11,
+          "format": 11,
+          "language": 0,
+          "process": 0,
+          "semantic": 0,
+          "style": 0,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": "2b5ce217c8bec98af3e5a91ca369046221266cedc6b1904399f8e04d8f1f24bf",
+      "retained_history_sha256": "50bfa1e86884b2f6c9bc08382f847065ad727746daf42f4062271f818c657352",
+      "rounds": 11,
+      "scheduled_rounds": 16,
+      "transcript_path": "continuation/c4/slab-dev-05/T/final-transcript.json",
+      "transcript_sha256": "50bfa1e86884b2f6c9bc08382f847065ad727746daf42f4062271f818c657352"
+    },
+    {
+      "arm": "O",
+      "complete": false,
+      "episode": "slab-dev-00",
+      "final_integration": null,
+      "final_success": null,
+      "hf_final_transcript_path": null,
+      "hf_final_transcript_sha256": null,
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 0.0,
+        "calls": 0,
+        "decode_tok_s": null,
+        "executed_responses": 0,
+        "executed_tools": 0,
+        "first_retirement_pressure": [],
+        "in_100_300": 0,
+        "max_context": null,
+        "multi_function_reemissions": [],
+        "output_tokens": 0,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 0,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [],
+          "eligible_edits": 0,
+          "executed_edits": 0,
+          "parsed_edit_attempts": 0,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 0,
+          "required": 0
+        },
+        "seconds_per_call": null,
+        "stale_execution_rounds": 0,
+        "tolerances": {},
+        "truncated": 0,
+        "violations": {
+          "breakage": 0,
+          "format": 0,
+          "language": 0,
+          "process": 0,
+          "semantic": 0,
+          "style": 0,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": null,
+      "retained_history_sha256": null,
+      "rounds": 0,
+      "scheduled_rounds": 16,
+      "status": "UNRUN",
+      "transcript_path": null,
+      "transcript_sha256": null
+    },
+    {
+      "arm": "O",
+      "complete": false,
+      "episode": "slab-dev-01",
+      "final_integration": null,
+      "final_success": null,
+      "hf_final_transcript_path": null,
+      "hf_final_transcript_sha256": null,
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 0.0,
+        "calls": 0,
+        "decode_tok_s": null,
+        "executed_responses": 0,
+        "executed_tools": 0,
+        "first_retirement_pressure": [],
+        "in_100_300": 0,
+        "max_context": null,
+        "multi_function_reemissions": [],
+        "output_tokens": 0,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 0,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [],
+          "eligible_edits": 0,
+          "executed_edits": 0,
+          "parsed_edit_attempts": 0,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 0,
+          "required": 0
+        },
+        "seconds_per_call": null,
+        "stale_execution_rounds": 0,
+        "tolerances": {},
+        "truncated": 0,
+        "violations": {
+          "breakage": 0,
+          "format": 0,
+          "language": 0,
+          "process": 0,
+          "semantic": 0,
+          "style": 0,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": null,
+      "retained_history_sha256": null,
+      "rounds": 0,
+      "scheduled_rounds": 16,
+      "status": "UNRUN",
+      "transcript_path": null,
+      "transcript_sha256": null
+    },
+    {
+      "arm": "O",
+      "complete": false,
+      "episode": "slab-dev-02",
+      "final_integration": null,
+      "final_success": null,
+      "hf_final_transcript_path": null,
+      "hf_final_transcript_sha256": null,
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 0.0,
+        "calls": 0,
+        "decode_tok_s": null,
+        "executed_responses": 0,
+        "executed_tools": 0,
+        "first_retirement_pressure": [],
+        "in_100_300": 0,
+        "max_context": null,
+        "multi_function_reemissions": [],
+        "output_tokens": 0,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 0,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [],
+          "eligible_edits": 0,
+          "executed_edits": 0,
+          "parsed_edit_attempts": 0,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 0,
+          "required": 0
+        },
+        "seconds_per_call": null,
+        "stale_execution_rounds": 0,
+        "tolerances": {},
+        "truncated": 0,
+        "violations": {
+          "breakage": 0,
+          "format": 0,
+          "language": 0,
+          "process": 0,
+          "semantic": 0,
+          "style": 0,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": null,
+      "retained_history_sha256": null,
+      "rounds": 0,
+      "scheduled_rounds": 16,
+      "status": "UNRUN",
+      "transcript_path": null,
+      "transcript_sha256": null
+    },
+    {
+      "arm": "O",
+      "complete": false,
+      "episode": "slab-dev-03",
+      "final_integration": null,
+      "final_success": null,
+      "hf_final_transcript_path": null,
+      "hf_final_transcript_sha256": null,
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 0.0,
+        "calls": 0,
+        "decode_tok_s": null,
+        "executed_responses": 0,
+        "executed_tools": 0,
+        "first_retirement_pressure": [],
+        "in_100_300": 0,
+        "max_context": null,
+        "multi_function_reemissions": [],
+        "output_tokens": 0,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 0,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [],
+          "eligible_edits": 0,
+          "executed_edits": 0,
+          "parsed_edit_attempts": 0,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 0,
+          "required": 0
+        },
+        "seconds_per_call": null,
+        "stale_execution_rounds": 0,
+        "tolerances": {},
+        "truncated": 0,
+        "violations": {
+          "breakage": 0,
+          "format": 0,
+          "language": 0,
+          "process": 0,
+          "semantic": 0,
+          "style": 0,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": null,
+      "retained_history_sha256": null,
+      "rounds": 0,
+      "scheduled_rounds": 16,
+      "status": "UNRUN",
+      "transcript_path": null,
+      "transcript_sha256": null
+    },
+    {
+      "arm": "O",
+      "complete": false,
+      "episode": "slab-dev-04",
+      "final_integration": null,
+      "final_success": null,
+      "hf_final_transcript_path": null,
+      "hf_final_transcript_sha256": null,
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 0.0,
+        "calls": 0,
+        "decode_tok_s": null,
+        "executed_responses": 0,
+        "executed_tools": 0,
+        "first_retirement_pressure": [],
+        "in_100_300": 0,
+        "max_context": null,
+        "multi_function_reemissions": [],
+        "output_tokens": 0,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 0,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [],
+          "eligible_edits": 0,
+          "executed_edits": 0,
+          "parsed_edit_attempts": 0,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 0,
+          "required": 0
+        },
+        "seconds_per_call": null,
+        "stale_execution_rounds": 0,
+        "tolerances": {},
+        "truncated": 0,
+        "violations": {
+          "breakage": 0,
+          "format": 0,
+          "language": 0,
+          "process": 0,
+          "semantic": 0,
+          "style": 0,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": null,
+      "retained_history_sha256": null,
+      "rounds": 0,
+      "scheduled_rounds": 16,
+      "status": "UNRUN",
+      "transcript_path": null,
+      "transcript_sha256": null
+    },
+    {
+      "arm": "O",
+      "complete": false,
+      "episode": "slab-dev-05",
+      "final_integration": null,
+      "final_success": null,
+      "hf_final_transcript_path": null,
+      "hf_final_transcript_sha256": null,
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 0.0,
+        "calls": 0,
+        "decode_tok_s": null,
+        "executed_responses": 0,
+        "executed_tools": 0,
+        "first_retirement_pressure": [],
+        "in_100_300": 0,
+        "max_context": null,
+        "multi_function_reemissions": [],
+        "output_tokens": 0,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 0,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [],
+          "eligible_edits": 0,
+          "executed_edits": 0,
+          "parsed_edit_attempts": 0,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 0,
+          "required": 0
+        },
+        "seconds_per_call": null,
+        "stale_execution_rounds": 0,
+        "tolerances": {},
+        "truncated": 0,
+        "violations": {
+          "breakage": 0,
+          "format": 0,
+          "language": 0,
+          "process": 0,
+          "semantic": 0,
+          "style": 0,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": null,
+      "retained_history_sha256": null,
+      "rounds": 0,
+      "scheduled_rounds": 16,
+      "status": "UNRUN",
+      "transcript_path": null,
+      "transcript_sha256": null
+    },
+    {
+      "arm": "O",
+      "complete": false,
+      "episode": "slab-dev-06",
+      "final_integration": null,
+      "final_success": null,
+      "hf_final_transcript_path": null,
+      "hf_final_transcript_sha256": null,
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 0.0,
+        "calls": 0,
+        "decode_tok_s": null,
+        "executed_responses": 0,
+        "executed_tools": 0,
+        "first_retirement_pressure": [],
+        "in_100_300": 0,
+        "max_context": null,
+        "multi_function_reemissions": [],
+        "output_tokens": 0,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 0,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [],
+          "eligible_edits": 0,
+          "executed_edits": 0,
+          "parsed_edit_attempts": 0,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 0,
+          "required": 0
+        },
+        "seconds_per_call": null,
+        "stale_execution_rounds": 0,
+        "tolerances": {},
+        "truncated": 0,
+        "violations": {
+          "breakage": 0,
+          "format": 0,
+          "language": 0,
+          "process": 0,
+          "semantic": 0,
+          "style": 0,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": null,
+      "retained_history_sha256": null,
+      "rounds": 0,
+      "scheduled_rounds": 32,
+      "status": "UNRUN",
+      "transcript_path": null,
+      "transcript_sha256": null
+    },
+    {
+      "arm": "O",
+      "complete": false,
+      "episode": "slab-dev-07",
+      "final_integration": null,
+      "final_success": null,
+      "hf_final_transcript_path": null,
+      "hf_final_transcript_sha256": null,
+      "metrics": {
+        "allocated_schedule_gpu_seconds": 0.0,
+        "calls": 0,
+        "decode_tok_s": null,
+        "executed_responses": 0,
+        "executed_tools": 0,
+        "first_retirement_pressure": [],
+        "in_100_300": 0,
+        "max_context": null,
+        "multi_function_reemissions": [],
+        "output_tokens": 0,
+        "python_literal_bool_rejections": [],
+        "relapse": {
+          "format": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "language": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "process": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          },
+          "style": {
+            "denominator": 0,
+            "numerator": 0,
+            "opportunity_episodes": [],
+            "relapsing_episodes": []
+          }
+        },
+        "request_seconds": 0,
+        "round0_indent": {
+          "compliant": 0,
+          "compliant_edits": 0,
+          "details": [],
+          "eligible_edits": 0,
+          "executed_edits": 0,
+          "parsed_edit_attempts": 0,
+          "raw_prefix_compliant_edits": 0,
+          "raw_prefix_eligible_edits": 0,
+          "required": 0
+        },
+        "seconds_per_call": null,
+        "stale_execution_rounds": 0,
+        "tolerances": {},
+        "truncated": 0,
+        "violations": {
+          "breakage": 0,
+          "format": 0,
+          "language": 0,
+          "process": 0,
+          "semantic": 0,
+          "style": 0,
+          "wrong_family": 0
+        },
+        "wrong_skill_rounds": 0
+      },
+      "output_sha256": null,
+      "retained_history_sha256": null,
+      "rounds": 0,
+      "scheduled_rounds": 32,
+      "status": "UNRUN",
+      "transcript_path": null,
+      "transcript_sha256": null
+    }
+  ],
+  "failures": [
+    "incomplete required R/N/T DEV trajectories",
+    "R round0 indentation <50% or incomplete",
+    "R executed-call rate <90%",
+    "R truncation >2%",
+    "N executed-call rate <90%",
+    "N truncation >2%",
+    "T executed-call rate <90%",
+    "T truncation >2%",
+    "R final success <5/8",
+    "registered projection >12h even setting unmeasured O cost to zero",
+    "check45 HF teacher-forced recovery cost unmeasured (prewritten full-cost condition)"
+  ],
+  "output_band": "100-300 diagnostic, unchanged",
+  "per_arm": {
+    "N": {
+      "allocated_schedule_gpu_seconds": 2317.1519488516665,
+      "calls": 160,
+      "decode_tok_s": 10.769500498667364,
+      "executed_responses": 49,
+      "executed_tools": 102,
+      "first_retirement_pressure": [
+        {
+          "episode": "slab-dev-00",
+          "first_retirement_round": 10,
+          "prior_100_300_bodies": 0,
+          "prior_own_tokens": 4823,
+          "ten_body_pressure_met": false
+        },
+        {
+          "episode": "slab-dev-01",
+          "first_retirement_round": 10,
+          "prior_100_300_bodies": 2,
+          "prior_own_tokens": 4033,
+          "ten_body_pressure_met": false
+        },
+        {
+          "episode": "slab-dev-02",
+          "first_retirement_round": 10,
+          "prior_100_300_bodies": 0,
+          "prior_own_tokens": 4927,
+          "ten_body_pressure_met": false
+        },
+        {
+          "episode": "slab-dev-03",
+          "first_retirement_round": 10,
+          "prior_100_300_bodies": 10,
+          "prior_own_tokens": 2426,
+          "ten_body_pressure_met": true
+        },
+        {
+          "episode": "slab-dev-04",
+          "first_retirement_round": 10,
+          "prior_100_300_bodies": 0,
+          "prior_own_tokens": 4580,
+          "ten_body_pressure_met": false
+        },
+        {
+          "episode": "slab-dev-05",
+          "first_retirement_round": 10,
+          "prior_100_300_bodies": 4,
+          "prior_own_tokens": 3277,
+          "ten_body_pressure_met": false
+        },
+        {
+          "episode": "slab-dev-06",
+          "first_retirement_round": 13,
+          "prior_100_300_bodies": 1,
+          "prior_own_tokens": 6235,
+          "ten_body_pressure_met": false
+        },
+        {
+          "episode": "slab-dev-07",
+          "first_retirement_round": 17,
+          "prior_100_300_bodies": 16,
+          "prior_own_tokens": 4220,
+          "ten_body_pressure_met": true
+        }
+      ],
+      "in_100_300": 54,
+      "max_context": 20348,
+      "multi_function_reemissions": [
+        {
+          "episode": "slab-dev-01",
+          "names": [
+            "step_0",
+            "step_0"
+          ],
+          "op": "attempted edits/replaces",
+          "round": 0
+        },
+        {
+          "episode": "slab-dev-07",
+          "names": [
+            "step_0",
+            "step_0"
+          ],
+          "op": "attempted edits/replaces",
+          "round": 0
+        },
+        {
+          "episode": "slab-dev-01",
+          "names": [
+            "step_0",
+            "step_1"
+          ],
+          "op": "attempted edits/replaces",
+          "round": 1
+        },
+        {
+          "episode": "slab-dev-06",
+          "names": [
+            "step_0",
+            "step_1"
+          ],
+          "op": "attempted edits/replaces",
+          "round": 1
+        },
+        {
+          "episode": "slab-dev-00",
+          "names": [
+            "step_0",
+            "step_1"
+          ],
+          "op": "attempted edits/replaces",
+          "round": 1
+        },
+        {
+          "episode": "slab-dev-01",
+          "names": [
+            "step_0",
+            "step_1",
+            "step_2"
+          ],
+          "op": "attempted edits/replaces",
+          "round": 2
+        },
+        {
+          "episode": "slab-dev-06",
+          "names": [
+            "step_0",
+            "step_1",
+            "step_2"
+          ],
+          "op": "attempted edits/replaces",
+          "round": 2
+        },
+        {
+          "episode": "slab-dev-01",
+          "names": [
+            "step_0",
+            "step_3"
+          ],
+          "op": "attempted edits/replaces",
+          "round": 3
+        },
+        {
+          "episode": "slab-dev-00",
+          "names": [
+            "step_0",
+            "step_3"
+          ],
+          "op": "attempted edits/replaces",
+          "round": 3
+        },
+        {
+          "episode": "slab-dev-01",
+          "names": [
+            "step_0",
+            "step_3",
+            "step_4"
+          ],
+          "op": "attempted edits/replaces",
+          "round": 4
+        },
+        {
+          "episode": "slab-dev-01",
+          "names": [
+            "step_0",
+            "step_3",
+            "step_4",
+            "step_5"
+          ],
+          "op": "attempted edits/replaces",
+          "round": 5
+        },
+        {
+          "episode": "slab-dev-01",
+          "names": [
+            "step_0",
+            "step_1",
+            "step_2",
+            "step_6"
+          ],
+          "op": "attempted edits/replaces",
+          "round": 6
+        },
+        {
+          "episode": "slab-dev-04",
+          "names": [
+            "step_0",
+            "step_0"
+          ],
+          "op": "attempted edits/replaces",
+          "round": 0
+        },
+        {
+          "episode": "slab-dev-04",
+          "names": [
+            "step_0",
+            "step_1"
+          ],
+          "op": "attempted edits/replaces",
+          "round": 1
+        },
+        {
+          "episode": "slab-dev-04",
+          "names": [
+            "step_0",
+            "step_1",
+            "step_2"
+          ],
+          "op": "attempted edits/replaces",
+          "round": 2
+        },
+        {
+          "episode": "slab-dev-04",
+          "names": [
+            "step_0",
+            "step_4"
+          ],
+          "op": "attempted edits/replaces",
+          "round": 4
+        },
+        {
+          "episode": "slab-dev-04",
+          "names": [
+            "step_0",
+            "step_4",
+            "step_5"
+          ],
+          "op": "attempted edits/replaces",
+          "round": 5
+        }
+      ],
+      "output_tokens": 64782,
+      "python_literal_bool_rejections": [],
+      "relapse": {
+        "format": {
+          "denominator": 44,
+          "numerator": 0,
+          "opportunity_episodes": [
+            "slab-dev-00",
+            "slab-dev-01",
+            "slab-dev-04",
+            "slab-dev-06",
+            "slab-dev-07"
+          ],
+          "relapsing_episodes": []
+        },
+        "language": {
+          "denominator": 0,
+          "numerator": 0,
+          "opportunity_episodes": [],
+          "relapsing_episodes": []
+        },
+        "process": {
+          "denominator": 39,
+          "numerator": 11,
+          "opportunity_episodes": [
+            "slab-dev-00",
+            "slab-dev-04",
+            "slab-dev-06",
+            "slab-dev-07"
+          ],
+          "relapsing_episodes": [
+            "slab-dev-07"
+          ]
+        },
+        "style": {
+          "denominator": 26,
+          "numerator": 7,
+          "opportunity_episodes": [
+            "slab-dev-06",
+            "slab-dev-07"
+          ],
+          "relapsing_episodes": [
+            "slab-dev-07"
+          ]
+        }
+      },
+      "request_seconds": 6084.136509937933,
+      "round0_indent": {
+        "compliant": 2,
+        "compliant_edits": 3,
+        "details": [
+          {
+            "compliant": true,
+            "episode": "slab-dev-06",
+            "widths": [
+              4,
+              4,
+              4
+            ]
+          },
+          {
+            "compliant": false,
+            "episode": "slab-dev-01",
+            "widths": [
+              4,
+              4
+            ]
+          },
+          {
+            "compliant": true,
+            "episode": "slab-dev-07",
+            "widths": [
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          {
+            "compliant": false,
+            "episode": "slab-dev-00",
+            "widths": []
+          },
+          {
+            "compliant": false,
+            "episode": "slab-dev-05",
+            "widths": []
+          },
+          {
+            "compliant": false,
+            "episode": "slab-dev-03",
+            "widths": []
+          },
+          {
+            "compliant": false,
+            "episode": "slab-dev-04",
+            "widths": [
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          {
+            "compliant": false,
+            "episode": "slab-dev-02",
+            "widths": []
+          }
+        ],
+        "eligible_edits": 7,
+        "executed_edits": 8,
+        "parsed_edit_attempts": 8,
+        "raw_prefix_compliant_edits": 3,
+        "raw_prefix_eligible_edits": 11,
+        "required": 8
+      },
+      "seconds_per_call": 38.02585318711208,
+      "stale_execution_rounds": 13,
+      "tolerances": {
+        "test_path": 42
+      },
+      "truncated": 82,
+      "violations": {
+        "breakage": 133,
+        "format": 160,
+        "language": 7,
+        "process": 32,
+        "semantic": 0,
+        "style": 21,
+        "wrong_family": 6
+      },
+      "wrong_skill_rounds": 6
+    },
+    "O": {
+      "allocated_schedule_gpu_seconds": 0.0,
+      "calls": 0,
+      "decode_tok_s": null,
+      "executed_responses": 0,
+      "executed_tools": 0,
+      "first_retirement_pressure": [],
+      "in_100_300": 0,
+      "max_context": null,
+      "multi_function_reemissions": [],
+      "output_tokens": 0,
+      "python_literal_bool_rejections": [],
+      "relapse": {
+        "format": {
+          "denominator": 0,
+          "numerator": 0,
+          "opportunity_episodes": [],
+          "relapsing_episodes": []
+        },
+        "language": {
+          "denominator": 0,
+          "numerator": 0,
+          "opportunity_episodes": [],
+          "relapsing_episodes": []
+        },
+        "process": {
+          "denominator": 0,
+          "numerator": 0,
+          "opportunity_episodes": [],
+          "relapsing_episodes": []
+        },
+        "style": {
+          "denominator": 0,
+          "numerator": 0,
+          "opportunity_episodes": [],
+          "relapsing_episodes": []
+        }
+      },
+      "request_seconds": 0,
+      "round0_indent": {
+        "compliant": 0,
+        "compliant_edits": 0,
+        "details": [],
+        "eligible_edits": 0,
+        "executed_edits": 0,
+        "parsed_edit_attempts": 0,
+        "raw_prefix_compliant_edits": 0,
+        "raw_prefix_eligible_edits": 0,
+        "required": 0
+      },
+      "seconds_per_call": null,
+      "stale_execution_rounds": 0,
+      "tolerances": {},
+      "truncated": 0,
+      "violations": {
+        "breakage": 0,
+        "format": 0,
+        "language": 0,
+        "process": 0,
+        "semantic": 0,
+        "style": 0,
+        "wrong_family": 0
+      },
+      "wrong_skill_rounds": 0
+    },
+    "R": {
+      "allocated_schedule_gpu_seconds": 2072.638801336153,
+      "calls": 160,
+      "decode_tok_s": 10.459964922293182,
+      "executed_responses": 53,
+      "executed_tools": 106,
+      "first_retirement_pressure": [
+        {
+          "episode": "slab-dev-00",
+          "first_retirement_round": 10,
+          "prior_100_300_bodies": 0,
+          "prior_own_tokens": 4834,
+          "ten_body_pressure_met": false
+        },
+        {
+          "episode": "slab-dev-01",
+          "first_retirement_round": 10,
+          "prior_100_300_bodies": 10,
+          "prior_own_tokens": 2227,
+          "ten_body_pressure_met": true
+        },
+        {
+          "episode": "slab-dev-02",
+          "first_retirement_round": 10,
+          "prior_100_300_bodies": 9,
+          "prior_own_tokens": 2702,
+          "ten_body_pressure_met": false
+        },
+        {
+          "episode": "slab-dev-03",
+          "first_retirement_round": 10,
+          "prior_100_300_bodies": 10,
+          "prior_own_tokens": 2405,
+          "ten_body_pressure_met": true
+        },
+        {
+          "episode": "slab-dev-04",
+          "first_retirement_round": 10,
+          "prior_100_300_bodies": 1,
+          "prior_own_tokens": 3644,
+          "ten_body_pressure_met": false
+        },
+        {
+          "episode": "slab-dev-05",
+          "first_retirement_round": 10,
+          "prior_100_300_bodies": 0,
+          "prior_own_tokens": 5049,
+          "ten_body_pressure_met": false
+        },
+        {
+          "episode": "slab-dev-06",
+          "first_retirement_round": 13,
+          "prior_100_300_bodies": 0,
+          "prior_own_tokens": 6541,
+          "ten_body_pressure_met": false
+        },
+        {
+          "episode": "slab-dev-07",
+          "first_retirement_round": 17,
+          "prior_100_300_bodies": 17,
+          "prior_own_tokens": 4040,
+          "ten_body_pressure_met": true
+        }
+      ],
+      "in_100_300": 79,
+      "max_context": 31949,
+      "multi_function_reemissions": [
+        {
+          "episode": "slab-dev-00",
+          "names": [
+            "step_3",
+            "step_4"
+          ],
+          "op": "attempted edits/replaces",
+          "round": 4
+        }
+      ],
+      "output_tokens": 57946,
+      "python_literal_bool_rejections": [],
+      "relapse": {
+        "format": {
+          "denominator": 44,
+          "numerator": 0,
+          "opportunity_episodes": [
+            "slab-dev-00",
+            "slab-dev-01",
+            "slab-dev-04",
+            "slab-dev-06",
+            "slab-dev-07"
+          ],
+          "relapsing_episodes": []
+        },
+        "language": {
+          "denominator": 0,
+          "numerator": 0,
+          "opportunity_episodes": [],
+          "relapsing_episodes": []
+        },
+        "process": {
+          "denominator": 0,
+          "numerator": 0,
+          "opportunity_episodes": [],
+          "relapsing_episodes": []
+        },
+        "style": {
+          "denominator": 29,
+          "numerator": 7,
+          "opportunity_episodes": [
+            "slab-dev-01",
+            "slab-dev-06",
+            "slab-dev-07"
+          ],
+          "relapsing_episodes": [
+            "slab-dev-07"
+          ]
+        }
+      },
+      "request_seconds": 5735.012092570047,
+      "round0_indent": {
+        "compliant": 2,
+        "compliant_edits": 2,
+        "details": [
+          {
+            "compliant": false,
+            "episode": "slab-dev-01",
+            "widths": [
+              4
+            ]
+          },
+          {
+            "compliant": true,
+            "episode": "slab-dev-07",
+            "widths": [
+              4,
+              4
+            ]
+          },
+          {
+            "compliant": true,
+            "episode": "slab-dev-06",
+            "widths": [
+              4,
+              4,
+              4
+            ]
+          },
+          {
+            "compliant": false,
+            "episode": "slab-dev-00",
+            "widths": [
+              4,
+              4
+            ]
+          },
+          {
+            "compliant": false,
+            "episode": "slab-dev-03",
+            "widths": []
+          },
+          {
+            "compliant": false,
+            "episode": "slab-dev-02",
+            "widths": []
+          },
+          {
+            "compliant": false,
+            "episode": "slab-dev-04",
+            "widths": []
+          },
+          {
+            "compliant": false,
+            "episode": "slab-dev-05",
+            "widths": []
+          }
+        ],
+        "eligible_edits": 4,
+        "executed_edits": 5,
+        "parsed_edit_attempts": 5,
+        "raw_prefix_compliant_edits": 2,
+        "raw_prefix_eligible_edits": 8,
+        "required": 8
+      },
+      "seconds_per_call": 35.84382557856279,
+      "stale_execution_rounds": 7,
+      "tolerances": {
+        "test_path": 52
+      },
+      "truncated": 59,
+      "violations": {
+        "breakage": 140,
+        "format": 160,
+        "language": 7,
+        "process": 46,
+        "semantic": 0,
+        "style": 22,
+        "wrong_family": 1
+      },
+      "wrong_skill_rounds": 1
+    },
+    "T": {
+      "allocated_schedule_gpu_seconds": 1780.3390000639506,
+      "calls": 140,
+      "decode_tok_s": 11.757526514005956,
+      "executed_responses": 65,
+      "executed_tools": 130,
+      "first_retirement_pressure": [
+        {
+          "episode": "slab-dev-00",
+          "first_retirement_round": 10,
+          "prior_100_300_bodies": 10,
+          "prior_own_tokens": 2210,
+          "ten_body_pressure_met": true
+        },
+        {
+          "episode": "slab-dev-01",
+          "first_retirement_round": 10,
+          "prior_100_300_bodies": 1,
+          "prior_own_tokens": 4709,
+          "ten_body_pressure_met": false
+        },
+        {
+          "episode": "slab-dev-02",
+          "first_retirement_round": 10,
+          "prior_100_300_bodies": 2,
+          "prior_own_tokens": 4182,
+          "ten_body_pressure_met": false
+        },
+        {
+          "episode": "slab-dev-03",
+          "first_retirement_round": 10,
+          "prior_100_300_bodies": 10,
+          "prior_own_tokens": 2080,
+          "ten_body_pressure_met": true
+        },
+        {
+          "episode": "slab-dev-04",
+          "first_retirement_round": 10,
+          "prior_100_300_bodies": 10,
+          "prior_own_tokens": 2275,
+          "ten_body_pressure_met": true
+        },
+        {
+          "episode": "slab-dev-05",
+          "first_retirement_round": 10,
+          "prior_100_300_bodies": 1,
+          "prior_own_tokens": 4514,
+          "ten_body_pressure_met": false
+        },
+        {
+          "episode": "slab-dev-06",
+          "first_retirement_round": 13,
+          "prior_100_300_bodies": 1,
+          "prior_own_tokens": 6191,
+          "ten_body_pressure_met": false
+        },
+        {
+          "episode": "slab-dev-07",
+          "first_retirement_round": 17,
+          "prior_100_300_bodies": 17,
+          "prior_own_tokens": 4182,
+          "ten_body_pressure_met": true
+        }
+      ],
+      "in_100_300": 75,
+      "max_context": 21233,
+      "multi_function_reemissions": [],
+      "output_tokens": 49774,
+      "python_literal_bool_rejections": [],
+      "relapse": {
+        "format": {
+          "denominator": 25,
+          "numerator": 0,
+          "opportunity_episodes": [
+            "slab-dev-00",
+            "slab-dev-01",
+            "slab-dev-07"
+          ],
+          "relapsing_episodes": []
+        },
+        "language": {
+          "denominator": 0,
+          "numerator": 0,
+          "opportunity_episodes": [],
+          "relapsing_episodes": []
+        },
+        "process": {
+          "denominator": 0,
+          "numerator": 0,
+          "opportunity_episodes": [],
+          "relapsing_episodes": []
+        },
+        "style": {
+          "denominator": 18,
+          "numerator": 7,
+          "opportunity_episodes": [
+            "slab-dev-00",
+            "slab-dev-07"
+          ],
+          "relapsing_episodes": [
+            "slab-dev-07"
+          ]
+        }
+      },
+      "request_seconds": 4303.424169586986,
+      "round0_indent": {
+        "compliant": 2,
+        "compliant_edits": 2,
+        "details": [
+          {
+            "compliant": true,
+            "episode": "slab-dev-00",
+            "widths": [
+              3,
+              3
+            ]
+          },
+          {
+            "compliant": false,
+            "episode": "slab-dev-06",
+            "widths": []
+          },
+          {
+            "compliant": true,
+            "episode": "slab-dev-07",
+            "widths": [
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          {
+            "compliant": false,
+            "episode": "slab-dev-01",
+            "widths": [
+              4,
+              4,
+              4
+            ]
+          },
+          {
+            "compliant": false,
+            "episode": "slab-dev-03",
+            "widths": [
+              4,
+              4
+            ]
+          },
+          {
+            "compliant": false,
+            "episode": "slab-dev-04",
+            "widths": []
+          },
+          {
+            "compliant": false,
+            "episode": "slab-dev-05",
+            "widths": []
+          },
+          {
+            "compliant": false,
+            "episode": "slab-dev-02",
+            "widths": []
+          }
+        ],
+        "eligible_edits": 4,
+        "executed_edits": 4,
+        "parsed_edit_attempts": 4,
+        "raw_prefix_compliant_edits": 4,
+        "raw_prefix_eligible_edits": 8,
+        "required": 8
+      },
+      "seconds_per_call": 30.73874406847847,
+      "stale_execution_rounds": 7,
+      "tolerances": {
+        "test_path": 65
+      },
+      "truncated": 52,
+      "violations": {
+        "breakage": 77,
+        "format": 140,
+        "language": 0,
+        "process": 50,
+        "semantic": 0,
+        "style": 24,
+        "wrong_family": 0
+      },
+      "wrong_skill_rounds": 0
+    }
+  },
+  "reading": "INELIGIBLE",
+  "run": {
+    "deadline": 1788732578.5171783,
+    "end": 1788731609.8379982,
+    "gpu_held_seconds": 7530.967440128326,
+    "launch": {
+      "args": [
+        "docker",
+        "run",
+        "-d",
+        "--name",
+        "stencil-pilot3-continuation-1788726232",
+        "--device",
+        "nvidia.com/gpu=0",
+        "--ipc=host",
+        "-p",
+        "127.0.0.1:18081:8000",
+        "-e",
+        "VLLM_BATCH_INVARIANT=1",
+        "-v",
+        "/home/bmarti44/stencil-llm/models/qwen3-30b-a3b-hf:/model:ro",
+        "vllm/vllm-openai@sha256:3dbe092ec5b2cef63b6104d33fa75d6ce53a7870962529ada69f78bbbc38e776",
+        "--attention-backend",
+        "TRITON_ATTN",
+        "--model",
+        "/model",
+        "--dtype",
+        "bfloat16",
+        "--kv-cache-dtype",
+        "auto",
+        "--tensor-parallel-size",
+        "1",
+        "--max-model-len",
+        "32768",
+        "--max-num-seqs",
+        "4",
+        "--max-num-batched-tokens",
+        "2048",
+        "--gpu-memory-utilization",
+        "0.70",
+        "--enable-prefix-caching",
+        "--generation-config",
+        "vllm"
+      ],
+      "output": "a715522233080edf4dc2becd1cb9d64c6a3fa3361dfca2c1bd292bf6eea2ddf4\n",
+      "returncode": 0
+    },
+    "load_seconds": 428.53555130958557,
+    "occupancy": {
+      "args": [
+        "nvidia-smi",
+        "--query-compute-apps=pid,process_name",
+        "--format=csv,noheader"
+      ],
+      "output": "",
+      "returncode": 0
+    },
+    "phase_runs": [
+      {
+        "deadline": 1788732518.8932993,
+        "end": 1788726173.23731,
+        "gpu_held_seconds": 2153.9906306266785,
+        "launch": {
+          "args": [
+            "docker",
+            "run",
+            "-d",
+            "--name",
+            "stencil-composition-pilot-3-1788724019",
+            "--device",
+            "nvidia.com/gpu=0",
+            "--ipc=host",
+            "-p",
+            "127.0.0.1:18081:8000",
+            "-e",
+            "VLLM_BATCH_INVARIANT=1",
+            "-v",
+            "/home/bmarti44/stencil-llm/models/qwen3-30b-a3b-hf:/model:ro",
+            "vllm/vllm-openai@sha256:3dbe092ec5b2cef63b6104d33fa75d6ce53a7870962529ada69f78bbbc38e776",
+            "--attention-backend",
+            "TRITON_ATTN",
+            "--model",
+            "/model",
+            "--dtype",
+            "bfloat16",
+            "--kv-cache-dtype",
+            "auto",
+            "--tensor-parallel-size",
+            "1",
+            "--max-model-len",
+            "32768",
+            "--max-num-seqs",
+            "4",
+            "--max-num-batched-tokens",
+            "2048",
+            "--gpu-memory-utilization",
+            "0.70",
+            "--enable-prefix-caching",
+            "--generation-config",
+            "vllm"
+          ],
+          "output": "77b53db4d01fb2a604dfd52175e92f7a904b8814879bcc617328778548fc372f\n",
+          "returncode": 0
+        },
+        "load_seconds": 509.48163509368896,
+        "occupancy": {
+          "args": [
+            "nvidia-smi",
+            "--query-compute-apps=pid,process_name",
+            "--format=csv,noheader"
+          ],
+          "output": "",
+          "returncode": 0
+        },
+        "remove": {
+          "args": [
+            "docker",
+            "rm",
+            "stencil-composition-pilot-3-1788724019"
+          ],
+          "output": "stencil-composition-pilot-3-1788724019\n",
+          "returncode": 0
+        },
+        "start": 1788724019.2466795,
+        "status": "finished",
+        "stop": {
+          "args": [
+            "docker",
+            "stop",
+            "-t",
+            "20",
+            "stencil-composition-pilot-3-1788724019"
+          ],
+          "output": "stencil-composition-pilot-3-1788724019\n",
+          "returncode": 0
+        }
+      },
+      {
+        "deadline": 1788732578.5171783,
+        "end": 1788731609.8379982,
+        "gpu_held_seconds": 5376.976809501648,
+        "launch": {
+          "args": [
+            "docker",
+            "run",
+            "-d",
+            "--name",
+            "stencil-pilot3-continuation-1788726232",
+            "--device",
+            "nvidia.com/gpu=0",
+            "--ipc=host",
+            "-p",
+            "127.0.0.1:18081:8000",
+            "-e",
+            "VLLM_BATCH_INVARIANT=1",
+            "-v",
+            "/home/bmarti44/stencil-llm/models/qwen3-30b-a3b-hf:/model:ro",
+            "vllm/vllm-openai@sha256:3dbe092ec5b2cef63b6104d33fa75d6ce53a7870962529ada69f78bbbc38e776",
+            "--attention-backend",
+            "TRITON_ATTN",
+            "--model",
+            "/model",
+            "--dtype",
+            "bfloat16",
+            "--kv-cache-dtype",
+            "auto",
+            "--tensor-parallel-size",
+            "1",
+            "--max-model-len",
+            "32768",
+            "--max-num-seqs",
+            "4",
+            "--max-num-batched-tokens",
+            "2048",
+            "--gpu-memory-utilization",
+            "0.70",
+            "--enable-prefix-caching",
+            "--generation-config",
+            "vllm"
+          ],
+          "output": "a715522233080edf4dc2becd1cb9d64c6a3fa3361dfca2c1bd292bf6eea2ddf4\n",
+          "returncode": 0
+        },
+        "load_seconds": 428.53555130958557,
+        "occupancy": {
+          "args": [
+            "nvidia-smi",
+            "--query-compute-apps=pid,process_name",
+            "--format=csv,noheader"
+          ],
+          "output": "",
+          "returncode": 0
+        },
+        "remove": {
+          "args": [
+            "docker",
+            "rm",
+            "stencil-pilot3-continuation-1788726232"
+          ],
+          "output": "stencil-pilot3-continuation-1788726232\n",
+          "returncode": 0
+        },
+        "start": 1788726232.8611891,
+        "status": "finished",
+        "stop": {
+          "args": [
+            "docker",
+            "stop",
+            "-t",
+            "20",
+            "stencil-pilot3-continuation-1788726232"
+          ],
+          "output": "stencil-pilot3-continuation-1788726232\n",
+          "returncode": 0
+        }
+      }
+    ],
+    "remove": {
+      "args": [
+        "docker",
+        "rm",
+        "stencil-pilot3-continuation-1788726232"
+      ],
+      "output": "stencil-pilot3-continuation-1788726232\n",
+      "returncode": 0
+    },
+    "start": 1788726232.8611891,
+    "status": "finished",
+    "stop": {
+      "args": [
+        "docker",
+        "stop",
+        "-t",
+        "20",
+        "stencil-pilot3-continuation-1788726232"
+      ],
+      "output": "stencil-pilot3-continuation-1788726232\n",
+      "returncode": 0
+    }
+  },
+  "trait_swap": {
+    "aggregate_tok_s": 39.48851647811837,
+    "all_pilot3_gpu_seconds": 8796.277959108353,
+    "claim": "round-zero lexical competence only; no larger eligibility or post-retirement claim",
+    "compliant_edits": 2,
+    "determinism": {
+      "D": 0,
+      "calls": 24,
+      "differences": [],
+      "frozen_indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "frozen_sha256": "09a0025fedc262d52366f0457f8f543d88cee303cbffda3c3d73a8e9a013b71e",
+      "passed": true
+    },
+    "eligible_executed_edits": 2,
+    "episodes": [
+      {
+        "compliant_edits": 1,
+        "compliant_response": true,
+        "eligible_executed_edits": 1,
+        "episode": "slab-dev-01",
+        "executed_tools": 2,
+        "label": "BETA",
+        "observed_docstrings": [
+          "BETA: step_0(x) checks if count >= 8 and enabled is true.\n\n    Input:\n        x (dict): A dictionary containing 'count' and 'enabled' keys.\n\n    Output:\n        bool: True if count >= 8 and enabled is true, False otherwise.\n\n    Boundary/Order Semantics:\n        - If 'count' is not an integer or 'enabled' is not a boolean, the function returns False.\n    "
+        ],
+        "seconds": 20.749939251996693,
+        "tokens": 233,
+        "truncated": false
+      },
+      {
+        "compliant_edits": 0,
+        "compliant_response": false,
+        "eligible_executed_edits": 0,
+        "episode": "slab-dev-07",
+        "executed_tools": 0,
+        "label": "GAMMA",
+        "observed_docstrings": [],
+        "seconds": 23.929350748992874,
+        "tokens": 269,
+        "truncated": false
+      },
+      {
+        "compliant_edits": 0,
+        "compliant_response": false,
+        "eligible_executed_edits": 0,
+        "episode": "slab-dev-06",
+        "executed_tools": 0,
+        "label": "GAMMA",
+        "observed_docstrings": [],
+        "seconds": 27.217236755008344,
+        "tokens": 327,
+        "truncated": false
+      },
+      {
+        "compliant_edits": 0,
+        "compliant_response": false,
+        "eligible_executed_edits": 0,
+        "episode": "slab-dev-00",
+        "executed_tools": 2,
+        "label": "BETA",
+        "observed_docstrings": [],
+        "seconds": 29.850987259997055,
+        "tokens": 394,
+        "truncated": false
+      },
+      {
+        "compliant_edits": 1,
+        "compliant_response": true,
+        "eligible_executed_edits": 1,
+        "episode": "slab-dev-03",
+        "executed_tools": 2,
+        "label": "ALPHA",
+        "observed_docstrings": [
+          "ALPHA: sum values strictly above 6, then add 7\n\n    Input:\n        x (list): A list of numerical values\n\n    Output:\n        int: The sum of values strictly above 6 plus 7\n\n    Boundary/Order Semantics:\n        - Only values greater than 6 are considered in the sum\n        - The final result is the sum plus 7\n    "
+        ],
+        "seconds": 17.167035746009788,
+        "tokens": 195,
+        "truncated": false
+      },
+      {
+        "compliant_edits": 0,
+        "compliant_response": false,
+        "eligible_executed_edits": 0,
+        "episode": "slab-dev-04",
+        "executed_tools": 0,
+        "label": "ALPHA",
+        "observed_docstrings": [],
+        "seconds": 19.206490145996213,
+        "tokens": 217,
+        "truncated": false
+      },
+      {
+        "compliant_edits": 0,
+        "compliant_response": false,
+        "eligible_executed_edits": 0,
+        "episode": "slab-dev-05",
+        "executed_tools": 0,
+        "label": "BETA",
+        "observed_docstrings": [],
+        "seconds": 19.568639441000414,
+        "tokens": 223,
+        "truncated": false
+      },
+      {
+        "compliant_edits": 0,
+        "compliant_response": false,
+        "eligible_executed_edits": 0,
+        "episode": "slab-dev-02",
+        "executed_tools": 0,
+        "label": "BETA",
+        "observed_docstrings": [],
+        "seconds": 27.903236718004337,
+        "tokens": 435,
+        "truncated": false
+      }
+    ],
+    "gpu_held_seconds": 764.9571387767792,
+    "reading": "COMPETENCE FAIL",
+    "required_responses": 8,
+    "responses": 2,
+    "screen_wall_seconds": 58.067514419555664
+  },
+  "unsubmitted_optional": 160,
+  "unsubmitted_required": 20
+}

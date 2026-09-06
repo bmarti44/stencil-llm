@@ -5460,3 +5460,10 @@ B1 decode18.709/18.733tok/s; C4 aggregate39.912; nested16-round projection12.558
 C8 incomplete9/64 (server max4), no credit; long/controller/HF hidden-recovery costs unmeasured; larger test eligibility remains separate.
 One successful Triton bf16 load after explicit-attention startup remedy;201 completed API calls+55 unsubmitted rows audited;2555.495/2700GPU-s.
 Owned containers/flag removed; DEV-only/no fitting/eval/bench reads/other signals/push; report, raw records/counters and conditional larger protocol committed.
+
+2026-09-06 — composition pilot3 (gpt-6-astra): INELIGIBLE;460/480 required DEV calls, R/N complete,20 T calls unsubmitted, O unrun.
+R final success0/8; indent2/8 required (eligible2/4); execution53/160,49/160,65/140; caps59/160,82/160,52/140 for R/N/T.
+Qualified vLLM raw-ID loop, D=0 over72 completed gate calls; main27.958tok/s; conservative registered R/N/T floor33.933h>12; O/HF cost unmeasured.
+Registered lexical swap round-zero2/8 required (eligible2/2), FAIL;32 CPU witnesses,8 exact replays; original460 exact replays and34 DEV-only tests pass.
+8796.278/9000GPU-s, four starts including hash-writer interruption and exact-context continuation; max31949; no hidden capture, full HF transcript hashes listed.
+Gold R DEV-only; no fitting/eval/bench reads/host signals/push; owned containers/flag removed; scoped report, journals/logs and audits in results/quick-checks/composition-pilot-3/.

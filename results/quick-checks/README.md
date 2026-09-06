@@ -549,3 +549,9 @@ VLLM QUALIFICATION ([vllm-qual](vllm-qual/README.md)): **QUALIFIED via concurren
    B1 decode18.709/18.733tok/s<20; C4 aggregate39.912tok/s; nested16-round projection B1 12.558h, C4 7.845h including spend/reload/reserve.
    Cache hits95.5277%/99.8202%; C8 partial9/64, server4 active+4 queued, no C8 credit; long/controller/HF-hidden costs remain unmeasured.
    Image3dbe092ec5b2, explicit Triton remedy;201 API calls+55 unsubmitted records audited;42.592/45GPU-min, containers/flag removed, no eval/bench/push.
+
+Composition pilot3 ([composition-pilot-3](composition-pilot-3/README.md)): **INELIGIBLE**;460/480 required DEV calls, R/N complete,20 T calls unsubmitted; O unrun.
+   R final success0/8; indent2/8 required (eligible2/4); R/N/T execution53/160,49/160,65/140; caps59/160,82/160,52/140.
+   Qualified vLLM D=0 across72 completed gate calls/three starts; main27.958tok/s; registered R/N/T projection floor33.933h>12, O/HF cost unmeasured.
+   Lexical swap round-zero screen2/8 required (eligible2/2), FAIL; max main context31949; mask trigger not established; no hidden capture, HF input hashes listed.
+   8796.278/9000GPU-s across four starts;460+8 exact CPU replays,34 DEV-only tests; owned containers/flag removed; no fitting/eval/bench reads/signals/push.
