@@ -675,3 +675,10 @@ authors. No classifier loaded/inference made in aborted attempt. Preserve start
 receipt/log and pre-evaluation freezes; evaluation-only correction requires
 full-input disjointness, reports sentence collision, adds durable inference-start
 repeat guard. No row/model/threshold changes. Next resume one unscored evaluation.
+
+2026-09-06 — STATE: V7 FABLE INFERENCE COMPLETE; ONE CPU REPLAY NEXT.
+One363-row pass per model after one unscored preflight. Original315/363 matches
+historical metrics; ft-v2 318/363 (+0.8264pp). Fixed.95 rule admissions114→111
+of124; nonrule admissions9→5 of239. Same labels/data, no tuning. Full model inputs
+and authors disjoint; one generic sentence-only collision disclosed. Next replay,
+required36/36admissions,>=11/12transitions,0unauthorized/overflow, else stop.
