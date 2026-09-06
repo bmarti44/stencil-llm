@@ -908,3 +908,11 @@ exactly one summary header; synthetic consumer tests and existing selftests/lint
 pass. Guarded resume reuses DEV, same weights/prompt/schema/GO, carries prior83.27s
 into5400s budget. Source bytes reopened for metadata diagnosis, disclosed; still
 one prediction pass. Repair receipt committed pre-prediction; C still skipped.
+
+2026-09-06 — STATE: CHECK44 ONE HELD-OUT PREDICTION PASS RUNNING.
+Header repair39731964 committed before inference; same338messages and all gold
+span offsets validate. Resume uses saved24DEV with unchanged prompt/schema/
+weights/thresholds/GO; total GPU charge includes failed preflight83.269454s.
+Evaluation-start and resume-start receipts saved before first prediction; source
+bank snapshot preserved. No held-out-driven fit, threshold/prompt revision or
+repeat prediction. Foreground ownflag only; no signals or push.
