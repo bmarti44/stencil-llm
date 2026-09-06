@@ -1044,3 +1044,15 @@ within-batch integrity, cross-batch semantic relatives remain review limitation.
 Seed0 C2+B primary; C2 alone secondary; fixed GO bars in check44c/README.md.
 
 2026-09-06 — CHECK44C pilot: {"updates": 10, "seconds": 1.2594217840014608, "updates_per_second": 7.94015168471026, "projected_gpu_seconds": 269.6193079393735, "peak_GiB": 1.4938702583312988, "per_seed_timeout_seconds": 199.49241058583138}.
+
+2026-09-06 — STATE: RELATIONS V3 PREPARATION, held-out-3 unopened.
+Data lineage: fit-on = exact v2 patched Kimi relations/transitions + four enrich sets
+(including disclosed 90 evaluation-derived Astra2 relatives) + Opus-patched,
+offset-corrected Kimi overrides; calibrated-on = scenario-disjoint DEV only;
+evaluated-on = fresh Fable held-out-3 once after committed freeze, held-out-2
+secondary historical re-look, FOCUS-3 v2 SETUP diagnostic. No data/bench access.
+Override audit indices 178,186,291,415,417,877,945 are fit-only (excluded from DEV);
+source+zero-based-index identities, repeated messages grouped. Seed0 preselected;
+seeds1/2 stability, exact v2 numerical recipe/C policy; 1800s GPU allocation cap.
+Archived protocol applies as context; direct user task authorizes narrow refit.
+No wrapper lock held; no signals, background launch or push. Next: prepare/freeze recipe.
