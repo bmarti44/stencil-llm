@@ -35,3 +35,12 @@ Projection: charge prior pilot5385.346s + Day5b1362.257s + current qualification
 measured server reload, and25% reserve on weighted per-arm measured future call costs.
 Short16-round frozen replay is a diagnostic; 32-round/controller/hidden-recovery costs
 remain unmeasured and receive no acceleration credit or full-run eligibility claim.
+
+## Startup correction, before remedy execution
+Initial attempt failed before weights load: invariant mode rejects backend=None and
+explicitly requests FLASH_ATTN/TRITON_ATTN (or MLA variants). The original report's
+automatic selection is incompatible with this pinned image. Registration's memory-only
+remedy list is corrected based on that startup evidence: remedy1 explicitly selects
+TRITON_ATTN, retaining all other settings; remedy2 only if needed reduces utilization
+to0.60 and max length16384. This is a disclosed pre-generation configuration correction,
+not an outcome-selected kernel. At most three total starts, with original28.364s charged.
