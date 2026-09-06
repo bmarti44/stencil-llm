@@ -53,8 +53,8 @@ def test_every_runtime_pair_has_training_values_and_normalized_rendering():
         9,
     )
     assert (
-        len(classifier.pairs) == 10
-    )  # Non-vacuous two prose sentences x five targets.
+        len(classifier.pairs) == 6
+    )  # v5: Cedar addresses all five rows; Maple addresses only global.
     assert {p["old_rule"]["status"] for p in classifier.pairs} == {
         "live",
         "superseded",
@@ -89,7 +89,7 @@ def test_every_runtime_pair_has_training_values_and_normalized_rendering():
     runtime.update(
         "Continue task Maple; Sort request for task Maple: payload [2, 1].", 11
     )
-    assert len(classifier.pairs) == 5
+    assert len(classifier.pairs) == 1  # Only global overlaps Maple in v5.
     for p in classifier.pairs:
         assert p["prev_user"] is None
         assert p["message"] == "Continue task Maple;"
@@ -243,18 +243,19 @@ def test_ineligible_preflight_prohibits_gpu_claim(tmp_path, monkeypatch):
         v4.run()
 
 
-def test_enrichment_is_93_valid_quarantined_relatives():
+def test_enrichment_is_90_quarantined_relatives_without_verbatim_bank_rows():
     rows = [
         json.loads(line)
         for line in (g.ROOT / "data/classifier/relations/astra-enrich-2.jsonl")
         .read_text()
         .splitlines()
     ]
-    assert len(rows) == 93 and len({r["message"] for r in rows}) == 93
+    assert len(rows) == 90 and len({r["message"] for r in rows}) == 90
     for label in ("supersedes", "cancels", "completes"):
         group = [r for r in rows if r["label"] == label]
-        assert len(group) == 31 and len({r["scenario_id"] for r in group}) == 1
-        assert sum(r["parent_id"] is None for r in group) == 1
+        assert len(group) == 30 and len({r["scenario_id"] for r in group}) == 1
+        assert all(r["parent_id"] == f"astra-enrich-2-{label}-00" for r in group)
+        assert all(r["id"] != r["parent_id"] for r in group)
     for row in rows:
         assert row["evaluation_derived"] and row["use_requires_later_refit"]
         assert not row["eligible_for_heldout"]
@@ -285,6 +286,9 @@ def test_foreground_preflight_writer_and_audit_consumer(tmp_path, monkeypatch):
 
     bank, _ = gold_records()
     calibration = json.loads((v4.OUT / "calibration.json").read_text())
+    # Exercise the historical v4 writer/calibration consumer with its own
+    # retired threshold; production v5 uses the separate v5 replay/audit.
+    monkeypatch.setattr(f, "NONE_PAIR_THRESHOLD", calibration["chosen"]["threshold"])
     monkeypatch.setattr(v4, "OUT", tmp_path)
     monkeypatch.setattr(g, "OUT", tmp_path)
     monkeypatch.setattr(v4, "verify_freeze", lambda: dict(hashes={}))

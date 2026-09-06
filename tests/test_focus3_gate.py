@@ -37,7 +37,7 @@ def test_precedence_preserves_global_outside_task_and_return():
     assert r.live("Cedar", "sort") == [a]
 
 
-def test_threshold_and_invalid_fail_safe_none():
+def test_threshold_and_invalid_fail_safe_none(monkeypatch):
     assert f.decision(probs("supersedes", 0.939)) == "none"
     assert f.decision(probs("supersedes", 0.94)) == "supersedes"
     assert f.decision([float("nan")] * 5) == "none"
@@ -45,6 +45,15 @@ def test_threshold_and_invalid_fail_safe_none():
     r.update("For task Cedar, sort the payload in ascending order.", 0)
     before = r.register.snapshot()
     r.classifier = Scripted("cancels", 0.49)
+    # A cancellation is not a new standing rule. With the v5 none bound,
+    # this test must not simultaneously mock admission as certain-rule.
+    monkeypatch.setattr(
+        r.classifier,
+        "admission",
+        lambda spans, previous: [
+            dict(probabilities=[1.0, 0.0, 0.0], overflow=False) for _ in spans
+        ],
+    )
     r.update("Cancel the sorting rule for task Cedar.", 1)
     assert r.register.snapshot() == before
     for role in ("tool", "assistant"):

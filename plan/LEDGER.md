@@ -538,3 +538,12 @@ GPU0/10800s,zero generations/gate records. Gate30322/64 unevaluated;check40i own
 its separate GPU job/flag;no GPU claim needed,no process touched. No sealed
 reads/fitting/background/signals/push. RESULTS,README item,WORKLOG and all raw
 artifacts land with explicit force-added paths; authorized v4 stop is terminal.
+
+2026-09-06 — STATE: FOCUS-3 V5 STEP A WRITE-AHEAD. User CPU-only task governs;
+archived protocol read, no wrapper lock held. Seven rulings/DEV review tables
+registered in v5/RESULTS.md before tests/replay. Fit-on unchanged v4 pool;
+evaluate-on committed v4 setup only. C fixed .94/.50/.50/.50; C-prime .80 later
+only. Global overlap remains in none guard; report residual failures without
+rescue. Delete only three verbatim enrichment rows; Kimi transitions untouched.
+Implement CPU parity, replay once, audit, explicit-path commit; no GPU, sealed/
+bench reads, fitting, signals, background launches or push. Stop after step A.

@@ -19,7 +19,7 @@ from stencil import focus2
 LABELS = ("none", "supersedes", "cancels", "completes", "reinstates")
 THRESHOLDS = dict(supersedes=0.94, cancels=0.50, completes=0.50, reinstates=0.50)
 ROOT = Path(__file__).resolve().parents[2]
-NONE_PAIR_THRESHOLD = 0.9711621345086118  # v4 DEV gold-none linear 90th percentile.
+NONE_PAIR_THRESHOLD = 0.50  # v5 fixed positive-side bound; no gold-none quantile.
 ORDER_DEFAULT = "Ordering: return the list in the given order."
 
 
@@ -112,6 +112,26 @@ def selected_task(text, current):
         if m:
             current = m[1]
     return current
+
+
+def task_switch_only(span):
+    return bool(
+        re.fullmatch(
+            r"(?:Work on|Return to|Continue|Switch to) task [A-Z][A-Za-z0-9_-]*[.;!?]?",
+            span,
+        )
+    )
+
+
+def can_reinstate(span, admission, old):
+    return (
+        old.status != "live"
+        and not task_switch_only(span)
+        and (
+            (not admission["overflow"] and admission["probabilities"][1] >= 0.95)
+            or bool(old.text and old.text in span)
+        )
+    )
 
 
 @dataclass
@@ -254,7 +274,10 @@ class Runtime:
         prior_sentences = sentences(prose_message(self.previous))
         previous_sentence = prior_sentences[-1][1] if prior_sentences else None
         for start, span in sentences(prose):
+            scope = scope_of(span, self.task)
             for rule in eligible:
+                if scope is None or not overlaps(rule.scope, scope):
+                    continue
                 pairs.append(
                     dict(
                         old_rule=dict(
@@ -286,14 +309,20 @@ class Runtime:
         trace["overflow"] = any(p["overflow"] for p in predictions)
         admissions = self.classifier.admission([s for _, s in spans], self.previous)
         assert len(admissions) == len(spans)
+        trace["overflow"] |= any(a["overflow"] for a in admissions)
         # Retain scores even when a relation branch consumes/skips the span.
         trace["admissions"] = [
             dict(span=span, start=start, **admission, accepted=False)
             for (start, span), admission in zip(spans, admissions, strict=True)
         ]
         for (start, span), admission in zip(spans, admissions, strict=True):
+            scope = scope_of(span, self.task)
             rows = [
-                p for p in trace["pairs"] if p["input"]["target_span"]["start"] == start
+                p
+                for p in trace["pairs"]
+                if p["input"]["target_span"]["start"] == start
+                and scope is not None
+                and overlaps(self.register.get(p["input"]["target_id"]).scope, scope)
             ]
             positive = [
                 p
@@ -306,7 +335,14 @@ class Runtime:
             # all obligations; retain the pre-existing atomic completion check.
             if kind_of(span) == "all":
                 positive = [p for p in rows if p["proposed"] != "none"]
-            scope = scope_of(span, self.task)
+            positive = [
+                p
+                for p in positive
+                if p["proposed"] != "reinstates"
+                or can_reinstate(
+                    span, admission, self.register.get(p["input"]["target_id"])
+                )
+            ]
             blocked = any(p["overflow"] for p in rows)
             # Multiple completes form one whole-task transaction only when all
             # active obligations of that explicitly named task agree.
@@ -329,7 +365,9 @@ class Runtime:
                         rid = p["input"]["target_id"]
                         self.register.retire(rid, "completed")
                         p["applied"] = "completes"
-                        trace["applied"].append(dict(label="completes", target=rid))
+                        trace["applied"].append(
+                            dict(label="completes", target=rid, span=span)
+                        )
                     continue
             if positive and not blocked:
                 p = max(
@@ -338,8 +376,6 @@ class Runtime:
                 )
                 old = self.register.get(p["input"]["target_id"])
                 label = p["proposed"]
-                if scope is None or not overlaps(old.scope, scope):
-                    continue
                 if label == "completes" and (
                     old.scope == "*"
                     or any(
@@ -379,6 +415,7 @@ class Runtime:
                 and not admission["overflow"]
                 and admission["probabilities"][1] >= 0.95
                 and scope is not None
+                and not task_switch_only(span)
             )
             next(a for a in trace["admissions"] if a["start"] == start)["accepted"] = (
                 accept

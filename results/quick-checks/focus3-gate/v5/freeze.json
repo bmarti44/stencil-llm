@@ -1,0 +1,53 @@
+{
+  "arms": {
+    "C": {
+      "cancels": 0.5,
+      "completes": 0.5,
+      "reinstates": 0.5,
+      "supersedes": 0.94
+    },
+    "C'": {
+      "cancels": 0.5,
+      "completes": 0.5,
+      "reinstates": 0.5,
+      "supersedes": 0.8
+    }
+  },
+  "created": 1788678281.9957123,
+  "models": {
+    "data/classifier/model/ft/encoder/config.json": "d4b2c4e7bea1c70b5f0d212dd207478fc2422f013ba628ef47cee44589ca4ccf",
+    "data/classifier/model/ft/encoder/model.safetensors": "2232813597b889355dfbda5607bfc473590385bd96ce382939a9ee154713d830",
+    "data/classifier/model/ft/encoder/tokenizer.json": "56827b4e89e42ec568d48462c6c37822da5a783161893deb981b31367bbc6f00",
+    "data/classifier/model/ft/encoder/tokenizer_config.json": "c9c2e0ff3f3a98ae86f8f4a484a48a80d11d3a9453f39de7ab58b5de5f4006de",
+    "data/classifier/model/ft/head.pt": "191b3372010e8d151b842d2810b4be9dbd0ff34db7ae7539d6b823c69d4ebe3e",
+    "data/classifier/model/relations/calibration/gpu-seed0-dev.npz": "cc9fc6112107e9309447a5235842df818ba438d47b5587dabe6563766587985c",
+    "data/classifier/model/relations/encoder/config.json": "16f43d2b05f82be84df8b92f093d3741daa9dfd3eb65ddeea4ebc38211c9a9de",
+    "data/classifier/model/relations/encoder/model.safetensors": "eab36a23614aab3945ab7b24bee9f918158ece4ac49a3041c2a5e74395c0c214",
+    "data/classifier/model/relations/encoder/tokenizer.json": "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66",
+    "data/classifier/model/relations/encoder/tokenizer_config.json": "06707cea10aacadb28082be3d9a93a2c80b7c504a3045220ad44748a5683d2b6",
+    "data/classifier/model/relations/head.safetensors": "933503633b7216b7eafaa17d0806be279b1aead483b723191828154a7d03803e",
+    "data/classifier/model/relations/manifest.json": "545c37e0030a5f170eb4104fb4e0aa15df672ba837eda21b38c6913e3f8a6d34",
+    "data/classifier/model/relations/operating-point.json": "9e235cdf877da6d50255021163f3a2d70b6903e97e6ba5aac628402455ff71dd",
+    "data/classifier/model/relations/thresholds.json": "e13bb3c9a910d794a4621f9d97403c769fce263b5cedb86c1af6c63a8fe8e08c"
+  },
+  "reading": "# FOCUS-3 v5 step A \u2014 pre-written registration (2026-09-06)\n\nCPU-only replay of FROZEN v4 seed-0 relations and ft admission classifiers.\nFit-on: unchanged v4 patched Kimi + Astra/Opus pool; historical admission lineage\ncaveats remain. No fitting, selection or new calibration. Descriptive DEV tables\nuse committed original scenario-disjoint 576-row seed-0 logits. Evaluated-on:\nexact committed v4 16-episode/96-turn development setup bank, seed 30321.\nNo sealed/bench reads, held-out re-evaluation, GPU/trunk processes, signals,\nbackground launches or push. STOP after CPU replay/report. Step B (refit + gate)\nawaits enrichment review and is not executed here.\n\n## Orchestrator rulings, fixed before tests or replay\n\n1. Confident none iff P(none) >= .50, the fixed positive-side admission bound.\n   Retire gold-none 90th/95th percentile rule. Review DEV table:\n\n   | cutoff | gold-none passing / 259 | gold-positive passing / 317 |\n   |---|---:|---:|\n   | .50 (registered) | 217 | 5 |\n   | .2046 (rounded positive 95th percentile; descriptive) | 227 | 16 |\n   | .9711621345086118 (retired none 90th percentile) | 26 | 0 |\n\n   Passing positives are unsafe none classifications (5/317 = 1.58% at .50).\n2. Pair prose spans only with overlapping scopes: global or same task, using\n   scope_of(span, current task). Never score wrong-task pairs. Filter any\n   non-overlapping positive before selection; it must not skip span admission.\n   Global rows still overlap task rules; no extra same-key pairing restriction.\n   All remaining pairs must meet the none bound for a new admission.\n3. Reinstates require a retired target and a rule-bearing span: that span must\n   pass non-overflow admission P(rule) >= .95 OR contain retired rule text\n   verbatim. Bare Continue/Work on/Return to/Switch to task X spans only select\n   task; never reinstate. Relation threshold still applies. No extra quoted\n   cancellation filter is registered: report residual unauthorized actions.\n4. C stays .94/.50/.50/.50 (supersedes/cancels/completes/reinstates).\n   Separate future gate arm C' = .80/.50/.50/.50; never swap into this replay.\n   Other C' runtime/gate rules match C; report arms separately. Later enriched\n   fitting would show runtime/classifier agreement on a development bank whose\n   idioms entered fitting, not generalisation to unseen phrasings.\n   Descriptive review DEV sweep (none-FP denominator 259):\n\n   | policy | correct-positive recall / 317 | total none-FP | supersedes recall / FP | cancels recall / FP | completes recall / FP | reinstates recall / FP |\n   |---|---:|---:|---|---|---|---|\n   | C: .94/.50/.50/.50 | .921 | 26 (10.0%) | .79 / 11 | .99 / 6 | .99 / 7 | .99 / 2 |\n   | per-class cap 10%: .50 each | .972 | 40 (15.4%) | .94 / 25 | .99 / 6 | .99 / 7 | .99 / 2 |\n   | supersedes .90 | .934 | 29 (11.2%) | .83 / 14 | same | same | same |\n   | C': supersedes .80 | .946 | 33 (12.7%) | .87 / 18 | same | same | same |\n   | supersedes .72 | .953 | 37 (14.3%) | .89 / 22 | same | same | same |\n   | supersedes .70 | .956 | 37 (14.3%) | .90 / 22 | same | same | same |\n   | plain argmax | .972 | 41 (15.8%) | .94 / 26 | .99 / 6 | .99 / 7 | .99 / 2 |\n   | argmax margin >= .2 | .962 | 38 (14.7%) | .92 / 24 | .99 / 6 | .99 / 7 | .99 / 1 |\n   | argmax margin >= .5 | .943 | 34 (13.1%) | .89 / 21 | .97 / 5 | .97 / 7 | .97 / 1 |\n\n5. Require all 96 distinct records, 36/36 admissions, existing >=11/12\n   correct-source transitions, AND >=3/4 for each represented transition label\n   (supersedes/cancels/completes), no overflow, unauthorized applications ==0\n   across 96 records. Reinstates has no gold support; recall N/A, never a vacuous\n   pass. Count every applied action without a matching gold label, target and\n   span on that turn, including admits and duplicates; count actions and affected\n   records separately. Expected by request: 36/36 admissions, 8\u20139/12 transitions,\n   zero unauthorized. Expectations do not override the stop. Keep known misses:\n   \"Replace the sorting rule for task S0n1A: always use ascending order.\"\n   \"The sorting rule for task S1n2A no longer applies.\"\n   \"That concludes task S2n3A.\"\n6. Delete exactly astra-enrich-2-{cancels,completes,supersedes}-00, the three\n   verbatim bank rows; retain exact sentences in a deletion receipt. Keep 90\n   relatives quarantined as evaluation-derived; deletion does not make them\n   clean. Leave kimi-transitions.jsonl untouched for later enrichment review.\n   No enrichment is consumed in this replay.\n7. CPU parity extends real runtime consumers for guard side/boundary, scope\n   pairing/admission reachability, reinstates rule and unauthorized counter.\n   Preserve trained rendering, offsets and status vocabulary. Bind model/input/\n   source hashes before replay; write raw records in the run and replay saved\n   predictions through Runtime for the CPU audit.\n\nSource: results/focus3-gate-v4-review-fable.md; user rulings take precedence.\n",
+  "replay_arm": "C",
+  "sources": {
+    "data/classifier/relations/astra-enrich-2.jsonl": "c0ff8ea2c710f18a228883300cac1d7fa7eaf2eb53297f52478bfd623c87a373",
+    "results/quick-checks/focus3-gate/v4/bank.json": "00cf765906990377008db950c442d7c329639de201b19f7c3d9afd703ff2bb53",
+    "results/quick-checks/focus3-gate/v4/freeze.json": "c51faf03b7c42d9d4aee394237aab2bc50d4fbe4b58a79ebf5add9cd62887e89",
+    "results/quick-checks/focus3-gate/v5/deleted-bank-rows.json": "b6cd989afe2f282b95ada14028d7870e717acfb360869c89c89627a75932708b",
+    "results/quick-checks/focus3-gate/v5/dev-tables.json": "cd106b7bc98596674fd544705577572e86bc22cf475c59992c25ff7d4b883cec",
+    "results/quick-checks/focus3-gate/v5/registration.md": "ff4349148654bca34269d41c0fa83c02b84b96191ebc79b0ae5c332c3133fdee",
+    "scripts/focus3_gate.py": "de00a4886bfc9255f000813af448c802dd0f786310d780ca8f50764f18d1b216",
+    "scripts/focus3_gate_v3.py": "39178fdcd31f58bc72cfc168fdddab6cc73049d868995d3432a05d3d4aad65ef",
+    "scripts/focus3_gate_v4.py": "1dedcded15de4af638fd1b3532a557ef4788d82150f8d6bb95f545f557e51eb4",
+    "scripts/focus3_gate_v5.py": "014bad7c4d78e9ed6a3ab952eb24bda822177634898c892fcae27eed520a653a",
+    "scripts/train_relations.py": "d9c73c60b3c723bca559310e9fa1c6c6a5e8983fe25a7bdaf313219181b2fc46",
+    "src/stencil/focus2.py": "c8bf4ec01a4ce85999d6c809305643b83cf148ed7ba15b0241e48995ea92b913",
+    "src/stencil/focus3.py": "1bb1c18dde4d7bfc35941ca10a5e0d3dda3a78252c6c531320f2233b63a9644f",
+    "tests/test_focus3_gate.py": "90c12450f36201acdc28feb3f95f6eb1fb05825d6e9200be913b2d3ecebfae48",
+    "tests/test_focus3_gate_v4.py": "a70138a1d7d6edff0761d5d78b7320a3077b88eb9a54ab9acd54666543dc8eb4",
+    "tests/test_focus3_gate_v5.py": "3cf369ed8f02078fec6c82536b6a8b8dbb087e7920fe9f16d9b25305cee83ec6"
+  }
+}
