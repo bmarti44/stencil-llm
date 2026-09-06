@@ -140,7 +140,7 @@ def trajectories(client, deadline, tokenizer):
                 lanes=[p.Lane(OUT,episodes[i],arm,'c4') for i in group]
                 start=time.time(); complete=True
                 for index in range(max(len(l.episode.turns) for l in lanes)):
-                    if time.time()>=deadline-180:
+                    if time.time()>=deadline-240:
                         complete=False; break
                     active=[l for l in lanes if index<len(l.episode.turns)]
                     for lane in active:
