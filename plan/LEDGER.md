@@ -851,3 +851,16 @@ CPU timing is INCOMPLETE/COST, not a semantic result. All sampled prompts exceed
 338Fable one-shot evaluation remain unrun; source held-out unopened. Commit
 CPU records/timing/log now, then foreground waiter for all GPU flags to clear.
 No signals, no background process, no fitting, no push; C remains frozen skipped.
+
+2026-09-06 — STATE: DIAGNOSTIC ALL64 FIVE ARMS COMPLETE; 220 PROBES RUNNING.
+All1920gate records/320traces saved. Pooled C exact38/64, final57/64, stale7/64,
+false retirement8/64, false admission21/64episodes (25actions:20payload/5quotes),
+contradictory5/64, breakage0. C' exact32/64, final58/64, stale6/64, false
+retirement14/64, same25false admissions and5contradictory;7extra unauthorized
+supersedes plus2unauthorized completions vs C's2unauthorized completions.
+O final63/64, stale2/64; T final31/64, stale32/64; N final29/64, stale33/64,
+breakage1/64. C-minus-O final=-6, stale=+5; C-minus-T final=+26, stale=-25.
+Switch-and-return C/C'/O/N final16/16, T15/16; candidate exact11/16 vs4/16.
+These are descriptive readings, no gate label. Exactly110exposed row-turns per
+candidate arm (220total) now probed using fixed original histories. Snapshot
+full main-arm records and summary before probes finish; no rerun or fitting.
