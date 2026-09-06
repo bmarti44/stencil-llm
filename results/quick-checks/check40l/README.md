@@ -80,3 +80,12 @@ A non-significant effect is not evidence of equivalence or harmlessness.
 One model load, cap2700 seconds including load/profiling/freezing/cleanup;
 cooperative deadline, no signals. Coordinate RUNNING.flag and review lock;
 Brian's pid2705 exempt. Explicit-path local commits, no push.
+
+## Orchestrator addendum after the fable accuracy review (2026-09-06; results/check40l-review-fable.md)
+All numbers reproduce; baseline reuse, profile construction and freeze order verified. The dev competence direction
+is NOT a proxy for a correct bias: it is 0.84-cosine aligned with the short-minus-long reply direction (pass replies
+109 tokens vs fail 150) and has zero out-of-sample validity (leave-one-out AUC .67, accuracy = base rate).
+DECISION: the router-bias line is CLOSED. Supportable claim: no tested constant router bias (JS alpha-3, dev
+competence at 1/3 and 2/3, random same-norm) improved hidden-test success over the rendered rule; only the alpha-3
+JS harm is significant (40k, p=.022). Whether an oracle-correct bias exists is OPEN AND UNFUNDED: it would need a
+multi-hundred authored-task fitting program inside a narrow safe-norm window with small expected payoff.
