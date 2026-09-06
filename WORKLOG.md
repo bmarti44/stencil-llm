@@ -5346,3 +5346,10 @@ expected failure; scoped lint and whitespace checks clean. README and ledger
 updated; final artifact manifest and tracked-byte verification accompany the
 explicit-path force-add commit. Prior v8 INELIGIBLE state stands; no PASS/FAIL
 label is assigned to this diagnostic. No further inference is pending.
+
+### 2026-09-06 — Check44: operational NO-GO, decoder-limited semantic comparison
+A exact P/R18.75%/1.38%, overlap37.50%/2.75%; B ft-v3 overlap98.31%/80.28% on338 messages/218 gold spans.
+A payload/quote FP8/102,0/52; B2/102,1/52; both non-user0/12.289 A provenance rejections; synthetic audit reproduces legal merged-token exclusion; no semantic attribution or salvage.
+All338 records, prompt hashes, raw token decodes, validators/scores and100/200 recovery checkpoints audited; prewritten242140fb, header-only repair39731964 before any held-out prediction.
+GPU1084.249/5400s incl83.269s failed preflight; CPU1801.005s boundary cap,20complete+1partial; C skipped at870 rows. No fitting, signals, benchmark/sealed reads or push.
+Cut unattended first-ship admission; explicit structured rule entry. No second prediction pass or800-message bank. Results: results/quick-checks/check44/RESULTS.md.

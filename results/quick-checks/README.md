@@ -480,3 +480,9 @@ FOCUS-3 gate ([results v2](focus3-gate/RESULTS.md), [frozen reading](focus3-gate
    Zc OFF+mask and S shuffled+mask BACK JS0/24 each; full-history OFF Python24/24 at every step. Exact shared4-step prefixes; no opposite-direction bias.
    Fences480/480 actual generations (672/672 logical replies), bare0, missing-parenthesis0, ambiguous/echo/OK0; coarse checks24/24 in every cell, no code execution.
    672 records/480 generations/14152 tokens;21.99/30 GPU-min (0.3665h), full CPU audit and independent recount PASS; freeze bb42c4e6, flag removed, no signals/sealed reads/push.
+
+44. ADMISSION REDESIGN ([check44](check44/RESULTS.md), [pre-written reading](check44/README.md)): **OPERATIONAL NO-GO; decoder-limited semantic comparison**.
+   A overlap P/R37.50%/2.75% (6/218 recall), payload FP8/102, quoted0/52;289 provenance rejections dominate, with legal merged-token exclusion reproduced without a model call.
+   B ft-v3 head overlap P/R98.31%/80.28%, payload2/102, quoted1/52; both non-user0/12. Unbound v8 register consumer writes0; C skipped at870 rows<1500.
+   All338 one-pass records/raw JSON audited;18.071GPU-min incl83.269s header preflight; CPU timing capped1801s. Recipe242140fb, pre-prediction header repair39731964; no fitting/signals/push.
+   Cut unattended admission from first ship; explicit structured rule entry. No output salvage/rerun or800-message deeper bank; corrupted evidence prevents an isolated judgment of LLM semantics.

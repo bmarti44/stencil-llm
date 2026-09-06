@@ -916,3 +916,21 @@ weights/thresholds/GO; total GPU charge includes failed preflight83.269454s.
 Evaluation-start and resume-start receipts saved before first prediction; source
 bank snapshot preserved. No held-out-driven fit, threshold/prompt revision or
 repeat prediction. Foreground ownflag only; no signals or push.
+
+2026-09-06 — STATE: CHECK44 COMPLETE, OPERATIONAL NO-GO; DECODER-LIMITED.
+338 messages/218 gold spans predicted once; A overlap6/218(2.75%), precision6/16;
+payload8/102,quote0/52,non-user0/12. B head175/218(80.28%),precision175/178;
+payload2/102,quote1/52; unchanged unbound runtime writes0. C skipped at original
+870-row eligibility. Explicit structured rule entry for first ship; no deeper bank.
+289A provenance rejections dominate:275/314 text fields have apostrophe/comma/
+space suffix. Model-free audit reproduces exclusion of legal merged closing
+JSON token; valid JSON did not preserve evidence. Semantic model comparison is
+confounded, not proof of underlying LLM inability. No decoder/output rescue.
+Original recipe242140fb; header-only repair39731964 before held-out predictions,
+reused24DEV and charged83.269454s failed preflight. TotalGPU1084.248915s<5400;
+CPUtiming1801.005s boundary stop,20complete+1partial, no <=1024-token support.
+338record scores/validators, prompt hashes/tokens, raw output decoding, source/
+package hashes and100/200 checkpoints audited; scope/key limits disclosed.
+Own flag absent; no fitting, benchmark/sealed reads, signals, background launches
+or push. Final explicit-path artifact/README/WORKLOG commit and membership check
+next; no further inference, threshold/prompt selection or bank authoring.
