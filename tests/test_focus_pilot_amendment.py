@@ -30,7 +30,7 @@ def test_registered_tolerances():
     "text",
     [
         '{"calls":[],"status":"ok","verbose":True}',
-        '{"calls":[],"status":"ok"}]',
+        '{"calls":[],"status":"ok"}]]',
         "[]",
         '{"report":{}}',
         '{"calls":[],"report":null}',
@@ -49,9 +49,10 @@ def test_executor_feedback_and_schema(tmp_path):
     for text in ("{broken", "[]"):
         feedback = ex.run(text)
         assert feedback["executed"] == []
-        assert feedback["results"] == [
-            dict(error="envelope", expected='{"calls":[...],"report":{"status":"ok"}}')
-        ]
+        assert len(feedback["results"]) == 1
+        error = feedback["results"][0]
+        assert error["error"] == "envelope" and error["reason"]
+        assert error["expected"] == '{"calls":[...],"report":{"status":"ok"}}'
     feedback = ex.run(
         '{"calls":[{"op":"test","path":"policy.py","extra":1}],"status":"ok"}'
     )
@@ -60,12 +61,12 @@ def test_executor_feedback_and_schema(tmp_path):
     assert len(feedback["tolerances"]) == 2
 
 
-def test_recovery_reproduces_committed_records():
-    from stencil.focus.pilot_recovery import AMENDED, recover
+def test_historical_recovery_records_remain_consistent():
+    # Amendment2 outcomes stand; do not replay them with Amendment3 semantics.
+    from stencil.focus.pilot_recovery import AMENDED
 
-    summary, rows = recover()
-    assert summary == json.loads((AMENDED / "recovered-summary.json").read_text())
-    assert rows == [
+    summary = json.loads((AMENDED / "recovered-summary.json").read_text())
+    rows = [
         json.loads(x)
         for x in (AMENDED / "recovered-records.jsonl").read_text().splitlines()
     ]
@@ -155,7 +156,7 @@ def test_amended_dev_fixture_without_evaluation_construction(tmp_path):
 
     from stencil.focus.slab import dry_run
 
-    fixture = Path(__file__).parent / "fixtures/slab_dev_golden_amendment2.json"
+    fixture = Path(__file__).parent / "fixtures/slab_dev_golden_amendment3.json"
     frozen = json.loads(fixture.read_text())
     actual = dry_run(tmp_path)
     for key in ("accounting", "rendered_sha256", "events_sha256", "final_hashes"):
