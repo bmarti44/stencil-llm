@@ -18,3 +18,13 @@ Committed checkpoint covers 11/24 completed episodes, 396 records,
 297 actual generations. Snapshot uses summary-matched prefix; live audit
 initially saw records advancing beyond summary, so snapshots are used until exit.
 All record semantics passed; no run change or outcome retry.
+
+2026-09-06 — STATE: COMPLETE; all24 episodes,864 records/648 generations audited.
+Fixed reading RELEASE WORKS through R2: SWITCH23/24 Python (broken1),
+CLEAR24/24 (broken0); R3 Python0/24 both (broken6 each). R4 broken24 each.
+R2 HOLD_AFTER_SWITCH23/24; BACK JS0/24, so CLEAR is persistence/recovery,
+not an independent release from restored JS. R1 stays JS24/24 throughout.
+14406 generated tokens,1376.874825s/5400s including cleanup; flag removed.
+Independent raw-row reading agrees; every token/mask/history/profile hash audited.
+All source/results plus five-line index and six-line WORKLOG entry commit
+with explicit pathspecs; no push, fitting, training, sealed reads, signals or background.

@@ -440,3 +440,9 @@ FOCUS-3 gate ([results](focus3-gate/RESULTS.md), [frozen reading](focus3-gate/RE
    Frozen64-episode gate did not run; C/O endpoints and register-agreement PASS remain untested. Switch-back4/4 is setup-only; mask un-release untested.
    15 targeted tests pass,2 sealed-file hash tests deselected; Ruff clean. Pre-inference loader repair92ccb104 preserves original freeze and unchanged episode/reading bytes.
    181.012/10800 charged GPU seconds including failed initialization;64-episode projection3320.879s fit. Natural exit/flag removed; no fitting/sealed reads/signals/push.
+
+40f. ROUTER RELEASE + ANSWER MASKING ([check40f](check40f/README.md)): **RELEASE WORKS by fixed rule (R2)**; unregistered, no fit/train.
+   Pre-run cost fallback24 episodes, seed40060/alpha3/cap64; R2 Python23/24 SWITCH + HOLD_AFTER_SWITCH (broken1), CLEAR24/24 (broken0).
+   R1 Python0/24 SWITCH/CLEAR; R3 Python0/24, broken6 each; R4 period copies/broken24 each; T SWITCH24/24, CLEAR0/24 (broken1).
+   Masking enables SWITCH in addition to routing; R2 BACK JS0/24 means CLEAR is23 Python-persistence +1 broken-to-Python, not an independent JS release.
+   648 generations/864 records/14406 tokens,22.95/90 GPU-min; full CPU audit PASS; recipe e570e74c, flag removed, no signals/sealed reads/push.

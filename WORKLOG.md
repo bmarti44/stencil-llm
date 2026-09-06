@@ -5201,3 +5201,10 @@ Mechanical setup stop:64 gate episodes unevaluated, C/O and register-agreement e
 15 targeted tests pass,2 forbidden sealed-byte hash tests deselected,ruff clean;96 records/16 traces audited with raw prompt/token/provenance and independent checker replay.
 Freezeaa6c0e41; pre-inference checkpoint-wrapper repair92ccb104, unchanged reading/bank, prior2.570s preserved/charged;181.012/10800s total,64 projection3320.879s.
 STATE: report/artifacts complete, explicit-path local commit next; foreground natural exit and flag absent, no signals/sealed reads/fitting/push.
+
+### 2026-09-06 — Check40f (gpt-6-astra): RELEASE WORKS by fixed rule; SWITCH needs masking
+Unregistered; fit/train none;40b directions/alpha3 frozen e570e74c; fresh seed40060/24 episodes after pre-run5058s projection, cap5400s.
+R2 SWITCH/HOLD_AFTER_SWITCH Python23/24, broken1 each; CLEAR24/24, broken0. R1 Python0/24; R3 Python0/broken6; R4 period copies/broken24 at both events.
+R2 BACK JS0/24: CLEAR is23 Python->Python +1 broken->Python, so no independent release from restored JS. T SWITCH24/24, CLEAR0/24/broken1.
+All864 records/648 generations audited;14406 tokens,1376.875s (22.95/90 GPU-min); SDPA mask/eviction equivalence, every-forward provenance and raw gates pass.
+Checkpoint1f32b6c9 preserved11 episodes; final artifacts/index/ledger committed explicitly; flag removed, no fitting/sealed reads/signals/background/push.
