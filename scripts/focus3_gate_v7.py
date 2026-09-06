@@ -329,7 +329,9 @@ def audit():
                         for r in rec["trace"]["before"]
                         if r["id"] == pair["input"]["target_id"]
                     )
-                    assert pair["proposal_key"] == target["key"]
+                    assert pair["proposal_key"] == rt.key_slugs.get(
+                        target["id"], f.relation_key(target["text"])
+                    )
             records.append(rec)
     summary = json.loads((OUT / "summary.json").read_text())
     assert all(summary[k] == v for k, v in v5.eligibility_summary(records).items())

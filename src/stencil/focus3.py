@@ -252,6 +252,7 @@ class Runtime:
         self.thresholds = getattr(classifier, "thresholds", THRESHOLDS)
         self.admission_bound = getattr(classifier, "admission_bound", "legacy_none")
         self.key_identity = getattr(classifier, "key_identity", False)
+        self.key_slugs = {}
         assert self.admission_bound in ("legacy_none", "positive_proposal")
         self.register = Register()
         self.task = None
@@ -341,7 +342,9 @@ class Runtime:
                 span_key = relation_key(prose_message(span))
                 for p in rows:
                     target = self.register.get(p["input"]["target_id"])
-                    target_key = target.key
+                    target_key = self.key_slugs.get(
+                        target.id, relation_key(target.text)
+                    )
                     proposal_key = target_key if span_key == "instruction" else span_key
                     p["proposal_key"] = proposal_key
                     p["cross_key"] = (
@@ -430,6 +433,8 @@ class Runtime:
                         old.id, "cancelled" if label == "cancels" else "completed"
                     )
                 p["applied"] = label
+                if self.key_identity and label in ("supersedes", "reinstates"):
+                    self.key_slugs[f"{turn}:{start}"] = p["proposal_key"]
                 trace["applied"].append(dict(label=label, target=old.id, span=span))
                 continue
             confident_none = (
@@ -460,14 +465,16 @@ class Runtime:
                 trace["admitted_beside_live"] += int(beside)
                 self.register.add(
                     span,
-                    relation_key(prose_message(span))
-                    if self.key_identity
-                    else f"new:{turn}:{start}",
+                    f"new:{turn}:{start}",
                     scope,
                     kind_of(span),
                     turn,
                     start,
                 )
+                if self.key_identity:
+                    self.key_slugs[f"{turn}:{start}"] = relation_key(
+                        prose_message(span)
+                    )
                 trace["applied"].append(dict(label="admit", span=span))
         self.previous = text
         return dict(trace, after=self.register.snapshot())

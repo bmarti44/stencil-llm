@@ -22,7 +22,8 @@ def test_cross_key_positive_dropped_and_new_rule_admitted(label):
     assert trace["pairs"][0]["proposed"] == label
     assert trace["pairs"][0]["applied"] == "none"
     assert trace["admissions"][0]["accepted"]
-    assert old.status == status and rt.register.rows[-1].key == "sort-order"
+    assert old.status == status
+    assert rt.key_slugs[rt.register.rows[-1].id] == "sort-order"
     assert trace["applied"] == [
         dict(label="admit", span="Always sort ascending for task Cedar.")
     ]
@@ -59,3 +60,16 @@ def test_sentence_identity_split_groups_roles_labels_and_context():
         assert not (
             {a.identity(r["text"]) for r in fit} & {a.identity(r["text"]) for r in dev}
         )
+
+
+def test_semantic_identity_preserves_cross_task_version_numbers():
+    clf = Classifier(label="none")
+    clf.key_identity = True
+    clf.admission_bound = "positive_proposal"
+    rt = f.Runtime(clf)
+    rt.update("Always sort ascending for task Cedar.", 0)
+    rt.update("Always sort descending for task Maple.", 1)
+    assert len(rt.register.rows) == 2
+    assert [r.version for r in rt.register.rows] == [1, 1]
+    assert [r.key for r in rt.register.rows] == ["new:0:0", "new:1:0"]
+    assert set(rt.key_slugs.values()) == {"sort-order"}

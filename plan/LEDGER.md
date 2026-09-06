@@ -648,3 +648,14 @@ Original282 taxonomy-category drop exceptions preserved/disclosed per ft lineage
 Next foreground .venv/bin/python -u -m scripts.focus3_gate_v7 --mode fit;
 3full epochs per seed, seed0 fixed, no heldout input read. No flags/compute now;
 claim helper exempts only Brian2705, never signals, saves elapsed in finally.
+
+2026-09-06 — STATE: V7 PRE-REPLAY RUNTIME CORRECTION, FIT UNCHANGED.
+Consumer code audit found semantic storage keys would change cross-task version
+counts, violating inherited renderer/register semantics. Retain original keys;
+keep a separate provenance-ID-to-semantic-slug map. Synthetic version regression
+added before any heldout/setup/gate score. Original recipe receipt retained;
+new receipt changes only runtime, v7 audit consumer and tests. Seed fitting/data/
+thresholds unchanged. Loader audit qualifies earlier 'reproduced' claim: pinned
+six manifest admission patches yield20054, present broad historical script glob
+also loads later relation patches (20069). This is ft lineage, not verified
+historical row-byte reconstruction; correction receipt documents distinction.
