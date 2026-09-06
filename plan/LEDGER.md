@@ -1056,3 +1056,8 @@ source+zero-based-index identities, repeated messages grouped. Seed0 preselected
 seeds1/2 stability, exact v2 numerical recipe/C policy; 1800s GPU allocation cap.
 Archived protocol applies as context; direct user task authorizes narrow refit.
 No wrapper lock held; no signals, background launch or push. Next: prepare/freeze recipe.
+
+2026-09-06 — STATE: RELATIONS V3 ALL CHECKPOINTS FROZEN, before heldout3 read.
+Three full seeds /759 updates each; GPU264.772/1800s, own flag removed naturally.
+Model/DEV/policy/evaluator hashes bind next commit; README prose explicitly mutable.
+Next: one seed0 heldout3 inference, historical heldout2 secondary look, exact-v2 CPU runtime diagnostic; no fitting or selection afterward.
