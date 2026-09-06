@@ -300,3 +300,13 @@ Canonical metrics/thresholds/manifest and dated report updated; historical CPU
 metadata/calibration preserved. Safetensors local only, flag absent, WORKLOG
 unchanged; explicit-path commits only, no push/signals/benchmark/sealed reads.
 No further training or held-out inference is part of this task.
+
+2026-09-06 — check43b WRITE-AHEAD (gpt-6-astra). STATE: CPU READY; foreground run next after scoped recipe commit.
+User-authorized unregistered check supersedes archived phase workflow; fit/train none. Profile existing32 check43 donors; select existing8 setup; evaluate fresh96063/96064 Python/JS only if safe.
+Primary generated identity window d-2..d; actual identity d=21 all16 pairs (one first divergence d18 is a/acc naming). Norm grid6.805823/10.208735, both signs/stable shuffle, OFF first, same-runtime JS>=6/8 required.
+CPU bounded/native fixtures and actual router consumer pass; selection/alignment/import tests6 passed/1 legacy xfail. Freeze includes reading/banks/source; setup1440s, final2700s only if safe; no sealed reads/signals/background/push.
+
+2026-09-06 — check43b COMPLETE (gpt-6-astra). STATE: CLOSE; no safe setup cell, no final/collateral run.
+OFF SUM8/8; same-runtime JS8/8 validates harness. Both norms6.805823/10.208735: -b PRODUCT0/8, malformed0, shuffled-minus PRODUCT0/8; plus malformed0/1, shuffle-plus0/4.
+Identity21 all32 donors/window19–21; raw profiles, all80 scores/hashes and stable matched shuffles independently reconstructed, consumer mismatches0. Tested direction changes decode routes63.01%/77.82%, mixtureL1.2023/.2951 without PRODUCT.
+Recipe da131791 before outcomes; 80 generations/3963 tokens,672.881907/1440 GPU seconds; natural exit and flag absent. Operational closure of tested concept-routing recipe, not universal impossibility; explicit scoped results/index/WORKLOG commits next, no push/signals/sealed reads.
