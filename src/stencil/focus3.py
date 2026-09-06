@@ -36,12 +36,13 @@ def semantic_key(row, gold_keys):
     return gold_keys.get(row.id, "unmapped:" + row.id)
 
 
-def decision(p, overflow=False):
+def decision(p, overflow=False, thresholds=None):
     if overflow or len(p) != 5 or not all(math.isfinite(v) for v in p):
         return "none"
     k = max(range(5), key=lambda i: p[i])
     label = LABELS[k]
-    return label if k and p[k] >= THRESHOLDS[label] else "none"
+    cutoffs = THRESHOLDS if thresholds is None else thresholds
+    return label if k and p[k] >= cutoffs[label] else "none"
 
 
 def sentences(text):
@@ -248,6 +249,9 @@ def render(text, rows):
 class Runtime:
     def __init__(self, classifier):
         self.classifier = classifier
+        self.thresholds = getattr(classifier, "thresholds", THRESHOLDS)
+        self.admission_bound = getattr(classifier, "admission_bound", "legacy_none")
+        assert self.admission_bound in ("legacy_none", "positive_proposal")
         self.register = Register()
         self.task = None
         self.previous = ""
@@ -304,7 +308,9 @@ class Runtime:
                 dict(
                     input=pair,
                     **pred,
-                    proposed=decision(pred["probabilities"], pred["overflow"]),
+                    proposed=decision(
+                        pred["probabilities"], pred["overflow"], self.thresholds
+                    ),
                     applied="none",
                 )
             )
@@ -407,8 +413,10 @@ class Runtime:
                 p["applied"] = label
                 trace["applied"].append(dict(label=label, target=old.id, span=span))
                 continue
-            confident_none = all(
-                p["probabilities"][0] >= NONE_PAIR_THRESHOLD for p in rows
+            confident_none = (
+                all(p["proposed"] == "none" for p in rows)
+                if self.admission_bound == "positive_proposal"
+                else all(p["probabilities"][0] >= NONE_PAIR_THRESHOLD for p in rows)
             )
             accept = (
                 not positive
@@ -481,16 +489,25 @@ class Oracle:
 class FrozenClassifier:
     """Exact CPU architecture/input encoding used by the two frozen heads."""
 
-    def __init__(self):
+    def __init__(
+        self, relations_path=None, thresholds=None, admission_bound="legacy_none"
+    ):
         import torch
         from safetensors.torch import load_file
         from transformers import AutoModel, AutoTokenizer
 
         torch.set_num_threads(4)
         self.torch = torch
+        self.thresholds = THRESHOLDS if thresholds is None else thresholds
+        self.admission_bound = admission_bound
+        relations_path = relations_path or ROOT / "data/classifier/model/relations"
         self.branches = {}
         for branch, classes in [("relations", 5), ("ft", 3)]:
-            path = ROOT / "data/classifier/model" / branch
+            path = (
+                relations_path
+                if branch == "relations"
+                else ROOT / "data/classifier/model" / branch
+            )
             tok = AutoTokenizer.from_pretrained(path / "encoder", local_files_only=True)
             enc = AutoModel.from_pretrained(
                 path / "encoder", local_files_only=True
@@ -513,10 +530,11 @@ class FrozenClassifier:
             head.load_state_dict(state)
             head.requires_grad_(False)
             self.branches[branch] = (tok, enc, head, classes)
-        frozen = json.loads(
-            (ROOT / "data/classifier/model/relations/thresholds.json").read_text()
-        )
-        assert frozen["thresholds"] == THRESHOLDS
+        frozen = json.loads((relations_path / "thresholds.json").read_text())
+        assert self.thresholds in [
+            frozen["thresholds"],
+            frozen.get("secondary_thresholds"),
+        ]
 
     def infer(self, branch, inputs, limit):
         tok, enc, head, classes = self.branches[branch]

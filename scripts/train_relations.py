@@ -353,7 +353,7 @@ def group_rows(rows):
     return list(groups.values())
 
 
-def deduplicate(rows, *, reject_conflicts=False):
+def deduplicate(rows, *, reject_conflicts=False, full_input=False):
     # Assign connected components BEFORE dedup, retaining dropped relatives' links.
     for group in group_rows(rows):
         group_id = digest(
@@ -366,12 +366,13 @@ def deduplicate(rows, *, reject_conflicts=False):
         if any(row.get("development_only") for row in group):
             for row in group:
                 row["development_only"] = True
+    identity = render_pair if full_input else fingerprint
     labels = defaultdict(set)
     for row in rows:
-        labels[fingerprint(row)].add(row["label"])
+        labels[identity(row)].add(row["label"])
     seen, result, decisions = {}, [], []
     for row in rows:
-        key = fingerprint(row)
+        key = identity(row)
         if len(labels[key]) > 1:
             if reject_conflicts:
                 raise ValueError(
@@ -399,7 +400,67 @@ def deduplicate(rows, *, reject_conflicts=False):
     return result, decisions
 
 
-def load_training(paths, patch_paths, enrich_paths):
+def repair_v2(rows):
+    """Registered mechanical repair; never infer or reauthor candidate text."""
+    repaired, drops, counts = [], [], Counter()
+    for original in rows:
+        row = copy.deepcopy(original)
+        rule = row.get("old_rule")
+        if rule is None:
+            repaired.append(row)
+            continue
+        status = rule.get("status") if isinstance(rule, dict) else row.get("status")
+        message = message_text(row)
+        span = row.get("target_span", {})
+        quote = span.get("text", span.get("quote"))
+        new_spans = [
+            s if isinstance(s, str) else s.get("text", s.get("quote"))
+            for s in row.get("new_rule_spans", [])
+        ]
+        reason = None
+        if status not in ("live", "superseded", "cancelled", "completed"):
+            reason = "invalid_status"
+        elif not isinstance(quote, str) or not quote or quote not in message:
+            reason = "nonverbatim_target_span"
+        elif any(
+            not isinstance(s, str) or not s or s not in message for s in new_spans
+        ):
+            reason = "nonverbatim_new_rule_span"
+        if reason:
+            drops.append(
+                dict(
+                    id=row.get("id"),
+                    source=row.get("source"),
+                    source_file=row.get("source_file"),
+                    source_row=row.get("source_row"),
+                    reason=reason,
+                )
+            )
+            continue
+        start = message.find(quote)
+        counts["start_repaired"] += int(span.get("start") != start)
+        counts["end_repaired"] += int(span.get("end") != start + len(quote))
+        counts["whole_message_spans"] += int(quote == message)
+        counts["new_rule_objects_normalized"] += sum(
+            not isinstance(s, str) for s in row.get("new_rule_spans", [])
+        )
+        row["target_span"] = dict(start=start, end=start + len(quote), text=quote)
+        row["new_rule_spans"] = new_spans
+        if not row.get("id"):
+            row["id"] = "v2:" + digest([row["source_file"], row["source_row"]])
+            counts["id_backfilled"] += 1
+        if not row.get("scenario_id"):
+            row["scenario_id"] = "v2-message:" + digest(message.strip().casefold())
+            counts["scenario_id_backfilled"] += 1
+        repaired.append(row)
+    return repaired, dict(
+        counts=counts,
+        drops=drops,
+        drop_counts=dict(Counter(d["reason"] for d in drops)),
+    )
+
+
+def load_training(paths, patch_paths, enrich_paths, *, clean_v2=False):
     raw, patches, hashes, summaries = [], [], {}, []
     for path in [*paths, *enrich_paths, *patch_paths]:
         rows, sha = read_jsonl(path)
@@ -409,18 +470,31 @@ def load_training(paths, patch_paths, enrich_paths):
             rows = [row for row in rows if set(row) != {"summary"}]
         for row in rows:
             refuse_benchmark(row)
+        if clean_v2 and path not in patch_paths:
+            for i, row in enumerate(rows, 1):
+                row.update(source_file=str(Path(path).relative_to(ROOT)), source_row=i)
         (patches if path in patch_paths else raw).extend(rows)
     # Reserved-author data cannot be laundered away by a patch or deduplication.
     if any(author_of(row) == "fable" for row in raw):
         raise ValueError("reserved held-out author cannot enter fit/development")
     fixed, audit = apply_patches(raw, patches)
+    if clean_v2:
+        fixed, audit["v2_repair"] = repair_v2(fixed)
     normalized = [normalize_row(row) for row in fixed]
     pairs = [row for row in normalized if row is not None]
     audit.update(
         admission_rows_excluded=len(normalized) - len(pairs),
         span_offsets_repaired=sum(r["span_offsets_repaired"] for r in pairs),
     )
-    pairs, decisions = deduplicate(pairs)
+    pairs, decisions = deduplicate(pairs, full_input=clean_v2)
+    if clean_v2:
+        audit["final_labels"] = dict(Counter(r["label"] for r in pairs))
+        audit["final_sources"] = {
+            source: dict(
+                Counter(r["label"] for r in pairs if r["source_file"] == source)
+            )
+            for source in sorted({r["source_file"] for r in pairs})
+        }
     audit.update(
         input_sha256=hashes,
         dedup_decisions=decisions,
@@ -710,6 +784,7 @@ def parse_args(argv=None):
     parser.add_argument("--cpu-threads", type=int, default=4)
     parser.add_argument("--cpu-smoke", action="store_true")
     parser.add_argument("--local-files-only", action="store_true")
+    parser.add_argument("--clean-v2", action="store_true")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--dev-only", action="store_true")
     mode.add_argument("--evaluate-only", action="store_true")
@@ -762,6 +837,7 @@ def train(args):
         args.train,
         [p for p in args.patch if p.is_file()],
         [p for p in args.enrich if p.is_file()],
+        clean_v2=args.clean_v2,
     )
     all_training = rows
     if args.cpu_smoke:

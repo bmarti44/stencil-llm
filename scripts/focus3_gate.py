@@ -476,13 +476,15 @@ def run_episode(ep, arm, trunk, classifier, split):
         gold_live = oracle.register.live(oracle.task, kind)
         classify_start = time.monotonic()
         trace = (
-            runtime.update(turn["text"], i) if arm == "C" or split == "setup" else {}
+            runtime.update(turn["text"], i)
+            if arm in ("C", "C'") or split == "setup"
+            else {}
         )
         classification_seconds = time.monotonic() - classify_start
         # Setup classifier work is timed but does not determine competence cues.
         if split == "setup":
             live = gold_live
-        elif arm == "C":
+        elif arm in ("C", "C'"):
             live = runtime.register.live(runtime.task, kind)
         elif arm == "O":
             live = gold_live
@@ -509,7 +511,9 @@ def run_episode(ep, arm, trunk, classifier, split):
             raise ValueError("renderer overflow: frozen fail-open counts FAIL")
         generation = trunk.answer(history, rendered)
         agreement = f.agreement(live, gold_live, ep["gold_keys"])
-        selected = runtime.task if arm == "C" and split != "setup" else oracle.task
+        selected = (
+            runtime.task if arm in ("C", "C'") and split != "setup" else oracle.task
+        )
         returned = selected != prior_task and selected in visited
         reactivated = (
             sum(

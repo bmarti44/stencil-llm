@@ -570,3 +570,29 @@ states from identical stored predictions with exact input assertions.96 records,
 90 relatives quarantined,Kimi untouched.No GPU,sealed/bench reads,signals,push.
 This scoped commit lands final RESULTS,README,WORKLOG and force-added evidence.
 No next command: stop at authorized step A; step B awaits enrichment review.
+
+2026-09-06 — STATE: FOCUS-3 V6 STEP B WRITE-AHEAD, BEFORE FITTING.
+User authorizes clean enriched refit0/1/2 GPU3epochs, DEV5% primary/10% supersedes
+secondary, heldout2 SECOND LOOK, CPU setup then conditional gate. Archived
+protocol read for context; direct user task governs, no wrappers active.
+Lineage: fit patched original + reviewed transitions + opus2 +90 astra2
+(evaluation-derived, never independent test); calibrate scenario-disjoint DEV;
+evaluate heldout2 diagnostic then setup30321, conditional gate30322. No benches.
+Rulings in v6/RESULTS.md before fitting: mechanical exact span repair/drop,
+status drop, IDs/grouping, full-model-input dedup preserves status minimal pairs,
+positive-proposal admission bound before applicability filters. Admission head
+unchanged: relation negatives cannot directly repair false quoted admissions.
+GPU/flags currently empty. No process signals/background/push; scoped commits.
+
+2026-09-06 — STATE: V6 CPU READY / PRE-FIT FREEZE.
+7749 effective pairs: none3259/supersedes1521/cancels1038/completes1024/reinstates907.
+Merged+transition patches drop123/relabel225; additional mechanical drops2
+nonverbatim targets+1invalid status. Repair68starts/1202ends, normalize110objects;
+0full-input dedup removals, status minimal pair retained. Each6974fit/775DEV,
+all scenario/message/relative links disjoint. Seed0's90Astra2 rows all DEV;
+seed1/2 each30fit/60DEV under unchanged splitter, disclosed before fitting.
+92 targeted tests pass,1existing xfail; consumer tests cover exact proposal
+boundary, ignored-reinstates veto, C' runtime, one-shot96-record writer and
+ineligible gate refusal. Source/reading/input/ft/bank hashes frozen pre-fit.
+Next foreground .venv/bin/python -u -m scripts.focus3_gate_v6 --mode fit,
+seeds0/1/2, no heldout/setup outcomes yet; own flag, no PID exceptions/signals.
