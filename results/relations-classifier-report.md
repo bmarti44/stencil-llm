@@ -365,3 +365,75 @@ comparison repair, science AST unchanged. No inference rerun or refit.
 [Results and limitations](quick-checks/check44c/RESULTS.md),
 [pre-written reading](quick-checks/check44c/README.md),
 [model manifest](../data/classifier/model/admission-v2/manifest.json).
+
+## 2026-09-06 — Relations v3 override refit: NO-GO
+
+V2 stays. Accuracy 87.05% fails 94%; supersedes recall 73.26% fails 90%. F1 also fails the registered floors for none (82.83% < 92.30%), supersedes (84.00% < 93.24%), and completes (94.12% < 95.88%).
+
+Fit-on = exact v2 patched relations/transitions/four enrich sets + 1,231 Opus-patched overrides; calibrated-on = scenario-disjoint DEV only; evaluated-on = fresh Fable held-out-3 once after committed model/policy/evaluator freeze `e8c00361` (recipe `6809791f`). The inherited 90 Astra2 evaluation-derived relatives remain disclosed. No benchmark inputs/responses.
+Pool: 8,980 pairs; each seed 8,082 fit/898 DEV. Audit patches applied by source+zero-based index; three deletes, 52 start/1,032 end repairs after patching, zero further target-span drops; 1,116 retained whole-message spans. Admitted spans normalized, identities assigned, repeated messages grouped. The seven flagged paraphrase-family rows and connected groups are fit-only, excluded from every DEV. These groups do not establish broad paraphrase disjointness.
+
+All seeds 0/1/2 complete three epochs/759 updates with the v2 recipe; seed 0 preselected. DEV C policies and exact records are saved.
+
+| Seed | DEV accuracy | Supersedes recall | C thresholds S/C/Cm/R |
+|---|---:|---:|---|
+| 0 | 94.65% | 95.63% | 0.92/0.50/0.50/0.50 |
+| 1 | 95.21% | 97.81% | 0.50/0.50/0.50/0.50 |
+| 2 | 93.99% | 96.17% | 0.76/0.50/0.50/0.50 |
+
+**Primary fresh held-out-3, one inference pass.**
+
+Accuracy **87.05%** (390/448).
+
+| Label | Support | Precision | Recall | F1 |
+|---|---:|---:|---:|---:|
+| none | 133 | 75.00% | 92.48% | 82.83% |
+| supersedes | 172 | 98.44% | 73.26% | 84.00% |
+| cancels | 51 | 86.21% | 98.04% | 91.74% |
+| completes | 41 | 90.91% | 97.56% | 94.12% |
+| reinstates | 51 | 94.44% | 100.00% | 97.14% |
+
+Confusion: gold rows / predicted columns, none/supersedes/cancels/completes/reinstates.
+```text
+123   2   1   4   3
+ 39 126   7   0   0
+  1   0  50   0   0
+  1   0   0  40   0
+  0   0   0   0  51
+```
+Supersedes recall 95% Clopper–Pearson interval: **[65.98%, 79.71%]** (row-level, not cluster-adjusted).
+
+The registered F1 floors (v2 held-out-2 minus 3 percentage points) are none 92.30%, supersedes 93.24%, cancels 91.00%, completes 95.88%, reinstates 94.87%.
+
+**Secondary held-out-2 historical re-look**, after freeze; v3 evaluated once on this already-used bank (v2 already had a disclosed second look). It did not inform fit, calibration or selection.
+
+Accuracy **95.24%** (340/357).
+
+| Label | Support | Precision | Recall | F1 |
+|---|---:|---:|---:|---:|
+| none | 151 | 95.27% | 93.38% | 94.31% |
+| supersedes | 68 | 98.41% | 91.18% | 94.66% |
+| cancels | 47 | 88.68% | 100.00% | 94.00% |
+| completes | 45 | 97.78% | 97.78% | 97.78% |
+| reinstates | 46 | 95.83% | 100.00% | 97.87% |
+
+Confusion: gold rows / predicted columns, none/supersedes/cancels/completes/reinstates.
+```text
+141   1   6   1   2
+  6  62   0   0   0
+  0   0  47   0   0
+  1   0   0  44   0
+  0   0   0   0  46
+```
+Supersedes recall 95% Clopper–Pearson interval: **[81.78%, 96.69%]** (row-level, not cluster-adjusted).
+
+V2 accuracy was 96.08%; v3 change -0.84 points.
+
+**Exact v2 FOCUS-3 runtime diagnostic:** 11/12 transitions versus 11/12, 34/36 admissions versus 35/36; 6 unauthorized applications versus 2. Only relations/C thresholds swapped; original admission and runtime source retained. All 96 turns saved and independently replayed; one previously passing transition regression and one improvement. Runtime recalls are supersedes 3/4, cancels 4/4, completes 4/4; reinstates has zero support. No full gate inference or gate eligibility claim.
+
+- Regression: `setup_0_01`, turn 2, supersedes now updates the wrong source key (`0:20` rather than `0:90`).
+- Improvement: `setup_0_02`, turn 2, the standing-order switch now passes.
+
+GPU allocation: 264.77/1800 seconds (4.41 minutes), including calibration/save/CPU work while flagged. Flag removed on natural completion. 11 targeted tests passed; all 2,694 DEV scores, held-out records, binomial bounds, and runtime state replay audited. Source/model/data hashes verified; no post-score model or policy changes, signals, background jobs or push. Safetensors remain local.
+
+[Model README and checkpoint hashes](../data/classifier/model/relations-v3/README.md), [evaluation and reading](../data/classifier/model/relations-v3/evaluation.json), [freeze](quick-checks/relations-v3/freeze.json), [audit](quick-checks/relations-v3/audit.json).

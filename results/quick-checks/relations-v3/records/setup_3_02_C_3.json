@@ -1,0 +1,379 @@
+{
+  "agreement": {
+    "contradictory": false,
+    "exact": false,
+    "false_retirement": true
+  },
+  "arm": "C",
+  "episode": "setup_3_02",
+  "event_checks": [],
+  "family": "switch-and-return",
+  "gold_live": [
+    {
+      "id": "0:20",
+      "scope": "*",
+      "task_id": null,
+      "text": "For every sorting request in this conversation, keep tag equal to 26.",
+      "version": 1
+    },
+    {
+      "id": "2:22",
+      "scope": "S3n2B",
+      "task_id": "S3n2B",
+      "text": "Use descending order for all payloads in task S3n2B from now on.",
+      "version": 1
+    }
+  ],
+  "gold_trace": {
+    "after": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 26.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S3n2A",
+        "span_start": 90,
+        "status": "live",
+        "text": "Each time you handle a payload for task S3n2A, sort it in ascending order.",
+        "version": 1
+      },
+      {
+        "id": "2:22",
+        "key": "new:2:22",
+        "kind": "sort",
+        "provenance_turn": 2,
+        "scope": "S3n2B",
+        "span_start": 22,
+        "status": "live",
+        "text": "Use descending order for all payloads in task S3n2B from now on.",
+        "version": 1
+      }
+    ],
+    "applied": [],
+    "before": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 26.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S3n2A",
+        "span_start": 90,
+        "status": "live",
+        "text": "Each time you handle a payload for task S3n2A, sort it in ascending order.",
+        "version": 1
+      },
+      {
+        "id": "2:22",
+        "key": "new:2:22",
+        "kind": "sort",
+        "provenance_turn": 2,
+        "scope": "S3n2B",
+        "span_start": 22,
+        "status": "live",
+        "text": "Use descending order for all payloads in task S3n2B from now on.",
+        "version": 1
+      }
+    ]
+  },
+  "live": [
+    {
+      "id": "2:22",
+      "scope": "S3n2B",
+      "task_id": "S3n2B",
+      "text": "Use descending order for all payloads in task S3n2B from now on.",
+      "version": 3
+    }
+  ],
+  "trace": {
+    "admissions": [
+      {
+        "accepted": false,
+        "logits": [
+          0.2875621020793915,
+          0.3464423418045044,
+          -0.7195279598236084
+        ],
+        "model_input": [
+          "user: Switch to task S3n2B. user: Use descending order for all payloads in task S3n2B from now on. user: Sort request for task S3n2B: payload [11, 41, 39, 44, 64]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "[user] Continue task S3n2B; Sort request for task S3n2B: payload [75, 84, 65, 23, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.41221328821682696,
+          0.4372132861256704,
+          0.1505734256575026
+        ],
+        "span": "Continue task S3n2B; Sort request for task S3n2B: payload [75, 84, 65, 23, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+        "start": 0,
+        "token_count": 153
+      }
+    ],
+    "admitted_beside_live": 0,
+    "after": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 26.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S3n2A",
+        "span_start": 90,
+        "status": "live",
+        "text": "Each time you handle a payload for task S3n2A, sort it in ascending order.",
+        "version": 1
+      },
+      {
+        "id": "2:0",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 2,
+        "scope": "S3n2B",
+        "span_start": 0,
+        "status": "live",
+        "text": "Switch to task S3n2B.",
+        "version": 2
+      },
+      {
+        "id": "2:22",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 2,
+        "scope": "S3n2B",
+        "span_start": 22,
+        "status": "live",
+        "text": "Use descending order for all payloads in task S3n2B from now on.",
+        "version": 3
+      }
+    ],
+    "applied": [],
+    "before": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 26.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S3n2A",
+        "span_start": 90,
+        "status": "live",
+        "text": "Each time you handle a payload for task S3n2A, sort it in ascending order.",
+        "version": 1
+      },
+      {
+        "id": "2:0",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 2,
+        "scope": "S3n2B",
+        "span_start": 0,
+        "status": "live",
+        "text": "Switch to task S3n2B.",
+        "version": 2
+      },
+      {
+        "id": "2:22",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 2,
+        "scope": "S3n2B",
+        "span_start": 22,
+        "status": "live",
+        "text": "Use descending order for all payloads in task S3n2B from now on.",
+        "version": 3
+      }
+    ],
+    "overflow": false,
+    "pairs": [
+      {
+        "applied": "none",
+        "gold": "none",
+        "input": {
+          "message": "Continue task S3n2B;",
+          "old_rule": {
+            "key": "tag",
+            "scope": "global",
+            "status": "live",
+            "text": "For every sorting request in this conversation, keep tag equal to 26."
+          },
+          "prev_user": "Use descending order for all payloads in task S3n2B from now on.",
+          "role": "user",
+          "target_id": "0:20",
+          "target_span": {
+            "end": 20,
+            "start": 0,
+            "text": "Continue task S3n2B;"
+          }
+        },
+        "logits": [
+          4.061676025390625,
+          -0.2703917324542999,
+          -1.2491158246994019,
+          -1.7149877548217773,
+          -2.0013558864593506
+        ],
+        "model_input": [
+          "[target] live global For every sorting request in this conversation, keep tag equal to 26. [metadata] {\"key\": \"tag\"}",
+          "[message] user: Continue task S3n2B; [span] Continue task S3n2B; [prev_user] Use descending order for all payloads in task S3n2B from now on."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.9770350505581347,
+          0.012838580885962044,
+          0.004824613736661365,
+          0.0030278680163258547,
+          0.0022738868029159517
+        ],
+        "proposed": "none",
+        "token_count": 82
+      },
+      {
+        "applied": "none",
+        "gold": "none",
+        "input": {
+          "message": "Continue task S3n2B;",
+          "old_rule": {
+            "key": "instruction",
+            "scope": "task:S3n2B",
+            "status": "live",
+            "text": "Switch to task S3n2B."
+          },
+          "prev_user": "Use descending order for all payloads in task S3n2B from now on.",
+          "role": "user",
+          "target_id": "2:0",
+          "target_span": {
+            "end": 20,
+            "start": 0,
+            "text": "Continue task S3n2B;"
+          }
+        },
+        "logits": [
+          3.962480306625366,
+          -0.5643415451049805,
+          -0.8204419016838074,
+          -1.1685328483581543,
+          -2.362229347229004
+        ],
+        "model_input": [
+          "[target] live task:S3n2B Switch to task S3n2B. [metadata] {\"key\": \"instruction\"}",
+          "[message] user: Continue task S3n2B; [span] Continue task S3n2B; [prev_user] Use descending order for all payloads in task S3n2B from now on."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.9738155142861757,
+          0.010531808129286342,
+          0.008152296502507293,
+          0.005755803903958892,
+          0.0017445771780718548
+        ],
+        "proposed": "none",
+        "token_count": 83
+      },
+      {
+        "applied": "none",
+        "gold": "none",
+        "input": {
+          "message": "Continue task S3n2B;",
+          "old_rule": {
+            "key": "sort-order",
+            "scope": "task:S3n2B",
+            "status": "live",
+            "text": "Use descending order for all payloads in task S3n2B from now on."
+          },
+          "prev_user": "Use descending order for all payloads in task S3n2B from now on.",
+          "role": "user",
+          "target_id": "2:22",
+          "target_span": {
+            "end": 20,
+            "start": 0,
+            "text": "Continue task S3n2B;"
+          }
+        },
+        "logits": [
+          3.9820544719696045,
+          -0.2542462646961212,
+          -1.1459628343582153,
+          -1.2989925146102905,
+          -2.237342357635498
+        ],
+        "model_input": [
+          "[target] live task:S3n2B Use descending order for all payloads in task S3n2B from now on. [metadata] {\"key\": \"sort-order\"}",
+          "[message] user: Continue task S3n2B; [span] Continue task S3n2B; [prev_user] Use descending order for all payloads in task S3n2B from now on."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.9732674212459782,
+          0.014074408520572063,
+          0.0057698240151188365,
+          0.004951110524605422,
+          0.001937235693725554
+        ],
+        "proposed": "none",
+        "token_count": 94
+      }
+    ],
+    "role": "user"
+  },
+  "turn": {
+    "direction": "descending",
+    "events": [],
+    "hard_none": false,
+    "kind": "sort",
+    "payload": [
+      75,
+      84,
+      65,
+      23,
+      87
+    ],
+    "post_change": true,
+    "stale": [
+      "ascending"
+    ],
+    "tag": 26,
+    "task": "S3n2B",
+    "text": "Continue task S3n2B; Sort request for task S3n2B: payload [75, 84, 65, 23, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+  },
+  "turn_index": 3
+}

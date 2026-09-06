@@ -1,0 +1,635 @@
+{
+  "artifact_hashes": {
+    "data/classifier/model/relations-v3/heldout2-records.jsonl": "8e61bcf28da780f6426ecc193d7827df6d849d78749799d14486825856cf9d62",
+    "data/classifier/model/relations-v3/heldout3-records.jsonl": "c8a78d05c1dd4cf7afd0b55c002299025384f998683faca880482f4b9a49aa19",
+    "results/quick-checks/relations-v3/audit.json": "478c759562433da3a35a7ca432819816bd1b0e0a1b59e8cf6f6e928b20a71348",
+    "results/quick-checks/relations-v3/freeze.json": "175b9d59750b04ef8f0cf427a357bb9e610e1405e414ff9f232249ad46a7f9bd"
+  },
+  "audit": {
+    "audit": "PASS; saved-score and state replay only",
+    "dev_records": [
+      898,
+      898,
+      898
+    ],
+    "heldout_records": {
+      "2": 357,
+      "3": 448
+    },
+    "improvements": [
+      {
+        "episode": "setup_0_02",
+        "event": {
+          "actual": {
+            "id": "2:0",
+            "key": "new:0:90",
+            "kind": "sort",
+            "provenance_turn": 2,
+            "scope": "S0n2A",
+            "span_start": 0,
+            "status": "live",
+            "text": "For task S0n2A, switch the standing order from descending to ascending.",
+            "version": 2
+          },
+          "applied": true,
+          "expected": {
+            "id": "2:0",
+            "key": "new:0:90",
+            "kind": "sort",
+            "provenance_turn": 2,
+            "scope": "S0n2A",
+            "span_start": 0,
+            "status": "live",
+            "text": "For task S0n2A, switch the standing order from descending to ascending.",
+            "version": 2
+          },
+          "gold_source_id": "0:90",
+          "initial_order": false,
+          "label": "supersedes",
+          "passed": true,
+          "source_state_matches": true,
+          "span": "For task S0n2A, switch the standing order from descending to ascending.",
+          "state_matches": true,
+          "target": "2:0"
+        },
+        "turn": 2
+      }
+    ],
+    "regressions": [
+      {
+        "episode": "setup_0_01",
+        "event": {
+          "actual": {
+            "id": "2:0",
+            "key": "new:0:20",
+            "kind": "sort",
+            "provenance_turn": 2,
+            "scope": "S0n1A",
+            "span_start": 0,
+            "status": "live",
+            "text": "Replace the sorting rule for task S0n1A: always use ascending order.",
+            "version": 2
+          },
+          "applied": false,
+          "expected": {
+            "id": "2:0",
+            "key": "new:0:90",
+            "kind": "sort",
+            "provenance_turn": 2,
+            "scope": "S0n1A",
+            "span_start": 0,
+            "status": "live",
+            "text": "Replace the sorting rule for task S0n1A: always use ascending order.",
+            "version": 2
+          },
+          "gold_source_id": "0:90",
+          "initial_order": false,
+          "label": "supersedes",
+          "passed": false,
+          "source_state_matches": false,
+          "span": "Replace the sorting rule for task S0n1A: always use ascending order.",
+          "state_matches": true,
+          "target": "2:0"
+        },
+        "turn": 2
+      }
+    ],
+    "runtime_records": 96
+  },
+  "checkpoint_freeze_commit": "e8c003612cbc81aef933e574366df4bd7716f66d",
+  "failures": [
+    "accuracy 0.870536 < .94",
+    "supersedes recall < .90",
+    "none F1 below v2 heldout2 minus .03",
+    "supersedes F1 below v2 heldout2 minus .03",
+    "completes F1 below v2 heldout2 minus .03"
+  ],
+  "gpu": {
+    "cap_seconds": 1800,
+    "gpu_seconds": 264.7720128639994
+  },
+  "heldout2_secondary": {
+    "abstentions": 148,
+    "accuracy": 0.9523809523809523,
+    "confusion_gold_by_prediction": [
+      [
+        141,
+        1,
+        6,
+        1,
+        2
+      ],
+      [
+        6,
+        62,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        47,
+        0,
+        0
+      ],
+      [
+        1,
+        0,
+        0,
+        44,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        46
+      ]
+    ],
+    "coverage": {
+      "denominator": 357,
+      "numerator": 209,
+      "rate": 0.5854341736694678
+    },
+    "disjointness": {
+      "author_overlap": 0,
+      "coverage": "Declared identities and exact pairs; not semantic proof",
+      "declared_relative_overlap": 0,
+      "pair_fingerprint_overlap": 0,
+      "shared_message_heldout_rows": 0,
+      "shared_message_texts": []
+    },
+    "inference_passes": 1,
+    "input_blob": "0008dbe51853c4a2075076c4f30cdd433ebd5e76",
+    "input_sha256": "4bd8af0847795a3421dc17ce0aa97b5538d5f18da731641ccc7a7f77fd61a82c",
+    "labels": [
+      "none",
+      "supersedes",
+      "cancels",
+      "completes",
+      "reinstates"
+    ],
+    "n": 357,
+    "none_fp": {
+      "denominator": 151,
+      "numerator": 10,
+      "rate": 0.06622516556291391
+    },
+    "per_class": {
+      "cancels": {
+        "f1": 0.94,
+        "none_fp": {
+          "denominator": 151,
+          "numerator": 6,
+          "rate": 0.039735099337748346
+        },
+        "precision": 0.8867924528301887,
+        "predicted": 53,
+        "recall": 1.0,
+        "support": 47
+      },
+      "completes": {
+        "f1": 0.9777777777777777,
+        "none_fp": {
+          "denominator": 151,
+          "numerator": 1,
+          "rate": 0.006622516556291391
+        },
+        "precision": 0.9777777777777777,
+        "predicted": 45,
+        "recall": 0.9777777777777777,
+        "support": 45
+      },
+      "none": {
+        "f1": 0.9431438127090301,
+        "none_fp": null,
+        "precision": 0.9527027027027027,
+        "predicted": 148,
+        "recall": 0.9337748344370861,
+        "support": 151
+      },
+      "reinstates": {
+        "f1": 0.9787234042553191,
+        "none_fp": {
+          "denominator": 151,
+          "numerator": 2,
+          "rate": 0.013245033112582781
+        },
+        "precision": 0.9583333333333334,
+        "predicted": 48,
+        "recall": 1.0,
+        "support": 46
+      },
+      "supersedes": {
+        "f1": 0.9465648854961832,
+        "none_fp": {
+          "denominator": 151,
+          "numerator": 1,
+          "rate": 0.006622516556291391
+        },
+        "precision": 0.9841269841269841,
+        "predicted": 63,
+        "recall": 0.9117647058823529,
+        "support": 68
+      }
+    },
+    "secondary": true,
+    "supersedes_cp95": [
+      0.8177768013320661,
+      0.9669275191103401
+    ]
+  },
+  "heldout3": {
+    "abstentions": 164,
+    "accuracy": 0.8705357142857143,
+    "confusion_gold_by_prediction": [
+      [
+        123,
+        2,
+        1,
+        4,
+        3
+      ],
+      [
+        39,
+        126,
+        7,
+        0,
+        0
+      ],
+      [
+        1,
+        0,
+        50,
+        0,
+        0
+      ],
+      [
+        1,
+        0,
+        0,
+        40,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        51
+      ]
+    ],
+    "coverage": {
+      "denominator": 448,
+      "numerator": 284,
+      "rate": 0.6339285714285714
+    },
+    "disjointness": {
+      "author_overlap": 0,
+      "coverage": "Declared identities and exact pairs; not semantic proof",
+      "declared_relative_overlap": 0,
+      "pair_fingerprint_overlap": 0,
+      "shared_message_heldout_rows": 0,
+      "shared_message_texts": []
+    },
+    "inference_passes": 1,
+    "input_blob": "28cc440e1e466223665531d75630e08d4bc2fe33",
+    "input_sha256": "607a48b4a938c0367898f2a494960e93f89ee79bc3dc5c7e17107fd2afef3d5c",
+    "labels": [
+      "none",
+      "supersedes",
+      "cancels",
+      "completes",
+      "reinstates"
+    ],
+    "n": 448,
+    "none_fp": {
+      "denominator": 133,
+      "numerator": 10,
+      "rate": 0.07518796992481203
+    },
+    "per_class": {
+      "cancels": {
+        "f1": 0.9174311926605505,
+        "none_fp": {
+          "denominator": 133,
+          "numerator": 1,
+          "rate": 0.007518796992481203
+        },
+        "precision": 0.8620689655172413,
+        "predicted": 58,
+        "recall": 0.9803921568627451,
+        "support": 51
+      },
+      "completes": {
+        "f1": 0.9411764705882353,
+        "none_fp": {
+          "denominator": 133,
+          "numerator": 4,
+          "rate": 0.03007518796992481
+        },
+        "precision": 0.9090909090909091,
+        "predicted": 44,
+        "recall": 0.975609756097561,
+        "support": 41
+      },
+      "none": {
+        "f1": 0.8282828282828283,
+        "none_fp": null,
+        "precision": 0.75,
+        "predicted": 164,
+        "recall": 0.924812030075188,
+        "support": 133
+      },
+      "reinstates": {
+        "f1": 0.9714285714285714,
+        "none_fp": {
+          "denominator": 133,
+          "numerator": 3,
+          "rate": 0.022556390977443608
+        },
+        "precision": 0.9444444444444444,
+        "predicted": 54,
+        "recall": 1.0,
+        "support": 51
+      },
+      "supersedes": {
+        "f1": 0.84,
+        "none_fp": {
+          "denominator": 133,
+          "numerator": 2,
+          "rate": 0.015037593984962405
+        },
+        "precision": 0.984375,
+        "predicted": 128,
+        "recall": 0.7325581395348837,
+        "support": 172
+      }
+    },
+    "secondary": false,
+    "supersedes_cp95": [
+      0.6598463323229513,
+      0.7970692835940213
+    ]
+  },
+  "runtime": {
+    "complete": true,
+    "counts": {
+      "admissions": {
+        "passed": 34,
+        "total": 36
+      },
+      "initial_order": {
+        "passed": 16,
+        "total": 16
+      },
+      "transitions": {
+        "passed": 11,
+        "total": 12
+      }
+    },
+    "diagnostics": {
+      "gold_admit_pair_p_none": {
+        "n": 4,
+        "values": {
+          "0": 0.010475731118972794,
+          "0.1": 0.010877723600200643,
+          "0.5": 0.07130201884638411,
+          "0.9": 0.24557646447505016,
+          "0.95": 0.2701739215119103,
+          "0.98": 0.2849323957340264,
+          "1": 0.2947713785487705
+        }
+      },
+      "gold_none": {
+        "applied_positive": 5,
+        "guard_admitted": 128,
+        "p_none": {
+          "n": 160,
+          "values": {
+            "0": 0.0026575076096070327,
+            "0.1": 0.027712928565924774,
+            "0.5": 0.9793196841420753,
+            "0.9": 0.9827514035505948,
+            "0.95": 0.9829154384484536,
+            "0.98": 0.9830021459195075,
+            "1": 0.983588699759959
+          }
+        },
+        "proposed_positive": 28,
+        "total": 160
+      },
+      "known_phrasings": [
+        {
+          "episode": "setup_0_01",
+          "label": "supersedes",
+          "passed": false,
+          "span": "Replace the sorting rule for task S0n1A: always use ascending order."
+        },
+        {
+          "episode": "setup_1_02",
+          "label": "cancels",
+          "passed": true,
+          "span": "The sorting rule for task S1n2A no longer applies."
+        },
+        {
+          "episode": "setup_2_03",
+          "label": "completes",
+          "passed": true,
+          "span": "That concludes task S2n3A."
+        }
+      ],
+      "per_label": {
+        "cancels": {
+          "applied": 4,
+          "gold": 4,
+          "paired": 4,
+          "proposed": 4,
+          "recall": 1.0
+        },
+        "completes": {
+          "applied": 4,
+          "gold": 4,
+          "paired": 4,
+          "proposed": 4,
+          "recall": 1.0
+        },
+        "reinstates": {
+          "applied": 0,
+          "gold": 0,
+          "paired": 0,
+          "proposed": 0,
+          "recall": null
+        },
+        "supersedes": {
+          "applied": 3,
+          "gold": 4,
+          "paired": 4,
+          "proposed": 4,
+          "recall": 0.75
+        }
+      }
+    },
+    "eligible": false,
+    "failures": [
+      {
+        "actual": {
+          "id": "2:0",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S0n1A",
+          "span_start": 0,
+          "status": "live",
+          "text": "Replace the sorting rule for task S0n1A: always use ascending order.",
+          "version": 2
+        },
+        "applied": false,
+        "episode": "setup_0_01",
+        "expected": {
+          "id": "2:0",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S0n1A",
+          "span_start": 0,
+          "status": "live",
+          "text": "Replace the sorting rule for task S0n1A: always use ascending order.",
+          "version": 2
+        },
+        "gold_source_id": "0:90",
+        "initial_order": false,
+        "label": "supersedes",
+        "passed": false,
+        "source_state_matches": false,
+        "span": "Replace the sorting rule for task S0n1A: always use ascending order.",
+        "state_matches": true,
+        "target": "2:0",
+        "turn_index": 2
+      },
+      {
+        "actual": {
+          "id": "2:22",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S3n0B",
+          "span_start": 22,
+          "status": "live",
+          "text": "Going forward, keep every payload for task S3n0B in descending order.",
+          "version": 3
+        },
+        "applied": false,
+        "episode": "setup_3_00",
+        "expected": {
+          "id": "2:22",
+          "key": "new:2:22",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S3n0B",
+          "span_start": 22,
+          "status": "live",
+          "text": "Going forward, keep every payload for task S3n0B in descending order.",
+          "version": 1
+        },
+        "initial_order": false,
+        "label": "admit",
+        "passed": false,
+        "span": "Going forward, keep every payload for task S3n0B in descending order.",
+        "state_matches": false,
+        "target": "2:22",
+        "turn_index": 2
+      },
+      {
+        "actual": {
+          "id": "2:22",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S3n2B",
+          "span_start": 22,
+          "status": "live",
+          "text": "Use descending order for all payloads in task S3n2B from now on.",
+          "version": 3
+        },
+        "applied": false,
+        "episode": "setup_3_02",
+        "expected": {
+          "id": "2:22",
+          "key": "new:2:22",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S3n2B",
+          "span_start": 22,
+          "status": "live",
+          "text": "Use descending order for all payloads in task S3n2B from now on.",
+          "version": 1
+        },
+        "initial_order": false,
+        "label": "admit",
+        "passed": false,
+        "span": "Use descending order for all payloads in task S3n2B from now on.",
+        "state_matches": false,
+        "target": "2:22",
+        "turn_index": 2
+      }
+    ],
+    "per_label_pass": true,
+    "records": 96,
+    "unauthorized": {
+      "applications": 6,
+      "details": [
+        {
+          "episode": "setup_0_01",
+          "label": "admit",
+          "span": "Inert setup context: the sample \"Cancel the sorting rule for task S0n1A.\" is not an instruction.",
+          "turn_index": 1
+        },
+        {
+          "episode": "setup_0_01",
+          "label": "supersedes",
+          "span": "Replace the sorting rule for task S0n1A: always use ascending order.",
+          "target": "0:20",
+          "turn_index": 2
+        },
+        {
+          "episode": "setup_3_00",
+          "label": "supersedes",
+          "span": "Switch to task S3n0B.",
+          "target": "0:20",
+          "turn_index": 2
+        },
+        {
+          "episode": "setup_3_00",
+          "label": "supersedes",
+          "span": "Going forward, keep every payload for task S3n0B in descending order.",
+          "target": "0:20",
+          "turn_index": 2
+        },
+        {
+          "episode": "setup_3_02",
+          "label": "supersedes",
+          "span": "Switch to task S3n2B.",
+          "target": "0:20",
+          "turn_index": 2
+        },
+        {
+          "episode": "setup_3_02",
+          "label": "supersedes",
+          "span": "Use descending order for all payloads in task S3n2B from now on.",
+          "target": "0:20",
+          "turn_index": 2
+        }
+      ],
+      "per_label": {
+        "admit": 1,
+        "supersedes": 5
+      },
+      "records": 4,
+      "total_records": 96
+    }
+  },
+  "verdict": "NO-GO"
+}

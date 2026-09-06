@@ -1061,3 +1061,5 @@ No wrapper lock held; no signals, background launch or push. Next: prepare/freez
 Three full seeds /759 updates each; GPU264.772/1800s, own flag removed naturally.
 Model/DEV/policy/evaluator hashes bind next commit; README prose explicitly mutable.
 Next: one seed0 heldout3 inference, historical heldout2 secondary look, exact-v2 CPU runtime diagnostic; no fitting or selection afterward.
+
+2026-09-06 — STATE: RELATIONS V3 COMPLETE / NO-GO. Heldout3 accuracy87.05%, supersedes recall73.26%; accuracy 0.870536 < .94; supersedes recall < .90; none F1 below v2 heldout2 minus .03; supersedes F1 below v2 heldout2 minus .03; completes F1 below v2 heldout2 minus .03. Secondary heldout295.24%; runtime11/12, 1 regressions. All records/hash/CP/runtime audits pass, GPU264.77/1800s; no inference pending. Explicit-path local completion commit; no push.

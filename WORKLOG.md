@@ -5393,3 +5393,9 @@ Added timed immutable-event replay/history evidence, derived session views/bindi
 Added AST/import/legacy-call fences, 12 randomized lifecycle sequences and a 12-request golden episode with assistive abstain/disagree.
 Legacy helpers remain in focus3.py: moving them requires edits outside the brief allowlist; explicit modules cannot import/call them.
 Validation: targeted focus + focus3 + no-side-effect tests: 158 passed, 1 expected legacy xfail; Ruff clean. Synthetic fixtures only; no GPU/bench reads/signals/push.
+
+2026-09-06 — Relations v3: NO-GO; heldout3 accuracy 87.05%, supersedes recall 73.26%.
+Audited overrides + exact v2 pool; seeds 0/1/2, DEV-only calibration; committed freeze before one fresh evaluation.
+Secondary heldout2 accuracy 95.24%; exact-v2 runtime 11/12 transitions, 1 regression.
+GPU 4.41/30 min; records/hashes audited, safetensors local, no signals/push.
+See results/relations-classifier-report.md and data/classifier/model/relations-v3/README.md.

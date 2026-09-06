@@ -1,0 +1,91 @@
+{
+  "audit": "PASS; saved-score and state replay only",
+  "dev_records": [
+    898,
+    898,
+    898
+  ],
+  "heldout_records": {
+    "2": 357,
+    "3": 448
+  },
+  "improvements": [
+    {
+      "episode": "setup_0_02",
+      "event": {
+        "actual": {
+          "id": "2:0",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S0n2A",
+          "span_start": 0,
+          "status": "live",
+          "text": "For task S0n2A, switch the standing order from descending to ascending.",
+          "version": 2
+        },
+        "applied": true,
+        "expected": {
+          "id": "2:0",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S0n2A",
+          "span_start": 0,
+          "status": "live",
+          "text": "For task S0n2A, switch the standing order from descending to ascending.",
+          "version": 2
+        },
+        "gold_source_id": "0:90",
+        "initial_order": false,
+        "label": "supersedes",
+        "passed": true,
+        "source_state_matches": true,
+        "span": "For task S0n2A, switch the standing order from descending to ascending.",
+        "state_matches": true,
+        "target": "2:0"
+      },
+      "turn": 2
+    }
+  ],
+  "regressions": [
+    {
+      "episode": "setup_0_01",
+      "event": {
+        "actual": {
+          "id": "2:0",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S0n1A",
+          "span_start": 0,
+          "status": "live",
+          "text": "Replace the sorting rule for task S0n1A: always use ascending order.",
+          "version": 2
+        },
+        "applied": false,
+        "expected": {
+          "id": "2:0",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S0n1A",
+          "span_start": 0,
+          "status": "live",
+          "text": "Replace the sorting rule for task S0n1A: always use ascending order.",
+          "version": 2
+        },
+        "gold_source_id": "0:90",
+        "initial_order": false,
+        "label": "supersedes",
+        "passed": false,
+        "source_state_matches": false,
+        "span": "Replace the sorting rule for task S0n1A: always use ascending order.",
+        "state_matches": true,
+        "target": "2:0"
+      },
+      "turn": 2
+    }
+  ],
+  "runtime_records": 96
+}
