@@ -19,6 +19,20 @@ from stencil import focus2
 LABELS = ("none", "supersedes", "cancels", "completes", "reinstates")
 THRESHOLDS = dict(supersedes=0.94, cancels=0.50, completes=0.50, reinstates=0.50)
 ROOT = Path(__file__).resolve().parents[2]
+ORDER_DEFAULT = "Ordering: return the list in the given order."
+
+
+def ordering_row(row):
+    """Supported sort-schema field recognition, never a relation/admission veto."""
+    return bool(
+        re.search(r"\b(?:ascending|descending|ordering)\b|sorting rule", row.text, re.I)
+    )
+
+
+def semantic_key(row, gold_keys):
+    if row.id.startswith("default:ordering:"):
+        return "order:" + row.scope
+    return gold_keys.get(row.id, "unmapped:" + row.id)
 
 
 def decision(p, overflow=False):
@@ -123,7 +137,30 @@ class Register:
                 newest[r.key].version,
             ):
                 newest[r.key] = r
-        return sorted(newest.values(), key=lambda r: (r.key, r.version))
+        live = list(newest.values())
+        # Task defaults are configuration, not admitted user statements. Derive
+        # them after precedence so cancellation reveals a surviving global rule
+        # when one exists, otherwise the explicit default. A fresh task also
+        # starts with its default. Never feed synthetic rows to either head.
+        if (
+            kind == "sort"
+            and task is not None
+            and not any(ordering_row(r) for r in live)
+        ):
+            live.append(
+                Rule(
+                    f"default:ordering:{task}",
+                    ORDER_DEFAULT,
+                    "default:ordering",
+                    task,
+                    "sort",
+                    0,
+                    "live",
+                    -1,
+                    -1,
+                )
+            )
+        return sorted(live, key=lambda r: (r.key, r.version))
 
 
 def wire(row):
@@ -435,7 +472,7 @@ class FrozenClassifier:
 
 def agreement(candidate, gold, gold_keys):
     c, o = set(live_set(candidate)), set(live_set(gold))
-    keys = [gold_keys.get(r.id, "unmapped:" + r.id) for r in candidate]
+    keys = [semantic_key(r, gold_keys) for r in candidate]
     return dict(
         exact=c == o,
         false_retirement=not o <= c,

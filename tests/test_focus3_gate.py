@@ -257,3 +257,162 @@ def test_frozen_checkpoint_loader_consumes_wrapped_admission_head():
         for _, encoder, head, _ in classifier.branches.values()
         for p in (*encoder.parameters(), *head.parameters())
     )
+
+
+def test_retirement_emits_default_on_every_sort_request_only():
+    for status in ("cancelled", "completed"):
+        register = f.Register()
+        order = register.add("Sort ascending.", "order", "Cedar", "sort", 0, 0)
+        tag = register.add("Keep tag equal to 8.", "tag", "*", "sort", 0, 20)
+        register.retire(order.id, status)
+        for task in ("Cedar", "Maple", "Cedar"):
+            rows = register.live(task, "sort")
+            defaults = [row for row in rows if row.id.startswith("default:")]
+            assert len(defaults) == 1
+            assert defaults[0].text == "Ordering: return the list in the given order."
+            assert defaults[0].scope == task and tag in rows
+            rendered = f.render(
+                "Sort request for task " + task + ": payload [3,1,2].", rows
+            )
+            assert defaults[0].text in rendered
+            assert "no longer applies" not in rendered
+        assert not register.live("Cedar", "prose")
+        assert len(register.rows) == 2  # Derived defaults never become relation inputs.
+        register.add("Sort descending.", "order", "Cedar", "sort", 2, 0)
+        assert not any(
+            r.id.startswith("default:") for r in register.live("Cedar", "sort")
+        )
+
+
+def test_cancel_complete_default_oracle_classifier_parity():
+    for label in ("cancels", "completes"):
+        c, o = f.Runtime(Scripted()), f.Oracle()
+        text = "For task Cedar, sort the payload in ascending order."
+        c.update(text, 0)
+        o.update(
+            text,
+            0,
+            [dict(label="admit", span=text, key="order", scope="Cedar", kind="sort")],
+        )
+        change = (
+            "Cancel the sorting rule for task Cedar."
+            if label == "cancels"
+            else "Task Cedar is complete."
+        )
+        c.classifier = Scripted(label)
+        c.update(change, 1)
+        o.update(change, 1, [dict(label=label, target="0:0", span=change)])
+        for task in ("Cedar", "Maple"):
+            cc, oo = c.register.live(task, "sort"), o.register.live(task, "sort")
+            assert len(cc) == len(oo) == 1
+            assert f.agreement(cc, oo, {})["exact"]
+            assert f.render("request", cc) == f.render("request", oo)
+            assert f.agreement([], oo, {})["false_retirement"]
+
+
+def test_default_does_not_hide_missing_admission_or_duplicate_key():
+    c, o = f.Register(), f.Register()
+    row = o.add("Sort ascending.", "order", "Cedar", "sort", 0, 0)
+    cc, oo = c.live("Cedar", "sort"), o.live("Cedar", "sort")
+    assert len(cc) == 1
+    assert f.agreement(cc, oo, {row.id: "order:Cedar"})["false_retirement"]
+    assert f.agreement(cc + oo, oo, {row.id: "order:Cedar"})["contradictory"]
+
+
+def test_default_rendering_consumer_preserves_none_and_text_baselines(
+    tmp_path, monkeypatch
+):
+    from scripts import focus3_gate as gate
+    from stencil import focus2
+
+    monkeypatch.setattr(gate, "OUT", tmp_path)
+
+    class FakeTrunk:
+        tok = focus2.load_tokenizer(f.ROOT / "models/qwen3-4b-hf/tokenizer.json")
+
+        def answer(self, history, text):
+            return dict(
+                text="{}",
+                output_ids=[1],
+                eos=151645,
+                prompt_ids=[1],
+                pair_ids=[2],
+                output_start=1,
+                seconds=0.0,
+            )
+
+    class Classifier(Scripted):
+        def admission(self, spans, previous):
+            return [
+                dict(
+                    probabilities=[0.0, 1.0, 0.0]
+                    if s.startswith("For task")
+                    else [1.0, 0.0, 0.0],
+                    overflow=False,
+                )
+                for s in spans
+            ]
+
+        def relations(self, pairs):
+            return [
+                dict(
+                    probabilities=probs(
+                        "cancels"
+                        if p["target_span"]["text"].startswith("Cancel")
+                        else "none"
+                    ),
+                    overflow=False,
+                )
+                for p in pairs
+            ]
+
+    initial = "For task Cedar, sort the payload in ascending order."
+    change = "Cancel the sorting rule for task Cedar."
+    first = (
+        "Work on task Cedar. "
+        + initial
+        + " Sort request for task Cedar: payload [3,1,2]."
+    )
+    second = change + " Sort request for task Cedar: payload [3,1,2]."
+    rid = "0:" + str(first.index(initial))
+    turns = []
+    for i, text in enumerate((first, second)):
+        event = (
+            dict(
+                label="admit",
+                span=initial,
+                key="new:" + rid,
+                scope="Cedar",
+                kind="sort",
+            )
+            if i == 0
+            else dict(label="cancels", target=rid, span=change)
+        )
+        turns.append(
+            dict(
+                text=text,
+                events=[event],
+                kind="sort",
+                task="Cedar",
+                post_change=bool(i),
+                hard_none=False,
+                payload=[3, 1, 2],
+                direction="ascending" if i == 0 else "default",
+                tag=8,
+                stale=[] if i == 0 else ["ascending"],
+            )
+        )
+    ep = dict(
+        id="consumer", family="cancel", gold_keys={rid: "order:Cedar"}, turns=turns
+    )
+    records = {
+        arm: gate.run_episode(ep, arm, FakeTrunk(), Classifier(), "gate")
+        for arm in gate.ARMS
+    }
+    assert records["C"][-1]["rendered_request"] == records["O"][-1]["rendered_request"]
+    for arm in ("C", "O"):
+        assert f.ORDER_DEFAULT in records[arm][-1]["rendered_request"]
+        assert records[arm][-1]["agreement"]["exact"]
+    assert records["N"][-1]["rendered_request"] == second
+    assert initial in records["T"][-1]["rendered_request"]
+    assert f.ORDER_DEFAULT not in records["T"][-1]["rendered_request"]

@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 import random
+import shutil
 import subprocess
 import time
 from collections import Counter
@@ -115,6 +116,86 @@ launch and completion. PASS is feasibility on this frozen synthetic cohort only.
 """
 
 
+V2_RULING = """
+## V2 authorized renderer correction (2026-09-06, before rerun)
+
+The user authorizes this single rerun after v1 setup8/16 (commit8f0c550b).
+The now-governing obligation must appear on every task request. C/O share a
+sort-schema default: "Ordering: return the list in the given order." The
+register derives a task-scoped version0 default row when no applicable ordering
+row survives precedence/retirement, including a fresh task after completion.
+Existing ascending/descending/ordering/sorting-rule vocabulary identifies the
+ordering field; tag-only rules do not suppress it. This schema recognition
+never changes admission or relation decisions. Defaults are not classifier
+candidate versions. A surviving applicable global ordering still wins.
+No cancellation commentary is added. N/T, thresholds, checker and cap unchanged.
+Agreement includes defaults with stable default:ordering:TASK IDs; missing
+admission still fails exactness/false-retirement against a gold explicit rule.
+
+V1 artifacts/reading remain in v1/. The requested setup seed30302 was already
+used by v1: this is an explicitly authorized setup REUSE, not a fresh sample.
+Retain its exact bank; no episode filtering. The64 seed30301 gate remains
+byte-identical and has no prior outputs. One v2 setup requires15/16; only then
+run the gate with the original endpoints/resource rule. No further rescue.
+Charge v1's181.012248456 GPU seconds against the same10800-second total cap.
+The old setup diagnoses missing in-request default rendering, not general
+competence. V2 supersedes v1's no-rerun clause only for this authorized repair.
+"""
+
+
+def prepare_v2():
+    """One explicit user-authorized revision; preserve all v1 evidence first."""
+    prior = json.loads((OUT / "summary.json").read_text())
+    assert prior["verdict"] == "INELIGIBLE"
+    assert not (OUT / "v1").exists() and not (OUT / "RUNNING.flag").exists()
+    assert not list((OUT / "gate").glob("records/*.json"))
+    bank = json.loads((OUT / "bank.json").read_text())
+    assert {e["seed"] for e in bank["setup"]} == {30302}
+    assert {e["seed"] for e in bank["gate"]} == {30301}
+    validate_bank(bank)
+    old_paths = list(OUT.iterdir())
+    archived = OUT / "v1"
+    archived.mkdir()
+    for path in old_paths:
+        if path.is_dir():
+            shutil.copytree(path, archived / path.name)
+        else:
+            shutil.copy2(path, archived / path.name)
+    # Only output paths are cleared, after preservation; inputs are unchanged.
+    shutil.rmtree(OUT / "setup")
+    for name in (
+        "started.json",
+        "summary.json",
+        "run-summary.json",
+        "selection.json",
+        "audit.json",
+        "independent-audit.json",
+        "console.log",
+        "cpu.json",
+    ):
+        (OUT / name).unlink(missing_ok=True)
+    (OUT / "README.md").write_text(READING + V2_RULING)
+    write(
+        OUT / "freeze.json",
+        dict(
+            hashes=sources(),
+            seed=30301,
+            setup_seed=30302,
+            version=2,
+            setup_seed_reused=True,
+            created=time.time(),
+            reading=READING + V2_RULING,
+            model="Qwen3-4B",
+            cap=CAP,
+            gpu_cap=BUDGET,
+            previous_gpu_seconds=prior["gpu_held_seconds"],
+            prior_bank_sha256=digest(archived / "bank.json"),
+        ),
+    )
+    assert digest(OUT / "bank.json") == digest(archived / "bank.json")
+    print(json.dumps(dict(state="V2_CPU_READY", setup=16, gate=64)), flush=True)
+
+
 def write(path, obj):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -172,6 +253,8 @@ def sources():
         for p in (
             OUT / "initialization-failure/summary.json",
             OUT / "loader-repair.json",
+            OUT / "v1/summary.json",
+            OUT / "audit_records.py",
         )
         if p.exists()
     )
@@ -236,13 +319,25 @@ def validate_bank(bank):
                     )
                     active = o.register.live(o.task, "sort")
                     orders = [
-                        r for r in active if ep["gold_keys"][r.id].startswith("order:")
+                        r
+                        for r in active
+                        if f.semantic_key(r, ep["gold_keys"]).startswith("order:")
                     ]
-                    assert len(orders) == (turn["direction"] != "default")
-                    if orders:
+                    assert len(orders) == 1
+                    if turn["direction"] == "default":
+                        assert orders[0].text == f.ORDER_DEFAULT
+                        assert orders[0].id == f"default:ordering:{o.task}"
+                    else:
                         assert turn["direction"] in orders[0].text
                     assert (
-                        len([r for r in active if ep["gold_keys"][r.id] == "tag"]) == 1
+                        len(
+                            [
+                                r
+                                for r in active
+                                if f.semantic_key(r, ep["gold_keys"]) == "tag"
+                            ]
+                        )
+                        == 1
                     )
 
 
@@ -518,7 +613,11 @@ def run():
     bank = json.loads((OUT / "bank.json").read_text())
     validate_bank(bank)
     with claim_gpu():
-        prior_receipt = OUT / "initialization-failure/summary.json"
+        prior_receipt = OUT / (
+            "v1/summary.json"
+            if (OUT / "v1/summary.json").exists()
+            else "initialization-failure/summary.json"
+        )
         prior_charge = (
             json.loads(prior_receipt.read_text())["gpu_held_seconds"]
             if prior_receipt.exists()
@@ -891,12 +990,16 @@ def audit():
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--mode", choices=("prepare", "ready", "run", "audit"), required=True
+        "--mode",
+        choices=("prepare", "prepare-v2", "ready", "run", "audit"),
+        required=True,
     )
     parser.add_argument("--author", default="/tmp/focus3_author.json")
     args = parser.parse_args()
     if args.mode == "prepare":
         prepare(args.author)
+    elif args.mode == "prepare-v2":
+        prepare_v2()
     elif args.mode == "ready":
         print(json.dumps(gpu_ready()))
     elif args.mode == "run":

@@ -1,0 +1,20 @@
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 12423.59it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 11454.97it/s]
+{"freeze_sha256": "62d3e15fdedfbf5c00a7b48c1f2d0c07fc80debf59fa325208bda489196087b2", "gpu_held_seconds": 2.570128333998582, "no_masking": true, "reason": "RuntimeError('Error(s) in loading state_dict for Sequential:\\n\\tMissing key(s) in state_dict: \"1.weight\", \"1.bias\". \\n\\tUnexpected key(s) in state_dict: \"head\", \"labels\", \"roles\", \"hidden\". ')", "verdict": "FAIL"}
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/bmarti44/stencil-llm/scripts/focus3_gate.py", line 895, in <module>
+    main()
+  File "/home/bmarti44/stencil-llm/scripts/focus3_gate.py", line 889, in main
+    run()
+  File "/home/bmarti44/stencil-llm/scripts/focus3_gate.py", line 527, in run
+    classifier = f.FrozenClassifier()
+                 ^^^^^^^^^^^^^^^^^^^^
+  File "/home/bmarti44/stencil-llm/src/stencil/focus3.py", line 379, in __init__
+    head.load_state_dict(state)
+  File "/home/bmarti44/stencil-llm/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 2638, in load_state_dict
+    raise RuntimeError(
+RuntimeError: Error(s) in loading state_dict for Sequential:
+	Missing key(s) in state_dict: "1.weight", "1.bias". 
+	Unexpected key(s) in state_dict: "head", "labels", "roles", "hidden". 

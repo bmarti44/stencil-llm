@@ -353,3 +353,23 @@ replays pass.15 tests pass,2 sealed-byte hash tests deselected,ruff clean.
 RESULTS.md/summary/index/WORKLOG ready; frozen reading unchanged; explicit paths
 only, no push/fitting/sealed reads/signals, natural exit and own flag removed.
 No next GPU command: authorized setup stop ends this frozen experiment.
+
+2026-09-06 — STATE: FOCUS-3 V2 DEFAULT-RENDERING REPAIR WRITE-AHEAD.
+User explicitly authorizes repair after setup8/16 and one setup->gate rerun.
+Fit/train none; frozen relations/admission unchanged; evaluate synthetic only.
+30302 was ALREADY the v1 setup seed: retain explicitly requested30302 and disclose
+setup reuse; gate30301 stays byte-identical, unevaluated. Preserve v1 artifacts.
+Default ordering is request-kind configuration shared by C/O, derived live output
+when no applicable ordering row remains, including a fresh task after completion;
+synthetic rows are not classifier inputs. N/T and plain renderer text unchanged.
+check40f owns GPU/lock (direct script, not coder/reviewer wrapper); CPU scoped
+repair authorized now, GPU waits for empty compute/all flags. No signals/push.
+
+2026-09-06 — STATE: FOCUS-3 V2 CPU READY / GPU WAIT.
+19 applicable tests pass;2 sealed-byte hash tests excluded;ruff/diff clean.
+V1 file bytes verified against8f0c550b; bank byte-identical (setup30302 reused,
+gate30301 unevaluated). Classifier/decision/renderer/episode/decoder/checker
+ASTs unchanged. New default live rows and agreement audited through consumer.
+Pre-inference freeze includes independent audit source; charge prior181.012s.
+Next foreground scripts/focus3_gate.py --mode run when compute/flags empty;
+setup15/16 required,then frozen64/48 resource decision/gate;no rescue/signals.

@@ -1,18 +1,22 @@
 {
-  "state": "CPU_READY",
-  "tests_passed": 15,
-  "tests_deselected": 2,
-  "deselection_reason": "Explicit user instruction never to read sealed IFEval input; these two tests read its bytes for hashing",
-  "pytest_command": ".venv/bin/python -m pytest -q tests/test_focus3_gate.py tests/test_eval_data_separation.py tests/test_sealed_guard.py -k 'not test_sealed_ifeval_hash_matches_manifest and not test_sealed_ifeval_mode_is_read_only_after_hash_validation'",
-  "ruff": "clean: src/stencil/focus3.py scripts/focus3_gate.py tests/test_focus3_gate.py",
-  "bank_validation": {
-    "setup_episodes": 16,
-    "gate_episodes": 64,
-    "families": 4,
-    "complete_pairs_per_episode": 6,
-    "task_requests_per_episode": 5,
-    "discriminator_collisions": 0
-  },
-  "nothing_fit_or_trained": true,
-  "loader_smoke": "both real frozen encoder/head branches loaded on CPU; no inference"
+  "bank_unchanged": true,
+  "bank_validation": "PASS",
+  "no_sealed_reads": true,
+  "ruff": "PASS",
+  "sealed_hash_tests_deselected": 2,
+  "tests_passed": 19,
+  "unchanged_AST": [
+    "Runtime",
+    "Oracle",
+    "FrozenClassifier",
+    "render",
+    "decision",
+    "score",
+    "summarize",
+    "Trunk",
+    "run_episode",
+    "build_bank",
+    "diagnostics"
+  ],
+  "v1_files_preserved": 131
 }

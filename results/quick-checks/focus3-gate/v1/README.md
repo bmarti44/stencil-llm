@@ -80,27 +80,3 @@ admission diagnostics, before/after registers, C/O rendered sets/agreement,
 provenance intervals/versions, switch-back flags/counts, timings. Per-episode
 register traces and summaries accompany raw records. Source hashes checked at
 launch and completion. PASS is feasibility on this frozen synthetic cohort only.
-
-## V2 authorized renderer correction (2026-09-06, before rerun)
-
-The user authorizes this single rerun after v1 setup8/16 (commit8f0c550b).
-The now-governing obligation must appear on every task request. C/O share a
-sort-schema default: "Ordering: return the list in the given order." The
-register derives a task-scoped version0 default row when no applicable ordering
-row survives precedence/retirement, including a fresh task after completion.
-Existing ascending/descending/ordering/sorting-rule vocabulary identifies the
-ordering field; tag-only rules do not suppress it. This schema recognition
-never changes admission or relation decisions. Defaults are not classifier
-candidate versions. A surviving applicable global ordering still wins.
-No cancellation commentary is added. N/T, thresholds, checker and cap unchanged.
-Agreement includes defaults with stable default:ordering:TASK IDs; missing
-admission still fails exactness/false-retirement against a gold explicit rule.
-
-V1 artifacts/reading remain in v1/. The requested setup seed30302 was already
-used by v1: this is an explicitly authorized setup REUSE, not a fresh sample.
-Retain its exact bank; no episode filtering. The64 seed30301 gate remains
-byte-identical and has no prior outputs. One v2 setup requires15/16; only then
-run the gate with the original endpoints/resource rule. No further rescue.
-Charge v1's181.012248456 GPU seconds against the same10800-second total cap.
-The old setup diagnoses missing in-request default rendering, not general
-competence. V2 supersedes v1's no-rerun clause only for this authorized repair.

@@ -1,5 +1,4 @@
 import json
-import re
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -144,27 +143,6 @@ def main():
                                 text=row["text"],
                             )
 
-                        if (
-                            kind == "sort"
-                            and task is not None
-                            and not any(
-                                re.search(
-                                    r"\b(?:ascending|descending|ordering)\b"
-                                    r"|sorting rule",
-                                    row["text"],
-                                    re.I,
-                                )
-                                for row in live.values()
-                            )
-                        ):
-                            live["default:ordering"] = dict(
-                                id="default:ordering:" + task,
-                                version=0,
-                                scope=task,
-                                kind="sort",
-                                key="default:ordering",
-                                text="Ordering: return the list in the given order.",
-                            )
                         expected_live = [
                             wire(row)
                             for row in sorted(
@@ -178,13 +156,7 @@ def main():
                         assert r["agreement"]["exact"] == (cc == oo)
                         assert r["agreement"]["false_retirement"] == bool(oo - cc)
                         keys = Counter(
-                            (
-                                "order:" + row["scope"]
-                                if row["id"].startswith("default:ordering:")
-                                else ep["gold_keys"].get(
-                                    row["id"], "unmapped:" + row["id"]
-                                )
-                            )
+                            ep["gold_keys"].get(row["id"], "unmapped:" + row["id"])
                             for row in r["live"]
                         )
                         assert r["agreement"]["contradictory"] == any(
