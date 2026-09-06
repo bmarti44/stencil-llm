@@ -110,3 +110,11 @@ all 426 records and all DEV calibrations, verifies frozen hashes and the GPU cap
 predictions using bitmask matching, macro recomputation, source snapshot identity,
 cutoffs, B's raw-logit softmax, and the binomial-CDF equation for every CP bound.
 B's nine checkpoint files match check44's original freeze. No audit reran inference.
+
+## Orchestrator addendum after the fable accuracy review (2026-09-06; results/check44b-review-fable.md)
+Numbers reproduced exactly against the held-out author's gold; no held-out look before the freeze. Two reporting
+corrections: (1) the sentence splitter's candidate ceiling on held-out-2 is 176/207 = 85.02%, so the registered 85%
+recall bar coincided with the ceiling — 31 of C's 56 misses are two-rule messages whose clauses share one splitter
+sentence and no threshold or C/B head combination can recover them; (2) the held-out's two-rule messages are single
+sentence lists (31/31) versus ~16% in the fit corpus (authoring-form shift). Consequence: check 44c must change
+candidate generation (token-level span tagging), not only the data; held-out-3 is the next decision bank.
