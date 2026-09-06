@@ -301,12 +301,55 @@ metadata/calibration preserved. Safetensors local only, flag absent, WORKLOG
 unchanged; explicit-path commits only, no push/signals/benchmark/sealed reads.
 No further training or held-out inference is part of this task.
 
+2026-09-06 — STATE: FOCUS-3 GATE CPU BUILD WRITE-AHEAD (gpt-6-astra).
+User brief supersedes archived design seeds/arms/masking:30301,64+16 setup,C/O/N/T,
+no masking,3 GPU-h,optional48 resource-only before gate. Archived PROTOCOL read.
+Fit-on: existing frozen relations kimi+astra/opus and inherited admission branch;
+evaluate-on: new gpt-5.5-authored templates/fresh synthetic values, no fitting.
+Admission retains disclosed development influence; no package-independence claim.
+Reserved gpt-5.5 author has no relation-data context. O alone receives gold events.
+Conservative reading: false retirement includes missing initial admissions;
+agreement includes every task answer; absolute C/O distance<=4/64 for both endpoints.
+CPU sealed guard: deselect its two hash-reading tests under explicit no-read rule.
+No wrapper lock owner observed; foreground-only GPU claim requires empty compute
+list and no quick-check RUNNING.flag; never signals. No push; explicit paths only.
+
 2026-09-06 — check43b WRITE-AHEAD (gpt-6-astra). STATE: CPU READY; foreground run next after scoped recipe commit.
 User-authorized unregistered check supersedes archived phase workflow; fit/train none. Profile existing32 check43 donors; select existing8 setup; evaluate fresh96063/96064 Python/JS only if safe.
 Primary generated identity window d-2..d; actual identity d=21 all16 pairs (one first divergence d18 is a/acc naming). Norm grid6.805823/10.208735, both signs/stable shuffle, OFF first, same-runtime JS>=6/8 required.
 CPU bounded/native fixtures and actual router consumer pass; selection/alignment/import tests6 passed/1 legacy xfail. Freeze includes reading/banks/source; setup1440s, final2700s only if safe; no sealed reads/signals/background/push.
 
+2026-09-06 — STATE: FOCUS-3 GATE CPU READY; pre-inference freeze committing.
+14 targeted tests pass,2 sealed-byte hash tests deselected by explicit no-read;
+ruff clean;80 episodes/480 user requests validate,5 executable tasks+1prose each.
+Independent gpt-5.5 author fixture and30301/30302 lists freeze before inference;
+C task/kind selection parses visible user text only; gold keys evaluator-only.
+Initial source IDs seed identical opaque C/O keys; no allocation-order artifact.
+Cap64,greedy4B hf_compatible,1632 max generations initial projection9454/10800s.
+Next foreground setup16 then resource-only64/48 selection and frozen gate;
+claim only when compute list and all quick-check flags empty. No signals/push.
+
 2026-09-06 — check43b COMPLETE (gpt-6-astra). STATE: CLOSE; no safe setup cell, no final/collateral run.
 OFF SUM8/8; same-runtime JS8/8 validates harness. Both norms6.805823/10.208735: -b PRODUCT0/8, malformed0, shuffled-minus PRODUCT0/8; plus malformed0/1, shuffle-plus0/4.
 Identity21 all32 donors/window19–21; raw profiles, all80 scores/hashes and stable matched shuffles independently reconstructed, consumer mismatches0. Tested direction changes decode routes63.01%/77.82%, mixtureL1.2023/.2951 without PRODUCT.
 Recipe da131791 before outcomes; 80 generations/3963 tokens,672.881907/1440 GPU seconds; natural exit and flag absent. Operational closure of tested concept-routing recipe, not universal impossibility; explicit scoped results/index/WORKLOG commits next, no push/signals/sealed reads.
+
+2026-09-06 — FOCUS-3 pre-inference loader repair; no outcomes existed.
+Initial aa6c0e41 attempt failed before any classifier/trunk inference because
+ft/head.pt wraps weights under head. Preserved freeze/start/log/summary in
+initialization-failure/; charge2.570128334s carried into3h cap. Corrected wrapper
+consumer with label/role/hidden assertions; actual two-branch CPU loader smoke
+now passes.15 tests pass,2 sealed reads deselected,ruff clean. Reading/author/
+bank byte-identical to aa6c0e41; new source freeze before any evaluation output.
+
+2026-09-06 — STATE: FOCUS-3 GATE COMPLETE / INELIGIBLE AT SETUP; committing.
+Frozen setup final8/16<15: override4,cancel0,complete/move0,switch/return4 per4;
+stale8/16,broken0,tags80/80,task55/80. Mechanical stop; zero64-bank gate outputs.
+C update diagnostics timed but O renders setup, so no C answer/agreement result.
+96 records/16 traces retained; source/hash and independent token/history/score
+replays pass.15 tests pass,2 sealed-byte hash tests deselected,ruff clean.
+181.012248456/10800 charged seconds incl.2.570128334 initialization failure;
+64 projection3320.879s fit. No outcome repair; failed init receipts preserved.
+RESULTS.md/summary/index/WORKLOG ready; frozen reading unchanged; explicit paths
+only, no push/fitting/sealed reads/signals, natural exit and own flag removed.
+No next GPU command: authorized setup stop ends this frozen experiment.

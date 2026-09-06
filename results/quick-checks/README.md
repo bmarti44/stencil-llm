@@ -433,3 +433,10 @@ F8 — Q1 extracted-vector closure: Further work on the tested mean-difference r
    OFF measured first: SUM8/8; same-runtime frozen JS alpha3 sanity8/8. Teacher-forced32 donors, identity21/window19–21; norms6.805823/10.208735.
    −b PRODUCT0/8 both doses, malformed0; shuffled− PRODUCT0/8; +b SUM8/7 with malformed0/1, shuffled+ malformed0/4; no safe cell, final/collateral skipped.
    80 generations/3963 tokens, 11.21/24 GPU-min; all scores/profiles/biases/dispatch audited; recipe da131791 precedes outcomes; flag removed, no signals/sealed reads/push.
+
+FOCUS-3 gate ([results](focus3-gate/RESULTS.md), [frozen reading](focus3-gate/README.md)): **INELIGIBLE at setup**, 8/16 final successes (<15/16).
+   Classifier register, gold oracle and C/O/N/T runner built; no masking, live rules every task request, format/tag only for governed request kinds.
+   Oracle setup override4/4, cancel0/4, complete/move0/4, switch/return4/4; stale8/16, breakage0, tags80/80; all96 records retained and audited.
+   Frozen64-episode gate did not run; C/O endpoints and register-agreement PASS remain untested. Switch-back4/4 is setup-only; mask un-release untested.
+   15 targeted tests pass,2 sealed-file hash tests deselected; Ruff clean. Pre-inference loader repair92ccb104 preserves original freeze and unchanged episode/reading bytes.
+   181.012/10800 charged GPU seconds including failed initialization;64-episode projection3320.879s fit. Natural exit/flag removed; no fitting/sealed reads/signals/push.

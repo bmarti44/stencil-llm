@@ -5193,3 +5193,11 @@ No fit/train; existing32 donors/eight setup, fresh two-seed Python/JS banks froz
 OFF SUM8/8; same-runtime JS sanity8/8. Window19–21, band norms6.805823/10.208735: −b PRODUCT0/8 each, malformed0, shuffled− PRODUCT0/8; no safe cell, mechanical stop.
 +b SUM8/7, malformed0/1; shuffled+ malformed0/4 (list returns). Raw profiles, all80 scores/biases and actual dispatch audited; tests6 passed/1 legacy xfail.
 Recipe da131791 precedes outcomes; 3963 tokens, 672.882/1440 GPU seconds; natural exit/flag removed, explicit-path commits, no push/signals/background.
+
+### 2026-09-06 — FOCUS-3 gate (gpt-6-astra): INELIGIBLE at setup
+Built frozen classifier register/oracle, C/O/N/T runner, independent30301 bank64+setup16; no masking, no fit/train, admission development influence disclosed.
+Oracle setup final8/16 (<15): override4/4,cancel0/4,complete/move0/4,switch/return4/4; stale8/16,breakage0,tags80/80,55/80 task replies correct.
+Mechanical setup stop:64 gate episodes unevaluated, C/O and register-agreement endpoints untested; no outcome-based repair or rerun.
+15 targeted tests pass,2 forbidden sealed-byte hash tests deselected,ruff clean;96 records/16 traces audited with raw prompt/token/provenance and independent checker replay.
+Freezeaa6c0e41; pre-inference checkpoint-wrapper repair92ccb104, unchanged reading/bank, prior2.570s preserved/charged;181.012/10800s total,64 projection3320.879s.
+STATE: report/artifacts complete, explicit-path local commit next; foreground natural exit and flag absent, no signals/sealed reads/fitting/push.
