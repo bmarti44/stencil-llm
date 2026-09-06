@@ -1132,3 +1132,5 @@ all episode/hidden/turn hashes; system adds49tokens, DEV consumer verified.
 Frozen GPU golden/inference sources unchanged; local explicit-path final commit.
 
 2026-09-06 — vllm-qual WRITE-AHEAD (astra): user-amended determinism/speed gate; three64-case DEV00 passes, B8 diagnostic; no fitting/eval/bench. README registration and frozen source hashes prewritten. Archived protocol is historical; current user quick-check scope governs.45GPU-minute cap; at most two memory remedies; own container cleanup only.
+
+2026-09-06 — vllm-qual COMPLETE (astra): amended gate QUALIFIED via C4;64/64 triple-pass identity, HF5/64 disclosed;18.709/18.733B1 decode,39.912C4 aggregate;12.558h/7.845h frozen16-round projections. C8 partial9/64, no credit;201 completed+55 unsubmitted records audited;2555.495/2700GPU-s; own containers/flag removed, no push. Full-run long/controller/HF-hidden validation remains unrun; see results/quick-checks/vllm-qual/README.md.

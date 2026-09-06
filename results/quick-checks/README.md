@@ -543,3 +543,9 @@ Composition DEV pilot ([composition-pilot](composition-pilot/README.md)): **INEL
   projection unavailable, no batching credit.128 local hidden hashes audited;
   CPU broad-test synthetic-evaluation scope deviation disclosed, no bench/GPU-eval.
   [Report, exact records, renderer check and manifest](composition-pilot-2/README.md).
+
+VLLM QUALIFICATION ([vllm-qual](vllm-qual/README.md)): **QUALIFIED via concurrency4**, amended within-backend gate; DEV00 only.
+   All64 outputs identical across B1/B1-repeat/C4; HF differs5/64 (R1,N2,T1,O1), positions191/90/0/191/22; near-tie gaps unmeasured.
+   B1 decode18.709/18.733tok/s<20; C4 aggregate39.912tok/s; nested16-round projection B1 12.558h, C4 7.845h including spend/reload/reserve.
+   Cache hits95.5277%/99.8202%; C8 partial9/64, server4 active+4 queued, no C8 credit; long/controller/HF-hidden costs remain unmeasured.
+   Image3dbe092ec5b2, explicit Triton remedy;201 API calls+55 unsubmitted records audited;42.592/45GPU-min, containers/flag removed, no eval/bench/push.

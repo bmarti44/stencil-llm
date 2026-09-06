@@ -5453,3 +5453,10 @@ Frozen recovery95/128 responses/190 tools; success0/8, integration5/8; final rec
 Backend gate superseded outcome-blindly; schedule D=0, equal EOS/cap/context, ship disclosure and next DEV round-0 compliance gates registered, GPU UNRUN.
 True/False remain rejected; T cumulative output unchanged and caps score breakage symmetrically; historical batch residue retained only for accounting.
 CPU validation and per-kind counts in composition-pilot-2/README.md; explicit-path commits only; no push, signals, GPU/container/flag changes.
+
+2026-09-06 — vllm-qual (gpt-6-astra): QUALIFIED via amended C4 gate; registration22cbbfa9, startup correctionba6f22e4.
+All64 frozen DEV00 outputs identical B1/B1-repeat/C4; HF5/64 differences (R1,N2,T1,O1), not uniformly cosmetic; near-tie gaps unmeasured.
+B1 decode18.709/18.733tok/s; C4 aggregate39.912; nested16-round projection12.558h/7.845h including all prior spend, reload and25% reserve.
+C8 incomplete9/64 (server max4), no credit; long/controller/HF hidden-recovery costs unmeasured; larger test eligibility remains separate.
+One successful Triton bf16 load after explicit-attention startup remedy;201 completed API calls+55 unsubmitted rows audited;2555.495/2700GPU-s.
+Owned containers/flag removed; DEV-only/no fitting/eval/bench reads/other signals/push; report, raw records/counters and conditional larger protocol committed.

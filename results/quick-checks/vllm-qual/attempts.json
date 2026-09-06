@@ -1,0 +1,333 @@
+[
+  {
+    "attempt": 0,
+    "command": [
+      "docker",
+      "run",
+      "-d",
+      "--name",
+      "stencil-vllm-qual-1788720249-0",
+      "--device",
+      "nvidia.com/gpu=0",
+      "--ipc=host",
+      "-p",
+      "127.0.0.1:18081:8000",
+      "-e",
+      "VLLM_BATCH_INVARIANT=1",
+      "-v",
+      "/home/bmarti44/stencil-llm/models/qwen3-30b-a3b-hf:/model:ro",
+      "vllm/vllm-openai@sha256:3dbe092ec5b2cef63b6104d33fa75d6ce53a7870962529ada69f78bbbc38e776",
+      "--attention-backend",
+      "TRITON_ATTN",
+      "--model",
+      "/model",
+      "--dtype",
+      "bfloat16",
+      "--kv-cache-dtype",
+      "auto",
+      "--tensor-parallel-size",
+      "1",
+      "--max-model-len",
+      "32768",
+      "--max-num-seqs",
+      "4",
+      "--max-num-batched-tokens",
+      "2048",
+      "--gpu-memory-utilization",
+      "0.70",
+      "--enable-prefix-caching",
+      "--generation-config",
+      "vllm"
+    ],
+    "started": 1788720249.0250065,
+    "launch": "b6cfbcbc257aa39a7e6c272f5f4ee7e28e15841f22d585879a2d3d427592d64c\n",
+    "launch_code": 0,
+    "ready_at": 1788720648.4852035,
+    "completion": "client_done",
+    "stop": "stencil-vllm-qual-1788720249-0\n",
+    "inspect": [
+      {
+        "Id": "b6cfbcbc257aa39a7e6c272f5f4ee7e28e15841f22d585879a2d3d427592d64c",
+        "Created": "2026-09-06T18:44:09.038311271Z",
+        "Path": "vllm",
+        "Args": [
+          "serve",
+          "--attention-backend",
+          "TRITON_ATTN",
+          "--model",
+          "/model",
+          "--dtype",
+          "bfloat16",
+          "--kv-cache-dtype",
+          "auto",
+          "--tensor-parallel-size",
+          "1",
+          "--max-model-len",
+          "32768",
+          "--max-num-seqs",
+          "4",
+          "--max-num-batched-tokens",
+          "2048",
+          "--gpu-memory-utilization",
+          "0.70",
+          "--enable-prefix-caching",
+          "--generation-config",
+          "vllm"
+        ],
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-09-06T18:44:09.110829888Z",
+          "FinishedAt": "2026-09-06T19:26:15.510155643Z"
+        },
+        "Image": "sha256:ffa30d66ff5c9346c6389507cc529827fc9934a6d2ee37855934f94fe1061cdc",
+        "ResolvConfPath": "/var/lib/docker/containers/b6cfbcbc257aa39a7e6c272f5f4ee7e28e15841f22d585879a2d3d427592d64c/resolv.conf",
+        "HostnamePath": "/var/lib/docker/containers/b6cfbcbc257aa39a7e6c272f5f4ee7e28e15841f22d585879a2d3d427592d64c/hostname",
+        "HostsPath": "/var/lib/docker/containers/b6cfbcbc257aa39a7e6c272f5f4ee7e28e15841f22d585879a2d3d427592d64c/hosts",
+        "LogPath": "/var/lib/docker/containers/b6cfbcbc257aa39a7e6c272f5f4ee7e28e15841f22d585879a2d3d427592d64c/b6cfbcbc257aa39a7e6c272f5f4ee7e28e15841f22d585879a2d3d427592d64c-json.log",
+        "Name": "/stencil-vllm-qual-1788720249-0",
+        "RestartCount": 0,
+        "Driver": "overlay2",
+        "Platform": "linux",
+        "MountLabel": "",
+        "ProcessLabel": "",
+        "AppArmorProfile": "docker-default",
+        "ExecIDs": null,
+        "HostConfig": {
+          "Binds": [
+            "/home/bmarti44/stencil-llm/models/qwen3-30b-a3b-hf:/model:ro"
+          ],
+          "ContainerIDFile": "",
+          "LogConfig": {
+            "Type": "json-file",
+            "Config": {}
+          },
+          "NetworkMode": "bridge",
+          "PortBindings": {
+            "8000/tcp": [
+              {
+                "HostIp": "127.0.0.1",
+                "HostPort": "18081"
+              }
+            ]
+          },
+          "RestartPolicy": {
+            "Name": "no",
+            "MaximumRetryCount": 0
+          },
+          "AutoRemove": false,
+          "VolumeDriver": "",
+          "VolumesFrom": null,
+          "ConsoleSize": [
+            0,
+            0
+          ],
+          "CapAdd": null,
+          "CapDrop": null,
+          "CgroupnsMode": "private",
+          "Dns": null,
+          "DnsOptions": [],
+          "DnsSearch": [],
+          "ExtraHosts": null,
+          "GroupAdd": null,
+          "IpcMode": "host",
+          "Cgroup": "",
+          "Links": null,
+          "OomScoreAdj": 0,
+          "PidMode": "",
+          "Privileged": false,
+          "PublishAllPorts": false,
+          "ReadonlyRootfs": false,
+          "SecurityOpt": [
+            "label=disable"
+          ],
+          "UTSMode": "",
+          "UsernsMode": "",
+          "ShmSize": 67108864,
+          "Runtime": "runc",
+          "Isolation": "",
+          "CpuShares": 0,
+          "Memory": 0,
+          "NanoCpus": 0,
+          "CgroupParent": "",
+          "BlkioWeight": 0,
+          "BlkioWeightDevice": [],
+          "BlkioDeviceReadBps": [],
+          "BlkioDeviceWriteBps": [],
+          "BlkioDeviceReadIOps": [],
+          "BlkioDeviceWriteIOps": [],
+          "CpuPeriod": 0,
+          "CpuQuota": 0,
+          "CpuRealtimePeriod": 0,
+          "CpuRealtimeRuntime": 0,
+          "CpusetCpus": "",
+          "CpusetMems": "",
+          "Devices": [],
+          "DeviceCgroupRules": null,
+          "DeviceRequests": [
+            {
+              "Driver": "cdi",
+              "Count": 0,
+              "DeviceIDs": [
+                "nvidia.com/gpu=0"
+              ],
+              "Capabilities": null,
+              "Options": null
+            }
+          ],
+          "MemoryReservation": 0,
+          "MemorySwap": 0,
+          "MemorySwappiness": null,
+          "OomKillDisable": null,
+          "PidsLimit": null,
+          "Ulimits": [],
+          "CpuCount": 0,
+          "CpuPercent": 0,
+          "IOMaximumIOps": 0,
+          "IOMaximumBandwidth": 0,
+          "MaskedPaths": [
+            "/proc/acpi",
+            "/proc/asound",
+            "/proc/interrupts",
+            "/proc/kcore",
+            "/proc/keys",
+            "/proc/latency_stats",
+            "/proc/sched_debug",
+            "/proc/scsi",
+            "/proc/timer_list",
+            "/proc/timer_stats",
+            "/sys/devices/virtual/powercap",
+            "/sys/firmware"
+          ],
+          "ReadonlyPaths": [
+            "/proc/bus",
+            "/proc/fs",
+            "/proc/irq",
+            "/proc/sys",
+            "/proc/sysrq-trigger"
+          ]
+        },
+        "GraphDriver": {
+          "Data": {
+            "ID": "b6cfbcbc257aa39a7e6c272f5f4ee7e28e15841f22d585879a2d3d427592d64c",
+            "LowerDir": "/var/lib/docker/overlay2/9a74ab5d7adcc2b755c602ac24e2d457fb2761ce610c35b4f74a873eebe73763-init/diff:/var/lib/docker/overlay2/5de657bf7140d1d084d679f338e68c488c9763453f9480ef08e8d3db02ad9061/diff:/var/lib/docker/overlay2/7aaed484cdcbaf88fac89bc3b33a6ec7ac2968405f719bd5154f9e230c245e8d/diff:/var/lib/docker/overlay2/b5d19bfbf82410b2c94f3f64f91e94f64de01c72a8f192b93c454ff32b5ca1a5/diff:/var/lib/docker/overlay2/257605e5e18fd61df17970771d6a4c565d53b278dae0abe3e70e046c628156aa/diff:/var/lib/docker/overlay2/3488ac32f067d0f4283450923bca88a384ec732429bf539bf7f5bd0dbec9c59a/diff:/var/lib/docker/overlay2/236e218a5555cca6de7edb4d2e14bd03639a61bc6e6fb7e348181e4b15d97268/diff:/var/lib/docker/overlay2/638ba8b6c65e9255d49f736baa95e6995da7e0a8e5b46089646bbf6d3a9ef58d/diff:/var/lib/docker/overlay2/6ce4de0aa967315b4de17c1b765b4714ed003e2c2a1c6985dfaee7881f47aca4/diff:/var/lib/docker/overlay2/2d723b429adb62b6adcd1dcd90626f1a3180dd6f9d1ade02cf693eddc0f7b9cf/diff:/var/lib/docker/overlay2/16b3297fbcaec85d49e013b220d464e39479bd23e468dfa1bcbffacb5d9a8b10/diff:/var/lib/docker/overlay2/3f2d916985e3d1dd92df9b3ff5d86e0c1cc989a53d8aab56d95dc482d0df236f/diff:/var/lib/docker/overlay2/c72f441c8259d8e176b3a5cd1f2122aa2f1055b718fff5807e367e3b1e2da30f/diff:/var/lib/docker/overlay2/9be1a26929becee9880a20804afdea91317c9e01dcd32631b6d749bea05f426f/diff:/var/lib/docker/overlay2/d8137bd96d912ace36474b3f93e1b3b16b253d169bd6601c6f78a40849ee6ae7/diff:/var/lib/docker/overlay2/b0919e59048adde62058c4e1badc06423a9e2fdffff0d400c9f68e161c271e34/diff:/var/lib/docker/overlay2/ab96b5c9627222261a0277278d7d25a7b2dfc9fbd15b10e218a68e6aa9a600ff/diff:/var/lib/docker/overlay2/1f3debec68e75dffef1224605ada29ffc55220905e3a733ad219f7720270b0fa/diff:/var/lib/docker/overlay2/5d3e9d326928199d8ddb97a4c87397790974f22badcbe402d1bf522c897aa764/diff:/var/lib/docker/overlay2/3b73efd2becdbc240b14f228db8402c33cde672bb31995f3d9687b31bb205ca0/diff:/var/lib/docker/overlay2/4a2612f06f24cee31afbae759fafac01c5300979ed868cb3342feba15ba648df/diff:/var/lib/docker/overlay2/323b8b91b0126e5408d2e77e3015c648a5b8b9743199f395b5f7bbd38e1bdc5a/diff:/var/lib/docker/overlay2/1518bbee40488793aa3da62d88f71b2f6cf244bfb9878d191c15089eac138c3a/diff:/var/lib/docker/overlay2/0a4b6e29c563d12dcaf74f6fa4b00a3f0118284ea01babe59e20ff3ffa3281e5/diff:/var/lib/docker/overlay2/eb51cc16a2194618a2dd1dd04853e3cfff8ea5bfd62e55c941e7a4d0953a373d/diff:/var/lib/docker/overlay2/7bc0231907e45c7df4c34b3a50dc3645da82c90aa3fa503d2cfae775b86bca3e/diff",
+            "MergedDir": "/var/lib/docker/overlay2/9a74ab5d7adcc2b755c602ac24e2d457fb2761ce610c35b4f74a873eebe73763/merged",
+            "UpperDir": "/var/lib/docker/overlay2/9a74ab5d7adcc2b755c602ac24e2d457fb2761ce610c35b4f74a873eebe73763/diff",
+            "WorkDir": "/var/lib/docker/overlay2/9a74ab5d7adcc2b755c602ac24e2d457fb2761ce610c35b4f74a873eebe73763/work"
+          },
+          "Name": "overlay2"
+        },
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/home/bmarti44/stencil-llm/models/qwen3-30b-a3b-hf",
+            "Destination": "/model",
+            "Mode": "ro",
+            "RW": false,
+            "Propagation": "rprivate"
+          }
+        ],
+        "Config": {
+          "Hostname": "b6cfbcbc257a",
+          "Domainname": "",
+          "User": "",
+          "AttachStdin": false,
+          "AttachStdout": false,
+          "AttachStderr": false,
+          "ExposedPorts": {
+            "8000/tcp": {}
+          },
+          "Tty": false,
+          "OpenStdin": false,
+          "StdinOnce": false,
+          "Env": [
+            "VLLM_BATCH_INVARIANT=1",
+            "PATH=/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+            "NVARCH=sbsa",
+            "NVIDIA_REQUIRE_CUDA=cuda>=13.0 brand=unknown,driver>=535,driver<536 brand=grid,driver>=535,driver<536 brand=tesla,driver>=535,driver<536 brand=nvidia,driver>=535,driver<536 brand=quadro,driver>=535,driver<536 brand=quadrortx,driver>=535,driver<536 brand=nvidiartx,driver>=535,driver<536 brand=vapps,driver>=535,driver<536 brand=vpc,driver>=535,driver<536 brand=vcs,driver>=535,driver<536 brand=vws,driver>=535,driver<536 brand=cloudgaming,driver>=535,driver<536 brand=unknown,driver>=550,driver<551 brand=grid,driver>=550,driver<551 brand=tesla,driver>=550,driver<551 brand=nvidia,driver>=550,driver<551 brand=quadro,driver>=550,driver<551 brand=quadrortx,driver>=550,driver<551 brand=nvidiartx,driver>=550,driver<551 brand=vapps,driver>=550,driver<551 brand=vpc,driver>=550,driver<551 brand=vcs,driver>=550,driver<551 brand=vws,driver>=550,driver<551 brand=cloudgaming,driver>=550,driver<551 brand=unknown,driver>=565,driver<566 brand=grid,driver>=565,driver<566 brand=tesla,driver>=565,driver<566 brand=nvidia,driver>=565,driver<566 brand=quadro,driver>=565,driver<566 brand=quadrortx,driver>=565,driver<566 brand=nvidiartx,driver>=565,driver<566 brand=vapps,driver>=565,driver<566 brand=vpc,driver>=565,driver<566 brand=vcs,driver>=565,driver<566 brand=vws,driver>=565,driver<566 brand=cloudgaming,driver>=565,driver<566 brand=unknown,driver>=570,driver<571 brand=grid,driver>=570,driver<571 brand=tesla,driver>=570,driver<571 brand=nvidia,driver>=570,driver<571 brand=quadro,driver>=570,driver<571 brand=quadrortx,driver>=570,driver<571 brand=nvidiartx,driver>=570,driver<571 brand=vapps,driver>=570,driver<571 brand=vpc,driver>=570,driver<571 brand=vcs,driver>=570,driver<571 brand=vws,driver>=570,driver<571 brand=cloudgaming,driver>=570,driver<571 brand=unknown,driver>=575,driver<576 brand=grid,driver>=575,driver<576 brand=tesla,driver>=575,driver<576 brand=nvidia,driver>=575,driver<576 brand=quadro,driver>=575,driver<576 brand=quadrortx,driver>=575,driver<576 brand=nvidiartx,driver>=575,driver<576 brand=vapps,driver>=575,driver<576 brand=vpc,driver>=575,driver<576 brand=vcs,driver>=575,driver<576 brand=vws,driver>=575,driver<576 brand=cloudgaming,driver>=575,driver<576",
+            "NV_CUDA_CUDART_VERSION=13.0.88-1",
+            "CUDA_VERSION=13.0.1",
+            "LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/usr/local/cuda/lib64:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/lib64",
+            "NVIDIA_VISIBLE_DEVICES=all",
+            "NVIDIA_DRIVER_CAPABILITIES=compute,utility",
+            "DEBIAN_FRONTEND=noninteractive",
+            "UV_HTTP_TIMEOUT=500",
+            "UV_INDEX_STRATEGY=unsafe-best-match",
+            "UV_LINK_MODE=copy",
+            "VLLM_ENABLE_CUDA_COMPATIBILITY=0",
+            "TORCH_CUDA_ARCH_LIST=8.7 8.9 9.0 10.0+PTX 12.0 12.1",
+            "VLLM_USAGE_SOURCE=production-docker-image"
+          ],
+          "Cmd": [
+            "--attention-backend",
+            "TRITON_ATTN",
+            "--model",
+            "/model",
+            "--dtype",
+            "bfloat16",
+            "--kv-cache-dtype",
+            "auto",
+            "--tensor-parallel-size",
+            "1",
+            "--max-model-len",
+            "32768",
+            "--max-num-seqs",
+            "4",
+            "--max-num-batched-tokens",
+            "2048",
+            "--gpu-memory-utilization",
+            "0.70",
+            "--enable-prefix-caching",
+            "--generation-config",
+            "vllm"
+          ],
+          "Image": "vllm/vllm-openai@sha256:3dbe092ec5b2cef63b6104d33fa75d6ce53a7870962529ada69f78bbbc38e776",
+          "Volumes": null,
+          "WorkingDir": "/vllm-workspace",
+          "Entrypoint": [
+            "vllm",
+            "serve"
+          ],
+          "Labels": {
+            "maintainer": "NVIDIA CORPORATION <cudatools@nvidia.com>",
+            "org.opencontainers.image.ref.name": "ubuntu",
+            "org.opencontainers.image.version": "22.04"
+          }
+        },
+        "NetworkSettings": {
+          "SandboxID": "",
+          "SandboxKey": "",
+          "Ports": {},
+          "Networks": {
+            "bridge": {
+              "IPAMConfig": null,
+              "Links": null,
+              "Aliases": null,
+              "DriverOpts": null,
+              "GwPriority": 0,
+              "NetworkID": "586e3e206e9ecd28559be2b7bc019bb55a58f536450febed326c4b7e496208cc",
+              "EndpointID": "",
+              "Gateway": "",
+              "IPAddress": "",
+              "MacAddress": "",
+              "IPPrefixLen": 0,
+              "IPv6Gateway": "",
+              "GlobalIPv6Address": "",
+              "GlobalIPv6PrefixLen": 0,
+              "DNSNames": null
+            }
+          }
+        }
+      }
+    ],
+    "remove": "stencil-vllm-qual-1788720249-0\n",
+    "ended": 1788722776.1521058
+  }
+]
