@@ -1130,3 +1130,5 @@ legacy eval-freeze subcheck before construction (55pass/1guard rejection).
 Metadata-only fixture repair used prior generated hash receipt, preserving
 all episode/hidden/turn hashes; system adds49tokens, DEV consumer verified.
 Frozen GPU golden/inference sources unchanged; local explicit-path final commit.
+
+2026-09-06 — vllm-qual WRITE-AHEAD (astra): user-amended determinism/speed gate; three64-case DEV00 passes, B8 diagnostic; no fitting/eval/bench. README registration and frozen source hashes prewritten. Archived protocol is historical; current user quick-check scope governs.45GPU-minute cap; at most two memory remedies; own container cleanup only.
