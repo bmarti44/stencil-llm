@@ -22,21 +22,27 @@ def stats(rows):
         relapse[kind]=dict(numerator=sum(d['outcome']['relapse'][kind] for d in eligible),denominator=len(eligible),
             opportunity_episodes=sorted({d['episode'] for d in eligible}),
             relapsing_episodes=sorted({d['episode'] for d in eligible if d['outcome']['relapse'][kind]}))
-    compliance=dict(required=0,parsed_edit_attempts=0,executed_edits=0,compliant=0,details=[])
+    compliance=dict(required=0,parsed_edit_attempts=0,executed_edits=0,compliant=0,eligible_edits=0,compliant_edits=0,details=[])
     for r in rows:
         d=detail(r)
         if d['round']!=0:continue
         compliance['required']+=1
+        expected=int(dict(slab.generate_episode('dev',int(d['episode'].rsplit('-',1)[1])).turns[0].live)['indent'])
         widths=[];attempts=[]
         try:
             calls=slab.parse_envelope(r['output'])['calls']
             attempts=[c for c in calls if c.get('op') in ('edit','replace')]
             widths=[v for c in attempts for v in slab.indent_widths(c['code'])]
-        except (ValueError,KeyError,TypeError):pass
+        except (ValueError,KeyError,TypeError,AttributeError):pass
         executed=[c for c in d['execution']['executed'] if c.get('op') in ('edit','replace')]
         ok=bool(executed and widths and not d['outcome']['violations']['style'] and not r['truncated'])
         compliance['parsed_edit_attempts']+=len(attempts);compliance['executed_edits']+=len(executed)
         compliance['compliant']+=ok
+        for edit in attempts:
+            edit_widths=slab.indent_widths(edit.get('code',''))
+            if edit_widths:
+                compliance['eligible_edits']+=1
+                compliance['compliant_edits']+=bool(edit in executed and all(w==expected for w in edit_widths) and not r['truncated'])
         compliance['details'].append(dict(episode=d['episode'],widths=widths,compliant=ok))
     violations={k:sum(d['outcome']['violations'][k] for d in ds) for k in (*KINDS,'wrong_family','breakage','semantic')}
     cumulative=[]
@@ -48,7 +54,7 @@ def stats(rows):
             for c in json.loads(r['output']).get('calls',[]):
                 if c.get('op') in ('edit','replace'):
                     names.extend(n.name for n in ast.parse(c['code']).body if isinstance(n,ast.FunctionDef))
-        except (ValueError,SyntaxError,KeyError,TypeError):pass
+        except (ValueError,SyntaxError,KeyError,TypeError,AttributeError):pass
         if len(names)>1:cumulative.append(dict(episode=d['episode'],round=d['round'],names=names,op='attempted edits/replaces'))
     return dict(calls=len(rows),executed_responses=sum(bool(d['execution']['executed']) for d in ds),
         executed_tools=sum(len(d['execution']['executed']) for d in ds),
@@ -92,7 +98,7 @@ def main():
     if not gate['passed']:failures.append('D !=0 or incomplete determinism')
     if sum(e['complete'] and e['arm'] in 'RNT' for e in endpoints)!=24:failures.append('incomplete required R/N/T DEV trajectories')
     r=per_arm['R'];c=r['round0_indent']
-    if c['required']!=8 or c['compliant']<4:failures.append('R round0 indentation <50% or incomplete')
+    if c['required']!=8 or c['compliant']<4 or not c['eligible_edits'] or c['compliant_edits']/c['eligible_edits']<.5:failures.append('R round0 indentation <50% or incomplete')
     for a in 'RNT':
         s=per_arm[a]
         if not s['calls'] or s['executed_responses']/s['calls']<.9:failures.append(a+' executed-call rate <90%')
@@ -114,8 +120,20 @@ def main():
             prompt_sha256=detail(r)['measurements']['prompt_sha256'],output_sha256=detail(r)['measurements']['output_sha256'],
             transcript_sha256=detail(r)['measurements']['transcript_sha256'],body_tokens=len(r['output_token_ids']),eos=r['eos'],truncated=r['truncated']) for r in rows])
     p.write(OUT/'transcript-manifest.json',manifest)
+    comparison=[]
+    indexed={(detail(x)['episode'],detail(x)['arm'],detail(x)['round']):x for x in rows}
+    for (episode,arm,index),rr in indexed.items():
+        if arm!='R' or (episode,'O',index) not in indexed:continue
+        oo=indexed[(episode,'O',index)]
+        a=rr['output_token_ids']+([] if rr['eos'] is None else [rr['eos']])
+        b=oo['output_token_ids']+([] if oo['eos'] is None else [oo['eos']])
+        first=next((i for i,(x,y) in enumerate(zip(a,b)) if x!=y),min(len(a),len(b))) if a!=b else None
+        comparison.append(dict(episode=episode,round=index,prompt_identical=rr['rendered_token_ids']==oo['rendered_token_ids'],
+            output_identical=a==b,first_difference=first))
+    p.write(OUT/'R-O-repeat.json',comparison)
     summary=dict(reading='INELIGIBLE' if failures else 'ELIGIBLE',failures=failures,per_arm=per_arm,endpoints=endpoints,
         R_final_success=r_success,R_opportunity_kinds=eligible_kinds,run=run,determinism=gate,
+        R_O_repeat=dict(calls=len(comparison),same_prompt=sum(c['prompt_identical'] for c in comparison),same_output=sum(c['output_identical'] for c in comparison)),
         cost=dict(aggregate_tok_s=aggregate,stage_wall_seconds=wall,tokens=total_tokens,prior_seconds=prior,
             max_episode_tokens=perarm_tokens,weighted_future_tokens=weighted,served_projection_hours=projected,
             HF_recovery_seconds=None,full_projection_hours=None,charged_pilot_hours=(run['gpu_held_seconds']+prior['pilot3_interrupted_start'])/3600),
@@ -127,7 +145,7 @@ def main():
     if not prereg.exists():prereg.write_bytes((OUT/'README.md').read_bytes())
     body='# Composition pilot 3 — '+summary['reading']+'\n\n'
     body+=f"Completed {len(rows)} calls; R final success **{r_success}/8**. "
-    body+=f"Round-0 R indent **{c['compliant']}/{c['required']}**. Determinism **D={gate['D']}**, 24 calls.\n\n"
+    body+=f"Round-0 R indent **{c['compliant_edits']}/{c['eligible_edits']} eligible edits**, **{c['compliant']}/{c['required']} required responses**. Determinism **D={gate['D']}**, 24 calls.\n\n"
     body+='Failed/unmeasured gates: '+ '; '.join(failures)+'.\n\n'
     body+='| Arm | Calls executed | Caps | Final success | Stale execution | Wrong skill | Breakage | Decode tok/s | s/call |\n|---|---:|---:|---:|---:|---:|---:|---:|---:|\n'
     for a,s in per_arm.items():

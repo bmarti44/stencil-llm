@@ -33,7 +33,7 @@ def main():
         if h['pass_name']=='pilot':
             key=(h['index'],h['arm'],h['round'],runner.ids_hash(h['prompt_token_ids']))
             assert key not in pairs; pairs[key]=h
-    assert len(pairs)==len(rows)
+    assert len(pairs)>=len(rows) if '--partial' in sys.argv else len(pairs)==len(rows)
     grouped={}
     for r in rows:
         assert set(r)==FIELDS and not r['failures'] and not r['fallback_reasons']
@@ -85,6 +85,10 @@ def main():
             b=next(r for r in http if (r['pass_name'],r['index'])==(mode,a['index']))
             assert a['output_token_ids']==b['output_token_ids']
     assert det['passed'] and det['D']==0
+    if '--partial' in sys.argv:
+        p.write(OUT/'partial-audit.json',dict(passed=True,records=checked,scope='completed prefix; lifecycle not checked',dev_only=True))
+        print('PASS partial',checked,'exact CPU trajectory replays')
+        return
     run=json.loads((OUT/'run.json').read_text())
     assert run['gpu_held_seconds']+json.loads((OUT/'initial-attempt/run.json').read_text())['gpu_held_seconds']<=9000
     assert run['stop']['returncode']==run['remove']['returncode']==0
