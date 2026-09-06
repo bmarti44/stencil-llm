@@ -1139,3 +1139,7 @@ Frozen GPU golden/inference sources unchanged; local explicit-path final commit.
 pilot3 README before code. User brief governs archived protocol; lock free.
 Fit none; literal pilot3 DEV regression then frozen DEV GPU R/N/T, optional O;
 9000s cap, qualified backend, reverse-order cold C4 gate; no bench/host signals/push.
+2026-09-06 — pilot4 continuation WRITE-AHEAD: original conservative bound33173
+stopped R before round30;92 calls retained, owned container removed. Apply
+pilot3 exact-render continuation under user's same-gates scope; no inference
+source/science changes, all starts<=9000s. Register continuation before code.
