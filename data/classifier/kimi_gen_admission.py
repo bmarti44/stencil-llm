@@ -32,7 +32,7 @@ embed data/JSON/CSV/code/quotes), "standing_rules" (list of objects {{"text": ex
 "key": short slug of what it governs, "scope": "global" | "task:<short task name>"}}; empty list when none),
 "one_off_request" (true if the message asks for work to be done now), "quoted_or_reported" (true if the message
 contains quoted/reported/inert rule-like text), "hard" (true when the case is subtle), "why" (3-12 words).
-Requirements: exactly {n} objects; mix: ~35% exactly one standing rule (vary phrasing widely; sometimes buried after
+Requirements: exactly {n} objects; PASS-2 EMPHASIS (recall gaps): ~35% messages with TWO or THREE standing rules, ~25% a standing rule AND a payload request in the same message, ~15% a standing rule buried after chit-chat or after a data block, ~25% one-off/quoted negatives. Original mix guidance for reference: ~35% exactly one standing rule (vary phrasing widely; sometimes buried after
 chit-chat or after a data payload), ~10% two standing rules, ~30% one-off requests WITH data payloads and NO rule
 (make many of them contain the words always/never/must/sort/order INSIDE the data or the request without making a
 rule), ~15% quoted/reported/inert rule-like text that is NOT an instruction, ~10% a standing rule AND a payload
