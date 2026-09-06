@@ -784,3 +784,11 @@ frozen; inherited trunk verified against original gate freeze. No GPU inference
 yet. Next foreground command: .venv/bin/python -u -m scripts.focus3_gate_diag
 --mode run, raw log diag/run.log. O16 competence descriptive; then resource-only
 64/48 selection before gate. No new fitting or benchmark access.
+
+2026-09-06 — STATE: FOCUS-3 DIAGNOSTIC O SETUP COMPLETE; FULL64 RUNNING.
+O16/16 final success, descriptive only.182.916521s elapsed; slowest O9.843532s.
+Registered projection64=4924.217873s (gate3937.412888s +392probe allowance
+803.888465s +elapsed), below7170s.48projection3738.892535s not selected.
+selection.json written before gate inference; full64 seed30322 x5arms launched.
+Prior v8 eligibility unchanged. Foreground session, diag/RUNNING.flag owned;
+no process signals, no new fitting, no benchmark/sealed reads, no push.
