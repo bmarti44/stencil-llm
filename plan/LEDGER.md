@@ -240,3 +240,5 @@ no new closure gate, selection, threshold, prompt or generation change.
 2026-09-06 — check42 HALF-SAMPLE PRESERVATION: all96 ascending episodes scheduled through termination; A/C complete, B capped-delay exclusions retained. Charged6023.117/12600s. Commit prefix96; foreground descending cells continue unchanged.
 
 2026-09-06 — check42 THREE-CELL PRESERVATION: all144 episodes scheduled through termination, unchanged36 B delay exclusions; all A/C complete. Charged8042.256/12600s. Commit prefix144; final48 descending/delay512 episodes continue in foreground, no recipe changes.
+
+2026-09-06 — check42 FINAL-CELL MIDPOINT: 168 scheduled episodes through termination; charged9841.704/12600s. Preserve prefix168 before final24; A/C complete, B delay exclusions retained, frozen run continues unchanged.
