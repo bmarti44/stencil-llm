@@ -731,3 +731,11 @@ Freeze verifies all model/data hashes; fit exited naturally, own flag removed.
 Next one CPU Fable inference on seed0 only; v7 ft-v2 comparator reuses committed
 raw logits after exact input-row/file-hash verification. No prior heldout reads
 in this v8 task, no threshold/seed selection, no new relation heldout evaluation.
+
+2026-09-06 — STATE: V8 FABLE DIAGNOSTIC COMPLETE; ONE CPU REPLAY NEXT.
+One363-row ft-v3 seed0 inference after freeze; comparison uses identical-row
+committed v7 logits. Accuracy318/363 (87.6033%), unchanged fromft-v2; rule
+admissions111/124 unchanged; nonrule admissions5→8/239 (+3). Existing generic
+sentence collision has different context; zero full-input overlap and authors
+disjoint. No extra heldout/model inference or tuning. Fit269.749111GPU seconds.
+Next CPU-only setup replay:36/36,>=11/12,0unauthorized/overflow or INELIGIBLE STOP.
