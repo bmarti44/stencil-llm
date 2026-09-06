@@ -5166,9 +5166,9 @@ Shuffled JS0 everywhere, one numeric-answer history broken each step; OFF Python
 992 generations/26242 tokens, 2088.00/7200 GPU seconds; pinned .venv transformers5.16.1/raw-slot48, full CPU record/bias/history audit PASS.
 RUNNING.flag removed after cleanup; no signals, sealed reads, training, background launch or push; script/results/index/ledger committed with explicit paths.
 
-### 2026-09-05 — Check43 concept-level SUM/PRODUCT SET (gpt-6-astra), CPU READY
-No fit/train: Python profiles95061; separate Python setup95062; fresh balanced Python/JS evaluation95063/95064; no sealed/benchmark data.
-Source §4 items1–11 frozen with full banks/checker; native handwritten-function parity, bounded rejection fixtures, actual router dispatch/OFF parity pass.
-Last-four-neutral prompt tokens, example means, layers7–34, alpha1/2/3, paired6/8 setup; seven-arm final and 16 collateral tasks; 96-token cap.
-392 scored generations plus one disclosed OFF instrumentation replay; source projection1.1885h, measured >1.5h refusal; foreground RUNNING.flag protocol.
-STATE: recipe committing before model load; selected profiles/dose/artifacts must commit before final generation; no signals/background/push.
+### 2026-09-05 — Check43 concept-level SUM/PRODUCT SET (gpt-6-astra): FAIL / NO SAFE SET
+No fit/train: Python profiles95061; separate Python setup95062; frozen fresh Python/JS banks95063/95064 unevaluated; no sealed/benchmark data.
+Donors SUM/PRODUCT16/16 each; four neutral token example means, layers7–34; alpha1/2/3 paired0/8 each, malformed0; neither sign generated PRODUCT.
+Each sign/dose SUM7/8 plus one slice-endpoint error; consumer routes/weights changed, OFF identical; setup stop prevented final/collateral generation.
+Recipe a993adbc precedes outcomes; native handwritten/checker/consumer fixtures and 81-record/profile/hash audit PASS; import guard3 passed/1 existing xfail, ruff clean.
+82 total generations/4329 tokens incl. OFF replay, 700.2435/5400 GPU seconds; natural completion, flag removed; scoped script/results/index/ledger commit, no push/signals.

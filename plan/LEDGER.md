@@ -200,3 +200,9 @@ Source results/neuron-granularity-research-astra.md §4 items1–11 governs this
 Freeze 96 tokens, layers7–34, alpha1/2/3, paired6/8 setup; 392 scored generations plus one disclosed OFF instrumentation replay; reject projection >5400s.
 Source arithmetic recomputed1.1885h; RUNNING.flag acquired atomically under review lock, Brian pid2705 exempt; no signals/background/push.
 CPU recipe committed before load; any selected profiles/dose/setup and full final binding committed before final generation; stop gates applied without rescue.
+
+2026-09-05 — check43 completion (gpt-6-astra). STATE: FAIL/NO SAFE SET; task complete after frozen setup stop, report/artifacts committing; no next GPU command.
+Donor SUM/PRODUCT16/16 each; alpha1/2/3 each paired0/8 and malformed0; each sign SUM7/8, PRODUCT0/8, one slice-endpoint error.
+Last-four-neutral-token example means, 7–34 band and shuffle recomputed exactly; consumer route/weight changes real, OFF unchanged; 81-record CPU audit PASS.
+Final/JS-transfer/selected-dose controls/collateral branches not reached; no post-outcome rescue. 700.2435/5400s; 82 total generations incl. one OFF replay.
+Recipe a993adbc committed before outcomes. All output artifacts force-added with explicit paths; no signals/background/termination/push; RUNNING.flag absent.

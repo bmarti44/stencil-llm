@@ -399,8 +399,8 @@ pass/fail reading written before running; one accuracy review of the RESULT from
    Shuffled JS0/32 everywhere (broken1/32 each scored step); OFF Python32/32; text SWITCH Python32/32, CLEAR JS32/32; alpha2 JS6/32 throughout.
    992 generations, 34.80/120 GPU-min; all-record CPU audit PASS; family/token/fence/arrows saved; unregistered, no fitting/sealed reads/signals/push.
 
-43. CONCEPT-LEVEL SUM / PRODUCT ROUTING ([check43](check43/README.md)): **CPU READY**; unregistered, no fitting/training.
-   Python donor95061/setup95062; fresh Python/JS banks95063/95064; identical language/explicit-loop text in all non-text arms.
-   Frozen last-four-neutral-token example means, layers7–34, alpha{1,2,3}; smallest paired >=6/8 safe setup dose transfers unchanged to JS.
-   Bounded AST/native-fixture checker; seven final arms, 16-task collateral, paired counts/McNemar/Holm gates frozen before outcomes.
-   392 scored generations plus OFF parity replay; 96-token cap, measured projection refusal >1.5 GPU-h; foreground, no signals/sealed reads/push.
+43. CONCEPT-LEVEL SUM / PRODUCT ROUTING ([check43](check43/README.md)): **FAIL / NO SAFE SET**; unregistered, no fitting/training.
+   Python cued SUM/PRODUCT donors16/16 each; last-four-neutral-token example means, layers7–34; frozen alpha1/2/3 each paired0/8 (<6/8).
+   Each sign/dose: SUM7/8, PRODUCT0/8, one valid slice-endpoint error, malformed0; actual expert routes/weights changed inside the band.
+   Setup stop applied: no selected dose, final/JS transfer, collateral or final McNemar/Holm inference; fresh banks95063/95064 remain unevaluated.
+   81 scored +1 OFF replay, 4329 total tokens, 11.67/90 GPU-min; all records/profiles/hashes audited; flag removed, no signals/sealed reads/push.
