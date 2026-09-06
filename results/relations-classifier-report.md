@@ -130,3 +130,47 @@ V3 cells below are **descriptive post-evaluation slices** of the frozen author r
 **Readiness for FOCUS-3:** this is now a useful offline relation scorer, but it is not ready to drive the register feasibility gate. Scope handling still misses seven of 22 scoped replacements and falsely cancels one bare suspension. Ten gold-none pairs receive non-none proposals, including one tool message; these are scorer outputs, not measured applied register transitions. Admission and the authority/status/scope guards still need implementation and testing, and the separate 64-episode gate has not run. The prospective data minima remain unmet. This result supports continuing that work; it does not establish register safety or a FOCUS-3 PASS.
 
 Validation: 37 targeted synthetic tests passed; lint clean; all artifact/source/input hashes and all 357 stored predictions/probabilities and the confusion matrix replayed. Exactly one held-out-2 attempt and inference pass are recorded. Subsequent work here only summarized those saved records; no fitting, threshold adjustment, checkpoint selection, or further inference followed the held-out result. Safetensors remain local. Metadata, calibration, records and this report are committed with explicit pathspecs; no push and no WORKLOG edits.
+
+## v2 refit — 2026-09-06
+
+**INELIGIBLE for the FOCUS-3 gate.** The requested refit is complete, but the
+single CPU setup replay reached **35/36 admissions, 11/12 transitions and two
+unauthorized applications**. Recall: supersedes 3/4, cancels 4/4, completes 4/4;
+reinstates has no gold support. All three previously named phrasing misses now
+pass. The remaining supersedes scores .5708 against C's .90 threshold. The
+frozen admission head still admits one quoted sample; another new-task ordering
+sentence wrongly supersedes the global tag key (.9493). The registered stop
+prevented O setup and all 64-episode C/C'/O/N/T gate inference.
+
+Fit/calibration pool: 7,749 pairs after both patches (123 drops, 225 relabels)
+and three mechanical drops (two nonverbatim spans, one invalid status). The
+loader repairs exact offsets, normalizes admission spans, backfills identities,
+and deduplicates full rendered inputs to retain the status-only minimal pair.
+Final none/supersedes/cancels/completes/reinstates counts are
+3,259/1,521/1,038/1,024/907. Each seed has 6,974 fit / 775 DEV rows, with connected
+scenario/message/relative groups disjoint. The 90 Astra relatives remain
+explicitly evaluation-derived: all 90 land in seed 0 DEV; seeds 1/2 each fit on
+30. This is development runtime agreement, not unseen-idiom generalization.
+
+All seeds completed three epochs / 654 updates from the same pinned base BGE;
+the numerical training algorithm matches 952079b8. Seed 0 remains preselected.
+Primary DEV correct-positive recall is 414/449, 425/449, 418/449; supersedes
+thresholds .90/.82/.88, all other thresholds .50. C' supersedes thresholds are
+.50/.50/.60. Caps are empirical DEV none-FP per class: 5% for C, with supersedes
+10% for C'. Admission now uses no positive proposal meeting threshold on any
+overlapping pair; P(rule)>=.95 is unchanged. No admission refit or quoted veto.
+
+**Held-out-2 SECOND LOOK, diagnostic only:** one additional seed-0 CPU inference
+on the same 357 pairs after all model/policy freezes. C accuracy 343/357 (96.08%)
+versus 337/357 (94.40%) on the first look; correct-positive recall 201/206 versus
+196/206; none-FP 9/151 versus 10/151. Delta +1.68 accuracy points, +2.43 recall
+points, -0.66 none-FP points. C' scores the same logits: 344/357 accuracy,
+203/206 recall, 10/151 none-FP. No second-look result informed tuning or selection.
+
+GPU-held time 195.999/10,800 seconds; no gate projection was reached. All 96 setup
+records / 16 traces, 357 second-look records, source/model hashes, DEV arrays,
+repair/split receipts and both calibration grids are retained. Saved-score
+runtime/trainer/calibration audits and an independent action/state audit pass;
+92 targeted tests pass, one existing expected failure. Safetensors stay out of
+git. [Full v6 registration/results](quick-checks/focus3-gate/v6/RESULTS.md),
+[model metadata](../data/classifier/model/relations-v2/README.md). No push.

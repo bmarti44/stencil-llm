@@ -46,6 +46,12 @@ records; reinstatements are zero. Global-tag pair scores still block three
 admissions, and quoted inert text causes both unauthorized actions. No refit or
 GPU gate ran. [v5 registration and results](results/quick-checks/focus3-gate/v5/RESULTS.md).
 
+FOCUS-3 v6 step B completed the three-seed enriched refit but remains
+**INELIGIBLE**: CPU setup reached 35/36 admissions and 11/12 transitions, with
+2 unauthorized applications. The required stop prevented the 64-episode gate.
+Held-out-2 accuracy was 96.1% on a disclosed diagnostic second look.
+[v6 registration, counts and results](results/quick-checks/focus3-gate/v6/RESULTS.md).
+
 ## Earlier headline: the internal wave (superseded, kept for the record)
 
 A tiny trained controller (264k parameters) riding on the frozen trunk

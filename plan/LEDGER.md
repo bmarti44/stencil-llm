@@ -612,3 +612,20 @@ Primary343/357 accuracy,201/206 correct-positive,9/151 none-FP; vs first look
 +6correct overall,+5positive,-1none-FP. Diagnostic only; no policy/model changes.
 Raw357 records written in same inference pass; identities match first-look inputs.
 Next ONE CPU pre-gate replay --mode replay; required36/36,>=11/12,0unauthorized.
+
+2026-09-06 — STATE: V6 STEP B COMPLETE / INELIGIBLE; FINAL COMMIT.
+CPU setup35/36 admissions,11/12 transitions: supersedes3/4,cancels4/4,completes4/4;
+all three prior named misses pass, standing-order switch .570806<.90 remains.
+Two unauthorized actions: quoted-sample admission(P(rule).960425), and new-task
+ordering supersedes global tag key(P(supersedes).949289), missing one new-key
+admission. Mechanical stop: no O setup, no trunk/gate/C-prime trajectories.
+One inference pass96records/16traces/165pairs/184spans, zero overflow. Runtime,
+trainer-input, softmax, full-data/split/calibration and second-look saved-logit
+audit PASS. Independent saved-record audit accounts48 actions/40new rows/
+11status changes, zero unexplained mutations. Legacy P(none)>=.50 diagnostic
+field identified explicitly; actual bound124/153 none pairs pass no-proposal.
+92 targeted tests pass,1existing xfail;lint/diff checks clean. Artifacts/report/
+README/WORKLOG/model evaluation metadata ready; registration prefix and frozen
+model/source hashes unchanged. User input corpora and historical models unchanged.
+195.999037/10800 GPU-held seconds; own flag absent, no signals/background/sealed/
+bench reads/push. Explicit-path force-added commit closes step B at required stop.

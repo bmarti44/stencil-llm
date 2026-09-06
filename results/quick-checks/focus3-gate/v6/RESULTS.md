@@ -65,3 +65,151 @@ Outputs: registration, data counts/split receipts, calibration, frozen model
 metadata, second-look records/metrics/delta, CPU records/traces/summary/audit;
 O/gate records only if eligible. Append outcome here, dated v2 refit report,
 README item and WORKLOG; force-add results, commit explicit paths, no push.
+
+## Outcome — 2026-09-06
+
+**INELIGIBLE.** The refit and disclosed second look completed. The single CPU
+setup replay failed the required admission and unauthorized-application readings.
+No O setup, trunk load or C/C'/O/N/T gate inference ran; seed 30322 remains
+unevaluated. No post-outcome model, threshold, runtime or data change/replay.
+
+| CPU setup criterion | v6 | required | v5 |
+|---|---:|---:|---:|
+| Initial ordering admissions | 16/16 | 16/16 | 16/16 |
+| Initial tag admissions | 16/16 | 16/16 | 16/16 |
+| Switched-task admissions | 3/4 | 4/4 | 1/4 |
+| Total authorized admissions | **35/36** | **36/36** | 33/36 |
+| Correct-source transitions | **11/12** | >=11/12 | 8/12 |
+| Unauthorized applications | **2 in 2 records** | **0** | 2 |
+| Records / traces | 96 / 16 | 96 / 16 | 96 / 16 |
+| Overflow | 0 | 0 | 0 |
+
+| Transition label | gold | proposed correctly | applied correctly | recall |
+|---|---:|---:|---:|---:|
+| supersedes | 4 | 3 | 3 | 75.00% |
+| cancels | 4 | 4 | 4 | 100.00% |
+| completes | 4 | 4 | 4 | 100.00% |
+| reinstates | 0 | 0 | 0 | N/A (no gold support) |
+
+All three inherited named misses now pass, without removing their setup sentences.
+The remaining supersedes miss is setup_0_02: “For task S0n2A, switch the standing
+order from descending to ascending.” Correct-target P(supersedes)=.570806<.90.
+No secondary setup trajectory was run or substituted.
+
+The two unauthorized applications are different failure modes:
+
+- setup_0_01 turn 1 admits the quoted sample “Inert setup context: the sample
+  "Cancel the sorting rule for task S0n1A." is not an instruction.” Admission
+  P(rule)=.960425; both overlapping relation pairs propose none (.978524/.980012
+  P(none)). The relation-only refit does not repair this frozen admission error.
+- setup_3_02 turn 2 wrongly supersedes global tag row 0:20 with the new task B
+  ordering sentence (P(supersedes)=.949289). It creates a task B version under the
+  tag key, shadowing the tag there; the global row survives outside task B. The
+  sentence passes admission P(rule)=.958220, but is consumed by the wrong relation
+  instead of creating a new key. This is the missing 36th authorized admission.
+
+V5's quoted cancellation is now none (P(cancels)=.007925), with admission
+P(rule)=.760051, so it no longer changes the register. Zero reinstates applied.
+
+## Corpus accounting
+
+Raw 7,875 rows; patches drop 123 (original 121 + transitions 2), relabel 225; mechanical
+loader drops another 3 (two nonverbatim target spans, one invalid status). Final
+7,749 pairs, no admission-only exclusions or full-input dedup removals. Preserve
+whole-message candidate text; the reported span issue is repaired mechanically,
+not reauthored into new sentence/label examples. The full-input dedup avoids
+conflating distinct status/context/metadata inputs: the earlier coarse dedup
+removed 143 such rows; this registered change retains them.
+
+The post-patch mechanical pass repairs 68 starts/1202 ends, normalizes 110 span
+objects to strings, backfills 6,812 IDs / 6,538 scenario IDs. Additional dropped
+transition source rows are 558, 626, 725 (one-based; reviewer indices 557, 625, 724).
+Both exact-preimage patch files and detailed repair receipts are in data-counts.json.
+
+| Source | none | supersedes | cancels | completes | reinstates | total |
+|---|---:|---:|---:|---:|---:|---:|
+| astra-enrich-2 | 0 | 30 | 30 | 30 | 0 | 90 |
+| astra-enrich | 180 | 10 | 10 | 50 | 70 | 320 |
+| kimi-relations | 2335 | 982 | 699 | 640 | 609 | 5265 |
+| kimi-transitions | 344 | 412 | 273 | 274 | 158 | 1461 |
+| opus-enrich-2 | 251 | 11 | 10 | 10 | 9 | 291 |
+| opus-enrich | 149 | 76 | 16 | 20 | 61 | 322 |
+| **Total** | 3259 | 1521 | 1038 | 1024 | 907 | **7749** |
+
+Every seed has 6,974 fit / 775 DEV rows; DEV has 326 none / 449 positive rows. Scenario/message/declared-relative
+connected components are disjoint. The unchanged split algorithm assigns all 90
+evaluation-derived Astra2 relatives to seed 0 DEV, and 30 fit / 60 DEV for seeds 1/2.
+Thus seed 0 did not fit on those 90; they do influence its DEV operating point.
+No seed/split selection was performed. Backfilled scenario grouping uses exact
+message identity, not proof of semantic independence for undeclared paraphrases.
+
+## DEV calibration and resource use
+
+Each seed completed 3 epochs / 654 updates; training algorithm AST matches 952079b8
+apart from the registered loader option. Same base encoder/revision/optimizer.
+Zero fit/DEV overflow. C cap 5% means<=16/326 none-FP per positive class; C'
+supersedes cap 10% means<=32/326. Combined FP is not constrained to 5%/10%.
+
+| Seed / arm | thresholds S/C/Cm/R | accuracy | correct-positive recall | positive precision | combined none-FP |
+|---|---|---:|---:|---:|---:|
+| 0 / C | 0.90/0.50/0.50/0.50 | 91.61% | 414/449 (92.20%) | 414/447 | 30/326 |
+| 0 / C' | 0.50/0.50/0.50/0.50 | 90.71% | 424/449 (94.43%) | 424/476 | 47/326 |
+| 1 / C | 0.82/0.50/0.50/0.50 | 93.03% | 425/449 (94.65%) | 425/461 | 30/326 |
+| 1 / C' | 0.50/0.50/0.50/0.50 | 93.03% | 432/449 (96.21%) | 432/476 | 37/326 |
+| 2 / C | 0.88/0.50/0.50/0.50 | 91.61% | 418/449 (93.10%) | 418/459 | 34/326 |
+| 2 / C' | 0.60/0.50/0.50/0.50 | 90.84% | 429/449 (95.55%) | 429/490 | 51/326 |
+
+Total GPU-held time **195.999037/10800 seconds** (3.27 minutes),
+including all three refits; own flag removed on natural exit. CPU setup loop
+15.204360 wall seconds; 165 relation pairs/184 admission spans.
+O-setup projection is not applicable because eligibility stopped before O setup.
+
+## Held-out-2: disclosed SECOND LOOK, diagnostic only
+
+One additional 357-pair seed 0 CPU inference after freeze 54e09f25, durable receipt
+before read; each row saved in that same pass. Author/declared-relative/pair/
+message overlap checks against the refit pool are all zero (exact identities,
+not semantic proof). No new held-out claim, selection, tuning or deployment
+readiness follows from this repeat. Both policies scored the same saved logits.
+
+| Policy | accuracy | correct-positive recall | positive precision | none-FP |
+|---|---:|---:|---:|---:|
+| 952079b8 first look | 337/357 (94.40%) | 196/206 (95.15%) | 196/206 | 10/151 |
+| v2 C second look | 343/357 (96.08%) | 201/206 (97.57%) | 201/210 | 9/151 |
+| v2 C' second look | 344/357 (96.36%) | 203/206 (98.54%) | 203/213 | 10/151 |
+
+Primary delta: +6/357 correct (+1.68 percentage points), +5/206 correct positives
+(+2.43 points recall), -1/151 none-FP (-.66 points). C' remains secondary; no
+full C' setup/gate outcome exists.
+
+| Held-out label | C correct / gold | C' correct / gold | C none-FP /151 | C' none-FP /151 |
+|---|---:|---:|---:|---:|
+| supersedes | 64/68 | 66/68 | 1 | 2 |
+| cancels | 47/47 | 47/47 | 6 | 6 |
+| completes | 44/45 | 44/45 | 0 | 0 |
+| reinstates | 46/46 | 46/46 | 2 | 2 |
+
+## Verification and files
+
+92 targeted tests pass, 1 existing expected failure; lint/diff checks pass. Saved
+CPU Runtime replay matches every record/trace; trainer rendering and raw softmax
+parity pass. All three split receipts/calibration grids reproduce. Second-look
+metrics/predictions reproduce from 357 saved logits without another input read.
+Independent action/state audit accounts 48 applications , 40 new rows / 11 status
+changes, zero unexplained mutations; authorized 35 admissions + 11 transitions, 2 unauthorized.
+
+Raw summary inherits a historical diagnostic field,
+`diagnostics.gold_none.guard_admitted`: it counts 120/153 pairs at the retired
+P(none)>=.50 cutoff; **it is not the v6 admission decision**. The actual new
+no-positive-proposal pair bound passes 124/153 gold-none pairs; 29 propose a
+positive, one applies. `independent-audit.json` records this distinction.
+Eligibility/admission records use the registered positive-proposal bound.
+
+`recipe-freeze.json` binds reading/code/inputs/admission/bank; `freeze.json` binds
+all three checkpoints/metadata. Recipe 44abb504, models 54e09f25, second look a627c512
+precede CPU eligibility. `records/`, `traces/`, `summary.json`, `audit.json`,
+`independent-audit.json`, `data-counts.json`, `calibration/`, and second-look files
+carry the measurements. Seed metadata/DEV logits/tokenizers live under
+`data/classifier/model/relations-v2/seed{0,1,2}`; safetensors remain local and
+are hash-bound. Historical source data/models/results are unchanged. Foreground
+only; no signals, benchmark/sealed reads, gate generations or push.
