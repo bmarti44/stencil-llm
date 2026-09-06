@@ -1,0 +1,310 @@
+{
+  "agreement": {
+    "contradictory": false,
+    "exact": true,
+    "false_retirement": false
+  },
+  "arm": "C",
+  "episode": "setup_2_00",
+  "event_checks": [],
+  "family": "complete-and-move-on",
+  "gold_live": [],
+  "gold_trace": {
+    "after": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 32.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S2n0A",
+        "span_start": 90,
+        "status": "completed",
+        "text": "From now on, for task S2n0A keep the payload sorted in descending order.",
+        "version": 1
+      }
+    ],
+    "applied": [],
+    "before": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 32.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S2n0A",
+        "span_start": 90,
+        "status": "completed",
+        "text": "From now on, for task S2n0A keep the payload sorted in descending order.",
+        "version": 1
+      }
+    ]
+  },
+  "live": [],
+  "trace": {
+    "admissions": [
+      {
+        "accepted": false,
+        "logits": [
+          1.6569586992263794,
+          1.1708146333694458,
+          -2.981003999710083
+        ],
+        "model_input": [
+          "user: Continue task S2n0B; Sort request for task S2n0B: payload [77, 15, 86, 28, 22]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "[user] Reply exactly true."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.6155093858679733,
+          0.37853408771196767,
+          0.0059565264200591595
+        ],
+        "span": "Reply exactly true.",
+        "start": 0,
+        "token_count": 73
+      }
+    ],
+    "admitted_beside_live": 0,
+    "after": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 32.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S2n0A",
+        "span_start": 90,
+        "status": "completed",
+        "text": "From now on, for task S2n0A keep the payload sorted in descending order.",
+        "version": 1
+      },
+      {
+        "id": "3:0",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 3,
+        "scope": "S2n0A",
+        "span_start": 0,
+        "status": "live",
+        "text": "From now on, for task S2n0A keep the payload sorted in descending order.",
+        "version": 2
+      }
+    ],
+    "applied": [],
+    "before": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 32.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S2n0A",
+        "span_start": 90,
+        "status": "completed",
+        "text": "From now on, for task S2n0A keep the payload sorted in descending order.",
+        "version": 1
+      },
+      {
+        "id": "3:0",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 3,
+        "scope": "S2n0A",
+        "span_start": 0,
+        "status": "live",
+        "text": "From now on, for task S2n0A keep the payload sorted in descending order.",
+        "version": 2
+      }
+    ],
+    "overflow": false,
+    "pairs": [
+      {
+        "applied": "none",
+        "gold": "none",
+        "input": {
+          "message": "Reply exactly true.",
+          "old_rule": {
+            "key": "tag",
+            "scope": "global",
+            "status": "live",
+            "text": "For every sorting request in this conversation, keep tag equal to 32."
+          },
+          "prev_user": "Continue task S2n0B;",
+          "role": "user",
+          "target_id": "0:20",
+          "target_span": {
+            "end": 19,
+            "start": 0,
+            "text": "Reply exactly true."
+          }
+        },
+        "logits": [
+          3.6913979053497314,
+          -0.030691707506775856,
+          -1.0350608825683594,
+          -1.7964956760406494,
+          -1.8584848642349243
+        ],
+        "model_input": [
+          "[target] live global For every sorting request in this conversation, keep tag equal to 32. [metadata] {\"key\": \"tag\"}",
+          "[message] user: Reply exactly true. [span] Reply exactly true. [prev_user] Continue task S2n0B;"
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.9605542395518879,
+          0.0232294492487146,
+          0.008508380873227464,
+          0.003973379012531683,
+          0.003734551313638403
+        ],
+        "proposed": "none",
+        "token_count": 64
+      },
+      {
+        "applied": "none",
+        "gold": "none",
+        "input": {
+          "message": "Reply exactly true.",
+          "old_rule": {
+            "key": "sort-order",
+            "scope": "task:S2n0A",
+            "status": "completed",
+            "text": "From now on, for task S2n0A keep the payload sorted in descending order."
+          },
+          "prev_user": "Continue task S2n0B;",
+          "role": "user",
+          "target_id": "0:90",
+          "target_span": {
+            "end": 19,
+            "start": 0,
+            "text": "Reply exactly true."
+          }
+        },
+        "logits": [
+          2.976839303970337,
+          -1.8474674224853516,
+          -1.6650161743164062,
+          -1.1875382661819458,
+          1.134138822555542
+        ],
+        "model_input": [
+          "[target] completed task:S2n0A From now on, for task S2n0A keep the payload sorted in descending order. [metadata] {\"key\": \"sort-order\"}",
+          "[message] user: Reply exactly true. [span] Reply exactly true. [prev_user] Continue task S2n0B;"
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.8392074918913992,
+          0.0067406156130917225,
+          0.00808978784338728,
+          0.013040767528456907,
+          0.13292133712366494
+        ],
+        "proposed": "none",
+        "token_count": 77
+      },
+      {
+        "applied": "none",
+        "gold": "none",
+        "input": {
+          "message": "Reply exactly true.",
+          "old_rule": {
+            "key": "sort-order",
+            "scope": "task:S2n0A",
+            "status": "live",
+            "text": "From now on, for task S2n0A keep the payload sorted in descending order."
+          },
+          "prev_user": "Continue task S2n0B;",
+          "role": "user",
+          "target_id": "3:0",
+          "target_span": {
+            "end": 19,
+            "start": 0,
+            "text": "Reply exactly true."
+          }
+        },
+        "logits": [
+          3.754459857940674,
+          -0.251473069190979,
+          -0.9335004687309265,
+          -1.388782024383545,
+          -2.0731606483459473
+        ],
+        "model_input": [
+          "[target] live task:S2n0A From now on, for task S2n0A keep the payload sorted in descending order. [metadata] {\"key\": \"sort-order\"}",
+          "[message] user: Reply exactly true. [span] Reply exactly true. [prev_user] Continue task S2n0B;"
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.9650678768474826,
+          0.017571275773034623,
+          0.008883877444853633,
+          0.005634771267321735,
+          0.002842198667307355
+        ],
+        "proposed": "none",
+        "token_count": 77
+      }
+    ],
+    "role": "user"
+  },
+  "turn": {
+    "direction": "default",
+    "events": [],
+    "hard_none": false,
+    "kind": "prose",
+    "payload": [
+      77,
+      70,
+      50,
+      67,
+      87
+    ],
+    "post_change": true,
+    "stale": [],
+    "tag": 32,
+    "task": "S2n0B",
+    "text": "Reply exactly true."
+  },
+  "turn_index": 4
+}

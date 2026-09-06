@@ -34,10 +34,11 @@ agentic leg is registered and its preflight is running; no sealed result
 exists yet. Records: `LEDGER-PLAN.md` (LEG B OUTCOME, LEG A), `WORKLOG.md`,
 `results/quick-checks/README.md`, `results/astra-program-review.md`.
 
-FOCUS-3 v3 stopped **INELIGIBLE-ADMISSION** on CPU: the revised standing rules
-were admitted 16/16, but cancellation/completion retirements were 0/8. The
-pre-gate stop prevented GPU evaluation; the 64-episode gate remains unrun.
-[Results and admission probabilities](results/quick-checks/focus3-gate/v3/RESULTS.md).
+FOCUS-3 v4 stopped **INELIGIBLE-ADMISSION** on CPU after runtime input parity
+and DEV calibration: transitions applied to the correct source rows were 8/12
+(required 11/12), and admissions were 32/36. The registered stop prevented GPU
+evaluation; the 64-episode v4 gate remains unrun.
+[Results and diagnostics](results/quick-checks/focus3-gate/v4/RESULTS.md).
 
 ## Earlier headline: the internal wave (superseded, kept for the record)
 

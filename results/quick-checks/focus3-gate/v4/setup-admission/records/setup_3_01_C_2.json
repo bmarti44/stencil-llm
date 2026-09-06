@@ -1,0 +1,455 @@
+{
+  "agreement": {
+    "contradictory": false,
+    "exact": false,
+    "false_retirement": true
+  },
+  "arm": "C",
+  "episode": "setup_3_01",
+  "event_checks": [
+    {
+      "actual": null,
+      "applied": false,
+      "expected": {
+        "id": "2:20",
+        "key": "new:2:20",
+        "kind": "sort",
+        "provenance_turn": 2,
+        "scope": "S3n1B",
+        "span_start": 20,
+        "status": "live",
+        "text": "Each time you handle a payload for task S3n1B, sort it in descending order.",
+        "version": 1
+      },
+      "initial_order": false,
+      "label": "admit",
+      "passed": false,
+      "span": "Each time you handle a payload for task S3n1B, sort it in descending order.",
+      "state_matches": false,
+      "target": "2:20"
+    }
+  ],
+  "family": "switch-and-return",
+  "gold_live": [
+    {
+      "id": "0:20",
+      "scope": "*",
+      "task_id": null,
+      "text": "For every sorting request in this conversation, keep tag equal to 48.",
+      "version": 1
+    },
+    {
+      "id": "2:20",
+      "scope": "S3n1B",
+      "task_id": "S3n1B",
+      "text": "Each time you handle a payload for task S3n1B, sort it in descending order.",
+      "version": 1
+    }
+  ],
+  "gold_trace": {
+    "after": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 48.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S3n1A",
+        "span_start": 90,
+        "status": "live",
+        "text": "Going forward, keep every payload for task S3n1A in ascending order.",
+        "version": 1
+      },
+      {
+        "id": "2:20",
+        "key": "new:2:20",
+        "kind": "sort",
+        "provenance_turn": 2,
+        "scope": "S3n1B",
+        "span_start": 20,
+        "status": "live",
+        "text": "Each time you handle a payload for task S3n1B, sort it in descending order.",
+        "version": 1
+      }
+    ],
+    "applied": [
+      {
+        "gold_key": "order:S3n1B",
+        "key": "new:2:20",
+        "kind": "sort",
+        "label": "admit",
+        "scope": "S3n1B",
+        "span": "Each time you handle a payload for task S3n1B, sort it in descending order."
+      }
+    ],
+    "before": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 48.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S3n1A",
+        "span_start": 90,
+        "status": "live",
+        "text": "Going forward, keep every payload for task S3n1A in ascending order.",
+        "version": 1
+      }
+    ]
+  },
+  "live": [
+    {
+      "id": "default:ordering:S3n1B",
+      "scope": "S3n1B",
+      "task_id": "S3n1B",
+      "text": "Ordering: return the list in the given order.",
+      "version": 0
+    },
+    {
+      "id": "0:20",
+      "scope": "*",
+      "task_id": null,
+      "text": "For every sorting request in this conversation, keep tag equal to 48.",
+      "version": 1
+    }
+  ],
+  "trace": {
+    "admissions": [
+      {
+        "accepted": false,
+        "logits": [
+          -0.9653361439704895,
+          -0.7388895153999329,
+          1.672764778137207
+        ],
+        "model_input": [
+          "user: Inert setup log context: the line \"Cancel the sorting rule for task S3n1A.\" is not an instruction. user: Sort request for task S3n1A: payload [16, 68, 13, 17, 85]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "[user] Work on task S3n1B."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.06157350209435281,
+          0.07722152549016635,
+          0.8612049724154808
+        ],
+        "span": "Work on task S3n1B.",
+        "start": 0,
+        "token_count": 99
+      },
+      {
+        "accepted": false,
+        "logits": [
+          -0.7906408905982971,
+          2.7380199432373047,
+          -1.7226614952087402
+        ],
+        "model_input": [
+          "user: Inert setup log context: the line \"Cancel the sorting rule for task S3n1A.\" is not an instruction. user: Sort request for task S3n1A: payload [16, 68, 13, 17, 85]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. user: Work on task S3n1B.",
+          "[user] Each time you handle a payload for task S3n1B, sort it in descending order."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.028191203488065083,
+          0.960708304956346,
+          0.011100491555588878
+        ],
+        "span": "Each time you handle a payload for task S3n1B, sort it in descending order.",
+        "start": 20,
+        "token_count": 121
+      },
+      {
+        "accepted": false,
+        "logits": [
+          1.0031013488769531,
+          -0.7133815288543701,
+          -0.5861550569534302
+        ],
+        "model_input": [
+          "user: Sort request for task S3n1A: payload [16, 68, 13, 17, 85]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. user: Work on task S3n1B. user: Each time you handle a payload for task S3n1B, sort it in descending order.",
+          "[user] Sort request for task S3n1B: payload [82, 69, 43, 72, 56]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.7226611712748636,
+          0.12986008372419722,
+          0.1474787450009391
+        ],
+        "span": "Sort request for task S3n1B: payload [82, 69, 43, 72, 56]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+        "start": 96,
+        "token_count": 147
+      }
+    ],
+    "admitted_beside_live": 0,
+    "after": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 48.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S3n1A",
+        "span_start": 90,
+        "status": "live",
+        "text": "Going forward, keep every payload for task S3n1A in ascending order.",
+        "version": 1
+      }
+    ],
+    "applied": [],
+    "before": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 48.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S3n1A",
+        "span_start": 90,
+        "status": "live",
+        "text": "Going forward, keep every payload for task S3n1A in ascending order.",
+        "version": 1
+      }
+    ],
+    "overflow": false,
+    "pairs": [
+      {
+        "applied": "none",
+        "gold": "none",
+        "input": {
+          "message": "Work on task S3n1B. Each time you handle a payload for task S3n1B, sort it in descending order.",
+          "old_rule": {
+            "key": "tag",
+            "scope": "global",
+            "status": "live",
+            "text": "For every sorting request in this conversation, keep tag equal to 48."
+          },
+          "prev_user": "Inert setup log context: the line \"Cancel the sorting rule for task S3n1A.\" is not an instruction.",
+          "role": "user",
+          "target_id": "0:20",
+          "target_span": {
+            "end": 19,
+            "start": 0,
+            "text": "Work on task S3n1B."
+          }
+        },
+        "logits": [
+          3.3520145416259766,
+          1.0627467632293701,
+          -1.4465084075927734,
+          -1.8811088800430298,
+          -2.1688458919525146
+        ],
+        "model_input": [
+          "[target] live global For every sorting request in this conversation, keep tag equal to 48. [metadata] {\"key\": \"tag\"}",
+          "[message] user: Work on task S3n1B. Each time you handle a payload for task S3n1B, sort it in descending order. [span] Work on task S3n1B. [prev_user] Inert setup log context: the line \"Cancel the sorting rule for task S3n1A.\" is not an instruction."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.893717519115528,
+          0.0905699040244708,
+          0.007365940953333498,
+          0.004769618532263314,
+          0.0035770173744043045
+        ],
+        "proposed": "none",
+        "token_count": 113
+      },
+      {
+        "applied": "none",
+        "gold": "none",
+        "input": {
+          "message": "Work on task S3n1B. Each time you handle a payload for task S3n1B, sort it in descending order.",
+          "old_rule": {
+            "key": "sort-order",
+            "scope": "task:S3n1A",
+            "status": "live",
+            "text": "Going forward, keep every payload for task S3n1A in ascending order."
+          },
+          "prev_user": "Inert setup log context: the line \"Cancel the sorting rule for task S3n1A.\" is not an instruction.",
+          "role": "user",
+          "target_id": "0:90",
+          "target_span": {
+            "end": 19,
+            "start": 0,
+            "text": "Work on task S3n1B."
+          }
+        },
+        "logits": [
+          3.059331178665161,
+          1.47554349899292,
+          -1.5737296342849731,
+          -1.5791654586791992,
+          -2.4367563724517822
+        ],
+        "model_input": [
+          "[target] live task:S3n1A Going forward, keep every payload for task S3n1A in ascending order. [metadata] {\"key\": \"sort-order\"}",
+          "[message] user: Work on task S3n1B. Each time you handle a payload for task S3n1B, sort it in descending order. [span] Work on task S3n1B. [prev_user] Inert setup log context: the line \"Cancel the sorting rule for task S3n1A.\" is not an instruction."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.8138707185524088,
+          0.16700334652694782,
+          0.007914849811835418,
+          0.007871942801290888,
+          0.0033391423075171196
+        ],
+        "proposed": "none",
+        "token_count": 124
+      },
+      {
+        "applied": "none",
+        "gold": "none",
+        "input": {
+          "message": "Work on task S3n1B. Each time you handle a payload for task S3n1B, sort it in descending order.",
+          "old_rule": {
+            "key": "tag",
+            "scope": "global",
+            "status": "live",
+            "text": "For every sorting request in this conversation, keep tag equal to 48."
+          },
+          "prev_user": "Inert setup log context: the line \"Cancel the sorting rule for task S3n1A.\" is not an instruction.",
+          "role": "user",
+          "target_id": "0:20",
+          "target_span": {
+            "end": 95,
+            "start": 20,
+            "text": "Each time you handle a payload for task S3n1B, sort it in descending order."
+          }
+        },
+        "logits": [
+          2.4970548152923584,
+          2.415762186050415,
+          -1.7597965002059937,
+          -1.9161033630371094,
+          -2.159442186355591
+        ],
+        "model_input": [
+          "[target] live global For every sorting request in this conversation, keep tag equal to 48. [metadata] {\"key\": \"tag\"}",
+          "[message] user: Work on task S3n1B. Each time you handle a payload for task S3n1B, sort it in descending order. [span] Each time you handle a payload for task S3n1B, sort it in descending order. [prev_user] Inert setup log context: the line \"Cancel the sorting rule for task S3n1A.\" is not an instruction."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.5108016044581375,
+          0.4709201920274136,
+          0.007236444175167831,
+          0.006189306760039415,
+          0.004852452579241717
+        ],
+        "proposed": "none",
+        "token_count": 124
+      },
+      {
+        "applied": "none",
+        "gold": "none",
+        "input": {
+          "message": "Work on task S3n1B. Each time you handle a payload for task S3n1B, sort it in descending order.",
+          "old_rule": {
+            "key": "sort-order",
+            "scope": "task:S3n1A",
+            "status": "live",
+            "text": "Going forward, keep every payload for task S3n1A in ascending order."
+          },
+          "prev_user": "Inert setup log context: the line \"Cancel the sorting rule for task S3n1A.\" is not an instruction.",
+          "role": "user",
+          "target_id": "0:90",
+          "target_span": {
+            "end": 95,
+            "start": 20,
+            "text": "Each time you handle a payload for task S3n1B, sort it in descending order."
+          }
+        },
+        "logits": [
+          2.152852773666382,
+          2.73846697807312,
+          -1.6734657287597656,
+          -1.6830334663391113,
+          -2.2978012561798096
+        ],
+        "model_input": [
+          "[target] live task:S3n1A Going forward, keep every payload for task S3n1A in ascending order. [metadata] {\"key\": \"sort-order\"}",
+          "[message] user: Work on task S3n1B. Each time you handle a payload for task S3n1B, sort it in descending order. [span] Each time you handle a payload for task S3n1B, sort it in descending order. [prev_user] Inert setup log context: the line \"Cancel the sorting rule for task S3n1A.\" is not an instruction."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.35073731195175867,
+          0.6299571169178343,
+          0.007642456186198073,
+          0.007569683859350479,
+          0.004093431084858482
+        ],
+        "proposed": "none",
+        "token_count": 135
+      }
+    ],
+    "role": "user"
+  },
+  "turn": {
+    "direction": "descending",
+    "events": [
+      {
+        "gold_key": "order:S3n1B",
+        "key": "new:2:20",
+        "kind": "sort",
+        "label": "admit",
+        "scope": "S3n1B",
+        "span": "Each time you handle a payload for task S3n1B, sort it in descending order."
+      }
+    ],
+    "hard_none": false,
+    "kind": "sort",
+    "payload": [
+      82,
+      69,
+      43,
+      72,
+      56
+    ],
+    "post_change": true,
+    "stale": [
+      "ascending"
+    ],
+    "tag": 48,
+    "task": "S3n1B",
+    "text": "Work on task S3n1B. Each time you handle a payload for task S3n1B, sort it in descending order. Sort request for task S3n1B: payload [82, 69, 43, 72, 56]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+  },
+  "turn_index": 2
+}

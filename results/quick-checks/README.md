@@ -434,6 +434,12 @@ F8 — Q1 extracted-vector closure: Further work on the tested mean-difference r
    −b PRODUCT0/8 both doses, malformed0; shuffled− PRODUCT0/8; +b SUM8/7 with malformed0/1, shuffled+ malformed0/4; no safe cell, final/collateral skipped.
    80 generations/3963 tokens, 11.21/24 GPU-min; all scores/profiles/biases/dispatch audited; recipe da131791 precedes outcomes; flag removed, no signals/sealed reads/push.
 
+FOCUS-3 gate v4 ([results](focus3-gate/v4/RESULTS.md), [DEV calibration](focus3-gate/v4/calibration.json)): **INELIGIBLE-ADMISSION**, CPU stop; no GPU gate.
+   Runtime status/scope/key/prose/prev-sentence parity repaired; highest-probability same-kind target; frozen DEV90th none cutoff .9711621345 (0/317 positive leakage).
+   Setup30321: supersedes2/4,cancels3/4,completes3/4 =8/12 correct-source transitions, below11/12; initial orders/tags16/16 each, switched-task admissions0/4.
+   Setup none guard0/189;19 unauthorized applications (18 reinstates,1 cancels). All3 known phrasing misses retained;93-row later-refit enrichment unused by current model.
+   Freeze c72a4d3d;96 records/16 traces/201 pairs, both audits PASS;32 tests/1 legacy xfail. GPU0/10800s;gate30322/64 unevaluated;no fitting/sealed reads/signals/push.
+
 FOCUS-3 gate v3 ([results](focus3-gate/v3/RESULTS.md), [P(rule) table](focus3-gate/v3/probe.md)): **INELIGIBLE-ADMISSION**, stopped on CPU before the GPU gate.
    New standing bank30311/30312 and training-faithful admission context; initial orders16/16, tags16/16. Overrides0/4,new-task admissions0/4,cancels0/4,completes0/4; required retirements0/8.
    All240 relation pairs apply none despite12 real gold-positive targets; one wrong reinstates proposal blocked on live target. No fitting, threshold rescue or masking.

@@ -5232,3 +5232,12 @@ Mandatory retirements0/8 stops INELIGIBLE-ADMISSION. All240 relation pairs apply
 96 same-run records/16 traces, full probability tables, summaries and RESULTS under results/quick-checks/focus3-gate/v3/; runtime replay and independent status/logit recount PASS. 25 tests pass,1 legacy xfail,2 forbidden hash reads excluded; lint clean.
 19.306524 CPU seconds for setup updates; GPU0/10800s, zero generations/gate records. Check40h naturally finished; no GPU claim/flag needed. V2 artifacts preserved; no fitting/sealed reads/signals/background/push.
 STATE: frozen pre-gate stop complete, no gate or further repair; final explicit-path local results/index commit follows.
+
+
+### 2026-09-06 — FOCUS-3 gate v4 (gpt-6-astra): INELIGIBLE-ADMISSION; runtime parity passes
+User-authorized repair frozen c72a4d3d before setup30321: trainer-value parity, prose-only pair message/one previous-user sentence, highest-probability same-kind target; no fitting.
+Committed GPU seed0 DEV90th none cutoff .9711621345086118 admits26/259 none and0/317 positives; no95th fallback. Existing weights/positive thresholds/admission .95 unchanged.
+Setup correct-source transitions8/12 (<11): supersedes2/4,cancels3/4,completes3/4;initial orders/tags16/16 each,switched-task admissions0/4. All3 known phrasing misses retained;fourth override miss .7268<.94.
+None guard0/189 on setup (maximum .9699236177);27 false-positive proposals,19 unauthorized applications (18 reinstates,1 cancellation) across8 episodes. No runtime/admission readiness claim or outcome rescue.
+96 records/16 traces/201 pairs audited by frozen runtime replay/trainer parity/raw-softmax and independent source-status recount;32 tests pass,1 legacy import xfail,ruff clean.93 linked evaluation-derived handwritten enrichment rows for later refit only.
+CPU replay-loop wall19.307595s;GPU0/10800s,zero generations/gate records. Frozen64 gate30322 remains unevaluated by mechanical stop;no GPU claim,signals,sealed reads,background,push. Final artifacts/index explicit-path local commit next.

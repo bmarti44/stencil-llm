@@ -1,0 +1,326 @@
+{
+  "admission": {
+    "complete": true,
+    "counts": {
+      "admissions": {
+        "passed": 32,
+        "total": 36
+      },
+      "initial_order": {
+        "passed": 16,
+        "total": 16
+      },
+      "transitions": {
+        "passed": 8,
+        "total": 12
+      }
+    },
+    "cpu_seconds": 19.307595397000114,
+    "diagnostics": {
+      "gold_admit_pair_p_none": {
+        "n": 8,
+        "values": {
+          "0": 0.03355935088616291,
+          "0.1": 0.04071389867752249,
+          "0.5": 0.08626947559494456,
+          "0.9": 0.5998677525750967,
+          "0.95": 0.7037782587115491,
+          "0.98": 0.7661245623934206,
+          "1": 0.8076887648480018
+        }
+      },
+      "gold_none": {
+        "applied_positive": 19,
+        "guard_admitted": 0,
+        "p_none": {
+          "n": 189,
+          "values": {
+            "0": 0.0122871529001809,
+            "0.1": 0.0847241371031505,
+            "0.5": 0.9539164324032147,
+            "0.9": 0.9665213909798928,
+            "0.95": 0.9673825335449528,
+            "0.98": 0.9684618541906341,
+            "1": 0.969923617737972
+          }
+        },
+        "proposed_positive": 27,
+        "total": 189
+      },
+      "known_phrasings": [
+        {
+          "episode": "setup_0_01",
+          "label": "supersedes",
+          "passed": false,
+          "span": "Replace the sorting rule for task S0n1A: always use ascending order."
+        },
+        {
+          "episode": "setup_1_02",
+          "label": "cancels",
+          "passed": false,
+          "span": "The sorting rule for task S1n2A no longer applies."
+        },
+        {
+          "episode": "setup_2_03",
+          "label": "completes",
+          "passed": false,
+          "span": "That concludes task S2n3A."
+        }
+      ],
+      "per_label": {
+        "cancels": {
+          "applied": 3,
+          "gold": 4,
+          "paired": 4,
+          "proposed": 3,
+          "recall": 0.75
+        },
+        "completes": {
+          "applied": 3,
+          "gold": 4,
+          "paired": 4,
+          "proposed": 3,
+          "recall": 0.75
+        },
+        "reinstates": {
+          "applied": 0,
+          "gold": 0,
+          "paired": 0,
+          "proposed": 0,
+          "recall": null
+        },
+        "supersedes": {
+          "applied": 2,
+          "gold": 4,
+          "paired": 4,
+          "proposed": 2,
+          "recall": 0.5
+        }
+      }
+    },
+    "eligible": false,
+    "failures": [
+      {
+        "actual": null,
+        "applied": false,
+        "episode": "setup_0_01",
+        "expected": {
+          "id": "2:0",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S0n1A",
+          "span_start": 0,
+          "status": "live",
+          "text": "Replace the sorting rule for task S0n1A: always use ascending order.",
+          "version": 2
+        },
+        "gold_source_id": "0:90",
+        "initial_order": false,
+        "label": "supersedes",
+        "passed": false,
+        "source_state_matches": false,
+        "span": "Replace the sorting rule for task S0n1A: always use ascending order.",
+        "state_matches": false,
+        "target": "2:0",
+        "turn_index": 2
+      },
+      {
+        "actual": null,
+        "applied": false,
+        "episode": "setup_0_02",
+        "expected": {
+          "id": "2:0",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S0n2A",
+          "span_start": 0,
+          "status": "live",
+          "text": "For task S0n2A, switch the standing order from descending to ascending.",
+          "version": 2
+        },
+        "gold_source_id": "0:90",
+        "initial_order": false,
+        "label": "supersedes",
+        "passed": false,
+        "source_state_matches": false,
+        "span": "For task S0n2A, switch the standing order from descending to ascending.",
+        "state_matches": false,
+        "target": "2:0",
+        "turn_index": 2
+      },
+      {
+        "actual": {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S1n2A",
+          "span_start": 90,
+          "status": "live",
+          "text": "Each time you handle a payload for task S1n2A, sort it in ascending order.",
+          "version": 1
+        },
+        "applied": false,
+        "episode": "setup_1_02",
+        "expected": {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S1n2A",
+          "span_start": 90,
+          "status": "cancelled",
+          "text": "Each time you handle a payload for task S1n2A, sort it in ascending order.",
+          "version": 1
+        },
+        "gold_source_id": "0:90",
+        "initial_order": false,
+        "label": "cancels",
+        "passed": false,
+        "source_state_matches": false,
+        "span": "The sorting rule for task S1n2A no longer applies.",
+        "state_matches": false,
+        "target": "0:90",
+        "turn_index": 2
+      },
+      {
+        "actual": {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S2n3A",
+          "span_start": 90,
+          "status": "live",
+          "text": "Whenever you sort for task S2n3A, use descending order.",
+          "version": 1
+        },
+        "applied": false,
+        "episode": "setup_2_03",
+        "expected": {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S2n3A",
+          "span_start": 90,
+          "status": "completed",
+          "text": "Whenever you sort for task S2n3A, use descending order.",
+          "version": 1
+        },
+        "gold_source_id": "0:90",
+        "initial_order": false,
+        "label": "completes",
+        "passed": false,
+        "source_state_matches": false,
+        "span": "That concludes task S2n3A.",
+        "state_matches": false,
+        "target": "0:90",
+        "turn_index": 2
+      },
+      {
+        "actual": null,
+        "applied": false,
+        "episode": "setup_3_00",
+        "expected": {
+          "id": "2:22",
+          "key": "new:2:22",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S3n0B",
+          "span_start": 22,
+          "status": "live",
+          "text": "Going forward, keep every payload for task S3n0B in descending order.",
+          "version": 1
+        },
+        "initial_order": false,
+        "label": "admit",
+        "passed": false,
+        "span": "Going forward, keep every payload for task S3n0B in descending order.",
+        "state_matches": false,
+        "target": "2:22",
+        "turn_index": 2
+      },
+      {
+        "actual": null,
+        "applied": false,
+        "episode": "setup_3_01",
+        "expected": {
+          "id": "2:20",
+          "key": "new:2:20",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S3n1B",
+          "span_start": 20,
+          "status": "live",
+          "text": "Each time you handle a payload for task S3n1B, sort it in descending order.",
+          "version": 1
+        },
+        "initial_order": false,
+        "label": "admit",
+        "passed": false,
+        "span": "Each time you handle a payload for task S3n1B, sort it in descending order.",
+        "state_matches": false,
+        "target": "2:20",
+        "turn_index": 2
+      },
+      {
+        "actual": null,
+        "applied": false,
+        "episode": "setup_3_02",
+        "expected": {
+          "id": "2:22",
+          "key": "new:2:22",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S3n2B",
+          "span_start": 22,
+          "status": "live",
+          "text": "Use descending order for all payloads in task S3n2B from now on.",
+          "version": 1
+        },
+        "initial_order": false,
+        "label": "admit",
+        "passed": false,
+        "span": "Use descending order for all payloads in task S3n2B from now on.",
+        "state_matches": false,
+        "target": "2:22",
+        "turn_index": 2
+      },
+      {
+        "actual": null,
+        "applied": false,
+        "episode": "setup_3_03",
+        "expected": {
+          "id": "2:20",
+          "key": "new:2:20",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S3n3B",
+          "span_start": 20,
+          "status": "live",
+          "text": "From now on, for task S3n3B keep the payload sorted in descending order.",
+          "version": 1
+        },
+        "initial_order": false,
+        "label": "admit",
+        "passed": false,
+        "span": "From now on, for task S3n3B keep the payload sorted in descending order.",
+        "state_matches": false,
+        "target": "2:20",
+        "turn_index": 2
+      }
+    ],
+    "freeze_sha256": "c51faf03b7c42d9d4aee394237aab2bc50d4fbe4b58a79ebf5add9cd62887e89",
+    "records": 96
+  },
+  "freeze_sha256": "c51faf03b7c42d9d4aee394237aab2bc50d4fbe4b58a79ebf5add9cd62887e89",
+  "gate_records": 0,
+  "generation_records": 0,
+  "gpu_held_seconds": 0.0,
+  "no_masking": true,
+  "reason": "setup C gold event miss",
+  "verdict": "INELIGIBLE-ADMISSION"
+}

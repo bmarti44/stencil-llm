@@ -517,3 +517,24 @@ Next ONE foreground CPU preflight: CUDA_VISIBLE_DEVICES='' .venv/bin/python -u
 If setup misses>1 transition or any of36 admissions, stop INELIGIBLE-ADMISSION;
 otherwise wait for flags/other compute (pid2705 exempt), then foreground GPU run.
 No sealed reads/fitting/signals/background/push; explicit-path local commit next.
+
+2026-09-06 — STATE: FOCUS-3 V4 COMPLETE / INELIGIBLE-ADMISSION; COMMITTING.
+Freeze c72a4d3d preceded one CPU setup replay. Correct-source transitions8/12
+(required>=11):supersedes2/4,cancels3/4,completes3/4; all3 known phrasings retained
+and missed, plus standing-order switch .726819<.94. Initial ordering16/16,
+tags16/16,switched-task admissions0/4 =>32/36, so mechanical pre-gate stop.
+DEV90th .9711621345086118 remains frozen; setup gold-none0/189 reach it (maximum
+.969923617737972). 27 wrong positive proposals/19 applications:18 reinstates,
+1 cancellation,8 episodes. Full request still feeds inherited scope parser;
+conversation word can broaden continuation scope, observed wrong-task restore.
+No outcome-driven repair, retune, bank edits or repeat inference.
+96 records/16 traces/201 relation pairs/184 admission spans saved in same run;
+frozen runtime/trainer-parity/raw-softmax replay and independent exact-source
+recount both PASS.32 tests pass,1 legacy inventory xfail;ruff/diff clean.
+93 evaluation-derived enrichment rows (3 originals+30 handwritten relatives each)
+committed for later refit ONLY; frozen model lineage/weights unchanged.
+CPU replay loop19.307595 wall seconds (historical cpu_seconds field is wall time);
+GPU0/10800s,zero generations/gate records. Gate30322/64 unevaluated;check40i owns
+its separate GPU job/flag;no GPU claim needed,no process touched. No sealed
+reads/fitting/background/signals/push. RESULTS,README item,WORKLOG and all raw
+artifacts land with explicit force-added paths; authorized v4 stop is terminal.

@@ -1,0 +1,295 @@
+{
+  "agreement": {
+    "contradictory": false,
+    "exact": false,
+    "false_retirement": true
+  },
+  "arm": "C",
+  "episode": "setup_1_03",
+  "event_checks": [],
+  "family": "cancel",
+  "gold_live": [
+    {
+      "id": "default:ordering:S1n3A",
+      "scope": "S1n3A",
+      "task_id": "S1n3A",
+      "text": "Ordering: return the list in the given order.",
+      "version": 0
+    },
+    {
+      "id": "0:20",
+      "scope": "*",
+      "task_id": null,
+      "text": "For every sorting request in this conversation, keep tag equal to 65.",
+      "version": 1
+    }
+  ],
+  "gold_trace": {
+    "after": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 65.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S1n3A",
+        "span_start": 90,
+        "status": "cancelled",
+        "text": "Use ascending order for all payloads in task S1n3A from now on.",
+        "version": 1
+      }
+    ],
+    "applied": [],
+    "before": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 65.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S1n3A",
+        "span_start": 90,
+        "status": "cancelled",
+        "text": "Use ascending order for all payloads in task S1n3A from now on.",
+        "version": 1
+      }
+    ]
+  },
+  "live": [
+    {
+      "id": "0:20",
+      "scope": "*",
+      "task_id": null,
+      "text": "For every sorting request in this conversation, keep tag equal to 65.",
+      "version": 1
+    },
+    {
+      "id": "3:0",
+      "scope": "S1n3A",
+      "task_id": "S1n3A",
+      "text": "Use ascending order for all payloads in task S1n3A from now on.",
+      "version": 2
+    }
+  ],
+  "trace": {
+    "admissions": [
+      {
+        "accepted": false,
+        "logits": [
+          0.981963038444519,
+          -0.60865318775177,
+          -0.6635404825210571
+        ],
+        "model_input": [
+          "user: Stop following the earlier sorting rule for task S1n3A. user: Sort request for task S1n3A: payload [76, 13, 44, 34, 58]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "[user] Continue task S1n3A; Sort request for task S1n3A: payload [62, 21, 44, 15, 13]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.7159654779569,
+          0.14591375448507546,
+          0.1381207675580244
+        ],
+        "span": "Continue task S1n3A; Sort request for task S1n3A: payload [62, 21, 44, 15, 13]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+        "start": 0,
+        "token_count": 138
+      }
+    ],
+    "admitted_beside_live": 0,
+    "after": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 65.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S1n3A",
+        "span_start": 90,
+        "status": "cancelled",
+        "text": "Use ascending order for all payloads in task S1n3A from now on.",
+        "version": 1
+      },
+      {
+        "id": "3:0",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 3,
+        "scope": "S1n3A",
+        "span_start": 0,
+        "status": "live",
+        "text": "Use ascending order for all payloads in task S1n3A from now on.",
+        "version": 2
+      }
+    ],
+    "applied": [
+      {
+        "label": "reinstates",
+        "span": "Continue task S1n3A; Sort request for task S1n3A: payload [62, 21, 44, 15, 13]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+        "target": "0:90"
+      }
+    ],
+    "before": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 65.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S1n3A",
+        "span_start": 90,
+        "status": "cancelled",
+        "text": "Use ascending order for all payloads in task S1n3A from now on.",
+        "version": 1
+      }
+    ],
+    "overflow": false,
+    "pairs": [
+      {
+        "applied": "none",
+        "gold": "none",
+        "input": {
+          "message": "Continue task S1n3A;",
+          "old_rule": {
+            "key": "tag",
+            "scope": "global",
+            "status": "live",
+            "text": "For every sorting request in this conversation, keep tag equal to 65."
+          },
+          "prev_user": "Stop following the earlier sorting rule for task S1n3A.",
+          "role": "user",
+          "target_id": "0:20",
+          "target_span": {
+            "end": 20,
+            "start": 0,
+            "text": "Continue task S1n3A;"
+          }
+        },
+        "logits": [
+          3.6146366596221924,
+          0.08185195922851562,
+          -0.8410993814468384,
+          -1.8277391195297241,
+          -2.0587332248687744
+        ],
+        "model_input": [
+          "[target] live global For every sorting request in this conversation, keep tag equal to 65. [metadata] {\"key\": \"tag\"}",
+          "[message] user: Continue task S1n3A; [span] Continue task S1n3A; [prev_user] Stop following the earlier sorting rule for task S1n3A."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.9536519017626045,
+          0.027868973849013857,
+          0.011073586532732464,
+          0.0041285363226476945,
+          0.0032770015330015213
+        ],
+        "proposed": "none",
+        "token_count": 78
+      },
+      {
+        "applied": "reinstates",
+        "gold": "none",
+        "input": {
+          "message": "Continue task S1n3A;",
+          "old_rule": {
+            "key": "sort-order",
+            "scope": "task:S1n3A",
+            "status": "cancelled",
+            "text": "Use ascending order for all payloads in task S1n3A from now on."
+          },
+          "prev_user": "Stop following the earlier sorting rule for task S1n3A.",
+          "role": "user",
+          "target_id": "0:90",
+          "target_span": {
+            "end": 20,
+            "start": 0,
+            "text": "Continue task S1n3A;"
+          }
+        },
+        "logits": [
+          -0.11238784343004227,
+          -1.7924848794937134,
+          -0.9927106499671936,
+          -1.3263707160949707,
+          3.8548378944396973
+        ],
+        "model_input": [
+          "[target] cancelled task:S1n3A Use ascending order for all payloads in task S1n3A from now on. [metadata] {\"key\": \"sort-order\"}",
+          "[message] user: Continue task S1n3A; [span] Continue task S1n3A; [prev_user] Stop following the earlier sorting rule for task S1n3A."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.018269592458145138,
+          0.0034046461975493353,
+          0.007575468949386665,
+          0.005426287458778853,
+          0.9653240049361399
+        ],
+        "proposed": "reinstates",
+        "token_count": 90
+      }
+    ],
+    "role": "user"
+  },
+  "turn": {
+    "direction": "default",
+    "events": [],
+    "hard_none": false,
+    "kind": "sort",
+    "payload": [
+      62,
+      21,
+      44,
+      15,
+      13
+    ],
+    "post_change": true,
+    "stale": [
+      "ascending"
+    ],
+    "tag": 65,
+    "task": "S1n3A",
+    "text": "Continue task S1n3A; Sort request for task S1n3A: payload [62, 21, 44, 15, 13]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+  },
+  "turn_index": 3
+}
