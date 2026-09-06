@@ -1,0 +1,89 @@
+{
+  "captured_at": 1788727929.3618848,
+  "audited_prefix": {
+    "dev_only": true,
+    "passed": true,
+    "records": 162,
+    "scope": "completed prefix; lifecycle not checked"
+  },
+  "files": {
+    "records.jsonl": {
+      "rows": 75,
+      "sha256": "dbcf5899b8f406d4995f2b8161fefd5c340e5a9b786ac59d989e5917dcd371da"
+    },
+    "http/records.jsonl": {
+      "rows": 99,
+      "sha256": "6a0e9327c3ad0822ec691e7faf4933dcffbd5e2df47b430bf57e7f6e9083e059"
+    },
+    "schedule.jsonl": {
+      "rows": 22,
+      "sha256": "62f38bc731053c42696c8f4cb39eab6bf6c2b7157a740db7ed4a238a0da455d5"
+    },
+    "episodes.jsonl": {
+      "rows": 4,
+      "sha256": "d20720605c411d6a13e27c6b7131a2d5adef9325afebb8fc4995c53789390f2b"
+    },
+    "stages.jsonl": {
+      "rows": 1,
+      "sha256": "559985e3f82fcf2027c886da49c04b0bbac6d33ce23cd1db562c89fe4c66a5fd"
+    }
+  },
+  "running_lifecycle": {
+    "deadline": 1788732578.5171783,
+    "launch": {
+      "args": [
+        "docker",
+        "run",
+        "-d",
+        "--name",
+        "stencil-pilot3-continuation-1788726232",
+        "--device",
+        "nvidia.com/gpu=0",
+        "--ipc=host",
+        "-p",
+        "127.0.0.1:18081:8000",
+        "-e",
+        "VLLM_BATCH_INVARIANT=1",
+        "-v",
+        "/home/bmarti44/stencil-llm/models/qwen3-30b-a3b-hf:/model:ro",
+        "vllm/vllm-openai@sha256:3dbe092ec5b2cef63b6104d33fa75d6ce53a7870962529ada69f78bbbc38e776",
+        "--attention-backend",
+        "TRITON_ATTN",
+        "--model",
+        "/model",
+        "--dtype",
+        "bfloat16",
+        "--kv-cache-dtype",
+        "auto",
+        "--tensor-parallel-size",
+        "1",
+        "--max-model-len",
+        "32768",
+        "--max-num-seqs",
+        "4",
+        "--max-num-batched-tokens",
+        "2048",
+        "--gpu-memory-utilization",
+        "0.70",
+        "--enable-prefix-caching",
+        "--generation-config",
+        "vllm"
+      ],
+      "output": "a715522233080edf4dc2becd1cb9d64c6a3fa3361dfca2c1bd292bf6eea2ddf4\n",
+      "returncode": 0
+    },
+    "load_seconds": 428.53555130958557,
+    "occupancy": {
+      "args": [
+        "nvidia-smi",
+        "--query-compute-apps=pid,process_name",
+        "--format=csv,noheader"
+      ],
+      "output": "",
+      "returncode": 0
+    },
+    "start": 1788726232.8611891,
+    "status": "ready"
+  },
+  "elapsed_at_snapshot": 1696.7329778671265
+}
