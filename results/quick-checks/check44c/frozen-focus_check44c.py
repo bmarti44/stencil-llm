@@ -418,30 +418,7 @@ def prepare():
 def verify_recipe():
     recipe = json.loads((OUT / "recipe.json").read_text())
     for p, h in recipe["hashes"].items():
-        if p == "scripts/focus_check44c.py" and sha(ROOT / p) != h:
-            # Post-evaluation audit serialization repair: preserve frozen science.
-            import ast
-
-            receipt = json.loads((OUT / "audit-repair.json").read_text())
-            original = OUT / "frozen-focus_check44c.py"
-            assert sha(original) == h == receipt["frozen_sha256"]
-            assert sha(ROOT / p) == receipt["corrected_sha256"]
-
-            def science(path):
-                tree = ast.parse(path.read_text())
-                tree.body = [
-                    n
-                    for n in tree.body
-                    if not (
-                        isinstance(n, ast.FunctionDef)
-                        and n.name in ("audit", "verify_recipe")
-                    )
-                ]
-                return ast.dump(tree, include_attributes=False)
-
-            assert science(original) == science(ROOT / p)
-        else:
-            assert sha(ROOT / p) == h, p
+        assert sha(ROOT / p) == h, p
     return recipe
 
 
@@ -845,10 +822,7 @@ def audit():
                 == r["C2+B"]["accepted"]
             )
             for a in ("C2", "C2+B", "B"):
-                assert (
-                    json.loads(json.dumps(metrics.score(r[a]["accepted"], r["input"])))
-                    == r[a]["score"]
-                )
+                assert metrics.score(r[a]["accepted"], r["input"]) == r[a]["score"]
             n += 1
         for a in ("C2", "C2+B"):
             actual = (

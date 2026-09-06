@@ -5374,3 +5374,10 @@ P1 OFF/bias-only0/16 JS; text+bias16/16. P2 combined-vs-text wins0/losses0/ties1
 Exact user cue prepended; current FOCUS-3 JSON-renderer mismatch disclosed pre-inference. Rendering primary; actuator out of default shipping.
 Recipe3dddc28e,224 generations/6439 output tokens,827.221/2700GPU-seconds; CPU checks and saved-record/token/mask/bias audits PASS.
 results/quick-checks/check40j/README.md; one load, natural exit0/flag removed, no retries/fitting/signals/push; n16 screen, no enlargement.
+
+### 2026-09-06 — Check44c NO-GO: BIO admission and pre-registered C2+B
+Both arms heldout3 overlap247/385=64.16%<85%, quoted2/36=5.56%>3%; payload0/57, non-user0/34; ideal token ceiling100%.
+SETUP36/36 admit,3/4 supersedes but10/96 false turns>2 and4 request-template admits; heldout2 SECOND LOOK168/207=81.16%.
+Audit122 changes/5 drops; fit4209/DEV466 (13 domains); seeds0/1/2 and thresholds frozen fd43ff8f; GPU88.546/3600s, flag removed.
+783 records plus1398 DEV records verified; audit-only tuple/list repair preserves frozen runner/science AST. No inference rerun/signals/sealed reads/push.
+Explicit entry remains first ship; no runtime swap or v9 authorization. results/quick-checks/check44c/RESULTS.md.

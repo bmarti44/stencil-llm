@@ -504,3 +504,9 @@ FOCUS-3 gate ([results v2](focus3-gate/RESULTS.md), [frozen reading](focus3-gate
    All96 OFF history answers valid Python; combined-vs-text paired wins0/losses0/ties16, descriptive gain95% CI[-23.96,+23.96]pp.
    Exact requested literal cue prepended; current focus3.render actually emits JSON (prewritten discrepancy). Bias control0/16 does not reproduce40g3/8.
    Recipe3dddc28e;224 records audited,827.221/2700GPU-seconds. Rendering-only primary; actuator out of default shipping; n16 screen, no enlargement/signals/push.
+
+44c. TOKEN ADMISSION C2 ([check44c](check44c/RESULTS.md)): **NO-GO**; C2 and C2+B overlap P/R77.67%/64.16% (247/385) on fresh heldout3.
+   Payload/quoted/non-user FP0/57,2/36,0/34; quoted5.56%>3%. Token-run ceiling385/385=100%; no overflow; B adds0 spans.
+   SETUP36/36 admits,3/4 supersedes;10/96 false turns>2,4 request-template admits. Heldout2 SECOND LOOK overlap168/207=81.16%.
+   Astra audit122 changes/5 drops; fit4209, DEV466 across13 domains; three seeds frozen fd43ff8f;88.546/3600 GPU-seconds;783 records audited.
+   Explicit structured entry remains first ship; no runtime swap/v9. CPU-only thresholding/evaluation; safetensors local, no signals/sealed reads/push.

@@ -1,5 +1,14 @@
 # Relation classifier task ledger
 
+2026-09-06 — STATE: CHECK44C COMPLETE / NO-GO. Seed0 C2 and frozen C2+B
+heldout3 overlap247/385=64.16%<85%; quoted2/36=5.56%>3%; payload0/57,
+non-user0/34. SETUP36/36 admits but10/96 false turns>2;4 request-template
+admits,3/4 supersedes. Token-run ceiling100%, B adds0. Explicit entry stays
+first ship; no runtime swap/gatev9. Freeze fd43ff8f; GPU88.546/3600s;
+783 records/1398 DEV records audited, no pending inference. Audit-only
+JSON tuple/list repair preserves frozen runner and all science-function ASTs.
+
+
 2026-09-06 — STATE: CHECK44B COMPLETE / NO-GO. Seed0 C overlap151/207=72.95%
 <85%; negative FP0/97 payload,0/57 quoted,0/30 non-user; SETUP2/96 false turns,
 0/96 request-template admits. No runtime swap or gatev9 authorization; explicit

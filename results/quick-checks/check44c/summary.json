@@ -1,0 +1,1144 @@
+{
+  "reading": "NO-GO",
+  "arm_go": {
+    "C2": false,
+    "C2+B": false
+  },
+  "designated_seed": 0,
+  "primary_arm": "C2+B",
+  "decision": "Explicit structured entry remains first ship; no runtime swap or gate v9 authorization.",
+  "heldout3_header": {
+    "file": "data/classifier/heldout/fable-admission-heldout-3.jsonl",
+    "author": "fable",
+    "date": "2026-09-06",
+    "purpose": "third author-disjoint held-out set for FOCUS-3 message-level ADMISSION, weighted toward the recall-gap categories: multi-rule messages, rule plus payload in one message, rules buried after chit-chat or a data block, one-off payload requests (incl. the formal process-request template), and quoted/reported/inert text; domains, scenarios and messages disjoint from sets 1 and 2",
+    "rows": 357,
+    "by_category": {
+      "two_rules": 105,
+      "rule_plus_payload": 87,
+      "buried_rule": 54,
+      "payload_request": 75,
+      "inert_quote": 36
+    },
+    "by_category_pct": {
+      "two_rules": 29.4,
+      "rule_plus_payload": 24.4,
+      "buried_rule": 15.1,
+      "payload_request": 21.0,
+      "inert_quote": 10.1
+    },
+    "rows_with_rules": 246,
+    "rows_without_rules": 111,
+    "rule_spans_total": 385,
+    "rule_spans_by_scope": {
+      "global": 349,
+      "task": 36
+    },
+    "rules_per_message": {
+      "0": 111,
+      "1": 141,
+      "2": 71,
+      "3": 34
+    },
+    "by_role": {
+      "user": 323,
+      "tool": 18,
+      "assistant": 16
+    },
+    "by_domain": {
+      "archaeology": 19,
+      "firefighting": 19,
+      "meteorology": 19,
+      "quilting": 20,
+      "locksmithing": 20,
+      "falconry": 20,
+      "urban-planning": 20,
+      "mycology": 20,
+      "dog-training": 20,
+      "ham-radio": 20,
+      "bicycle-repair": 20,
+      "glassblowing": 20,
+      "cheesemaking": 20,
+      "railway": 20,
+      "funeral": 20,
+      "scuba": 20,
+      "surveying": 20,
+      "blacksmithing": 20
+    },
+    "domains": 18,
+    "scenarios": 106,
+    "scenarios_with_multiple_rows": 106,
+    "hard": 90,
+    "one_off_request_true": 144,
+    "quoted_or_reported_true": 36,
+    "formal_template_rows": 22,
+    "field_notes": {
+      "standing_rules": "verbatim spans with 0-based [start,end) character offsets into message; in multi-rule messages each span is one rule clause; empty when the message admits nothing; tool/assistant rows never carry rules",
+      "one_off_request": "true when the message asks for a piece of work on data it carries, or carries a single-reply-scoped constraint; formal 'Process request for task X ... after applying the active rule' templates are one-off requests with zero standing rules",
+      "quoted_or_reported": "true when rule-shaped text is quoted, reported, hypothetical, fictional, tool/assistant-authored, or a hedged proposal",
+      "category": "two_rules (two or three standing rules, no request) | rule_plus_payload (one standing rule and a payload request in the same message) | buried_rule (one standing rule after chit-chat, thanks, or a data block, no request on the data) | payload_request (one-off request, tool output, or reply-scoped note; zero rules) | inert_quote (quoted/reported/assistant-echoed rule-shaped text; zero rules)",
+      "scenario": "sc-<domain>-<topic>; variants of one scenario (rules / rule+payload / buried / payload / tool or assistant echo) share the id"
+    },
+    "data_lineage": "hand-written by fable in this session with no access to focus3-gate banks, the benchmark directory under data/, or any enrichment data; evaluated-on only; never to be used for model fitting, selection, or tuning",
+    "provenance": "sentences, spans, keys, scopes, labels, rationales, domains and scenario ids hand-written; character offsets and counts computed mechanically from the verbatim spans and asserted unique and non-overlapping; message, domain and scenario disjointness from sets 1 and 2 asserted mechanically"
+  },
+  "heldout3_sha256": "1c98fd8a1577dd200434db090be92e25fcfa8675f1af1427574ea2bbee12ee9a",
+  "heldout2_sha256": "9709606e3c15fa25114943890f3138f0ddae3f474c94fd71a4bb5211ac22fde0",
+  "setup_sha256": "00cf765906990377008db950c442d7c329639de201b19f7c3d9afd703ff2bb53",
+  "fit": {
+    "gpu_allocation_seconds": 88.5463323149961,
+    "seeds": [
+      {
+        "seed": 0,
+        "updates": 396,
+        "losses": [
+          0.45911908538445184,
+          0.16076876146528127,
+          0.12077719201332715
+        ],
+        "seconds": 28.54521573200327
+      },
+      {
+        "seed": 1,
+        "updates": 396,
+        "losses": [
+          0.4431233304247604,
+          0.15999424034129076,
+          0.12007695597207696
+        ],
+        "seconds": 27.341645510998205
+      },
+      {
+        "seed": 2,
+        "updates": 396,
+        "losses": [
+          0.4751498689416979,
+          0.16452417582677079,
+          0.12133816270660862
+        ],
+        "seconds": 27.71846036399802
+      }
+    ],
+    "peak_GiB": 1.8893890380859375
+  },
+  "heldout3": {
+    "C2": {
+      "messages": 357,
+      "exact": {
+        "tp": 101,
+        "fp": 217,
+        "fn": 284,
+        "precision": 0.31761006289308175,
+        "recall": 0.2623376623376623,
+        "macro_positive_message_recall": 0.27710027100271,
+        "macro_predicted_message_precision": 0.38930348258706465
+      },
+      "overlap": {
+        "tp": 247,
+        "fp": 71,
+        "fn": 138,
+        "precision": 0.7767295597484277,
+        "recall": 0.6415584415584416,
+        "macro_positive_message_recall": 0.7025745257452575,
+        "macro_predicted_message_precision": 0.8697938877043354
+      },
+      "iou50": {
+        "tp": 218,
+        "fp": 100,
+        "fn": 167,
+        "precision": 0.6855345911949685,
+        "recall": 0.5662337662337662,
+        "macro_positive_message_recall": 0.6307588075880759,
+        "macro_predicted_message_precision": 0.8020018952854774
+      },
+      "binary_message": {
+        "tp": 199,
+        "fp": 2,
+        "fn": 47,
+        "precision": 0.9900497512437811,
+        "recall": 0.8089430894308943
+      },
+      "payload": {
+        "errors": 0,
+        "n": 57,
+        "rate": 0.0,
+        "upper95_one_sided": 0.051199483677039234,
+        "scenario_groups": null
+      },
+      "quoted": {
+        "errors": 2,
+        "n": 36,
+        "rate": 0.05555555555555555,
+        "upper95_one_sided": 0.16473473302405428,
+        "scenario_groups": null
+      },
+      "non_user": {
+        "errors": 0,
+        "n": 34,
+        "rate": 0.0,
+        "upper95_one_sided": 0.0843396433506254,
+        "scenario_groups": null
+      },
+      "tool": {
+        "errors": 0,
+        "n": 18,
+        "rate": 0.0,
+        "upper95_one_sided": 0.15331755395727822,
+        "scenario_groups": null
+      },
+      "assistant": {
+        "errors": 0,
+        "n": 16,
+        "rate": 0.0,
+        "upper95_one_sided": 0.17074972298248092,
+        "scenario_groups": null
+      },
+      "all_negative": {
+        "errors": 2,
+        "n": 111,
+        "rate": 0.018018018018018018,
+        "upper95_one_sided": 0.05563123309567583,
+        "scenario_groups": null
+      },
+      "latency_seconds": {
+        "n": 357,
+        "p50": 0.08793105900258524,
+        "p95": 0.09611136900639394,
+        "maximum": 0.11542760799784446,
+        "total": 31.453297917949385
+      },
+      "rejections": {},
+      "go": false,
+      "domains": {
+        "archaeology": {
+          "n": 19,
+          "false_admission_messages": 5
+        },
+        "bicycle-repair": {
+          "n": 20,
+          "false_admission_messages": 2
+        },
+        "blacksmithing": {
+          "n": 20,
+          "false_admission_messages": 3
+        },
+        "cheesemaking": {
+          "n": 20,
+          "false_admission_messages": 0
+        },
+        "dog-training": {
+          "n": 20,
+          "false_admission_messages": 4
+        },
+        "falconry": {
+          "n": 20,
+          "false_admission_messages": 4
+        },
+        "firefighting": {
+          "n": 19,
+          "false_admission_messages": 5
+        },
+        "funeral": {
+          "n": 20,
+          "false_admission_messages": 2
+        },
+        "glassblowing": {
+          "n": 20,
+          "false_admission_messages": 1
+        },
+        "ham-radio": {
+          "n": 20,
+          "false_admission_messages": 3
+        },
+        "locksmithing": {
+          "n": 20,
+          "false_admission_messages": 1
+        },
+        "meteorology": {
+          "n": 19,
+          "false_admission_messages": 4
+        },
+        "mycology": {
+          "n": 20,
+          "false_admission_messages": 5
+        },
+        "quilting": {
+          "n": 20,
+          "false_admission_messages": 3
+        },
+        "railway": {
+          "n": 20,
+          "false_admission_messages": 0
+        },
+        "scuba": {
+          "n": 20,
+          "false_admission_messages": 1
+        },
+        "surveying": {
+          "n": 20,
+          "false_admission_messages": 1
+        },
+        "urban-planning": {
+          "n": 20,
+          "false_admission_messages": 3
+        }
+      },
+      "warm_cpu_latency_seconds": {
+        "n": 356,
+        "p50": 0.08790226600103779,
+        "p95": 0.09601362499961397,
+        "maximum": 0.10271535399806453,
+        "total": 31.33787030995154
+      }
+    },
+    "C2+B": {
+      "messages": 357,
+      "exact": {
+        "tp": 101,
+        "fp": 217,
+        "fn": 284,
+        "precision": 0.31761006289308175,
+        "recall": 0.2623376623376623,
+        "macro_positive_message_recall": 0.27710027100271,
+        "macro_predicted_message_precision": 0.38930348258706465
+      },
+      "overlap": {
+        "tp": 247,
+        "fp": 71,
+        "fn": 138,
+        "precision": 0.7767295597484277,
+        "recall": 0.6415584415584416,
+        "macro_positive_message_recall": 0.7025745257452575,
+        "macro_predicted_message_precision": 0.8697938877043354
+      },
+      "iou50": {
+        "tp": 218,
+        "fp": 100,
+        "fn": 167,
+        "precision": 0.6855345911949685,
+        "recall": 0.5662337662337662,
+        "macro_positive_message_recall": 0.6307588075880759,
+        "macro_predicted_message_precision": 0.8020018952854774
+      },
+      "binary_message": {
+        "tp": 199,
+        "fp": 2,
+        "fn": 47,
+        "precision": 0.9900497512437811,
+        "recall": 0.8089430894308943
+      },
+      "payload": {
+        "errors": 0,
+        "n": 57,
+        "rate": 0.0,
+        "upper95_one_sided": 0.051199483677039234,
+        "scenario_groups": null
+      },
+      "quoted": {
+        "errors": 2,
+        "n": 36,
+        "rate": 0.05555555555555555,
+        "upper95_one_sided": 0.16473473302405428,
+        "scenario_groups": null
+      },
+      "non_user": {
+        "errors": 0,
+        "n": 34,
+        "rate": 0.0,
+        "upper95_one_sided": 0.0843396433506254,
+        "scenario_groups": null
+      },
+      "tool": {
+        "errors": 0,
+        "n": 18,
+        "rate": 0.0,
+        "upper95_one_sided": 0.15331755395727822,
+        "scenario_groups": null
+      },
+      "assistant": {
+        "errors": 0,
+        "n": 16,
+        "rate": 0.0,
+        "upper95_one_sided": 0.17074972298248092,
+        "scenario_groups": null
+      },
+      "all_negative": {
+        "errors": 2,
+        "n": 111,
+        "rate": 0.018018018018018018,
+        "upper95_one_sided": 0.05563123309567583,
+        "scenario_groups": null
+      },
+      "latency_seconds": {
+        "n": 357,
+        "p50": 0.18140216699976008,
+        "p95": 0.2010074310019263,
+        "maximum": 0.2242196109946235,
+        "total": 64.90966877496976
+      },
+      "rejections": {},
+      "go": false,
+      "domains": {
+        "archaeology": {
+          "n": 19,
+          "false_admission_messages": 5
+        },
+        "bicycle-repair": {
+          "n": 20,
+          "false_admission_messages": 2
+        },
+        "blacksmithing": {
+          "n": 20,
+          "false_admission_messages": 3
+        },
+        "cheesemaking": {
+          "n": 20,
+          "false_admission_messages": 0
+        },
+        "dog-training": {
+          "n": 20,
+          "false_admission_messages": 4
+        },
+        "falconry": {
+          "n": 20,
+          "false_admission_messages": 4
+        },
+        "firefighting": {
+          "n": 19,
+          "false_admission_messages": 5
+        },
+        "funeral": {
+          "n": 20,
+          "false_admission_messages": 2
+        },
+        "glassblowing": {
+          "n": 20,
+          "false_admission_messages": 1
+        },
+        "ham-radio": {
+          "n": 20,
+          "false_admission_messages": 3
+        },
+        "locksmithing": {
+          "n": 20,
+          "false_admission_messages": 1
+        },
+        "meteorology": {
+          "n": 19,
+          "false_admission_messages": 4
+        },
+        "mycology": {
+          "n": 20,
+          "false_admission_messages": 5
+        },
+        "quilting": {
+          "n": 20,
+          "false_admission_messages": 3
+        },
+        "railway": {
+          "n": 20,
+          "false_admission_messages": 0
+        },
+        "scuba": {
+          "n": 20,
+          "false_admission_messages": 1
+        },
+        "surveying": {
+          "n": 20,
+          "false_admission_messages": 1
+        },
+        "urban-planning": {
+          "n": 20,
+          "false_admission_messages": 3
+        }
+      },
+      "warm_cpu_latency_seconds": {
+        "n": 356,
+        "p50": 0.18138900000121794,
+        "p95": 0.2007330220003496,
+        "maximum": 0.2242196109946235,
+        "total": 64.694719882973
+      }
+    },
+    "candidate_ceiling": {
+      "gold_spans": 385,
+      "representable_token_runs": 385,
+      "overlap_fraction": 1.0,
+      "exact_boundary_fraction": 1.0,
+      "overflows": 0,
+      "caveat": "Token-run candidate ceiling is 100% when distinct gold spans map to nonempty disjoint token runs. Exact character edges inside a token cannot be represented; whole-message >512-token inputs abstain. B starts a new span even adjacent to B/I. Measured here, not assumed."
+    }
+  },
+  "heldout2": {
+    "C2": {
+      "messages": 330,
+      "exact": {
+        "tp": 107,
+        "fp": 82,
+        "fn": 100,
+        "precision": 0.5661375661375662,
+        "recall": 0.5169082125603864,
+        "macro_positive_message_recall": 0.5625,
+        "macro_predicted_message_precision": 0.6434599156118144
+      },
+      "overlap": {
+        "tp": 168,
+        "fp": 21,
+        "fn": 39,
+        "precision": 0.8888888888888888,
+        "recall": 0.8115942028985508,
+        "macro_positive_message_recall": 0.8494318181818182,
+        "macro_predicted_message_precision": 0.9335443037974683
+      },
+      "iou50": {
+        "tp": 156,
+        "fp": 33,
+        "fn": 51,
+        "precision": 0.8253968253968254,
+        "recall": 0.7536231884057971,
+        "macro_positive_message_recall": 0.7982954545454546,
+        "macro_predicted_message_precision": 0.870253164556962
+      },
+      "binary_message": {
+        "tp": 155,
+        "fp": 3,
+        "fn": 21,
+        "precision": 0.9810126582278481,
+        "recall": 0.8806818181818182
+      },
+      "payload": {
+        "errors": 1,
+        "n": 97,
+        "rate": 0.010309278350515464,
+        "upper95_one_sided": 0.04797208408344124,
+        "scenario_groups": null
+      },
+      "quoted": {
+        "errors": 2,
+        "n": 57,
+        "rate": 0.03508771929824561,
+        "upper95_one_sided": 0.10636302593795724,
+        "scenario_groups": null
+      },
+      "non_user": {
+        "errors": 0,
+        "n": 30,
+        "rate": 0.0,
+        "upper95_one_sided": 0.09503385285530414,
+        "scenario_groups": null
+      },
+      "tool": {
+        "errors": 0,
+        "n": 18,
+        "rate": 0.0,
+        "upper95_one_sided": 0.15331755395727822,
+        "scenario_groups": null
+      },
+      "assistant": {
+        "errors": 0,
+        "n": 12,
+        "rate": 0.0,
+        "upper95_one_sided": 0.2209221919455559,
+        "scenario_groups": null
+      },
+      "all_negative": {
+        "errors": 3,
+        "n": 154,
+        "rate": 0.01948051948051948,
+        "upper95_one_sided": 0.04957605403740083,
+        "scenario_groups": null
+      },
+      "latency_seconds": {
+        "n": 330,
+        "p50": 0.08574542049973388,
+        "p95": 0.09474285399483051,
+        "maximum": 0.10647647599398624,
+        "total": 28.470882080066076
+      },
+      "rejections": {},
+      "go": false,
+      "domains": {
+        "accessibility": {
+          "n": 15,
+          "false_admission_messages": 0
+        },
+        "astronomy": {
+          "n": 16,
+          "false_admission_messages": 1
+        },
+        "aviation": {
+          "n": 15,
+          "false_admission_messages": 1
+        },
+        "beekeeping": {
+          "n": 14,
+          "false_admission_messages": 2
+        },
+        "brewing": {
+          "n": 15,
+          "false_admission_messages": 0
+        },
+        "cartography": {
+          "n": 15,
+          "false_admission_messages": 0
+        },
+        "ceramics": {
+          "n": 15,
+          "false_admission_messages": 0
+        },
+        "chess": {
+          "n": 14,
+          "false_admission_messages": 1
+        },
+        "dental": {
+          "n": 15,
+          "false_admission_messages": 0
+        },
+        "eldercare": {
+          "n": 15,
+          "false_admission_messages": 1
+        },
+        "fashion": {
+          "n": 15,
+          "false_admission_messages": 0
+        },
+        "insurance": {
+          "n": 15,
+          "false_admission_messages": 1
+        },
+        "library": {
+          "n": 15,
+          "false_admission_messages": 0
+        },
+        "maritime": {
+          "n": 15,
+          "false_admission_messages": 1
+        },
+        "museum": {
+          "n": 15,
+          "false_admission_messages": 0
+        },
+        "nonprofit": {
+          "n": 15,
+          "false_admission_messages": 1
+        },
+        "podcasting": {
+          "n": 15,
+          "false_admission_messages": 1
+        },
+        "robotics": {
+          "n": 16,
+          "false_admission_messages": 1
+        },
+        "theater": {
+          "n": 16,
+          "false_admission_messages": 5
+        },
+        "veterinary": {
+          "n": 15,
+          "false_admission_messages": 2
+        },
+        "wine": {
+          "n": 15,
+          "false_admission_messages": 0
+        },
+        "woodworking": {
+          "n": 14,
+          "false_admission_messages": 0
+        }
+      },
+      "warm_cpu_latency_seconds": {
+        "n": 329,
+        "p50": 0.08571587099868339,
+        "p95": 0.09474285399483051,
+        "maximum": 0.10647647599398624,
+        "total": 28.38135447706736
+      }
+    },
+    "C2+B": {
+      "messages": 330,
+      "exact": {
+        "tp": 107,
+        "fp": 82,
+        "fn": 100,
+        "precision": 0.5661375661375662,
+        "recall": 0.5169082125603864,
+        "macro_positive_message_recall": 0.5625,
+        "macro_predicted_message_precision": 0.6434599156118144
+      },
+      "overlap": {
+        "tp": 168,
+        "fp": 21,
+        "fn": 39,
+        "precision": 0.8888888888888888,
+        "recall": 0.8115942028985508,
+        "macro_positive_message_recall": 0.8494318181818182,
+        "macro_predicted_message_precision": 0.9335443037974683
+      },
+      "iou50": {
+        "tp": 156,
+        "fp": 33,
+        "fn": 51,
+        "precision": 0.8253968253968254,
+        "recall": 0.7536231884057971,
+        "macro_positive_message_recall": 0.7982954545454546,
+        "macro_predicted_message_precision": 0.870253164556962
+      },
+      "binary_message": {
+        "tp": 155,
+        "fp": 3,
+        "fn": 21,
+        "precision": 0.9810126582278481,
+        "recall": 0.8806818181818182
+      },
+      "payload": {
+        "errors": 1,
+        "n": 97,
+        "rate": 0.010309278350515464,
+        "upper95_one_sided": 0.04797208408344124,
+        "scenario_groups": null
+      },
+      "quoted": {
+        "errors": 2,
+        "n": 57,
+        "rate": 0.03508771929824561,
+        "upper95_one_sided": 0.10636302593795724,
+        "scenario_groups": null
+      },
+      "non_user": {
+        "errors": 0,
+        "n": 30,
+        "rate": 0.0,
+        "upper95_one_sided": 0.09503385285530414,
+        "scenario_groups": null
+      },
+      "tool": {
+        "errors": 0,
+        "n": 18,
+        "rate": 0.0,
+        "upper95_one_sided": 0.15331755395727822,
+        "scenario_groups": null
+      },
+      "assistant": {
+        "errors": 0,
+        "n": 12,
+        "rate": 0.0,
+        "upper95_one_sided": 0.2209221919455559,
+        "scenario_groups": null
+      },
+      "all_negative": {
+        "errors": 3,
+        "n": 154,
+        "rate": 0.01948051948051948,
+        "upper95_one_sided": 0.04957605403740083,
+        "scenario_groups": null
+      },
+      "latency_seconds": {
+        "n": 330,
+        "p50": 0.1736671229955391,
+        "p95": 0.19029150700225728,
+        "maximum": 0.24653906800813274,
+        "total": 57.906638265129004
+      },
+      "rejections": {},
+      "go": false,
+      "domains": {
+        "accessibility": {
+          "n": 15,
+          "false_admission_messages": 0
+        },
+        "astronomy": {
+          "n": 16,
+          "false_admission_messages": 1
+        },
+        "aviation": {
+          "n": 15,
+          "false_admission_messages": 1
+        },
+        "beekeeping": {
+          "n": 14,
+          "false_admission_messages": 2
+        },
+        "brewing": {
+          "n": 15,
+          "false_admission_messages": 0
+        },
+        "cartography": {
+          "n": 15,
+          "false_admission_messages": 0
+        },
+        "ceramics": {
+          "n": 15,
+          "false_admission_messages": 0
+        },
+        "chess": {
+          "n": 14,
+          "false_admission_messages": 1
+        },
+        "dental": {
+          "n": 15,
+          "false_admission_messages": 0
+        },
+        "eldercare": {
+          "n": 15,
+          "false_admission_messages": 1
+        },
+        "fashion": {
+          "n": 15,
+          "false_admission_messages": 0
+        },
+        "insurance": {
+          "n": 15,
+          "false_admission_messages": 1
+        },
+        "library": {
+          "n": 15,
+          "false_admission_messages": 0
+        },
+        "maritime": {
+          "n": 15,
+          "false_admission_messages": 1
+        },
+        "museum": {
+          "n": 15,
+          "false_admission_messages": 0
+        },
+        "nonprofit": {
+          "n": 15,
+          "false_admission_messages": 1
+        },
+        "podcasting": {
+          "n": 15,
+          "false_admission_messages": 1
+        },
+        "robotics": {
+          "n": 16,
+          "false_admission_messages": 1
+        },
+        "theater": {
+          "n": 16,
+          "false_admission_messages": 5
+        },
+        "veterinary": {
+          "n": 15,
+          "false_admission_messages": 2
+        },
+        "wine": {
+          "n": 15,
+          "false_admission_messages": 0
+        },
+        "woodworking": {
+          "n": 14,
+          "false_admission_messages": 0
+        }
+      },
+      "warm_cpu_latency_seconds": {
+        "n": 329,
+        "p50": 0.17367803099477896,
+        "p95": 0.19029150700225728,
+        "maximum": 0.24653906800813274,
+        "total": 57.73595295812993
+      }
+    },
+    "candidate_ceiling": {
+      "gold_spans": 207,
+      "representable_token_runs": 207,
+      "overlap_fraction": 1.0,
+      "exact_boundary_fraction": 1.0,
+      "overflows": 0,
+      "caveat": "Token-run candidate ceiling is 100% when distinct gold spans map to nonempty disjoint token runs. Exact character edges inside a token cannot be represented; whole-message >512-token inputs abstain. B starts a new span even adjacent to B/I. Measured here, not assumed."
+    }
+  },
+  "setup": {
+    "C2": {
+      "messages": 96,
+      "exact": {
+        "tp": 0,
+        "fp": 53,
+        "fn": 40,
+        "precision": 0.0,
+        "recall": 0.0,
+        "macro_positive_message_recall": 0.0,
+        "macro_predicted_message_precision": 0.0
+      },
+      "overlap": {
+        "tp": 39,
+        "fp": 14,
+        "fn": 1,
+        "precision": 0.7358490566037735,
+        "recall": 0.975,
+        "macro_positive_message_recall": 0.9583333333333334,
+        "macro_predicted_message_precision": 0.8079710144927537
+      },
+      "iou50": {
+        "tp": 39,
+        "fp": 14,
+        "fn": 1,
+        "precision": 0.7358490566037735,
+        "recall": 0.975,
+        "macro_positive_message_recall": 0.9583333333333334,
+        "macro_predicted_message_precision": 0.8079710144927537
+      },
+      "binary_message": {
+        "tp": 23,
+        "fp": 0,
+        "fn": 1,
+        "precision": 1.0,
+        "recall": 0.9583333333333334
+      },
+      "payload": {
+        "errors": 0,
+        "n": 72,
+        "rate": 0.0,
+        "upper95_one_sided": 0.04075368623063993,
+        "scenario_groups": null
+      },
+      "quoted": {
+        "errors": 0,
+        "n": 0,
+        "rate": null,
+        "upper95_one_sided": null,
+        "scenario_groups": null
+      },
+      "non_user": {
+        "errors": 0,
+        "n": 0,
+        "rate": null,
+        "upper95_one_sided": null,
+        "scenario_groups": null
+      },
+      "tool": {
+        "errors": 0,
+        "n": 0,
+        "rate": null,
+        "upper95_one_sided": null,
+        "scenario_groups": null
+      },
+      "assistant": {
+        "errors": 0,
+        "n": 0,
+        "rate": null,
+        "upper95_one_sided": null,
+        "scenario_groups": null
+      },
+      "all_negative": {
+        "errors": 0,
+        "n": 72,
+        "rate": 0.0,
+        "upper95_one_sided": 0.04075368623063993,
+        "scenario_groups": null
+      },
+      "latency_seconds": {
+        "n": 96,
+        "p50": 0.09318512450045091,
+        "p95": 0.10138288500456838,
+        "maximum": 0.10694313899875851,
+        "total": 8.846248078996723
+      },
+      "rejections": {},
+      "go": false,
+      "domains": {
+        "v8-setup": {
+          "n": 96,
+          "false_admission_messages": 10
+        }
+      },
+      "warm_cpu_latency_seconds": {
+        "n": 95,
+        "p50": 0.09314295600051992,
+        "p95": 0.10138288500456838,
+        "maximum": 0.10694313899875851,
+        "total": 8.745882540999446
+      },
+      "false_admission_turns": {
+        "errors": 10,
+        "n": 96,
+        "rate": 0.10416666666666667,
+        "upper95_one_sided": 0.17028275400642012
+      },
+      "false_turn_ids": [
+        "setup:0:0",
+        "setup:3:0",
+        "setup:3:2",
+        "setup:7:0",
+        "setup:8:0",
+        "setup:11:0",
+        "setup:12:0",
+        "setup:13:2",
+        "setup:15:0",
+        "setup:15:2"
+      ],
+      "request_template_false_admissions": {
+        "errors": 4,
+        "n": 96,
+        "rate": 0.041666666666666664,
+        "upper95_one_sided": 0.0928121215301555
+      },
+      "request_false_turn_ids": [
+        "setup:3:0",
+        "setup:11:0",
+        "setup:13:2",
+        "setup:15:2"
+      ],
+      "events": {
+        "admit": {
+          "recovered": 36,
+          "n": 36
+        },
+        "supersedes": {
+          "recovered": 3,
+          "n": 4
+        }
+      }
+    },
+    "C2+B": {
+      "messages": 96,
+      "exact": {
+        "tp": 0,
+        "fp": 53,
+        "fn": 40,
+        "precision": 0.0,
+        "recall": 0.0,
+        "macro_positive_message_recall": 0.0,
+        "macro_predicted_message_precision": 0.0
+      },
+      "overlap": {
+        "tp": 39,
+        "fp": 14,
+        "fn": 1,
+        "precision": 0.7358490566037735,
+        "recall": 0.975,
+        "macro_positive_message_recall": 0.9583333333333334,
+        "macro_predicted_message_precision": 0.8079710144927537
+      },
+      "iou50": {
+        "tp": 39,
+        "fp": 14,
+        "fn": 1,
+        "precision": 0.7358490566037735,
+        "recall": 0.975,
+        "macro_positive_message_recall": 0.9583333333333334,
+        "macro_predicted_message_precision": 0.8079710144927537
+      },
+      "binary_message": {
+        "tp": 23,
+        "fp": 0,
+        "fn": 1,
+        "precision": 1.0,
+        "recall": 0.9583333333333334
+      },
+      "payload": {
+        "errors": 0,
+        "n": 72,
+        "rate": 0.0,
+        "upper95_one_sided": 0.04075368623063993,
+        "scenario_groups": null
+      },
+      "quoted": {
+        "errors": 0,
+        "n": 0,
+        "rate": null,
+        "upper95_one_sided": null,
+        "scenario_groups": null
+      },
+      "non_user": {
+        "errors": 0,
+        "n": 0,
+        "rate": null,
+        "upper95_one_sided": null,
+        "scenario_groups": null
+      },
+      "tool": {
+        "errors": 0,
+        "n": 0,
+        "rate": null,
+        "upper95_one_sided": null,
+        "scenario_groups": null
+      },
+      "assistant": {
+        "errors": 0,
+        "n": 0,
+        "rate": null,
+        "upper95_one_sided": null,
+        "scenario_groups": null
+      },
+      "all_negative": {
+        "errors": 0,
+        "n": 72,
+        "rate": 0.0,
+        "upper95_one_sided": 0.04075368623063993,
+        "scenario_groups": null
+      },
+      "latency_seconds": {
+        "n": 96,
+        "p50": 0.2160260714990727,
+        "p95": 0.2569161310020718,
+        "maximum": 0.26207305600109976,
+        "total": 20.559619011990435
+      },
+      "rejections": {},
+      "go": false,
+      "domains": {
+        "v8-setup": {
+          "n": 96,
+          "false_admission_messages": 10
+        }
+      },
+      "warm_cpu_latency_seconds": {
+        "n": 95,
+        "p50": 0.20785349200014025,
+        "p95": 0.2554384530012612,
+        "maximum": 0.26207305600109976,
+        "total": 20.300455363991205
+      },
+      "false_admission_turns": {
+        "errors": 10,
+        "n": 96,
+        "rate": 0.10416666666666667,
+        "upper95_one_sided": 0.17028275400642012
+      },
+      "false_turn_ids": [
+        "setup:0:0",
+        "setup:3:0",
+        "setup:3:2",
+        "setup:7:0",
+        "setup:8:0",
+        "setup:11:0",
+        "setup:12:0",
+        "setup:13:2",
+        "setup:15:0",
+        "setup:15:2"
+      ],
+      "request_template_false_admissions": {
+        "errors": 4,
+        "n": 96,
+        "rate": 0.041666666666666664,
+        "upper95_one_sided": 0.0928121215301555
+      },
+      "request_false_turn_ids": [
+        "setup:3:0",
+        "setup:11:0",
+        "setup:13:2",
+        "setup:15:2"
+      ],
+      "events": {
+        "admit": {
+          "recovered": 36,
+          "n": 36
+        },
+        "supersedes": {
+          "recovered": 3,
+          "n": 4
+        }
+      }
+    },
+    "candidate_ceiling": {
+      "gold_spans": 40,
+      "representable_token_runs": 40,
+      "overlap_fraction": 1.0,
+      "exact_boundary_fraction": 1.0,
+      "overflows": 0,
+      "caveat": "Token-run candidate ceiling is 100% when distinct gold spans map to nonempty disjoint token runs. Exact character edges inside a token cannot be represented; whole-message >512-token inputs abstain. B starts a new span even adjacent to B/I. Measured here, not assumed."
+    }
+  }
+}

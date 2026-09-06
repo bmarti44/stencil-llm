@@ -330,3 +330,38 @@ committed. No signals, background jobs, sealed/benchmark reads or push.
 [Full results](quick-checks/check44b/RESULTS.md),
 [pre-written reading](quick-checks/check44b/README.md),
 [model metadata](../data/classifier/model/admission-v1/README.md).
+
+## 2026-09-06 — Check44c: token BIO admission, NO-GO
+
+C2 and pre-registered C2+B return identical spans on the fresh357-message
+heldout-3 bank. Overlap micro P/R77.67%/64.16% (247/385 recall), exact31.76%/26.23%;
+overlap macro P/R86.98%/70.26%. Payload negatives0/57, quoted2/36=5.56%, non-user0/34;
+one-sided95% CP uppers5.12%,16.47%,8.43%. The85% recall and3% quoted bars fail.
+SETUP recovers36/36 admit events and3/4 supersedes, but10/96 false turns exceeds2;
+4 request-template false admits,0/40 exact span matches. No runtime swap or gatev9;
+explicit structured entry remains first ship. B fallback contributes zero spans.
+
+The sentence candidate ceiling is removed:385/385 gold spans have distinct token
+runs and exact tokenizer boundaries, no overflows. Yet unthresholded decoded
+BIO runs match only291/385; confidence filtering leaves247. Ideal representability
+is not learned extraction accuracy. Heldout-2 is a disclosed secondary second
+look: overlap P/R88.89%/81.16% (168/207), payload1/97, quoted2/57, non-user0/30.
+
+Astra CPU-reviewed all1577 kimi2 rows:122 changes including5 dropped placeholders;
+1572 retained,1396 gold spans. Original patched kimi2872 + Opus231 give4675 total.
+Fit4209/DEV466=9.97%,13 DEV domains; whole source-generation batches kept together
+as a scenario proxy because author scenario IDs are absent. Cross-batch semantic
+relatives remain a limitation. Kimi2 still contains no literal “Standing rule:”
+examples; no heldout or gate wording was added to fill that gap.
+
+All3 final seeds and both DEV thresholds frozen fd43ff8f before first heldout3 read.
+Seed0 t=.7273366828,t_low=.9039153621;5/250 DEV empty-message errors for both;
+DEV overlap268/286=93.71%. B fit-id overlap1/871 DEV sentences. No seed selection.
+GPU88.546/3600 seconds, peak1.494GiB; CPU heldout3 warm p50/p95 C2=87.90/96.01ms,
+C2+B=181.39/200.73ms. All783 records/1398 DEV records verified, independent matcher
+and CP calculation pass; original runner preserved for an audit-only tuple/list
+comparison repair, science AST unchanged. No inference rerun or refit.
+
+[Results and limitations](quick-checks/check44c/RESULTS.md),
+[pre-written reading](quick-checks/check44c/README.md),
+[model manifest](../data/classifier/model/admission-v2/manifest.json).
