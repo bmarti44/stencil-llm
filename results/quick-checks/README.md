@@ -399,6 +399,12 @@ pass/fail reading written before running; one accuracy review of the RESULT from
    Shuffled JS0/32 everywhere (broken1/32 each scored step); OFF Python32/32; text SWITCH Python32/32, CLEAR JS32/32; alpha2 JS6/32 throughout.
    992 generations, 34.80/120 GPU-min; all-record CPU audit PASS; family/token/fence/arrows saved; unregistered, no fitting/sealed reads/signals/push.
 
+40e. ROUTER TRANSFER BEYOND JS ([check40e](check40e/README.md)): **P1 NOT; P2 INELIGIBLE**, non-language flipping untested.
+   OFF first: P1 Python32/32 correct; P2 JSON32/32, correct rows25/32. Go absent: authorized TypeScript fallback, alpha3 sustained/cap64.
+   P1 cued Python/TS16/16 each; correct/swapped/shuffled TS0/32 (broken0), text-cue TS32/32; top8 overlap75.52%; paired flips0/32.
+   P2 cued JSON15/16, SQL0/16: all SQL names `table` instead of supplied `items`; competence gate stops profiles/bias arms, no repair.
+   256 records/32 profiles audited; 13.40/60 GPU-min, seed40050; frozen recipe6d28b09c; no fitting/sealed reads/signals/push.
+
 43. CONCEPT-LEVEL SUM / PRODUCT ROUTING ([check43](check43/README.md)): **FAIL / NO SAFE SET**; unregistered, no fitting/training.
    Python cued SUM/PRODUCT donors16/16 each; last-four-neutral-token example means, layers7–34; frozen alpha1/2/3 each paired0/8 (<6/8).
    Each sign/dose: SUM7/8, PRODUCT0/8, one valid slice-endpoint error, malformed0; actual expert routes/weights changed inside the band.

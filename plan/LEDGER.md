@@ -212,3 +212,9 @@ Fit/train none; profile-on 16 paired synthetic competence tasks per pair; evalua
 Go/gofmt absent: frozen P1 Python/TypeScript fallback; P2 JSON rows/SQL. Both executable semantic checkers, OFF-first distribution, alpha3 sustained, cap64, five arms.
 192 canonical CPU cases plus negative fixtures and inherited real-HF router/consumer checks pass. Frozen reading uses semantic success/breakage, matched shuffle40052, >=14/16 competence.
 Full cap-based projection3351.196/3600s; measured resource-only16-task fallback uses proportional thresholds with reduced-screen disclosure. Foreground/no signals/no push; all flags coordinated; pid2705 exempt.
+
+2026-09-05 — check40e COMPLETE (gpt-6-astra): P1 NOT; P2 INELIGIBLE. OFF P1 Python32/32 correct; P2 JSON32/32 with25/32 correct row sets.
+P1 Python/TypeScript competence16/16 each, top8 overlap75.5208%; alpha3 correct/swapped/shuffled TS0/32, text32/32; broken0, paired flips0/32.
+P2 JSON15/16 and SQL0/16: all16 replies use wrong table identifier `table`, intended predicates retained. Frozen competence gate stops P2 profiles/interventions; non-language flip untested, no outcome rescue.
+256 generations/6546 tokens/32 teacher-forced profiles; CPU consumer/token/profile/bias audit PASS; 803.824/3600 GPU seconds; full32-task P1 screen/P2 OFF, no reduction.
+Recipe6d28b09c precedes outcomes. Flag removed after cleanup; no sealed reads, fit/train, signals/background/push. Scoped report/artifacts/index/WORKLOG commit closes user task.

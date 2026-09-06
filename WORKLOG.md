@@ -5172,3 +5172,10 @@ Donors SUM/PRODUCT16/16 each; four neutral token example means, layers7–34; al
 Each sign/dose SUM7/8 plus one slice-endpoint error; consumer routes/weights changed, OFF identical; setup stop prevented final/collateral generation.
 Recipe a993adbc precedes outcomes; native handwritten/checker/consumer fixtures and 81-record/profile/hash audit PASS; import guard3 passed/1 existing xfail, ruff clean.
 82 total generations/4329 tokens incl. OFF replay, 700.2435/5400 GPU seconds; natural completion, flag removed; scoped script/results/index/ledger commit, no push/signals.
+
+### 2026-09-05 — Check40e router transfer (gpt-6-astra): P1 NOT; P2 INELIGIBLE
+OFF: P1 Python32/32 correct; P2 JSON32/32, rows25/32 correct. Go absent, authorized TypeScript fallback; seed40050/alpha3 sustained/cap64.
+P1 competence Python/TS16/16 each; TS correct/swapped/shuffled0/32, text32/32; broken0 each; top8 overlap75.5208%; paired flips0/32.
+P2 competence JSON15/16, SQL0/16 (all wrong table name); no profiles/bias screen or rescue, so non-language transfer untested.
+Frozen recipe6d28b09c; 256 records/6546 tokens/32 profiles, 803.824/3600 GPU seconds; full CPU score/token/profile/bias audit PASS.
+Flag removed after cleanup; no fit/train, sealed inputs, background launches, signals or push; explicit-path local commits.

@@ -2,14 +2,14 @@
 
 import hashlib
 import json
-from pathlib import Path
 import sys
+from pathlib import Path
 
 ROOT = Path("/home/bmarti44/stencil-llm")
 sys.path.insert(0, str(ROOT / "scripts"))
-import focus_check40e as check
-import torch
-from transformers import AutoTokenizer
+import focus_check40e as check  # noqa: E402
+import torch  # noqa: E402
+from transformers import AutoTokenizer  # noqa: E402
 
 
 def main():
@@ -74,6 +74,11 @@ def main():
             for a in check.ARMS
         }
         if result["reading"] == "INELIGIBLE":
+            assert min(counts.values()) < 14
+            assert result["arms"] == {"OFF": arms["OFF"]}
+            assert arms["OFF"]["n"] == n
+            assert all(arms[arm]["n"] == 0 for arm in check.ARMS if arm != "OFF")
+            assert not (out / f"{pair}-profiles.pt").exists()
             pairs[pair] = dict(reading="INELIGIBLE", competence=counts, arms=arms)
             continue
         assert result["arms"] == arms
