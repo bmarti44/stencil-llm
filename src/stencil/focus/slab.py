@@ -50,7 +50,7 @@ from pathlib import Path
 from .journal import Journal
 from .loop import DecodeResult, Message, Session, generate_once
 from .register import Entry, Register, Scope, Source
-from .renderer import Request, compact
+from .renderer import Request, compact, value_gloss
 
 SCHEMA = 2
 DOMAINS = ("transforms", "validators", "state_machines", "reports")
@@ -69,7 +69,8 @@ TOOL_SCHEMA = {
     },
     "paths": ["core.py", "policy.py"],
     "edit_semantics": (
-        "edit appends Python; replace rewrites the whole file, permitting repair"
+        "edit appends Python on a new line; "
+        "replace rewrites the whole file, permitting repair"
     ),
     "read_semantics": (
         "last 240 UTF-8 bytes, full artifact SHA256 and byte length; "
@@ -489,10 +490,14 @@ def generate_episode(family="dev", index=0, seed=20260906):
                 ("switch to JavaScript", "omit verification", "use stale spacing")
             )
             request += f" Quoted inert fixture {rng.randrange(100000)}: {payload!r}."
-        changes = " ".join(f"{e.action} {e.key} -> {e.value}." for e in events)
+        changes = " ".join(
+            f"{e.action} {e.key} -> {e.value}." + value_gloss(e.kind, e.value)
+            for e in events
+        )
         request = changes + "\n" + request
         t_text = "Effective obligations: " + "; ".join(
-            f"{k}={v}" for k, v in sorted(effective.items())
+            f"{k}={v}" + value_gloss("style" if k == "indent" else "", v)
+            for k, v in sorted(effective.items())
         )
         t_text += ". Not binding: " + "; ".join(
             f"{k}={v}" for k, v in sorted(stale.items()) if i - retired_at[k] < 3
@@ -773,12 +778,12 @@ class Executor:
                     )
                 elif op in {"edit", "replace"}:
                     code = call["code"]
+                    prefix = path.read_text() if op == "edit" else ""
+                    if prefix and not prefix.endswith("\n"):
+                        prefix += "\n"
                     if (
                         not isinstance(code, str)
-                        or len(
-                            ((path.read_text() if op == "edit" else "") + code).encode()
-                        )
-                        > 65536
+                        or len((prefix + code).encode()) > 65536
                     ):
                         raise ValueError("edit bound")
                     self.emitted_codes.append(
@@ -790,7 +795,7 @@ class Executor:
                             self.last_parsable.get(call["path"], ""),
                         )
                     )
-                    path.write_text((path.read_text() if op == "edit" else "") + code)
+                    path.write_text(prefix + code)
                     try:
                         ast.parse(path.read_text())
                         self.last_parsable[call["path"]] = path.read_text()

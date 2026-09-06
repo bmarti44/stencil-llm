@@ -16,6 +16,13 @@ def compact(value):
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
+def value_gloss(kind, value):
+    """Amendment 2: clarify style values without changing rule layout or data."""
+    if kind == "style" and str(value).isdigit() and int(value) > 0:
+        return f" indent {value} = block bodies indented by exactly {value} spaces."
+    return ""
+
+
 @dataclass(frozen=True)
 class Request:
     text: str
@@ -86,7 +93,11 @@ def render(register: Register, request: Request) -> RenderedRequest:
             version=v.version,
             kind=v.entry.kind,
             value=v.entry.value,
-            text=v.entry.text,
+            text=(
+                (v.entry.text or "") + value_gloss(v.entry.kind, v.entry.value)
+                if value_gloss(v.entry.kind, v.entry.value)
+                else v.entry.text
+            ),
             scope=asdict(v.entry.scope),
             provenance=asdict(v.entry.source),
             default=v.version == 0,

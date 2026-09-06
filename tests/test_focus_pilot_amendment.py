@@ -61,14 +61,23 @@ def test_executor_feedback_and_schema(tmp_path):
 
 
 def test_recovery_reproduces_committed_records():
-    from stencil.focus.pilot_recovery import FROZEN, recover
+    from stencil.focus.pilot_recovery import AMENDED, recover
 
     summary, rows = recover()
-    assert summary == json.loads((FROZEN / "recovered-summary.json").read_text())
+    assert summary == json.loads((AMENDED / "recovered-summary.json").read_text())
     assert rows == [
         json.loads(x)
-        for x in (FROZEN / "recovered-records.jsonl").read_text().splitlines()
+        for x in (AMENDED / "recovered-records.jsonl").read_text().splitlines()
     ]
+    assert sum(lane["final_success"] for lane in summary["per_lane"].values()) == 0
+    assert sum(lane["final_integration"] for lane in summary["per_lane"].values()) == 5
+    for lane in ("sequential/R", "sequential/N", "sequential/O", "batch/R", "batch/O"):
+        mode, arm = lane.split("/")
+        final = [r for r in rows if (r["mode"], r["arm"]) == (mode, arm)][-1]
+        assert {k for k, v in final["outcome"]["violations"].items() if v} == {
+            "style",
+            "process",
+        }
     assert summary["executed_calls"] == 95
     assert sum(len(r["execution"]["executed"]) for r in rows) == 190
 
@@ -146,7 +155,7 @@ def test_amended_dev_fixture_without_evaluation_construction(tmp_path):
 
     from stencil.focus.slab import dry_run
 
-    fixture = Path(__file__).parent / "fixtures/slab_dev_golden.json"
+    fixture = Path(__file__).parent / "fixtures/slab_dev_golden_amendment2.json"
     frozen = json.loads(fixture.read_text())
     actual = dry_run(tmp_path)
     for key in ("accounting", "rendered_sha256", "events_sha256", "final_hashes"):

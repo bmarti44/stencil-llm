@@ -148,7 +148,7 @@ def test_manifest_hashes(tmp_path):
 
 def test_dev_loop_dry_run(tmp_path):
     result = dry_run(tmp_path)
-    frozen = json.loads((FIXTURES / "slab_dev_golden.json").read_text())
+    frozen = json.loads((FIXTURES / "slab_dev_golden_amendment2.json").read_text())
     for key in ("accounting", "rendered_sha256", "events_sha256", "final_hashes"):
         assert result[key] == frozen[key]
     rows = [json.loads(x) for x in (tmp_path / "loop.jsonl").read_text().splitlines()]

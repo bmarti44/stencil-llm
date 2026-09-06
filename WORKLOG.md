@@ -5447,3 +5447,9 @@ Grouped_mm60/64 exact (4 round0 divergences>1);16.813tok/s,16.156s/call; diagnos
 One load1362.257/7200GPU-s;64 token records/128 local hidden hashes audited,10 partial means; renderer16 frozen prompts match; no signals/push.
 Final56 tests pass under DEV-only guard; earlier broad CPU synthetic-eval test scope deviation disclosed; stale fixture metadata repaired without new eval generation.
 No fitting/bench reads/GPU evaluation; no mask trigger/check45 re-pilot labels; report results/quick-checks/composition-pilot-2/README.md.
+2026-09-06 — composition pilot Amendment 2 CPU fix (astra); registered de1e3182 before code, fable review read fully.
+Arm-neutral newline append/byte bound and shared indent gloss; new DEV/render goldens retain originals; no fitting or evaluation/bench content.
+Frozen recovery95/128 responses/190 tools; success0/8, integration5/8; final recovered lanes retain style+process (missing delivery:ready), not style alone.
+Backend gate superseded outcome-blindly; schedule D=0, equal EOS/cap/context, ship disclosure and next DEV round-0 compliance gates registered, GPU UNRUN.
+True/False remain rejected; T cumulative output unchanged and caps score breakage symmetrically; historical batch residue retained only for accounting.
+CPU validation and per-kind counts in composition-pilot-2/README.md; explicit-path commits only; no push, signals, GPU/container/flag changes.

@@ -8,6 +8,7 @@ from .slab import Executor, check, generate_episode, materialize
 
 ROOT = Path(__file__).resolve().parents[3]
 FROZEN = ROOT / "results/quick-checks/composition-pilot"
+AMENDED = ROOT / "tests/fixtures/composition_pilot_amendment2"
 
 
 def recover():
@@ -103,10 +104,11 @@ def recover():
 
 def main():
     summary, records = recover()
-    (FROZEN / "recovered-summary.json").write_text(
+    AMENDED.mkdir(parents=True, exist_ok=True)
+    (AMENDED / "recovered-summary.json").write_text(
         json.dumps(summary, indent=2, sort_keys=True) + "\n"
     )
-    (FROZEN / "recovered-records.jsonl").write_text(
+    (AMENDED / "recovered-records.jsonl").write_text(
         "".join(json.dumps(r, sort_keys=True) + "\n" for r in records)
     )
     print(json.dumps(summary, indent=2))

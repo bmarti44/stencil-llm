@@ -21,7 +21,7 @@ from stencil.focus import (
 )
 from stencil.focus.journal import FIELDS
 
-FIXTURE = Path(__file__).parent / "fixtures/focus_episode.json"
+FIXTURE = Path(__file__).parent / "fixtures/focus_episode_amendment2.json"
 
 
 def episode():
