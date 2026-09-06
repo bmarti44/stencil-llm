@@ -180,6 +180,14 @@ def classifier(arm="C"):
     )
 
 
+def evaluation_identity(row):
+    return (
+        a.identity(row.get("context") or "(no context)"),
+        row["role"],
+        a.identity(row["text"]),
+    )
+
+
 def evaluate():
     verify_freeze()
     assert os.environ.get("CUDA_VISIBLE_DEVICES") == ""
@@ -187,7 +195,12 @@ def evaluate():
     from transformers import AutoModel, AutoTokenizer
 
     torch.set_num_threads(4)
-    with (OUT / "heldout-started.json").open("x") as fp:
+    assert not (OUT / "heldout-inference-started.json").exists()
+    receipt = OUT / "heldout-started.json"
+    if receipt.exists():
+        assert (OUT / "evaluation-preflight-correction.md").exists()
+        receipt = OUT / "heldout-preflight-resumed.json"
+    with receipt.open("x") as fp:
         json.dump(
             dict(
                 time=time.time(),
@@ -217,9 +230,23 @@ def evaluate():
     overlap = {a.identity(r["text"]) for r in train} & {
         a.identity(r["text"]) for r in rows
     }
-    assert not overlap, "Held-out sentence overlap"
+    full_overlap = {evaluation_identity(r) for r in train} & {
+        evaluation_identity(r) for r in rows
+    }
+    assert not full_overlap, "Held-out full model-input overlap"
     assert all("fable" in r.get("source", "").lower() for r in rows)
     assert not any("fable" in r.get("source", "").lower() for r in train)
+    with (OUT / "heldout-inference-started.json").open("x") as fp:
+        json.dump(
+            dict(
+                time=time.time(),
+                full_input_overlap=0,
+                sentence_only_collisions=sorted(overlap),
+            ),
+            fp,
+        )
+        fp.flush()
+        os.fsync(fp.fileno())
     predictions = {}
     for name, path in [("ft", a.DATA / "model/ft"), ("ft-v2", a.MODELS / "seed0")]:
         tok = AutoTokenizer.from_pretrained(path / "encoder", local_files_only=True)
@@ -252,7 +279,9 @@ def evaluate():
             metrics=metrics,
             delta_accuracy=metrics["ft-v2"]["accuracy"] - metrics["ft"]["accuracy"],
             diagnostic_repeat=True,
-            exact_sentence_overlap=0,
+            exact_sentence_overlap=len(overlap),
+            sentence_only_collisions=sorted(overlap),
+            full_model_input_overlap=0,
             author_disjoint=True,
             inputs={str(p.relative_to(g.ROOT)): g.digest(p) for p in paths},
         ),

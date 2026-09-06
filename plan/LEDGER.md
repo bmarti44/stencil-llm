@@ -667,3 +667,11 @@ Seed0 unchanged designation. No heldout/setup outcomes read; GPU run exited
 naturally and removed its flag. Freeze binds all checkpoint/DEV metadata hashes.
 62 targeted CPU tests pass. Next one CPU evaluate on fable-validation* with
 same-pass original-ft comparator, then ONE CPU setup replay and mechanical stop.
+
+2026-09-06 — STATE: V7 FABLE PREFLIGHT ABORTED UNSCORED; RESUME NEXT.
+Exactly one generic sentence collision: Thanks, that fixed it. Kimi has empty
+context; Fable has preceding debugging reply. Different full paired inputs and
+authors. No classifier loaded/inference made in aborted attempt. Preserve start
+receipt/log and pre-evaluation freezes; evaluation-only correction requires
+full-input disjointness, reports sentence collision, adds durable inference-start
+repeat guard. No row/model/threshold changes. Next resume one unscored evaluation.

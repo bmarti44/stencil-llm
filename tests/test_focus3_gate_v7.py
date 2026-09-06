@@ -73,3 +73,15 @@ def test_semantic_identity_preserves_cross_task_version_numbers():
     assert [r.version for r in rt.register.rows] == [1, 1]
     assert [r.key for r in rt.register.rows] == ["new:0:0", "new:1:0"]
     assert set(rt.key_slugs.values()) == {"sort-order"}
+
+
+def test_evaluation_identity_includes_context_but_rejects_same_full_input():
+    from scripts.focus3_gate_v7 import evaluation_identity
+
+    row = dict(text="Thanks, that fixed it.", role="user", context="")
+    assert evaluation_identity(row) != evaluation_identity(
+        dict(row, context="assistant: Change the operator.")
+    )
+    assert evaluation_identity(row) == evaluation_identity(
+        dict(row, source="another-author")
+    )
