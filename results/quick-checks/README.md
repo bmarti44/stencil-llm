@@ -510,3 +510,9 @@ FOCUS-3 gate ([results v2](focus3-gate/RESULTS.md), [frozen reading](focus3-gate
    SETUP36/36 admits,3/4 supersedes;10/96 false turns>2,4 request-template admits. Heldout2 SECOND LOOK overlap168/207=81.16%.
    Astra audit122 changes/5 drops; fit4209, DEV466 across13 domains; three seeds frozen fd43ff8f;88.546/3600 GPU-seconds;783 records audited.
    Explicit structured entry remains first ship; no runtime swap/v9. CPU-only thresholding/evaluation; safetensors local, no signals/sealed reads/push.
+
+40k. PROGRAMMING COMPETENCE ([check40k](check40k/README.md)): **R3—harm**; DEV5/8, fresh held-out32,128 paired-arm generations.
+   Text-only16/32; text+bias7/32; shuffled11/32; OFF JS-task7/32 (JS17/Python14/invalid1). Broken0/2/1/3 respectively.
+   Bias wins2/losses11/ties19; delta−28.125pp, conservative95%CI[−55.123,+6.226]pp; benefit p=.998291, exact two-sided p=.022461.
+   All11 losses valid unbroken JS; shuffled net−5. No default-on: same alpha3 tensor harms task competence here; actuator stays off/opt-in.
+   Recipe28869719, DEV freeze4942594d;136 records/160 tests audited, strict-return audit unchanged;1520.526/2700GPU-s, one load, no signals/push.

@@ -1,5 +1,7 @@
 # Check40k — task competence beyond a rendered JavaScript rule
 
+**Completed: R3 — harm. Text-only16/32 versus text+bias7/32; wins2/losses11/ties19. Actuator stays off by default.**
+
 Prewritten 2026-09-06 before GPU work; recipe committed before inference.
 Data lineage: fit-on = nothing in this check; calibrate-on = eight authored DEV
 programming tasks only; evaluated-on = 32 remaining authored tasks, opened once.
@@ -62,4 +64,75 @@ an evaluation projection before opening; stop if projected total exceeds cap.
 Coordinate with all quick-check RUNNING.flag files and review lock; pid2705 exempt.
 No prior artifact rewrites, benchmark reads, background launches, signals or push.
 
-Results pending.
+## Completed result — R3: harm
+
+**Do not ship this alpha-3 actuator by default.** With the rule rendered, text-only
+passed 16/32 tasks; adding the frozen JS bias passed 7/32. The net change was
+-9 tasks (-28.125 percentage points), meeting R3 (losses minus wins = 9 >= 3).
+The actuator stays off by default / behind its existing opt-in flag. No runtime
+shipping change is made or justified by this check. The claim is limited to this
+model, tensor, dose, schedule and authored JavaScript task family.
+
+DEV was 5/8 (62.5%) on the first and only pass: no task difficulty adjustment,
+no retries and no evaluation-informed changes. Evaluation text-only was 16/32
+(50%), so the requested non-ceiling competence comparison was achieved.
+
+| Arm | All tests pass | Valid JS / Python / invalid | Broken | Truncated | Tokens total |
+|---|---:|---:|---:|---:|---:|
+| text-only | 16/32 (50.00%) | 32 / 0 / 0 | 0 | 0 | 4630 |
+| text+bias | 7/32 (21.88%) | 30 / 0 / 2 | 2 | 1 | 4669 |
+| text+shuffled-bias | 11/32 (34.38%) | 32 / 0 / 0 | 1 | 0 | 4738 |
+| OFF | 7/32 (21.88%) | 17 / 14 / 1 | 3 | 0 | 4262 |
+
+| Contrast vs text-only | Wins / losses / ties | Difference | Conservative 95% paired CI | One-sided p (benefit) | Exact two-sided p |
+|---|---:|---:|---:|---:|---:|
+| text+bias | 2 / 11 / 19 | -28.125 pp | [-55.123, +6.226] pp | 0.998291015625 | 0.0224609375 |
+| text+shuffled-bias | 1 / 6 / 25 | -15.625 pp | [-38.900, +12.169] pp | 0.9921875 | 0.125 |
+
+The primary ties comprise five both-success and fourteen both-failure tasks;
+shuffled ties comprise ten both-success and fifteen both-failure tasks.
+The preregistered paired CI is deliberately conservative: subtracting Bonferroni
+Clopper-Pearson marginal bounds gives [-55.123,+6.226] pp. It contains zero even
+though the conditional exact two-sided sign test gives .0224609375: these are
+non-dual procedures with different conservatism. Do not describe this interval
+as excluding no effect. The one-sided test for a benefit is .998291015625.
+R3 is the prewritten magnitude reading, not a claim of population-wide harm.
+Shuffled bias also loses net five tasks; there is no positive specificity result.
+
+All eleven primary losses produced syntactically valid, unbroken JavaScript in
+both arms. Thus the measured regression is task correctness, not merely language
+choice or invalid output. For example, `quietSpans` with text-only correctly kept
+the lower range bound after a negative minute mark, while bias used `prev=mark+1`
+and emitted an interval starting below zero. The two primary wins were
+`cancelMarks` and `runInventory`; per-task arm outcomes are in paired.json.
+The two bias-broken tasks (`windowVotes`, `bracketTotals`) also failed text-only,
+so they contributed ties, not any of the eleven semantic losses.
+
+Only the biased `bracketTotals` reply hit cap768; text-only replies ranged62..279
+tokens. The other bias-broken reply had invalid syntax. Shuffled broken1 and
+OFF broken2 of3 were the inherited repetition heuristic, which can flag legitimate
+repeated statements in longer code; the remaining OFF broken reply was invalid.
+OFF returned JavaScript17, Python14, invalid1: its7/32 score is executable JS task
+success only. Python program competence was not measured or counted as failure
+on a language-neutral task; this diagnostic is explicitly language-dependent.
+
+All136 records (8DEV +128 evaluation),160 hidden tests/reference solutions,
+exact prompts/token IDs, per-forward fresh-session trace,48-layer hook contract,
+bias hashes/permutations, summary and paired arithmetic passed CPU audit.
+An additional strict-return sensitivity audit replaces JSON normalization by
+structuredClone + deepStrictEqual to distinguish NaN/undefined/holes from null;
+it changes ZERO individual test results across all136 records, and preserves R3.
+No model reruns or primary-score changes were needed. Syntax-valid code with
+wrong return values was tested through the actual Node consumer in preparation.
+
+Recipe commit `288697191e6d47741efdcf527b6b87951e5c7990`; DEV/evaluation freeze commit
+`4942594d5d25b69d1d1da43d2917e736f17e489f`. One cold load took
+382.329s; total GPU reservation
+1520.526/2700s (25.342 minutes), including calibration
+and cleanup. Exactly one evaluation opening, no enlargement. RUNNING.flag removed;
+no signals, process termination, benchmark reads, fitting, or push.
+
+Reproduce CPU checks without inference:
+`./.venv/bin/python scripts/focus_check40k.py audit` and
+`./.venv/bin/python results/quick-checks/check40k/strict-audit.py`.
+The run command refuses a second inference run when records already exist.

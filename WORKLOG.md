@@ -5411,3 +5411,15 @@ Decode rollback; same-run hidden checker API; honest AST deterrent and guarded g
 Validation: baseline focus 140 passed; final focus + no-side-effect suite 159 passed, 1 expected xfail; controller/package subset 76 passed; scoped Ruff clean.
 Count clarification: Day 2 had 60 new package tests; its 158-pass claim was the broader legacy-inclusive union, not package-only.
 M3 renderer bytes unchanged; scaffold-only status retained. Synthetic CPU inputs only; no GPU, data/bench reads, process signals or push; explicit-path commit.
+### 2026-09-06 — SLAB-1 fable bank repairs (CPU; gpt-6-astra)
+Lineage: fit-on none; authored DEV development / template-and-seed-disjoint authored eval; no benchmark content/responses.
+H1–H4/M1–M3: deduped bounded transport, Qwen bodies, sandbox/repair, seeded disjoint schedules, shared setup and prior-trait controls.
+All 72 x 4 stub replays complete: max R/O29614 N18785 T19694; bodies107–137 (median121), 1408/1408 in band.
+At15.4 decode tok/s and1000 prefill tok/s with retained KV:13.342h >12h; launch INFEASIBLE at reference lengths.
+Requested focus/no-side-effect validation running; manifests/golden re-frozen; no GPU, signals, benchmark reads or push.
+
+2026-09-06 — check40k (gpt-6-astra): R3 HARM; rendered rule text-only16/32, +alpha3 JS bias7/32, shuffled11/32, OFF JS7/32.
+DEV5/8 qualified without revision;32 fresh authored evaluation tasks opened once,128 generations, same40j tensor/hook,cap768.
+Paired2 wins/11 losses/19 ties,−28.125pp; conservative95%CI[−55.123,+6.226]pp; benefit p=.998291, two-sided p=.022461.
+All11 losses valid unbroken JS; broken text/bias/shuffle/OFF0/2/1/3. Actuator stays off by default/behind opt-in flag.
+Recipe28869719, calibration4942594d;136 records and strict-value scores audited;1520.526/2700GPU-s,one load,no signals/push.
