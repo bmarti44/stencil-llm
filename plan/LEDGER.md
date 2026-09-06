@@ -992,3 +992,12 @@ safetensors ignored. No signals, benchmark/sealed reads, background job or push.
 Final lock check: .review.lock belongs to foreground focus_check40g.py GPU
 run, not a review/coder wrapper; source inspection shows no workspace restorer.
 No process/lock touched; check44b completion commit uses explicit own pathspecs.
+
+2026-09-06 — STATE: CHECK40G COMPLETE AS INVALID; no further GPU work authorized by its failed gate.
+Frozen JS alpha3 in40e harness: JS3/8, Python5/8, broken0; <6/8 stops TS/SQL/Go
+and conditional release. No new competence or profiling ran. Overall generality
+beyond Python/JS unknown. Exact40e input tokens and independent40c scorer8/8;
+all48-layer dispatch/bias hashes verified, zero consumer mismatches. CPU Go
+installation/gofmt/go vet passed. Allocation396.984/3600s,8 generations/219tokens;
+foreground raw exit0, own flag removed, no signals/sealed reads/fit/train/push.
+Artifacts, five-line index and six-line WORKLOG audited; explicit-pathspec final commit follows.

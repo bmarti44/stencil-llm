@@ -1,0 +1,10 @@
+{
+  "load_seconds": 372.68803517799824,
+  "model": "/home/bmarti44/stencil-llm/models/qwen3-30b-a3b-hf",
+  "python": "/home/bmarti44/stencil-llm/.venv/bin/python",
+  "router_source": "    def forward(self, hidden_states):\n        hidden_states = hidden_states.reshape(-1, self.hidden_dim)\n        router_logits = F.linear(hidden_states, self.weight)  # (seq_len, num_experts)\n        router_probs = torch.nn.functional.softmax(router_logits, dtype=torch.float, dim=-1)\n        router_top_value, router_indices = torch.topk(router_probs, self.top_k, dim=-1)  # (seq_len, top_k)\n        if self.norm_topk_prob:\n            router_top_value /= router_top_value.sum(dim=-1, keepdim=True)\n        router_top_value = router_top_value.to(router_logits.dtype)\n        router_scores = router_top_value\n        return router_logits, router_scores, router_indices\n",
+  "router_source_sha256": "b2666af64b7b31a02a152e9187ed2c5671262543b61510d0359c26fa491105ca",
+  "seed": 40060,
+  "transformers": "5.16.1",
+  "transformers_path": "/home/bmarti44/stencil-llm/.venv/lib/python3.12/site-packages/transformers/__init__.py"
+}

@@ -5360,3 +5360,10 @@ SETUP C2/96 false turns and0/96 request-template admits; B22/96 and15/96. Splitt
 Audited Kimi2872+Opus231/53 patches; DEV309, seeds0/1/2 thresholds frozen bab43b0d after f03c4398;212.346/3600 GPU-seconds.
 426 records/852 arm predictions and all DEV scores/thresholds audited; six tests/smoke pass, weights local. Explicit first-ship entry, C assistive only; no swap/v9.
 Results: results/quick-checks/check44b/RESULTS.md; own flag removed naturally, no signals, forbidden-input reads or push.
+
+### 2026-09-06 — Check40g INVALID: same-harness positive control failed
+Frozen JS alpha3 produced3/8 JS<6/8,5/8 Python,0 broken; all further inference stopped.
+TS, JSON→SQL, Python→Go and Go release unmeasured; beyond-Python/JS generality remains unknown.
+Exact40e inputs8/8, separate40c scorer agreement8/8;48-layer dispatch/bias hashes audited, zero mismatches.
+Go official tarball SHA verified; CPU gofmt/go vet and288 canonical cases PASS; no fitting/training or sealed reads.
+396.984/3600 GPU seconds,8 generations/219 tokens; natural exit0, flag removed, no signals/push. results/quick-checks/check40g/README.md.

@@ -469,6 +469,12 @@ FOCUS-3 gate ([results v2](focus3-gate/RESULTS.md), [frozen reading](focus3-gate
    Masking enables SWITCH in addition to routing; R2 BACK JS0/24 means CLEAR is23 Python-persistence +1 broken-to-Python, not an independent JS release.
    648 generations/864 records/14406 tokens,22.95/90 GPU-min; full CPU audit PASS; recipe e570e74c, flag removed, no signals/sealed reads/push.
 
+40g. GENERALITY POSITIVE CONTROL ([check40g](check40g/README.md)): **INVALID**; frozen JS alpha3 in40e harness JS3/8<6/8, Python5/8, broken0.
+   All further inference stopped: TypeScript, JSON→SQL, Python→Go competence/SET and Go Z/Zc release unmeasured; generality beyond Python/JS remains unknown.
+   Exact40e input tokens8/8; separate40c scorer agrees8/8; all48-layer consumed-dispatch audit passes with zero mismatches and nonzero route changes.
+   Go official tarball installed under $HOME with SHA256 verified; CPU gofmt/go vet and288 canonical checker cases pass. No new profiles, fitting or training.
+   8 generations/219 tokens,6.62/60 GPU-min; freeze c4dca2e5, CPU audit PASS, natural exit0/flag removed; no signals, sealed reads or push.
+
 40h. RELEASE CLOSURE ([check40h](check40h/README.md)): **PARTIAL**; M SWITCH Python20/24 (broken4), BACK JS19/24, CLEAR Python24/24.
    CLEAR is19 actual restored-JS releases +5 Python-persistence cases; four missing-parenthesis defects persist at HOLD_AFTER_SWITCH; no rescue.
    Z mask+OFF SWITCH Python24/24: masking restores DEFAULT without new Python routing; later JS-biased BACK23/24. T′ every language target24/24, broken0.
