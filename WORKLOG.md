@@ -5381,3 +5381,9 @@ SETUP36/36 admit,3/4 supersedes but10/96 false turns>2 and4 request-template adm
 Audit122 changes/5 drops; fit4209/DEV466 (13 domains); seeds0/1/2 and thresholds frozen fd43ff8f; GPU88.546/3600s, flag removed.
 783 records plus1398 DEV records verified; audit-only tuple/list repair preserves frozen runner/science AST. No inference rerun/signals/sealed reads/push.
 Explicit entry remains first ship; no runtime swap or v9 authorization. results/quick-checks/check44c/RESULTS.md.
+
+### 2026-09-06 — Composition v2 Days 1–2 CPU build (gpt-6-astra)
+Explicit immutable register, authenticated transactions, every-request renderer, one-call loop and same-run JSONL journal implemented.
+HF custom_generate scaffold imports/runs with a fake decoder; assets remain hash placeholders, actuators OFF, no model-backed shipping claim.
+Lineage: independently authored CPU fixtures only; no fitting, benchmark reads, model launches, GPU use, process signals or push.
+Validation: pytest tests/test_focus_*.py tests/test_no_side_effect_imports.py -q — 35 passed, 1 expected legacy xfail; scoped Ruff clean.
