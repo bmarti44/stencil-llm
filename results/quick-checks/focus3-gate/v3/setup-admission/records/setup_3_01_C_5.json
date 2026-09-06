@@ -1,0 +1,302 @@
+{
+  "agreement": {
+    "contradictory": false,
+    "exact": true,
+    "false_retirement": false
+  },
+  "arm": "C",
+  "episode": "setup_3_01",
+  "event_checks": [],
+  "family": "switch-and-return",
+  "gold_live": [
+    {
+      "id": "0:20",
+      "scope": "*",
+      "task_id": null,
+      "text": "For every sorting request in this conversation, keep tag equal to 15.",
+      "version": 1
+    },
+    {
+      "id": "0:90",
+      "scope": "S3n1A",
+      "task_id": "S3n1A",
+      "text": "Going forward, keep every payload for task S3n1A in ascending order.",
+      "version": 1
+    }
+  ],
+  "gold_trace": {
+    "after": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 15.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S3n1A",
+        "span_start": 90,
+        "status": "live",
+        "text": "Going forward, keep every payload for task S3n1A in ascending order.",
+        "version": 1
+      },
+      {
+        "id": "2:20",
+        "key": "new:2:20",
+        "kind": "sort",
+        "provenance_turn": 2,
+        "scope": "S3n1B",
+        "span_start": 20,
+        "status": "live",
+        "text": "Each time you handle a payload for task S3n1B, sort it in descending order.",
+        "version": 1
+      }
+    ],
+    "applied": [],
+    "before": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 15.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S3n1A",
+        "span_start": 90,
+        "status": "live",
+        "text": "Going forward, keep every payload for task S3n1A in ascending order.",
+        "version": 1
+      },
+      {
+        "id": "2:20",
+        "key": "new:2:20",
+        "kind": "sort",
+        "provenance_turn": 2,
+        "scope": "S3n1B",
+        "span_start": 20,
+        "status": "live",
+        "text": "Each time you handle a payload for task S3n1B, sort it in descending order.",
+        "version": 1
+      }
+    ]
+  },
+  "live": [
+    {
+      "id": "0:20",
+      "scope": "*",
+      "task_id": null,
+      "text": "For every sorting request in this conversation, keep tag equal to 15.",
+      "version": 1
+    },
+    {
+      "id": "0:90",
+      "scope": "S3n1A",
+      "task_id": "S3n1A",
+      "text": "Going forward, keep every payload for task S3n1A in ascending order.",
+      "version": 1
+    }
+  ],
+  "trace": {
+    "admissions": [
+      {
+        "accepted": false,
+        "logits": [
+          -1.5287926197052002,
+          2.9941396713256836,
+          -1.4293757677078247
+        ],
+        "model_input": [
+          "user: Reply exactly set.",
+          "[user] Work on task S3n1A; Sort request for task S3n1A: payload [37, 12, 51, 22, 49]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.010614606014265412,
+          0.9776612790000222,
+          0.011724114985712377
+        ],
+        "span": "Work on task S3n1A; Sort request for task S3n1A: payload [37, 12, 51, 22, 49]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+        "start": 0,
+        "token_count": 74
+      }
+    ],
+    "admitted_beside_live": 0,
+    "after": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 15.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S3n1A",
+        "span_start": 90,
+        "status": "live",
+        "text": "Going forward, keep every payload for task S3n1A in ascending order.",
+        "version": 1
+      }
+    ],
+    "applied": [],
+    "before": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 15.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S3n1A",
+        "span_start": 90,
+        "status": "live",
+        "text": "Going forward, keep every payload for task S3n1A in ascending order.",
+        "version": 1
+      }
+    ],
+    "overflow": false,
+    "pairs": [
+      {
+        "applied": "none",
+        "gold": "none",
+        "input": {
+          "message": "Work on task S3n1A; Sort request for task S3n1A: payload [37, 12, 51, 22, 49]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "old_rule": {
+            "key": "new:0:20",
+            "scope": "user-global",
+            "status": "active",
+            "task_id": null,
+            "text": "For every sorting request in this conversation, keep tag equal to 15.",
+            "version": 1
+          },
+          "prev_user": "Reply exactly set.",
+          "role": "user",
+          "target_id": "0:20",
+          "target_span": {
+            "start": 0,
+            "text": "Work on task S3n1A; Sort request for task S3n1A: payload [37, 12, 51, 22, 49]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          }
+        },
+        "logits": [
+          2.890377998352051,
+          -0.6316276788711548,
+          -2.3559439182281494,
+          -1.8806267976760864,
+          0.7630564570426941
+        ],
+        "model_input": [
+          "[target] active user-global For every sorting request in this conversation, keep tag equal to 15. [metadata] {\"key\": \"new:0:20\", \"version\": 1}",
+          "[message] user: Work on task S3n1A; Sort request for task S3n1A: payload [37, 12, 51, 22, 49]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [span] Work on task S3n1A; Sort request for task S3n1A: payload [37, 12, 51, 22, 49]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [prev_user] Reply exactly set."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.8602632527931926,
+          0.025412286386662385,
+          0.004530881597636059,
+          0.007288032754673072,
+          0.10250554646783591
+        ],
+        "proposed": "none",
+        "token_count": 188
+      },
+      {
+        "applied": "none",
+        "gold": "none",
+        "input": {
+          "message": "Work on task S3n1A; Sort request for task S3n1A: payload [37, 12, 51, 22, 49]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "old_rule": {
+            "key": "new:0:90",
+            "scope": "task",
+            "status": "active",
+            "task_id": "S3n1A",
+            "text": "Going forward, keep every payload for task S3n1A in ascending order.",
+            "version": 1
+          },
+          "prev_user": "Reply exactly set.",
+          "role": "user",
+          "target_id": "0:90",
+          "target_span": {
+            "start": 0,
+            "text": "Work on task S3n1A; Sort request for task S3n1A: payload [37, 12, 51, 22, 49]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          }
+        },
+        "logits": [
+          2.5935709476470947,
+          -1.356589436531067,
+          -2.2423274517059326,
+          -1.576226830482483,
+          1.5040357112884521
+        ],
+        "model_input": [
+          "[target] active task Going forward, keep every payload for task S3n1A in ascending order. [metadata] {\"key\": \"new:0:90\", \"task_id\": \"S3n1A\", \"version\": 1}",
+          "[message] user: Work on task S3n1A; Sort request for task S3n1A: payload [37, 12, 51, 22, 49]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [span] Work on task S3n1A; Sort request for task S3n1A: payload [37, 12, 51, 22, 49]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [prev_user] Reply exactly set."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.7251529903463031,
+          0.01396036536936007,
+          0.005757390042555651,
+          0.0112075188127361,
+          0.2439217354290449
+        ],
+        "proposed": "none",
+        "token_count": 203
+      }
+    ],
+    "role": "user"
+  },
+  "turn": {
+    "direction": "ascending",
+    "events": [],
+    "hard_none": false,
+    "kind": "sort",
+    "payload": [
+      37,
+      12,
+      51,
+      22,
+      49
+    ],
+    "post_change": true,
+    "stale": [
+      "descending"
+    ],
+    "tag": 15,
+    "task": "S3n1A",
+    "text": "Work on task S3n1A; Sort request for task S3n1A: payload [37, 12, 51, 22, 49]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+  },
+  "turn_index": 5
+}

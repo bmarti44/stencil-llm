@@ -1,0 +1,248 @@
+{
+  "agreement": {
+    "contradictory": false,
+    "exact": true,
+    "false_retirement": false
+  },
+  "arm": "C",
+  "episode": "setup_1_00",
+  "event_checks": [],
+  "family": "cancel",
+  "gold_live": [],
+  "gold_trace": {
+    "after": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 12.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S1n0A",
+        "span_start": 90,
+        "status": "cancelled",
+        "text": "For task S1n0A, always sort the payload in ascending order.",
+        "version": 1
+      }
+    ],
+    "applied": [],
+    "before": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 12.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S1n0A",
+        "span_start": 90,
+        "status": "cancelled",
+        "text": "For task S1n0A, always sort the payload in ascending order.",
+        "version": 1
+      }
+    ]
+  },
+  "live": [],
+  "trace": {
+    "admissions": [
+      {
+        "accepted": false,
+        "logits": [
+          -0.013407254591584206,
+          2.88545823097229,
+          -2.764859914779663
+        ],
+        "model_input": [
+          "user: Continue task S1n0A; Sort request for task S1n0A: payload [55, 79, 54, 71, 26]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "[user] Reply exactly even."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.0520362478626548,
+          0.9446420149681031,
+          0.0033217371692421
+        ],
+        "span": "Reply exactly even.",
+        "start": 0,
+        "token_count": 73
+      }
+    ],
+    "admitted_beside_live": 0,
+    "after": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 12.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S1n0A",
+        "span_start": 90,
+        "status": "live",
+        "text": "For task S1n0A, always sort the payload in ascending order.",
+        "version": 1
+      }
+    ],
+    "applied": [],
+    "before": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 12.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S1n0A",
+        "span_start": 90,
+        "status": "live",
+        "text": "For task S1n0A, always sort the payload in ascending order.",
+        "version": 1
+      }
+    ],
+    "overflow": false,
+    "pairs": [
+      {
+        "applied": "none",
+        "gold": "none",
+        "input": {
+          "message": "Reply exactly even.",
+          "old_rule": {
+            "key": "new:0:20",
+            "scope": "user-global",
+            "status": "active",
+            "task_id": null,
+            "text": "For every sorting request in this conversation, keep tag equal to 12.",
+            "version": 1
+          },
+          "prev_user": "Continue task S1n0A; Sort request for task S1n0A: payload [55, 79, 54, 71, 26]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "role": "user",
+          "target_id": "0:20",
+          "target_span": {
+            "start": 0,
+            "text": "Reply exactly even."
+          }
+        },
+        "logits": [
+          2.9321131706237793,
+          -1.0019614696502686,
+          -2.1052513122558594,
+          -1.9142310619354248,
+          1.0339819192886353
+        ],
+        "model_input": [
+          "[target] active user-global For every sorting request in this conversation, keep tag equal to 12. [metadata] {\"key\": \"new:0:20\", \"version\": 1}",
+          "[message] user: Reply exactly even. [span] Reply exactly even. [prev_user] Continue task S1n0A; Sort request for task S1n0A: payload [55, 79, 54, 71, 26]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.8447657864126599,
+          0.01652682424721563,
+          0.005483233217742931,
+          0.006637365883808177,
+          0.1265867902385736
+        ],
+        "proposed": "none",
+        "token_count": 129
+      },
+      {
+        "applied": "none",
+        "gold": "none",
+        "input": {
+          "message": "Reply exactly even.",
+          "old_rule": {
+            "key": "new:0:90",
+            "scope": "task",
+            "status": "active",
+            "task_id": "S1n0A",
+            "text": "For task S1n0A, always sort the payload in ascending order.",
+            "version": 1
+          },
+          "prev_user": "Continue task S1n0A; Sort request for task S1n0A: payload [55, 79, 54, 71, 26]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "role": "user",
+          "target_id": "0:90",
+          "target_span": {
+            "start": 0,
+            "text": "Reply exactly even."
+          }
+        },
+        "logits": [
+          2.6269538402557373,
+          -1.508257508277893,
+          -2.1005733013153076,
+          -1.6421095132827759,
+          1.523699402809143
+        ],
+        "model_input": [
+          "[target] active task For task S1n0A, always sort the payload in ascending order. [metadata] {\"key\": \"new:0:90\", \"task_id\": \"S1n0A\", \"version\": 1}",
+          "[message] user: Reply exactly even. [span] Reply exactly even. [prev_user] Continue task S1n0A; Sort request for task S1n0A: payload [55, 79, 54, 71, 26]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.7295904212853878,
+          0.011672923877686417,
+          0.0064556529180785,
+          0.01021053424444852,
+          0.24207046767439877
+        ],
+        "proposed": "none",
+        "token_count": 143
+      }
+    ],
+    "role": "user"
+  },
+  "turn": {
+    "direction": "default",
+    "events": [],
+    "hard_none": false,
+    "kind": "prose",
+    "payload": [
+      76,
+      39,
+      71,
+      43,
+      47
+    ],
+    "post_change": true,
+    "stale": [],
+    "tag": 12,
+    "task": "S1n0A",
+    "text": "Reply exactly even."
+  },
+  "turn_index": 4
+}

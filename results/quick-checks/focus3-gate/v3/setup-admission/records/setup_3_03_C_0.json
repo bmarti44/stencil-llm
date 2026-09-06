@@ -1,0 +1,314 @@
+{
+  "agreement": {
+    "contradictory": false,
+    "exact": true,
+    "false_retirement": false
+  },
+  "arm": "C",
+  "episode": "setup_3_03",
+  "event_checks": [
+    {
+      "actual": {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 16.",
+        "version": 1
+      },
+      "applied": true,
+      "expected": {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 16.",
+        "version": 1
+      },
+      "initial_order": false,
+      "label": "admit",
+      "passed": true,
+      "span": "For every sorting request in this conversation, keep tag equal to 16.",
+      "state_matches": true,
+      "target": "0:20"
+    },
+    {
+      "actual": {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S3n3A",
+        "span_start": 90,
+        "status": "live",
+        "text": "Use ascending order for all payloads in task S3n3A from now on.",
+        "version": 1
+      },
+      "applied": true,
+      "expected": {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S3n3A",
+        "span_start": 90,
+        "status": "live",
+        "text": "Use ascending order for all payloads in task S3n3A from now on.",
+        "version": 1
+      },
+      "initial_order": true,
+      "label": "admit",
+      "passed": true,
+      "span": "Use ascending order for all payloads in task S3n3A from now on.",
+      "state_matches": true,
+      "target": "0:90"
+    }
+  ],
+  "family": "switch-and-return",
+  "gold_live": [
+    {
+      "id": "0:20",
+      "scope": "*",
+      "task_id": null,
+      "text": "For every sorting request in this conversation, keep tag equal to 16.",
+      "version": 1
+    },
+    {
+      "id": "0:90",
+      "scope": "S3n3A",
+      "task_id": "S3n3A",
+      "text": "Use ascending order for all payloads in task S3n3A from now on.",
+      "version": 1
+    }
+  ],
+  "gold_trace": {
+    "after": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 16.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S3n3A",
+        "span_start": 90,
+        "status": "live",
+        "text": "Use ascending order for all payloads in task S3n3A from now on.",
+        "version": 1
+      }
+    ],
+    "applied": [
+      {
+        "gold_key": "tag",
+        "key": "new:0:20",
+        "kind": "sort",
+        "label": "admit",
+        "scope": "*",
+        "span": "For every sorting request in this conversation, keep tag equal to 16."
+      },
+      {
+        "gold_key": "order:S3n3A",
+        "key": "new:0:90",
+        "kind": "sort",
+        "label": "admit",
+        "scope": "S3n3A",
+        "span": "Use ascending order for all payloads in task S3n3A from now on."
+      }
+    ],
+    "before": []
+  },
+  "live": [
+    {
+      "id": "0:20",
+      "scope": "*",
+      "task_id": null,
+      "text": "For every sorting request in this conversation, keep tag equal to 16.",
+      "version": 1
+    },
+    {
+      "id": "0:90",
+      "scope": "S3n3A",
+      "task_id": "S3n3A",
+      "text": "Use ascending order for all payloads in task S3n3A from now on.",
+      "version": 1
+    }
+  ],
+  "trace": {
+    "admissions": [
+      {
+        "accepted": false,
+        "logits": [
+          4.041755676269531,
+          -2.351215362548828,
+          -1.7221245765686035
+        ],
+        "model_input": [
+          "(no context)",
+          "[user] Work on task S3n3A."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.9952108606106984,
+          0.0016652638778998313,
+          0.003123875511401779
+        ],
+        "span": "Work on task S3n3A.",
+        "start": 0,
+        "token_count": 19
+      },
+      {
+        "accepted": true,
+        "logits": [
+          -1.8839967250823975,
+          4.3240156173706055,
+          -2.3735015392303467
+        ],
+        "model_input": [
+          "user: Work on task S3n3A.",
+          "[user] For every sorting request in this conversation, keep tag equal to 16."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.0020067188801996543,
+          0.9967633032512189,
+          0.00122997786858141
+        ],
+        "span": "For every sorting request in this conversation, keep tag equal to 16.",
+        "start": 20,
+        "token_count": 31
+      },
+      {
+        "accepted": true,
+        "logits": [
+          -1.9167742729187012,
+          4.227502822875977,
+          -2.330836772918701
+        ],
+        "model_input": [
+          "user: Work on task S3n3A. user: For every sorting request in this conversation, keep tag equal to 16.",
+          "[user] Use ascending order for all payloads in task S3n3A from now on."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.002138106349687429,
+          0.9964486916471469,
+          0.0014132020031656625
+        ],
+        "span": "Use ascending order for all payloads in task S3n3A from now on.",
+        "start": 90,
+        "token_count": 51
+      },
+      {
+        "accepted": false,
+        "logits": [
+          0.5121226906776428,
+          1.20316743850708,
+          -1.6917163133621216
+        ],
+        "model_input": [
+          "user: Work on task S3n3A. user: For every sorting request in this conversation, keep tag equal to 16. user: Use ascending order for all payloads in task S3n3A from now on.",
+          "[user] Sort request for task S3n3A: payload [66, 49, 57, 45, 65]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+        ],
+        "overflow": false,
+        "probabilities": [
+          0.32193903606170016,
+          0.6425257838358082,
+          0.035535180102491806
+        ],
+        "span": "Sort request for task S3n3A: payload [66, 49, 57, 45, 65]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+        "start": 154,
+        "token_count": 106
+      }
+    ],
+    "admitted_beside_live": 1,
+    "after": [
+      {
+        "id": "0:20",
+        "key": "new:0:20",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "*",
+        "span_start": 20,
+        "status": "live",
+        "text": "For every sorting request in this conversation, keep tag equal to 16.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 0,
+        "scope": "S3n3A",
+        "span_start": 90,
+        "status": "live",
+        "text": "Use ascending order for all payloads in task S3n3A from now on.",
+        "version": 1
+      }
+    ],
+    "applied": [
+      {
+        "label": "admit",
+        "span": "For every sorting request in this conversation, keep tag equal to 16."
+      },
+      {
+        "label": "admit",
+        "span": "Use ascending order for all payloads in task S3n3A from now on."
+      }
+    ],
+    "before": [],
+    "overflow": false,
+    "pairs": [],
+    "role": "user"
+  },
+  "turn": {
+    "direction": "ascending",
+    "events": [
+      {
+        "gold_key": "tag",
+        "key": "new:0:20",
+        "kind": "sort",
+        "label": "admit",
+        "scope": "*",
+        "span": "For every sorting request in this conversation, keep tag equal to 16."
+      },
+      {
+        "gold_key": "order:S3n3A",
+        "key": "new:0:90",
+        "kind": "sort",
+        "label": "admit",
+        "scope": "S3n3A",
+        "span": "Use ascending order for all payloads in task S3n3A from now on."
+      }
+    ],
+    "hard_none": false,
+    "kind": "sort",
+    "payload": [
+      66,
+      49,
+      57,
+      45,
+      65
+    ],
+    "post_change": false,
+    "stale": [],
+    "tag": 16,
+    "task": "S3n3A",
+    "text": "Work on task S3n3A. For every sorting request in this conversation, keep tag equal to 16. Use ascending order for all payloads in task S3n3A from now on. Sort request for task S3n3A: payload [66, 49, 57, 45, 65]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+  },
+  "turn_index": 0
+}

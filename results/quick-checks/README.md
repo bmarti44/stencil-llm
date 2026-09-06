@@ -434,6 +434,11 @@ F8 — Q1 extracted-vector closure: Further work on the tested mean-difference r
    −b PRODUCT0/8 both doses, malformed0; shuffled− PRODUCT0/8; +b SUM8/7 with malformed0/1, shuffled+ malformed0/4; no safe cell, final/collateral skipped.
    80 generations/3963 tokens, 11.21/24 GPU-min; all scores/profiles/biases/dispatch audited; recipe da131791 precedes outcomes; flag removed, no signals/sealed reads/push.
 
+FOCUS-3 gate v3 ([results](focus3-gate/v3/RESULTS.md), [P(rule) table](focus3-gate/v3/probe.md)): **INELIGIBLE-ADMISSION**, stopped on CPU before the GPU gate.
+   New standing bank30311/30312 and training-faithful admission context; initial orders16/16, tags16/16. Overrides0/4,new-task admissions0/4,cancels0/4,completes0/4; required retirements0/8.
+   All240 relation pairs apply none despite12 real gold-positive targets; one wrong reinstates proposal blocked on live target. No fitting, threshold rescue or masking.
+   Freeze b6e40442;96 records/16 traces/184 span scores, runtime replay and independent recount PASS;25 tests,1 legacy xfail,2 forbidden hash reads excluded. GPU0/10800s,zero generations;64 gate unevaluated.
+
 FOCUS-3 gate ([results v2](focus3-gate/RESULTS.md), [frozen reading](focus3-gate/README.md)): **FAIL** after the authorized default-rendering repair; setup16/16 passes15/16.
    C/O now render explicit ordering defaults on every governed request; N/T unchanged, no masking. Setup30302 reused as requested (already used in v1); fresh gate30301 unchanged.
    Full64 gate: C/O final27/61, stale27/2; N final25/stale38, T final31/stale32. C exact0/64, false retirements64/64 (includes admission misses), broken0, contradictory0.

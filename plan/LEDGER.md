@@ -436,3 +436,17 @@ Freeze includes both diagnostic tables, bank, authoring, sources, tests, models,
 reading and token audit. check40h naturally completed during CPU work; no signals.
 Next: explicit-path freeze commit then ONE foreground CPU --mode preflight;
 no trunk or gate unless all gold standing and retirement setup checks pass.
+
+2026-09-06 — STATE: FOCUS-3 V3 COMPLETE / INELIGIBLE-ADMISSION; committing.
+Freeze b6e40442 precedes only CPU setup pass;16/16 initial orders and16/16 tags
+admitted, overrides0/4,new-task admissions0/4,cancellations0/4,completions0/4.
+Retirement requirement0/8 mechanically stops before GPU;64 bank unevaluated.
+240 pairs incl12 gold-positive with admitted targets; all applied-none, one
+wrong reinstates proposal blocked on live target. New-task P(rule)>=.95 but
+none-pair guard fails. No post-outcome source/bank/threshold changes or rerun.
+96 records/16 traces/184 admission spans; runtime replay and independent raw
+status/logit recount PASS;25 tests,1 legacy xfail,2 forbidden reads excluded.
+19.306524 CPU update seconds,0/10800 GPU seconds,zero generations; no GPU claim
+or flag required. check40h ended naturally; no fitting/sealed/signals/background/push.
+RESULTS retains pre-written reading, summary/probe tables/records and README/
+WORKLOG updated. Explicit-path force-added artifact commit is terminal for v3.

@@ -5223,3 +5223,12 @@ M SWITCH Python20/24 (broken4), BACK JS19/24, CLEAR Python24/24 =19 actual relea
 Z mask+OFF SWITCH Python24/24, later BACK JS23/24; Python routing unnecessary for default. T′ every language target24/24, broken0, CLEAR coarse23/24 (lambda).
 M/Z fences retained; T′ bare valid BACK/HOLD_AFTER_BACK/CLEAR1 each; ambiguous echoes/OK0. Every record/token/mask/cue span audited; midpoint62c0ad1d preserved.
 528 records/480 generations/14603 tokens;1347.560/1800 GPU seconds, no overrun; CPU consumer/writer + independent reading PASS, flag removed, explicit commits/no push/signals.
+
+### 2026-09-06 — FOCUS-3 gate v3 (gpt-6-astra): INELIGIBLE-ADMISSION before GPU
+New registration b6e40442: spec-conformant varied standing bank, setup30311/gate30312,16/64; v2 checkers/default renderer/endpoints retained, no masking or fitting.
+Fixed admission context to user-prefixed preceding sentences including earlier same-message spans; all184 span probabilities logged even when a relation consumes the span. All8 paraphrases fixed before CPU scores and retained.
+Actual v2 ID G0n0A old wording .0260/.0263 legacy -> .4885/.3467 faithful; standing variants>.9957. CPU setup initial ordering16/16 and tags16/16 admitted; overrides0/4,new-task admissions0/4,cancels0/4,completes0/4.
+Mandatory retirements0/8 stops INELIGIBLE-ADMISSION. All240 relation pairs apply none;12 gold-positive pairs now have real ordering targets, one wrong reinstates proposal blocked on live target. Switched rules exceed .95 but fail none-pair>=.98 guard.
+96 same-run records/16 traces, full probability tables, summaries and RESULTS under results/quick-checks/focus3-gate/v3/; runtime replay and independent status/logit recount PASS. 25 tests pass,1 legacy xfail,2 forbidden hash reads excluded; lint clean.
+19.306524 CPU seconds for setup updates; GPU0/10800s, zero generations/gate records. Check40h naturally finished; no GPU claim/flag needed. V2 artifacts preserved; no fitting/sealed reads/signals/background/push.
+STATE: frozen pre-gate stop complete, no gate or further repair; final explicit-path local results/index commit follows.

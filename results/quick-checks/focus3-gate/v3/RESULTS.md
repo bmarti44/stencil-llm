@@ -55,6 +55,78 @@ setup/gate records and traces if eligible (all v2 raw prompt/token/EOS/score,
 probabilities/logits/model inputs, gold/applied state, provenance, timing fields),
 summary, audits and RESULTS.md. Pre-written reading stays above appended outcome.
 
-## Outcome
+## Outcome — INELIGIBLE-ADMISSION
 
-PENDING; no setup/gate inference yet.
+The registered pre-gate stop fired on the complete CPU setup replay. No GPU
+claim, trunk load, generated answer, or C/O/N/T gate inference occurred.
+The 64-episode gate bank remains unevaluated. GPU charge: **0 / 10800 seconds**.
+CPU runtime for the 96 setup updates (excluding classifier load/hash checks):
+19.306524 seconds. Check40h held the GPU initially and completed naturally
+before preflight; no process was signalled. No GPU flag was needed for this CPU stop.
+
+| Setup obligation | Applied / required |
+|---|---:|
+| Initial standing ordering rule | **16 / 16** |
+| Initial global tag rule | **16 / 16** |
+| Override replacement | **0 / 4** |
+| New task's standing ordering rule on switch | **0 / 4** |
+| Cancellation retires its actual gold target | **0 / 4** |
+| Completion retires its actual gold target | **0 / 4** |
+
+Thus standing admissions/replacements are32/40 and retirements0/8. Each family
+admits all4 initial ordering rules and all4 tag rules. All8 cancellation/completion
+targets still have status live; changing the current task does not count as
+retiring a row. No missing-target or absence-as-success interpretation is used.
+The mandatory cancellation/completion requirement fails independently of the
+conservative additional replacement/new-task checks.
+
+### Admission diagnostic and remaining failure
+
+The complete [P(rule) table](probe.md) reports v2 plus eight standing paraphrases,
+both directions, with legacy and training-faithful inputs/logits in
+[probe.json](probe.json) and [probe-original.json](probe-original.json).
+All eight forms were specified before scoring and retained without selection.
+For actual v2 task G0n0A, legacy one-off wording is0.025982/0.026251 (asc/desc);
+corrected context raises it to0.488488/0.346745, still below0.95. Standing variants
+are0.995771–0.996647. With readable task Inventory the one-off wording reaches
+0.972086/0.965954 in faithful context; that result is task-name dependent and
+cannot be generalized to the v2 bank. The setup's actual initial ordering-rule
+scores span0.995442–0.996621 and all16 are admitted.
+
+The new bottleneck is observed with admitted ordering targets present. Of240
+relation pairs,228 are gold none and12 are gold-positive (four each supersedes,
+cancels, completes). All240 apply none. Proposals:239 none; one incorrect
+reinstates on a live cancellation target (P=0.5934), blocked by the existing
+inactive-target condition. Gold-label probabilities on the12 positive pairs:
+supersedes0.0218–0.1213; cancels0.0057–0.0800; completes0.0128–0.0249.
+This measures missed transitions on this setup, not a universal classifier limit.
+
+All four switched-task standing rules individually exceed admission0.95
+(P(rule)0.9547–0.9768), but their eligible relation pairs fail the frozen
+P(none)>=0.98 guard, so none are admitted. All32 applied events across the
+setup are initial admissions. Thresholds/encoding/bank were not changed after
+preflight; no fitting, training, outcome-based repair or rerun occurred.
+
+### Evidence and scope
+
+Freeze commit **b6e40442** precedes the only setup inference pass. The pre-written
+reading above is unchanged. [Summary](summary.json),
+[eligibility summary](setup-admission/summary.json), all96 same-pass
+[per-turn records](setup-admission/records/) and16 [register traces](setup-admission/traces/)
+are retained. All184 scored spans have admission probabilities/logits/model
+inputs, including relation-consumed spans; before/after states, gold/applied
+events,240 pair scores, rendered row sets and agreement are recorded. Overflow0.
+No generated-response fields or downstream success/stale/breakage claims are
+invented for this CPU-only replay.
+
+[Runtime replay audit](audit.json) passes all96 records, gold state, applied
+state, admission inputs, live sets, agreement and frozen hashes. An
+[independent recount](independent-admission-audit.json) reproduces event counts
+from source IDs/statuses and all saved probabilities from raw logits.
+25 targeted tests pass; one existing legacy side-effect inventory xfail;
+two sealed-input hash tests deliberately deselected. Ruff and diff checks pass.
+The original v2 bank recompiles identically, and its historical artifacts are
+preserved. No sealed IFEval/BFCL contents were read, nothing fit/trained, no
+background launch, signal/termination or push. Local commits use explicit paths
+and force-add the registered results. The frozen stop ends this experiment;
+there is no64-episode gate verdict or authorization for another repair here.

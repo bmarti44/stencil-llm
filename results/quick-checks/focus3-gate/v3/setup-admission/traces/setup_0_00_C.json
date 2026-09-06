@@ -1,0 +1,2011 @@
+[
+  {
+    "agreement": {
+      "contradictory": false,
+      "exact": true,
+      "false_retirement": false
+    },
+    "arm": "C",
+    "episode": "setup_0_00",
+    "event_checks": [
+      {
+        "actual": {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        "applied": true,
+        "expected": {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        "initial_order": false,
+        "label": "admit",
+        "passed": true,
+        "span": "For every sorting request in this conversation, keep tag equal to 52.",
+        "state_matches": true,
+        "target": "0:20"
+      },
+      {
+        "actual": {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "live",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        },
+        "applied": true,
+        "expected": {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "live",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        },
+        "initial_order": true,
+        "label": "admit",
+        "passed": true,
+        "span": "From now on, for task S0n0A keep the payload sorted in descending order.",
+        "state_matches": true,
+        "target": "0:90"
+      }
+    ],
+    "family": "override",
+    "gold_live": [
+      {
+        "id": "0:20",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 52.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "scope": "S0n0A",
+        "task_id": "S0n0A",
+        "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+        "version": 1
+      }
+    ],
+    "gold_trace": {
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "live",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        }
+      ],
+      "applied": [
+        {
+          "gold_key": "tag",
+          "key": "new:0:20",
+          "kind": "sort",
+          "label": "admit",
+          "scope": "*",
+          "span": "For every sorting request in this conversation, keep tag equal to 52."
+        },
+        {
+          "gold_key": "order:S0n0A",
+          "key": "new:0:90",
+          "kind": "sort",
+          "label": "admit",
+          "scope": "S0n0A",
+          "span": "From now on, for task S0n0A keep the payload sorted in descending order."
+        }
+      ],
+      "before": []
+    },
+    "live": [
+      {
+        "id": "0:20",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 52.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "scope": "S0n0A",
+        "task_id": "S0n0A",
+        "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+        "version": 1
+      }
+    ],
+    "trace": {
+      "admissions": [
+        {
+          "accepted": false,
+          "logits": [
+            4.072389602661133,
+            -2.251842498779297,
+            -1.8096424341201782
+          ],
+          "model_input": [
+            "(no context)",
+            "[user] Work on task S0n0A."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.9954394400019665,
+            0.0017841679756207978,
+            0.0027763920224127933
+          ],
+          "span": "Work on task S0n0A.",
+          "start": 0,
+          "token_count": 19
+        },
+        {
+          "accepted": true,
+          "logits": [
+            -1.8486782312393188,
+            4.35081148147583,
+            -2.3757007122039795
+          ],
+          "model_input": [
+            "user: Work on task S0n0A.",
+            "[user] For every sorting request in this conversation, keep tag equal to 52."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.0020239308702440268,
+            0.9967812209693847,
+            0.001194848160371213
+          ],
+          "span": "For every sorting request in this conversation, keep tag equal to 52.",
+          "start": 20,
+          "token_count": 31
+        },
+        {
+          "accepted": true,
+          "logits": [
+            -2.003831148147583,
+            4.2147674560546875,
+            -2.205145835876465
+          ],
+          "model_input": [
+            "user: Work on task S0n0A. user: For every sorting request in this conversation, keep tag equal to 52.",
+            "[user] From now on, for task S0n0A keep the payload sorted in descending order."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.001984848089244253,
+            0.9963922307775485,
+            0.0016229211332071912
+          ],
+          "span": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "start": 90,
+          "token_count": 52
+        },
+        {
+          "accepted": false,
+          "logits": [
+            0.33052197098731995,
+            1.455188274383545,
+            -1.7227994203567505
+          ],
+          "model_input": [
+            "user: Work on task S0n0A. user: For every sorting request in this conversation, keep tag equal to 52. user: From now on, for task S0n0A keep the payload sorted in descending order.",
+            "[user] Sort request for task S0n0A: payload [20, 35, 44, 28, 83]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.23767098427546965,
+            0.7318339190202908,
+            0.030495096704239603
+          ],
+          "span": "Sort request for task S0n0A: payload [20, 35, 44, 28, 83]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "start": 163,
+          "token_count": 107
+        }
+      ],
+      "admitted_beside_live": 1,
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "live",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        }
+      ],
+      "applied": [
+        {
+          "label": "admit",
+          "span": "For every sorting request in this conversation, keep tag equal to 52."
+        },
+        {
+          "label": "admit",
+          "span": "From now on, for task S0n0A keep the payload sorted in descending order."
+        }
+      ],
+      "before": [],
+      "overflow": false,
+      "pairs": [],
+      "role": "user"
+    },
+    "turn": {
+      "direction": "descending",
+      "events": [
+        {
+          "gold_key": "tag",
+          "key": "new:0:20",
+          "kind": "sort",
+          "label": "admit",
+          "scope": "*",
+          "span": "For every sorting request in this conversation, keep tag equal to 52."
+        },
+        {
+          "gold_key": "order:S0n0A",
+          "key": "new:0:90",
+          "kind": "sort",
+          "label": "admit",
+          "scope": "S0n0A",
+          "span": "From now on, for task S0n0A keep the payload sorted in descending order."
+        }
+      ],
+      "hard_none": false,
+      "kind": "sort",
+      "payload": [
+        20,
+        35,
+        44,
+        28,
+        83
+      ],
+      "post_change": false,
+      "stale": [],
+      "tag": 52,
+      "task": "S0n0A",
+      "text": "Work on task S0n0A. For every sorting request in this conversation, keep tag equal to 52. From now on, for task S0n0A keep the payload sorted in descending order. Sort request for task S0n0A: payload [20, 35, 44, 28, 83]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+    },
+    "turn_index": 0
+  },
+  {
+    "agreement": {
+      "contradictory": false,
+      "exact": true,
+      "false_retirement": false
+    },
+    "arm": "C",
+    "episode": "setup_0_00",
+    "event_checks": [],
+    "family": "override",
+    "gold_live": [
+      {
+        "id": "0:20",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 52.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "scope": "S0n0A",
+        "task_id": "S0n0A",
+        "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+        "version": 1
+      }
+    ],
+    "gold_trace": {
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "live",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "live",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        }
+      ]
+    },
+    "live": [
+      {
+        "id": "0:20",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 52.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "scope": "S0n0A",
+        "task_id": "S0n0A",
+        "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+        "version": 1
+      }
+    ],
+    "trace": {
+      "admissions": [
+        {
+          "accepted": false,
+          "logits": [
+            -0.37757962942123413,
+            2.3419649600982666,
+            -1.8713335990905762
+          ],
+          "model_input": [
+            "user: For every sorting request in this conversation, keep tag equal to 52. user: From now on, for task S0n0A keep the payload sorted in descending order. user: Sort request for task S0n0A: payload [20, 35, 44, 28, 83]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "[user] Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.06098327453375638,
+            0.9253242606386622,
+            0.013692464827581333
+          ],
+          "span": "Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction.",
+          "start": 0,
+          "token_count": 124
+        },
+        {
+          "accepted": false,
+          "logits": [
+            -0.17089705169200897,
+            1.3240768909454346,
+            -1.2226842641830444
+          ],
+          "model_input": [
+            "user: From now on, for task S0n0A keep the payload sorted in descending order. user: Sort request for task S0n0A: payload [20, 35, 44, 28, 83]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. user: Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction.",
+            "[user] Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.17216050195463153,
+            0.7677016147829747,
+            0.06013788326239374
+          ],
+          "span": "Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "start": 97,
+          "token_count": 163
+        }
+      ],
+      "admitted_beside_live": 0,
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "live",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "live",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        }
+      ],
+      "overflow": false,
+      "pairs": [
+        {
+          "applied": "none",
+          "gold": "none",
+          "input": {
+            "message": "Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction. Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "old_rule": {
+              "key": "new:0:20",
+              "scope": "user-global",
+              "status": "active",
+              "task_id": null,
+              "text": "For every sorting request in this conversation, keep tag equal to 52.",
+              "version": 1
+            },
+            "prev_user": "Work on task S0n0A. For every sorting request in this conversation, keep tag equal to 52. From now on, for task S0n0A keep the payload sorted in descending order. Sort request for task S0n0A: payload [20, 35, 44, 28, 83]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "role": "user",
+            "target_id": "0:20",
+            "target_span": {
+              "start": 0,
+              "text": "Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction."
+            }
+          },
+          "logits": [
+            2.7534871101379395,
+            -0.3278117775917053,
+            -2.2371575832366943,
+            -2.124199151992798,
+            0.8200392723083496
+          ],
+          "model_input": [
+            "[target] active user-global For every sorting request in this conversation, keep tag equal to 52. [metadata] {\"key\": \"new:0:20\", \"version\": 1}",
+            "[message] user: Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction. Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [span] Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction. [prev_user] Work on task S0n0A. For every sorting request in this conversation, keep tag equal to 52. From now on, for task S0n0A keep the payload sorted in descending order. Sort request for task S0n0A: payload [20, 35, 44, 28, 83]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.829900241794583,
+            0.038092088712439943,
+            0.0056443825384103335,
+            0.006319368238044704,
+            0.12004391871652204
+          ],
+          "proposed": "none",
+          "token_count": 260
+        },
+        {
+          "applied": "none",
+          "gold": "none",
+          "input": {
+            "message": "Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction. Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "old_rule": {
+              "key": "new:0:90",
+              "scope": "task",
+              "status": "active",
+              "task_id": "S0n0A",
+              "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+              "version": 1
+            },
+            "prev_user": "Work on task S0n0A. For every sorting request in this conversation, keep tag equal to 52. From now on, for task S0n0A keep the payload sorted in descending order. Sort request for task S0n0A: payload [20, 35, 44, 28, 83]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "role": "user",
+            "target_id": "0:90",
+            "target_span": {
+              "start": 0,
+              "text": "Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction."
+            }
+          },
+          "logits": [
+            2.577533721923828,
+            -1.299069881439209,
+            -1.894476294517517,
+            -2.029188871383667,
+            1.580513834953308
+          ],
+          "model_input": [
+            "[target] active task From now on, for task S0n0A keep the payload sorted in descending order. [metadata] {\"key\": \"new:0:90\", \"task_id\": \"S0n0A\", \"version\": 1}",
+            "[message] user: Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction. Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [span] Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction. [prev_user] Work on task S0n0A. For every sorting request in this conversation, keep tag equal to 52. From now on, for task S0n0A keep the payload sorted in descending order. Sort request for task S0n0A: payload [20, 35, 44, 28, 83]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.7086633316991089,
+            0.014684271586765002,
+            0.008096003523876565,
+            0.007075640510424242,
+            0.26148075267982535
+          ],
+          "proposed": "none",
+          "token_count": 277
+        },
+        {
+          "applied": "none",
+          "gold": "none",
+          "input": {
+            "message": "Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction. Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "old_rule": {
+              "key": "new:0:20",
+              "scope": "user-global",
+              "status": "active",
+              "task_id": null,
+              "text": "For every sorting request in this conversation, keep tag equal to 52.",
+              "version": 1
+            },
+            "prev_user": "Work on task S0n0A. For every sorting request in this conversation, keep tag equal to 52. From now on, for task S0n0A keep the payload sorted in descending order. Sort request for task S0n0A: payload [20, 35, 44, 28, 83]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "role": "user",
+            "target_id": "0:20",
+            "target_span": {
+              "start": 97,
+              "text": "Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+            }
+          },
+          "logits": [
+            2.7165257930755615,
+            -0.27487388253211975,
+            -2.4110705852508545,
+            -2.0394089221954346,
+            0.860490083694458
+          ],
+          "model_input": [
+            "[target] active user-global For every sorting request in this conversation, keep tag equal to 52. [metadata] {\"key\": \"new:0:20\", \"version\": 1}",
+            "[message] user: Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction. Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [span] Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [prev_user] Work on task S0n0A. For every sorting request in this conversation, keep tag equal to 52. From now on, for task S0n0A keep the payload sorted in descending order. Sort request for task S0n0A: payload [20, 35, 44, 28, 83]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.8189744003317081,
+            0.04112651924499084,
+            0.004857172351023201,
+            0.00704359089800414,
+            0.1279983171742737
+          ],
+          "proposed": "none",
+          "token_count": 287
+        },
+        {
+          "applied": "none",
+          "gold": "none",
+          "input": {
+            "message": "Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction. Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "old_rule": {
+              "key": "new:0:90",
+              "scope": "task",
+              "status": "active",
+              "task_id": "S0n0A",
+              "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+              "version": 1
+            },
+            "prev_user": "Work on task S0n0A. For every sorting request in this conversation, keep tag equal to 52. From now on, for task S0n0A keep the payload sorted in descending order. Sort request for task S0n0A: payload [20, 35, 44, 28, 83]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "role": "user",
+            "target_id": "0:90",
+            "target_span": {
+              "start": 97,
+              "text": "Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+            }
+          },
+          "logits": [
+            2.6382851600646973,
+            -1.3624577522277832,
+            -1.9302681684494019,
+            -1.9426357746124268,
+            1.5423474311828613
+          ],
+          "model_input": [
+            "[target] active task From now on, for task S0n0A keep the payload sorted in descending order. [metadata] {\"key\": \"new:0:90\", \"task_id\": \"S0n0A\", \"version\": 1}",
+            "[message] user: Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction. Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [span] Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [prev_user] Work on task S0n0A. For every sorting request in this conversation, keep tag equal to 52. From now on, for task S0n0A keep the payload sorted in descending order. Sort request for task S0n0A: payload [20, 35, 44, 28, 83]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.7282544167439912,
+            0.013328539301474913,
+            0.007554150385698763,
+            0.007461298987121697,
+            0.24340159458171357
+          ],
+          "proposed": "none",
+          "token_count": 304
+        }
+      ],
+      "role": "user"
+    },
+    "turn": {
+      "direction": "descending",
+      "events": [],
+      "hard_none": true,
+      "kind": "sort",
+      "payload": [
+        69,
+        66,
+        58,
+        46,
+        74
+      ],
+      "post_change": false,
+      "stale": [],
+      "tag": 52,
+      "task": "S0n0A",
+      "text": "Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction. Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+    },
+    "turn_index": 1
+  },
+  {
+    "agreement": {
+      "contradictory": false,
+      "exact": false,
+      "false_retirement": true
+    },
+    "arm": "C",
+    "episode": "setup_0_00",
+    "event_checks": [
+      {
+        "actual": null,
+        "applied": false,
+        "expected": {
+          "id": "2:0",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S0n0A",
+          "span_start": 0,
+          "status": "live",
+          "text": "From now on, use ascending order instead of descending order for task S0n0A.",
+          "version": 2
+        },
+        "initial_order": false,
+        "label": "supersedes",
+        "passed": false,
+        "span": "From now on, use ascending order instead of descending order for task S0n0A.",
+        "state_matches": false,
+        "target": "2:0"
+      }
+    ],
+    "family": "override",
+    "gold_live": [
+      {
+        "id": "0:20",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 52.",
+        "version": 1
+      },
+      {
+        "id": "2:0",
+        "scope": "S0n0A",
+        "task_id": "S0n0A",
+        "text": "From now on, use ascending order instead of descending order for task S0n0A.",
+        "version": 2
+      }
+    ],
+    "gold_trace": {
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "superseded",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        },
+        {
+          "id": "2:0",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S0n0A",
+          "span_start": 0,
+          "status": "live",
+          "text": "From now on, use ascending order instead of descending order for task S0n0A.",
+          "version": 2
+        }
+      ],
+      "applied": [
+        {
+          "kind": "sort",
+          "label": "supersedes",
+          "scope": "S0n0A",
+          "span": "From now on, use ascending order instead of descending order for task S0n0A.",
+          "target": "0:90"
+        }
+      ],
+      "before": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "live",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        }
+      ]
+    },
+    "live": [
+      {
+        "id": "0:20",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 52.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "scope": "S0n0A",
+        "task_id": "S0n0A",
+        "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+        "version": 1
+      }
+    ],
+    "trace": {
+      "admissions": [
+        {
+          "accepted": false,
+          "logits": [
+            -1.688969373703003,
+            3.87597393989563,
+            -2.0071773529052734
+          ],
+          "model_input": [
+            "user: Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction. user: Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "[user] From now on, use ascending order instead of descending order for task S0n0A."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.003804627024684125,
+            0.9934276914233422,
+            0.002767681551973712
+          ],
+          "span": "From now on, use ascending order instead of descending order for task S0n0A.",
+          "start": 0,
+          "token_count": 108
+        },
+        {
+          "accepted": false,
+          "logits": [
+            0.051168154925107956,
+            0.6020244359970093,
+            -0.5778263807296753
+          ],
+          "model_input": [
+            "user: Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction. user: Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. user: From now on, use ascending order instead of descending order for task S0n0A.",
+            "[user] Sort request for task S0n0A: payload [25, 64, 82, 57, 39]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.3060101578398486,
+            0.530847389588066,
+            0.16314245257208532
+          ],
+          "span": "Sort request for task S0n0A: payload [25, 64, 82, 57, 39]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "start": 77,
+          "token_count": 163
+        }
+      ],
+      "admitted_beside_live": 0,
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "live",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "live",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        }
+      ],
+      "overflow": false,
+      "pairs": [
+        {
+          "applied": "none",
+          "gold": "none",
+          "input": {
+            "message": "From now on, use ascending order instead of descending order for task S0n0A. Sort request for task S0n0A: payload [25, 64, 82, 57, 39]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "old_rule": {
+              "key": "new:0:20",
+              "scope": "user-global",
+              "status": "active",
+              "task_id": null,
+              "text": "For every sorting request in this conversation, keep tag equal to 52.",
+              "version": 1
+            },
+            "prev_user": "Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction. Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "role": "user",
+            "target_id": "0:20",
+            "target_span": {
+              "start": 0,
+              "text": "From now on, use ascending order instead of descending order for task S0n0A."
+            }
+          },
+          "logits": [
+            2.910642623901367,
+            0.8160843849182129,
+            -2.313795328140259,
+            -2.1478617191314697,
+            -0.3497885465621948
+          ],
+          "model_input": [
+            "[target] active user-global For every sorting request in this conversation, keep tag equal to 52. [metadata] {\"key\": \"new:0:20\", \"version\": 1}",
+            "[message] user: From now on, use ascending order instead of descending order for task S0n0A. Sort request for task S0n0A: payload [25, 64, 82, 57, 39]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [span] From now on, use ascending order instead of descending order for task S0n0A. [prev_user] Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction. Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.8523442211551578,
+            0.10494456115205905,
+            0.004588496950294971,
+            0.005416696445073426,
+            0.032706024297414774
+          ],
+          "proposed": "none",
+          "token_count": 230
+        },
+        {
+          "applied": "none",
+          "gold": "supersedes",
+          "input": {
+            "message": "From now on, use ascending order instead of descending order for task S0n0A. Sort request for task S0n0A: payload [25, 64, 82, 57, 39]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "old_rule": {
+              "key": "new:0:90",
+              "scope": "task",
+              "status": "active",
+              "task_id": "S0n0A",
+              "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+              "version": 1
+            },
+            "prev_user": "Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction. Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "role": "user",
+            "target_id": "0:90",
+            "target_span": {
+              "start": 0,
+              "text": "From now on, use ascending order instead of descending order for task S0n0A."
+            }
+          },
+          "logits": [
+            3.1952426433563232,
+            0.6119344234466553,
+            -2.1011500358581543,
+            -2.09505558013916,
+            -0.4640423357486725
+          ],
+          "model_input": [
+            "[target] active task From now on, for task S0n0A keep the payload sorted in descending order. [metadata] {\"key\": \"new:0:90\", \"task_id\": \"S0n0A\", \"version\": 1}",
+            "[message] user: From now on, use ascending order instead of descending order for task S0n0A. Sort request for task S0n0A: payload [25, 64, 82, 57, 39]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [span] From now on, use ascending order instead of descending order for task S0n0A. [prev_user] Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction. Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.8998271482295682,
+            0.06795831261783321,
+            0.004507803509416935,
+            0.004535360003919975,
+            0.023171375639261662
+          ],
+          "proposed": "none",
+          "token_count": 247
+        },
+        {
+          "applied": "none",
+          "gold": "none",
+          "input": {
+            "message": "From now on, use ascending order instead of descending order for task S0n0A. Sort request for task S0n0A: payload [25, 64, 82, 57, 39]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "old_rule": {
+              "key": "new:0:20",
+              "scope": "user-global",
+              "status": "active",
+              "task_id": null,
+              "text": "For every sorting request in this conversation, keep tag equal to 52.",
+              "version": 1
+            },
+            "prev_user": "Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction. Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "role": "user",
+            "target_id": "0:20",
+            "target_span": {
+              "start": 77,
+              "text": "Sort request for task S0n0A: payload [25, 64, 82, 57, 39]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+            }
+          },
+          "logits": [
+            2.7758171558380127,
+            -0.25440847873687744,
+            -2.3920626640319824,
+            -2.0434844493865967,
+            0.6434637904167175
+          ],
+          "model_input": [
+            "[target] active user-global For every sorting request in this conversation, keep tag equal to 52. [metadata] {\"key\": \"new:0:20\", \"version\": 1}",
+            "[message] user: From now on, use ascending order instead of descending order for task S0n0A. Sort request for task S0n0A: payload [25, 64, 82, 57, 39]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [span] Sort request for task S0n0A: payload [25, 64, 82, 57, 39]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [prev_user] Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction. Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.8470041571736169,
+            0.04091431362394219,
+            0.004825072607601373,
+            0.006837375762266908,
+            0.10041908083257273
+          ],
+          "proposed": "none",
+          "token_count": 264
+        },
+        {
+          "applied": "none",
+          "gold": "none",
+          "input": {
+            "message": "From now on, use ascending order instead of descending order for task S0n0A. Sort request for task S0n0A: payload [25, 64, 82, 57, 39]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "old_rule": {
+              "key": "new:0:90",
+              "scope": "task",
+              "status": "active",
+              "task_id": "S0n0A",
+              "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+              "version": 1
+            },
+            "prev_user": "Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction. Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "role": "user",
+            "target_id": "0:90",
+            "target_span": {
+              "start": 77,
+              "text": "Sort request for task S0n0A: payload [25, 64, 82, 57, 39]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+            }
+          },
+          "logits": [
+            2.9973227977752686,
+            -0.24752257764339447,
+            -2.3214635848999023,
+            -2.00852108001709,
+            0.5505536794662476
+          ],
+          "model_input": [
+            "[target] active task From now on, for task S0n0A keep the payload sorted in descending order. [metadata] {\"key\": \"new:0:90\", \"task_id\": \"S0n0A\", \"version\": 1}",
+            "[message] user: From now on, use ascending order instead of descending order for task S0n0A. Sort request for task S0n0A: payload [25, 64, 82, 57, 39]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [span] Sort request for task S0n0A: payload [25, 64, 82, 57, 39]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [prev_user] Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction. Sort request for task S0n0A: payload [69, 66, 58, 46, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.8793954720639557,
+            0.034274078253925984,
+            0.004307890431168529,
+            0.005890794216290213,
+            0.07613176503465964
+          ],
+          "proposed": "none",
+          "token_count": 281
+        }
+      ],
+      "role": "user"
+    },
+    "turn": {
+      "direction": "ascending",
+      "events": [
+        {
+          "kind": "sort",
+          "label": "supersedes",
+          "scope": "S0n0A",
+          "span": "From now on, use ascending order instead of descending order for task S0n0A.",
+          "target": "0:90"
+        }
+      ],
+      "hard_none": false,
+      "kind": "sort",
+      "payload": [
+        25,
+        64,
+        82,
+        57,
+        39
+      ],
+      "post_change": true,
+      "stale": [
+        "descending"
+      ],
+      "tag": 52,
+      "task": "S0n0A",
+      "text": "From now on, use ascending order instead of descending order for task S0n0A. Sort request for task S0n0A: payload [25, 64, 82, 57, 39]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+    },
+    "turn_index": 2
+  },
+  {
+    "agreement": {
+      "contradictory": false,
+      "exact": false,
+      "false_retirement": true
+    },
+    "arm": "C",
+    "episode": "setup_0_00",
+    "event_checks": [],
+    "family": "override",
+    "gold_live": [
+      {
+        "id": "0:20",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 52.",
+        "version": 1
+      },
+      {
+        "id": "2:0",
+        "scope": "S0n0A",
+        "task_id": "S0n0A",
+        "text": "From now on, use ascending order instead of descending order for task S0n0A.",
+        "version": 2
+      }
+    ],
+    "gold_trace": {
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "superseded",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        },
+        {
+          "id": "2:0",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S0n0A",
+          "span_start": 0,
+          "status": "live",
+          "text": "From now on, use ascending order instead of descending order for task S0n0A.",
+          "version": 2
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "superseded",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        },
+        {
+          "id": "2:0",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S0n0A",
+          "span_start": 0,
+          "status": "live",
+          "text": "From now on, use ascending order instead of descending order for task S0n0A.",
+          "version": 2
+        }
+      ]
+    },
+    "live": [
+      {
+        "id": "0:20",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 52.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "scope": "S0n0A",
+        "task_id": "S0n0A",
+        "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+        "version": 1
+      }
+    ],
+    "trace": {
+      "admissions": [
+        {
+          "accepted": false,
+          "logits": [
+            0.5225751399993896,
+            0.094206303358078,
+            -0.7234735488891602
+          ],
+          "model_input": [
+            "user: From now on, use ascending order instead of descending order for task S0n0A. user: Sort request for task S0n0A: payload [25, 64, 82, 57, 39]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "[user] Continue task S0n0A; Sort request for task S0n0A: payload [20, 80, 72, 33, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.5156738677157066,
+            0.3359981619994663,
+            0.14832797028482708
+          ],
+          "span": "Continue task S0n0A; Sort request for task S0n0A: payload [20, 80, 72, 33, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "start": 0,
+          "token_count": 143
+        }
+      ],
+      "admitted_beside_live": 0,
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "live",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "live",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        }
+      ],
+      "overflow": false,
+      "pairs": [
+        {
+          "applied": "none",
+          "gold": "none",
+          "input": {
+            "message": "Continue task S0n0A; Sort request for task S0n0A: payload [20, 80, 72, 33, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "old_rule": {
+              "key": "new:0:20",
+              "scope": "user-global",
+              "status": "active",
+              "task_id": null,
+              "text": "For every sorting request in this conversation, keep tag equal to 52.",
+              "version": 1
+            },
+            "prev_user": "From now on, use ascending order instead of descending order for task S0n0A. Sort request for task S0n0A: payload [25, 64, 82, 57, 39]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "role": "user",
+            "target_id": "0:20",
+            "target_span": {
+              "start": 0,
+              "text": "Continue task S0n0A; Sort request for task S0n0A: payload [20, 80, 72, 33, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+            }
+          },
+          "logits": [
+            2.446112871170044,
+            0.32931017875671387,
+            -2.627509117126465,
+            -2.0025620460510254,
+            0.5761982798576355
+          ],
+          "model_input": [
+            "[target] active user-global For every sorting request in this conversation, keep tag equal to 52. [metadata] {\"key\": \"new:0:20\", \"version\": 1}",
+            "[message] user: Continue task S0n0A; Sort request for task S0n0A: payload [20, 80, 72, 33, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [span] Continue task S0n0A; Sort request for task S0n0A: payload [20, 80, 72, 33, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [prev_user] From now on, use ascending order instead of descending order for task S0n0A. Sort request for task S0n0A: payload [25, 64, 82, 57, 39]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.7736904367528407,
+            0.0931647236710607,
+            0.004843075015522764,
+            0.009047576428127698,
+            0.11925418813244829
+          ],
+          "proposed": "none",
+          "token_count": 254
+        },
+        {
+          "applied": "none",
+          "gold": "none",
+          "input": {
+            "message": "Continue task S0n0A; Sort request for task S0n0A: payload [20, 80, 72, 33, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "old_rule": {
+              "key": "new:0:90",
+              "scope": "task",
+              "status": "active",
+              "task_id": "S0n0A",
+              "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+              "version": 1
+            },
+            "prev_user": "From now on, use ascending order instead of descending order for task S0n0A. Sort request for task S0n0A: payload [25, 64, 82, 57, 39]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "role": "user",
+            "target_id": "0:90",
+            "target_span": {
+              "start": 0,
+              "text": "Continue task S0n0A; Sort request for task S0n0A: payload [20, 80, 72, 33, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+            }
+          },
+          "logits": [
+            2.6824541091918945,
+            -0.26478832960128784,
+            -2.4365313053131104,
+            -1.9982390403747559,
+            0.8435526490211487
+          ],
+          "model_input": [
+            "[target] active task From now on, for task S0n0A keep the payload sorted in descending order. [metadata] {\"key\": \"new:0:90\", \"task_id\": \"S0n0A\", \"version\": 1}",
+            "[message] user: Continue task S0n0A; Sort request for task S0n0A: payload [20, 80, 72, 33, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [span] Continue task S0n0A; Sort request for task S0n0A: payload [20, 80, 72, 33, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [prev_user] From now on, use ascending order instead of descending order for task S0n0A. Sort request for task S0n0A: payload [25, 64, 82, 57, 39]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.81517470682344,
+            0.04278382093889392,
+            0.004876447775567444,
+            0.007558776246268583,
+            0.12960624821583014
+          ],
+          "proposed": "none",
+          "token_count": 271
+        }
+      ],
+      "role": "user"
+    },
+    "turn": {
+      "direction": "ascending",
+      "events": [],
+      "hard_none": false,
+      "kind": "sort",
+      "payload": [
+        20,
+        80,
+        72,
+        33,
+        87
+      ],
+      "post_change": true,
+      "stale": [
+        "descending"
+      ],
+      "tag": 52,
+      "task": "S0n0A",
+      "text": "Continue task S0n0A; Sort request for task S0n0A: payload [20, 80, 72, 33, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+    },
+    "turn_index": 3
+  },
+  {
+    "agreement": {
+      "contradictory": false,
+      "exact": true,
+      "false_retirement": false
+    },
+    "arm": "C",
+    "episode": "setup_0_00",
+    "event_checks": [],
+    "family": "override",
+    "gold_live": [],
+    "gold_trace": {
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "superseded",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        },
+        {
+          "id": "2:0",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S0n0A",
+          "span_start": 0,
+          "status": "live",
+          "text": "From now on, use ascending order instead of descending order for task S0n0A.",
+          "version": 2
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "superseded",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        },
+        {
+          "id": "2:0",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S0n0A",
+          "span_start": 0,
+          "status": "live",
+          "text": "From now on, use ascending order instead of descending order for task S0n0A.",
+          "version": 2
+        }
+      ]
+    },
+    "live": [],
+    "trace": {
+      "admissions": [
+        {
+          "accepted": false,
+          "logits": [
+            1.159048080444336,
+            2.2080636024475098,
+            -3.273832082748413
+          ],
+          "model_input": [
+            "user: Continue task S0n0A; Sort request for task S0n0A: payload [20, 80, 72, 33, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "[user] Reply exactly calm."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.2586171605692803,
+            0.7383104097963235,
+            0.0030724296343961296
+          ],
+          "span": "Reply exactly calm.",
+          "start": 0,
+          "token_count": 73
+        }
+      ],
+      "admitted_beside_live": 0,
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "live",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "live",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        }
+      ],
+      "overflow": false,
+      "pairs": [
+        {
+          "applied": "none",
+          "gold": "none",
+          "input": {
+            "message": "Reply exactly calm.",
+            "old_rule": {
+              "key": "new:0:20",
+              "scope": "user-global",
+              "status": "active",
+              "task_id": null,
+              "text": "For every sorting request in this conversation, keep tag equal to 52.",
+              "version": 1
+            },
+            "prev_user": "Continue task S0n0A; Sort request for task S0n0A: payload [20, 80, 72, 33, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "role": "user",
+            "target_id": "0:20",
+            "target_span": {
+              "start": 0,
+              "text": "Reply exactly calm."
+            }
+          },
+          "logits": [
+            2.95229434967041,
+            -1.0768578052520752,
+            -2.0949432849884033,
+            -1.8286974430084229,
+            1.0026315450668335
+          ],
+          "model_input": [
+            "[target] active user-global For every sorting request in this conversation, keep tag equal to 52. [metadata] {\"key\": \"new:0:20\", \"version\": 1}",
+            "[message] user: Reply exactly calm. [span] Reply exactly calm. [prev_user] Continue task S0n0A; Sort request for task S0n0A: payload [20, 80, 72, 33, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.8511172879874002,
+            0.015140871178646013,
+            0.0054701842967355,
+            0.00713889605405669,
+            0.12113276048316161
+          ],
+          "proposed": "none",
+          "token_count": 129
+        },
+        {
+          "applied": "none",
+          "gold": "none",
+          "input": {
+            "message": "Reply exactly calm.",
+            "old_rule": {
+              "key": "new:0:90",
+              "scope": "task",
+              "status": "active",
+              "task_id": "S0n0A",
+              "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+              "version": 1
+            },
+            "prev_user": "Continue task S0n0A; Sort request for task S0n0A: payload [20, 80, 72, 33, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "role": "user",
+            "target_id": "0:90",
+            "target_span": {
+              "start": 0,
+              "text": "Reply exactly calm."
+            }
+          },
+          "logits": [
+            2.725600242614746,
+            -1.5540661811828613,
+            -2.068617105484009,
+            -1.5860111713409424,
+            1.4617788791656494
+          ],
+          "model_input": [
+            "[target] active task From now on, for task S0n0A keep the payload sorted in descending order. [metadata] {\"key\": \"new:0:90\", \"task_id\": \"S0n0A\", \"version\": 1}",
+            "[message] user: Reply exactly calm. [span] Reply exactly calm. [prev_user] Continue task S0n0A; Sort request for task S0n0A: payload [20, 80, 72, 33, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.7586626999827271,
+            0.010505415165552572,
+            0.006279811285644073,
+            0.010175123451849781,
+            0.21437695011422664
+          ],
+          "proposed": "none",
+          "token_count": 146
+        }
+      ],
+      "role": "user"
+    },
+    "turn": {
+      "direction": "ascending",
+      "events": [],
+      "hard_none": false,
+      "kind": "prose",
+      "payload": [
+        73,
+        70,
+        89,
+        88,
+        21
+      ],
+      "post_change": true,
+      "stale": [],
+      "tag": 52,
+      "task": "S0n0A",
+      "text": "Reply exactly calm."
+    },
+    "turn_index": 4
+  },
+  {
+    "agreement": {
+      "contradictory": false,
+      "exact": false,
+      "false_retirement": true
+    },
+    "arm": "C",
+    "episode": "setup_0_00",
+    "event_checks": [],
+    "family": "override",
+    "gold_live": [
+      {
+        "id": "0:20",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 52.",
+        "version": 1
+      },
+      {
+        "id": "2:0",
+        "scope": "S0n0A",
+        "task_id": "S0n0A",
+        "text": "From now on, use ascending order instead of descending order for task S0n0A.",
+        "version": 2
+      }
+    ],
+    "gold_trace": {
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "superseded",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        },
+        {
+          "id": "2:0",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S0n0A",
+          "span_start": 0,
+          "status": "live",
+          "text": "From now on, use ascending order instead of descending order for task S0n0A.",
+          "version": 2
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "superseded",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        },
+        {
+          "id": "2:0",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 2,
+          "scope": "S0n0A",
+          "span_start": 0,
+          "status": "live",
+          "text": "From now on, use ascending order instead of descending order for task S0n0A.",
+          "version": 2
+        }
+      ]
+    },
+    "live": [
+      {
+        "id": "0:20",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 52.",
+        "version": 1
+      },
+      {
+        "id": "0:90",
+        "scope": "S0n0A",
+        "task_id": "S0n0A",
+        "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+        "version": 1
+      }
+    ],
+    "trace": {
+      "admissions": [
+        {
+          "accepted": false,
+          "logits": [
+            -0.5900813937187195,
+            2.76131534576416,
+            -2.1699864864349365
+          ],
+          "model_input": [
+            "user: Reply exactly calm.",
+            "[user] Work on task S0n0A; Sort request for task S0n0A: payload [10, 28, 73, 67, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.033615064550208205,
+            0.9594604120713789,
+            0.006924523378413006
+          ],
+          "span": "Work on task S0n0A; Sort request for task S0n0A: payload [10, 28, 73, 67, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "start": 0,
+          "token_count": 74
+        }
+      ],
+      "admitted_beside_live": 0,
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "live",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 52.",
+          "version": 1
+        },
+        {
+          "id": "0:90",
+          "key": "new:0:90",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "S0n0A",
+          "span_start": 90,
+          "status": "live",
+          "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+          "version": 1
+        }
+      ],
+      "overflow": false,
+      "pairs": [
+        {
+          "applied": "none",
+          "gold": "none",
+          "input": {
+            "message": "Work on task S0n0A; Sort request for task S0n0A: payload [10, 28, 73, 67, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "old_rule": {
+              "key": "new:0:20",
+              "scope": "user-global",
+              "status": "active",
+              "task_id": null,
+              "text": "For every sorting request in this conversation, keep tag equal to 52.",
+              "version": 1
+            },
+            "prev_user": "Reply exactly calm.",
+            "role": "user",
+            "target_id": "0:20",
+            "target_span": {
+              "start": 0,
+              "text": "Work on task S0n0A; Sort request for task S0n0A: payload [10, 28, 73, 67, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+            }
+          },
+          "logits": [
+            2.9172465801239014,
+            -0.6823992729187012,
+            -2.3349766731262207,
+            -1.871996521949768,
+            0.739631712436676
+          ],
+          "model_input": [
+            "[target] active user-global For every sorting request in this conversation, keep tag equal to 52. [metadata] {\"key\": \"new:0:20\", \"version\": 1}",
+            "[message] user: Work on task S0n0A; Sort request for task S0n0A: payload [10, 28, 73, 67, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [span] Work on task S0n0A; Sort request for task S0n0A: payload [10, 28, 73, 67, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [prev_user] Reply exactly calm."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.866401354358771,
+            0.023681695449942412,
+            0.004536360350581284,
+            0.007207377518833457,
+            0.09817321232187182
+          ],
+          "proposed": "none",
+          "token_count": 188
+        },
+        {
+          "applied": "none",
+          "gold": "none",
+          "input": {
+            "message": "Work on task S0n0A; Sort request for task S0n0A: payload [10, 28, 73, 67, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "old_rule": {
+              "key": "new:0:90",
+              "scope": "task",
+              "status": "active",
+              "task_id": "S0n0A",
+              "text": "From now on, for task S0n0A keep the payload sorted in descending order.",
+              "version": 1
+            },
+            "prev_user": "Reply exactly calm.",
+            "role": "user",
+            "target_id": "0:90",
+            "target_span": {
+              "start": 0,
+              "text": "Work on task S0n0A; Sort request for task S0n0A: payload [10, 28, 73, 67, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+            }
+          },
+          "logits": [
+            2.836799383163452,
+            -1.1817822456359863,
+            -2.2624218463897705,
+            -1.6637948751449585,
+            1.145700454711914
+          ],
+          "model_input": [
+            "[target] active task From now on, for task S0n0A keep the payload sorted in descending order. [metadata] {\"key\": \"new:0:90\", \"task_id\": \"S0n0A\", \"version\": 1}",
+            "[message] user: Work on task S0n0A; Sort request for task S0n0A: payload [10, 28, 73, 67, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [span] Work on task S0n0A; Sort request for task S0n0A: payload [10, 28, 73, 67, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [prev_user] Reply exactly calm."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.8200087367649669,
+            0.014742483593095643,
+            0.005003280339620583,
+            0.009104062445465806,
+            0.1511414368568511
+          ],
+          "proposed": "none",
+          "token_count": 205
+        }
+      ],
+      "role": "user"
+    },
+    "turn": {
+      "direction": "ascending",
+      "events": [],
+      "hard_none": false,
+      "kind": "sort",
+      "payload": [
+        10,
+        28,
+        73,
+        67,
+        87
+      ],
+      "post_change": true,
+      "stale": [
+        "descending"
+      ],
+      "tag": 52,
+      "task": "S0n0A",
+      "text": "Work on task S0n0A; Sort request for task S0n0A: payload [10, 28, 73, 67, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+    },
+    "turn_index": 5
+  }
+]
