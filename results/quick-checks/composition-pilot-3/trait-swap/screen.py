@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import sys
 import tempfile
+import threading
 import time
 import urllib.request
 OUT=Path(__file__).resolve().parent;PARENT=OUT.parent
@@ -113,13 +114,13 @@ def screen(client,deadline,tok):
     assert [digest(asdict(e)) for e in episodes]==[e['sha256'] for e in frozen['episodes']]
     started=time.time()
     for wave in range(2):
-        if time.time()>deadline-240:raise TimeoutError('style call reserve')
+        if time.time()>deadline-140:raise TimeoutError('style call reserve')
         lanes=[p.Lane(OUT,e,'R','c4') for e in episodes[4*wave:4*wave+4]]
         for lane in lanes:lane.prepare(0);lane.gate=dict(allowed=lane.bound<=32256,bounds={'R':lane.bound})
         assert all(l.gate['allowed'] for l in lanes)
         p.append(OUT/'schedule.jsonl',dict(wave=wave,episodes=[l.episode.episode_id for l in lanes],arm='R',round=0,started=time.time()))
         with cf.ThreadPoolExecutor(max_workers=4) as pool:
-            fs=[pool.submit(r.one,l,r.Decoder(client,tok,deadline,l,wave)) for l in lanes]
+            fs=[pool.submit(r.one,l,r.Decoder(client,tok,deadline-40,l,wave)) for l in lanes]
             for f in fs:f.result()
         for lane in lanes:
             ids=list(lane.session.history_ids);p.write(lane.directory/'final-transcript.json',dict(ids=ids,sha256=r.ids_hash(ids)))
@@ -142,10 +143,15 @@ def launch():
     with flag.open('x') as f:json.dump(dict(pid=os.getpid(),start=start,deadline=deadline,phase='trait-swap'),f)
     receipt=dict(start=start,deadline=deadline,status='starting',occupancy=gpu);p.write(OUT/'run.json',receipt)
     name=f'stencil-pilot3-trait-{int(start)}';args=list(reg['command']);args[args.index('--name')+1]=name;created=False
+    done=threading.Event();watchdog=None
     r.OUT=OUT;client=r.load_client();tok=r.Tokenizer.from_file(str(slab.TOKENIZER_PATH))
     try:
         receipt['launch']=r.cmd(args);p.write(OUT/'run.json',receipt);assert receipt['launch']['returncode']==0;created=True
         p.write(OUT/'container.json',dict(name=name,id=receipt['launch']['output'].strip()))
+        def budget_guard():
+            if not done.wait(max(0,deadline-time.time()-25)):
+                receipt['deadline_stop']=r.cmd(['docker','stop','-t','20',name])
+        watchdog=threading.Thread(target=budget_guard,daemon=True);watchdog.start()
         while time.time()<deadline-240:
             status=r.cmd(['docker','inspect','--format','{{.State.Status}}',name]);assert status['output'].strip()=='running',status
             try:
@@ -155,10 +161,12 @@ def launch():
         else:raise TimeoutError('style startup budget')
         receipt.update(status='ready',load_seconds=time.time()-start);p.write(OUT/'run.json',receipt)
         # Same fixed eight-prompt schedule-level gate on this fresh server.
-        if not r.determinism(client,deadline):receipt['status']='determinism_stop';return
+        if not r.determinism(client,deadline-40):receipt['status']='determinism_stop';return
         client.metrics('before.prom');screen(client,deadline,tok);client.metrics('after.prom');receipt['status']='finished'
     except BaseException as exc:receipt.update(status='error',error=repr(exc));raise
     finally:
+        done.set()
+        if watchdog is not None:watchdog.join(timeout=25)
         if created:
             receipt['stop']=r.cmd(['docker','stop','-t','20',name]);(OUT/'server.log').write_text(r.cmd(['docker','logs','--timestamps',name])['output'])
             p.write(OUT/'container-inspect.json',json.loads(r.cmd(['docker','inspect',name])['output']));receipt['remove']=r.cmd(['docker','rm',name])

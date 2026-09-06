@@ -32,3 +32,15 @@ Stop/rm only the newly owned container. Its startup and eight calls must fit
 inside the original9000 GPU-seconds minus BOTH original pilot starts; reserve
 240 seconds for request termination/cleanup. If the original required work
 exhausts the cap, preserve the CPU swap and label the GPU screen UNRUN.
+
+## Budget-boundary clarification before any swapped inference
+
+Replace the blanket240-second no-new-call boundary for the eight short screen
+calls with140 seconds; pass a client deadline40 seconds before the GPU cap.
+The normal qualified streaming client itself rejects starts in its last90s.
+An independent in-process deadline guard stops ONLY the successfully created
+owned container at cap-minus25s, using Docker stop -t20; this bounds serving
+even if the HTTP reader stalls. Startup keeps its240s reserve. This changes
+only budget handling, not the cap512, EOS, model, prompts or measured gates.
+The fresh server still repeats the same24-call frozen determinism check before
+the eight swapped calls; all time and any interruption remain charged.

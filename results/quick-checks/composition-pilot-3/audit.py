@@ -16,12 +16,14 @@ from stencil.focus.journal import FIELDS
 def lines(path):return [json.loads(s) for s in path.read_text().splitlines()] if path.exists() else []
 def normalized(x):return json.loads(json.dumps(x))
 def main():
-    reg=json.loads((OUT/'registration.json').read_text())
-    for name,digest in reg['source_hashes'].items():
+    phases=[OUT]+([OUT/'continuation'] if (OUT/'continuation/run.json').exists() else [])
+    regs=[json.loads((phase/'registration.json').read_text()) for phase in phases]
+    hashes={name:digest for reg in regs for name,digest in reg['source_hashes'].items()}
+    for name,digest in hashes.items():
         path=ROOT/name
         if path==OUT/'README.md' and (OUT/'prewritten.md').exists():path=OUT/'prewritten.md'
         assert p.sha(path)==digest,name
-    rows=lines(OUT/'records.jsonl');http=lines(OUT/'http/records.jsonl')
+    rows=[row for phase in phases for row in lines(phase/'records.jsonl')];http=[row for phase in phases for row in lines(phase/'http/records.jsonl')]
     pairs={}
     for h in http:
         assert h['complete'] and h['done']
@@ -73,32 +75,45 @@ def main():
                 for key in ('source_events','before_versions','after_versions','before_live_mask','after_live_mask','register_events','event_generations','defaults','applicability','executed_tool_calls','tool_results','artifact_hashes'):
                     assert normalized(result[key])==r[key],(episode,arm,index,key)
                 checked+=1
-            final=OUT/'c4'/episode/arm/'final-transcript.json'
+            final=next((phase/'c4'/episode/arm/'final-transcript.json' for phase in reversed(phases) if (phase/'c4'/episode/arm/'final-transcript.json').exists()),OUT/'missing')
             if final.exists():
                 f=json.loads(final.read_text());assert f['ids']==list(lane.session.history_ids)
                 assert f['sha256']==runner.ids_hash(f['ids'])
-    det=json.loads((OUT/'determinism.json').read_text())
-    first=[r for r in http if r['pass_name']=='b1_cold']
-    assert len(first)==8
-    for a in first:
-        for mode in ('b1_warm','b4_mixed'):
-            b=next(r for r in http if (r['pass_name'],r['index'])==(mode,a['index']))
-            assert a['output_token_ids']==b['output_token_ids']
-    assert det['passed'] and det['D']==0
+            hf=OUT/'hf-transcripts'/episode/(arm+'.json')
+            if hf.exists():
+                h=json.loads(hf.read_text());last=max(saved,key=lambda row:row['oracle_checker_results'][0]['round'])
+                actual=last['rendered_token_ids']+last['output_token_ids']+([] if last['eos'] is None else [last['eos']])
+                assert h['contains_system'] and h['ids']==actual and h['sha256']==runner.ids_hash(actual)
+
+    original_cold={h['index']:h['output_token_ids'] for h in lines(OUT/'http/records.jsonl') if h['pass_name']=='b1_cold'}
+    for phase in phases:
+        if '--partial' in sys.argv and not (phase/'determinism.json').exists():continue
+        det=json.loads((phase/'determinism.json').read_text())
+        ph=lines(phase/'http/records.jsonl')
+        first=[row for row in ph if row['pass_name']=='b1_cold']
+        assert len(first)==8
+        for a in first:
+            assert a['output_token_ids']==original_cold[a['index']]
+            for mode in ('b1_warm','b4_mixed'):
+                b=next(row for row in ph if (row['pass_name'],row['index'])==(mode,a['index']))
+                assert a['output_token_ids']==b['output_token_ids']
+        assert det['passed'] and det['D']==0
     if '--partial' in sys.argv:
         p.write(OUT/'partial-audit.json',dict(passed=True,records=checked,scope='completed prefix; lifecycle not checked',dev_only=True))
         print('PASS partial',checked,'exact CPU trajectory replays')
         return
-    run=json.loads((OUT/'run.json').read_text())
-    assert run['gpu_held_seconds']+json.loads((OUT/'initial-attempt/run.json').read_text())['gpu_held_seconds']<=9000
-    assert run['stop']['returncode']==run['remove']['returncode']==0
-    inspection=json.loads((OUT/'container-inspect.json').read_text())[0]
-    assert inspection['Image']=='sha256:ffa30d66ff5c9346c6389507cc529827fc9934a6d2ee37855934f94fe1061cdc'
-    assert not inspection['State']['Running']
+    runs=[json.loads((phase/'run.json').read_text()) for phase in phases]
+    trait=json.loads((OUT/'trait-swap/run.json').read_text()) if (OUT/'trait-swap/run.json').exists() else {}
+    assert sum(run['gpu_held_seconds'] for run in runs)+json.loads((OUT/'initial-attempt/run.json').read_text())['gpu_held_seconds']+trait.get('gpu_held_seconds',0)<=9000
+    for phase,run in zip(phases,runs,strict=True):
+        assert run['stop']['returncode']==run['remove']['returncode']==0
+        inspection=json.loads((phase/'container-inspect.json').read_text())[0]
+        assert inspection['Image']=='sha256:ffa30d66ff5c9346c6389507cc529827fc9934a6d2ee37855934f94fe1061cdc'
+        assert not inspection['State']['Running']
     assert not (OUT/'RUNNING.flag').exists()
     p.write(OUT/'audit.json',dict(passed=True,records=checked,http_calls=len(http),
         exact_prompt_and_state_replays=checked,execution_and_checker_replays=checked,
-        source_hashes=len(reg['source_hashes']),dev_only=True,hidden_capture=False,
+        source_hashes=len(hashes),dev_only=True,hidden_capture=False,
         image_verified=True,cleanup_verified=True,determinism_verified=True))
     print('PASS',checked,'exact CPU trajectory replays')
 if __name__=='__main__':main()

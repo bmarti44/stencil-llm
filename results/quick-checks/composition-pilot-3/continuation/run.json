@@ -1,0 +1,79 @@
+{
+  "deadline": 1788732578.5171783,
+  "end": 1788731609.8379982,
+  "gpu_held_seconds": 5376.976809501648,
+  "launch": {
+    "args": [
+      "docker",
+      "run",
+      "-d",
+      "--name",
+      "stencil-pilot3-continuation-1788726232",
+      "--device",
+      "nvidia.com/gpu=0",
+      "--ipc=host",
+      "-p",
+      "127.0.0.1:18081:8000",
+      "-e",
+      "VLLM_BATCH_INVARIANT=1",
+      "-v",
+      "/home/bmarti44/stencil-llm/models/qwen3-30b-a3b-hf:/model:ro",
+      "vllm/vllm-openai@sha256:3dbe092ec5b2cef63b6104d33fa75d6ce53a7870962529ada69f78bbbc38e776",
+      "--attention-backend",
+      "TRITON_ATTN",
+      "--model",
+      "/model",
+      "--dtype",
+      "bfloat16",
+      "--kv-cache-dtype",
+      "auto",
+      "--tensor-parallel-size",
+      "1",
+      "--max-model-len",
+      "32768",
+      "--max-num-seqs",
+      "4",
+      "--max-num-batched-tokens",
+      "2048",
+      "--gpu-memory-utilization",
+      "0.70",
+      "--enable-prefix-caching",
+      "--generation-config",
+      "vllm"
+    ],
+    "output": "a715522233080edf4dc2becd1cb9d64c6a3fa3361dfca2c1bd292bf6eea2ddf4\n",
+    "returncode": 0
+  },
+  "load_seconds": 428.53555130958557,
+  "occupancy": {
+    "args": [
+      "nvidia-smi",
+      "--query-compute-apps=pid,process_name",
+      "--format=csv,noheader"
+    ],
+    "output": "",
+    "returncode": 0
+  },
+  "remove": {
+    "args": [
+      "docker",
+      "rm",
+      "stencil-pilot3-continuation-1788726232"
+    ],
+    "output": "stencil-pilot3-continuation-1788726232\n",
+    "returncode": 0
+  },
+  "start": 1788726232.8611891,
+  "status": "finished",
+  "stop": {
+    "args": [
+      "docker",
+      "stop",
+      "-t",
+      "20",
+      "stencil-pilot3-continuation-1788726232"
+    ],
+    "output": "stencil-pilot3-continuation-1788726232\n",
+    "returncode": 0
+  }
+}
