@@ -5423,3 +5423,9 @@ DEV5/8 qualified without revision;32 fresh authored evaluation tasks opened once
 Paired2 wins/11 losses/19 ties,−28.125pp; conservative95%CI[−55.123,+6.226]pp; benefit p=.998291, two-sided p=.022461.
 All11 losses valid unbroken JS; broken text/bias/shuffle/OFF0/2/1/3. Actuator stays off by default/behind opt-in flag.
 Recipe28869719, calibration4942594d;136 records and strict-value scores audited;1520.526/2700GPU-s,one load,no signals/push.
+
+2026-09-06 — check40l (gpt-6-astra): R4; competence-only screen; ARM A cut, R2 unreachable.
+Fit-on24DEV replies (15pass/9fail), equal-reply centred router logits; evaluated-on same32 check40k tasks, second look disclosed.
+Text-only/competence1/3/competence2/3/shuffle2/3 success[16, 14, 13, 15]; broken[0, 0, 1, 2]; paired W/L/T 1/3 1/3/28; 2/3 3/6/23; shuffle 1/2/29.
+Recipeaa1fa772, profile freeze74086c43;120new+32baseline records and raw-profile/norm audits pass.
+1345.206/2700GPU-s,one load; no enlargement,signals or push; see check40l README for readings and exact inference.

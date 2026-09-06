@@ -516,3 +516,9 @@ FOCUS-3 gate ([results v2](focus3-gate/RESULTS.md), [frozen reading](focus3-gate
    Bias wins2/losses11/ties19; delta−28.125pp, conservative95%CI[−55.123,+6.226]pp; benefit p=.998291, exact two-sided p=.022461.
    All11 losses valid unbroken JS; shuffled net−5. No default-on: same alpha3 tensor harms task competence here; actuator stays off/opt-in.
    Recipe28869719, DEV freeze4942594d;136 records/160 tests audited, strict-return audit unchanged;1520.526/2700GPU-s, one load, no signals/push.
+
+40l. COMPETENCE DIRECTION ([check40l](check40l/README.md)): **R4**; DEV15/24 pass,9 fail; same32 evaluation tasks, disclosed second look.
+   Text-only/competence1/3/competence2/3/shuffle2/3 pass[16, 14, 13, 15]; broken[0, 0, 1, 2]; unchanged40k baseline reused.
+   Paired wins/losses/ties: 1/3 1/3/28; 2/3 3/6/23; shuffle 1/2/29; exact sign tests and conservative paired95%CIs in report.
+   R2 unreachable (ARM A cut); R4 INCONCLUSIVE, line stays parked; no enlargement or shipping change.
+   24DEV+96eval records,raw48-layer token profiles/norms audited;1345.206/2700GPU-s,one load; no signals/push.
