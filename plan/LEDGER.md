@@ -864,3 +864,10 @@ Switch-and-return C/C'/O/N final16/16, T15/16; candidate exact11/16 vs4/16.
 These are descriptive readings, no gate label. Exactly110exposed row-turns per
 candidate arm (220total) now probed using fixed original histories. Snapshot
 full main-arm records and summary before probes finish; no rerun or fitting.
+
+2026-09-06 — STATE: CHECK44 GPU ALLOCATED; FROZEN24DEV RUNNING.
+Diagnostic released its flag naturally; no other compute process at allocation.
+Own check44 flag acquired, pid754171, run-start receipt precedes model loading.
+Recipe hashes verified unchanged; first GPU DEV outputs0.25–4.88s. No prompt
+revision or fitting; source held-out remains gated on completed24DEV and frozen
+elapsed+1.25*338*slowest projection.5400s GPU cap; foreground only, never signal.
