@@ -706,3 +706,18 @@ sort-order target; all four pass .95 admission and .50 relation thresholds.
 Extra completion is same-task inert pollution; scope-only fix cannot guarantee
 its removal. No unauthorized quote veto. Stop after one failed CPU replay and
 prepare escalation; no next iteration. Foreground only, never signal, no push.
+
+2026-09-06 — STATE: V8 RECIPE FROZEN; FOREGROUND REFIT NEXT.
+Hand-wrote300 unique JSONL rows:200NONE/100STANDING,10domains; no script-created
+example content. Inline/escaped payloads and nearby multiline code/CSV contexts
+preserve single runtime-sentence targets. Corpus20934 (v7 exact20634 +300), zero
+exclusions; seed splits18841/2093,18840/2094,18841/2093. Existing282 historical
+patch exceptions unchanged. Tokenizer preflight PASS;122CPU tests pass/1existing
+xfail;14new lifecycle failures observed before implementation, now pass.
+V8 flag preserves old consumers; completion filters scope before precedence;
+reinstatement requires own admitted key and cancelled/completed status, no
+embedded-text bypass, conservative cancellation veto. v7 measured264.59s for
+three seeds on20634rows projects about268.44s for20934rows, GPU-minutes within
+10800s cap; no new pilot/model selection. Recipe and source hashes frozen before
+any fitting/heldout scores. Next .venv/bin/python -u -m scripts.focus3_gate_v8
+--mode fit, foreground flag-coordinated/no signals. CPU query no compute/flags.

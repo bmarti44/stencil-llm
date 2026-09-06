@@ -137,6 +137,31 @@ def can_reinstate(span, admission, old):
     )
 
 
+def strict_reinstatement(span, admission, old, target_key, cancellation):
+    """V8: a retired key cannot supply the missing meaning of a new span."""
+    return (
+        old.status in ("cancelled", "completed")
+        and not cancellation
+        and not task_switch_only(span)
+        and not admission["overflow"]
+        and admission["probabilities"][1] >= 0.95
+        and relation_key(prose_message(span)) == target_key
+    )
+
+
+def cancellation_message(text, pairs):
+    # Conservative message-level veto, confined to reinstatement eligibility.
+    return any(p["proposed"] == "cancels" for p in pairs) or bool(
+        re.search(
+            r"\b(?:cancel\w*|revok\w*|revocation|rescind\w*|withdraw\w*|"
+            r"discontinu\w*|drop|discard|abolish|stop following|stop using|"
+            r"no longer|do not|don't)\b",
+            text,
+            re.I,
+        )
+    )
+
+
 @dataclass
 class Rule:
     id: str
@@ -252,6 +277,7 @@ class Runtime:
         self.thresholds = getattr(classifier, "thresholds", THRESHOLDS)
         self.admission_bound = getattr(classifier, "admission_bound", "legacy_none")
         self.key_identity = getattr(classifier, "key_identity", False)
+        self.strict_lifecycle = getattr(classifier, "strict_lifecycle", False)
         self.key_slugs = {}
         assert self.admission_bound in ("legacy_none", "positive_proposal")
         self.register = Register()
@@ -365,6 +391,31 @@ class Runtime:
             # all obligations; retain the pre-existing atomic completion check.
             if kind_of(span) == "all":
                 positive = [p for p in rows if p["proposed"] != "none"]
+            if self.strict_lifecycle:
+                # Filter only transition eligibility: raw positives still bound
+                # admission, including a rejected reinstatement/completion.
+                positive = [
+                    p for p in positive
+                    if p["proposed"] != "completes"
+                    or (
+                        scope not in (None, "*")
+                        and self.register.get(p["input"]["target_id"]).scope == scope
+                    )
+                ]
+                positive = [
+                    p for p in positive
+                    if p["proposed"] != "reinstates"
+                    or strict_reinstatement(
+                        span,
+                        admission,
+                        self.register.get(p["input"]["target_id"]),
+                        self.key_slugs.get(
+                            p["input"]["target_id"],
+                            relation_key(self.register.get(p["input"]["target_id"]).text),
+                        ),
+                        cancellation_message(text, trace["pairs"]),
+                    )
+                ]
             positive = [
                 p
                 for p in positive
@@ -529,6 +580,7 @@ class FrozenClassifier:
         admission_bound="legacy_none",
         admission_path=None,
         key_identity=False,
+        strict_lifecycle=False,
     ):
         import torch
         from safetensors.torch import load_file
@@ -539,6 +591,7 @@ class FrozenClassifier:
         self.thresholds = THRESHOLDS if thresholds is None else thresholds
         self.admission_bound = admission_bound
         self.key_identity = key_identity
+        self.strict_lifecycle = strict_lifecycle
         relations_path = relations_path or ROOT / "data/classifier/model/relations"
         self.branches = {}
         for branch, classes in [("relations", 5), ("ft", 3)]:
