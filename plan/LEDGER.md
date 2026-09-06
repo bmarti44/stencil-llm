@@ -897,3 +897,14 @@ absent;27targeted tests/1existing xfail, both saved-data audits and lint verifie
 Force-stage only named diagnostic/report paths; manifest binds every diagnostic
 leaf except itself. Post-commit HEAD-blob and tracked-membership verification
 follows. Prior results and unrelated files preserved; never signalled, no push.
+
+2026-09-06 — STATE: CHECK44 HEADER-ONLY REPAIR; ZERO HELD-OUT PREDICTIONS.
+Initial loader counted339JSON objects instead of338messages: author summary
+header is the extra object.24GPU DEV complete, conservative projection3264.883s;
+preflight INVALID count assertion,83.269454GPU seconds, zero held-out predictions.
+Original script/receipt/DEV/log/summary preserved in check44/preflight-v1. Inspect
+header/schema only; no message wording/outcome guides repair. New loader skips
+exactly one summary header; synthetic consumer tests and existing selftests/lint
+pass. Guarded resume reuses DEV, same weights/prompt/schema/GO, carries prior83.27s
+into5400s budget. Source bytes reopened for metadata diagnosis, disclosed; still
+one prediction pass. Repair receipt committed pre-prediction; C still skipped.

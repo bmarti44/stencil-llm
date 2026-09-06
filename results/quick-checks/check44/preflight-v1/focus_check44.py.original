@@ -90,17 +90,6 @@ def read_lines(path):
     return [json.loads(line) for line in Path(path).read_text().splitlines() if line]
 
 
-def evaluation_rows(bank_bytes):
-    rows = [json.loads(line) for line in bank_bytes.decode().splitlines() if line]
-    # The author's file has one non-item summary header, then 338 messages.
-    if rows and set(rows[0]) == {"summary"}:
-        assert rows[0]["summary"]["rows"] == 338
-        rows = rows[1:]
-    assert len(rows) == 338
-    assert all("message" in row for row in rows)
-    return rows
-
-
 def dev_bank():
     # Twenty-four individually authored messages, no templates or substitutions.
     specs = [
@@ -1017,13 +1006,7 @@ def freeze():
 
 def verify_freeze():
     frozen = json.loads((OUT / "recipe-freeze.json").read_text())
-    repair_path = OUT / "repair-freeze.json"
-    repair = json.loads(repair_path.read_text()) if repair_path.exists() else None
     for path, digest in frozen["files"].items():
-        if repair and path == "scripts/focus_check44.py":
-            assert repair["original_script_sha256"] == digest
-            assert repair["recipe_sha256"] == sha(OUT / "recipe-freeze.json")
-            digest = repair["repaired_script_sha256"]
         assert sha(ROOT / path) == digest, path
     return frozen
 
@@ -1103,21 +1086,11 @@ def check_gpu_free():
     return result.stdout
 
 
-def run(resume=False):
+def run():
     import torch
 
     frozen = verify_freeze()
-    prior_charge = 0.0
-    receipt = "run-start.json"
-    if resume:
-        receipt = "resume-start.json"
-        prior = json.loads((OUT / "preflight-v1/summary.json").read_text())
-        assert prior["reading"] == "INVALID" and prior["records"] == 0
-        assert prior["dev_records"] == 24
-        assert not (OUT / "records.jsonl").exists()
-        assert not (OUT / "evaluation-start.json").exists()
-        prior_charge = prior["gpu_allocation_seconds"]
-    assert not (OUT / receipt).exists(), "One-shot guard: already started"
+    assert not (OUT / "run-start.json").exists(), "One-shot guard: already started"
     gpu_before = check_gpu_free()
     with (OUT / "RUNNING.flag").open("x") as handle:
         handle.write(json.dumps(dict(pid=os.getpid(), check=44, start=time.time())))
@@ -1130,9 +1103,9 @@ def run(resume=False):
     if peers:
         (OUT / "RUNNING.flag").unlink()
         raise RuntimeError(f"Concurrent GPU claimant: {peers}")
-    started = time.monotonic() - prior_charge
+    started = time.monotonic()
     write(
-        receipt,
+        "run-start.json",
         dict(
             pid=os.getpid(),
             utc=time.time(),
@@ -1141,9 +1114,6 @@ def run(resume=False):
                 ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
             ).strip(),
             gpu_before=gpu_before,
-            prior_gpu_seconds=prior_charge,
-            mechanical_header_repair=resume,
-            repair_sha256=sha(OUT / "repair-freeze.json") if resume else None,
         ),
     )
     summary, records, timing = dict(reading="INCOMPLETE", C=frozen["C"]), [], []
@@ -1154,15 +1124,9 @@ def run(resume=False):
         dev = json.loads((OUT / "dev.json").read_text())
         extractor = Extractor(started + CAP - 30)
         baseline = Baseline()
-        summary["load_seconds"] = time.monotonic() - started - prior_charge
-        if resume:
-            timing = read_lines(OUT / "dev-records.jsonl")
-            assert len(timing) == 24
-            assert sha(OUT / "dev-records.jsonl") == sha(
-                OUT / "preflight-v1/dev-records.jsonl"
-            )
-        with (OUT / "dev-records.jsonl").open("a" if resume else "x") as journal:
-            for row in [] if resume else dev:
+        summary["load_seconds"] = time.monotonic() - started
+        with (OUT / "dev-records.jsonl").open("x") as journal:
+            for row in dev:
                 a = extractor.infer(visible(row), dev)
                 b, consumer = baseline.infer(visible(row))
                 for arm in (a, b, consumer):
@@ -1201,10 +1165,10 @@ def run(resume=False):
         )
         if projected > CAP - 30:
             raise BudgetStop("elapsed + 1.25 * 338 * slowest DEV exceeds cap")
-        # Initial preflight only counted the header as an item; zero predictions.
-        # This repaired pass scores each of the same 338 messages exactly once.
+        # The only open/read of the held-out file in this program. Save exact bytes.
         bank_bytes = HELDOUT.read_bytes()
-        bank = evaluation_rows(bank_bytes)
+        bank = [json.loads(line) for line in bank_bytes.decode().splitlines() if line]
+        assert len(bank) == 338
         assert all(row["role"] in ("user", "assistant", "tool") for row in bank)
         for row in bank:
             gold_spans(row)
@@ -1219,7 +1183,7 @@ def run(resume=False):
                 elapsed_seconds=time.monotonic() - started,
                 schema_keys=sorted(set().union(*(r.keys() for r in bank))),
                 recipe_sha256=sha(OUT / "recipe-freeze.json"),
-                source="Fable; metadata-only preflight, one message prediction pass",
+                source="Fable; untouched until this frozen evaluation pass",
             ),
         )
         with (OUT / "records.jsonl").open("x") as journal:
@@ -1276,7 +1240,6 @@ def run(resume=False):
             records=len(records),
             dev_records=len(timing),
             gpu_allocation_seconds=time.monotonic() - started,
-            prior_gpu_allocation_seconds=prior_charge,
             peak_allocated_GiB=torch.cuda.max_memory_allocated() / 2**30,
             cpu_extractor_timing=(
                 json.loads((OUT / "cpu-timing.json").read_text())
@@ -1294,7 +1257,7 @@ def run(resume=False):
 def audit():
     records = read_lines(OUT / "records.jsonl")
     dev = json.loads((OUT / "dev.json").read_text())
-    bank = evaluation_rows((OUT / "evaluation-bank.jsonl").read_bytes())
+    bank = read_lines(OUT / "evaluation-bank.jsonl")
     assert len(records) == len(bank) == 338
     for i, record in enumerate(records):
         assert record["index"] == i and record["input"] == bank[i]
@@ -1328,24 +1291,12 @@ def audit():
     print("Audit PASS: 338 records, all arms/scores/provenance replayed.")
 
 
-def resume():
-    run(resume=True)
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--mode",
         required=True,
-        choices=(
-            "prepare",
-            "selftest",
-            "freeze",
-            "cpu_timing",
-            "run",
-            "resume",
-            "audit",
-        ),
+        choices=("prepare", "selftest", "freeze", "cpu_timing", "run", "audit"),
     )
     args = parser.parse_args()
     globals()[args.mode]()

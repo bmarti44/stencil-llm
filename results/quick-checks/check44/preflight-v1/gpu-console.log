@@ -1,0 +1,63 @@
+2026-09-06T11:04:54Z WAITING ['results/quick-checks/focus3-gate/diag/RUNNING.flag']
+2026-09-06T11:05:39Z WAITING ['results/quick-checks/focus3-gate/diag/RUNNING.flag']
+2026-09-06T11:06:24Z WAITING ['results/quick-checks/focus3-gate/diag/RUNNING.flag']
+2026-09-06T11:07:09Z WAITING ['results/quick-checks/focus3-gate/diag/RUNNING.flag']
+2026-09-06T11:07:54Z WAITING ['results/quick-checks/focus3-gate/diag/RUNNING.flag']
+2026-09-06T11:08:39Z WAITING ['results/quick-checks/focus3-gate/diag/RUNNING.flag']
+2026-09-06T11:09:24Z WAITING ['results/quick-checks/focus3-gate/diag/RUNNING.flag']
+2026-09-06T11:10:09Z WAITING ['results/quick-checks/focus3-gate/diag/RUNNING.flag']
+2026-09-06T11:10:54Z WAITING ['results/quick-checks/focus3-gate/diag/RUNNING.flag']
+2026-09-06T11:11:39Z WAITING ['results/quick-checks/focus3-gate/diag/RUNNING.flag']
+2026-09-06T11:12:24Z WAITING ['results/quick-checks/focus3-gate/diag/RUNNING.flag']
+2026-09-06T11:13:09Z WAITING ['results/quick-checks/focus3-gate/diag/RUNNING.flag']
+2026-09-06T11:13:54Z WAITING ['results/quick-checks/focus3-gate/diag/RUNNING.flag']
+2026-09-06T11:14:39Z WAITING ['results/quick-checks/focus3-gate/diag/RUNNING.flag']
+2026-09-06T11:15:24Z WAITING ['results/quick-checks/focus3-gate/diag/RUNNING.flag']
+2026-09-06T11:16:09Z WAITING ['results/quick-checks/focus3-gate/diag/RUNNING.flag']
+2026-09-06T11:16:54Z WAITING ['results/quick-checks/focus3-gate/diag/RUNNING.flag']
+2026-09-06T11:17:39Z WAITING ['results/quick-checks/focus3-gate/diag/RUNNING.flag']
+2026-09-06T11:18:25Z WAITING ['results/quick-checks/focus3-gate/diag/RUNNING.flag']
+Flags clear; verifying frozen recipe and GPU processes before allocation.
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 13421.02it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 12289.51it/s]
+DEV astra-dev-00 A 6 tokens 0.657 s
+DEV astra-dev-01 A 83 tokens 2.745 s
+DEV astra-dev-02 A 87 tokens 2.878 s
+DEV astra-dev-03 A 99 tokens 3.26 s
+DEV astra-dev-04 A 76 tokens 2.55 s
+DEV astra-dev-05 A 83 tokens 2.783 s
+DEV astra-dev-06 A 74 tokens 2.5 s
+DEV astra-dev-07 A 71 tokens 2.412 s
+DEV astra-dev-08 A 81 tokens 2.708 s
+DEV astra-dev-09 A 6 tokens 0.251 s
+DEV astra-dev-10 A 6 tokens 0.253 s
+DEV astra-dev-11 A 87 tokens 2.9 s
+DEV astra-dev-12 A 108 tokens 3.538 s
+DEV astra-dev-13 A 85 tokens 2.837 s
+DEV astra-dev-14 A 91 tokens 4.88 s
+DEV astra-dev-15 A 75 tokens 2.536 s
+DEV astra-dev-16 A 83 tokens 2.757 s
+DEV astra-dev-17 A 85 tokens 2.816 s
+DEV astra-dev-18 A 213 tokens 7.451 s
+DEV astra-dev-19 A 69 tokens 2.346 s
+DEV astra-dev-20 A 70 tokens 2.371 s
+DEV astra-dev-21 A 89 tokens 2.977 s
+DEV astra-dev-22 A 78 tokens 2.627 s
+DEV astra-dev-23 A 92 tokens 3.013 s
+{"reading": "INVALID", "C": {"status": "SKIPPED", "rows_at_arm_construction": 870, "minimum": 1500}, "load_seconds": 15.508340399006556, "reason": "AssertionError()", "records": 0, "dev_records": 24, "gpu_allocation_seconds": 83.26945410700137, "peak_allocated_GiB": 3.7288260459899902, "cpu_extractor_timing": {"status": "INCOMPLETE/COST", "records": 21, "dtype": "float32", "threads": 4, "device": "cpu", "load_seconds": 4.217582688004768, "total_seconds": 1801.005138200002, "warm_latency_seconds": {"n": 19, "p50": 94.2665912750017, "p95": 188.21849152899813, "maximum": 188.21849152899813, "total": 1753.585437499023}, "warm_le1024_tokens_seconds": {"n": 0, "p50": null, "p95": null, "maximum": null, "total": 0}, "warm_gt1024_tokens_seconds": {"n": 19, "p50": 94.2665912750017, "p95": 188.21849152899813, "maximum": 188.21849152899813, "total": 1753.585437499023}, "semantic_scores_used": false, "packaging": "local component; integrated single-repo ship build untested"}}
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/bmarti44/stencil-llm/scripts/focus_check44.py", line 1306, in <module>
+    main()
+  File "/home/bmarti44/stencil-llm/scripts/focus_check44.py", line 1302, in main
+    globals()[args.mode]()
+  File "/home/bmarti44/stencil-llm/scripts/focus_check44.py", line 1171, in run
+    assert len(bank) == 338
+           ^^^^^^^^^^^^^^^^
+AssertionError
+Traceback (most recent call last):
+  File "<stdin>", line 12, in <module>
+  File "/home/bmarti44/.local/share/uv/python/cpython-3.12.13-linux-aarch64-gnu/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/home/bmarti44/stencil-llm/.venv/bin/python', '-u', '-m', 'scripts.focus_check44', '--mode', 'run']' returned non-zero exit status 1.
