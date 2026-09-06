@@ -12,3 +12,9 @@ These choices are explicit for future review; no registered-science claim.
 CPU real SDPA/physical-eviction equivalence, poisoned-mask invariance, generation
 and placeholder column isolation pass. Next: foreground pinned runner --mode run,
 RUNNING.flag coordination, no signals; commit only explicit paths, no push.
+
+2026-09-06 — STATE: MIDPOINT SNAPSHOT AUDITED; foreground run continues.
+Committed checkpoint covers 11/24 completed episodes, 396 records,
+297 actual generations. Snapshot uses summary-matched prefix; live audit
+initially saw records advancing beyond summary, so snapshots are used until exit.
+All record semantics passed; no run change or outcome retry.
