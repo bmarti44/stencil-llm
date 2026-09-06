@@ -721,3 +721,13 @@ three seeds on20634rows projects about268.44s for20934rows, GPU-minutes within
 10800s cap; no new pilot/model selection. Recipe and source hashes frozen before
 any fitting/heldout scores. Next .venv/bin/python -u -m scripts.focus3_gate_v8
 --mode fit, foreground flag-coordinated/no signals. CPU query no compute/flags.
+
+2026-09-06 — STATE: V8 THREE SEEDS FROZEN; ONE FABLE DIAGNOSTIC NEXT.
+All three final checkpoints saved after3epochs/1767updates; seed0 fixed.
+DEV correct1989/2093,1977/2094,1985/2093; rule admissions668/719,719/773,722/763;
+nonrule18/1374,11/1321,16/1330. New-family NONE admissions0/21,0/20,0/18;
+standing positives7/8,7/7,7/7. Small DEV family support is disclosed.
+Freeze verifies all model/data hashes; fit exited naturally, own flag removed.
+Next one CPU Fable inference on seed0 only; v7 ft-v2 comparator reuses committed
+raw logits after exact input-row/file-hash verification. No prior heldout reads
+in this v8 task, no threshold/seed selection, no new relation heldout evaluation.
