@@ -75,7 +75,7 @@ def corpus():
 
 
 def partition(rows):
-    # Source-generation batches contain whole scenario/quote-pair families; never split a batch.
+    # Keep whole source-generation batches together, including quote pairs.
     groups = defaultdict(list)
     for r in rows:
         groups[(r["domain"], r["source"])].append(r)
@@ -278,7 +278,11 @@ def calibrate(records):
         maximum_allowed=budget,
         c2_candidates=derivation,
         combination_candidates=low_derivation,
-        selection="Lowest feasible >= threshold maximizes nested-set one-to-one overlap recall; same <=2% empty-message budget for C2 and combination.",
+        selection=(
+            "Lowest feasible >= threshold maximizes nested-set one-to-one"
+            " overlap recall; same <=2% empty-message budget for C2 and c"
+            "ombination."
+        ),
     )
 
 
@@ -333,7 +337,13 @@ def ceiling(rows, tok):
         overlap_fraction=overlap / gold if gold else None,
         exact_boundary_fraction=exact / gold if gold else None,
         overflows=overflow,
-        caveat="Token-run candidate ceiling is 100% when distinct gold spans map to nonempty disjoint token runs. Exact character edges inside a token cannot be represented; whole-message >512-token inputs abstain. B starts a new span even adjacent to B/I. Measured here, not assumed.",
+        caveat=(
+            "Token-run candidate ceiling is 100% when distinct gold spans"
+            " map to nonempty disjoint token runs. Exact character edges "
+            "inside a token cannot be represented; whole-message >512-tok"
+            "en inputs abstain. B starts a new span even adjacent to B/I."
+            " Measured here, not assumed."
+        ),
     )
 
 
@@ -353,7 +363,11 @@ def prepare():
             dev_domains=sorted({r["domain"] for r in dev}),
             dev_groups=sorted({(r["domain"], r["source"]) for r in dev}),
             dev_fraction=len(dev) / len(rows),
-            grouping="whole domain/source-generation batch; no author scenario IDs available; not a claim of domain-disjointness or cross-batch semantic disjointness",
+            grouping=(
+                "whole domain/source-generation batch; no author scenario IDs"
+                " available; not a claim of domain-disjointness or cross-batc"
+                "h semantic disjointness"
+            ),
         ),
     )
     from transformers import AutoTokenizer
@@ -469,7 +483,7 @@ def fit_models():
                 steps = 3 * math.ceil(len(examples) / 32)
                 sched = torch.optim.lr_scheduler.LambdaLR(
                     opt,
-                    lambda s: (
+                    lambda s, steps=steps: (
                         min(1.0, (s + 1) / (0.06 * steps))
                         * max(0.0, (steps - s) / steps)
                     ),
@@ -599,7 +613,10 @@ def freeze():
             overlap=overlap,
             n_overlap=len(overlap),
             dev_sentences=sum(len(sentences(r["message"])) for r in dev),
-            definition="normalized DEV sentence in B manifest fit_ids; prior heldout2-informed combination form disclosed in README",
+            definition=(
+                "normalized DEV sentence in B manifest fit_ids; prior heldout"
+                "2-informed combination form disclosed in README"
+            ),
         ),
     )
     summaries = {}
@@ -764,9 +781,16 @@ def evaluate():
             arm_go=arm_go,
             designated_seed=0,
             primary_arm="C2+B",
-            decision="Register frozen C2+B runtime swap and authorize gate v9: explicit structured entry OR frozen automatic candidate, both reported."
+            decision=(
+                "Register frozen C2+B runtime swap and authorize gate v9: exp"
+                "licit structured entry OR frozen automatic candidate, both r"
+                "eported."
+            )
             if go
-            else "Explicit structured entry remains first ship; no runtime swap or gate v9 authorization.",
+            else (
+                "Explicit structured entry remains first ship; no runtime swa"
+                "p or gate v9 authorization."
+            ),
             heldout3_header=header,
             heldout3_sha256=sha(HELDOUT),
             heldout2_sha256=sha(SECONDARY),
@@ -810,7 +834,11 @@ def audit():
         dict(
             records=n,
             passed=True,
-            method="Re-decode saved token distributions; reproduce threshold acceptance, C-then-B union, matching, all summary metrics. No repeated inference.",
+            method=(
+                "Re-decode saved token distributions; reproduce threshold acc"
+                "eptance, C-then-B union, matching, all summary metrics. No r"
+                "epeated inference."
+            ),
         ),
     )
     print("AUDIT", n, flush=True)
