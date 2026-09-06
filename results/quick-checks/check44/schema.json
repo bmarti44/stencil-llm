@@ -1,0 +1,51 @@
+{
+  "type": "object",
+  "properties": {
+    "rules": {
+      "type": "array",
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "key": {
+            "type": "string",
+            "enum": [
+              "NEW"
+            ]
+          },
+          "scope": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence": {
+            "type": "string",
+            "minLength": 1
+          },
+          "attribution": {
+            "type": "string",
+            "enum": [
+              "direct",
+              "adopted"
+            ]
+          }
+        },
+        "required": [
+          "text",
+          "key",
+          "scope",
+          "evidence",
+          "attribution"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "rules"
+  ],
+  "additionalProperties": false
+}

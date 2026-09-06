@@ -815,3 +815,15 @@ C' exact7/16, final13/16, stale3/16; O/T final16/16 and stale0/16.
 These are descriptive family readings; causal current-render probes pending.
 No threshold/runtime change, no full-gate decision. All96 new setup candidate
 traces exactly equal committed v8 CPU traces (setup-runtime-parity.json).
+
+2026-09-06 — STATE: CHECK44 RECIPE FROZEN, CPU TIMING NEXT; HELD-OUT UNOPENED.
+24original Astra DEV/six fixed demos; CPU grammar and actual v8 consumer smoke
+pass; provenance/matching/binomial-bound selftests pass. C eligibility checked
+at arm construction:870Kimi rows<1500, skipped and frozen before any evaluation.
+A uses NEW/opaque keys, evidence validator, strict JSON; B head plus unchanged
+register-consumer diagnostic. CPU timing fp32/4threads/24DEV/1800s boundary cap
+runs while diagnostic holds GPU; no CPU outcome selects prompt. GPU A bf16
+onepass remains5400s cap, resource-only projection before source held-out read.
+No package-wide monkeypatch: direct LMFE tokenizer adapter passes both empty
+and rule JSON paths; legal merged string-ending tokens can be overrestricted
+by LMFE, recorded in cpu-smoke.json. Frozen recipe is committed before inference.
