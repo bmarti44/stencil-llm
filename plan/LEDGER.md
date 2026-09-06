@@ -835,3 +835,10 @@ contradictory1/16, breakage0; each6unauthorized admissions. O final16/16,
 stale1/16; T final0/16, stale16/16; N final0/16, stale14/16, breakage1/16.
 No outcome selection or repair. Completion-and-move-on family now running;
 conditional rendering probes remain after allfive arms. Descriptive only.
+
+2026-09-06 — STATE: DIAGNOSTIC COMPLETION CHECKPOINT; THREE FAMILIES COMPLETE.
+All480 completion-and-move-on records complete; first48episodes/1440gate
+records finished. C/C' exact10/16, final15/16, stale1/16, false retirement0,
+contradictory2/16, breakage0; each8false admissions +2unauthorized completions.
+O final15/16, stale1/16; N/T final0/16, stale16/16. Final switch-and-return
+family running. No scientific/runtime change; conditional probes still pending.

@@ -1,0 +1,2089 @@
+[
+  {
+    "agreement": {
+      "contradictory": false,
+      "exact": false,
+      "false_retirement": false
+    },
+    "gold_live": [
+      {
+        "id": "0:20",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 783.",
+        "version": 1
+      },
+      {
+        "id": "0:91",
+        "scope": "G2n1A",
+        "task_id": "G2n1A",
+        "text": "Always sort payloads in descending order for task G2n1A.",
+        "version": 1
+      }
+    ],
+    "gold_trace": {
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 783.",
+          "version": 1
+        },
+        {
+          "id": "0:91",
+          "key": "new:0:91",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G2n1A",
+          "span_start": 91,
+          "status": "live",
+          "text": "Always sort payloads in descending order for task G2n1A.",
+          "version": 1
+        }
+      ],
+      "applied": [
+        {
+          "gold_key": "tag",
+          "key": "new:0:20",
+          "kind": "sort",
+          "label": "admit",
+          "scope": "*",
+          "span": "For every sorting request in this conversation, keep tag equal to 783."
+        },
+        {
+          "gold_key": "order:G2n1A",
+          "key": "new:0:91",
+          "kind": "sort",
+          "label": "admit",
+          "scope": "G2n1A",
+          "span": "Always sort payloads in descending order for task G2n1A."
+        }
+      ],
+      "before": []
+    },
+    "live": [
+      {
+        "id": "0:148",
+        "scope": "*",
+        "task_id": null,
+        "text": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+        "version": 1
+      },
+      {
+        "id": "0:20",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 783.",
+        "version": 1
+      },
+      {
+        "id": "0:91",
+        "scope": "G2n1A",
+        "task_id": "G2n1A",
+        "text": "Always sort payloads in descending order for task G2n1A.",
+        "version": 1
+      }
+    ],
+    "trace": {
+      "admissions": [
+        {
+          "accepted": false,
+          "logits": [
+            3.7289416790008545,
+            -2.7683463096618652,
+            -1.0314490795135498
+          ],
+          "model_input": [
+            "(no context)",
+            "[user] Work on task G2n1A."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.9900306046307451,
+            0.0014924929874632917,
+            0.008476902381791523
+          ],
+          "span": "Work on task G2n1A.",
+          "start": 0,
+          "token_count": 19
+        },
+        {
+          "accepted": true,
+          "logits": [
+            -2.2272837162017822,
+            4.2706522941589355,
+            -2.0776102542877197
+          ],
+          "model_input": [
+            "user: Work on task G2n1A.",
+            "[user] For every sorting request in this conversation, keep tag equal to 783."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.0015016555940891838,
+            0.9967542391257079,
+            0.0017441052802028413
+          ],
+          "span": "For every sorting request in this conversation, keep tag equal to 783.",
+          "start": 20,
+          "token_count": 32
+        },
+        {
+          "accepted": true,
+          "logits": [
+            -1.9845401048660278,
+            4.1579742431640625,
+            -2.254086971282959
+          ],
+          "model_input": [
+            "user: Work on task G2n1A. user: For every sorting request in this conversation, keep tag equal to 783.",
+            "[user] Always sort payloads in descending order for task G2n1A."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.0021413938521846823,
+            0.9962231690881806,
+            0.0016354370596346807
+          ],
+          "span": "Always sort payloads in descending order for task G2n1A.",
+          "start": 91,
+          "token_count": 49
+        },
+        {
+          "accepted": true,
+          "logits": [
+            -0.6474039554595947,
+            2.8253233432769775,
+            -2.3684561252593994
+          ],
+          "model_input": [
+            "user: Work on task G2n1A. user: For every sorting request in this conversation, keep tag equal to 783. user: Always sort payloads in descending order for task G2n1A.",
+            "[user] Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.0299370844550446,
+            0.9647078345716065,
+            0.0053550809733489075
+          ],
+          "span": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "start": 148,
+          "token_count": 107
+        }
+      ],
+      "admitted_beside_live": 2,
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 783.",
+          "version": 1
+        },
+        {
+          "id": "0:91",
+          "key": "new:0:91",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G2n1A",
+          "span_start": 91,
+          "status": "live",
+          "text": "Always sort payloads in descending order for task G2n1A.",
+          "version": 1
+        },
+        {
+          "id": "0:148",
+          "key": "new:0:148",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 148,
+          "status": "live",
+          "text": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "version": 1
+        }
+      ],
+      "applied": [
+        {
+          "label": "admit",
+          "span": "For every sorting request in this conversation, keep tag equal to 783."
+        },
+        {
+          "label": "admit",
+          "span": "Always sort payloads in descending order for task G2n1A."
+        },
+        {
+          "label": "admit",
+          "span": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+        }
+      ],
+      "before": [],
+      "cross_key_proposals": 0,
+      "overflow": false,
+      "pairs": [],
+      "role": "user"
+    },
+    "turn_index": 0,
+    "un_release": {
+      "mask_unrelease": false,
+      "masked_columns": 0,
+      "reactivated_output_columns": 0,
+      "task_return": false
+    }
+  },
+  {
+    "agreement": {
+      "contradictory": true,
+      "exact": false,
+      "false_retirement": false
+    },
+    "gold_live": [
+      {
+        "id": "0:20",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 783.",
+        "version": 1
+      },
+      {
+        "id": "0:91",
+        "scope": "G2n1A",
+        "task_id": "G2n1A",
+        "text": "Always sort payloads in descending order for task G2n1A.",
+        "version": 1
+      }
+    ],
+    "gold_trace": {
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 783.",
+          "version": 1
+        },
+        {
+          "id": "0:91",
+          "key": "new:0:91",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G2n1A",
+          "span_start": 91,
+          "status": "live",
+          "text": "Always sort payloads in descending order for task G2n1A.",
+          "version": 1
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 783.",
+          "version": 1
+        },
+        {
+          "id": "0:91",
+          "key": "new:0:91",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G2n1A",
+          "span_start": 91,
+          "status": "live",
+          "text": "Always sort payloads in descending order for task G2n1A.",
+          "version": 1
+        }
+      ]
+    },
+    "live": [
+      {
+        "id": "0:148",
+        "scope": "*",
+        "task_id": null,
+        "text": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+        "version": 1
+      },
+      {
+        "id": "0:20",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 783.",
+        "version": 1
+      },
+      {
+        "id": "0:91",
+        "scope": "G2n1A",
+        "task_id": "G2n1A",
+        "text": "Always sort payloads in descending order for task G2n1A.",
+        "version": 1
+      },
+      {
+        "id": "1:0",
+        "scope": "G2n1A",
+        "task_id": "G2n1A",
+        "text": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction.",
+        "version": 1
+      }
+    ],
+    "trace": {
+      "admissions": [
+        {
+          "accepted": true,
+          "logits": [
+            -0.4939381778240204,
+            2.890314817428589,
+            -2.5303401947021484
+          ],
+          "model_input": [
+            "user: For every sorting request in this conversation, keep tag equal to 783. user: Always sort payloads in descending order for task G2n1A. user: Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "[user] Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.03265151712619075,
+            0.963087544957862,
+            0.004260937915947309
+          ],
+          "span": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction.",
+          "start": 0,
+          "token_count": 123
+        },
+        {
+          "accepted": false,
+          "logits": [
+            -0.354618638753891,
+            1.9169652462005615,
+            -1.7187563180923462
+          ],
+          "model_input": [
+            "user: Always sort payloads in descending order for task G2n1A. user: Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. user: Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction.",
+            "[user] Sort request for task G2n1A: payload [806, 207, 805, 735, 554]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.09132132358168188,
+            0.8853368556115014,
+            0.023341820806816623
+          ],
+          "span": "Sort request for task G2n1A: payload [806, 207, 805, 735, 554]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "start": 83,
+          "token_count": 165
+        }
+      ],
+      "admitted_beside_live": 1,
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 783.",
+          "version": 1
+        },
+        {
+          "id": "0:91",
+          "key": "new:0:91",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G2n1A",
+          "span_start": 91,
+          "status": "live",
+          "text": "Always sort payloads in descending order for task G2n1A.",
+          "version": 1
+        },
+        {
+          "id": "0:148",
+          "key": "new:0:148",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 148,
+          "status": "live",
+          "text": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "version": 1
+        },
+        {
+          "id": "1:0",
+          "key": "new:1:0",
+          "kind": "all",
+          "provenance_turn": 1,
+          "scope": "G2n1A",
+          "span_start": 0,
+          "status": "live",
+          "text": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction.",
+          "version": 1
+        }
+      ],
+      "applied": [
+        {
+          "label": "admit",
+          "span": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction."
+        }
+      ],
+      "before": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 783.",
+          "version": 1
+        },
+        {
+          "id": "0:91",
+          "key": "new:0:91",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G2n1A",
+          "span_start": 91,
+          "status": "live",
+          "text": "Always sort payloads in descending order for task G2n1A.",
+          "version": 1
+        },
+        {
+          "id": "0:148",
+          "key": "new:0:148",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 148,
+          "status": "live",
+          "text": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "version": 1
+        }
+      ],
+      "cross_key_proposals": 0,
+      "overflow": false,
+      "pairs": [
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction.",
+            "old_rule": {
+              "key": "tag",
+              "scope": "global",
+              "status": "live",
+              "text": "For every sorting request in this conversation, keep tag equal to 783."
+            },
+            "prev_user": "Always sort payloads in descending order for task G2n1A.",
+            "role": "user",
+            "target_id": "0:20",
+            "target_span": {
+              "end": 82,
+              "start": 0,
+              "text": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction."
+            }
+          },
+          "logits": [
+            4.063094615936279,
+            -0.6723395586013794,
+            -0.9848368763923645,
+            -1.8338743448257446,
+            -1.6865034103393555
+          ],
+          "model_input": [
+            "[target] live global For every sorting request in this conversation, keep tag equal to 783. [metadata] {\"key\": \"tag\"}",
+            "[message] user: Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction. [span] Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction. [prev_user] Always sort payloads in descending order for task G2n1A."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.9793043008135829,
+            0.008596956522582414,
+            0.006289684623522242,
+            0.002690893949598221,
+            0.003118164090714317
+          ],
+          "proposal_key": "tag",
+          "proposed": "none",
+          "token_count": 114
+        },
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction.",
+            "old_rule": {
+              "key": "sort-order",
+              "scope": "task:G2n1A",
+              "status": "live",
+              "text": "Always sort payloads in descending order for task G2n1A."
+            },
+            "prev_user": "Always sort payloads in descending order for task G2n1A.",
+            "role": "user",
+            "target_id": "0:91",
+            "target_span": {
+              "end": 82,
+              "start": 0,
+              "text": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction."
+            }
+          },
+          "logits": [
+            4.0811920166015625,
+            -1.001273512840271,
+            -0.9785008430480957,
+            -1.4010517597198486,
+            -1.77911376953125
+          ],
+          "model_input": [
+            "[target] live task:G2n1A Always sort payloads in descending order for task G2n1A. [metadata] {\"key\": \"sort-order\"}",
+            "[message] user: Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction. [span] Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction. [prev_user] Always sort payloads in descending order for task G2n1A."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.980812888654336,
+            0.006085544328660051,
+            0.006225718431702512,
+            0.004080167044000618,
+            0.0027956815413007013
+          ],
+          "proposal_key": "sort-order",
+          "proposed": "none",
+          "token_count": 122
+        },
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction.",
+            "old_rule": {
+              "key": "tag",
+              "scope": "global",
+              "status": "live",
+              "text": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+            },
+            "prev_user": "Always sort payloads in descending order for task G2n1A.",
+            "role": "user",
+            "target_id": "0:148",
+            "target_span": {
+              "end": 82,
+              "start": 0,
+              "text": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction."
+            }
+          },
+          "logits": [
+            4.012117862701416,
+            -0.4437444806098938,
+            -1.42839777469635,
+            -1.7147245407104492,
+            -1.7159050703048706
+          ],
+          "model_input": [
+            "[target] live global Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [metadata] {\"key\": \"tag\"}",
+            "[message] user: Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction. [span] Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction. [prev_user] Always sort payloads in descending order for task G2n1A."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.9780349015464037,
+            0.011355282029703971,
+            0.004241978206825826,
+            0.00318579846368197,
+            0.0031820397533846296
+          ],
+          "proposal_key": "instruction",
+          "proposed": "none",
+          "token_count": 155
+        }
+      ],
+      "role": "user"
+    },
+    "turn_index": 1,
+    "un_release": {
+      "mask_unrelease": false,
+      "masked_columns": 0,
+      "reactivated_output_columns": 0,
+      "task_return": false
+    }
+  },
+  {
+    "agreement": {
+      "contradictory": false,
+      "exact": false,
+      "false_retirement": false
+    },
+    "gold_live": [
+      {
+        "id": "default:ordering:G2n1B",
+        "scope": "G2n1B",
+        "task_id": "G2n1B",
+        "text": "Ordering: return the list in the given order.",
+        "version": 0
+      },
+      {
+        "id": "0:20",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 783.",
+        "version": 1
+      }
+    ],
+    "gold_trace": {
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 783.",
+          "version": 1
+        },
+        {
+          "id": "0:91",
+          "key": "new:0:91",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G2n1A",
+          "span_start": 91,
+          "status": "completed",
+          "text": "Always sort payloads in descending order for task G2n1A.",
+          "version": 1
+        }
+      ],
+      "applied": [
+        {
+          "kind": "sort",
+          "label": "completes",
+          "scope": "G2n1A",
+          "span": "We are finished with task G2n1A.",
+          "target": "0:91"
+        }
+      ],
+      "before": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 783.",
+          "version": 1
+        },
+        {
+          "id": "0:91",
+          "key": "new:0:91",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G2n1A",
+          "span_start": 91,
+          "status": "live",
+          "text": "Always sort payloads in descending order for task G2n1A.",
+          "version": 1
+        }
+      ]
+    },
+    "live": [
+      {
+        "id": "default:ordering:G2n1B",
+        "scope": "G2n1B",
+        "task_id": "G2n1B",
+        "text": "Ordering: return the list in the given order.",
+        "version": 0
+      },
+      {
+        "id": "0:148",
+        "scope": "*",
+        "task_id": null,
+        "text": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+        "version": 1
+      },
+      {
+        "id": "0:20",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 783.",
+        "version": 1
+      }
+    ],
+    "trace": {
+      "admissions": [
+        {
+          "accepted": false,
+          "logits": [
+            0.6707311272621155,
+            -2.423276901245117,
+            1.2774381637573242
+          ],
+          "model_input": [
+            "user: Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction. user: Sort request for task G2n1A: payload [806, 207, 805, 735, 554]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "[user] We are finished with task G2n1A."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.3472582937821254,
+            0.015737727214209324,
+            0.6370039790036652
+          ],
+          "span": "We are finished with task G2n1A.",
+          "start": 0,
+          "token_count": 103
+        },
+        {
+          "accepted": false,
+          "logits": [
+            1.6645194292068481,
+            -2.5661253929138184,
+            0.5786888599395752
+          ],
+          "model_input": [
+            "user: Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction. user: Sort request for task G2n1A: payload [806, 207, 805, 735, 554]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. user: We are finished with task G2n1A.",
+            "[user] Switch to task G2n1B."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.7395551180537877,
+            0.010755357381148026,
+            0.2496895245650642
+          ],
+          "span": "Switch to task G2n1B.",
+          "start": 33,
+          "token_count": 114
+        },
+        {
+          "accepted": false,
+          "logits": [
+            1.5846725702285767,
+            -2.1593518257141113,
+            0.14018261432647705
+          ],
+          "model_input": [
+            "user: Sort request for task G2n1A: payload [806, 207, 805, 735, 554]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. user: We are finished with task G2n1A. user: Switch to task G2n1B.",
+            "[user] Sort request for task G2n1B: payload [730, 639, 663, 436, 678]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.7939500703350546,
+            0.018783825985313467,
+            0.18726610367963176
+          ],
+          "span": "Sort request for task G2n1B: payload [730, 639, 663, 436, 678]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "start": 55,
+          "token_count": 146
+        }
+      ],
+      "admitted_beside_live": 0,
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 783.",
+          "version": 1
+        },
+        {
+          "id": "0:91",
+          "key": "new:0:91",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G2n1A",
+          "span_start": 91,
+          "status": "completed",
+          "text": "Always sort payloads in descending order for task G2n1A.",
+          "version": 1
+        },
+        {
+          "id": "0:148",
+          "key": "new:0:148",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 148,
+          "status": "live",
+          "text": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "version": 1
+        },
+        {
+          "id": "1:0",
+          "key": "new:1:0",
+          "kind": "all",
+          "provenance_turn": 1,
+          "scope": "G2n1A",
+          "span_start": 0,
+          "status": "completed",
+          "text": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction.",
+          "version": 1
+        }
+      ],
+      "applied": [
+        {
+          "label": "completes",
+          "span": "We are finished with task G2n1A.",
+          "target": "0:91"
+        },
+        {
+          "label": "completes",
+          "span": "We are finished with task G2n1A.",
+          "target": "1:0"
+        }
+      ],
+      "before": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 783.",
+          "version": 1
+        },
+        {
+          "id": "0:91",
+          "key": "new:0:91",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G2n1A",
+          "span_start": 91,
+          "status": "live",
+          "text": "Always sort payloads in descending order for task G2n1A.",
+          "version": 1
+        },
+        {
+          "id": "0:148",
+          "key": "new:0:148",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 148,
+          "status": "live",
+          "text": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "version": 1
+        },
+        {
+          "id": "1:0",
+          "key": "new:1:0",
+          "kind": "all",
+          "provenance_turn": 1,
+          "scope": "G2n1A",
+          "span_start": 0,
+          "status": "live",
+          "text": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction.",
+          "version": 1
+        }
+      ],
+      "cross_key_proposals": 0,
+      "overflow": false,
+      "pairs": [
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "We are finished with task G2n1A. Switch to task G2n1B.",
+            "old_rule": {
+              "key": "tag",
+              "scope": "global",
+              "status": "live",
+              "text": "For every sorting request in this conversation, keep tag equal to 783."
+            },
+            "prev_user": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction.",
+            "role": "user",
+            "target_id": "0:20",
+            "target_span": {
+              "end": 32,
+              "start": 0,
+              "text": "We are finished with task G2n1A."
+            }
+          },
+          "logits": [
+            4.019155025482178,
+            -0.8455605506896973,
+            -1.5505695343017578,
+            -1.1444263458251953,
+            -1.8037034273147583
+          ],
+          "model_input": [
+            "[target] live global For every sorting request in this conversation, keep tag equal to 783. [metadata] {\"key\": \"tag\"}",
+            "[message] user: We are finished with task G2n1A. Switch to task G2n1B. [span] We are finished with task G2n1A. [prev_user] Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.9801943307073803,
+            0.007561240563836275,
+            0.003736040231318007,
+            0.0056078616389266854,
+            0.002900526858538857
+          ],
+          "proposal_key": "tag",
+          "proposed": "none",
+          "token_count": 105
+        },
+        {
+          "applied": "completes",
+          "cross_key": false,
+          "gold": "completes",
+          "input": {
+            "message": "We are finished with task G2n1A. Switch to task G2n1B.",
+            "old_rule": {
+              "key": "sort-order",
+              "scope": "task:G2n1A",
+              "status": "live",
+              "text": "Always sort payloads in descending order for task G2n1A."
+            },
+            "prev_user": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction.",
+            "role": "user",
+            "target_id": "0:91",
+            "target_span": {
+              "end": 32,
+              "start": 0,
+              "text": "We are finished with task G2n1A."
+            }
+          },
+          "logits": [
+            0.4942632019519806,
+            -1.096427321434021,
+            -1.857506513595581,
+            3.842561960220337,
+            -1.8024111986160278
+          ],
+          "model_input": [
+            "[target] live task:G2n1A Always sort payloads in descending order for task G2n1A. [metadata] {\"key\": \"sort-order\"}",
+            "[message] user: We are finished with task G2n1A. Switch to task G2n1B. [span] We are finished with task G2n1A. [prev_user] Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.03349650258344671,
+            0.006826079584908965,
+            0.0031888849726483047,
+            0.9531190252206185,
+            0.003369507638377533
+          ],
+          "proposal_key": "sort-order",
+          "proposed": "completes",
+          "token_count": 113
+        },
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "We are finished with task G2n1A. Switch to task G2n1B.",
+            "old_rule": {
+              "key": "tag",
+              "scope": "global",
+              "status": "live",
+              "text": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+            },
+            "prev_user": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction.",
+            "role": "user",
+            "target_id": "0:148",
+            "target_span": {
+              "end": 32,
+              "start": 0,
+              "text": "We are finished with task G2n1A."
+            }
+          },
+          "logits": [
+            3.9256198406219482,
+            -0.38161760568618774,
+            -1.9729706048965454,
+            -1.0271904468536377,
+            -1.9050281047821045
+          ],
+          "model_input": [
+            "[target] live global Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [metadata] {\"key\": \"tag\"}",
+            "[message] user: We are finished with task G2n1A. Switch to task G2n1B. [span] We are finished with task G2n1A. [prev_user] Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.9744558814176972,
+            0.013126614344229478,
+            0.0026732335293680495,
+            0.006883098799194705,
+            0.002861171909510527
+          ],
+          "proposal_key": "instruction",
+          "proposed": "none",
+          "token_count": 146
+        },
+        {
+          "applied": "completes",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "We are finished with task G2n1A. Switch to task G2n1B.",
+            "old_rule": {
+              "key": "instruction",
+              "scope": "task:G2n1A",
+              "status": "live",
+              "text": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction."
+            },
+            "prev_user": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction.",
+            "role": "user",
+            "target_id": "1:0",
+            "target_span": {
+              "end": 32,
+              "start": 0,
+              "text": "We are finished with task G2n1A."
+            }
+          },
+          "logits": [
+            0.8197920322418213,
+            -1.574135422706604,
+            -1.7241497039794922,
+            3.6726016998291016,
+            -1.7904270887374878
+          ],
+          "model_input": [
+            "[target] live task:G2n1A Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction. [metadata] {\"key\": \"instruction\"}",
+            "[message] user: We are finished with task G2n1A. Switch to task G2n1B. [span] We are finished with task G2n1A. [prev_user] Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.05382198484579124,
+            0.004912360446746828,
+            0.004228047437259553,
+            0.9330806993066936,
+            0.003956907963508996
+          ],
+          "proposal_key": "instruction",
+          "proposed": "completes",
+          "token_count": 121
+        },
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "We are finished with task G2n1A. Switch to task G2n1B.",
+            "old_rule": {
+              "key": "tag",
+              "scope": "global",
+              "status": "live",
+              "text": "For every sorting request in this conversation, keep tag equal to 783."
+            },
+            "prev_user": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction.",
+            "role": "user",
+            "target_id": "0:20",
+            "target_span": {
+              "end": 54,
+              "start": 33,
+              "text": "Switch to task G2n1B."
+            }
+          },
+          "logits": [
+            3.939340591430664,
+            -0.08784894645214081,
+            -1.5027296543121338,
+            -1.765917420387268,
+            -1.8409398794174194
+          ],
+          "model_input": [
+            "[target] live global For every sorting request in this conversation, keep tag equal to 783. [metadata] {\"key\": \"tag\"}",
+            "[message] user: We are finished with task G2n1A. Switch to task G2n1B. [span] Switch to task G2n1B. [prev_user] Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.9722225036782876,
+            0.01732923836155176,
+            0.004210218075547766,
+            0.003235963370301719,
+            0.003002076514311118
+          ],
+          "proposal_key": "tag",
+          "proposed": "none",
+          "token_count": 103
+        },
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "We are finished with task G2n1A. Switch to task G2n1B.",
+            "old_rule": {
+              "key": "tag",
+              "scope": "global",
+              "status": "live",
+              "text": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+            },
+            "prev_user": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction.",
+            "role": "user",
+            "target_id": "0:148",
+            "target_span": {
+              "end": 54,
+              "start": 33,
+              "text": "Switch to task G2n1B."
+            }
+          },
+          "logits": [
+            3.8692357540130615,
+            0.061971381306648254,
+            -1.9370462894439697,
+            -1.4217437505722046,
+            -1.8884767293930054
+          ],
+          "model_input": [
+            "[target] live global Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [metadata] {\"key\": \"tag\"}",
+            "[message] user: We are finished with task G2n1A. Switch to task G2n1B. [span] Switch to task G2n1B. [prev_user] Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.967667707392608,
+            0.021490787998926588,
+            0.0029113203517389,
+            0.004873972174745431,
+            0.003056212081981101
+          ],
+          "proposal_key": "instruction",
+          "proposed": "none",
+          "token_count": 144
+        }
+      ],
+      "role": "user"
+    },
+    "turn_index": 2,
+    "un_release": {
+      "mask_unrelease": false,
+      "masked_columns": 0,
+      "reactivated_output_columns": 0,
+      "task_return": false
+    }
+  },
+  {
+    "agreement": {
+      "contradictory": false,
+      "exact": false,
+      "false_retirement": false
+    },
+    "gold_live": [
+      {
+        "id": "default:ordering:G2n1B",
+        "scope": "G2n1B",
+        "task_id": "G2n1B",
+        "text": "Ordering: return the list in the given order.",
+        "version": 0
+      },
+      {
+        "id": "0:20",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 783.",
+        "version": 1
+      }
+    ],
+    "gold_trace": {
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 783.",
+          "version": 1
+        },
+        {
+          "id": "0:91",
+          "key": "new:0:91",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G2n1A",
+          "span_start": 91,
+          "status": "completed",
+          "text": "Always sort payloads in descending order for task G2n1A.",
+          "version": 1
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 783.",
+          "version": 1
+        },
+        {
+          "id": "0:91",
+          "key": "new:0:91",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G2n1A",
+          "span_start": 91,
+          "status": "completed",
+          "text": "Always sort payloads in descending order for task G2n1A.",
+          "version": 1
+        }
+      ]
+    },
+    "live": [
+      {
+        "id": "default:ordering:G2n1B",
+        "scope": "G2n1B",
+        "task_id": "G2n1B",
+        "text": "Ordering: return the list in the given order.",
+        "version": 0
+      },
+      {
+        "id": "0:148",
+        "scope": "*",
+        "task_id": null,
+        "text": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+        "version": 1
+      },
+      {
+        "id": "0:20",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 783.",
+        "version": 1
+      }
+    ],
+    "trace": {
+      "admissions": [
+        {
+          "accepted": false,
+          "logits": [
+            0.5068392157554626,
+            -1.2294888496398926,
+            0.4715328812599182
+          ],
+          "model_input": [
+            "user: We are finished with task G2n1A. user: Switch to task G2n1B. user: Sort request for task G2n1B: payload [730, 639, 663, 436, 678]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "[user] Continue task G2n1B; Sort request for task G2n1B: payload [398, 667, 558, 497, 180]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.4669676978091028,
+            0.08226387104146465,
+            0.45076843114943255
+          ],
+          "span": "Continue task G2n1B; Sort request for task G2n1B: payload [398, 667, 558, 497, 180]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "start": 0,
+          "token_count": 154
+        }
+      ],
+      "admitted_beside_live": 0,
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 783.",
+          "version": 1
+        },
+        {
+          "id": "0:91",
+          "key": "new:0:91",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G2n1A",
+          "span_start": 91,
+          "status": "completed",
+          "text": "Always sort payloads in descending order for task G2n1A.",
+          "version": 1
+        },
+        {
+          "id": "0:148",
+          "key": "new:0:148",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 148,
+          "status": "live",
+          "text": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "version": 1
+        },
+        {
+          "id": "1:0",
+          "key": "new:1:0",
+          "kind": "all",
+          "provenance_turn": 1,
+          "scope": "G2n1A",
+          "span_start": 0,
+          "status": "completed",
+          "text": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction.",
+          "version": 1
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 783.",
+          "version": 1
+        },
+        {
+          "id": "0:91",
+          "key": "new:0:91",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G2n1A",
+          "span_start": 91,
+          "status": "completed",
+          "text": "Always sort payloads in descending order for task G2n1A.",
+          "version": 1
+        },
+        {
+          "id": "0:148",
+          "key": "new:0:148",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 148,
+          "status": "live",
+          "text": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "version": 1
+        },
+        {
+          "id": "1:0",
+          "key": "new:1:0",
+          "kind": "all",
+          "provenance_turn": 1,
+          "scope": "G2n1A",
+          "span_start": 0,
+          "status": "completed",
+          "text": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction.",
+          "version": 1
+        }
+      ],
+      "cross_key_proposals": 0,
+      "overflow": false,
+      "pairs": [
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "Continue task G2n1B;",
+            "old_rule": {
+              "key": "tag",
+              "scope": "global",
+              "status": "live",
+              "text": "For every sorting request in this conversation, keep tag equal to 783."
+            },
+            "prev_user": "Switch to task G2n1B.",
+            "role": "user",
+            "target_id": "0:20",
+            "target_span": {
+              "end": 20,
+              "start": 0,
+              "text": "Continue task G2n1B;"
+            }
+          },
+          "logits": [
+            3.979857921600342,
+            -0.5008286833763123,
+            -0.9740464091300964,
+            -1.8182765245437622,
+            -1.8804455995559692
+          ],
+          "model_input": [
+            "[target] live global For every sorting request in this conversation, keep tag equal to 783. [metadata] {\"key\": \"tag\"}",
+            "[message] user: Continue task G2n1B; [span] Continue task G2n1B; [prev_user] Switch to task G2n1B."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.976309815374954,
+            0.011057327881294885,
+            0.006888653509139695,
+            0.0029613508239651645,
+            0.0027828524106461965
+          ],
+          "proposal_key": "tag",
+          "proposed": "none",
+          "token_count": 74
+        },
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "Continue task G2n1B;",
+            "old_rule": {
+              "key": "tag",
+              "scope": "global",
+              "status": "live",
+              "text": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+            },
+            "prev_user": "Switch to task G2n1B.",
+            "role": "user",
+            "target_id": "0:148",
+            "target_span": {
+              "end": 20,
+              "start": 0,
+              "text": "Continue task G2n1B;"
+            }
+          },
+          "logits": [
+            3.8726720809936523,
+            0.04254569113254547,
+            -1.4896156787872314,
+            -1.8561413288116455,
+            -1.9358054399490356
+          ],
+          "model_input": [
+            "[target] live global Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [metadata] {\"key\": \"tag\"}",
+            "[message] user: Continue task G2n1B; [span] Continue task G2n1B; [prev_user] Switch to task G2n1B."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.9683823498538785,
+            0.021020551645551985,
+            0.004541871896254348,
+            0.0031481456249585907,
+            0.002907080979356508
+          ],
+          "proposal_key": "instruction",
+          "proposed": "none",
+          "token_count": 115
+        }
+      ],
+      "role": "user"
+    },
+    "turn_index": 3,
+    "un_release": {
+      "mask_unrelease": false,
+      "masked_columns": 0,
+      "reactivated_output_columns": 0,
+      "task_return": false
+    }
+  },
+  {
+    "agreement": {
+      "contradictory": false,
+      "exact": true,
+      "false_retirement": false
+    },
+    "gold_live": [],
+    "gold_trace": {
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 783.",
+          "version": 1
+        },
+        {
+          "id": "0:91",
+          "key": "new:0:91",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G2n1A",
+          "span_start": 91,
+          "status": "completed",
+          "text": "Always sort payloads in descending order for task G2n1A.",
+          "version": 1
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 783.",
+          "version": 1
+        },
+        {
+          "id": "0:91",
+          "key": "new:0:91",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G2n1A",
+          "span_start": 91,
+          "status": "completed",
+          "text": "Always sort payloads in descending order for task G2n1A.",
+          "version": 1
+        }
+      ]
+    },
+    "live": [],
+    "trace": {
+      "admissions": [
+        {
+          "accepted": false,
+          "logits": [
+            0.40075603127479553,
+            2.060542345046997,
+            -2.5463979244232178
+          ],
+          "model_input": [
+            "user: Continue task G2n1B; Sort request for task G2n1B: payload [398, 667, 558, 497, 180]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+            "[user] Reply exactly hold."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.1584616291135736,
+            0.8332208975706755,
+            0.008317473315750874
+          ],
+          "span": "Reply exactly hold.",
+          "start": 0,
+          "token_count": 77
+        }
+      ],
+      "admitted_beside_live": 0,
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 783.",
+          "version": 1
+        },
+        {
+          "id": "0:91",
+          "key": "new:0:91",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G2n1A",
+          "span_start": 91,
+          "status": "completed",
+          "text": "Always sort payloads in descending order for task G2n1A.",
+          "version": 1
+        },
+        {
+          "id": "0:148",
+          "key": "new:0:148",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 148,
+          "status": "live",
+          "text": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "version": 1
+        },
+        {
+          "id": "1:0",
+          "key": "new:1:0",
+          "kind": "all",
+          "provenance_turn": 1,
+          "scope": "G2n1A",
+          "span_start": 0,
+          "status": "completed",
+          "text": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction.",
+          "version": 1
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 783.",
+          "version": 1
+        },
+        {
+          "id": "0:91",
+          "key": "new:0:91",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G2n1A",
+          "span_start": 91,
+          "status": "completed",
+          "text": "Always sort payloads in descending order for task G2n1A.",
+          "version": 1
+        },
+        {
+          "id": "0:148",
+          "key": "new:0:148",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 148,
+          "status": "live",
+          "text": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "version": 1
+        },
+        {
+          "id": "1:0",
+          "key": "new:1:0",
+          "kind": "all",
+          "provenance_turn": 1,
+          "scope": "G2n1A",
+          "span_start": 0,
+          "status": "completed",
+          "text": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction.",
+          "version": 1
+        }
+      ],
+      "cross_key_proposals": 0,
+      "overflow": false,
+      "pairs": [
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "Reply exactly hold.",
+            "old_rule": {
+              "key": "tag",
+              "scope": "global",
+              "status": "live",
+              "text": "For every sorting request in this conversation, keep tag equal to 783."
+            },
+            "prev_user": "Continue task G2n1B;",
+            "role": "user",
+            "target_id": "0:20",
+            "target_span": {
+              "end": 19,
+              "start": 0,
+              "text": "Reply exactly hold."
+            }
+          },
+          "logits": [
+            4.034308910369873,
+            -0.827768862247467,
+            -0.9327702522277832,
+            -1.7353572845458984,
+            -1.637674331665039
+          ],
+          "model_input": [
+            "[target] live global For every sorting request in this conversation, keep tag equal to 783. [metadata] {\"key\": \"tag\"}",
+            "[message] user: Reply exactly hold. [span] Reply exactly hold. [prev_user] Continue task G2n1B;"
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.9791828779763221,
+            0.0075733889829682766,
+            0.006818498342865928,
+            0.0030558330236777616,
+            0.0033694016741660222
+          ],
+          "proposal_key": "tag",
+          "proposed": "none",
+          "token_count": 65
+        },
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "Reply exactly hold.",
+            "old_rule": {
+              "key": "tag",
+              "scope": "global",
+              "status": "live",
+              "text": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+            },
+            "prev_user": "Continue task G2n1B;",
+            "role": "user",
+            "target_id": "0:148",
+            "target_span": {
+              "end": 19,
+              "start": 0,
+              "text": "Reply exactly hold."
+            }
+          },
+          "logits": [
+            3.9065699577331543,
+            -0.09314093738794327,
+            -1.3591607809066772,
+            -1.8264741897583008,
+            -1.9418911933898926
+          ],
+          "model_input": [
+            "[target] live global Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [metadata] {\"key\": \"tag\"}",
+            "[message] user: Reply exactly hold. [span] Reply exactly hold. [prev_user] Continue task G2n1B;"
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.9712433362855675,
+            0.017794085833968378,
+            0.005017071023909724,
+            0.0031441163887353605,
+            0.002801390467819127
+          ],
+          "proposal_key": "instruction",
+          "proposed": "none",
+          "token_count": 106
+        }
+      ],
+      "role": "user"
+    },
+    "turn_index": 4,
+    "un_release": {
+      "mask_unrelease": false,
+      "masked_columns": 0,
+      "reactivated_output_columns": 0,
+      "task_return": false
+    }
+  },
+  {
+    "agreement": {
+      "contradictory": false,
+      "exact": false,
+      "false_retirement": false
+    },
+    "gold_live": [
+      {
+        "id": "default:ordering:G2n1B",
+        "scope": "G2n1B",
+        "task_id": "G2n1B",
+        "text": "Ordering: return the list in the given order.",
+        "version": 0
+      },
+      {
+        "id": "0:20",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 783.",
+        "version": 1
+      }
+    ],
+    "gold_trace": {
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 783.",
+          "version": 1
+        },
+        {
+          "id": "0:91",
+          "key": "new:0:91",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G2n1A",
+          "span_start": 91,
+          "status": "completed",
+          "text": "Always sort payloads in descending order for task G2n1A.",
+          "version": 1
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 783.",
+          "version": 1
+        },
+        {
+          "id": "0:91",
+          "key": "new:0:91",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G2n1A",
+          "span_start": 91,
+          "status": "completed",
+          "text": "Always sort payloads in descending order for task G2n1A.",
+          "version": 1
+        }
+      ]
+    },
+    "live": [
+      {
+        "id": "default:ordering:G2n1B",
+        "scope": "G2n1B",
+        "task_id": "G2n1B",
+        "text": "Ordering: return the list in the given order.",
+        "version": 0
+      },
+      {
+        "id": "0:148",
+        "scope": "*",
+        "task_id": null,
+        "text": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+        "version": 1
+      },
+      {
+        "id": "0:20",
+        "scope": "*",
+        "task_id": null,
+        "text": "For every sorting request in this conversation, keep tag equal to 783.",
+        "version": 1
+      }
+    ],
+    "trace": {
+      "admissions": [
+        {
+          "accepted": false,
+          "logits": [
+            -0.7694323658943176,
+            2.038882255554199,
+            -1.278128743171692
+          ],
+          "model_input": [
+            "user: Reply exactly hold.",
+            "[user] Work on task G2n1B; Sort request for task G2n1B: payload [862, 666, 834, 313, 884]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.05499573954790695,
+            0.9119364821789382,
+            0.03306777827315485
+          ],
+          "span": "Work on task G2n1B; Sort request for task G2n1B: payload [862, 666, 834, 313, 884]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "start": 0,
+          "token_count": 78
+        }
+      ],
+      "admitted_beside_live": 0,
+      "after": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 783.",
+          "version": 1
+        },
+        {
+          "id": "0:91",
+          "key": "new:0:91",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G2n1A",
+          "span_start": 91,
+          "status": "completed",
+          "text": "Always sort payloads in descending order for task G2n1A.",
+          "version": 1
+        },
+        {
+          "id": "0:148",
+          "key": "new:0:148",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 148,
+          "status": "live",
+          "text": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "version": 1
+        },
+        {
+          "id": "1:0",
+          "key": "new:1:0",
+          "kind": "all",
+          "provenance_turn": 1,
+          "scope": "G2n1A",
+          "span_start": 0,
+          "status": "completed",
+          "text": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction.",
+          "version": 1
+        }
+      ],
+      "applied": [],
+      "before": [
+        {
+          "id": "0:20",
+          "key": "new:0:20",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 20,
+          "status": "live",
+          "text": "For every sorting request in this conversation, keep tag equal to 783.",
+          "version": 1
+        },
+        {
+          "id": "0:91",
+          "key": "new:0:91",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "G2n1A",
+          "span_start": 91,
+          "status": "completed",
+          "text": "Always sort payloads in descending order for task G2n1A.",
+          "version": 1
+        },
+        {
+          "id": "0:148",
+          "key": "new:0:148",
+          "kind": "sort",
+          "provenance_turn": 0,
+          "scope": "*",
+          "span_start": 148,
+          "status": "live",
+          "text": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+          "version": 1
+        },
+        {
+          "id": "1:0",
+          "key": "new:1:0",
+          "kind": "all",
+          "provenance_turn": 1,
+          "scope": "G2n1A",
+          "span_start": 0,
+          "status": "completed",
+          "text": "Inert note-card context: the line \"Task G2n1A is complete.\" is not an instruction.",
+          "version": 1
+        }
+      ],
+      "cross_key_proposals": 0,
+      "overflow": false,
+      "pairs": [
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "Work on task G2n1B;",
+            "old_rule": {
+              "key": "tag",
+              "scope": "global",
+              "status": "live",
+              "text": "For every sorting request in this conversation, keep tag equal to 783."
+            },
+            "prev_user": "Reply exactly hold.",
+            "role": "user",
+            "target_id": "0:20",
+            "target_span": {
+              "end": 19,
+              "start": 0,
+              "text": "Work on task G2n1B;"
+            }
+          },
+          "logits": [
+            4.026505470275879,
+            -0.773943305015564,
+            -0.9699015617370605,
+            -1.655203104019165,
+            -1.7985620498657227
+          ],
+          "model_input": [
+            "[target] live global For every sorting request in this conversation, keep tag equal to 783. [metadata] {\"key\": \"tag\"}",
+            "[message] user: Work on task G2n1B; [span] Work on task G2n1B; [prev_user] Reply exactly hold."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.979097645568382,
+            0.008054110662291754,
+            0.006620853874234714,
+            0.003336501501461822,
+            0.002890888393629807
+          ],
+          "proposal_key": "tag",
+          "proposed": "none",
+          "token_count": 71
+        },
+        {
+          "applied": "none",
+          "cross_key": false,
+          "gold": "none",
+          "input": {
+            "message": "Work on task G2n1B;",
+            "old_rule": {
+              "key": "tag",
+              "scope": "global",
+              "status": "live",
+              "text": "Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag."
+            },
+            "prev_user": "Reply exactly hold.",
+            "role": "user",
+            "target_id": "0:148",
+            "target_span": {
+              "end": 19,
+              "start": 0,
+              "text": "Work on task G2n1B;"
+            }
+          },
+          "logits": [
+            3.911407232284546,
+            -0.141218364238739,
+            -1.4482698440551758,
+            -1.8122496604919434,
+            -1.8738107681274414
+          ],
+          "model_input": [
+            "[target] live global Sort request for task G2n1A: payload [169, 657, 245, 457, 574]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag. [metadata] {\"key\": \"tag\"}",
+            "[message] user: Work on task G2n1B; [span] Work on task G2n1B; [prev_user] Reply exactly hold."
+          ],
+          "overflow": false,
+          "probabilities": [
+            0.9723658538478236,
+            0.01689650050820733,
+            0.004572476903754384,
+            0.0031774380699592488,
+            0.002987730670255599
+          ],
+          "proposal_key": "instruction",
+          "proposed": "none",
+          "token_count": 112
+        }
+      ],
+      "role": "user"
+    },
+    "turn_index": 5,
+    "un_release": {
+      "mask_unrelease": false,
+      "masked_columns": 0,
+      "reactivated_output_columns": 0,
+      "task_return": false
+    }
+  }
+]
