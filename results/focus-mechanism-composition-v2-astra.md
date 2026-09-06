@@ -174,3 +174,10 @@ accomplishing the task, it ships by default. Check 40k (queued on the GPU after 
 that on 32 fresh JavaScript tasks with hidden tests, paired text-only vs text+bias vs text+shuffled-bias, with
 pre-written readings R1 ship-by-default / R2 flag / R3 harm. v2's "actuator OFF by default" therefore holds only
 until 40k reports; an R1 outcome flips the default for the certified family and the larger test gains an R+bias arm.
+
+## Orchestrator addendum 2 (2026-09-06): GPU budget ruling
+Brian (2026-09-06): the larger test's GPU budget is raised from 6 to 12 GPU-hours (fable's v2 review H1: the primary
+contrast at the stated pressure needs ~4-13 GPU-h). Every "<= 6h" bound in this design and its readings is replaced
+by "<= 12 GPU-h"; the pressure (10 retained own bodies of 100-300 tokens, 10 tool rounds) is NOT reduced, and the O/T
+nested subset is kept. If 40k reads R1 the R+bias arm is included inside the same 12 GPU-h. The DEV pilot's measured
+cost projection still gates the launch: projection > 12 GPU-h -> report infeasible, do not shrink N silently.
