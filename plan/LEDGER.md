@@ -1024,3 +1024,12 @@ first generation after reporting smoke found it absent; synthetic reading bounds
 All224 saved scores/tokens/cache/mask/bias records and17 recipe git blobs audited.
 Report/index/WORKLOG ready; commit explicit paths, verify tracked artifact hashes;
 no signals, fitting, benchmark reads, retries, unrelated-file edits or push.
+
+2026-09-06 — STATE: CHECK44C CPU AUDIT / PRE-REGISTRATION, before fitting or
+heldout-3 read. User check44c brief governs foreground direct implementation.
+Fit-on=patched kimi admission + Opus enrich + Astra-audited kimi admission2;
+evaluated-on=fresh heldout3 once after freeze; heldout2 secondary second look;
+SETUP development-only. Audit122 changed/5 dropped. No scenario IDs: registered
+whole domain/source-batch grouping to approximate10% DEV across>=6 domains;
+within-batch integrity, cross-batch semantic relatives remain review limitation.
+Seed0 C2+B primary; C2 alone secondary; fixed GO bars in check44c/README.md.
