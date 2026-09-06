@@ -30,3 +30,8 @@ Report/writer smoke receipt retained separately; no scientific results yet.
 FOCUS-3 naturally released its GPU and flag; resources ready with
 115.098GiB available. Own flag acquired; model loading,
 1800s cooperative cap now active. Frozen recipe3f1a8aac reverified.
+
+2026-09-06 — STATE:12 EPISODES AUDITED; FULL FOREGROUND RUN CONTINUES.
+checkpoint12 preserves264 records/240 actual generations; production audit
+recomputed every score/token/history/bias/mask/cue span and summary on CPU.
+No production record edits or outcome retries; frozen denominator remains24.
