@@ -277,3 +277,5 @@ than one pooled breakage bit.
 
 Nothing above should be read as a rescue of the terminal: the registered rule
 fired correctly on the registered definition, and the stop stands.
+
+**Correction (astra full review, 2026-09-05)**: (F3) Non-BOTH arms produced 16 truncations and 3 additional placement-only tag omissions, 19 broken outputs total; BOTH produced 18 well-formed tag omissions. The current request lacked a refresh, and the system carrier and most older exemplars were absent; the preceding event cue and answer remained. The three additional placement-only omissions are episode 6/HOLD, episode 4/NEUTRAL2 and episode 6/NEUTRAL2. The registered stop is unchanged.

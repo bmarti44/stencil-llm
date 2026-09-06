@@ -70,9 +70,7 @@ is no longer the program's current claim.
 
 ## Honest boundaries (stated, not hidden)
 
-- All results are on one 1.7B model and a synthetic coding harness with
-  machine-checkable rules. The current retention/selector evaluation is
-  recorded in LEDGER-PLAN.md and WORKLOG.md.
+- Results span several trunks and task families; each report states its own model, data lineage and claim limits.
 - "Reads meaning, not wording" is proven for one unseen phrasing — not for
   arbitrary paraphrases.
 - The wave has no memory: recurrence added nothing measurable under the
@@ -83,15 +81,7 @@ is no longer the program's current claim.
 
 ## Why you can trust the numbers
 
-Models are reimplemented in-repo and parity-checked bit-for-bit against
-pinned reference weights; everything is deterministic from pinned seeds;
-sealed tests are one attempt with artifact hashes pinned before running;
-success metrics are causal (matched controls, ablations, wrong-target
-controls); and every phase was adversarially reviewed by two independent
-reviewers who reran the numbers themselves — the record includes more than
-a dozen instrument errors and overclaims they caught (several of them
-mine) before false conclusions could land. `WORKLOG.md` is the complete
-decision-by-decision record, retractions included.
+Each experiment reports its parity checks, decoding conditions and provenance; quick screens and formally registered runs have different evidential strength.
 
 ## Repo map
 

@@ -177,3 +177,5 @@ one of those same dictionaries. `frozen-biases.pt` contains the three float32
 [48,128] correct/swapped/shuffled tensors. JSON records retain text, input/output
 token IDs, parser results, truncation, timing and applied bias hashes. File sizes
 and SHA-256 values are recorded in [artifact inventory](artifact-inventory.json).
+
+**Correction (astra full review, 2026-09-05)**: (F1, F5) For checks 40b/40c/40d/41b, the provenance description is “locally frozen before execution according to run receipts”. Their freeze files first entered Git with results; matching local hashes and timestamps do not independently establish pre-outcome Git commitment. Checks 41/40e/43 have pre-generation Git anchors. Some checks 34–38 have launch-copy/hash evidence; check39’s exact reading was committed before its recorded start. These are not all committed preregistrations; no fabricated chronology was found. All 32 contain the intended arithmetic expression;26 parse as JavaScript and6 fail the paired language checker. This is expression preservation, not32 executable correct programs.

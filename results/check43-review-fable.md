@@ -136,3 +136,5 @@ this actuator; do not close it on check 43.
   Without it the table reads as a decisive null.
 - "The actuator did change routing" should carry the mixture-weight L1 per
   token (0.01-0.12) so readers see the changes were marginal swaps.
+
+**Correction (astra full review, 2026-09-05)**: (F4) This grid did not induce PRODUCT. Its smaller perturbation leaves under-dosing as an untested explanation; concept control remains open. No neutral OFF operation was measured in check43: the saved OFF replay is a text-SUM pilot. Equal global norms do not establish equal decision-site sensitivity or show that a larger dose would work.

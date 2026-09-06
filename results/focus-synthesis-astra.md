@@ -1,3 +1,7 @@
+**HISTORICAL (pre-FOCUS-2d) — not the current program verdict; see results/astra-results-review.md** (2026-09-05)
+
+**Correction (astra full review, 2026-09-05)** (F8): FOCUS-2d completed and failed both efficacy versus per-request recap and unchanged-constraint safety. Placement and masking influence behavior, but the tested combination must not be promoted.
+
 Focus synthesis — gpt-6-astra, 2026-09-05. Evidence assessment and proposed test; no experiment authorized or run here.
 
 On the frozen Qwen trunk tested here, the working account is that what governs the next answer is what the query

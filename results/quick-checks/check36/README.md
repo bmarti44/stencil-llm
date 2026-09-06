@@ -140,3 +140,5 @@ Artifacts: [summary](4b/summary.json), [records](4b/records.jsonl),
 [validation](4b/validation.json), [frozen reading](4b/prewritten-reading.md),
 [raw run log](4b/run.log). No fitting/training, sealed inputs, signals, background
 launches or push.
+
+**Correction (astra full review, 2026-09-05)**: (F2) Rebuilding downstream K/V leaves old-slot SWITCH at2/32. Stale downstream K/V alone cannot explain failure; role, placement, turn structure and prior demonstrations remain confounded.

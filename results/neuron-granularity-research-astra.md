@@ -82,3 +82,5 @@ For practical coding, let the native experts handle concept composition under ex
 **5. Cut**
 
 Cut more experts/new backbones, expert swapping across checkpoints, top-k changes, router/LoRA training, exhaustive expert/neuron atlases, and a new SAE-training project. Cut style/fence/token-proxy success claims, raw activation-frequency gain sweeps, post-outcome dose rescue and benchmark-derived directions. Cut long sorting-algorithm implementations, pure/functional labels without an effect checker, and neuron-level “recursion” claims based on an AST keyword or LLM judge. Cut multi-turn persistence, learned classifiers and oscillators from this first screen; they become separate questions only after clean semantic SET.
+
+**Correction (astra full review, 2026-09-05)**: (F5; correction to the opening arithmetic-preservation claim) All 32 contain the intended arithmetic expression;26 parse as JavaScript and6 fail the paired language checker. This is expression preservation, not32 executable correct programs.

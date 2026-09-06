@@ -51,3 +51,5 @@ running and remove after. No process termination, background launch or push.
 ## Results
 
 PENDING.
+
+**Correction (astra full review, 2026-09-05)**: (F1, F6; retrospective annotation, original reading unchanged) Alpha3 was selected after exploratory screen results; a fresh same-family bank yielded32/32 SET, while the originally selected alpha2 yielded6/32. No general dose robustness is established. Biased prefill plus the first few biased predictions can preserve the observed language rate. These arms neither isolate decode-only causality nor establish that sustained late bias causes all breakage.

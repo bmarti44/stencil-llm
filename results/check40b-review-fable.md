@@ -160,3 +160,5 @@ as a positive fact the README leaves implicit.
 
 Verdict on the report: accurate as written; MARGINAL stands; findings F1-F5 are
 low/medium disclosure items, none blocking.
+
+**Correction (astra full review, 2026-09-05)**: (F5) All 32 contain the intended arithmetic expression;26 parse as JavaScript and6 fail the paired language checker. This is expression preservation, not32 executable correct programs.

@@ -188,3 +188,5 @@ that primitive.
 5. Note the reading was fixed by run-time copy + hash, not a prior commit.
 6. Do not let "RECENCY threshold not met" be relayed as "no recency effect":
    paired 10/0 with a conservative interval excluding zero.
+
+**Correction (astra full review, 2026-09-05)**: (F2) Check38’s T1/T4 cue events and inherited filler are unanswered consecutive user turns. Role, recency, turn structure and prior demonstrations were not isolated. The 19/32 “decay” plus 10/32 “answers” comparison is not an identified additive decomposition: it compares different lists/histories across checks. The paired T2/R3 contrast does not identify the cause of the whole deficit.

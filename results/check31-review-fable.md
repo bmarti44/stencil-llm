@@ -85,3 +85,5 @@ its desc value/order errors are, and (b) does not depend on it.
   both summaries) exactly by the documented syntax/schema scoring split and tie-break rename; label
   counts, best cell and readings are unchanged under both versions (verified).
 - README "Cosine 0.89-0.98" and all table rows verified; validation.json hashes match the files on disk.
+
+**Correction (astra full review, 2026-09-05)**: (F7) “4B is stronger but misses the cited ascending bar”: 27/32 ascending is below the cited ≥29/32-per-skill bar despite 30/32 descending.

@@ -155,3 +155,5 @@ per record (the check43 instrumentation):
 - Replace "does not establish a universal skill selector" with the plain
   statement: **generality beyond Python -> JavaScript is currently unknown;
   this check neither supports nor refutes it.**
+
+**Correction (astra full review, 2026-09-05)**: (F4) The tested TS direction/dose failed on this bank. A same-harness JS control would help localize the failure; generality beyond Python→JS remains unestablished. Equal global norms do not imply equal sensitivity at the decision site. The wrong SQL table identifier is a fixture competence failure, not proof of absent SQL competence; P2 remains ineligible.
