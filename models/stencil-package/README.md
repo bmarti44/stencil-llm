@@ -82,3 +82,11 @@ A same-key system rule always takes precedence over a user task rule while
 both apply; the latter is journaled with a shadowed reason and winning version.
 Exact value/text echo checks are redundant transport integrity checks against
 `target_version`, not interpretation of the rule prose.
+
+The composition DEV pilot injects `stencil.focus.retained_decode.RetainedDecoder`
+through this same custom-generation dispatch. It retains actual KV within each
+session and supports independently masked batch lanes; it does not change the
+renderer or enable an actuator. `scripts/composition_pilot.py` owns sandboxed tools,
+same-run hidden checks and optional residual capture. The default convenience
+backend above still re-prefills; retained KV requires the explicit decoder adapter.
+This local pilot does not change the scaffold-only snapshot status.

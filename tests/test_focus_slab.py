@@ -128,7 +128,7 @@ def test_manifest_hashes(tmp_path):
     assert receipt == frozen
     audit = json.loads((FIXTURES / "slab_cpu_audit.json").read_text())
     assert audit["freeze"] == {key: receipt[key] for key in audit["freeze"]}
-    assert audit["own_body_tokens"]["in_100_300"] == 1408
+    assert audit["own_body_tokens"]["in_100_300"] == 1440
     assert audit["own_body_tokens"]["first_ten_eligible_episodes"] == 72
     assert max(audit["max_context_tokens"].values()) + 512 <= 32768
     assert receipt == json.loads((tmp_path / "slab_manifest.json").read_text())
@@ -490,3 +490,46 @@ def test_sandbox_network_filter_covers_watchdog_thread():
         modules["time"].sleep(0.01)
 """
     assert evaluate(code, "f", None) == [-1, 1]
+
+
+@pytest.mark.parametrize("index", [0, 3])
+def test_repair_unparsable_preserves_retired_style(tmp_path, index):
+    e = generate_episode("dev", index)
+    materialize(e, tmp_path)
+    executor = Executor(
+        tmp_path, json.loads((tmp_path / "public_tests.json").read_text())
+    )
+    turn = next(
+        t.index
+        for t in e.turns
+        if any(
+            event.action == "supersedes" and event.kind == "style" for event in t.events
+        )
+    )
+    for i in range(turn):
+        executor.run(reference(e, i))
+    payload = json.loads(reference(e, turn))
+    edit = next(c for c in payload["calls"] if c["op"] == "edit")
+    path = edit["path"]
+    previous = (tmp_path / path).read_text()
+    executor.run(
+        json.dumps(
+            {
+                "calls": [{"op": "edit", "path": path, "code": "\ndef broken(:\n"}],
+                "report": {},
+            }
+        )
+    )
+    edit.update(op="replace", code=previous + edit["code"])
+    output = json.dumps(payload)
+    executor.run(output)
+    result = check(e, turn, output, executor)
+    assert result["prior_trait_present"]["style"]
+    assert not result["attempted_relapse"]["style"]
+    assert not result["relapse"]["style"]
+    assert result["success"], result
+    # A new stale definition remains a real violation after the repair.
+    stale = json.loads(mutants(e, turn)["relapse:style"])
+    executor.run(json.dumps(stale))
+    result = check(e, turn, json.dumps(stale), executor)
+    assert result["violations"]["style"] and result["relapse"]["style"]

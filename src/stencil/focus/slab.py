@@ -343,7 +343,11 @@ def generate_episode(family="dev", index=0, seed=20260906):
     episode_seed = seed * 10000 + (index if family == "dev" else 1000 + index)
     rng = random.Random(episode_seed)
     domain = DOMAINS[index % 4]
-    n = 32 if family == "eval" and index >= 48 else 16
+    n = (
+        32
+        if (family == "eval" and index >= 48) or (family == "dev" and index >= 6)
+        else 16
+    )
     # Six ordering shapes; DEV uses a distinct reinstatement-time production.
     shape = rng.choice(tuple(permutations(("indent", "format", "delivery"))))
     event_times = (
@@ -357,7 +361,7 @@ def generate_episode(family="dev", index=0, seed=20260906):
     reinstate = (
         (13 if family == "dev" else rng.choice((14, 15)))
         if n == 16
-        else rng.choice((27, 28, 29))
+        else (26 if family == "dev" else rng.choice((27, 28, 29)))
     )
     initial_indent, next_indent = rng.sample(("2", "3", "4"), 2)
     delivery = rng.choice(("draft", "queued", "staged"))
@@ -675,6 +679,14 @@ class Executor:
         self.results = []
         self.receipt = None
         self.prior_bodies = []
+        self.last_parsable = {}
+        for path in TOOL_SCHEMA["paths"]:
+            code = (self.directory / path).read_text()
+            try:
+                ast.parse(code)
+                self.last_parsable[path] = code
+            except (SyntaxError, RecursionError):
+                pass
 
     def hashes(self):
         return {
@@ -688,6 +700,7 @@ class Executor:
         self.before_files = {
             p: (self.directory / p).read_text() for p in TOOL_SCHEMA["paths"]
         }
+        self.before_parsable = dict(self.last_parsable)
         self.emitted_codes = []
         self.executed, self.results, self.receipt = [], [], None
         try:
@@ -735,9 +748,20 @@ class Executor:
                     ):
                         raise ValueError("edit bound")
                     self.emitted_codes.append(
-                        code if op == "edit" else changed_code(path.read_text(), code)
+                        code
+                        if op == "edit"
+                        else changed_code(
+                            path.read_text(),
+                            code,
+                            self.last_parsable.get(call["path"], ""),
+                        )
                     )
                     path.write_text((path.read_text() if op == "edit" else "") + code)
+                    try:
+                        ast.parse(path.read_text())
+                        self.last_parsable[call["path"]] = path.read_text()
+                    except (SyntaxError, RecursionError):
+                        pass
                     self.receipt = None
                     result = dict(
                         op=op, path=call["path"], sha256=self.hashes()[call["path"]]
@@ -796,8 +820,12 @@ class Executor:
         )
 
 
-def changed_code(before, after):
+def changed_code(before, after, last_parsable=""):
     """For a rewrite, score changed top-level definitions, retaining old styles."""
+    try:
+        ast.parse(before)
+    except (SyntaxError, RecursionError):
+        before = last_parsable
     try:
         old = {ast.get_source_segment(before, node) for node in ast.parse(before).body}
         return "\n".join(
@@ -872,7 +900,11 @@ def check(episode, turn, output, executor, executed=True, truncated=False):
         code = "\n".join(
             c["code"]
             if c["op"] == "edit"
-            else changed_code(executor.before_files.get(c["path"], ""), c["code"])
+            else changed_code(
+                executor.before_files.get(c["path"], ""),
+                c["code"],
+                executor.before_parsable.get(c["path"], ""),
+            )
             for c in edits
         )
         try:
