@@ -161,3 +161,13 @@ Focused BIO/adjacent-span/orphan-I/role-guard tests, strict threshold-boundary
 check, import-safety check and runner Ruff checks pass. Weights remain local as
 safetensors, with committed hashes and metadata in admission-v2/manifest.json.
 The freeze, raw records and independent verifier are the reproducible evidence.
+
+## Orchestrator addendum after the fable accuracy review (2026-09-06; results/check44c-review-fable.md)
+Numbers reproduce; freeze order verified; NO-GO stands. Corrections: exact-match figures mostly measure a framing-cue
+convention conflict (fit corpus labels "From now on, " inside the span; held-out-3 excludes it) — overlap recall and
+the family bars are unaffected; ~14 of the 71 unmatched predictions are adjacent cue fragments; the 10 SETUP false
+turns are 6 fragment-only, 3 template-only, 1 mixed (payload never admitted); fragmentation comes from O-gaps, not
+B-restarts, and a gap-merging decoder lowers recall; B-arm held-out-3 numbers: recall 60.3% / precision 99.1%,
+0/111 gold-empty admissions. Root cause: phrasing coverage (cue-initial gold recall 87% vs cue-less 52%; three-rule
+messages 37%). DECISION: automatic admission is PARKED (three consecutive failures of the same bar); explicit
+structured entry ships with the detector as an assistive suggester; reopening conditions are in the review.
