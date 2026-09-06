@@ -1088,3 +1088,8 @@ Sequential nested20.794h>12, full4x64=37.180h; interrupted batch occupied-lane p
 R first10 bodies in band; observed prompt max11050+512 fits, not a long-shape certificate. Language0/0 by design; style/format/process0/5,0/4,0/6 each; mask trigger not met.
 CPU audit reproduces128 scores/executions/hashes/live views and256 hidden hashes;11 means explicitly partial. Exact R golden consumer replay passes;47 targeted tests+1 expected xfail, lint/diff checked.
 Post-run edits affect only reporting/audit/golden test; inference bank/renderer/decoder/custom-entry match d1fb0660 recipe. No evaluation episode/bench reads or push. Final commit closes this bounded pilot; no further inference.
+
+2026-09-06 — STATE: CHECK45 COMPLETE / R4 INSUFFICIENT DATA. User's eligibility stop governs; archived PLAN/PROTOCOL context read (root PLAN and plan/PROTOCOL absent), current STATE read; no wrapper lock held.
+Pilot README explicitly INELIGIBLE/INCOMPLETE: stop before labels/hidden states/fitting. Source reports128 calls from DEV00, also below150; >=25 violation gate not assessed.
+Planned fit-on DEV pilot only; evaluated-on held-out DEV episodes by fold. Actual input pilot README only; no benchmark/evaluation-bank reads, model/GPU, signals or push.
+CPU gate script emits source/script hashes, zero-fold records and empty weight manifest. No metrics or meter; R1–R3 not evaluated. Scoped result/index/WORKLOG/script commit closes task.

@@ -528,3 +528,9 @@ Composition DEV pilot ([composition-pilot](composition-pilot/README.md)): **INEL
    R own bodies197–198, first10 in band; max actual context11050+512 fits; GPU32-round shape and remaining7DEV episodes unrun; relapse pressure not established.
    N1 fixed on CPU; DEV06/07 extended/re-frozen pre-GPU; gold explicit R=O on DEV only; language relapse0/0 by design; mask trigger not met, actuator OFF.
    5385.346/5400GPU-s,one load;128 records/256 hidden hashes audited; renderer golden frozen, .npy local;47 tests pass+1xfail; no eval/bench reads,signals,push.
+
+45. OFF-TASK PROBE ([check45](check45/README.md)): **R4 — INSUFFICIENT DATA**; pilot INELIGIBLE/INCOMPLETE triggers mandatory stop.
+   Pilot README reports128 calls from DEV00 only (<150 rounds); >=25 live-rule violations not assessed after stop.
+   No fitting, CV, AUROC/calibration/operating-point metrics or baselines; no meter registered, no signal conclusion.
+   Planned fit-on DEV pilot only / evaluated-on held-out DEV episodes; actual read = pilot README, fit/evaluation none.
+   CPU gate script + hashed manifest; zero folds, empty per-fold records, no weights/model/GPU/bench reads/signals/push.

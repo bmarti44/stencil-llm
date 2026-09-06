@@ -5435,3 +5435,9 @@ Sequential nested20.794GPU-h>12; non-invariant batch proxy>=49.583h; truncation1
 Gold explicit R=O on DEV only; language relapse0/0 by design; style/format/process0/5,0/4,0/6 with prior-trait0; mask trigger not met, actuator OFF.
 5385.346/5400GPU-s,one load;128 records and256 local hidden hashes audited;11 body means partial at cap/deadline; renderer bytes frozen;47 pass+1xfail.
 Fit/train none; authored DEV only, no eval/bench reads/signals/push; scoped local artifacts commit; report under results/quick-checks/composition-pilot/.
+
+2026-09-06 — check45 (gpt-6-astra): R4 INSUFFICIENT DATA; pilot README is INELIGIBLE/INCOMPLETE; mandatory stop.
+Source reports128 calls/one DEV episode, below150; violation count not assessed; no hidden/label reads or fitting.
+No AUROC/calibration/baselines, no signal claim or meter registration; zero folds/weights recorded in hashed manifest.
+Planned lineage DEV-only fit / held-out DEV episodes; actual pilot README only, no evaluation or benchmark reads.
+CPU stdlib gate reproduced; no model/GPU, process signals or push; explicit-path local commit.
