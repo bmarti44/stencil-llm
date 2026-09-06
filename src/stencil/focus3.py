@@ -50,6 +50,21 @@ def sentences(text):
     ]
 
 
+def admission_inputs(spans, previous):
+    """Training segment A: up to three preceding, speaker-prefixed sentences.
+
+    Include earlier spans in this user message; the previous user message is
+    the historical context available to this user-only register API.
+    """
+    preceding = [s for _, s in sentences(previous)]
+    inputs = []
+    for span in spans:
+        context = " ".join("user: " + s for s in preceding[-3:])
+        inputs.append((context or "(no context)", f"[user] {span}"))
+        preceding.append(span)
+    return inputs
+
+
 def scope_of(text, current):
     if re.search(
         r"\b(?:this reply only|this time only|this one answer|for this message)\b",
@@ -253,6 +268,11 @@ class Runtime:
         trace["overflow"] = any(p["overflow"] for p in predictions)
         admissions = self.classifier.admission([s for _, s in spans], self.previous)
         assert len(admissions) == len(spans)
+        # Retain scores even when a relation branch consumes/skips the span.
+        trace["admissions"] = [
+            dict(span=span, start=start, **admission, accepted=False)
+            for (start, span), admission in zip(spans, admissions, strict=True)
+        ]
         for (start, span), admission in zip(spans, admissions, strict=True):
             rows = [
                 p for p in trace["pairs"] if p["input"]["target_span"]["start"] == start
@@ -327,8 +347,8 @@ class Runtime:
                 and admission["probabilities"][1] >= 0.95
                 and scope is not None
             )
-            trace["admissions"].append(
-                dict(span=span, start=start, **admission, accepted=accept)
+            next(a for a in trace["admissions"] if a["start"] == start)["accepted"] = (
+                accept
             )
             if accept and not any(
                 r.text == span and r.scope == scope and r.status == "live"
@@ -465,9 +485,7 @@ class FrozenClassifier:
         return self.infer("relations", [pair_input(p) for p in pairs], 512)
 
     def admission(self, spans, previous):
-        return self.infer(
-            "ft", [(previous or "(no context)", f"[user] {s}") for s in spans], 192
-        )
+        return self.infer("ft", admission_inputs(spans, previous), 192)
 
 
 def agreement(candidate, gold, gold_keys):

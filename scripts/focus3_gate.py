@@ -354,7 +354,7 @@ def gold_pair_label(pair, turn):
 def gpu_ready():
     running = sorted(
         str(p.relative_to(ROOT))
-        for p in (ROOT / "results/quick-checks").glob("*/RUNNING.flag")
+        for p in (ROOT / "results/quick-checks").rglob("RUNNING.flag")
     )
     query = subprocess.run(
         [
@@ -734,15 +734,18 @@ def run():
     assert sources() == freeze["hashes"], "source drift during run"
 
 
-def build_bank(fixture):
+def build_bank(fixture, setup_seed=30302, gate_seed=30301):
     """Instantiate authored prose; events/checkers never enter Runtime."""
     bank = {}
-    for split, seed, n in [("setup", 30302, 4), ("gate", 30301, 16)]:
+    for split, seed, n in [("setup", setup_seed, 4), ("gate", gate_seed, 16)]:
         rng = random.Random(seed)
         episodes = []
         for family_index, family in enumerate(FAMILIES):
             templates = (
-                fixture["setup_templates"][family_index : family_index + 1]
+                fixture.get("setup_families", {}).get(
+                    family.replace("-", "_"),
+                    fixture["setup_templates"][family_index : family_index + 1],
+                )
                 if split == "setup"
                 else fixture["families"][family.replace("-", "_")]
             )
@@ -774,6 +777,9 @@ def build_bank(fixture):
                     "neutral_template",
                 ):
                     context[key] = template[key].format(**context)
+                for key in ("secondary_rule_template", "completion_template"):
+                    if key in template:
+                        context[key] = template[key].format(**context)
                 ep = dict(
                     id=f"{split}_{family_index}_{index:02}",
                     seed=seed,
@@ -845,9 +851,12 @@ def build_bank(fixture):
                         initial_id = f"0:{text.index(context['initial_rule_template'])}"
                     elif ti == 2:
                         if family == "switch-and-return":
-                            span = (
-                                f"For task {task_b}, sort the payload "
-                                f"in {opposite} order."
+                            span = context.get(
+                                "secondary_rule_template",
+                                (
+                                    f"For task {task_b}, sort the payload "
+                                    f"in {opposite} order."
+                                ),
                             )
                             events.append(
                                 dict(
@@ -867,7 +876,9 @@ def build_bank(fixture):
                             span = (
                                 context["change_template"]
                                 if family != "complete-and-move-on"
-                                else f"Task {task_a} is complete."
+                                else context.get(
+                                    "completion_template", f"Task {task_a} is complete."
+                                )
                             )
                             events.append(
                                 dict(

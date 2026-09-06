@@ -406,3 +406,33 @@ Both audits PASS1632 records/272 episode-arms;19 tests,2 forbidden reads exclude
 2965.079361649/10800s incl.prior181.012;natural exit,own flag removed.
 RESULTS v2/summary/README/WORKLOG ready;source/model/bank hashes match freeze.
 No further run or repair authorized;explicit paths only,no fitting/sealed/signals/push.
+
+2026-09-06 — STATE: FOCUS-3 V3 CPU WRITE-AHEAD (gpt-6-astra).
+New user registration supersedes v2 stop: spec-conformant varied standing bank,
+setup30311/gate30312,16/64,frozen v2 endpoints,3 new GPU-h,no48 fallback.
+Fit-on = existing frozen ft and relations training (historical lineage caveats
+retained); evaluated-on = fresh synthetic v3 templates/values; fit/train none.
+Archive/plan/PROTOCOL.md read (root protocol archived); explicit task governs.
+check40h pid807294 owns GPU/lock directly, not a review/coder wrapper; scoped
+CPU work proceeds without GPU claim or process signals. Unrelated files excluded.
+First freeze eight spec-authored paraphrases, score both directions plus v2 on
+CPU using user-prefixed preceding sentences; use all eight, never score-select.
+Repair admission context to that training contract, record every span's score.
+Conservative pre-gate eligibility: all initial gold order rules16/16, every gold
+standing admission/replacement (including tag and switched task), and all gold
+cancellations/completions8/8 must be applied to the actual target; absence or
+scope-hidden live rows do not count as retirement. Replay all16 setup episodes
+on CPU before trunk load; any miss stops INELIGIBLE-ADMISSION with zero gate.
+If eligible, wait for free GPU, claim own flag, setup O>=15/16 then full64 C/O/N/T.
+No benchmark/sealed input reads, fitting, background launches, signals or push.
+
+2026-09-06 — STATE: FOCUS-3 V3 FROZEN CPU READY; preflight next.
+25 targeted tests pass,1 legacy inventory xfail,2 sealed hash readers deselected;
+ruff/diff clean. Original v2 bank recompiles identically;80 new episodes validate.
+All8 standing forms retained. Actual v2 G0n0A old wording P(rule).0260/.0263
+legacy -> .4885/.3467 faithful (asc/desc); standing forms .99577-.99665 faithful.
+Readable Inventory old wording .9721/.9660 shows task-name dependence, not rescue.
+Freeze includes both diagnostic tables, bank, authoring, sources, tests, models,
+reading and token audit. check40h naturally completed during CPU work; no signals.
+Next: explicit-path freeze commit then ONE foreground CPU --mode preflight;
+no trunk or gate unless all gold standing and retirement setup checks pass.
