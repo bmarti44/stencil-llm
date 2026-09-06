@@ -236,32 +236,3 @@ def test_atomic_completes_trace_carries_span_for_unauthorized_consumer():
         ),
     )
     assert v5.unauthorized([record])["applications"] == 0
-
-
-@pytest.mark.parametrize("label", ["none", "reinstates"])
-def test_payload_suffix_cannot_turn_task_switch_into_a_rule(label):
-    # Actual consumer contract: relation span ends before Sort request, whereas
-    # admission keeps the whole sentence. Its high rule score must not restore.
-    rt = f.Runtime(Classifier(prule=0.999, label=label))
-    rt.task = "Cedar"
-    old = rt.register.add(
-        "Always sort ascending for task Cedar.", "order", "Cedar", "sort", 0, 0
-    )
-    old.status = "cancelled"
-    span = (
-        "Work on task Cedar; Sort request for task Cedar: payload [3, 1]; "
-        "reply as compact JSON using the active conversation tag."
-    )
-    tr = rt.update(span, 1)
-    assert tr["admissions"][0]["probabilities"][1] == 0.999
-    assert tr["pairs"][0]["input"]["target_span"]["text"] == "Work on task Cedar;"
-    assert not tr["applied"] and len(rt.register.rows) == 1
-
-
-def test_saved_probability_consumer_fails_on_unseen_input():
-    c = v5.SavedClassifier()
-    c.record = dict(trace=dict(pairs=[], admissions=[]))
-    with pytest.raises(AssertionError):
-        c.relations([dict(unseen=True)])
-    with pytest.raises(AssertionError):
-        c.admission(["Unseen sentence."], "")

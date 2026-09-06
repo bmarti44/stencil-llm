@@ -547,3 +547,12 @@ only. Global overlap remains in none guard; report residual failures without
 rescue. Delete only three verbatim enrichment rows; Kimi transitions untouched.
 Implement CPU parity, replay once, audit, explicit-path commit; no GPU, sealed/
 bench reads, fitting, signals, background launches or push. Stop after step A.
+
+2026-09-06 — STATE: V5 CPU INFERENCE COMPLETE; IMPLEMENTATION CORRECTION.
+First replay33/36 admissions,8/12 transitions,13 unauthorized actions. Audit PASS
+for saved runtime/softmax/DEV parity but inspection found task-switch guard used
+payload-concatenated admission span, violating ruling3. Preserve original run,
+freeze and sources under v5/implementation-diagnostic; correct switch recognition
+to relation prose prefix. Prewritten implementation-correction.md binds next
+CPU saved-probability replay: exact same inputs required, no new model inference.
+Expected effect limited to final-turn switches; no policy/bank/threshold change.

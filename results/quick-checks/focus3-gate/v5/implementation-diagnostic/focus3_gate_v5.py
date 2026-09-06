@@ -189,13 +189,6 @@ def source_hashes():
     paths += [
         str((V4 / name).relative_to(g.ROOT)) for name in ["bank.json", "freeze.json"]
     ]
-    if (OUT / "implementation-correction.md").exists():
-        paths.append(str((OUT / "implementation-correction.md").relative_to(g.ROOT)))
-        paths.extend(
-            str(p.relative_to(g.ROOT))
-            for p in sorted((OUT / "implementation-diagnostic").rglob("*"))
-            if p.is_file()
-        )
     return {p: g.digest(g.ROOT / p) for p in paths}
 
 
@@ -268,35 +261,7 @@ def record_turn(ep, ti, turn, runtime, oracle):
     )
 
 
-class SavedClassifier:
-    branches = {}
-    record = None
-
-    def relations(self, pairs):
-        saved = self.record["trace"]["pairs"]
-        assert pairs == [p["input"] for p in saved]
-        return [
-            {
-                k: v
-                for k, v in p.items()
-                if k not in ["input", "gold", "applied", "proposed"]
-            }
-            for p in saved
-        ]
-
-    def admission(self, spans, previous):
-        saved = self.record["trace"]["admissions"]
-        assert spans == [p["span"] for p in saved]
-        assert [list(p) for p in f.admission_inputs(spans, previous)] == [
-            p["model_input"] for p in saved
-        ]
-        return [
-            {k: v for k, v in p.items() if k not in ["span", "start", "accepted"]}
-            for p in saved
-        ]
-
-
-def replay(saved=False):
+def replay():
     verify_freeze()
     assert os.environ.get("CUDA_VISIBLE_DEVICES") == "", (
         "explicit CPU environment required"
@@ -311,7 +276,7 @@ def replay(saved=False):
         ),
     )
     started, cpu_started = time.monotonic(), time.process_time()
-    classifier = SavedClassifier() if saved else f.FrozenClassifier()
+    classifier = f.FrozenClassifier()
     for _, enc, head, _ in classifier.branches.values():
         assert all(p.device.type == "cpu" for m in (enc, head) for p in m.parameters())
     bank = json.loads((V4 / "bank.json").read_text())
@@ -320,14 +285,6 @@ def replay(saved=False):
         runtime, oracle = f.Runtime(classifier), f.Oracle()
         episode_records = []
         for ti, turn in enumerate(ep["turns"]):
-            if saved:
-                classifier.record = json.loads(
-                    (
-                        OUT
-                        / "implementation-diagnostic/records"
-                        / f"{ep['id']}_C_{ti}.json"
-                    ).read_text()
-                )
             r = record_turn(ep, ti, turn, runtime, oracle)
             assert all(
                 "model_input" in a and "logits" in a
@@ -345,8 +302,6 @@ def replay(saved=False):
         gpu_held_seconds=0,
         generation_records=0,
         gate_records=0,
-        inference_passes=int(not saved),
-        saved_probability_replay=saved,
         pair_count=sum(len(r["trace"]["pairs"]) for r in records),
         admission_span_count=sum(len(r["trace"]["admissions"]) for r in records),
         verdict="ELIGIBLE-STEP-A" if result["eligible"] else "INELIGIBLE-STEP-A",
@@ -367,11 +322,36 @@ def audit():
 
     verify_freeze()
     bank = json.loads((V4 / "bank.json").read_text())
-    summary = json.loads((OUT / "summary.json").read_text())
     records = []
 
+    class Replay:
+        record = None
+
+        def relations(self, pairs):
+            saved = self.record["trace"]["pairs"]
+            assert pairs == [p["input"] for p in saved]
+            return [
+                {
+                    k: v
+                    for k, v in p.items()
+                    if k not in ["input", "gold", "applied", "proposed"]
+                }
+                for p in saved
+            ]
+
+        def admission(self, spans, previous):
+            saved = self.record["trace"]["admissions"]
+            assert spans == [p["span"] for p in saved]
+            assert [list(p) for p in f.admission_inputs(spans, previous)] == [
+                p["model_input"] for p in saved
+            ]
+            return [
+                {k: v for k, v in p.items() if k not in ["span", "start", "accepted"]}
+                for p in saved
+            ]
+
     for ep in bank["setup"]:
-        classifier = SavedClassifier()
+        classifier = Replay()
         runtime, oracle = f.Runtime(classifier), f.Oracle()
         episode_records = []
         for ti, turn in enumerate(ep["turns"]):
@@ -399,17 +379,7 @@ def audit():
                     ex / ex.sum(), p["probabilities"], atol=1e-12, rtol=1e-12
                 )
                 assert not p["overflow"]
-            classifier.record = (
-                json.loads(
-                    (
-                        OUT
-                        / "implementation-diagnostic/records"
-                        / f"{ep['id']}_C_{ti}.json"
-                    ).read_text()
-                )
-                if summary["saved_probability_replay"]
-                else r
-            )
+            classifier.record = r
             assert record_turn(ep, ti, turn, runtime, oracle) == r, (ep["id"], ti)
             records.append(r)
             episode_records.append(r)
@@ -438,7 +408,6 @@ def audit():
         softmax_recomputed=True,
         dev_tables_recomputed=True,
         frozen_v4_models_match=True,
-        saved_probabilities_unchanged=summary["saved_probability_replay"],
         record_sha256={
             p.name: g.digest(p) for p in sorted((OUT / "records").glob("*.json"))
         },
@@ -452,14 +421,9 @@ def audit():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--mode", required=True, choices=["prepare", "replay", "replay-saved", "audit"]
-    )
+    parser.add_argument("--mode", required=True, choices=["prepare", "replay", "audit"])
     args = parser.parse_args()
-    if args.mode == "replay-saved":
-        replay(saved=True)
-    else:
-        globals()[args.mode]()
+    globals()[args.mode]()
 
 
 if __name__ == "__main__":

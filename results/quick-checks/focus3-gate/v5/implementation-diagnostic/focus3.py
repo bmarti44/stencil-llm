@@ -115,12 +115,10 @@ def selected_task(text, current):
 
 
 def task_switch_only(span):
-    # Admission spans retain the harness request after a semicolon; task
-    # switching uses the same prose prefix as relation pairing.
     return bool(
         re.fullmatch(
             r"(?:Work on|Return to|Continue|Switch to) task [A-Z][A-Za-z0-9_-]*[.;!?]?",
-            prose_message(span),
+            span,
         )
     )
 
