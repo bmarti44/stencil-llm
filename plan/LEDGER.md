@@ -1001,3 +1001,13 @@ all48-layer dispatch/bias hashes verified, zero consumer mismatches. CPU Go
 installation/gofmt/go vet passed. Allocation396.984/3600s,8 generations/219tokens;
 foreground raw exit0, own flag removed, no signals/sealed reads/fit/train/push.
 Artifacts, five-line index and six-line WORKLOG audited; explicit-pathspec final commit follows.
+
+2026-09-06 — STATE: CHECK40J REGISTERING, no GPU work yet.
+User's quick-test-first brief governs; PLAN/PROTOCOL archived, current STATE read.
+Fit-on nothing; evaluate16 fresh targets with96 fresh OFF history tasks, seed401006.
+Literal requested Live rules sentence prepended; focus3.render uses JSON instead,
+so copy placement only and disclose format discrepancy. No stronger cue invented.
+Inherited40i CPU mask checks, executable controls, prompt parity and40g tensor hash
+PASS. R1/R2/R3 and224 generations frozen before inference;2700s one-load cap.
+Next commit recipe, then foreground .venv/bin/python scripts/focus_check40j.py run;
+respect flags/review lock, never signal or push. No edits to untracked composition.
