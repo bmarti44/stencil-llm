@@ -498,3 +498,9 @@ FOCUS-3 gate ([results v2](focus3-gate/RESULTS.md), [frozen reading](focus3-gate
    SETUP96: C2 false-admission turns,0 request-template admits; B22 and15. Frozen splitter ceiling176/207=85.02%; no rescue or rerun.
    Audited3103-message corpus, DEV309; three seeds/thresholds frozen bab43b0d after recipe f03c4398;212.346/3600 GPU-seconds,426 records/852 predictions audited.
    First ship stays explicit structured entry; C assistive only, no runtime swap or v9 authorization. Six tests+CPU smoke pass; weights local, no signals/sealed reads/push.
+
+40j. RENDERED RULE ADDITIVITY ([check40j](check40j/README.md)): **R1—rendering suffices**, hard40e harness, fresh16 tasks.
+   P1 OFF/bias-only JS0/16 each; text-only/text+bias16/16 each. P2 all four rendered arms16/16; every arm broken0.
+   All96 OFF history answers valid Python; combined-vs-text paired wins0/losses0/ties16, descriptive gain95% CI[-23.96,+23.96]pp.
+   Exact requested literal cue prepended; current focus3.render actually emits JSON (prewritten discrepancy). Bias control0/16 does not reproduce40g3/8.
+   Recipe3dddc28e;224 records audited,827.221/2700GPU-seconds. Rendering-only primary; actuator out of default shipping; n16 screen, no enlargement/signals/push.

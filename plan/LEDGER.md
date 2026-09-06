@@ -1011,3 +1011,16 @@ Inherited40i CPU mask checks, executable controls, prompt parity and40g tensor h
 PASS. R1/R2/R3 and224 generations frozen before inference;2700s one-load cap.
 Next commit recipe, then foreground .venv/bin/python scripts/focus_check40j.py run;
 respect flags/review lock, never signal or push. No edits to untracked composition.
+
+2026-09-06 — STATE: CHECK40J COMPLETE R1, no further GPU work.
+Recipe3dddc28e before224 generations; literal rendered cue discrepancy prewritten.
+P1 OFF/bias-only JS0/16, text-only/text+bias16/16; P2 every arm16/16, no breaks.
+All96 retained OFF history answers executable Python; exact shared prefixes16/16.
+Combined-vs-text wins0/losses0/ties16; conservative descriptive95% gain±23.96pp.
+Rendering-only primary; actuator out of default shipping. Small screen, no enlargement.
+827.221/2700GPU-seconds,6439 output tokens; natural exit0 and ownflag removed.
+CPU inherited mask/scorer/prompt tests PASS; SciPy1.18.1 installed during load before
+first generation after reporting smoke found it absent; synthetic reading bounds PASS.
+All224 saved scores/tokens/cache/mask/bias records and17 recipe git blobs audited.
+Report/index/WORKLOG ready; commit explicit paths, verify tracked artifact hashes;
+no signals, fitting, benchmark reads, retries, unrelated-file edits or push.

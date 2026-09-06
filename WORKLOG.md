@@ -5367,3 +5367,10 @@ TS, JSON→SQL, Python→Go and Go release unmeasured; beyond-Python/JS generali
 Exact40e inputs8/8, separate40c scorer agreement8/8;48-layer dispatch/bias hashes audited, zero mismatches.
 Go official tarball SHA verified; CPU gofmt/go vet and288 canonical cases PASS; no fitting/training or sealed reads.
 396.984/3600 GPU seconds,8 generations/219 tokens; natural exit0, flag removed, no signals/push. results/quick-checks/check40g/README.md.
+
+### 2026-09-06 — Check40j R1: rendering suffices
+Hard40e fresh16: text-only16/16 JS in both phases; P2 all arms16/16, zero breaks; all96 retained OFF answers Python.
+P1 OFF/bias-only0/16 JS; text+bias16/16. P2 combined-vs-text wins0/losses0/ties16; gain95% CI[-23.96,+23.96]pp, descriptive.
+Exact user cue prepended; current FOCUS-3 JSON-renderer mismatch disclosed pre-inference. Rendering primary; actuator out of default shipping.
+Recipe3dddc28e,224 generations/6439 output tokens,827.221/2700GPU-seconds; CPU checks and saved-record/token/mask/bias audits PASS.
+results/quick-checks/check40j/README.md; one load, natural exit0/flag removed, no retries/fitting/signals/push; n16 screen, no enlargement.
