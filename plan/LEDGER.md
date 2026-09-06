@@ -842,3 +842,12 @@ records finished. C/C' exact10/16, final15/16, stale1/16, false retirement0,
 contradictory2/16, breakage0; each8false admissions +2unauthorized completions.
 O final15/16, stale1/16; N/T final0/16, stale16/16. Final switch-and-return
 family running. No scientific/runtime change; conditional probes still pending.
+
+2026-09-06 — STATE: CHECK44 CPU TIMING CAPPED; WAITING FOR DIAGNOSTIC GPU.
+Frozen fp32/four-thread CPU timing reached1800s boundary cap:20complete DEV
+messages plus21st partial raw output, preserved; no prompt/recipe selection.
+CPU timing is INCOMPLETE/COST, not a semantic result. All sampled prompts exceed
+1024tokens; that CPU ship-latency stratum is unmeasured. Required GPU24DEV and
+338Fable one-shot evaluation remain unrun; source held-out unopened. Commit
+CPU records/timing/log now, then foreground waiter for all GPU flags to clear.
+No signals, no background process, no fitting, no push; C remains frozen skipped.
