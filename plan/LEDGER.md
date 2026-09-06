@@ -1033,3 +1033,5 @@ SETUP development-only. Audit122 changed/5 dropped. No scenario IDs: registered
 whole domain/source-batch grouping to approximate10% DEV across>=6 domains;
 within-batch integrity, cross-batch semantic relatives remain review limitation.
 Seed0 C2+B primary; C2 alone secondary; fixed GO bars in check44c/README.md.
+
+2026-09-06 — CHECK44C pilot: {"updates": 10, "seconds": 1.2594217840014608, "updates_per_second": 7.94015168471026, "projected_gpu_seconds": 269.6193079393735, "peak_GiB": 1.4938702583312988, "per_seed_timeout_seconds": 199.49241058583138}.

@@ -1,0 +1,44 @@
+{
+  "review": {
+    "reviewer": "gpt-6-astra",
+    "date": "2026-09-06",
+    "rows_reviewed": 1577,
+    "rows_changed": 122,
+    "rows_dropped": 5,
+    "source_sha256": "bce07558c0a4eba08dbf58388469768a319e47d56492cd334b785db67cb1c225",
+    "method": "Every message and gold span read on CPU in source order; full offset/substring and overlap checks. No new messages; benchmark and gate data not opened for audit. drop=true removes the row in THIS patch (unfilled authoring placeholders); old Opus patch retains its registered label-replacement meaning.",
+    "coverage_limits": "Manual semantic review is fallible; no assertion of semantic disjointness from inaccessible sealed corpora. Phrasing gaps are reported, never filled from held-out/gate content.",
+    "labels_sha256": "6e9a8355a531e3b6fd3d4a1dcb8171da1d03ee1b8899611fe6256ffae4c811ec"
+  },
+  "before": {
+    "messages": 1577,
+    "gold_spans": 1289,
+    "gold_empty": 769
+  },
+  "after": {
+    "messages": 1572,
+    "gold_spans": 1396,
+    "gold_empty": 668
+  },
+  "dev_domains": [
+    "customer-support",
+    "data-analysis",
+    "devops",
+    "email",
+    "finance",
+    "game-design",
+    "marketing",
+    "planning",
+    "qa-testing",
+    "recipes",
+    "scheduling",
+    "travel",
+    "writing"
+  ],
+  "dev_fraction": 0.09967914438502674,
+  "targeted_pass_literal_standing_rule": 0,
+  "targeted_pass_should_always": {
+    "positive": 3,
+    "negative": 10
+  }
+}
