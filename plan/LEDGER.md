@@ -226,3 +226,15 @@ Preserve four uncommitted interrupted records; fresh original 192 episodes, no o
 Charge prior launch-to-boot upper bound299s; combined projection12356.312/12600s.
 Only scheduling/accounting updated for user server exemption and RUNNING.flag; no wrapper active.
 Next scoped freeze commit, foreground run, CPU full-record audit, report/index/WORKLOG commit; no signals/sealed reads/push.
+
+2026-09-06 — check42 FIRST CELL PRESERVED / DELAY EXCLUSION OBSERVED.
+48 episodes/1008 records committed85524381 while foreground runner continues.
+B at ascending/512/index0 capped DELAY1 at160 and RETRY320; frozen common-pair
+exclusion applies and prewritten no-exclusion closure guard cannot pass.
+Continue all frozen episodes within cap; no prompt/cap/reading adjustment.
+Before inspecting task-score aggregates: also report A/C complete-pair coverage
+on all planned IDs as a descriptive censoring diagnostic, because B-only delay
+failures otherwise hide valid A/C records. Keep frozen common-sample verdict;
+no new closure gate, selection, threshold, prompt or generation change.
+
+2026-09-06 — check42 HALF-SAMPLE PRESERVATION: all96 ascending episodes scheduled through termination; A/C complete, B capped-delay exclusions retained. Charged6023.117/12600s. Commit prefix96; foreground descending cells continue unchanged.
