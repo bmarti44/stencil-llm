@@ -40,4 +40,65 @@ Claim limited to arithmetic language surface syntax under this schedule;
 HOLD with current bias and visible own answers does not isolate maintenance.
 Prior negated-JS bias is not used; no claim about independently profiled Python.
 
-Results PENDING.
+**Result: CLOSED-RELEASE.**
+
+Complete: True; all scheduled generations complete.
+
+Z SWITCH Python 24/24; BACK JS 23/24; CLEAR Python 24/24.
+Paired real SWITCH releases 24/24; paired real CLEAR releases 23/24; both paired releases in the same episode 23/24 (diagnostic).
+Zc BACK JS 0/24; S BACK JS 0/24.
+Z CLEAR paired-release cases 23/24; outside the paired criterion 1/24.
+Z BACK miss episodes: [2].
+
+| Arm | Step | JS | Python | Broken | Coarse task | Fenced | Bare (valid) | Missing paren |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| Z | SET | 24 | 0 | 0 | 24 | 24 | 0 (0) | 0 |
+| Z | HOLD | 24 | 0 | 0 | 24 | 24 | 0 (0) | 0 |
+| Z | SWITCH | 0 | 24 | 0 | 24 | 24 | 0 (0) | 0 |
+| Z | HOLD_AFTER_SWITCH | 0 | 24 | 0 | 24 | 24 | 0 (0) | 0 |
+| Z | BACK | 23 | 1 | 0 | 24 | 24 | 0 (0) | 0 |
+| Z | HOLD_AFTER_BACK | 23 | 1 | 0 | 24 | 24 | 0 (0) | 0 |
+| Z | CLEAR | 0 | 24 | 0 | 24 | 24 | 0 (0) | 0 |
+| Zc | SET | 24 | 0 | 0 | 24 | 24 | 0 (0) | 0 |
+| Zc | HOLD | 24 | 0 | 0 | 24 | 24 | 0 (0) | 0 |
+| Zc | SWITCH | 0 | 24 | 0 | 24 | 24 | 0 (0) | 0 |
+| Zc | HOLD_AFTER_SWITCH | 0 | 24 | 0 | 24 | 24 | 0 (0) | 0 |
+| Zc | BACK | 0 | 24 | 0 | 24 | 24 | 0 (0) | 0 |
+| Zc | HOLD_AFTER_BACK | 0 | 24 | 0 | 24 | 24 | 0 (0) | 0 |
+| Zc | CLEAR | 0 | 24 | 0 | 24 | 24 | 0 (0) | 0 |
+| S | SET | 24 | 0 | 0 | 24 | 24 | 0 (0) | 0 |
+| S | HOLD | 24 | 0 | 0 | 24 | 24 | 0 (0) | 0 |
+| S | SWITCH | 0 | 24 | 0 | 24 | 24 | 0 (0) | 0 |
+| S | HOLD_AFTER_SWITCH | 0 | 24 | 0 | 24 | 24 | 0 (0) | 0 |
+| S | BACK | 0 | 24 | 0 | 24 | 24 | 0 (0) | 0 |
+| S | HOLD_AFTER_BACK | 0 | 24 | 0 | 24 | 24 | 0 (0) | 0 |
+| S | CLEAR | 0 | 24 | 0 | 24 | 24 | 0 (0) | 0 |
+| OFF | SET | 0 | 24 | 0 | 24 | 24 | 0 (0) | 0 |
+| OFF | HOLD | 0 | 24 | 0 | 24 | 24 | 0 (0) | 0 |
+| OFF | SWITCH | 0 | 24 | 0 | 24 | 24 | 0 (0) | 0 |
+| OFF | HOLD_AFTER_SWITCH | 0 | 24 | 0 | 24 | 24 | 0 (0) | 0 |
+| OFF | BACK | 0 | 24 | 0 | 24 | 24 | 0 (0) | 0 |
+| OFF | HOLD_AFTER_BACK | 0 | 24 | 0 | 24 | 24 | 0 (0) | 0 |
+| OFF | CLEAR | 0 | 24 | 0 | 24 | 24 | 0 (0) | 0 |
+
+Every completed cell has denominator24; shared prefixes are logical arm records.
+Coarse task checks preserve the expression and parse syntax; code is not executed.
+
+Frozen conditions: `{"BACK": true, "CLEAR": true, "SWITCH": true, "S_back_control": true, "Zc_back_control": true, "every_step_breakage": true, "paired_clear_release": true, "paired_switch_release": true}`.
+
+Missing-parenthesis defects: 0 logical replies, 0 actual generations, 0 distinct episodes.
+Actual generations: fenced 480, bare 0, ambiguous 0, expression echoes 0, OK replies 0.
+
+672 records / 480 actual generations / 14152 tokens; truncated 0, cost-stopped 0.
+GPU allocation wall cost including load/kernel/cleanup: 1319.301/1800s (21.99/30min; 0.3665 GPU-h). Overrun 0.000s.
+
+CPU audit replays every score/token/history, bias digest, shared prefix, body mask,
+every forward and absolute position. Independent counts, paired verdict and Python
+parses agree. Recipe commit bb42c4e6 precedes inference; freeze hashes verified.
+No fitting, sealed input, signals, background launch, outcome retries or push.
+Own RUNNING.flag removed on natural completion.
+
+This reading concerns this fresh synthetic arithmetic language-syntax check.
+It does not establish general skill closure or autonomous maintenance. The Zc/S
+comparison isolates the BACK bias after identical masked prefixes; masks retain
+headers/closures and downstream KV. Prior40h PARTIAL remains unchanged.

@@ -463,3 +463,9 @@ FOCUS-3 gate ([results v2](focus3-gate/RESULTS.md), [frozen reading](focus3-gate
    Z mask+OFF SWITCH Python24/24: masking restores DEFAULT without new Python routing; later JS-biased BACK23/24. T′ every language target24/24, broken0.
    M/Z fence loss0; T′ bare valid BACK/HOLD_AFTER_BACK/CLEAR1 each; ambiguous echoes/OK0. T′ CLEAR coarse23/24 (valid lambda rejected by unchanged checker).
    528 records/480 generations/14603 tokens,22.46/30 GPU-min; full CPU audit PASS, freeze3f1a8aac; flag removed, no fit/train/sealed reads/signals/push.
+
+40i. Z PRIMARY RELEASE CLOSURE ([check40i](check40i/README.md)): **CLOSED-RELEASE**; unregistered, seed40080/24, frozen alpha3; no fit/train.
+   Z SWITCH Python24/24, BACK JS23/24, CLEAR Python24/24; paired real SWITCH24 and CLEAR23. One BACK Python-persistence episode; zero breakage at every step.
+   Zc OFF+mask and S shuffled+mask BACK JS0/24 each; full-history OFF Python24/24 at every step. Exact shared4-step prefixes; no opposite-direction bias.
+   Fences480/480 actual generations (672/672 logical replies), bare0, missing-parenthesis0, ambiguous/echo/OK0; coarse checks24/24 in every cell, no code execution.
+   672 records/480 generations/14152 tokens;21.99/30 GPU-min (0.3665h), full CPU audit and independent recount PASS; freeze bb42c4e6, flag removed, no signals/sealed reads/push.

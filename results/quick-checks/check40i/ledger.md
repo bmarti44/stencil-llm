@@ -16,3 +16,13 @@ PASS. Z SWITCH/CLEAR12 Python, BACK11 JS +1 Python, paired CLEAR11; controls
 BACK JS0, no breaks. Frozen denominator24 and INCOMPLETE label preserved.
 Direct runner continues unchanged; checkpoint explicitly committed while no
 review/coder wrapper runs. Report CPU dummy fixture also PASS.
+
+COMPLETE / CLOSED-RELEASE: natural foreground exit0, charged1319.300596/1800s,
+flag removed. All24 episodes/672 records/480 generations/14152 tokens retained.
+Z SWITCH24 Python/BACK23 JS/CLEAR24 Python, paired SWITCH24/CLEAR23; episode2
+BACK/HOLD_AFTER_BACK remains Python. Controls Zc/S BACK JS0; OFF allPython.
+Broken0 every step/arm, fences480/480 actual, missing parentheses/bare/echo/OK0.
+Full CPU audit and independent raw-count/paired/Python-parse recount PASS;
+all48 raw router layers and grouped_mm OFF equality PASS; frozen hashes match.
+Five-line index and six-line WORKLOG entry complete. Explicit-path final local
+commit includes force-added results; no push/signals/sealed reads/fit or rerun.

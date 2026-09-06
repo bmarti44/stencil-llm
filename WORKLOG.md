@@ -5241,3 +5241,10 @@ Setup correct-source transitions8/12 (<11): supersedes2/4,cancels3/4,completes3/
 None guard0/189 on setup (maximum .9699236177);27 false-positive proposals,19 unauthorized applications (18 reinstates,1 cancellation) across8 episodes. No runtime/admission readiness claim or outcome rescue.
 96 records/16 traces/201 pairs audited by frozen runtime replay/trainer parity/raw-softmax and independent source-status recount;32 tests pass,1 legacy import xfail,ruff clean.93 linked evaluation-derived handwritten enrichment rows for later refit only.
 CPU replay-loop wall19.307595s;GPU0/10800s,zero generations/gate records. Frozen64 gate30322 remains unevaluated by mechanical stop;no GPU claim,signals,sealed reads,background,push. Final artifacts/index explicit-path local commit next.
+
+### 2026-09-06 — Check40i (gpt-6-astra): CLOSED-RELEASE with Z primary
+Unregistered, fresh40080/24, frozen40b JS/shuffle alpha3; fit/train none, no sealed inputs. Recipe bb42c4e6 precedes inference; midpoint924f2ef1 preserves12 episodes.
+Z SWITCH Python24/24, BACK JS23/24, CLEAR Python24/24; paired real SWITCH24, CLEAR23; episode2 stays Python at BACK. Zero breakage at every step/all arms.
+Zc OFF+mask and S shuffle+mask BACK JS0/24 each; OFF Python24/24 every step. Fences480/480 actual (672 logical), missing-parenthesis/bare/ambiguous/echo/OK0.
+All672 records/480 generations/14152 tokens audited for scores/tokens/history/bias/masks/positions; independent counts/paired reading/Python parses PASS. Coarse checks all24/24; arithmetic syntax only.
+Cost1319.301/1800s=21.99/30 GPU-min (0.3665h), no overrun; natural foreground exit, own flag removed, explicit-path local commit/no push/signals/fitting/sealed reads.

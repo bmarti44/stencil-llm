@@ -151,6 +151,18 @@ def main():
         f"both paired releases in the same episode {both}/24 (diagnostic).",
         f"Zc BACK JS {counts['Zc']['BACK'].get('JavaScript', 0)}/24; "
         f"S BACK JS {counts['S']['BACK'].get('JavaScript', 0)}/24.",
+        f"Z CLEAR paired-release cases {clear}/24; "
+        f"outside the paired criterion {24 - clear}/24.",
+        "Z BACK miss episodes: "
+        + str(
+            [
+                e
+                for e in range(24)
+                if ("Z", e, "BACK") in bank
+                and bank["Z", e, "BACK"]["score"]["valid_language"] != "JavaScript"
+            ]
+        )
+        + ".",
         "",
         "| Arm | Step | JS | Python | Broken | Coarse task | Fenced | Bare "
         "(valid) | Missing paren |",
