@@ -1,0 +1,80 @@
+{
+  "utc": 1788697177.7864196,
+  "n": 330,
+  "source_sha256": "9709606e3c15fa25114943890f3138f0ddae3f474c94fd71a4bb5211ac22fde0",
+  "header": {
+    "file": "data/classifier/heldout/fable-admission-heldout-2.jsonl",
+    "author": "fable",
+    "date": "2026-09-06",
+    "purpose": "second author-disjoint held-out set for FOCUS-3 message-level ADMISSION: standing rule vs one-off request / quoted or reported text / data payload; domains, scenarios and messages disjoint from fable-admission-heldout.jsonl",
+    "rows": 330,
+    "by_category": {
+      "one_rule": 114,
+      "two_rules": 31,
+      "payload_request": 97,
+      "inert_quote": 57,
+      "rule_plus_payload": 31
+    },
+    "by_category_pct": {
+      "one_rule": 34.5,
+      "two_rules": 9.4,
+      "payload_request": 29.4,
+      "inert_quote": 17.3,
+      "rule_plus_payload": 9.4
+    },
+    "rows_with_rules": 176,
+    "rows_without_rules": 154,
+    "rule_spans_total": 207,
+    "rule_spans_by_scope": {
+      "global": 180,
+      "task": 27
+    },
+    "by_role": {
+      "user": 300,
+      "tool": 18,
+      "assistant": 12
+    },
+    "by_domain": {
+      "astronomy": 16,
+      "beekeeping": 14,
+      "woodworking": 14,
+      "aviation": 15,
+      "maritime": 15,
+      "veterinary": 15,
+      "museum": 15,
+      "theater": 16,
+      "fashion": 15,
+      "podcasting": 15,
+      "wine": 15,
+      "ceramics": 15,
+      "library": 15,
+      "insurance": 15,
+      "accessibility": 15,
+      "robotics": 16,
+      "chess": 14,
+      "cartography": 15,
+      "brewing": 15,
+      "dental": 15,
+      "nonprofit": 15,
+      "eldercare": 15
+    },
+    "domains": 22,
+    "scenarios": 101,
+    "scenarios_with_multiple_rows": 82,
+    "hard": 74,
+    "one_off_request_true": 128,
+    "quoted_or_reported_true": 57,
+    "field_notes": {
+      "standing_rules": "verbatim spans with 0-based [start,end) character offsets into message; empty when the message admits nothing; tool/assistant rows never carry rules",
+      "one_off_request": "true when the message asks for a piece of work on data it carries, or carries a single-reply-scoped constraint; formal 'Process request for task X ... after applying the active rule' templates are one-off requests with zero standing rules",
+      "quoted_or_reported": "true when rule-shaped text is quoted, reported, hypothetical, fictional, tool/assistant-authored, or a hedged proposal",
+      "category": "one_rule | two_rules | payload_request | inert_quote | rule_plus_payload",
+      "scenario": "sc-<domain>-<topic>; variants of one scenario (rule / payload / quoted / rule+payload / tool or assistant echo) share the id"
+    },
+    "data_lineage": "hand-written by fable in this session with no access to focus3-gate banks, the benchmark directory under data/, or any enrichment data; evaluated-on only; never to be used for model fitting, selection, or tuning",
+    "provenance": "sentences, spans, keys, scopes, labels, rationales and scenario ids hand-written; character offsets and counts computed mechanically from the verbatim spans and asserted unique"
+  },
+  "model_freeze_sha256": "6ff1203dcbb38edba74018ef7e8c2212b8309aa673c58557368f88236dbba363",
+  "device": "cpu",
+  "threads": 4
+}

@@ -279,34 +279,54 @@ The five-arm gate and its primary/secondary readings remain unmeasured.
 [escalation for Brian](quick-checks/focus3-gate/v8/ESCALATION.md),
 [ft-v3 metadata](../data/classifier/model/ft-v3/README.md).
 
-## 2026-09-06 — Check44b: contextual message admission trained, evaluation pending
+## 2026-09-06 — Check44b: NO-GO; precise message admission misses standing-rule spans
 
-Arm C now uses base bge-small-en-v1.5 with full-message/candidate sentence pairs,
-trained on2872 Kimi messages after53 Opus label replacements plus231 Opus
-messages. All20 domains were kept whole across sources; marketing/travel form
-DEV309 (9.96%), with2794 fit messages. Domain grouping conservatively substitutes
-for absent author scenario IDs and keeps matched quote/adoption variants together.
-The frozen sentence splitter and full512-token pairs are used throughout;
-non-user roles reject, overflows abstain. No training or DEV pair overflowed.
+C does not replace the ft head. First ship remains explicit structured rule entry,
+with C available as an assistive suggester; this check does not authorize gate v9.
+On330 previously unopened Fable-2 messages/207 gold spans, C overlap micro P/R is
+99.34%/72.95% (151 matches/152 predictions), below the85% recall bar. B's unchanged
+ft-v3 head scores95.43%/80.68% (167/175). Exact micro P/R is C 82.24%/60.39%,
+B 78.86%/66.67%; overlap macro P/R is C 99.67%/78.69%, B 97.32%/87.22%.
+Message-level P/R is C 100%/85.80%, B 99.40%/94.89%; it does not replace span recall.
 
-Seed0 is designated in advance. At the lowest DEV threshold allowing at most
-3/183 gold-empty false admissions, seed0 overlap precision/recall is97.83%/91.84%
-(135/147 gold spans), and seeds1/2 score97.87%/93.88% (138/147). Thresholds are
-.9883976740722434, .9768228882950498, .956549283252651. The sentence splitter's
-DEV representability ceiling is141/147=95.92%; macro metrics do not replace the
-registered micro recall bar. These development outcomes cannot establish GO.
+C admits0/97 payload,0/57 quoted and 0/30 non-user negatives. B has0/97,1/57,0/30.
+One-sided95% Clopper-Pearson message upper bounds for C are3.04%,5.12%,9.50%;
+zero samples do not certify<=3% population error. Fable supplies101 scenario IDs;
+secondary any-error scenario rates/bounds are in diagnostics.json, since the
+inherited aggregator expects scenario_id while this bank calls the field scenario.
 
-Pre-written recipe f03c4398 and all-model freeze bab43b0d precede any Fable-2
-contents. Three complete468-update fits, CPU calibration and saving cost212.346
-GPU-allocation seconds of3600; peak torch allocation4.342GiB. Six focused tests,
-actual CPU smoke, saved-DEV calibration/score replay and frozen hashes pass.
-All ft-v3 baseline checkpoint bytes match check44's original freeze.
+On the96 development SETUP turns, C has2 turns with unmatched admitted spans,
+both task-selection sentences, and 0 request-template admissions. B has22 and 15,
+respectively. This head-level diagnostic counts errors on otherwise positive
+turns; downstream scope/lifecycle register vetoes are not applied. C meets the
+<=2/96 SETUP bar, but held-out recall determines NO-GO. No bank data was fitted.
 
-The new Fable-2 bank is not yet committed. Evaluation remains pending, with
-five-minute commit polling and no held-out or SETUP inference. The unchanged
-GO bar requires C held-out overlap recall>=85%, payload/quote FP<=3%, zero
-non-user admissions, plus<=2/96 false-admission SETUP turns. First ship remains
-explicit structured entry until that decision; C has not replaced the runtime.
-[Pre-written reading](quick-checks/check44b/README.md),
-[pending results](quick-checks/check44b/RESULTS.md),
+The frozen sentence splitter can represent only 176/207 spans (85.02%) on Fable-2:
+all 31 two-rule messages combine their clauses in one candidate. C loses another
+25 representable spans; B loses9. Category recall is C 101/114 single-rule,25/62
+two-rule,25/31 rule+payload; B 109/114,27/62,31/31. No overflow, splitter rescue,
+threshold change, alternative seed evaluation or repeat inference occurred.
+Warm four-thread CPU held-out p50/p95 is C 50.67/60.27ms, B 48.60/54.82ms, excluding
+model loading. Integrated shipping latency remains unmeasured.
+
+Fit-on = audited Kimi 2872 after53 Opus replacements plus 231 Opus messages. Whole
+domains keep source batches and matched quote pairs together; marketing/travel
+are DEV 309/3103 (9.96%,2/20 domain groups), with 2794 fit messages. Domain grouping
+is the conservative proxy for absent training scenario IDs. All input pairs use
+the full message in segment A and exact frozen candidate in B,512-token overflow
+abstention, explicit role rejection. No scope/key or auxiliary-flag heads fitted.
+
+Preselected seed0 DEV overlap recall is 135/147=91.84%; seeds1/2 score138/147=93.88%.
+DEV-only thresholds .9883976740722434/.9768228882950498/.956549283252651 each admit
+3/183 gold-empty messages. Recipe f03c4398 and all-model freeze bab43b0d precede
+Fable-2 commit2b3cfc74 and evaluation. All seeds completed 468 updates/three epochs.
+GPU allocation 212.346/3600s includes CPU calibration and saving; peak4.342GiB.
+
+Six focused tests, CPU smoke and frozen hashes pass. All426 records/852 arm
+predictions were audited, including independent bitmask matching, macro scores,
+B softmax/cutoffs, source snapshot identity and CP binomial equations. All DEV
+scores/thresholds reproduce. Safetensors remain local; metadata and hashes are
+committed. No signals, background jobs, sealed/benchmark reads or push.
+[Full results](quick-checks/check44b/RESULTS.md),
+[pre-written reading](quick-checks/check44b/README.md),
 [model metadata](../data/classifier/model/admission-v1/README.md).

@@ -1,5 +1,11 @@
 # Relation classifier task ledger
 
+2026-09-06 — STATE: CHECK44B COMPLETE / NO-GO. Seed0 C overlap151/207=72.95%
+<85%; negative FP0/97 payload,0/57 quoted,0/30 non-user; SETUP2/96 false turns,
+0/96 request-template admits. No runtime swap or gatev9 authorization; explicit
+first-ship structured entry, C assistive only. All requested artifacts and final
+reports land in the completion commit; no further inference pending.
+
 2026-09-05 — STATE: RECONCILING, before any fitting or held-out read. User's
 CPU-only, foreground-only task governs this work. Prior PLAN/PROTOCOL/LEDGER
 were moved to archive/; read archived protocol and latest STATE for context.
@@ -974,3 +980,15 @@ Go official tarball installed under $HOME, SHA256 verified; gofmt/go vet CPU PAS
 PASS. No flags or other GPU users observed; never signal. Cap3600s including load,
 profiles/checkers/cleanup; fixed counts, cooperative deadline; no wrapper edits.
 Next: .venv/bin/python /home/bmarti44/stencil-llm/scripts/focus_check40g.py run
+
+2026-09-06 — CHECK44B FINAL AUDIT: Fable-2 commit2b3cfc74 discovered by the
+third five-minute poll, after model-freeze bab43b0d. Evaluated once:330 new
+held-out +96 SETUP messages, C and B on CPU/four threads. Frozen recipe/weights
+unchanged. Exact/overlap/macro/family CP/CPU latency recorded; all426 records and
+852 predictions independently recounted without model calls. Frozen splitter
+ceiling176/207=85.02%, C adds25 misses; no rescue. GPU212.346/3600s, six focused
+tests+CPU smoke pass. All tracked artifact hashes verified at completion; local
+safetensors ignored. No signals, benchmark/sealed reads, background job or push.
+Final lock check: .review.lock belongs to foreground focus_check40g.py GPU
+run, not a review/coder wrapper; source inspection shows no workspace restorer.
+No process/lock touched; check44b completion commit uses explicit own pathspecs.

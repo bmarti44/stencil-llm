@@ -5354,9 +5354,9 @@ All338 records, prompt hashes, raw token decodes, validators/scores and100/200 r
 GPU1084.249/5400s incl83.269s failed preflight; CPU1801.005s boundary cap,20complete+1partial; C skipped at870 rows. No fitting, signals, benchmark/sealed reads or push.
 Cut unattended first-ship admission; explicit structured rule entry. No second prediction pass or800-message bank. Results: results/quick-checks/check44/RESULTS.md.
 
-### 2026-09-06 — Check44b: three admission seeds frozen; heldout-2 pending
-Audited Kimi2872+Opus231,53 patches applied; whole-domain fit2794/DEV309, seed0 designated.
-DEV overlap recall91.84%/93.88%/93.88%; thresholds .9883976741/.9768228883/.9565492833, each FP3/183 negatives.
-Recipe f03c4398, model freeze bab43b0d;212.346/3600 GPU-seconds, six tests/smoke/saved-DEV audit pass; weights out of git.
-Fable-2 remains uncommitted at five-minute polls: no held-out/SETUP inference yet, GO/NO-GO pending; structured first-ship entry unchanged.
+### 2026-09-06 — Check44b: NO-GO, admission C precise but low span recall
+Heldout-2 C overlap P/R99.34%/72.95% (151/207), B95.43%/80.68%; C payload/quote/non-user FP0/97,0/57,0/30, B0/97,1/57,0/30.
+SETUP C2/96 false turns and0/96 request-template admits; B22/96 and15/96. Splitter ceiling176/207; no rescue or repeat inference.
+Audited Kimi2872+Opus231/53 patches; DEV309, seeds0/1/2 thresholds frozen bab43b0d after f03c4398;212.346/3600 GPU-seconds.
+426 records/852 arm predictions and all DEV scores/thresholds audited; six tests/smoke pass, weights local. Explicit first-ship entry, C assistive only; no swap/v9.
 Results: results/quick-checks/check44b/RESULTS.md; own flag removed naturally, no signals, forbidden-input reads or push.
