@@ -5187,3 +5187,9 @@ Common124: A/B99 all-five vs C88, constraints0; B68 twice-capped delays block fr
 Full A/C coverage diagnostic151 vs131/192, b/c39/19, p(worse).997323; constraints0, A user/tool failures1 each, assistant39/64 vsC42/64; no verdict rescue.
 Charge11631.287/12600s incl.299s interrupted allowance; four old uncommitted records preserved separately; prefix commits protect completed output.
 STATE: all192 scheduled attempts and CPU analysis complete; final report/index/artifacts committing explicitly; flag absent, no signals/sealed reads/background/push.
+
+### 2026-09-06 — Check43b (gpt-6-astra): CLOSE concept-level routing on this trunk under the tested recipe
+No fit/train; existing32 donors/eight setup, fresh two-seed Python/JS banks frozen but unevaluated; no sealed inputs.
+OFF SUM8/8; same-runtime JS sanity8/8. Window19–21, band norms6.805823/10.208735: −b PRODUCT0/8 each, malformed0, shuffled− PRODUCT0/8; no safe cell, mechanical stop.
++b SUM8/7, malformed0/1; shuffled+ malformed0/4 (list returns). Raw profiles, all80 scores/biases and actual dispatch audited; tests6 passed/1 legacy xfail.
+Recipe da131791 precedes outcomes; 3963 tokens, 672.882/1440 GPU seconds; natural exit/flag removed, explicit-path commits, no push/signals/background.

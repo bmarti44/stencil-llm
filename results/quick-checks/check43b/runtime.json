@@ -1,0 +1,97 @@
+{
+  "load_seconds": 383.42884188699827,
+  "pid": 98717,
+  "python": "/home/bmarti44/stencil-llm/.venv/bin/python",
+  "raw_slot_layers": 48,
+  "router_source": "    def forward(self, hidden_states):\n        hidden_states = hidden_states.reshape(-1, self.hidden_dim)\n        router_logits = F.linear(hidden_states, self.weight)  # (seq_len, num_experts)\n        router_probs = torch.nn.functional.softmax(router_logits, dtype=torch.float, dim=-1)\n        router_top_value, router_indices = torch.topk(router_probs, self.top_k, dim=-1)  # (seq_len, top_k)\n        if self.norm_topk_prob:\n            router_top_value /= router_top_value.sum(dim=-1, keepdim=True)\n        router_top_value = router_top_value.to(router_logits.dtype)\n        router_scores = router_top_value\n        return router_logits, router_scores, router_indices\n",
+  "router_source_sha256": "b2666af64b7b31a02a152e9187ed2c5671262543b61510d0359c26fa491105ca",
+  "transformers": "5.16.1",
+  "transformers_path": "/home/bmarti44/stencil-llm/.venv/lib/python3.12/site-packages/transformers/__init__.py",
+  "weights": {
+    "index_sha256": "df0d481ec595c55a0ba58426d517390c6214a566ec4ff1c8fc4bbce9f57b3c24",
+    "ready": true,
+    "shards": [
+      {
+        "bytes": 3999417504,
+        "name": "model-00001-of-00016.safetensors",
+        "tensors": 1063
+      },
+      {
+        "bytes": 3999974192,
+        "name": "model-00002-of-00016.safetensors",
+        "tensors": 1262
+      },
+      {
+        "bytes": 3997360832,
+        "name": "model-00003-of-00016.safetensors",
+        "tensors": 1258
+      },
+      {
+        "bytes": 3999975056,
+        "name": "model-00004-of-00016.safetensors",
+        "tensors": 1262
+      },
+      {
+        "bytes": 3999975400,
+        "name": "model-00005-of-00016.safetensors",
+        "tensors": 1262
+      },
+      {
+        "bytes": 3999975400,
+        "name": "model-00006-of-00016.safetensors",
+        "tensors": 1262
+      },
+      {
+        "bytes": 3999975472,
+        "name": "model-00007-of-00016.safetensors",
+        "tensors": 1262
+      },
+      {
+        "bytes": 3997362064,
+        "name": "model-00008-of-00016.safetensors",
+        "tensors": 1258
+      },
+      {
+        "bytes": 3999975408,
+        "name": "model-00009-of-00016.safetensors",
+        "tensors": 1262
+      },
+      {
+        "bytes": 3999975400,
+        "name": "model-00010-of-00016.safetensors",
+        "tensors": 1262
+      },
+      {
+        "bytes": 3999975408,
+        "name": "model-00011-of-00016.safetensors",
+        "tensors": 1262
+      },
+      {
+        "bytes": 3987400496,
+        "name": "model-00012-of-00016.safetensors",
+        "tensors": 1260
+      },
+      {
+        "bytes": 3997353632,
+        "name": "model-00013-of-00016.safetensors",
+        "tensors": 1256
+      },
+      {
+        "bytes": 3999975400,
+        "name": "model-00014-of-00016.safetensors",
+        "tensors": 1262
+      },
+      {
+        "bytes": 3999975400,
+        "name": "model-00015-of-00016.safetensors",
+        "tensors": 1262
+      },
+      {
+        "bytes": 1087928584,
+        "name": "model-00016-of-00016.safetensors",
+        "tensors": 152
+      }
+    ],
+    "tensor_bytes": 61064245248
+  }
+}
