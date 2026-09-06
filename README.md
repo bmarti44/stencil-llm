@@ -65,6 +65,10 @@ reinstatements fall to zero; payload/quote admissions still pollute the register
 The GPU gate was not launched. [v8 results](results/quick-checks/focus3-gate/v8/RESULTS.md)
 and [Brian escalation summary](results/quick-checks/focus3-gate/v8/ESCALATION.md).
 
+FOCUS-3 v8 **diagnostic** is registered under separate user authorization: five
+arms measure false-admission cost; no PASS/FAIL label is assigned.
+[Diagnostic registration and results](results/quick-checks/focus3-gate/diag/RESULTS.md).
+
 ## Earlier headline: the internal wave (superseded, kept for the record)
 
 A tiny trained controller (264k parameters) riding on the frozen trunk

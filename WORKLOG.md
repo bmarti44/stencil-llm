@@ -5286,3 +5286,16 @@ Runtime v8 flag adds exact non-global task scope for completion; reinstatement r
 Single CPU replay: 36/36 admissions, 11/12 transitions, 12 unauthorized in 12 records (8 one-shot payload admissions, 3 inert quote admissions, 1 completion of a polluted same-task row), zero overflow. V7 total 19→12; three payload errors disappear and one new payload error appears. The same-scope extra completion cannot be repaired by scope filtering alone. Unchanged supersedes miss .570806<.90. STOP-LOSS applied; no trunk/O/gate/C-prime trajectory, corrective replay or next iteration.
 122 targeted tests pass, 1 existing xfail; 14 new lifecycle failures observed before guards. Saved-data audit replays 96 records/16 traces exactly, recomputes DEV/family/Fable metrics and split identities. Independent raw-softmax/trainer/state audit accounts for 59 actions, 50 new rows, 12 status changes, 214 pairs and 184 admission spans, zero unexplained changes. Observer-only missing provenance and prose/admission span association were corrected with both initial logs preserved; no scientific source, model, threshold or record changed.
 GPU-held time 269.749111/10800 seconds, all admission fitting; CPU replay 16.508058 seconds. Foreground process exited naturally and removed own flag; no process signals, termination, background work or push. Requested RESULTS, model inventory, README indices, dated relation report, ledger, WORKLOG and ESCALATION summary prepared for explicit-path force-add commit; encoder safetensors local/hash-bound as registered. STATE: gate stopped INELIGIBLE; only artifact verification/commit remains, with Brian escalation as the next program decision.
+
+## 2026-09-06 — FOCUS-3 v8 diagnostic registration
+
+User authorizes one seed30322 five-arm diagnostic despite the v8 eligibility
+stop. Exact DIAGNOSTIC disclaimer and reading are registered in
+results/quick-checks/focus3-gate/diag/RESULTS.md before inference. Runtime,
+relation-v2 seed0, admission ft-v3 seed0 and Qwen3-4B trunk are unchanged.
+Nothing fit/trained/tuned; no bench/sealed inputs read. Add conditional
+current-recap row-removal probes after all five arms to measure per-false-
+admission rendering effects without feeding probes into arm histories.
+27 targeted tests pass, one pre-existing xfail; scoped lint clean.
+Freeze before O setup, fresh7200s GPU cap, resource-only64/48 decision;
+foreground only, own RUNNING.flag, no signals, explicit-path commits, no push.

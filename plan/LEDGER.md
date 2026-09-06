@@ -765,3 +765,22 @@ this explicit-path final commit; safetensors local/hash-bound per registration.
 No pending launch, inference, tuning or repair; Brian escalation is the next
 program decision. No signals, termination, background jobs, bench/sealed reads,
 external messages or push. Post-commit membership/byte verification follows.
+
+2026-09-06 — STATE: FOCUS-3 V8 DIAGNOSTIC WRITE-AHEAD.
+Direct user authorizes ONE five-arm seed30322 diagnostic despite12unauthorized
+v8 CPU actions, no eligibility/PASS/FAIL claim. Archived PROTOCOL read; no wrapper
+holds .review.lock. diag/RESULTS.md registers exact disclaimer before inference.
+Fit/train/tune NONE; frozen relation-v2/ft-v3 seed0 and v8 runtime unchanged;
+evaluate committed development bank only, no bench/sealed reads. Implement
+isolated runner with same g.run_episode consumer, v3 descriptive readings and
+per-false-admission conditional render-removal probes. Fresh7200s GPU cap;
+post-O resource-only64/48 decision; foreground, own flag, never signal, no push.
+
+2026-09-06 — STATE: FOCUS-3 DIAGNOSTIC FROZEN; O SETUP NEXT.
+Isolated runner uses unchanged v8.classifier and g.run_episode; adds only
+observation/readings and post-gate current-row removal probes.27targeted tests
+pass/1existing xfail; lint clean. Sources, trunk and both seed0 checkpoint hashes
+frozen; inherited trunk verified against original gate freeze. No GPU inference
+yet. Next foreground command: .venv/bin/python -u -m scripts.focus3_gate_diag
+--mode run, raw log diag/run.log. O16 competence descriptive; then resource-only
+64/48 selection before gate. No new fitting or benchmark access.
