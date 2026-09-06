@@ -596,3 +596,12 @@ boundary, ignored-reinstates veto, C' runtime, one-shot96-record writer and
 ineligible gate refusal. Source/reading/input/ft/bank hashes frozen pre-fit.
 Next foreground .venv/bin/python -u -m scripts.focus3_gate_v6 --mode fit,
 seeds0/1/2, no heldout/setup outcomes yet; own flag, no PID exceptions/signals.
+
+2026-09-06 — STATE: V6 ALL THREE SEEDS FROZEN; SECOND LOOK NEXT.
+Each654/654updates,3epochs,zero overflow; total GPU-held195.999037s.
+Primary supersedes cutoffs .90/.82/.88; C-prime .50/.50/.60; other3 .50.
+Primary DEV correct-positive414/425/418 of449; none-FP30/30/34 of326,
+per-class caps verified. Seed0 remains predetermined. Natural exit, flag removed.
+Next commit freezes all checkpoints/hashes/calibration; then one CPU command
+CUDA_VISIBLE_DEVICES=empty .venv/bin/python -m scripts.focus3_gate_v6
+--mode second-look. Durable SECOND LOOK receipt before heldout2 open, no tuning.
