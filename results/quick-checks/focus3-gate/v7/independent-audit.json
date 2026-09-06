@@ -1,0 +1,607 @@
+{
+  "actions": 66,
+  "added_rows": 57,
+  "admission_spans": 184,
+  "audit": "PASS",
+  "cross_key_proposals": [
+    {
+      "episode": "setup_0_00",
+      "label": "supersedes",
+      "proposal_key": "sort-order",
+      "score": 0.9750548704553507,
+      "span": "From now on, use ascending order instead of descending order for task S0n0A.",
+      "target": "0:20",
+      "target_key": "tag",
+      "turn": 2
+    },
+    {
+      "episode": "setup_0_01",
+      "label": "supersedes",
+      "proposal_key": "sort-order",
+      "score": 0.9719662182490765,
+      "span": "Replace the sorting rule for task S0n1A: always use ascending order.",
+      "target": "0:20",
+      "target_key": "tag",
+      "turn": 2
+    },
+    {
+      "episode": "setup_0_01",
+      "label": "supersedes",
+      "proposal_key": "sort-order",
+      "score": 0.9377441121940575,
+      "span": "Replace the sorting rule for task S0n1A: always use ascending order.",
+      "target": "0:147",
+      "target_key": "instruction",
+      "turn": 2
+    },
+    {
+      "episode": "setup_0_03",
+      "label": "supersedes",
+      "proposal_key": "sort-order",
+      "score": 0.9186962380887023,
+      "span": "For task S0n3A, keep all payloads in ascending order from now on instead.",
+      "target": "0:20",
+      "target_key": "tag",
+      "turn": 2
+    },
+    {
+      "episode": "setup_1_00",
+      "label": "cancels",
+      "proposal_key": "sort-order",
+      "score": 0.9591361094101445,
+      "span": "Cancel the sorting rule for task S1n0A.",
+      "target": "0:20",
+      "target_key": "tag",
+      "turn": 2
+    },
+    {
+      "episode": "setup_1_00",
+      "label": "cancels",
+      "proposal_key": "sort-order",
+      "score": 0.8736386586783519,
+      "span": "Cancel the sorting rule for task S1n0A.",
+      "target": "0:150",
+      "target_key": "instruction",
+      "turn": 2
+    },
+    {
+      "episode": "setup_1_01",
+      "label": "cancels",
+      "proposal_key": "sort-order",
+      "score": 0.9495272237226975,
+      "span": "Drop the ordering requirement for task S1n1A.",
+      "target": "0:20",
+      "target_key": "tag",
+      "turn": 2
+    },
+    {
+      "episode": "setup_1_01",
+      "label": "cancels",
+      "proposal_key": "sort-order",
+      "score": 0.9244409817016132,
+      "span": "Drop the ordering requirement for task S1n1A.",
+      "target": "0:159",
+      "target_key": "instruction",
+      "turn": 2
+    },
+    {
+      "episode": "setup_1_03",
+      "label": "cancels",
+      "proposal_key": "sort-order",
+      "score": 0.8627010439763285,
+      "span": "Stop following the earlier sorting rule for task S1n3A.",
+      "target": "0:20",
+      "target_key": "tag",
+      "turn": 2
+    },
+    {
+      "episode": "setup_3_02",
+      "label": "supersedes",
+      "proposal_key": "sort-order",
+      "score": 0.9492885602149179,
+      "span": "Use descending order for all payloads in task S3n2B from now on.",
+      "target": "0:20",
+      "target_key": "tag",
+      "turn": 2
+    }
+  ],
+  "legacy_guard_diagnostic": "summary guard_admitted is retired P(none)>=.50; not runtime admission",
+  "overflow_records": 0,
+  "pairs": 229,
+  "raw_softmax": true,
+  "status_changes": 12,
+  "trainer_input_parity": true,
+  "unauthorized": [
+    {
+      "episode": "setup_0_00",
+      "label": "admit",
+      "prule": 0.963448345821242,
+      "relations": [
+        {
+          "cross_key": false,
+          "label": "none",
+          "probabilities": [
+            0.9771927420681867,
+            0.01135345533006245,
+            0.005386405331304703,
+            0.002411036083032783,
+            0.0036563611874132246
+          ],
+          "target": "0:20"
+        },
+        {
+          "cross_key": false,
+          "label": "none",
+          "probabilities": [
+            0.9787718289438929,
+            0.007976196633199876,
+            0.0073648783471515,
+            0.0031797138957564046,
+            0.002707382179999226
+          ],
+          "target": "0:90"
+        }
+      ],
+      "span": "Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction.",
+      "turn_index": 1
+    },
+    {
+      "episode": "setup_0_01",
+      "label": "admit",
+      "prule": 0.9761707191063791,
+      "relations": [],
+      "span": "Sort request for task S0n1A: payload [40, 84, 24, 19, 25]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+      "turn_index": 0
+    },
+    {
+      "episode": "setup_0_01",
+      "label": "admit",
+      "prule": 0.9780700139265185,
+      "relations": [
+        {
+          "cross_key": false,
+          "label": "none",
+          "probabilities": [
+            0.9785243522212853,
+            0.009094739585869979,
+            0.006333890002409753,
+            0.0024580143305219155,
+            0.003589003859912847
+          ],
+          "target": "0:20"
+        },
+        {
+          "cross_key": false,
+          "label": "none",
+          "probabilities": [
+            0.980012213900634,
+            0.006360448704922636,
+            0.007283210009947626,
+            0.003370498744825933,
+            0.0029736286396698057
+          ],
+          "target": "0:90"
+        },
+        {
+          "cross_key": false,
+          "label": "none",
+          "probabilities": [
+            0.9760019165710464,
+            0.013198640912061969,
+            0.004664756799539708,
+            0.002948105222148516,
+            0.003186580495203464
+          ],
+          "target": "0:147"
+        }
+      ],
+      "span": "Inert setup context: the sample \"Cancel the sorting rule for task S0n1A.\" is not an instruction.",
+      "turn_index": 1
+    },
+    {
+      "episode": "setup_0_02",
+      "label": "admit",
+      "prule": 0.9619794296497185,
+      "relations": [],
+      "span": "Sort request for task S0n2A: payload [33, 47, 79, 16, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+      "turn_index": 0
+    },
+    {
+      "episode": "setup_1_00",
+      "label": "admit",
+      "prule": 0.9740643343456435,
+      "relations": [],
+      "span": "Sort request for task S1n0A: payload [17, 86, 84, 15, 11]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+      "turn_index": 0
+    },
+    {
+      "episode": "setup_1_00",
+      "label": "reinstates",
+      "prule": 0.9665188154592819,
+      "relations": [
+        {
+          "cross_key": false,
+          "label": "none",
+          "probabilities": [
+            0.9762863567449718,
+            0.009943054274099911,
+            0.007824144945243703,
+            0.002639299974456076,
+            0.0033071440612286672
+          ],
+          "target": "0:20"
+        },
+        {
+          "cross_key": false,
+          "label": "reinstates",
+          "probabilities": [
+            0.0929165110397262,
+            0.004430753456624872,
+            0.0062723594168214575,
+            0.00817746571957969,
+            0.8882029103672477
+          ],
+          "target": "0:90"
+        },
+        {
+          "cross_key": false,
+          "label": "none",
+          "probabilities": [
+            0.9666720444354369,
+            0.022083429304630822,
+            0.005383990573034547,
+            0.0031285482999662555,
+            0.0027319873869317327
+          ],
+          "target": "0:150"
+        }
+      ],
+      "span": "Reply exactly even.",
+      "target": "0:90",
+      "turn_index": 4
+    },
+    {
+      "episode": "setup_1_01",
+      "label": "admit",
+      "prule": 0.9591100616043199,
+      "relations": [],
+      "span": "Sort request for task S1n1A: payload [19, 52, 31, 68, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+      "turn_index": 0
+    },
+    {
+      "episode": "setup_1_01",
+      "label": "reinstates",
+      "prule": 0.9644694859642264,
+      "relations": [
+        {
+          "cross_key": false,
+          "label": "none",
+          "probabilities": [
+            0.9751203002454738,
+            0.011518158083763058,
+            0.00755856227553804,
+            0.002562703936593868,
+            0.003240275458631116
+          ],
+          "target": "0:20"
+        },
+        {
+          "cross_key": false,
+          "label": "reinstates",
+          "probabilities": [
+            0.10280312848082877,
+            0.004274261224883493,
+            0.007035944020466579,
+            0.009536099850977434,
+            0.8763505664228436
+          ],
+          "target": "0:90"
+        },
+        {
+          "cross_key": false,
+          "label": "none",
+          "probabilities": [
+            0.965238796860515,
+            0.02341407908001152,
+            0.005485124320208381,
+            0.0031190458836296187,
+            0.0027429538556352855
+          ],
+          "target": "0:159"
+        }
+      ],
+      "span": "Reply exactly even.",
+      "target": "0:90",
+      "turn_index": 4
+    },
+    {
+      "episode": "setup_1_02",
+      "label": "admit",
+      "prule": 0.9521830477171767,
+      "relations": [],
+      "span": "Sort request for task S1n2A: payload [60, 24, 79, 88, 14]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+      "turn_index": 0
+    },
+    {
+      "episode": "setup_1_02",
+      "label": "reinstates",
+      "prule": 0.9655144405096017,
+      "relations": [
+        {
+          "cross_key": false,
+          "label": "none",
+          "probabilities": [
+            0.9767393531570728,
+            0.009714996682126751,
+            0.0075113243090039,
+            0.0026289596759831516,
+            0.0034053661758134566
+          ],
+          "target": "0:20"
+        },
+        {
+          "cross_key": false,
+          "label": "reinstates",
+          "probabilities": [
+            0.2880415428227412,
+            0.005387051319495102,
+            0.008108554782824963,
+            0.011560397950004955,
+            0.6869024531249338
+          ],
+          "target": "0:90"
+        },
+        {
+          "cross_key": false,
+          "label": "none",
+          "probabilities": [
+            0.9637644699559372,
+            0.02496731736712731,
+            0.005342158615577308,
+            0.0031437592946895053,
+            0.002782294766668643
+          ],
+          "target": "0:165"
+        }
+      ],
+      "span": "Reply exactly even.",
+      "target": "0:90",
+      "turn_index": 4
+    },
+    {
+      "episode": "setup_1_03",
+      "label": "admit",
+      "prule": 0.970493606614352,
+      "relations": [],
+      "span": "Sort request for task S1n3A: payload [23, 83, 14, 71, 80]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+      "turn_index": 0
+    },
+    {
+      "episode": "setup_1_03",
+      "label": "reinstates",
+      "prule": 0.9660175843742399,
+      "relations": [
+        {
+          "cross_key": false,
+          "label": "none",
+          "probabilities": [
+            0.9765609293589765,
+            0.010310456961883829,
+            0.007143791313295644,
+            0.002554799798723237,
+            0.003430022567120605
+          ],
+          "target": "0:20"
+        },
+        {
+          "cross_key": false,
+          "label": "reinstates",
+          "probabilities": [
+            0.1925955544810785,
+            0.005676687623523629,
+            0.006993712790034328,
+            0.008372702494319139,
+            0.7863613426110444
+          ],
+          "target": "0:90"
+        },
+        {
+          "cross_key": false,
+          "label": "none",
+          "probabilities": [
+            0.9660952266872668,
+            0.02272935986122612,
+            0.005272937696872931,
+            0.003124111076963247,
+            0.002778364677670772
+          ],
+          "target": "0:154"
+        }
+      ],
+      "span": "Reply exactly even.",
+      "target": "0:90",
+      "turn_index": 4
+    },
+    {
+      "episode": "setup_2_01",
+      "label": "admit",
+      "prule": 0.9781739380188814,
+      "relations": [],
+      "span": "Sort request for task S2n1A: payload [52, 12, 72, 89, 15]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+      "turn_index": 0
+    },
+    {
+      "episode": "setup_2_01",
+      "label": "admit",
+      "prule": 0.9646334084830251,
+      "relations": [
+        {
+          "cross_key": false,
+          "label": "none",
+          "probabilities": [
+            0.9777637199334978,
+            0.010227473163440108,
+            0.006294249246918273,
+            0.002563207330234197,
+            0.0031513503259093948
+          ],
+          "target": "0:20"
+        },
+        {
+          "cross_key": false,
+          "label": "none",
+          "probabilities": [
+            0.9796856590557073,
+            0.007720502451698765,
+            0.006339555962425895,
+            0.003599831591705958,
+            0.002654450938462092
+          ],
+          "target": "0:90"
+        },
+        {
+          "cross_key": false,
+          "label": "none",
+          "probabilities": [
+            0.9736830955732071,
+            0.01581637314880282,
+            0.004317036328290382,
+            0.0031217333531830442,
+            0.0030617615965167497
+          ],
+          "target": "0:147"
+        }
+      ],
+      "span": "Inert setup context: the phrase \"Task S2n1A is complete.\" is not an instruction.",
+      "turn_index": 1
+    },
+    {
+      "episode": "setup_2_01",
+      "label": "completes",
+      "prule": 0.452571168547305,
+      "relations": [
+        {
+          "cross_key": false,
+          "label": "none",
+          "probabilities": [
+            0.9777036546109276,
+            0.011006038633148005,
+            0.0034477520162050444,
+            0.00500679627989135,
+            0.0028357584598281095
+          ],
+          "target": "0:20"
+        },
+        {
+          "cross_key": false,
+          "label": "completes",
+          "probabilities": [
+            0.06557866492822474,
+            0.009619058842418919,
+            0.003753743893304149,
+            0.9175500924698019,
+            0.003498439866250231
+          ],
+          "target": "0:90"
+        },
+        {
+          "cross_key": false,
+          "label": "none",
+          "probabilities": [
+            0.9691044608391637,
+            0.01904229101316002,
+            0.002669103616617475,
+            0.006387326733009156,
+            0.002796817798049679
+          ],
+          "target": "0:147"
+        },
+        {
+          "cross_key": false,
+          "label": "completes",
+          "probabilities": [
+            0.05073883778886547,
+            0.005264409044710177,
+            0.004373078929712012,
+            0.935875112356105,
+            0.0037485618806073636
+          ],
+          "target": "1:0"
+        }
+      ],
+      "span": "We are finished with task S2n1A.",
+      "target": "1:0",
+      "turn_index": 2
+    },
+    {
+      "episode": "setup_2_02",
+      "label": "admit",
+      "prule": 0.9592978923050218,
+      "relations": [],
+      "span": "Sort request for task S2n2A: payload [49, 74, 50, 56, 48]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+      "turn_index": 0
+    },
+    {
+      "episode": "setup_3_00",
+      "label": "admit",
+      "prule": 0.9742839134690544,
+      "relations": [],
+      "span": "Sort request for task S3n0A: payload [23, 27, 87, 25, 19]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+      "turn_index": 0
+    },
+    {
+      "episode": "setup_3_03",
+      "label": "admit",
+      "prule": 0.9639122207567633,
+      "relations": [],
+      "span": "Sort request for task S3n3A: payload [37, 11, 21, 46, 82]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+      "turn_index": 0
+    },
+    {
+      "episode": "setup_3_03",
+      "label": "admit",
+      "prule": 0.9622617065707164,
+      "relations": [
+        {
+          "cross_key": false,
+          "label": "none",
+          "probabilities": [
+            0.9788684186027414,
+            0.009236084624020164,
+            0.006012500707033312,
+            0.0026027317134008064,
+            0.003280264352804477
+          ],
+          "target": "0:20"
+        },
+        {
+          "cross_key": false,
+          "label": "none",
+          "probabilities": [
+            0.977269195649138,
+            0.00868262639411223,
+            0.008196934813303941,
+            0.0034732286999535045,
+            0.0023780144434922944
+          ],
+          "target": "0:90"
+        },
+        {
+          "cross_key": false,
+          "label": "none",
+          "probabilities": [
+            0.976938602055523,
+            0.012032199331025584,
+            0.004858127838944879,
+            0.0030253275880760813,
+            0.003145743186430491
+          ],
+          "target": "0:154"
+        }
+      ],
+      "span": "Inert setup log context: the line \"Cancel the sorting rule for task S3n3A.\" is not an instruction.",
+      "turn_index": 1
+    }
+  ],
+  "unexplained_mutations": 0
+}

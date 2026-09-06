@@ -682,3 +682,16 @@ historical metrics; ft-v2 318/363 (+0.8264pp). Fixed.95 rule admissions114→111
 of124; nonrule admissions9→5 of239. Same labels/data, no tuning. Full model inputs
 and authors disjoint; one generic sentence-only collision disclosed. Next replay,
 required36/36admissions,>=11/12transitions,0unauthorized/overflow, else stop.
+
+2026-09-06 — STATE: V7 STEP C COMPLETE / INELIGIBLE; FINAL COMMIT.
+OneCPU replay36/36admissions,11/12transitions,19unauthorized(14admit/4reinstate/
+1complete);10cross-key positives dropped, specific new-task admission repaired.
+Quoted sample remains falsely admitted(.978070);10one-shot sort requests and
+4inert quotes admitted,4generic requests reinstate cancelled rows,1extra false
+row completed. No correction/tuning/replay after outcome; stop before trunk/O/gate.
+96records/16traces/229pairs/184spans;0overflow. Saved runtime/split/DEV/Fable audit
+and independent softmax/trainer/action-state accounting PASS(66actions,57newrows,
+12statuschanges,0unexplained).96targeted tests pass,1existing xfail;lint/diff clean.
+264.589652GPUseconds; own flag absent. All requested reports/metadata/raw records
+force-added with explicit paths, safetensors excluded, no signals/bench/sealed
+reads/background/push. No next GPU command; committed INELIGIBLE closes step C.

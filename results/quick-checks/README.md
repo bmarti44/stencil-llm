@@ -434,6 +434,11 @@ F8 — Q1 extracted-vector closure: Further work on the tested mean-difference r
    −b PRODUCT0/8 both doses, malformed0; shuffled− PRODUCT0/8; +b SUM8/7 with malformed0/1, shuffled+ malformed0/4; no safe cell, final/collateral skipped.
    80 generations/3963 tokens, 11.21/24 GPU-min; all scores/profiles/biases/dispatch audited; recipe da131791 precedes outcomes; flag removed, no signals/sealed reads/push.
 
+FOCUS-3 v7 step C ([results](focus3-gate/v7/RESULTS.md)): **INELIGIBLE**, CPU stop after the admission refit and key-identity guard.
+Authorized admissions36/36, transitions11/12, unauthorized19 (14admit/4reinstate/1complete);10cross-key proposals dropped.
+Seed0 Fable diagnostic318/363 vs315/363, no held-out selection; seeds0/1/2 each3epochs. 264.590/10800GPUseconds; no trunk/O/gate.
+96targeted tests pass,1existing xfail;96records/16traces and model/DEV/Fable receipts committed, safetensors local.
+
 FOCUS-3 gate v4 ([results](focus3-gate/v4/RESULTS.md), [DEV calibration](focus3-gate/v4/calibration.json)): **INELIGIBLE-ADMISSION**, CPU stop; no GPU gate.
    Runtime status/scope/key/prose/prev-sentence parity repaired; highest-probability same-kind target; frozen DEV90th none cutoff .9711621345 (0/317 positive leakage).
    Setup30321: supersedes2/4,cancels3/4,completes3/4 =8/12 correct-source transitions, below11/12; initial orders/tags16/16 each, switched-task admissions0/4.

@@ -1,0 +1,266 @@
+{
+  "complete": true,
+  "counts": {
+    "admissions": {
+      "passed": 36,
+      "total": 36
+    },
+    "initial_order": {
+      "passed": 16,
+      "total": 16
+    },
+    "transitions": {
+      "passed": 11,
+      "total": 12
+    }
+  },
+  "cpu_inference_passes": 1,
+  "cpu_replay_wall_seconds": 16.232166156994936,
+  "cross_key_proposals": 10,
+  "diagnostics": {
+    "gold_admit_pair_p_none": {
+      "n": 6,
+      "values": {
+        "0": 0.04072174817305339,
+        "0.1": 0.10289337487388633,
+        "0.5": 0.4117291257033504,
+        "0.9": 0.7130256658438907,
+        "0.95": 0.7334872920166786,
+        "0.98": 0.7457642677203514,
+        "1": 0.7539489181894665
+      }
+    },
+    "gold_none": {
+      "applied_positive": 5,
+      "guard_admitted": 178,
+      "p_none": {
+        "n": 217,
+        "values": {
+          "0": 0.00441586786323964,
+          "0.1": 0.05516948156451454,
+          "0.5": 0.9740643672399606,
+          "0.9": 0.9792174044165808,
+          "0.95": 0.9796820349963725,
+          "0.98": 0.9804191705991364,
+          "1": 0.9810931619808082
+        }
+      },
+      "proposed_positive": 34,
+      "total": 217
+    },
+    "known_phrasings": [
+      {
+        "episode": "setup_0_01",
+        "label": "supersedes",
+        "passed": true,
+        "span": "Replace the sorting rule for task S0n1A: always use ascending order."
+      },
+      {
+        "episode": "setup_1_02",
+        "label": "cancels",
+        "passed": true,
+        "span": "The sorting rule for task S1n2A no longer applies."
+      },
+      {
+        "episode": "setup_2_03",
+        "label": "completes",
+        "passed": true,
+        "span": "That concludes task S2n3A."
+      }
+    ],
+    "per_label": {
+      "cancels": {
+        "applied": 4,
+        "gold": 4,
+        "paired": 4,
+        "proposed": 4,
+        "recall": 1.0
+      },
+      "completes": {
+        "applied": 4,
+        "gold": 4,
+        "paired": 4,
+        "proposed": 4,
+        "recall": 1.0
+      },
+      "reinstates": {
+        "applied": 0,
+        "gold": 0,
+        "paired": 0,
+        "proposed": 0,
+        "recall": null
+      },
+      "supersedes": {
+        "applied": 3,
+        "gold": 4,
+        "paired": 4,
+        "proposed": 3,
+        "recall": 0.75
+      }
+    }
+  },
+  "eligible": false,
+  "failures": [
+    {
+      "actual": null,
+      "applied": false,
+      "episode": "setup_0_02",
+      "expected": {
+        "id": "2:0",
+        "key": "new:0:90",
+        "kind": "sort",
+        "provenance_turn": 2,
+        "scope": "S0n2A",
+        "span_start": 0,
+        "status": "live",
+        "text": "For task S0n2A, switch the standing order from descending to ascending.",
+        "version": 2
+      },
+      "gold_source_id": "0:90",
+      "initial_order": false,
+      "label": "supersedes",
+      "passed": false,
+      "source_state_matches": false,
+      "span": "For task S0n2A, switch the standing order from descending to ascending.",
+      "state_matches": false,
+      "target": "2:0",
+      "turn_index": 2
+    }
+  ],
+  "gate_records": 0,
+  "gpu_held_seconds": 264.5896522969997,
+  "per_label_pass": true,
+  "records": 96,
+  "unauthorized": {
+    "applications": 19,
+    "details": [
+      {
+        "episode": "setup_0_00",
+        "label": "admit",
+        "span": "Inert setup context: the sample \"Cancel the sorting rule for task S0n0A.\" is not an instruction.",
+        "turn_index": 1
+      },
+      {
+        "episode": "setup_0_01",
+        "label": "admit",
+        "span": "Sort request for task S0n1A: payload [40, 84, 24, 19, 25]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+        "turn_index": 0
+      },
+      {
+        "episode": "setup_0_01",
+        "label": "admit",
+        "span": "Inert setup context: the sample \"Cancel the sorting rule for task S0n1A.\" is not an instruction.",
+        "turn_index": 1
+      },
+      {
+        "episode": "setup_0_02",
+        "label": "admit",
+        "span": "Sort request for task S0n2A: payload [33, 47, 79, 16, 87]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+        "turn_index": 0
+      },
+      {
+        "episode": "setup_1_00",
+        "label": "admit",
+        "span": "Sort request for task S1n0A: payload [17, 86, 84, 15, 11]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+        "turn_index": 0
+      },
+      {
+        "episode": "setup_1_00",
+        "label": "reinstates",
+        "span": "Reply exactly even.",
+        "target": "0:90",
+        "turn_index": 4
+      },
+      {
+        "episode": "setup_1_01",
+        "label": "admit",
+        "span": "Sort request for task S1n1A: payload [19, 52, 31, 68, 74]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+        "turn_index": 0
+      },
+      {
+        "episode": "setup_1_01",
+        "label": "reinstates",
+        "span": "Reply exactly even.",
+        "target": "0:90",
+        "turn_index": 4
+      },
+      {
+        "episode": "setup_1_02",
+        "label": "admit",
+        "span": "Sort request for task S1n2A: payload [60, 24, 79, 88, 14]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+        "turn_index": 0
+      },
+      {
+        "episode": "setup_1_02",
+        "label": "reinstates",
+        "span": "Reply exactly even.",
+        "target": "0:90",
+        "turn_index": 4
+      },
+      {
+        "episode": "setup_1_03",
+        "label": "admit",
+        "span": "Sort request for task S1n3A: payload [23, 83, 14, 71, 80]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+        "turn_index": 0
+      },
+      {
+        "episode": "setup_1_03",
+        "label": "reinstates",
+        "span": "Reply exactly even.",
+        "target": "0:90",
+        "turn_index": 4
+      },
+      {
+        "episode": "setup_2_01",
+        "label": "admit",
+        "span": "Sort request for task S2n1A: payload [52, 12, 72, 89, 15]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+        "turn_index": 0
+      },
+      {
+        "episode": "setup_2_01",
+        "label": "admit",
+        "span": "Inert setup context: the phrase \"Task S2n1A is complete.\" is not an instruction.",
+        "turn_index": 1
+      },
+      {
+        "episode": "setup_2_01",
+        "label": "completes",
+        "span": "We are finished with task S2n1A.",
+        "target": "1:0",
+        "turn_index": 2
+      },
+      {
+        "episode": "setup_2_02",
+        "label": "admit",
+        "span": "Sort request for task S2n2A: payload [49, 74, 50, 56, 48]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+        "turn_index": 0
+      },
+      {
+        "episode": "setup_3_00",
+        "label": "admit",
+        "span": "Sort request for task S3n0A: payload [23, 27, 87, 25, 19]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+        "turn_index": 0
+      },
+      {
+        "episode": "setup_3_03",
+        "label": "admit",
+        "span": "Sort request for task S3n3A: payload [37, 11, 21, 46, 82]; reply as compact JSON with keys answer,tag, set answer to the payload after applying the active task rule, and use the active conversation tag.",
+        "turn_index": 0
+      },
+      {
+        "episode": "setup_3_03",
+        "label": "admit",
+        "span": "Inert setup log context: the line \"Cancel the sorting rule for task S3n3A.\" is not an instruction.",
+        "turn_index": 1
+      }
+    ],
+    "per_label": {
+      "admit": 14,
+      "completes": 1,
+      "reinstates": 4
+    },
+    "records": 19,
+    "total_records": 96
+  },
+  "verdict": "INELIGIBLE"
+}

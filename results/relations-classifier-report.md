@@ -174,3 +174,47 @@ runtime/trainer/calibration audits and an independent action/state audit pass;
 92 targeted tests pass, one existing expected failure. Safetensors stay out of
 git. [Full v6 registration/results](quick-checks/focus3-gate/v6/RESULTS.md),
 [model metadata](../data/classifier/model/relations-v2/README.md). No push.
+
+## 2026-09-06 — FOCUS-3 v7 step C: admission refit / INELIGIBLE
+
+The CPU replay reaches36/36 authorized admissions and11/12 correct-source
+transitions, but produces **19 unauthorized applications** (14admissions,
+4reinstatements,1completion). The registered stop prevented trunk loading,
+O setup and all C/C'/O/N/T gate inference. Relation v2 seed0, its thresholds,
+C' alternative and prior held-out-2 results remain unchanged.
+
+Semantic key checking drops10cross-key positives (5supersedes/5cancels), including
+setup_3_02's ordering→global-tag mismatch; its new-task admission now succeeds.
+Key slugs are separate from the unchanged storage IDs/version sequence. The
+admission refit nevertheless admits10one-shot sort requests and4inert quoted
+sentences, including the original setup_0_01 failure atP(rule)=.978070. It also
+passes the unchanged reinstatement prerequisite on four “Reply exactly even.”
+requests; generic relation proposals inherit the nominated target key. One
+additional completion retires an earlier false-admission row. These observations
+are combined-runtime results, not isolated causal estimates or permission to tune.
+
+Admission fit lineage:20054 rows under the six historical admission patch files
+plus582sentence-level NONE examples from150Opus/61Kimi-transition/273Kimi-relation
+messages, minus2duplicates; zero exact gate-sentence overlaps. Final20634rows,
+18571fit/2063DEV per seed, sentence-identity grouping. Original282 taxonomy-
+category patch exceptions persist; this is not a clean historical-lineage claim
+or verified reconstruction of original training bytes. Three full epochs/1743
+updates per seed, fixed.95 admission, designated seed0. DEV accuracy94.72/94.96/
+95.06%; rule admissions709/765,733/784,703/757; nonrule admissions16/1298,12/1279,
+8/1306. Seed/threshold/model selection never uses Fable or setup outcomes.
+
+Fable diagnostic, one363-row inference per model after freeze: original315/363
+(86.78%), v2 318/363 (87.60%), **+0.83points**. Fixed.95 nonrule admissions9→5
+of239; rule admissions114→111of124. One preflight aborted before inference on
+“Thanks, that fixed it.” across independent authors and different contexts;
+full paired inputs are disjoint. Preserve that receipt and the evaluation-only
+identity correction. No rows, weights or thresholds changed; original accuracy
+reproduces its historical metric. This historically used set is diagnostic.
+
+96targeted tests pass,1existing xfail; saved96records/16traces replay exactly,
+all DEV/Fable scores/splits recompute, and independent softmax/trainer/state audit
+accounts66actions/57new rows/12status changes with zero unexplained mutations.
+229relation pairs/184admission spans, zero overflow. GPU264.589652/10800seconds,
+all admission fitting; flag removed naturally. No post-score tuning, signals,
+benchmark/sealed reads or push. [Full v7 registration/results](quick-checks/focus3-gate/v7/RESULTS.md),
+[admission model metadata](../data/classifier/model/ft-v2/README.md).

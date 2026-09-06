@@ -52,6 +52,12 @@ FOCUS-3 v6 step B completed the three-seed enriched refit but remains
 Held-out-2 accuracy was 96.1% on a disclosed diagnostic second look.
 [v6 registration, counts and results](results/quick-checks/focus3-gate/v6/RESULTS.md).
 
+FOCUS-3 v7 step C remains **INELIGIBLE**: key identity recovers the final
+admission (36/36; transitions11/12), but admission v2 produces19 unauthorized
+actions. Ten cross-key proposals are dropped. Fable accuracy improves86.78%→87.60%
+on a disclosed diagnostic comparison; this does not repair runtime safety.
+No GPU gate ran. [v7 results and audit](results/quick-checks/focus3-gate/v7/RESULTS.md).
+
 ## Earlier headline: the internal wave (superseded, kept for the record)
 
 A tiny trained controller (264k parameters) riding on the frozen trunk
