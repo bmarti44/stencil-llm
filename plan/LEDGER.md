@@ -950,3 +950,13 @@ real CPU base-model smoke verifies pair encoding, overflow abstention and role
 veto. Corpus 3103 messages/1493 spans; fit2794/dev309 (9.958% messages),
 DEV183 gold-empty messages allow at most3 false admits. Frozen splitter overlap
 ceiling fit1281/1346=95.17%, DEV141/147=95.92%; no splitter changes.
+
+2026-09-06 — CHECK44B GPU PILOT: {"updates": 10, "seconds": 1.4120142249958008, "updates_per_second": 7.0820816270669935, "peak_allocated_GiB": 2.2502660751342773, "projected_total_seconds": 498.2467971894104, "cap_seconds": 3600}.
+Continue matrix only if within cap.
+
+2026-09-06 — STATE: CHECK44B ALL MODELS FROZEN, heldout-2 unopened.
+GPU allocation 212.346/3600s; three complete seeds, own flag removed.
+DEV overlap recall seed0 135/147, seeds1/2 138/147; each 3/183 negative FP.
+Thresholds .9883976740722434/.9768228882950498/.956549283252651, seed0 designated.
+All DEV scores/thresholds replayed from saved records; no extra inference.
+Next: commit model-freeze and metadata, poll Fable-2 commit every five minutes.
