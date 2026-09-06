@@ -218,3 +218,11 @@ P1 Python/TypeScript competence16/16 each, top8 overlap75.5208%; alpha3 correct/
 P2 JSON15/16 and SQL0/16: all16 replies use wrong table identifier `table`, intended predicates retained. Frozen competence gate stops P2 profiles/interventions; non-language flip untested, no outcome rescue.
 256 generations/6546 tokens/32 teacher-forced profiles; CPU consumer/token/profile/bias audit PASS; 803.824/3600 GPU seconds; full32-task P1 screen/P2 OFF, no reduction.
 Recipe6d28b09c precedes outcomes. Flag removed after cleanup; no sealed reads, fit/train, signals/background/push. Scoped report/artifacts/index/WORKLOG commit closes user task.
+
+2026-09-06 — check42 REBOOT RECOVERY/WRITE-AHEAD (gpt-6-astra).
+Fit/train none; evaluate frozen FOCUS-2d final seed9053723, other-arm outcomes seen.
+All 11 freeze hashes and seven committed preparation artifacts match; reuse CPU validation.
+Preserve four uncommitted interrupted records; fresh original 192 episodes, no outcome selection.
+Charge prior launch-to-boot upper bound299s; combined projection12356.312/12600s.
+Only scheduling/accounting updated for user server exemption and RUNNING.flag; no wrapper active.
+Next scoped freeze commit, foreground run, CPU full-record audit, report/index/WORKLOG commit; no signals/sealed reads/push.

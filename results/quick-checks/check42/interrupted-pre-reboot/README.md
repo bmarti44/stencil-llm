@@ -77,9 +77,10 @@ The full 256-episode bank is unchanged. This is a disclosed scaled quick check.
 
 GPU cap **12,600 seconds including loading**, cooperative checks between tokens
 and requests, no signals or process termination. Blocking operations may overrun;
-measure and disclose any excess. Foreground only. The reboot note supersedes the old check40/check41 priority
-wait: allow Brian's permanent server (pid2705), wait for any other NVIDIA compute
-process or Stencil RUNNING.flag, and publish our flag under .review.lock.
+measure and disclose any excess. Foreground only. Check 40 then check 41 retain
+priority: poll NVIDIA compute processes and both terminal readings/processes
+every 600 seconds. Start only when no NVIDIA compute process remains and each
+priority check has a terminal reading or no live run process. Respect .review.lock.
 CPU replay verifies exact saved input trajectories, retained assistant content,
 output token/text identity and recomputed scores before the final local commit.
 
@@ -88,10 +89,4 @@ retireable cue segments. Final CPU smoke: 204 records over eight episodes; exact
 C replay: 1,632 records over all 192 selected episodes. Perturbed input rejected;
 McNemar direction checked; 11 targeted FOCUS-2d tests pass.
 
-PENDING — resumed from verified committed CPU preparation. Four uncommitted
-pre-outage records are preserved under interrupted-pre-reboot/ and excluded from
-this fresh run, as directed by the committed-state recovery rule. No outcomes
-were used to change the design. Charge 299 seconds (old launch through kernel
-boot, including downtime) to the same cap: combined projection 12,356.312 s
-(3.432 h) remains within 12,600 s. Original freeze, reading and source preserved;
-only resource coordination/accounting changed before the new launch.
+PENDING — pre-written reading; no check-42 model outputs exist.

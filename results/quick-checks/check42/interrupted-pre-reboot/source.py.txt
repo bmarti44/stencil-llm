@@ -5,7 +5,7 @@ import argparse
 import fcntl
 import hashlib
 import json
-import os
+import re
 import subprocess
 import time
 from pathlib import Path
@@ -500,8 +500,7 @@ def run(output):
             freeze_sha256=file_hash(output / "freeze.json"),
         ),
     )
-    prior_seconds = read(output / "recovery.json")["prior_seconds_upper_bound"]
-    budget = f.Budget(cap=CAP, spent=prior_seconds)
+    budget = f.Budget(cap=CAP)
     backend = None
     status = "COMPLETE"
     try:
@@ -540,13 +539,7 @@ def run(output):
             backend.close()
         f.atomic_json(
             output / "run-end.json",
-            dict(
-                status=status,
-                seconds=budget.elapsed(),
-                cap_seconds=CAP,
-                prior_seconds_upper_bound=prior_seconds,
-                current_run_seconds=budget.elapsed() - prior_seconds,
-            ),
+            dict(status=status, seconds=budget.elapsed(), cap_seconds=CAP),
         )
 
 
@@ -559,24 +552,40 @@ def readiness():
         ],
         text=True,
     ).strip()
-    blocking = [
-        line for line in gpu.splitlines() if line.split(",", 1)[0].strip() != "2705"
-    ]
-    flags = sorted(
-        str(p.relative_to(ROOT))
-        for p in (ROOT / "results/quick-checks").glob("*/RUNNING.flag")
-    )
+    processes = subprocess.check_output(["ps", "-eo", "pid,args"], text=True)
+    checks = {}
+    for number in (40, 41):
+        path = ROOT / f"results/quick-checks/check{number}/README.md"
+        result_text = path.read_text().split("## Results", 1)[-1]
+        terminal = bool(
+            re.search(
+                r"\*\*(?:INELIGIBLE|NOT POSSIBLE|MARGINAL|POSSIBLE|PARTIAL|STOP|"
+                r"INCOMPLETE|COMPLETE)[^*]*\*\*",
+                result_text,
+            )
+        )
+        live = [
+            line.strip()
+            for line in processes.splitlines()
+            if re.search(rf"(?:^|/)focus_check{number}\.py\s", line)
+            and re.search(r"--mode\s+run(?:\s|$)", line)
+            and "python" in line
+            and "bash -c" not in line
+        ]
+        checks[str(number)] = dict(terminal_reading=terminal, live_processes=live)
     return dict(
         utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         gpu=gpu,
-        blocking_gpu=blocking,
-        flags=flags,
-        ready=not blocking and not flags,
+        checks=checks,
+        ready=not gpu
+        and all(
+            c["terminal_reading"] or not c["live_processes"] for c in checks.values()
+        ),
     )
 
 
-def acquire_gpu(wait, output):
-    """Foreground resource checks and flag publication under the review lock."""
+def acquire_gpu(wait):
+    """Foreground, 600-second resource polls; never signal a process."""
     receipts = []
     while True:
         receipt = readiness()
@@ -586,19 +595,10 @@ def acquire_gpu(wait, output):
             lock = (ROOT / ".review.lock").open("a")
             try:
                 fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                return lock, receipts
             except BlockingIOError:
                 lock.close()
                 receipt["lock_busy"] = True
-            else:
-                second = readiness()
-                receipts.append(second)
-                if second["ready"]:
-                    with (output / "RUNNING.flag").open("x") as handle:
-                        handle.write(
-                            json.dumps(dict(pid=os.getpid(), utc=second["utc"]))
-                        )
-                    return lock, receipts
-                lock.close()
         f.require(wait, "GPU/priority check/review lock unavailable")
         for _ in range(10):
             time.sleep(60)
@@ -617,12 +617,11 @@ def main():
     if args.mode == "prepare":
         print(json.dumps(prepare(args.output), indent=2))
     elif args.mode == "run":
-        lock, receipts = acquire_gpu(args.wait, args.output)
+        lock, receipts = acquire_gpu(args.wait)
         try:
             f.atomic_json(args.output / "gpu-readiness.json", receipts)
             run(args.output)
         finally:
-            (args.output / "RUNNING.flag").unlink()
             lock.close()
     else:
         print(json.dumps(analyze(args.output), indent=2))
