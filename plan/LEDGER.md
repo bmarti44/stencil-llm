@@ -251,3 +251,35 @@ All4471 records replayed, all1632 C trajectories match original, exact stats ind
 Input-only correction: selected IDs contain64 memo, not preparation prose48; IDs/bank/recipe unchanged.
 Charge11631.286656/12600s incl.299s old bound; natural exit, flag absent, no signals/sealed reads/fit/push.
 Final explicit-path local commit carries complete report/index/WORKLOG and forced result artifacts; no next run.
+
+2026-09-05 post-reboot — STATE: RELATIONS GPU RETRAIN WRITE-AHEAD (gpt-6-astra).
+User authorizes seeds 0/1/2, three full GPU epochs, same original seed-specific
+fit/DEV splits, frozen b134f6f8 operating rule; seed 0 predetermined, no selection.
+Fit-on = kimi+enrich after merged patch; calibrated-on = dev; evaluated-on =
+held-out-2 exactly once after all freezes; held-out-1 = development history.
+Archived protocol read; user task supersedes obsolete CPU/GPU-wait restrictions.
+Frozen rule/source hashes, commit bytes and all 592 CPU curve rows reproduced.
+Existing seed1/2 dirs are intact historical CPU runs (312/326 steps), not GPU
+retrain checkpoints; preserve them and use results/quick-checks/relations-retrain/seedN.
+No review/coder wrapper/lock owner, Stencil GPU python or RUNNING.flag observed.
+Foreground launch publishes relations-retrain/RUNNING.flag under brief review-lock
+acquisition, exempts Brian pid2705, and removes only its own flag on natural exit.
+No signals/background, held-out reads during training, benchmark inputs, WORKLOG
+edits or push. Each run must complete 489/489 steps and 3/3 epochs before freeze.
+
+2026-09-06 UTC (2026-09-05 local) — STATE: RELATIONS THREE GPU SEEDS FROZEN.
+Each finished 489/489 steps, 3/3 epochs in 49.03/49.15/49.05 wall seconds;
+original per-seed input and fit/DEV split hashes reproduce exactly. All 1,776
+GPU calibration curve rows recomputed; frozen rule unchanged. DEV argmax
+and operational reports, per-class counts, checkpoints and logs preserved in
+canonical calibration/ and metrics.json. DEV operational accuracies 91.15%,
+91.84%,90.10%; all qualify. Seed0 policy .94/.50/.50/.50, 292/317 correct-positive
+recall,26/259 combined none-FP (11/6/7/2 per class); never select seed by scores.
+Historical CPU seed0 directory preserved locally and metadata copied into
+calibration/. RUNNING.flag removed after natural completion; no signals.
+37 targeted synthetic tests pass, lint clean. New one-shot evaluator uses the
+actual frozen policy, durably claims before input read, pins held-out-2's git
+blob, and writes per-row raw logits/metadata/predictions in the same pass.
+Next: explicit-path freeze commit, then ONE foreground CPU inference via
+CUDA_VISIBLE_DEVICES='' .venv/bin/python -m scripts.evaluate_relations_heldout2.
+No held-out-2 input opened yet; no WORKLOG edits or benchmark/sealed inputs.

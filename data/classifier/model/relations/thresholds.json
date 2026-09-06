@@ -1,14 +1,26 @@
 {
   "calibration_split": "development",
+  "consumer": "stencil.relation_operating_point.inputs + predict; historical train_relations.predict refuses cutoffs below .98",
   "default": "none",
   "disabled_above": 1.0,
-  "floor": 0.98,
-  "interpretation": "empirical constraint, not a population bound",
-  "max_empirical_none_fp_per_class": 0.02,
+  "interpretation": "Per-class empirical DEV constraint, not combined FP or a population bound",
+  "max_empirical_none_fp_per_class": 0.05,
+  "minimum_correct_positive_recall": 0.6,
+  "policy": {
+    "kind": "per_class",
+    "thresholds": {
+      "cancels": 0.5,
+      "completes": 0.5,
+      "reinstates": 0.5,
+      "supersedes": 0.94
+    }
+  },
+  "rule_frozen_commit": "b134f6f8751d18d865bfff4199b9af18500dfd1f",
+  "rule_version": "2026-09-05-dev-v1",
   "thresholds": {
-    "cancels": 0.98,
-    "completes": 0.98,
-    "reinstates": 0.98,
-    "supersedes": 0.98
+    "cancels": 0.5,
+    "completes": 0.5,
+    "reinstates": 0.5,
+    "supersedes": 0.94
   }
 }
