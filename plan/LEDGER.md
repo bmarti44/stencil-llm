@@ -960,3 +960,17 @@ DEV overlap recall seed0 135/147, seeds1/2 138/147; each 3/183 negative FP.
 Thresholds .9883976740722434/.9768228882950498/.956549283252651, seed0 designated.
 All DEV scores/thresholds replayed from saved records; no extra inference.
 Next: commit model-freeze and metadata, poll Fable-2 commit every five minutes.
+
+2026-09-06 — STATE: CHECK40G CPU READY; foreground one-load GPU run next.
+User's explicit quick-check40g brief/addition governs; prior protocol/PLAN archived.
+Data lineage: fit/train none; profile committed40e competence replies + fresh
+SQL/Go synthetic competence; evaluate reused40e TS16 (disclosed), disjoint new
+SQL/Go32 and Go release24. No benchmark/sealed inputs read. Frozen prewritten
+reading includes literal20/32 generality bars; TS16 diagnostics cannot establish
+GENERALIZES. JS control<6/8 => INVALID immediate stop. Go Python16/16,
+Go>=14/16 competence; SET>=20/32 <=2 absolute breaks triggers exact40i Z/Zc/S/OFF.
+Go official tarball installed under $HOME, SHA256 verified; gofmt/go vet CPU PASS.
+288 canonical checker cases, negative cases, dispatch consumer and decision tests
+PASS. No flags or other GPU users observed; never signal. Cap3600s including load,
+profiles/checkers/cleanup; fixed counts, cooperative deadline; no wrapper edits.
+Next: .venv/bin/python /home/bmarti44/stencil-llm/scripts/focus_check40g.py run
