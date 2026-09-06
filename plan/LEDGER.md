@@ -1108,3 +1108,11 @@ not a third parser tolerance. Renderer16 original-input prompts match exactly.
 Scope deviation: broad test_focus_slab selection instantiated synthetic eval
 witness cases on CPU; no bench read or model inference, no scientific use of
 those results. Detected mid-run; no signal sent. Dedicated tests/GPU DEV-only.
+
+2026-09-06 — STATE: DAY5B GPU PARITY LAUNCH, freeze a3fd8613.
+Dedicated17 tests pass; CPU48 real-HF stub calls succeed and arm-cost sum matches.
+Broad CPU witness suite still finishing, excluded from scientific decisions.
+Command: /home/bmarti44/stencil-llm/.venv/bin/python -m stencil.focus.pilot2
+--out /home/bmarti44/stencil-llm/results/quick-checks/composition-pilot-2
+Log: same directory/run.log; own PID registered by runner; flag/lock held until
+normal/cooperative exit. One load7200s; STOP unless all64 parity with<=1 divergence.
