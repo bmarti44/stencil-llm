@@ -695,3 +695,14 @@ and independent softmax/trainer/action-state accounting PASS(66actions,57newrows
 264.589652GPUseconds; own flag absent. All requested reports/metadata/raw records
 force-added with explicit paths, safetensors excluded, no signals/bench/sealed
 reads/background/push. No next GPU command; committed INELIGIBLE closes step C.
+
+2026-09-06 — STATE: V8 STEP D REGISTERED; LAST ITERATION, IMPLEMENTATION NEXT.
+Direct user scope governs archived protocol; no wrapper holds review lock.
+Fit-on v7 committed corpus + hand-written request NONE/standing-rule enrichment;
+DEV sentence-group disjoint; evaluate-on author-disjoint Fable once after freeze.
+No bench/sealed reads. v8/RESULTS.md freezes three rulings and inherited bars.
+V7 four reinstatements verified from saved traces: instruction key borrowed
+sort-order target; all four pass .95 admission and .50 relation thresholds.
+Extra completion is same-task inert pollution; scope-only fix cannot guarantee
+its removal. No unauthorized quote veto. Stop after one failed CPU replay and
+prepare escalation; no next iteration. Foreground only, never signal, no push.
