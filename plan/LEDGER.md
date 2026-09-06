@@ -450,3 +450,22 @@ status/logit recount PASS;25 tests,1 legacy xfail,2 forbidden reads excluded.
 or flag required. check40h ended naturally; no fitting/sealed/signals/background/push.
 RESULTS retains pre-written reading, summary/probe tables/records and README/
 WORKLOG updated. Explicit-path force-added artifact commit is terminal for v3.
+
+2026-09-06 — check40i WRITE-AHEAD: Z primary fresh-seed closure,40080/24.
+User-authorized unregistered foreground check; archived PROTOCOL read; fit/train
+none. Frozen40b JS/shuffle alpha3, profile/setup historical; new synthetic
+expressions disjoint from40b/40d/40f/40h. No sealed/benchmark inputs read.
+Conservative paired rule:>=20 SET+HOLD JS->SWITCH Python and>=20 BACK+HOLD JS
+->CLEAR Python, in addition to literal20/2 and BACK controls<=4 thresholds.
+Shared4-step Z/Zc/S prefix; all branches3-step tails; OFF full7:480 generations,
+672 records; measured40h+25% projection1684.45/1800s. No lock owner/compute/flag
+observed; pre-inference CPU consumer checks and explicit-path freeze next.
+No wrappers/background/signals/push; Brian2705 never touched.
+
+2026-09-06 — check40i CPU READY / PRE-INFERENCE FREEZE.
+Native HF mask/position/bias tests and threshold boundaries PASS; full CPU dummy
+writer->audit consumer PASS672 records/480 generations, CUDA uninitialized.
+Inherited40h generator/scorer/cache/mask unchanged; only seed/arm schedule and
+primary reading differ. All168 expressions disjoint incl40h; ruff/diff clean.
+Next foreground scripts/focus_check40i.py --mode run, cap1800s, own flag under
+review lock after resource recheck; no outcome retries/signals/sealed reads/push.
