@@ -25,3 +25,8 @@ directory; production audit verifies every mask/cue/forward/summary and report
 rendering, CUDA uninitialized. A fixture-factory construction error was fixed
 before that CPU test; no production runner change or GPU inference.
 Report/writer smoke receipt retained separately; no scientific results yet.
+
+2026-09-06 — STATE: FOREGROUND GPU RUN STARTED at 2026-09-06T05:42:46Z.
+FOCUS-3 naturally released its GPU and flag; resources ready with
+115.098GiB available. Own flag acquired; model loading,
+1800s cooperative cap now active. Frozen recipe3f1a8aac reverified.
