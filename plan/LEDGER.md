@@ -1329,3 +1329,10 @@ scoped CPU smoke PASS. Runtime science/driver bytes identical to pilot9 pin1e093
 Calibration eligible and hash-bound before evaluation. Launch frozen full runner
 once, R/N/T64+Q16, C4 increasing groups,40fixed pilot7 payloads midpoint,41400s
 cooperative budget/43200s ceiling. Own flag/container, no signals, no bank retries.
+
+2026-09-07 — STATE: FRESH64 MIDPOINT CONTROL COMPLETE; SECOND HALF RUNNING.
+Pin e20c3f9b; first32 episodes/1792 records committed, Q16 complete. Registered
+40pilot7 payloads replayed byte-identical:0/40 output/text/token/finish divergence,
+0/8 any-divergence episodes. CPU raw-source/new-receipt hashes and all signatures
+reverified; no independent-cell inference. Continue frozenR/N/T32–63; no tuning,
+reruns, host signals or source changes. Own flag/container remains active.
