@@ -32,7 +32,7 @@ def test_reference_real_path(tmp_path, family, index):
     for i, _t in enumerate(e.turns):
         result = ex.run(s.reference(e, i), i)
         assert result["passed"] == i + 1 and not result["failed"]
-        assert len(s.qwen_encode(s.reference(e, i))) <= 1024
+        assert len(s.qwen_encode(s.reference(e, i))) <= s.REPLY_CAP
         assert s.check(e, i, ex, eligible_traits=tuple(s.TRAITS))["success"]
         assert "result =" not in json.dumps(result)
 
@@ -105,13 +105,15 @@ def test_free_reemission_and_parsable_repair(tmp_path):
 
 def test_fixtures(tmp_path):
     fixtures = json.loads((FIXTURES / "slab2_replies.json").read_text())
-    assert len(fixtures) == 6
+    assert len(fixtures) >= 18
     e = s.generate_episode()
     for row in fixtures:
         ex = setup(tmp_path, e)
         result = ex.run(row["reply"], 0)
         assert result["executed"] == row["executed"]
         assert result["breakage"] == row["breakage"]
+        if "tolerances" in row:
+            assert result["tolerances"] == row["tolerances"]
 
 
 def test_manifest_disjointness_and_text_updater():
@@ -177,7 +179,7 @@ def test_floor_missingness_threshold_and_gate():
     records[0]["episode_id"] = "slab2-eval-00"
     with pytest.raises(ValueError):
         s.freeze_t_floor(records)
-    assert s.paired_context_gate(dict.fromkeys("RNTO", 32768 - 1024))
+    assert s.paired_context_gate(dict.fromkeys("RNTO", 32768 - s.REPLY_CAP))
     assert not s.paired_context_gate(dict(R=31745, N=1, T=1, O=1))
     with pytest.raises(ValueError):
         s.paired_context_gate(dict(R=1))
@@ -275,3 +277,116 @@ def test_paired_scoring_preserves_missingness():
     result = s.paired_clauses(r, n, ("indent",))
     assert not result["clauses_pass"]
     assert result["common_opportunities"]["style"]["missing"] == 1
+
+
+def test_cross_file_syntax_recovery(tmp_path):
+    e = s.generate_episode()
+    ex = setup(tmp_path, e)
+    for i in range(2):
+        ex.run(s.reference(e, i), i)
+    path = e.turns[2].path
+    before = (tmp_path / path).read_bytes()
+    broken = s.reference(e, 2).replace("def step_2(x):", "def step_2(:")
+    result = ex.run(broken, 2)
+    assert result["executed"] and result["breakage"]
+    assert path in result["error"] and "line " in result["error"]
+    assert (tmp_path / path).read_bytes() == before
+    assert (tmp_path / path).read_text() == ex.last_parsable[path]
+    assert e.turns[3].path != path
+    ex.run(s.reference(e, 3), 3)
+    outcome = s.check(e, 3, ex)
+    assert not outcome["diagnostics"]["breakage"]
+    assert not outcome["diagnostics"]["wrong_family"]
+    repaired = False
+    for i in range(4, 16):
+        ex.run(s.reference(e, i), i)
+        outcome = s.check(e, i, ex, eligible_traits=tuple(s.TRAITS))
+        assert not outcome["diagnostics"]["wrong_family"]
+        repaired |= e.turns[i].path == path
+        if repaired:
+            assert outcome["success"]
+    assert repaired
+
+
+@pytest.mark.parametrize("n_rounds", [12, 16])
+def test_delivery_power_and_fallback(tmp_path, n_rounds):
+    counts = {}
+    for family in ("dev", "eval"):
+        opportunities = []
+        for e in s.bank(family, n_rounds=n_rounds):
+            opportunities.append(
+                sum(
+                    "delivery" in dict(t.retired)
+                    and dict(t.live)["format"] == "verbose"
+                    and "delivery" in dict(t.live)
+                    for t in e.turns
+                )
+            )
+        counts[family] = sum(bool(n) for n in opportunities)
+    assert counts["dev"] >= 7 and counts["eval"] >= 56
+    lane = s.dry_run(
+        tmp_path, s.generate_episode(n_rounds=n_rounds), "R", n_rounds=n_rounds
+    )
+    assert len(lane["records"]) == n_rounds
+    assert all(row["outcome"]["success"] for row in lane["records"])
+    outcomes = [[row["outcome"] for row in lane["records"]] for _ in range(64)]
+    assert s.paired_clauses(
+        outcomes, outcomes, ("indent", "delivery"), n_rounds=n_rounds
+    )["complete"]
+    with pytest.raises(ValueError):
+        s.generate_episode(n_rounds=14)
+
+
+def test_cost_concurrency_and_schedule_rule():
+    assert s.measured_projection(dict.fromkeys("RNTO", 180), reserve=1) == 8
+    with pytest.raises(ValueError):
+        s.measured_projection(dict.fromkeys("RNTO", 180), max_workers=1)
+    floor = s.freeze_t_floor(floor_records())
+    assert s.pilot5_reading([], floor, 12)["cost_action"] == "16-round"
+    assert s.pilot5_reading([], floor, 15)["cost_action"] == "12-round-refreeze"
+    assert s.pilot5_reading([], floor, 15.01)["cost_action"] == "stop"
+    assert s.pilot5_reading([], floor, 13, n_rounds=12)["cost_action"] == "stop"
+
+
+@pytest.mark.parametrize(
+    "reply,category",
+    [
+        (
+            "```python\ndef f(): pass\n```\nreport: task=A status=ok extra=x",
+            "trailer_key_or_value",
+        ),
+        (
+            "```python\ndef f(): pass\n```\nreport: task=A task=A status=ok",
+            "duplicate_key",
+        ),
+        ("```python\nreport: task=A status=ok\n```", "misplaced_trailer"),
+        (
+            "```python\ndef f(): pass\n```\nreport: task=A status=ok\n"
+            "```python\nx=1\n```",
+            "fence_count_or_kind",
+        ),
+        ("~~~~python\nx=1\n~~~~\nreport: task=A status=ok", "fence_count_or_kind"),
+        ("```js\nx=1\n```\nreport: task=A status=ok", "fence_syntax"),
+        ('```python\nx=1\n```\n{"task":"A","status":"ok"}', "trailer_count"),
+    ],
+)
+def test_parser_breakage_categories(tmp_path, reply, category):
+    e = s.generate_episode()
+    ex = setup(tmp_path, e)
+    result = ex.run(reply, 0)
+    assert result["breakage"] and not result["executed"]
+    assert result["category"] == category
+
+
+def test_prompt_cap_registration():
+    assert s.REPLY_CAP == 2048
+    assert "2048" in s.SYSTEM_PROMPT
+    for e in s.bank():
+        assert all("short one-line docstring" in t.request for t in e.turns)
+
+
+def test_sensitivity_table_arithmetic():
+    table = s.cost_table(594408)
+    assert [row["reserved_hours"] for row in table] == pytest.approx(
+        [9.067049032838508, 19.473989898989903, 11.991627305443096]
+    )

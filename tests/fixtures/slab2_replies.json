@@ -28,5 +28,113 @@
     "reply": "```python\nx=1\n```\n```python\ny=2\n```\nreport: task=A status=ok",
     "executed": false,
     "breakage": true
+  },
+  {
+    "name": "crlf",
+    "reply": "```python core.py\r\ndef identity(x):\r\n  return x\r\n```\r\nreport: task=A status=ok delivery=ready",
+    "executed": true,
+    "breakage": false,
+    "tolerances": [
+      "crlf"
+    ]
+  },
+  {
+    "name": "leading_prose",
+    "reply": "Here is the file:\n```python core.py\ndef identity(x):\n  return x\n```\nreport: task=A status=ok delivery=ready",
+    "executed": true,
+    "breakage": false,
+    "tolerances": [
+      "leading_prose"
+    ]
+  },
+  {
+    "name": "trailing_prose",
+    "reply": "```python core.py\ndef identity(x):\n  return x\n```\nreport: task=A status=ok delivery=ready\nDone.",
+    "executed": true,
+    "breakage": false,
+    "tolerances": [
+      "trailing_prose"
+    ]
+  },
+  {
+    "name": "trailing_period",
+    "reply": "```python core.py\ndef identity(x):\n  return x\n```\nreport: task=A status=ok delivery=ready.",
+    "executed": true,
+    "breakage": false,
+    "tolerances": [
+      "trailing_period"
+    ]
+  },
+  {
+    "name": "status_case",
+    "reply": "```python core.py\ndef identity(x):\n  return x\n```\nreport: task=A status=OK delivery=ready",
+    "executed": true,
+    "breakage": false,
+    "tolerances": [
+      "status_case"
+    ]
+  },
+  {
+    "name": "report_case",
+    "reply": "```python core.py\ndef identity(x):\n  return x\n```\nReport: task=A status=ok delivery=ready",
+    "executed": true,
+    "breakage": false,
+    "tolerances": [
+      "report_case"
+    ]
+  },
+  {
+    "name": "key_order",
+    "reply": "```python core.py\ndef identity(x):\n  return x\n```\nreport: delivery=ready status=ok task=A",
+    "executed": true,
+    "breakage": false,
+    "tolerances": [
+      "key_order"
+    ]
+  },
+  {
+    "name": "blank_before_trailer",
+    "reply": "```python core.py\ndef identity(x):\n  return x\n```\n\nreport: task=A status=ok delivery=ready",
+    "executed": true,
+    "breakage": false,
+    "tolerances": [
+      "blank_before_trailer"
+    ]
+  },
+  {
+    "name": "language_tag_py",
+    "reply": "```py core.py\ndef identity(x):\n  return x\n```\nreport: task=A status=ok delivery=ready",
+    "executed": true,
+    "breakage": false,
+    "tolerances": [
+      "language_tag_py"
+    ]
+  },
+  {
+    "name": "language_tag_Python",
+    "reply": "```Python core.py\ndef identity(x):\n  return x\n```\nreport: task=A status=ok delivery=ready",
+    "executed": true,
+    "breakage": false,
+    "tolerances": [
+      "language_tag_Python"
+    ]
+  },
+  {
+    "name": "language_tag_bare",
+    "reply": "```\ndef identity(x):\n  return x\n```\nreport: task=A status=ok delivery=ready",
+    "executed": true,
+    "breakage": false,
+    "tolerances": [
+      "language_tag_bare"
+    ]
+  },
+  {
+    "name": "leading_think",
+    "reply": "<think></think>\n```python core.py\ndef identity(x):\n  return x\n```\nreport: task=A status=ok delivery=ready",
+    "executed": true,
+    "breakage": false,
+    "tolerances": [
+      "leading_think"
+    ]
   }
 ]

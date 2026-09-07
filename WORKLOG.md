@@ -5490,3 +5490,4 @@ Task-over-global0/21 (all add), withdraw+replace12/12, bare-value17/18, actually
 XGrammar substring/schema decoding:807/807 raw and normalized spans, one cap; user mean6.009s/p95=15.359s;2453.221/3600 GPU-s.
 Freeze519c7338; header-only loader repair8742da2d disclosed;921 request/parser replays,6 CPU tests+7 grammar witnesses pass; container/flag removed, no push.
 Explicit entry stays; next small generative updater fits only audited authored data with scenario-disjoint DEV and fresh author-disjoint evaluation; no training launched.
+- 2026-09-06, SLAB-2 Amendment 1 validation: 110 passed/1 expected xfail; full focus run's two SLAB-1 fixture failures reproduce on pre-fix 8d02a037; corrected arithmetic assertion passes. 12-round real-driver CPU smoke: 32 lanes/384 calls, R final8/8, no GPU eligibility. See tests/fixtures/slab2_cpu_report.md for registration, accounting, cost table and baseline evidence.

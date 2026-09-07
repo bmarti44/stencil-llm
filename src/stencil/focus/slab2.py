@@ -9,7 +9,7 @@ Pilot-5: executed >=90%, caps <=2%, eligible traits in >=2 kinds with scheduled
 nonzero denominators in >=2 DEV episodes, R final >=5/8. Registered run alone:
 R/N x64 plus nested O/T x16, 16 rounds, <=12 GPU-h; prior pilots excluded.
 Measured projection in (12,15] hours selects pre-registered 12-round fallback
-(requires a fresh shortened schedule/freeze and DEV validation), never fewer arms.
+(frozen alongside 16 rounds; requires fresh 12-round DEV validation), never fewer arms.
 CPU stub output costs are accounting only, NOT measured GPU eligibility.
 """
 
@@ -37,8 +37,17 @@ digest, changed_code, indent_widths = (
     legacy.changed_code,
     legacy.indent_widths,
 )
-SCHEMA = 3
-REPLY_CAP = 1024
+SCHEMA = 4
+REPLY_CAP = 2048
+MAX_WORKERS = 4
+
+
+def validate_rounds(n_rounds):
+    if n_rounds not in (12, 16):
+        raise ValueError("n_rounds must be registered 16 or 12")
+    return n_rounds
+
+
 DATA_LINEAGE = legacy.DATA_LINEAGE
 TRAITS = {
     "language": "language",
@@ -60,7 +69,7 @@ SYSTEM_PROMPT = (
     "Preserve existing functions; re-emission is free. Current indentation applies "
     "only to changed definitions. Use short one-line docstrings, "
     "a local result and return. "
-    "No imports or external IO. Reply cap 1024 tokens; retain concise whole files."
+    "No imports or external IO. Reply cap 2048 tokens; retain concise whole files."
 )
 
 
@@ -122,23 +131,28 @@ class Episode(legacy.Episode):
         )
 
 
-def generate_episode(family="dev", index=0, seed=20260906):
+def generate_episode(family="dev", index=0, seed=20260906, n_rounds=16):
     if family not in {"dev", "eval"} or not 0 <= index < (8 if family == "dev" else 64):
         raise ValueError("unknown family/index")
     # Disjoint arithmetic seed namespaces for every caller seed.
     episode_seed = seed * 10000 + (index if family == "dev" else 1000 + index)
     rng = random.Random(episode_seed)
     domain = DOMAINS[index % 4]
-    n = 16
+    n = validate_rounds(n_rounds)
     # Six ordering shapes; DEV uses a distinct reinstatement-time production.
     shape = rng.choice(tuple(permutations(("indent", "format", "delivery"))))
-    event_times = (10, 11, 12)
+    event_times = (n - 6, n - 5, n - 4)
     schedule = dict(zip(shape, event_times, strict=True))
+    if schedule["delivery"] > schedule["format"]:
+        schedule["delivery"], schedule["format"] = (
+            schedule["format"],
+            schedule["delivery"],
+        )
     # Independent stream preserves problem realizations while varying action keys.
     format_action = random.Random(episode_seed ^ 0x51AB).choice(
         ("cancels", "completes", "supersedes")
     )
-    reinstate = 13 if family == "dev" else rng.choice((14, 15))
+    reinstate = n - 3 if family == "dev" else rng.choice((n - 2, n - 1))
     initial_indent, next_indent = rng.sample(("2", "3", "4"), 2)
     delivery = rng.choice(("draft", "queued", "staged"))
     scoped_task = rng.choice(("A", "B"))
@@ -148,6 +162,8 @@ def generate_episode(family="dev", index=0, seed=20260906):
         rng.choice((6, 7)),
         rng.choice((8, 9)),
     )
+    if n == 12:
+        switch1, switch2, switch3 = 2, 4, 5
     receipt_key = (
         rng.choice(("receipt", "verification"))
         if family == "eval"
@@ -244,7 +260,7 @@ def generate_episode(family="dev", index=0, seed=20260906):
         if family == "dev":
             request = (
                 f"Extend workshop {task}: add {function}(x) in {path}; {desc}. "
-                "Document the function and its boundary behavior; "
+                "Use a short one-line docstring; "
                 "The harness runs public tests after writing the whole file. "
                 f"Only task {scoped_task} reports delivery. Public example: "
                 + compact([case, expected])
@@ -252,7 +268,7 @@ def generate_episode(family="dev", index=0, seed=20260906):
         else:
             request = (
                 f"Service {task} needs {function}(x), located in {path}, to {desc}. "
-                "Implement with an explanatory docstring and local result; "
+                "Use a short one-line docstring and local result; "
                 "The harness tests the whole-file update. "
                 f"delivery only for {scoped_task}. Public case: "
                 + compact([case, expected])
@@ -316,9 +332,10 @@ def generate_episode(family="dev", index=0, seed=20260906):
     )
 
 
-def bank(family="dev", seed=20260906):
+def bank(family="dev", seed=20260906, n_rounds=16):
     return tuple(
-        generate_episode(family, i, seed) for i in range(8 if family == "dev" else 64)
+        generate_episode(family, i, seed, n_rounds)
+        for i in range(8 if family == "dev" else 64)
     )
 
 
@@ -338,21 +355,82 @@ class ReplyError(ValueError):
     pass
 
 
-def parse_reply(output, target):
-    """One fence, optional explicit path, one strict trailer; no envelope recovery."""
-    match = re.fullmatch(
-        r"\s*```python(?: (core\.py|policy\.py))?\n((?:(?!```)[\s\S])*?)\n```\n"
-        r"report: task=([AB]) status=(ok|blocked)"
-        r"(?: delivery=([A-Za-z0-9_-]{1,32}))?\s*",
+def parse_reply(output, target, *, tolerances=None):
+    """Bounded Amendment 1 grammar; tolerance labels never alter code content."""
+    labels = [] if tolerances is None else tolerances
+    if len(output.encode()) > 16384:
+        raise ReplyError("reply_size")
+    if "\r\n" in output:
+        labels.append("crlf")
+        output = output.replace("\r\n", "\n")
+    if "\r" in output:
+        raise ReplyError("line_endings")
+    think = re.match(r"\s*<think>[^<>]*</think>[ \t]*\n?", output)
+    if think:
+        labels.append("leading_think")
+        output = output[think.end() :]
+    if "<think>" in output or "</think>" in output:
+        raise ReplyError("think_block")
+    if output.count("```") != 2 or "````" in output or "~~~" in output:
+        raise ReplyError("fence_count_or_kind")
+    match = re.search(
+        r"^[ \t]*```(?P<tag>python|Python|py)?"
+        r"(?: (?P<path>core\.py|policy\.py))?[ \t]*\n"
+        r"(?P<code>[\s\S]*?)\n[ \t]*```[ \t]*(?:\n|$)",
         output,
+        re.M,
     )
-    if not match or not match[2].strip() or len(output.encode()) > 16384:
-        raise ReplyError("expected one Python whole-file fence and report trailer")
-    path = match[1] or target
-    report = dict(task=match[3], status=match[4])
-    if match[5] is not None:
-        report["delivery"] = match[5]
-    return path, match[2] + "\n", report
+    if not match or not match["code"].strip():
+        raise ReplyError("fence_syntax")
+    if match["tag"] != "python":
+        labels.append("language_tag_" + (match["tag"] or "bare"))
+    prefix, suffix = output[: match.start()], output[match.end() :]
+    if re.search(r"report\s*:|task=|status=", prefix + match["code"], re.I):
+        raise ReplyError("misplaced_trailer")
+    if prefix.strip():
+        labels.append("leading_prose")
+    lines = suffix.splitlines()
+    candidates = [
+        i for i, line in enumerate(lines) if re.match(r"\s*report:", line, re.I)
+    ]
+    if len(candidates) != 1:
+        raise ReplyError("trailer_count")
+    index = candidates[0]
+    if any(line.strip() for line in lines[:index]):
+        raise ReplyError("trailer_position")
+    if index:
+        labels.append("blank_before_trailer")
+    trailer = lines[index].strip()
+    if trailer.endswith("."):
+        labels.append("trailing_period")
+        trailer = trailer[:-1]
+    if not trailer.startswith("report:"):
+        labels.append("report_case")
+    fields = trailer.split(":", 1)[1].strip().split()
+    report = {}
+    for field in fields:
+        if not re.fullmatch(r"(?:task|status|delivery)=[A-Za-z0-9_-]{1,32}", field):
+            raise ReplyError("trailer_key_or_value")
+        key, value = field.split("=")
+        if key in report:
+            raise ReplyError("duplicate_key")
+        report[key] = value
+    if report.get("task") not in {"A", "B"} or report.get("status", "").lower() not in {
+        "ok",
+        "blocked",
+    }:
+        raise ReplyError("trailer_required_value")
+    if report["status"] != report["status"].lower():
+        labels.append("status_case")
+        report["status"] = report["status"].lower()
+    if list(report) != [k for k in ("task", "status", "delivery") if k in report]:
+        labels.append("key_order")
+    tail = "\n".join(lines[index + 1 :])
+    if re.search(r"report\s*:|task=|status=|delivery=", tail, re.I):
+        raise ReplyError("extra_trailer")
+    if tail.strip():
+        labels.append("trailing_prose")
+    return match["path"] or target, match["code"] + "\n", report
 
 
 class Executor:
@@ -366,25 +444,47 @@ class Executor:
         t = self.episode.turns[turn]
         self.prior = list(self.history)
         self.changed, self.report, self.path = "", {}, None
-        result = dict(executed=False, breakage=False, passed=0, failed=0, functions={})
+        result = dict(
+            executed=False,
+            breakage=False,
+            passed=0,
+            failed=0,
+            functions={},
+            tolerances=[],
+            truncated=bool(truncated),
+        )
         self.result = result
         if truncated:
-            result.update(breakage=True, error="capped reply")
+            result.update(breakage=True, error="capped reply", category="truncated")
             return result
         try:
-            path, code, report = parse_reply(output, t.path)
+            path, code, report = parse_reply(
+                output, t.path, tolerances=result["tolerances"]
+            )
             self.path, self.report = path, report
             target = self.directory / path
             if target.is_symlink():
                 raise ReplyError("symlink")
-            self.changed = changed_code(self.last_parsable[path], code)
-            target.write_text(code)
             result["executed"] = True
             try:
                 ast.parse(code)
-                self.last_parsable[path] = code
-            except (SyntaxError, RecursionError):
-                result["breakage"] = True
+            except SyntaxError as exc:
+                result.update(
+                    breakage=True,
+                    category="syntax_error",
+                    error=f"syntax error in {path} at line {exc.lineno}: {exc.msg}",
+                )
+                return result
+            except RecursionError:
+                result.update(
+                    breakage=True,
+                    category="parse_depth",
+                    error=f"parse depth in {path}",
+                )
+                return result
+            self.changed = changed_code(self.last_parsable[path], code)
+            target.write_text(code)
+            self.last_parsable[path] = code
             for filename, _ in self.episode.initial:
                 current = (self.directory / filename).read_text()
                 try:
@@ -409,8 +509,12 @@ class Executor:
                     result["breakage"] = True
                     result["failed"] += 1
             self.history.append(dict(code=self.changed, report=report))
-        except (ReplyError, OSError, KeyError):
-            result.update(breakage=True, error="malformed reply or file write failed")
+        except (ReplyError, OSError, KeyError) as exc:
+            result.update(
+                breakage=True,
+                category=str(exc) if isinstance(exc, ReplyError) else "file_write",
+                error=str(exc)[:256],
+            )
         assert len(compact(result).encode()) < 8192
         return result
 
@@ -549,15 +653,16 @@ def check(episode, turn, executor, *, eligible_traits=None):
     )
 
 
-def freeze_t_floor(records):
+def freeze_t_floor(records, n_rounds=16):
     """Only complete DEV T observations qualify; missing/capped attempts fail floor."""
-    expected = {(f"slab2-dev-{i:02}", j) for i in range(8) for j in range(16)}
+    validate_rounds(n_rounds)
+    expected = {(f"slab2-dev-{i:02}", j) for i in range(8) for j in range(n_rounds)}
     if (
-        len(records) != 128
+        len(records) != 8 * n_rounds
         or {(r["episode_id"], r["turn"]) for r in records} != expected
         or any(r["arm"] != "T" for r in records)
     ):
-        raise ValueError("T floor requires all 128 unique DEV T rounds")
+        raise ValueError(f"T floor requires all {8 * n_rounds} unique DEV T rounds")
     counts = {}
     for trait in TRAITS:
         rows = [r for r in records if r["outcome"]["applicable"][trait]]
@@ -585,12 +690,13 @@ def freeze_t_floor(records):
     )
 
 
-def pilot5_reading(records, floor, projected_gpu_hours):
+def pilot5_reading(records, floor, projected_gpu_hours, n_rounds=16):
+    validate_rounds(n_rounds)
     required = {
         (f"slab2-dev-{i:02}", arm, j)
         for i in range(8)
         for arm in "RNT"
-        for j in range(16)
+        for j in range(n_rounds)
     }
     actual = {(r["episode_id"], r["arm"], r["turn"]) for r in records}
     complete = required <= actual and len(actual) == len(records)
@@ -610,7 +716,7 @@ def pilot5_reading(records, floor, projected_gpu_hours):
             for k in (*floor["eligible_traits"], "breakage", "wrong_family")
         )
         for r in records
-        if r["arm"] == "R" and r["turn"] == 15
+        if r["arm"] == "R" and r["turn"] == n_rounds - 1
         for o in [r["outcome"]]
     )
     cost = projected_gpu_hours
@@ -630,18 +736,27 @@ def pilot5_reading(records, floor, projected_gpu_hours):
         r_final_success=finals,
         cost_action="unmeasured"
         if cost is None
-        else "16-round"
+        else f"{n_rounds}-round"
         if 0 < cost <= 12
         else "12-round-refreeze"
-        if 12 < cost <= 15
+        if 12 < cost <= 15 and n_rounds == 16
         else "stop",
     )
 
 
-def measured_projection(lane_seconds, *, load_seconds=0, reserve=1.25):
-    """Measured GPU-held per-lane seconds, charged once; no prior pilot spend."""
+def measured_projection(
+    lane_seconds,
+    *,
+    load_seconds=0,
+    reserve=1.25,
+    max_workers=MAX_WORKERS,
+    registered_max_workers=MAX_WORKERS,
+):
+    """Mean GPU-held group wall / concurrent lanes; same four-worker run pool."""
     if (
-        set(lane_seconds) != set("RNTO")
+        max_workers != registered_max_workers
+        or max_workers != MAX_WORKERS
+        or set(lane_seconds) != set("RNTO")
         or any(v <= 0 for v in lane_seconds.values())
         or load_seconds < 0
         or reserve < 1
@@ -756,10 +871,11 @@ def text_events(episode, turn):
     return tuple(entries)
 
 
-def dry_run(directory, episode, arm, *, freeze_receipt=None):
+def dry_run(directory, episode, arm, *, freeze_receipt=None, n_rounds=16):
     """Real loop/renderer/journal, reference decoder, real tokenizer; CPU only."""
-    if arm not in "RNTO" or len(arm) != 1 or len(episode.turns) != 16:
-        raise ValueError("four arms, 16 rounds only")
+    validate_rounds(n_rounds)
+    if arm not in "RNTO" or len(arm) != 1 or len(episode.turns) != n_rounds:
+        raise ValueError("four arms, matching registered rounds required")
     root = Path(directory)
     materialize(episode, root / "workspace", freeze_receipt)
     executor = Executor(root / "workspace", episode)
@@ -823,16 +939,18 @@ def dry_run(directory, episode, arm, *, freeze_receipt=None):
     )
 
 
-def paired_clauses(rendered, baseline, eligible_traits):
+def paired_clauses(rendered, baseline, eligible_traits, n_rounds=16):
     """Retain registered paired statistics, aggregating eligible traits by kind."""
     if not set(eligible_traits) <= TRAITS.keys():
         raise ValueError("unknown floor trait")
 
+    validate_rounds(n_rounds)
+
     def convert(lanes):
         converted = []
         for lane in lanes:
-            if len(lane) != 16:
-                raise ValueError("16 scheduled rounds required")
+            if len(lane) != n_rounds:
+                raise ValueError("matching scheduled rounds required")
             rows = []
             for o in lane:
                 rows.append(
@@ -871,7 +989,107 @@ def paired_clauses(rendered, baseline, eligible_traits):
             converted.append(rows)
         return converted
 
-    return legacy.paired_clauses(convert(rendered), convert(baseline))
+    return _paired_statistics(convert(rendered), convert(baseline))
+
+
+def _paired_statistics(rendered, baseline):
+    """CPU scoring clauses only; eligibility/cost/provenance gates stay external.
+
+    Inputs are 64 paired episodes of saved check() records, including explicit
+    unexecuted records. No outcome-dependent dropping or absolute success floor.
+    Episode final success is final integration plus final live-rule compliance;
+    any earlier breakage or relapse remains counted in its separate paired gate.
+    """
+    from math import comb
+
+    if len(rendered) != 64 or len(baseline) != 64:
+        raise ValueError("64 episode pairs required")
+    wins = losses = broken_r = broken_n = 0
+    complete = True
+    common = {kind: dict(denominator=0, r=0, n=0, missing=0) for kind in KINDS}
+    for r_episode, n_episode in zip(rendered, baseline, strict=True):
+        if len(r_episode) != len(n_episode) or len(r_episode) not in (12, 16):
+            raise ValueError("unaligned scheduled rounds")
+        r_ok = bool(r_episode[-1].get("success", False))
+        n_ok = bool(n_episode[-1].get("success", False))
+        wins += int(r_ok and not n_ok)
+        losses += int(n_ok and not r_ok)
+        broken_r += int(
+            any(t.get("violations") and t["violations"]["breakage"] for t in r_episode)
+        )
+        broken_n += int(
+            any(t.get("violations") and t["violations"]["breakage"] for t in n_episode)
+        )
+        for r, n in zip(r_episode, n_episode, strict=True):
+            if r["denominators"] != n["denominators"]:
+                raise ValueError("gold opportunity mismatch")
+            observed = r["observed"] and n["observed"]
+            complete &= observed
+            for kind in KINDS:
+                if not r["denominators"][kind]:
+                    continue
+                if not observed:
+                    common[kind]["missing"] += 1
+                    continue
+                common[kind]["denominator"] += 1
+                common[kind]["r"] += int(r["relapse"][kind])
+                common[kind]["n"] += int(n["relapse"][kind])
+    discordant = wins + losses
+    p = sum(comb(discordant, j) for j in range(wins, discordant + 1)) / 2**discordant
+    primary = p <= 0.05 and wins - losses >= 8
+    breakage = broken_r - broken_n <= 1
+    relapse = all(v["r"] <= v["n"] for v in common.values())
+    return dict(
+        complete=complete,
+        wins=wins,
+        losses=losses,
+        primary_p=p,
+        gain=wins - losses,
+        breakage_excess=broken_r - broken_n,
+        common_opportunities=common,
+        primary_clause=primary,
+        breakage_clause=breakage,
+        relapse_clause=relapse,
+        clauses_pass=bool(complete and primary and breakage and relapse),
+    )
+
+
+def witness_census(n_rounds=16):
+    """Aggregate generator-only census; never emit evaluation episode content."""
+    census = {}
+    for family, minimum in (("dev", 7), ("eval", 56)):
+        counts = [
+            sum(
+                "delivery" in dict(t.retired)
+                and dict(t.live)["format"] == "verbose"
+                and "delivery" in dict(t.live)
+                for t in e.turns
+            )
+            for e in bank(family, n_rounds=n_rounds)
+        ]
+        covered = sum(bool(n) for n in counts)
+        if covered < minimum:
+            raise ValueError("delivery witness power below registered minimum")
+        census[family] = dict(opportunities=sum(counts), episodes=covered)
+    return census
+
+
+def cost_table(output_tokens, calls=2560):
+    """Pre-written sensitivity scenarios; not measured eligibility or load."""
+    return [
+        dict(
+            scenario=label,
+            rate=rate,
+            size_factor=factor,
+            hours=(output_tokens * factor / rate + calls * 0.8) / 3600,
+            reserved_hours=1.25 * (output_tokens * factor / rate + calls * 0.8) / 3600,
+        )
+        for label, rate, factor in (
+            ("aggregate reference", 24.7, 1),
+            ("per-stream reference (sequential sensitivity)", 11, 1),
+            ("aggregate model-style assumption", 24.7, 1.35),
+        )
+    ]
 
 
 def write_manifests(directory):
@@ -896,6 +1114,11 @@ def write_manifests(directory):
             )
         },
         banks={f: [e.manifest() for e in bank(f)] for f in ("dev", "eval")},
+        fallback_banks={
+            f: [e.manifest() for e in bank(f, n_rounds=12)] for f in ("dev", "eval")
+        },
+        max_workers=MAX_WORKERS,
+        witness_census={str(n): witness_census(n) for n in (16, 12)},
         oracle_text_subset=[f"slab2-eval-{i:02}" for i in range(16)],
         registration=__doc__,
     )
@@ -949,6 +1172,9 @@ def audit_bank(directory):
         }
         for a in "RNTO"
     }
+    result["cost_table"] = cost_table(
+        sum(row["output_tokens"] for row in result["registered_token_totals"].values())
+    )
     (root / "slab2_cpu_audit.json").write_text(json.dumps(result, indent=2) + "\n")
     return result
 
