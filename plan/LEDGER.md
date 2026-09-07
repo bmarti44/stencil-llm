@@ -1307,3 +1307,9 @@ now send actual fence counts, scoped expectation and offending definition names;
 corrected submissions accepted, one syntax-only repair unchanged. All512 actual
 DEV stub records pass pilot gate and both harm controls8/8,p=1; injected R/T harm
 rejected. Retain achievable6/8 requirement. New pilot3600s; no fresh64 model open.
+
+2026-09-07 — STATE: PILOT9 LAUNCH FROM PINNED GREEN SHA
+1e093a46b426f30cf8a615bab431d4890d0ce66e. Isolated tracked-clean checkout
+/tmp/stencil-amendment6b-pinned; module/source hash binding and scoped consumer
+CPU smoke PASS. Next frozen runner --pilot, shared flag acquisition, determinism
+then8DEVx16x4;3600s GPU-held. No full64 access before clean pilot+harm eligibility.
