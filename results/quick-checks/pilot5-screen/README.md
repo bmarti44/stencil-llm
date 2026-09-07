@@ -23,3 +23,5 @@ pilot6 (8 DEV episodes,R/N/T/Q,16 rounds), whose ELIGIBLE reading authorizes the
 Any round-0 fence failure is SCREEN-FAIL: publish literal outputs and do not enlarge.
 Other incomplete/low-execution outcomes are SCREEN-NOT-PASS; no enlargement.
 Screen budget900 GPU-held seconds including startup/cleanup; no host process signals.
+
+Pinned green code: `4ab3e21884e0e5decd6d4fd78607abd6a69cf95d`; post-commit CPU validation121 passed,1 expected xfail.

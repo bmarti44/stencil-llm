@@ -140,3 +140,9 @@ Ruff, whitespace and screen CLI smoke pass. The manifest was regenerated automat
 only public/system hashes change per episode, including the12-round fallback. Historical
 CPU token tables/audit above belong to the prior pin and are not new-prompt measurements.
 No new model output or x-factor has been measured yet. check49 currently owns the GPU flag.
+
+Amendment-3 **pinned CPU-green SHA: `4ab3e21884e0e5decd6d4fd78607abd6a69cf95d`**. Isolated checkout
+`/tmp/stencil-pilot5-screen-pinned`; `git diff HEAD --exit-code` clean. Post-commit
+required test selection: **121 passed, 1 expected xfail, 96.43s**, with PYTHONPATH
+pointing to that checkout's src. This receipt is separate from the pinned code commit.
+Screen launcher verifies HEAD, tracked cleanliness and imported source path before GPU use.
