@@ -43,3 +43,32 @@ Startup **342.298s**; total container-held **1015.477/2400s** including startup,
 Exact commands and container exit/removal receipts: [attempts.json](attempts.json). EOS mapping uses local generation config `[248046,248044]` (the text config names 248044); both follow the qualification client’s EOS accounting. JavaScript preserves check40k prompts, thinking-disabled template, cap 768 and all four hidden Node tests per task. Prompt/response/token journals retained; no hidden tests supplied in prompts.
 
 A first audit rejected live source drift from a concurrent session. The successful audit extracts `src/` and `scripts/` from `184cb321` into a temporary directory, checks the frozen hashes, and exactly reproduces all 32 saved prompts, controller states, executions and outcomes. No live files were restored and no inference repeated. Recipe frozen at `184cb321` before inference. [registration.json](registration.json) pins committed source hashes; unrelated dirty SLAB-2 files were unused. [audit.json](audit.json) verifies 64 HTTP token/EOS/cap records, 32 exact DEV consumer replays and 32 hidden-test rescoring/prompt replays. [cpu-smoke.log](cpu-smoke.log): 32 reference calls through the new-tokenizer consumer. [summary.json](summary.json) contains per-episode violations, indent evidence and all timing/projection arithmetic. [artifact-manifest.json](artifact-manifest.json) pins compact records (each ≤10 MB); generated workspace/journal duplicates stay local.
+
+## Orchestrator addendum after the Opus maximum-reasoning review (2026-09-06; results/check47-review-opus.md)
+Provenance verified clean (freeze 184cb321 precedes the first inference by 200 s; MoE baseline recomputed exactly
+from the committed pilot-4 records). THREE HIGH corrections to this report's reasoning:
+1. The 0/32 execution figure is an INSTRUMENT ARTIFACT. Stripping the leading ```json fence and re-parsing with the
+   FROZEN consumer gives 32/32 well-formed envelopes, all EOS-terminated, none truncated — and 0/32 style
+   violations against the MoE's 30/32, including correct tracking of the mid-episode indent 3->2->3 switch. The
+   dense trunk was doing the work; only its presentation was rejected.
+2. The parser is ASYMMETRICALLY TOLERANT: its registered `test_path` tolerance fires on 32/32 MoE rounds (the MoE
+   emits a `path` the prompt forbids), while the dense deviation receives no tolerance. The JavaScript scorer in
+   this same check strips fences, which is why identical behaviour scores 22/32 there and 0/32 here.
+3. "Matched R episodes" holds for only 2 of 32 pairs; from round 1 the dense history carries envelope errors while
+   the MoE carries real receipts. On the one genuinely matched pair the screen inverts (dense compliant 2/2, MoE
+   violating style and process 2/2).
+Therefore the harness comparison in this check reads INELIGIBLE, not 0/32.
+STAY on the MoE remains CORRECT but for different, parser-independent reasons: (a) the switch rule is conjunctive
+and the <= 12 h bf16 clause fails on every projection row (the conservative 32-round row is 45.61 h, not the
+cross-workload 24.2 h quoted; the MoE-matched token basis pushes the only near-gate row to 13.84 h); (b) the
+architecture — 48 GatedDeltaNet linear-attention layers + 16 full-attention layers (full_attention_interval 4) —
+means the certified attention-mask release can touch only 16 of 64 layers, since the recurrent state has no
+per-token key to evict.
+The JavaScript result (22/32 vs 16/32, re-scored independently with zero mismatches) is properly paired but NOT
+significant: exact McNemar on 8-vs-2 discordant pairs gives two-sided p = 0.109. Under SLAB-2's own registered cost
+method the dense trunk projects 9.31 h reference / 12.32 h model-style, statistically the same as the MoE's
+9.07 / 12.00 — the cost case rests entirely on an unmeasured 2x bf16 heuristic.
+DO NOT cite this check's execution finding as a reason against revisiting the dense trunk: SLAB-2's system prompt
+REQUIRES exactly one fenced code block, i.e. the behaviour scored 0/32 here is what the successor harness mandates.
+A fair settling replay costs zero GPU hours (registered `strip_leading_fence` tolerance over the saved outputs) and
+is queued. Also noted for pilot 5: the MoE's own SLAB-2 model-style projection is 12.00 h against a 12 h gate.
