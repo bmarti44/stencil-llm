@@ -111,3 +111,46 @@ Q is a 16-episode fresh-context reference using gold prerequisite files; O was d
 | slab2-eval-63 | 0.0 | 0.0 | 0.0 | 0/0/0/— | 0/0/0/— | 0/0/1/— |
 
 Artifacts: [registration](REGISTRATION.md), [freeze](freeze.json), [summary and missingness](summary.json), [R records](records-R.jsonl), [N records](records-N.jsonl), [T records](records-T.jsonl), [Q records](records-Q.jsonl), [CPU control](composition-control.json), [reproducibility](reproducibility.json), [cost audit](cost-audit.json), [audit](audit.json), [HTTP/journal hashes](local-hashes.json), [same-run receipt hashes](receipts-hashes.json), [server log](server.log).
+
+## Orchestrator addendum after the two independent reviews (2026-09-07)
+Reviews: results/larger-test-review-opus.md (maximum-reasoning) and results/larger-test-review-astra.md
+(adversarial self-audit). They agree on the accounting, the primary and the cause of breakage, and the Opus read
+corrects the harm story in a way that makes the FAIL stronger, not weaker.
+VERIFIED: 3328/3328 unique records; 64/64 complete episodes; zero caps; all 11 frozen source hashes identical; the
+CPU-rebuilt bank matches freeze.json exactly; freeze -> bank open -> first record strictly ordered; no prior model
+artifact on any evaluation id. Re-executing the frozen larger_reading() on the committed records reproduces
+summary.json BYTE-IDENTICALLY (FAIL, one failing clause, breakage_excess 6).
+PRIMARY REPRODUCED from an independent re-implementation: delivery 40/0/24, mean 0.625, p = 9.094947e-13 (= 2^-40),
+Holm 2.728e-12, with exactly one change round per episode and ZERO missing paired writes; format 24/9/25, Holm
+0.01353; indent 9/5/40, Holm 0.212, sensitivity -0.0703. No outcome-dependent selection anywhere in the path.
+THE MECHANISM OF THE GAIN: N is NOT information-starved. In all 64 episodes every arm is told the new value in the
+current user message, and ALL 40 of N's failures re-emit its OWN RETIRED TRAILER VALUE while R is 64/64. The gain
+comes from stopping the model repeating its own superseded output, not from supplying missing information.
+THE COST IS REAL AND THE CLAUSE WAS ILL-FORMED IN BOTH DIRECTIONS. Every non-write in the run (R 48, T 51, N 2) is
+an indentation SyntaxError, and 9 of the 10 differential-breakage episodes first fail exactly on their indent-change
+round: one coherent family, not the pilot lock/format family. As stated, the failing clause is NOT significant
+(exact McNemar b=8/c=2, two-sided p = 0.109, paired diff 6/64, 95% CI [-0.0003, +0.188]). But the clause's source
+definition excludes semantic test failures while the implemented metric includes them; on the definition-matched
+metric the excess is 13 vs 2, p = 0.0037. Fixing the instrument makes the FAIL WORSE. Separately the <= 1 bar came
+from a design memo that disclaims it, not from the authorizing review, and was never DEV-calibrated.
+ATTRIBUTION IS SETTLED BY T: the correct, non-accumulating oracle prose arm breaks MORE than R (29 vs 20 episodes,
+two-sided p = 0.035; 19 vs 13 non-writes). Breakage therefore cannot be attributed to rendering a register; it is
+the cost of ACTING on a restated style obligation inside a whole-file re-emission protocol.
+CONFOUNDS QUANTIFIED: T delivery 0.903 and 310/313 on non-defaults (blocks "beats prose"); R's turn-11 prompt
+carries 11 stale copies of the superseded rule against 1 current (blocks "removes stale influence"); Q has a
+composed block, no history, 16/16 delivery=ready emissions and 0/16 format adherence (blocks attributing the format
+gain to composition).
+REPRODUCIBILITY: 40 fixed payloads reissued mid-run, 0/40 divergent (95% upper bound 8.8%). Delivery tolerates 12
+adversarial episode flips before losing Holm significance; FORMAT TOLERATES ONE, so the format result is not robust
+to the historical 6.02% cross-restart divergence rate and must be reported with that caveat.
+WHAT THIS ESTABLISHED: rendering the current effective obligations into the request raised delivery-obligation
+adherence from 37.5% to 100% across 64 paired episodes at p = 9.09e-13, by stopping the model repeating its own
+retired value; and the same restatement raised syntactically-invalid-file episodes from 2 to 13 in 64, a real and
+significant competence cost that oracle prose pays even more heavily.
+WHAT IT DID NOT ESTABLISH: that the register beats correct prose; that composition fixed the compact format; that
+stale influence is removed; that final executable success improved; or that the mechanism passed. THE REGISTERED
+VERDICT IS FAIL AND STANDS. No rescoring.
+NEXT STEP (both reviewers, converging): re-run the register arm alone on a SCOPED-EDIT protocol that cannot
+re-indent untouched code, about 2.5 GPU-h, with a new freeze and honest bank lineage. Orchestrator addition, from
+the literal outputs: a rule change has TWO consequences, future compliance and reconciliation of the existing
+artifact, and the renderer only ever rendered the first — a reconciliation obligation is the design change to test.
