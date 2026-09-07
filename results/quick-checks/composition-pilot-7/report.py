@@ -73,6 +73,17 @@ def main():
             if e.episode_id == r["episode_id"]
         )
         m["model_reference_x"] = m["output_tokens"] / m["reference_tokens"]
+    summary["remaining_R_compact_emissions"] = [
+        dict(
+            episode_id=r["episode_id"],
+            turn=r["turn"],
+            trailer=r["output"].splitlines()[-1],
+        )
+        for r in rows
+        if r["arm"] == "R"
+        and (r["episode_id"], r["turn"]) in cells
+        and "delivery=ready" in r["output"]
+    ]
     summary["gpu_held_seconds"] = life["gpu_held_seconds"]
     summary["joint_final_status"] = "descriptive only, never a gate"
     summary["data_lineage"] = (
@@ -93,7 +104,14 @@ def main():
             + ". The larger test is not authorized by this re-pilot."
         ),
         "",
-        f"Fixed pilot-6 compact control: R delivery=ready **{c['ready_emissions']}/34** (limit2), format adherence **{c['format_adherence']}/34** (minimum26). These are the same34 cells, without outcome-dependent rematching. CPU re-render control: contradiction removed on all34 matched and all35 scheduled compact registers.",
+        f"Fixed pilot-6 compact control: R delivery=ready **{c['ready_emissions']}/34** (limit 2), format adherence **{c['format_adherence']}/34** (minimum 26). These are the same 34 cells, without outcome-dependent rematching. CPU re-render control: contradiction removed on all 34 matched and all 35 scheduled compact registers.",
+        "",
+        "Remaining R delivery=ready cells: "
+        + ", ".join(
+            f"{r['episode_id']} round {r['turn']}"
+            for r in summary["remaining_R_compact_emissions"]
+        )
+        + ". Literal trailers are retained in summary.json and report-audit.json.",
         "",
         "| Arm | Written | Round0 written | Executing lanes | Caps | All35 compact format | All35 ready emissions | Joint final (descriptive) | Breakage episodes (descriptive) |",
         "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
@@ -105,7 +123,7 @@ def main():
         )
     lines += [
         "",
-        "Primary: per-obligation change-round adherence conditional on paired parsed writes. Changes within an episode are averaged before one episode sign enters the exact one-sided R>N test; Holm across three families. Nonwrites are reported, with failed-attempt sensitivity in summary.json. DEV significance is descriptive and does not gate eligibility.",
+        "Primary: per-obligation change-round adherence conditional on paired parsed writes. Changes within an episode are averaged before one episode sign enters the exact one-sided R>N test; Holm across three families. The arm-count columns include each arm's written change events; the exact test uses common R/N events within each episode. Nonwrites are reported, with failed-attempt sensitivity in summary.json. DEV significance is descriptive and does not gate eligibility.",
         "",
         "| Obligation | R adhered/written changes | N | T | Q | Paired episodes | R wins / N wins | One-sided p | Holm p |",
         "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
@@ -133,15 +151,15 @@ def main():
         "",
         "Floor uses all scheduled T attempts, nonwrites as failures; indent counts at/after first supersede including reinstatement. Style and language adherence are independent of runtime/semantic breakage. delivery_scope is removed from every arm. Joint final uses the same four traits for all arms and is descriptive only.",
         "",
-        "Q is a **fresh-context reference**, using gold prerequisite files without feedback, not a capability ceiling. O is omitted: its rendering is byte-identical to R; pilot6 already recorded128/128 identical outputs. That replication cost0.587 projected GPU-h.",
+        "Q is a **fresh-context reference**, using gold prerequisite files without feedback, not a capability ceiling. O is omitted: its rendering is byte-identical to R; pilot6 already recorded 128/128 identical outputs. That replication cost 0.587 projected GPU-h.",
         "",
-        f"Measured larger-test projection: **{summary['projected_gpu_hours']:.2f} GPU-h** (limit12). Formula `(load+1.25*(64*(R+N+Q)+16*T))/3600`; fixed same-arm C4 lane allocations, startup once. Pilot6's identical R/O timing spread suggests roughly4% timing noise; unrounded measurements decide the gate.",
+        f"Measured larger-test projection: **{summary['projected_gpu_hours']:.2f} GPU-h** (limit 12). Formula `(load+1.25*(64*(R+N+Q)+16*T))/3600`; fixed same-arm C4 lane allocations, startup once. Pilot6's identical R/O timing spread suggests roughly 4% timing noise; unrounded measurements decide the gate.",
         "",
         f"Actual GPU-held: {life['gpu_held_seconds']:.1f}/5400s including startup, determinism and cleanup. Startup {summary['load_seconds']:.1f}s. Determinism D=0/8, exact body IDs/EOS/cap under forward/reverse C4. Max prompt+cap: {max(m['max_prompt'] for m in summary['per_arm'].values())}+2048 <=32768.",
         "",
-        f"Pinned CPU-green SHA: `{summary['pinned_sha']}`; isolated `{PIN}`. Required CPU suite and CLI smoke passed before GPU launch. Saved-response audit verifies all512 prompts/payloads and record fields; own container and flag removed. No host process signals or push.",
+        f"Pinned CPU-green SHA: `{summary['pinned_sha']}`; isolated `{PIN}`. Required CPU suite and CLI smoke passed before GPU launch. Saved-response audit verifies all 512 prompts/payloads and record fields; own container and flag removed. No host process signals or push.",
         "",
-        "Artifacts: [summary](summary.json), [records](main-records.jsonl), [saved-response audit](audit.json), [registration](registration.md), [CPU validation](cpu-validation.log), [determinism](determinism.json), [lifecycle](lifecycle.json), [local hashes](local-hashes.json). Records are below10MB; full HTTP and loop journals are local and hash-indexed.",
+        "Artifacts: [summary](summary.json), [records](main-records.jsonl), [saved-response audit](audit.json), [registration](registration.md), [CPU validation](cpu-validation.log), [determinism](determinism.json), [lifecycle](lifecycle.json), [local hashes](local-hashes.json), [composition control](composition-control.json), [report audit](report-audit.json). Records are below 10 MB; full HTTP and loop journals are local and hash-indexed.",
     ]
     (OUT / "README.md").write_text("\n".join(lines) + "\n")
     print(

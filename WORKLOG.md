@@ -5546,3 +5546,9 @@ Report/index composition-pilot-6; strict format floor22/35 vs pinned23/35 same e
 GPU54.407/600s; first divergence token1 all8; normalized prior structure0/8; CPU8/8 score/input/divergence replays,records20,279bytes.
 Freeze8b73a78b; README discloses accidental evaluation-generator source exposure (no-second-look violated) and CPU-authored histories; no eval artifacts/bench reads.
 Artifacts results/quick-checks/check51,index51; own flag removed,no signals/push; conditional corrected-run reading met, follow-up not run.
+
+2026-09-07 — SLAB-2 Amendment 4 / pilot7 INELIGIBLE; CPU pin24ed80a4, 135 passed +1 expected xfail.
+Saved compact registers: 34 matched/35 scheduled contradictions removed; O dropped, episode-paired change endpoint registered.
+DEV512 records, D0/8, zero caps/round0 nonwrites; R127/128 written, Q/N/T128/128; strict T indent29/39, delivery48/49 pass.
+R format30/34 passes but delivery=ready4/34>2 (DEV06 t12–15) fails; primary3 families/8 episodes, delivery8/8 vs1/8 Holm p=.0234375.
+GPU3533.43/5400s, projection6.99h; 512 exact CPU replays/1040 hashes, records1522744bytes; report/index committed, own container/flag gone, no larger64/signals/push.

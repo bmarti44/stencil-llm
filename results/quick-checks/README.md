@@ -625,3 +625,17 @@ Measured Q-inclusive larger-test projection7.651751GPU-h; no12-round fallback.
 GPU4414.921/9000s (73.58min),640 exact CPU request/record replays;1,200 local hashes
 verified. Pinned format floor23/35 versus strict-written22/35 has identical eligibility.
 Own container/flag removed; no larger64, benchmark reads, host signals or push.
+
+## Composition pilot 7 — INELIGIBLE (2026-09-07)
+
+[Report](composition-pilot-7/README.md). Amendment 4 pinned `24ed80a4`; CPU 135 passed,
+1 expected xfail. Saved compact-register control: 34/34 matched (35/35 scheduled)
+contradictions removed; block tokens 17,126 -> 8,412. O dropped as an R replication.
+Full DEV Q/R/N/T: 512 records, D=0/8; zero round-0 nonwrites or caps, all lanes execute.
+R writes 127/128, other arms 128/128. R compact format 30/34 passes, but **delivery=ready
+4/34 exceeds 2/34** (DEV06 rounds 12–15): sole failed eligibility item, no larger run.
+Change-round endpoint: all three families measured in all eight episodes; delivery
+R 8/8 vs N 1/8, Holm p=0.0234375. Joint final success is descriptive only.
+Strict T indent 29/39 and delivery 48/49 pass. Projection 6.99 GPU-h including Q;
+actual 3533.43/5400 GPU-s. All 512 CPU payload/record replays exact, 1040 hashes verified;
+records 1,522,744 bytes. Owned container/flag removed; no host signals or push.
