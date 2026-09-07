@@ -67,3 +67,31 @@ Execution categories (each row sums to attempted calls):
 - N: {"fence_count_or_kind": 16, "written": 112}
 - T: {"fence_count_or_kind": 16, "syntax_error": 8, "written": 104}
 - O: {"fence_count_or_kind": 64, "syntax_error": 1, "written": 63}
+
+## Orchestrator addendum after the Opus maximum-reasoning review (2026-09-07; results/composition-pilot-5-review-opus.md)
+Every headline number reproduces; the pinned tree, launch command and 112 replayed prompts verified. INELIGIBLE
+stands, but the report's central framing is WRONG and is corrected here.
+THE REGISTER ARM'S EXECUTION DEFICIT IS AN INSTRUMENT ARTIFACT, NOT A REAL EFFECT. Causes:
+1. All 65 R non-executions are "too many fences" (64) plus one syntax error — the model emits BOTH core.py and
+   policy.py, or re-opens a fence after a bare path line. N's 16 and T's 24 are the same modes. Zero empty replies,
+   zero missing fences, zero replies answering the rendered rules.
+2. Failures are per-EPISODE, not per-round: R fails all 16 rounds of four lanes, N all 16 of one, T all 16 of one.
+   No fence failure ever occurs after a clean round 0 and 0 of 96 locked rounds recover — the model copies its own
+   round-0 layout out of history and the feedback it receives is an opaque category token. So 105 non-executions
+   come from 9 initiating events; the correct unit is the LANE: R 4/8 vs N 1/8 vs T 1/8, Fisher two-sided p = .282.
+   R also succeeds on the lane where N fails, so the effect is not even monotone. The knife-edge is one token:
+   "# core.py" parses, "core.py" alone does not.
+3. Root cause is the SYSTEM PROMPT (slab2.py:63 "…```python core.py or ```python policy.py"), not the rendered
+   register block, which contains no backticks and nothing implying two files.
+4. The execution metric is arm-neutral (strict 63/112/104 vs pinned-executor 64/112/112; ranking unchanged).
+   R == O is expected and verified byte-identical at the PROMPT level; no arm shared history or cache.
+TWO REAL FINDINGS THE REPORT OMITTED: (a) the indent floor fails BY CONSTRUCTION — no arm satisfies indent before
+turn 11, so the floor counts rounds nobody could satisfy and `kinds<2` cannot pass; (b) on the 47 cells where all
+three arms wrote a file, R is 0/47 on indent and 0/12 on format while best on delivery (19/19), and on matched
+post-change non-breakage rounds indent is R 0/9 vs N 8/9 and T 8/9 (two discordant episodes, sign-test p = .5 — a
+LEAD to investigate, not a result).
+COST: the projection is exact and FALLS if execution rises (honest range 6.6-7.8 h); the real risk to the 12 h gate
+is the omitted mandatory Q arm at roughly +2.6 h, giving ~10.4 h.
+REGISTERED NEXT STEP: rewrite slab2.py:62-64 so one worked example shows a single fence opener carrying the path;
+add a shape restatement to the ReplyError feedback; register the LANE as the execution unit; fix the floor
+denominator. Then a ~10 GPU-minute 8-lane screen, NOT a full re-pilot.
