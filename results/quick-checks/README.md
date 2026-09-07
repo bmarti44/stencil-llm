@@ -656,3 +656,9 @@ tables retained. No repeats, fitting, host signals or push.
   splice and one syntax repair, arm-neutral R/N/T/Q.155 passed/1xfail;
   [successor registration](../larger-test-v2/REGISTRATION.md). Prior larger-test FAIL
   stands. Fresh64 only after FIX-CONFIRMED and DEV harm calibration.
+
+- **composition-pilot-8 — STOP (final):**512/512 records,0.3949 GPU-h;
+  R/N7/8 executing lanes vs required8/8, T/Q8/8; zero surviving indentation
+  errors and zero repairs. Scoped rejection feedback still said whole-file:
+  harness defect disclosed. Harm coverage2/8<6/8. [Pilot report](composition-pilot-8/README.md).
+  [Fresh64 NOT RUN](../larger-test-v2/RESULTS.md); old FAIL untouched, no rescue.

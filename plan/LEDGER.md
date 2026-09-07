@@ -1282,3 +1282,13 @@ no model evaluation opened. New runner saves both attempt receipts separately.
 /tmp/stencil-amendment6-pinned, tracked-clean source/hash verification and actual
 scoped consumer smoke PASS before GPU access. Launch frozen runner --pilot;
 read FIX-CONFIRMED mechanically and calibrate T:N before any evaluation open.
+
+2026-09-07 — STATE: AMENDMENT6 PILOT8 STOP / FRESH64 NOT OPENED.512/512 records,
+0.394860 GPU-h; D=0; syntax/repairs0 all arms; execution R7/8,N7/8,T8/8,Q8/8.
+All3 primary denominators6 episodes. Rdev00 extra identity rejected16 rounds;
+Ndev01 malformed python #policy.py fence rejected16 rounds. Successor protocol
+rejection feedback retained legacy whole-file instruction/zero fence count:
+harness defect disclosed, not fixed/rescored after freeze. DEV harm coverage2/8
+both R:N/T:N<6/8, calibration ineligible. No64 launch or cross-run control.
+512 HTTP attempts audited, frozen reading exact; own container removed/flag gone.
+User's STOP rule executed. Old FAIL and frozen result bytes untouched; no push.

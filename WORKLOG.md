@@ -5564,3 +5564,6 @@ Report results/larger-test/RESULTS.md, summary/records/cost/index committed; no 
 edits + one syntax repair, original primary unchanged; old FAIL/bank untouched.
 Fresh64 disjoint CPU receipts, DEV-calibrated conditional harm proposed; required
 CPU suite155 passed/1xfail. Pilot8 next, isolated pinned checkout, <=1.5 GPU-h.
+Pilot8 STOP:512/512; R/N7/8 executing lanes, T/Q8/8; zero syntax/repairs.
+Rejection feedback retained legacy whole-file instruction (harness defect disclosed).
+DEV harm coverage2/8<6/8; fresh64 NOT OPENED. GPU0.3949h;512 receipts audited.
