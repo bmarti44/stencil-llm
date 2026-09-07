@@ -639,3 +639,15 @@ R 8/8 vs N 1/8, Holm p=0.0234375. Joint final success is descriptive only.
 Strict T indent 29/39 and delivery 48/49 pass. Projection 6.99 GPU-h including Q;
 actual 3533.43/5400 GPU-s. All 512 CPU payload/record replays exact, 1040 hashes verified;
 records 1,522,744 bytes. Owned container/flag removed; no host signals or push.
+
+## SLAB-2 larger test — FAIL (Amendment 5, 2026-09-07)
+
+[Report](../larger-test/RESULTS.md). Frozen `95fa7fc0` before evaluation; R/N/T64,
+Q16, 16 rounds, all 3,328 records complete. Delivery R64/64 vs N24/64,
+40–0 episode signs, Holm p=2.72848e-12; format Holm p=.013531; indent p=.211975.
+FAIL: breakage R20/64 vs N14/64, paired excess6 exceeds allowed1 (R-only8/N-only2).
+CPU276/276 compact registers and35 historical hashes exact; midpoint R-only replay0/40
+cross-container divergence. GPU6.85025h, cleanup complete;3,328 record/HTTP audits
+and4,960 local hashes verified. Current-value restatement evidence; no register-specific
+or shipping claim. All three family directions, missingness sensitivity and per-episode
+tables retained. No repeats, fitting, host signals or push.

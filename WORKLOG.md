@@ -5552,3 +5552,10 @@ Saved compact registers: 34 matched/35 scheduled contradictions removed; O dropp
 DEV512 records, D0/8, zero caps/round0 nonwrites; R127/128 written, Q/N/T128/128; strict T indent29/39, delivery48/49 pass.
 R format30/34 passes but delivery=ready4/34>2 (DEV06 t12–15) fails; primary3 families/8 episodes, delivery8/8 vs1/8 Holm p=.0234375.
 GPU3533.43/5400s, projection6.99h; 512 exact CPU replays/1040 hashes, records1522744bytes; report/index committed, own container/flag gone, no larger64/signals/push.
+
+2026-09-07 — SLAB-2 Amendment5 larger test COMPLETE / FAIL; freeze95fa7fc0 before opening evaluation, CPU37passed/1xfail.
+All64 R/N/T episodes +Q16 x16 rounds=3328 records. Delivery64/64 vs24/64,40–0 signs,Holm2.72848e-12; formatHolm.013531;indent.211975.
+FAIL on paired breakage20R vs14N (+6>1;R-only8/N-only2). Missing-write sensitivity reverses indent's conditional positive direction.
+CPU276 compact registers/35 historical hashes exact; fixed cross-container R replay0/40 divergent, limited to preselected prompts.
+GPU24660.900707s=6.850250h;3328 record/HTTP audits,4960 local hashes,3344 same-run receipt hashes;own container/flag removed.
+Report results/larger-test/RESULTS.md, summary/records/cost/index committed; no tuning, further inference, host signals or push.

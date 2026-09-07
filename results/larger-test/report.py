@@ -293,9 +293,9 @@ def main():
         audit["reproducibility_recomputed"] = True
         dump("audit.json", audit)
     lines = [
-        "Fit-on: none; development-on: eight DEV episodes only; evaluated-on: the64 frozen authored evaluation episodes, one model pass, no tuning.",
+        "Fit-on: none; development-on: eight DEV episodes only; evaluated-on: the 64 frozen authored evaluation episodes, one model pass, no tuning.",
         "",
-        f"# SLAB-2 Amendment5 — {summary['reading']}",
+        f"# SLAB-2 Amendment 5 — {summary['reading']}",
         "",
         f"{len(rows)}/3328 scheduled records; {sum(e['arms']['R']['completed'] and e['arms']['N']['completed'] and e['arms']['T']['completed'] for e in summary['episodes'])}/64 complete R/N/T episodes. "
         f"Frozen SHA `{audit['frozen_sha']}`. "
@@ -323,7 +323,7 @@ def main():
     for a in "RNTQ":
         m = summary["per_arm"][a]
         lines.append(
-            f"| {a} | {64 if a != 'Q' else 16} | {m['broken']} | {m['any_nonwrite']} | {m['any_cap']} | {m['compact_ready']} | {m['compact_format_violation']} | {m['joint_final']} |"
+            f"| {a} | {64 if a != 'Q' else 16} | {m['broken']} | {m['any_nonwrite']} | {m['any_cap']} | {m['compact_ready']} | {m['compact_format_violation']} | {sum(e.get(a, False) for e in joint.values())} |"
         )
     lines += [
         "",
@@ -346,15 +346,32 @@ def main():
                 else "unmeasured / 0"
             )
         lines.append("| " + key + " | " + " | ".join(cells) + " |")
+    paired_breakage = {"both": 0, "R_only": 0, "N_only": 0, "neither": 0}
+    for e in summary["episodes"]:
+        r, n = e["arms"]["R"]["broken"], e["arms"]["N"]["broken"]
+        label = "both" if r and n else "R_only" if r else "N_only" if n else "neither"
+        paired_breakage[label] += 1
+    assert sum(paired_breakage.values()) == 64
+    assert (
+        paired_breakage["R_only"] - paired_breakage["N_only"]
+        == summary["breakage_excess"]
+    )
+    dump("paired-breakage.json", paired_breakage)
+    lines += [
+        "",
+        f"Paired breakage: R-only {paired_breakage['R_only']}, N-only {paired_breakage['N_only']}, both {paired_breakage['both']}, neither {paired_breakage['neither']}. The registered practical tolerance fails; this is not a separately registered test of harm.",
+        "",
+        "Missingness matters for indent: the conditional paired gain is positive, but the all-attempt sensitivity is negative (see table). Missing paired changes are listed by episode in summary.json; no later successful round replaces them. “None” in the episode table means no common parsed-write measurement, not zero adherence.",
+    ]
     control = read("composition-control.json")
     lines += [
         "",
-        f"Paired breakage excess R−N={summary['breakage_excess']} episodes (allowed<=1). CPU composition: {control['scheduled_compact']} scheduled compact registers across {control['episode_count']} episodes, all clean and bit-exact between forward/reconstructed state;35 historical hashes exact.",
+        f"Paired breakage excess R−N={summary['breakage_excess']} episodes (allowed<=1). CPU composition: {control['scheduled_compact']} scheduled compact registers across {control['episode_count']} episodes, all clean and bit-exact between forward/reconstructed state; 35 historical hashes exact.",
         "",
     ]
     if repro and repro.get("complete"):
         lines += [
-            f"Cross-container reproducibility: **{repro['divergent']}/40 divergent ({repro['divergence_rate']:.1%})**, from the fixed pilot7 payloads reissued midway in this container. {repro['any_divergence_episodes']}/8 DEV episodes had any divergence; episode-mean divergence {repro['episode_mean_divergence']:.1%}. Descriptive; no cell-independence confidence claim.",
+            f"Cross-container reproducibility: **{repro['divergent']}/40 divergent ({repro['divergence_rate']:.1%})**, from the fixed pilot7 payloads reissued midway in this container. {repro['any_divergence_episodes']}/8 DEV episodes had any divergence; episode-mean divergence {repro['episode_mean_divergence']:.1%}. This preselected R-only set does not establish universal reproducibility or negate the prior 10/166 divergence observation. Descriptive; no cell-independence confidence claim.",
             "",
         ]
     else:
@@ -363,13 +380,13 @@ def main():
             "",
         ]
     lines += [
-        f"GPU held **{gpu / 3600:.4f}h** ({gpu:.3f}s), including loading, replay and cleanup, against11.5h cooperative/12h hard limits. Projection7.4462h; queue wait{cost['queue_seconds']:.2f}s. Main generated tokens{cost['generated_tokens']:,}; max prompt+cap{cost['max_prompt_tokens']}+2048<=32768. Full cost decomposition in cost-audit.json.",
+        f"GPU held **{gpu / 3600:.4f}h** ({gpu:.3f}s), including loading, replay and cleanup, against 11.5h cooperative/12h hard limits. Projection 7.4462h; queue wait {cost['queue_seconds']:.2f}s. Main generated tokens {cost['generated_tokens']:,}; max prompt+cap {cost['max_prompt_tokens']}+2048<=32768. Full cost decomposition in cost-audit.json.",
         "",
-        f"CPU audit: all{len(rows)} records agree with raw same-run records, saved HTTP completions/token accounting and SHA256 receipts; {verified} local files verified; independent episode sign/Holm reimplementation agrees. Initial isolated validation failed because its tokenizer link was absent; corrected asset link gave37passed/1xfail and CPU smoke before GPU. No source or threshold changed after freeze.",
+        f"CPU audit: all {len(rows)} records agree with raw same-run records, saved HTTP completions/token accounting and SHA256 receipts; {verified} local files verified; independent episode sign/Holm reimplementation agrees. Initial isolated validation failed because its tokenizer link was absent; corrected asset link gave 37 passed / 1 xfail and CPU smoke before GPU. No source or threshold changed after freeze.",
         "",
-        "Claim ceiling: any positive evidence credits the current effective value restated at request time in this bounded explicit-rule package on one frozen trunk and authored distribution. T is oracle prose (DEV7/8); this is not evidence that a register data structure beats prose. Accumulated history retains old blocks, the system worked example attracts delivery=ready, and T remains uncomposed on compact format. No free-text admission, universal task selection, autonomous long-horizon engineering, actuator efficacy or absence-of-stale-influence claim. See [registration](REGISTRATION.md) and [v2 ceiling](../focus-mechanism-composition-v2-astra.md).",
+        "Claim ceiling: any positive evidence credits the current effective value restated at request time in this bounded explicit-rule package on one frozen trunk and authored distribution. T is oracle prose (DEV 7/8); this is not evidence that a register data structure beats prose. Accumulated history retains old blocks, the system worked example attracts delivery=ready, and T remains uncomposed on compact format. No free-text admission, universal task selection, autonomous long-horizon engineering, actuator efficacy or absence-of-stale-influence claim. See [registration](REGISTRATION.md) and [v2 ceiling](../focus-mechanism-composition-v2-astra.md).",
         "",
-        "Q is a16-episode fresh-context reference using gold prerequisite files; O was dropped as byte-identical to R. No later retries, seeds, outcome-selected subsets or tuning. HTTP/full journals are local and hash-indexed; own container cleanup is recorded. No host process signals or push.",
+        "Q is a 16-episode fresh-context reference using gold prerequisite files; O was dropped as byte-identical to R. No later retries, seeds, outcome-selected subsets or tuning. HTTP/full journals are local and hash-indexed; own container cleanup is recorded. No host process signals or push.",
         "",
         "| Episode | Delivery gain | Format gain | Indent gain | Broken R/N/T/Q | Compact ready R/N/T/Q | Final R/N/T/Q |",
         "|---|---:|---:|---:|---|---|---|",
@@ -392,6 +409,10 @@ def main():
         lines.append(
             f"| {e['episode_id']} | {gains['delivery']} | {gains['format']} | {gains['indent']} | {column('broken')} | {column('compact_ready')} | {column('joint_final')} |"
         )
+    lines += [
+        "",
+        "Artifacts: [registration](REGISTRATION.md), [freeze](freeze.json), [summary and missingness](summary.json), [R records](records-R.jsonl), [N records](records-N.jsonl), [T records](records-T.jsonl), [Q records](records-Q.jsonl), [CPU control](composition-control.json), [reproducibility](reproducibility.json), [cost audit](cost-audit.json), [audit](audit.json), [HTTP/journal hashes](local-hashes.json), [same-run receipt hashes](receipts-hashes.json), [server log](server.log).",
+    ]
     (OUT / "RESULTS.md").write_text("\n".join(lines) + "\n")
     print(json.dumps(audit))
 
