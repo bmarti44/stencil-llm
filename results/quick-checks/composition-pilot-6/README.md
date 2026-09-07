@@ -99,3 +99,32 @@ Pre-run determinism: eight DEV round0 R prompts, C4 forward0..7 then reverse7..0
 PRE-WRITTEN READINGS: ELIGIBLE requires complete eight episodes, zero round0 format failures, per-lane8/8 and strict per-round execution>=90% in each R/N/T/Q arm, caps<=2% per arm, both primary substitution kinds (indent/style and delivery/process) passing corrected T floor with nonzero retirement denominators in >=2 episodes, R final>=5/8, and measured Q-inclusive64 projection<=12GPU-h. Missing/capped/failed T attempts remain failures; indent denominator uses applicable post-supersede rounds including reinstatement. Other floors unchanged by Amendment3. We conservatively require the same execution checks for cost-only O too.
 Cost=(load+1.25*(64*(R+N+Q)+16*(O+T)))/3600; lane mean=group wall/4 with intergroup overhead allocated. Replay is charged to pilot budget; startup load is charged once in projection. In (12,15], frozen fresh12-round DEV fallback, all five arms retained, if budget permits; insufficient remaining budget => INCOMPLETE, never partial pass. >15 => stop. INELIGIBLE lists failing items; interrupted/incomplete work => INCOMPLETE.
 Diagnostics frozen: matched episode/turn cells where every R/N/T/Q arm wrote, per-trait R/N/T satisfied/applicable and post-change counts; also report R/N/T-only matched cells to compare pilot5 prior post-change indent R0/9,N8/9,T8/9. Per-kind relapse uses executed-trait retirement denominators. No larger64 run in this task.
+
+## Orchestrator addendum after the Opus maximum-reasoning review (2026-09-07; results/composition-pilot-6-review-opus.md)
+Every number reproduces; INELIGIBLE on `R final<5/8` is correctly applied. Five decisive corrections:
+1. FORMAT IS A RENDERER DEFECT, proven by a control already inside this run: the fresh-context arm Q renders the
+   SAME block with no history, tombstones or context and reproduces R's failure (Q 11/34, R 9/34) while the
+   block-free arm N is 34/34. Named bytes: register.py:437-449 sorts the task-scoped `delivery` row LAST, right
+   before "Apply the active rules..."; renderer.py:90-106 never composes it with `format=compact`; slab2.py:107
+   renders it as the actionable imperative "trailer delivery=ready...". R prints `delivery=ready` in 25/34 compact
+   rounds; N never does.
+2. INDENT IS NOT A BLOCK-CONTENT DEFECT: Q with the same block is the BEST arm (59/127 vs R 7, N 20, T 23). It is
+   context accumulation (loop.py:363 re-appends the whole block every turn; R 13.2k tokens vs N 6.4k) plus genuine
+   model behaviour (PEP-8 default; copying the file's existing style; T even emitted an indentation error trying to
+   obey "indent 3"). Episode-paired, indent R 7/127 vs N 20/127 gives p = 0.125 — NOT significant; the round-level
+   appearance was pseudo-replication.
+3. JOINT FINAL SUCCESS IS NOT A MEASURABLE ENDPOINT FOR ANY ARM. Q qualified 0/8 under both rubrics; the 4-trait
+   per-round conjunction is Q 48/128, N 18, T 16, R 4, with all-arms-agree 0/128 and the 16-round conjunction 0/8
+   everywhere. The registered larger test on this endpoint would be a foregone FAIL.
+4. AT THE CORRECTED ENDPOINT THE REGISTER ARM ALREADY WINS WHERE IT SHOULD: per-obligation adherence at the
+   obligation's change round, episode-paired — delivery R 8/8 vs N 1/8 (p = 0.0156) and R 49/49 vs N 40/49
+   (p = 0.0156); format R 2/8 vs N 8/8 (p = 0.0312, the defect above); indent R 4/16 vs N 9/16 (p = 0.125).
+5. Free receipt: the O arm is byte-identical to R across 128/128 output hashes (renderer.py:136 treats O as R) —
+   a 128-round determinism replication, and 0.587 GPU-h of the projection buying a duplicate. Cost confirmed at
+   7.651751 GPU-h INCLUDING Q at x64 (Q adds 1.836; 7.064 without O).
+REGISTERED CONSEQUENCE: the 64-episode larger test must NOT run on joint final success. It IS authorized at
+7.65 GPU-h on the PER-OBLIGATION CHANGE-ROUND endpoint with episode-level pairing, after (a) the delivery x format
+composition defect is fixed and (b) a ~1.2 GPU-h DEV re-pilot confirms it. Pre-registration changes required:
+swap the primary endpoint, declare the episode the unit, drop `delivery_scope` (0/44 in all five arms, and scored
+only against Q), de-conjoin style/language from breakage, fix the vacuous `widths==[]` pass, re-label Q as a
+fresh-context reference rather than a ceiling, and declare O.
