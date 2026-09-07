@@ -1,0 +1,51 @@
+{
+  "checks": [
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_focus_maintenance_bank.py",
+        "tests/test_focus_maintenance_updater.py",
+        "tests/test_maintenance_dev_check.py",
+        "-q"
+      ],
+      "exit_code": 0,
+      "stdout": "................................                                         [100%]\n32 passed in 0.12s\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        ".venv/bin/ruff",
+        "check",
+        "src/stencil/focus/maintenance_bank.py",
+        "src/stencil/focus/maintenance_updater.py",
+        "scripts/maintenance_dev_check.py",
+        "tests/test_focus_maintenance_bank.py",
+        "tests/test_focus_maintenance_updater.py",
+        "tests/test_maintenance_dev_check.py"
+      ],
+      "exit_code": 0,
+      "stdout": "All checks passed!\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "scripts/maintenance_dev_check.py",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stdout": "usage: maintenance_dev_check.py [-h] --input INPUT --output-dir OUTPUT_DIR\n                                [--base-url BASE_URL] [--model MODEL]\n                                [--max-tokens MAX_TOKENS]\n                                [--deadline-seconds DEADLINE_SECONDS]\n\nSequential, DEV-only research driver for automatic register maintenance. This\nmodule owns no server or process lifecycle. The caller supplies an already\navailable decoder (the CLI constructs the HTTP decoder), and every scheduled\nmessage gets at most one updater call. Gold annotations are loaded only to\nvalidate the authored DEV bank; they never enter updater arguments or prompts.\n\noptions:\n  -h, --help            show this help message and exit\n  --input INPUT\n  --output-dir OUTPUT_DIR\n  --base-url BASE_URL\n  --model MODEL\n  --max-tokens MAX_TOKENS\n  --deadline-seconds DEADLINE_SECONDS\n",
+      "stderr": ""
+    }
+  ],
+  "sha256": {
+    "src/stencil/focus/maintenance_bank.py": "be51237f9b407bdab55a27c064c3f2bede3f51fd3cabb88c8012192fe1862ca0",
+    "src/stencil/focus/maintenance_updater.py": "151b114351de2d062adac0327acb37cdce568460473d18cd99e4cc8f02af0594",
+    "scripts/maintenance_dev_check.py": "08afbff47368f35b9b55e3a10ea4e29eec80118c2b5d1cdef3d7a4fc3ead00ff",
+    "tools/run_maintenance_dev.py": "b2fd2be6c744812b74c66f5c575de1036e505fc4fe46443af7a780e5c9207c11"
+  },
+  "model_calls": 0,
+  "scope": "CPU mocks and CLI help only"
+}

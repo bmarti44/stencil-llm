@@ -1350,3 +1350,67 @@ Independent exact-fraction primary and harm sign/Holm calculations agree.
 GPU7673.195864s=2.131443h; own container/flag removed. All arm files<2.54MB.
 Final explicit artifact commit follows; original95fa7fc0/pilot8 bytes unchanged,
 no benchmark access, fitting, host signals, reruns or push.
+
+2026-09-07 — HANDOFF VERIFICATION (write-ahead): CPU/docs only under Brian’s
+explicit instruction; archived protocol read because active path is absent.
+Classifier STATE remains historical; both larger runs complete and frozen.
+No wrapper holds .review.lock. Verify saved artifacts without rescore or model
+execution; repair handoff, kit, links and current planning docs; explicit-path
+force-add and local commit, no push. No evaluation bank content opened.
+
+2026-09-07 — STATE: AUTOMATED MAINTENANCE PREPARATION; NO GPU LAUNCH.
+Current user correction: beating manual prose is not required; fully automatic
+register maintenance matching good prose can be a major benefit. Prior
+CURRENT-GOAL done wording is superseded by this instruction. Factorial is
+deferred as a protocol diagnostic, not the required immediate gate.
+Model roles: Kimi K3/Ollama data, Sol xhigh implementation, independent
+Astra xhigh reviews. Native Sol session /root/factorial_contract is scoped to
+a new CPU bank schema/tests; directed to simplify toward natural-message
+maintenance trajectories. No wrapper log or session ID fabricated.
+Fit none; design informed by old aggregate reports; new Kimi DEV only;
+evaluated-on none. No old frozen records rescored or benchmark inputs opened.
+Unrelated dirty files preserved; existing handoff updates are from another session.
+Next: reviewed automatic-maintenance contract, original Kimi DEV data, CPU checks.
+
+2026-09-07 — HANDOFF VERIFICATION COMPLETE: both frozen source manifests and
+13,253 local raw-file manifest entries match; 35 weight receipts match; four-doc
+path check zero broken references (final count in kit verification). Kit recovery smoke is no-launch;
+post-reboot chain copied unchanged and syntax-checked. Reports distinguish
+reconstructed larger-test full prompt from unavailable issued bytes. No scorer,
+GPU job/query, evaluation-bank content, code edit or push. Explicit-path docs
+commit includes current handoff, kit, corrections and next-tests. Shared ledger
+is excluded because a concurrent session appended its own preparation state.
+Unverified: clean-bank exposure certificate, remote Kimi generation auth,
+historical pre-run full-shard identity, and off-host backups.
+
+2026-09-07 — STATE: MAINTENANCE DEV ANNOTATIONS VALIDATED; UPDATER NEXT.
+Previous turn made progress: corrected current goal, Kimi authored2x8DEV and
+patched two modal ambiguities; independent Astra design94/data93 accepted,
+48/48 gold views,15operations. Rationale caveat excluded from supervision.
+Revalidated after session rollover: no old subagent handles remain; no wrapper
+lock or GPU flags. Sol bank12 targeted tests+ruff pass; canonical hash receipt
+results/factorial-prep/cpu-validation.json. New independent Astra native agent
+/root/maintenance_code_review audits bank; new Sol xhigh agent
+/root/maintenance_updater implements isolated one-call prompt/compiler in two
+new allowlisted files only. Parent owns receipts and DEV check draft.
+No updater inference yet; no frozen-run rescoring, fitting, benchmark reads or push.
+
+2026-09-07 — MAINTENANCE PREP COMMITTED 7270ff8f:24 scoped files verified
+tracked, including ignored raw Kimi receipts. Astra bank code93 accepted;
+medium typed-API integer/child checks and completion-role binding deferred
+because reviewed raw input supplies types and excludes completion. No
+automatic-updater evidence yet. Live native Sol updater/driver tasks survive
+accidental interruption; rechecked handles, no restart or GPU launch.
+
+2026-09-07 — STATE: MAINTENANCE DEV16 REGISTERED, LAUNCH NEXT.
+32 targeted tests+ruff+CLI smoke pass; independent Astra updater94/driver95/
+lifecycle95, no open high/critical. Raw HTTP corruption/partial-read fixes
+and prompt wire-schema/atomic Unicode fixes independently reverified.
+Current20 trunk files hash-verified (61,078,009,236bytes,29.30CPU-wallseconds);
+all16shards included. Kimi reviewedDEV2x8 only, no fitting/evaluation.
+Under standing autonomous quick-check scope, local900-second reservation
+for16 sequential updater calls only; noworker/factorial/clean-screen launch.
+Commit bound source/recipe/receipts, then python3 /home/bmarti44/stencil-llm/
+tools/run_maintenance_dev.py --run-dir /home/bmarti44/stencil-llm/results/
+quick-checks/maintenance-dev-01 --execute. Owncontainer/PID/flag; strict
+no retries or goldreset; failures stayrecorded; no oldruns rescored or push.
