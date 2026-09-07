@@ -5519,3 +5519,8 @@ R/N/T written63/112/104 of128 (<90% each); final0/4/3 of8; T indent13/128 fails,
 Measured registered R/N64+O/T16 projection7.774GPU-h, load+25%reserve, prior pilots excluded; fallback not triggered.
 GPU4869.993/5400s;512 exact CPU replays,680 local-file hashes pass;records1.76MB, HTTP/loop journals local with hashes.
 Own container/flag removed; DEV-only, fit none, no eval/bench reads, host signals or push; composition-pilot-5/README.md.
+
+2026-09-07 — CHECK48 COST-INELIGIBLE: frozen9ad01d77; audited2048 FIT +128 scenario-held DEV, pass3 Opus patches/systematic repairs;90 contaminated Astra2 excluded.
+BF16 Qwen3-4B r16/a32 attention+MLP smoke56.692s;6 discarded pilot updates project fit/save22.32min<=25;8 pre-fit HF/schema DEV calls project evaluation38.01min>22.
+Registered pre-fit stop: no fixed fit/adapter/heldout4/SETUP look; fitted quality and seven-family tables unmeasured, no automatic refit or shipping change.
+GPU86.901/3600s;5 CPU tests+3 grammar witnesses+2176 gold checks+8 parser replays pass; base hashes unchanged, own flag absent; explicit commits/no signals/push.

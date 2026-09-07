@@ -590,3 +590,7 @@ STAY unchanged: conjunctive cost clause and48 GatedDeltaNet+16 full-attention ar
 R/N/T parsed+written63/112/104 of128 (<90% each), caps0, R final0/8; T indent13/128 floor-fails, only delivery/process qualifies as substitution.
 Measured registered-run projection7.774GPU-h<=12; no fallback. O/R128/128 exact; forward/reverse gate8/8 exact.
 GPU4869.993/5400s;512 exact CPU replays and680 local-file hashes pass;1.76MB records, raw HTTP/loop journals out of git with hashes; own container/flag removed, no push.
+
+48. **COST-INELIGIBLE — Qwen3-4B generative updater LoRA screen** ([check48](check48/README.md)): audited2,048 FIT +128 scenario-held DEV frozen9ad01d77; pass3 Opus patches and systematic span/value repairs,90 evaluation-derived Astra2 rows excluded.
+   Load/smoke56.692s; warmed batch4 steps1.918–2.202s project fit/save22.32min<=25. HF greedy/schema batch8 DEV16.856s projects full evaluation38.01min>22 (conservative longest-output pilot, not representative latency).
+   Registered pre-fit cost stop: no fixed fit/adapter, no heldout4 or SETUP look; quality/family tables unmeasured. GPU86.901/3600s;5 tests+3 grammar witnesses+8 saved-parser replays pass, base hashes unchanged; own flag removed, no signals/push.
