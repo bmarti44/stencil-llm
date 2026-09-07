@@ -5559,3 +5559,8 @@ FAIL on paired breakage20R vs14N (+6>1;R-only8/N-only2). Missing-write sensitivi
 CPU276 compact registers/35 historical hashes exact; fixed cross-container R replay0/40 divergent, limited to preselected prompts.
 GPU24660.900707s=6.850250h;3328 record/HTTP audits,4960 local hashes,3344 same-run receipt hashes;own container/flag removed.
 Report results/larger-test/RESULTS.md, summary/records/cost/index committed; no tuning, further inference, host signals or push.
+
+2026-09-07: SLAB-2 Amendment6 registered before code (9c756c2c); scoped-function
+edits + one syntax repair, original primary unchanged; old FAIL/bank untouched.
+Fresh64 disjoint CPU receipts, DEV-calibrated conditional harm proposed; required
+CPU suite155 passed/1xfail. Pilot8 next, isolated pinned checkout, <=1.5 GPU-h.

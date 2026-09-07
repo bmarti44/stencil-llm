@@ -1270,3 +1270,9 @@ RESULTS/addendum and both reviews; archived PROTOCOL/PLAN located (root absent).
 No wrapper lock held. Amendment5 FAIL stands, no frozen-byte edits. Fit-on none;
 DEV-only calibration; prior failure audits explicitly inform protocol design.
 Next: successor modules/tests, CPU green commit, pilot8 frozen isolated checkout.
+
+2026-09-07 — STATE: AMENDMENT6 CPU GREEN / PILOT8 NEXT. Required selection
+155 passed,1 expected xfail in73.20s. Scoped real consumer tests cover every arm,
+one successful/failed repair, literal hybrid and stray-def indentation, semantic
+exclusion, disjoint bank and frozen primary equality. Fresh64 CPU receipts only;
+no model evaluation opened. New runner saves both attempt receipts separately.

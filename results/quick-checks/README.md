@@ -651,3 +651,8 @@ cross-container divergence. GPU6.85025h, cleanup complete;3,328 record/HTTP audi
 and4,960 local hashes verified. Current-value restatement evidence; no register-specific
 or shipping claim. All three family directions, missingness sensitivity and per-episode
 tables retained. No repeats, fitting, host signals or push.
+
+- **composition-pilot-8 (Amendment6, CPU green; DEV pending):** scoped function
+  splice and one syntax repair, arm-neutral R/N/T/Q.155 passed/1xfail;
+  [successor registration](../larger-test-v2/REGISTRATION.md). Prior larger-test FAIL
+  stands. Fresh64 only after FIX-CONFIRMED and DEV harm calibration.

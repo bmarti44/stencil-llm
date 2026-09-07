@@ -14,6 +14,9 @@ import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 GPU_ENTRY_SCRIPTS = [
+    "scripts/composition_pilot8_driver.py",
+    "scripts/larger_test_v2.py",
+    "scripts/larger_test.py",
     "scripts/composition_pilot5.py",
     "scripts/composition_pilot7.py",
     "scripts/composition_pilot5_screen.py",
