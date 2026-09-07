@@ -224,3 +224,31 @@ Existing scratchpad diagnostic byte receipts, located without parsing examples o
 | `v2-heldout3-records.jsonl` | 568,275 | `d587b4d40f5d0886acfaa1bde5208351cfb0b056c28b28b79f81c01f3223fd0b` |
 | `v2-heldout3-metrics.json` | 1,943 | `46586e44a402a65c7ab1e1459b05d4ca523e08c040530ec0356a527ca8ab5297` |
 | `v2_diag.py` | 3,070 | `5f3054862928df55d9ba226481dc151ae628b36d407a981d7ea3d9d8863f12a6` |
+
+## STATE AT 2026-09-07 EVENING — read this before anything above
+Two larger runs are complete and both are frozen. Neither may be rescored.
+1. results/larger-test/ (SHA 95fa7fc0) — **FAIL** on the registered conjunction. Primary delivery 40/0/24,
+   p = 9.09e-13. Failing clause: register-arm breakage 20 vs plain history 14. Every non-write in the run was an
+   indentation SyntaxError. Reviews: results/larger-test-review-{opus,astra}.md.
+2. results/larger-test-v2/ (pinned e20c3f9b) — **PASS** on its registered gates, after Amendments 6 and 6b fixed
+   the cause (scoped-function submission plus one syntax repair turn). Breakage fell 20 -> 1. Delivery 35/0/28,
+   Holm 8.73e-11; format 25/4/34, Holm 1.04e-04; indent 17/15/32, not significant. Reviews:
+   results/larger-test-v2-review-{opus,astra}.md, and the reconciling addendum inside RESULTS.md.
+**THE PASS IS NARROW AND THE GATE FOR "ADEQUATE PROOF ON A LARGER IMPLEMENTATION" IS NOT MET.** Both reviewers
+agree. The prose comparator T equals or beats the register R on EVERY primary family and on adherence, so nothing
+establishes that the register REPRESENTATION contributes over correct prose. The competence cost survives: semantic
+integration R 45 vs T 52, 7 discordant all one way, one-sided p = 0.0078. The powered endpoint's required value is
+identical to a literal in the arm-invariant system example. The fresh bank reuses 98.63% of its turn-level tasks
+from the spent bank. Repair efficacy is zero (all five repairs token-identical to their initial submission).
+SUPPORTABLE CLAIM, and no more: request-time restatement of the currently effective obligations — from the register
+OR as plain prose — recovers one specific silent-default rule transition that ordinary retained history does not,
+with gains that survive clustering and adversarial flips.
+AGREED SUCCESSOR, not authorized here: one fresh 32-episode paired FACTORIAL, 16 rounds, crossing whole-file versus
+scoped submission with N / R / composed-prose T; 3,072 calls; about 5.32 GPU-h; primary = per-episode paired
+private-test integration and joint integration-plus-adherence; separately frozen bank with new semantic
+parameterizations. This separates the protocol effect from the mechanism effect, which run 2 confounds.
+Also open, with research reports and costed tests: automatic rule admission (results/open-problem-1-...), context
+cost of rendering (-2-), off-task detection (-3-), a self-managing co-emitting model (-4-), compliance without
+competence (-5-), and the one published no-tradeoff method whose released code has three paper/code discrepancies
+and a missing scorer (-6-). The combined plan is results/NEXT-TESTS-PLAN.md; the clean unexposed evaluation bank is
+data/classifier/heldout/clean-admission-bank-v1.jsonl.
