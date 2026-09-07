@@ -44,3 +44,17 @@ Both directions pass4/4. All8 outputs have recognized syntax, fenced presentatio
 Runtime: load40.752s; total54.407s (0.907GPU-min), peak allocated8,211,945,472 bytes. PyTorch2.13.0+cu130 / Transformers5.16.1. Exactly8 generation calls, no adapters loaded or trained. Process exited normally and removed its own RUNNING.flag; no process signals, container, push, or data/bench reads.
 
 Evidence: [inputs](inputs.json), [records](records.jsonl), [summary](summary.json), [CPU audit](audit.json), [freeze](freeze.json), [runner](run.py), [audit runner](audit.py), [raw run log](run.log). The raw records and pre-GPU freeze are unchanged.
+
+## Orchestrator note (2026-09-07)
+CONTROL-PASS accepted with a DISCLOSED PROTOCOL VIOLATION: a source-range read of scripts/focus_check49.py:100-128
+overran setup() into evaluation() and displayed four evaluation-generator branch names (prefix, rotate, unique,
+gaps). No evaluation data, records or prompts were read. Consequence, registered here: the four exposed generator
+families are BURNED for any future check-49 successor — the corrected re-run must draw its evaluation episodes from
+families disjoint from those four, and must say so in its data-lineage line. The agent disclosed this itself, which
+is the behaviour the protocol wants; the finding stands because the control used SETUP families only and the
+exposure cannot flow into an 8/8 text-at-recency result on frozen CPU-authored histories.
+Reading consequence: a carrier CAN beat a retained transcript when the rule is rendered at CURRENT-USER RECENCY.
+Check 49's SWITCH cell was therefore a PLACEMENT artifact, not evidence about adapters. The corrected check-49
+successor is authorized (fourth text-at-recency arm; output cap 96 -> 160; actually spend the registered fitting
+ceiling; evaluation families disjoint from the four burned above). It is QUEUED BEHIND the composition work: the
+larger test is the deliverable and the weight side remains a research branch.
