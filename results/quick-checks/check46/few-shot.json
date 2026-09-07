@@ -1,0 +1,159 @@
+[
+  {
+    "input": {
+      "register": [],
+      "role": "user",
+      "message": "For the observatory handbook, highlight cautions in amber and label diagrams with Roman numerals.",
+      "previous_user": []
+    },
+    "output": [
+      {
+        "op": "add",
+        "span": "For the observatory handbook, highlight cautions in amber",
+        "key": "caution-color",
+        "scope": "task:observatory handbook",
+        "kind": "format",
+        "value": "amber",
+        "target_id": null
+      },
+      {
+        "op": "add",
+        "span": "label diagrams with Roman numerals.",
+        "key": "diagram-labels",
+        "scope": "task:observatory handbook",
+        "kind": "format",
+        "value": "Roman numerals",
+        "target_id": null
+      }
+    ]
+  },
+  {
+    "input": {
+      "register": [],
+      "role": "user",
+      "message": "Please count the words in this pasted notice: \"Always lock the eastern hatch.\" Just for this reply, give only the count.",
+      "previous_user": []
+    },
+    "output": []
+  },
+  {
+    "input": {
+      "register": [
+        {
+          "id": "r1",
+          "key": "sensor-radix",
+          "scope": "global",
+          "kind": "format",
+          "value": "Represent sensor register numbers in hexadecimal.",
+          "text": "Represent sensor register numbers in hexadecimal.",
+          "version": 1,
+          "status": "live"
+        }
+      ],
+      "role": "user",
+      "message": "Actually, octal for the sensor register from now on.",
+      "previous_user": []
+    },
+    "output": [
+      {
+        "op": "supersedes",
+        "span": "Actually, octal for the sensor register from now on.",
+        "key": "sensor-radix",
+        "scope": "global",
+        "kind": "format",
+        "value": "octal",
+        "target_id": "r1"
+      }
+    ]
+  },
+  {
+    "input": {
+      "register": [
+        {
+          "id": "r1",
+          "key": "moon-note",
+          "scope": "global",
+          "kind": "format",
+          "value": "Append a moon-phase note to each answer.",
+          "text": "Append a moon-phase note to each answer.",
+          "version": 1,
+          "status": "live"
+        }
+      ],
+      "role": "user",
+      "message": "Remove the requirement to append a moon-phase note.",
+      "previous_user": []
+    },
+    "output": [
+      {
+        "op": "cancels",
+        "span": "Remove the requirement to append a moon-phase note.",
+        "key": "moon-note",
+        "scope": "global",
+        "kind": "format",
+        "value": "",
+        "target_id": "r1"
+      }
+    ]
+  },
+  {
+    "input": {
+      "register": [
+        {
+          "id": "r1",
+          "key": "coastline-color",
+          "scope": "task:tide atlas",
+          "kind": "format",
+          "value": "Use purple coastlines in the tide atlas.",
+          "text": "Use purple coastlines in the tide atlas.",
+          "version": 1,
+          "status": "live"
+        }
+      ],
+      "role": "user",
+      "message": "The tide atlas is approved and the entire atlas task is finished.",
+      "previous_user": []
+    },
+    "output": [
+      {
+        "op": "completes",
+        "span": "The tide atlas is approved and the entire atlas task is finished.",
+        "key": "coastline-color",
+        "scope": "task:tide atlas",
+        "kind": "format",
+        "value": "",
+        "target_id": "r1"
+      }
+    ]
+  },
+  {
+    "input": {
+      "register": [
+        {
+          "id": "r1",
+          "key": "uncertainty-marker",
+          "scope": "global",
+          "kind": "format",
+          "value": "Mark uncertain star names with a tilde.",
+          "text": "Mark uncertain star names with a tilde.",
+          "version": 1,
+          "status": "cancelled"
+        }
+      ],
+      "role": "user",
+      "message": "Restore the original instruction to mark uncertain star names with a tilde.",
+      "previous_user": []
+    },
+    "output": [
+      {
+        "op": "reinstates",
+        "span": "Restore the original instruction to mark uncertain star names with a tilde.",
+        "key": "uncertainty-marker",
+        "scope": "global",
+        "kind": "format",
+        "value": "tilde",
+        "target_id": "r1"
+      }
+    ]
+  }
+]

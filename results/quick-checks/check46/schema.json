@@ -1,0 +1,50 @@
+{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "op": {
+        "type": "string",
+        "enum": [
+          "add",
+          "supersedes",
+          "cancels",
+          "completes",
+          "reinstates",
+          "none"
+        ]
+      },
+      "span": {
+        "type": "string"
+      },
+      "key": {
+        "type": "string"
+      },
+      "scope": {
+        "type": "string"
+      },
+      "kind": {
+        "type": "string"
+      },
+      "value": {
+        "type": "string"
+      },
+      "target_id": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "required": [
+      "op",
+      "span",
+      "key",
+      "scope",
+      "kind",
+      "value",
+      "target_id"
+    ],
+    "additionalProperties": false
+  }
+}

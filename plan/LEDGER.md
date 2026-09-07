@@ -1158,3 +1158,5 @@ calls observed; R DEV06 r31 actual32490>32256 unrun. Execution108/159,109/160,
 applied with32 witnesses, no swapped GPU.64 D=0 checks;6831.011/9000GPU-s;
 registered projection floor38.547h.50 tests/479 exact replays pass. Own containers
 and flag removed; local HTTP/oversized hashes, <=10MB shards, explicit commit/no push.
+
+2026-09-06 — CHECK46 WRITE-AHEAD (gpt-6-astra): fit none; only permitted kimi DEV for <=3 prompt iterations/<=200 rows; six fresh examples. One frozen admission3/relations3 look, v8 setup diagnostic; no bench. Archived protocol/root plan recovered; user check-specific brief governs. No wrappers/Stencil flags/container active. Start qualified image/flags; first20 DEV profile,3600s inclusive cap; normalized verbatim and schema/substrings tested before frozen evaluation. All artifacts check46, explicit commits/no push, own container only.
