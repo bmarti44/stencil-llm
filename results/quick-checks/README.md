@@ -577,3 +577,9 @@ committed, HTTP/oversized journals local with hashes. DEV only; no fitting/push.
    Freeze519c7338; 921 request/parser replays, 6 CPU tests +7 grammar witnesses pass; explicit entry stays, next small generative updater on audited authored data; no push.
 
 47. **STAY — dense Qwen3.8-27B FP8 screen** ([check47](check47/README.md)): qualified native vLLM load succeeds. Same pilot4 DEV00/01 R: executed0/32 vs MoE32/32, caps0/32, final0/2 both, indent0/2 both; all32 dense responses fenced/rejected. Violations L/S/F/P0/0/32/0 vs0/30/10/17; breakage32 vs0. Disclosed check40k second look22/32 vs16/32 (2 caps), no selection. Decode7.328 tok/s/stream, C2 aggregate12.693; JS C4 aggregate24.020. Conservative32-round projection FP8 12.12h / bf16 proxy24.15h using JS C4 rate; actual DEV C2 proxy22.85/45.61h, all-arm/HF costs unmeasured.1015.477/2400 GPU-s;64 token checks+32 exact DEV+32 JS CPU replays pass against frozen184cb321 despite later live-source drift. Own container/flag removed; no download/push.
+
+47-replay. [CPU settling replay](check47-replay/README.md): registered fourth SLAB1 tolerance before code; frozen184cb321, 64 saved replies, zero GPU.
+Dense/MoE executed32/32 each; caps/breakage/semantic0 each; final0/2 each; L/S/F/P0/0/6/4 vs0/30/10/17.
+Dense strip_leading_fence32/32 (13 closed/19 unclosed); MoE test_path32/32; round0 indent2/2 vs0/2.
+Only2 round0 pairs genuinely matched: fully compliant2/2 vs0/2; all32 totals descriptive, remaining30 histories unmatched; original harness INELIGIBLE.
+STAY unchanged: conjunctive cost clause and48 GatedDeltaNet+16 full-attention architecture;64 exact baseline replays,64 corrected replays,8 boundary cases pass; no SLAB2 change.

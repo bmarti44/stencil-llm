@@ -1183,3 +1183,13 @@ Pinned9f0c6d27 H1-H3/N1-N2 closed; runtime cap1024/noQ overrides registered in
 results/quick-checks/composition-pilot-5/registration.md before GPU. T/R/N C4 fixed
 lanes, forward/reverse8 gate, optionalO; strict file-written per-arm gates;
 5400s all-in cooperative budget, own Docker only, no host signals/bench/push.
+
+2026-09-06 — STATE: CHECK47 CPU REPLAY COMPLETE (gpt-6-astra).
+Registration97ca5c5b precedes code; frozen184cb321/25 source hashes verified;
+64 exact untolerated replays,64 corrected replays,8 consumer boundary cases pass.
+Dense/MoE executed32/32 each, final0/2 each, L/S/F/P0/0/6/4 vs0/30/10/17;
+zero caps/breakage/semantic; fence32/32 vs test_path32/32. Only2 round0 pairs
+matched (joint compliance2/2 vs0/2); full32 descriptive,30 histories unmatched.
+Original harness INELIGIBLE; STAY unchanged on conjunctive cost and48 GDN+16 full
+attention. Output check47-replay/records186564 bytes; CPU-only, no SLAB2 changes,
+GPU/container/signals/benchmark reads/push. Explicit-path artifact commit next.

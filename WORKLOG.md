@@ -5507,3 +5507,8 @@ Recipe184cb321; concurrent live-source drift detected and replay isolated to com
 - 2026-09-06 pilot-5 pre-launch: N1/N2 already in bdc5f115; regression tests committed in 9f0c6d27f32815010c81a02d3959102459c55e8f.
   Requested CPU suite before/after commit:116 passed,1 expected xfail (68.05s/64.66s); lint/whitespace green.
   Pinned-checkout requirement and measured x-factor/Q-cost handoff:tests/fixtures/slab2_cpu_report.md; no GPU/signals/benchmark reads/push.
+
+2026-09-06 — CHECK47 CPU REPLAY: registration97ca5c5b; frozen184cb321,64 saved replies; executed32/32 each, caps/breakage/semantic0, final0/2 each.
+Dense FP8/vLLM vs MoE bf16/HF L/S/F/P0/0/6/4 vs0/30/10/17; fence32/32 vs test_path32/32; matched round0 compliance2/2 vs0/2.
+Original harness INELIGIBLE; all32 totals descriptive (30 unmatched histories); STAY unchanged on conjunctive cost clause +48 GDN/16 full-attention.
+64 original exact/64 corrected replays +8 consumer tests pass; records186564 bytes; results/quick-checks/check47-replay; CPU only, no SLAB2/GPU/container/signals/bench/push.
