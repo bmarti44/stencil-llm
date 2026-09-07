@@ -1292,3 +1292,11 @@ harness defect disclosed, not fixed/rescored after freeze. DEV harm coverage2/8
 both R:N/T:N<6/8, calibration ineligible. No64 launch or cross-run control.
 512 HTTP attempts audited, frozen reading exact; own container removed/flag gone.
 User's STOP rule executed. Old FAIL and frozen result bytes untouched; no push.
+
+2026-09-07 — STATE: AMENDMENT6b REGISTERED BEFORE CODE; CPU FIX NEXT.
+Read archived PROTOCOL/PLAN and committed pilot8 records; no wrapper lock held.
+Direct user instruction governs bounded implementation. Schedule-only audit finds
+all8 DEV episodes have2 indent changes, so6/8 coverage achievable; retain gate,
+verify actual-schedule negative control before freeze. No fit/benchmark/evaluation
+reads or GPU work. Preserve original95fa7fc0 and pilot8 artifacts. Next scoped
+feedback/example, consumer tests,3600s pilot9 pin then conditional fresh64 run.
