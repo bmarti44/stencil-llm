@@ -1276,3 +1276,9 @@ Next: successor modules/tests, CPU green commit, pilot8 frozen isolated checkout
 one successful/failed repair, literal hybrid and stray-def indentation, semantic
 exclusion, disjoint bank and frozen primary equality. Fresh64 CPU receipts only;
 no model evaluation opened. New runner saves both attempt receipts separately.
+
+2026-09-07 — STATE: PILOT8 LAUNCH. Pinned CPU-green SHA
+0018302cccb0ea2cdcc3ac91519fe90a22c5e7d5; isolated
+/tmp/stencil-amendment6-pinned, tracked-clean source/hash verification and actual
+scoped consumer smoke PASS before GPU access. Launch frozen runner --pilot;
+read FIX-CONFIRMED mechanically and calibrate T:N before any evaluation open.
