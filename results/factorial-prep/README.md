@@ -1,0 +1,13 @@
+Fit-on: none. Development-on: two original Kimi-authored conversations and synthetic CPU controls. Evaluated-on: none. Prior aggregate reports motivated the question; no old evaluation examples or responses were reused.
+
+# Automated maintenance preparation
+
+Brian's correction governs: automated upkeep that matches good manually maintained prose can be valuable. Superiority over the manual oracle is not required. See [current goal](../CURRENT-GOAL.md) and [the correction](USER-CORRECTION.md).
+
+Completed: Kimi K3 via Ollama authored two eight-turn DEV trajectories; a separately retained Kimi patch clarified two permission-versus-requirement ambiguities. Independent Astra xhigh review accepted the corrected source/operation/view data (93/100) and the revised hypothesis (94/100). Sol xhigh implemented an annotation adapter through the existing register; its 12 targeted tests and lint pass, and independent Astra code review accepts this bounded adapter (93/100). CPU replay matches 48 effective views and 15 gold operations. These are annotation checks, not automatic-updater results.
+
+Receipts: [CPU validation](cpu-validation.json), [design/data review](automation-design-review-astra.md), [code review](maintenance-code-review-astra.md), [original data](kimi-dev-authored.json), [Kimi patch](kimi-dev-patch.json), [corrected data](kimi-dev-reviewed.json), [canonical adapter output](kimi-dev-canonical.json). Prompts, complete provider responses and timing receipts are preserved beside them. Rationales are excluded from verified supervision: the TypeScript patch's explanation invents a pre-existing error-name rule, although its source and state labels are correct.
+
+Two code-review medium findings are deferred for this bounded raw-JSON adapter: exact integer/child-type validation in the public typed API, and user-role binding for completion evidence. The raw authoring path supplies schema/index types and excludes completion, so neither affects these DEV fixtures. Completion remains untested. No claim of general implicit-admission coverage follows from these explicit-cue seeds.
+
+Next: the isolated one-call updater and minimal 16-call DEV driver, their targeted controls and independent code review, then an exact frozen DEV run recipe with recorded costs. [Updater contract](UPDATER-CONTRACT.md) and [DEV check draft](DEV-UPDATER-CHECK.md) remain prospective. No model updater response, worker task result, clean screen, or deployment qualification exists yet. The optional larger factorial is deferred.

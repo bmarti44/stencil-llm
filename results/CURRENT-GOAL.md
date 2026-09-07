@@ -1,5 +1,13 @@
 # The current goal — 2026-09-07
 
+## Brian's subsequent correction — automation is a benefit
+
+Brian clarified: “i don't know that the register must determine a huge advantage over prose - if the register can be fully automated over manual prose, that is a huge win/benefit”.
+
+This supersedes the requirement below to outperform ideal manually maintained prose and the immediate priority of the factorial. The target is automated selection, maintenance, switching and clearing of the right obligations, with useful executable performance and an acceptable measured quality/cost tradeoff. Matching good manual reminders can be valuable when the register maintains them automatically. Measure update accuracy, end-to-end task outcomes, latency/tokens and actual human interventions; do not infer equivalence from a nonsignificant small-sample contrast. A larger untouched, preregistered validation and independent accuracy review remain required before claiming adequate proof. The factorial remains an optional protocol diagnostic. Current preparation is recorded in [the correction and next test](factorial-prep/USER-CORRECTION.md).
+
+The text below records the prior framing; its manual-prose superiority requirement is historical, not the current acceptance criterion.
+
 ## Brian's standing instruction (unchanged, governs everything)
 "continue finding a generalized way to implement a miller inspired focus mechanism. use fable, sol, and kimi sub
 agents to review your work for accuracy. do not over engineer. make sure you can iterate quickly to prove out a

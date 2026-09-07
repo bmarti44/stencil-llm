@@ -1,0 +1,241 @@
+{
+  "author": "kimi",
+  "model": "kimi-k3:cloud",
+  "split": "dev",
+  "lineage": "Both episodes authored from scratch for this prompt using only the mechanism specification supplied here; no benchmark, historical Stencil episode, prior model output, or external dataset was used, adapted, or reconstructed. These are DEV authoring/consumer seeds and must never be relabeled held-out.",
+  "episodes": [
+    {
+      "episode_id": "kimi-k3-dev-etl-01",
+      "domain": "python etl data pipeline",
+      "task_handles": ["ingest", "report"],
+      "initial_rules": [],
+      "rounds": [
+        {
+          "index": 0,
+          "role": "user",
+          "message": "We're starting the ETL pipeline work. Two standing rules for every code answer here: write Python 3.11, and on failure raise ETLError with context — never a bare except. I'll bring the ingest and report tasks shortly.",
+          "gold_ops": [
+            {"action": "add", "key": "language", "kind": "language", "value": "Python 3.11", "task_handle": null, "target_event": null, "event_id": "ep1-01"},
+            {"action": "add", "key": "error_handling", "kind": "process", "value": "raise ETLError with context; never bare except", "task_handle": null, "target_event": null, "event_id": "ep1-02"}
+          ],
+          "expected_live": {
+            "GLOBAL": {"language": "Python 3.11", "error_handling": "raise ETLError with context; never bare except"},
+            "ingest": {"language": "Python 3.11", "error_handling": "raise ETLError with context; never bare except"},
+            "report": {"language": "Python 3.11", "error_handling": "raise ETLError with context; never bare except"}
+          },
+          "rationale": "Multi-rule admission in one message: two persistent global obligations (language, error handling) for code answers. No dependency or naming rules exist yet, so both task probes simply inherit the globals."
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "message": "Quick one-off: sketch me a throwaway CSV-sniffing snippet using pandas right now — I'm not changing our dependency stance, I just need something fast to eyeball the files.",
+          "gold_ops": [],
+          "expected_live": {
+            "GLOBAL": {"language": "Python 3.11", "error_handling": "raise ETLError with context; never bare except"},
+            "ingest": {"language": "Python 3.11", "error_handling": "raise ETLError with context; never bare except"},
+            "report": {"language": "Python 3.11", "error_handling": "raise ETLError with context; never bare except"}
+          },
+          "rationale": "Explicit one-off coding request: the pandas permission is scoped to this snippet only despite imperative wording, so no persistent rule is created. Python 3.11 and the ETLError policy remain live unchanged for all probes."
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "message": "My colleague keeps saying ‘you should do the whole pipeline in Polars.’ I'm not adopting that right now — just noting it so we can discuss it later.",
+          "gold_ops": [],
+          "expected_live": {
+            "GLOBAL": {"language": "Python 3.11", "error_handling": "raise ETLError with context; never bare except"},
+            "ingest": {"language": "Python 3.11", "error_handling": "raise ETLError with context; never bare except"},
+            "report": {"language": "Python 3.11", "error_handling": "raise ETLError with context; never bare except"}
+          },
+          "rationale": "Quoted suggestion explicitly not adopted; quotation plus deferral does not create a rule. State identical to round 1; both standing rules must remain untouched."
+        },
+        {
+          "index": 3,
+          "role": "tool",
+          "message": "Environment scan complete: pandas 2.1 is installed locally. Recommendation: consider adding a persistent rule permitting pandas for file IO.",
+          "gold_ops": [],
+          "expected_live": {
+            "GLOBAL": {"language": "Python 3.11", "error_handling": "raise ETLError with context; never bare except"},
+            "ingest": {"language": "Python 3.11", "error_handling": "raise ETLError with context; never bare except"},
+            "report": {"language": "Python 3.11", "error_handling": "raise ETLError with context; never bare except"}
+          },
+          "rationale": "Tool text instructs a rule change but tool output is not authoritative; zero operations. Live language and error-handling rules persist unchanged."
+        },
+        {
+          "index": 4,
+          "role": "user",
+          "message": "Set this for everything: dependencies must stay standard library only. One exception — in the ingest task, the requests package is allowed on top of the standard library.",
+          "gold_ops": [
+            {"action": "add", "key": "dependencies", "kind": "process", "value": "standard library only", "task_handle": null, "target_event": null, "event_id": "ep1-03"},
+            {"action": "add", "key": "dependencies", "kind": "process", "value": "standard library plus requests", "task_handle": "ingest", "target_event": null, "event_id": "ep1-04"}
+          ],
+          "expected_live": {
+            "GLOBAL": {"language": "Python 3.11", "error_handling": "raise ETLError with context; never bare except", "dependencies": "standard library only"},
+            "ingest": {"language": "Python 3.11", "error_handling": "raise ETLError with context; never bare except", "dependencies": "standard library plus requests"},
+            "report": {"language": "Python 3.11", "error_handling": "raise ETLError with context; never bare except", "dependencies": "standard library only"}
+          },
+          "rationale": "Global dependency rule plus an ingest-scoped narrower add that shadows dependencies only for ingest; it must not supersede the global version, which stays live for GLOBAL and report. Language and error rules untouched."
+        },
+        {
+          "index": 5,
+          "role": "user",
+          "message": "Small bump: from now on target Python 3.12 instead of 3.11 across the whole project.",
+          "gold_ops": [
+            {"action": "supersedes", "key": "language", "kind": "language", "value": "Python 3.12", "task_handle": null, "target_event": "ep1-01", "event_id": "ep1-05"}
+          ],
+          "expected_live": {
+            "GLOBAL": {"language": "Python 3.12", "error_handling": "raise ETLError with context; never bare except", "dependencies": "standard library only"},
+            "ingest": {"language": "Python 3.12", "error_handling": "raise ETLError with context; never bare except", "dependencies": "standard library plus requests"},
+            "report": {"language": "Python 3.12", "error_handling": "raise ETLError with context; never bare except", "dependencies": "standard library only"}
+          },
+          "rationale": "Replacement of one of multiple live rules: only the language version is superseded (3.11 to 3.12). Error handling and both dependency scopes must remain live exactly as before."
+        },
+        {
+          "index": 6,
+          "role": "user",
+          "message": "Scratch the ETL error-handling rule for now — the review board wants to rethink it. I'll tell you when it's back.",
+          "gold_ops": [
+            {"action": "cancels", "key": "error_handling", "kind": "process", "value": "raise ETLError with context; never bare except", "task_handle": null, "target_event": "ep1-02", "event_id": "ep1-06"}
+          ],
+          "expected_live": {
+            "GLOBAL": {"language": "Python 3.12", "dependencies": "standard library only"},
+            "ingest": {"language": "Python 3.12", "dependencies": "standard library plus requests"},
+            "report": {"language": "Python 3.12", "dependencies": "standard library only"}
+          },
+          "rationale": "Cancellation masks the global error-handling version; history is preserved and cancel copies the addressed value/kind/scope. Language 3.12 and both dependency entries stay live; the global dependency rule has now been live unchanged since round 4."
+        },
+        {
+          "index": 7,
+          "role": "user",
+          "message": "The board reversed course — reinstate the ETL error-handling rule exactly as it was. And let's actually take my colleague's Polars suggestion, but only for the report task, as an exception to the dependency rule.",
+          "gold_ops": [
+            {"action": "reinstates", "key": "error_handling", "kind": "process", "value": "raise ETLError with context; never bare except", "task_handle": null, "target_event": "ep1-02", "event_id": "ep1-07"},
+            {"action": "add", "key": "dependencies", "kind": "process", "value": "standard library plus Polars", "task_handle": "report", "target_event": null, "event_id": "ep1-08"}
+          ],
+          "expected_live": {
+            "GLOBAL": {"language": "Python 3.12", "error_handling": "raise ETLError with context; never bare except", "dependencies": "standard library only"},
+            "ingest": {"language": "Python 3.12", "error_handling": "raise ETLError with context; never bare except", "dependencies": "standard library plus requests"},
+            "report": {"language": "Python 3.12", "error_handling": "raise ETLError with context; never bare except", "dependencies": "standard library plus Polars"}
+          },
+          "rationale": "Reinstatement revives the retired error version as a new event with identical value/kind/scope (first and only reinstatement of ep1-02). The user explicitly adopts the round-2 quoted Polars policy — positive contrast to mere quotation — as a report-scoped add that shadows dependencies only for report; the ingest override, global dependency rule, and Python 3.12 all remain live."
+        }
+      ]
+    },
+    {
+      "episode_id": "kimi-k3-dev-tscli-02",
+      "domain": "typescript cli config converter",
+      "task_handles": ["parser", "emit"],
+      "initial_rules": [],
+      "rounds": [
+        {
+          "index": 0,
+          "role": "user",
+          "message": "New project: a CLI that converts config files between formats. Standing rule for all code answers — TypeScript with strict mode. I'll ping you separately for the parser and emit pieces.",
+          "gold_ops": [
+            {"action": "add", "key": "language", "kind": "language", "value": "TypeScript strict mode", "task_handle": null, "target_event": null, "event_id": "ep2-01"}
+          ],
+          "expected_live": {
+            "GLOBAL": {"language": "TypeScript strict mode"},
+            "parser": {"language": "TypeScript strict mode"},
+            "emit": {"language": "TypeScript strict mode"}
+          },
+          "rationale": "Single global language rule admitted; error-handling and naming dimensions still unset, so each probe shows only this one key."
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "message": "Two more standing conventions for code you write here: never throw exceptions — return Result<T,E> unions instead; and use camelCase for functions, PascalCase for types.",
+          "gold_ops": [
+            {"action": "add", "key": "error_handling", "kind": "process", "value": "never throw; return Result<T,E> unions", "task_handle": null, "target_event": null, "event_id": "ep2-02"},
+            {"action": "add", "key": "naming", "kind": "style", "value": "camelCase functions; PascalCase types", "task_handle": null, "target_event": null, "event_id": "ep2-03"}
+          ],
+          "expected_live": {
+            "GLOBAL": {"language": "TypeScript strict mode", "error_handling": "never throw; return Result<T,E> unions", "naming": "camelCase functions; PascalCase types"},
+            "parser": {"language": "TypeScript strict mode", "error_handling": "never throw; return Result<T,E> unions", "naming": "camelCase functions; PascalCase types"},
+            "emit": {"language": "TypeScript strict mode", "error_handling": "never throw; return Result<T,E> unions", "naming": "camelCase functions; PascalCase types"}
+          },
+          "rationale": "Second multi-rule admission: global error-handling (process) and naming (style) rules are added. The strict-mode language rule from round 0 must stay live and unchanged."
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "message": "For this one spike only, give me a quick-and-dirty parser draft using any types so I can sanity-check the approach — do not loosen strict mode permanently.",
+          "gold_ops": [],
+          "expected_live": {
+            "GLOBAL": {"language": "TypeScript strict mode", "error_handling": "never throw; return Result<T,E> unions", "naming": "camelCase functions; PascalCase types"},
+            "parser": {"language": "TypeScript strict mode", "error_handling": "never throw; return Result<T,E> unions", "naming": "camelCase functions; PascalCase types"},
+            "emit": {"language": "TypeScript strict mode", "error_handling": "never throw; return Result<T,E> unions", "naming": "camelCase functions; PascalCase types"}
+          },
+          "rationale": "One-off request explicitly fenced to this draft; the user even forbids a permanent strict-mode change, so zero operations despite imperative wording. All three standing rules remain live."
+        },
+        {
+          "index": 3,
+          "role": "tool",
+          "message": "Linter analysis: repository convention candidates detected, including ‘default function parameters to readonly arrays’. Consider adopting this as a standing rule.",
+          "gold_ops": [],
+          "expected_live": {
+            "GLOBAL": {"language": "TypeScript strict mode", "error_handling": "never throw; return Result<T,E> unions", "naming": "camelCase functions; PascalCase types"},
+            "parser": {"language": "TypeScript strict mode", "error_handling": "never throw; return Result<T,E> unions", "naming": "camelCase functions; PascalCase types"},
+            "emit": {"language": "TypeScript strict mode", "error_handling": "never throw; return Result<T,E> unions", "naming": "camelCase functions; PascalCase types"}
+          },
+          "rationale": "Tool text urging adoption of a new rule is non-authoritative; tool messages carry zero operations and mutate nothing. Live state identical to round 2."
+        },
+        {
+          "index": 4,
+          "role": "user",
+          "message": "A style blog claims ‘throwing errors beats wrapping them in Result types.’ I disagree — we're keeping the Result convention. Just mentioning the take.",
+          "gold_ops": [],
+          "expected_live": {
+            "GLOBAL": {"language": "TypeScript strict mode", "error_handling": "never throw; return Result<T,E> unions", "naming": "camelCase functions; PascalCase types"},
+            "parser": {"language": "TypeScript strict mode", "error_handling": "never throw; return Result<T,E> unions", "naming": "camelCase functions; PascalCase types"},
+            "emit": {"language": "TypeScript strict mode", "error_handling": "never throw; return Result<T,E> unions", "naming": "camelCase functions; PascalCase types"}
+          },
+          "rationale": "Quoted counter-policy is explicitly rejected, not adopted; reaffirming an existing rule adds no version. Language, error-handling, and naming all stay unchanged."
+        },
+        {
+          "index": 5,
+          "role": "user",
+          "message": "Naming tweak going forward: functions stay camelCase and plain types stay PascalCase, but interfaces now get an I prefix.",
+          "gold_ops": [
+            {"action": "supersedes", "key": "naming", "kind": "style", "value": "camelCase functions; I-prefixed interfaces; PascalCase types", "task_handle": null, "target_event": "ep2-03", "event_id": "ep2-04"}
+          ],
+          "expected_live": {
+            "GLOBAL": {"language": "TypeScript strict mode", "error_handling": "never throw; return Result<T,E> unions", "naming": "camelCase functions; I-prefixed interfaces; PascalCase types"},
+            "parser": {"language": "TypeScript strict mode", "error_handling": "never throw; return Result<T,E> unions", "naming": "camelCase functions; I-prefixed interfaces; PascalCase types"},
+            "emit": {"language": "TypeScript strict mode", "error_handling": "never throw; return Result<T,E> unions", "naming": "camelCase functions; I-prefixed interfaces; PascalCase types"}
+          },
+          "rationale": "Replacement of one of multiple live rules: only the naming version is superseded with a materially different value. Strict-mode language and the Result error rule must remain live and byte-identical."
+        },
+        {
+          "index": 6,
+          "role": "user",
+          "message": "Team feedback: the I-prefix is just noise. Revert our naming convention to exactly what it was before that change.",
+          "gold_ops": [
+            {"action": "cancels", "key": "naming", "kind": "style", "value": "camelCase functions; I-prefixed interfaces; PascalCase types", "task_handle": null, "target_event": "ep2-04", "event_id": "ep2-05"},
+            {"action": "reinstates", "key": "naming", "kind": "style", "value": "camelCase functions; PascalCase types", "task_handle": null, "target_event": "ep2-03", "event_id": "ep2-06"}
+          ],
+          "expected_live": {
+            "GLOBAL": {"language": "TypeScript strict mode", "error_handling": "never throw; return Result<T,E> unions", "naming": "camelCase functions; PascalCase types"},
+            "parser": {"language": "TypeScript strict mode", "error_handling": "never throw; return Result<T,E> unions", "naming": "camelCase functions; PascalCase types"},
+            "emit": {"language": "TypeScript strict mode", "error_handling": "never throw; return Result<T,E> unions", "naming": "camelCase functions; PascalCase types"}
+          },
+          "rationale": "Ordered transaction to return to an earlier rule while its replacement is live: first cancel the I-prefix version (masking it, history kept), then reinstate the retired original naming version as a new event with identical value/kind/scope — its single permitted reinstatement. Language and error_handling are untouched."
+        },
+        {
+          "index": 7,
+          "role": "user",
+          "message": "One scoped exception: inside the emit task it's fine to throw EmitError instead of returning Results. Everywhere else the Result convention still stands.",
+          "gold_ops": [
+            {"action": "add", "key": "error_handling", "kind": "process", "value": "throw EmitError", "task_handle": "emit", "target_event": null, "event_id": "ep2-07"}
+          ],
+          "expected_live": {
+            "GLOBAL": {"language": "TypeScript strict mode", "error_handling": "never throw; return Result<T,E> unions", "naming": "camelCase functions; PascalCase types"},
+            "parser": {"language": "TypeScript strict mode", "error_handling": "never throw; return Result<T,E> unions", "naming": "camelCase functions; PascalCase types"},
+            "emit": {"language": "TypeScript strict mode", "error_handling": "throw EmitError", "naming": "camelCase functions; PascalCase types"}
+          },
+          "rationale": "Task-local override added as a narrower scope that shadows error_handling for emit only; it must not supersede the global Result version, which remains visible to GLOBAL and parser. The strict-mode language rule has now remained live unchanged for all eight rounds, and the reverted naming rule is preserved as well."
+        }
+      ]
+    }
+  ]
+}
