@@ -15,11 +15,14 @@ def relation_score(rec):
  row=rec['input'];target=row['target_span']
  if isinstance(target,str):
   start=row['message'].index(target);target=dict(start=start,end=start+len(target),text=target)
- assert row['message'][target['start']:target['end']]==target['text']
+ offset_repaired=False
+ if row['message'][target['start']:target['end']]!=target['text']:
+  pos=m.metrics.unique_span(row['message'],target['text']);assert pos, 'Gold quote must uniquely locate'
+  target=dict(target,start=pos[0],end=pos[1]);offset_repaired=True
  ops=[x for x in rec['parsed']['accepted'] if x['op']!='add' and min(x['end'],target['end'])>max(x['start'],target['start'])]
  pred=ops[0]['op'] if len(ops)==1 else ('none' if not ops else 'ERROR_multiple')
  if rec['parsed']['failure'] or rec['parsed']['rejected']:pred='ERROR_invalid'
- return dict(gold=row['label'],pred=pred,correct=pred==row['label'],target_correct=bool(ops) and all(x['target_id']=='r1' for x in ops),target_positive=row['label']!='none',overlapping_ops=len(ops))
+ return dict(gold_offset_repaired=offset_repaired,gold=row['label'],pred=pred,correct=pred==row['label'],target_correct=bool(ops) and all(x['target_id']=='r1' for x in ops),target_positive=row['label']!='none',overlapping_ops=len(ops))
 
 def relation_summary(records):
  scores=[relation_score(r) for r in records];labels=['none','supersedes','cancels','completes','reinstates'];out={}
@@ -27,7 +30,7 @@ def relation_summary(records):
   tp=sum(s['gold']==s['pred']==label for s in scores);ng=sum(s['gold']==label for s in scores);np=sum(s['pred']==label for s in scores)
   p=tp/np if np else 0;r=tp/ng if ng else 0
   out[label]=dict(tp=tp,gold=ng,predicted=np,precision=p,recall=r,f1=2*p*r/(p+r) if p+r else 0)
- return dict(n=len(scores),correct=sum(s['correct'] for s in scores),accuracy=sum(s['correct'] for s in scores)/len(scores),labels=out,confusion=dict(Counter(s['gold']+' -> '+s['pred'] for s in scores)),target_identification_positive=dict(correct=sum(s['target_correct'] and s['target_positive'] for s in scores),n=sum(s['target_positive'] for s in scores)),go=sum(s['correct'] for s in scores)/len(scores)>=.94 and out['supersedes']['recall']>=.85)
+ return dict(gold_offsets_repaired=sum(s['gold_offset_repaired'] for s in scores),n=len(scores),correct=sum(s['correct'] for s in scores),accuracy=sum(s['correct'] for s in scores)/len(scores),labels=out,confusion=dict(Counter(s['gold']+' -> '+s['pred'] for s in scores)),target_identification_positive=dict(correct=sum(s['target_correct'] and s['target_positive'] for s in scores),n=sum(s['target_positive'] for s in scores)),go=sum(s['correct'] for s in scores)/len(scores)>=.94 and out['supersedes']['recall']>=.85)
 
 def setup_rows():
  # Exactly the inherited44b/c diagnostic, with one bank read and event metadata.
