@@ -245,6 +245,8 @@ def run_q(
             turn=i,
             execution=feedback,
             output=output,
+            output_ids=list(result.output_ids),
+            eos=result.eos,
             truncated=result.truncated,
             prompt_tokens=prompt_tokens,
             output_tokens=len(result.output_ids) + int(result.eos is not None),
@@ -524,7 +526,10 @@ def run_pilot(
         largest_reply_tokens=max(r["output_tokens"] for r in records),
         q_qualified=[lane["episode_id"] for lane in lanes if lane.get("qualified")],
         reading=s.pilot5_reading(
-            [r for r in records if r["arm"] in "RNT"], floor, projection, n_rounds
+            [r for lane in lanes for r in lane["records"] if r["arm"] in "RNTQ"],
+            floor,
+            projection,
+            n_rounds,
         ),
     )
     write(out / "summary.json", summary)

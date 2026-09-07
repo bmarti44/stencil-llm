@@ -86,3 +86,57 @@ Amendment 2 validation and handoff
 Full requested command: CUDA_VISIBLE_DEVICES='' .venv/bin/python -m pytest -q tests/test_focus_*.py tests/test_no_side_effect_imports.py. Actual full-run result:362 passed,4 failed,1 expected xfail,766.84s. It collected before the AST/evidence-hash fixes: two failures were test_all_explicit_modules_import_and_pass_ast_fence and test_amended_dev_fixture_without_evaluation_construction; both pass on final code. The other two are fable-confirmed pre-existing SLAB-1 test_manifest_hashes and test_dev_loop_dry_run (old system/prompt goldens), left unchanged. Final explicit four-failure recheck:2 passed,2 historical failures. Do not misrepresent the original full invocation as green.
 Final affected selection (adoption,boundary,composition,event_log,episode,pilot_amendment,slab2,driver,import safety):241 passed,1 expected xfail,83.20s. Subsequent tightened Q-cost/report/manifest checks:8 passed,139 deselected; final external/driver/adoption/import selection after adding API episode/arm/turn provenance:48 passed,1 expected xfail. One RESULTS writer test was added after the full selection's collection and is included in the final affected selection. All new failures are repaired; only the two recorded historical fixtures remain red.
 Logs: /tmp/slab2-adoption-full.log, /tmp/slab2-adoption-final-targeted.log, /tmp/slab2-adoption-cost-final.log, /tmp/slab2-adoption-external-final.log, /tmp/slab2-adoption-failures-recheck.log. Final mock CLI:256 calls, actual spend0, identical simulated token totals; receipts bind episode/arm/turn, request SHA, model and source/driver SHA. Source/dependency/manifest/audit hashes and whitespace/lint checks verified. Whole-trajectory diagnostic only exercised with the registered stub; no real diagnostic/model run, GPU, API call, process signal, benchmark data read, or push. Existing WORKLOG.md receives the requested <=6-line handoff.
+
+
+## SLAB-2 Amendment 3 — registered 2026-09-07 BEFORE code
+
+User-authorized instrument repair; prior pilot-5 records and INELIGIBLE reading stand.
+Fit-on=none; evaluated-on=authored DEV only for this repair/screen; no benchmark or
+sealed evaluation content is read. Saved pilot-5 outputs are diagnostic, never fitting.
+
+1. All R/N/T/O/Q requests share one system instruction and ONE complete worked example:
+   opener `python core.py`, Python body, closing fence, then report trailer. Select only
+   the requested file; a filename inside the body must be a Python comment, never bare.
+   Example values are illustrative; task/status/delivery follow the current request/rules.
+2. Every ReplyError adds `expected_shape` (one line, <=256 characters) and `fences_seen`
+   (count of triple-backtick markers, the parser's count) to the existing feedback JSON.
+   This is journaled by the existing tool feedback path; whole feedback remains <8192 bytes.
+3. Strict round execution means parsed trailer plus actual file write (syntax/depth/write
+   failures and caps excluded). A lane executes iff at least one of its 16 rounds writes;
+   an all-failed lane counts once. Report round-0 execution/fence failures, lane execution,
+   and descriptive per-round execution (also conditional on round-0 execution). ELIGIBLE
+   requires >=90% executing lanes independently in R/N/T/Q, <=2% caps per arm, complete
+   8-episode records, R final >=5/8, the existing two primary substitution kinds
+   (indent/style and delivery/process), and mandatory Q-inclusive measured cost <=12h.
+4. Only indent's floor denominator changes: applicable rounds at/after the episode's
+   first indent supersede, derived from its registered DEV schedule (including later
+   reinstatement). Missing/capped/failed attempts remain failures. Other trait floors
+   stay unchanged; raw applicability/diagnostics remain unchanged. Freeze from all 128 T
+   records before success scoring. Saved pilot-5 recomputation: language 72/128 YES;
+   indent 13/39 NO; format 22/35 YES; delivery 42/49 YES; delivery_scope 0/44 NO.
+   Eligible kinds: language, format, process; primary substitution kinds: process only.
+   Actual DEV supersedes occur at turns 10–12, not uniformly turn 11.
+5. Mandatory cost = (load + 1.25*(64*(R+N+Q)+16*(O+T)))/3600. Historical measured
+   Q-exclusive estimate 7.774h; repair sensitivity 6.6–7.8h; Q at N-like cost adds
+   2.613h, giving ~10.4h at the measured upper endpoint. Q cost was previously unmeasured.
+6. Screen: first two DEV episodes (00/01), R/N/T/Q, 16 rounds, cap1024 as pilot5,
+   qualified invariant bf16 vLLM, max four concurrent lanes, own container, <=900 GPU-held
+   seconds including startup/cleanup. Two fixed mixed groups, each episode's R/N/T/Q;
+   this screen measures output/reference x, not a same-arm-C4 full-run cost projection.
+   SCREEN-PASS iff complete 128 records, zero round-0 fence failures, lane execution8/8,
+   and per-round execution >=90% in EACH arm. Any round-0 fence failure => SCREEN-FAIL:
+   stop, publish literal failures, no enlargement. Other incomplete/low-execution cases
+   are SCREEN-NOT-PASS and do not authorize enlargement. SCREEN-PASS authorizes full
+   pilot6 (8 DEV episodes, R/N/T/Q,16 rounds); only pilot6 ELIGIBLE authorizes larger64.
+   No full pilot fits implicitly inside this screen's 900-second budget.
+
+Validation required: tests/test_focus_slab2*.py + tests/test_no_side_effect_imports.py.
+New green code SHA will be recorded after explicit-path commit and post-commit validation.
+
+Amendment-3 pre-commit validation: **121 passed, 1 expected xfail, 95.73s** with the
+required selection. New tests first failed on the old prompt, feedback, floor and
+lane/screen gate; they now pass, including the actual next-prompt/journal consumer.
+Ruff, whitespace and screen CLI smoke pass. The manifest was regenerated automatically;
+only public/system hashes change per episode, including the12-round fallback. Historical
+CPU token tables/audit above belong to the prior pin and are not new-prompt measurements.
+No new model output or x-factor has been measured yet. check49 currently owns the GPU flag.

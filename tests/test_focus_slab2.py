@@ -169,10 +169,20 @@ def test_floor_missingness_threshold_and_gate():
     floor = s.freeze_t_floor(records)
     assert "format" not in floor["eligible_traits"]
     assert "delivery" in floor["eligible_traits"]
-    for r in records[:64]:
+    applicable = [
+        r
+        for r in records
+        if r["turn"]
+        >= next(
+            t.index
+            for t in s.generate_episode("dev", int(r["episode_id"][-2:])).turns
+            if any(e.key == "indent" and e.action == "supersedes" for e in t.events)
+        )
+    ]
+    for r in applicable[:19]:
         r["outcome"]["observed"] = False
     assert s.freeze_t_floor(records)["traits"]["indent"]["eligible"]
-    records[64]["outcome"]["observed"] = False
+    applicable[19]["outcome"]["observed"] = False
     assert not s.freeze_t_floor(records)["traits"]["indent"]["eligible"]
     with pytest.raises(ValueError):
         s.freeze_t_floor(records[:-1])
@@ -215,7 +225,7 @@ def test_pilot5_reading_uses_floor_for_final_success():
     floor = s.freeze_t_floor(floor_records())
     records = []
     for i in range(8):
-        for arm in "RNT":
+        for arm in "RNTQ":
             for j in range(16):
                 records.append(
                     dict(
@@ -223,6 +233,7 @@ def test_pilot5_reading_uses_floor_for_final_success():
                         arm=arm,
                         turn=j,
                         truncated=False,
+                        execution=dict(executed=True),
                         outcome=dict(
                             observed=True,
                             integration=True,

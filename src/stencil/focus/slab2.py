@@ -5,7 +5,8 @@ families/seeds. Pilot outputs are development cost, never fitting/eval fixtures.
 T-floor freezes from all eight DEV T lanes before evaluation: >=50% per trait.
 Excluded traits remain diagnostics. Style and delivery substitutions are primary
 relapse witnesses; omission witnesses never enter success without passing floor.
-Pilot-5: executed >=90%, caps <=2%, eligible traits in >=2 kinds with scheduled
+Amendment 3: executing lanes >=90% per R/N/T/Q arm, caps <=2%,
+eligible primary substitution traits in >=2 kinds with scheduled
 nonzero denominators in >=2 DEV episodes, R final >=5/8. Registered run alone:
 R/N x64 plus nested O/T x16 and fresh-task Q x64, 16 rounds, <=12 GPU-h.
 Q is secondary to the full 64 pairs; its measured cost is mandatory.
@@ -60,8 +61,15 @@ TRAITS = {
 }
 SYSTEM_PROMPT = (
     "Maintain Python modules. Each response is exactly ONE fenced code block "
-    "containing the WHOLE requested file: ```python core.py or ```python policy.py, "
-    "then a closing fence and one trailer: report: task=A status=ok delivery=ready. "
+    "containing the WHOLE requested file, followed by exactly one report trailer. "
+    "Emit only the requested file, even when other files appear in the history. "
+    "Put its path on the opening fence line. A path inside Python code must be a "
+    "comment (for example # core.py), never a bare filename or another opener. "
+    "One worked shape example for task A requesting core.py in verbose format:\n"
+    "```python core.py\n# core.py\ndef identity(x):\n  return x\n```\n"
+    "report: task=A status=ok delivery=ready\n\n"
+    "Replace the example path, body, indentation and trailer values to match the "
+    "current request and effective obligations. "
     "task is the request letter; status is ok or blocked. delivery is a short value. "
     "Verbose format includes delivery only in its scoped task; compact format omits "
     "delivery. Otherwise report task and status always. After cancellation/completion "
@@ -559,6 +567,16 @@ class Executor:
                 category=str(exc) if isinstance(exc, ReplyError) else "file_write",
                 error=str(exc)[:256],
             )
+            if isinstance(exc, ReplyError):
+                result.update(
+                    expected_shape=(
+                        f"Exactly one block: opening fence with python {t.path}; "
+                        "whole Python file; closing fence; one report: "
+                        "task=<request letter> "
+                        "status=<ok or blocked> trailer, delivery only when required."
+                    ),
+                    fences_seen=output.count("```"),
+                )
         assert len(compact(result).encode()) < 8192
         return result
 
@@ -707,9 +725,22 @@ def freeze_t_floor(records, n_rounds=16):
         or any(r["arm"] != "T" for r in records)
     ):
         raise ValueError(f"T floor requires all {8 * n_rounds} unique DEV T rounds")
+    starts = {
+        e.episode_id: next(
+            t.index
+            for t in e.turns
+            if any(v.key == "indent" and v.action == "supersedes" for v in t.events)
+        )
+        for e in bank(n_rounds=n_rounds)
+    }
     counts = {}
     for trait in TRAITS:
-        rows = [r for r in records if r["outcome"]["applicable"][trait]]
+        rows = [
+            r
+            for r in records
+            if r["outcome"]["applicable"][trait]
+            and (trait != "indent" or r["turn"] >= starts[r["episode_id"]])
+        ]
         passed = sum(
             r["outcome"]["observed"] and r["outcome"]["satisfied"][trait] for r in rows
         )
@@ -734,25 +765,94 @@ def freeze_t_floor(records, n_rounds=16):
     )
 
 
+def file_written(row):
+    """Strict parsed-and-written execution, including runtime test failures."""
+    result = row["execution"]
+    return bool(
+        result["executed"]
+        and not row["truncated"]
+        and result.get("category") not in {"syntax_error", "parse_depth", "file_write"}
+    )
+
+
+def execution_summary(records, arms="RNTQ"):
+    summary = {}
+    for arm in arms:
+        rows = [r for r in records if r["arm"] == arm]
+        lanes = sorted({r["episode_id"] for r in rows})
+        per_lane = {
+            e: sum(file_written(r) for r in rows if r["episode_id"] == e) for e in lanes
+        }
+        clean = {r["episode_id"] for r in rows if r["turn"] == 0 and file_written(r)}
+        conditional = [r for r in rows if r["episode_id"] in clean]
+        summary[arm] = dict(
+            lanes=len(lanes),
+            executing_lanes=sum(v > 0 for v in per_lane.values()),
+            rounds=len(rows),
+            executed_rounds=sum(file_written(r) for r in rows),
+            caps=sum(r["truncated"] for r in rows),
+            per_lane=per_lane,
+            round0_executing_lanes=len(clean),
+            round0_fence_failures=sum(
+                r["turn"] == 0
+                and r["execution"].get("category")
+                in {"fence_count_or_kind", "fence_syntax"}
+                for r in rows
+            ),
+            conditional_executed_rounds=sum(file_written(r) for r in conditional),
+            conditional_rounds=len(conditional),
+        )
+    return summary
+
+
+def screen_reading(records):
+    required = {
+        (f"slab2-dev-{i:02}", a, j) for i in range(2) for a in "RNTQ" for j in range(16)
+    }
+    actual = {(r["episode_id"], r["arm"], r["turn"]) for r in records}
+    complete = actual == required and len(records) == len(required)
+    summary = execution_summary(records)
+    fence_fail = any(v["round0_fence_failures"] for v in summary.values())
+    passed = (
+        complete
+        and not fence_fail
+        and all(
+            v["executing_lanes"] == 2 and v["executed_rounds"] / 32 >= 0.9
+            for v in summary.values()
+        )
+    )
+    return dict(
+        reading="SCREEN-FAIL"
+        if fence_fail
+        else "SCREEN-PASS"
+        if passed
+        else "SCREEN-NOT-PASS",
+        complete=complete,
+        per_arm=summary,
+    )
+
+
 def pilot5_reading(records, floor, projected_gpu_hours, n_rounds=16):
     validate_rounds(n_rounds)
     required = {
         (f"slab2-dev-{i:02}", arm, j)
         for i in range(8)
-        for arm in "RNT"
+        for arm in "RNTQ"
         for j in range(n_rounds)
     }
     actual = {(r["episode_id"], r["arm"], r["turn"]) for r in records}
     complete = required <= actual and len(actual) == len(records)
-    executed = sum(r["outcome"]["observed"] for r in records) / max(1, len(records))
+    per_arm = execution_summary(records)
+    executed = sum(file_written(r) for r in records) / max(1, len(records))
     caps = sum(r["truncated"] for r in records) / max(1, len(records))
     kinds = {
         TRAITS[k]
-        for k, v in floor["traits"].items()
-        if v["eligible"] and len(v["opportunity_episodes"]) >= 2
+        for k in ("indent", "delivery")
+        if floor["traits"][k]["eligible"]
+        and len(floor["traits"][k]["opportunity_episodes"]) >= 2
     }
     finals = sum(
-        o["observed"]
+        file_written(r)
         and o["integration"]
         and o["report_ok"]
         and not any(
@@ -767,13 +867,17 @@ def pilot5_reading(records, floor, projected_gpu_hours, n_rounds=16):
     return dict(
         eligible=bool(
             complete
-            and executed >= 0.9
-            and caps <= 0.02
+            and all(
+                v["executing_lanes"] / 8 >= 0.9
+                and v["caps"] / max(1, v["rounds"]) <= 0.02
+                for v in per_arm.values()
+            )
             and len(kinds) >= 2
             and finals >= 5
             and cost is not None
             and 0 < cost <= 12
         ),
+        per_arm=per_arm,
         executed_fraction=executed,
         cap_fraction=caps,
         kinds=sorted(kinds),

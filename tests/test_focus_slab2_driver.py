@@ -200,3 +200,36 @@ def test_measured_lane_allocations_with_cpu_injected_decoder(tmp_path):
         summary["lane_seconds"], load_seconds=10
     )
     assert all(len(v) == 8 for v in summary["output_tokens_per_arm"].values())
+
+
+def test_amendment3_shape_feedback_reaches_next_prompt_and_journal(tmp_path):
+    d = driver()
+    e = s.generate_episode()
+    prompts = []
+
+    def factory(episode, arm, turn):
+        def decode(rendered):
+            prompts.append(rendered.prompt_ids)
+            text = (
+                "```python\ncore.py\n```python\npass\n```"
+                if turn == 0
+                else s.reference(episode, turn)
+            )
+            return d.DecodeResult(
+                text, tuple(s.qwen_encode(text)), eos=151645, truncated=False
+            )
+
+        return decode
+
+    lane = d.run_lane(tmp_path / "lane", e, "R", factory)
+    feedback = lane["records"][0]["execution"]
+    assert feedback["fences_seen"] == 3
+    # Consumer prompt contains the exact serialized feedback, not just producer keys.
+    prompt = list(prompts[1])
+    assert d.compact(feedback) in s.legacy.qwen_tokenizer().decode(
+        prompt, skip_special_tokens=False
+    )
+    journal = [
+        json.loads(x) for x in (tmp_path / "lane/loop.jsonl").read_text().splitlines()
+    ]
+    assert journal[1]["rendered_token_ids"] == prompt
