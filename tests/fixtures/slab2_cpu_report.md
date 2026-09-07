@@ -227,3 +227,12 @@ prompts/results were inspected, and no model evaluation-bank execution occurred.
 Conservative denominator clarification before GPU: additionally require >=6 episodes
 each with >=2 nonzero paired family denominators (not merely separate six-episode
 sets). No threshold is selected using new model output.
+
+Amendment-4 **pinned CPU-green SHA: `24ed80a49edcea3359d0c45d361daf7fdf761745`**.
+Isolated `/tmp/stencil-pilot7-pinned`, tracked tree clean; required post-commit suite:
+**135 passed, 1 expected xfail, 70.80s**; pinned CLI CPU smoke PASS. Initial isolated
+validation failed solely because its gitignored tokenizer was absent (105 failed,
+30 passed, 1 xfail); linking the existing local model directory repaired the setup,
+with no source changes. Final log: composition-pilot-7/cpu-validation.log. All35 saved
+compact rule blocks:17126 old tokens ->8412 new tokens; zero delivery imperatives.
+Pilot7 launches next from this SHA; determinism first, <=5400 GPU-held seconds.
