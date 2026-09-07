@@ -569,3 +569,9 @@ HF hidden recovery deferred.6831.011/9000GPU-s across original and exact-context
 continuation starts. Fixed lexical trait swap applied on CPU;32 witnesses pass,
 swapped GPU unrun.50 tests and479 exact replays pass; small record shards
 committed, HTTP/oversized journals local with hashes. DEV only; no fitting/push.
+
+46. **NO-GO — frozen trunk register updater** ([check46](check46/README.md)): no fit; one prompt, 20 DEV +901 frozen evaluation calls.
+   Admission overlap R78.96%/P89.94%; payload6/57, quoted4/36, non-user4/34; XGrammar substring decoding, raw/normalized807/807, one cap.
+   Relations399/448=89.06%; supersedes150/172=87.21%; task-over-global0/21 (all add), withdraw+replace12/12, bare-value17/18, actually-B7/7.
+   SETUP36/36 admits, 58/96 false turns; user latency mean6.009s/p95=15.359s; 2.007 amortized GPU-s/message, 40.887/60 GPU-min total.
+   Freeze519c7338; 921 request/parser replays, 6 CPU tests +7 grammar witnesses pass; explicit entry stays, next small generative updater on audited authored data; no push.

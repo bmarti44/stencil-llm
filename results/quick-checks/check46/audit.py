@@ -6,6 +6,9 @@ sys.path.insert(0,str(P))
 import run as m
 
 def audit():
+ freeze=json.loads((P/'freeze.json').read_text())
+ for path,digest in freeze['sha256'].items():assert m.sha(m.R/path)==digest,path
+ assert m.sha(m.R/'scripts/focus_check44.py')==freeze['metrics_sha256']
  count=0;banks={}
  for path in sorted(P.glob('*-records.jsonl')):
   records=m.readrows(path);ids=[]

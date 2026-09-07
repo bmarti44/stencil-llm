@@ -1,0 +1,94 @@
+763:            # Request-level backend selection is not supported.
+764:            # The values may differ if `params` is reused and was set
+765:            # to a specific backend based on `auto` behavior in a previous
+766:            # request. We remember that it was set as a result of `auto`
+767:            # using the `_backend_was_auto` field set in the params.
+768:            if backend != _backend and not (
+769:                backend == "auto" and self.structured_outputs._backend_was_auto
+770:            ):
+771:                raise ValueError(
+772:                    "Request-level structured output backend selection is not "
+773:                    f"supported. The request specified '{_backend}', but vLLM "
+774:                    f"was initialised with '{backend}'. This error can be "
+775:                    "resolved by removing '_backend' from the request."
+776:                )
+777:        else:
+778:            self.structured_outputs._backend = backend
+779:
+780:        # Request content validation
+781:        if (
+782:            isinstance(self.structured_outputs.choice, list)
+783:            and not self.structured_outputs.choice
+784:        ):
+785:            # It is invalid for choice to be an empty list
+786:            raise ValueError(
+787:                f"Choice '{self.structured_outputs.choice}' cannot be an empty list"  # noqa: E501
+788:            )
+789:        # Reject empty string grammar early to avoid engine-side crashes
+790:        if (
+791:            isinstance(self.structured_outputs.grammar, str)
+792:            and self.structured_outputs.grammar.strip() == ""
+793:        ):
+794:            raise ValueError("structured_outputs.grammar cannot be an empty string")
+795:
+833:                raise ValueError(
+834:                    "Mistral tokenizer is not supported for the 'lm-format-enforcer' "
+835:                    "structured output backend. Please use ['xgrammar', 'outlines'] "
+836:                    "backends or tokenizer_mode='hf' instead."
+837:                )
+838:            validate_structured_output_request_lm_format_enforcer(self)
+839:        else:
+840:            # NOTE: backend must be "auto" here, because we have
+841:            # checked supported_backends above.
+842:            # In this mode, we set opinionated defaults based on what we think
+843:            # will satisfy the most use cases without having to worry about
+844:            # this setting. We include fallback behavior here, but not with any
+845:            # other setting where a specific backend was specified.
+846:            try:
+847:                validate_xgrammar_grammar(self)
+848:                self.structured_outputs._backend = "xgrammar"
+849:            except ValueError:
+850:                # The request either failed validation
+851:                # or includes some jsonschema feature(s) that
+852:                # are not supported in xgrammar.
+853:
+854:                skip_guidance = _is_non_tekken_mistral(tokenizer)
+855:
+856:                # Check if schema has features unsupported by guidance
+857:                so_params = self.structured_outputs
+858:                if not skip_guidance and so_params.json:
+859:                    if isinstance(so_params.json, str):
+860:                        schema = json_mod.loads(so_params.json)
+861:                    else:
+862:                        schema = so_params.json
+863:                    skip_guidance = has_guidance_unsupported_json_features(schema)
+864:
+865:                if skip_guidance:
+866:                    # Fall back to outlines if the tokenizer is non-tekken Mistral or
+867:                    # the schema contains features unsupported by guidance
+868:                    validate_structured_output_request_outlines(self)
+869:                    self.structured_outputs._backend = "outlines"
+870:                else:
+871:                    # Fall back to guidance by default.
+872:                    validate_guidance_grammar(
+873:                        self,
+874:                        tokenizer=_get_llg_tokenizer(tokenizer),
+875:                    )
+876:                    self.structured_outputs._backend = "guidance"
+877:            # Remember that this backend was set automatically
+878:            self.structured_outputs._backend_was_auto = True
+879:
+880:        # Run post-init validation. This is also important to ensure subsequent
+881:        # roundtrip serialization/deserialization won't fail.
+882:        self.structured_outputs.__post_init__()
+883:
+884:    def __repr__(self) -> str:
+885:        return (
+886:            f"SamplingParams(n={self.n}, "
+887:            f"presence_penalty={self.presence_penalty}, "
+888:            f"frequency_penalty={self.frequency_penalty}, "
+889:            f"repetition_penalty={self.repetition_penalty}, "
+890:            f"temperature={self.temperature}, "
+891:            f"top_p={self.top_p}, "
+892:            f"top_k={self.top_k}, "
+893:            f"min_p={self.min_p}, "

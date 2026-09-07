@@ -5480,3 +5480,13 @@ Fit none; DEV authored only, eval template/seed-disjoint; 72 regenerated hashes;
 Register T-floor>=50%; pilot5 executed>=90%, caps<=2%, >=2 eligible kinds/opportunities in>=2 episodes, R final>=5/8.
 Registered R/N64+O/T16 alone <=12GPU-h; prior pilots development cost; (12,15]h selects 12-round fallback, all arms retained.
 CPU COMPLETE:92 tests pass/1 expected xfail;4608 stub calls;max context R/O13183,N7005,T8068;eval output/lane3133–4466;hashes/accounting frozen;GPU cost unmeasured.
+- 2026-09-06, SLAB-2 Amendment 1: registered before code; H1-H3/M4-M7 implemented (parse-before-write, 2048 cap/consistent prompts, four-worker cost, powered witnesses, labelled parser tolerances, frozen 12-round fallback, pilot-5 driver).
+  CPU accounting: 4,608 calls; max context 13,333+2,048<32,768; delivery coverage 8/8 DEV and 64/64 eval in both schedules; reference output 594,702 tokens.
+  Reserved cost sensitivities before load: 9.071182h aggregate, 19.483270h sequential, 11.997207h aggregate x1.35; GPU eligibility remains unmeasured. No GPU, push, benchmark-content inspection, or process signalling.
+
+2026-09-06 — CHECK46 COMPLETE / NO-GO (Astra): fit none; one unchanged prompt, six fresh examples;20 DEV +901 one-look evaluation calls.
+Admission R304/385=78.96%, P89.94%; payload6/57, quoted4/36, non-user4/34. Relations399/448=89.06%, supersedes150/172=87.21%.
+Task-over-global0/21 (all add), withdraw+replace12/12, bare-value17/18, actually-B7/7; SETUP36/36 admits but58/96 false turns.
+XGrammar substring/schema decoding:807/807 raw and normalized spans, one cap; user mean6.009s/p95=15.359s;2453.221/3600 GPU-s.
+Freeze519c7338; header-only loader repair8742da2d disclosed;921 request/parser replays,6 CPU tests+7 grammar witnesses pass; container/flag removed, no push.
+Explicit entry stays; next small generative updater fits only audited authored data with scenario-disjoint DEV and fresh author-disjoint evaluation; no training launched.

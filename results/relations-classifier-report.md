@@ -446,3 +446,19 @@ Miss families: bare new value + temporal (13), retire/withdraw + replacement (12
 meta-override wording cut by the 0.92 threshold (10), task-scoped override of global (8), "actually, B" (3).
 DECISION: relation refits parked; v2 ships (assistive mode; explicit actions specify their own operation). Reopening
 requires a spec ruling on "withdraw + replace" and calibration transfer work, not another refit.
+
+## 2026-09-06 — Check 46: frozen 30B trunk as register updater — NO-GO
+
+Data lineage: fit none; one unchanged prompt with six fresh Astra-authored examples, 20 DEV rows from only kimi-admission-2 and kimi-overrides. One frozen model look at admission/relations heldout-3 (previously exposed to other models); v8 SETUP is development diagnostic. No benchmark reads. [Full report, frozen prompt and records](quick-checks/check46/README.md).
+
+Admission overlap recall **304/385 =78.96%**, precision **89.94%**; exact recall15.32%/precision17.46%. Payload false admissions6/57 (one-sided95% CP upper19.72%), quoted4/36 (23.65%), non-user4/34 (24.93%). Rule-plus-payload52/87 and buried rules34/54 remain weak. Single-sentence two-rule116/140, three-rule37/39; cue-less lexical proxy180/212 (definition/IDs in families.json).
+
+Relations **399/448 =89.06%** accuracy; per-label P/R/F1 are in the report. Supersedes **150/172 =87.21%** passes its recall bar, but the accuracy bar94% fails. Task-scoped override of global **0/21**, all emitted add; withdraw+replace12/12, bare-value+temporal17/18, actually-B7/7. Positive-target identification281/315; raw relation target IDs285/285 valid. This one-rule test does not establish multi-target discrimination.
+
+SETUP recovers36/36 admits and4/4 replacement spans but has **58/96 false-admission turns**. This is the inherited empty-register admission diagnostic, not a lifecycle rollout. Neither half passes; explicit entry stays, no runtime swap.
+
+Qualified vLLM image/flags, greedy thinking-off, strict XGrammar schema plus all-character-substring constraint. **807/807 raw-verbatim and normalized-inclusive**, zero repairs; one capped response and two typed-operation rejections journaled. Removing decoder corruption did not meet the bars;78.96% is this frozen prompt’s operating point, not a trunk-wide ceiling or a model-size-only comparison with check44.
+
+User latency mean6.009s, median5.951s, p95=15.359s; mean1444.9 input/67.7 output tokens. Concurrency4 evaluation cost2.007 amortized GPU-s/message; total2453.221/3600s =40.887min including startup and cleanup. 921 same-call records replayed,6 targeted CPU tests and7 actual grammar witnesses passed. Freeze519c7338; the loader’s summary-header count assertion required a disclosed second physical source read before any inference, with frozen science unchanged (8742da2d). Owned container/flag removed; explicit commits, no push.
+
+Next hypothesis: a small dense generative updater fine-tuned on provenance-reconciled, audited authored register/message/operation data; scenario-disjoint DEV and a fresh author-disjoint evaluation bank. Heldout-3 inputs, outputs, labels and error-derived paraphrases, and all benchmark items/responses, remain excluded from fitting. No training was launched here.
