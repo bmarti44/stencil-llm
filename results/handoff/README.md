@@ -11,6 +11,8 @@ reboot). Read ../HANDOFF-astra.md first.
   and on `results/quick-checks/*/RUNNING.flag` before taking the GPU. After a reboot the logs are gone: re-create
   the chain you need from the brief, register the pid (`echo $! >> .stencil-owned-pids`), and keep the same
   flag protocol.
-- Reviewer note: "fable" is a Claude subagent reviewer. On 2026-09-06 it hit a model rate limit mid-review; the
+- Reviewer note (Brian, 2026-09-06): reviews run on OPUS AT MAXIMUM REASONING (prompt must request maximum effort;
+  the Agent tool has no effort dial). "fable" is a Claude subagent reviewer kept as an overflow fallback; on
+  2026-09-06 it hit a model rate limit mid-review, and the
   standing fallback is to re-launch the same review prompt with a different model (opus) and keep the same output
   filename, noting the substitution in the file header.

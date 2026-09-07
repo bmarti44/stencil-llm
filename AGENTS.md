@@ -98,3 +98,7 @@ short, imperative, and evidence-linked; prune entries that stop paying rent.
 - Process ownership (Brian, 2026-09-05): the orchestrator may stop processes it launched. Register every background
   launch (`echo $! >> .stencil-owned-pids`, gitignored); the PreToolUse guard treats registry pids and their /proc
   descendants as owned. Name-based termination stays denied; never stop a process you did not launch without Brian.
+- Reviewer selection (Brian, 2026-09-06): accuracy and code reviews run on Opus at maximum reasoning effort; the
+  Agent tool exposes only the model, so the review prompt must also instruct maximum-effort reasoning. Reviewers
+  are author-disjoint from the work under review, write only their own review file, and never edit code. Record a
+  reviewer substitution (rate limit, unavailability) in the review file header.

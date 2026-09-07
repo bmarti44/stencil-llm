@@ -27,8 +27,12 @@ a violation from hidden state before generation) is worth testing.
   FIRST in every registration and brief. Never lift probe/benchmark exemplars into label specs or prompts.
 - Pre-register: write the pass/fail READING before running anything; one look at a held-out; no threshold or
   prompt changes after the look; INCOMPLETE/INELIGIBLE are not nulls; never shrink N silently.
-- Review: every result gets a one-round accuracy review by an independent reviewer ("fable" = Claude agent;
-  Opus for data audits; kimi-k3 via ollama writes data). Reviewers write only their review file.
+- Review: every result gets a one-round accuracy review by an independent reviewer. RULING (Brian, 2026-09-06):
+  reviews run on OPUS AT MAXIMUM REASONING (Agent tool `model: opus`; the tool has no effort dial, so the prompt
+  must also tell the reviewer to reason at maximum effort and take the time it needs). Opus also does the data
+  audits; kimi-k3 via ollama writes data; astra builds and runs. "fable" (a Claude agent reviewer) is an
+  overflow fallback only, noted in the review file header when used. Reviewers write only their review file and
+  never edit code. Existing files named *-review-fable.md keep their names for continuity.
 - Process ownership: register every background launch (`echo $! >> .stencil-owned-pids`); never stop a process you
   did not launch without Brian; stop/rm only your own containers; GPU coordination via RUNNING.flag files under
   results/quick-checks/<check>/ — wait for any other flag to clear; never signal other processes.
