@@ -600,6 +600,9 @@ GPU4869.993/5400s;512 exact CPU replays and680 local-file hashes pass;1.76MB rec
    Total925.538GPU-s including cache audit; both final adapters retained outsidegit (11.30MiB). CPU272 score/180 history replays exact. Cache-matched OFF/pristine and saved greedy replay16/16 exact, zero diffs; original cross-path full-prefix reconstruction15/16 disclosed. No follow-up authorization/push.
 
 
+51. **CONTROL-PASS8/8 — text-at-recency SWITCH, Qwen3-4B** ([check51](check51/README.md)): four setup families x both directions, two CPU-authored retained answers, production current-user active rules, no adapters; all8 switch and execute correctly, zero truncations/copies by normalized lexical structure. First divergence token1 (fence language) in every case; CPU8/8 replay. GPU54.407/600s,records20,279bytes. Pre-written conditional corrected-run reading met; no follow-up launched. **Deviation:** accidental harness-source read exposed initial evaluation branches, violating no-second-look; no evaluation artifacts/bench reads. Authored-history limitation and protocol violation remain attached to this result.
+
+
 ## Pilot-5 Amendment 3 screen — SCREEN-NOT-PASS (2026-09-07)
 
 [Report](pilot5-screen/README.md). Pinned4ab3e218; CPU121 passed,1 xfail. All8 round-0

@@ -5541,3 +5541,8 @@ R final0/8 fails5/8 (N4/8,T3/8,Q-qualified0/8); matched post-change indent R7/38
 Q-inclusive cost7.651751GPU-h,no fallback; actual4414.921/9000GPU-s; owned container/flag gone,no signals/bench/larger64/push.
 640 exact CPU payload/record replays,1200 local hashes,15 driver/import tests+1xfail; records1,991,176bytes,HTTP/loops local hashed.
 Report/index composition-pilot-6; strict format floor22/35 vs pinned23/35 same eligible traits,sole failed gate remains R final; scoped commit.
+
+2026-09-07 — Check51 CONTROL-PASS8/8: setup-only text at current-user recency, both directions4/4, executable8/8,cap96,no adapters.
+GPU54.407/600s; first divergence token1 all8; normalized prior structure0/8; CPU8/8 score/input/divergence replays,records20,279bytes.
+Freeze8b73a78b; README discloses accidental evaluation-generator source exposure (no-second-look violated) and CPU-authored histories; no eval artifacts/bench reads.
+Artifacts results/quick-checks/check51,index51; own flag removed,no signals/push; conditional corrected-run reading met, follow-up not run.
