@@ -1177,3 +1177,9 @@ replies through frozen184cb321 executor/checker. Fourth SLAB1 tolerance register
 in check47-replay/README.md; optional closer explicitly covers19 unclosed fences,
 complete JSON mandatory. Full32 descriptive, only2 round0 prompt pairs matched.
 No SLAB2/verdict change, benchmarks, GPU, container, signals or push; code next.
+
+2026-09-06 — pilot5 WRITE-AHEAD: user-scoped DEV only, fit none; archived protocol read.
+Pinned9f0c6d27 H1-H3/N1-N2 closed; runtime cap1024/noQ overrides registered in
+results/quick-checks/composition-pilot-5/registration.md before GPU. T/R/N C4 fixed
+lanes, forward/reverse8 gate, optionalO; strict file-written per-arm gates;
+5400s all-in cooperative budget, own Docker only, no host signals/bench/push.
