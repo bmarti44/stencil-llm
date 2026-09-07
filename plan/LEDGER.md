@@ -1230,3 +1230,8 @@ Frozen166598bb. Baseline Python8/8,JS8/8,default Python8/8; full32 steps (128 ex
 2026-09-07 — STATE: SLAB-2 Amendment 3 CPU GREEN (121 passed,1 xfail); commit explicit scoped paths, then isolated post-commit validation/pin receipt. Screen waits for check49 RUNNING.flag;900s budget includes startup/cleanup. Saved pilot5 corrected indent13/39 does not qualify.
 
 2026-09-07 — STATE: SLAB-2 screen ready at pinned green 4ab3e21884e0e5decd6d4fd78607abd6a69cf95d (isolated121 passed,1 xfail). Waiting for check49 flag/process release; screen launch is pending and no GPU time has been spent.
+
+2026-09-07 — STATE: PILOT5-SCREEN GPU LAUNCHED after check49 flag/process cleared. Pin4ab3e21884e0e5decd6d4fd78607abd6a69cf95d; own container stencil-pilot5-screen-3860643; registered pid3860643;900s includes startup/cleanup. Two DEV00/01 x R/N/T/Q groups,16 rounds,cap1024. No other GPU work or host process signals.
+
+2026-09-07 — STATE: CHECK49 EXPERIMENT COMPLETE / NO-GO; CACHE-MATCHED AUDIT QUEUED.
+Main272/272 generations,850.757GPU-s. M/T/X all-active0/0/0; bothM/T SWITCHlanguage0/12; cold10/12;10 M executable losses vsT,5 wins; CLEAR4/12 with5staleJS;12/12 same-historyOFF token replay exact. Unchanged trunk tensor/file hashes,32 fitting steps; adapterfiles11,847,352bytes retained outsidegit. CPUaudit272scores/180histories exact;5tests passed. Supplemental cached parity preflight stopped BEFORE load because pilot5-screen owns RUNNING.flag(pid3860643,budget900s); wait/no signals, audit has consumed0GPU-s. Preserve main artifacts now, no push. Cache-matched16prompt tensor audit remains pending, original cross-path15/16 diagnostic disclosed, no threshold/result edits.
