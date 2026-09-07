@@ -1169,3 +1169,11 @@ CHECK46 loader-only correction after freeze519c7338: held-out source files each 
 2026-09-06 — CHECK47 WRITE-AHEAD (gpt-6-astra): user-directed feasibility-first dense27B FP8 screen, <=2400 GPU-s inclusive. Fit none; DEV00/01 gold R plus disclosed second look at check40k bank only; no benchmark access. Qualified digest pinned; CPU registry before GPU, text-only fallback then stop if not loadable. No wrapper lock held; unrelated dirty harness files will remain untouched, committed pilot4 sources govern. Own container only, flags coordinate GPU, explicit commits/no push.
 
 2026-09-06 — CHECK47 COMPLETE / STAY (gpt-6-astra): native qualified FP8 dense27B load succeeds. Pilot4 DEV00/01 R executed0/32 vs MoE32/32, caps0, final0/2 both; all32 fenced outputs rejected (19 unclosed,13 closed). JS disclosed second look22/32 vs16/32,2 caps; no selection. C2 aggregate12.693, JS C4 24.020 tok/s;32-round future-run C4 cross-workload projection12.12 FP8 /24.15 bf16 GPU-h (2x heuristic, not qualification; all-arm/HF cost unmeasured).1015.477/2400 GPU-s inclusive. CPU32-reference smoke,64 HTTP checks+32 exact DEV+32 JS replays pass against frozen184cb321; live source drift from concurrent work caused first audit rejection, isolated committed replay resolved without edits or inference repeats. Own container and flag removed; no download, signals to other processes, benchmark reads, or push.
+
+2026-09-06 — STATE: CHECK47 REPLAY REGISTERED BEFORE CODE (gpt-6-astra).
+Archived PLAN/PROTOCOL and current STATE read; no wrapper lock held. User's CPU-only
+settling brief governs: fit nothing; replay only exposed DEV00/01 saved dense/MoE
+replies through frozen184cb321 executor/checker. Fourth SLAB1 tolerance registered
+in check47-replay/README.md; optional closer explicitly covers19 unclosed fences,
+complete JSON mandatory. Full32 descriptive, only2 round0 prompt pairs matched.
+No SLAB2/verdict change, benchmarks, GPU, container, signals or push; code next.
