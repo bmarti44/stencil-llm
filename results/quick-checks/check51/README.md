@@ -1,0 +1,23 @@
+# Check 51 — text-at-recency SWITCH positive control
+
+2026-09-07 · gpt-6-astra · pre-written reading, before GPU work.
+
+CONTROL-PASS = >=6/8 switch to mode B with executable correctness preserved: a carrier CAN beat a retained transcript when placed at recency, so check49's SWITCH cell is a placement artifact and the corrected re-run is authorized (fourth text-at-recency arm, output cap96 ->160, spend the registered fitting ceiling).
+CONTROL-FAIL = <=3/8: no carrier tested so far can flip a mode against a retained transcript; record that as the finding, and the switch question moves to the register's MASKING contingency (checks40h/40i) rather than to any carrier.
+4–5/8 = INCONCLUSIVE at n=8; record and stop. These are practical thresholds, not statistical estimates. A missing call or budget interruption is INCOMPLETE, never CONTROL-FAIL.
+
+## Frozen design and measurements
+
+Exactly eight greedy SWITCH generations: square, negate, lengths and product SETUP families, each Python->JavaScript and JavaScript->Python. The same function name and task repeat with an additive constant2,3,4; only that constant changes. Two CPU-authored correct mode-A answers are supplied as literal assistant history, with check49's neutral exchange before HOLD. No extra history generations are sampled. This instantiates the same SET/HOLD/SWITCH history layout but does not test self-generated prior answers; the two directions within a family are related. Original setup tasks have no changing constant, so these setup-only variants append a fixed additive-offset clause. No task is selected using generated outcomes.
+
+Fit-on=none. Input-on=four check49 setup families and CPU-authored constant variants. Evaluate-on=the eight frozen SWITCH cases in inputs.json. No training, adapter loading, teacher sampling, or benchmark access. Harness reuse is limited to setup(), messages(), render(), execute() and utility functions; prepare(), training(), evaluation(), run() are never invoked. The local frozen bf16 Qwen3-4B uses the same SDPA, nonthinking chat template, greedy cache decode and cap96 as check49. Cap160 belongs to the conditional corrected run, not this probe.
+
+The real production renderer (src/stencil/focus/renderer.py) renders a trusted structured language entry in its active-rules JSON form in the CURRENT user turn immediately before the request. System content stays exactly check49.SYSTEM. No adapter, mask, cache reuse, or transcript deletion. All model parameters have requires_grad=False; inference only. Fresh cache per request.
+
+Success is check49's executable-semantics scorer AND mode-B language AND no cap truncation. Presentation and syntax are also recorded without adding new success gates. "Copied structure" means exact lexical-token equality to the preceding mode-A answer after replacing numeric literals and ignoring whitespace, retaining identifiers, operators and language. This narrow deterministic measurement does not purport to detect all semantic copying. "First divergent token" is a zero-based Qwen token comparison against the CPU-authored retained-transcript continuation (the preceding reference with only constant3 changed to4, plus EOS); it is not a separately sampled counterfactual. Records include token ID, token piece and decoded text on each side, full completion, executable score, structure result and input/output token IDs. Literal messages, references and executable test cases are in inputs.json.
+
+CPU preflight:48 reference executions passed, all8 stale-constant answers fail the SWITCH executable tests, all8 histories and active-rule placements checked. freeze.json binds the runner, inputs, reused harness and renderer. Budget600 GPU-held seconds including load/cleanup; cooperative stop at540s, no new call after500s. Own RUNNING.flag, no signals. No other Stencil flag was present at initial preflight; recheck at launch.
+
+## Protocol deviation — disclosed before inference
+
+A source-range read of scripts/focus_check49.py:100–128 accidentally extended beyond setup() into evaluation() and displayed the first evaluation-generator branches (prefix, rotate, unique, gaps). This violated the user's explicit no-second-look constraint. No evaluation data.json or records.jsonl was opened, no evaluation function was called, and none of those families supplies this probe. The exposed material was not used for task selection or tuning. Nevertheless this run cannot claim a clean no-second-look audit. Preserve the numerical threshold reading, but any CONTROL-PASS must carry this deviation and the authored-history limitation; it cannot silently certify the full original protocol. No corrected experiment is executed as part of this eight-generation check.
