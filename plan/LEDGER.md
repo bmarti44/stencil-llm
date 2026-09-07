@@ -1193,3 +1193,9 @@ matched (joint compliance2/2 vs0/2); full32 descriptive,30 histories unmatched.
 Original harness INELIGIBLE; STAY unchanged on conjunctive cost and48 GDN+16 full
 attention. Output check47-replay/records186564 bytes; CPU-only, no SLAB2 changes,
 GPU/container/signals/benchmark reads/push. Explicit-path artifact commit next.
+2026-09-06 — pilot5 REQUIRED384 COMPLETE, optional O running under frozen time gate.
+R/N/T written63/112/104 of128, caps0 each; R final0/8, N4/8,T3/8. T floor
+language72/128, indent13/128, format22/35, delivery42/49, scope0/44; only
+one substitution kind qualifies. Group-only projection7.7836h uses R-as-O proxy;
+optional O now measures that cost. Required raw records checkpointed explicitly;
+final audit/cost overhead/cleanup and full artifacts still pending, no push.
