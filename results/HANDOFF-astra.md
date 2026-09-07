@@ -68,7 +68,15 @@ a violation from hidden state before generation) is worth testing.
 ## WHAT IS PARKED (assistive only; reopen conditions in the reviews)
 - Automatic admission (standing-rule detection) — checks 44/44b/44c NO-GO (recall 64-73%; root cause: phrasing
   coverage — cue-less rules, multi-rule lists; and a splitter ceiling); check 46 (frozen 30B trunk as updater,
-  zero-shot) NO-GO but best recall yet (79%/90%; relations 89%, supersedes 87%).
+  zero-shot) NO-GO but best recall yet (79%/90%; relations 89%, supersedes 87%). Its review
+  (results/check46-review-fable.md) is the map for check 48: 69 of 81 misses are messages where the trunk emitted
+  an empty list with the rule sitting after a payload or chatter (the few-shot bank has no rule-after-payload
+  positive); 22 false spans are the one-off request admitted as an invented task rule; role + template gates give
+  0 false admissions on quoted/non-user/payload but precision only 93.3%; task-over-global is 0/21 because every
+  such row was emitted as `add` (one missing exemplar); scope is mostly wrong (226/266 global golds emitted as
+  invented task scopes). Both admission and relations held-outs 3 are now EXPOSED — any prompt change needs a
+  fresh author-disjoint bank; held-out-4 (data/classifier/heldout/fable-*-heldout-4.jsonl) is UNTOUCHED and is
+  check 48's one look.
 - Relation refits (v3 NO-GO; held-out-3 is a harder bank, not a regression; v2 ships assistive).
 
 ## THE MODEL
@@ -78,18 +86,27 @@ VERIFIED: Qwen3.8-27B = 48 linear-attention (GatedDeltaNet) + 16 full-attention 
 only 16 layers; recurrent state is not maskable; the backend must be re-qualified for a hybrid model.
 Small dense models for classifiers/proxies: models/qwen3-1.7b-hf, models/qwen3-4b-hf. Encoder: bge-small.
 
-## QUEUE STATE AT HANDOFF (check the scratchpad chain logs and results/quick-checks/README.md)
-GPU order (each gated on the previous and on RUNNING.flag): check 47 (Qwen 3.8 27B screen) -> 48 (Qwen3-4B
-generative register-updater LoRA; fresh fable held-out-4; readings in the brief) -> 49 (two rank-8 LoRAs as the
-persistent focus selector on 4B: SET/HOLD/SWITCH/BACK/CLEAR, arms M/T/X, astra's five GO conditions) -> 50 (skill
-adapters per language: SKILL-GAIN / SELECT / SWITCH-CLEAR) -> pilot 5 (SLAB-2 simplified harness, 8 DEV episodes
-x R/N/T at 16 rounds; ELIGIBLE readings in the brief) -> the LARGER TEST (64 fresh agentic episodes, R vs N
-primary, O/T nested, Q capability-qualified subset, per-kind relapse, <= 12 GPU-h) -> check 45 (off-task probe on
-recovered hidden states, leave-episodes-out, AUROC >= .85 bar).
-CPU in flight: SLAB-2 fable closing review (results/slab2-review-fable-r2.md); adoption build of the repo
-assessment items (results/astra-assessment-adoption.md: security-boundary tests; completes-by-evidence; Q arm;
-rerun-from-intervention diagnostic; held-out-family subsets; external-model baseline arm X built with a mock
-client — do NOT run it without Brian's approval of the API spend).
+## QUEUE STATE AT HANDOFF (all briefs and chain scripts are committed under results/handoff/)
+GPU order (each gated on the previous and on RUNNING.flag): check 47 (Qwen 3.8 27B screen, RUNNING) -> **pilot 5**
+(SLAB-2 simplified harness, 8 DEV episodes x R/N/T at 16 rounds; reviewer GO already given; armed by the file
+`pilot5.GO` in the scratchpad once the driver fix lands) -> the LARGER TEST (64 fresh agentic episodes, R vs N
+primary, O/T nested, Q capability-qualified subset, per-kind relapse, <= 12 GPU-h; brief at
+results/handoff/briefs/larger-test-brief.md; armed by `larger-test.GO`) -> check 48 (Qwen3-4B generative
+register-updater LoRA; fresh fable held-out-4 pair; must beat the zero-shot trunk R 78.96 / P 89.94) -> 49 (two
+rank-8 LoRAs as the persistent focus selector on 4B: SET/HOLD/SWITCH/BACK/CLEAR, arms M/T/X, five GO conditions)
+-> 50 (skill adapters per language: SKILL-GAIN / SELECT / SWITCH-CLEAR) -> check 45 (off-task probe on recovered
+hidden states, leave-episodes-out, AUROC >= .85 bar).
+Checks 48-50 were deliberately deferred behind pilot 5 on 2026-09-06 22:00 (the larger test is the deliverable);
+their real briefs are results/handoff/briefs/check{48,49,50}-brief.md and the sequencing script is
+results/handoff/chains/chain_research.sh.
+CPU in flight at handoff: the adoption build of the repo-assessment items (results/astra-assessment-adoption.md:
+register security-boundary tests; completes-by-evidence; the Q capability probe arm; the rerun-from-intervention
+diagnostic; held-out-family subsets; external-model baseline arm X built against a MOCK client — do NOT call the
+real API without Brian's approval of the spend); then the pilot-5 driver fix (results/handoff/briefs/
+driverfix-brief.md: N2 add stop_token_ids and raise on a non-terminal last id, N1 timeout 300 -> 1200 s), which
+arms pilot 5.
+Closing reviews already in hand: results/slab2-review-fable-r2.md = **GO for pilot 5** with those two driver items;
+results/check46-review-fable.md = NO-GO diagnosis with the exact levers for check 48.
 Data: audited corpora under data/classifier/relations/ (kimi-*.jsonl + review/*-patch.jsonl); fable author-
 disjoint held-outs 1-4 under data/classifier/heldout/ (held-out-4 pair is UNTOUCHED — one look, for check 48).
 
@@ -125,3 +142,23 @@ reviews; results/slab2-review-fable*.md; results/{reuse,updater,dense-focus,thro
 results/astra-repo-assessment-2026-09-06.txt + results/astra-assessment-adoption.md; results/relations-classifier-
 report.md; src/stencil/focus/**; scripts/composition_pilot5.py; models/stencil-package/; memory (Claude):
 ~/.claude/projects/-home-bmarti44-stencil-llm/memory/stencil-state-2026-09-03.md (running log of every result).
+
+## HOW TO TAKE OVER THE RUNNING WORK
+1. `git pull`; read results/quick-checks/README.md (items 31-50) and WORKLOG.md tail; read results/handoff/README.md.
+2. Check what still holds the GPU: `ls results/quick-checks/*/RUNNING.flag` and `nvidia-smi`. Never start a GPU job
+   while a flag exists that you did not create.
+3. The chain scripts in results/handoff/chains/ reference the session scratchpad
+   (/tmp/claude-1000/-home-bmarti44-stencil-llm/<session>/scratchpad). After a reboot or a new session that
+   directory is gone: copy results/handoff/briefs/* into your own scratchpad, re-create only the chain you need,
+   and register every launch (`echo $! >> .stencil-owned-pids`).
+4. Arming files: pilot 5 runs when `pilot5.GO` exists in the scratchpad AND no RUNNING.flag remains; the larger
+   test runs when `larger-test.GO` exists. Do not create `larger-test.GO` until pilot 5 reads ELIGIBLE and its
+   review is in hand.
+5. Every result: pre-written reading -> recipe commit -> run -> results + 5-line quick-checks item + WORKLOG ->
+   independent review -> orchestrator addendum with the review's corrections -> memory note.
+
+## OPEN QUESTIONS FOR BRIAN (do not decide these alone)
+- The 54 GB bf16 download for Qwen 3.8 27B (disk is ~96% full) — only if check 47 reads SWITCH-CANDIDATE.
+- Spending on the Anthropic API for the external-model baseline arm X (built, mock-tested, not run).
+- Any budget change beyond the registered 12 GPU-h for the larger test.
+- Publishing to the Hub (bmarti44/stencil) after the registered PUBLISH GATE.
