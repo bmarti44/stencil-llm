@@ -206,6 +206,41 @@ def main():
         projection=freeze["projection"],
         queue_seconds=read("launch.json")["queue_seconds"],
     )
+    for actual_group, scheduled in zip(groups, freeze["schedule"]):
+        assert all(actual_group[k] == v for k, v in scheduled.items())
+    phases = {}
+    for path in (OUT / "local/http").rglob("*.json"):
+        receipt = json.loads(path.read_text())
+        if "response" in receipt:
+            phases.setdefault(path.relative_to(OUT / "local/http").parts[0], []).append(
+                receipt
+            )
+    control_receipts = [
+        json.loads(p.read_text())
+        for p in (OUT / "local/reproducibility").glob("*.json")
+    ]
+    phases["reproducibility"] = [r for r in control_receipts if "response" in r]
+    cost["all_http_phases"] = {
+        k: dict(
+            calls=len(rr),
+            completion_tokens=sum(
+                r["response"]["usage"]["completion_tokens"] for r in rr
+            ),
+            prompt_tokens=sum(r["response"]["usage"]["prompt_tokens"] for r in rr),
+            window_seconds=max(r["ended"] for r in rr) - min(r["started"] for r in rr)
+            if rr
+            else 0,
+        )
+        for k, rr in phases.items()
+    }
+    cost["all_generated_tokens"] = sum(
+        v["completion_tokens"] for v in cost["all_http_phases"].values()
+    )
+    cost["all_http_calls"] = sum(v["calls"] for v in cost["all_http_phases"].values())
+    if summary["complete"]:
+        assert len(groups) == 52 and all(not g["errors"] for g in groups)
+        assert cost["all_http_calls"] == 3384
+        assert read("determinism.json")["mismatches"] == []
     dump("cost-audit.json", cost)
     audit = dict(
         passed=True,
@@ -224,6 +259,39 @@ def main():
         if (OUT / "reproducibility.json").exists()
         else None
     )
+    if repro and repro.get("complete"):
+        byid = {r["id"]: r for r in repro["rows"]}
+        divergences = 0
+        for item in freeze["reproducibility"]:
+            old = json.loads((OUT.parents[1] / item["path"]).read_text())
+            receipt = read(
+                "local/reproducibility/" + item["id"].replace("/", "_") + ".json"
+            )
+            assert h(receipt["request"]) == h(old["request"]) == item["request_sha256"]
+
+            def sig(response):
+                c = response["choices"][0]
+                return {k: c[k] for k in ("text", "token_ids", "finish_reason")}
+
+            identical = sig(old["response"]) == sig(receipt["response"])
+            assert byid[item["id"]]["identical"] == identical
+            divergences += not identical
+        assert (
+            divergences == repro["divergent"]
+            and repro["divergence_rate"] == divergences / 40
+        )
+        boundary = freeze["replay_after_group"]
+        assert (
+            min(r["started"] for r in phases["reproducibility"])
+            >= groups[boundary]["ended"]
+        )
+        if len(groups) > boundary + 1:
+            assert (
+                max(r["ended"] for r in phases["reproducibility"])
+                <= groups[boundary + 1]["started"]
+            )
+        audit["reproducibility_recomputed"] = True
+        dump("audit.json", audit)
     lines = [
         "Fit-on: none; development-on: eight DEV episodes only; evaluated-on: the64 frozen authored evaluation episodes, one model pass, no tuning.",
         "",
