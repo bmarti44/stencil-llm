@@ -144,3 +144,10 @@ The earlier per-file SHA256 and byte receipts below were checked again using str
 | `data/classifier/model/relations-v3/seed1/head.safetensors` | 7,916 | `b210b72df22788284456ee06c34d9b4bdb0c604efa0fae5333b23e7996aa4c00` |
 | `data/classifier/model/relations-v3/seed2/encoder/model.safetensors` | 133,462,128 | `fbd2d74641e1be1bfd4de3d6cfbfbd69b84fa8a3a5685f47980b12e386823a00` |
 | `data/classifier/model/relations-v3/seed2/head.safetensors` | 7,916 | `f59c4e9f1dacdef08e55d41aac3396b4c2f4db459d42214c4155768a119d849c` |
+
+
+## 2026-09-07 continuation: automation criterion and first maintenance DEV attempt
+
+Brian subsequently clarified that fully automated maintenance matching good manual prose can itself be a major benefit; superiority over the manual oracle is no longer required. The superseding criterion is in [CURRENT-GOAL.md](CURRENT-GOAL.md). Kimi K3 via Ollama authored two original DEV conversations, Sol xhigh implemented the isolated updater and driver, and independent Astra xhigh reviewed data, code and results. The optional factorial remains deferred.
+
+The first frozen 16-call updater-only attempt completed in 620.47 seconds including startup/cleanup, with no retries or gold resets. It failed maintenance: 0/48 complete semantic views and 0/2 whole trajectories agreed, with 5 structurally accepted but semantically incorrect transactions and 11 rejected proposals. Exact receipts and replay were independently checked. See [result and accuracy addendum](quick-checks/maintenance-dev-01/RESULTS.md) and [independent audit](quick-checks/maintenance-dev-01/accuracy-review-astra.md). No worker or fresh validation screen ran. No old frozen outputs were rescored. The next candidate is a clearer semantic extraction prompt in a separately frozen DEV attempt; the present result does not justify scaling this recipe.

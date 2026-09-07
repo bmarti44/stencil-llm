@@ -1414,3 +1414,25 @@ Commit bound source/recipe/receipts, then python3 /home/bmarti44/stencil-llm/
 tools/run_maintenance_dev.py --run-dir /home/bmarti44/stencil-llm/results/
 quick-checks/maintenance-dev-01 --execute. Owncontainer/PID/flag; strict
 no retries or goldreset; failures stayrecorded; no oldruns rescored or push.
+
+2026-09-07 — STATE: MAINTENANCE DEV16 RUNNING; PIN5d499362.
+Live unified exec session48513; own container stencil-maintenance-dev-b1e66700a652;
+flag/lifecycle/freeze under results/quick-checks/maintenance-dev-01.
+Model loading; source and data frozen before startup. Resume by polling this
+handle or checking its actual PID/container before any action; never restart
+based on observation timeout. Registered900s total/600s startup/16calls.
+
+2026-09-07 — STATE: MAINTENANCE DEV16 COMPLETE; SEMANTIC FAILURE.
+Pin5d499362; all16 single-attempt calls saved, 5 structurally accepted/11
+rejected. Astra xhigh exact-byte/prompt/compiler/state replay agrees; semantic
+agreement0/48 complete views,0/2 trajectories. No gold resets or retired versions;
+accepted entries invent prompt/project descriptions or use wrong scope.
+Driver132.45s; total reservation620.47/900s; owncontainer stopped/removed,
+flag cleared. Raw outputs immutable under results/quick-checks/maintenance-dev-01;
+RESULTS.md and independent accuracy-review-astra.md preserve bounded reading.
+Fit none; DEV two exposed original Kimi conversations; evaluation none.
+Automatic parity with good manual prose remains valuable, but this recipe
+has not achieved it. No worker/factorial/clean-screen launched. Next candidate
+is clearer semantic obligation extraction in a separately frozen DEV recipe;
+no repeat of unchanged attempt, and no generalized success claim. Commit
+only result receipts/review, preparation status, and ledger; no push.
