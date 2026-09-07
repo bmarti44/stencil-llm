@@ -1,0 +1,221 @@
+Stencil is worth developing as a research platform for task-state control. It is not yet evidence of a new working-memory architecture or a reliable long-horizon agent.
+
+The strongest opportunity is narrower than the neuroscience framing suggests - determine when a model has the information and capability needed to complete a task, but fails to apply the currently valid instructions, then test whether a small learned controller can repair that failure without damaging competence.
+
+The repository contains useful instrumentation and some positive results. Its newer experiments also expose substantial failures that the headline result does not capture. The original learned attention controller, later lifecycle classifiers, mixture-of-experts routing interventions, and agentic composition experiments are different systems. Their results should not be pooled into a single claim that “Stencil works.” citeturn552277view1turn671334view0turn552277view3turn552277view2
+
+I reviewed the source, experimental reports, and work log through September 6, 2026. This is a static audit and literature assessment, not an independent reproduction of the model experiments.
+
+# 1. What the repository actually establishes
+
+## The evidence is mixed, with important recent negatives
+
+| Experiment | Repository-reported result | Supported interpretation |
+|---|---|---|
+| Original stateless wave controller on Qwen3-1.7B | Adherence improved from 25.2% to 44.8% across 96 validation sessions. Text reinsertion reached 43.0%. The wave broke 21 previously valid outputs under the report’s checker. | A positive synthetic instruction-steering result, not a no-regression result or established memory mechanism. citeturn552277view1 |
+| Later attention-deficit controller, synthetic confirmation set | On 1,024 examples, adherence moved from 85.84% to 86.23%, with 59 fixes, 55 breaks, one-sided paired-test p = 0.389, and nine additional truncated responses. | No convincing improvement in this confirmation experiment. This was synthetic evaluation, not an IFEval result. citeturn837255view0turn884015view0 |
+| FOCUS-3 lifecycle diagnostic on Qwen3-4B | Learned-register condition succeeded on 57/64 episodes, versus 31/64 for naive restatement and 63/64 for the gold register. But its register was exact in only 38/64 episodes, with 25 false admissions across 21 episodes. | Maintaining current state appears useful on these development tasks. Autonomous state admission remains unreliable. citeturn671334view0 |
+| Router steering on Qwen3-30B-A3B | JavaScript task success fell from 16/32 with text alone to 7/32 with text plus router bias. There were two paired wins and eleven losses. All eleven losses still produced valid, unbroken JavaScript. | Steering can improve or preserve superficial compliance while damaging functional correctness. This is a different intervention from the original wave. citeturn552277view3 |
+| Latest agentic composition pilot | Zero successes among seven completed register-arm episodes, with an eighth incomplete. Only 108/159 calls executed, 51 hit caps, and the oracle arm was unrun. | The composed agent is not validated. Protocol, capability, truncation, and control failures remain entangled. citeturn552277view2 |
+
+Three qualifications materially change the interpretation of the original positive result.
+
+Its validation contained both unfamiliar ledger wording and familiar training-format sentences. That does not establish wording generalization. Its entirely held-out comment rule achieved 0/120 adherence in every arm, so that test establishes neither positive transfer nor a usable capability ceiling. Finally, the “oracle” was a particular hand-engineered steering policy, not an optimal controller or upper bound. Beating it is narrower than the term suggests. citeturn552277view1
+
+The practical comparison is therefore not just 25.2% versus 44.8%. It is also 43.0% versus 44.8%, with different regression profiles. That smaller margin over reinsertion needs stronger evidence before justifying additional inference machinery.
+
+## The wave is an attention-logit adapter, not demonstrated persistent memory
+
+In `src/stencil/wave.py`, the stateless controller projects current generation features and prompt features into a 64-dimensional space, computes cosine similarities, and generates a bounded positive attention bias. Its field can be written equivalently as
+
+\\\\[
+e_{t,i}=8\\\\,\\\\cos(W_qh_t,W_kx_i)
+\\\\]
+
+\\\\[
+b_{t,i}=g_t\\\\exp\\\\left(e_{t,i}-\\\\max_j e_{t,j}\\\\right),
+\\\\qquad
+g_t=2\\\\,\\\\sigma(w_gh_t)
+\\\\]
+
+The implementation has 264,321 trainable parameters. This is a content-addressed, state-dependent attention-logit adapter. The stateless version has no persistent controller state and no oscillatory dynamics. Calling it a wave does not establish a wave mechanism. citeturn552277view0
+
+A useful consequence follows directly from the equation. Within an individual attention operation, holding its original logits fixed, the maximum relative-odds boost between a maximally boosted and unboosted token is \\\\(e^2\\\\), approximately 7.4. That can change information access. It cannot restore an evicted key/value entry or guarantee the downstream computation uses the accessed information correctly.
+
+The recurrent extension did not establish useful memory. Resetting or permuting its state produced essentially null effects on the reported teacher-forced loss diagnostic. That does not prove recurrence is unnecessary - the experiment did not establish behavioral state dependence, and the architecture may have suppressed its use. citeturn552277view1
+
+Also, freezing the backbone does not make this training-free. The controller is trained through the frozen model against canonical target completions. That is supervised adaptation through a restricted intervention interface. citeturn671334view1
+
+# 2. What is genuinely useful for frontier research
+
+## A restricted interface for causal control experiments
+
+The most useful question is not whether adding a side module changes outputs. It is whether a restricted intervention can selectively restore a missing computation.
+
+The repository provides concrete hooks for this - differentiable attention bias, zero-field equivalence checks, gradient-connectivity tests, and deliberately detached interventions that should fail. Its attention implementation also exposes controlled key/value eviction. These are useful experimental components because they allow access, intervention, and information retention to be manipulated separately. citeturn671334view1turn179297view2
+
+I would organize the scientific problem into four distinct failure classes.
+
+| Failure class | Diagnostic question | Appropriate intervention |
+|---|---|---|
+| Storage | Is the required information still available anywhere the model can use? | Retention, retrieval, compression, or recurrent memory |
+| Authority and state | Which instruction is currently valid, for which task, and until when? | Explicit state transitions, provenance, and scope |
+| Access and application | Does the model use the valid instruction at the relevant decision? | Prompt placement, attention control, or representation steering |
+| Capability | Can the model execute the instruction correctly even when it is unmistakably available? | Better model capability, training, tools, or task decomposition |
+
+This decomposition prevents an attention intervention from being credited with solving memory, or blamed for a capability failure.
+
+## Lifecycle control is a better target than generic remembering
+
+Remembering an instruction and knowing whether it remains binding are different problems.
+
+“Use JavaScript” might be a standing preference, a one-shot request, quoted material, a superseded instruction, or a requirement scoped to one subtask. A system that remembers everything but applies the wrong item is not reliable.
+
+The newer `focus/register.py` is directionally stronger than the original metaphor. It represents immutable events, versions, scope, provenance, supersession, cancellation, completion, and reinstatement. It checks authority and exact target versions, while explicitly requiring callers to authenticate entries. These are inspectable semantics rather than implicit claims about latent memory. citeturn837255view1
+
+The frontier question becomes
+
+> Can a model maintain and execute a changing set of authorized obligations across long trajectories, without promoting incidental text into instructions or resurrecting retired requirements?
+
+That is both operationally meaningful and experimentally falsifiable.
+
+## The separation between compliance and competence is valuable
+
+The router experiment is particularly useful because its evaluator did not stop at “the model produced JavaScript.” It tested whether the code worked, revealing that a steering intervention could preserve valid-looking output while reducing success. citeturn552277view3
+
+I would retain that distinction throughout the project. A controller should not earn credit for producing the right language, tag, tone, or format while making the underlying answer worse.
+
+The same applies to state accuracy. The FOCUS-3 diagnostic achieved substantially higher final success than naive restatement despite many incorrect state transitions. That is a warning about the evaluator’s coverage, not permission to ignore unauthorized writes. Its templates were reused development scenarios, not an independent population test. citeturn671334view0
+
+# 3. What current rigorous research says
+
+## Attention steering is established, including dynamic variants
+
+PASTA, published at ICLR 2024, reweights selected attention heads toward user-designated prompt spans without updating the model’s weights. It already establishes the broad proposition that changing attention allocation can improve instruction following and use of contextual information. citeturn950401search0turn950401search3
+
+SpotLight, published at EACL 2026, is an especially important baseline. It dynamically adjusts attention toward specified instruction spans rather than relying only on a fixed bias or extensive offline head profiling. Its evaluation spans multiple models and instruction-following settings. A learned attention controller should be compared against this, not just against an untreated model or a project-specific hand-coded policy. citeturn837255view3
+
+Stolfo and colleagues’ ICLR 2025 work also demonstrates instruction-specific activation steering for constraints such as formatting, length, and word inclusion. It operates through activation vectors rather than Stencil’s positional attention field, but directly limits broad novelty claims about internal instruction control. citeturn538698search2turn538698search26
+
+My assessment is that the exact combination of hidden-state-conditioned positional bias and end-to-end training may support an incremental methodological contribution. “A small controller steers a frozen model” is not itself a novel research claim.
+
+## Learned controllers already have close neighbors
+
+Guiding Giants, published in the TrustNLP 2026 workshop, trains lightweight controllers to weight activation steering. Its actuator differs from Stencil’s, and workshop publication is not equivalent to broad independent validation, but it is relevant prior art for learned control around a frozen backbone. citeturn671334view3
+
+The January 2026 preprint on attention-guided feature learning is another relevant neighbor. It uses attention to identify useful representations for learning steering features. It is not the same as learning a prompt-position attention-logit field, so it should not be treated as an exact duplicate. It does, however, make careful positioning against representation-learning and steering baselines necessary. citeturn950401view1
+
+The defensible novelty claim must name the intervention, information available to the controller, training objective, and evaluation setting. It cannot rest on the neuroscience vocabulary.
+
+## Strong prompting baselines are often difficult to beat
+
+AxBench, published at ICML 2025, compared multiple representation-based steering methods on Gemma models. In its steering evaluations, prompting outperformed the existing methods studied, followed by fine-tuning. This is not a universal impossibility result for internal steering. It is strong evidence that weak text baselines can make a steering method look more valuable than it is. citeturn720927view3
+
+For Stencil, the implication is direct - compare against a concise, correctly scoped, current-state rendering. “Repeat everything ever said” is not a strong memory or control baseline.
+
+## Long context does not eliminate multi-turn failure
+
+Lost in the Middle, published in TACL, shows that information being present in a long context does not imply reliable use of that information. Its positional effects support separating storage from access. citeturn937325search0
+
+The July 22, 2026 preprint LLMs Get Lost in Evolving User Intent moves closer to Stencil’s actual problem. It transforms static tasks into interactions where intent is incrementally disclosed, revised, and redirected while preserving the original task evaluation. It reports substantial degradation relative to static settings. This is current, relevant evidence, but still a preprint rather than a settled result across arbitrary agents. citeturn538698search1
+
+I would borrow that experimental principle - vary the trajectory of instructions while holding the final task and evaluator fixed. It is cleaner than simultaneously changing task difficulty, prompt format, tool protocol, and memory mechanism.
+
+## A probe that predicts failure does not prove recoverable memory
+
+The May 2026 preprint When Attention Closes studies controlled removal of access to goal tokens and architecture-dependent behavioral degradation. Importantly, its high-AUC residual probes predict whether recall succeeds. That is not the same as decoding the exact goal content, and neither result would by itself establish that a steering intervention can restore the goal. The paper also acknowledges that its goals remain fixed and that evolving goals are outside its setup. citeturn720927view1
+
+This distinction is central.
+This distinction is central.
+A representation can predict failure without containing an actionable correction. It can encode the correct rule without downstream layers using it. An intervention can change behavior without restoring the intended computation.
+Stencil could contribute by experimentally separating those three possibilities.
+## Generalization must be tested across constraint families
+IFBench, accepted to NeurIPS 2025’s Datasets and Benchmarks track, evaluates generalization to 58 new verifiable constraints. Its authors find substantial overfitting to familiar instruction-following constraints and report improvements from reinforcement learning with verifiable rewards. citeturn950401search4turn950401search10
+This supports two changes - hold out entire instruction families, and train against verified outcomes rather than only canonical strings.
+However, IFBench alone would not validate long-horizon lifecycle control. A model can satisfy an unfamiliar local constraint while still failing to track whether that constraint has been cancelled.
+## The newest attention-control work also raises an efficiency question
+The September 2026 preprint Language Models Can Control Their Own Attention lets models emit declarative attention controls that an inference engine executes. Its approach differs from Stencil’s learned adapter, but it illustrates another relevant frontier - control that changes which context is actually accessed, rather than merely rescaling attention over context already loaded. Its reported attended-token reductions should not be equated automatically with wall-clock speedups. citeturn720927view0
+A small parameter count is not an efficiency result. Stencil needs measured end-to-end cost.
+## Neuroscience is motivation, not validation
+The August 2026 Analog Cognition and Consciousness article proposes a theory involving interactions between neuronal activity and brain waves. The authors’ preprint presents it as a hypothesis about cognition, not a demonstrated prescription for transformer architecture. citeturn950401search2turn950401search17
+Nothing about that theory establishes that this particular attention adapter implements the relevant biological computation.
+For the ML paper, I would make the mechanism and falsifiable predictions stand independently. The neuroscience can explain why the question was interesting, not why the answer should be accepted.
+# 4. What I would change to make it work
+## First, separate the usable system from the speculative mechanism
+I would maintain two tracks.
+The system track would use explicit task state, deterministic transitions, a strong renderer, and no internal steering by default.
+The research track would ask whether learned internal interventions add value beyond that system.
+This is close to the direction already present in the newer package. `focus/loop.py` defaults the actuator to off and supports rendering without certified internal hooks. That should remain the default until intervention-specific evidence justifies changing it. citeturn773947view2
+The two tracks can share state, evaluators, and logs without sharing an assumption that attention steering must be the solution.
+## Make state admission conservative and transitions deterministic
+I would distinguish proposed state changes from committed state changes.
+A language model or classifier may propose that a message adds, updates, cancels, or completes a requirement. It should not silently convert its interpretation into authoritative state.
+Initially, committed changes should come from authenticated structured events or narrowly defined, high-precision extraction. Ambiguous cases should preserve the prior state and expose the unresolved proposal.
+The deterministic transition layer should enforce source authority, task scope, exact target version, and permitted transitions. The existing register already implements much of this foundation. Its documented authentication boundary should be tested as a security boundary, not treated as a convenience API. citeturn837255view1
+For completion events, use external evidence where available. Passing a test, receiving a confirmed tool result, or an explicit user cancellation is stronger evidence than the model writing “done.”
+Do not accidentally promote user-originated preferences into system-level mandates merely because the renderer is inserted into a privileged message.
+## Establish capability before testing persistence
+Before a long trajectory, test the model on the same underlying task with the correct current instructions clearly provided.
+This is not a way to hide failures. Report both the full benchmark and a preregistered capability-qualified subset.
+The purpose is attribution. A persistence mechanism cannot be evaluated cleanly when the base model cannot follow the requirement even with perfect information.
+The current composition pilot is especially difficult to interpret because execution failures and truncation are widespread, and its oracle arm was not run. Fixing those issues and completing the oracle condition should precede another claim about long-horizon control. citeturn552277view2
+## Run a decisive state-by-actuator experiment
+The next central experiment should cross state quality with the mechanism used to apply it.
+| State supplied | Render only | Established attention method | Learned wave |
+|---|---|---|---|
+| Gold current state | Measures capability with correct accessible instructions | Measures additional value of nonlearned control | Measures the learned actuator’s ceiling |
+| Automatically maintained state | Measures realistic state-management performance | Tests whether steering amplifies state errors | Measures the complete proposed system |
+Add an untreated full-history baseline, and a matched-budget fine-tuning or representation-adaptation baseline where feasible.
+All conditions should use the same base checkpoint, task instances, tool interface, generation budget, and evaluator. Each condition must generate its own history during rollout.
+This design answers the questions the current collection of experiments leaves entangled.
+When gold-state rendering already works, the attention mechanism has little remaining headroom. When gold state works but inferred state fails, improve state admission. When both fail, investigate capability or the interface before training a more elaborate controller.
+## Train for intervention benefit, not merely failure detection
+The current wave objective uses token-level cross-entropy against canonical completions. That is a reasonable starting point, but it rewards matching one realization of success under teacher forcing. It does not directly optimize successful behavior after the model’s own mistakes. citeturn671334view1
+I would first collect on-policy trajectories and verified alternative completions. Then train the controller to predict or maximize the benefit of intervening, not just the probability that the untreated model will fail.
+Conceptually, the relevant quantity is
+\\\\[
+\\\\Delta(z,a)
+=
+\\\\mathbb{E}[U\\\\mid \\\\operatorname{do}(a),z]
+-
+\\\\mathbb{E}[U\\\\mid \\\\operatorname{do}(\\\\mathrm{off}),z]
+\\\\]
+where \\\\(z\\\\) is the available state, \\\\(a\\\\) is an intervention, and \\\\(U\\\\) measures verified task success.
+High failure probability does not imply positive intervention benefit. A difficult programming problem might be made worse by forcing a language-related internal feature more strongly.
+Start with paired intervention rollouts and supervised learning from their outcomes. Move to reinforcement learning only after the evaluator is robust enough to distinguish real success from cosmetic compliance.
+## Make several concrete implementation changes
+The training loss averages token cross-entropy but sums the gain penalty. Consequently, the regularizer’s relative strength grows with completion length. I would normalize the gain penalty per generated token, or explicitly justify a length-dependent intervention budget. The code’s “40 seeds” also refers to generated training sessions, not forty independent model-training replications. citeturn671334view1
+For a recurrent successor, normalize backbone features and recurrent state separately before combining them, and test a readout that cannot ignore the recurrent contribution merely because of scale. Treat this as a hypothesis to test, not an explanation already established by the null result.
+Cache projected prompt features that remain unchanged during decoding rather than recomputing them at every step. Profile controller execution, attention-kernel changes, and key/value memory separately.
+Qualify each inference backend. The custom attention implementation includes explicit score computation and alternative attention paths. Zero-field equivalence within one path does not establish equivalence between the custom trunk, Hugging Face, and vLLM. Backend changes must not be confounded with intervention changes. citeturn179297view2
+Finally, replace broad all-head or all-layer intervention with a controlled comparison of sparse locations and bounded doses. More control is not automatically better control.
+# 5. The experiments that could produce a strong research contribution
+## Causal task-state transplantation
+To establish memory, construct two episodes with different task states but identical visible continuation contexts.
+Remove the original instruction and any later textual copies. Transfer the candidate memory state from one episode into the other.
+Test whether behavior follows the transferred state, whether irrelevant capabilities remain intact, and whether the effect survives held-out instructions rather than a small codebook.
+Compare correct state, zero state, unrelated state, and deliberately stale state. Ensure that retained key/value entries or recent paraphrases do not provide another path carrying the answer.
+Recurrent Memory Transformer, published at NeurIPS 2022, already establishes recurrent memory as a research area. The contribution here would need to concern reliable task-state semantics or causal control, not merely adding a recurrent vector. citeturn538698search3
+## Revocation and task-switching under adversarial interference
+Construct trajectories that add a requirement, revise it, cancel it, switch tasks, and later return. Mix in quoted instructions, tool outputs, and one-shot requests that must not become standing obligations.
+Evaluate the exact live state at every decision, not just the last answer.
+Also distinguish immediate effects from whole-trajectory effects. The existing false-admission probes remove a row from the current recap while retaining the polluted prior history. That measures the current rendering effect, not what would have happened had the false admission never occurred. For that question, rerun the trajectory from the intervention point. citeturn671334view0
+This is where a persistent control system could demonstrate something more useful than instruction emphasis.
+## Joint success and harm evaluation
+Make the primary endpoint successful task completion while respecting the correct active requirements.
+Report format compliance, exact state, stale-rule execution, unauthorized transitions, functional correctness, truncation, latency, and memory as separate diagnostics.
+Use hidden executable tests for coding tasks. For document or workflow tasks, use independent task-specific verification rather than relying entirely on a model judge.
+Pair conditions by scenario and estimate uncertainty at the episode level. Multiple rules, turns, and outputs from the same episode are correlated. They are not interchangeable with independent test cases.
+Predefine a minimum worthwhile benefit and an acceptable regression margin. A positive mean utility score should not silently license a large increase in failures on an important task family.
+## Genuine distribution shift and scale
+Hold out entire constraint families, interaction structures, application domains, and wording patterns. Test multiple training seeds and more than one model architecture.
+Include a capable larger open-weight model and a strong external-model baseline using the same explicit state renderer. The latter cannot test the same internal actuator, but it can answer whether the proposed system is practically competitive.
+For frontier relevance, the result needs to survive stronger base models and stronger baselines. Repairing a small model’s easily recoverable formatting failures can be useful engineering without demonstrating a general missing component of intelligence.
+# Recommendation
+Keep the explicit register, provenance model, intervention hooks, causal ablations, and functional evaluators.
+Keep learned attention steering as an optional experimental branch.
+Do not build the next iteration around the assumption that a more sophisticated wave or recurrent controller must resolve the current failures. First establish correct state, sufficient base capability, a stable execution interface, and a strong render-only baseline.
+The most defensible research objective is
+> Learn when and where to intervene in a model’s computation so that it executes the correct evolving task state better than explicit state rendering alone, at matched cost and without unacceptable competence loss.
+A successful result would be a meaningful contribution to reliable agents and learned inference-time control. A clean negative result would also be valuable - it could show that the dominant bottleneck is state admission, task capability, or interface design rather than attention allocation.
+https://github.com/bmarti44/stencil-llm","user",{},{"_113":1861,"_120":1889,"_54":1864,"_123":1890,"_125":126,"_128":129,"_130":1891,"_132":133},"4a17073d-88be-4588-9ef4-178018aa2ca6",[1851],{"_1821":1884,"_130":1897},{"_1816":1817,"_1818":1895},{"_1834":34,"_1892":-5,"_1893":34,"_175":10,"_1894":34},"user_context_message_data","is_user_system_message","is_redacted",[1896],"Original custom instructions no longer available",{},[1861],{"_113":1887,"_118":2748},{"_113":1861,"_114":2741,"_116":1887,"_118":2742},{"_113":1851,"_114":2729,"_116":1861,"_118":2730},{"_113":1841,"_114":2722,"_116":1851,"_118":2723},{"_113":1827,"_114":2715,"_116":1841,"_118":2716},{"_113":117,"_114":2708,"_116":1827,"_118":2709},{"_113":81,"_114":1906,"_116":117,"_118":1907},{"_113":81,"_120":1908,"_54":122,"_123":1909,"_125":126,"_127":34,"_128":129,"_130":1910,"_132":133,"_134":135},[],{"_1821":1822,"_130":2707},{"_1816":1817,"_1818":2706},{"_136":1911,"_138":34,"_139":1912,"_141":1913,"_62":1914,"_144":1915,"_146":1916,"_148":67,"_149":34,"_150":151,"_152":153,"_154":155,"_156":155,"_157":158,"_159":160,"_161":162,"_163":67,"_66":67,"_164":165,"_166":34,"_167":168,"_169":1917,"_171":172,"_173":1918,"_175":10},{"_50":1812,"_1813":2705},[2371,2372,2373,2374,2375,2376,2377,2378,2379,2380,2381,2382,2383,2384,2385,2386,2387,2388,2389,2390,2391,2392,2393,2394,2395,2396,2397,2398,2399,2400,2401,2402,2403,2404,2405],[1919,1920,1921,1922,1923,1924,1925,1926,1927,1928,1929,1930,1931,1932,1933,1934,1935,1936,1937,1938,1939,1940,1941,1942,1943,1944,1945,1946,1947,1948,1949,1950,1951,1952,1953,1954,1955,1956,1957,1958,1959,1960,1961,1962,1963,1964,1965,1966,1967,1968,1969,1970,1971,1972,1973],[185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223,224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255,256,257,258,259,260,261,262,26
