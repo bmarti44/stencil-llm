@@ -1,0 +1,38 @@
+{
+  "returncode": 0,
+  "stdout": "{\"passed\": 7, \"cases\": [{\"accept\": true, \"expected\": true}, {\"accept\": true, \"expected\": true}, {\"accept\": true, \"expected\": true}, {\"accept\": true, \"expected\": true}, {\"accept\": false, \"expected\": false}, {\"accept\": false, \"expected\": false}, {\"accept\": false, \"expected\": false}]}\n",
+  "stderr": "",
+  "payload": {
+    "grammar": "root ::= \"[\" ws (item (ws \",\" ws item)*)? ws \"]\"\nws ::= [ \\n\\t\\r]*\nstr ::= \"\\\"\" ([^\"\\\\\\x00-\\x1f] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4}))* \"\\\"\"\nop ::= \"\\\"add\\\"\" | \"\\\"supersedes\\\"\" | \"\\\"cancels\\\"\" | \"\\\"completes\\\"\" | \"\\\"reinstates\\\"\" | \"\\\"none\\\"\"\ntarget ::= str | \"null\"\nspan ::= \"\\\"\" (s0 | s1 | s2 | s3 | s4 | s5 | s6 | s7 | s8 | s9 | s10 | s11 | s12 | s13 | s14 | s15 | s16 | s17 | s18 | s19 | s20 | s21 | s22 | s23 | s24 | s25 | s26 | s27 | s28 | s29 | s30 | s31 | s32 | s33) \"\\\"\"\nitem ::= \"{\" ws \"\\\"op\\\"\" ws \":\" ws op ws \",\" ws \"\\\"span\\\"\" ws \":\" ws span ws \",\" ws \"\\\"key\\\"\" ws \":\" ws str ws \",\" ws \"\\\"scope\\\"\" ws \":\" ws str ws \",\" ws \"\\\"kind\\\"\" ws \":\" ws str ws \",\" ws \"\\\"value\\\"\" ws \":\" ws str ws \",\" ws \"\\\"target_id\\\"\" ws \":\" ws target ws \"}\"\ns0 ::= \"K\" s1?\ns1 ::= \"e\" s2?\ns2 ::= \"e\" s3?\ns3 ::= \"p\" s4?\ns4 ::= \" \" s5?\ns5 ::= \"\u201c\" s6?\ns6 ::= \"b\" s7?\ns7 ::= \"l\" s8?\ns8 ::= \"u\" s9?\ns9 ::= \"e\" s10?\ns10 ::= \"\u201d\" s11?\ns11 ::= \" \" s12?\ns12 ::= \"l\" s13?\ns13 ::= \"a\" s14?\ns14 ::= \"b\" s15?\ns15 ::= \"e\" s16?\ns16 ::= \"l\" s17?\ns17 ::= \"s\" s18?\ns18 ::= \".\" s19?\ns19 ::= \"\\\\n\" s20?\ns20 ::= \"U\" s21?\ns21 ::= \"s\" s22?\ns22 ::= \"e\" s23?\ns23 ::= \" \" s24?\ns24 ::= \"\\\\\\\"\" s25?\ns25 ::= \"x\" s26?\ns26 ::= \"\\\\\\\"\" s27?\ns27 ::= \".\" s28?\ns28 ::= \" \" s29?\ns29 ::= \"\\\\\\\\\" s30?\ns30 ::= \"p\" s31?\ns31 ::= \"a\" s32?\ns32 ::= \"t\" s33?\ns33 ::= \"h\"",
+    "cases": [
+      {
+        "text": "[{\"op\": \"add\", \"span\": \"\u201cblue\u201d labels.\", \"key\": \"label\", \"scope\": \"global\", \"kind\": \"format\", \"value\": \"blue\", \"target_id\": null}]",
+        "accept": true
+      },
+      {
+        "text": "[{\"op\": \"add\", \"span\": \"Use \\\"x\\\".\", \"key\": \"label\", \"scope\": \"global\", \"kind\": \"format\", \"value\": \"blue\", \"target_id\": null}]",
+        "accept": true
+      },
+      {
+        "text": "[{\"op\": \"add\", \"span\": \"\\\\path\", \"key\": \"label\", \"scope\": \"global\", \"kind\": \"format\", \"value\": \"blue\", \"target_id\": null}]",
+        "accept": true
+      },
+      {
+        "text": "[{\"op\": \"add\", \"span\": \"labels.\\nUse\", \"key\": \"label\", \"scope\": \"global\", \"kind\": \"format\", \"value\": \"blue\", \"target_id\": null}]",
+        "accept": true
+      },
+      {
+        "text": "[{\"op\": \"add\", \"span\": \"Keep labels.\", \"key\": \"label\", \"scope\": \"global\", \"kind\": \"format\", \"value\": \"blue\", \"target_id\": null}]",
+        "accept": false
+      },
+      {
+        "text": "[{\"op\": \"add\", \"span\": \"\", \"key\": \"label\", \"scope\": \"global\", \"kind\": \"format\", \"value\": \"blue\", \"target_id\": null}]",
+        "accept": false
+      },
+      {
+        "text": "[{\"op\": \"add\", \"span\": \"BLUE\", \"key\": \"label\", \"scope\": \"global\", \"kind\": \"format\", \"value\": \"blue\", \"target_id\": null}]",
+        "accept": false
+      }
+    ]
+  }
+}
