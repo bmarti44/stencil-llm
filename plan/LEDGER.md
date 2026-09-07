@@ -1263,3 +1263,10 @@ Fit-on none; development-on eight DEV episodes only; evaluated-on64 frozen autho
 
 2026-09-07 — STATE: LARGER-TEST COMPLETE / FAIL; FINAL ARTIFACT COMMIT NEXT, NO INFERENCE PENDING.
 Freeze95fa7fc0, all3328/3328 records,64R/N/T+16Q episodes x16. Delivery64/64 vs24/64,40–0,Holm2.728484105e-12; format24–9,Holm.013530987; indent9–5,Holm.211975098 (strict missing-write gain−.0703125 vs conditional+.037037). Registered FAIL: breakage20R/14N, excess6>1;R-only8,N-only2,both12,neither42. CPU276 scheduled compact controls/35historical hashes exact;40fixed R cross-container requests0divergence (limited scope). GPU24660.900707/41400s,own container/flag gone. All3328 raw/HTTP/hash receipts verified,4960 local files,3344 receipt hashes, independent exact sign/Holm audit agrees. Frozen source/pin unchanged. Report-only joint-final uses pilot7 applicable-trait rubric R12/N5/T14/Q0; frozen all-raw-satisfied field preserved, no verdict impact. Final explicit-path commit replaces partial checkpoint copies with complete records; historical checkpoint commits remain. No fit, data/bench, rerun, process signals or push.
+
+2026-09-07 — STATE: SLAB2 AMENDMENT6 REGISTERED BEFORE CODE. Brian authorizes
+scoped edits, one syntax repair, DEV8 gate then fresh64 successor. Read frozen
+RESULTS/addendum and both reviews; archived PROTOCOL/PLAN located (root absent).
+No wrapper lock held. Amendment5 FAIL stands, no frozen-byte edits. Fit-on none;
+DEV-only calibration; prior failure audits explicitly inform protocol design.
+Next: successor modules/tests, CPU green commit, pilot8 frozen isolated checkout.
