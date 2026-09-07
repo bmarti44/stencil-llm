@@ -5524,3 +5524,8 @@ Own container/flag removed; DEV-only, fit none, no eval/bench reads, host signal
 BF16 Qwen3-4B r16/a32 attention+MLP smoke56.692s;6 discarded pilot updates project fit/save22.32min<=25;8 pre-fit HF/schema DEV calls project evaluation38.01min>22.
 Registered pre-fit stop: no fixed fit/adapter/heldout4/SETUP look; fitted quality and seven-family tables unmeasured, no automatic refit or shipping change.
 GPU86.901/3600s;5 CPU tests+3 grammar witnesses+2176 gold checks+8 parser replays pass; base hashes unchanged, own flag absent; explicit commits/no signals/push.
+
+2026-09-07 — Check49 (gpt-6-astra): NO-GO; amended two rank8 q/v LoRAs,128 authored checked examples/mode,32 steps fit/save14.196s; recipe166598bb, full results a0bba819.
+272 calls: M/T/X all-active0/0/0; M cold10/12, SWITCH language0/12,10 paired executable losses (5 wins), CLEAR4/12 with5 staleJS; same-history OFF12/12 exact.
+Trunk tensor/file hashes unchanged; both adapters11.30MiB outsidegit at focus-lora-4b/{python,js}; main850.757GPU-s;272 CPU score/180 history replays and5 tests pass.
+Cache-matched16prompt parity audit pending other Stencil flag; full-prefix OFF/pristine16/16 logits exact, cross-path cached-token15/16 discrepancy disclosed; no signals/push/automatic follow-up.

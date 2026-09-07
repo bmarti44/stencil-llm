@@ -594,3 +594,7 @@ GPU4869.993/5400s;512 exact CPU replays and680 local-file hashes pass;1.76MB rec
 48. **COST-INELIGIBLE — Qwen3-4B generative updater LoRA screen** ([check48](check48/README.md)): audited2,048 FIT +128 scenario-held DEV frozen9ad01d77; pass3 Opus patches and systematic span/value repairs,90 evaluation-derived Astra2 rows excluded.
    Load/smoke56.692s; warmed batch4 steps1.918–2.202s project fit/save22.32min<=25. HF greedy/schema batch8 DEV16.856s projects full evaluation38.01min>22 (conservative longest-output pilot, not representative latency).
    Registered pre-fit cost stop: no fixed fit/adapter, no heldout4 or SETUP look; quality/family tables unmeasured. GPU86.901/3600s;5 tests+3 grammar witnesses+8 saved-parser replays pass, base hashes unchanged; own flag removed, no signals/push.
+
+49. **NO-GO — two-LoRA persistent focus, Qwen3-4B** ([check49](check49/README.md)): amended rank8 q/v,128 authored examples/mode,one epoch; setup Python/JS/default each8/8; fit/save14.196s.
+   Full272 calls: M/T/X all-active0/0/0 of12, M/T SWITCH language0/12; M cold10/12,10 executable losses versus T (5 wins), CLEAR4/12 with5 staleJS. All12 same-history OFF replays exact; trunk hashes unchanged.
+   Main850.757GPU-s; both final adapters retained outsidegit (11.30MiB). CPU272 score/180 history replays exact. Supplemental16-prompt cache-matched parity audit queued behind another Stencil flag; original full-prefix OFF/pristine logits16/16 exact, cross-path cached-token reconstruction15/16 disclosed. No follow-up authorization/push.
