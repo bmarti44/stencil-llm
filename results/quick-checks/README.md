@@ -555,3 +555,17 @@ Composition pilot3 ([composition-pilot-3](composition-pilot-3/README.md)): **INE
    Qualified vLLM D=0 across72 completed gate calls/three starts; main27.958tok/s; registered R/N/T projection floor33.933h>12, O/HF cost unmeasured.
    Lexical swap round-zero screen2/8 required (eligible2/2), FAIL; max main context31949; mask trigger not established; no hidden capture, HF input hashes listed.
    8796.278/9000GPU-s across four starts;460+8 exact CPU replays,34 DEV-only tests; owned containers/flag removed; no fitting/eval/bench reads/signals/push.
+
+## Composition pilot 4 (2026-09-06) — INELIGIBLE
+
+[Report and artifacts](composition-pilot-4/README.md). Amendment3 CPU regression
+on460 literal DEV outputs: R53->101/160 executed, N49->77/160, T65->84/140;
+caps unchanged193. GPU479/480 required calls: R108/159 executed, N109/160,
+T131/160; caps51/51/29. R final0/7 complete (one context-overflow episode),
+indent2/8; all-arm execution/truncation gates fail. D=0 across64 qualification
+calls including two cold reverse C4 replays.24.731tok/s schedule; registered
+projection floor38.547h>12 even with O cost zero; O conservatively budget-skipped,
+HF hidden recovery deferred.6831.011/9000GPU-s across original and exact-context
+continuation starts. Fixed lexical trait swap applied on CPU;32 witnesses pass,
+swapped GPU unrun.50 tests and479 exact replays pass; small record shards
+committed, HTTP/oversized journals local with hashes. DEV only; no fitting/push.

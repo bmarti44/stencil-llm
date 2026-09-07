@@ -144,14 +144,15 @@ def main():
         e['metrics']['allocated_schedule_gpu_seconds']=rate(e['metrics']['output_tokens'],aggregate)
     for s in per_arm.values():
         s['allocated_schedule_gpu_seconds']=rate(s['output_tokens'],aggregate)
-    perarm_tokens={a:max((e['metrics']['output_tokens'] for e in endpoints if e['arm']==a and e['complete']),default=None) for a in 'RNTO'}
+    perarm_tokens={a:max((e['metrics']['output_tokens'] for e in endpoints if e['arm']==a and e['metrics']['calls']),default=None) for a in 'RNTO'}
     prior_paths=['composition-pilot/run.json','composition-pilot-2/run.json','vllm-qual/lifecycle.json']
     prior={s:json.loads((OUT.parent/s).read_text())['gpu_held_seconds'] for s in prior_paths}
     prior['composition-pilot-3/all-starts']=json.loads((OUT.parent/'composition-pilot-3/summary.json').read_text())['cost']['total_pilot3_gpu_seconds']
     pilot4_total=run['gpu_held_seconds']
     initial=json.loads((OUT.parent/'vllm-qual/initial-lifecycle.json').read_text())
     prior['vllm-qual/initial-lifecycle.json']=initial['gpu_held_seconds']
-    weighted=64*(perarm_tokens['R']+perarm_tokens['N'])+16*(perarm_tokens['T']+perarm_tokens['O']) if all(v is not None for v in perarm_tokens.values()) else None
+    complete_cost_coverage=all(e['complete'] for e in endpoints)
+    weighted=64*(perarm_tokens['R']+perarm_tokens['N'])+16*(perarm_tokens['T']+perarm_tokens['O']) if complete_cost_coverage and all(v is not None for v in perarm_tokens.values()) else None
     projected=(sum(prior.values())+run['gpu_held_seconds']+run.get('load_seconds',0)+1.25*weighted/aggregate)/3600 if weighted and aggregate else None
     known_weighted=64*(perarm_tokens['R']+perarm_tokens['N'])+16*perarm_tokens['T'] if all(perarm_tokens[a] is not None for a in 'RNT') else None
     projection_floor=(sum(prior.values())+run['gpu_held_seconds']+run.get('load_seconds',0)+1.25*known_weighted/aggregate)/3600 if known_weighted and aggregate else None
@@ -197,13 +198,15 @@ def main():
         R_final_success=r_success,R_opportunity_kinds=eligible_kinds,run=run,determinism=gate,
         R_O_repeat=dict(calls=len(comparison),same_prompt=sum(c['prompt_identical'] for c in comparison),same_output=sum(c['output_identical'] for c in comparison)),
         cost=dict(aggregate_tok_s=aggregate,stage_wall_seconds=wall,tokens=total_tokens,prior_seconds=prior,
-            max_episode_tokens=perarm_tokens,weighted_future_tokens=weighted,served_projection_hours=projected,
+            max_episode_tokens=perarm_tokens,complete_cost_coverage=complete_cost_coverage,observed_partial_tokens_are_lower_bounds=True,weighted_future_tokens=weighted,served_projection_hours=projected,
             known_RNT_projection_floor_hours=projection_floor,HF_recovery_seconds=None,full_projection_hours=None,charged_pilot_hours=pilot4_total/3600,total_pilot4_gpu_seconds=pilot4_total),
         DEV_mask_trigger=dict(met=bool(trigger),kinds=trigger,requires_state_audit=True),
         unsubmitted_required=sum(x['required'] for x in unsubmitted),unsubmitted_optional=sum(not x['required'] for x in unsubmitted),
         output_band='100-300 diagnostic, unchanged',backend='qualified vLLM; package path outcome-unvalidated')
     trait_summary_path=OUT/'trait-swap/summary.json'
     if trait_summary_path.exists():summary['trait_swap']=json.loads(trait_summary_path.read_text())
+    disposition=OUT/'trait-swap-disposition.json'
+    if disposition.exists():summary['trait_swap_cpu']=json.loads(disposition.read_text())
     p.write(OUT/'summary.json',summary)
     # Keep preregistration byte-for-byte as its own artifact, before updating README.
     prereg=OUT/'prewritten.md'
@@ -211,7 +214,7 @@ def main():
     projection_text=f'{projected:.3f}' if projected is not None else 'UNAVAILABLE'
     floor_text=f'{projection_floor:.3f}' if projection_floor is not None else 'UNAVAILABLE'
     body='# Composition pilot 4 — '+summary['reading']+'\n\n'
-    body+=f"Completed {len(rows)} calls; R final success **{r_success}/8**. "
+    body+=f"Completed {len(rows)} calls; R final success **{r_success}/8 required episodes**, with **{sum(e['complete'] for e in endpoints if e['arm']=='R')} complete**. "
     body+=f"Round-0 R indent **{c['compliant']}/{c['required']} required responses**; strictly executed/parsed eligible subset **{c['compliant_edits']}/{c['eligible_edits']}**; diagnostic emitted JSON-prefix code **{c['raw_prefix_compliant_edits']}/{c['raw_prefix_eligible_edits']}**. Prefix inspection never repairs or executes a rejected response. Determinism **D={gate['D']}**, {gate['calls']} calls across completed starts.\n\n"
     body+='Failed/unmeasured gates: '+ '; '.join(failures)+'.\n\n'
     body+='| Arm | Calls executed | Caps | Final success | Stale execution | Wrong skill | Breakage | Decode tok/s | s/call |\n|---|---:|---:|---:|---:|---:|---:|---:|---:|\n'
@@ -239,7 +242,7 @@ def main():
         if m['calls']:
             body+=f"|{e['episode']}/{e['arm']}|{m['calls']}|{m['output_tokens']}|{m['decode_tok_s']:.3f}|{m['seconds_per_call']:.3f}|{m['allocated_schedule_gpu_seconds']:.3f}|\n"
     body+=f"\nMain-run measurements: determinism D={gate['D']}; maximum actual context {max((row['input_token_count'] for row in rows),default=0)} <=32256; executed-trait opportunities in at least two R episodes for kinds {eligible_kinds}. These do not override the failed gates.\n"
-    body+=f"\nActual fixed C4 schedule (including C2 long tails, HTTP, tools/checker and barriers) **{aggregate or 0:.3f} tok/s**. GPU-held **{pilot4_total:.3f}/9000s** (all starts), load **{run.get('load_seconds',0):.3f}s**. Served-only conservative projection **{projection_text} GPU-h**. Formula and all per-episode timing/token costs are in [summary.json](summary.json): prior spend + this run + measured reload +1.25 × [64(max R+max N tokens)+16(max O+max T tokens)] / measured aggregate rate. Max per-arm counts include32-round episodes. Overlapping request seconds are latency, not summed GPU cost. The known R/N/T contribution gives a registered-projection floor of **{floor_text}h** even setting O cost to zero; this is a lower bound on that conservative projection, not a complete workload forecast. HF recovery remains unmeasured; full check45-inclusive eligibility receives no unmeasured credit.\n"
+    body+=f"\nActual fixed C4 schedule (including C2 long tails, HTTP, tools/checker and barriers) **{aggregate or 0:.3f} tok/s**. GPU-held **{pilot4_total:.3f}/9000s** (all starts), load **{run.get('load_seconds',0):.3f}s**. Served-only conservative projection **{projection_text} GPU-h**. Formula and all per-episode timing/token costs are in [summary.json](summary.json): prior spend + this run + measured reload +1.25 × [64(max R+max N tokens)+16(max O+max T tokens)] / measured aggregate rate. Max per-arm counts include observed partial long episodes as lower bounds; a full served projection requires complete coverage of every arm. Overlapping request seconds are latency, not summed GPU cost. The known R/N/T contribution gives a registered-projection floor of **{floor_text}h** even setting O cost to zero; this is a lower bound on that conservative projection, not a complete workload forecast. HF recovery remains unmeasured; full check45-inclusive eligibility receives no unmeasured credit.\n"
     body+=f"\nDEV mask trigger **{'MET' if trigger else 'NOT ESTABLISHED'}**, kinds={trigger}; all four kinds and executed-prior-trait denominators are in summary. No masks enabled. T multi-function emitted responses under the amended parser (edit or replace; descriptive): {len(per_arm['T']['multi_function_reemissions'])} parseable responses (names listed in summary); capped malformed responses are counted as breakage, not silently repaired.\n"
     body+='\nRejected Python-literal boolean residues (outside quoted code strings): '+str({a:len(v['python_literal_bool_rejections']) for a,v in per_arm.items()})+'. These are CPU classifications of literal journaled outputs, not parser repairs.\n'
     body+='\nGold events drive R in DEV only; no fitting, evaluation episode construction or data/bench reads. **package path outcome-unvalidated**. Backend uses qualification image digest `sha256:3dbe092ec5b2cef63b6104d33fa75d6ce53a7870962529ada69f78bbbc38e776`, exact flags/env and request parameters in [registration.json](registration.json). Prior HF divergence5/64 (R1/16) stands; this pilot does not remeasure HF trajectories.\n'
@@ -251,6 +254,18 @@ def main():
         ts=summary['trait_swap']
         body+=f"\nConditional lexical style screen: **{ts['reading']}**, {ts['responses']}/8 compliant required responses, {ts['compliant_edits']}/{ts['eligible_executed_edits']} eligible executed edits. This is round-zero competence only and does not change pilot3 ineligibility. [Style records, CPU witnesses, audit and summary](trait-swap/README.md); full HF input hashes are in trait-swap/transcripts.jsonl. Its {ts['gpu_held_seconds']:.3f}s is included in the total above.\n"
     body+='\nValidation: [50 targeted DEV-only tests](validation-all-amendments.log), [96-call CPU smoke](smoke.json), the original qualification adapter EOS/cap checks. The final [CPU audit](audit.json) replays each saved actual prompt, controller state, output, execution and checker result and verifies backend identity, determinism, transcript hashes and cleanup. No full pytest suite or evaluation episodes were run.\n'
+    regression=json.loads((OUT/'regression.json').read_text())
+    body+='\nCPU literal-output regression (all460 pilot3 DEV responses through Executor.run/check; no regenerated model outputs):\n\n| Arm | Original executed | Amended executed | Unchanged caps | Violations L/S/F/P |\n|---|---:|---:|---:|---|\n'
+    for arm in 'RNT':
+        stat=regression['arms'][arm];viol='/'.join(str(stat['violation_'+k]) for k in KINDS)
+        body+=f"|{arm}|{stat['original_executed']}/{stat['calls']}|{stat['amended_executed']}/{stat['calls']}|{stat['caps']}|{viol}|\n"
+    body+='\nFull per-kind CPU regression and source SHA256s: [regression.json](regression.json). The old task strings are preserved, so all460 old format violations remain. This replay measures parser/executor changes, not counterfactual model trajectories.\n'
+    body+='\nThe first start stopped on a conservative estimate before R round30. The [registered exact-context continuation](continuation/README.md) restored all92 observations on CPU and submitted only unrun admissible calls. R DEV06 round31 was actually32490>32256 and remains unavailable; no history was trimmed. Both starts and repeated qualification checks are charged. Inference sources were committed before GPU at981658a8; continuation registration atb1a18d30; the first92-call checkpoint at244c701d.\n'
+    if summary.get('trait_swap_cpu',{}).get('applied'):
+        body+='\n**Registered trait swap applied afterwards on CPU; swapped GPU screen UNRUN.** R indentation2/8 triggers the fixed2/3/4 -> ALPHA/BETA/GAMMA docstring-prefix mapping. All8 transformed DEV manifests are frozen and32 positive/wrong/missing/capped witnesses pass through the actual loop/executor/checker; [CPU swap artifacts](trait-swap/README.md). No candidate search or fitting; original pilot4 outcomes stand.\n'
+    missed=sum(bool(detail(row)['execution']['executed']) and not row['attempted_tool_calls'] for row in rows)
+    body+=f"\nExecuted rate means responses with at least one actually executed tool, not necessarily a valid edit or successful task. The legacy strict-JSON attempted_tool_calls field is empty on {missed} executed responses accepted by the amended envelope parser; execution/tolerance records are authoritative. Raw outputs are preserved.\n"
+    body+='\nEvery pilot4 artifact committed by this task is <=10,000,000 bytes. [Artifact manifest](artifact-manifest.json) records byte sizes/SHA256s for committed shards and local HTTP/oversized journals. The exact primary journals are reconstructed by concatenating each phase’s records/*.jsonl shards in filename order. No streamed HTTP journal is added to git.\n'
     body+='\n[Prewritten registration](prewritten.md) follows unchanged.\n\n'+prereg.read_text()
     (OUT/'README.md').write_text(body)
     print(json.dumps({k:summary[k] for k in ('reading','failures','R_final_success','cost')},indent=2))

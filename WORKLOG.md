@@ -5467,3 +5467,10 @@ Qualified vLLM raw-ID loop, D=0 over72 completed gate calls; main27.958tok/s; co
 Registered lexical swap round-zero2/8 required (eligible2/2), FAIL;32 CPU witnesses,8 exact replays; original460 exact replays and34 DEV-only tests pass.
 8796.278/9000GPU-s, four starts including hash-writer interruption and exact-context continuation; max31949; no hidden capture, full HF transcript hashes listed.
 Gold R DEV-only; no fitting/eval/bench reads/host signals/push; owned containers/flag removed; scoped report, journals/logs and audits in results/quick-checks/composition-pilot-3/.
+
+2026-09-06 — composition pilot4 (astra): INELIGIBLE; Amendment3 CPU fixes registered before code;50 targeted tests pass.
+Literal pilot3 DEV replay460: execution R53->101/160,N49->77/160,T65->84/140;193 caps unchanged.
+GPU479/480 required calls; R108/159,N109/160,T131/160 executed; caps51/51/29; R final0/7 complete, one true context overflow.
+R round0 indent2/8; registered ALPHA/BETA/GAMMA swap applied afterwards on CPU,32 witnesses pass; swapped GPU unrun.
+D=0/64 checks incl cold reverse C4;24.731tok/s; projection floor38.547h>12; O budget-skipped, hidden recovery deferred;6831.011/9000GPU-s.
+479 exact CPU replays pass; own containers/flag removed; <=10MB shards plus local HTTP hash manifests; DEV-only/no fitting/bench/host signals/push.

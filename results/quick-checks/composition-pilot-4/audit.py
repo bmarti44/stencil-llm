@@ -87,9 +87,10 @@ def main():
                 assert h['contains_system'] and h['ids']==actual and h['sha256']==runner.ids_hash(actual)
 
     baseline={r['index']:r['output_token_ids'] for r in lines(OUT.parent/'vllm-qual/records.jsonl') if r['pass_name']=='b1_first'}
-    reverse=[h for h in http if h['pass_name']=='cold_reverse_c4']
-    assert len(reverse)==8
-    assert all(h['output_token_ids']==baseline[h['index']] for h in reverse)
+    for phase in phases:
+        reverse=[h for h in lines(phase/'http/records.jsonl') if h['pass_name']=='cold_reverse_c4']
+        assert len(reverse)==8
+        assert all(h['output_token_ids']==baseline[h['index']] for h in reverse)
     original_cold={h['index']:h['output_token_ids'] for h in lines(OUT/'http/records.jsonl') if h['pass_name']=='b1_cold'}
     for phase in phases:
         if '--partial' in sys.argv and not (phase/'determinism.json').exists():continue

@@ -21,7 +21,7 @@ def main():
     for path in sorted(OUT.rglob('*')):
         if not path.is_file() or '__pycache__' in path.parts or path.name=='artifact-manifest.json':continue
         rel=path.relative_to(OUT)
-        local=('http' in rel.parts or path.stat().st_size>LIMIT or path.name=='records.jsonl' or 'c4' in rel.parts)
+        local=(('http' in rel.parts and path.suffix!='.prom') or path.stat().st_size>LIMIT or path.name in ('records.jsonl','RUNNING.flag') or 'c4' in rel.parts)
         manifest.append(dict(path=str(rel),size=path.stat().st_size,sha256=hashlib.sha256(path.read_bytes()).hexdigest(),commit=not local))
     (OUT/'artifact-manifest.json').write_text(json.dumps(dict(files=manifest,limit_bytes=LIMIT,record_shards='records/*.jsonl are exact sequential bytes of local records.jsonl; HTTP and workspaces remain local'),indent=2)+'\n')
 

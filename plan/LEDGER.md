@@ -1151,3 +1151,10 @@ source/science changes, all starts<=9000s. Register continuation before code.
 2026-09-06 — dense-focus-research WRITE-AHEAD (gpt-6-astra): user-authorized CPU/web report only. Archived PLAN/PROTOCOL and current STATE read; root governing paths are archived. Lock owner/parent inspected: pilot4 continuation, not review/coder wrapper; its files untouched. No training, installs, models, GPU or data/bench access. Fit proposals require new authored development and separate frozen evaluation families, no benchmark-derived prompts/responses. Research dense 27B vectors, SAEs, adapters, prefixes, memory and negative evidence; output results/dense-focus-research-astra.md. No launch or shipping decision from this memo.
 
 2026-09-06 — dense-focus-research COMPLETE (gpt-6-astra): results/dense-focus-research-astra.md covers six mechanism families with 45 opened primary links, architecture/cache implications, ranked checks and prewritten GO bars. Recommend only the two-LoRA 4B screen now; learned prefix and transferred Qwen-Scope direction are alternatives, not an automatic sequence. Actual 27B efficacy requires its own test; all one-hour feasibility figures are conditional estimates. Existing extracted-vector/neuron closures remain. CPU arithmetic, local-link and whitespace checks passed; no installs, model/GPU launches or data/bench access. Report and ledger only; no push.
+
+2026-09-06 — STATE: composition-pilot-4 COMPLETE / INELIGIBLE.479 required DEV
+calls observed; R DEV06 r31 actual32490>32256 unrun. Execution108/159,109/160,
+131/160; caps51/51/29. R final0/7 completed, indent2/8; CPU fixed lexical swap
+applied with32 witnesses, no swapped GPU.64 D=0 checks;6831.011/9000GPU-s;
+registered projection floor38.547h.50 tests/479 exact replays pass. Own containers
+and flag removed; local HTTP/oversized hashes, <=10MB shards, explicit commit/no push.
