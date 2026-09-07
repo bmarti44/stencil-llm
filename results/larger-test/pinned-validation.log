@@ -1,0 +1,499 @@
+.........F...........FF.FFFFFF..FF..x.                                   [100%]
+=================================== FAILURES ===================================
+_______________ test_pilot7_actual_driver_and_artifact_consumer ________________
+
+tmp_path = PosixPath('/tmp/pytest-of-bmarti44/pytest-156/test_pilot7_actual_driver_and_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0xedfb1a7b41d0>
+
+    def test_pilot7_actual_driver_and_artifact_consumer(tmp_path, monkeypatch):
+        import importlib
+        import time
+    
+        monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "scripts"))
+        driver = importlib.import_module("composition_pilot7")
+        monkeypatch.setattr(driver, "OUT", tmp_path)
+        monkeypatch.setattr(driver, "LOCAL", tmp_path / "local")
+        monkeypatch.setattr(driver, "START", time.time())
+        monkeypatch.setattr(
+            driver, "factory", lambda e, a, i, phase="main": driver.d.stub_factory(e, a, i)
+        )
+>       driver.gate()
+
+/tmp/stencil-larger5-pinned/tests/test_focus_slab2_amendment4.py:249: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/stencil-larger5-pinned/scripts/composition_pilot7.py:232: in gate
+    d.run_lane(LOCAL / "capture" / e.episode_id / "R", e, "R", capture)
+/tmp/stencil-larger5-pinned/scripts/composition_pilot5.py:159: in run_lane
+    output, _ = generate_once(session, messages, decode)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/stencil-larger5-pinned/src/stencil/focus/loop.py:273: in generate_once
+    record["raw_token_ids"] = [list(request.encode(m.text)) for m in messages]
+                                    ^^^^^^^^^^^^^^^^^^^^^^
+/tmp/stencil-larger5-pinned/src/stencil/focus/slab.py:133: in qwen_encode
+    return tuple(qwen_tokenizer().encode(text, add_special_tokens=False).ids)
+                 ^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    @lru_cache(maxsize=1)
+    def qwen_tokenizer():
+        from tokenizers import Tokenizer
+    
+>       return Tokenizer.from_file(str(TOKENIZER_PATH))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Exception: No such file or directory (os error 2)
+
+/tmp/stencil-larger5-pinned/src/stencil/focus/slab.py:129: Exception
+__________________ test_actual_runner_records_before_summary ___________________
+
+tmp_path = PosixPath('/tmp/pytest-of-bmarti44/pytest-156/test_actual_runner_records_bef0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0xedfb1a7b5f10>
+
+    def test_actual_runner_records_before_summary(tmp_path, monkeypatch):
+        monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "scripts"))
+        runner = importlib.import_module("larger_test")
+        monkeypatch.setattr(runner, "OUT", tmp_path)
+        monkeypatch.setattr(runner.p, "LOCAL", tmp_path / "local")
+        monkeypatch.setattr(runner.p, "factory", runner.d.stub_factory)
+        episodes, _, q = larger()
+        # Synthetic IDs renamed only for collector glob, DEV source still explicit.
+        episodes = [
+            replace(e, episode_id=f"slab2-eval-{i:02}") for i, e in enumerate(episodes)
+        ]
+        registration = dict(
+            q_ids=[e.episode_id for e in episodes[:16]],
+>           episode_hashes={e.episode_id: e.manifest()["episode_sha256"] for e in episodes},
+                                          ^^^^^^^^^^^^
+            schedule=[dict(id=0, arm="R", ids=[e.episode_id for e in episodes[:4]])],
+            replay_after_group=99,
+        )
+
+/tmp/stencil-larger5-pinned/tests/test_focus_slab2_amendment5.py:93: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/stencil-larger5-pinned/src/stencil/focus/slab2.py:144: in manifest
+    tokenizer=tokenizer_manifest(),
+              ^^^^^^^^^^^^^^^^^^^^
+/tmp/stencil-larger5-pinned/src/stencil/focus/slab.py:139: in tokenizer_manifest
+    "sha256": hashlib.sha256(TOKENIZER_PATH.read_bytes()).hexdigest(),
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/uv/python/cpython-3.12.13-linux-aarch64-gnu/lib/python3.12/pathlib.py:1019: in read_bytes
+    with self.open(mode='rb') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/tmp/stencil-larger5-pinned/models/qwen3-30b-a3b-hf/tokenizer.json')
+mode = 'rb', buffering = -1, encoding = None, errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/tmp/stencil-larger5-pinned/models/qwen3-30b-a3b-hf/tokenizer.json'
+
+../.local/share/uv/python/cpython-3.12.13-linux-aarch64-gnu/lib/python3.12/pathlib.py:1013: FileNotFoundError
+___________________ test_vllm_truncation_through_real_driver ___________________
+
+tmp_path = PosixPath('/tmp/pytest-of-bmarti44/pytest-156/test_vllm_truncation_through_r0')
+
+    def test_vllm_truncation_through_real_driver(tmp_path):
+        d = driver()
+        e = s.generate_episode()
+        requests = []
+    
+        def factory(episode, arm, turn):
+            text = s.reference(episode, turn)
+            ids = list(s.qwen_encode(text))
+            if turn:
+                ids += list(s.qwen_encode("<|im_end|>"))
+    
+            def transport(payload):
+                requests.append(payload)
+                return {
+                    "choices": [
+                        {
+                            "text": text,
+                            "token_ids": ids,
+                            "finish_reason": "length" if turn == 0 else "stop",
+                        }
+                    ],
+                    "usage": {"completion_tokens": len(ids)},
+                }
+    
+            return d.VLLMDecoder("http://unused/v1", "stub", transport)
+    
+>       lane = d.run_lane(tmp_path / "lane", e, "R", factory)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/tmp/stencil-larger5-pinned/tests/test_focus_slab2_driver.py:48: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/stencil-larger5-pinned/scripts/composition_pilot5.py:159: in run_lane
+    output, _ = generate_once(session, messages, decode)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/stencil-larger5-pinned/src/stencil/focus/loop.py:273: in generate_once
+    record["raw_token_ids"] = [list(request.encode(m.text)) for m in messages]
+                                    ^^^^^^^^^^^^^^^^^^^^^^
+/tmp/stencil-larger5-pinned/src/stencil/focus/slab.py:133: in qwen_encode
+    return tuple(qwen_tokenizer().encode(text, add_special_tokens=False).ids)
+                 ^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    @lru_cache(maxsize=1)
+    def qwen_tokenizer():
+        from tokenizers import Tokenizer
+    
+>       return Tokenizer.from_file(str(TOKENIZER_PATH))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Exception: No such file or directory (os error 2)
+
+/tmp/stencil-larger5-pinned/src/stencil/focus/slab.py:129: Exception
+_______________ test_vllm_stop_without_terminal_id_raises[ids0] ________________
+
+ids = [42]
+
+    @pytest.mark.parametrize("ids", [[42], [151645, 42], []])
+    def test_vllm_stop_without_terminal_id_raises(ids):
+        d = driver()
+        adapter = d.VLLMDecoder(
+            "http://unused/v1",
+            "stub",
+            lambda payload: {
+                "choices": [{"text": "reply", "token_ids": ids, "finish_reason": "stop"}],
+                "usage": {"completion_tokens": len(ids)},
+            },
+        )
+        with pytest.raises(ValueError, match="stop without terminal EOS token"):
+>           adapter(SimpleNamespace(prompt_ids=(1,)))
+
+/tmp/stencil-larger5-pinned/tests/test_focus_slab2_driver.py:106: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/stencil-larger5-pinned/scripts/composition_pilot5.py:69: in __call__
+    s.qwen_encode(token)[0] for token in ("<|im_end|>", "<|endoftext|>")
+    ^^^^^^^^^^^^^^^^^^^^
+/tmp/stencil-larger5-pinned/src/stencil/focus/slab.py:133: in qwen_encode
+    return tuple(qwen_tokenizer().encode(text, add_special_tokens=False).ids)
+                 ^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    @lru_cache(maxsize=1)
+    def qwen_tokenizer():
+        from tokenizers import Tokenizer
+    
+>       return Tokenizer.from_file(str(TOKENIZER_PATH))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Exception: No such file or directory (os error 2)
+
+/tmp/stencil-larger5-pinned/src/stencil/focus/slab.py:129: Exception
+_______________ test_vllm_stop_without_terminal_id_raises[ids1] ________________
+
+ids = [151645, 42]
+
+    @pytest.mark.parametrize("ids", [[42], [151645, 42], []])
+    def test_vllm_stop_without_terminal_id_raises(ids):
+        d = driver()
+        adapter = d.VLLMDecoder(
+            "http://unused/v1",
+            "stub",
+            lambda payload: {
+                "choices": [{"text": "reply", "token_ids": ids, "finish_reason": "stop"}],
+                "usage": {"completion_tokens": len(ids)},
+            },
+        )
+        with pytest.raises(ValueError, match="stop without terminal EOS token"):
+>           adapter(SimpleNamespace(prompt_ids=(1,)))
+
+/tmp/stencil-larger5-pinned/tests/test_focus_slab2_driver.py:106: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/stencil-larger5-pinned/scripts/composition_pilot5.py:69: in __call__
+    s.qwen_encode(token)[0] for token in ("<|im_end|>", "<|endoftext|>")
+    ^^^^^^^^^^^^^^^^^^^^
+/tmp/stencil-larger5-pinned/src/stencil/focus/slab.py:133: in qwen_encode
+    return tuple(qwen_tokenizer().encode(text, add_special_tokens=False).ids)
+                 ^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    @lru_cache(maxsize=1)
+    def qwen_tokenizer():
+        from tokenizers import Tokenizer
+    
+>       return Tokenizer.from_file(str(TOKENIZER_PATH))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Exception: No such file or directory (os error 2)
+
+/tmp/stencil-larger5-pinned/src/stencil/focus/slab.py:129: Exception
+_______________ test_vllm_stop_without_terminal_id_raises[ids2] ________________
+
+ids = []
+
+    @pytest.mark.parametrize("ids", [[42], [151645, 42], []])
+    def test_vllm_stop_without_terminal_id_raises(ids):
+        d = driver()
+        adapter = d.VLLMDecoder(
+            "http://unused/v1",
+            "stub",
+            lambda payload: {
+                "choices": [{"text": "reply", "token_ids": ids, "finish_reason": "stop"}],
+                "usage": {"completion_tokens": len(ids)},
+            },
+        )
+        with pytest.raises(ValueError, match="stop without terminal EOS token"):
+>           adapter(SimpleNamespace(prompt_ids=(1,)))
+
+/tmp/stencil-larger5-pinned/tests/test_focus_slab2_driver.py:106: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/stencil-larger5-pinned/scripts/composition_pilot5.py:69: in __call__
+    s.qwen_encode(token)[0] for token in ("<|im_end|>", "<|endoftext|>")
+    ^^^^^^^^^^^^^^^^^^^^
+/tmp/stencil-larger5-pinned/src/stencil/focus/slab.py:133: in qwen_encode
+    return tuple(qwen_tokenizer().encode(text, add_special_tokens=False).ids)
+                 ^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    @lru_cache(maxsize=1)
+    def qwen_tokenizer():
+        from tokenizers import Tokenizer
+    
+>       return Tokenizer.from_file(str(TOKENIZER_PATH))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Exception: No such file or directory (os error 2)
+
+/tmp/stencil-larger5-pinned/src/stencil/focus/slab.py:129: Exception
+_________________ test_vllm_stop_separates_terminal_id[151645] _________________
+
+terminal_id = 151645
+
+    @pytest.mark.parametrize("terminal_id", [151645, 151643])
+    def test_vllm_stop_separates_terminal_id(terminal_id):
+        d = driver()
+        adapter = d.VLLMDecoder(
+            "http://unused/v1",
+            "stub",
+            lambda payload: {
+                "choices": [
+                    {
+                        "text": "reply",
+                        "token_ids": [42, terminal_id],
+                        "finish_reason": "stop",
+                    }
+                ],
+                "usage": {"completion_tokens": 2},
+            },
+        )
+>       result = adapter(SimpleNamespace(prompt_ids=(1,)))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/tmp/stencil-larger5-pinned/tests/test_focus_slab2_driver.py:126: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/stencil-larger5-pinned/scripts/composition_pilot5.py:69: in __call__
+    s.qwen_encode(token)[0] for token in ("<|im_end|>", "<|endoftext|>")
+    ^^^^^^^^^^^^^^^^^^^^
+/tmp/stencil-larger5-pinned/src/stencil/focus/slab.py:133: in qwen_encode
+    return tuple(qwen_tokenizer().encode(text, add_special_tokens=False).ids)
+                 ^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    @lru_cache(maxsize=1)
+    def qwen_tokenizer():
+        from tokenizers import Tokenizer
+    
+>       return Tokenizer.from_file(str(TOKENIZER_PATH))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Exception: No such file or directory (os error 2)
+
+/tmp/stencil-larger5-pinned/src/stencil/focus/slab.py:129: Exception
+_________________ test_vllm_stop_separates_terminal_id[151643] _________________
+
+terminal_id = 151643
+
+    @pytest.mark.parametrize("terminal_id", [151645, 151643])
+    def test_vllm_stop_separates_terminal_id(terminal_id):
+        d = driver()
+        adapter = d.VLLMDecoder(
+            "http://unused/v1",
+            "stub",
+            lambda payload: {
+                "choices": [
+                    {
+                        "text": "reply",
+                        "token_ids": [42, terminal_id],
+                        "finish_reason": "stop",
+                    }
+                ],
+                "usage": {"completion_tokens": 2},
+            },
+        )
+>       result = adapter(SimpleNamespace(prompt_ids=(1,)))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/tmp/stencil-larger5-pinned/tests/test_focus_slab2_driver.py:126: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/stencil-larger5-pinned/scripts/composition_pilot5.py:69: in __call__
+    s.qwen_encode(token)[0] for token in ("<|im_end|>", "<|endoftext|>")
+    ^^^^^^^^^^^^^^^^^^^^
+/tmp/stencil-larger5-pinned/src/stencil/focus/slab.py:133: in qwen_encode
+    return tuple(qwen_tokenizer().encode(text, add_special_tokens=False).ids)
+                 ^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    @lru_cache(maxsize=1)
+    def qwen_tokenizer():
+        from tokenizers import Tokenizer
+    
+>       return Tokenizer.from_file(str(TOKENIZER_PATH))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Exception: No such file or directory (os error 2)
+
+/tmp/stencil-larger5-pinned/src/stencil/focus/slab.py:129: Exception
+___________________ test_complete_cpu_driver_floor_and_cost ____________________
+
+tmp_path = PosixPath('/tmp/pytest-of-bmarti44/pytest-156/test_complete_cpu_driver_floor0')
+
+    def test_complete_cpu_driver_floor_and_cost(tmp_path):
+        d = driver()
+>       summary = d.run_pilot(tmp_path / "pilot", d.stub_factory, cpu_stub=True)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/tmp/stencil-larger5-pinned/tests/test_focus_slab2_driver.py:134: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/stencil-larger5-pinned/scripts/composition_pilot5.py:450: in run_pilot
+    manifests=[e.manifest() for e in episodes],
+               ^^^^^^^^^^^^
+/tmp/stencil-larger5-pinned/src/stencil/focus/slab2.py:144: in manifest
+    tokenizer=tokenizer_manifest(),
+              ^^^^^^^^^^^^^^^^^^^^
+/tmp/stencil-larger5-pinned/src/stencil/focus/slab.py:139: in tokenizer_manifest
+    "sha256": hashlib.sha256(TOKENIZER_PATH.read_bytes()).hexdigest(),
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/uv/python/cpython-3.12.13-linux-aarch64-gnu/lib/python3.12/pathlib.py:1019: in read_bytes
+    with self.open(mode='rb') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/tmp/stencil-larger5-pinned/models/qwen3-30b-a3b-hf/tokenizer.json')
+mode = 'rb', buffering = -1, encoding = None, errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/tmp/stencil-larger5-pinned/models/qwen3-30b-a3b-hf/tokenizer.json'
+
+../.local/share/uv/python/cpython-3.12.13-linux-aarch64-gnu/lib/python3.12/pathlib.py:1013: FileNotFoundError
+___________ test_measured_lane_allocations_with_cpu_injected_decoder ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-bmarti44/pytest-156/test_measured_lane_allocations0')
+
+    def test_measured_lane_allocations_with_cpu_injected_decoder(tmp_path):
+        # Simulated clock/decoder tests GPU accounting without touching a GPU/server.
+        d = driver()
+        ticks = iter(range(100))
+>       summary = d.run_pilot(
+            tmp_path / "simulated",
+            d.stub_factory,
+            clock=lambda: next(ticks),
+            load_seconds=10,
+        )
+
+/tmp/stencil-larger5-pinned/tests/test_focus_slab2_driver.py:190: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/stencil-larger5-pinned/scripts/composition_pilot5.py:450: in run_pilot
+    manifests=[e.manifest() for e in episodes],
+               ^^^^^^^^^^^^
+/tmp/stencil-larger5-pinned/src/stencil/focus/slab2.py:144: in manifest
+    tokenizer=tokenizer_manifest(),
+              ^^^^^^^^^^^^^^^^^^^^
+/tmp/stencil-larger5-pinned/src/stencil/focus/slab.py:139: in tokenizer_manifest
+    "sha256": hashlib.sha256(TOKENIZER_PATH.read_bytes()).hexdigest(),
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/uv/python/cpython-3.12.13-linux-aarch64-gnu/lib/python3.12/pathlib.py:1019: in read_bytes
+    with self.open(mode='rb') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/tmp/stencil-larger5-pinned/models/qwen3-30b-a3b-hf/tokenizer.json')
+mode = 'rb', buffering = -1, encoding = None, errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/tmp/stencil-larger5-pinned/models/qwen3-30b-a3b-hf/tokenizer.json'
+
+../.local/share/uv/python/cpython-3.12.13-linux-aarch64-gnu/lib/python3.12/pathlib.py:1013: FileNotFoundError
+________ test_amendment3_shape_feedback_reaches_next_prompt_and_journal ________
+
+tmp_path = PosixPath('/tmp/pytest-of-bmarti44/pytest-156/test_amendment3_shape_feedback0')
+
+    def test_amendment3_shape_feedback_reaches_next_prompt_and_journal(tmp_path):
+        d = driver()
+        e = s.generate_episode()
+        prompts = []
+    
+        def factory(episode, arm, turn):
+            def decode(rendered):
+                prompts.append(rendered.prompt_ids)
+                text = (
+                    "```python\ncore.py\n```python\npass\n```"
+                    if turn == 0
+                    else s.reference(episode, turn)
+                )
+                return d.DecodeResult(
+                    text, tuple(s.qwen_encode(text)), eos=151645, truncated=False
+                )
+    
+            return decode
+    
+>       lane = d.run_lane(tmp_path / "lane", e, "R", factory)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/tmp/stencil-larger5-pinned/tests/test_focus_slab2_driver.py:224: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/stencil-larger5-pinned/scripts/composition_pilot5.py:159: in run_lane
+    output, _ = generate_once(session, messages, decode)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/stencil-larger5-pinned/src/stencil/focus/loop.py:273: in generate_once
+    record["raw_token_ids"] = [list(request.encode(m.text)) for m in messages]
+                                    ^^^^^^^^^^^^^^^^^^^^^^
+/tmp/stencil-larger5-pinned/src/stencil/focus/slab.py:133: in qwen_encode
+    return tuple(qwen_tokenizer().encode(text, add_special_tokens=False).ids)
+                 ^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    @lru_cache(maxsize=1)
+    def qwen_tokenizer():
+        from tokenizers import Tokenizer
+    
+>       return Tokenizer.from_file(str(TOKENIZER_PATH))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Exception: No such file or directory (os error 2)
+
+/tmp/stencil-larger5-pinned/src/stencil/focus/slab.py:129: Exception
+=========================== short test summary info ============================
+FAILED ../../../tmp/stencil-larger5-pinned/tests/test_focus_slab2_amendment4.py::test_pilot7_actual_driver_and_artifact_consumer
+FAILED ../../../tmp/stencil-larger5-pinned/tests/test_focus_slab2_amendment5.py::test_actual_runner_records_before_summary
+FAILED ../../../tmp/stencil-larger5-pinned/tests/test_focus_slab2_driver.py::test_vllm_truncation_through_real_driver
+FAILED ../../../tmp/stencil-larger5-pinned/tests/test_focus_slab2_driver.py::test_vllm_stop_without_terminal_id_raises[ids0]
+FAILED ../../../tmp/stencil-larger5-pinned/tests/test_focus_slab2_driver.py::test_vllm_stop_without_terminal_id_raises[ids1]
+FAILED ../../../tmp/stencil-larger5-pinned/tests/test_focus_slab2_driver.py::test_vllm_stop_without_terminal_id_raises[ids2]
+FAILED ../../../tmp/stencil-larger5-pinned/tests/test_focus_slab2_driver.py::test_vllm_stop_separates_terminal_id[151645]
+FAILED ../../../tmp/stencil-larger5-pinned/tests/test_focus_slab2_driver.py::test_vllm_stop_separates_terminal_id[151643]
+FAILED ../../../tmp/stencil-larger5-pinned/tests/test_focus_slab2_driver.py::test_complete_cpu_driver_floor_and_cost
+FAILED ../../../tmp/stencil-larger5-pinned/tests/test_focus_slab2_driver.py::test_measured_lane_allocations_with_cpu_injected_decoder
+FAILED ../../../tmp/stencil-larger5-pinned/tests/test_focus_slab2_driver.py::test_amendment3_shape_feedback_reaches_next_prompt_and_journal
+11 failed, 26 passed, 1 xfailed in 1.57s
