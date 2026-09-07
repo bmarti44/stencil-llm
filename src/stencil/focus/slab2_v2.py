@@ -25,7 +25,17 @@ SYSTEM_PROMPT = old.SYSTEM_PROMPT.replace(
 ).replace("retain concise whole files.", "retain a concise function.").replace(
     "the file and runs cumulative public tests",
     "only that function into the file and runs cumulative public tests",
+).replace(
+    "One worked shape example for task A requesting core.py in verbose format:\n"
+    "```python core.py\n# core.py\ndef identity(x):\n  return x\n```\n",
+    "One worked scoped shape example: task A requests only double_value(x) in "
+    "core.py, two-space indentation and verbose format. Emit this shape:\n"
+    '```python core.py\ndef double_value(x):\n  """Return twice the input."""\n'
+    "  result = x * 2\n  return result\n```\n",
 ) + (
+    " For each request, emit only the function <name>, nothing else inside the "
+    "code fence; replace <name> with the requested function. The opening fence "
+    "path has no # prefix. Do not copy other definitions from the current file."
     " Put the function def at column zero. Apply the required indentation consistently "
     "to ALL body lines including the docstring. The harness anchors the def only; "
     "it does not fix body indentation. On a Python syntax error you receive exactly "
@@ -139,7 +149,14 @@ def splice(current, code, function):
         or tree.body[0].name != function
         or tree.body[0].decorator_list
     ):
-        raise old.ReplyError("scope_violation")
+        exc = old.ReplyError("scope_violation")
+        exc.extra_definitions = [
+            n.name
+            for n in tree.body
+            if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
+            and n.name != function
+        ]
+        raise exc
     prior = ast.parse(current)
     nodes = [
         n for n in prior.body if isinstance(n, ast.FunctionDef) and n.name == function
@@ -167,16 +184,24 @@ def attempted(output, turn):
 class Executor(old.Executor):
     def run(self, output, turn, *, truncated=False):
         t = self.episode.turns[turn]
+        self.prior = list(self.history)
+        self.changed, self.report, self.path = "", {}, None
+        self.result = result = dict(
+            executed=False,
+            breakage=False,
+            passed=0,
+            failed=0,
+            functions={},
+            tolerances=[],
+            truncated=bool(truncated),
+        )
         try:
             if truncated:
-                return super().run(output, turn, truncated=True)
+                raise old.ReplyError("truncated")
             path, code, report = snippet(output, t)
             try:
                 ast.parse(code, filename=path)
             except SyntaxError as exc:
-                # Initialize exactly the legacy executor's failure state, then
-                # preserve the interpreter diagnostic rather than paraphrasing it.
-                result = super().run(output, turn)
                 self.report, self.path, self.changed = report, path, ""
                 result.update(
                     executed=True,
@@ -199,9 +224,26 @@ class Executor(old.Executor):
             result["breakage"] = bool(result.get("category"))
             return result
         except old.ReplyError as exc:
-            # Reset state through the real consumer without writing any file.
-            result = super().run("", turn)
-            result.update(category=str(exc), error=str(exc), breakage=True)
+            extras = getattr(exc, "extra_definitions", [])
+            result.update(
+                category=str(exc),
+                breakage=True,
+                error=str(exc)
+                + (
+                    ": remove extra definitions: " + ", ".join(extras) if extras else ""
+                ),
+                expected_shape=(
+                    f"emit only the function {t.function}, nothing else "
+                    "inside the code block. "
+                    f"Opening fence must be exactly ```python {t.path} "
+                    "(no # before path); "
+                    "function def at column zero; closing fence ```; one report: "
+                    "task=<request letter> status=<ok or blocked> trailer, "
+                    "delivery only when required."
+                ),
+                fences_seen=output.count("```"),
+                extra_definitions=extras,
+            )
             return result
 
 
@@ -272,14 +314,27 @@ def pilot_reading(records, episodes, *, deterministic):
         if m["executing_lanes"] != 8:
             failures.append(a + " execution<8/8")
         surviving = sum(
+            r["arm"] == a and r["execution"].get("category") == "syntax_error"
+            for r in records
+        )
+        m["surviving_syntax_errors"] = surviving
+        m["surviving_indentation_errors"] = sum(
             r["arm"] == a
             and r["execution"].get("syntax_type") in ("IndentationError", "TabError")
             for r in records
         )
-        m["surviving_indentation_errors"] = surviving
+        round_zero = sum(
+            r["arm"] == a
+            and r["turn"] == 0
+            and bool(r["attempts"][0]["execution"].get("category"))
+            for r in records
+        )
+        m["round_zero_rejections"] = round_zero
+        if round_zero:
+            failures.append(a + " round-zero rejection")
         m["repairs_used"] = sum(r["repairs_used"] for r in records if r["arm"] == a)
         if surviving:
-            failures.append(a + " surviving indentation SyntaxError")
+            failures.append(a + " surviving syntax error")
     endpoint = ep.primary(records, episodes)
     if sum(f["n"] > 0 for f in endpoint["families"].values()) < 2:
         failures.append("primary<2 nonzero families")

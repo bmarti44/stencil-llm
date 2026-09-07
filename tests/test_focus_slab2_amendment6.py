@@ -136,6 +136,17 @@ def test_pilot_512_real_stub(tmp_path, driver):
     out = s.pilot_reading(rows, episodes, deterministic=True)
     assert out["reading"] == "FIX-CONFIRMED", out["failures"]
     assert out["harm_calibration"]["calibrated"]
+    rows[0]["attempts"][0]["execution"]["category"] = "fence_syntax"
+    rejected = s.pilot_reading(rows, episodes, deterministic=True)
+    assert "R round-zero rejection" in rejected["failures"]
+    del rows[0]["attempts"][0]["execution"]["category"]
+    rows[1]["execution"].update(syntax_type="SyntaxError", category="syntax_error")
+    assert (
+        "R surviving syntax error"
+        in s.pilot_reading(rows, episodes, deterministic=True)["failures"]
+    )
+    rows[1]["execution"].pop("category")
+    rows[1]["execution"].pop("syntax_type")
     rows[0]["execution"].update(syntax_type="IndentationError", category="syntax_error")
     assert s.pilot_reading(rows, episodes, deterministic=True)["reading"] == "STOP"
 

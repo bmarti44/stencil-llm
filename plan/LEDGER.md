@@ -1300,3 +1300,10 @@ all8 DEV episodes have2 indent changes, so6/8 coverage achievable; retain gate,
 verify actual-schedule negative control before freeze. No fit/benchmark/evaluation
 reads or GPU work. Preserve original95fa7fc0 and pilot8 artifacts. Next scoped
 feedback/example, consumer tests,3600s pilot9 pin then conditional fresh64 run.
+
+2026-09-07 — STATE: AMENDMENT6b CPU GREEN / PILOT9 PIN NEXT.
+166passed,1expected xfail,76.67s; lint/diff clean. Both observed protocol causes
+now send actual fence counts, scoped expectation and offending definition names;
+corrected submissions accepted, one syntax-only repair unchanged. All512 actual
+DEV stub records pass pilot gate and both harm controls8/8,p=1; injected R/T harm
+rejected. Retain achievable6/8 requirement. New pilot3600s; no fresh64 model open.

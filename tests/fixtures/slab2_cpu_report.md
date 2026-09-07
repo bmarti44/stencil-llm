@@ -403,3 +403,9 @@ source binding and CPU smoke before GPU. On eligible clean pilot, commit numeric
 calibration then execute exactly Amendment6 full64 allocation/control/41400s budget
 under results/larger-test-v2. No process signals, no data/bench, no push; own named
 container only, shared flags, forced explicit artifact paths for local commits.
+
+Amendment6b CPU verification: **166 passed,1 expected xfail,76.67s**; ruff and
+whitespace clean. New regressions first failed8/9 on the old scoped consumer,
+then passed after repair. Actual512 scoped DEV stub records produce both harm
+contrasts8/8,p=1; injected R and T episode harm both fail. Null enumeration0..64
+has size<=.025 per contrast. CPU receipt: composition-pilot-9/cpu-controls.json.

@@ -143,7 +143,7 @@ def main():
         print("Frozen scoped consumer CPU smoke PASS", flush=True)
         return
     out = ROOT / (
-        "results/quick-checks/composition-pilot-8"
+        "results/quick-checks/composition-pilot-9"
         if args.pilot
         else "results/larger-test-v2"
     )
@@ -204,7 +204,7 @@ def main():
             ]
             if not flags and not busy:
                 p.START = time.time()
-                p.END = p.START + (5400 if args.pilot else 41400)
+                p.END = p.START + (3600 if args.pilot else 41400)
                 with flag.open("x") as f:
                     json.dump(
                         dict(pid=os.getpid(), sha=sha, start=p.START, deadline=p.END), f
@@ -212,7 +212,7 @@ def main():
                 break
         print("Waiting for Stencil compute/flags", flush=True)
         time.sleep(15)
-    name = f"stencil-amendment6-{int(p.START)}"
+    name = f"stencil-amendment6b-{int(p.START)}"
     command = list(registration["container_command"])
     command[command.index("--name") + 1] = name
     dump(
@@ -270,12 +270,12 @@ def main():
                     start=p.START,
                     end=time.time(),
                     gpu_held_seconds=held,
-                    budget_seconds=5400 if args.pilot else 41400,
+                    budget_seconds=3600 if args.pilot else 41400,
                 ),
             )
             flag.unlink(missing_ok=True)
         summary = collect(out, episodes, registration, control["passed"], args.pilot)
-        if held > (5400 if args.pilot else 41400):
+        if held > (3600 if args.pilot else 41400):
             summary["reading"] = "STOP" if args.pilot else "INCOMPLETE"
             summary["failures"].append("GPU-held deadline")
             dump(out / "summary.json", summary)
