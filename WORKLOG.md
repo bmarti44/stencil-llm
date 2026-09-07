@@ -5491,3 +5491,9 @@ XGrammar substring/schema decoding:807/807 raw and normalized spans, one cap; us
 Freeze519c7338; header-only loader repair8742da2d disclosed;921 request/parser replays,6 CPU tests+7 grammar witnesses pass; container/flag removed, no push.
 Explicit entry stays; next small generative updater fits only audited authored data with scenario-disjoint DEV and fresh author-disjoint evaluation; no training launched.
 - 2026-09-06, SLAB-2 Amendment 1 validation: 110 passed/1 expected xfail; full focus run's two SLAB-1 fixture failures reproduce on pre-fix 8d02a037; corrected arithmetic assertion passes. 12-round real-driver CPU smoke: 32 lanes/384 calls, R final8/8, no GPU eligibility. See tests/fixtures/slab2_cpu_report.md for registration, accounting, cost table and baseline evidence.
+
+2026-09-06 — CHECK47 COMPLETE / STAY: qualified Qwen3.8-27B FP8 loads; DEV00/01 R executed0/32 vs MoE32/32, no caps, final0/2 both, indent0/2 both; fenced responses rejected.
+L/S/F/P0/0/32/0 vs0/30/10/17; breakage32 vs0. Disclosed JS second look22/32 vs16/32,2 caps; no fit/selection/benchmark access.
+Decode7.328/stream, DEV C2 aggregate12.693, JS C4 aggregate24.020 tok/s;32-round C4 proxy FP8 12.12h / bf1624.15h (2x serving estimate; O/T/HF unmeasured).
+1015.477/2400 GPU-s;64 HTTP checks,32 exact frozen-source DEV replays,32 JS rescoring pass; CPU32-reference smoke passes.
+Recipe184cb321; concurrent live-source drift detected and replay isolated to committed recipe. Own container/flag removed; explicit artifacts/index/ledger commit, no download/push.

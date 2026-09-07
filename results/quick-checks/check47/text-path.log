@@ -1,0 +1,48 @@
+WARNING 09-07 01:32:47 [interface.py:240] Failed to import from vllm._C: ImportError('libcuda.so.1: cannot open shared object file: No such file or directory')
+WARNING 09-07 01:32:47 [interface.py:240] Failed to import from vllm._C: ImportError('libcuda.so.1: cannot open shared object file: No such file or directory')
+WARNING 09-07 01:32:47 [interface.py:240] Failed to import from vllm._C: ImportError('libcuda.so.1: cannot open shared object file: No such file or directory')
+INFO 09-07 01:32:47 [importing.py:44] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 09-07 01:32:47 [importing.py:68] Triton not installed or not compatible; certain GPU-related functions will not be available.
+W0907 01:32:48.981000 1 torch/utils/cpp_extension.py:140] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+WARNING 09-07 01:32:49 [interface.py:240] Failed to import from vllm._C: ImportError('libcuda.so.1: cannot open shared object file: No such file or directory')
+INFO 09-07 01:32:49 [nixl_utils.py:20] Setting UCX_RCACHE_MAX_UNRELEASED to '1024' to avoid a rare memory leak in UCX when using NIXL.
+INFO 09-07 01:32:49 [nixl_utils.py:32] NIXL is available
+[transformers] `Qwen2VLImageProcessorFast` is deprecated. The `Fast` suffix for image processors has been removed; use `Qwen2VLImageProcessor` instead.
+    maybe_prefix,
+class Qwen3_5ProcessingInfo(Qwen3VLProcessingInfo):
+class Qwen3_5MoeProcessingInfo(Qwen3VLProcessingInfo):
+class Qwen3_5DecoderLayer(Qwen3NextDecoderLayer):
+        prefix: str = "",
+        self.layer_idx = extract_layer_index(prefix)
+                prefix=f"{prefix}.linear_attn",
+                prefix=f"{prefix}.self_attn",
+                prefix=f"{prefix}.mlp",
+                prefix=f"{prefix}.mlp",
+class Qwen3_5Model(Qwen3NextModel):
+    def __init__(self, *, vllm_config: VllmConfig, prefix: str = ""):
+        def get_layer(prefix: str):
+                layer_type=config.layer_types[extract_layer_index(prefix)],
+                prefix=prefix,
+            config.num_hidden_layers, get_layer, prefix=f"{prefix}.layers"
+            if name.startswith("mtp."):
+                # name = apply_attn_prefix(name, params_dict)
+class Qwen3_5ForCausalLMBase(
+    def __init__(self, *, vllm_config: VllmConfig, prefix: str = ""):
+                "Qwen3.5 currently does not support 'all' prefix caching, "
+            vllm_config=vllm_config, prefix=maybe_prefix(prefix, "model")
+                    prefix=maybe_prefix(prefix, "lm_head"),
+            skip_prefixes=["mtp."],
+class Qwen3_5ForCausalLM(Qwen3_5ForCausalLMBase):
+class Qwen3_5MoeForCausalLM(Qwen3_5ForCausalLMBase, QwenNextMixtureOfExperts):
+    def __init__(self, *, vllm_config: VllmConfig, prefix: str = ""):
+        super().__init__(vllm_config=vllm_config, prefix=prefix)
+class Qwen3_5ForConditionalGeneration(Qwen3VLForConditionalGeneration, IsHybrid):
+    def __init__(self, *, vllm_config: VllmConfig, prefix: str = "model"):
+                prefix=maybe_prefix(prefix, "visual"),
+                vllm_config=vllm_config, prefix=maybe_prefix(prefix, "language_model")
+            skip_prefixes=["mtp."],
+class Qwen3_5_MoeMixtureOfExperts(MixtureOfExperts):
+class Qwen3_5MoeForConditionalGeneration(
+    def __init__(self, *, vllm_config: VllmConfig, prefix: str = "model"):
+                prefix=maybe_prefix(prefix, "visual"),
+                vllm_config=vllm_config, prefix=maybe_prefix(prefix, "language_model")

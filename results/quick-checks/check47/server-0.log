@@ -1,0 +1,396 @@
+2026-09-07T01:33:27.409635183Z WARNING 09-07 01:33:27 [argparse_utils.py:191] With `vllm serve`, you should provide the model as a positional argument or in a config file instead of via the `--model` option. The `--model` option will be removed in a future version.
+2026-09-07T01:33:27.410927333Z (APIServer pid=1) INFO 09-07 01:33:27 [utils.py:299] 
+2026-09-07T01:33:27.410966149Z (APIServer pid=1) INFO 09-07 01:33:27 [utils.py:299]        █     █     █▄   ▄█
+2026-09-07T01:33:27.410969589Z (APIServer pid=1) INFO 09-07 01:33:27 [utils.py:299]  ▄▄ ▄█ █     █     █ ▀▄▀ █  version 0.19.2rc1.dev134+gfe9c3d6c5
+2026-09-07T01:33:27.410971957Z (APIServer pid=1) INFO 09-07 01:33:27 [utils.py:299]   █▄█▀ █     █     █     █  model   /model
+2026-09-07T01:33:27.410973925Z (APIServer pid=1) INFO 09-07 01:33:27 [utils.py:299]    ▀▀  ▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀
+2026-09-07T01:33:27.410976005Z (APIServer pid=1) INFO 09-07 01:33:27 [utils.py:299] 
+2026-09-07T01:33:27.412523308Z (APIServer pid=1) INFO 09-07 01:33:27 [utils.py:233] non-default args: {'model_tag': '/model', 'model': '/model', 'dtype': 'bfloat16', 'max_model_len': 32768, 'generation_config': 'vllm', 'attention_backend': 'TRITON_ATTN', 'gpu_memory_utilization': 0.65, 'enable_prefix_caching': True, 'max_num_batched_tokens': 2048, 'max_num_seqs': 4}
+2026-09-07T01:33:33.635902329Z (APIServer pid=1) INFO 09-07 01:33:33 [nixl_utils.py:20] Setting UCX_RCACHE_MAX_UNRELEASED to '1024' to avoid a rare memory leak in UCX when using NIXL.
+2026-09-07T01:33:33.654997952Z (APIServer pid=1) INFO 09-07 01:33:33 [nixl_utils.py:32] NIXL is available
+2026-09-07T01:33:33.709614872Z (APIServer pid=1) INFO 09-07 01:33:33 [model.py:554] Resolved architecture: Qwen3_5ForConditionalGeneration
+2026-09-07T01:33:33.709628488Z (APIServer pid=1) INFO 09-07 01:33:33 [model.py:1685] Using max model len 32768
+2026-09-07T01:33:34.075952951Z (APIServer pid=1) WARNING 09-07 01:33:34 [config.py:342] Mamba cache mode is set to 'align' for Qwen3_5ForConditionalGeneration by default when prefix caching is enabled
+2026-09-07T01:33:34.075968231Z (APIServer pid=1) INFO 09-07 01:33:34 [config.py:362] Warning: Prefix caching in Mamba cache 'align' mode is currently enabled. Its support for Mamba layers is experimental. Please report any issues you may observe.
+2026-09-07T01:33:34.075970471Z (APIServer pid=1) INFO 09-07 01:33:34 [vllm.py:840] Asynchronous scheduling is enabled.
+2026-09-07T01:33:34.076272857Z (APIServer pid=1) INFO 09-07 01:33:34 [kernel.py:203] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'])
+2026-09-07T01:33:34.076284057Z (APIServer pid=1) INFO 09-07 01:33:34 [compilation.py:303] Enabled custom fusions: norm_quant, act_quant
+2026-09-07T01:33:34.901223835Z (APIServer pid=1) [transformers] `Qwen2VLImageProcessorFast` is deprecated. The `Fast` suffix for image processors has been removed; use `Qwen2VLImageProcessor` instead.
+2026-09-07T01:33:37.930680578Z (APIServer pid=1) [transformers] The `use_fast` parameter is deprecated and will be removed in a future version. Use `backend="torchvision"` instead of `use_fast=True`, or `backend="pil"` instead of `use_fast=False`.
+2026-09-07T01:33:42.959771678Z INFO 09-07 01:33:42 [nixl_utils.py:32] NIXL is available
+2026-09-07T01:33:43.050892093Z (EngineCore pid=148) INFO 09-07 01:33:43 [core.py:107] Initializing a V1 LLM engine (v0.19.2rc1.dev134+gfe9c3d6c5) with config: model='/model', speculative_config=None, tokenizer='/model', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=32768, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=True, quantization=fp8, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False), seed=0, served_model_name=/model, enable_prefix_caching=True, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.VLLM_COMPILE: 3>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['+quant_fp8', 'none', '+quant_fp8'], 'ir_enable_torch_wrap': True, 'splitting_ops': ['vllm::unified_attention_with_output', 'vllm::unified_mla_attention_with_output', 'vllm::mamba_mixer2', 'vllm::mamba_mixer', 'vllm::short_conv', 'vllm::linear_attention', 'vllm::plamo2_mamba_mixer', 'vllm::gdn_attention_core', 'vllm::olmo_hybrid_gdn_full_forward', 'vllm::kda_attention', 'vllm::sparse_attn_indexer', 'vllm::rocm_aiter_sparse_attn_indexer', 'vllm::unified_kv_cache_update', 'vllm::unified_mla_kv_cache_update'], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [2048], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_AND_PIECEWISE: (2, 1)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False}, 'max_cudagraph_capture_size': 8, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native']), enable_flashinfer_autotune=True, moe_backend='auto')
+2026-09-07T01:33:43.252979109Z (EngineCore pid=148) [transformers] `Qwen2VLImageProcessorFast` is deprecated. The `Fast` suffix for image processors has been removed; use `Qwen2VLImageProcessor` instead.
+2026-09-07T01:33:43.858200008Z (EngineCore pid=148) /usr/local/lib/python3.12/dist-packages/torch/library.py:363: UserWarning: Warning only once for all operators,  other operators may also be overridden.
+2026-09-07T01:33:43.858225321Z (EngineCore pid=148)   Overriding a previously registered kernel for the same operator and the same dispatch key
+2026-09-07T01:33:43.858241113Z (EngineCore pid=148)   operator: aten::_log_softmax(Tensor self, int dim, bool half_to_float) -> Tensor
+2026-09-07T01:33:43.858243769Z (EngineCore pid=148)     registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+2026-09-07T01:33:43.858245801Z (EngineCore pid=148)   dispatch key: CUDA
+2026-09-07T01:33:43.858247561Z (EngineCore pid=148)   previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:3799
+2026-09-07T01:33:43.858249401Z (EngineCore pid=148)        new kernel: registered at /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/batch_invariant.py:934 (Triggered internally at /pytorch/aten/src/ATen/core/dispatch/OperatorEntry.cpp:208.)
+2026-09-07T01:33:43.858251417Z (EngineCore pid=148)   self.m.impl(
+2026-09-07T01:33:43.858342457Z [W907 01:33:43.859757081 Context.cpp:541] Warning: torch.backends.cuda.preferred_blas_library is an experimental feature. If you see any error or unexpected behavior when this flag is set please file an issue on GitHub. (function operator())
+2026-09-07T01:33:43.858362553Z (EngineCore pid=148) INFO 09-07 01:33:43 [parallel_state.py:1402] world_size=1 rank=0 local_rank=0 distributed_init_method=tcp://172.17.0.2:54679 backend=nccl
+2026-09-07T01:33:43.908583150Z (EngineCore pid=148) INFO 09-07 01:33:43 [parallel_state.py:1715] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+2026-09-07T01:33:45.668705709Z (EngineCore pid=148) [transformers] The `use_fast` parameter is deprecated and will be removed in a future version. Use `backend="torchvision"` instead of `use_fast=True`, or `backend="pil"` instead of `use_fast=False`.
+2026-09-07T01:33:47.965322525Z (EngineCore pid=148) INFO 09-07 01:33:47 [gpu_model_runner.py:4752] Starting to load model /model...
+2026-09-07T01:33:48.203190521Z (EngineCore pid=148) INFO 09-07 01:33:48 [cuda.py:423] Using backend AttentionBackendEnum.FLASH_ATTN for vit attention
+2026-09-07T01:33:48.203727403Z (EngineCore pid=148) INFO 09-07 01:33:48 [mm_encoder_attention.py:230] Using AttentionBackendEnum.FLASH_ATTN for MMEncoderAttention.
+2026-09-07T01:33:48.367016708Z (EngineCore pid=148) INFO 09-07 01:33:48 [__init__.py:389] Selected CutlassFp8BlockScaledMMKernel for Fp8LinearMethod
+2026-09-07T01:33:48.369865937Z (EngineCore pid=148) INFO 09-07 01:33:48 [gdn_linear_attn.py:153] Using Triton/FLA GDN prefill kernel
+2026-09-07T01:33:48.459986203Z (EngineCore pid=148) INFO 09-07 01:33:48 [cuda.py:308] Using AttentionBackendEnum.TRITON_ATTN backend.
+2026-09-07T01:33:50.763217489Z (EngineCore pid=148) INFO 09-07 01:33:50 [weight_utils.py:904] Filesystem type for checkpoints: EXT4. Checkpoint size: 28.75 GiB. Available RAM: 83.31 GiB.
+2026-09-07T01:33:50.763240081Z (EngineCore pid=148) INFO 09-07 01:33:50 [weight_utils.py:927] Auto-prefetch is disabled because the filesystem (EXT4) is not a recognized network FS (NFS/Lustre). If you want to force prefetching, start vLLM with --safetensors-load-strategy=prefetch.
+2026-09-07T01:33:50.763665395Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:   0% Completed | 0/66 [00:00<?, ?it/s]
+2026-09-07T01:33:53.437025495Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:   2% Completed | 1/66 [00:02<02:53,  2.67s/it]
+2026-09-07T01:33:56.166409267Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:   3% Completed | 2/66 [00:05<02:53,  2.71s/it]
+2026-09-07T01:33:58.799740481Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:   5% Completed | 3/66 [00:08<02:48,  2.67s/it]
+2026-09-07T01:34:01.420980735Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:   6% Completed | 4/66 [00:10<02:44,  2.65s/it]
+2026-09-07T01:34:04.128441983Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:   8% Completed | 5/66 [00:13<02:43,  2.67s/it]
+2026-09-07T01:34:06.801140936Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:   9% Completed | 6/66 [00:16<02:40,  2.67s/it]
+2026-09-07T01:34:09.712864848Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  11% Completed | 7/66 [00:18<02:42,  2.75s/it]
+2026-09-07T01:34:12.383849618Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  12% Completed | 8/66 [00:21<02:38,  2.73s/it]
+2026-09-07T01:34:14.962016641Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  14% Completed | 9/66 [00:24<02:32,  2.68s/it]
+2026-09-07T01:34:17.650357714Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  15% Completed | 10/66 [00:26<02:30,  2.68s/it]
+2026-09-07T01:34:20.376001461Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  17% Completed | 11/66 [00:29<02:28,  2.70s/it]
+2026-09-07T01:34:23.030287960Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  18% Completed | 12/66 [00:32<02:24,  2.68s/it]
+2026-09-07T01:34:25.699174807Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  20% Completed | 13/66 [00:34<02:21,  2.68s/it]
+2026-09-07T01:34:28.437234619Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  21% Completed | 14/66 [00:37<02:20,  2.70s/it]
+2026-09-07T01:34:31.118200976Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  23% Completed | 15/66 [00:40<02:17,  2.69s/it]
+2026-09-07T01:34:33.828064993Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  24% Completed | 16/66 [00:43<02:14,  2.70s/it]
+2026-09-07T01:34:36.445454224Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  26% Completed | 17/66 [00:45<02:10,  2.67s/it]
+2026-09-07T01:34:39.095963215Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  27% Completed | 18/66 [00:48<02:07,  2.67s/it]
+2026-09-07T01:34:41.837586058Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  29% Completed | 19/66 [00:51<02:06,  2.69s/it]
+2026-09-07T01:34:44.395178746Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  30% Completed | 20/66 [00:53<02:01,  2.65s/it]
+2026-09-07T01:34:47.073095453Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  32% Completed | 21/66 [00:56<01:59,  2.66s/it]
+2026-09-07T01:34:49.784854276Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  33% Completed | 22/66 [00:59<01:57,  2.67s/it]
+2026-09-07T01:34:52.406687443Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  35% Completed | 23/66 [01:01<01:54,  2.66s/it]
+2026-09-07T01:34:55.008588715Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  36% Completed | 24/66 [01:04<01:50,  2.64s/it]
+2026-09-07T01:34:57.680010205Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  38% Completed | 25/66 [01:06<01:48,  2.65s/it]
+2026-09-07T01:35:00.330992967Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  39% Completed | 26/66 [01:09<01:46,  2.65s/it]
+2026-09-07T01:35:02.987897747Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  41% Completed | 27/66 [01:12<01:43,  2.65s/it]
+2026-09-07T01:35:05.518509469Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  42% Completed | 28/66 [01:14<01:39,  2.62s/it]
+2026-09-07T01:35:08.240009267Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  44% Completed | 29/66 [01:17<01:37,  2.65s/it]
+2026-09-07T01:35:10.964236092Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  45% Completed | 30/66 [01:20<01:36,  2.67s/it]
+2026-09-07T01:35:13.885373072Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  47% Completed | 31/66 [01:23<01:36,  2.75s/it]
+2026-09-07T01:35:16.831585905Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  48% Completed | 32/66 [01:26<01:35,  2.81s/it]
+2026-09-07T01:35:19.645834020Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  50% Completed | 33/66 [01:28<01:32,  2.81s/it]
+2026-09-07T01:35:22.314195960Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  52% Completed | 34/66 [01:31<01:28,  2.77s/it]
+2026-09-07T01:35:25.052179974Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  53% Completed | 35/66 [01:34<01:25,  2.76s/it]
+2026-09-07T01:35:27.462965687Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  55% Completed | 36/66 [01:36<01:19,  2.65s/it]
+2026-09-07T01:35:29.599941632Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  56% Completed | 37/66 [01:38<01:12,  2.50s/it]
+2026-09-07T01:35:31.742540104Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  58% Completed | 38/66 [01:40<01:06,  2.39s/it]
+2026-09-07T01:35:33.891513714Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  59% Completed | 39/66 [01:43<01:02,  2.32s/it]
+2026-09-07T01:35:36.005575117Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  61% Completed | 40/66 [01:45<00:58,  2.26s/it]
+2026-09-07T01:35:38.152264677Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  62% Completed | 41/66 [01:47<00:55,  2.22s/it]
+2026-09-07T01:35:40.299588643Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  64% Completed | 42/66 [01:49<00:52,  2.20s/it]
+2026-09-07T01:35:42.458096011Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  65% Completed | 43/66 [01:51<00:50,  2.19s/it]
+2026-09-07T01:35:44.558284710Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  67% Completed | 44/66 [01:53<00:47,  2.16s/it]
+2026-09-07T01:35:46.701460846Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  68% Completed | 45/66 [01:55<00:45,  2.16s/it]
+2026-09-07T01:35:48.843690773Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  70% Completed | 46/66 [01:58<00:43,  2.15s/it]
+2026-09-07T01:35:51.001557226Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  71% Completed | 47/66 [02:00<00:40,  2.15s/it]
+2026-09-07T01:35:53.096410669Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  73% Completed | 48/66 [02:02<00:38,  2.14s/it]
+2026-09-07T01:35:55.235478114Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  74% Completed | 49/66 [02:04<00:36,  2.14s/it]
+2026-09-07T01:35:57.394810650Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  76% Completed | 50/66 [02:06<00:34,  2.14s/it]
+2026-09-07T01:35:59.547280694Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  77% Completed | 51/66 [02:08<00:32,  2.15s/it]
+2026-09-07T01:36:01.633587504Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  79% Completed | 52/66 [02:10<00:29,  2.13s/it]
+2026-09-07T01:36:03.780184441Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  80% Completed | 53/66 [02:13<00:27,  2.13s/it]
+2026-09-07T01:36:05.929687363Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  82% Completed | 54/66 [02:15<00:25,  2.14s/it]
+2026-09-07T01:36:08.077394313Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  83% Completed | 55/66 [02:17<00:23,  2.14s/it]
+2026-09-07T01:36:10.163425569Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  85% Completed | 56/66 [02:19<00:21,  2.12s/it]
+2026-09-07T01:36:12.326476775Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  86% Completed | 57/66 [02:21<00:19,  2.14s/it]
+2026-09-07T01:36:14.467585529Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  88% Completed | 58/66 [02:23<00:17,  2.14s/it]
+2026-09-07T01:36:16.598172958Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  89% Completed | 59/66 [02:25<00:14,  2.14s/it]
+2026-09-07T01:36:18.676948900Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  91% Completed | 60/66 [02:27<00:12,  2.12s/it]
+2026-09-07T01:36:20.832128564Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  92% Completed | 61/66 [02:30<00:10,  2.13s/it]
+2026-09-07T01:36:22.982639570Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  94% Completed | 62/66 [02:32<00:08,  2.14s/it]
+2026-09-07T01:36:25.127676187Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  95% Completed | 63/66 [02:34<00:06,  2.14s/it]
+2026-09-07T01:36:27.191229655Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards:  97% Completed | 64/66 [02:36<00:04,  2.12s/it]
+2026-09-07T01:37:02.564867932Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards: 100% Completed | 66/66 [03:11<00:00,  9.30s/it]
+2026-09-07T01:37:02.564897868Z (EngineCore pid=148) 
+Loading safetensors checkpoint shards: 100% Completed | 66/66 [03:11<00:00,  2.91s/it]
+2026-09-07T01:37:02.564899740Z (EngineCore pid=148) 
+2026-09-07T01:37:02.801262525Z (EngineCore pid=148) INFO 09-07 01:37:02 [default_loader.py:384] Loading weights took 192.04 seconds
+2026-09-07T01:37:03.121585324Z (EngineCore pid=148) INFO 09-07 01:37:03 [gpu_model_runner.py:4854] Model loading took 28.51 GiB memory and 194.683394 seconds
+2026-09-07T01:37:03.122333007Z (EngineCore pid=148) INFO 09-07 01:37:03 [interface.py:606] Setting attention block size to 784 tokens to ensure that attention page size is >= mamba page size.
+2026-09-07T01:37:03.122347263Z (EngineCore pid=148) INFO 09-07 01:37:03 [interface.py:630] Padding mamba page size by 0.13% to ensure that mamba page size and attention page size are exactly equal.
+2026-09-07T01:37:03.274228432Z (EngineCore pid=148) INFO 09-07 01:37:03 [gpu_model_runner.py:5795] Encoder cache will be initialized with a budget of 16384 tokens, and profiled with 1 image items of the maximum feature size.
+2026-09-07T01:37:11.227009371Z (EngineCore pid=148) /usr/local/lib/python3.12/dist-packages/torch/_dynamo/variables/functions.py:2202: UserWarning: Dynamo detected a call to a `functools.lru_cache`-wrapped function at 'batch_invariant.py:154'. Dynamo ignores the cache wrapper and directly traces the wrapped function. Silent incorrectness is only a *potential* risk, not something we have observed. Enable TORCH_LOGS=+dynamo for a DEBUG stack trace.
+2026-09-07T01:37:11.227036043Z (EngineCore pid=148) 
+2026-09-07T01:37:11.227037323Z (EngineCore pid=148) This call originates from:
+2026-09-07T01:37:11.227038475Z (EngineCore pid=148)   File "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/batch_invariant.py", line 154, in matmul_persistent
+2026-09-07T01:37:11.227039611Z (EngineCore pid=148)     NUM_SMS = num_compute_units(a.device.index)
+2026-09-07T01:37:11.227040731Z (EngineCore pid=148) 
+2026-09-07T01:37:11.227041691Z (EngineCore pid=148)   torch._dynamo.utils.warn_once(msg)
+2026-09-07T01:37:24.535602026Z (EngineCore pid=148) INFO 09-07 01:37:24 [backends.py:1065] Using cache directory: /root/.cache/vllm/torch_compile_cache/dbcaccc524/rank_0_0/backbone for vLLM's torch.compile
+2026-09-07T01:37:24.535839611Z (EngineCore pid=148) INFO 09-07 01:37:24 [backends.py:1124] Dynamo bytecode transform time: 13.67 s
+2026-09-07T01:37:28.290299642Z (EngineCore pid=148) INFO 09-07 01:37:28 [backends.py:372] Cache the graph of compile range (1, 2048) for later use
+2026-09-07T01:37:58.452876898Z (EngineCore pid=148) INFO 09-07 01:37:58 [backends.py:387] Compiling a graph for compile range (1, 2048) takes 32.47 s
+2026-09-07T01:38:44.985927175Z (EngineCore pid=148) INFO 09-07 01:38:44 [monitor.py:53] torch.compile and initial profiling/warmup run together took 94.12 s in total
+2026-09-07T01:38:45.692994867Z (EngineCore pid=148) INFO 09-07 01:38:45 [gpu_model_runner.py:5924] Profiling CUDA graph memory: PIECEWISE=4 (largest=8), FULL=3 (largest=4)
+2026-09-07T01:38:48.673874246Z (EngineCore pid=148) INFO 09-07 01:38:48 [gpu_model_runner.py:6003] Estimated CUDA graph memory: 0.14 GiB total
+2026-09-07T01:38:49.067897087Z (EngineCore pid=148) INFO 09-07 01:38:49 [gpu_worker.py:440] Available KV cache memory: 42.91 GiB
+2026-09-07T01:38:49.067928207Z (EngineCore pid=148) INFO 09-07 01:38:49 [gpu_worker.py:455] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.6500 is equivalent to --gpu-memory-utilization=0.6489 without CUDA graph memory profiling. To maintain the same effective KV cache size as before, increase --gpu-memory-utilization to 0.6511. To disable, set VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=0.
+2026-09-07T01:38:49.068421170Z (EngineCore pid=148) INFO 09-07 01:38:49 [kv_cache_utils.py:1337] GPU KV cache size: 175,616 tokens
+2026-09-07T01:38:49.068437362Z (EngineCore pid=148) INFO 09-07 01:38:49 [kv_cache_utils.py:1342] Maximum concurrency for 32,768 tokens per request: 18.67x
+2026-09-07T01:38:52.187263043Z (EngineCore pid=148) 2026-09-07 01:38:52,187 - INFO - autotuner.py:457 - flashinfer.jit: [Autotuner]: Autotuning process starts ...
+2026-09-07T01:38:52.239930113Z (EngineCore pid=148) 2026-09-07 01:38:52,239 - INFO - autotuner.py:466 - flashinfer.jit: [Autotuner]: Autotuning process ends
+2026-09-07T01:38:53.646861949Z (EngineCore pid=148) 
+Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):   0%|          | 0/4 [00:00<?, ?it/s]
+Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  25%|██▌       | 1/4 [00:00<00:00,  7.35it/s]
+Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  50%|█████     | 2/4 [00:00<00:00,  7.45it/s]
+Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  75%|███████▌  | 3/4 [00:00<00:00,  7.50it/s]
+Capturing CUDA graphs (mixed prefill-decode, PIECEWISE): 100%|██████████| 4/4 [00:00<00:00,  7.50it/s]
+Capturing CUDA graphs (mixed prefill-decode, PIECEWISE): 100%|██████████| 4/4 [00:00<00:00,  7.48it/s]
+2026-09-07T01:38:54.592350874Z (EngineCore pid=148) 
+Capturing CUDA graphs (decode, FULL):   0%|          | 0/3 [00:00<?, ?it/s]
+Capturing CUDA graphs (decode, FULL):  33%|███▎      | 1/3 [00:00<00:00,  3.31it/s]
+Capturing CUDA graphs (decode, FULL):  67%|██████▋   | 2/3 [00:00<00:00,  4.86it/s]
+Capturing CUDA graphs (decode, FULL): 100%|██████████| 3/3 [00:00<00:00,  2.92it/s]
+Capturing CUDA graphs (decode, FULL): 100%|██████████| 3/3 [00:00<00:00,  3.17it/s]
+2026-09-07T01:38:55.022912582Z (EngineCore pid=148) INFO 09-07 01:38:55 [gpu_model_runner.py:6094] Graph capturing finished in 3 secs, took 0.18 GiB
+2026-09-07T01:38:55.022944934Z (EngineCore pid=148) INFO 09-07 01:38:55 [gpu_worker.py:599] CUDA graph pool memory: 0.18 GiB (actual), 0.14 GiB (estimated), difference: 0.05 GiB (26.7%).
+2026-09-07T01:38:55.054978016Z (EngineCore pid=148) INFO 09-07 01:38:55 [core.py:298] init engine (profile, create kv cache, warmup model) took 111.93 s (compilation: 94.12 s)
+2026-09-07T01:38:55.573429172Z (EngineCore pid=148) INFO 09-07 01:38:55 [vllm.py:840] Asynchronous scheduling is enabled.
+2026-09-07T01:38:55.573869814Z (EngineCore pid=148) INFO 09-07 01:38:55 [kernel.py:203] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'])
+2026-09-07T01:38:55.573881078Z (EngineCore pid=148) INFO 09-07 01:38:55 [compilation.py:303] Enabled custom fusions: norm_quant, act_quant
+2026-09-07T01:38:55.626812229Z (APIServer pid=1) INFO 09-07 01:38:55 [api_server.py:598] Supported tasks: ['generate']
+2026-09-07T01:38:56.146012716Z (APIServer pid=1) INFO 09-07 01:38:56 [hf.py:314] Detected the chat template content format to be 'string'. You can set `--chat-template-content-format` to override this.
+2026-09-07T01:39:00.005401503Z (APIServer pid=1) INFO 09-07 01:39:00 [base.py:247] Multi-modal warmup completed in 3.848s
+2026-09-07T01:39:00.006023250Z (APIServer pid=1) INFO 09-07 01:39:00 [api_server.py:602] Starting vLLM server on http://0.0.0.0:8000
+2026-09-07T01:39:00.006042034Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:37] Available routes are:
+2026-09-07T01:39:00.006043394Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /openapi.json, Methods: HEAD, GET
+2026-09-07T01:39:00.006044546Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /docs, Methods: HEAD, GET
+2026-09-07T01:39:00.006045538Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /docs/oauth2-redirect, Methods: HEAD, GET
+2026-09-07T01:39:00.006046578Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /redoc, Methods: HEAD, GET
+2026-09-07T01:39:00.006047554Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /tokenize, Methods: POST
+2026-09-07T01:39:00.006048658Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /detokenize, Methods: POST
+2026-09-07T01:39:00.006049666Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /load, Methods: GET
+2026-09-07T01:39:00.006050690Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /version, Methods: GET
+2026-09-07T01:39:00.006051698Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /health, Methods: GET
+2026-09-07T01:39:00.006052786Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /metrics, Methods: GET
+2026-09-07T01:39:00.006053810Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /v1/models, Methods: GET
+2026-09-07T01:39:00.006054978Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /ping, Methods: GET
+2026-09-07T01:39:00.006056050Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /ping, Methods: POST
+2026-09-07T01:39:00.006147042Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /invocations, Methods: POST
+2026-09-07T01:39:00.006148514Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /v1/chat/completions, Methods: POST
+2026-09-07T01:39:00.006149762Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /v1/chat/completions/batch, Methods: POST
+2026-09-07T01:39:00.006150882Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /v1/responses, Methods: POST
+2026-09-07T01:39:00.006151875Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /v1/responses/{response_id}, Methods: GET
+2026-09-07T01:39:00.006152963Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /v1/responses/{response_id}/cancel, Methods: POST
+2026-09-07T01:39:00.006154099Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /v1/completions, Methods: POST
+2026-09-07T01:39:00.006155299Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /v1/messages, Methods: POST
+2026-09-07T01:39:00.006156259Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /v1/messages/count_tokens, Methods: POST
+2026-09-07T01:39:00.006157331Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /inference/v1/generate, Methods: POST
+2026-09-07T01:39:00.006158403Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /scale_elastic_ep, Methods: POST
+2026-09-07T01:39:00.006170627Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /is_scaling_elastic_ep, Methods: POST
+2026-09-07T01:39:00.006171747Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /generative_scoring, Methods: POST
+2026-09-07T01:39:00.006172691Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /v1/chat/completions/render, Methods: POST
+2026-09-07T01:39:00.006173811Z (APIServer pid=1) INFO 09-07 01:39:00 [launcher.py:46] Route: /v1/completions/render, Methods: POST
+2026-09-07T01:39:00.079213139Z (APIServer pid=1) INFO:     Started server process [1]
+2026-09-07T01:39:00.079243235Z (APIServer pid=1) INFO:     Waiting for application startup.
+2026-09-07T01:39:00.288571253Z (APIServer pid=1) INFO:     Application startup complete.
+2026-09-07T01:39:01.452371699Z (APIServer pid=1) INFO:     172.17.0.1:40428 - "GET /health HTTP/1.1" 200 OK
+2026-09-07T01:39:02.148748099Z (APIServer pid=1) INFO:     172.17.0.1:51348 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:39:02.171802498Z (APIServer pid=1) INFO:     172.17.0.1:51336 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:39:10.289021602Z (APIServer pid=1) INFO 09-07 01:39:10 [loggers.py:271] Engine 000: Avg prompt throughput: 79.5 tokens/s, Avg generation throughput: 6.1 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.0%, Prefix cache hit rate: 53.7%
+2026-09-07T01:39:20.289944095Z (APIServer pid=1) INFO 09-07 01:39:20 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 15.4 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.0%, Prefix cache hit rate: 53.7%
+2026-09-07T01:39:25.005959899Z (APIServer pid=1) INFO:     172.17.0.1:33208 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:39:25.006571854Z (APIServer pid=1) INFO:     172.17.0.1:33212 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:39:30.291706955Z (APIServer pid=1) INFO 09-07 01:39:30 [loggers.py:271] Engine 000: Avg prompt throughput: 158.4 tokens/s, Avg generation throughput: 11.7 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.2%, Prefix cache hit rate: 51.6%
+2026-09-07T01:39:40.292172331Z (APIServer pid=1) INFO 09-07 01:39:40 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 15.2 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.2%, Prefix cache hit rate: 51.6%
+2026-09-07T01:39:46.579060241Z (APIServer pid=1) INFO:     172.17.0.1:52442 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:39:46.579523091Z (APIServer pid=1) INFO:     172.17.0.1:52454 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:39:50.293092502Z (APIServer pid=1) INFO 09-07 01:39:50 [loggers.py:271] Engine 000: Avg prompt throughput: 121.6 tokens/s, Avg generation throughput: 11.9 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.2%, Prefix cache hit rate: 60.2%
+2026-09-07T01:40:00.295307104Z (APIServer pid=1) INFO 09-07 01:40:00 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 15.2 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.2%, Prefix cache hit rate: 60.2%
+2026-09-07T01:40:08.185932675Z (APIServer pid=1) INFO:     172.17.0.1:34804 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:40:08.189372307Z (APIServer pid=1) INFO:     172.17.0.1:34816 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:40:10.296286395Z (APIServer pid=1) INFO 09-07 01:40:10 [loggers.py:271] Engine 000: Avg prompt throughput: 253.9 tokens/s, Avg generation throughput: 10.6 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.5%, Prefix cache hit rate: 58.4%
+2026-09-07T01:40:20.296967978Z (APIServer pid=1) INFO 09-07 01:40:20 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 15.0 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.5%, Prefix cache hit rate: 58.4%
+2026-09-07T01:40:30.297957519Z (APIServer pid=1) INFO 09-07 01:40:30 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 13.7 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.8%, Prefix cache hit rate: 58.4%
+2026-09-07T01:40:31.531276460Z (APIServer pid=1) INFO:     172.17.0.1:35276 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:40:31.533352838Z (APIServer pid=1) INFO:     172.17.0.1:35292 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:40:40.298811480Z (APIServer pid=1) INFO 09-07 01:40:40 [loggers.py:271] Engine 000: Avg prompt throughput: 233.4 tokens/s, Avg generation throughput: 11.8 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.7%, Prefix cache hit rate: 61.0%
+2026-09-07T01:40:50.299648740Z (APIServer pid=1) INFO 09-07 01:40:50 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 15.0 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.7%, Prefix cache hit rate: 61.0%
+2026-09-07T01:40:54.868783593Z (APIServer pid=1) INFO:     172.17.0.1:39214 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:40:54.871970696Z (APIServer pid=1) INFO:     172.17.0.1:39224 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:41:00.300220192Z (APIServer pid=1) INFO 09-07 01:41:00 [loggers.py:271] Engine 000: Avg prompt throughput: 209.8 tokens/s, Avg generation throughput: 10.7 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.9%, Prefix cache hit rate: 64.7%
+2026-09-07T01:41:10.300239915Z (APIServer pid=1) INFO 09-07 01:41:10 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 14.8 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.9%, Prefix cache hit rate: 64.7%
+2026-09-07T01:41:18.252754375Z (APIServer pid=1) INFO:     172.17.0.1:48790 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:41:18.253364602Z (APIServer pid=1) INFO:     172.17.0.1:48806 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:41:20.301677052Z (APIServer pid=1) INFO 09-07 01:41:20 [loggers.py:271] Engine 000: Avg prompt throughput: 181.8 tokens/s, Avg generation throughput: 10.9 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 2.1%, Prefix cache hit rate: 68.6%
+2026-09-07T01:41:30.312890860Z (APIServer pid=1) INFO 09-07 01:41:30 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 14.8 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 2.1%, Prefix cache hit rate: 68.6%
+2026-09-07T01:41:40.303143316Z (APIServer pid=1) INFO 09-07 01:41:40 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 13.6 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.1%, Prefix cache hit rate: 68.6%
+2026-09-07T01:41:40.964742404Z (APIServer pid=1) INFO:     172.17.0.1:46428 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:41:40.968661927Z (APIServer pid=1) INFO:     172.17.0.1:46434 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:41:50.303844220Z (APIServer pid=1) INFO 09-07 01:41:50 [loggers.py:271] Engine 000: Avg prompt throughput: 147.3 tokens/s, Avg generation throughput: 10.7 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 2.2%, Prefix cache hit rate: 72.3%
+2026-09-07T01:42:00.304420960Z (APIServer pid=1) INFO 09-07 01:42:00 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 14.6 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 2.3%, Prefix cache hit rate: 72.3%
+2026-09-07T01:42:05.057766212Z (APIServer pid=1) INFO:     172.17.0.1:57448 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:42:05.058302150Z (APIServer pid=1) INFO:     172.17.0.1:57454 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:42:10.305982820Z (APIServer pid=1) INFO 09-07 01:42:10 [loggers.py:271] Engine 000: Avg prompt throughput: 116.9 tokens/s, Avg generation throughput: 11.0 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 2.3%, Prefix cache hit rate: 75.7%
+2026-09-07T01:42:20.308536520Z (APIServer pid=1) INFO 09-07 01:42:20 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 14.6 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 2.3%, Prefix cache hit rate: 75.7%
+2026-09-07T01:42:27.913246393Z (APIServer pid=1) INFO:     172.17.0.1:42850 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:42:27.915353044Z (APIServer pid=1) INFO:     172.17.0.1:42852 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:42:30.310402675Z (APIServer pid=1) INFO 09-07 01:42:30 [loggers.py:271] Engine 000: Avg prompt throughput: 171.5 tokens/s, Avg generation throughput: 11.2 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 2.6%, Prefix cache hit rate: 77.7%
+2026-09-07T01:42:40.311005376Z (APIServer pid=1) INFO 09-07 01:42:40 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 14.6 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 2.6%, Prefix cache hit rate: 77.7%
+2026-09-07T01:42:50.311653957Z (APIServer pid=1) INFO 09-07 01:42:50 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 13.1 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.3%, Prefix cache hit rate: 77.7%
+2026-09-07T01:42:51.535962019Z (APIServer pid=1) INFO:     172.17.0.1:32924 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:42:51.540400729Z (APIServer pid=1) INFO:     172.17.0.1:32930 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:43:00.312761844Z (APIServer pid=1) INFO 09-07 01:43:00 [loggers.py:271] Engine 000: Avg prompt throughput: 234.6 tokens/s, Avg generation throughput: 11.1 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 2.8%, Prefix cache hit rate: 78.8%
+2026-09-07T01:43:10.313737866Z (APIServer pid=1) INFO 09-07 01:43:10 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 14.4 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 2.8%, Prefix cache hit rate: 78.8%
+2026-09-07T01:43:15.967785836Z (APIServer pid=1) INFO:     172.17.0.1:46448 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:43:15.972453763Z (APIServer pid=1) INFO:     172.17.0.1:46458 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:43:20.314154082Z (APIServer pid=1) INFO 09-07 01:43:20 [loggers.py:271] Engine 000: Avg prompt throughput: 229.5 tokens/s, Avg generation throughput: 9.8 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 3.0%, Prefix cache hit rate: 79.9%
+2026-09-07T01:43:30.315659045Z (APIServer pid=1) INFO 09-07 01:43:30 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 14.4 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 3.0%, Prefix cache hit rate: 79.9%
+2026-09-07T01:43:40.316561818Z (APIServer pid=1) INFO 09-07 01:43:40 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 12.2 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.6%, Prefix cache hit rate: 79.9%
+2026-09-07T01:43:40.543181677Z (APIServer pid=1) INFO:     172.17.0.1:33384 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:43:40.543939969Z (APIServer pid=1) INFO:     172.17.0.1:33392 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:43:50.317727891Z (APIServer pid=1) INFO 09-07 01:43:50 [loggers.py:271] Engine 000: Avg prompt throughput: 227.6 tokens/s, Avg generation throughput: 11.8 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 3.2%, Prefix cache hit rate: 80.9%
+2026-09-07T01:44:00.320085238Z (APIServer pid=1) INFO 09-07 01:44:00 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 14.4 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 3.2%, Prefix cache hit rate: 80.9%
+2026-09-07T01:44:05.121376948Z (APIServer pid=1) INFO:     172.17.0.1:45282 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:44:05.124148193Z (APIServer pid=1) INFO:     172.17.0.1:45286 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:44:10.321740056Z (APIServer pid=1) INFO 09-07 01:44:10 [loggers.py:271] Engine 000: Avg prompt throughput: 233.9 tokens/s, Avg generation throughput: 8.6 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 3.5%, Prefix cache hit rate: 81.9%
+2026-09-07T01:44:20.322591687Z (APIServer pid=1) INFO 09-07 01:44:20 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 14.2 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 3.5%, Prefix cache hit rate: 81.9%
+2026-09-07T01:44:30.147035738Z (APIServer pid=1) INFO:     172.17.0.1:43472 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:44:30.147784286Z (APIServer pid=1) INFO:     172.17.0.1:43484 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:44:30.323078325Z (APIServer pid=1) INFO 09-07 01:44:30 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 10.8 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 81.9%
+2026-09-07T01:44:40.323166738Z (APIServer pid=1) INFO 09-07 01:44:40 [loggers.py:271] Engine 000: Avg prompt throughput: 223.6 tokens/s, Avg generation throughput: 12.0 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 3.7%, Prefix cache hit rate: 82.8%
+2026-09-07T01:44:50.324637302Z (APIServer pid=1) INFO 09-07 01:44:50 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 14.0 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 3.7%, Prefix cache hit rate: 82.8%
+2026-09-07T01:44:55.333612797Z (APIServer pid=1) INFO:     172.17.0.1:60260 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:44:55.334284144Z (APIServer pid=1) INFO:     172.17.0.1:60270 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:45:00.325594087Z (APIServer pid=1) INFO 09-07 01:45:00 [loggers.py:271] Engine 000: Avg prompt throughput: 206.8 tokens/s, Avg generation throughput: 8.8 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 3.9%, Prefix cache hit rate: 83.8%
+2026-09-07T01:45:10.326290196Z (APIServer pid=1) INFO 09-07 01:45:10 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 13.8 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 3.9%, Prefix cache hit rate: 83.8%
+2026-09-07T01:45:20.326721759Z (APIServer pid=1) INFO 09-07 01:45:20 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 11.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 83.8%
+2026-09-07T01:45:20.343725587Z (APIServer pid=1) INFO:     172.17.0.1:47854 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:45:20.344436615Z (APIServer pid=1) INFO:     172.17.0.1:47852 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:45:20.344776505Z (APIServer pid=1) INFO:     172.17.0.1:47860 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:45:20.345068762Z (APIServer pid=1) INFO:     172.17.0.1:47858 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:45:30.328194107Z (APIServer pid=1) INFO 09-07 01:45:30 [loggers.py:271] Engine 000: Avg prompt throughput: 54.7 tokens/s, Avg generation throughput: 28.8 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.8%, Prefix cache hit rate: 83.5%
+2026-09-07T01:45:31.420193767Z (APIServer pid=1) INFO:     172.17.0.1:33896 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:45:38.874114447Z (APIServer pid=1) INFO:     172.17.0.1:41890 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:45:40.330058503Z (APIServer pid=1) INFO 09-07 01:45:40 [loggers.py:271] Engine 000: Avg prompt throughput: 31.0 tokens/s, Avg generation throughput: 29.6 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.8%, Prefix cache hit rate: 83.4%
+2026-09-07T01:45:45.981816852Z (APIServer pid=1) INFO:     172.17.0.1:50260 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:45:47.752072978Z (APIServer pid=1) INFO:     172.17.0.1:50262 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:45:50.330987835Z (APIServer pid=1) INFO 09-07 01:45:50 [loggers.py:271] Engine 000: Avg prompt throughput: 26.7 tokens/s, Avg generation throughput: 29.2 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.8%, Prefix cache hit rate: 83.3%
+2026-09-07T01:46:00.330947557Z (APIServer pid=1) INFO 09-07 01:46:00 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 30.0 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.8%, Prefix cache hit rate: 83.3%
+2026-09-07T01:46:03.752071563Z (APIServer pid=1) INFO:     172.17.0.1:48306 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:46:04.097652956Z (APIServer pid=1) INFO:     172.17.0.1:48318 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:46:08.286563670Z (APIServer pid=1) INFO:     172.17.0.1:48326 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:46:10.332219457Z (APIServer pid=1) INFO 09-07 01:46:10 [loggers.py:271] Engine 000: Avg prompt throughput: 40.9 tokens/s, Avg generation throughput: 28.6 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.8%, Prefix cache hit rate: 83.1%
+2026-09-07T01:46:18.445280081Z (APIServer pid=1) INFO:     172.17.0.1:34912 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:46:20.332519442Z (APIServer pid=1) INFO 09-07 01:46:20 [loggers.py:271] Engine 000: Avg prompt throughput: 14.4 tokens/s, Avg generation throughput: 29.4 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.8%, Prefix cache hit rate: 83.0%
+2026-09-07T01:46:30.333668940Z (APIServer pid=1) INFO 09-07 01:46:30 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 29.6 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.8%, Prefix cache hit rate: 83.0%
+2026-09-07T01:46:31.044809313Z (APIServer pid=1) INFO:     172.17.0.1:34340 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:46:32.299176933Z (APIServer pid=1) INFO:     172.17.0.1:38590 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:46:40.334866291Z (APIServer pid=1) INFO 09-07 01:46:40 [loggers.py:271] Engine 000: Avg prompt throughput: 28.0 tokens/s, Avg generation throughput: 28.8 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.8%, Prefix cache hit rate: 82.9%
+2026-09-07T01:46:41.580903882Z (APIServer pid=1) INFO:     172.17.0.1:38602 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:46:50.336030897Z (APIServer pid=1) INFO 09-07 01:46:50 [loggers.py:271] Engine 000: Avg prompt throughput: 13.2 tokens/s, Avg generation throughput: 29.0 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.8%, Prefix cache hit rate: 82.8%
+2026-09-07T01:46:52.703772882Z (APIServer pid=1) INFO:     172.17.0.1:44400 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:47:00.313352882Z (APIServer pid=1) INFO:     172.17.0.1:44416 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:47:00.337063251Z (APIServer pid=1) INFO 09-07 01:47:00 [loggers.py:271] Engine 000: Avg prompt throughput: 14.6 tokens/s, Avg generation throughput: 29.4 tokens/s, Running: 3 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.3%, Prefix cache hit rate: 82.8%
+2026-09-07T01:47:09.581528019Z (APIServer pid=1) INFO:     172.17.0.1:51792 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:47:10.337868213Z (APIServer pid=1) INFO 09-07 01:47:10 [loggers.py:271] Engine 000: Avg prompt throughput: 26.4 tokens/s, Avg generation throughput: 28.8 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.9%, Prefix cache hit rate: 82.7%
+2026-09-07T01:47:15.155570171Z (APIServer pid=1) INFO:     172.17.0.1:51188 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:47:20.339296599Z (APIServer pid=1) INFO 09-07 01:47:20 [loggers.py:271] Engine 000: Avg prompt throughput: 12.6 tokens/s, Avg generation throughput: 29.4 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.9%, Prefix cache hit rate: 82.6%
+2026-09-07T01:47:23.277154338Z (APIServer pid=1) INFO:     172.17.0.1:50188 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:47:30.339677679Z (APIServer pid=1) INFO 09-07 01:47:30 [loggers.py:271] Engine 000: Avg prompt throughput: 13.4 tokens/s, Avg generation throughput: 29.4 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.8%, Prefix cache hit rate: 82.6%
+2026-09-07T01:47:32.654118741Z (APIServer pid=1) INFO:     172.17.0.1:36574 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:47:34.984122453Z (APIServer pid=1) INFO:     172.17.0.1:36580 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:47:38.086967210Z (APIServer pid=1) INFO:     172.17.0.1:36584 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:47:40.340482287Z (APIServer pid=1) INFO 09-07 01:47:40 [loggers.py:271] Engine 000: Avg prompt throughput: 41.1 tokens/s, Avg generation throughput: 29.0 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.8%, Prefix cache hit rate: 82.4%
+2026-09-07T01:47:50.341762181Z (APIServer pid=1) INFO 09-07 01:47:50 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 30.0 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.8%, Prefix cache hit rate: 82.4%
+2026-09-07T01:47:52.381779479Z (APIServer pid=1) INFO:     172.17.0.1:59948 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:47:55.076804672Z (APIServer pid=1) INFO:     172.17.0.1:59964 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:47:58.720347388Z (APIServer pid=1) INFO:     172.17.0.1:59976 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:48:00.342414729Z (APIServer pid=1) INFO 09-07 01:48:00 [loggers.py:271] Engine 000: Avg prompt throughput: 38.0 tokens/s, Avg generation throughput: 29.0 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.8%, Prefix cache hit rate: 82.2%
+2026-09-07T01:48:04.880935905Z (APIServer pid=1) INFO:     172.17.0.1:58806 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:48:06.001005447Z (APIServer pid=1) INFO:     172.17.0.1:58820 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:48:07.497577173Z (APIServer pid=1) INFO:     172.17.0.1:58834 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:48:10.343303019Z (APIServer pid=1) INFO 09-07 01:48:10 [loggers.py:271] Engine 000: Avg prompt throughput: 41.6 tokens/s, Avg generation throughput: 29.0 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.8%, Prefix cache hit rate: 82.0%
+2026-09-07T01:48:12.734688443Z (APIServer pid=1) INFO:     172.17.0.1:40472 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:48:20.344181527Z (APIServer pid=1) INFO 09-07 01:48:20 [loggers.py:271] Engine 000: Avg prompt throughput: 13.0 tokens/s, Avg generation throughput: 29.8 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.8%, Prefix cache hit rate: 82.0%
+2026-09-07T01:48:26.593275585Z (APIServer pid=1) INFO:     172.17.0.1:55478 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:48:30.345826813Z (APIServer pid=1) INFO 09-07 01:48:30 [loggers.py:271] Engine 000: Avg prompt throughput: 15.1 tokens/s, Avg generation throughput: 29.8 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.8%, Prefix cache hit rate: 81.9%
+2026-09-07T01:48:31.165271278Z (APIServer pid=1) INFO:     172.17.0.1:55482 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-09-07T01:48:40.346766165Z (APIServer pid=1) INFO 09-07 01:48:40 [loggers.py:271] Engine 000: Avg prompt throughput: 15.9 tokens/s, Avg generation throughput: 29.8 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.8%, Prefix cache hit rate: 81.9%
+2026-09-07T01:48:50.348114480Z (APIServer pid=1) INFO 09-07 01:48:50 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 22.1 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.9%, Prefix cache hit rate: 81.9%
+2026-09-07T01:49:00.350283854Z (APIServer pid=1) INFO 09-07 01:49:00 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 15.4 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.9%, Prefix cache hit rate: 81.9%
+2026-09-07T01:49:10.349840204Z (APIServer pid=1) INFO 09-07 01:49:10 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 15.4 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.9%, Prefix cache hit rate: 81.9%
+2026-09-07T01:49:20.350343511Z (APIServer pid=1) INFO 09-07 01:49:20 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 15.4 tokens/s, Running: 2 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.9%, Prefix cache hit rate: 81.9%
+2026-09-07T01:49:30.351426459Z (APIServer pid=1) INFO 09-07 01:49:30 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 12.1 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.4%, Prefix cache hit rate: 81.9%
+2026-09-07T01:49:40.352272723Z (APIServer pid=1) INFO 09-07 01:49:40 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 7.8 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.4%, Prefix cache hit rate: 81.9%
+2026-09-07T01:49:50.353807326Z (APIServer pid=1) INFO 09-07 01:49:50 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 7.7 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.4%, Prefix cache hit rate: 81.9%
+2026-09-07T01:50:00.355059479Z (APIServer pid=1) INFO 09-07 01:50:00 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 7.8 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.6%, Prefix cache hit rate: 81.9%
+2026-09-07T01:50:10.354802726Z (APIServer pid=1) INFO 09-07 01:50:10 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 7.8 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.6%, Prefix cache hit rate: 81.9%
+2026-09-07T01:50:11.667907870Z (EngineCore pid=148) INFO 09-07 01:50:11 [core.py:1231] Shutdown initiated (timeout=0)
+2026-09-07T01:50:11.667933886Z (EngineCore pid=148) INFO 09-07 01:50:11 [core.py:1254] Shutdown complete
+2026-09-07T01:50:11.679662690Z (APIServer pid=1) INFO:     Shutting down
+2026-09-07T01:50:11.762934719Z [rank0]:[W907 01:50:11.763420027 ProcessGroupNCCL.cpp:1575] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+2026-09-07T01:50:11.780156571Z (APIServer pid=1) INFO:     Waiting for application shutdown.
+2026-09-07T01:50:11.780305884Z (APIServer pid=1) INFO:     Application shutdown complete.
+2026-09-07T01:50:11.780310444Z (APIServer pid=1) INFO:     Finished server process [1]
