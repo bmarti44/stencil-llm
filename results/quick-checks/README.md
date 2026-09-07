@@ -668,3 +668,9 @@ tables retained. No repeats, fitting, host signals or push.
   contrasts6/8 common-attempt episodes,p=1, retained coverage passes. CPU166pass/1xfail;
   full512 prompt/feedback/score/HTTP replay exact. GPU0.3893h; full projection2.6137h.
   [Pilot report](composition-pilot-9/README.md). Fresh64 calibrated freeze next.
+
+- **larger-test-v2 — PASS (Amendment6b):** all3,328 records; delivery35–0/63
+  paired episodes,Holm8.73e-11; format25–4,Holm.000104; indent mean0. Harm
+  coverage61/64 both,pHolm1. Residual5 indentation errors/5 failed repairs in
+  oneR episode; no universal repair claim. GPU2.1314h; full replay audit exact,
+  fixed cross-container control0/40 divergent. [Final report](../larger-test-v2/RESULTS.md).

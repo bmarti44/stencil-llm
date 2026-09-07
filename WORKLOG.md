@@ -5572,3 +5572,7 @@ DEV harm coverage2/8<6/8; fresh64 NOT OPENED. GPU0.3949h;512 receipts audited.
 Pilot9 FIX-CONFIRMED:512/512 accepted writes, all arms8/8 lanes; zero round-zero rejections/syntax/repairs.
 HarmR:N/T:N6/8,p=1; unchanged75% coverage achievable and retained. Full512 real-consumer+HTTP and528receipt audits exact.
 GPU0.389344h; own container/flag removed. Calibration committed before fresh64; projection2.613690h<=12.
+Full64 PASS, pine20c3f9b:3328 records; delivery35–0/63,Holm8.73e-11;format25–4,Holm.000104;indent mean0.
+Harm61/64 both,pHolm1; residualR episode56 five IndentationErrors with5 identical unsuccessful repairs, disclosed.
+3333main-response/full-consumer replays exact;3349output receipts,40fixed replay0divergence,8293local hashes verified.
+GPU2.131443h; own container/flag removed; final results/larger-test-v2/RESULTS.md; old95fa7fc0/pilot8 unchanged, no push.

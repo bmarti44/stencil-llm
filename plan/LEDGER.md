@@ -1336,3 +1336,17 @@ Pin e20c3f9b; first32 episodes/1792 records committed, Q16 complete. Registered
 0/8 any-divergence episodes. CPU raw-source/new-receipt hashes and all signatures
 reverified; no independent-cell inference. Continue frozenR/N/T32–63; no tuning,
 reruns, host signals or source changes. Own flag/container remains active.
+
+2026-09-07 — STATE: AMENDMENT6b COMPLETE / LARGER-TEST-V2 PASS; NO INFERENCE PENDING.
+CPU166pass/1xfail, pin1e093a46; pilot9 FIX-CONFIRMED512clean writes, coverage6/8.
+Fullfreeze e20c3f9b, all3328 records, R/N/T64+Q16; delivery35–0/63 paired,
+Holm8.731149137e-11; format25–4/63,Holm.000103715807; indent17–15/64,mean0.
+Harm61/64 both contrasts; R1greater/0lower,Tallties,Holm1. R episode56 retains
+five IndentationErrors at10–14; all5 repair texts identical and unsuccessful.
+PASS is registered evidence, not universal indentation repair or absence-of-harm.
+3333 main responses/3328 full prompt-feedback-executor-score replays exact;
+3349 output receipts,40fixed replay0divergence,8293 local hashes verified.
+Independent exact-fraction primary and harm sign/Holm calculations agree.
+GPU7673.195864s=2.131443h; own container/flag removed. All arm files<2.54MB.
+Final explicit artifact commit follows; original95fa7fc0/pilot8 bytes unchanged,
+no benchmark access, fitting, host signals, reruns or push.
