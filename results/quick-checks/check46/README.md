@@ -78,3 +78,17 @@ Freeze: examples/prompt 52cdb6d6; first harness b3b8a38b; final freeze 519c7338.
 ## Disposition
 
 Neither half passes. Explicit entry stays the automatic-path boundary; no runtime swap or new fitted model is shipped. Next hypothesis: a small dense generative updater fine-tuned on the provenance-reconciled, audited authored corpus. **Prospective lineage:** fit only on clean authored register/message/operation examples and audited authored-input labels; scenario-disjoint DEV; evaluate once on a fresh author-disjoint bank. Exclude heldout-3 prompts, labels, outputs, error-derived paraphrases and every benchmark item/response from fitting. Existing heldout-3 becomes a disclosed secondary diagnostic. No training was performed or launched here.
+
+## Orchestrator addendum after the fable accuracy review (2026-09-06; results/check46-review-fable.md)
+Numbers and freeze order verified; NO-GO correct; PARTIAL correctly withheld. Corrections/diagnosis: only 12 of 81
+admission misses are broad-span-over-list; 69 are messages where the trunk emitted `[]`, with the gold rule sitting
+after a payload or chatter in 59 of them (a one-span-per-clause fix caps at 82.1% recall; the real lever is a
+rule-after-payload positive exemplar in the few-shot bank). False spans: 22 are the one-off request admitted as an
+invented task rule; role + template gates give quoted 0/36, non-user 0/34, payload 0/57 but precision only 93.3%.
+SETUP 58 false turns are all user-role (52 template, 12 inert-quote, 6 empty-register cancels/completes emitted as
+add): template + quote gates plus a populated typed register leave <= 2/96. Task-over-global 0/21 is a prompt/
+exemplar gap (all emitted `add`), and scope is mostly wrong overall (226/266 global golds emitted as invented task
+scopes). Trunk remains the best admission recall (78.96 vs 64.16/60.3) and best supersedes recall (87.21 vs 73.26)
+with a complementary error shape. Latency is output-token bound (empty calls 0.63 s; ~12.9 tok/s per request).
+Consequences: check 48 must beat R 78.96 / P 89.94; any prompt change requires a FRESH author-disjoint bank (both
+held-outs are now exposed); the cheaper alternative is trunk-proposer + small fitted verifier.
