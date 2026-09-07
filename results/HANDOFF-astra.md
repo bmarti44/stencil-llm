@@ -161,6 +161,19 @@ report.md; src/stencil/focus/**; scripts/composition_pilot5.py; models/stencil-p
 5. Every result: pre-written reading -> recipe commit -> run -> results + 5-line quick-checks item + WORKLOG ->
    independent review -> orchestrator addendum with the review's corrections -> memory note.
 
+## LIVE WARNINGS (read before pilot 5 and the larger test)
+- The MoE's own SLAB-2 model-style cost projection is 12.00 GPU-h against a 12 GPU-h gate. Read the MEASURED
+  expansion factor from pilot 5 first; the reserved figure is not headroom. A projection in (12, 15] triggers the
+  frozen 12-round fallback with fresh DEV validation, never fewer arms; above 15, stop.
+- Pilot 5 must launch from a PINNED, GREEN commit whose sha is recorded in tests/fixtures/slab2_cpu_report.md.
+  The tree was being edited by a second coder during review and was briefly red.
+- Check 47 recorded STAY on the MoE. That decision stands, but its 0/32 execution figure is a PARSER ARTIFACT
+  (results/check47-review-opus.md): the dense trunk parsed 32/32 and had FEWER style violations once a leading
+  fence is stripped. STAY rests on the conjunctive cost clause and on the 48 GatedDeltaNet + 16 full-attention
+  architecture (mask release reaches 16 of 64 layers). NEVER cite check 47's execution finding as a reason against
+  revisiting the dense trunk: SLAB-2's prompt mandates exactly one fenced code block, i.e. the behaviour that
+  scored 0/32 is what the successor harness requires.
+
 ## OPEN QUESTIONS FOR BRIAN (do not decide these alone)
 - The 54 GB bf16 download for Qwen 3.8 27B (disk is ~96% full) — only if check 47 reads SWITCH-CANDIDATE.
 - Spending on the Anthropic API for the external-model baseline arm X (built, mock-tested, not run).
