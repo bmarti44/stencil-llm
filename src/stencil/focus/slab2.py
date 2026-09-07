@@ -7,7 +7,9 @@ Excluded traits remain diagnostics. Style and delivery substitutions are primary
 relapse witnesses; omission witnesses never enter success without passing floor.
 Pilot-5: executed >=90%, caps <=2%, eligible traits in >=2 kinds with scheduled
 nonzero denominators in >=2 DEV episodes, R final >=5/8. Registered run alone:
-R/N x64 plus nested O/T x16, 16 rounds, <=12 GPU-h; prior pilots excluded.
+R/N x64 plus nested O/T x16 and fresh-task Q x64, 16 rounds, <=12 GPU-h.
+Q is secondary to the full 64 pairs; its measured cost is mandatory.
+Prior pilots excluded.
 Measured projection in (12,15] hours selects pre-registered 12-round fallback
 (frozen alongside 16 rounds; requires fresh 12-round DEV validation), never fewer arms.
 CPU stub output costs are accounting only, NOT measured GPU eligibility.
@@ -25,7 +27,7 @@ from pathlib import Path
 from . import slab as legacy
 from .journal import Journal
 from .loop import DecodeResult, Message, Session, generate_once
-from .register import Register
+from .register import Evidence, Register
 from .renderer import Request, compact
 
 DOMAINS, KINDS = legacy.DOMAINS, legacy.KINDS
@@ -37,7 +39,7 @@ digest, changed_code, indent_widths = (
     legacy.changed_code,
     legacy.indent_widths,
 )
-SCHEMA = 4
+SCHEMA = 5
 REPLY_CAP = 2048
 MAX_WORKERS = 4
 
@@ -115,6 +117,7 @@ class Episode(legacy.Episode):
     def manifest(self):
         return dict(
             schema=SCHEMA,
+            subsets=subset_labels(self),
             episode_id=self.episode_id,
             family=self.family,
             seed=self.seed,
@@ -137,7 +140,11 @@ def generate_episode(family="dev", index=0, seed=20260906, n_rounds=16):
     # Disjoint arithmetic seed namespaces for every caller seed.
     episode_seed = seed * 10000 + (index if family == "dev" else 1000 + index)
     rng = random.Random(episode_seed)
-    domain = DOMAINS[index % 4]
+    domain = (
+        "aggregate_reduction"
+        if family == "eval" and index >= 48
+        else DOMAINS[index % 4]
+    )
     n = validate_rounds(n_rounds)
     # Six ordering shapes; DEV uses a distinct reinstatement-time production.
     shape = rng.choice(tuple(permutations(("indent", "format", "delivery"))))
@@ -190,6 +197,8 @@ def generate_episode(family="dev", index=0, seed=20260906, n_rounds=16):
         receipt_key: "test-after-edit",
         "delivery": delivery,
     }
+    if family == "eval" and index >= 32:
+        live["audit"] = "test-after-edit"
     retired, retired_at = {}, {}
     turns, private = [], []
     for i in range(n):
@@ -212,6 +221,7 @@ def generate_episode(family="dev", index=0, seed=20260906, n_rounds=16):
                     (receipt_key, "process"),
                     ("delivery", "process"),
                 )
+                + ((("audit", "process"),) if "audit" in live else ())
             ]
         if i == schedule["indent"]:
             events.append(entry("supersedes", "indent", "style", next_indent, i, 1))
@@ -254,6 +264,40 @@ def generate_episode(family="dev", index=0, seed=20260906, n_rounds=16):
             if effective.get(k) is not None and v != effective[k]
         }
         expr, desc, case, expected, hidden = _problem(domain, family, rng, i)
+        if domain == "aggregate_reduction":
+            # Entirely held-out domain: weighted reduction over keyed records.
+            expr = 'sum([r["value"] * r["weight"] for r in x])'
+            desc = "sum value times weight over records (zero for empty input)"
+            case, expected = [{"value": 2, "weight": 3}], 6
+            hidden = [
+                ([], 0),
+                ([{"value": -4, "weight": 2}, {"value": 3, "weight": -1}], -11),
+            ]
+        if any(e.action == "completes" for e in events):
+            prior = turns[-1]
+            code = f"def {prior.function}(x):\n  return {private[-1]['expression']}\n"
+            actual = legacy.evaluate_many(code, [(prior.function, prior.public_case)])
+            if actual != [prior.public_expected]:
+                raise ValueError("gold public test receipt failed")
+            receipt = Evidence(
+                "test_receipt",
+                digest(
+                    dict(
+                        source="gold-reference-public",
+                        seed=episode_seed,
+                        turn=i - 1,
+                        code=code,
+                        case=prior.public_case,
+                        expected=prior.public_expected,
+                        actual=actual,
+                        passed=True,
+                    )
+                ),
+            )
+            events = [
+                replace(e, evidence=receipt) if e.action == "completes" else e
+                for e in events
+            ]
         function = f"step_{i}"
         path = "core.py" if task == "A" else "policy.py"
         # Entire prose productions differ, including the repeatable request scaffold.
@@ -756,7 +800,7 @@ def measured_projection(
     if (
         max_workers != registered_max_workers
         or max_workers != MAX_WORKERS
-        or set(lane_seconds) != set("RNTO")
+        or set(lane_seconds) != set("QRNTO")
         or any(v <= 0 for v in lane_seconds.values())
         or load_seconds < 0
         or reserve < 1
@@ -764,7 +808,7 @@ def measured_projection(
         raise ValueError("positive measured per-arm lane seconds required")
     return (
         load_seconds
-        + reserve * sum(lane_seconds[a] * (64 if a in "RN" else 16) for a in "RNTO")
+        + reserve * sum(v * (64 if a in "RNQ" else 16) for a, v in lane_seconds.items())
     ) / 3600
 
 
@@ -829,7 +873,9 @@ def should_pass(episode, turn):
 
 
 def text_events(episode, turn):
-    """CPU stub updater parses public lifecycle clauses; never consumes gold events.
+    """CPU stub updater parses public lifecycle clauses, not gold action labels.
+
+    Gold test receipts are forwarded separately as trusted harness evidence.
 
     This is a transport test double, not the registered evaluation updater.
     GPU evaluation must supply its frozen classifier, and cannot claim these scores.
@@ -846,7 +892,7 @@ def text_events(episode, turn):
             "style"
             if key == "indent"
             else "process"
-            if key in {"delivery", "receipt", "verification"}
+            if key in {"delivery", "receipt", "verification", "audit"}
             else key
         )
         target = (
@@ -867,7 +913,10 @@ def text_events(episode, turn):
                 scoped if key == "delivery" else None,
             )
         )
-        entries[-1] = replace(entries[-1], text=literal(key, value))
+        evidence = next(
+            (e.evidence for e in t.events if e.event_id == entries[-1].event_id), None
+        )
+        entries[-1] = replace(entries[-1], text=literal(key, value), evidence=evidence)
     return tuple(entries)
 
 
@@ -902,7 +951,16 @@ def dry_run(directory, episode, arm, *, freeze_receipt=None, n_rounds=16):
         if feedback is not None:
             messages.append(Message(f"tool{i}", "tool", "", tool_results=(feedback,)))
         events = t.events if episode.family == "dev" else text_events(episode, i)
-        messages.append(Message(f"m{i}", "user", t.request, events, adopted=True))
+        messages.append(
+            Message(
+                f"m{i}",
+                "user",
+                t.request,
+                events,
+                adopted=True,
+                confirmed_evidence=tuple(e.evidence for e in events if e.evidence),
+            )
+        )
         scripted = reference(episode, i)
 
         def decoder(rendered, t=t, scripted=scripted, i=i):
@@ -939,7 +997,7 @@ def dry_run(directory, episode, arm, *, freeze_receipt=None, n_rounds=16):
     )
 
 
-def paired_clauses(rendered, baseline, eligible_traits, n_rounds=16):
+def paired_clauses(rendered, baseline, eligible_traits, n_rounds=16, *, subset=False):
     """Retain registered paired statistics, aggregating eligible traits by kind."""
     if not set(eligible_traits) <= TRAITS.keys():
         raise ValueError("unknown floor trait")
@@ -989,10 +1047,10 @@ def paired_clauses(rendered, baseline, eligible_traits, n_rounds=16):
             converted.append(rows)
         return converted
 
-    return _paired_statistics(convert(rendered), convert(baseline))
+    return _paired_statistics(convert(rendered), convert(baseline), subset=subset)
 
 
-def _paired_statistics(rendered, baseline):
+def _paired_statistics(rendered, baseline, *, subset=False):
     """CPU scoring clauses only; eligibility/cost/provenance gates stay external.
 
     Inputs are 64 paired episodes of saved check() records, including explicit
@@ -1002,8 +1060,11 @@ def _paired_statistics(rendered, baseline):
     """
     from math import comb
 
-    if len(rendered) != 64 or len(baseline) != 64:
+    if len(rendered) != len(baseline) or (not subset and len(rendered) != 64):
         raise ValueError("64 episode pairs required")
+    if not rendered:
+        return dict(clauses_pass=False, reading="INSUFFICIENT", n=0)
+    size = len(rendered)
     wins = losses = broken_r = broken_n = 0
     complete = True
     common = {kind: dict(denominator=0, r=0, n=0, missing=0) for kind in KINDS}
@@ -1036,10 +1097,11 @@ def _paired_statistics(rendered, baseline):
                 common[kind]["n"] += int(n["relapse"][kind])
     discordant = wins + losses
     p = sum(comb(discordant, j) for j in range(wins, discordant + 1)) / 2**discordant
-    primary = p <= 0.05 and wins - losses >= 8
-    breakage = broken_r - broken_n <= 1
+    primary = p <= 0.05 and wins - losses >= (size + 7) // 8
+    breakage = broken_r - broken_n <= size // 64
     relapse = all(v["r"] <= v["n"] for v in common.values())
     return dict(
+        n=size,
         complete=complete,
         wins=wins,
         losses=losses,
@@ -1051,6 +1113,7 @@ def _paired_statistics(rendered, baseline):
         breakage_clause=breakage,
         relapse_clause=relapse,
         clauses_pass=bool(complete and primary and breakage and relapse),
+        reading="PASS" if complete and primary and breakage and relapse else "FAIL",
     )
 
 
@@ -1090,6 +1153,77 @@ def cost_table(output_tokens, calls=2560):
             ("aggregate model-style assumption", 24.7, 1.35),
         )
     ]
+
+
+def subset_labels(episode):
+    from collections import Counter
+
+    mix = Counter(e.kind for e in episode.turns[0].events)
+    shape = [
+        (t.index, e.key, e.action)
+        for t in episode.turns
+        for e in t.events
+        if e.action != "add"
+    ]
+    return dict(
+        domain=episode.domain,
+        constraint_family=compact(dict(sorted(mix.items()))),
+        lifecycle_shape=compact(shape),
+    )
+
+
+def subset_report(
+    rendered, baseline, q_records, manifests, eligible_traits, n_rounds=16
+):
+    """Saved outcomes keyed by episode ID; manifest-only grouping, no content reads."""
+    ids = [m["episode_id"] for m in manifests]
+    if (
+        len(ids) != 64
+        or len(set(ids)) != 64
+        or set(rendered) != set(ids)
+        or set(baseline) != set(ids)
+    ):
+        raise ValueError("complete 64-episode bank required")
+    if set(q_records) != set(ids):
+        raise ValueError("complete pre-trajectory Q bank required")
+    qualified = []
+    for eid in ids:
+        probes = q_records[eid]
+        if len(probes) != n_rounds or [p["turn"] for p in probes] != list(
+            range(n_rounds)
+        ):
+            raise ValueError("one Q probe per scheduled task required")
+        if all(p["outcome"]["success"] for p in probes):
+            qualified.append(eid)
+
+    def reading(members, subset):
+        return paired_clauses(
+            [rendered[i] for i in members],
+            [baseline[i] for i in members],
+            eligible_traits,
+            n_rounds,
+            subset=subset,
+        )
+
+    groups = {}
+    for axis in ("domain", "constraint_family", "lifecycle_shape"):
+        for label in sorted({m["subsets"][axis] for m in manifests}):
+            members = [
+                m["episode_id"] for m in manifests if m["subsets"][axis] == label
+            ]
+            result = reading(members, True)
+            groups[axis + ":" + label] = dict(
+                n=len(members),
+                gain=result["gain"],
+                success_difference=result["gain"] / len(members),
+                descriptive=True,
+            )
+    return dict(
+        primary_full=reading(ids, False),
+        q_qualified=reading(qualified, True),
+        qualified_ids=qualified,
+        subsets=groups,
+    )
 
 
 def write_manifests(directory):

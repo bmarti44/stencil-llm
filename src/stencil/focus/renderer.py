@@ -109,6 +109,23 @@ def render(register: Register, request: Request) -> RenderedRequest:
         + compact(rows)
         + "\nRetired rules (not binding):\n"
         + "\n".join(retired)
+        + (
+            "\nPending proposals (not binding): "
+            + compact(
+                [
+                    {
+                        "action": e.action,
+                        "key": e.key,
+                        "target_version": e.target_version,
+                        "event_id": e.event_id,
+                    }
+                    for e in register.proposals
+                    if e.scope.contains(scope)
+                ]
+            )
+            if any(e.scope.contains(scope) for e in register.proposals)
+            else ""
+        )
         + "\nApply the active rules while answering the request below."
         "\nCurrent user request:\n" + request.text
     )

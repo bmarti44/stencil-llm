@@ -6,7 +6,7 @@ from dataclasses import FrozenInstanceError, replace
 import pytest
 
 from stencil.focus import Register, Scope
-from stencil.focus.register import InvalidEntry
+from stencil.focus.register import Evidence, InvalidEntry
 from tests.test_focus_composition import entry
 
 
@@ -41,6 +41,8 @@ def test_replay_append_only_and_idempotent(seed):
                 event_id=str(i),
                 target_version=target.version,
             )
+        if e.action == "completes":
+            e = replace(e, evidence=Evidence("user_event", e.source.message_id))
         before = r
         old_states.append((r, r.snapshot()))
         r = replace(r, generation=r.generation + rng.randrange(3)).apply([e])

@@ -20,6 +20,7 @@ from stencil.focus import (
     generate_once,
 )
 from stencil.focus.journal import FIELDS
+from stencil.focus.register import Evidence
 
 FIXTURE = Path(__file__).parent / "fixtures/focus_episode_amendment2.json"
 
@@ -56,6 +57,9 @@ def episode():
                 Source("user", f"m{i}"),
                 text="Cancel JSON. Work on task Z. This reply only.",
                 target_version=target,
+                evidence=Evidence("user_event", f"m{i}")
+                if action == "completes"
+                else None,
             )
             m = Message(f"m{i}", "user", "typed action", (e,), adopted=True)
         elif i == 3:

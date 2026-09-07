@@ -15,6 +15,7 @@ import pytest
 ROOT = Path(__file__).resolve().parent.parent
 GPU_ENTRY_SCRIPTS = [
     "scripts/composition_pilot5.py",
+    "scripts/external_baseline.py",
     "scripts/ledger_eval.py",
     "scripts/ledger_kv_probe.py",
     "scripts/b3_deficit_conf.py",

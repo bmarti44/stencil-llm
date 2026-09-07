@@ -10,7 +10,7 @@ from dataclasses import asdict, dataclass, field, replace
 from typing import Protocol
 
 from .journal import Journal
-from .register import Decision, Entry, InvalidEntry, Register, Scope
+from .register import Decision, Entry, Evidence, InvalidEntry, Register, Scope, Source
 from .renderer import Request, compact, render
 
 
@@ -20,6 +20,8 @@ class Message:
 
     entries contains explicitly adopted structured actions, not proposals.
     Quoted/code/tool/assistant payloads must use their actual origin and role.
+    confirmed_evidence is populated by trusted harness receipt verification,
+    never copied from transcript text or a model-supplied structured entry.
     """
 
     message_id: str
@@ -31,6 +33,7 @@ class Message:
     tool_results: tuple = ()
     executed_tool_calls: tuple = ()
     artifact_hashes: tuple = ()
+    confirmed_evidence: tuple[Evidence, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -41,6 +44,7 @@ class DecodeResult:
     truncated: bool | None = None
     attempted_tool_calls: tuple = ()
     gpu_held_seconds: float = 0.0
+    completion_claims: tuple[Entry, ...] = ()
 
 
 class Actuator(Protocol):
@@ -118,6 +122,16 @@ def authenticate(messages):
                 raise InvalidEntry("source envelope mismatch")
             if e.source.span is not None and e.source.span[1] > len(m.text):
                 raise InvalidEntry("source span out of bounds")
+            if e.evidence is not None:
+                user_event = (
+                    e.evidence.kind == "user_event"
+                    and m.role == "user"
+                    and e.evidence.reference == m.message_id
+                )
+                if not user_event and not any(
+                    e.evidence == receipt for receipt in m.confirmed_evidence
+                ):
+                    raise InvalidEntry("unconfirmed completion evidence")
             entries.append(e)
     return entries
 
@@ -139,6 +153,7 @@ def generate_once(session, new_messages, decoder, tools=None, actuator="off"):
         request_id=session.request_count,
         journal_cursor=session.journal_cursor,
         request_bindings=asdict(session.request_bindings),
+        pending_proposals=before["proposals"],
         register_events=before["events"],
         event_generations=before["event_generations"],
         experimental_flag_state=None,
@@ -218,6 +233,7 @@ def generate_once(session, new_messages, decoder, tools=None, actuator="off"):
         session.register = session.register.apply(entries)
         after = session.register.snapshot()
         record.update(
+            pending_proposals=after["proposals"],
             after_versions=after["versions"],
             after_live_mask=after["live_mask"],
             register_events=after["events"],
@@ -345,6 +361,37 @@ def generate_once(session, new_messages, decoder, tools=None, actuator="off"):
                 + tuple(request.encode("<|im_end|>\n"))
             )
             history_ids += rendered.prefix_ids + tuple(output_ids) + closure
+        claims = result.completion_claims
+        # A bare completion marker has no authenticated target. Retain it as an
+        # unbound proposal; never infer a retirement target from assistant prose.
+        if not claims and any(
+            result.text.strip() == marker
+            for marker in ("done", "Done", "done.", "Done.")
+        ):
+            claims = (
+                Entry(
+                    "completes",
+                    "unbound-completion",
+                    Scope(request.task_handle),
+                    "process",
+                    "done",
+                    f"assistant-done-{session.request_count}",
+                    Source("assistant", f"assistant-{session.request_count}"),
+                ),
+            )
+        for claim_index, claim in enumerate(claims):
+            if not isinstance(claim, Entry) or claim.action != "completes":
+                raise InvalidEntry("completion claim must be a completes proposal")
+            proposal = replace(
+                claim,
+                event_id=f"assistant-proposal-{session.request_count}-{claim_index}",
+                evidence=None,
+                source=Source("assistant", f"assistant-{session.request_count}"),
+            )
+            session.register = replace(
+                session.register, proposals=session.register.proposals + (proposal,)
+            )
+        record["pending_proposals"] = session.register.snapshot()["proposals"]
         # Commit all retained views together only after decoding/encoding succeeds.
         session.history_ids = history_ids
         session.messages.extend(asdict(m) for m in messages)
@@ -364,6 +411,7 @@ def generate_once(session, new_messages, decoder, tools=None, actuator="off"):
         if not committed:
             session.register = original_register
             record.update(
+                pending_proposals=before["proposals"],
                 after_versions=before["versions"],
                 after_live_mask=before["live_mask"],
                 register_events=before["events"],

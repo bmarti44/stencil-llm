@@ -227,6 +227,8 @@ class Episode:
 
 
 def _entry(action, key, kind, value, index, target=None, task=None):
+    from .register import Evidence
+
     return Entry(
         action,
         key,
@@ -237,6 +239,7 @@ def _entry(action, key, kind, value, index, target=None, task=None):
         Source("user", f"m{index}"),
         text=f"{key} = {value}",
         target_version=target,
+        evidence=Evidence("user_event", f"m{index}") if action == "completes" else None,
     )
 
 

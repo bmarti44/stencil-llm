@@ -23,7 +23,7 @@ from stencil.focus import (
     render,
 )
 from stencil.focus.journal import FIELDS
-from stencil.focus.register import InvalidEntry, Unsupported
+from stencil.focus.register import Evidence, InvalidEntry, Unsupported
 from stencil.focus.renderer import RenderOverflow
 
 
@@ -45,6 +45,7 @@ def entry(
         eid,
         Source(role, eid),
         target_version=target,
+        evidence=Evidence("user_event", eid) if action == "completes" else None,
     )
 
 

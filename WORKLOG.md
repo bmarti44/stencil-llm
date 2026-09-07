@@ -5497,3 +5497,9 @@ L/S/F/P0/0/32/0 vs0/30/10/17; breakage32 vs0. Disclosed JS second look22/32 vs16
 Decode7.328/stream, DEV C2 aggregate12.693, JS C4 aggregate24.020 tok/s;32-round C4 proxy FP8 12.12h / bf1624.15h (2x serving estimate; O/T/HF unmeasured).
 1015.477/2400 GPU-s;64 HTTP checks,32 exact frozen-source DEV replays,32 JS rescoring pass; CPU32-reference smoke passes.
 Recipe184cb321; concurrent live-source drift detected and replay isolated to committed recipe. Own container/flag removed; explicit artifacts/index/ledger commit, no download/push.
+- 2026-09-06 SLAB-2 Amendment 2: registered before code; adopted assessment rows2/3/4/10/12 only; CPU.
+  Fixed fable-r2 N1/N2; authority adversaries, verified completion receipts/proposals, Q probes and full/Q RESULTS.
+  Frozen held-out domain/kind-count/shape subsets; fixed-DEV replay entry point tested with stubs only.
+  External X R/N mock256 calls, spend$0; budget8/64 episodes=8,388,608/67,108,864 tokens,$31.45728/$251.65824 assumed.
+  Full362 pass/4 fail/1 xfail before fixes; final affected241 pass/1 xfail; recheck leaves only2 historical SLAB-1 failures.
+  Report:tests/fixtures/slab2_cpu_report.md; Q-inclusive sensitivity12.445h is unmeasured; no GPU/signals/API/push.

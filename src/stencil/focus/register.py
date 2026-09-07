@@ -92,6 +92,46 @@ class Source:
 
 
 @dataclass(frozen=True)
+class Evidence:
+    """Trusted receipt reference; authentication checks its transport confirmation."""
+
+    kind: str
+    reference: str
+
+    def __post_init__(self):
+        if self.kind not in {"test_receipt", "tool_result", "user_event"}:
+            raise InvalidEntry("unsupported completion evidence")
+        if not isinstance(self.reference, str) or not self.reference:
+            raise InvalidEntry("missing evidence reference")
+        if self.kind == "test_receipt" and (
+            len(self.reference) != 64
+            or any(
+                c
+                not in {
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                    "6",
+                    "7",
+                    "8",
+                    "9",
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                }
+                for c in self.reference
+            )
+        ):
+            raise InvalidEntry("test receipt requires SHA256")
+
+
+@dataclass(frozen=True)
 class Entry:
     action: str
     key: str
@@ -102,8 +142,11 @@ class Entry:
     source: Source
     text: str | None = None
     target_version: int | None = None
+    evidence: Evidence | None = None
 
     def __post_init__(self):
+        if self.evidence is not None and not isinstance(self.evidence, Evidence):
+            raise InvalidEntry("typed evidence required")
         if self.action not in {
             "add",
             "supersedes",
@@ -159,9 +202,11 @@ class Register:
     retirements: tuple[Retirement, ...] = ()
     generation: int = 0
     event_generations: tuple[int, ...] = ()
+    proposals: tuple[Entry, ...] = ()
 
     def __post_init__(self):
         for name in (
+            "proposals",
             "defaults",
             "events",
             "versions",
@@ -198,6 +243,7 @@ class Register:
         task_handles=(),
         event_generations=None,
         generation=None,
+        proposals=(),
     ):
         """Rebuild from source entries and their append clocks, never cached views.
 
@@ -223,7 +269,7 @@ class Register:
         state = cls(defaults=defaults, task_handles=task_handles)
         for event, clock in zip(events, clocks, strict=True):
             state = replace(state, generation=clock).apply((event,))
-        return replace(state, generation=generation)
+        return replace(state, generation=generation, proposals=tuple(proposals))
 
     def history(self, key=None):
         """Every created version plus original and incoming transition evidence."""
@@ -273,7 +319,7 @@ class Register:
         self.check_scope(e.scope)
         if e.source.role not in AUTHORITY:
             raise InvalidEntry("source has no rule authority")
-        prior = [x for x in self.events if x.event_id == e.event_id]
+        prior = [x for x in (*self.events, *self.proposals) if x.event_id == e.event_id]
         if prior:
             if prior[0] != e:
                 raise InvalidEntry("event ID collision")
@@ -315,6 +361,8 @@ class Register:
             v.entry.scope == e.scope for v in same
         ):
             raise InvalidEntry("add requires a new key/scope; use an exact target")
+        if e.action == "completes" and e.evidence is None:
+            return replace(self, proposals=self.proposals + (e,))
         retiring = (
             target if e.action in {"supersedes", "cancels", "completes"} else None
         )
@@ -348,6 +396,13 @@ class Register:
             )
         return replace(
             self,
+            proposals=tuple(
+                p
+                for p in self.proposals
+                if not (
+                    retiring and p.key == e.key and p.target_version == retiring.version
+                )
+            ),
             events=self.events + (e,),
             versions=versions,
             retirements=retirements,
@@ -402,4 +457,5 @@ class Register:
             versions=[asdict(v) for v in self.versions],
             live_mask=list(self.live_mask),
             generation=self.generation,
+            proposals=[asdict(e) for e in self.proposals],
         )

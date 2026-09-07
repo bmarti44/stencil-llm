@@ -10,6 +10,7 @@ FIELDS = frozenset(
         "journal_cursor",
         "request_bindings",
         "register_events",
+        "pending_proposals",
         "event_generations",
         "experimental_flag_state",
         "raw_messages",

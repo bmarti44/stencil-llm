@@ -72,7 +72,7 @@ def test_vllm_truncation_through_real_driver(tmp_path):
 def test_complete_cpu_driver_floor_and_cost(tmp_path):
     d = driver()
     summary = d.run_pilot(tmp_path / "pilot", d.stub_factory, cpu_stub=True)
-    assert len(summary["lanes"]) == 32
+    assert len(summary["lanes"]) == 40
     assert summary["projected_gpu_hours"] is None
     assert summary["lane_seconds"] is None
     assert not summary["reading"]["eligible"]
@@ -133,8 +133,8 @@ def test_measured_lane_allocations_with_cpu_injected_decoder(tmp_path):
         clock=lambda: next(ticks),
         load_seconds=10,
     )
-    assert summary["gpu_held_seconds"] == 17
-    assert sum(lane["lane_seconds"] for lane in summary["lanes"]) == 17
+    assert summary["gpu_held_seconds"] == 21
+    assert sum(lane["lane_seconds"] for lane in summary["lanes"]) == 21
     assert all(lane["concurrent_lanes"] == 4 for lane in summary["lanes"])
     assert summary["projected_gpu_hours"] == s.measured_projection(
         summary["lane_seconds"], load_seconds=10

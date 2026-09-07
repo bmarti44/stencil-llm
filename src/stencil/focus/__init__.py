@@ -9,7 +9,7 @@ from .loop import (
     Session,
     generate_once,
 )
-from .register import Decision, Entry, Register, Scope, Source, Verdict
+from .register import Decision, Entry, Evidence, Register, Scope, Source, Verdict
 from .renderer import RenderedRequest, Request, render
 
 __all__ = [
@@ -22,6 +22,7 @@ __all__ = [
     "generate_once",
     "Decision",
     "Entry",
+    "Evidence",
     "Register",
     "Scope",
     "Source",

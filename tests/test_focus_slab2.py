@@ -183,7 +183,7 @@ def test_floor_missingness_threshold_and_gate():
     assert not s.paired_context_gate(dict(R=31745, N=1, T=1, O=1))
     with pytest.raises(ValueError):
         s.paired_context_gate(dict(R=1))
-    assert s.measured_projection(dict.fromkeys("RNTO", 180), reserve=1) == 8
+    assert s.measured_projection(dict.fromkeys("QRNTO", 180), reserve=1) == 11.2
     assert s.pilot5_reading([], floor, 13)["cost_action"] == "12-round-refreeze"
     assert not s.pilot5_reading([], floor, None)["eligible"]
 
@@ -338,9 +338,9 @@ def test_delivery_power_and_fallback(tmp_path, n_rounds):
 
 
 def test_cost_concurrency_and_schedule_rule():
-    assert s.measured_projection(dict.fromkeys("RNTO", 180), reserve=1) == 8
+    assert s.measured_projection(dict.fromkeys("QRNTO", 180), reserve=1) == 11.2
     with pytest.raises(ValueError):
-        s.measured_projection(dict.fromkeys("RNTO", 180), max_workers=1)
+        s.measured_projection(dict.fromkeys("QRNTO", 180), max_workers=1)
     floor = s.freeze_t_floor(floor_records())
     assert s.pilot5_reading([], floor, 12)["cost_action"] == "16-round"
     assert s.pilot5_reading([], floor, 15)["cost_action"] == "12-round-refreeze"
