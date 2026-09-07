@@ -5474,3 +5474,9 @@ GPU479/480 required calls; R108/159,N109/160,T131/160 executed; caps51/51/29; R 
 R round0 indent2/8; registered ALPHA/BETA/GAMMA swap applied afterwards on CPU,32 witnesses pass; swapped GPU unrun.
 D=0/64 checks incl cold reverse C4;24.731tok/s; projection floor38.547h>12; O budget-skipped, hidden recovery deferred;6831.011/9000GPU-s.
 479 exact CPU replays pass; own containers/flag removed; <=10MB shards plus local HTTP hash manifests; DEV-only/no fitting/bench/host signals/push.
+
+2026-09-06 — SLAB-2 CPU write-ahead: current brief governs archived protocol; pilot4 review read fully; lock free.
+Fit none; DEV authored only, eval template/seed-disjoint; 72 regenerated hashes; no benchmark reads/GPU/signals/push.
+Register T-floor>=50%; pilot5 executed>=90%, caps<=2%, >=2 eligible kinds/opportunities in>=2 episodes, R final>=5/8.
+Registered R/N64+O/T16 alone <=12GPU-h; prior pilots development cost; (12,15]h selects 12-round fallback, all arms retained.
+CPU COMPLETE:92 tests pass/1 expected xfail;4608 stub calls;max context R/O13183,N7005,T8068;eval output/lane3133–4466;hashes/accounting frozen;GPU cost unmeasured.

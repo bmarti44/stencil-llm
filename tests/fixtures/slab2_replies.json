@@ -1,0 +1,32 @@
+[
+  {
+    "reply": "```python core.py\ndef step_0(x):\n   return []\n```\nreport: task=A status=ok",
+    "executed": true,
+    "breakage": false
+  },
+  {
+    "reply": "```python\ndef step_0(x):\n   return []\n```\nreport: task=A status=blocked delivery=ready",
+    "executed": true,
+    "breakage": false
+  },
+  {
+    "reply": "```python core.py\ndef broken(:\n```\nreport: task=A status=ok",
+    "executed": true,
+    "breakage": true
+  },
+  {
+    "reply": "```python ../escape.py\nx=1\n```\nreport: task=A status=ok",
+    "executed": false,
+    "breakage": true
+  },
+  {
+    "reply": "```python\nx=1\n```\nreport: status=ok",
+    "executed": false,
+    "breakage": true
+  },
+  {
+    "reply": "```python\nx=1\n```\n```python\ny=2\n```\nreport: task=A status=ok",
+    "executed": false,
+    "breakage": true
+  }
+]
