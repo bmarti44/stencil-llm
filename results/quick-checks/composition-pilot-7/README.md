@@ -43,3 +43,35 @@ Actual GPU-held: 3533.4/5400s including startup, determinism and cleanup. Startu
 Pinned CPU-green SHA: `24ed80a49edcea3359d0c45d361daf7fdf761745`; isolated `/tmp/stencil-pilot7-pinned`. Required CPU suite and CLI smoke passed before GPU launch. Saved-response audit verifies all 512 prompts/payloads and record fields; own container and flag removed. No host process signals or push.
 
 Artifacts: [summary](summary.json), [records](main-records.jsonl), [saved-response audit](audit.json), [registration](registration.md), [CPU validation](cpu-validation.log), [determinism](determinism.json), [lifecycle](lifecycle.json), [local hashes](local-hashes.json), [composition control](composition-control.json), [report audit](report-audit.json). Records are below 10 MB; full HTTP and loop journals are local and hash-indexed.
+
+## Orchestrator addendum after the Opus maximum-reasoning review (2026-09-07; results/composition-pilot-7-review-opus.md)
+All 512 records, the control, the floor, the projection and the primary were independently re-derived; the report is
+numerically honest and INELIGIBLE is correctly applied AS REGISTERED. But the gate it fails is invalid:
+1. CRITICAL — the no-rules-block arm N scores 3/34 against the same limit of 2. N cannot suffer a rendering
+   contradiction, yet fails the gate written to certify one was removed. R 4 vs N 3 is McNemar p = 1.0000, and at
+   Amendment 4's own registered EPISODE unit both arms are 1/8.
+2. All four R cells are one locked episode (dev-06 t12-15 is that episode's entire compact window); rounds 14-15
+   carry no register event at all, and R's t15 prompt contains four literal copies of its own prior trailer.
+3. NEW CRITICAL EVIDENCE: this harness is only ~94% reproducible across container restarts — 166 pilot-6/pilot-7
+   cells had byte-identical payloads and 10 returned different completions (6.02%, CI 3.3-10.7%). A 2-cell margin
+   on 34 cells is inside the noise. A re-pilot is pointless: every compact window is 4-5 rounds and the failure
+   locks from onset, so "<= 2/34" means "zero episodes may lock", P ~ (7/8)^8 ~ 0.34. Fix the specification.
+4. THE FIX VERIFIABLY WORKS: 35/35 registers render with no delivery row and no `trailer delivery=` string, bit-exact
+   hashes, 17,126 -> 8,412 tokens; behaviourally 25 -> 4 emissions, 9/34 -> 30/34 format, 6/8 -> 1/8 episodes
+   (p = 0.031). The residue is not pure history-copying: R's t15 prompt still holds 16 block copies (34.7% of
+   tokens), 7 carrying the uncomposed imperative because history is never re-composed (loop.py:363), plus an
+   arm-invariant driver in the system prompt's worked example (slab2.py:71-73) that pushes even Q to 33/34.
+5. THE PRIMARY IS REAL AND CORRECTLY ANALYSED, re-implemented independently from the registration prose: delivery
+   R 8/8 vs N 1/8, 7-0, exact one-sided p = 0.0078125, Holm 0.0234375, episode-paired with within-episode averaging,
+   change rounds taken from the frozen schedule with no outcome dependence. The defaulting artifact is dead: R is
+   38/38 on rounds demanding a NON-default delivery value, and N's whole deficit sits in the 11 post-completion
+   rounds. Caveat to publish: T's oracle prose scores 7/8, so the credit is "current effective value restated at
+   request time", not the register data structure per se.
+6. Readiness confirmed: projection 6.985773 GPU-h (~70% headroom); O justly dropped (byte-identical to R 128/128);
+   delivery_scope removed; Q relabelled a fresh-context reference; the vacuous-widths and breakage-conjunction
+   fixes are in code with regression tests.
+REGISTERED CONSEQUENCE: the 64-episode larger test is AUTHORIZED under Amendment 5 — episode-level unit made
+global; the deterministic CPU re-render control becomes the ONLY blocking composition check; primary = the delivery
+family of the per-obligation change-round endpoint with Holm over three families; a frozen `larger_reading()` in
+code; the evaluation bank frozen by id-hash; a registered cross-run reproducibility control; known confounds
+pre-declared. No further DEV re-pilot.
