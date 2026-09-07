@@ -71,3 +71,31 @@ All272 calls used63,229 input tokens and14,090 generated tokens. CUDA forward-ev
 [CPU replay audit](audit_results.py) verifies272 decoded/tokenized records, all180 literal trajectory histories, exact scorer replay, fit counts and adapter/base hashes with zero discrepancies. The frozen runner is [scripts/focus_check49.py](../../../scripts/focus_check49.py); targeted tests are [tests/test_focus_check49.py](../../../tests/test_focus_check49.py). No full test suite, processes signalled, push, or external messages. Both Check49 processes exited normally and removed their own flags. [final-reading.json](final-reading.json) combines the immutable main result with the cache-matched audit; [artifact-manifest.json](artifact-manifest.json) binds the report and evidence files.
 
 **Reading:** close this registered miniature two-LoRA recipe as a useful persistent focus controller. Cold-HOLD and initial selection are real positive observations; competent SWITCH and history-aware CLEAR are absent. Retain rendering as the engineering default and test any masking claims on the actual trunk separately. The amended Astra contract explicitly prevents turning this miniature one-epoch proxy into “weights cannot encode rules” or universal dense-model impossibility. No follow-up GPU experiment is launched by this NO-GO.
+
+## Orchestrator addendum after the Opus maximum-reasoning review (2026-09-07; results/check49-review-opus.md)
+Provenance clean; every headline number reproduces; OFF parity holds (off == pristine == saved, 0 diffs). But the
+report's central consequence is WRONG and is corrected here.
+1. THE PRIMARY ENDPOINT IS INADMISSIBLE (HIGH). SWITCH is the only cell where the carrier and the transcript
+   conflict, and the TRANSCRIPT WINS 36/36 across ALL THREE arms: every SWITCH generation is a verbatim copy of the
+   previous answer with one constant incremented. The swapped-label control X "passes" SWITCH 10/12 while holding
+   the WRONG adapter, purely from its own history. The registered eligibility gate certifies only cold single-turn
+   cueing. So the check is ELIGIBLE, but "M 0/12" says nothing about adapters.
+2. The CLEAR stale-imposition bar is not carrier-diagnostic (HIGH): M and T are stale in the IDENTICAL five
+   episodes; the metric measures transcript persistence. Carrier RELEASE is meanwhile bitwise perfect — 12/12
+   same-history OFF replays reproduce M's CLEAR token-for-token.
+3. "10 executable losses" is a 5x inflation (MEDIUM): semantics is constant within an episode because each answer
+   copies the previous. At the registered unit it is M 9/12 vs T 10/12 — 1 win, 2 losses, exact one-sided p = 0.5.
+   This is NOT the check-40k pattern (that was -9/32 with a shuffled control); 7 of 8 competence sentinels are
+   token-identical ON vs OFF. Do not merge this into the 40k narrative.
+4. UNDER-REPORTED POSITIVE: on the admissible decisions (SET / HOLD / BACK) M beats the swapped-label control
+   8 wins / 0 losses, exact one-sided p = 0.0039, at 0 versus 576 carrier tokens and 1.35% FASTER than rendering.
+   SET is causally clean (M 12/12 vs X 0/12), carried by the JS adapter. Cold-HOLD 10/12 is real.
+5. The carrier is undertrained: the JS adapter used 13.577 s of its 600 s registered fitting ceiling (2.3%), loss
+   still descending.
+CONSEQUENCE: the weight-side line does NOT close on this check. The registered NO-GO stands for its own five
+conditions, but its blanket "close the weight side" consequence is superseded. The single missing piece is a
+positive control that ANY carrier can flip mode against a retained transcript. Registered next step (quick test
+first): ~2-3 GPU-minutes, 8 generations on the SETUP families only (no second look at evaluation prompts),
+rendering the rule as a RECENCY instruction at the switch turn. Only if text-at-recency switches does a corrected
+re-run earn its ~1,400-1,800 s (add a fourth text-at-recency arm, raise the output cap 96 -> 160, and actually
+spend the fitting ceiling).
