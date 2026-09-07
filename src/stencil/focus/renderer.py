@@ -7,7 +7,7 @@ No substring-based parsing or inference of request kind is performed.
 
 import json
 from collections.abc import Callable
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 
 from .register import Register, Scope
 
@@ -67,48 +67,31 @@ def render(register: Register, request: Request) -> RenderedRequest:
         )
         if not old.entry.scope.contains(scope):
             continue
-        replacement = next((v for v in live if v.entry.key == retirement.key), None)
-        target = (
-            "default " + compact(replacement.entry.value)
-            if replacement and replacement.version == 0
-            else f"{replacement.entry.key} v{replacement.version}"
-            if replacement
-            else "default null (no configured obligation)"
-        )
-        link = (
-            "; reinstated as a new version"
-            if replacement
-            and replacement.entry.action == "reinstates"
-            and replacement.previous == old.version
-            else ""
-        )
         retired.append(
             f"Retired: {retirement.key} v{retirement.version}; "
-            f"no longer binding in {compact(asdict(old.entry.scope))}; "
-            f"replaced by {target}; reason {retirement.reason}{link}."
+            f"no longer binding; reason {retirement.reason}."
         )
+    # Compose applicable structured values, independent of presentation arm.
+    # Delivery remains stored literally and becomes visible again under verbose.
+    compact_format = any(
+        v.entry.key == "format" and v.entry.value == "compact" for v in live
+    )
     rows = [
         dict(
             key=v.entry.key,
             version=v.version,
             kind=v.entry.kind,
             value=v.entry.value,
-            text=(
-                (v.entry.text or "") + value_gloss(v.entry.kind, v.entry.value)
-                if value_gloss(v.entry.kind, v.entry.value)
-                else v.entry.text
-            ),
-            scope=asdict(v.entry.scope),
-            provenance=asdict(v.entry.source),
+            text=v.entry.text,
             default=v.version == 0,
         )
         for v in live
+        if not (compact_format and v.entry.key == "delivery")
     ]
     text = (
         "Active rules for this request (subject to system/developer instructions):\n"
         + compact(rows)
-        + "\nRetired rules (not binding):\n"
-        + "\n".join(retired)
+        + ("\nRetired rules (not binding):\n" + "\n".join(retired) if retired else "")
         + (
             "\nPending proposals (not binding): "
             + compact(
@@ -133,6 +116,7 @@ def render(register: Register, request: Request) -> RenderedRequest:
         text = request.text
     elif request.rule_mode == "T":
         text = request.rule_text + "\n" + request.text
+    # O intentionally replicates R byte for byte (historical determinism arm).
     elif request.rule_mode not in {"R", "O"}:
         raise ValueError("unknown rule mode")
     envelope = (

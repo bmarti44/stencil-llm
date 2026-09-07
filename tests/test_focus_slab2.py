@@ -94,7 +94,8 @@ def test_free_reemission_and_parsable_repair(tmp_path):
         ex.run(output, i)
     ex.run(output, 13)
     assert ex.changed == ""
-    assert s.check(e, 13, ex, eligible_traits=tuple(s.TRAITS))["success"]
+    assert not s.check(e, 13, ex, eligible_traits=tuple(s.TRAITS))["success"]
+    assert not s.check(e, 13, ex)["satisfied"]["indent"]
     ex.run("```python\ndef broken(:\n```\nreport: task=A status=ok", 14)
     ex.run(s.reference(e, 14), 14)
     assert "step_14" in ex.changed and "step_13" not in ex.changed
@@ -201,7 +202,7 @@ def test_floor_missingness_threshold_and_gate():
 def test_excluded_trait_diagnostic_only(tmp_path):
     e = s.generate_episode()
     ex = setup(tmp_path, e)
-    for i in range(16):
+    for i in range(15):
         ex.run(s.reference(e, i), i)
     output = s.reference(e, 15) + " delivery=stale"
     ex.run(output, 15)

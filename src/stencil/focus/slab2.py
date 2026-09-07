@@ -1,4 +1,8 @@
-"""SLAB-2: CPU-testable whole-file episodes; no model loading or import work.
+"""Amendment 4 primary lives in slab2_endpoint.py; pilot5/paired_clauses below
+are historical Amendment 3 compatibility, not current gates. Q is a fresh-context
+reference; O is an R replication omitted from current runs.
+
+SLAB-2: CPU-testable whole-file episodes; no model loading or import work.
 
 Fit-on=none; development-on=authored DEV only; evaluation-on=disjoint authored
 families/seeds. Pilot outputs are development cost, never fitting/eval fixtures.
@@ -57,7 +61,6 @@ TRAITS = {
     "indent": "style",
     "format": "format",
     "delivery": "process",
-    "delivery_scope": "process",
 }
 SYSTEM_PROMPT = (
     "Maintain Python modules. Each response is exactly ONE fenced code block "
@@ -611,17 +614,20 @@ def check(episode, turn, executor, *, eligible_traits=None):
     rules, stale = dict(t.live), dict(t.retired)
     report, code = executor.report, executor.changed
     observed = executor.result["executed"]
+    written = file_written(
+        {"execution": executor.result, "truncated": executor.result["truncated"]}
+    )
     widths = indent_widths(code)
     applicable = dict(
         language=True,
         indent=True,
         format=rules["format"] == "compact",
         delivery=rules["format"] == "verbose" and "delivery" in rules,
-        delivery_scope=rules["format"] == "verbose" and "delivery" not in rules,
     )
     satisfied = dict(
-        language=not executor.result["breakage"],
-        indent=not executor.result["breakage"]
+        language=written,
+        indent=written
+        and bool(widths)
         and all(w == int(rules["indent"]) for w in widths),
         format=(
             "delivery" not in report
@@ -629,14 +635,12 @@ def check(episode, turn, executor, *, eligible_traits=None):
             else ("delivery" in report if "delivery" in rules else True)
         ),
         delivery=report.get("delivery") == rules.get("delivery"),
-        delivery_scope="delivery" not in report,
     )
     den = dict(
         language=0,
         indent=int("indent" in stale),
         format=int("format" in stale),
         delivery=int("delivery" in stale and applicable["delivery"]),
-        delivery_scope=0,
     )
     prior = dict(
         language=False,
@@ -650,7 +654,6 @@ def check(episode, turn, executor, *, eligible_traits=None):
             and h["report"].get("delivery") == stale["delivery"]
             for h in executor.prior
         ),
-        delivery_scope=False,
     )
     raw_relapse = dict(
         language=False,
@@ -658,7 +661,6 @@ def check(episode, turn, executor, *, eligible_traits=None):
         format="delivery" in report,
         delivery=report.get("delivery") == stale.get("delivery")
         and "delivery" in stale,
-        delivery_scope=False,
     )
     raw_relapse = {k: bool(den[k] and prior[k] and raw_relapse[k]) for k in TRAITS}
     integration = True
@@ -957,9 +959,9 @@ def mutants(episode, turn):
     )
     outputs["language"] = outputs["breakage"]
     if dict(t.live)["format"] == "verbose":
-        outputs["delivery" if "delivery" in report else "delivery_scope"] = outputs.pop(
-            "format"
-        )
+        omitted = outputs.pop("format")
+        if "delivery" in report:
+            outputs["delivery"] = omitted
     if "delivery" in report:
         outputs["delivery"] = reply(
             trailer={**report, "delivery": dict(t.retired).get("delivery", "wrong")}
