@@ -662,3 +662,9 @@ tables retained. No repeats, fitting, host signals or push.
   errors and zero repairs. Scoped rejection feedback still said whole-file:
   harness defect disclosed. Harm coverage2/8<6/8. [Pilot report](composition-pilot-8/README.md).
   [Fresh64 NOT RUN](../larger-test-v2/RESULTS.md); old FAIL untouched, no rescue.
+
+- **composition-pilot-9 — FIX-CONFIRMED:**512/512 accepted writes; every arm8/8
+  executing lanes, zero round-zero rejections, syntax errors or repairs. Both harm
+  contrasts6/8 common-attempt episodes,p=1, retained coverage passes. CPU166pass/1xfail;
+  full512 prompt/feedback/score/HTTP replay exact. GPU0.3893h; full projection2.6137h.
+  [Pilot report](composition-pilot-9/README.md). Fresh64 calibrated freeze next.

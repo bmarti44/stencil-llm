@@ -1313,3 +1313,12 @@ rejected. Retain achievable6/8 requirement. New pilot3600s; no fresh64 model ope
 /tmp/stencil-amendment6b-pinned; module/source hash binding and scoped consumer
 CPU smoke PASS. Next frozen runner --pilot, shared flag acquisition, determinism
 then8DEVx16x4;3600s GPU-held. No full64 access before clean pilot+harm eligibility.
+
+2026-09-07 — STATE: PILOT9 FIX-CONFIRMED / FRESH64 CALIBRATION FREEZE.
+Pin1e093a46; all512 writes accepted, R/N/T/Q8/8 lanes, zero round-zero rejections,
+initial/surviving syntax/repairs. Primary three families8 paired episodes; DEV
+indent gain-.125 disclosed. HarmR:N/T:N each6/8, all ties,p=1: unchanged75% gate
+passes. Full512 prompt/feedback/executor/score/HTTP replays and528 receipts exact.
+GPU0.389344h, own container/flag removed. Projection2.613690h<12. Next isolated
+checkout of this calibration freeze, source validation/CPU smoke, authorized
+single64-episode run under unchanged Amendment6 allocation; no original rescore.

@@ -144,3 +144,15 @@ whitespace clean. New regressions first failed8/9 on the old scoped consumer,
 then passed after repair. Actual512 scoped DEV stub records produce both harm
 contrasts8/8,p=1; injected R and T episode harm both fail. Null enumeration0..64
 has size<=.025 per contrast. CPU receipt: composition-pilot-9/cpu-controls.json.
+
+
+Amendment6b DEV calibration frozen before evaluation: pilot9 pin1e093a46,
+512/512 accepted writes, all arms8/8 execution, zero initial round-zero
+rejections/surviving syntax/repairs; three primary families each8 paired episodes.
+R:N and T:N each6/8 common-attempt episodes, all ties,p=1; retained75% coverage
+passes. CPU512 full prompt/feedback/score/HTTP replays exact;528 receipts exact.
+GPU0.389344h; full projection2.613690h including25% main and1200s overhead reserve.
+Frozen rule remains48/64 coverage BOTH contrasts in full run; no relaxation.
+Full64 allocation/seed/templates/schedules/40pilot7 replay payloads unchanged.
+Development significance is not an eligibility test; indent DEV gain-.125 is
+disclosed. dev-calibration.json binds these results; fresh64 model-unopened.

@@ -5567,3 +5567,8 @@ CPU suite155 passed/1xfail. Pilot8 next, isolated pinned checkout, <=1.5 GPU-h.
 Pilot8 STOP:512/512; R/N7/8 executing lanes, T/Q8/8; zero syntax/repairs.
 Rejection feedback retained legacy whole-file instruction (harness defect disclosed).
 DEV harm coverage2/8<6/8; fresh64 NOT OPENED. GPU0.3949h;512 receipts audited.
+
+2026-09-07: SLAB-2 Amendment6b registereda39e2f64; scoped feedback+worked example fixed, CPU166pass/1xfail, pin1e093a46.
+Pilot9 FIX-CONFIRMED:512/512 accepted writes, all arms8/8 lanes; zero round-zero rejections/syntax/repairs.
+HarmR:N/T:N6/8,p=1; unchanged75% coverage achievable and retained. Full512 real-consumer+HTTP and528receipt audits exact.
+GPU0.389344h; own container/flag removed. Calibration committed before fresh64; projection2.613690h<=12.
