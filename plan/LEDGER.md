@@ -1322,3 +1322,10 @@ passes. Full512 prompt/feedback/executor/score/HTTP replays and528 receipts exac
 GPU0.389344h, own container/flag removed. Projection2.613690h<12. Next isolated
 checkout of this calibration freeze, source validation/CPU smoke, authorized
 single64-episode run under unchanged Amendment6 allocation; no original rescore.
+
+2026-09-07 — STATE: AUTHORIZED FRESH64 LAUNCH, PIN e20c3f9bb9979ba95b9cc797115b742507a3803c.
+Isolated/tmp/stencil-larger6b-pinned tracked-clean; all module/source hashes and
+scoped CPU smoke PASS. Runtime science/driver bytes identical to pilot9 pin1e093a46.
+Calibration eligible and hash-bound before evaluation. Launch frozen full runner
+once, R/N/T64+Q16, C4 increasing groups,40fixed pilot7 payloads midpoint,41400s
+cooperative budget/43200s ceiling. Own flag/container, no signals, no bank retries.
