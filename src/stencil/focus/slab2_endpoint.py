@@ -230,3 +230,90 @@ def pilot_reading(records, episodes, floor, hours, compact_cells, *, determinist
         projected_gpu_hours=hours,
         floor=floor,
     )
+
+
+def larger_reading(records, episodes, q_ids, *, cpu_control):
+    """Amendment 5, frozen before evaluation. Historical pilot gates do not apply."""
+    ids = {e.episode_id for e in episodes}
+    q_ids = set(q_ids)
+    if len(ids) != 64 or len(episodes) != 64 or len(q_ids) != 16 or not q_ids <= ids:
+        raise ValueError("64 unique episodes and 16 registered Q IDs required")
+    if any(len(e.turns) != 16 for e in episodes):
+        raise ValueError("16 rounds required")
+    expected = {
+        (e.episode_id, a, t.index)
+        for e in episodes
+        for a in ("RNTQ" if e.episode_id in q_ids else "RNT")
+        for t in e.turns
+    }
+    actual = {(r["episode_id"], r["arm"], r["turn"]) for r in records}
+    if len(actual) != len(records) or not actual <= expected:
+        raise ValueError("duplicate or unregistered records")
+    complete = actual == expected
+    endpoint = primary(records, episodes)
+    by_episode = []
+    for e in episodes:
+        arms = {}
+        for a in "RNTQ" if e.episode_id in q_ids else "RNT":
+            rows = sorted(
+                (
+                    r
+                    for r in records
+                    if r["episode_id"] == e.episode_id and r["arm"] == a
+                ),
+                key=lambda r: r["turn"],
+            )
+            compact = [
+                r for r in rows if dict(e.turns[r["turn"]].live)["format"] == "compact"
+            ]
+            arms[a] = dict(
+                completed=len(rows) == 16,
+                broken=any(r["outcome"]["diagnostics"]["breakage"] for r in rows),
+                any_nonwrite=any(not s.file_written(r) for r in rows),
+                any_cap=any(r["truncated"] for r in rows),
+                compact_ready=any("delivery=ready" in r["output"] for r in compact),
+                compact_format_violation=any(
+                    not s.file_written(r) or not r["outcome"]["satisfied"]["format"]
+                    for r in compact
+                ),
+                joint_final=bool(
+                    len(rows) == 16
+                    and rows[-1]["outcome"]["integration"]
+                    and rows[-1]["outcome"]["report_ok"]
+                    and all(rows[-1]["outcome"]["satisfied"].values())
+                ),
+            )
+        by_episode.append(dict(episode_id=e.episode_id, arms=arms))
+    metrics = {
+        a: {
+            k: sum(row["arms"][a][k] for row in by_episode if a in row["arms"])
+            for k in next(iter(by_episode[0]["arms"].values()))
+        }
+        for a in ARMS
+    }
+    excess = metrics["R"]["broken"] - metrics["N"]["broken"]
+    failures = []
+    if not endpoint["families"]["delivery"]["pass"]:
+        failures.append(
+            "delivery primary not significant after Holm with positive gain"
+        )
+    if excess > 1:
+        failures.append("R episode breakage exceeds N by more than one")
+    if cpu_control is not True:
+        failures.append("CPU composition control")
+    if not complete:
+        failures.append("incomplete accounting")
+    return dict(
+        reading="INCOMPLETE" if not complete else "FAIL" if failures else "PASS",
+        failures=failures,
+        complete=complete,
+        expected_records=len(expected),
+        actual_records=len(records),
+        missing_records=sorted(expected - actual),
+        primary=endpoint,
+        powered_family="delivery",
+        cpu_control=cpu_control,
+        breakage_excess=excess,
+        per_arm=metrics,
+        episodes=by_episode,
+    )
