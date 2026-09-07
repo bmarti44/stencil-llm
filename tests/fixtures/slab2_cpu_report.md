@@ -14,8 +14,12 @@ M7: scripts/composition_pilot5.py drives loop.generate_once with vLLM adapter; c
 
 Amendment 1 verification (CPU only)
 
-2026-09-06 pre-launch N1/N2 applied (already committed in bdc5f115): timeout=1200, stop_token_ids=[151645,151643], ValueError on stop without terminal EOS; CPU regression assertions added, validation pending.
+2026-09-06 pre-launch N1/N2 applied (already committed in bdc5f115): timeout=1200, stop_token_ids=[151645,151643], ValueError on stop without terminal EOS; CPU regression assertions added; requested suite before commit: 116 passed, 1 expected xfail (68.05s).
 O2/H3: launch only from the pinned, post-commit CPU-green SHA recorded below; verify checkout and clean tracked files before GPU access. Read MEASURED x-factor first: historical RNTO x1.3504 boundary / 11.9972h at x1.35 is not headroom; current Amendment-2 Q-inclusive measured projection governs.
+
+Pilot-5 pinned CPU-green code commit: `9f0c6d27f32815010c81a02d3959102459c55e8f`. Post-commit validation with tracked tree identical to that SHA: `CUDA_VISIBLE_DEVICES='' .venv/bin/python -m pytest -q tests/test_focus_slab2_driver.py tests/test_focus_slab2.py tests/test_no_side_effect_imports.py` — **116 passed, 1 expected xfail, 64.66s**. Ruff and whitespace checks pass. This receipt is committed separately; it does not change the pinned code.
+
+Before any GPU access, the GPU owner must use an isolated checkout of `9f0c6d27f32815010c81a02d3959102459c55e8f`, verify `git rev-parse HEAD` equals that full SHA and `git diff HEAD --exit-code` succeeds, and ensure runtime sources resolve from that checkout (not the moving live tree). Abort on mismatch. No pilot/model x-factor was measured in this CPU task; read the pilot's measured output x-factor before interpreting its measured Q-inclusive lane-cost projection. The historical 11.9972h sensitivity is not available headroom. No GPU launch is performed by this handoff.
 
 72 episodes x 16 rounds x four arms = 4,608 real-loop reference stub calls. No model competence or measured GPU-cost claim. Evaluation generation/checking was automated; only aggregate counts and hashes were inspected.
 Manifests freeze both 16- and 12-round schedules with the same seed namespaces. Both have delivery witness opportunities: DEV 11 in 8/8 episodes; eval 87 in 64/64. Format remains an omission trait gated by the actual DEV T floor.

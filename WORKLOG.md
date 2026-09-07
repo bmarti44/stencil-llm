@@ -5503,3 +5503,7 @@ Recipe184cb321; concurrent live-source drift detected and replay isolated to com
   External X R/N mock256 calls, spend$0; budget8/64 episodes=8,388,608/67,108,864 tokens,$31.45728/$251.65824 assumed.
   Full362 pass/4 fail/1 xfail before fixes; final affected241 pass/1 xfail; recheck leaves only2 historical SLAB-1 failures.
   Report:tests/fixtures/slab2_cpu_report.md; Q-inclusive sensitivity12.445h is unmeasured; no GPU/signals/API/push.
+
+- 2026-09-06 pilot-5 pre-launch: N1/N2 already in bdc5f115; regression tests committed in 9f0c6d27f32815010c81a02d3959102459c55e8f.
+  Requested CPU suite before/after commit:116 passed,1 expected xfail (68.05s/64.66s); lint/whitespace green.
+  Pinned-checkout requirement and measured x-factor/Q-cost handoff:tests/fixtures/slab2_cpu_report.md; no GPU/signals/benchmark reads/push.
