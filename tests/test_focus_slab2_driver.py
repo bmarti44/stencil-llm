@@ -2,6 +2,7 @@
 
 import importlib.util
 import json
+from io import BytesIO
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -63,10 +64,69 @@ def test_vllm_truncation_through_real_driver(tmp_path):
     assert lane["records"][-1]["output_tokens"] == journal[-1]["output_token_count"] + 1
     assert journal[0]["output_token_count"] == first["output_tokens"]
     assert all(
-        request["max_tokens"] == 2048 and isinstance(request["prompt"], list)
+        request["max_tokens"] == 2048
+        and request["stop_token_ids"] == [151645, 151643]
+        and isinstance(request["prompt"], list)
         for request in requests
     )
     assert not lane["records"][-1]["execution"]["breakage"]
+
+
+def test_vllm_http_timeout(monkeypatch):
+    d = driver()
+    payload = {"model": "stub", "prompt": [1]}
+    response = {"choices": []}
+    calls = []
+
+    def urlopen(request, *, timeout):
+        calls.append((request, timeout))
+        return BytesIO(json.dumps(response).encode())
+
+    monkeypatch.setattr(d, "urlopen", urlopen)
+    assert d.VLLMDecoder("http://unused/v1/", "stub")._post(payload) == response
+    assert len(calls) == 1
+    request, timeout = calls[0]
+    assert timeout == 1200
+    assert request.full_url == "http://unused/v1/completions"
+    assert json.loads(request.data) == payload
+
+
+@pytest.mark.parametrize("ids", [[42], [151645, 42], []])
+def test_vllm_stop_without_terminal_id_raises(ids):
+    d = driver()
+    adapter = d.VLLMDecoder(
+        "http://unused/v1",
+        "stub",
+        lambda payload: {
+            "choices": [{"text": "reply", "token_ids": ids, "finish_reason": "stop"}],
+            "usage": {"completion_tokens": len(ids)},
+        },
+    )
+    with pytest.raises(ValueError, match="stop without terminal EOS token"):
+        adapter(SimpleNamespace(prompt_ids=(1,)))
+
+
+@pytest.mark.parametrize("terminal_id", [151645, 151643])
+def test_vllm_stop_separates_terminal_id(terminal_id):
+    d = driver()
+    adapter = d.VLLMDecoder(
+        "http://unused/v1",
+        "stub",
+        lambda payload: {
+            "choices": [
+                {
+                    "text": "reply",
+                    "token_ids": [42, terminal_id],
+                    "finish_reason": "stop",
+                }
+            ],
+            "usage": {"completion_tokens": 2},
+        },
+    )
+    result = adapter(SimpleNamespace(prompt_ids=(1,)))
+    assert result.eos == terminal_id
+    assert result.output_ids == (42,)
+    assert not result.truncated
 
 
 def test_complete_cpu_driver_floor_and_cost(tmp_path):
