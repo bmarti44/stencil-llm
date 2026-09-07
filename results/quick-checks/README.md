@@ -597,4 +597,14 @@ GPU4869.993/5400s;512 exact CPU replays and680 local-file hashes pass;1.76MB rec
 
 49. **NO-GO — two-LoRA persistent focus, Qwen3-4B** ([check49](check49/README.md)): amended rank8 q/v,128 authored examples/mode,one epoch; setup Python/JS/default each8/8; fit/save14.196s.
    Full272 calls: M/T/X all-active0/0/0 of12, M/T SWITCH language0/12; M cold10/12,10 executable losses versus T (5 wins), CLEAR4/12 with5 staleJS. All12 same-history OFF replays exact; trunk hashes unchanged.
-   Main850.757GPU-s; both final adapters retained outsidegit (11.30MiB). CPU272 score/180 history replays exact. Supplemental16-prompt cache-matched parity audit queued behind another Stencil flag; original full-prefix OFF/pristine logits16/16 exact, cross-path cached-token reconstruction15/16 disclosed. No follow-up authorization/push.
+   Total925.538GPU-s including cache audit; both final adapters retained outsidegit (11.30MiB). CPU272 score/180 history replays exact. Cache-matched OFF/pristine and saved greedy replay16/16 exact, zero diffs; original cross-path full-prefix reconstruction15/16 disclosed. No follow-up authorization/push.
+
+
+## Pilot-5 Amendment 3 screen — SCREEN-NOT-PASS (2026-09-07)
+
+[Report](pilot5-screen/README.md). Pinned4ab3e218; CPU121 passed,1 xfail. All8 round-0
+replies fence-clean and executing lanes8/8; budget permitted72/128 rounds (DEV00x16,
+DEV01x2 per R/N/T/Q), all72 written,zero caps. Measured partial x R1.085/N1.066/T1.065/Q1.010.
+GPU856.627/900s including439.215s startup;72 CPU request/record replays exact; own
+container/flag removed. Corrected saved T indent13/39 still fails; primary kind process
+only. Q-inclusive historical estimate~10.4h. Incomplete screen: no pilot6/larger run; no push.
