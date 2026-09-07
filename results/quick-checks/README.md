@@ -608,3 +608,17 @@ DEV01x2 per R/N/T/Q), all72 written,zero caps. Measured partial x R1.085/N1.066/
 GPU856.627/900s including439.215s startup;72 CPU request/record replays exact; own
 container/flag removed. Corrected saved T indent13/39 still fails; primary kind process
 only. Q-inclusive historical estimate~10.4h. Incomplete screen: no pilot6/larger run; no push.
+
+
+## Composition pilot 6 — INELIGIBLE (2026-09-07)
+
+[Report](composition-pilot-6/README.md). Full Amendment3 DEV at pinned4ab3e218,
+cap2048, fixed same-arm C4 Q/R/N/T/O,640/640 rounds; D0/8 forward/reverse replay.
+Zero round0 failures, every arm8/8 executing lanes; R/N/Q/O128/128 written,
+T127/128,zero caps. Corrected T indent23/39 and delivery48/49 qualify both primary
+kinds, but **R final0/8 fails required5/8** (N4/8,T3/8; Q-qualified0/8).
+Matched post-change indent R7/38,N20/38,T23/38; prior pilot5 R0/9,N8/9,T8/9.
+Measured Q-inclusive larger-test projection7.651751GPU-h; no12-round fallback.
+GPU4414.921/9000s (73.58min),640 exact CPU request/record replays;1,200 local hashes
+verified. Pinned format floor23/35 versus strict-written22/35 has identical eligibility.
+Own container/flag removed; no larger64, benchmark reads, host signals or push.

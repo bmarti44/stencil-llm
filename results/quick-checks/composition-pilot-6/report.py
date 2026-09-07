@@ -140,6 +140,24 @@ def main():
             if summary["floor"]
             else None
         )
+    summary["r_final_failures"] = [
+        dict(
+            episode_id=r["episode_id"],
+            integration=r["outcome"]["integration"],
+            report_ok=r["outcome"]["report_ok"],
+            failed_checks=[
+                k
+                for k in (
+                    *summary["floor"]["eligible_traits"],
+                    "breakage",
+                    "wrong_family",
+                )
+                if r["outcome"]["diagnostics"][k]
+            ],
+        )
+        for r in rows
+        if r["arm"] == "R" and r["turn"] == n - 1
+    ]
     summary["lifecycle"] = json.loads((OUT / "lifecycle.json").read_text())
     summary["determinism"] = json.loads((OUT / "determinism.json").read_text())
     summary["audit"] = json.loads((OUT / "audit.json").read_text())
@@ -186,17 +204,17 @@ def main():
         "",
         "A lane executes when at least one round parses its trailer and writes its file. Per-round execution remains separately reported and gated at90% by this task. Caps, syntax/depth errors and failed writes do not execute. Final success uses the complete frozen T floor; Q qualification instead requires every fresh task to pass all traits. Q final-row success in the table is not Q qualification. Model output includes EOS, reference denominator excludes EOS, matching pilot5 reporting.",
         "",
-        "| T trait / kind | Satisfied / applicable | Qualifies | Retirement-opportunity episodes |",
-        "|---|---:|---|---:|",
+        "| T trait / kind | Pinned satisfied/applicable | Strict written satisfied/applicable | Qualifies (both) | Opportunity episodes |",
+        "|---|---:|---:|---|---:|",
     ]
     if summary["floor"]:
         for k, v in summary["floor"]["traits"].items():
             lines.append(
-                f"| {k} / {s.TRAITS[k]} | {v['passed']}/{v['total']} | {v['eligible']} | {len(v['opportunity_episodes'])} |"
+                f"| {k} / {s.TRAITS[k]} | {v['passed']}/{v['total']} | {summary['strict_floor_sensitivity'][k]['passed']}/{v['total']} | {v['eligible']} | {len(v['opportunity_episodes'])} |"
             )
     lines += [
         "",
-        "Indent floor counts applicable rounds at/after the registered first supersede, including reinstatement. Other floors retain Amendment3 semantics. Failed attempts remain failures. Only indent/style and delivery/process count toward the two-substitution-kind gate. Strict file-write sensitivity is retained in summary.json.",
+        "Indent floor counts applicable rounds at/after the registered first supersede, including reinstatement. Other denominators retain Amendment3 semantics. The pinned checker marks the syntax-error T reply observed and counts its format satisfaction:23/35. Strict written accounting treats that attempt as a failure:22/35. Both pass; all other counts and the eligible-trait set are identical. The gate reading is unchanged under strict accounting. Only indent/style and delivery/process count toward the two-substitution-kind gate.",
         "",
         "**Matched-cell diagnostic.** Pilot5 prior post-change indent: R0/9 vs N8/9 vs T8/9. Matching conditions on execution and is descriptive, not a causal estimate.",
         "",
@@ -249,7 +267,11 @@ def main():
         "",
         registration,
     ]
-    (OUT / "README.md").write_text("\n".join(lines) + "\n")
+    lines[4:4] = [
+        "R final failures: all8 fail the indent check,6 fail format, and3 also have breakage/integration failures. These checker categories overlap; an indent failure does not by itself identify its cause. The single non-write is T DEV04 turn12 (syntax_error). All round0 replies parsed and wrote files.",
+        "",
+    ]
+    (OUT / "README.md").write_text("\n".join(lines).rstrip() + "\n")
     print(
         json.dumps(
             dict(

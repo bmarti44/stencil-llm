@@ -5534,3 +5534,10 @@ Cache-matched16prompt OFF/pristine logits+tokens and saved-greedy replay16/16 ex
 Pilot5-screen: round0 fences0/8,executing lanes8/8;72/128 rounds completed (all72 written,caps0),x R1.085/N1.066/T1.065/Q1.010; SCREEN-NOT-PASS incomplete.
 GPU856.627/900s incl439.215s startup;72 exact CPU payload/record replays; owned container/flag removed. Saved T indent13/39 still fails; mandatory-Q estimate~10.4h.
 Artifacts results/quick-checks/pilot5-screen; no pilot6/larger test,benchmark reads,host signals or push; explicit scoped commits.
+
+2026-09-07 — Pilot6 INELIGIBLE: Amendment3 pin4ab3e218,DEV8x16 QRNTO640 calls,cap2048,C4;D0/8 reverse replay.
+Round0 failures0,lanes8/8 each,R/N/Q/O128/128 written,T127/128,zero caps; T indent23/39,delivery48/49 qualify style/process.
+R final0/8 fails5/8 (N4/8,T3/8,Q-qualified0/8); matched post-change indent R7/38,N20/38,T23/38,prior0/9,8/9,8/9.
+Q-inclusive cost7.651751GPU-h,no fallback; actual4414.921/9000GPU-s; owned container/flag gone,no signals/bench/larger64/push.
+640 exact CPU payload/record replays,1200 local hashes,15 driver/import tests+1xfail; records1,991,176bytes,HTTP/loops local hashed.
+Report/index composition-pilot-6; strict format floor22/35 vs pinned23/35 same eligible traits,sole failed gate remains R final; scoped commit.
