@@ -583,3 +583,10 @@ Dense/MoE executed32/32 each; caps/breakage/semantic0 each; final0/2 each; L/S/F
 Dense strip_leading_fence32/32 (13 closed/19 unclosed); MoE test_path32/32; round0 indent2/2 vs0/2.
 Only2 round0 pairs genuinely matched: fully compliant2/2 vs0/2; all32 totals descriptive, remaining30 histories unmatched; original harness INELIGIBLE.
 STAY unchanged: conjunctive cost clause and48 GatedDeltaNet+16 full-attention architecture;64 exact baseline replays,64 corrected replays,8 boundary cases pass; no SLAB2 change.
+
+## Composition pilot 5 — INELIGIBLE (2026-09-06, gpt-6-astra)
+
+[Report and artifacts](composition-pilot-5/README.md). SLAB-2, pinned9f0c6d27, qualified invariant vLLM, user cap1024, fixed C4; DEV8x16 R/N/T/O complete.
+R/N/T parsed+written63/112/104 of128 (<90% each), caps0, R final0/8; T indent13/128 floor-fails, only delivery/process qualifies as substitution.
+Measured registered-run projection7.774GPU-h<=12; no fallback. O/R128/128 exact; forward/reverse gate8/8 exact.
+GPU4869.993/5400s;512 exact CPU replays and680 local-file hashes pass;1.76MB records, raw HTTP/loop journals out of git with hashes; own container/flag removed, no push.

@@ -1199,3 +1199,10 @@ language72/128, indent13/128, format22/35, delivery42/49, scope0/44; only
 one substitution kind qualifies. Group-only projection7.7836h uses R-as-O proxy;
 optional O now measures that cost. Required raw records checkpointed explicitly;
 final audit/cost overhead/cleanup and full artifacts still pending, no push.
+
+2026-09-06 — STATE: PILOT5 COMPLETE / INELIGIBLE, final artifacts in this commit.
+All512 DEV R/N/T/O rounds complete plus16 gate calls, D=0/8; O/R128 exact.
+R/N/T writes63/112/104 of128; no caps; R final0/8; one substitution kind floor-qualified.
+Measured7.774GPU-h registered projection passes cost; no12-round fallback trigger.
+GPU4869.993/5400s;512 exact replays,680 hashes; owned container/flag removed.
+Next: no further GPU work authorized here; explicit artifact/index/WORKLOG commit, no push.

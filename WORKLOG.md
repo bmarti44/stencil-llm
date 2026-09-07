@@ -5512,3 +5512,10 @@ Recipe184cb321; concurrent live-source drift detected and replay isolated to com
 Dense FP8/vLLM vs MoE bf16/HF L/S/F/P0/0/6/4 vs0/30/10/17; fence32/32 vs test_path32/32; matched round0 compliance2/2 vs0/2.
 Original harness INELIGIBLE; all32 totals descriptive (30 unmatched histories); STAY unchanged on conjunctive cost clause +48 GDN/16 full-attention.
 64 original exact/64 corrected replays +8 consumer tests pass; records186564 bytes; results/quick-checks/check47-replay; CPU only, no SLAB2/GPU/container/signals/bench/push.
+
+2026-09-06 — composition pilot5 (astra): INELIGIBLE; pinned9f0c6d27, user cap1024/noQ; CPU11 driver tests pass.
+DEV8x16 R/N/T/O512 calls +16 gate calls; D=0/8 reverse C4; O/R128/128 exact; no caps, largest776.
+R/N/T written63/112/104 of128 (<90% each); final0/4/3 of8; T indent13/128 fails, only delivery substitution qualifies.
+Measured registered R/N64+O/T16 projection7.774GPU-h, load+25%reserve, prior pilots excluded; fallback not triggered.
+GPU4869.993/5400s;512 exact CPU replays,680 local-file hashes pass;records1.76MB, HTTP/loop journals local with hashes.
+Own container/flag removed; DEV-only, fit none, no eval/bench reads, host signals or push; composition-pilot-5/README.md.
