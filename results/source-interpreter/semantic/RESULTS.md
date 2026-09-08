@@ -85,3 +85,28 @@ source-grounded adjudication after both independent original vote sets are
 frozen. No reference is being changed, and no primary or advancement decision
 has been made. A confirmed post-look reference defect makes this whole screen
 INELIGIBLE under the frozen specification; complete execution cannot cure it.
+
+## 2026-09-08 — Reference defect confirmed: INELIGIBLE
+
+Root and the independent blind Astra judge confirm that the final radio-audit
+reference excludes the surviving Midday comments-inbox permission when the
+previous queues are revisited. The source grants that permission at m13;
+m15/m17 change other rules and m19 requests reconciliation under current rules.
+The original reference is preserved. Under the frozen specification, this
+makes the entire screen INELIGIBLE. No primary sign test or practical
+advancement is permitted. No reference repair, exclusion, reduced-bank score,
+model retry or selection of the base control is authorized. This is not a
+null result about whether training can work.
+
+Both original judgment sets are now frozen. Kimi returned all36 records in
+719.241566905seconds, reporting116456 prompt and114371 generated service tokens.
+One original category contains invalid enum PRESENT_CHECKED_ABSENT, so its
+judgment-delivery status remains INCOMPLETE; that field is unknown and is not
+normalized. The six original responses and all receipts are tracked, byte
+verified and bound by judgment-archive.json. Astra's original36 judgments are
+unchanged. Separate source-grounded adjudication of13 differing records is
+still active and can provide only qualified descriptive findings.
+
+Actual execution and its structural/cost observations above remain valid. This
+fixed candidate does not advance on this screen. Adequate fresh executable
+coding utility and the overall project goal remain unproven.
