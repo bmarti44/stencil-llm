@@ -87,3 +87,33 @@ were copied byte-for-byte to author-NN/reviewed.json, without parsing or
 reserialization. These canonical copies are the sole accepted packet for later
 CPU preparation. The earlier pending statements are historical; this addendum
 supplies label acceptance only, not model performance or launch permission.
+
+## 2026-09-08 — Bounded disposition of interrupted-confirmation residual
+
+Astra round6 distinguishes the fixed normal COMPLETE path from an interrupted
+confirmation's overstated partial evidence (#10 Medium). Root independently
+reproduced the residual in `interrupted-confirmation-root.json`: an exception
+after late confirmation bytes exist propagates out of the schedule; partial
+records and the standalone call validator nevertheless label the pending final
+call timely. The actual child exception, supervisor and outer observer prevent
+whole-run eligibility. No successful experiment or scientific result is implied.
+
+Root defers this remaining medium implementation defect for this one-shot
+screen, subject to Astra concurrence, with this concrete reporting restriction:
+if execution is interrupted or INCOMPLETE, the active pending call's completion
+and deadline remain UNKNOWN unless existing later-INTENT or post-generation
+validation evidence establishes that trusted execution advanced beyond it.
+Ignore provisional RETURNED / within_deadline_confirmed fields for that call.
+Preserve every original receipt and any known raw IDs, bytes, counts and timing;
+do not rewrite receipts, invent missing values or count unknown work as a loss.
+Never substitute standalone validate_complete_calls acceptance for actual
+successful child, supervisor and outer-observer completion. Any incomplete run
+blocks both registered inference and practical advancement regardless of counts.
+This is a qualification of residual evidence, not a repair or relaxed threshold.
+
+The normal late-write/confirmation paths now stop correctly, current original
+files are verified before/after, and loaded adapter bytes are checked against
+serialized state. Proceeding after qualified independent acceptance tests the
+fixed scientific comparison without another implementation/review cycle for a
+failure path whose whole-run decisions already fail closed. Full coding utility
+remains unproven. No test data, model setting, limit or scoring gate is changed.
