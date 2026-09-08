@@ -325,6 +325,60 @@ def _returned_call(mode, *, cap=False):
     }
 
 
+def test_current_base_assets_reject_same_size_changed_file(tmp_path):
+    model_dir = tmp_path / "models/qwen3-4b-hf"
+    model_dir.mkdir(parents=True)
+    first = model_dir / "config.json"
+    second = model_dir / "model.safetensors"
+    first.write_bytes(b"config")
+    second.write_bytes(b"weights")
+    files = {}
+    for path in (first, second):
+        relative = str(path.relative_to(tmp_path))
+        files[relative] = {
+            "bytes": path.stat().st_size,
+            "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            "matches_historical_original": True,
+        }
+    receipt_path = tmp_path / "base-assets.json"
+    receipt_path.write_bytes(
+        _json_bytes(
+            {
+                "schema_version": 1,
+                "status": "LOCAL_BASE_BYTES_VERIFIED",
+                "file_count": 2,
+                "total_file_bytes": sum(item["bytes"] for item in files.values()),
+                "files": files,
+            }
+        )
+    )
+
+    verified = semantic.verify_current_base_assets(receipt_path, root=tmp_path)
+    assert verified["status"] == "CURRENT_BASE_BYTES_VERIFIED"
+    assert verified["file_count"] == 2
+    assert all(item["bytes_verified"] for item in verified["files"].values())
+
+    second.write_bytes(b"WeightS")
+    assert second.stat().st_size == files[str(second.relative_to(tmp_path))]["bytes"]
+    with pytest.raises(semantic.SemanticError, match="base asset bytes differ"):
+        semantic.verify_current_base_assets(receipt_path, root=tmp_path)
+
+
+def test_loaded_adapter_must_equal_serialized_payload_with_same_shape():
+    torch = pytest.importorskip("torch")
+    serialized = {"layer.lora_A.weight": torch.tensor([[1.0, 2.0]])}
+    loaded = {"layer.lora_A.weight": torch.tensor([[1.0, 3.0]])}
+
+    with pytest.raises(semantic.SemanticError, match="serialized adapter state"):
+        semantic.verify_loaded_adapter_state(serialized, loaded)
+
+    receipt = semantic.verify_loaded_adapter_state(serialized, serialized)
+    assert receipt["status"] == "LOADED_SERIALIZED_EXACT_MATCH"
+    assert receipt["tensors"] == 1
+    assert receipt["parameters"] == 2
+    assert receipt["state"]["layer.lora_A.weight"]["sha256"]
+
+
 def test_fixed_order_all_36_no_overwrite_and_cap_continues(tmp_path):
     calls = []
 
@@ -513,6 +567,106 @@ def test_schedule_consumes_the_real_fit_single_call_for_each_mode(tmp_path):
     assert len(semantic.validate_complete_calls(tmp_path)) == 36
 
 
+class ManualClock:
+    def __init__(self):
+        self.now = 0.0
+
+    def __call__(self):
+        return self.now
+
+
+@pytest.mark.parametrize("delayed_ordinal", [0, 35])
+def test_late_final_call_publication_stops_and_complete_consumer_rejects(
+    tmp_path, monkeypatch, delayed_ordinal
+):
+    clock = ManualClock()
+    original_write = semantic._write_json
+
+    def delayed_write(path, value):
+        original_write(path, value)
+        if (
+            Path(path).name == f"call-{delayed_ordinal:02d}.json"
+            and value.get("status") in {"RETURNED", "COMPLETION_PENDING"}
+            and value.get("requested_status", "RETURNED") == "RETURNED"
+        ):
+            clock.now = 1.01
+
+    monkeypatch.setattr(semantic, "_write_json", delayed_write)
+    model = FakeModel()
+    result = semantic.run_inference_schedule(
+        tmp_path,
+        rows=_generation_rows(),
+        model=model,
+        tokenizer=FakeTokenizer(),
+        torch=FakeTorch(),
+        adapter_name="semantic",
+        stopping_list=lambda values: values,
+        deadline_seconds=1.0,
+        clock=clock,
+    )
+    assert result["status"] == "INCOMPLETE_DEADLINE"
+    assert len(model.calls) == delayed_ordinal + 1
+    assert result["returned_calls"] == delayed_ordinal
+    delayed = result["calls"][delayed_ordinal]
+    assert delayed["status"] == "UNAVAILABLE"
+    assert delayed["generated_ids_available"] is True
+    assert delayed["within_deadline_confirmed"] is False
+    with pytest.raises(semantic.SemanticError, match="36|complete|confirmation"):
+        semantic.validate_complete_calls(tmp_path)
+
+
+def test_late_or_missing_completion_confirmation_cannot_derive_returned(
+    tmp_path, monkeypatch
+):
+    clock = ManualClock()
+    original_write = semantic._write_json
+
+    def delayed_confirmation(path, value):
+        original_write(path, value)
+        if (
+            Path(path).name == "call-00-completion.json"
+            and value.get("status") == "COMPLETE"
+            and "completion_records_observed_monotonic" in value
+        ):
+            clock.now = 1.01
+
+    monkeypatch.setattr(semantic, "_write_json", delayed_confirmation)
+    model = FakeModel()
+    result = semantic.run_inference_schedule(
+        tmp_path,
+        rows=_generation_rows(),
+        model=model,
+        tokenizer=FakeTokenizer(),
+        torch=FakeTorch(),
+        adapter_name="semantic",
+        stopping_list=lambda values: values,
+        deadline_seconds=1.0,
+        clock=clock,
+    )
+    assert result["status"] == "INCOMPLETE_DEADLINE"
+    assert len(result["calls"]) == 36
+    assert len(model.calls) == 1
+    assert result["calls"][0]["status"] == "UNAVAILABLE"
+    assert result["calls"][0]["generated_ids_available"] is True
+
+    clean = tmp_path / "missing"
+    clean.mkdir()
+    complete = semantic.run_inference_schedule(
+        clean,
+        rows=_generation_rows(),
+        model=FakeModel(),
+        tokenizer=FakeTokenizer(),
+        torch=FakeTorch(),
+        adapter_name="semantic",
+        stopping_list=lambda values: values,
+    )
+    assert complete["status"] == "COMPLETE"
+    (clean / "call-35-completion.json").unlink()
+    assert semantic.partial_call_records(clean)[35]["status"] == "UNAVAILABLE"
+    with pytest.raises(semantic.SemanticError, match="36|complete|confirmation"):
+        semantic.validate_complete_calls(clean)
+
+
 def _child_script(tmp_path, body):
     path = tmp_path / f"child-{hashlib.sha256(body.encode()).hexdigest()[:10]}.py"
     path.write_text(body)
@@ -572,8 +726,9 @@ def test_complete_validation_rejects_35_returned_and_one_unknown(tmp_path):
     with pytest.raises(semantic.SemanticError, match="36|complete"):
         semantic.validate_complete_calls(tmp_path)
     partial = semantic.partial_call_records(tmp_path)
-    assert sum(call["status"] == "RETURNED" for call in partial) == 35
-    assert partial[-1]["status"] == "UNAVAILABLE"
+    assert sum(call["status"] == "RETURNED" for call in partial) == 0
+    assert all(call["status"] == "UNAVAILABLE" for call in partial)
+    assert all(call["completion_publication_confirmed"] is False for call in partial)
 
 
 def test_partial_accounting_recovers_raw_ids_without_claiming_call_complete(tmp_path):

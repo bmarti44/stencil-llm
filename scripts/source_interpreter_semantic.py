@@ -155,6 +155,91 @@ def _binding(path: Path) -> dict[str, Any]:
     return {"bytes": path.stat().st_size, "sha256": _sha_file(path)}
 
 
+def verify_current_base_assets(
+    receipt_path: Path = BASE_ASSETS_PATH, *, root: Path = ROOT
+) -> dict[str, Any]:
+    """Verify every current original asset named by the frozen base receipt."""
+    root = Path(root).resolve()
+    receipt_path = Path(receipt_path)
+    if not receipt_path.is_absolute():
+        receipt_path = root / receipt_path
+    receipt = _read_json(receipt_path, "base asset receipt")
+    files = receipt.get("files") if type(receipt) is dict else None
+    if (
+        type(receipt) is not dict
+        or receipt.get("status") != "LOCAL_BASE_BYTES_VERIFIED"
+        or type(files) is not dict
+        or receipt.get("file_count") != len(files)
+        or not files
+    ):
+        raise SemanticError("base asset receipt shape or status differs")
+    model_relative = Path(MODEL_PATH.relative_to(ROOT))
+    verified: dict[str, Any] = {}
+    total = 0
+    for relative, expected in sorted(files.items()):
+        relative_path = Path(relative)
+        if (
+            relative_path.is_absolute()
+            or relative_path.parts[: len(model_relative.parts)] != model_relative.parts
+            or type(expected) is not dict
+            or expected.get("matches_historical_original") is not True
+            or type(expected.get("bytes")) is not int
+            or type(expected.get("sha256")) is not str
+        ):
+            raise SemanticError(f"base asset receipt entry differs: {relative}")
+        path = (root / relative_path).resolve()
+        if not path.is_relative_to(root) or not path.is_file():
+            raise SemanticError(f"base asset is unavailable: {relative}")
+        observed_bytes = path.stat().st_size
+        observed_sha256 = _sha_file(path)
+        if observed_bytes != expected["bytes"] or observed_sha256 != expected["sha256"]:
+            raise SemanticError(f"base asset bytes differ: {relative}")
+        verified[relative] = {
+            "bytes": observed_bytes,
+            "sha256": observed_sha256,
+            "bytes_verified": True,
+        }
+        total += observed_bytes
+    if receipt.get("total_file_bytes") != total:
+        raise SemanticError("base asset receipt total differs")
+    return {
+        "status": "CURRENT_BASE_BYTES_VERIFIED",
+        "receipt": _receipt(receipt_path),
+        "file_count": len(verified),
+        "total_file_bytes": total,
+        "files": verified,
+    }
+
+
+def verify_loaded_adapter_state(
+    serialized: dict[str, Any], loaded: dict[str, Any]
+) -> dict[str, Any]:
+    """Compare PEFT's loaded adapter with the exact verified serialized payload."""
+    try:
+        mechanics.compare_adapter_states(serialized, loaded)
+    except mechanics.MechanicsError as exc:
+        raise SemanticError(f"serialized adapter state differs: {exc}") from exc
+    state = {
+        name: {
+            "shape": list(value.shape),
+            "dtype": str(value.dtype),
+            "numel": value.numel(),
+            "sha256": mechanics._parameter_digest(value),
+        }
+        for name, value in sorted(serialized.items())
+    }
+    return {
+        "status": "LOADED_SERIALIZED_EXACT_MATCH",
+        "tensors": len(state),
+        "parameters": sum(item["numel"] for item in state.values()),
+        "keys_equal": True,
+        "shapes_equal": True,
+        "dtypes_equal": True,
+        "bytes_equal": True,
+        "state": state,
+    }
+
+
 def _accepted_review_bytes(root: Path) -> bytes:
     return _git_blob(
         root,
@@ -705,6 +790,135 @@ def initialize_call_records(run: Path, rows: list[dict[str, Any]]) -> None:
         )
 
 
+def _completion_path(run: Path, ordinal: int) -> Path:
+    return Path(run) / f"call-{ordinal:02d}-completion.json"
+
+
+def _publish_call_completion(
+    run: Path,
+    *,
+    ordinal: int,
+    stage: str,
+    status: str,
+    hard_deadline: float,
+    clock: Any,
+    **details: Any,
+) -> dict[str, Any]:
+    """Publish unique post-call evidence while the root stage watchdog stays armed."""
+    recorded = clock()
+    receipt = {
+        "stage": stage,
+        "status": status,
+        "ordinal": ordinal,
+        "recorded_monotonic": recorded,
+        "monotonic": recorded,
+        "hard_deadline_monotonic": hard_deadline,
+        **details,
+    }
+    path = _completion_path(run, ordinal)
+    history = Path(run) / "stages.jsonl"
+    pending = {
+        **receipt,
+        "status": "COMPLETION_PENDING",
+        "requested_status": status,
+    }
+    _write_json(path, pending)
+    fit._append_json(history, pending)
+    _write_json(Path(run) / "current-stage.json", pending)
+    _write_json(path, receipt)
+    fit._append_json(history, receipt)
+    observed = clock()
+    requested_status = status
+    if requested_status == "COMPLETE" and observed > hard_deadline:
+        status = "DEADLINE"
+    receipt.update(
+        {
+            "status": status,
+            "requested_status": requested_status,
+            "completion_records_observed_monotonic": observed,
+            "completion_records_within_deadline": observed <= hard_deadline,
+        }
+    )
+    _write_json(path, receipt)
+    fit._append_json(history, receipt)
+    published = clock()
+    receipt["publication_observed_monotonic"] = published
+    if requested_status == "COMPLETE" and published > hard_deadline:
+        receipt["status"] = "DEADLINE"
+        receipt["completion_records_within_deadline"] = False
+        _write_json(path, receipt)
+        fit._append_json(history, receipt)
+        receipt["publication_observed_monotonic"] = clock()
+    return receipt
+
+
+def _read_call_confirmation(run: Path, call: dict[str, Any]) -> dict[str, Any] | None:
+    ordinal = call.get("ordinal")
+    row_index = call.get("row_index")
+    mode = call.get("mode")
+    if (
+        type(ordinal) is not int
+        or type(row_index) is not int
+        or mode
+        not in {
+            "base",
+            "adapter",
+        }
+    ):
+        return None
+    relative = call.get("completion_confirmation_path")
+    expected_relative = _completion_path(Path("."), ordinal).name
+    if relative != expected_relative:
+        return None
+    path = Path(run) / relative
+    try:
+        confirmation = _read_json(path, "semantic call completion")
+    except SemanticError:
+        return None
+    if (
+        type(confirmation) is not dict
+        or confirmation.get("ordinal") != ordinal
+        or confirmation.get("row_index") != row_index
+        or confirmation.get("mode") != mode
+        or confirmation.get("stage") != f"generation-{mode}"
+        or confirmation.get("hard_deadline_monotonic")
+        != call.get("hard_deadline_monotonic")
+        or confirmation.get("receipt_path") != call.get("receipt_path")
+        or confirmation.get("call_record_path") != f"call-{ordinal:02d}.json"
+    ):
+        return None
+    call_path = Path(run) / confirmation["call_record_path"]
+    if (
+        not call_path.is_file()
+        or call_path.stat().st_size != confirmation.get("call_record_bytes")
+        or _sha_file(call_path) != confirmation.get("call_record_sha256")
+    ):
+        return None
+    return confirmation
+
+
+def _confirmed_call_status(
+    run: Path, call: dict[str, Any]
+) -> tuple[str | None, dict[str, Any] | None]:
+    confirmation = _read_call_confirmation(run, call)
+    if confirmation is None:
+        return None, None
+    requested = call.get("requested_status", call.get("status"))
+    expected_stage = {
+        "RETURNED": "COMPLETE",
+        "TECHNICAL_ERROR": "FAILED",
+        "TECHNICAL_DEADLINE": "DEADLINE",
+    }.get(requested)
+    if expected_stage is None or confirmation.get("requested_status") != expected_stage:
+        return None, confirmation
+    if requested == "RETURNED":
+        if not fit._stage_completed_within_deadline(confirmation):
+            return None, confirmation
+    elif confirmation.get("status") != expected_stage:
+        return None, confirmation
+    return requested, confirmation
+
+
 def partial_call_records(run: Path) -> list[dict[str, Any]]:
     calls = []
     for ordinal, (row_index, mode) in enumerate(fixed_call_order()):
@@ -737,8 +951,15 @@ def partial_call_records(run: Path) -> list[dict[str, Any]]:
                 }
             )
             continue
-        if call.get("status") in {"INTENT", "COMPLETION_PENDING"}:
+        status, confirmation = _confirmed_call_status(run, call)
+        if status is not None:
+            call["status"] = status
+            call["completion_publication_confirmed"] = True
+            call["within_deadline_confirmed"] = status == "RETURNED"
+            call["completion_confirmation"] = confirmation
+        elif call.get("status") in {"INTENT", "COMPLETION_PENDING", "RETURNED"}:
             call["status"] = "UNAVAILABLE"
+            call["completion_publication_confirmed"] = False
             raw_path = Path(run) / f"row-{row_index:02d}" / f"generation-{mode}.json"
             try:
                 raw = _read_json(raw_path, "recoverable nested generation receipt")
@@ -783,6 +1004,9 @@ def validate_complete_calls(run: Path) -> list[dict[str, Any]]:
             or (call.get("row_index"), call.get("mode")) != fixed_call_order()[ordinal]
         ):
             raise SemanticError("complete call identity or order differs")
+        confirmed_status, confirmation = _confirmed_call_status(run, call)
+        if confirmed_status != "RETURNED" or confirmation is None:
+            raise SemanticError("complete call publication confirmation differs")
         receipt_path = call.get("receipt_path")
         if not isinstance(receipt_path, str):
             raise SemanticError("complete call receipt is absent")
@@ -915,28 +1139,6 @@ def run_inference_schedule(
             (output.get("stop_facts") or {}).get("deadline_reached")
             or output.get("deadline_reached")
         )
-        terminal = (
-            "DEADLINE"
-            if deadline_reached
-            else "COMPLETE"
-            if output.get("status") == "RETURNED"
-            else "FAILED"
-        )
-        stage = fit._publish_stage(
-            run,
-            f"generation-{mode}",
-            terminal,
-            hard_deadline=hard_deadline,
-            clock=clock,
-            ordinal=ordinal,
-            row_index=row_index,
-            receipt_path=str(receipt_path.relative_to(run)),
-        )
-        if (
-            stage.get("status") == "DEADLINE"
-            or stage.get("publication_observed_monotonic", math.inf) > hard_deadline
-        ):
-            deadline_reached = True
         status = (
             "TECHNICAL_DEADLINE"
             if deadline_reached
@@ -946,7 +1148,10 @@ def run_inference_schedule(
             ordinal,
             row,
             mode,
-            status,
+            "COMPLETION_PENDING",
+            requested_status=status,
+            started_monotonic=started,
+            hard_deadline_monotonic=hard_deadline,
             receipt_path=str(receipt_path.relative_to(run))
             if receipt_path.is_file()
             else None,
@@ -960,15 +1165,57 @@ def run_inference_schedule(
             strict_output_valid=(output.get("strict_output") or {}).get("valid"),
             cap_reached=(output.get("stop_facts") or {}).get("cap_reached"),
             deadline_reached=deadline_reached,
-            stage_completion=stage,
+            completion_confirmation_path=_completion_path(run, ordinal).name,
             original_trunk_object_id=output.get("original_trunk_object_id"),
         )
-        _write_json(run / f"call-{ordinal:02d}.json", call)
+        call_path = run / f"call-{ordinal:02d}.json"
+        _write_json(call_path, call)
+        terminal = (
+            "DEADLINE"
+            if deadline_reached
+            else "COMPLETE"
+            if status == "RETURNED"
+            else "FAILED"
+        )
+        confirmation = _publish_call_completion(
+            run,
+            ordinal=ordinal,
+            stage=f"generation-{mode}",
+            status=terminal,
+            hard_deadline=hard_deadline,
+            clock=clock,
+            row_index=row_index,
+            mode=mode,
+            receipt_path=call["receipt_path"],
+            receipt_sha256=call["receipt_sha256"],
+            call_record_path=f"call-{ordinal:02d}.json",
+            call_record_bytes=call_path.stat().st_size,
+            call_record_sha256=_sha_file(call_path),
+        )
+        if (
+            confirmation.get("status") == "DEADLINE"
+            or confirmation.get("publication_observed_monotonic", math.inf)
+            > hard_deadline
+        ):
+            deadline_reached = True
+            status = "TECHNICAL_DEADLINE"
         if status != "RETURNED":
             stopped = (
                 "INCOMPLETE_DEADLINE" if deadline_reached else "INCOMPLETE_TECHNICAL"
             )
             break
+    post_generation = None
+    if stopped is None:
+        post_generation = fit._publish_stage(
+            run,
+            "post-generation-validation",
+            "INTENT",
+            hard_deadline=overall_deadline,
+            clock=clock,
+            returned_calls=SCHEDULED_CALLS,
+        )
+        if post_generation["publication_observed_monotonic"] > overall_deadline:
+            stopped = "INCOMPLETE_DEADLINE"
     calls = partial_call_records(run)
     returned = sum(call.get("status") == "RETURNED" for call in calls)
     return {
@@ -977,6 +1224,7 @@ def run_inference_schedule(
         "scheduled_calls": SCHEDULED_CALLS,
         "returned_calls": returned,
         "calls": calls,
+        "post_generation_validation": post_generation,
     }
 
 
@@ -1240,6 +1488,8 @@ def run_child(
         rows = validate_generation_manifest(manifest)
         initialize_call_records(run, rows)
         before_files = _verify_adapter_files(payload_bytes=True)
+        base_assets_before = verify_current_base_assets()
+        _write_json(run / "base-assets-before-load.json", base_assets_before)
         _guard(startup_deadline, "ML imports")
         import gc
 
@@ -1247,6 +1497,7 @@ def run_child(
         import torch as torch_module
         import transformers
         from peft import PeftModel, get_peft_model_state_dict
+        from safetensors.torch import load_file as load_safetensors
         from transformers import (
             AutoModelForCausalLM,
             AutoTokenizer,
@@ -1292,6 +1543,12 @@ def run_child(
             or any(value.dtype != torch.float32 for value in state.values())
         ):
             raise SemanticError("loaded final FP32 adapter state differs")
+        serialized_state = load_safetensors(
+            str(ADAPTER_DIR / "adapter_model.safetensors"), device="cpu"
+        )
+        serialized_identity = verify_loaded_adapter_state(serialized_state, state)
+        _write_json(run / "adapter-loaded-vs-serialized.json", serialized_identity)
+        del serialized_state
         original_state = mechanics.capture_parameter_state(model)
         startup_complete = fit._publish_stage(
             run,
@@ -1327,6 +1584,8 @@ def run_child(
         }
         mechanics.compare_adapter_states(state, after_state)
         after_files = _verify_adapter_files(payload_bytes=True)
+        base_assets_after = verify_current_base_assets()
+        _write_json(run / "base-assets-after-generation.json", base_assets_after)
         resource = mechanics._resource_receipt("semantic-before-cleanup", torch)
         cleanup = fit._publish_stage(
             run, "cleanup", "INTENT", hard_deadline=overall_deadline
@@ -1357,10 +1616,13 @@ def run_child(
             "adapter_parameters": {
                 "tensors": len(state),
                 "parameters": sum(value.numel() for value in state.values()),
+                "loaded_vs_serialized": serialized_identity,
                 "exact_before_after": True,
             },
             "adapter_files_before": before_files,
             "adapter_files_after": after_files,
+            "base_assets_before_load": base_assets_before,
+            "base_assets_after_generation": base_assets_after,
             "resource_before_cleanup": resource,
             "cleanup_confirmed": True,
             "complete_execution_eligible_for_later_assessment": True,
