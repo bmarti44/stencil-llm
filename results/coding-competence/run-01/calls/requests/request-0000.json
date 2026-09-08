@@ -1,0 +1,542 @@
+{
+  "attempts": [
+    {
+      "all_public_passed": true,
+      "apply_status": "APPLIED",
+      "attempt_index": 0,
+      "call_index": 0,
+      "post_module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "source_sha256": "9d9436397f1a587ccb2b539ea3db268e083a6a8ba33935006cc7625a41191f2d",
+      "status": "COMPLETE"
+    }
+  ],
+  "episode_id": "ep-outline-001",
+  "history_after_request": [
+    {
+      "content": "Maintain the supplied pure-Python module across this conversation. Each request authenticates one target path and symbol. Respond with exactly one replace_function tool call whose source is the complete requested synchronous function, beginning with def at column zero. Preserve applicable standing directions and use actual earlier dependencies. Do not return Markdown or replace any other function.",
+      "role": "system"
+    },
+    {
+      "content": "I'm starting a tiny document-outline utility. Everything lives in one module; each function takes a single JSON-style argument and returns a JSON-style value. The first piece, parse_heading, already works: it recognizes markdown heading lines (one to six '#' characters followed by one space) and returns the level plus the raw title text after that first space \u2014 it deliberately does not trim anything. Anything else gets None. Two standing decisions for everything we build here: (1) Titles stored in outlines, and therefore anything derived from them, must be stripped of surrounding whitespace. (2) Documents are messy \u2014 any line that is not a well-formed heading (plain prose, '#' with no following space, more than six '#', or a heading whose title is blank once stripped) is just content. Skip it quietly; never fail the whole parse over such a line.",
+      "role": "user"
+    },
+    {
+      "content": "Implement build_outline(lines). lines must be a list of strings; if it is not a list, or any element is not a string, return exactly {\"error\": \"invalid input\"}. Use parse_heading to recognize heading lines \u2014 don't re-implement that detection. Following the standing decisions, silently ignore every non-heading line and every heading whose title is empty once stripped, and store each node's title stripped of surrounding whitespace. Return the top-level nodes as a list in document order, each node shaped {\"title\": ..., \"level\": ..., \"children\": [...]}. Nesting rule: a heading becomes a child of the most recent heading with a strictly lower level; if there is no such heading, it is top-level. An empty input list yields [].",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\n  \"source\": \"def build_outline(lines):\\n    if not isinstance(lines, list):\\n        return {\\\"error\\\": \\\"invalid input\\\"}\\n    for line in lines:\\n        if not isinstance(line, str):\\n            return {\\\"error\\\": \\\"invalid input\\\"}\\n    outline = []\\n    stack = []\\n    for line in lines:\\n        heading = parse_heading(line)\\n        if heading is None:\\n            continue\\n        title = heading[\\\"title\\\"].strip()\\n        if not title:\\n            continue\\n        level = heading[\\\"level\\\"]\\n        node = {\\\"title\\\": title, \\\"level\\\": level, \\\"children\\\": []}\\n        while stack and stack[-1][\\\"level\\\"] >= level:\\n            stack.pop()\\n        if stack:\\n            stack[-1][\\\"children\\\"].append(node)\\n        else:\\n            outline.append(node)\\n        stack.append(node)\\n    return outline\"\n}",
+            "name": "replace_function"
+          },
+          "id": "chatcmpl-tool-bb804a5aec4753db",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "content": "{\"all_public_passed\":true,\"apply_status\":\"applied\",\"current_module\":\"def parse_heading(line):\\n    if not isinstance(line, str):\\n        return None\\n    hashes = 0\\n    for char in line:\\n        if char == \\\"#\\\":\\n            hashes += 1\\n        else:\\n            break\\n    if hashes == 0 or hashes > 6:\\n        return None\\n    rest = line[hashes:]\\n    if not rest.startswith(\\\" \\\"):\\n        return None\\n    return {\\\"level\\\": hashes, \\\"title\\\": rest[1:]}\\n\\n\\ndef build_outline(lines):\\n    if not isinstance(lines, list):\\n        return {\\\"error\\\": \\\"invalid input\\\"}\\n    for line in lines:\\n        if not isinstance(line, str):\\n            return {\\\"error\\\": \\\"invalid input\\\"}\\n    outline = []\\n    stack = []\\n    for line in lines:\\n        heading = parse_heading(line)\\n        if heading is None:\\n            continue\\n        title = heading[\\\"title\\\"].strip()\\n        if not title:\\n            continue\\n        level = heading[\\\"level\\\"]\\n        node = {\\\"title\\\": title, \\\"level\\\": level, \\\"children\\\": []}\\n        while stack and stack[-1][\\\"level\\\"] >= level:\\n            stack.pop()\\n        if stack:\\n            stack[-1][\\\"children\\\"].append(node)\\n        else:\\n            outline.append(node)\\n        stack.append(node)\\n    return outline\\n\\n\\ndef index_sections(outline):\\n    return None\\n\\n\\ndef query_sections(request):\\n    return None\\n\",\"error\":null,\"public_checks\":[{\"actual\":{\"level\":2,\"title\":\"Getting Started\"},\"check_id\":\"ic-p1\",\"error\":null,\"passed\":true},{\"actual\":null,\"check_id\":\"ic-p2\",\"error\":null,\"passed\":true},{\"actual\":null,\"check_id\":\"ic-p3\",\"error\":null,\"passed\":true},{\"actual\":{\"level\":2,\"title\":\" Draft  \"},\"check_id\":\"ic-p4\",\"error\":null,\"passed\":true},{\"actual\":null,\"check_id\":\"ic-p5\",\"error\":null,\"passed\":true},{\"actual\":[{\"children\":[],\"level\":1,\"title\":\"Intro\"}],\"check_id\":\"pc-b1\",\"error\":null,\"passed\":true},{\"actual\":[{\"children\":[{\"children\":[],\"level\":2,\"title\":\"Beta\"}],\"level\":1,\"title\":\"Alpha\"},{\"children\":[],\"level\":1,\"title\":\"Gamma\"}],\"check_id\":\"pc-b2\",\"error\":null,\"passed\":true}]}",
+      "name": "replace_function",
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-bb804a5aec4753db"
+    }
+  ],
+  "history_before_attempts": [
+    {
+      "content": "Maintain the supplied pure-Python module across this conversation. Each request authenticates one target path and symbol. Respond with exactly one replace_function tool call whose source is the complete requested synchronous function, beginning with def at column zero. Preserve applicable standing directions and use actual earlier dependencies. Do not return Markdown or replace any other function.",
+      "role": "system"
+    },
+    {
+      "content": "I'm starting a tiny document-outline utility. Everything lives in one module; each function takes a single JSON-style argument and returns a JSON-style value. The first piece, parse_heading, already works: it recognizes markdown heading lines (one to six '#' characters followed by one space) and returns the level plus the raw title text after that first space \u2014 it deliberately does not trim anything. Anything else gets None. Two standing decisions for everything we build here: (1) Titles stored in outlines, and therefore anything derived from them, must be stripped of surrounding whitespace. (2) Documents are messy \u2014 any line that is not a well-formed heading (plain prose, '#' with no following space, more than six '#', or a heading whose title is blank once stripped) is just content. Skip it quietly; never fail the whole parse over such a line.",
+      "role": "user"
+    },
+    {
+      "content": "Implement build_outline(lines). lines must be a list of strings; if it is not a list, or any element is not a string, return exactly {\"error\": \"invalid input\"}. Use parse_heading to recognize heading lines \u2014 don't re-implement that detection. Following the standing decisions, silently ignore every non-heading line and every heading whose title is empty once stripped, and store each node's title stripped of surrounding whitespace. Return the top-level nodes as a list in document order, each node shaped {\"title\": ..., \"level\": ..., \"children\": [...]}. Nesting rule: a heading becomes a child of the most recent heading with a strictly lower level; if there is no such heading, it is top-level. An empty input list yields [].",
+      "role": "user"
+    }
+  ],
+  "post_module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+  "pre_module_sha256": "3efd252d1d5b50204c2a53bb7ffaecfc035259fe1ddf0aaff228959614f24462",
+  "public_solved": true,
+  "request_index": 0,
+  "request_message_id": "m02",
+  "request_passed": true,
+  "round_index": 0,
+  "schema_version": 1,
+  "status": "COMPLETE",
+  "target": {
+    "path": "outline_utils.py",
+    "symbol": "build_outline"
+  },
+  "task_handle": "h1-build-outline",
+  "technical_error": null,
+  "terminal_private_checks": [
+    {
+      "actual": {
+        "level": 2,
+        "title": "Getting Started"
+      },
+      "check_id": "ic-p1",
+      "check_sha256": "bd149b23b4988818c8139a6236ad2b4c3fbdd74af3a71b067d28732e9594750d",
+      "elapsed_seconds": 0.012201441015349701,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        {
+          "level": 2,
+          "title": "Getting Started"
+        }
+      ],
+      "input": "## Getting Started",
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "parse_heading"
+    },
+    {
+      "actual": null,
+      "check_id": "ic-p2",
+      "check_sha256": "5a665f0fc54d96cc5c09c41199659ca85d9b196a8208795665f0286059daa552",
+      "elapsed_seconds": 0.012688899005297571,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        null
+      ],
+      "input": "just some prose",
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "parse_heading"
+    },
+    {
+      "actual": null,
+      "check_id": "ic-p3",
+      "check_sha256": "0f27e2804c240b478a1d3a6730ec5d26a30d8a8169175f0f6385b4b39af30fdf",
+      "elapsed_seconds": 0.012397009006235749,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        null
+      ],
+      "input": "#nospace",
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "parse_heading"
+    },
+    {
+      "actual": {
+        "level": 2,
+        "title": " Draft  "
+      },
+      "check_id": "ic-p4",
+      "check_sha256": "6cf473646b45f600b0abdafe34fbd8fc5075813516b0dbf38988d94e90694756",
+      "elapsed_seconds": 0.017096462019253522,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        {
+          "level": 2,
+          "title": " Draft  "
+        }
+      ],
+      "input": "##  Draft  ",
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "parse_heading"
+    },
+    {
+      "actual": null,
+      "check_id": "ic-p5",
+      "check_sha256": "06bcd4410fea06c760e10a0e6bb02e462526709bb7a1f27b748da12a0c13e581",
+      "elapsed_seconds": 0.012124016997404397,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        null
+      ],
+      "input": "####### too deep",
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "parse_heading"
+    },
+    {
+      "actual": [
+        {
+          "children": [
+            {
+              "children": [],
+              "level": 4,
+              "title": "Deep"
+            }
+          ],
+          "level": 2,
+          "title": "Overview"
+        },
+        {
+          "children": [],
+          "level": 1,
+          "title": "Wrap"
+        }
+      ],
+      "check_id": "pf-b1",
+      "check_sha256": "924da744467bd61cedfc057d7ec9d11a01dc454bb6ec200b5a7ea8bf2ada73ea",
+      "elapsed_seconds": 0.0172041259938851,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "children": [
+              {
+                "children": [],
+                "level": 4,
+                "title": "Deep"
+              }
+            ],
+            "level": 2,
+            "title": "Overview"
+          },
+          {
+            "children": [],
+            "level": 1,
+            "title": "Wrap"
+          }
+        ]
+      ],
+      "input": [
+        "## Overview",
+        "#### Deep",
+        "# Wrap"
+      ],
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "build_outline"
+    },
+    {
+      "actual": [
+        {
+          "children": [],
+          "level": 1,
+          "title": "Real"
+        }
+      ],
+      "check_id": "pf-b2",
+      "check_sha256": "5973a023f014b00bd4af727d95ae7f625d6ac74c0ede7861d99bfcee7c34e72d",
+      "elapsed_seconds": 0.012518018018454313,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "children": [],
+            "level": 1,
+            "title": "Real"
+          }
+        ]
+      ],
+      "input": [
+        "draft note",
+        "# Real",
+        "tail"
+      ],
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "build_outline"
+    },
+    {
+      "actual": {
+        "error": "invalid input"
+      },
+      "check_id": "pf-b3",
+      "check_sha256": "b08d7f148acceba7e0d81498911b43fa9baa73f9a84bcfd30aeb54607e02a94c",
+      "elapsed_seconds": 0.012057313026161864,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "invalid input"
+        }
+      ],
+      "input": "not a list",
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "build_outline"
+    },
+    {
+      "actual": {
+        "error": "invalid input"
+      },
+      "check_id": "pf-b4",
+      "check_sha256": "c14f6d5373a36f72bd801e73c25b648efa3484759f9beb2629af150e5e042a75",
+      "elapsed_seconds": 0.021253737999359146,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "invalid input"
+        }
+      ],
+      "input": [
+        "# A",
+        7
+      ],
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "build_outline"
+    },
+    {
+      "actual": [],
+      "check_id": "pf-b5",
+      "check_sha256": "a223a185cc0a00defaf76f76788568f592804cd1d2be2df644d84b7260c93561",
+      "elapsed_seconds": 0.02243418898433447,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        []
+      ],
+      "input": [],
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "build_outline"
+    },
+    {
+      "actual": [
+        {
+          "children": [],
+          "level": 1,
+          "title": "One"
+        },
+        {
+          "children": [],
+          "level": 1,
+          "title": "Two"
+        },
+        {
+          "children": [],
+          "level": 1,
+          "title": "Three"
+        }
+      ],
+      "check_id": "pf-b6",
+      "check_sha256": "a332da190089a2aff46c425d9a226e0646fb90057f6fd4b319cd623899b0762f",
+      "elapsed_seconds": 0.012581441988004372,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "children": [],
+            "level": 1,
+            "title": "One"
+          },
+          {
+            "children": [],
+            "level": 1,
+            "title": "Two"
+          },
+          {
+            "children": [],
+            "level": 1,
+            "title": "Three"
+          }
+        ]
+      ],
+      "input": [
+        "# One",
+        "# Two",
+        "# Three"
+      ],
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "build_outline"
+    },
+    {
+      "actual": [
+        {
+          "children": [
+            {
+              "children": [],
+              "level": 2,
+              "title": "Mid"
+            },
+            {
+              "children": [],
+              "level": 2,
+              "title": "Mid2"
+            }
+          ],
+          "level": 1,
+          "title": "Top"
+        }
+      ],
+      "check_id": "pf-b7",
+      "check_sha256": "282e3ef797c3987510bba1c4f2f50b83c8d5bdcafcf3ec9c328b7cc9c96f29f0",
+      "elapsed_seconds": 0.022811005997937173,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "children": [
+              {
+                "children": [],
+                "level": 2,
+                "title": "Mid"
+              },
+              {
+                "children": [],
+                "level": 2,
+                "title": "Mid2"
+              }
+            ],
+            "level": 1,
+            "title": "Top"
+          }
+        ]
+      ],
+      "input": [
+        "# Top",
+        "## Mid",
+        "## Mid2"
+      ],
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "build_outline"
+    },
+    {
+      "actual": [
+        {
+          "children": [],
+          "level": 1,
+          "title": "Good"
+        }
+      ],
+      "check_id": "po-b1",
+      "check_sha256": "f458eeaf523742a720006400e363c61565c95d0591c041c6fc2d7b8d1b6186ea",
+      "elapsed_seconds": 0.02098224899964407,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "children": [],
+            "level": 1,
+            "title": "Good"
+          }
+        ]
+      ],
+      "input": [
+        "#x",
+        "# Good"
+      ],
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [
+        "R-IGNORE-BAD"
+      ],
+      "symbol": "build_outline"
+    },
+    {
+      "actual": [
+        {
+          "children": [],
+          "level": 1,
+          "title": "Real"
+        }
+      ],
+      "check_id": "po-b2",
+      "check_sha256": "e7c9c523c093f782e715e0538ea92f920f79648e02e61fe17c34109903d21d0f",
+      "elapsed_seconds": 0.021935643977485597,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "children": [],
+            "level": 1,
+            "title": "Real"
+          }
+        ]
+      ],
+      "input": [
+        "####### too deep",
+        "# Real"
+      ],
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [
+        "R-IGNORE-BAD"
+      ],
+      "symbol": "build_outline"
+    },
+    {
+      "actual": [
+        {
+          "children": [],
+          "level": 2,
+          "title": "Spaced Title"
+        }
+      ],
+      "check_id": "po-b3",
+      "check_sha256": "17a15f9175a756254115202e2bb72003cd8bf256c827ca2881239ecf6bac8a07",
+      "elapsed_seconds": 0.01256310599274002,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "children": [],
+            "level": 2,
+            "title": "Spaced Title"
+          }
+        ]
+      ],
+      "input": [
+        "##   Spaced Title  "
+      ],
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [
+        "R-STRIP"
+      ],
+      "symbol": "build_outline"
+    },
+    {
+      "actual": [],
+      "check_id": "po-b4",
+      "check_sha256": "bef61925306b4c6ca0c598ed0e302e929cd3780886c52fcf33b6aa339666b12e",
+      "elapsed_seconds": 0.021751659020083025,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        []
+      ],
+      "input": [
+        "#   "
+      ],
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [
+        "R-IGNORE-BAD"
+      ],
+      "symbol": "build_outline"
+    }
+  ],
+  "terminal_private_passed": true,
+  "unfinished_private_check_ids": []
+}

@@ -1,0 +1,875 @@
+{
+  "attempts": [
+    {
+      "all_public_passed": true,
+      "apply_status": "APPLIED",
+      "attempt_index": 0,
+      "call_index": 11,
+      "post_module_sha256": "89a97e35c8e17f563cbe4f2bec0e1b662d3ed446dde2b65c1fd843d90cb37707",
+      "source_sha256": "328943e4866c70c6ba1aa1e876802bb805829df3b6a0e296b2bd94427983be15",
+      "status": "COMPLETE"
+    }
+  ],
+  "episode_id": "stockflow-dev-01",
+  "history_after_request": [
+    {
+      "content": "Maintain the supplied pure-Python module across this conversation. Each request authenticates one target path and symbol. Respond with exactly one replace_function tool call whose source is the complete requested synchronous function, beginning with def at column zero. Preserve applicable standing directions and use actual earlier dependencies. Do not return Markdown or replace any other function.",
+      "role": "system"
+    },
+    {
+      "content": "We are building a small pure-Python inventory movement utility. One movement is a JSON object with exactly the fields item, qty and kind. A working parse_movement helper already validates a single entry; treat its behavior as fixed and reuse it rather than revalidating entries by hand.",
+      "role": "user"
+    },
+    {
+      "content": "Understood. I will reuse parse_movement for movement validation and keep its exact behavior.",
+      "role": "assistant"
+    },
+    {
+      "content": "First feature: batch summarization. Rules: every valid movement contributes to its item's in and out totals, an item's net is in minus out, and the same item appearing in several entries must be merged into one line. The report also carries overall total_in, total_out and the number of movement entries. If any entry is invalid, reject the whole batch and the error must say which zero-based index failed and include the helper's reason; a batch that is not a list is rejected outright with its own message.",
+      "role": "user"
+    },
+    {
+      "content": "Implement summarize_movements(batch). Exactly: if batch is not a list, return {\"ok\": false, \"error\": \"batch must be a list\"}. Otherwise validate each entry with parse_movement; on the first invalid entry return {\"ok\": false, \"error\": \"invalid movement at index N: <parse error>\"} where N is the entry's zero-based index and <parse error> is the helper's error text. When every entry is valid return {\"ok\": true, \"items\": {<item name>: {\"in\": total_in_for_item, \"out\": total_out_for_item, \"net\": in_minus_out}}, \"total_in\": <sum of all in quantities>, \"total_out\": <sum of all out quantities>, \"count\": <number of movement entries>}. An empty batch returns ok with empty items, zero totals and count 0. You may use any loop or comprehension style.",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\n  \"source\": \"def summarize_movements(batch):\\n    if not isinstance(batch, list):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"batch must be a list\\\"}\\n    items = {}\\n    total_in = 0\\n    total_out = 0\\n    count = 0\\n    for i, entry in enumerate(batch):\\n        result = parse_movement(entry)\\n        if not result[\\\"ok\\\"]:\\n            return {\\\"ok\\\": False, \\\"error\\\": f\\\"invalid movement at index {i}: {result[\\\"error\\\"]}\\\"}\\n        movement = result[\\\"movement\\\"]\\n        item = movement[\\\"item\\\"]\\n        qty = movement[\\\"qty\\\"]\\n        kind = movement[\\\"kind\\\"]\\n        if item not in items:\\n            items[item] = {\\\"in\\\": 0, \\\"out\\\": 0, \\\"net\\\": 0}\\n        if kind == \\\"in\\\":\\n            items[item][\\\"in\\\"] += qty\\n            total_in += qty\\n        else:\\n            items[item][\\\"out\\\"] += qty\\n            total_out += qty\\n        items[item][\\\"net\\\"] = items[item][\\\"in\\\"] - items[item][\\\"out\\\"]\\n        count += 1\\n    return {\\\"ok\\\": True, \\\"items\\\": items, \\\"total_in\\\": total_in, \\\"total_out\\\": total_out, \\\"count\\\": count}\"\n}",
+            "name": "replace_function"
+          },
+          "id": "chatcmpl-tool-b406b4c96d80ebd9",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "content": "{\"all_public_passed\":true,\"apply_status\":\"applied\",\"current_module\":\"def parse_movement(entry):\\n    if not isinstance(entry, dict):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"entry must have exactly the fields item, qty and kind\\\"}\\n    if set(entry.keys()) != {\\\"item\\\", \\\"qty\\\", \\\"kind\\\"}:\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"entry must have exactly the fields item, qty and kind\\\"}\\n    item = entry[\\\"item\\\"]\\n    if not isinstance(item, str) or not item.strip():\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"item must be a nonempty string\\\"}\\n    qty = entry[\\\"qty\\\"]\\n    if isinstance(qty, bool) or not isinstance(qty, int) or qty <= 0:\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"qty must be a positive integer\\\"}\\n    kind = entry[\\\"kind\\\"]\\n    if kind != \\\"in\\\" and kind != \\\"out\\\":\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"kind must be 'in' or 'out'\\\"}\\n    return {\\\"ok\\\": True, \\\"movement\\\": {\\\"item\\\": item, \\\"qty\\\": qty, \\\"kind\\\": kind}}\\n\\n\\ndef summarize_movements(batch):\\n    if not isinstance(batch, list):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"batch must be a list\\\"}\\n    items = {}\\n    total_in = 0\\n    total_out = 0\\n    count = 0\\n    for i, entry in enumerate(batch):\\n        result = parse_movement(entry)\\n        if not result[\\\"ok\\\"]:\\n            return {\\\"ok\\\": False, \\\"error\\\": f\\\"invalid movement at index {i}: {result[\\\"error\\\"]}\\\"}\\n        movement = result[\\\"movement\\\"]\\n        item = movement[\\\"item\\\"]\\n        qty = movement[\\\"qty\\\"]\\n        kind = movement[\\\"kind\\\"]\\n        if item not in items:\\n            items[item] = {\\\"in\\\": 0, \\\"out\\\": 0, \\\"net\\\": 0}\\n        if kind == \\\"in\\\":\\n            items[item][\\\"in\\\"] += qty\\n            total_in += qty\\n        else:\\n            items[item][\\\"out\\\"] += qty\\n            total_out += qty\\n        items[item][\\\"net\\\"] = items[item][\\\"in\\\"] - items[item][\\\"out\\\"]\\n        count += 1\\n    return {\\\"ok\\\": True, \\\"items\\\": items, \\\"total_in\\\": total_in, \\\"total_out\\\": total_out, \\\"count\\\": count}\\n\\n\\ndef reconcile_stock(payload):\\n    return None\\n\\n\\ndef audit_inventory(payload):\\n    return None\\n\",\"error\":null,\"public_checks\":[{\"actual\":{\"movement\":{\"item\":\"screw\",\"kind\":\"in\",\"qty\":5},\"ok\":true},\"check_id\":\"IC-01\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"qty must be a positive integer\",\"ok\":false},\"check_id\":\"IC-02\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"item must be a nonempty string\",\"ok\":false},\"check_id\":\"IC-03\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"entry must have exactly the fields item, qty and kind\",\"ok\":false},\"check_id\":\"IC-04\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"qty must be a positive integer\",\"ok\":false},\"check_id\":\"IC-05\",\"error\":null,\"passed\":true},{\"actual\":{\"count\":3,\"items\":{\"bolt\":{\"in\":4,\"net\":4,\"out\":0},\"screw\":{\"in\":5,\"net\":3,\"out\":2}},\"ok\":true,\"total_in\":9,\"total_out\":2},\"check_id\":\"P0-01\",\"error\":null,\"passed\":true},{\"actual\":{\"count\":0,\"items\":{},\"ok\":true,\"total_in\":0,\"total_out\":0},\"check_id\":\"P0-02\",\"error\":null,\"passed\":true},{\"actual\":{\"count\":3,\"items\":{\"gear\":{\"in\":4,\"net\":4,\"out\":0},\"pin\":{\"in\":0,\"net\":-2,\"out\":2}},\"ok\":true,\"total_in\":4,\"total_out\":2},\"check_id\":\"P0-03\",\"error\":null,\"passed\":true}]}",
+      "name": "replace_function",
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-b406b4c96d80ebd9"
+    },
+    {
+      "content": "Next feature: reconcile stock against an opening balance. The payload has opening (item name to nonnegative integer stock), movements (a batch like before), and optionally allow_backorder listing item names allowed to close below zero. Closing balance is opening plus the net movement per item; items that only appear in movements start from zero, and opening items without movement keep their balance.",
+      "role": "user"
+    },
+    {
+      "content": "So closing equals opening plus per-item net. What should happen when a closing balance would drop below zero?",
+      "role": "assistant"
+    },
+    {
+      "content": "A negative closing balance is rejected unless the item is listed in allow_backorder. If several items violate, name the alphabetically first one together with its balance. Reuse the batch summarizer for movement validation and per-item nets instead of duplicating that logic. One settled directive for later work: an audit feature will be built on top of this, and its policy is already decided - the audit must reject every negative closing balance outright, ignoring any allow_backorder list. That audit directive is scoped to the future audit feature only; reconcile_stock itself keeps the backorder exemption described above.",
+      "role": "user"
+    },
+    {
+      "content": "Implement reconcile_stock(payload). Exactly: payload must be an object whose only allowed fields are opening, movements and the optional allow_backorder; a non-object payload, a missing opening or movements, or any extra field returns {\"ok\": false, \"error\": \"payload must contain opening, movements and optional allow_backorder only\"}. opening must map nonblank item names (each a string containing at least one non-whitespace character) to nonnegative integers (true/false are not integers), otherwise return {\"ok\": false, \"error\": \"opening must map item names to nonnegative integers\"}. If present, allow_backorder must be a list of nonblank item-name strings (each containing at least one non-whitespace character), otherwise return {\"ok\": false, \"error\": \"allow_backorder must be a list of item names\"}. Then obtain movement validation and per-item nets by calling summarize_movements(payload[\"movements\"]); if that result is not ok, return it unchanged. Compute closing = opening balance plus the item's net, items that only move start from 0, opening-only items keep their balance. If any item not listed in allow_backorder closes below zero, return {\"ok\": false, \"error\": \"negative closing balance\", \"item\": <alphabetically first such item>, \"balance\": <its closing value>}. Otherwise return {\"ok\": true, \"closing\": {<item>: <closing balance> for every opening or moved item}, \"total_in\": <from the summary>, \"total_out\": <from the summary>}.",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\n  \"source\": \"def reconcile_stock(payload):\\n    if not isinstance(payload, dict):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"payload must contain opening, movements and optional allow_backorder only\\\"}\\n    required_fields = {\\\"opening\\\", \\\"movements\\\"}\\n    if not required_fields.issubset(payload.keys()):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"payload must contain opening, movements and optional allow_backorder only\\\"}\\n    if len(set(payload.keys()) - {\\\"opening\\\", \\\"movements\\\", \\\"allow_backorder\\\"}) > 0:\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"payload must contain opening, movements and optional allow_backorder only\\\"}\\n    \\n    # Validate opening\\n    opening = payload[\\\"opening\\\"]\\n    if not isinstance(opening, dict):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"opening must map item names to nonnegative integers\\\"}\\n    for item, qty in opening.items():\\n        if not isinstance(item, str) or not item.strip():\\n            return {\\\"ok\\\": False, \\\"error\\\": \\\"opening must map item names to nonnegative integers\\\"}\\n        if not isinstance(qty, int) or qty < 0:\\n            return {\\\"ok\\\": False, \\\"error\\\": \\\"opening must map item names to nonnegative integers\\\"}\\n    \\n    # Validate allow_backorder\\n    allow_backorder = payload.get(\\\"allow_backorder\\\")\\n    if allow_backorder is not None:\\n        if not isinstance(allow_backorder, list):\\n            return {\\\"ok\\\": False, \\\"error\\\": \\\"allow_backorder must be a list of item names\\\"}\\n        for item in allow_backorder:\\n            if not isinstance(item, str) or not item.strip():\\n                return {\\\"ok\\\": False, \\\"error\\\": \\\"allow_backorder must be a list of item names\\\"}\\n    \\n    # Summarize movements\\n    summary = summarize_movements(payload[\\\"movements\\\"])\\n    if not summary[\\\"ok\\\"]:\\n        return summary\\n    \\n    # Calculate closing balances\\n    closing = {}\\n    for item in opening:\\n        closing[item] = opening[item]\\n    \\n    for item, data in summary[\\\"items\\\"].items():\\n        net = data[\\\"net\\\"]\\n        if item in closing:\\n            closing[item] += net\\n        else:\\n            closing[item] = net\\n    \\n    # Check for negative balances\\n    negative_items = [item for item, balance in closing.items() if balance < 0 and (allow_backorder is None or item not in allow_backorder)]\\n    if negative_items:\\n        negative_items.sort()\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"negative closing balance\\\", \\\"item\\\": negative_items[0], \\\"balance\\\": closing[negative_items[0]]}\\n    \\n    return {\\\"ok\\\": True, \\\"closing\\\": closing, \\\"total_in\\\": summary[\\\"total_in\\\"], \\\"total_out\\\": summary[\\\"total_out\\\"]}\"\n}",
+            "name": "replace_function"
+          },
+          "id": "chatcmpl-tool-804422c96c3c9a33",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "content": "{\"all_public_passed\":true,\"apply_status\":\"applied\",\"current_module\":\"def parse_movement(entry):\\n    if not isinstance(entry, dict):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"entry must have exactly the fields item, qty and kind\\\"}\\n    if set(entry.keys()) != {\\\"item\\\", \\\"qty\\\", \\\"kind\\\"}:\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"entry must have exactly the fields item, qty and kind\\\"}\\n    item = entry[\\\"item\\\"]\\n    if not isinstance(item, str) or not item.strip():\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"item must be a nonempty string\\\"}\\n    qty = entry[\\\"qty\\\"]\\n    if isinstance(qty, bool) or not isinstance(qty, int) or qty <= 0:\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"qty must be a positive integer\\\"}\\n    kind = entry[\\\"kind\\\"]\\n    if kind != \\\"in\\\" and kind != \\\"out\\\":\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"kind must be 'in' or 'out'\\\"}\\n    return {\\\"ok\\\": True, \\\"movement\\\": {\\\"item\\\": item, \\\"qty\\\": qty, \\\"kind\\\": kind}}\\n\\n\\ndef summarize_movements(batch):\\n    if not isinstance(batch, list):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"batch must be a list\\\"}\\n    items = {}\\n    total_in = 0\\n    total_out = 0\\n    count = 0\\n    for i, entry in enumerate(batch):\\n        result = parse_movement(entry)\\n        if not result[\\\"ok\\\"]:\\n            return {\\\"ok\\\": False, \\\"error\\\": f\\\"invalid movement at index {i}: {result[\\\"error\\\"]}\\\"}\\n        movement = result[\\\"movement\\\"]\\n        item = movement[\\\"item\\\"]\\n        qty = movement[\\\"qty\\\"]\\n        kind = movement[\\\"kind\\\"]\\n        if item not in items:\\n            items[item] = {\\\"in\\\": 0, \\\"out\\\": 0, \\\"net\\\": 0}\\n        if kind == \\\"in\\\":\\n            items[item][\\\"in\\\"] += qty\\n            total_in += qty\\n        else:\\n            items[item][\\\"out\\\"] += qty\\n            total_out += qty\\n        items[item][\\\"net\\\"] = items[item][\\\"in\\\"] - items[item][\\\"out\\\"]\\n        count += 1\\n    return {\\\"ok\\\": True, \\\"items\\\": items, \\\"total_in\\\": total_in, \\\"total_out\\\": total_out, \\\"count\\\": count}\\n\\n\\ndef reconcile_stock(payload):\\n    if not isinstance(payload, dict):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"payload must contain opening, movements and optional allow_backorder only\\\"}\\n    required_fields = {\\\"opening\\\", \\\"movements\\\"}\\n    if not required_fields.issubset(payload.keys()):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"payload must contain opening, movements and optional allow_backorder only\\\"}\\n    if len(set(payload.keys()) - {\\\"opening\\\", \\\"movements\\\", \\\"allow_backorder\\\"}) > 0:\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"payload must contain opening, movements and optional allow_backorder only\\\"}\\n    \\n    # Validate opening\\n    opening = payload[\\\"opening\\\"]\\n    if not isinstance(opening, dict):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"opening must map item names to nonnegative integers\\\"}\\n    for item, qty in opening.items():\\n        if not isinstance(item, str) or not item.strip():\\n            return {\\\"ok\\\": False, \\\"error\\\": \\\"opening must map item names to nonnegative integers\\\"}\\n        if not isinstance(qty, int) or qty < 0:\\n            return {\\\"ok\\\": False, \\\"error\\\": \\\"opening must map item names to nonnegative integers\\\"}\\n    \\n    # Validate allow_backorder\\n    allow_backorder = payload.get(\\\"allow_backorder\\\")\\n    if allow_backorder is not None:\\n        if not isinstance(allow_backorder, list):\\n            return {\\\"ok\\\": False, \\\"error\\\": \\\"allow_backorder must be a list of item names\\\"}\\n        for item in allow_backorder:\\n            if not isinstance(item, str) or not item.strip():\\n                return {\\\"ok\\\": False, \\\"error\\\": \\\"allow_backorder must be a list of item names\\\"}\\n    \\n    # Summarize movements\\n    summary = summarize_movements(payload[\\\"movements\\\"])\\n    if not summary[\\\"ok\\\"]:\\n        return summary\\n    \\n    # Calculate closing balances\\n    closing = {}\\n    for item in opening:\\n        closing[item] = opening[item]\\n    \\n    for item, data in summary[\\\"items\\\"].items():\\n        net = data[\\\"net\\\"]\\n        if item in closing:\\n            closing[item] += net\\n        else:\\n            closing[item] = net\\n    \\n    # Check for negative balances\\n    negative_items = [item for item, balance in closing.items() if balance < 0 and (allow_backorder is None or item not in allow_backorder)]\\n    if negative_items:\\n        negative_items.sort()\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"negative closing balance\\\", \\\"item\\\": negative_items[0], \\\"balance\\\": closing[negative_items[0]]}\\n    \\n    return {\\\"ok\\\": True, \\\"closing\\\": closing, \\\"total_in\\\": summary[\\\"total_in\\\"], \\\"total_out\\\": summary[\\\"total_out\\\"]}\\n\\n\\ndef audit_inventory(payload):\\n    return None\\n\",\"error\":null,\"public_checks\":[{\"actual\":{\"movement\":{\"item\":\"screw\",\"kind\":\"in\",\"qty\":5},\"ok\":true},\"check_id\":\"IC-01\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"qty must be a positive integer\",\"ok\":false},\"check_id\":\"IC-02\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"item must be a nonempty string\",\"ok\":false},\"check_id\":\"IC-03\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"entry must have exactly the fields item, qty and kind\",\"ok\":false},\"check_id\":\"IC-04\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"qty must be a positive integer\",\"ok\":false},\"check_id\":\"IC-05\",\"error\":null,\"passed\":true},{\"actual\":{\"count\":3,\"items\":{\"bolt\":{\"in\":4,\"net\":4,\"out\":0},\"screw\":{\"in\":5,\"net\":3,\"out\":2}},\"ok\":true,\"total_in\":9,\"total_out\":2},\"check_id\":\"P0-01\",\"error\":null,\"passed\":true},{\"actual\":{\"count\":0,\"items\":{},\"ok\":true,\"total_in\":0,\"total_out\":0},\"check_id\":\"P0-02\",\"error\":null,\"passed\":true},{\"actual\":{\"count\":3,\"items\":{\"gear\":{\"in\":4,\"net\":4,\"out\":0},\"pin\":{\"in\":0,\"net\":-2,\"out\":2}},\"ok\":true,\"total_in\":4,\"total_out\":2},\"check_id\":\"P0-03\",\"error\":null,\"passed\":true},{\"actual\":{\"closing\":{\"screw\":12},\"ok\":true,\"total_in\":5,\"total_out\":3},\"check_id\":\"P1-01\",\"error\":null,\"passed\":true},{\"actual\":{\"closing\":{},\"ok\":true,\"total_in\":0,\"total_out\":0},\"check_id\":\"P1-02\",\"error\":null,\"passed\":true},{\"actual\":{\"closing\":{\"gear\":6,\"nut\":3},\"ok\":true,\"total_in\":6,\"total_out\":1},\"check_id\":\"P1-03\",\"error\":null,\"passed\":true}]}",
+      "name": "replace_function",
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-804422c96c3c9a33"
+    }
+  ],
+  "history_before_attempts": [
+    {
+      "content": "Maintain the supplied pure-Python module across this conversation. Each request authenticates one target path and symbol. Respond with exactly one replace_function tool call whose source is the complete requested synchronous function, beginning with def at column zero. Preserve applicable standing directions and use actual earlier dependencies. Do not return Markdown or replace any other function.",
+      "role": "system"
+    },
+    {
+      "content": "We are building a small pure-Python inventory movement utility. One movement is a JSON object with exactly the fields item, qty and kind. A working parse_movement helper already validates a single entry; treat its behavior as fixed and reuse it rather than revalidating entries by hand.",
+      "role": "user"
+    },
+    {
+      "content": "Understood. I will reuse parse_movement for movement validation and keep its exact behavior.",
+      "role": "assistant"
+    },
+    {
+      "content": "First feature: batch summarization. Rules: every valid movement contributes to its item's in and out totals, an item's net is in minus out, and the same item appearing in several entries must be merged into one line. The report also carries overall total_in, total_out and the number of movement entries. If any entry is invalid, reject the whole batch and the error must say which zero-based index failed and include the helper's reason; a batch that is not a list is rejected outright with its own message.",
+      "role": "user"
+    },
+    {
+      "content": "Implement summarize_movements(batch). Exactly: if batch is not a list, return {\"ok\": false, \"error\": \"batch must be a list\"}. Otherwise validate each entry with parse_movement; on the first invalid entry return {\"ok\": false, \"error\": \"invalid movement at index N: <parse error>\"} where N is the entry's zero-based index and <parse error> is the helper's error text. When every entry is valid return {\"ok\": true, \"items\": {<item name>: {\"in\": total_in_for_item, \"out\": total_out_for_item, \"net\": in_minus_out}}, \"total_in\": <sum of all in quantities>, \"total_out\": <sum of all out quantities>, \"count\": <number of movement entries>}. An empty batch returns ok with empty items, zero totals and count 0. You may use any loop or comprehension style.",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\n  \"source\": \"def summarize_movements(batch):\\n    if not isinstance(batch, list):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"batch must be a list\\\"}\\n    items = {}\\n    total_in = 0\\n    total_out = 0\\n    count = 0\\n    for i, entry in enumerate(batch):\\n        result = parse_movement(entry)\\n        if not result[\\\"ok\\\"]:\\n            return {\\\"ok\\\": False, \\\"error\\\": f\\\"invalid movement at index {i}: {result[\\\"error\\\"]}\\\"}\\n        movement = result[\\\"movement\\\"]\\n        item = movement[\\\"item\\\"]\\n        qty = movement[\\\"qty\\\"]\\n        kind = movement[\\\"kind\\\"]\\n        if item not in items:\\n            items[item] = {\\\"in\\\": 0, \\\"out\\\": 0, \\\"net\\\": 0}\\n        if kind == \\\"in\\\":\\n            items[item][\\\"in\\\"] += qty\\n            total_in += qty\\n        else:\\n            items[item][\\\"out\\\"] += qty\\n            total_out += qty\\n        items[item][\\\"net\\\"] = items[item][\\\"in\\\"] - items[item][\\\"out\\\"]\\n        count += 1\\n    return {\\\"ok\\\": True, \\\"items\\\": items, \\\"total_in\\\": total_in, \\\"total_out\\\": total_out, \\\"count\\\": count}\"\n}",
+            "name": "replace_function"
+          },
+          "id": "chatcmpl-tool-b406b4c96d80ebd9",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "content": "{\"all_public_passed\":true,\"apply_status\":\"applied\",\"current_module\":\"def parse_movement(entry):\\n    if not isinstance(entry, dict):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"entry must have exactly the fields item, qty and kind\\\"}\\n    if set(entry.keys()) != {\\\"item\\\", \\\"qty\\\", \\\"kind\\\"}:\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"entry must have exactly the fields item, qty and kind\\\"}\\n    item = entry[\\\"item\\\"]\\n    if not isinstance(item, str) or not item.strip():\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"item must be a nonempty string\\\"}\\n    qty = entry[\\\"qty\\\"]\\n    if isinstance(qty, bool) or not isinstance(qty, int) or qty <= 0:\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"qty must be a positive integer\\\"}\\n    kind = entry[\\\"kind\\\"]\\n    if kind != \\\"in\\\" and kind != \\\"out\\\":\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"kind must be 'in' or 'out'\\\"}\\n    return {\\\"ok\\\": True, \\\"movement\\\": {\\\"item\\\": item, \\\"qty\\\": qty, \\\"kind\\\": kind}}\\n\\n\\ndef summarize_movements(batch):\\n    if not isinstance(batch, list):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"batch must be a list\\\"}\\n    items = {}\\n    total_in = 0\\n    total_out = 0\\n    count = 0\\n    for i, entry in enumerate(batch):\\n        result = parse_movement(entry)\\n        if not result[\\\"ok\\\"]:\\n            return {\\\"ok\\\": False, \\\"error\\\": f\\\"invalid movement at index {i}: {result[\\\"error\\\"]}\\\"}\\n        movement = result[\\\"movement\\\"]\\n        item = movement[\\\"item\\\"]\\n        qty = movement[\\\"qty\\\"]\\n        kind = movement[\\\"kind\\\"]\\n        if item not in items:\\n            items[item] = {\\\"in\\\": 0, \\\"out\\\": 0, \\\"net\\\": 0}\\n        if kind == \\\"in\\\":\\n            items[item][\\\"in\\\"] += qty\\n            total_in += qty\\n        else:\\n            items[item][\\\"out\\\"] += qty\\n            total_out += qty\\n        items[item][\\\"net\\\"] = items[item][\\\"in\\\"] - items[item][\\\"out\\\"]\\n        count += 1\\n    return {\\\"ok\\\": True, \\\"items\\\": items, \\\"total_in\\\": total_in, \\\"total_out\\\": total_out, \\\"count\\\": count}\\n\\n\\ndef reconcile_stock(payload):\\n    return None\\n\\n\\ndef audit_inventory(payload):\\n    return None\\n\",\"error\":null,\"public_checks\":[{\"actual\":{\"movement\":{\"item\":\"screw\",\"kind\":\"in\",\"qty\":5},\"ok\":true},\"check_id\":\"IC-01\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"qty must be a positive integer\",\"ok\":false},\"check_id\":\"IC-02\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"item must be a nonempty string\",\"ok\":false},\"check_id\":\"IC-03\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"entry must have exactly the fields item, qty and kind\",\"ok\":false},\"check_id\":\"IC-04\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"qty must be a positive integer\",\"ok\":false},\"check_id\":\"IC-05\",\"error\":null,\"passed\":true},{\"actual\":{\"count\":3,\"items\":{\"bolt\":{\"in\":4,\"net\":4,\"out\":0},\"screw\":{\"in\":5,\"net\":3,\"out\":2}},\"ok\":true,\"total_in\":9,\"total_out\":2},\"check_id\":\"P0-01\",\"error\":null,\"passed\":true},{\"actual\":{\"count\":0,\"items\":{},\"ok\":true,\"total_in\":0,\"total_out\":0},\"check_id\":\"P0-02\",\"error\":null,\"passed\":true},{\"actual\":{\"count\":3,\"items\":{\"gear\":{\"in\":4,\"net\":4,\"out\":0},\"pin\":{\"in\":0,\"net\":-2,\"out\":2}},\"ok\":true,\"total_in\":4,\"total_out\":2},\"check_id\":\"P0-03\",\"error\":null,\"passed\":true}]}",
+      "name": "replace_function",
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-b406b4c96d80ebd9"
+    },
+    {
+      "content": "Next feature: reconcile stock against an opening balance. The payload has opening (item name to nonnegative integer stock), movements (a batch like before), and optionally allow_backorder listing item names allowed to close below zero. Closing balance is opening plus the net movement per item; items that only appear in movements start from zero, and opening items without movement keep their balance.",
+      "role": "user"
+    },
+    {
+      "content": "So closing equals opening plus per-item net. What should happen when a closing balance would drop below zero?",
+      "role": "assistant"
+    },
+    {
+      "content": "A negative closing balance is rejected unless the item is listed in allow_backorder. If several items violate, name the alphabetically first one together with its balance. Reuse the batch summarizer for movement validation and per-item nets instead of duplicating that logic. One settled directive for later work: an audit feature will be built on top of this, and its policy is already decided - the audit must reject every negative closing balance outright, ignoring any allow_backorder list. That audit directive is scoped to the future audit feature only; reconcile_stock itself keeps the backorder exemption described above.",
+      "role": "user"
+    },
+    {
+      "content": "Implement reconcile_stock(payload). Exactly: payload must be an object whose only allowed fields are opening, movements and the optional allow_backorder; a non-object payload, a missing opening or movements, or any extra field returns {\"ok\": false, \"error\": \"payload must contain opening, movements and optional allow_backorder only\"}. opening must map nonblank item names (each a string containing at least one non-whitespace character) to nonnegative integers (true/false are not integers), otherwise return {\"ok\": false, \"error\": \"opening must map item names to nonnegative integers\"}. If present, allow_backorder must be a list of nonblank item-name strings (each containing at least one non-whitespace character), otherwise return {\"ok\": false, \"error\": \"allow_backorder must be a list of item names\"}. Then obtain movement validation and per-item nets by calling summarize_movements(payload[\"movements\"]); if that result is not ok, return it unchanged. Compute closing = opening balance plus the item's net, items that only move start from 0, opening-only items keep their balance. If any item not listed in allow_backorder closes below zero, return {\"ok\": false, \"error\": \"negative closing balance\", \"item\": <alphabetically first such item>, \"balance\": <its closing value>}. Otherwise return {\"ok\": true, \"closing\": {<item>: <closing balance> for every opening or moved item}, \"total_in\": <from the summary>, \"total_out\": <from the summary>}.",
+      "role": "user"
+    }
+  ],
+  "post_module_sha256": "89a97e35c8e17f563cbe4f2bec0e1b662d3ed446dde2b65c1fd843d90cb37707",
+  "pre_module_sha256": "782bb077a688eefa31a261a34b26e9f621721028e4a2ec486a64c92d4eada686",
+  "public_solved": true,
+  "request_index": 7,
+  "request_message_id": "msg-008",
+  "request_passed": true,
+  "round_index": 1,
+  "schema_version": 1,
+  "status": "COMPLETE",
+  "target": {
+    "path": "stockflow.py",
+    "symbol": "reconcile_stock"
+  },
+  "task_handle": "reconcile-stock",
+  "technical_error": null,
+  "terminal_private_checks": [
+    {
+      "actual": {
+        "movement": {
+          "item": "screw",
+          "kind": "in",
+          "qty": 5
+        },
+        "ok": true
+      },
+      "check_id": "IC-01",
+      "check_sha256": "91304732e2ca93bfc7bd00d029bf723dea4ffb0b9e9afb54f588f99650b5f367",
+      "elapsed_seconds": 0.02427056001033634,
+      "episode_id": "stockflow-dev-01",
+      "error": null,
+      "expected_values": [
+        {
+          "movement": {
+            "item": "screw",
+            "kind": "in",
+            "qty": 5
+          },
+          "ok": true
+        }
+      ],
+      "input": {
+        "item": "screw",
+        "kind": "in",
+        "qty": 5
+      },
+      "module_sha256": "89a97e35c8e17f563cbe4f2bec0e1b662d3ed446dde2b65c1fd843d90cb37707",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "parse_movement"
+    },
+    {
+      "actual": {
+        "error": "qty must be a positive integer",
+        "ok": false
+      },
+      "check_id": "IC-02",
+      "check_sha256": "e18fe7d130e146d4a220da082981e26e63af69254750cbce9120ad9813e3932f",
+      "elapsed_seconds": 0.022341162024531513,
+      "episode_id": "stockflow-dev-01",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "qty must be a positive integer",
+          "ok": false
+        }
+      ],
+      "input": {
+        "item": "screw",
+        "kind": "in",
+        "qty": 0
+      },
+      "module_sha256": "89a97e35c8e17f563cbe4f2bec0e1b662d3ed446dde2b65c1fd843d90cb37707",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "parse_movement"
+    },
+    {
+      "actual": {
+        "error": "item must be a nonempty string",
+        "ok": false
+      },
+      "check_id": "IC-03",
+      "check_sha256": "af2637bc52c9a247d02df08ba0770e7cfe78cb53b8ac725482a339ca3f0e3eff",
+      "elapsed_seconds": 0.022611755004618317,
+      "episode_id": "stockflow-dev-01",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "item must be a nonempty string",
+          "ok": false
+        }
+      ],
+      "input": {
+        "item": "   ",
+        "kind": "out",
+        "qty": 2
+      },
+      "module_sha256": "89a97e35c8e17f563cbe4f2bec0e1b662d3ed446dde2b65c1fd843d90cb37707",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "parse_movement"
+    },
+    {
+      "actual": {
+        "error": "entry must have exactly the fields item, qty and kind",
+        "ok": false
+      },
+      "check_id": "IC-04",
+      "check_sha256": "5ffe46d40a9a6b5dc9f4a457ed7bd307a63d6e0ebd1c33fb2ac22d7bf059f153",
+      "elapsed_seconds": 0.022459689993411303,
+      "episode_id": "stockflow-dev-01",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "entry must have exactly the fields item, qty and kind",
+          "ok": false
+        }
+      ],
+      "input": {
+        "bin": "A1",
+        "item": "bolt",
+        "kind": "hold",
+        "qty": 2
+      },
+      "module_sha256": "89a97e35c8e17f563cbe4f2bec0e1b662d3ed446dde2b65c1fd843d90cb37707",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "parse_movement"
+    },
+    {
+      "actual": {
+        "error": "qty must be a positive integer",
+        "ok": false
+      },
+      "check_id": "IC-05",
+      "check_sha256": "e84cba7a3f3ce90209aae3ab462907c25edbd47b6cce2139b811d31f552b8a2a",
+      "elapsed_seconds": 0.013374835019931197,
+      "episode_id": "stockflow-dev-01",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "qty must be a positive integer",
+          "ok": false
+        }
+      ],
+      "input": {
+        "item": "bolt",
+        "kind": "in",
+        "qty": true
+      },
+      "module_sha256": "89a97e35c8e17f563cbe4f2bec0e1b662d3ed446dde2b65c1fd843d90cb37707",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "parse_movement"
+    },
+    {
+      "actual": {
+        "count": 2,
+        "items": {
+          "nail": {
+            "in": 10,
+            "net": 0,
+            "out": 10
+          }
+        },
+        "ok": true,
+        "total_in": 10,
+        "total_out": 10
+      },
+      "check_id": "F0-01",
+      "check_sha256": "64d4ac6f57f7914c53567324abfb0fe0d8679d5f2a333546fa19f8addbfbc6d2",
+      "elapsed_seconds": 0.023266013013198972,
+      "episode_id": "stockflow-dev-01",
+      "error": null,
+      "expected_values": [
+        {
+          "count": 2,
+          "items": {
+            "nail": {
+              "in": 10,
+              "net": 0,
+              "out": 10
+            }
+          },
+          "ok": true,
+          "total_in": 10,
+          "total_out": 10
+        }
+      ],
+      "input": [
+        {
+          "item": "nail",
+          "kind": "in",
+          "qty": 10
+        },
+        {
+          "item": "nail",
+          "kind": "out",
+          "qty": 10
+        }
+      ],
+      "module_sha256": "89a97e35c8e17f563cbe4f2bec0e1b662d3ed446dde2b65c1fd843d90cb37707",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "summarize_movements"
+    },
+    {
+      "actual": {
+        "count": 4,
+        "items": {
+          "a": {
+            "in": 4,
+            "net": 3,
+            "out": 1
+          },
+          "b": {
+            "in": 0,
+            "net": -2,
+            "out": 2
+          }
+        },
+        "ok": true,
+        "total_in": 4,
+        "total_out": 3
+      },
+      "check_id": "F0-02",
+      "check_sha256": "0ad78be340a09ee5f70ede09fef32b8f6ed472e8e23f04508d08933c09a40659",
+      "elapsed_seconds": 0.022571834997506812,
+      "episode_id": "stockflow-dev-01",
+      "error": null,
+      "expected_values": [
+        {
+          "count": 4,
+          "items": {
+            "a": {
+              "in": 4,
+              "net": 3,
+              "out": 1
+            },
+            "b": {
+              "in": 0,
+              "net": -2,
+              "out": 2
+            }
+          },
+          "ok": true,
+          "total_in": 4,
+          "total_out": 3
+        }
+      ],
+      "input": [
+        {
+          "item": "a",
+          "kind": "out",
+          "qty": 1
+        },
+        {
+          "item": "b",
+          "kind": "out",
+          "qty": 2
+        },
+        {
+          "item": "a",
+          "kind": "in",
+          "qty": 3
+        },
+        {
+          "item": "a",
+          "kind": "in",
+          "qty": 1
+        }
+      ],
+      "module_sha256": "89a97e35c8e17f563cbe4f2bec0e1b662d3ed446dde2b65c1fd843d90cb37707",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "summarize_movements"
+    },
+    {
+      "actual": {
+        "count": 1,
+        "items": {
+          "nut": {
+            "in": 0,
+            "net": -7,
+            "out": 7
+          }
+        },
+        "ok": true,
+        "total_in": 0,
+        "total_out": 7
+      },
+      "check_id": "F0-03",
+      "check_sha256": "e57db95d6291fe41cc1112c56a63c3e2e70b9735af43f52d5931312ec00f62b0",
+      "elapsed_seconds": 0.023062908003339544,
+      "episode_id": "stockflow-dev-01",
+      "error": null,
+      "expected_values": [
+        {
+          "count": 1,
+          "items": {
+            "nut": {
+              "in": 0,
+              "net": -7,
+              "out": 7
+            }
+          },
+          "ok": true,
+          "total_in": 0,
+          "total_out": 7
+        }
+      ],
+      "input": [
+        {
+          "item": "nut",
+          "kind": "out",
+          "qty": 7
+        }
+      ],
+      "module_sha256": "89a97e35c8e17f563cbe4f2bec0e1b662d3ed446dde2b65c1fd843d90cb37707",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "summarize_movements"
+    },
+    {
+      "actual": {
+        "closing": {
+          "n": 2,
+          "s": 0,
+          "w": 10
+        },
+        "ok": true,
+        "total_in": 8,
+        "total_out": 3
+      },
+      "check_id": "F1-01",
+      "check_sha256": "84b002e88bc05b6b8c33d6b1608775e9718bbd7b27883b8387e07bc30f68b3e5",
+      "elapsed_seconds": 0.013737956003751606,
+      "episode_id": "stockflow-dev-01",
+      "error": null,
+      "expected_values": [
+        {
+          "closing": {
+            "n": 2,
+            "s": 0,
+            "w": 10
+          },
+          "ok": true,
+          "total_in": 8,
+          "total_out": 3
+        }
+      ],
+      "input": {
+        "movements": [
+          {
+            "item": "w",
+            "kind": "in",
+            "qty": 6
+          },
+          {
+            "item": "s",
+            "kind": "out",
+            "qty": 3
+          },
+          {
+            "item": "n",
+            "kind": "in",
+            "qty": 2
+          }
+        ],
+        "opening": {
+          "s": 3,
+          "w": 4
+        }
+      },
+      "module_sha256": "89a97e35c8e17f563cbe4f2bec0e1b662d3ed446dde2b65c1fd843d90cb37707",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "reconcile_stock"
+    },
+    {
+      "actual": {
+        "closing": {
+          "z": 3
+        },
+        "ok": true,
+        "total_in": 5,
+        "total_out": 2
+      },
+      "check_id": "F1-02",
+      "check_sha256": "84cee22ca6655ef6361672a1a6253d0f31a9f8d4b898c1ce1f23e80546252ab2",
+      "elapsed_seconds": 0.02315634800470434,
+      "episode_id": "stockflow-dev-01",
+      "error": null,
+      "expected_values": [
+        {
+          "closing": {
+            "z": 3
+          },
+          "ok": true,
+          "total_in": 5,
+          "total_out": 2
+        }
+      ],
+      "input": {
+        "movements": [
+          {
+            "item": "z",
+            "kind": "out",
+            "qty": 2
+          },
+          {
+            "item": "z",
+            "kind": "in",
+            "qty": 5
+          }
+        ],
+        "opening": {}
+      },
+      "module_sha256": "89a97e35c8e17f563cbe4f2bec0e1b662d3ed446dde2b65c1fd843d90cb37707",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "reconcile_stock"
+    },
+    {
+      "actual": {
+        "closing": {
+          "k": 4
+        },
+        "ok": true,
+        "total_in": 0,
+        "total_out": 1
+      },
+      "check_id": "F1-03",
+      "check_sha256": "5504d53d4a50b2349781341d3eeddbbe29114c55580746069ea20553bee8729a",
+      "elapsed_seconds": 0.021495816006790847,
+      "episode_id": "stockflow-dev-01",
+      "error": null,
+      "expected_values": [
+        {
+          "closing": {
+            "k": 4
+          },
+          "ok": true,
+          "total_in": 0,
+          "total_out": 1
+        }
+      ],
+      "input": {
+        "allow_backorder": [
+          "m"
+        ],
+        "movements": [
+          {
+            "item": "k",
+            "kind": "out",
+            "qty": 1
+          }
+        ],
+        "opening": {
+          "k": 5
+        }
+      },
+      "module_sha256": "89a97e35c8e17f563cbe4f2bec0e1b662d3ed446dde2b65c1fd843d90cb37707",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "reconcile_stock"
+    },
+    {
+      "actual": {
+        "error": "allow_backorder must be a list of item names",
+        "ok": false
+      },
+      "check_id": "F1-04",
+      "check_sha256": "4c713aec2ac26ee533a76e7146ff0617aa7c58e7ded4b0f93fe573a25ac84118",
+      "elapsed_seconds": 0.02372347001801245,
+      "episode_id": "stockflow-dev-01",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "allow_backorder must be a list of item names",
+          "ok": false
+        }
+      ],
+      "input": {
+        "allow_backorder": "p",
+        "movements": [],
+        "opening": {
+          "p": 1
+        }
+      },
+      "module_sha256": "89a97e35c8e17f563cbe4f2bec0e1b662d3ed446dde2b65c1fd843d90cb37707",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "reconcile_stock"
+    },
+    {
+      "actual": {
+        "error": "opening must map item names to nonnegative integers",
+        "ok": false
+      },
+      "check_id": "F1-05",
+      "check_sha256": "b96437b16c54e15f0905b90a128f24706b5c3fbe6a1ec407c39f760d160991c7",
+      "elapsed_seconds": 0.01444285298930481,
+      "episode_id": "stockflow-dev-01",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "opening must map item names to nonnegative integers",
+          "ok": false
+        }
+      ],
+      "input": {
+        "movements": [],
+        "opening": {
+          "   ": 3
+        }
+      },
+      "module_sha256": "89a97e35c8e17f563cbe4f2bec0e1b662d3ed446dde2b65c1fd843d90cb37707",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "reconcile_stock"
+    },
+    {
+      "actual": {
+        "error": "allow_backorder must be a list of item names",
+        "ok": false
+      },
+      "check_id": "F1-06",
+      "check_sha256": "606ad293f355bc34a46c09020ad84c1b662b34ab2bf3ddab6ea3186084f523a2",
+      "elapsed_seconds": 0.02169255301123485,
+      "episode_id": "stockflow-dev-01",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "allow_backorder must be a list of item names",
+          "ok": false
+        }
+      ],
+      "input": {
+        "allow_backorder": [
+          "  "
+        ],
+        "movements": [],
+        "opening": {}
+      },
+      "module_sha256": "89a97e35c8e17f563cbe4f2bec0e1b662d3ed446dde2b65c1fd843d90cb37707",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "reconcile_stock"
+    },
+    {
+      "actual": {
+        "balance": -2,
+        "error": "negative closing balance",
+        "item": "c",
+        "ok": false
+      },
+      "check_id": "O1-01",
+      "check_sha256": "5cf20fa205fc8f1523d638d342372b6ce8ca4dda11ef5c152682d3a62723ca54",
+      "elapsed_seconds": 0.013767010997980833,
+      "episode_id": "stockflow-dev-01",
+      "error": null,
+      "expected_values": [
+        {
+          "balance": -2,
+          "error": "negative closing balance",
+          "item": "c",
+          "ok": false
+        }
+      ],
+      "input": {
+        "movements": [
+          {
+            "item": "c",
+            "kind": "out",
+            "qty": 3
+          }
+        ],
+        "opening": {
+          "c": 1
+        }
+      },
+      "module_sha256": "89a97e35c8e17f563cbe4f2bec0e1b662d3ed446dde2b65c1fd843d90cb37707",
+      "passed": true,
+      "rule_ids": [
+        "R-REC-NEG"
+      ],
+      "symbol": "reconcile_stock"
+    },
+    {
+      "actual": {
+        "balance": -1,
+        "error": "negative closing balance",
+        "item": "a",
+        "ok": false
+      },
+      "check_id": "O1-02",
+      "check_sha256": "ffdcad6118641ade34d59f231a587391d917c96e7f26819bf95e735be3e94d10",
+      "elapsed_seconds": 0.013776899984804913,
+      "episode_id": "stockflow-dev-01",
+      "error": null,
+      "expected_values": [
+        {
+          "balance": -1,
+          "error": "negative closing balance",
+          "item": "a",
+          "ok": false
+        }
+      ],
+      "input": {
+        "movements": [
+          {
+            "item": "b",
+            "kind": "out",
+            "qty": 2
+          },
+          {
+            "item": "a",
+            "kind": "out",
+            "qty": 1
+          }
+        ],
+        "opening": {
+          "a": 0,
+          "b": 0
+        }
+      },
+      "module_sha256": "89a97e35c8e17f563cbe4f2bec0e1b662d3ed446dde2b65c1fd843d90cb37707",
+      "passed": true,
+      "rule_ids": [
+        "R-REC-NEG"
+      ],
+      "symbol": "reconcile_stock"
+    },
+    {
+      "actual": {
+        "closing": {
+          "d": -2
+        },
+        "ok": true,
+        "total_in": 0,
+        "total_out": 2
+      },
+      "check_id": "O1-03",
+      "check_sha256": "d0dcfc4aac3f7705d95f93c0f48093422aed77f40a16744418239af222f8214f",
+      "elapsed_seconds": 0.0253988980257418,
+      "episode_id": "stockflow-dev-01",
+      "error": null,
+      "expected_values": [
+        {
+          "closing": {
+            "d": -2
+          },
+          "ok": true,
+          "total_in": 0,
+          "total_out": 2
+        }
+      ],
+      "input": {
+        "allow_backorder": [
+          "d"
+        ],
+        "movements": [
+          {
+            "item": "d",
+            "kind": "out",
+            "qty": 2
+          }
+        ],
+        "opening": {
+          "d": 0
+        }
+      },
+      "module_sha256": "89a97e35c8e17f563cbe4f2bec0e1b662d3ed446dde2b65c1fd843d90cb37707",
+      "passed": true,
+      "rule_ids": [
+        "R-REC-NEG"
+      ],
+      "symbol": "reconcile_stock"
+    },
+    {
+      "actual": {
+        "balance": -1,
+        "error": "negative closing balance",
+        "item": "e",
+        "ok": false
+      },
+      "check_id": "O1-04",
+      "check_sha256": "b63a541748eb41e20afcc9540d3bf07696a1a8142aaffd2fddfd40f14a85c48d",
+      "elapsed_seconds": 0.025922675005858764,
+      "episode_id": "stockflow-dev-01",
+      "error": null,
+      "expected_values": [
+        {
+          "balance": -1,
+          "error": "negative closing balance",
+          "item": "e",
+          "ok": false
+        }
+      ],
+      "input": {
+        "allow_backorder": [
+          "f"
+        ],
+        "movements": [
+          {
+            "item": "e",
+            "kind": "out",
+            "qty": 1
+          }
+        ],
+        "opening": {
+          "e": 0
+        }
+      },
+      "module_sha256": "89a97e35c8e17f563cbe4f2bec0e1b662d3ed446dde2b65c1fd843d90cb37707",
+      "passed": true,
+      "rule_ids": [
+        "R-REC-NEG"
+      ],
+      "symbol": "reconcile_stock"
+    }
+  ],
+  "terminal_private_passed": true,
+  "unfinished_private_check_ids": []
+}

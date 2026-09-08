@@ -1,0 +1,741 @@
+{
+  "attempts": [
+    {
+      "all_public_passed": false,
+      "apply_status": "REJECTED",
+      "attempt_index": 0,
+      "call_index": 1,
+      "post_module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "source_sha256": "e2babb48160c1a550c44b4eea9dcba6fe84819ed27c4f44b18a8b8a96d7ff567",
+      "status": "COMPLETE"
+    },
+    {
+      "all_public_passed": false,
+      "apply_status": "REJECTED",
+      "attempt_index": 1,
+      "call_index": 2,
+      "post_module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "source_sha256": "e2babb48160c1a550c44b4eea9dcba6fe84819ed27c4f44b18a8b8a96d7ff567",
+      "status": "COMPLETE"
+    },
+    {
+      "all_public_passed": false,
+      "apply_status": "REJECTED",
+      "attempt_index": 2,
+      "call_index": 3,
+      "post_module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "source_sha256": "e2babb48160c1a550c44b4eea9dcba6fe84819ed27c4f44b18a8b8a96d7ff567",
+      "status": "COMPLETE"
+    }
+  ],
+  "episode_id": "ep-outline-001",
+  "history_after_request": [
+    {
+      "content": "Maintain the supplied pure-Python module across this conversation. Each request authenticates one target path and symbol. Respond with exactly one replace_function tool call whose source is the complete requested synchronous function, beginning with def at column zero. Preserve applicable standing directions and use actual earlier dependencies. Do not return Markdown or replace any other function.",
+      "role": "system"
+    },
+    {
+      "content": "I'm starting a tiny document-outline utility. Everything lives in one module; each function takes a single JSON-style argument and returns a JSON-style value. The first piece, parse_heading, already works: it recognizes markdown heading lines (one to six '#' characters followed by one space) and returns the level plus the raw title text after that first space \u2014 it deliberately does not trim anything. Anything else gets None. Two standing decisions for everything we build here: (1) Titles stored in outlines, and therefore anything derived from them, must be stripped of surrounding whitespace. (2) Documents are messy \u2014 any line that is not a well-formed heading (plain prose, '#' with no following space, more than six '#', or a heading whose title is blank once stripped) is just content. Skip it quietly; never fail the whole parse over such a line.",
+      "role": "user"
+    },
+    {
+      "content": "Implement build_outline(lines). lines must be a list of strings; if it is not a list, or any element is not a string, return exactly {\"error\": \"invalid input\"}. Use parse_heading to recognize heading lines \u2014 don't re-implement that detection. Following the standing decisions, silently ignore every non-heading line and every heading whose title is empty once stripped, and store each node's title stripped of surrounding whitespace. Return the top-level nodes as a list in document order, each node shaped {\"title\": ..., \"level\": ..., \"children\": [...]}. Nesting rule: a heading becomes a child of the most recent heading with a strictly lower level; if there is no such heading, it is top-level. An empty input list yields [].",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\n  \"source\": \"def build_outline(lines):\\n    if not isinstance(lines, list):\\n        return {\\\"error\\\": \\\"invalid input\\\"}\\n    for line in lines:\\n        if not isinstance(line, str):\\n            return {\\\"error\\\": \\\"invalid input\\\"}\\n    outline = []\\n    stack = []\\n    for line in lines:\\n        heading = parse_heading(line)\\n        if heading is None:\\n            continue\\n        title = heading[\\\"title\\\"].strip()\\n        if not title:\\n            continue\\n        level = heading[\\\"level\\\"]\\n        node = {\\\"title\\\": title, \\\"level\\\": level, \\\"children\\\": []}\\n        while stack and stack[-1][\\\"level\\\"] >= level:\\n            stack.pop()\\n        if stack:\\n            stack[-1][\\\"children\\\"].append(node)\\n        else:\\n            outline.append(node)\\n        stack.append(node)\\n    return outline\"\n}",
+            "name": "replace_function"
+          },
+          "id": "chatcmpl-tool-bb804a5aec4753db",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "content": "{\"all_public_passed\":true,\"apply_status\":\"applied\",\"current_module\":\"def parse_heading(line):\\n    if not isinstance(line, str):\\n        return None\\n    hashes = 0\\n    for char in line:\\n        if char == \\\"#\\\":\\n            hashes += 1\\n        else:\\n            break\\n    if hashes == 0 or hashes > 6:\\n        return None\\n    rest = line[hashes:]\\n    if not rest.startswith(\\\" \\\"):\\n        return None\\n    return {\\\"level\\\": hashes, \\\"title\\\": rest[1:]}\\n\\n\\ndef build_outline(lines):\\n    if not isinstance(lines, list):\\n        return {\\\"error\\\": \\\"invalid input\\\"}\\n    for line in lines:\\n        if not isinstance(line, str):\\n            return {\\\"error\\\": \\\"invalid input\\\"}\\n    outline = []\\n    stack = []\\n    for line in lines:\\n        heading = parse_heading(line)\\n        if heading is None:\\n            continue\\n        title = heading[\\\"title\\\"].strip()\\n        if not title:\\n            continue\\n        level = heading[\\\"level\\\"]\\n        node = {\\\"title\\\": title, \\\"level\\\": level, \\\"children\\\": []}\\n        while stack and stack[-1][\\\"level\\\"] >= level:\\n            stack.pop()\\n        if stack:\\n            stack[-1][\\\"children\\\"].append(node)\\n        else:\\n            outline.append(node)\\n        stack.append(node)\\n    return outline\\n\\n\\ndef index_sections(outline):\\n    return None\\n\\n\\ndef query_sections(request):\\n    return None\\n\",\"error\":null,\"public_checks\":[{\"actual\":{\"level\":2,\"title\":\"Getting Started\"},\"check_id\":\"ic-p1\",\"error\":null,\"passed\":true},{\"actual\":null,\"check_id\":\"ic-p2\",\"error\":null,\"passed\":true},{\"actual\":null,\"check_id\":\"ic-p3\",\"error\":null,\"passed\":true},{\"actual\":{\"level\":2,\"title\":\" Draft  \"},\"check_id\":\"ic-p4\",\"error\":null,\"passed\":true},{\"actual\":null,\"check_id\":\"ic-p5\",\"error\":null,\"passed\":true},{\"actual\":[{\"children\":[],\"level\":1,\"title\":\"Intro\"}],\"check_id\":\"pc-b1\",\"error\":null,\"passed\":true},{\"actual\":[{\"children\":[{\"children\":[],\"level\":2,\"title\":\"Beta\"}],\"level\":1,\"title\":\"Alpha\"},{\"children\":[],\"level\":1,\"title\":\"Gamma\"}],\"check_id\":\"pc-b2\",\"error\":null,\"passed\":true}]}",
+      "name": "replace_function",
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-bb804a5aec4753db"
+    },
+    {
+      "content": "The outline builder is in. Two things before we move on. First, a forward-looking note: when we add the lookup tool later, I want query matching to ignore letter case \u2014 'intro' should find 'Intro'. Second, the section index. It should run straight off the raw document lines: it builds the outline itself by calling build_outline, then walks the resulting outline depth-first (a parent, then its children, then the next sibling) and numbers sections. Top-level headings are \"1\", \"2\", and so on; children extend the parent's number with their position among the siblings, joined with dots at every depth. To pin the numbering down: numbers always follow a heading's original position among its siblings, counted before anything is left out \u2014 so if a heading ends up excluded, later siblings keep the numbers they already had rather than sliding up, and the sequence can skip. One scope-limited policy: only headings of level 3 or less get index entries \u2014 level 4 and deeper, along with everything beneath them, are left out of the index entirely. That cutoff belongs to indexing only.",
+      "role": "user"
+    },
+    {
+      "content": "Implement index_sections(lines). lines is the same list-of-strings document that build_outline accepts. Get the outline by calling build_outline(lines) \u2014 reuse it; do not re-implement heading detection, stripping, or nesting \u2014 and if it returns its error object, pass that object through unchanged as your result. From that outline, return a list of entries in depth-first pre-order (a parent, then its children, then the next sibling), one entry {\"number\": ..., \"title\": ...} per included heading. Numbering: a heading's number chain uses its original 1-based position among its siblings, joined with dots at every depth (top-level headings are \"1\", \"2\", ...; the children of section \"1\" are \"1.1\", \"1.2\", ...). Positions are counted before any exclusion: a heading that receives no entry still consumes its sibling position, so later siblings keep their original numbers and the sequence may skip. Per the indexing cutoff, include only headings whose level is 1, 2 or 3; skip any deeper node together with its whole subtree. An empty line list yields an empty outline and therefore [].",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\n  \"source\": \"def index_sections(lines):\\n    result = build_outline(lines)\\n    if isinstance(result, dict) and \\\"error\\\" in result:\\n        return result\\n    outline = result\\n    entries = []\\n    def traverse(node, path):\\n        if node[\\\"level\\\"] > 3:\\n            return\\n        current_path = path + [str(len(path) + 1)]\\n        entries.append({\\\"number\\\": \\\".\\\".join(current_path), \\\"title\\\": node[\\\"title\\\"]})\\n        for child in node[\\\"children\\\"]:\\n            traverse(child, current_path)\\n    for node in outline:\\n        traverse(node, [])\\n    return entries\"\n}",
+            "name": "replace_function"
+          },
+          "id": "chatcmpl-tool-a6c35b05a06a107c",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "content": "{\"all_public_passed\":false,\"apply_status\":\"rejected\",\"current_module\":\"def parse_heading(line):\\n    if not isinstance(line, str):\\n        return None\\n    hashes = 0\\n    for char in line:\\n        if char == \\\"#\\\":\\n            hashes += 1\\n        else:\\n            break\\n    if hashes == 0 or hashes > 6:\\n        return None\\n    rest = line[hashes:]\\n    if not rest.startswith(\\\" \\\"):\\n        return None\\n    return {\\\"level\\\": hashes, \\\"title\\\": rest[1:]}\\n\\n\\ndef build_outline(lines):\\n    if not isinstance(lines, list):\\n        return {\\\"error\\\": \\\"invalid input\\\"}\\n    for line in lines:\\n        if not isinstance(line, str):\\n            return {\\\"error\\\": \\\"invalid input\\\"}\\n    outline = []\\n    stack = []\\n    for line in lines:\\n        heading = parse_heading(line)\\n        if heading is None:\\n            continue\\n        title = heading[\\\"title\\\"].strip()\\n        if not title:\\n            continue\\n        level = heading[\\\"level\\\"]\\n        node = {\\\"title\\\": title, \\\"level\\\": level, \\\"children\\\": []}\\n        while stack and stack[-1][\\\"level\\\"] >= level:\\n            stack.pop()\\n        if stack:\\n            stack[-1][\\\"children\\\"].append(node)\\n        else:\\n            outline.append(node)\\n        stack.append(node)\\n    return outline\\n\\n\\ndef index_sections(outline):\\n    return None\\n\\n\\ndef query_sections(request):\\n    return None\\n\",\"error\":\"PatchError: response patch must not define nested callables or classes\",\"public_checks\":[]}",
+      "name": "replace_function",
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-a6c35b05a06a107c"
+    },
+    {
+      "content": "",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\n  \"source\": \"def index_sections(lines):\\n    result = build_outline(lines)\\n    if isinstance(result, dict) and \\\"error\\\" in result:\\n        return result\\n    outline = result\\n    entries = []\\n    def traverse(node, path):\\n        if node[\\\"level\\\"] > 3:\\n            return\\n        current_path = path + [str(len(path) + 1)]\\n        entries.append({\\\"number\\\": \\\".\\\".join(current_path), \\\"title\\\": node[\\\"title\\\"]})\\n        for child in node[\\\"children\\\"]:\\n            traverse(child, current_path)\\n    for node in outline:\\n        traverse(node, [])\\n    return entries\"\n}",
+            "name": "replace_function"
+          },
+          "id": "chatcmpl-tool-a5dbc39fb3949dae",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "content": "{\"all_public_passed\":false,\"apply_status\":\"rejected\",\"current_module\":\"def parse_heading(line):\\n    if not isinstance(line, str):\\n        return None\\n    hashes = 0\\n    for char in line:\\n        if char == \\\"#\\\":\\n            hashes += 1\\n        else:\\n            break\\n    if hashes == 0 or hashes > 6:\\n        return None\\n    rest = line[hashes:]\\n    if not rest.startswith(\\\" \\\"):\\n        return None\\n    return {\\\"level\\\": hashes, \\\"title\\\": rest[1:]}\\n\\n\\ndef build_outline(lines):\\n    if not isinstance(lines, list):\\n        return {\\\"error\\\": \\\"invalid input\\\"}\\n    for line in lines:\\n        if not isinstance(line, str):\\n            return {\\\"error\\\": \\\"invalid input\\\"}\\n    outline = []\\n    stack = []\\n    for line in lines:\\n        heading = parse_heading(line)\\n        if heading is None:\\n            continue\\n        title = heading[\\\"title\\\"].strip()\\n        if not title:\\n            continue\\n        level = heading[\\\"level\\\"]\\n        node = {\\\"title\\\": title, \\\"level\\\": level, \\\"children\\\": []}\\n        while stack and stack[-1][\\\"level\\\"] >= level:\\n            stack.pop()\\n        if stack:\\n            stack[-1][\\\"children\\\"].append(node)\\n        else:\\n            outline.append(node)\\n        stack.append(node)\\n    return outline\\n\\n\\ndef index_sections(outline):\\n    return None\\n\\n\\ndef query_sections(request):\\n    return None\\n\",\"error\":\"PatchError: response patch must not define nested callables or classes\",\"public_checks\":[]}",
+      "name": "replace_function",
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-a5dbc39fb3949dae"
+    },
+    {
+      "content": "",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"source\": \"def index_sections(lines):\\n    result = build_outline(lines)\\n    if isinstance(result, dict) and \\\"error\\\" in result:\\n        return result\\n    outline = result\\n    entries = []\\n    def traverse(node, path):\\n        if node[\\\"level\\\"] > 3:\\n            return\\n        current_path = path + [str(len(path) + 1)]\\n        entries.append({\\\"number\\\": \\\".\\\".join(current_path), \\\"title\\\": node[\\\"title\\\"]})\\n        for child in node[\\\"children\\\"]:\\n            traverse(child, current_path)\\n    for node in outline:\\n        traverse(node, [])\\n    return entries\"}",
+            "name": "replace_function"
+          },
+          "id": "chatcmpl-tool-80b559fa8d31e9e9",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "content": "{\"all_public_passed\":false,\"apply_status\":\"rejected\",\"current_module\":\"def parse_heading(line):\\n    if not isinstance(line, str):\\n        return None\\n    hashes = 0\\n    for char in line:\\n        if char == \\\"#\\\":\\n            hashes += 1\\n        else:\\n            break\\n    if hashes == 0 or hashes > 6:\\n        return None\\n    rest = line[hashes:]\\n    if not rest.startswith(\\\" \\\"):\\n        return None\\n    return {\\\"level\\\": hashes, \\\"title\\\": rest[1:]}\\n\\n\\ndef build_outline(lines):\\n    if not isinstance(lines, list):\\n        return {\\\"error\\\": \\\"invalid input\\\"}\\n    for line in lines:\\n        if not isinstance(line, str):\\n            return {\\\"error\\\": \\\"invalid input\\\"}\\n    outline = []\\n    stack = []\\n    for line in lines:\\n        heading = parse_heading(line)\\n        if heading is None:\\n            continue\\n        title = heading[\\\"title\\\"].strip()\\n        if not title:\\n            continue\\n        level = heading[\\\"level\\\"]\\n        node = {\\\"title\\\": title, \\\"level\\\": level, \\\"children\\\": []}\\n        while stack and stack[-1][\\\"level\\\"] >= level:\\n            stack.pop()\\n        if stack:\\n            stack[-1][\\\"children\\\"].append(node)\\n        else:\\n            outline.append(node)\\n        stack.append(node)\\n    return outline\\n\\n\\ndef index_sections(outline):\\n    return None\\n\\n\\ndef query_sections(request):\\n    return None\\n\",\"error\":\"PatchError: response patch must not define nested callables or classes\",\"public_checks\":[]}",
+      "name": "replace_function",
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-80b559fa8d31e9e9"
+    }
+  ],
+  "history_before_attempts": [
+    {
+      "content": "Maintain the supplied pure-Python module across this conversation. Each request authenticates one target path and symbol. Respond with exactly one replace_function tool call whose source is the complete requested synchronous function, beginning with def at column zero. Preserve applicable standing directions and use actual earlier dependencies. Do not return Markdown or replace any other function.",
+      "role": "system"
+    },
+    {
+      "content": "I'm starting a tiny document-outline utility. Everything lives in one module; each function takes a single JSON-style argument and returns a JSON-style value. The first piece, parse_heading, already works: it recognizes markdown heading lines (one to six '#' characters followed by one space) and returns the level plus the raw title text after that first space \u2014 it deliberately does not trim anything. Anything else gets None. Two standing decisions for everything we build here: (1) Titles stored in outlines, and therefore anything derived from them, must be stripped of surrounding whitespace. (2) Documents are messy \u2014 any line that is not a well-formed heading (plain prose, '#' with no following space, more than six '#', or a heading whose title is blank once stripped) is just content. Skip it quietly; never fail the whole parse over such a line.",
+      "role": "user"
+    },
+    {
+      "content": "Implement build_outline(lines). lines must be a list of strings; if it is not a list, or any element is not a string, return exactly {\"error\": \"invalid input\"}. Use parse_heading to recognize heading lines \u2014 don't re-implement that detection. Following the standing decisions, silently ignore every non-heading line and every heading whose title is empty once stripped, and store each node's title stripped of surrounding whitespace. Return the top-level nodes as a list in document order, each node shaped {\"title\": ..., \"level\": ..., \"children\": [...]}. Nesting rule: a heading becomes a child of the most recent heading with a strictly lower level; if there is no such heading, it is top-level. An empty input list yields [].",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\n  \"source\": \"def build_outline(lines):\\n    if not isinstance(lines, list):\\n        return {\\\"error\\\": \\\"invalid input\\\"}\\n    for line in lines:\\n        if not isinstance(line, str):\\n            return {\\\"error\\\": \\\"invalid input\\\"}\\n    outline = []\\n    stack = []\\n    for line in lines:\\n        heading = parse_heading(line)\\n        if heading is None:\\n            continue\\n        title = heading[\\\"title\\\"].strip()\\n        if not title:\\n            continue\\n        level = heading[\\\"level\\\"]\\n        node = {\\\"title\\\": title, \\\"level\\\": level, \\\"children\\\": []}\\n        while stack and stack[-1][\\\"level\\\"] >= level:\\n            stack.pop()\\n        if stack:\\n            stack[-1][\\\"children\\\"].append(node)\\n        else:\\n            outline.append(node)\\n        stack.append(node)\\n    return outline\"\n}",
+            "name": "replace_function"
+          },
+          "id": "chatcmpl-tool-bb804a5aec4753db",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "content": "{\"all_public_passed\":true,\"apply_status\":\"applied\",\"current_module\":\"def parse_heading(line):\\n    if not isinstance(line, str):\\n        return None\\n    hashes = 0\\n    for char in line:\\n        if char == \\\"#\\\":\\n            hashes += 1\\n        else:\\n            break\\n    if hashes == 0 or hashes > 6:\\n        return None\\n    rest = line[hashes:]\\n    if not rest.startswith(\\\" \\\"):\\n        return None\\n    return {\\\"level\\\": hashes, \\\"title\\\": rest[1:]}\\n\\n\\ndef build_outline(lines):\\n    if not isinstance(lines, list):\\n        return {\\\"error\\\": \\\"invalid input\\\"}\\n    for line in lines:\\n        if not isinstance(line, str):\\n            return {\\\"error\\\": \\\"invalid input\\\"}\\n    outline = []\\n    stack = []\\n    for line in lines:\\n        heading = parse_heading(line)\\n        if heading is None:\\n            continue\\n        title = heading[\\\"title\\\"].strip()\\n        if not title:\\n            continue\\n        level = heading[\\\"level\\\"]\\n        node = {\\\"title\\\": title, \\\"level\\\": level, \\\"children\\\": []}\\n        while stack and stack[-1][\\\"level\\\"] >= level:\\n            stack.pop()\\n        if stack:\\n            stack[-1][\\\"children\\\"].append(node)\\n        else:\\n            outline.append(node)\\n        stack.append(node)\\n    return outline\\n\\n\\ndef index_sections(outline):\\n    return None\\n\\n\\ndef query_sections(request):\\n    return None\\n\",\"error\":null,\"public_checks\":[{\"actual\":{\"level\":2,\"title\":\"Getting Started\"},\"check_id\":\"ic-p1\",\"error\":null,\"passed\":true},{\"actual\":null,\"check_id\":\"ic-p2\",\"error\":null,\"passed\":true},{\"actual\":null,\"check_id\":\"ic-p3\",\"error\":null,\"passed\":true},{\"actual\":{\"level\":2,\"title\":\" Draft  \"},\"check_id\":\"ic-p4\",\"error\":null,\"passed\":true},{\"actual\":null,\"check_id\":\"ic-p5\",\"error\":null,\"passed\":true},{\"actual\":[{\"children\":[],\"level\":1,\"title\":\"Intro\"}],\"check_id\":\"pc-b1\",\"error\":null,\"passed\":true},{\"actual\":[{\"children\":[{\"children\":[],\"level\":2,\"title\":\"Beta\"}],\"level\":1,\"title\":\"Alpha\"},{\"children\":[],\"level\":1,\"title\":\"Gamma\"}],\"check_id\":\"pc-b2\",\"error\":null,\"passed\":true}]}",
+      "name": "replace_function",
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-bb804a5aec4753db"
+    },
+    {
+      "content": "The outline builder is in. Two things before we move on. First, a forward-looking note: when we add the lookup tool later, I want query matching to ignore letter case \u2014 'intro' should find 'Intro'. Second, the section index. It should run straight off the raw document lines: it builds the outline itself by calling build_outline, then walks the resulting outline depth-first (a parent, then its children, then the next sibling) and numbers sections. Top-level headings are \"1\", \"2\", and so on; children extend the parent's number with their position among the siblings, joined with dots at every depth. To pin the numbering down: numbers always follow a heading's original position among its siblings, counted before anything is left out \u2014 so if a heading ends up excluded, later siblings keep the numbers they already had rather than sliding up, and the sequence can skip. One scope-limited policy: only headings of level 3 or less get index entries \u2014 level 4 and deeper, along with everything beneath them, are left out of the index entirely. That cutoff belongs to indexing only.",
+      "role": "user"
+    },
+    {
+      "content": "Implement index_sections(lines). lines is the same list-of-strings document that build_outline accepts. Get the outline by calling build_outline(lines) \u2014 reuse it; do not re-implement heading detection, stripping, or nesting \u2014 and if it returns its error object, pass that object through unchanged as your result. From that outline, return a list of entries in depth-first pre-order (a parent, then its children, then the next sibling), one entry {\"number\": ..., \"title\": ...} per included heading. Numbering: a heading's number chain uses its original 1-based position among its siblings, joined with dots at every depth (top-level headings are \"1\", \"2\", ...; the children of section \"1\" are \"1.1\", \"1.2\", ...). Positions are counted before any exclusion: a heading that receives no entry still consumes its sibling position, so later siblings keep their original numbers and the sequence may skip. Per the indexing cutoff, include only headings whose level is 1, 2 or 3; skip any deeper node together with its whole subtree. An empty line list yields an empty outline and therefore [].",
+      "role": "user"
+    }
+  ],
+  "post_module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+  "pre_module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+  "public_solved": false,
+  "request_index": 1,
+  "request_message_id": "m04",
+  "request_passed": false,
+  "round_index": 1,
+  "schema_version": 1,
+  "status": "COMPLETE",
+  "target": {
+    "path": "outline_utils.py",
+    "symbol": "index_sections"
+  },
+  "task_handle": "h2-index-sections",
+  "technical_error": null,
+  "terminal_private_checks": [
+    {
+      "actual": {
+        "level": 2,
+        "title": "Getting Started"
+      },
+      "check_id": "ic-p1",
+      "check_sha256": "bd149b23b4988818c8139a6236ad2b4c3fbdd74af3a71b067d28732e9594750d",
+      "elapsed_seconds": 0.013736132998019457,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        {
+          "level": 2,
+          "title": "Getting Started"
+        }
+      ],
+      "input": "## Getting Started",
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "parse_heading"
+    },
+    {
+      "actual": null,
+      "check_id": "ic-p2",
+      "check_sha256": "5a665f0fc54d96cc5c09c41199659ca85d9b196a8208795665f0286059daa552",
+      "elapsed_seconds": 0.022395723994122818,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        null
+      ],
+      "input": "just some prose",
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "parse_heading"
+    },
+    {
+      "actual": null,
+      "check_id": "ic-p3",
+      "check_sha256": "0f27e2804c240b478a1d3a6730ec5d26a30d8a8169175f0f6385b4b39af30fdf",
+      "elapsed_seconds": 0.021551273996010423,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        null
+      ],
+      "input": "#nospace",
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "parse_heading"
+    },
+    {
+      "actual": {
+        "level": 2,
+        "title": " Draft  "
+      },
+      "check_id": "ic-p4",
+      "check_sha256": "6cf473646b45f600b0abdafe34fbd8fc5075813516b0dbf38988d94e90694756",
+      "elapsed_seconds": 0.021918651007581502,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        {
+          "level": 2,
+          "title": " Draft  "
+        }
+      ],
+      "input": "##  Draft  ",
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "parse_heading"
+    },
+    {
+      "actual": null,
+      "check_id": "ic-p5",
+      "check_sha256": "06bcd4410fea06c760e10a0e6bb02e462526709bb7a1f27b748da12a0c13e581",
+      "elapsed_seconds": 0.02139218500815332,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        null
+      ],
+      "input": "####### too deep",
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "parse_heading"
+    },
+    {
+      "actual": [
+        {
+          "children": [
+            {
+              "children": [],
+              "level": 4,
+              "title": "Deep"
+            }
+          ],
+          "level": 2,
+          "title": "Overview"
+        },
+        {
+          "children": [],
+          "level": 1,
+          "title": "Wrap"
+        }
+      ],
+      "check_id": "pf-b1",
+      "check_sha256": "924da744467bd61cedfc057d7ec9d11a01dc454bb6ec200b5a7ea8bf2ada73ea",
+      "elapsed_seconds": 0.021992986992700025,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "children": [
+              {
+                "children": [],
+                "level": 4,
+                "title": "Deep"
+              }
+            ],
+            "level": 2,
+            "title": "Overview"
+          },
+          {
+            "children": [],
+            "level": 1,
+            "title": "Wrap"
+          }
+        ]
+      ],
+      "input": [
+        "## Overview",
+        "#### Deep",
+        "# Wrap"
+      ],
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "build_outline"
+    },
+    {
+      "actual": [
+        {
+          "children": [],
+          "level": 1,
+          "title": "Real"
+        }
+      ],
+      "check_id": "pf-b2",
+      "check_sha256": "5973a023f014b00bd4af727d95ae7f625d6ac74c0ede7861d99bfcee7c34e72d",
+      "elapsed_seconds": 0.012666497990721837,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "children": [],
+            "level": 1,
+            "title": "Real"
+          }
+        ]
+      ],
+      "input": [
+        "draft note",
+        "# Real",
+        "tail"
+      ],
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "build_outline"
+    },
+    {
+      "actual": {
+        "error": "invalid input"
+      },
+      "check_id": "pf-b3",
+      "check_sha256": "b08d7f148acceba7e0d81498911b43fa9baa73f9a84bcfd30aeb54607e02a94c",
+      "elapsed_seconds": 0.022441979992436245,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "invalid input"
+        }
+      ],
+      "input": "not a list",
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "build_outline"
+    },
+    {
+      "actual": {
+        "error": "invalid input"
+      },
+      "check_id": "pf-b4",
+      "check_sha256": "c14f6d5373a36f72bd801e73c25b648efa3484759f9beb2629af150e5e042a75",
+      "elapsed_seconds": 0.012196609022794291,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "invalid input"
+        }
+      ],
+      "input": [
+        "# A",
+        7
+      ],
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "build_outline"
+    },
+    {
+      "actual": [],
+      "check_id": "pf-b5",
+      "check_sha256": "a223a185cc0a00defaf76f76788568f592804cd1d2be2df644d84b7260c93561",
+      "elapsed_seconds": 0.021340729988878593,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        []
+      ],
+      "input": [],
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "build_outline"
+    },
+    {
+      "actual": [
+        {
+          "children": [],
+          "level": 1,
+          "title": "One"
+        },
+        {
+          "children": [],
+          "level": 1,
+          "title": "Two"
+        },
+        {
+          "children": [],
+          "level": 1,
+          "title": "Three"
+        }
+      ],
+      "check_id": "pf-b6",
+      "check_sha256": "a332da190089a2aff46c425d9a226e0646fb90057f6fd4b319cd623899b0762f",
+      "elapsed_seconds": 0.021975131006911397,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "children": [],
+            "level": 1,
+            "title": "One"
+          },
+          {
+            "children": [],
+            "level": 1,
+            "title": "Two"
+          },
+          {
+            "children": [],
+            "level": 1,
+            "title": "Three"
+          }
+        ]
+      ],
+      "input": [
+        "# One",
+        "# Two",
+        "# Three"
+      ],
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "build_outline"
+    },
+    {
+      "actual": [
+        {
+          "children": [
+            {
+              "children": [],
+              "level": 2,
+              "title": "Mid"
+            },
+            {
+              "children": [],
+              "level": 2,
+              "title": "Mid2"
+            }
+          ],
+          "level": 1,
+          "title": "Top"
+        }
+      ],
+      "check_id": "pf-b7",
+      "check_sha256": "282e3ef797c3987510bba1c4f2f50b83c8d5bdcafcf3ec9c328b7cc9c96f29f0",
+      "elapsed_seconds": 0.021529034012928605,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "children": [
+              {
+                "children": [],
+                "level": 2,
+                "title": "Mid"
+              },
+              {
+                "children": [],
+                "level": 2,
+                "title": "Mid2"
+              }
+            ],
+            "level": 1,
+            "title": "Top"
+          }
+        ]
+      ],
+      "input": [
+        "# Top",
+        "## Mid",
+        "## Mid2"
+      ],
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "build_outline"
+    },
+    {
+      "actual": null,
+      "check_id": "pf-i1",
+      "check_sha256": "3792dd8db6710356af4637fad7f712e88038e5e238b957222e66d0181b706926",
+      "elapsed_seconds": 0.012898482993477955,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "number": "1",
+            "title": "A"
+          },
+          {
+            "number": "1.1",
+            "title": "B"
+          },
+          {
+            "number": "1.1.1",
+            "title": "C"
+          },
+          {
+            "number": "1.2",
+            "title": "D"
+          },
+          {
+            "number": "2",
+            "title": "E"
+          }
+        ]
+      ],
+      "input": [
+        "# A",
+        "## B",
+        "### C",
+        "## D",
+        "# E"
+      ],
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "index_sections"
+    },
+    {
+      "actual": null,
+      "check_id": "pf-i2",
+      "check_sha256": "b243aa11a8bcbce3115bb11fdb68adfd9914a26c882a155ef49ea0a6dedc5daf",
+      "elapsed_seconds": 0.013396163994912058,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        []
+      ],
+      "input": [],
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "index_sections"
+    },
+    {
+      "actual": null,
+      "check_id": "pf-i3",
+      "check_sha256": "ccee118c295613164dc59d7d9f540797a246d326a30e5f4a886d125c54943126",
+      "elapsed_seconds": 0.012428272981196642,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "invalid input"
+        }
+      ],
+      "input": "not a list of lines",
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "index_sections"
+    },
+    {
+      "actual": null,
+      "check_id": "pf-i4",
+      "check_sha256": "606e78ed36a9737ec9c148ee73bcb26c1d669d59169e57398a495cc4fe204449",
+      "elapsed_seconds": 0.01268910599173978,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "invalid input"
+        }
+      ],
+      "input": [
+        "# Alpha",
+        7
+      ],
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "index_sections"
+    },
+    {
+      "actual": null,
+      "check_id": "pf-i5",
+      "check_sha256": "361ffe440883b456721031974f2ed6a3ed1a935e118ed0eaae4af51ad27eacdb",
+      "elapsed_seconds": 0.012680641986662522,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "number": "1",
+            "title": "A"
+          },
+          {
+            "number": "1.1",
+            "title": "B"
+          },
+          {
+            "number": "2",
+            "title": "C"
+          },
+          {
+            "number": "2.1",
+            "title": "D"
+          }
+        ]
+      ],
+      "input": [
+        "# A",
+        "## B",
+        "# C",
+        "## D"
+      ],
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "index_sections"
+    },
+    {
+      "actual": null,
+      "check_id": "po-i1",
+      "check_sha256": "283e0d0fb488d5099571299b3d75783dd5591fcd67ce93f574914d8f1534f8ef",
+      "elapsed_seconds": 0.012818465998861939,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "number": "1",
+            "title": "Top"
+          }
+        ]
+      ],
+      "input": [
+        "# Top",
+        "#### TooDeep"
+      ],
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": false,
+      "rule_ids": [
+        "R-DEEP"
+      ],
+      "symbol": "index_sections"
+    },
+    {
+      "actual": null,
+      "check_id": "po-i2",
+      "check_sha256": "1305e178488447f298138cb3174f736bd8fb34f29f7397a58393b4cef06badf6",
+      "elapsed_seconds": 0.012669826013734564,
+      "episode_id": "ep-outline-001",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "number": "1",
+            "title": "L1"
+          },
+          {
+            "number": "1.1",
+            "title": "L2"
+          },
+          {
+            "number": "1.1.1",
+            "title": "L3"
+          },
+          {
+            "number": "1.1.2",
+            "title": "L5b"
+          }
+        ]
+      ],
+      "input": [
+        "# L1",
+        "## L2",
+        "### L3",
+        "#### L4",
+        "### L5b"
+      ],
+      "module_sha256": "db1ec0af8ac25e5cf8b658892f7d7d97e247fc97686984717e9fcf747c688323",
+      "passed": false,
+      "rule_ids": [
+        "R-DEEP"
+      ],
+      "symbol": "index_sections"
+    }
+  ],
+  "terminal_private_passed": false,
+  "unfinished_private_check_ids": []
+}

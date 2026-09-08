@@ -1,0 +1,504 @@
+{
+  "attempts": [
+    {
+      "all_public_passed": true,
+      "apply_status": "APPLIED",
+      "attempt_index": 0,
+      "call_index": 13,
+      "post_module_sha256": "5575dd049a6a1291f6c1271680d1da84bee7d99455f5a3c00faeaf5515b4217c",
+      "source_sha256": "aaa3d73dea652717f4ec4154c5f05ee33b546700275927ec10ddf0a011855f2f",
+      "status": "COMPLETE"
+    }
+  ],
+  "episode_id": "ep-route-segments-001",
+  "history_after_request": [
+    {
+      "content": "Maintain the supplied pure-Python module across this conversation. Each request authenticates one target path and symbol. Respond with exactly one replace_function tool call whose source is the complete requested synchronous function, beginning with def at column zero. Preserve applicable standing directions and use actual earlier dependencies. Do not return Markdown or replace any other function.",
+      "role": "system"
+    },
+    {
+      "content": "Project setup for our route utility. The module route_segments.py already has normalize_segment, which returns a canonical segment dict (mode kept, codes uppercased, minutes and fare_cents as integers) or None for anything invalid. Next feature: price_segment(segment), one synchronous positional argument. Validate only via normalize_segment: call it and return None whenever it returns None; never duplicate its checks. If the segment is valid, compute raw = fare_cents + base + rate*minutes, where base is 0 for walk, 140 for bus, 320 for rail, and rate per minute is 0 for walk, 12 for bus, 25 for rail. If minutes is at least 60, apply a 10 percent discount to raw. Standing rule for the whole project: any fractional-cent money result rounds to the nearest whole cent, and an exact half-cent always rounds up. Return a dict with exactly the keys mode, origin, dest, minutes and quote_cents, taking the first four from the normalized segment.",
+      "role": "user"
+    },
+    {
+      "content": "Understood: price_segment will delegate validation to normalize_segment, use the walk/bus/rail base-and-rate table, apply the 10 percent discount at 60 minutes or more with half-up-to-whole-cent rounding, and return the five-field quote dict, or None for invalid input.",
+      "role": "assistant"
+    },
+    {
+      "content": "Implement price_segment in route_segments.py now (task price-quote), exactly as specified above.",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\n  \"source\": \"def price_segment(segment):\\n    normalized = normalize_segment(segment)\\n    if normalized is None:\\n        return None\\n    mode = normalized['mode']\\n    origin = normalized['origin']\\n    dest = normalized['dest']\\n    minutes = normalized['minutes']\\n    fare_cents = normalized['fare_cents']\\n    \\n    if mode == 'walk':\\n        base = 0\\n        rate = 0\\n    elif mode == 'bus':\\n        base = 140\\n        rate = 12\\n    elif mode == 'rail':\\n        base = 320\\n        rate = 25\\n    else:\\n        return None\\n    \\n    raw = fare_cents + base + rate * minutes\\n    if minutes >= 60:\\n        raw = raw * 0.9\\n    \\n    # Round to nearest cent, with half-up rounding\\n    quote_cents = int(raw + 0.5)\\n    \\n    return {\\n        'mode': mode,\\n        'origin': origin,\\n        'dest': dest,\\n        'minutes': minutes,\\n        'quote_cents': quote_cents\\n    }\"\n}",
+            "name": "replace_function"
+          },
+          "id": "chatcmpl-tool-9e11fb9ec54e1ce3",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "content": "{\"all_public_passed\":true,\"apply_status\":\"applied\",\"current_module\":\"def normalize_segment(segment):\\n    \\\"\\\"\\\"Validate and canonicalize one route segment dict.\\n\\n    Valid segments are dicts with exactly the keys mode, origin, dest,\\n    minutes and fare_cents. mode is one of walk, bus or rail. origin and\\n    dest are three-letter alphabetic strings and must differ. minutes is\\n    an integer (not a boolean) from 1 to 600 inclusive. fare_cents is an\\n    integer (not a boolean) from 0 to 100000 inclusive; walk segments\\n    must have fare_cents 0. Returns the canonical dict with codes\\n    uppercased, or None for anything invalid.\\n    \\\"\\\"\\\"\\n    if not isinstance(segment, dict):\\n        return None\\n    if set(segment.keys()) != {\\\"mode\\\", \\\"origin\\\", \\\"dest\\\", \\\"minutes\\\", \\\"fare_cents\\\"}:\\n        return None\\n    mode = segment[\\\"mode\\\"]\\n    if mode not in (\\\"walk\\\", \\\"bus\\\", \\\"rail\\\"):\\n        return None\\n    origin = segment[\\\"origin\\\"]\\n    dest = segment[\\\"dest\\\"]\\n    for code in (origin, dest):\\n        if not isinstance(code, str) or len(code) != 3 or not code.isalpha():\\n            return None\\n    if origin.upper() == dest.upper():\\n        return None\\n    minutes = segment[\\\"minutes\\\"]\\n    if isinstance(minutes, bool) or not isinstance(minutes, int):\\n        return None\\n    if minutes < 1 or minutes > 600:\\n        return None\\n    fare_cents = segment[\\\"fare_cents\\\"]\\n    if isinstance(fare_cents, bool) or not isinstance(fare_cents, int):\\n        return None\\n    if fare_cents < 0 or fare_cents > 100000:\\n        return None\\n    if mode == \\\"walk\\\" and fare_cents != 0:\\n        return None\\n    return {\\n        \\\"mode\\\": mode,\\n        \\\"origin\\\": origin.upper(),\\n        \\\"dest\\\": dest.upper(),\\n        \\\"minutes\\\": minutes,\\n        \\\"fare_cents\\\": fare_cents,\\n    }\\n\\n\\ndef price_segment(segment):\\n    normalized = normalize_segment(segment)\\n    if normalized is None:\\n        return None\\n    mode = normalized['mode']\\n    origin = normalized['origin']\\n    dest = normalized['dest']\\n    minutes = normalized['minutes']\\n    fare_cents = normalized['fare_cents']\\n    \\n    if mode == 'walk':\\n        base = 0\\n        rate = 0\\n    elif mode == 'bus':\\n        base = 140\\n        rate = 12\\n    elif mode == 'rail':\\n        base = 320\\n        rate = 25\\n    else:\\n        return None\\n    \\n    raw = fare_cents + base + rate * minutes\\n    if minutes >= 60:\\n        raw = raw * 0.9\\n    \\n    # Round to nearest cent, with half-up rounding\\n    quote_cents = int(raw + 0.5)\\n    \\n    return {\\n        'mode': mode,\\n        'origin': origin,\\n        'dest': dest,\\n        'minutes': minutes,\\n        'quote_cents': quote_cents\\n    }\\n\\n\\ndef combine_segments(segments):\\n    return None\\n\\n\\ndef build_itinerary(request):\\n    return None\\n\",\"error\":null,\"public_checks\":[{\"actual\":{\"dest\":\"BOS\",\"fare_cents\":300,\"minutes\":45,\"mode\":\"bus\",\"origin\":\"NYC\"},\"check_id\":\"chk-init-01\",\"error\":null,\"passed\":true},{\"actual\":{\"dest\":\"SEA\",\"fare_cents\":100,\"minutes\":600,\"mode\":\"rail\",\"origin\":\"SFO\"},\"check_id\":\"chk-init-02\",\"error\":null,\"passed\":true},{\"actual\":null,\"check_id\":\"chk-init-03\",\"error\":null,\"passed\":true},{\"actual\":null,\"check_id\":\"chk-init-04\",\"error\":null,\"passed\":true},{\"actual\":null,\"check_id\":\"chk-init-05\",\"error\":null,\"passed\":true},{\"actual\":null,\"check_id\":\"chk-init-06\",\"error\":null,\"passed\":true},{\"actual\":null,\"check_id\":\"chk-init-07\",\"error\":null,\"passed\":true},{\"actual\":null,\"check_id\":\"chk-init-08\",\"error\":null,\"passed\":true},{\"actual\":{\"dest\":\"BOS\",\"minutes\":45,\"mode\":\"bus\",\"origin\":\"NYC\",\"quote_cents\":980},\"check_id\":\"chk-r0-pub-01\",\"error\":null,\"passed\":true},{\"actual\":{\"dest\":\"CCC\",\"minutes\":60,\"mode\":\"rail\",\"origin\":\"AAA\",\"quote_cents\":1728},\"check_id\":\"chk-r0-pub-02\",\"error\":null,\"passed\":true},{\"actual\":null,\"check_id\":\"chk-r0-pub-03\",\"error\":null,\"passed\":true}]}",
+      "name": "replace_function",
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-9e11fb9ec54e1ce3"
+    }
+  ],
+  "history_before_attempts": [
+    {
+      "content": "Maintain the supplied pure-Python module across this conversation. Each request authenticates one target path and symbol. Respond with exactly one replace_function tool call whose source is the complete requested synchronous function, beginning with def at column zero. Preserve applicable standing directions and use actual earlier dependencies. Do not return Markdown or replace any other function.",
+      "role": "system"
+    },
+    {
+      "content": "Project setup for our route utility. The module route_segments.py already has normalize_segment, which returns a canonical segment dict (mode kept, codes uppercased, minutes and fare_cents as integers) or None for anything invalid. Next feature: price_segment(segment), one synchronous positional argument. Validate only via normalize_segment: call it and return None whenever it returns None; never duplicate its checks. If the segment is valid, compute raw = fare_cents + base + rate*minutes, where base is 0 for walk, 140 for bus, 320 for rail, and rate per minute is 0 for walk, 12 for bus, 25 for rail. If minutes is at least 60, apply a 10 percent discount to raw. Standing rule for the whole project: any fractional-cent money result rounds to the nearest whole cent, and an exact half-cent always rounds up. Return a dict with exactly the keys mode, origin, dest, minutes and quote_cents, taking the first four from the normalized segment.",
+      "role": "user"
+    },
+    {
+      "content": "Understood: price_segment will delegate validation to normalize_segment, use the walk/bus/rail base-and-rate table, apply the 10 percent discount at 60 minutes or more with half-up-to-whole-cent rounding, and return the five-field quote dict, or None for invalid input.",
+      "role": "assistant"
+    },
+    {
+      "content": "Implement price_segment in route_segments.py now (task price-quote), exactly as specified above.",
+      "role": "user"
+    }
+  ],
+  "post_module_sha256": "5575dd049a6a1291f6c1271680d1da84bee7d99455f5a3c00faeaf5515b4217c",
+  "pre_module_sha256": "e69f92936dc32be88a3803156c5994eaffe043a5198b67182f1c664f0e35d9a8",
+  "public_solved": true,
+  "request_index": 9,
+  "request_message_id": "r-01",
+  "request_passed": true,
+  "round_index": 0,
+  "schema_version": 1,
+  "status": "COMPLETE",
+  "target": {
+    "path": "route_segments.py",
+    "symbol": "price_segment"
+  },
+  "task_handle": "price-quote",
+  "technical_error": null,
+  "terminal_private_checks": [
+    {
+      "actual": {
+        "dest": "BOS",
+        "fare_cents": 300,
+        "minutes": 45,
+        "mode": "bus",
+        "origin": "NYC"
+      },
+      "check_id": "chk-init-01",
+      "check_sha256": "00981795e48adecd07d896440531fbdb1e9fc4a82cadf6fcf5b4af8f3ac43cce",
+      "elapsed_seconds": 0.023166219994891435,
+      "episode_id": "ep-route-segments-001",
+      "error": null,
+      "expected_values": [
+        {
+          "dest": "BOS",
+          "fare_cents": 300,
+          "minutes": 45,
+          "mode": "bus",
+          "origin": "NYC"
+        }
+      ],
+      "input": {
+        "dest": "bos",
+        "fare_cents": 300,
+        "minutes": 45,
+        "mode": "bus",
+        "origin": "nyc"
+      },
+      "module_sha256": "5575dd049a6a1291f6c1271680d1da84bee7d99455f5a3c00faeaf5515b4217c",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "normalize_segment"
+    },
+    {
+      "actual": {
+        "dest": "SEA",
+        "fare_cents": 100,
+        "minutes": 600,
+        "mode": "rail",
+        "origin": "SFO"
+      },
+      "check_id": "chk-init-02",
+      "check_sha256": "8d8d89d6accdf10b466b60c8fd71c866a87d9d7726f0dc2c9521dc12fa91c27f",
+      "elapsed_seconds": 0.013474770996253937,
+      "episode_id": "ep-route-segments-001",
+      "error": null,
+      "expected_values": [
+        {
+          "dest": "SEA",
+          "fare_cents": 100,
+          "minutes": 600,
+          "mode": "rail",
+          "origin": "SFO"
+        }
+      ],
+      "input": {
+        "dest": "sea",
+        "fare_cents": 100,
+        "minutes": 600,
+        "mode": "rail",
+        "origin": "sfo"
+      },
+      "module_sha256": "5575dd049a6a1291f6c1271680d1da84bee7d99455f5a3c00faeaf5515b4217c",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "normalize_segment"
+    },
+    {
+      "actual": null,
+      "check_id": "chk-init-03",
+      "check_sha256": "3f7e9eaa700971373da8f39d926c9921ef5c3488da9f9eddcb099f9b609b6bab",
+      "elapsed_seconds": 0.023535052983788773,
+      "episode_id": "ep-route-segments-001",
+      "error": null,
+      "expected_values": [
+        null
+      ],
+      "input": {
+        "dest": "bbb",
+        "fare_cents": 3,
+        "minutes": 12,
+        "mode": "walk",
+        "origin": "aaa"
+      },
+      "module_sha256": "5575dd049a6a1291f6c1271680d1da84bee7d99455f5a3c00faeaf5515b4217c",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "normalize_segment"
+    },
+    {
+      "actual": null,
+      "check_id": "chk-init-04",
+      "check_sha256": "324587c541f37036d120a1ce30a335cf7c8d3714cd1f653a37fae773cf4db7bd",
+      "elapsed_seconds": 0.013217986008385196,
+      "episode_id": "ep-route-segments-001",
+      "error": null,
+      "expected_values": [
+        null
+      ],
+      "input": {
+        "dest": "bos",
+        "fare_cents": 10,
+        "minutes": true,
+        "mode": "bus",
+        "origin": "nyc"
+      },
+      "module_sha256": "5575dd049a6a1291f6c1271680d1da84bee7d99455f5a3c00faeaf5515b4217c",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "normalize_segment"
+    },
+    {
+      "actual": null,
+      "check_id": "chk-init-05",
+      "check_sha256": "e462806bbe24f889643f7d2ef7c51239a565d6cf9218b610e2d98bc35503ed6e",
+      "elapsed_seconds": 0.013410690997261554,
+      "episode_id": "ep-route-segments-001",
+      "error": null,
+      "expected_values": [
+        null
+      ],
+      "input": {
+        "dest": "sea",
+        "fare_cents": 100,
+        "minutes": 601,
+        "mode": "rail",
+        "origin": "sfo"
+      },
+      "module_sha256": "5575dd049a6a1291f6c1271680d1da84bee7d99455f5a3c00faeaf5515b4217c",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "normalize_segment"
+    },
+    {
+      "actual": null,
+      "check_id": "chk-init-06",
+      "check_sha256": "f026f66dbbff11a4ac9ff8ad2e33c945f2a7f41de75a766fa6e5d4c91202e5f8",
+      "elapsed_seconds": 0.013459938985761255,
+      "episode_id": "ep-route-segments-001",
+      "error": null,
+      "expected_values": [
+        null
+      ],
+      "input": {
+        "dest": "bos",
+        "fare_cents": 300,
+        "minutes": 45,
+        "mode": "bus",
+        "note": "x",
+        "origin": "nyc"
+      },
+      "module_sha256": "5575dd049a6a1291f6c1271680d1da84bee7d99455f5a3c00faeaf5515b4217c",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "normalize_segment"
+    },
+    {
+      "actual": null,
+      "check_id": "chk-init-07",
+      "check_sha256": "eff9d0e7ce1a3e5272c4be4dda8ae29ce10d7a4262315140db8f47ea844f8b6c",
+      "elapsed_seconds": 0.01291416198364459,
+      "episode_id": "ep-route-segments-001",
+      "error": null,
+      "expected_values": [
+        null
+      ],
+      "input": {
+        "dest": "xyz",
+        "fare_cents": 0,
+        "minutes": 10,
+        "mode": "walk",
+        "origin": "xyz"
+      },
+      "module_sha256": "5575dd049a6a1291f6c1271680d1da84bee7d99455f5a3c00faeaf5515b4217c",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "normalize_segment"
+    },
+    {
+      "actual": null,
+      "check_id": "chk-init-08",
+      "check_sha256": "cb731553a54368000cf022168dcc3fd0e5c82db9d88b04856c59c168b22bc867",
+      "elapsed_seconds": 0.012972274009371176,
+      "episode_id": "ep-route-segments-001",
+      "error": null,
+      "expected_values": [
+        null
+      ],
+      "input": "bus",
+      "module_sha256": "5575dd049a6a1291f6c1271680d1da84bee7d99455f5a3c00faeaf5515b4217c",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "normalize_segment"
+    },
+    {
+      "actual": {
+        "dest": "PAR",
+        "minutes": 90,
+        "mode": "bus",
+        "origin": "LON",
+        "quote_cents": 1548
+      },
+      "check_id": "chk-r0-fun-01",
+      "check_sha256": "5b038cb34882d596af820bbfe7cde5c025907a425fa090c7b6607f87f275ab76",
+      "elapsed_seconds": 0.01325136300874874,
+      "episode_id": "ep-route-segments-001",
+      "error": null,
+      "expected_values": [
+        {
+          "dest": "PAR",
+          "minutes": 90,
+          "mode": "bus",
+          "origin": "LON",
+          "quote_cents": 1548
+        }
+      ],
+      "input": {
+        "dest": "par",
+        "fare_cents": 500,
+        "minutes": 90,
+        "mode": "bus",
+        "origin": "lon"
+      },
+      "module_sha256": "5575dd049a6a1291f6c1271680d1da84bee7d99455f5a3c00faeaf5515b4217c",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "price_segment"
+    },
+    {
+      "actual": {
+        "dest": "LAX",
+        "minutes": 59,
+        "mode": "rail",
+        "origin": "SFO",
+        "quote_cents": 1795
+      },
+      "check_id": "chk-r0-fun-02",
+      "check_sha256": "76b26f357a7d92d545511dd2a8e853febdedde17fa3106437dc8ee8c5c38df08",
+      "elapsed_seconds": 0.013151315011782572,
+      "episode_id": "ep-route-segments-001",
+      "error": null,
+      "expected_values": [
+        {
+          "dest": "LAX",
+          "minutes": 59,
+          "mode": "rail",
+          "origin": "SFO",
+          "quote_cents": 1795
+        }
+      ],
+      "input": {
+        "dest": "lax",
+        "fare_cents": 0,
+        "minutes": 59,
+        "mode": "rail",
+        "origin": "sfo"
+      },
+      "module_sha256": "5575dd049a6a1291f6c1271680d1da84bee7d99455f5a3c00faeaf5515b4217c",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "price_segment"
+    },
+    {
+      "actual": null,
+      "check_id": "chk-r0-fun-03",
+      "check_sha256": "1f0cef0c9d21d49d325a22df4d41a613eff4a495b4a86e1c9edaea81e1ce415c",
+      "elapsed_seconds": 0.019836147024761885,
+      "episode_id": "ep-route-segments-001",
+      "error": null,
+      "expected_values": [
+        null
+      ],
+      "input": {
+        "dest": "abd",
+        "fare_cents": -1,
+        "minutes": 30,
+        "mode": "bus",
+        "origin": "abc"
+      },
+      "module_sha256": "5575dd049a6a1291f6c1271680d1da84bee7d99455f5a3c00faeaf5515b4217c",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "price_segment"
+    },
+    {
+      "actual": {
+        "dest": "YZB",
+        "minutes": 120,
+        "mode": "walk",
+        "origin": "XYA",
+        "quote_cents": 0
+      },
+      "check_id": "chk-r0-fun-04",
+      "check_sha256": "4932bfc9645a291c299cc90390f8d30151371dcab474c007dbe1ef4ae515bdd1",
+      "elapsed_seconds": 0.013109138002619147,
+      "episode_id": "ep-route-segments-001",
+      "error": null,
+      "expected_values": [
+        {
+          "dest": "YZB",
+          "minutes": 120,
+          "mode": "walk",
+          "origin": "XYA",
+          "quote_cents": 0
+        }
+      ],
+      "input": {
+        "dest": "yzb",
+        "fare_cents": 0,
+        "minutes": 120,
+        "mode": "walk",
+        "origin": "xya"
+      },
+      "module_sha256": "5575dd049a6a1291f6c1271680d1da84bee7d99455f5a3c00faeaf5515b4217c",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "price_segment"
+    },
+    {
+      "actual": {
+        "dest": "ORL",
+        "minutes": 60,
+        "mode": "bus",
+        "origin": "MIA",
+        "quote_cents": 1049
+      },
+      "check_id": "chk-r0-obl-01",
+      "check_sha256": "117dedd09910a937c9b19ee8e27b28e20b237fb774fe8316bc100850c1dc0d29",
+      "elapsed_seconds": 0.013406339014181867,
+      "episode_id": "ep-route-segments-001",
+      "error": null,
+      "expected_values": [
+        {
+          "dest": "ORL",
+          "minutes": 60,
+          "mode": "bus",
+          "origin": "MIA",
+          "quote_cents": 1049
+        }
+      ],
+      "input": {
+        "dest": "orl",
+        "fare_cents": 305,
+        "minutes": 60,
+        "mode": "bus",
+        "origin": "mia"
+      },
+      "module_sha256": "5575dd049a6a1291f6c1271680d1da84bee7d99455f5a3c00faeaf5515b4217c",
+      "passed": true,
+      "rule_ids": [
+        "rule-round-half-up"
+      ],
+      "symbol": "price_segment"
+    },
+    {
+      "actual": {
+        "dest": "STL",
+        "minutes": 70,
+        "mode": "rail",
+        "origin": "CHI",
+        "quote_cents": 2003
+      },
+      "check_id": "chk-r0-obl-02",
+      "check_sha256": "250e4d65f3d65a1e3c3fabda2fd7ff9ef0f732d6dd0d0e66acc25e063c00748b",
+      "elapsed_seconds": 0.012991970026632771,
+      "episode_id": "ep-route-segments-001",
+      "error": null,
+      "expected_values": [
+        {
+          "dest": "STL",
+          "minutes": 70,
+          "mode": "rail",
+          "origin": "CHI",
+          "quote_cents": 2003
+        }
+      ],
+      "input": {
+        "dest": "stl",
+        "fare_cents": 155,
+        "minutes": 70,
+        "mode": "rail",
+        "origin": "chi"
+      },
+      "module_sha256": "5575dd049a6a1291f6c1271680d1da84bee7d99455f5a3c00faeaf5515b4217c",
+      "passed": true,
+      "rule_ids": [
+        "rule-round-half-up"
+      ],
+      "symbol": "price_segment"
+    },
+    {
+      "actual": null,
+      "check_id": "chk-r0-obl-03",
+      "check_sha256": "3b3366e5b22105055d8dc1208ededa5408c8f9d1ce76199cc5c3c33e628be17a",
+      "elapsed_seconds": 0.01306736099650152,
+      "episode_id": "ep-route-segments-001",
+      "error": null,
+      "expected_values": [
+        null
+      ],
+      "input": {
+        "dest": "aab",
+        "fare_cents": 0,
+        "minutes": true,
+        "mode": "rail",
+        "origin": "aaa"
+      },
+      "module_sha256": "5575dd049a6a1291f6c1271680d1da84bee7d99455f5a3c00faeaf5515b4217c",
+      "passed": true,
+      "rule_ids": [
+        "rule-dep-normalize-v1"
+      ],
+      "symbol": "price_segment"
+    }
+  ],
+  "terminal_private_passed": true,
+  "unfinished_private_check_ids": []
+}
