@@ -2145,3 +2145,24 @@ no sandbox refactor. Await newstablehashes and Astra delta; preserve oldpreview
 and resourceplan before regenerating against newcode. Launcher stablehandoff
 is still pending, then same reviewer completes joint readiness. No external
 blocker, no newworkeroutput, goalactive.
+
+2026-09-08 — STATE: RUNTIME DEADLINE FIX VERIFIED; FINAL PREVIEW READY.
+Previous goal turn was progress: accepted exact data, prospective sizing
+clarification, runtime review and confirmed medium deadline fix assignment.
+Re-read current ledger/worktree and active native agents this turn. Read-only
+resource snapshot: NVIDIA GB10 utilization0%, no running Docker containers;
+final ownership/resource checks still required immediately before launch.
+
+Runtime Sol fix source4e39d6f0fea4234643447bc1a31a2fb2caad7f1c5e35803537585c1d43812c94;
+testsce991821aa703af3e93e690571e89f1ddfd35ae0db69c00d51730fbec948ef18.
+Sol9tests6.21seconds+Ruff; Astra independent9tests6.50seconds and exact delta
+inspection resolve finding1. No runtime blocker remains. Original preview and
+resourceplan preserved verbatim as preview-runtime-r1.json and
+RESOURCE-PLAN-runtime-r1.md. Refreshed exact-bank preview exited0 and binds new
+runtime: SHAe9773cddb4613743b5e3b78a481d3d9adee928de4ac3d59d00c22ca01d98f0eb.
+Parent verified referenceactions/context/resource objects equal priorpreview;
+only sourcebinding changed, no repeated bank execution. Launcher is finishing
+its stable tests/hash handoff; same Astra reviewer completes joint readiness.
+Canonical source/data reviews will be tracked-clean freeze inputs; parent
+remains acceptance authority, with no extra review-parser framework. Governing
+sizing drafts remain uncommitted until full readiness acceptance.

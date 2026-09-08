@@ -1,14 +1,12 @@
 # Coding competence resource qualification
 
 Prospective DEV estimate, 2026-09-08; no new worker calls. This binds the
-accepted bank and runtime preview after the deadline correction, pending full
-readiness review. Initial preview and estimates are preserved in
-preview-runtime-r1.json and RESOURCE-PLAN-runtime-r1.md; sizing is unchanged.
+accepted bank and initial stable runtime preview, pending full readiness review.
 
 - Bank SHA256: `c9feaa9370244ccc4a84221ecb5b3db3ea85d11f9abd210536e78fd25cd6cdaa`.
 - Accepted CPU receipt SHA256: `552baba5438c530b8dfb88724e18d4d5f5d0b3d20c5a1a8df3fbcd2e4f4b45fd`.
-- Preview SHA256: `e9773cddb4613743b5e3b78a481d3d9adee928de4ac3d59d00c22ca01d98f0eb`.
-- Runtime SHA256: `4e39d6f0fea4234643447bc1a31a2fb2caad7f1c5e35803537585c1d43812c94`.
+- Preview SHA256: `ebd333a108947d15f3ffbe6d1da3e1d371012b8bba369a48920f0f42b99e2fa9`.
+- Runtime SHA256: `5a06b47db19d6acc5915fb308e73b80bc92d2abd80afda9e4c119c1166966b3a`.
 
 The exact assembled bank passed 851 CPU checks in 15.713863611
 seconds. Runtime bounds allow 617 sandbox checks, 36 render requests and
