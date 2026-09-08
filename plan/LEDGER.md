@@ -2131,3 +2131,17 @@ launched. Next: collect launcher stable handoff, complete joint readiness review
 fix confirmed findings through Sol, preserve old preview before any regeneration,
 then exact freeze/resource ownership checks and conditional single worker run.
 Goal still requires automatic focus and fresh larger paired evidence afterward.
+
+2026-09-08 — STATE: SMALL RUNTIME DEADLINE CORRECTION ASSIGNED TO SOL.
+Astra runtime review otherwise complete for5a06b47d; exact resource/preview
+arithmetic accepted. Independent real-sandbox probe confirms a medium defect:
+checker may start2second sandbox with1.2secondsremaining and return2.0287seconds
+later, overrunning driver deadline by~0.829seconds. Launcher appears to contain
+this within cleanup allowance, but brief requires per-check reserve. Root
+reactivated coding_focus_impl on only its runtime/test files for narrow fix:
+reserve inherited2second sandbox allowance plus existing1secondreceipt before
+starting each check; preserve unfinished IDs, add focused entry-decision test,
+no sandbox refactor. Await newstablehashes and Astra delta; preserve oldpreview
+and resourceplan before regenerating against newcode. Launcher stablehandoff
+is still pending, then same reviewer completes joint readiness. No external
+blocker, no newworkeroutput, goalactive.
