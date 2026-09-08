@@ -21,10 +21,10 @@ selector. Larger untouched executable coding evidence is ultimately required.
 Planning-tool discovery found no update_plan capability. This file records the
 fallback plan required by the deep-research skill; no permission is needed.
 
-1. IN PROGRESS: primary-source discovery. Astra evidence lane covers original
+1. COMPLETE: primary-source discovery. Astra evidence lane covers original
 source retrieval/provenance in multi-turn agents and coding memory; root lane
 covers repeated source exposure, instruction following and downstream utility.
-2. PENDING: merge evidence, verify consequential claims and contradictions with
+2. IN PROGRESS: merge evidence, verify consequential claims and contradictions with
 one focused follow-up wave. Distinguish QA, coding, authority/temporal semantics.
 3. PENDING: choose or reject one minimal hypothesis, with fresh quick-check
 outcomes, cost limits and stop condition. No launch authorization is implied.
@@ -36,3 +36,13 @@ feasibility and decisive test are supported or explicit evidence gaps. Avoid a
 general memory survey, critics/compilers/selector-perfection prerequisites,
 and repeated cosmetic prompts. Root owns synthesis/artifact; the one research
 agent returns compact evidence, does not spawn agents or write a report.
+
+Discovery update: root inspected primary methods/results for prompt repetition,
+VerIFY and declarative attention. Astra located SWE-ContextBench, LongMemEval,
+ReadAgent and EvoCode-Bench. Root independently verified the consequential
+SWE-ContextBench raw/oracle/summary results and denominator caveat, LongMemEval
+original-round/fact/timestamp/token-budget findings, and ReadAgent positive
+PaLM2 plus negative GPT3.5 transfer. No broad discovery remains necessary.
+The evidence supports only a bounded prospective utility hypothesis, not an
+expected win or new inference-engine implementation. Await the compact agent
+records before synthesis; original-source retrieval is not proven superior.
