@@ -1920,3 +1920,19 @@ No prior task examples or model responses enter author requests. Fit-on none.
 The driver registers its PID before calling Ollama; resume its exact session
 until terminal, never restart from an observation timeout. Astra semantic data
 review and Sol executable preflight follow; no inference launch before acceptance.
+
+2026-09-08 — STATE: FOUR KIMI AUTHOR CALLS LIVE; PINNED NATIVE CONTRACT ACCEPTED.
+Owned Kimi session 99180/PID 26529 has been re-polled live; four author receipts
+remain RUNNING. Do not restart it from an observation timeout. Native transport
+research caught two pinned-server details before launch: named forced tools
+still require both enable-auto-tool-choice and Hermes parser flags, and success
+finishes with stop. Authoritative /v1/chat/completions/render accepts identical
+request bytes without generation and exposes token IDs/argument grammar;
+actual completion return_token_ids permits exact prompt/usage reconciliation.
+NATIVE-CONTRACT.md records these source-backed requirements and a whole-run
+technical stop, avoiding replay of malformed capped tool-call arguments. All
+pending work is explicitly unattempted/incomplete after such a stop; parsed
+native Python failures can still consume the fixed three-attempt correction
+budget using public-only feedback. Astra source review accepted 96, zero open
+findings. This is not runtime acceptance. Original author contracts stay fixed.
+Sol's new CPU validator/test implementation remains active and uncommitted.
