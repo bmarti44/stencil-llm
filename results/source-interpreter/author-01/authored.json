@@ -1,0 +1,252 @@
+{
+  "schema_version": 1,
+  "conversation_id": "source-fit-cal-20260908-01",
+  "family_id": "source-fit-family-20260908-01",
+  "split": "fit",
+  "messages": [
+    {
+      "message_id": "m-01",
+      "role": "user",
+      "text": "We're building Canopy Queue, an internal scheduler for the city forestry office to assign street-tree inspections. Keep this slice in TypeScript on Express; all persistence goes through `src/repos/arborRepo.ts`, and this service must not write to production ArborDB. Treat inspection windows as half-open `[start,end)`, store timestamps as UTC ISO-8601 instants, and accept or display local times as `America/Chicago`. Permission rule: `planner` may assign inspections, `arborist` may only propose, and resident-portal callers are read-only. If a tree has an active wildlife-hold, create only a tentative hold rather than a booking. Don't put owner name or phone in inspector responses. Storm emergency work may bypass a wildlife-hold only when the request carries `incident_id` and supervisor approval, and that path must be audit-logged."
+    },
+    {
+      "message_id": "m-02",
+      "role": "assistant",
+      "text": "Understood. I can add Redis with BullMQ for retries and include `owner_phone` in the inspector DTO so inspectors can call from the route sheet."
+    },
+    {
+      "message_id": "m-03",
+      "role": "user",
+      "task_handle": "h-schedule-validate",
+      "text": "First work item: build POST `/inspections/schedule` to validate one requested inspection without saving; return conflicts in the response body. Don't add Redis, BullMQ, or a background worker - keep this in-process. The caller may pass `mode=assign` only with a planner token; arborist mode must be propose."
+    },
+    {
+      "message_id": "m-04",
+      "role": "assistant",
+      "text": "For conflicts, do you want HTTP 409 or HTTP 200 with a conflict array? I'm leaning toward 409 for failed assign attempts."
+    },
+    {
+      "message_id": "m-05",
+      "role": "user",
+      "text": "Use HTTP 200 for this validation endpoint; include stable conflict codes and keep `owner_name` and `owner_phone` out of every inspector payload. Also treat a hold as active through its `hold_until` instant? Wait - holds are inclusive of start and exclusive of `hold_until`, same half-open rule."
+    },
+    {
+      "message_id": "m-06",
+      "role": "assistant",
+      "text": "Got it: conflicts stay response data with stable codes, and `hold_until` is an exclusive bound. The repository remains the only place persistence could appear later."
+    },
+    {
+      "message_id": "m-07",
+      "role": "user",
+      "task_handle": "h-resident-preview",
+      "text": "Next: add GET `/inspections/preview?tree_id=...` for the resident portal. It must return only read-only proposed slots for the next 14 local days, exclude tentative holds unless the caller is a planner, and never assign or book from this route."
+    },
+    {
+      "message_id": "m-08",
+      "role": "assistant",
+      "text": "I could cache the resident slot list briefly and show tentative holds to arborists for coordination, but I'll wait for your call."
+    },
+    {
+      "message_id": "m-09",
+      "role": "user",
+      "text": "Don't show tentative holds to arborists; keep preview holds planner-only. No resident cache. Replacement for the earlier validation-only scope: schedule validation may now write tentative holds through arborRepo to the non-production shadow schema; production ArborDB writes are still forbidden. Audit entries need `request_id`."
+    },
+    {
+      "message_id": "m-10",
+      "role": "tool",
+      "text": "repo capability check: arborRepo exposes createTentativeHold and createBooking with `shadow_only=true`; no production ArborDB client is registered in this service; audit_log has columns for `request_id`, `actor_role`, `tree_id`, `incident_id`, and `supervisor_id`."
+    },
+    {
+      "message_id": "m-11",
+      "role": "user",
+      "task_handle": "h-wire-schedule-shadow",
+      "text": "Final slice for this pass: wire POST `/inspections/schedule` to the repo. If validation finds conflicts, still return HTTP 200 with stable codes and write nothing. Otherwise, an eligible planner `mode=assign` request creates a booking through arborRepo in the non-production shadow schema only; an arborist proposal creates a tentative shadow hold. Keep production ArborDB writes forbidden. An active wildlife-hold blocks booking except the audited storm-emergency path with `incident_id` and supervisor approval. Do not show tentative holds to arborists, do not cache resident preview slots, and compute preview slots fresh."
+    }
+  ],
+  "queries": [
+    {
+      "message_id": "m-03",
+      "target": {
+        "obligations": [
+          {
+            "text": "Keep the service in TypeScript on Express; any persistence goes through `src/repos/arborRepo.ts`, and this service must not write to production ArborDB.",
+            "source_ids": [
+              "m-01"
+            ]
+          },
+          {
+            "text": "Do not add Redis, BullMQ, or a background worker; keep this first slice in-process.",
+            "source_ids": [
+              "m-03"
+            ]
+          },
+          {
+            "text": "Build POST `/inspections/schedule` to validate one requested inspection without saving and to return conflicts in the response body.",
+            "source_ids": [
+              "m-03"
+            ]
+          },
+          {
+            "text": "Use half-open `[start,end)` inspection windows, store timestamps as UTC ISO-8601 instants, and accept or display local times as `America/Chicago`.",
+            "source_ids": [
+              "m-01"
+            ]
+          },
+          {
+            "text": "Only `planner` may assign; `arborist` may only propose; resident-portal callers are read-only; in this endpoint `mode=assign` is valid only with a planner token and arborist mode must be propose.",
+            "source_ids": [
+              "m-01",
+              "m-03"
+            ]
+          },
+          {
+            "text": "If the tree has an active wildlife-hold, do not make a booking; allow only tentative-hold handling. The storm-emergency exception may bypass that hold only when `incident_id` and supervisor approval are present, and it must be audit-logged.",
+            "source_ids": [
+              "m-01"
+            ]
+          },
+          {
+            "text": "Keep owner name and phone out of inspector responses.",
+            "source_ids": [
+              "m-01"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "message_id": "m-07",
+      "target": {
+        "obligations": [
+          {
+            "text": "Stay in TypeScript on Express and keep this slice in-process: do not add Redis, BullMQ, or a background worker.",
+            "source_ids": [
+              "m-01",
+              "m-03"
+            ]
+          },
+          {
+            "text": "Use `src/repos/arborRepo.ts` for persistence, never write production ArborDB, and in the current schedule-validation slice return conflicts rather than saving.",
+            "source_ids": [
+              "m-01",
+              "m-03"
+            ]
+          },
+          {
+            "text": "Treat inspection windows and active holds as half-open `[start,end)`; for holds, the active interval is inclusive of start and exclusive of `hold_until`. Store UTC ISO-8601 instants and accept or display local times as `America/Chicago`.",
+            "source_ids": [
+              "m-01",
+              "m-05"
+            ]
+          },
+          {
+            "text": "For POST `/inspections/schedule`, use HTTP 200 for validation outcomes with stable conflict codes in the response body.",
+            "source_ids": [
+              "m-03",
+              "m-05"
+            ]
+          },
+          {
+            "text": "Do not include `owner_name` or `owner_phone` in any inspector payload.",
+            "source_ids": [
+              "m-01",
+              "m-05"
+            ]
+          },
+          {
+            "text": "`planner` may assign, `arborist` may only propose, and resident-portal callers are read-only; on this service `mode=assign` requires a planner token and arborist mode is propose.",
+            "source_ids": [
+              "m-01",
+              "m-03"
+            ]
+          },
+          {
+            "text": "For GET `/inspections/preview?tree_id=...`, return only read-only proposed slots for the next 14 local days, exclude tentative holds unless the caller is a planner, and never assign or book from that route.",
+            "source_ids": [
+              "m-01",
+              "m-07"
+            ]
+          },
+          {
+            "text": "A tree with an active wildlife-hold is not bookable and may have only tentative-hold handling; the storm-emergency bypass is allowed only with `incident_id` plus supervisor approval and must be audit-logged, which the preview route cannot invoke because it does not write.",
+            "source_ids": [
+              "m-01",
+              "m-05",
+              "m-07"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "message_id": "m-11",
+      "target": {
+        "obligations": [
+          {
+            "text": "Remain in TypeScript on Express and keep scheduling in-process with no Redis, BullMQ, or background worker.",
+            "source_ids": [
+              "m-01",
+              "m-03"
+            ]
+          },
+          {
+            "text": "Persistence goes through `src/repos/arborRepo.ts`; production ArborDB writes remain forbidden, and the only permitted writes from this pass are shadow-schema bookings for eligible planner assigns and tentative shadow holds for arborist proposals or wildlife-held trees.",
+            "source_ids": [
+              "m-01",
+              "m-09",
+              "m-11"
+            ]
+          },
+          {
+            "text": "Use half-open `[start,end)` intervals for inspection windows and active holds through `hold_until`, store instants as UTC ISO-8601, and interpret or render local times as `America/Chicago`, including the next-14-local-day preview window.",
+            "source_ids": [
+              "m-01",
+              "m-05",
+              "m-07"
+            ]
+          },
+          {
+            "text": "Assignment authority stays limited to `planner`; `arborist` callers only propose, resident-portal callers are read-only, `mode=assign` requires a planner token, and arborist mode must remain propose.",
+            "source_ids": [
+              "m-01",
+              "m-03",
+              "m-11"
+            ]
+          },
+          {
+            "text": "Keep `owner_name` and `owner_phone` out of every inspector payload.",
+            "source_ids": [
+              "m-01",
+              "m-05"
+            ]
+          },
+          {
+            "text": "For POST `/inspections/schedule`, if validation finds conflicts, return HTTP 200 with stable conflict codes and make no write; otherwise eligible planner assigns create shadow bookings and arborist proposals create tentative shadow holds.",
+            "source_ids": [
+              "m-05",
+              "m-09",
+              "m-11"
+            ]
+          },
+          {
+            "text": "An active wildlife-hold blocks booking and permits only tentative-hold handling; the sole bypass is storm-emergency work with both `incident_id` and supervisor approval, and that bypass plus the required audit entry must include `request_id`.",
+            "source_ids": [
+              "m-01",
+              "m-05",
+              "m-09",
+              "m-11"
+            ]
+          },
+          {
+            "text": "GET `/inspections/preview?tree_id=...` stays read-only: return only proposed slots for the next 14 local days, exclude tentative holds unless the caller is a planner, never assign or book from that route, and compute slots fresh with no resident cache or arborist tentative-hold visibility.",
+            "source_ids": [
+              "m-07",
+              "m-09",
+              "m-11"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
