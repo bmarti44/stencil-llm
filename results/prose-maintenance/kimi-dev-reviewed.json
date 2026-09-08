@@ -1,0 +1,589 @@
+{
+  "author": "kimi",
+  "model": "kimi-k3:cloud",
+  "split": "dev",
+  "lineage": "Both episodes were authored from scratch for this request as original specification-only DEV scenarios (a Rust packet-codec library and a JavaScript bundling developer CLI). No benchmark items, historical Stencil episodes, prior model outputs, or external datasets were used, consulted, or reconstructed; every message, rule, and gold state was invented and hand-traced by the author against the specified lifecycle semantics. This data is DEV and may never be relabeled as held-out.",
+  "episodes": [
+    {
+      "episode_id": "kimi-prose-dev-rust-packet-codec",
+      "domain": "Rust library: binary packet codec crate",
+      "task_handles": [
+        "codec-core",
+        "ffi-shim"
+      ],
+      "initial_rules": [],
+      "rounds": [
+        {
+          "index": 0,
+          "role": "user",
+          "message": "I'm maintaining a small Rust crate for encoding and decoding binary network packets. Two ongoing workstreams: codec-core, the encode/decode logic, and ffi-shim, a thin C wrapper. Standing rules for any code answers you draft: write Rust 2021 edition code, and make every fallible function return Result<T, PacketError> — no unwraps or panics in library code. I'll ask about the framing rewrite shortly.",
+          "gold_ops": [
+            {
+              "action": "add",
+              "key": "lang",
+              "kind": "language",
+              "value": "Rust 2021 edition",
+              "task_handle": null,
+              "target_event": null,
+              "event_id": "kpd1-lang-v1"
+            },
+            {
+              "action": "add",
+              "key": "errors",
+              "kind": "process",
+              "value": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code",
+              "task_handle": null,
+              "target_event": null,
+              "event_id": "kpd1-errors-v1"
+            }
+          ],
+          "expected_live": {
+            "GLOBAL": {
+              "lang": "Rust 2021 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code"
+            },
+            "codec-core": {
+              "lang": "Rust 2021 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code"
+            },
+            "ffi-shim": {
+              "lang": "Rust 2021 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code"
+            }
+          },
+          "rationale": "Single message admits two global requirements simultaneously (multi-rule admission): Rust 2021 edition (language) and Result-based returns (process), both scoped to code answers and applying to both tasks. State was empty, so nothing is modified, retired, or preserved."
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "message": "One more ground rule for code answers: stick to the standard library only. No third-party crates anywhere in this project — it is headed for an audited environment, so the dependency tree must stay empty.",
+          "gold_ops": [
+            {
+              "action": "add",
+              "key": "deps",
+              "kind": "process",
+              "value": "standard library only; third-party crates prohibited",
+              "task_handle": null,
+              "target_event": null,
+              "event_id": "kpd1-deps-v1"
+            }
+          ],
+          "expected_live": {
+            "GLOBAL": {
+              "lang": "Rust 2021 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code",
+              "deps": "standard library only; third-party crates prohibited"
+            },
+            "codec-core": {
+              "lang": "Rust 2021 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code",
+              "deps": "standard library only; third-party crates prohibited"
+            },
+            "ffi-shim": {
+              "lang": "Rust 2021 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code",
+              "deps": "standard library only; third-party crates prohibited"
+            }
+          },
+          "rationale": "Adds a third global key: a hard std-only dependency requirement (process). The round-0 language and error rules remain in force unchanged; this round expands state rather than replacing anything."
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "message": "A scoped correction on that dependency rule: it holds everywhere except ffi-shim work. For ffi-shim code you may also depend on libc for the C bindings — that is a permission for that task only. codec-core stays strictly std; that part isn't negotiable.",
+          "gold_ops": [
+            {
+              "action": "add",
+              "key": "deps",
+              "kind": "process",
+              "value": "std plus libc permitted for C bindings",
+              "task_handle": "ffi-shim",
+              "target_event": null,
+              "event_id": "kpd1-deps-ffi-v1"
+            }
+          ],
+          "expected_live": {
+            "GLOBAL": {
+              "lang": "Rust 2021 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code",
+              "deps": "standard library only; third-party crates prohibited"
+            },
+            "codec-core": {
+              "lang": "Rust 2021 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code",
+              "deps": "standard library only; third-party crates prohibited"
+            },
+            "ffi-shim": {
+              "lang": "Rust 2021 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code",
+              "deps": "std plus libc permitted for C bindings"
+            }
+          },
+          "rationale": "Adds a narrower task-scoped override of deps for ffi-shim (libc permitted) as a new version; it must not supersede the global std-only rule, which stays live for GLOBAL and codec-core. This is an explicit permission limited to one task, not a general relaxation; lang and errors are untouched."
+        },
+        {
+          "index": 3,
+          "role": "user",
+          "message": "Quick one-off: sketch an example doctest for PacketReader::read_u32. For this snippet only, call .unwrap() inside the doctest to keep it short. That is just example brevity, not a change to our error-handling convention — the Result-based rule still stands everywhere.",
+          "gold_ops": [],
+          "expected_live": {
+            "GLOBAL": {
+              "lang": "Rust 2021 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code",
+              "deps": "standard library only; third-party crates prohibited"
+            },
+            "codec-core": {
+              "lang": "Rust 2021 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code",
+              "deps": "standard library only; third-party crates prohibited"
+            },
+            "ffi-shim": {
+              "lang": "Rust 2021 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code",
+              "deps": "std plus libc permitted for C bindings"
+            }
+          },
+          "rationale": "A one-off example request explicitly limited to 'this snippet only' with imperative wording; the transient unwrap allowance creates no persistent rule. All four live versions (lang, errors, global deps, ffi-shim deps) must remain exactly as after round 2."
+        },
+        {
+          "index": 4,
+          "role": "user",
+          "message": "A colleague suggested we 'switch all error handling to anyhow.' Quoting her directly — but we are not adopting it: anyhow is an external crate, which violates our std-only dependency rule. Please leave the error-handling and dependency conventions exactly as they are.",
+          "gold_ops": [],
+          "expected_live": {
+            "GLOBAL": {
+              "lang": "Rust 2021 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code",
+              "deps": "standard library only; third-party crates prohibited"
+            },
+            "codec-core": {
+              "lang": "Rust 2021 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code",
+              "deps": "standard library only; third-party crates prohibited"
+            },
+            "ffi-shim": {
+              "lang": "Rust 2021 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code",
+              "deps": "std plus libc permitted for C bindings"
+            }
+          },
+          "rationale": "The user quotes a colleague's anyhow suggestion but expressly declines it, citing conflict with the dependency rule; quotation without adoption yields zero operations. No key is added, changed, or retired, and the user explicitly re-affirms the unchanged rules."
+        },
+        {
+          "index": 5,
+          "role": "user",
+          "message": "The 1.85 toolchain landed on my machine, so let us move forward: for future code answers, write Rust 2024 edition code instead of 2021. The error-handling rule and both dependency arrangements carry over unchanged, including the libc permission for ffi-shim.",
+          "gold_ops": [
+            {
+              "action": "supersedes",
+              "key": "lang",
+              "kind": "language",
+              "value": "Rust 2024 edition",
+              "task_handle": null,
+              "target_event": "kpd1-lang-v1",
+              "event_id": "kpd1-lang-v2"
+            }
+          ],
+          "expected_live": {
+            "GLOBAL": {
+              "lang": "Rust 2024 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code",
+              "deps": "standard library only; third-party crates prohibited"
+            },
+            "codec-core": {
+              "lang": "Rust 2024 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code",
+              "deps": "standard library only; third-party crates prohibited"
+            },
+            "ffi-shim": {
+              "lang": "Rust 2024 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code",
+              "deps": "std plus libc permitted for C bindings"
+            }
+          },
+          "rationale": "Replaces one of multiple live rules: supersedes only the language key (2021 to 2024) via a new version targeting the original; the value differs. Errors, global deps, and the ffi-shim deps override must remain live and byte-identical."
+        },
+        {
+          "index": 6,
+          "role": "user",
+          "message": "Scratch the edition bump — CI is pinned to an older toolchain and breaks on 2024 syntax. Cancel the 2024 change and put the original Rust 2021 edition rule back in force for code answers until CI catches up. Error and dependency rules stay as they were.",
+          "gold_ops": [
+            {
+              "action": "cancels",
+              "key": "lang",
+              "kind": "language",
+              "value": "Rust 2024 edition",
+              "task_handle": null,
+              "target_event": "kpd1-lang-v2",
+              "event_id": "kpd1-cancel-lang-v2"
+            },
+            {
+              "action": "reinstates",
+              "key": "lang",
+              "kind": "language",
+              "value": "Rust 2021 edition",
+              "task_handle": null,
+              "target_event": "kpd1-lang-v1",
+              "event_id": "kpd1-reinstate-lang-v1"
+            }
+          ],
+          "expected_live": {
+            "GLOBAL": {
+              "lang": "Rust 2021 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code",
+              "deps": "standard library only; third-party crates prohibited"
+            },
+            "codec-core": {
+              "lang": "Rust 2021 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code",
+              "deps": "standard library only; third-party crates prohibited"
+            },
+            "ffi-shim": {
+              "lang": "Rust 2021 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code",
+              "deps": "std plus libc permitted for C bindings"
+            }
+          },
+          "rationale": "Restoration while a replacement is live: cancel the live 2024 version first, then reinstate the retired 2021 version in the same ordered transaction, restoring the round-2-to-4 language state; history is not deleted. Errors and both dependency versions are unaffected throughout."
+        },
+        {
+          "index": 7,
+          "role": "user",
+          "message": "Last convention item: from now on, prefix every new public type name with Pkt, like PktHeader or PktFrame. That applies project-wide, both workstreams, in code answers. Everything else — edition, error handling, dependencies — stays as currently agreed.",
+          "gold_ops": [
+            {
+              "action": "add",
+              "key": "naming",
+              "kind": "style",
+              "value": "new public type names prefixed with Pkt",
+              "task_handle": null,
+              "target_event": null,
+              "event_id": "kpd1-naming-v1"
+            }
+          ],
+          "expected_live": {
+            "GLOBAL": {
+              "lang": "Rust 2021 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code",
+              "deps": "standard library only; third-party crates prohibited",
+              "naming": "new public type names prefixed with Pkt"
+            },
+            "codec-core": {
+              "lang": "Rust 2021 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code",
+              "deps": "standard library only; third-party crates prohibited",
+              "naming": "new public type names prefixed with Pkt"
+            },
+            "ffi-shim": {
+              "lang": "Rust 2021 edition",
+              "errors": "fallible functions return Result<T, PacketError>; no unwrap or panics in library code",
+              "deps": "std plus libc permitted for C bindings",
+              "naming": "new public type names prefixed with Pkt"
+            }
+          },
+          "rationale": "Adds a new global style key (Pkt prefix for new public types) applying to both tasks. The reinstated 2021 language rule, errors, and both dependency versions persist unchanged; the errors rule has now survived all eight rounds, and global deps has survived seven, satisfying the long-lived-key requirement."
+        }
+      ]
+    },
+    {
+      "episode_id": "kimi-prose-dev-js-bundler-cli",
+      "domain": "JavaScript developer tool: bundling dev-server CLI",
+      "task_handles": [
+        "cli-core",
+        "plugin-api"
+      ],
+      "initial_rules": [],
+      "rounds": [
+        {
+          "index": 0,
+          "role": "user",
+          "message": "I'm building a small JavaScript developer tool: a CLI that bundles web projects on the fly for local development. Two threads of work: cli-core, the command entry and bundling pipeline, and plugin-api, the hooks exposed to third-party plugins. Rule for code answers: write modern JavaScript — ES2022 syntax, ESM modules only, no CommonJS anywhere.",
+          "gold_ops": [
+            {
+              "action": "add",
+              "key": "lang",
+              "kind": "language",
+              "value": "ES2022 JavaScript, ESM only; no CommonJS",
+              "task_handle": null,
+              "target_event": null,
+              "event_id": "kpd2-lang-v1"
+            }
+          ],
+          "expected_live": {
+            "GLOBAL": {
+              "lang": "ES2022 JavaScript, ESM only; no CommonJS"
+            },
+            "cli-core": {
+              "lang": "ES2022 JavaScript, ESM only; no CommonJS"
+            },
+            "plugin-api": {
+              "lang": "ES2022 JavaScript, ESM only; no CommonJS"
+            }
+          },
+          "rationale": "Establishes context and admits a single global language requirement (ES2022, ESM only) for code answers across both tasks. State starts empty; there is nothing earlier to preserve, change, or retire."
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "message": "Two more conventions for any code you draft. Error handling: throw subclasses of ToolError, and library code must never call process.exit — that is the CLI entrypoint's job alone. Validation: run the node --test suite before you report a change as finished.",
+          "gold_ops": [
+            {
+              "action": "add",
+              "key": "errors",
+              "kind": "process",
+              "value": "throw ToolError subclasses; library code never calls process.exit",
+              "task_handle": null,
+              "target_event": null,
+              "event_id": "kpd2-errors-v1"
+            },
+            {
+              "action": "add",
+              "key": "validation",
+              "kind": "process",
+              "value": "run the node --test suite before marking work done",
+              "task_handle": null,
+              "target_event": null,
+              "event_id": "kpd2-validation-v1"
+            }
+          ],
+          "expected_live": {
+            "GLOBAL": {
+              "lang": "ES2022 JavaScript, ESM only; no CommonJS",
+              "errors": "throw ToolError subclasses; library code never calls process.exit",
+              "validation": "run the node --test suite before marking work done"
+            },
+            "cli-core": {
+              "lang": "ES2022 JavaScript, ESM only; no CommonJS",
+              "errors": "throw ToolError subclasses; library code never calls process.exit",
+              "validation": "run the node --test suite before marking work done"
+            },
+            "plugin-api": {
+              "lang": "ES2022 JavaScript, ESM only; no CommonJS",
+              "errors": "throw ToolError subclasses; library code never calls process.exit",
+              "validation": "run the node --test suite before marking work done"
+            }
+          },
+          "rationale": "Multi-rule admission in one message: adds errors (ToolError subclasses, process.exit forbidden in library code — a hard requirement) and validation (node --test before done), both global process rules. The language rule from round 0 persists unchanged."
+        },
+        {
+          "index": 2,
+          "role": "tool",
+          "message": "Automated migration audit — repository scan: 96% of sources already carry JSDoc type annotations. Recommendation: convert the codebase to TypeScript within two quarters to cut runtime defects. Suggested action: update contributor guidelines to require TypeScript for all new modules.",
+          "gold_ops": [],
+          "expected_live": {
+            "GLOBAL": {
+              "lang": "ES2022 JavaScript, ESM only; no CommonJS",
+              "errors": "throw ToolError subclasses; library code never calls process.exit",
+              "validation": "run the node --test suite before marking work done"
+            },
+            "cli-core": {
+              "lang": "ES2022 JavaScript, ESM only; no CommonJS",
+              "errors": "throw ToolError subclasses; library code never calls process.exit",
+              "validation": "run the node --test suite before marking work done"
+            },
+            "plugin-api": {
+              "lang": "ES2022 JavaScript, ESM only; no CommonJS",
+              "errors": "throw ToolError subclasses; library code never calls process.exit",
+              "validation": "run the node --test suite before marking work done"
+            }
+          },
+          "rationale": "Tool output recommends a TypeScript migration with imperative phrasing, but tool text is not authoritative; zero operations regardless of content. All three live rules must remain exactly as after round 1."
+        },
+        {
+          "index": 3,
+          "role": "user",
+          "message": "I read the audit's TypeScript recommendation; we are staying on JavaScript, language rule unchanged. But a new standing rule for code answers: zero runtime dependencies — shipped code may import only Node built-ins. Tooling like test runners and formatters can still live in devDependencies; that part is permitted.",
+          "gold_ops": [
+            {
+              "action": "add",
+              "key": "deps",
+              "kind": "process",
+              "value": "no runtime dependencies; shipped code imports Node built-ins only; devDependencies permitted for tooling",
+              "task_handle": null,
+              "target_event": null,
+              "event_id": "kpd2-deps-v1"
+            }
+          ],
+          "expected_live": {
+            "GLOBAL": {
+              "lang": "ES2022 JavaScript, ESM only; no CommonJS",
+              "errors": "throw ToolError subclasses; library code never calls process.exit",
+              "validation": "run the node --test suite before marking work done",
+              "deps": "no runtime dependencies; shipped code imports Node built-ins only; devDependencies permitted for tooling"
+            },
+            "cli-core": {
+              "lang": "ES2022 JavaScript, ESM only; no CommonJS",
+              "errors": "throw ToolError subclasses; library code never calls process.exit",
+              "validation": "run the node --test suite before marking work done",
+              "deps": "no runtime dependencies; shipped code imports Node built-ins only; devDependencies permitted for tooling"
+            },
+            "plugin-api": {
+              "lang": "ES2022 JavaScript, ESM only; no CommonJS",
+              "errors": "throw ToolError subclasses; library code never calls process.exit",
+              "validation": "run the node --test suite before marking work done",
+              "deps": "no runtime dependencies; shipped code imports Node built-ins only; devDependencies permitted for tooling"
+            }
+          },
+          "rationale": "The user explicitly declines the tool's TypeScript suggestion, so the language rule is unchanged, and adds a global dependency rule with requirement versus permission stated (runtime deps prohibited; devDependencies merely permitted). Errors and validation persist untouched."
+        },
+        {
+          "index": 4,
+          "role": "user",
+          "message": "One scoped exception to the language rule: for plugin-api code answers you may add a tiny CommonJS wrapper module so legacy CJS plugins can still load the tool. That permission applies to the plugin-api task only; cli-core stays strictly ESM under the original rule.",
+          "gold_ops": [
+            {
+              "action": "add",
+              "key": "lang",
+              "kind": "language",
+              "value": "ES2022 JavaScript, ESM with a CommonJS interop wrapper permitted",
+              "task_handle": "plugin-api",
+              "target_event": null,
+              "event_id": "kpd2-lang-plugin-v1"
+            }
+          ],
+          "expected_live": {
+            "GLOBAL": {
+              "lang": "ES2022 JavaScript, ESM only; no CommonJS",
+              "errors": "throw ToolError subclasses; library code never calls process.exit",
+              "validation": "run the node --test suite before marking work done",
+              "deps": "no runtime dependencies; shipped code imports Node built-ins only; devDependencies permitted for tooling"
+            },
+            "cli-core": {
+              "lang": "ES2022 JavaScript, ESM only; no CommonJS",
+              "errors": "throw ToolError subclasses; library code never calls process.exit",
+              "validation": "run the node --test suite before marking work done",
+              "deps": "no runtime dependencies; shipped code imports Node built-ins only; devDependencies permitted for tooling"
+            },
+            "plugin-api": {
+              "lang": "ES2022 JavaScript, ESM with a CommonJS interop wrapper permitted",
+              "errors": "throw ToolError subclasses; library code never calls process.exit",
+              "validation": "run the node --test suite before marking work done",
+              "deps": "no runtime dependencies; shipped code imports Node built-ins only; devDependencies permitted for tooling"
+            }
+          },
+          "rationale": "Adds a task-local override on lang for plugin-api (a CJS wrapper is permitted) as a narrower scope; the global ESM-only rule remains live for GLOBAL and cli-core and is not superseded. It is a scoped permission, not a new general requirement; errors, validation, and deps are unchanged."
+        },
+        {
+          "index": 5,
+          "role": "user",
+          "message": "From the tech lead's review, quoting: 'Name every error class with an Error suffix, and keep error messages lowercase with no trailing punctuation.' We talked it through and are adopting that verbatim as the naming convention for all code answers, both tasks.",
+          "gold_ops": [
+            {
+              "action": "add",
+              "key": "naming",
+              "kind": "style",
+              "value": "error class names end with Error suffix; error messages lowercase with no trailing punctuation",
+              "task_handle": null,
+              "target_event": null,
+              "event_id": "kpd2-naming-v1"
+            }
+          ],
+          "expected_live": {
+            "GLOBAL": {
+              "lang": "ES2022 JavaScript, ESM only; no CommonJS",
+              "errors": "throw ToolError subclasses; library code never calls process.exit",
+              "validation": "run the node --test suite before marking work done",
+              "deps": "no runtime dependencies; shipped code imports Node built-ins only; devDependencies permitted for tooling",
+              "naming": "error class names end with Error suffix; error messages lowercase with no trailing punctuation"
+            },
+            "cli-core": {
+              "lang": "ES2022 JavaScript, ESM only; no CommonJS",
+              "errors": "throw ToolError subclasses; library code never calls process.exit",
+              "validation": "run the node --test suite before marking work done",
+              "deps": "no runtime dependencies; shipped code imports Node built-ins only; devDependencies permitted for tooling",
+              "naming": "error class names end with Error suffix; error messages lowercase with no trailing punctuation"
+            },
+            "plugin-api": {
+              "lang": "ES2022 JavaScript, ESM with a CommonJS interop wrapper permitted",
+              "errors": "throw ToolError subclasses; library code never calls process.exit",
+              "validation": "run the node --test suite before marking work done",
+              "deps": "no runtime dependencies; shipped code imports Node built-ins only; devDependencies permitted for tooling",
+              "naming": "error class names end with Error suffix; error messages lowercase with no trailing punctuation"
+            }
+          },
+          "rationale": "The user quotes a review policy and explicitly adopts it as a new global naming rule — the positive contrast to mere quotation, so quotation alone is not disqualifying. All prior keys stay live, including the plugin-api lang override, which shadows the global lang only for that task."
+        },
+        {
+          "index": 6,
+          "role": "user",
+          "message": "Follow-up on the plugin wrapper: modern bundlers handle pure ESM fine, so retract the plugin-api CommonJS wrapper permission. The plugin-api task returns to the same ESM-only language rule as everything else. Error handling, naming, validation, and dependency rules are unaffected.",
+          "gold_ops": [
+            {
+              "action": "cancels",
+              "key": "lang",
+              "kind": "language",
+              "value": "ES2022 JavaScript, ESM with a CommonJS interop wrapper permitted",
+              "task_handle": "plugin-api",
+              "target_event": "kpd2-lang-plugin-v1",
+              "event_id": "kpd2-cancel-lang-plugin"
+            }
+          ],
+          "expected_live": {
+            "GLOBAL": {
+              "lang": "ES2022 JavaScript, ESM only; no CommonJS",
+              "errors": "throw ToolError subclasses; library code never calls process.exit",
+              "validation": "run the node --test suite before marking work done",
+              "deps": "no runtime dependencies; shipped code imports Node built-ins only; devDependencies permitted for tooling",
+              "naming": "error class names end with Error suffix; error messages lowercase with no trailing punctuation"
+            },
+            "cli-core": {
+              "lang": "ES2022 JavaScript, ESM only; no CommonJS",
+              "errors": "throw ToolError subclasses; library code never calls process.exit",
+              "validation": "run the node --test suite before marking work done",
+              "deps": "no runtime dependencies; shipped code imports Node built-ins only; devDependencies permitted for tooling",
+              "naming": "error class names end with Error suffix; error messages lowercase with no trailing punctuation"
+            },
+            "plugin-api": {
+              "lang": "ES2022 JavaScript, ESM only; no CommonJS",
+              "errors": "throw ToolError subclasses; library code never calls process.exit",
+              "validation": "run the node --test suite before marking work done",
+              "deps": "no runtime dependencies; shipped code imports Node built-ins only; devDependencies permitted for tooling",
+              "naming": "error class names end with Error suffix; error messages lowercase with no trailing punctuation"
+            }
+          },
+          "rationale": "Cancels the plugin-api lang override, copying its exact value, kind, and scope; cancelling the task override exposes the still-live global ESM-only rule on the plugin-api probe. Naming, errors, validation, deps, and global lang are all unaffected."
+        },
+        {
+          "index": 7,
+          "role": "user",
+          "message": "Process tightening: the unit suite alone is not enough anymore. For code answers, require node --test plus the integration smoke script scripts/smoke.mjs before reporting work as done. The ESM, error-handling, naming, and dependency rules all stay exactly as they are.",
+          "gold_ops": [
+            {
+              "action": "supersedes",
+              "key": "validation",
+              "kind": "process",
+              "value": "run node --test plus scripts/smoke.mjs before marking work done",
+              "task_handle": null,
+              "target_event": "kpd2-validation-v1",
+              "event_id": "kpd2-validation-v2"
+            }
+          ],
+          "expected_live": {
+            "GLOBAL": {
+              "lang": "ES2022 JavaScript, ESM only; no CommonJS",
+              "errors": "throw ToolError subclasses; library code never calls process.exit",
+              "validation": "run node --test plus scripts/smoke.mjs before marking work done",
+              "deps": "no runtime dependencies; shipped code imports Node built-ins only; devDependencies permitted for tooling",
+              "naming": "error class names end with Error suffix; error messages lowercase with no trailing punctuation"
+            },
+            "cli-core": {
+              "lang": "ES2022 JavaScript, ESM only; no CommonJS",
+              "errors": "throw ToolError subclasses; library code never calls process.exit",
+              "validation": "run node --test plus scripts/smoke.mjs before marking work done",
+              "deps": "no runtime dependencies; shipped code imports Node built-ins only; devDependencies permitted for tooling",
+              "naming": "error class names end with Error suffix; error messages lowercase with no trailing punctuation"
+            },
+            "plugin-api": {
+              "lang": "ES2022 JavaScript, ESM only; no CommonJS",
+              "errors": "throw ToolError subclasses; library code never calls process.exit",
+              "validation": "run node --test plus scripts/smoke.mjs before marking work done",
+              "deps": "no runtime dependencies; shipped code imports Node built-ins only; devDependencies permitted for tooling",
+              "naming": "error class names end with Error suffix; error messages lowercase with no trailing punctuation"
+            }
+          },
+          "rationale": "Replaces one of several live rules: supersedes only validation with a new version whose value differs (smoke script added). Lang, errors, deps, and naming persist unchanged in every probe; the global lang rule has now survived all eight rounds untouched, and deps five rounds, satisfying the long-lived-key requirement."
+        }
+      ]
+    }
+  ]
+}

@@ -55,13 +55,15 @@ def _json_bytes(value):
 def _write_json(path, value, *, exclusive=False):
     mode = "x" if exclusive else "w"
     with Path(path).open(mode, encoding="utf-8") as handle:
-        json.dump(value, handle, ensure_ascii=False, indent=2, sort_keys=True)
+        # ASCII escapes keep even decoded lone-surrogate candidates durable;
+        # exact HTTP response bytes remain separately preserved in the receipt.
+        json.dump(value, handle, ensure_ascii=True, indent=2, sort_keys=True)
         handle.write("\n")
         handle.flush()
 
 
 def _append_jsonl(handle, value):
-    handle.write(json.dumps(value, ensure_ascii=False, sort_keys=True) + "\n")
+    handle.write(json.dumps(value, ensure_ascii=True, sort_keys=True) + "\n")
     handle.flush()
 
 

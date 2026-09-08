@@ -21,6 +21,7 @@ IMAGE = (
     "3dbe092ec5b2cef63b6104d33fa75d6ce53a7870962529ada69f78bbbc38e776"
 )
 INPUT = ROOT / "results/factorial-prep/kimi-dev-reviewed.json"
+PROSE_INPUT = ROOT / "results/prose-maintenance/kimi-dev-reviewed.json"
 BOUND_FILES = (
     "tools/run_maintenance_dev.py", "scripts/maintenance_dev_check.py",
     "src/stencil/focus/maintenance_updater.py", "src/stencil/focus/maintenance_bank.py",
@@ -33,6 +34,17 @@ BOUND_FILES = (
 COLD_BOUND_FILES = BOUND_FILES + (
     "scripts/maintenance_cold_diagnostic.py",
     "results/factorial-prep/COLD-DIAGNOSTIC.md",
+)
+PROSE_BOUND_FILES = (
+    "tools/run_maintenance_dev.py",
+    "scripts/prose_maintenance_dev.py",
+    "scripts/maintenance_dev_check.py",
+    "src/stencil/focus/maintenance_bank.py",
+    "src/stencil/focus/register.py",
+    "src/stencil/focus/loop.py",
+    "results/factorial-prep/current-trunk-hashes.json",
+    "results/prose-maintenance/PROTOCOL.md",
+    "results/prose-maintenance/kimi-dev-reviewed.json",
 )
 
 
@@ -50,20 +62,28 @@ def main(argv=None):
     parser.add_argument("--run-dir", type=Path, required=True)
     parser.add_argument("--execute", action="store_true")
     parser.add_argument(
-        "--mode", choices=("maintenance", "cold"), default="maintenance"
+        "--mode", choices=("maintenance", "cold", "prose"), default="maintenance"
     )
     args = parser.parse_args(argv)
     run = args.run_dir.resolve()
     if run.parent != ROOT / "results/quick-checks":
         parser.error("run-dir must be a direct child of results/quick-checks")
-    cold = args.mode == "cold"
-    bound_files = COLD_BOUND_FILES if cold else BOUND_FILES
-    driver_script = (
-        "scripts/maintenance_cold_diagnostic.py"
-        if cold
-        else "scripts/maintenance_dev_check.py"
-    )
-    name = "stencil-maintenance-" + ("cold-" if cold else "dev-")
+    if args.mode == "cold":
+        bound_files = COLD_BOUND_FILES
+        driver_script = "scripts/maintenance_cold_diagnostic.py"
+        input_path = INPUT
+        name_prefix = "cold-"
+    elif args.mode == "prose":
+        bound_files = PROSE_BOUND_FILES
+        driver_script = "scripts/prose_maintenance_dev.py"
+        input_path = PROSE_INPUT
+        name_prefix = "prose-"
+    else:
+        bound_files = BOUND_FILES
+        driver_script = "scripts/maintenance_dev_check.py"
+        input_path = INPUT
+        name_prefix = "dev-"
+    name = "stencil-maintenance-" + name_prefix
     name += uuid.uuid4().hex[:12]
     container_command = [
         "docker", "run", "--pull=never", "-d", "--name", name,
@@ -78,7 +98,7 @@ def main(argv=None):
         "--generation-config", "vllm",
     ]
     plan = dict(container_command=container_command, gpu_held_ceiling_seconds=900,
-                input=str(INPUT), output_dir=str(run / "calls"), model="/model",
+                input=str(input_path), output_dir=str(run / "calls"), model="/model",
                 base_url="http://127.0.0.1:18088", max_tokens=1024,
                 startup_ceiling_seconds=600, cleanup_reserve_seconds=60,
                 mode=args.mode, driver=str(ROOT / driver_script),
@@ -146,7 +166,7 @@ def main(argv=None):
             raise TimeoutError("no remaining inference budget")
         driver = [
             str(ROOT / ".venv/bin/python"), str(ROOT / driver_script),
-            "--input", str(INPUT), "--output-dir", str(run / "calls"),
+            "--input", str(input_path), "--output-dir", str(run / "calls"),
             "--base-url", plan["base_url"], "--model", "/model",
             "--max-tokens", "1024", "--deadline-seconds", str(remaining),
         ]

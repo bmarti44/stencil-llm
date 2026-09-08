@@ -1535,3 +1535,13 @@ KimiK3Ollama will author2neworiginalDEV8turn conversations from mechanism
 specification only, nooldoutputs/benchmarks supplied. Parent owns datareceipts
 and registration; Astra reviewsdata+code beforefreeze andactualresult after.
 Fitnone; newDEVauthoring; evaluatednone. Fullgoal remainsunproven.
+
+2026-09-07 — STATE: PROSE16 READY TO FREEZE/LAUNCH.
+Kimi new2x8 data:165.26sauthoring,46.46sninepathpatch; sourceunchanged,
+Astra96dataaccepts all48views afterpreservedresolvedfindings. Sol runner
+andsharedpersistencesurrogatesafety+launchermode pass16tests; independent
+Astra95 verifiesactualfakeHTTPcarry/role/errors andall3launchermodes.
+Recipe/source/preview nowcommit; then absolute tools/run_maintenance_dev.py
+--mode prose --run-dir /home/bmarti44/stencil-llm/results/quick-checks/
+prose-maintenance-01 --execute.16calls/900stotal/600startup,1024outputcap.
+Fitnone; newexposedDEV only; no worker or largerproofclaim.
