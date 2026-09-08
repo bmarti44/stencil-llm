@@ -1,0 +1,100 @@
+{
+  "call_index": 0,
+  "decoder_error": null,
+  "elapsed_seconds": 3.070728935999796,
+  "episode_id": "kimi-k3-dev-etl-01",
+  "http": {
+    "error": null,
+    "finish_reason": "stop",
+    "raw_output": "Write Python 3.11. Scope: every code answer. Modality: required.  \nOn failure, raise ETLError with context. Scope: every code answer. Modality: required.  \nNever use a bare except. Scope: every code answer. Modality: prohibited.",
+    "request": {
+      "body": "{\"chat_template_kwargs\":{\"enable_thinking\":false},\"max_tokens\":1024,\"messages\":[{\"content\":\"Identify every durable user rule in the source that is meant to govern future work. Include each rule's scope and modality (required, prohibited, permitted, or optional). Exclude background, project descriptions, one-off requests, and quoted material.\\n\\nTask handles: ingest, report\\nRequest kind: code_answer\\n\\n--- SOURCE MESSAGE START ---\\nWe're starting the ETL pipeline work. Two standing rules for every code answer here: write Python 3.11, and on failure raise ETLError with context — never a bare except. I'll bring the ingest and report tasks shortly.\\n--- SOURCE MESSAGE END ---\\n\\nReturn only a concise prose list. Do not return JSON.\",\"role\":\"user\"}],\"model\":\"/model\",\"seed\":20260907,\"temperature\":0}",
+      "body_base64": "eyJjaGF0X3RlbXBsYXRlX2t3YXJncyI6eyJlbmFibGVfdGhpbmtpbmciOmZhbHNlfSwibWF4X3Rva2VucyI6MTAyNCwibWVzc2FnZXMiOlt7ImNvbnRlbnQiOiJJZGVudGlmeSBldmVyeSBkdXJhYmxlIHVzZXIgcnVsZSBpbiB0aGUgc291cmNlIHRoYXQgaXMgbWVhbnQgdG8gZ292ZXJuIGZ1dHVyZSB3b3JrLiBJbmNsdWRlIGVhY2ggcnVsZSdzIHNjb3BlIGFuZCBtb2RhbGl0eSAocmVxdWlyZWQsIHByb2hpYml0ZWQsIHBlcm1pdHRlZCwgb3Igb3B0aW9uYWwpLiBFeGNsdWRlIGJhY2tncm91bmQsIHByb2plY3QgZGVzY3JpcHRpb25zLCBvbmUtb2ZmIHJlcXVlc3RzLCBhbmQgcXVvdGVkIG1hdGVyaWFsLlxuXG5UYXNrIGhhbmRsZXM6IGluZ2VzdCwgcmVwb3J0XG5SZXF1ZXN0IGtpbmQ6IGNvZGVfYW5zd2VyXG5cbi0tLSBTT1VSQ0UgTUVTU0FHRSBTVEFSVCAtLS1cbldlJ3JlIHN0YXJ0aW5nIHRoZSBFVEwgcGlwZWxpbmUgd29yay4gVHdvIHN0YW5kaW5nIHJ1bGVzIGZvciBldmVyeSBjb2RlIGFuc3dlciBoZXJlOiB3cml0ZSBQeXRob24gMy4xMSwgYW5kIG9uIGZhaWx1cmUgcmFpc2UgRVRMRXJyb3Igd2l0aCBjb250ZXh0IOKAlCBuZXZlciBhIGJhcmUgZXhjZXB0LiBJJ2xsIGJyaW5nIHRoZSBpbmdlc3QgYW5kIHJlcG9ydCB0YXNrcyBzaG9ydGx5LlxuLS0tIFNPVVJDRSBNRVNTQUdFIEVORCAtLS1cblxuUmV0dXJuIG9ubHkgYSBjb25jaXNlIHByb3NlIGxpc3QuIERvIG5vdCByZXR1cm4gSlNPTi4iLCJyb2xlIjoidXNlciJ9XSwibW9kZWwiOiIvbW9kZWwiLCJzZWVkIjoyMDI2MDkwNywidGVtcGVyYXR1cmUiOjB9",
+      "body_bytes": 807,
+      "body_sha256": "0d44069d31b88cc9e492081b8680432ae149c01d2748325a83eb4bf84a18c09e",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "json": {
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        },
+        "max_tokens": 1024,
+        "messages": [
+          {
+            "content": "Identify every durable user rule in the source that is meant to govern future work. Include each rule's scope and modality (required, prohibited, permitted, or optional). Exclude background, project descriptions, one-off requests, and quoted material.\n\nTask handles: ingest, report\nRequest kind: code_answer\n\n--- SOURCE MESSAGE START ---\nWe're starting the ETL pipeline work. Two standing rules for every code answer here: write Python 3.11, and on failure raise ETLError with context — never a bare except. I'll bring the ingest and report tasks shortly.\n--- SOURCE MESSAGE END ---\n\nReturn only a concise prose list. Do not return JSON.",
+            "role": "user"
+          }
+        ],
+        "model": "/model",
+        "seed": 20260907,
+        "temperature": 0
+      },
+      "method": "POST",
+      "timeout_seconds": 60.0,
+      "url": "http://127.0.0.1:18088/v1/chat/completions"
+    },
+    "response": {
+      "body": "{\"id\":\"chatcmpl-b94265e198c1a706\",\"object\":\"chat.completion\",\"created\":1788829636,\"model\":\"/model\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"Write Python 3.11. Scope: every code answer. Modality: required.  \\nOn failure, raise ETLError with context. Scope: every code answer. Modality: required.  \\nNever use a bare except. Scope: every code answer. Modality: prohibited.\",\"refusal\":null,\"annotations\":null,\"audio\":null,\"function_call\":null,\"tool_calls\":[],\"reasoning\":null},\"logprobs\":null,\"finish_reason\":\"stop\",\"stop_reason\":null,\"token_ids\":null}],\"service_tier\":null,\"system_fingerprint\":null,\"usage\":{\"prompt_tokens\":147,\"total_tokens\":206,\"completion_tokens\":59,\"prompt_tokens_details\":null},\"prompt_logprobs\":null,\"prompt_token_ids\":null,\"kv_transfer_params\":null}",
+      "body_base64": "eyJpZCI6ImNoYXRjbXBsLWI5NDI2NWUxOThjMWE3MDYiLCJvYmplY3QiOiJjaGF0LmNvbXBsZXRpb24iLCJjcmVhdGVkIjoxNzg4ODI5NjM2LCJtb2RlbCI6Ii9tb2RlbCIsImNob2ljZXMiOlt7ImluZGV4IjowLCJtZXNzYWdlIjp7InJvbGUiOiJhc3Npc3RhbnQiLCJjb250ZW50IjoiV3JpdGUgUHl0aG9uIDMuMTEuIFNjb3BlOiBldmVyeSBjb2RlIGFuc3dlci4gTW9kYWxpdHk6IHJlcXVpcmVkLiAgXG5PbiBmYWlsdXJlLCByYWlzZSBFVExFcnJvciB3aXRoIGNvbnRleHQuIFNjb3BlOiBldmVyeSBjb2RlIGFuc3dlci4gTW9kYWxpdHk6IHJlcXVpcmVkLiAgXG5OZXZlciB1c2UgYSBiYXJlIGV4Y2VwdC4gU2NvcGU6IGV2ZXJ5IGNvZGUgYW5zd2VyLiBNb2RhbGl0eTogcHJvaGliaXRlZC4iLCJyZWZ1c2FsIjpudWxsLCJhbm5vdGF0aW9ucyI6bnVsbCwiYXVkaW8iOm51bGwsImZ1bmN0aW9uX2NhbGwiOm51bGwsInRvb2xfY2FsbHMiOltdLCJyZWFzb25pbmciOm51bGx9LCJsb2dwcm9icyI6bnVsbCwiZmluaXNoX3JlYXNvbiI6InN0b3AiLCJzdG9wX3JlYXNvbiI6bnVsbCwidG9rZW5faWRzIjpudWxsfV0sInNlcnZpY2VfdGllciI6bnVsbCwic3lzdGVtX2ZpbmdlcnByaW50IjpudWxsLCJ1c2FnZSI6eyJwcm9tcHRfdG9rZW5zIjoxNDcsInRvdGFsX3Rva2VucyI6MjA2LCJjb21wbGV0aW9uX3Rva2VucyI6NTksInByb21wdF90b2tlbnNfZGV0YWlscyI6bnVsbH0sInByb21wdF9sb2dwcm9icyI6bnVsbCwicHJvbXB0X3Rva2VuX2lkcyI6bnVsbCwia3ZfdHJhbnNmZXJfcGFyYW1zIjpudWxsfQ==",
+      "body_bytes": 793,
+      "body_sha256": "feb686749b456be072e0199d28da278bf60b29b1c49d245e6f416393564d3bd4",
+      "headers": {
+        "connection": "close",
+        "content-length": "793",
+        "content-type": "application/json",
+        "date": "Tue, 08 Sep 2026 01:07:15 GMT",
+        "server": "uvicorn"
+      },
+      "json": {
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "logprobs": null,
+            "message": {
+              "annotations": null,
+              "audio": null,
+              "content": "Write Python 3.11. Scope: every code answer. Modality: required.  \nOn failure, raise ETLError with context. Scope: every code answer. Modality: required.  \nNever use a bare except. Scope: every code answer. Modality: prohibited.",
+              "function_call": null,
+              "reasoning": null,
+              "refusal": null,
+              "role": "assistant",
+              "tool_calls": []
+            },
+            "stop_reason": null,
+            "token_ids": null
+          }
+        ],
+        "created": 1788829636,
+        "id": "chatcmpl-b94265e198c1a706",
+        "kv_transfer_params": null,
+        "model": "/model",
+        "object": "chat.completion",
+        "prompt_logprobs": null,
+        "prompt_token_ids": null,
+        "service_tier": null,
+        "system_fingerprint": null,
+        "usage": {
+          "completion_tokens": 59,
+          "prompt_tokens": 147,
+          "prompt_tokens_details": null,
+          "total_tokens": 206
+        }
+      },
+      "status": 200
+    },
+    "usage": {
+      "completion_tokens": 59,
+      "prompt_tokens": 147,
+      "prompt_tokens_details": null,
+      "total_tokens": 206
+    }
+  },
+  "prompt": "Identify every durable user rule in the source that is meant to govern future work. Include each rule's scope and modality (required, prohibited, permitted, or optional). Exclude background, project descriptions, one-off requests, and quoted material.\n\nTask handles: ingest, report\nRequest kind: code_answer\n\n--- SOURCE MESSAGE START ---\nWe're starting the ETL pipeline work. Two standing rules for every code answer here: write Python 3.11, and on failure raise ETLError with context — never a bare except. I'll bring the ingest and report tasks shortly.\n--- SOURCE MESSAGE END ---\n\nReturn only a concise prose list. Do not return JSON.",
+  "prompt_sha256": "8d2021e65311e0167b4dafb20ce27d4f6581af2ff01a5431943d964c49944cda",
+  "raw_output": "Write Python 3.11. Scope: every code answer. Modality: required.  \nOn failure, raise ETLError with context. Scope: every code answer. Modality: required.  \nNever use a bare except. Scope: every code answer. Modality: prohibited.",
+  "round_index": 0,
+  "schema_version": 1,
+  "started_at_unix": 1788829635.945908
+}

@@ -1507,3 +1507,21 @@ Previewtokens147/1828/133/1813,1024outputcap,allwithin32768. Commit reviewed
 source/recipe/preview then run absolute tools/run_maintenance_dev.py --mode
 cold --run-dir /home/bmarti44/stencil-llm/results/quick-checks/maintenance-cold-01
 --execute. Native Astra /root/cold_result_review prepares source-only audit.
+
+2026-09-07 — STATE: COLD4 RUNNING; PINd94ecd41.
+Launcher unifiedsession41732; owncontainer stencil-maintenance-cold-08063fd0b536;
+freeze/flag at results/quick-checks/maintenance-cold-01. Resume actual handle,
+never restart on observation timeout. Fourcalls/900stotal/startup600s.
+Astra /root/cold_result_review waits for terminal cleanup before outputs.
+
+2026-09-07 — STATE: COLD4 COMPLETE; SEMANTIC A2/2,B1/2.
+Session41732 terminal0; owncontainer removed, flagclear;467.3901/900seconds.
+Independent Astra /root/cold_result_review confirms13freezehashes,4exactHTTP
+bodies/previews/rawresponses and2offlinecompiler/eventreplays. B5/6effective
+views: TS taskvaluescorrect butGLOBALempty andformatkindmislabel. Noerrors,
+caps,retries;3921prompt+608completion=4529tokens;driver26.6115seconds.
+A basic-extraction success only; no maintenance/coding/freshness claim. Next
+candidate a separately registered own-prose-memory multi-turn DEV check;
+newdata onlyKimiK3Ollama, Solxhighimplementation/Astraxhighreview. Two earlier
+maintenancefailures andstoploss unchanged. Preserve results/accuracyreview,
+updatehandoff/README, explicitlocalartifactcommit; no push or newinference.

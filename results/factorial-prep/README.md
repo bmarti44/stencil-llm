@@ -22,3 +22,10 @@ The registered run completed all 16 calls in a 620.47-second total reservation a
 Attempt02 kept the same data/model/settings and added reviewed semantic guidance. It also failed complete maintenance:0/48views and0/2trajectories, with partial useful content credited by independent Astra. All16calls completed;615.55seconds including successful cleanup. [Preserved result](../quick-checks/maintenance-dev-02/RESULTS.md).
 
 Two user-authorized research agents examined primary protocol and memory-system sources. Their synthesis recommends a small diagnostic separating plain-language rule extraction from transaction handling, keeping automated prose as a valid candidate. [Research brief](research/research-brief.md). No third maintenance attempt or diagnostic inference has run. Exact diagnostic prompts/registration still need preparation.
+
+
+## Cold diagnostic result
+
+The reviewed four-call diagnostic completed and was independently audited. Plain prose captured all standing rules on both exposed cold sources (2/2). Register outputs were structurally legal on both, but semantically complete on only1/2: TypeScript was task-local instead of global and used the wrong kind. Effective Bviews5/6. All actualrequests matchpreview and rawbytes/state replay agree. Total4529tokens;26.61seconds calls/driver and467.39seconds including startup/cleanup. [Result](../quick-checks/maintenance-cold-01/RESULTS.md).
+
+Next candidate is a separately registered multi-turn prose-memory trial with own carried notes and preserved source history. This cold success is not a full maintenance success, fresh validation or coding result; two prior maintenance failures and the stop-loss remain. No further model run is active.
