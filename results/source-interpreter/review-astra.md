@@ -175,3 +175,56 @@ Exactly one target is empty: author-00 m12. This is legitimate. User m10 retires
 Proceed, within the parent's existing authoring authorization, to a single guarded Kimi semantic correction round addressing the exact findings while preserving the original conversations, families, query identities, substantive work and meaningful scope changes. Root must not author replacement gold semantics. Preserve originals, raw correction output and exact guarded patches; re-review the changed labels and their consequences. If a source ambiguity actually requires clarification, make it explicit for independent review rather than quietly narrowing the task or adding authority to justify a desired label.
 
 No implementation was inspected in this data round; no generated code, model, server or training was run. The only local execution was read-only JSON/hash/structure verification. Label correction is not a permission to tune on future evaluation, select a cap, simplify long examples, or claim useful transfer. **Original-data disposition: NOT ACCEPTED, 70/100. Final preparation remains PENDING corrected accepted labels, stable helper review and all eighteen actual-token CPU rows.**
+
+## Round 4 — stable CPU helper code 94/100; two medium contract findings
+
+2026-09-08. Independent code review of Sol's stable pure helper and targeted tests. This code-only score is separate from round 3's unaccepted original labels. **Code scope: two open medium findings (#11–#12), zero high or critical.** Core serialization and collation are sound on the inspected default path, but the authoritative preview should await the two narrow contract corrections below. No final preparation acceptance is issued. Gold findings #2–#10 remain open until their separate guarded correction review; #1 remains resolved.
+
+| Binding | SHA-256 |
+| --- | --- |
+| `src/stencil/focus/source_interpreter.py` (commit `cbab0734`) | `be992787732292cccbaef4879f20eaba454249c329f8832927180f0d5da31afe` |
+| `tests/test_source_interpreter.py` (padding correction `57c5bb33`) | `eb9764a403d0dbae565c30ba010409a924bdc7bbee4dd44fbd3228b7e730c035` |
+| `results/source-interpreter/CODE-BRIEF.md` | `ae9bfa6a37b5ecafcace4408f8c6a3462387714aeb7f94ae71d8bbfa67667427` |
+| `results/source-interpreter/PREP.md` | `5a8536453e52a9427aae02e8a32d6671b9968bc667e483d80f09b2a3be01898e` |
+
+### Finding 11 — medium, open: the reserved-token check misses native controls marked special=false
+
+Affected consumers: `_assert_natural_text()` and the final target-ID check in `prepare_row()`.
+
+Both use only `tokenizer.all_special_ids`. The exact local Qwen tokenizer's added-token inventory contains 26 dedicated control tokens, IDs 151643–151668; only 14 are marked special. Native thinking and tool delimiters are among the other twelve. Consequently the existing im_start/im_end controls exercise a narrower set than the registered reserved role/control-token domain.
+
+Independent actual-tokenizer controls through `prepare_row()` accepted each of `<think>`, `</think>`, `<tool_call>`, `</tool_call>` in both source and target, supervising the dedicated IDs 151667, 151668, 151657 and 151658 respectively. These are not ordinary multibyte spellings accidentally resembling controls. Inspection of the pinned tokenizer JSON also confirms the remaining special=false FIM, repository/file and tool-response controls.
+
+Correction direction: derive and bind the reserved control-ID inventory from the original tokenizer's added-token assets, covering all native control markers rather than only these four probes or only the special=true subset. Reject their occurrence through the real natural-source/target serializer, without semantic regex, text rewriting or a new interpreter mechanism. Keep the legitimately inserted nonthinking template controls masked in the prefix and append the real EOS only at the target boundary. This is a domain-enforcement defect; this review neither tokenized the real authored packet nor claims its documents contain these markers.
+
+### Finding 12 — medium, open: preview binds reference files but not the tokenizer state actually used
+
+Affected consumer: `preview(paths, tokenizer=...)`, including its `_asset_hashes()` receipt and the cached mutable object returned by `load_tokenizer()`.
+
+The preview accepts a caller-supplied tokenizer and unconditionally reports/hashes the files under `MODEL_PATH`. It records class, name/path, template and special-ID metadata, but does not establish that the tokenizer's actual vocabulary/backend state still corresponds to those original files. A same-path tokenizer can be changed in memory without changing any recorded asset file.
+
+Independent bounded reproduction: load the original local tokenizer; add one ordinary synthetic token in memory; invoke the actual preview on six temporary synthetic FIT documents in the prescribed bands. It returns PASS and all 18 rows, reports the original path/name and original asset hashes, but supervises newly added token ID 151669. The original tokenizer encoded that synthetic marker as eleven different IDs. No actual tokenizer-state/backend hash is recorded. No asset file was edited and no model was loaded.
+
+This is a plausible trusted-caller configuration mismatch, not an adversarial same-user attack. The normal fresh default loader path remains consistent with the inspected assets, which limits severity. Nevertheless a receipt claiming original-tokenizer preparation must establish the identity of the object that produced the IDs; hashing nearby files does not do so.
+
+Correction direction: narrowly require and bind the verified original tokenizer state for the authoritative preview, rejecting altered or mismatched state, or restrict that consumer so an override cannot masquerade as original-asset evidence. Path/name equality alone is insufficient for the reproduced same-path mutation. Keep any future measured training/generation consumer on the same exact prefix/tokenizer construction; no server or new training framework is needed.
+
+### What the consuming paths establish
+
+The loader rejects duplicate JSON keys and invalid constants, unknown schema fields, wrong types, repeated conversation/message/query identities, cross-split families, future citations and unqueried tails. It validates the complete corpus before prefix expansion. Calibration additionally requires six FIT documents, two in each message band and all eighteen rows. Selecting the six accepted file hashes and establishing semantic family independence remain the parent's/data-review boundary; a shape validator cannot prove that arbitrary six FIT inputs are the reviewed packet.
+
+Each prepared row copies the inclusive authentic prefix with original roles, IDs, text and handles. The prompt has a fixed generic system instruction and one source-event user message. Targets, future events and previous generated focus do not enter that prompt. Unicode and spacing survive the source JSON round trip. Empty obligations serialize to a real JSON target, rather than empty supervision. There is no positive-reasoning client or tool wrapper in this path.
+
+The chosen causal construction is explicit: the local template's nonthinking generation prefix IDs, separately encoded compact sorted JSON target IDs, then one tokenizer EOS. Text-template and direct-token-template results must agree; both segments and the combined sequence must decode exactly. Joint text encoding equality is measured, not silently assumed as the construction rule. Decoding and length checks prevent unnoticed truncation. The target's EOS is exactly one; template EOS/control tokens in the prefix remain masked and are not counted as target supervision.
+
+For ordinary causal-LM training, placing the first target label at index `prefix_length` is correct: the model's standard internal causal shift trains the preceding prefix position to predict it. Every target and EOS position is supervised, every prefix position is -100, and right padding adds attention zero and label -100. `collate()` rejects inconsistent lengths, reordered/truncated inputs, altered label positions and wrong target EOS rather than trusting a `PreparedRow` blindly.
+
+The preview retains every row's exact prefix, target, IDs, labels, attention and loss positions; aggregate padding can be reconstructed from those rows and the recorded pad/width. It reports actual length distributions and maxima by whole-conversation band without selecting an output or sequence cap. It binds source files, code, prompt, schema, template and interpreter/package metadata. Finding #12 qualifies the claim about actual tokenizer assets. The base-asset receipt hash is contextual evidence, not a fresh model-weight check or training qualification.
+
+### Independent validation and limits
+
+Ran `.venv/bin/pytest -q tests/test_source_interpreter.py`: **7 passed in 2.08s**. Ruff check, Ruff format check and `git diff --check` passed. Inspected the actual eight-line padding-test delta: later query positions now produce unequal row lengths, and explicit positive-padding assertions precede checks of pad IDs, attention and labels. The formerly vacuous no-padding fixture is not the basis of this acceptance assessment.
+
+A fresh process import left both transformers and torch unimported and the lazy tokenizer cache empty. The bounded additional controls used only the actual local tokenizer, temporary synthetic documents and read-only asset metadata. They exercised the two concrete findings through `prepare_row()` and `preview()`. No real original or corrected packet was tokenized; no weights, generated code, GPU, model, HTTP, training or serving operation ran. No other implementation or data file was edited.
+
+**Current disposition:** code-only 94/100 with #11 and #12 open medium, pending narrow correction verification. Across the preparation topic the six high gold findings and three medium gold findings also remain open. Final preparation remains **PENDING** accepted corrected labels, corrected authoritative-tokenizer consumer evidence and the complete eighteen-row real CPU preview.
