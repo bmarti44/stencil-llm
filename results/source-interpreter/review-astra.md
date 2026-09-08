@@ -279,3 +279,29 @@ The source families, meaningful project development, scope changes, algorithms a
 This acceptance qualifies these exact FIT labels for the specified preparation, not learned transfer, code usefulness, representation superiority or a perfect-selector prerequisite for later utility work. The six families and their eighteen correlated prefixes remain FIT-only. All original and correction provenance must remain preserved when the parent copies these exact accepted bytes to canonical preparation inputs.
 
 No moving code was inspected in this round, and no code tests, real-packet tokenization, model, GPU or HTTP calls were run. Final preparation remains **PENDING** verification of the stable fixes for code findings #11–#12 and the complete eighteen-row actual-token CPU receipt. **Current open findings: #11 and #12, both medium; zero open high or critical.**
+
+## Round 6 — tokenizer-contract delta 96/100; code ACCEPTED
+
+2026-09-08. Independent review limited to Sol's stable fixes for #11–#12 and their consequences, commit `f8826b117f0fc19309bf70abe4ac16b817de7681`. **Code accepted at 96/100; zero open findings, including zero high or critical findings.** Previously accepted specification and labels remain accepted. Final preparation remains **PENDING** the one real eighteen-row CPU receipt; this round used synthetic data only.
+
+Exact reverified bindings:
+
+| Artifact | SHA-256 |
+| --- | --- |
+| `src/stencil/focus/source_interpreter.py` | `ce8126cab730d5b3b652acccc2930db5bb6df1797dfa8181ef038fff2b7b927d` |
+| `tests/test_source_interpreter.py` | `7469ffb6c4f994d4ec750364cc930533ca51ec363a847d3278469c22424cb13b` |
+| `results/source-interpreter/accepted-inputs.json` | `6beea4bb534e0991fc0444d634f92882ff61191880c43cf4e68da730753c4bf8` |
+
+The accepted-input manifest records exact canonical copies and binds the round-5 data review through Git commit `ce64382a8f18862a1d853e99b17a55c5c4b56c60`. Its six accepted document hashes are those listed in round 5. This code round does not repeat their semantic review or tokenize them.
+
+**Finding 11 — medium, resolved 2026-09-08.** The helper derives all 26 original added-token controls, IDs 151643–151668, from tokenizer JSON whose asset hashes must match the historical-original base receipt. It checks the live added-token mapping and flags, including special=false markers. Natural source text, message IDs, handles, obligation text/citations and final target IDs are screened against that complete inventory. The consuming regression exercises every control in both source and target and establishes each control's actual dedicated ID independently from the helper's screening result. All 52 source/target rejection cases pass. The fixed template's legitimate masked controls and the appended target EOS retain their existing behavior.
+
+**Finding 12 — medium, resolved 2026-09-08.** Before expanding any preview row, the helper verifies the required asset bytes against the historical-original inventory and compares the supplied or cached tokenizer's live state with a fresh local tokenizer constructed from those files. That comparison includes backend serialization, added tokens and flags, class/path, vocabulary sizes, chat template, special-token settings, EOS/pad IDs and relevant length/padding/truncation configuration. The receipt now includes the verified actual state, its hash, the full reserved-control inventory and the verified asset hashes. A matching name/path alone no longer qualifies the tokenizer.
+
+The targeted test reproduces the original same-path added-token mutation and rejects it through the explicit `tokenizer=` preview path. I also independently constructed six temporary synthetic documents, altered the cached default tokenizer, and invoked `preview(paths)` without an override: it rejected the object with `tokenizer differs from verified original tokenizer state` before row expansion. This directly covers the default path as well as the supplied-object path. No tokenizer file was modified. These checks address trusted caller/configuration errors; no claim about arbitrary method monkeypatching or malicious same-user interference is needed.
+
+The delta keeps the public preview signature, source/target construction, schema/split/query checks, length bands, all-eighteen-row requirement and collation semantics. It adds no sequence cap, truncation, source rewrite, trainer or serving integration. The actual-state receipt is established at the authoritative preview boundary; any later training consumer still needs to use the exact accepted tokenizer/prefix protocol as part of its separately reviewed mechanics step.
+
+Independent validation: `.venv/bin/pytest -q tests/test_source_interpreter.py` **8 passed in 4.61s**; Ruff check, Ruff format check and `git diff --check` passed. The existing exact-decoding, first-target/EOS loss and nonvacuous right-padding checks also passed in that targeted run. A fresh import left both tokenizer/control caches empty and imported neither transformers nor torch. No real original, corrected or canonical packet was tokenized; no weights, model, generated code, GPU or HTTP operations ran.
+
+**Next evidence boundary:** the parent may run the already specified CPU preview once on the exact six accepted canonical inputs. Final preparation acceptance requires independent reconciliation of its full eighteen-row source/target/ID/loss and asset/environment receipts. Code acceptance and clean labels do not establish training feasibility, learned transfer or downstream utility, and imply no later training/inference launch decision.
