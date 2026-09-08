@@ -2439,3 +2439,54 @@ including600startup/60cleanup. No extraattempt, prompt/cap orhistoryrescue.
 Poll exact returned session toterminal; no restart on observation timeout.
 Readiness report stays frozen, terminal audit separate. Fullgeneralizedfocus/
 adequatelargerpairedproof still unproven; compatibilityis only a prerequisite.
+
+2026-09-08 — STATE: QUALIFIED THINKING SMOKE LIVE IN SESSION87012.
+Accepted freezecommit4962473d. Exactlauncher session87012 live afterre-poll;
+ownedPID72617 registered beforeexec. Ownedcontainerstencil-qwen-thinking-tool-6157a1263547
+ID6bcc6b7959bc29b2b12bd772d51ebf789e1fa86d099ff494727095296f36d5d9.
+Lifecycle WAITING_FOR_SERVER;started_unix1788853660.4188123, shared1200sreservation
+with600startup/60cleanup. Freeze/flag exist, all qualification gatespassed,
+launch-01.log retained. Resume exactsession87012 toterminal, neverrelaunch after
+observationtimeout. No frozen file edits; ledger-onlynotes outside15boundtracked
+inputs are safe (ownexperimentlock, no review/coderwrapper/restorer).
+All actualcalls/compile-continuity/accounting/cleanup still pending. Terminalaudit
+mustbe separatefromfrozenreview. Fullautomaticfocus/largerproofremainoutstanding.
+
+2026-09-08 — STATE: THINKING SMOKE TERMINAL TECHNICAL PASS; AUDIT ACTIVE.
+Exactsession87012 terminalexit0, no restart. LifecycleDRIVER_EXITED, clean and
+evidencecomplete, elapsed516.914703271992s (~8.62min), ownedcontainerremoved and
+flagabsent; root Docker/GPUcomputelistempty. Both nativecalls COMPLETE/PASS,
+2renders+2generations, compile/applyonly. Prompt336+613=949; completion533+273=806;
+total1755. Reasoning512(first boundaryreached)+245(secondunderallowance)=757;
+forcingcause remainsunproven. GenerationHTTP20.98844509+10.87095763=31.85940272s.
+Root rehashed15tracked+4metadatafrozeninputs, all19match. No semanticgenerated-code
+execution orfreshsemanticcase. RecordedtechnicalPASS is notworkercompetence or
+automaticfocusproof. Summary.json explicitlypendingindependentaudit.
+
+Same Astra xhigh competence_readiness_review auditing actual2rawexchanges, source
+compile/apply/history, token/clock/frozeninput/cleanup claims; writableONLY new
+run-01/audit-astra.md. Frozenreadinessreport remainsunchanged. Preserve/archive
+rawrecords now, finalize outcome after audit. Fullgoalstillactive; nextpossible
+step iscostedfreshsemanticworkerqualification, notyetregisteredorlaunched.
+
+2026-09-08 — STATE: THINKING SMOKE AUDITED PASS; FRESH QUALIFICATION PREPARATION.
+Astra xhigh independently reconstructed exact HTTP bytes, native prompt/output
+IDs, reasoning/final boundaries, source/module continuity, frozen bindings and
+lifecycle. No material discrepancies or open findings. Audit SHA
+100bfa17a70dbcb2e03581e087de9f1cdb9163e72b99e0246cb99005c95a2182.
+Summary finalized COMPLETE_TECHNICAL_PASS and bound to audit; RESULTS states
+compile/apply only, no semantic competence or automatic-focus parity. Actual
+owned cost 516.914703271992 seconds must count against the existing 3600-second
+candidate ceiling. Archive exact raw records and final reports now, explicit
+paths, verify tracked; no new GPU job and no frozen-input modifications.
+
+Sol xhigh completed bounded read-only reuse assessment: shared parameterized
+native reasoning client using existing HTTP/receipt transport, small fresh
+qualification loop reusing data/check/consume helpers, thin owned-lifecycle
+launcher. Preserve old frozen implementations. Candidate 2 projects x 3 requests
+x at most 3 attempts = 18 calls, 2048 total / 1024 reasoning, proposed 3000-second
+reservation. Combined with actual smoke: 3516.914703271992 seconds. This is a
+prospective feasibility proposal, not an accepted registration or scale result.
+Fresh Kimi data, manual reminder recipe, explicit utility gate and independent
+readiness/resource review remain necessary before inference. No research impasse.
+Full generalized automatic-focus goal remains active and unproven.
