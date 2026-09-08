@@ -2291,3 +2291,19 @@ review SHA30cb81906f12502a2fae7ac0c275bc6eeda0cfb4a984105776e1e3fb2a9b70b1.
 Acceptance covers preparation only, no specific inference launch. Terminal
 summary claims reconcile. Research discovery/follow-up/synthesis/verification
 complete; next independent work is isolated compatibility implementation.
+
+2026-09-08 — STATE: ISOLATED THINKING SMOKE CPU IMPLEMENTATION STARTING.
+Root stopped the prolonged read-only Sol planning task after interfaces were
+clear and obtained its bounded proposal. Rejected unsolicited streaming switch:
+retain proven nonstreaming transport and count reasoning via complete output IDs
+and local boundary IDs. qwen3 parser was already resolved by pinned research;
+dated README does not reopen it. No old source edit or model request occurred.
+
+Sol xhigh native coding_focus_impl receives results/coding-reasoning-smoke/BRIEF.md,
+only four new script/tool/test paths. Reuse owned lifecycle and native receipts,
+no framework or global monkeypatch. Exactly2calls,2048total/512reasoning tokens,
+1200/600/60 total/startup/cleanup limits. Embedded technical fixture only, no fit
+or semantic DEV/evaluation, no generated-code execution. Resource arithmetic
+4096/18.812468347567442+780=997.72794108s is illustrative, not worst-case; hard
+1200stop governs. Draft/docs and complete code/preview require Astra review before
+launch. Compiler/apply compatibility is not competence or automatic-focus proof.
