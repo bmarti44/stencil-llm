@@ -59,3 +59,19 @@ Only Kimi may change targets02[1,2],04[2],05[0,1,2], addressing findings#2–#5.
 All messages, identities, source text, query anchors/order and twelve other
 targets stay identical. Raw corrections are preserved and guarded against any
 unauthorized change. No second correction cycle or target-model-based repair.
+
+## Correction execution record — independent acceptance pending
+
+The single correction batch, frozen at e962c5ac, finished with exit0 in
+278.227158639 seconds. Session22398 and ownedPID176629 are terminal and must
+not be restarted. All three requests returned; every immutable-source guard
+passed. Exactly the six listed targets changed; all source messages, identities,
+query anchors and the other twelve targets remain unchanged. Root independently
+reconciled those comparisons, raw-response objects and file hashes without
+model or tokenizer calls. See correction-01/root-check.json.
+
+The service reported41,197 correction tokens. Original authoring plus this
+correction totals1,047.464635998 seconds (about17.46minutes) and138,408 reported
+service tokens; independent review/orchestration costs are additional. The
+corrected targets still require final Astra acceptance. No target-model test
+has been run and no second correction batch is available under this plan.
