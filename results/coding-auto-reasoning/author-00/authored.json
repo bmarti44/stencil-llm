@@ -1,0 +1,1508 @@
+{
+  "schema_version": 1,
+  "split": "dev",
+  "author": {
+    "name": "kimi",
+    "model": "kimi-k3:cloud"
+  },
+  "lineage": {
+    "fit_on": "none",
+    "development_on": "new original coding competence DEV",
+    "evaluated_on": "none"
+  },
+  "public": {
+    "episode_id": "auto-reasoning-dev-classroom-submissions-01",
+    "project": "A small classroom assignment submission utility: validate a batch of submissions, group valid records by assignment, and produce a class summary with best-score-per-student counting and rounded averages.",
+    "task_handles": [
+      "validate-batch",
+      "group-submissions",
+      "summarize-class"
+    ],
+    "initial_file": {
+      "path": "submission_util.py",
+      "text": "def normalize_submission(payload):\n    if not isinstance(payload, dict):\n        return {\"ok\": False, \"error\": \"payload must be an object\"}\n    student = payload.get(\"student\")\n    assignment = payload.get(\"assignment\")\n    score = payload.get(\"score\")\n    if not isinstance(student, str) or student.strip() == \"\":\n        return {\"ok\": False, \"error\": \"student must be a non-empty string\"}\n    if not isinstance(assignment, str) or assignment.strip() == \"\":\n        return {\"ok\": False, \"error\": \"assignment must be a non-empty string\"}\n    if isinstance(score, bool) or not isinstance(score, (int, float)):\n        return {\"ok\": False, \"error\": \"score must be a number\"}\n    if score < 0 or score > 100:\n        return {\"ok\": False, \"error\": \"score must be between 0 and 100\"}\n    return {\"ok\": True, \"record\": {\"student\": student.strip(), \"assignment\": assignment.strip(), \"score\": score}}\n\n\ndef validate_batch(batch):\n    return None\n\n\ndef group_submissions(batch):\n    return None\n\n\ndef summarize_class(batch):\n    return None\n"
+    },
+    "initial_checks": [
+      {
+        "check_id": "chk-init-01",
+        "symbol": "normalize_submission",
+        "input": {
+          "student": "  Ada  ",
+          "assignment": " Essay ",
+          "score": 88
+        },
+        "expected_values": [
+          {
+            "ok": true,
+            "record": {
+              "student": "Ada",
+              "assignment": "Essay",
+              "score": 88
+            }
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "chk-init-02",
+        "symbol": "normalize_submission",
+        "input": {
+          "student": "Bea",
+          "assignment": "Quiz",
+          "score": true
+        },
+        "expected_values": [
+          {
+            "ok": false,
+            "error": "score must be a number"
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "chk-init-03",
+        "symbol": "normalize_submission",
+        "input": {
+          "student": "Cal",
+          "assignment": "Lab",
+          "score": 100
+        },
+        "expected_values": [
+          {
+            "ok": true,
+            "record": {
+              "student": "Cal",
+              "assignment": "Lab",
+              "score": 100
+            }
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "chk-init-04",
+        "symbol": "normalize_submission",
+        "input": [
+          "x"
+        ],
+        "expected_values": [
+          {
+            "ok": false,
+            "error": "payload must be an object"
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "chk-init-05",
+        "symbol": "normalize_submission",
+        "input": {
+          "student": "Dot",
+          "assignment": "Quiz",
+          "score": 0
+        },
+        "expected_values": [
+          {
+            "ok": true,
+            "record": {
+              "student": "Dot",
+              "assignment": "Quiz",
+              "score": 0
+            }
+          }
+        ],
+        "rule_ids": []
+      }
+    ],
+    "rounds": [
+      {
+        "index": 0,
+        "source_messages": [
+          {
+            "message_id": "m01",
+            "role": "user",
+            "text": "I'm building a tiny classroom assignment submission utility in submission_util.py. It already has a working normalize_submission(payload) helper that validates one submission object: non-empty student and assignment strings which it returns trimmed, plus a numeric score from 0 to 100 inclusive, answering either {\"ok\": true, \"record\": ...} or {\"ok\": false, \"error\": ...}. One thing about our data before we start: students resubmit the same assignment all the time, and every attempt matters to us. Never drop an attempt, and keep everything in the exact order it arrived."
+          },
+          {
+            "message_id": "m02",
+            "role": "assistant",
+            "text": "Understood. Two style questions before I write anything: should the validated results be sorted alphabetically by student for readability, and if a later feature ever reports an average, should I round it to two decimal places?"
+          },
+          {
+            "message_id": "m03",
+            "role": "user",
+            "text": "No sorting anywhere — arrival order is the record, never reorder it. Averages: yes, whenever a feature reports an average, round it to two decimals. And one project-wide rule: each function takes a single JSON value in and must always return a plain JSON-safe object out; bad input must produce an error object, never an exception."
+          }
+        ],
+        "request": {
+          "message_id": "m04",
+          "role": "user",
+          "task_handle": "validate-batch",
+          "text": "Implement validate_batch(batch). batch must be a JSON list of submission payloads. If batch is not a list, return exactly {\"ok\": false, \"error\": \"batch must be a list\"}. Otherwise run normalize_submission on every element, in arrival order, and return {\"ok\": true, \"valid\": [...], \"errors\": [...], \"counts\": {\"total\": n, \"valid\": v, \"invalid\": e}} where: valid lists every successfully normalized record in arrival order — resubmissions are just more records, nothing is removed or merged; errors has one {\"index\": i, \"error\": message} per element that failed normalization, carrying the helper's message and that element's zero-based position, in arrival order; counts reports the total number of elements, how many normalized successfully, and how many failed. Even a batch whose elements all fail still returns \"ok\": true; only a non-list batch returns \"ok\": false."
+        },
+        "target": {
+          "path": "submission_util.py",
+          "symbol": "validate_batch"
+        },
+        "public_checks": [
+          {
+            "check_id": "chk-r0p-01",
+            "symbol": "validate_batch",
+            "input": [
+              {
+                "student": "Ana",
+                "assignment": "Essay",
+                "score": 92
+              },
+              {
+                "student": "Ben",
+                "assignment": "Lab",
+                "score": 74
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "valid": [
+                  {
+                    "student": "Ana",
+                    "assignment": "Essay",
+                    "score": 92
+                  },
+                  {
+                    "student": "Ben",
+                    "assignment": "Lab",
+                    "score": 74
+                  }
+                ],
+                "errors": [],
+                "counts": {
+                  "total": 2,
+                  "valid": 2,
+                  "invalid": 0
+                }
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "chk-r0p-02",
+            "symbol": "validate_batch",
+            "input": {
+              "submissions": [
+                {
+                  "student": "Ana",
+                  "assignment": "Essay",
+                  "score": 92
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "ok": false,
+                "error": "batch must be a list"
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "chk-r0p-03",
+            "symbol": "validate_batch",
+            "input": [],
+            "expected_values": [
+              {
+                "ok": true,
+                "valid": [],
+                "errors": [],
+                "counts": {
+                  "total": 0,
+                  "valid": 0,
+                  "invalid": 0
+                }
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "chk-r0p-04",
+            "symbol": "validate_batch",
+            "input": [
+              {
+                "student": "Ana",
+                "assignment": "Essay",
+                "score": 95
+              },
+              {
+                "student": "Ben",
+                "assignment": "Quiz",
+                "score": 150
+              },
+              {
+                "student": "Cid",
+                "assignment": "Lab",
+                "score": 70
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "valid": [
+                  {
+                    "student": "Ana",
+                    "assignment": "Essay",
+                    "score": 95
+                  },
+                  {
+                    "student": "Cid",
+                    "assignment": "Lab",
+                    "score": 70
+                  }
+                ],
+                "errors": [
+                  {
+                    "index": 1,
+                    "error": "score must be between 0 and 100"
+                  }
+                ],
+                "counts": {
+                  "total": 3,
+                  "valid": 2,
+                  "invalid": 1
+                }
+              }
+            ],
+            "rule_ids": []
+          }
+        ]
+      },
+      {
+        "index": 1,
+        "source_messages": [
+          {
+            "message_id": "m05",
+            "role": "user",
+            "text": "validate_batch works nicely, thanks. Next feature: grouping submissions per assignment so the teacher can see each pile. It should reuse the validator we just built, with the same list-shaped batch going in."
+          },
+          {
+            "message_id": "m06",
+            "role": "assistant",
+            "text": "Nice. Would you like per-group averages tucked into the groups as well? I assume two decimals, per your earlier note?"
+          },
+          {
+            "message_id": "m07",
+            "role": "user",
+            "text": "No averages in grouping — groups only, please. And while we're on the subject: scratch my two-decimal note. From now on, whenever a feature reports an average, round it to one decimal."
+          }
+        ],
+        "request": {
+          "message_id": "m08",
+          "role": "user",
+          "task_handle": "group-submissions",
+          "text": "Implement group_submissions(batch) on top of validate_batch. If batch is not a list, return the validator's error object unchanged. Otherwise return {\"ok\": true, \"groups\": {...}, \"errors\": [...]} where groups maps each assignment name, exactly as normalized, to the list of its normalized records; the records keep their original arrival order within each assignment — no sorting of any kind, and attempts are never dropped or merged, so a student who resubmitted the same assignment appears once per attempt; errors is the validator's errors list carried over unchanged so invalid entries are still reported with their index and message. Do not reimplement validation inside this function."
+        },
+        "target": {
+          "path": "submission_util.py",
+          "symbol": "group_submissions"
+        },
+        "public_checks": [
+          {
+            "check_id": "chk-r1p-01",
+            "symbol": "group_submissions",
+            "input": [
+              {
+                "student": "Ana",
+                "assignment": "Essay",
+                "score": 80
+              },
+              {
+                "student": "Ben",
+                "assignment": "Lab",
+                "score": 70
+              },
+              {
+                "student": "Cid",
+                "assignment": "Essay",
+                "score": 90
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "groups": {
+                  "Essay": [
+                    {
+                      "student": "Ana",
+                      "assignment": "Essay",
+                      "score": 80
+                    },
+                    {
+                      "student": "Cid",
+                      "assignment": "Essay",
+                      "score": 90
+                    }
+                  ],
+                  "Lab": [
+                    {
+                      "student": "Ben",
+                      "assignment": "Lab",
+                      "score": 70
+                    }
+                  ]
+                },
+                "errors": []
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "chk-r1p-02",
+            "symbol": "group_submissions",
+            "input": "please grade this",
+            "expected_values": [
+              {
+                "ok": false,
+                "error": "batch must be a list"
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "chk-r1p-03",
+            "symbol": "group_submissions",
+            "input": [],
+            "expected_values": [
+              {
+                "ok": true,
+                "groups": {},
+                "errors": []
+              }
+            ],
+            "rule_ids": []
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "source_messages": [
+          {
+            "message_id": "m09",
+            "role": "user",
+            "text": "Last piece of the utility: a class-wide summary the teacher can read at a glance. Build it on top of the grouping we just did."
+          },
+          {
+            "message_id": "m10",
+            "role": "assistant",
+            "text": "For a tidy summary I'd suggest dropping the errors list entirely, and letting every attempt count equally in the averages. Shall I do that?"
+          },
+          {
+            "message_id": "m11",
+            "role": "user",
+            "text": "No — the errors list stays, always present even when it's empty. And do not count every attempt: if a student resubmitted the same assignment, only their best score counts, and it counts once."
+          }
+        ],
+        "request": {
+          "message_id": "m12",
+          "role": "user",
+          "task_handle": "summarize-class",
+          "text": "Implement summarize_class(batch) on top of group_submissions. If batch is not a list, pass the underlying error object through unchanged. Otherwise return {\"ok\": true, \"assignments\": {...}, \"overall\": {...}, \"errors\": [...]}. assignments maps each assignment name to {\"submissions\": s, \"students\": t, \"average\": a} where, after counting only each student's best score for that assignment exactly once, s is how many scores count, t is how many distinct students that assignment has, and a is the mean of the counted scores rounded to one decimal, our current convention. overall is {\"submissions\": S, \"students\": T, \"average\": A} for the whole class: S is the total number of counted scores across all assignments, T is the number of distinct students across the class as a whole, and A is the mean of every counted score rounded to one decimal — or null when nothing was counted at all. errors is the errors list carried over from grouping, unchanged, and it must always be present even when empty."
+        },
+        "target": {
+          "path": "submission_util.py",
+          "symbol": "summarize_class"
+        },
+        "public_checks": [
+          {
+            "check_id": "chk-r2p-01",
+            "symbol": "summarize_class",
+            "input": [
+              {
+                "student": "Ana",
+                "assignment": "Essay",
+                "score": 80
+              },
+              {
+                "student": "Ben",
+                "assignment": "Essay",
+                "score": 91
+              },
+              {
+                "student": "Cid",
+                "assignment": "Lab",
+                "score": 70
+              },
+              {
+                "student": "Dee",
+                "assignment": "Lab",
+                "score": 93
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "assignments": {
+                  "Essay": {
+                    "submissions": 2,
+                    "students": 2,
+                    "average": 85.5
+                  },
+                  "Lab": {
+                    "submissions": 2,
+                    "students": 2,
+                    "average": 81.5
+                  }
+                },
+                "overall": {
+                  "submissions": 4,
+                  "students": 4,
+                  "average": 83.5
+                },
+                "errors": []
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "chk-r2p-02",
+            "symbol": "summarize_class",
+            "input": 42,
+            "expected_values": [
+              {
+                "ok": false,
+                "error": "batch must be a list"
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "chk-r2p-03",
+            "symbol": "summarize_class",
+            "input": [],
+            "expected_values": [
+              {
+                "ok": true,
+                "assignments": {},
+                "overall": {
+                  "submissions": 0,
+                  "students": 0,
+                  "average": null
+                },
+                "errors": []
+              }
+            ],
+            "rule_ids": []
+          }
+        ]
+      }
+    ]
+  },
+  "private": {
+    "rounds": [
+      {
+        "index": 0,
+        "manual_recap": "Module submission_util.py, pure Python with no imports; every public function takes exactly one JSON value and returns a JSON-safe object. Available now: the working helper normalize_submission(payload), which validates one submission object — non-empty student and assignment strings returned trimmed, and a numeric score from 0 to 100 inclusive with booleans rejected — answering {\"ok\": true, \"record\": {\"student\", \"assignment\", \"score\"}} or {\"ok\": false, \"error\": message} with the first applicable message, and never raising. This round adds validate_batch(batch): a non-list batch returns exactly {\"ok\": false, \"error\": \"batch must be a list\"}; otherwise every element is normalized in arrival order and the result is {\"ok\": true, \"valid\": [...], \"errors\": [...], \"counts\": {\"total\", \"valid\", \"invalid\"}}, where errors are {\"index\", \"error\"} pairs in arrival order carrying the helper's messages, and an all-invalid batch still returns \"ok\": true. Standing rules in force: never raise on bad input; never sort or reorder output — the assistant's alphabetical-sorting suggestion was explicitly declined, so sorting is prohibited, not just optional; invalid entries are always reported by index, never silently dropped; attempts are never deduplicated or merged, resubmissions included; and any average reported by a future feature is, for now, rounded to two decimals.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "rule-json-only",
+              "scope": "global",
+              "strength": "required",
+              "text": "Each function takes a single JSON value and always returns a plain JSON-safe object; malformed input yields an error object, never an exception.",
+              "source_ids": [
+                "m03"
+              ]
+            },
+            {
+              "rule_id": "rule-report-errors",
+              "scope": "global",
+              "strength": "required",
+              "text": "Elements that fail normalization are never silently dropped: each is reported as {\"index\": i, \"error\": message} carrying the helper's message and its zero-based position, in arrival order.",
+              "source_ids": [
+                "m04"
+              ]
+            },
+            {
+              "rule_id": "rule-keep-duplicates",
+              "scope": "global",
+              "strength": "required",
+              "text": "Every submission attempt is preserved; resubmissions of the same assignment by the same student are kept as separate records, never deduplicated or merged.",
+              "source_ids": [
+                "m01",
+                "m04"
+              ]
+            },
+            {
+              "rule_id": "rule-no-sort",
+              "scope": "global",
+              "strength": "prohibited",
+              "text": "Sorting or reordering output records is prohibited; arrival order must be preserved exactly.",
+              "source_ids": [
+                "m03",
+                "m04"
+              ]
+            },
+            {
+              "rule_id": "rule-average-two-decimals",
+              "scope": "global",
+              "strength": "required",
+              "text": "Whenever a feature reports an average, round it to two decimal places.",
+              "source_ids": [
+                "m03"
+              ]
+            }
+          ],
+          "inactive_rule_ids": []
+        },
+        "reference_patch": "def validate_batch(batch):\n    if not isinstance(batch, list):\n        return {\"ok\": False, \"error\": \"batch must be a list\"}\n    valid = []\n    errors = []\n    index = 0\n    for element in batch:\n        result = normalize_submission(element)\n        if result[\"ok\"]:\n            valid.append(result[\"record\"])\n        else:\n            errors.append({\"index\": index, \"error\": result[\"error\"]})\n        index = index + 1\n    counts = {\"total\": len(batch), \"valid\": len(valid), \"invalid\": len(errors)}\n    return {\"ok\": True, \"valid\": valid, \"errors\": errors, \"counts\": counts}",
+        "functional_checks": [
+          {
+            "check_id": "chk-r0f-01",
+            "symbol": "validate_batch",
+            "input": [
+              {
+                "student": "  Dee ",
+                "assignment": " Essay ",
+                "score": 88.5
+              },
+              42,
+              {
+                "student": "Eli",
+                "assignment": "Quiz",
+                "score": -1
+              },
+              {
+                "student": "Ada",
+                "assignment": "Essay",
+                "score": 91
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "valid": [
+                  {
+                    "student": "Dee",
+                    "assignment": "Essay",
+                    "score": 88.5
+                  },
+                  {
+                    "student": "Ada",
+                    "assignment": "Essay",
+                    "score": 91
+                  }
+                ],
+                "errors": [
+                  {
+                    "index": 1,
+                    "error": "payload must be an object"
+                  },
+                  {
+                    "index": 2,
+                    "error": "score must be between 0 and 100"
+                  }
+                ],
+                "counts": {
+                  "total": 4,
+                  "valid": 2,
+                  "invalid": 2
+                }
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "chk-r0f-02",
+            "symbol": "validate_batch",
+            "input": [
+              "oops",
+              {
+                "student": "",
+                "assignment": "X",
+                "score": 10
+              },
+              {
+                "student": "Kip",
+                "assignment": "Y",
+                "score": true
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "valid": [],
+                "errors": [
+                  {
+                    "index": 0,
+                    "error": "payload must be an object"
+                  },
+                  {
+                    "index": 1,
+                    "error": "student must be a non-empty string"
+                  },
+                  {
+                    "index": 2,
+                    "error": "score must be a number"
+                  }
+                ],
+                "counts": {
+                  "total": 3,
+                  "valid": 0,
+                  "invalid": 3
+                }
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "chk-r0f-03",
+            "symbol": "validate_batch",
+            "input": [
+              {
+                "student": "Zed",
+                "assignment": "Quiz",
+                "score": 0
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "valid": [
+                  {
+                    "student": "Zed",
+                    "assignment": "Quiz",
+                    "score": 0
+                  }
+                ],
+                "errors": [],
+                "counts": {
+                  "total": 1,
+                  "valid": 1,
+                  "invalid": 0
+                }
+              }
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "chk-r0o-01",
+            "symbol": "validate_batch",
+            "input": [
+              {
+                "student": "Ana",
+                "assignment": "Essay",
+                "score": 70
+              },
+              {
+                "student": "Ana",
+                "assignment": "Essay",
+                "score": 85
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "valid": [
+                  {
+                    "student": "Ana",
+                    "assignment": "Essay",
+                    "score": 70
+                  },
+                  {
+                    "student": "Ana",
+                    "assignment": "Essay",
+                    "score": 85
+                  }
+                ],
+                "errors": [],
+                "counts": {
+                  "total": 2,
+                  "valid": 2,
+                  "invalid": 0
+                }
+              }
+            ],
+            "rule_ids": [
+              "rule-keep-duplicates"
+            ]
+          },
+          {
+            "check_id": "chk-r0o-02",
+            "symbol": "validate_batch",
+            "input": [
+              {
+                "student": "Sam",
+                "assignment": "Lab",
+                "score": 50
+              },
+              {
+                "student": "Ana",
+                "assignment": "Essay",
+                "score": 60
+              },
+              {
+                "student": "Sam",
+                "assignment": "Lab",
+                "score": 75
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "valid": [
+                  {
+                    "student": "Sam",
+                    "assignment": "Lab",
+                    "score": 50
+                  },
+                  {
+                    "student": "Ana",
+                    "assignment": "Essay",
+                    "score": 60
+                  },
+                  {
+                    "student": "Sam",
+                    "assignment": "Lab",
+                    "score": 75
+                  }
+                ],
+                "errors": [],
+                "counts": {
+                  "total": 3,
+                  "valid": 3,
+                  "invalid": 0
+                }
+              }
+            ],
+            "rule_ids": [
+              "rule-keep-duplicates",
+              "rule-no-sort"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "nc-r0-functional",
+            "kind": "functional",
+            "patch": "def validate_batch(batch):\n    if not isinstance(batch, list):\n        return {\"ok\": False, \"error\": \"batch must be a list\"}\n    valid = []\n    errors = []\n    index = 0\n    for element in batch:\n        result = normalize_submission(element)\n        if result[\"ok\"]:\n            valid.append(result[\"record\"])\n        else:\n            errors.append({\"index\": index, \"error\": result[\"error\"]})\n            break\n        index = index + 1\n    counts = {\"total\": len(batch), \"valid\": len(valid), \"invalid\": len(errors)}\n    return {\"ok\": True, \"valid\": valid, \"errors\": errors, \"counts\": counts}",
+            "expected_failing_check_ids": [
+              "chk-r0f-01",
+              "chk-r0f-02"
+            ]
+          },
+          {
+            "control_id": "nc-r0-obligation",
+            "kind": "obligation",
+            "patch": "def validate_batch(batch):\n    if not isinstance(batch, list):\n        return {\"ok\": False, \"error\": \"batch must be a list\"}\n    valid = []\n    errors = []\n    seen = []\n    index = 0\n    for element in batch:\n        result = normalize_submission(element)\n        if result[\"ok\"]:\n            record = result[\"record\"]\n            pair = (record[\"student\"], record[\"assignment\"])\n            if pair not in seen:\n                seen.append(pair)\n                valid.append(record)\n        else:\n            errors.append({\"index\": index, \"error\": result[\"error\"]})\n        index = index + 1\n    counts = {\"total\": len(batch), \"valid\": len(valid), \"invalid\": len(errors)}\n    return {\"ok\": True, \"valid\": valid, \"errors\": errors, \"counts\": counts}",
+            "expected_failing_check_ids": [
+              "chk-r0o-01",
+              "chk-r0o-02"
+            ]
+          }
+        ]
+      },
+      {
+        "index": 1,
+        "manual_recap": "validate_batch is delivered and settled; new work must reuse it, not reimplement it. This round adds group_submissions(batch): a non-list batch returns the validator's error object unchanged; otherwise the result is {\"ok\": true, \"groups\": {assignment: [records]}, \"errors\": [...]}, where groups keyed by the exact normalized assignment name hold the normalized records in their original arrival order, and errors is the validator's errors list carried over unchanged. Averages in the groups were suggested by the assistant and explicitly declined — grouping reports no averages. Standing rules continue: JSON in, JSON-safe object out, never raise; invalid entries always reported by index (now also carried through grouping); every attempt kept, resubmissions included, never merged; sorting or reordering remains prohibited. Scoped change this round: the earlier two-decimal rounding instruction is retired; from now on any reported average is rounded to one decimal. That convention has no consumer yet and first applies to the summary feature.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "rule-json-only",
+              "scope": "global",
+              "strength": "required",
+              "text": "Each function takes a single JSON value and always returns a plain JSON-safe object; malformed input yields an error object, never an exception.",
+              "source_ids": [
+                "m03"
+              ]
+            },
+            {
+              "rule_id": "rule-report-errors",
+              "scope": "global",
+              "strength": "required",
+              "text": "Elements that fail normalization are never silently dropped: each is reported as {\"index\": i, \"error\": message} carrying the helper's message, in arrival order, and downstream features carry that list over unchanged.",
+              "source_ids": [
+                "m04",
+                "m08"
+              ]
+            },
+            {
+              "rule_id": "rule-keep-duplicates",
+              "scope": "global",
+              "strength": "required",
+              "text": "Every submission attempt is preserved; resubmissions of the same assignment by the same student are kept as separate records, never deduplicated or merged, in validation and in grouping alike.",
+              "source_ids": [
+                "m01",
+                "m04",
+                "m08"
+              ]
+            },
+            {
+              "rule_id": "rule-no-sort",
+              "scope": "global",
+              "strength": "prohibited",
+              "text": "Sorting or reordering output records is prohibited; arrival order must be preserved exactly, inside each group as well.",
+              "source_ids": [
+                "m03",
+                "m04",
+                "m08"
+              ]
+            },
+            {
+              "rule_id": "rule-average-one-decimal",
+              "scope": "global",
+              "strength": "required",
+              "text": "Whenever a feature reports an average, round it to one decimal place; this supersedes the earlier two-decimal instruction.",
+              "source_ids": [
+                "m07"
+              ]
+            }
+          ],
+          "inactive_rule_ids": [
+            "rule-average-two-decimals"
+          ]
+        },
+        "reference_patch": "def group_submissions(batch):\n    checked = validate_batch(batch)\n    if not checked[\"ok\"]:\n        return checked\n    groups = {}\n    for record in checked[\"valid\"]:\n        key = record[\"assignment\"]\n        if key not in groups:\n            groups[key] = []\n        groups[key].append(record)\n    return {\"ok\": True, \"groups\": groups, \"errors\": checked[\"errors\"]}",
+        "functional_checks": [
+          {
+            "check_id": "chk-r1f-01",
+            "symbol": "group_submissions",
+            "input": [
+              {
+                "student": "Dee",
+                "assignment": "Essay",
+                "score": 88
+              },
+              {
+                "opps": 1
+              },
+              {
+                "student": "Eli",
+                "assignment": "Lab",
+                "score": 92
+              },
+              {
+                "student": "Fay",
+                "assignment": "Essay",
+                "score": 74
+              },
+              {
+                "student": "Gus",
+                "assignment": "Lab",
+                "score": true
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "groups": {
+                  "Essay": [
+                    {
+                      "student": "Dee",
+                      "assignment": "Essay",
+                      "score": 88
+                    },
+                    {
+                      "student": "Fay",
+                      "assignment": "Essay",
+                      "score": 74
+                    }
+                  ],
+                  "Lab": [
+                    {
+                      "student": "Eli",
+                      "assignment": "Lab",
+                      "score": 92
+                    }
+                  ]
+                },
+                "errors": [
+                  {
+                    "index": 1,
+                    "error": "student must be a non-empty string"
+                  },
+                  {
+                    "index": 4,
+                    "error": "score must be a number"
+                  }
+                ]
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "chk-r1f-02",
+            "symbol": "group_submissions",
+            "input": [
+              {
+                "student": "Hana",
+                "assignment": "Quiz",
+                "score": 5
+              },
+              {
+                "student": "Ian",
+                "assignment": "Quiz",
+                "score": 6
+              },
+              {
+                "student": "Jon",
+                "assignment": "Quiz",
+                "score": 7
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "groups": {
+                  "Quiz": [
+                    {
+                      "student": "Hana",
+                      "assignment": "Quiz",
+                      "score": 5
+                    },
+                    {
+                      "student": "Ian",
+                      "assignment": "Quiz",
+                      "score": 6
+                    },
+                    {
+                      "student": "Jon",
+                      "assignment": "Quiz",
+                      "score": 7
+                    }
+                  ]
+                },
+                "errors": []
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "chk-r1f-03",
+            "symbol": "group_submissions",
+            "input": [
+              {
+                "student": " ",
+                "assignment": "X",
+                "score": 5
+              },
+              {
+                "student": "Kip",
+                "assignment": "",
+                "score": 50
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "groups": {},
+                "errors": [
+                  {
+                    "index": 0,
+                    "error": "student must be a non-empty string"
+                  },
+                  {
+                    "index": 1,
+                    "error": "assignment must be a non-empty string"
+                  }
+                ]
+              }
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "chk-r1o-01",
+            "symbol": "group_submissions",
+            "input": [
+              {
+                "student": "Ana",
+                "assignment": "Essay",
+                "score": 70
+              },
+              {
+                "student": "Ben",
+                "assignment": "Essay",
+                "score": 65
+              },
+              {
+                "student": "Ana",
+                "assignment": "Essay",
+                "score": 85
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "groups": {
+                  "Essay": [
+                    {
+                      "student": "Ana",
+                      "assignment": "Essay",
+                      "score": 70
+                    },
+                    {
+                      "student": "Ben",
+                      "assignment": "Essay",
+                      "score": 65
+                    },
+                    {
+                      "student": "Ana",
+                      "assignment": "Essay",
+                      "score": 85
+                    }
+                  ]
+                },
+                "errors": []
+              }
+            ],
+            "rule_ids": [
+              "rule-keep-duplicates",
+              "rule-no-sort"
+            ]
+          },
+          {
+            "check_id": "chk-r1o-02",
+            "symbol": "group_submissions",
+            "input": [
+              {
+                "student": "Zoe",
+                "assignment": "Lab",
+                "score": 81
+              },
+              null,
+              {
+                "student": "Yan",
+                "assignment": "Lab",
+                "score": 79
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "groups": {
+                  "Lab": [
+                    {
+                      "student": "Zoe",
+                      "assignment": "Lab",
+                      "score": 81
+                    },
+                    {
+                      "student": "Yan",
+                      "assignment": "Lab",
+                      "score": 79
+                    }
+                  ]
+                },
+                "errors": [
+                  {
+                    "index": 1,
+                    "error": "payload must be an object"
+                  }
+                ]
+              }
+            ],
+            "rule_ids": [
+              "rule-report-errors",
+              "rule-no-sort"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "nc-r1-functional",
+            "kind": "functional",
+            "patch": "def group_submissions(batch):\n    checked = validate_batch(batch)\n    if not checked[\"ok\"]:\n        return checked\n    groups = {}\n    for record in checked[\"valid\"]:\n        key = record[\"assignment\"].lower()\n        if key not in groups:\n            groups[key] = []\n        groups[key].append(record)\n    return {\"ok\": True, \"groups\": groups, \"errors\": checked[\"errors\"]}",
+            "expected_failing_check_ids": [
+              "chk-r1f-01",
+              "chk-r1f-02",
+              "chk-r1o-01",
+              "chk-r1o-02"
+            ]
+          },
+          {
+            "control_id": "nc-r1-obligation",
+            "kind": "obligation",
+            "patch": "def group_submissions(batch):\n    checked = validate_batch(batch)\n    if not checked[\"ok\"]:\n        return checked\n    groups = {}\n    seen = []\n    for record in checked[\"valid\"]:\n        pair = (record[\"student\"], record[\"assignment\"])\n        if pair in seen:\n            continue\n        seen.append(pair)\n        key = record[\"assignment\"]\n        if key not in groups:\n            groups[key] = []\n        groups[key].append(record)\n    return {\"ok\": True, \"groups\": groups, \"errors\": checked[\"errors\"]}",
+            "expected_failing_check_ids": [
+              "chk-r1o-01"
+            ]
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "manual_recap": "validate_batch and group_submissions are delivered and settled; new work builds on group_submissions rather than revalidating. This round adds summarize_class(batch): a non-list batch passes the underlying error object through unchanged; otherwise the result is {\"ok\": true, \"assignments\": {name: {\"submissions\", \"students\", \"average\"}}, \"overall\": {\"submissions\", \"students\", \"average\"}, \"errors\": [...]}. Summary-specific counting, scoped to this feature only: within an assignment, a student who resubmitted counts exactly once, with their best score — submissions is the number of counted scores, students the number of distinct students, average the mean of the counted scores rounded to one decimal. overall pools every counted score across all assignments for submissions and average, counts students distinct class-wide, and reports average null when nothing was counted at all. errors is carried over from grouping unchanged and is always present, even when empty — the assistant's suggestion to drop it was explicitly rejected, as was counting every attempt. Validation and grouping still keep every attempt; the best-score counting applies only inside this summary. One-decimal rounding is the current convention and now has its first consumer; the retired two-decimal convention must not be used. All other standing rules persist: JSON in, JSON-safe object out, never raise, invalid entries always reported, arrival order preserved wherever record order is observable.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "rule-json-only",
+              "scope": "global",
+              "strength": "required",
+              "text": "Each function takes a single JSON value and always returns a plain JSON-safe object; malformed input yields an error object, never an exception.",
+              "source_ids": [
+                "m03"
+              ]
+            },
+            {
+              "rule_id": "rule-report-errors",
+              "scope": "global",
+              "strength": "required",
+              "text": "Elements that fail normalization are never silently dropped: each is reported as {\"index\": i, \"error\": message} carrying the helper's message, in arrival order, and downstream features — including the summary — carry that list over unchanged and always include it, even when empty.",
+              "source_ids": [
+                "m04",
+                "m08",
+                "m11",
+                "m12"
+              ]
+            },
+            {
+              "rule_id": "rule-keep-duplicates",
+              "scope": "global",
+              "strength": "required",
+              "text": "Every submission attempt is preserved in validation and grouping; resubmissions are kept as separate records, never deduplicated or merged there.",
+              "source_ids": [
+                "m01",
+                "m04",
+                "m08"
+              ]
+            },
+            {
+              "rule_id": "rule-no-sort",
+              "scope": "global",
+              "strength": "prohibited",
+              "text": "Sorting or reordering output records is prohibited; arrival order must be preserved exactly wherever record order is observable.",
+              "source_ids": [
+                "m03",
+                "m04",
+                "m08"
+              ]
+            },
+            {
+              "rule_id": "rule-average-one-decimal",
+              "scope": "global",
+              "strength": "required",
+              "text": "Whenever a feature reports an average, round it to one decimal place; this supersedes the earlier two-decimal instruction.",
+              "source_ids": [
+                "m07",
+                "m12"
+              ]
+            },
+            {
+              "rule_id": "rule-summary-best-attempt",
+              "scope": "summarize-class",
+              "strength": "required",
+              "text": "For the class summary only, a student who resubmitted the same assignment counts exactly once, with their best score; their other attempts are excluded from the summary's submissions counts, distinct-student counts, and averages.",
+              "source_ids": [
+                "m11",
+                "m12"
+              ]
+            }
+          ],
+          "inactive_rule_ids": [
+            "rule-average-two-decimals"
+          ]
+        },
+        "reference_patch": "def summarize_class(batch):\n    checked = group_submissions(batch)\n    if not checked[\"ok\"]:\n        return checked\n    assignments = {}\n    total_submissions = 0\n    total_score = 0.0\n    all_students = []\n    for name in checked[\"groups\"]:\n        best = {}\n        for record in checked[\"groups\"][name]:\n            student = record[\"student\"]\n            if student not in best or record[\"score\"] > best[student]:\n                best[student] = record[\"score\"]\n        count = 0\n        group_total = 0.0\n        for student in best:\n            count = count + 1\n            group_total = group_total + best[student]\n            if student not in all_students:\n                all_students.append(student)\n        assignments[name] = {\"submissions\": count, \"students\": len(best), \"average\": round(group_total / count, 1)}\n        total_submissions = total_submissions + count\n        total_score = total_score + group_total\n    if total_submissions == 0:\n        overall_average = None\n    else:\n        overall_average = round(total_score / total_submissions, 1)\n    overall = {\"submissions\": total_submissions, \"students\": len(all_students), \"average\": overall_average}\n    return {\"ok\": True, \"assignments\": assignments, \"overall\": overall, \"errors\": checked[\"errors\"]}",
+        "functional_checks": [
+          {
+            "check_id": "chk-r2f-01",
+            "symbol": "summarize_class",
+            "input": [
+              {
+                "student": "Eva",
+                "assignment": "Essay",
+                "score": 90.5
+              },
+              {
+                "student": "Fox",
+                "assignment": "Lab",
+                "score": 70
+              },
+              {
+                "student": "Gil",
+                "assignment": "Lab",
+                "score": 80
+              },
+              {
+                "student": "Hal",
+                "assignment": "Essay",
+                "score": 92.5
+              },
+              {
+                "student": "Ivy",
+                "assignment": "Lab",
+                "score": 85
+              },
+              {
+                "student": "Jem",
+                "assignment": "Lab",
+                "score": 95
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "assignments": {
+                  "Essay": {
+                    "submissions": 2,
+                    "students": 2,
+                    "average": 91.5
+                  },
+                  "Lab": {
+                    "submissions": 4,
+                    "students": 4,
+                    "average": 82.5
+                  }
+                },
+                "overall": {
+                  "submissions": 6,
+                  "students": 6,
+                  "average": 85.5
+                },
+                "errors": []
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "chk-r2f-02",
+            "symbol": "summarize_class",
+            "input": [
+              {
+                "student": "Kai",
+                "assignment": "Quiz",
+                "score": 88.5
+              },
+              {
+                "nope": true
+              },
+              {
+                "student": "Liv",
+                "assignment": "Quiz",
+                "score": 90.5
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "assignments": {
+                  "Quiz": {
+                    "submissions": 2,
+                    "students": 2,
+                    "average": 89.5
+                  }
+                },
+                "overall": {
+                  "submissions": 2,
+                  "students": 2,
+                  "average": 89.5
+                },
+                "errors": [
+                  {
+                    "index": 1,
+                    "error": "student must be a non-empty string"
+                  }
+                ]
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "chk-r2f-03",
+            "symbol": "summarize_class",
+            "input": [
+              {
+                "student": "Moe",
+                "assignment": "Solo",
+                "score": 77.5
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "assignments": {
+                  "Solo": {
+                    "submissions": 1,
+                    "students": 1,
+                    "average": 77.5
+                  }
+                },
+                "overall": {
+                  "submissions": 1,
+                  "students": 1,
+                  "average": 77.5
+                },
+                "errors": []
+              }
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "chk-r2o-01",
+            "symbol": "summarize_class",
+            "input": [
+              {
+                "student": "Nia",
+                "assignment": "Quiz",
+                "score": 91
+              },
+              {
+                "student": "Ori",
+                "assignment": "Quiz",
+                "score": 92
+              },
+              {
+                "student": "Pam",
+                "assignment": "Quiz",
+                "score": 94
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "assignments": {
+                  "Quiz": {
+                    "submissions": 3,
+                    "students": 3,
+                    "average": 92.3
+                  }
+                },
+                "overall": {
+                  "submissions": 3,
+                  "students": 3,
+                  "average": 92.3
+                },
+                "errors": []
+              }
+            ],
+            "rule_ids": [
+              "rule-average-one-decimal"
+            ]
+          },
+          {
+            "check_id": "chk-r2o-02",
+            "symbol": "summarize_class",
+            "input": [
+              {
+                "student": "Quin",
+                "assignment": "Essay",
+                "score": 70
+              },
+              {
+                "student": "Quin",
+                "assignment": "Essay",
+                "score": 95
+              },
+              {
+                "student": "Rae",
+                "assignment": "Essay",
+                "score": 82
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "assignments": {
+                  "Essay": {
+                    "submissions": 2,
+                    "students": 2,
+                    "average": 88.5
+                  }
+                },
+                "overall": {
+                  "submissions": 2,
+                  "students": 2,
+                  "average": 88.5
+                },
+                "errors": []
+              }
+            ],
+            "rule_ids": [
+              "rule-summary-best-attempt"
+            ]
+          },
+          {
+            "check_id": "chk-r2o-03",
+            "symbol": "summarize_class",
+            "input": [
+              {
+                "student": "Nia",
+                "assignment": "Essay",
+                "score": 91
+              },
+              {
+                "student": "Ori",
+                "assignment": "Essay",
+                "score": 92
+              },
+              {
+                "student": "Pam",
+                "assignment": "Essay",
+                "score": 94
+              },
+              {
+                "student": "Sam",
+                "assignment": "Lab",
+                "score": 80
+              },
+              {
+                "student": "Tom",
+                "assignment": "Lab",
+                "score": 90
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "assignments": {
+                  "Essay": {
+                    "submissions": 3,
+                    "students": 3,
+                    "average": 92.3
+                  },
+                  "Lab": {
+                    "submissions": 2,
+                    "students": 2,
+                    "average": 85.0
+                  }
+                },
+                "overall": {
+                  "submissions": 5,
+                  "students": 5,
+                  "average": 89.4
+                },
+                "errors": []
+              }
+            ],
+            "rule_ids": [
+              "rule-average-one-decimal"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "nc-r2-functional",
+            "kind": "functional",
+            "patch": "def summarize_class(batch):\n    checked = group_submissions(batch)\n    if not checked[\"ok\"]:\n        return checked\n    assignments = {}\n    total_submissions = 0\n    all_students = []\n    averages = []\n    for name in checked[\"groups\"]:\n        best = {}\n        for record in checked[\"groups\"][name]:\n            student = record[\"student\"]\n            if student not in best or record[\"score\"] > best[student]:\n                best[student] = record[\"score\"]\n        count = 0\n        group_total = 0.0\n        for student in best:\n            count = count + 1\n            group_total = group_total + best[student]\n            if student not in all_students:\n                all_students.append(student)\n        group_average = round(group_total / count, 1)\n        averages.append(group_average)\n        assignments[name] = {\"submissions\": count, \"students\": len(best), \"average\": group_average}\n        total_submissions = total_submissions + count\n    if total_submissions == 0:\n        overall_average = None\n    else:\n        overall_average = round(sum(averages) / len(averages), 1)\n    overall = {\"submissions\": total_submissions, \"students\": len(all_students), \"average\": overall_average}\n    return {\"ok\": True, \"assignments\": assignments, \"overall\": overall, \"errors\": checked[\"errors\"]}",
+            "expected_failing_check_ids": [
+              "chk-r2f-01",
+              "chk-r2o-03"
+            ]
+          },
+          {
+            "control_id": "nc-r2-obligation",
+            "kind": "obligation",
+            "patch": "def summarize_class(batch):\n    checked = group_submissions(batch)\n    if not checked[\"ok\"]:\n        return checked\n    assignments = {}\n    total_submissions = 0\n    total_score = 0.0\n    all_students = []\n    for name in checked[\"groups\"]:\n        best = {}\n        for record in checked[\"groups\"][name]:\n            student = record[\"student\"]\n            if student not in best or record[\"score\"] > best[student]:\n                best[student] = record[\"score\"]\n        count = 0\n        group_total = 0.0\n        for student in best:\n            count = count + 1\n            group_total = group_total + best[student]\n            if student not in all_students:\n                all_students.append(student)\n        assignments[name] = {\"submissions\": count, \"students\": len(best), \"average\": round(group_total / count, 2)}\n        total_submissions = total_submissions + count\n        total_score = total_score + group_total\n    if total_submissions == 0:\n        overall_average = None\n    else:\n        overall_average = round(total_score / total_submissions, 2)\n    overall = {\"submissions\": total_submissions, \"students\": len(all_students), \"average\": overall_average}\n    return {\"ok\": True, \"assignments\": assignments, \"overall\": overall, \"errors\": checked[\"errors\"]}",
+            "expected_failing_check_ids": [
+              "chk-r2o-01",
+              "chk-r2o-03"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

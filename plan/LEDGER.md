@@ -2542,3 +2542,37 @@ ownedPID76765, neitherresponsefinished asoflastcheck. No restart or inferencejob
 Next: collect exactauthoringsession terminal, run perprojectCPUpreflight and
 Astra data/source review; settleclient anddispatchsmallautomaticruntime. Final
 client/driver/launcher/data/preview/resource readiness remainbeforefreeze/run.
+
+Accepted design/preparation archived4665b122, six explicitpaths verifiedtracked.
+Root sent same Sol xhigh task conditional sequential dispatch: after client tests/
+commit/stablehandoff, immediately implement queued RUNTIME-BRIEF twofiles, without
+another permission step. Astra will review stableclient separately. Client source
+andtests nowexist, stillmoving/uncommitted; no finishedhandoff yet. Kimi exact
+session70405 re-polled live afterthiscommit, no responsefinished, norestart.
+
+2026-09-08 — STATE: SHARED CLIENT REVIEWED; FIRST NEW DATA NEEDS LABEL CORRECTION.
+Previousgoalturn madeprogress: accepteddesign/data-prompts archived, clientbuilt,
+authoringverifiedlive. Currentturn verified same70405authorjobstilllive forproject01;
+project00terminalAUTHORED_UNREVIEWED in629.053946972s, HTTP200/donestop,
+1819prompt+43430reportedgenerationtokens. RawresponseSHA631afc3b86aedfa9828228c7ff4bd14c0dbe745e364cb8245bddd4e5b02025f0;
+authoredSHA8771f0079c6e423042a5c9606b374e124968dd289f4fd4393a53b1c54ffdd76f,
+58986bytes. Rootverifiedreceipt hashes. Individualrawfilesstableandarchivednow;
+wholeauthoringsession stillawaitsproject01, no restart.
+
+CPU existingperdocumentpreflight exit2 INVALID: rule-report-errors changedidentity.
+No reference code ran becausevalidatorstopped first. Rootnonmutatingidentityscan
+foundtextchangesforreport-errors/keep-duplicates/no-sort atbothlaterrounds. No
+semantic/datareplacementbyroot. Astra xhigh sameagent nowperforming comprehensive
+newproject00source/label/check/contract review beforeKimi correction. SeparateAstra
+spawn was unavailable(threadlimit); do notkeepretryingspawn. Project01 joins when
+terminal. This is local dataquality work, not aresearchimpasse.
+
+Sol clientcommit821cb555, sourceSHAec6d4967f0e3887f50ef9c57f00a3b3733e6ec4af79f040b8740324cbea2f831,
+testSHA950abea6a352b7d57b096efa9702420ffa5d2ca26a408a3ea6a662e7562593aa.
+Sol15tests0.22s/Ruff; Astraindependent15tests0.19s/Ruff andadditionalboundary/context/
+deadlinechecks. Clientreview95, soleLOW finding1: orphan toolresultwithNoneID
+passeswhenpendingIDNone. Rootreadbranchandconfirms; normalvalidatedcallhistory
+unaffected. ReviewSHA0b7b71c534ae6d91bb2756756c7edf573e57bfbab5ba4b0a9d0434fdc9725205.
+RootassignedsameSoloneguard+consumingregressionredfirst, explicit2pathcommit,
+thenresumealreadydispatchedruntime. No broadenedredesign. Astrawillcloseexactdelta.
+Fullautomaticfocus/largerproofstillunproven; no workerinferencejob ornewbudget.
