@@ -95,6 +95,13 @@ GENERATION_SETTINGS = {
     "top_k": 0,
     "top_p": 1.0,
 }
+GENERATION_FORWARD_ARGUMENTS = {"logits_to_keep": 1}
+GENERATION_CONTROL_ARGUMENTS = {"synced_gpus": False}
+GENERATION_CONFIG_ARGUMENTS = {
+    key: value
+    for key, value in GENERATION_SETTINGS.items()
+    if key not in GENERATION_FORWARD_ARGUMENTS | GENERATION_CONTROL_ARGUMENTS
+}
 
 EXPECTED_SHA256 = {
     "results/source-interpreter/FIT.md": (
@@ -102,6 +109,9 @@ EXPECTED_SHA256 = {
     ),
     "results/source-interpreter/FIT-CODE-BRIEF.md": (
         "9a3836c0e08944052d98c86c21e7b09c952778f396af0ac8133c813293328e6f"
+    ),
+    "results/source-interpreter/FIT-FIX-BRIEF.md": (
+        "3743f7f9950d9e2bfe3ab731d40aba8ce56de1272a1e9ff0c6bac039d348c959"
     ),
     "results/source-interpreter/preview.json": (
         "5760764f748a088d9d105b6f89b6188785941239ea28c1e60d706f9d028a0326"
@@ -465,17 +475,61 @@ def _publish_stage(
     clock: Any = time.monotonic,
     **details: Any,
 ) -> dict[str, Any]:
+    recorded = clock()
     receipt = {
         "stage": stage,
         "status": status,
-        "monotonic": clock(),
+        "recorded_monotonic": recorded,
+        "monotonic": recorded,
         "hard_deadline_monotonic": hard_deadline,
         **details,
     }
     safe = stage.replace("-", "_")
-    _write_json(Path(run) / f"stage-{safe}.json", receipt)
-    _write_json(Path(run) / "current-stage.json", receipt)
-    _append_json(Path(run) / "stages.jsonl", receipt)
+    stage_path = Path(run) / f"stage-{safe}.json"
+    current_path = Path(run) / "current-stage.json"
+    history_path = Path(run) / "stages.jsonl"
+    if status == "INTENT":
+        _write_json(stage_path, receipt)
+        _append_json(history_path, receipt)
+        _write_json(current_path, receipt)
+        receipt["publication_observed_monotonic"] = clock()
+        return receipt
+
+    requested_status = status
+    pending = {
+        **receipt,
+        "status": "COMPLETION_PENDING",
+        "requested_status": status,
+    }
+    _write_json(stage_path, pending)
+    _append_json(history_path, pending)
+    _write_json(current_path, pending)
+    # Keep current-stage pending until the child either publishes the next
+    # stage's INTENT or exits. Terminal evidence belongs to the per-stage file
+    # and history, so a slow terminal write never disarms the stage watchdog.
+    _write_json(stage_path, receipt)
+    _append_json(history_path, receipt)
+    records_observed = clock()
+    if requested_status == "COMPLETE" and records_observed > hard_deadline:
+        status = "DEADLINE"
+    receipt.update(
+        {
+            "status": status,
+            "requested_status": requested_status,
+            "completion_records_observed_monotonic": records_observed,
+            "completion_records_within_deadline": records_observed <= hard_deadline,
+        }
+    )
+    _write_json(stage_path, receipt)
+    _append_json(history_path, receipt)
+    published = clock()
+    receipt["publication_observed_monotonic"] = published
+    if requested_status == "COMPLETE" and published > hard_deadline:
+        receipt["status"] = "DEADLINE"
+        receipt["completion_records_within_deadline"] = False
+        _write_json(stage_path, receipt)
+        _append_json(history_path, receipt)
+        receipt["publication_observed_monotonic"] = clock()
     return receipt
 
 
@@ -549,6 +603,45 @@ def _generation_kwargs(
     }
 
 
+def _native_resolved_generation_config(
+    model: Any, input_ids: Any, *, input_ids_length: int
+) -> dict[str, Any]:
+    """Use the installed HF resolver and its input-derived length preparation."""
+    inherited = model.generation_config
+    has_default_max_length = (
+        GENERATION_CONFIG_ARGUMENTS.get("max_length") is None
+        and getattr(inherited, "max_length", None) is None
+    )
+    has_default_min_length = (
+        GENERATION_CONFIG_ARGUMENTS.get("min_length") is None
+        and getattr(inherited, "min_length", None) is None
+    )
+    resolved, leftovers = model._prepare_generation_config(
+        None, **GENERATION_CONFIG_ARGUMENTS
+    )
+    if leftovers:
+        raise FitError(
+            "generation-config arguments unexpectedly resolved as model kwargs: "
+            f"{sorted(leftovers)}"
+        )
+    resolved = model._prepare_generated_length(
+        generation_config=resolved,
+        has_default_max_length=has_default_max_length,
+        has_default_min_length=has_default_min_length,
+        model_input_name="input_ids",
+        inputs_tensor=input_ids,
+        input_ids_length=input_ids_length,
+    )
+    receipt = resolved.to_dict()
+    expected_max_length = input_ids_length + GENERATION_SETTINGS["max_new_tokens"]
+    if receipt.get("max_length") != expected_max_length:
+        raise FitError("native generation resolver produced an unexpected max_length")
+    for key, expected in GENERATION_CONFIG_ARGUMENTS.items():
+        if receipt.get(key) != expected:
+            raise FitError(f"native generation configuration differs: {key}")
+    return receipt
+
+
 def run_generation_call(
     run: Path,
     *,
@@ -567,15 +660,14 @@ def run_generation_call(
     input_ids = torch.tensor([row["prefix_ids"]], dtype=torch.long, device="cuda")
     attention_mask = torch.ones_like(input_ids)
     inherited = model.generation_config.to_dict()
-    resolved = {
-        key: GENERATION_SETTINGS.get(key, inherited.get(key))
-        for key in sorted(set(inherited) | set(GENERATION_SETTINGS))
-    }
+    resolved = _native_resolved_generation_config(
+        model, input_ids, input_ids_length=len(row["prefix_ids"])
+    )
     stage_started = clock()
     hard_deadline = stage_started + deadline_seconds
     deadline = _GenerationDeadline(hard_deadline, clock)
     kwargs = _generation_kwargs(input_ids, attention_mask, stopping_list([deadline]))
-    _publish_stage(
+    stage_intent = _publish_stage(
         run,
         stage,
         "INTENT",
@@ -604,6 +696,9 @@ def run_generation_call(
             else model
         ),
         "explicit_generation_arguments": dict(GENERATION_SETTINGS),
+        "explicit_generation_config_arguments": dict(GENERATION_CONFIG_ARGUMENTS),
+        "explicit_forward_arguments": dict(GENERATION_FORWARD_ARGUMENTS),
+        "explicit_control_arguments": dict(GENERATION_CONTROL_ARGUMENTS),
         "inherited_generation_config": inherited,
         "resolved_generation_config": resolved,
         "stage_started_monotonic": stage_started,
@@ -621,6 +716,9 @@ def run_generation_call(
         "resource_after": None,
     }
     try:
+        if stage_intent["publication_observed_monotonic"] > hard_deadline:
+            deadline.reached = True
+            raise FitError("generation intent publication exceeded its deadline")
         if mode == "base":
             selection = model.disable_adapter()
         elif mode == "adapter":
@@ -705,24 +803,16 @@ def run_generation_call(
         receipt_path=f"generation-{mode}.json",
         elapsed_seconds=clock() - stage_started,
     )
-    if (
-        receipt["status"] == "RETURNED"
-        and stage_receipt["monotonic"] > hard_deadline
-        and not (receipt.get("stop_facts") or {}).get("deadline_reached")
+    if receipt["status"] == "RETURNED" and (
+        stage_receipt["status"] == "DEADLINE"
+        or stage_receipt["publication_observed_monotonic"] > hard_deadline
     ):
         receipt["stop_facts"]["deadline_reached"] = True
         receipt["publication_deadline_reached"] = True
+        receipt["stage_completion_publication"] = stage_receipt
         _write_json(Path(run) / f"generation-{mode}.json", receipt)
-        _publish_stage(
-            run,
-            stage,
-            "DEADLINE",
-            hard_deadline=hard_deadline,
-            clock=clock,
-            mode=mode,
-            receipt_path=f"generation-{mode}.json",
-            elapsed_seconds=clock() - stage_started,
-        )
+    else:
+        receipt["stage_completion_publication"] = stage_receipt
     return receipt
 
 
@@ -914,6 +1004,15 @@ def _generation_references(run: Path) -> list[dict[str, Any]]:
     ]
 
 
+def _stage_completed_within_deadline(stage: dict[str, Any]) -> bool:
+    return (
+        stage.get("status") == "COMPLETE"
+        and stage.get("completion_records_within_deadline") is True
+        and stage.get("completion_records_observed_monotonic", math.inf)
+        <= stage.get("hard_deadline_monotonic", -math.inf)
+    )
+
+
 def validate_completion(result: dict[str, Any], *, run: Path) -> dict[str, int]:
     if result.get("status") != "COMPLETE" or result.get("mechanical_pass") is not True:
         raise FitError("child result is not COMPLETE")
@@ -986,9 +1085,7 @@ def validate_completion(result: dict[str, Any], *, run: Path) -> dict[str, int]:
         stage = _read_json(
             Path(run) / f"stage-generation_{mode}.json", "generation stage"
         )
-        if stage.get("status") != "COMPLETE" or stage.get(
-            "monotonic", math.inf
-        ) > stage.get("hard_deadline_monotonic", -math.inf):
+        if not _stage_completed_within_deadline(stage):
             raise FitError("complete generation stage exceeded its deadline")
     summaries = generation.get("calls")
     if type(summaries) is not list or len(summaries) != 2:
@@ -1000,9 +1097,7 @@ def validate_completion(result: dict[str, Any], *, run: Path) -> dict[str, int]:
         ):
             raise FitError("generation summary differs from its durable receipt")
     training_stage = _read_json(Path(run) / "stage-training.json", "training stage")
-    if training_stage.get("status") != "COMPLETE" or training_stage.get(
-        "monotonic", math.inf
-    ) > training_stage.get("hard_deadline_monotonic", -math.inf):
+    if not _stage_completed_within_deadline(training_stage):
         raise FitError("complete training stage exceeded its deadline")
     if result.get("original_parameters", {}).get("unchanged") is not True:
         raise FitError("complete result lacks frozen-original proof")
@@ -1030,13 +1125,15 @@ def _partial_generation_calls(run: Path) -> list[dict[str, Any]]:
     calls = []
     for mode in ("base", "adapter"):
         path = Path(run) / f"generation-{mode}.json"
+        stage_path = Path(run) / f"stage-generation_{mode}.json"
         if not path.is_file():
+            started = stage_path.is_file()
             calls.append(
                 {
                     "mode": mode,
-                    "status": "UNAVAILABLE",
+                    "status": "UNAVAILABLE" if started else "NOT_ATTEMPTED",
                     "receipt_path": None,
-                    "generated_ids_available": False,
+                    "generated_ids_available": None if started else False,
                 }
             )
             continue
@@ -1120,14 +1217,17 @@ def supervise_child(
                     now = clock()
                     stage = _current_stage(run)
                     deadline = work_deadline
-                    if stage and stage.get("status") == "INTENT":
+                    if stage and stage.get("status") in {
+                        "INTENT",
+                        "COMPLETION_PENDING",
+                    }:
                         candidate = stage.get("hard_deadline_monotonic")
                         if type(candidate) in (int, float) and math.isfinite(candidate):
                             deadline = min(deadline, float(candidate))
                     if now >= deadline:
                         stage_deadline_active = bool(
                             stage
-                            and stage.get("status") == "INTENT"
+                            and stage.get("status") in {"INTENT", "COMPLETION_PENDING"}
                             and deadline < work_deadline
                         )
                         timed_out_stage = (
@@ -1286,7 +1386,7 @@ def run_fit(
             "overall_deadline_monotonic": overall_deadline_monotonic,
         },
     )
-    _publish_stage(
+    training_intent = _publish_stage(
         run,
         "training",
         "INTENT",
@@ -1294,6 +1394,11 @@ def run_fit(
         updates=54,
     )
     try:
+        if (
+            training_intent["publication_observed_monotonic"]
+            > training_deadline_monotonic
+        ):
+            raise FitError("training intent publication exceeded its deadline")
         bindings, rows = validate_artifacts(verify_base_files=True)
         schedule = build_schedule(rows)
         _guard_deadline(training_deadline_monotonic, "ML runtime import")
@@ -1478,7 +1583,7 @@ def run_fit(
             updates=54,
             adapter_roundtrip_exact=True,
         )
-        if training_completion["monotonic"] > training_deadline_monotonic:
+        if not _stage_completed_within_deadline(training_completion):
             raise FitError("training stage publication exceeded its deadline")
         pair = run_generation_pair(
             run,
@@ -1502,7 +1607,10 @@ def run_fit(
             "INTENT",
             hard_deadline=overall_deadline_monotonic,
         )
-        if cleanup_intent["monotonic"] > overall_deadline_monotonic:
+        if (
+            cleanup_intent["publication_observed_monotonic"]
+            > overall_deadline_monotonic
+        ):
             raise FitError("cleanup stage publication exceeded the working deadline")
         del optimizer
         del model
@@ -1514,14 +1622,19 @@ def run_fit(
             "COMPLETE",
             hard_deadline=overall_deadline_monotonic,
         )
-        if cleanup_completion["monotonic"] > overall_deadline_monotonic:
+        if not _stage_completed_within_deadline(cleanup_completion):
             raise FitError("cleanup completion exceeded the working deadline")
-        _publish_stage(
+        finalization_intent = _publish_stage(
             run,
             "finalization",
             "INTENT",
             hard_deadline=overall_deadline_monotonic,
         )
+        if (
+            finalization_intent["publication_observed_monotonic"]
+            > overall_deadline_monotonic
+        ):
+            raise FitError("finalization intent exceeded the working deadline")
         generation_references = _generation_references(run)
         generation_summary = {
             "status": pair["status"],
@@ -1576,7 +1689,7 @@ def run_fit(
             "COMPLETE",
             hard_deadline=overall_deadline_monotonic,
         )
-        if finalization["monotonic"] > overall_deadline_monotonic:
+        if not _stage_completed_within_deadline(finalization):
             raise FitError("result publication exceeded the working deadline")
         return 0
     except BaseException as exc:
@@ -1690,9 +1803,13 @@ def make_plan(run: Path) -> dict[str, Any]:
         "generation_stage_seconds": int(GENERATION_STAGE_SECONDS),
         "termination_reserve_seconds": int(TERMINATION_RESERVE_SECONDS),
         "outer_observer_required": True,
+        "outer_observer_enforces_initial_training_stage": True,
         "outer_observer_contract": (
-            "Root must time and bound the complete supervisor process through final "
-            "lifecycle publication and exit."
+            "Root must start its observer before supervisor launch and enforce the "
+            "1,220-second initial training deadline from that launch through "
+            "pre-child qualification and durable training completion. It must also "
+            "bound the complete supervisor process through final lifecycle "
+            "publication and exit at 2,400 seconds."
         ),
         "child_command": [
             str(ROOT / ".venv/bin/python"),

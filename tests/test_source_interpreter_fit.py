@@ -156,17 +156,6 @@ class FakeLayer:
         self.active_adapters = ["roundtrip"]
 
 
-class FakeGenerationConfig:
-    def to_dict(self):
-        return {
-            "do_sample": True,
-            "eos_token_id": [151645, 151643],
-            "temperature": 0.6,
-            "top_k": 20,
-            "top_p": 0.95,
-        }
-
-
 class FakeOutput:
     def __init__(self, ids):
         self.sequences = FakeTensor([ids])
@@ -181,12 +170,29 @@ class FakeTokenizer:
 
 class FakeModel:
     def __init__(self, suffixes):
+        from transformers import GenerationConfig
+
         self.layer = FakeLayer()
         self.suffixes = list(suffixes)
         self.calls = []
-        self.generation_config = FakeGenerationConfig()
-        self.config = type("Config", (), {"use_cache": False})()
+        self.generation_config = GenerationConfig(
+            do_sample=True,
+            eos_token_id=[151645, 151643],
+            pad_token_id=151643,
+            temperature=0.6,
+            top_k=20,
+            top_p=0.95,
+        )
+        self.config = type(
+            "Config",
+            (),
+            {
+                "use_cache": False,
+                "_get_generation_parameters": lambda _self: {},
+            },
+        )()
         self.checkpointing_disabled = False
+        self.native_resolution_calls = []
 
     def modules(self):
         return [self, self.layer]
@@ -225,6 +231,20 @@ class FakeModel:
             criterion(None, None)
         return FakeOutput(kwargs["input_ids"].values[0] + suffix)
 
+    def _prepare_generation_config(self, generation_config, **kwargs):
+        from transformers.generation.utils import GenerationMixin
+
+        self.native_resolution_calls.append("config")
+        return GenerationMixin._prepare_generation_config(
+            self, generation_config, **kwargs
+        )
+
+    def _prepare_generated_length(self, **kwargs):
+        from transformers.generation.utils import GenerationMixin
+
+        self.native_resolution_calls.append("length")
+        return GenerationMixin._prepare_generated_length(self, **kwargs)
+
 
 def _generation_row():
     return {
@@ -232,7 +252,7 @@ def _generation_row():
         "conversation_id": "conversation-4",
         "query_index": 2,
         "query_message_id": "q14",
-        "prefix_ids": [10, 11, 12],
+        "prefix_ids": [10, 11, 12] + [13] * 2963,
         "target_ids": [99],
         "target_with_eos_ids": [99, fit.EOS_TOKEN_ID],
         "labels": [-100, -100, -100, 99, fit.EOS_TOKEN_ID],
@@ -255,12 +275,13 @@ def _json_suffix(*, trailing=False, eos=True):
 
 def test_pair_uses_prefix_only_and_exact_modes_kwargs_while_retaining_invalid(tmp_path):
     model = FakeModel([_json_suffix(trailing=True), _json_suffix()])
+    row = _generation_row()
     pair = fit.run_generation_pair(
         tmp_path,
         model=model,
         tokenizer=FakeTokenizer(),
         torch=FakeTorch(),
-        row=_generation_row(),
+        row=row,
         adapter_name="roundtrip",
         stopping_list=lambda values: values,
         deadline_seconds=300,
@@ -273,8 +294,8 @@ def test_pair_uses_prefix_only_and_exact_modes_kwargs_while_retaining_invalid(tm
     assert model.checkpointing_disabled is True
     for call in model.calls:
         kwargs = call["kwargs"]
-        assert kwargs["input_ids"].values == [[10, 11, 12]]
-        assert kwargs["attention_mask"].values == [[1, 1, 1]]
+        assert kwargs["input_ids"].values == [row["prefix_ids"]]
+        assert kwargs["attention_mask"].values == [[1] * 2966]
         assert "labels" not in kwargs and "target_ids" not in kwargs
         assert "past_key_values" not in kwargs
         assert kwargs["do_sample"] is False
@@ -283,6 +304,17 @@ def test_pair_uses_prefix_only_and_exact_modes_kwargs_while_retaining_invalid(tm
         assert kwargs["pad_token_id"] == fit.PAD_TOKEN_ID
         assert kwargs["logits_to_keep"] == 1
     first, second = pair["calls"]
+    assert model.native_resolution_calls == ["config", "length", "config", "length"]
+    assert first["inherited_generation_config"]["max_length"] is None
+    assert first["inherited_generation_config"]["min_length"] is None
+    assert first["inherited_generation_config"]["repetition_penalty"] is None
+    assert first["resolved_generation_config"]["min_length"] == 0
+    assert first["resolved_generation_config"]["repetition_penalty"] == 1.0
+    assert first["resolved_generation_config"]["max_length"] == 5014
+    assert first["explicit_forward_arguments"] == {"logits_to_keep": 1}
+    assert first["explicit_control_arguments"] == {"synced_gpus": False}
+    assert "logits_to_keep" not in first["explicit_generation_config_arguments"]
+    assert "synced_gpus" not in first["explicit_generation_config_arguments"]
     assert first["strict_output"]["valid"] is False
     assert "trailing" in first["decoded_text"]
     assert first["generated_ids"][-1] == fit.EOS_TOKEN_ID
@@ -299,7 +331,7 @@ def test_generation_deadline_or_exception_stops_second_call_without_fabrication(
 
         def __call__(self):
             self.calls += 1
-            return 0.0 if self.calls <= 2 else 301.0
+            return 0.0 if self.calls <= 4 else 301.0
 
     deadline_model = FakeModel([_json_suffix(eos=False), _json_suffix()])
     pair = fit.run_generation_pair(
@@ -362,6 +394,54 @@ def test_returned_cap_is_retained_and_does_not_block_fixed_second_call(tmp_path)
     assert pair["calls"][1]["strict_output"]["valid"] is True
 
 
+def test_late_completion_publication_stops_pair_before_second_call(
+    tmp_path, monkeypatch
+):
+    class MutableClock:
+        now = 0.0
+
+        def __call__(self):
+            return self.now
+
+    clock = MutableClock()
+    original_write = fit._write_json
+    delayed = False
+
+    def write(path, value):
+        nonlocal delayed
+        original_write(path, value)
+        if (
+            not delayed
+            and Path(path).name == "stage-generation_base.json"
+            and value.get("status") == "COMPLETE"
+        ):
+            delayed = True
+            clock.now = 301.0
+
+    monkeypatch.setattr(fit, "_write_json", write)
+    model = FakeModel([_json_suffix(), _json_suffix()])
+    pair = fit.run_generation_pair(
+        tmp_path,
+        model=model,
+        tokenizer=FakeTokenizer(),
+        torch=FakeTorch(),
+        row=_generation_row(),
+        adapter_name="roundtrip",
+        stopping_list=lambda values: values,
+        deadline_seconds=300,
+        clock=clock,
+    )
+    assert pair["status"] == "INCOMPLETE_DEADLINE"
+    assert len(model.calls) == 1
+    assert pair["calls"][0]["stop_facts"]["deadline_reached"] is True
+    stage = json.loads((tmp_path / "stage-generation_base.json").read_text())
+    assert stage["status"] == "DEADLINE"
+    assert stage["completion_records_observed_monotonic"] == 301.0
+    current = json.loads((tmp_path / "current-stage.json").read_text())
+    assert current["stage"] == "generation-base"
+    assert current["status"] == "COMPLETION_PENDING"
+
+
 def _child_script(tmp_path: Path, body: str) -> list[str]:
     path = tmp_path / (hashlib.sha256(body.encode()).hexdigest()[:10] + ".py")
     path.write_text(body, encoding="utf-8")
@@ -402,11 +482,49 @@ def test_supervisor_hung_stage_reaps_only_owned_child_and_preserves_unknown(tmp_
         assert lifecycle["child_exit_confirmed"] is True
         assert lifecycle["updates"] is None
         assert lifecycle["pending_or_unknown_steps"] == [0]
+        assert [call["status"] for call in lifecycle["generation_calls"]] == [
+            "NOT_ATTEMPTED",
+            "NOT_ATTEMPTED",
+        ]
         assert foreign.poll() is None
         assert not flag.exists()
     finally:
         foreign.terminate()
         foreign.wait(timeout=2)
+
+
+def test_supervisor_base_hard_stop_marks_only_started_call_unavailable(tmp_path):
+    run = tmp_path / "run-base-hung"
+    run.mkdir()
+    flag = tmp_path / "RUNNING.flag"
+    flag.write_text("owned", encoding="utf-8")
+    body = (
+        "import json,pathlib,sys,time\n"
+        "run=pathlib.Path(sys.argv[1])\n"
+        "deadline=time.monotonic()+0.2\n"
+        "stage={'stage':'generation-base','status':'INTENT',"
+        "'hard_deadline_monotonic':deadline}\n"
+        "(run/'stage-generation_base.json').write_text(json.dumps(stage))\n"
+        "(run/'current-stage.json').write_text(json.dumps(stage))\n"
+        "time.sleep(30)\n"
+    )
+    code, lifecycle = fit.supervise_child(
+        run,
+        _child_script(tmp_path, body) + [str(run)],
+        run_flag=flag,
+        pid_registry=tmp_path / "pids",
+        reservation_seconds=3,
+        termination_reserve_seconds=1,
+        poll_seconds=0.03,
+    )
+    assert code == 2
+    assert lifecycle["timed_out_stage"] == "generation-base"
+    assert [call["status"] for call in lifecycle["generation_calls"]] == [
+        "UNAVAILABLE",
+        "NOT_ATTEMPTED",
+    ]
+    assert lifecycle["generation_calls"][0]["generated_ids_available"] is None
+    assert not flag.exists()
 
 
 def test_missing_final_result_cannot_pass_and_publication_tail_is_explicit(tmp_path):
@@ -467,6 +585,8 @@ def test_import_dry_and_direct_qualification_do_not_load_ml_or_create_run(tmp_pa
     plan = json.loads(dry.stdout)
     assert plan["execute"] is False
     assert plan["outer_observer_required"] is True
+    assert plan["outer_observer_enforces_initial_training_stage"] is True
+    assert "before supervisor launch" in plan["outer_observer_contract"]
     assert plan["training_stage_seconds"] == 1220
     assert plan["generation_stage_seconds"] == 300
     assert not run.exists()
