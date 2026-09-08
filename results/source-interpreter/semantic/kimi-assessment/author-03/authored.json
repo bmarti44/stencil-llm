@@ -1,0 +1,393 @@
+{
+  "judgments": [
+    {
+      "response_id": "730f7e29c1ceb81d6a9c9928",
+      "structural_completion": "CAP_FAILURE",
+      "defects": {
+        "omission": "NOT_ASSESSED",
+        "unsupported_addition": "NOT_ASSESSED",
+        "wrong_authority": "NOT_ASSESSED",
+        "wrong_scope_condition_exception": "NOT_ASSESSED",
+        "wrong_modality": "NOT_ASSESSED",
+        "stale_or_premature_reinstatement": "NOT_ASSESSED",
+        "citation_error": "NOT_ASSESSED"
+      },
+      "evidence": [
+        {
+          "category": "structural_failure",
+          "source_ids": [],
+          "explanation": "Returned answer is a long run of repeated empty {\"obligations\":[]} lines truncated mid-record (final text ends '{\"obligations'); recorded structural facts: invalid format, capped, no terminal EOS. Per protocol the cap is marked, the prefix is not salvaged, and semantic categories are NOT_ASSESSED."
+        }
+      ],
+      "complete_current_focus": "FAIL",
+      "reference_defect": null,
+      "unresolved_ambiguity": null
+    },
+    {
+      "response_id": "c992927a9102b3daaa7b2129",
+      "structural_completion": "CAP_FAILURE",
+      "defects": {
+        "omission": "NOT_ASSESSED",
+        "unsupported_addition": "NOT_ASSESSED",
+        "wrong_authority": "NOT_ASSESSED",
+        "wrong_scope_condition_exception": "NOT_ASSESSED",
+        "wrong_modality": "NOT_ASSESSED",
+        "stale_or_premature_reinstatement": "NOT_ASSESSED",
+        "citation_error": "NOT_ASSESSED"
+      },
+      "evidence": [
+        {
+          "category": "structural_failure",
+          "source_ids": [],
+          "explanation": "Returned answer is a run of repeated empty {\"obligations\":[]} lines cut off mid-record ('{\"obligations'); recorded structural facts: invalid format, capped, no terminal EOS. Structural failure marked; semantics NOT_ASSESSED per protocol."
+        }
+      ],
+      "complete_current_focus": "FAIL",
+      "reference_defect": null,
+      "unresolved_ambiguity": null
+    },
+    {
+      "response_id": "668f323d0f9e62e1eacd0be1",
+      "structural_completion": "COMPLETE",
+      "defects": {
+        "omission": "ABSENT",
+        "unsupported_addition": "ABSENT",
+        "wrong_authority": "ABSENT",
+        "wrong_scope_condition_exception": "ABSENT",
+        "wrong_modality": "ABSENT",
+        "stale_or_premature_reinstatement": "ABSENT",
+        "citation_error": "ABSENT"
+      },
+      "evidence": [],
+      "complete_current_focus": "PASS",
+      "reference_defect": null,
+      "unresolved_ambiguity": null
+    },
+    {
+      "response_id": "4335f43090e2c44f384a9e9a",
+      "structural_completion": "COMPLETE",
+      "defects": {
+        "omission": "PRESENT",
+        "unsupported_addition": "ABSENT",
+        "wrong_authority": "ABSENT",
+        "wrong_scope_condition_exception": "ABSENT",
+        "wrong_modality": "ABSENT",
+        "stale_or_premature_reinstatement": "ABSENT",
+        "citation_error": "ABSENT"
+      },
+      "evidence": [
+        {
+          "category": "omission",
+          "source_ids": [
+            "m01",
+            "m04"
+          ],
+          "explanation": "Standing environment rule missing: target Python 3.12 with dependencies limited to the standard library plus numpy; the geopandas suggestion was declined in m04, so numpy-only stands."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m08"
+          ],
+          "explanation": "Settled RI change missing: overlapping 30 m windows with a 15 m hop, segment RI as the median across windows, and whole-number RI, replacing the retired non-overlapping 60 m / one-decimal rule from m01."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m04"
+          ],
+          "explanation": "Missing rule that compute_rumble_index hands back the raw value even above 100, with clamping to [0, 100] belonging to the report layer and never to scoring code."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m01"
+          ],
+          "explanation": "Missing naming conventions: snake_case everywhere and a compute_ prefix on every metric-producing function."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m05"
+          ],
+          "explanation": "Missing working agreement: the assistant may write only to scratch/notes.md when a spec change settles; all other changes are proposed in chat and applied by the user; and the assistant never runs git commands, not even status."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m03",
+            "m04"
+          ],
+          "explanation": "Missing clarification that the repo-doctor 'write tests before any implementation' line is cookiecutter boilerplate, not a project rule; the project prototypes first and backfills tests later."
+        }
+      ],
+      "complete_current_focus": "FAIL",
+      "reference_defect": null,
+      "unresolved_ambiguity": null
+    },
+    {
+      "response_id": "3a7d1f46bbe7cf8a9a5136e5",
+      "structural_completion": "COMPLETE",
+      "defects": {
+        "omission": "PRESENT",
+        "unsupported_addition": "ABSENT",
+        "wrong_authority": "PRESENT",
+        "wrong_scope_condition_exception": "ABSENT",
+        "wrong_modality": "ABSENT",
+        "stale_or_premature_reinstatement": "PRESENT",
+        "citation_error": "ABSENT"
+      },
+      "evidence": [
+        {
+          "category": "stale_or_premature_reinstatement",
+          "source_ids": [
+            "m01",
+            "m08",
+            "m14"
+          ],
+          "explanation": "The retired m01 rule 'computed per non-overlapping 60 m window ... 0-100 ... rounded to one decimal' is listed twice as a standing rule alongside the current m08/m14 rules; m08 dropped the 60 m non-overlapping windowing and blanket one-decimal rounding, and m14 reinstated one decimal for the HTML display layer only. Supersession is not marked."
+        },
+        {
+          "category": "stale_or_premature_reinstatement",
+          "source_ids": [
+            "m10",
+            "m14"
+          ],
+          "explanation": "One item asserts that below 0.55 the caller receives 'unknown' (m10), while another correctly states the gate moved to 0.6 (m14); both thresholds are presented as if concurrently standing, so the retired 0.55 gate is stale."
+        },
+        {
+          "category": "stale_or_premature_reinstatement",
+          "source_ids": [
+            "m01",
+            "m17"
+          ],
+          "explanation": "The blanket m01 statement 'every metric-producing function gets a compute_ prefix' is listed unqualified although m17 narrowed compute_ to metric-producing functions in the roughness module (classifier side uses predict_); the unscoped m01 version no longer stands as stated."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m01",
+            "m04"
+          ],
+          "explanation": "No Python 3.12 / standard library plus numpy-only rule appears, including the declined geopandas dependency."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m04"
+          ],
+          "explanation": "The raw-value rule is absent: scoring returns RI possibly above 100 and clamping to [0, 100] belongs to the report layer, never scoring code. The answer's fragment citing m19 mentions the clamp only as part of the task question, not as the settled rule."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m17"
+          ],
+          "explanation": "The predict_ prefix for classifier-side functions is omitted; only the report-layer naming half of m17 (no special prefix, plain descriptive names) is reproduced."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m10"
+          ],
+          "explanation": "The reserved 'cobble' label rule (kept in the enum, nothing may emit it until cobble data is collected) is absent."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m05"
+          ],
+          "explanation": "The scratch/notes.md-only write permission, propose-in-chat for all other changes with the user applying edits, and the absolute prohibition on running git are absent."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m11",
+            "m13"
+          ],
+          "explanation": "The adopted classifier features (spectral band powers over 4-40 Hz from the vertical acceleration axis, bands 4-10/10-20/20-40 Hz) and the rule that artifacts load from a local path in gravel_lens.toml with autofetch declined are absent; only the bare 'no network access at runtime' appears."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m03",
+            "m04"
+          ],
+          "explanation": "The cookiecutter test-boilerplate disclaimer (prototype first, backfill tests later) is absent."
+        },
+        {
+          "category": "wrong_authority",
+          "source_ids": [
+            "m18"
+          ],
+          "explanation": "The item 'The report layer is the last piece waiting to be wired' is an assistant status remark from m18, not a user instruction or settled rule; inert assistant text is presented as a standing obligation."
+        }
+      ],
+      "complete_current_focus": "FAIL",
+      "reference_defect": null,
+      "unresolved_ambiguity": null
+    },
+    {
+      "response_id": "ee873d11812a3601ac2681bd",
+      "structural_completion": "COMPLETE",
+      "defects": {
+        "omission": "PRESENT",
+        "unsupported_addition": "ABSENT",
+        "wrong_authority": "PRESENT",
+        "wrong_scope_condition_exception": "ABSENT",
+        "wrong_modality": "ABSENT",
+        "stale_or_premature_reinstatement": "PRESENT",
+        "citation_error": "PRESENT"
+      },
+      "evidence": [
+        {
+          "category": "citation_error",
+          "source_ids": [
+            "m02",
+            "m01"
+          ],
+          "explanation": "The RI windowing/rounding rule (non-overlapping 60 m windows, one decimal, '100 is the roughest surface we've logged') is cited to m02; the rule is user m01's, and m02's proposal echo does not contain the one-decimal or 'roughest logged' parts."
+        },
+        {
+          "category": "citation_error",
+          "source_ids": [
+            "m03",
+            "m04"
+          ],
+          "explanation": "The 'cookiecutter boilerplate, not one of our rules - we prototype first and backfill tests later' item is cited to m03 alone; that disclaimer and the prototype-first practice exist only in user m04 (m03 is the tool output showing the boilerplate line)."
+        },
+        {
+          "category": "citation_error",
+          "source_ids": [
+            "m06",
+            "m09"
+          ],
+          "explanation": "The smoke-test-expectation item quotes text from assistant m09 but cites m06, which does not contain it."
+        },
+        {
+          "category": "citation_error",
+          "source_ids": [
+            "m07",
+            "m10"
+          ],
+          "explanation": "A classifier label/confidence/0.55 item is cited to m07 (pytest tool output); the rule is in m10. m07 does not support the claim at all."
+        },
+        {
+          "category": "citation_error",
+          "source_ids": [
+            "m08",
+            "m10",
+            "m14"
+          ],
+          "explanation": "A 0.6-gate classifier item cites m08 (the RI windowing change); the 0.6 threshold comes from m14 and the label-plus-confidence contract from m10."
+        },
+        {
+          "category": "citation_error",
+          "source_ids": [
+            "m09",
+            "m08"
+          ],
+          "explanation": "The 30 m / 15 m hop / median RI rule cites assistant echo m09; m09 repeats the content but the governing user instruction is m08, and the answer's citation pattern here and elsewhere is systematically shifted off the source message."
+        },
+        {
+          "category": "citation_error",
+          "source_ids": [
+            "m10",
+            "m14"
+          ],
+          "explanation": "A duplicate classifier item citing m10 asserts the 0.6 threshold; m10 states 0.55, so m10 does not support the 0.6 claim."
+        },
+        {
+          "category": "citation_error",
+          "source_ids": [
+            "m11",
+            "m13"
+          ],
+          "explanation": "The spectral-features rule cites the proposal message m11 only; its standing as an adopted instruction comes from m13 ('exactly the direction I wanted - adopted'), so the cited message does not support the claim as a current obligation."
+        },
+        {
+          "category": "citation_error",
+          "source_ids": [
+            "m15",
+            "m16",
+            "m18",
+            "m19",
+            "m17"
+          ],
+          "explanation": "Four copies of the m17 naming statement are cited to m15, m16 (tool output), m18 and m19 respectively; none of those contains the quoted naming text. Only m17 (used once, correctly) supports it."
+        },
+        {
+          "category": "stale_or_premature_reinstatement",
+          "source_ids": [
+            "m01",
+            "m08",
+            "m14"
+          ],
+          "explanation": "The retired non-overlapping 60 m / one-decimal RI rule is listed as current alongside the updated 30 m / 15 m hop / median rule, with no supersession marked."
+        },
+        {
+          "category": "stale_or_premature_reinstatement",
+          "source_ids": [
+            "m10",
+            "m14"
+          ],
+          "explanation": "The 0.55 unknown gate is listed as a current rule while duplicates elsewhere state the 0.6 gate; m14 moved the threshold, so the 0.55 statement is stale."
+        },
+        {
+          "category": "stale_or_premature_reinstatement",
+          "source_ids": [
+            "m01",
+            "m17"
+          ],
+          "explanation": "The blanket m01 claim that every metric-producing function gets a compute_ prefix is presented unqualified; m17 narrowed compute_ to roughness-module metric functions and assigned predict_ to the classifier (that narrowing is itself omitted)."
+        },
+        {
+          "category": "wrong_authority",
+          "source_ids": [
+            "m09"
+          ],
+          "explanation": "The smoke-test-expectation item is inert assistant commentary ('that's on your side of the fence, but I flagged it in notes'), not a user instruction; presenting it as a standing obligation misattributes authority."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m08",
+            "m14"
+          ],
+          "explanation": "No RI rounding rule appears at all: whole numbers for the JSON export and anything computed/stored, with one-decimal RI reinstated only for the human HTML report (m14's partial walk-back of m08) is entirely missing."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m10"
+          ],
+          "explanation": "The reserved 'cobble' enum rule is absent, and the four live labels per 30 m window (asphalt, chipseal, gravel, dirt) are never enumerated."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m17"
+          ],
+          "explanation": "m17's naming scheme is incomplete: the compute_-only-for-roughness-metrics scoping and the predict_ classifier prefix are missing (only the report-layer sentence is reproduced)."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m13"
+          ],
+          "explanation": "No network rule appears at all: 'no network access at runtime' as a standing rule, artifacts loading from a local path set in gravel_lens.toml, and the decline of autofetch are all absent."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m05"
+          ],
+          "explanation": "m05 is captured only partially: the notes.md write permission is listed, but the constraint that everything else stays propose-in-chat with the user applying edits, and the absolute ban on running git commands, are missing."
+        }
+      ],
+      "complete_current_focus": "FAIL",
+      "reference_defect": null,
+      "unresolved_ambiguity": null
+    }
+  ]
+}

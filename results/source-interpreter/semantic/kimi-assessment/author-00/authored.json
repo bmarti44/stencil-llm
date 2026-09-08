@@ -1,0 +1,226 @@
+{
+  "judgments": [
+    {
+      "response_id": "bfbd8d6a65c1b2697a1bade1",
+      "structural_completion": "COMPLETE",
+      "defects": {
+        "omission": "ABSENT",
+        "unsupported_addition": "ABSENT",
+        "wrong_authority": "ABSENT",
+        "wrong_scope_condition_exception": "ABSENT",
+        "wrong_modality": "ABSENT",
+        "stale_or_premature_reinstatement": "ABSENT",
+        "citation_error": "ABSENT"
+      },
+      "evidence": [
+        {
+          "category": "omission",
+          "source_ids": [
+            "m06",
+            "m10"
+          ],
+          "explanation": "Checked and absent: all five applicable items from the m10 replacement rule set are present (reason:str parameter with change_journal routing permanently replacing the retired audit_log rule; reinstated idempotency; date/time-only exactly pinned third-party dependencies; TideCast exemption with never-modify/never-wrap; conditional assign_berth() refactor permission). The m01 rules were retired in m06 and superseded by m10, so nothing else is owed."
+        },
+        {
+          "category": "wrong_modality",
+          "source_ids": [
+            "m10"
+          ],
+          "explanation": "Checked and absent: item 5 'Refactor the legacy assign_berth() function only if the existing dry-run fixtures still pass unchanged' preserves the conditional permission of m10 through 'only if'; it does not turn the option into an unconditional duty."
+        },
+        {
+          "category": "stale_or_premature_reinstatement",
+          "source_ids": [
+            "m06",
+            "m10"
+          ],
+          "explanation": "Checked and absent: the audit_log rule is correctly reported as staying retired, and idempotency is reported reinstated exactly as m10 states, no earlier."
+        },
+        {
+          "category": "unsupported_addition",
+          "source_ids": [
+            "m02",
+            "m03",
+            "m05",
+            "m09",
+            "m11"
+          ],
+          "explanation": "Checked and absent: nothing is adopted from the quoted wiki line (m03), the linter aggressive-merge suggestion (m05), or unadopted assistant proposals (m02, m04, m09, m11); every listed item traces to user message m10."
+        },
+        {
+          "category": "citation_error",
+          "source_ids": [
+            "m10"
+          ],
+          "explanation": "Checked and absent: each of the five items cites m10, and m10 supports each claim as stated."
+        }
+      ],
+      "complete_current_focus": "PASS",
+      "reference_defect": null,
+      "unresolved_ambiguity": null
+    },
+    {
+      "response_id": "20288c59685b1068df78bf59",
+      "structural_completion": "CAP_FAILURE",
+      "defects": {
+        "omission": "NOT_ASSESSED",
+        "unsupported_addition": "NOT_ASSESSED",
+        "wrong_authority": "NOT_ASSESSED",
+        "wrong_scope_condition_exception": "NOT_ASSESSED",
+        "wrong_modality": "NOT_ASSESSED",
+        "stale_or_premature_reinstatement": "NOT_ASSESSED",
+        "citation_error": "NOT_ASSESSED"
+      },
+      "evidence": [
+        {
+          "category": "structural_failure",
+          "source_ids": [],
+          "explanation": "Returned answer is a repeated '{\"obligations\":[]}' stub truncated mid-token with no terminal EOS (structural_facts: valid_format=false, capped=true, terminal_eos=false). Capped output fails; per the protocol the prefix is not salvaged and semantic categories are NOT_ASSESSED."
+        }
+      ],
+      "complete_current_focus": "FAIL",
+      "reference_defect": null,
+      "unresolved_ambiguity": null
+    },
+    {
+      "response_id": "d47a53cac40cd07cd1084538",
+      "structural_completion": "INVALID",
+      "defects": {
+        "omission": "NOT_ASSESSED",
+        "unsupported_addition": "NOT_ASSESSED",
+        "wrong_authority": "NOT_ASSESSED",
+        "wrong_scope_condition_exception": "NOT_ASSESSED",
+        "wrong_modality": "NOT_ASSESSED",
+        "stale_or_premature_reinstatement": "NOT_ASSESSED",
+        "citation_error": "NOT_ASSESSED"
+      },
+      "evidence": [
+        {
+          "category": "structural_failure",
+          "source_ids": [],
+          "explanation": "Answer text closes with a surplus brace (']}}'), so the returned text is not one valid JSON object (structural_facts: valid_format=false, capped=false, terminal_eos=true). Structurally invalid output fails; per the protocol the complete-looking prefix is not salvaged and semantic categories are NOT_ASSESSED."
+        }
+      ],
+      "complete_current_focus": "FAIL",
+      "reference_defect": null,
+      "unresolved_ambiguity": null
+    },
+    {
+      "response_id": "7b011d8df4c7c2c0f2f39893",
+      "structural_completion": "COMPLETE",
+      "defects": {
+        "omission": "ABSENT",
+        "unsupported_addition": "ABSENT",
+        "wrong_authority": "ABSENT",
+        "wrong_scope_condition_exception": "ABSENT",
+        "wrong_modality": "ABSENT",
+        "stale_or_premature_reinstatement": "ABSENT",
+        "citation_error": "ABSENT"
+      },
+      "evidence": [
+        {
+          "category": "omission",
+          "source_ids": [
+            "m01"
+          ],
+          "explanation": "Checked and absent: all three m01 standing rules are present with their substance intact (idempotent schedule-changing operations; audit_log entries with the responsible engineer's initials for every drydock/berth schedule mutation; stdlib-only, no third-party packages). Restating the immediate conflict-checker task is optional, so its absence is not an omission."
+        },
+        {
+          "category": "unsupported_addition",
+          "source_ids": [
+            "m01"
+          ],
+          "explanation": "Checked and absent: the answer lists only the three m01 rules and introduces no additional instruction; nothing is mislabeled as a standing rule."
+        },
+        {
+          "category": "wrong_modality",
+          "source_ids": [
+            "m01"
+          ],
+          "explanation": "Checked and absent: the items keep the source's mandatory modality ('must' / 'keep ... no third-party packages')."
+        },
+        {
+          "category": "citation_error",
+          "source_ids": [
+            "m01"
+          ],
+          "explanation": "Checked and absent: each item cites m01, which supports the claim made."
+        }
+      ],
+      "complete_current_focus": "PASS",
+      "reference_defect": null,
+      "unresolved_ambiguity": null
+    },
+    {
+      "response_id": "7f3ad15ba4dc55ccf7b1edae",
+      "structural_completion": "COMPLETE",
+      "defects": {
+        "omission": "ABSENT",
+        "unsupported_addition": "ABSENT",
+        "wrong_authority": "ABSENT",
+        "wrong_scope_condition_exception": "ABSENT",
+        "wrong_modality": "ABSENT",
+        "stale_or_premature_reinstatement": "ABSENT",
+        "citation_error": "ABSENT"
+      },
+      "evidence": [
+        {
+          "category": "omission",
+          "source_ids": [
+            "m06",
+            "m08"
+          ],
+          "explanation": "Checked and absent: at the m08 query all three m01 standing rules and the TideCast carve-out were retired in m06 ('no project-wide standing constraints of any kind'), and the m10 rule set has not yet been published, so there are no standing instructions to identify; nothing applicable is missing."
+        },
+        {
+          "category": "unsupported_addition",
+          "source_ids": [
+            "m08"
+          ],
+          "explanation": "Checked and absent: the single listed item faithfully restates the m08 immediate task requirements (every overlapping reservation pair within a caller-supplied window, ranked by overlap length then vessel length, two example invocations). Immediate current task restatement is explicitly optional, so its accurate inclusion is not an unsupported addition."
+        },
+        {
+          "category": "stale_or_premature_reinstatement",
+          "source_ids": [
+            "m05",
+            "m06"
+          ],
+          "explanation": "Checked and absent: no retired rule is revived, and the m05 linter 'aggressive-merge' suggestion is not adopted as an instruction; the answer claims no standing constraint."
+        },
+        {
+          "category": "citation_error",
+          "source_ids": [
+            "m08"
+          ],
+          "explanation": "Checked and absent: the item cites m08, which supports it."
+        }
+      ],
+      "complete_current_focus": "PASS",
+      "reference_defect": null,
+      "unresolved_ambiguity": null
+    },
+    {
+      "response_id": "2613f9d82159460e1b36b1e0",
+      "structural_completion": "CAP_FAILURE",
+      "defects": {
+        "omission": "NOT_ASSESSED",
+        "unsupported_addition": "NOT_ASSESSED",
+        "wrong_authority": "NOT_ASSESSED",
+        "wrong_scope_condition_exception": "NOT_ASSESSED",
+        "wrong_modality": "NOT_ASSESSED",
+        "stale_or_premature_reinstatement": "NOT_ASSESSED",
+        "citation_error": "NOT_ASSESSED"
+      },
+      "evidence": [
+        {
+          "category": "structural_failure",
+          "source_ids": [],
+          "explanation": "Returned answer is a repeated '{\"obligations\":[]}' stub truncated mid-token with no terminal EOS (structural_facts: valid_format=false, capped=true, terminal_eos=false). Capped output fails; per the protocol the prefix is not salvaged and semantic categories are NOT_ASSESSED."
+        }
+      ],
+      "complete_current_focus": "FAIL",
+      "reference_defect": null,
+      "unresolved_ambiguity": null
+    }
+  ]
+}

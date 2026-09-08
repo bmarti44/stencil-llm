@@ -1,0 +1,411 @@
+{
+  "judgments": [
+    {
+      "response_id": "f5515d436cb5ba43b60b0475",
+      "structural_completion": "COMPLETE",
+      "defects": {
+        "omission": "PRESENT",
+        "unsupported_addition": "ABSENT",
+        "wrong_authority": "ABSENT",
+        "wrong_scope_condition_exception": "ABSENT",
+        "wrong_modality": "ABSENT",
+        "stale_or_premature_reinstatement": "PRESENT",
+        "citation_error": "ABSENT"
+      },
+      "evidence": [
+        {
+          "category": "stale_or_premature_reinstatement",
+          "source_ids": [
+            "m15",
+            "m27"
+          ],
+          "explanation": "Answer item 2 lists 'Retire the 98% near-full alert...' (quoting m15) as a current standing instruction while item 7 separately lists the m27 log-only reinstatement. m27 superseded m15's retirement, so presenting the retire directive as live — alongside its own reversal — is a stale rule."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m03",
+            "m21"
+          ],
+          "explanation": "No item states the metric-only units constraint (liters and percent full; no gallons in firmware logs, MQTT payloads or dashboard) or its weekly-report exception (consumption only in kiloliters with one decimal)."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m03",
+            "m13",
+            "m14"
+          ],
+          "explanation": "The low-water alert at 15% full is never identified as a standing instruction (only the m05/m19 'don't change thresholds' rule appears, with no values), and the LOW_PCT=20 boot-banner junk caveat is absent."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m23"
+          ],
+          "explanation": "The demo-mode rule (suppress buzzer and dashboard banner for alerts while logging every alert as usual) is entirely absent."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m23",
+            "m33"
+          ],
+          "explanation": "The weekly report delivery spec — Sunday 18:00 email, plain-text body with optional HTML upgrade, unconditional CSV attachment — is absent; only the conditional frost and heavy-inflow lines appear."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m04",
+            "m05"
+          ],
+          "explanation": "Median-of-7 smoothing and the sensor watchdog, adopted at m05, are never stated; only the later window-adjustment refinement (m19) is quoted."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m07"
+          ],
+          "explanation": "MQTT topic-naming discretion plus the obligation to document the names in the README is absent."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m06",
+            "m08",
+            "m09"
+          ],
+          "explanation": "The adopted level-payload interface (ts, liters, pct, raw_mm, rssi; published retained so the dashboard renders on load) is absent."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m09"
+          ],
+          "explanation": "The 25 cm datasheet clearance sentence being reference-only (not a build requirement) is absent."
+        }
+      ],
+      "complete_current_focus": "FAIL",
+      "reference_defect": null,
+      "unresolved_ambiguity": null
+    },
+    {
+      "response_id": "731dbd8474694200c304c67e",
+      "structural_completion": "COMPLETE",
+      "defects": {
+        "omission": "PRESENT",
+        "unsupported_addition": "ABSENT",
+        "wrong_authority": "ABSENT",
+        "wrong_scope_condition_exception": "ABSENT",
+        "wrong_modality": "ABSENT",
+        "stale_or_premature_reinstatement": "ABSENT",
+        "citation_error": "ABSENT"
+      },
+      "evidence": [
+        {
+          "category": "omission",
+          "source_ids": [
+            "m03"
+          ],
+          "explanation": "The metric-only constraint — liters and percent full everywhere, no gallons in firmware logs, MQTT payloads or the dashboard — is never stated; listing the payload's liters/pct field names (item 1) does not identify this standing rule."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m03"
+          ],
+          "explanation": "The five-minute sampling cadence is absent from every item — a core standing instruction for the reading loop being built at this query."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m05"
+          ],
+          "explanation": "Only the threshold-approval half of the m05 standing rule appears (item 3); the affirmative permission to tune filtering and timing details as the project evolves is omitted."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m01",
+            "m03"
+          ],
+          "explanation": "The conversion basis is gestured at only as 'the tank's geometry'; the zero-depth reference (sensor face 2.05 m above the floor) and the 1.8 m diameter are never identified. Partial coverage; the clear omissions above already fail the answer."
+        }
+      ],
+      "complete_current_focus": "FAIL",
+      "reference_defect": null,
+      "unresolved_ambiguity": null
+    },
+    {
+      "response_id": "6f69c4fda4cfc3ba265b5a09",
+      "structural_completion": "COMPLETE",
+      "defects": {
+        "omission": "PRESENT",
+        "unsupported_addition": "ABSENT",
+        "wrong_authority": "PRESENT",
+        "wrong_scope_condition_exception": "ABSENT",
+        "wrong_modality": "PRESENT",
+        "stale_or_premature_reinstatement": "PRESENT",
+        "citation_error": "PRESENT"
+      },
+      "evidence": [
+        {
+          "category": "omission",
+          "source_ids": [
+            "m08",
+            "m09"
+          ],
+          "explanation": "Item 1 lists the payload fields as 'liters, pct, raw_mm, rssi', dropping ts from the adopted base field set."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m03"
+          ],
+          "explanation": "The metric-only / no-gallons units constraint across firmware logs, MQTT payloads and dashboard is never stated."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m15"
+          ],
+          "explanation": "The heavy_inflow replacement rule (set true when the level climbs more than 8 percentage points within an hour, clear once the rise settles) is entirely absent, although m15 introduced it as the replacement for the retired 98% alert."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m07"
+          ],
+          "explanation": "Topic-naming discretion with mandatory README documentation is absent."
+        },
+        {
+          "category": "stale_or_premature_reinstatement",
+          "source_ids": [
+            "m15",
+            "m16"
+          ],
+          "explanation": "Item 2 asserts the near-full alert 'must remain at 98% unless explicitly approved by the user' and then appends that it is retired; the 'must remain' claim was superseded by m15's retirement, making the item self-contradictory and stale."
+        },
+        {
+          "category": "stale_or_premature_reinstatement",
+          "source_ids": [
+            "m08",
+            "m15",
+            "m16"
+          ],
+          "explanation": "Item 6 still requires 'the 15% and 98% thresholds in a single config block at the top' even though the 98% threshold was retired at m15 and m16 confirms it is out everywhere."
+        },
+        {
+          "category": "wrong_authority",
+          "source_ids": [
+            "m08"
+          ],
+          "explanation": "Item 6 elevates the assistant's own m08 statement of intent (keeping thresholds in a single firmware config block) into a mandatory standing instruction; the user never requested or adopted it."
+        },
+        {
+          "category": "wrong_modality",
+          "source_ids": [
+            "m19"
+          ],
+          "explanation": "Item 8 says 'The firmware must allow the user to adjust the smoothing window size'; m19 grants that permission to the assistant ('you're now allowed to adjust ... when the noise warrants it — but never below 3 readings'), so the subject is reversed and a permission is recast as an obligation."
+        },
+        {
+          "category": "wrong_modality",
+          "source_ids": [
+            "m23"
+          ],
+          "explanation": "Item 4 states the report 'must be emailed ... in plain text'; m23 makes a plain-text body permitted ('Plain-text body is fine'), not mandatory."
+        },
+        {
+          "category": "wrong_modality",
+          "source_ids": [
+            "m21"
+          ],
+          "explanation": "Item 9 converts the m21 permission ('you may buffer readings on the device for up to 24 hours') into 'The system must buffer readings' — a permission-to-obligation shift. Minor instance of the same category."
+        },
+        {
+          "category": "citation_error",
+          "source_ids": [
+            "m03"
+          ],
+          "explanation": "Item 1 claims publication 'every five minutes' but cites m02, m04 and m08, none of which specify cadence; the supporting source is m03."
+        },
+        {
+          "category": "citation_error",
+          "source_ids": [
+            "m23"
+          ],
+          "explanation": "Item 4's Sunday-18:00, plain-text, CSV-attachment delivery claims cite m21 and m22, which do not contain them (m21 supports only the kiloliter clause); the actual source is m23."
+        }
+      ],
+      "complete_current_focus": "FAIL",
+      "reference_defect": null,
+      "unresolved_ambiguity": null
+    },
+    {
+      "response_id": "77025a744f53980f32d61103",
+      "structural_completion": "CAP_FAILURE",
+      "defects": {
+        "omission": "NOT_ASSESSED",
+        "unsupported_addition": "NOT_ASSESSED",
+        "wrong_authority": "NOT_ASSESSED",
+        "wrong_scope_condition_exception": "NOT_ASSESSED",
+        "wrong_modality": "NOT_ASSESSED",
+        "stale_or_premature_reinstatement": "NOT_ASSESSED",
+        "citation_error": "NOT_ASSESSED"
+      },
+      "evidence": [
+        {
+          "category": "structural_completion",
+          "source_ids": [],
+          "explanation": "Returned answer is capped: the text truncates mid-word ('...hysteres') inside a repeating template block and the JSON never closes (recorded structural facts: valid_format=false, capped=true, terminal_eos=false). Per protocol a capped answer fails wholesale with no prefix salvage; all seven semantic categories are NOT_ASSESSED."
+        }
+      ],
+      "complete_current_focus": "FAIL",
+      "reference_defect": null,
+      "unresolved_ambiguity": null
+    },
+    {
+      "response_id": "d02c59fdd9d702d07bcb22b3",
+      "structural_completion": "COMPLETE",
+      "defects": {
+        "omission": "PRESENT",
+        "unsupported_addition": "ABSENT",
+        "wrong_authority": "ABSENT",
+        "wrong_scope_condition_exception": "ABSENT",
+        "wrong_modality": "ABSENT",
+        "stale_or_premature_reinstatement": "ABSENT",
+        "citation_error": "ABSENT"
+      },
+      "evidence": [
+        {
+          "category": "omission",
+          "source_ids": [
+            "m03",
+            "m21"
+          ],
+          "explanation": "The metric-only units constraint (no gallons in logs, payloads, dashboard) and its weekly-report exception (consumption in kiloliters with one decimal) are absent; the m21 quote used covers only the buffer permission."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m03",
+            "m17"
+          ],
+          "explanation": "The five-minute normal cadence and the entire frost-watch rule (enter at ≤3 °C with 60-second sampling and frost_warning=true, exit above 4 °C) are absent."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m03",
+            "m13",
+            "m14"
+          ],
+          "explanation": "The 15% low-water alert is never identified as a standing instruction (thresholds appear only generically inside the no-change rule), and the LOW_PCT=20 boot-banner junk caveat is absent."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m15"
+          ],
+          "explanation": "The retirement of the 98% near-full alert and its heavy_inflow replacement (>8 percentage points within an hour, clearing on settle) are absent."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m04",
+            "m05"
+          ],
+          "explanation": "Median-of-7 smoothing and the sensor watchdog are never stated as standing design; the quoted window floor (m19) alone does not establish them."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m07"
+          ],
+          "explanation": "Topic-naming discretion with mandatory README documentation is absent."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m06",
+            "m08",
+            "m09"
+          ],
+          "explanation": "The adopted payload base field set (ts, liters, pct, raw_mm, rssi) and retained publication are absent."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m09"
+          ],
+          "explanation": "The 25 cm datasheet clearance being reference-only is absent."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m21",
+            "m23"
+          ],
+          "explanation": "Weekly report delivery — Sunday 18:00 email, plain-text-permitted body, CSV attachment of the week's samples — is absent; only the demo-mode half of m23 was quoted."
+        }
+      ],
+      "complete_current_focus": "FAIL",
+      "reference_defect": null,
+      "unresolved_ambiguity": null
+    },
+    {
+      "response_id": "1d58dc96fb2b1009eff7ed74",
+      "structural_completion": "COMPLETE",
+      "defects": {
+        "omission": "PRESENT",
+        "unsupported_addition": "ABSENT",
+        "wrong_authority": "ABSENT",
+        "wrong_scope_condition_exception": "ABSENT",
+        "wrong_modality": "ABSENT",
+        "stale_or_premature_reinstatement": "ABSENT",
+        "citation_error": "ABSENT"
+      },
+      "evidence": [
+        {
+          "category": "omission",
+          "source_ids": [
+            "m11"
+          ],
+          "explanation": "The single item merely restates the immediate work chunk ('build the firmware reading-and-publishing loop...'), citing every message m01–m11. Current-task restatement is optional and cannot substitute for identifying the standing instructions."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m03",
+            "m05"
+          ],
+          "explanation": "Absent: metric-only liters/percent units with no gallons in logs, payloads or dashboard; five-minute sampling cadence; the 15% low-water and 98% near-full alert thresholds; and the rule that threshold changes require user approval."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m01",
+            "m03",
+            "m04",
+            "m05"
+          ],
+          "explanation": "Absent: the conversion basis (1.8 m diameter cylinder; sensor face 2.05 m above the floor as zero-depth reference), and the adopted median-of-7 burst smoothing plus watchdog."
+        },
+        {
+          "category": "omission",
+          "source_ids": [
+            "m06",
+            "m07",
+            "m08",
+            "m09"
+          ],
+          "explanation": "Absent: topic-naming discretion with mandatory README documentation; the adopted payload field set ts/liters/pct/raw_mm/rssi published retained; and the 25 cm clearance sentence as reference-only quoted text."
+        }
+      ],
+      "complete_current_focus": "FAIL",
+      "reference_defect": null,
+      "unresolved_ambiguity": null
+    }
+  ]
+}
