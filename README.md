@@ -47,7 +47,12 @@ Sol corrected them, all 33 targeted tests pass, and Astra accepted the code at
 96/100 with no open findings. The staged run then stopped at its first reference-code checkpoint: one
 project packaged all eight test inputs incorrectly, so its reference failed
 all eight checks. Later stages and the coding comparison did not run. The bank
-is ineligible and stays closed; see the [stopped-run report](results/source-replay-staged/PREPARATION-RESULTS.md). No coding-benefit result is available. The stopped bank stays closed. See the
+is ineligible and stays closed; see the [stopped-run report](results/source-replay-staged/PREPARATION-RESULTS.md). No coding-benefit result is available.
+A separate final preparation protocol now has independent design acceptance. It
+allows one bounded Kimi correction pass for construction failures before any
+coding-agent evaluation, with source instructions and test coverage fixed. Sol
+is implementing that change; no new bank has been generated. See the
+[new protocol](results/source-replay-preparation-v2/PREPARATION.md). The stopped bank stays closed. See the
 [prospective protocol](results/source-replay-staged/PREPARATION.md) and its
 [design review](results/source-replay-staged/review-astra.md).
 Resume from the latest STATE entry in [the project ledger](plan/LEDGER.md).
