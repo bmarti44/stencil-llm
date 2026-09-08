@@ -2203,3 +2203,74 @@ frozen files or prompts. Launcher's review lock protects experiment from wrapper
 no review/coder wrapper or restorer is running. Parent ledger-only progress notes
 are outside the frozen source/input set. Final private/source/lifecycle acceptance
 remains pending; no claim of automaticfocus or largerproof.
+
+2026-09-08 — STATE: COMPETENCE RUN COMPLETE NO-GO; ACCURACY AUDIT AND TARGETED RESEARCH.
+Original session10707 terminalexit1, no relaunch. Lifecycle clean/evidencecomplete,
+816.136678seconds, driverexit1, ownedcontainerremoved, RUNNING.flagabsent,
+Docker/GPUcomputelistempty. Manifest COMPLETE,12terminalrequests/18render+18
+generationcalls, accountingcomplete, notechnicalfailures. Finite9/12requests,
+2/4projects;185public+209terminalprivatecheckexecutions;95528prompt+5777completion
+=101305tokens. Allthreefailedrequestsused3identicalsourcecandidates; repeated
+publicfeedbackdidnotrepairthem. summary.json recordsrawfiniteoutcomes pendingaudit.
+
+Astra independent sourceaudit confirmsoutline nestedhelper rejection plus wrong
+siblingnumbering andlaterstubpropagation; routefinaloutputwronglegschema. Italso
+finds sourceviolations in BOTH finitepassingprojects: labdilutiontrue accepted;
+stockopeningbool andexplicitallow_backorder:null accepted. Parent inspectedactual
+guards andindependentlyverified thesePythonsemantics againststatedcontracts.
+No extraexecutionorrescore. Thus2/4 meansfinitechecks only, notsourcecorrectness.
+Freeze/operatingpointremainNO-GO/parked; completeauditandarchive before nexttrial.
+
+Deep-research scope: identifyone materiallyjustified nextstep towardautomatic
+source-grounded focuswithoutchasinganunjustifiedperfectmanualbaseline ortraining
+onspentDEV. Twoindependentlanes: existinglocalworker thinking/tool/feedback
+interventions supportedbyfirstpartyevidence; methodology forimperfectmanual
+comparators, absoluteusefulness andfreshpairednoninferiority. No oldcase reruns,
+thresholdrelaxation/rescue, newmodeldownloads, paidAPI/compute, ornewgeneration
+authorizedbyresearch. Astraxhigh retrievescompactprimarysourceprovenance; parent
+verifies consequentialclaims, reconcilesoptions andwritesonecanonicalreport.
+Researchplan: discovery IN_PROGRESS; followupgapclosure, synthesis andartifact
+verification pending. update_plan tool unavailable (ALL_TOOLS lookupempty), so
+ledger carriesrequiredplan. Bounded6or fewerstrongprimarysourcesperlane; stopwhen
+evidencechanges nextaction or remaininggapexplicit. Parentcompletescurrentrun
+accuracy/archive whilelanesresearch. Fullgeneralizedfocus/largerproofgoalactive.
+
+Research orchestration note: worker_reliability_research Astraxhigh is active.
+Second methods-lane spawn and reactivation were rejected by agent threadlimit;
+no further retries. Parent is retrieving methodsprimarysources while Astra
+finishes currentrun sourceaudit; that reviewer can cross-check synthesis later.
+This is progress, not externalblock. update_plan remainsunavailable.
+
+CurrentrunAstraaudit verifies all18exactmessage/nativeexchanges,185public+209
+terminalchecks,101305tokens and16unchanged frozeninputs. Firstcall API description
+omitted no-nested-helper restriction; restriction did appear in actualrendered
+retryfeedback, which generatedidenticalcode. This qualification preventsclaiming
+thefirstsyntaxrejection purelyprovescodingincompetence; independentwrongnumbering
+andlaterignoredfeedback remain. Both finitepassingprojects containconfirmed
+sourcevalidationdefects; no fullysourcecorrectproject claim is supported.
+Raw terminal artifacts nowarchived separately frompendingfinalaudit/summary.
+
+2026-09-08 — STATE: COMPETENCE SOURCE AUDIT COMPLETE; NEXT-STEP SYNTHESIS IN REVIEW.
+Run-01 final Astra xhigh source audit is complete: technical/accounting PASS,
+competence NO-GO, all four projects contain source violations. Audit SHA
+f76e9c554ba73eff00afe63f529bfe1de6c85f9ffbc2880f7ea9faa6e896c315.
+RESULTS.md and summary.json now distinguish finite checks from source correctness.
+Raw receipts archived at1952af39; no old case replay, fitting or inference pending.
+
+User asked whether research uses Astra xhigh and whether work is stuck. Confirmed
+Astra xhigh research/review, Sol xhigh implementation, Kimi K3/Ollama data.
+Research narrowed the candidate to existing-checkpoint thinking plus documented
+sampling; this is progress, not external blocking. Parent completed methods
+retrieval under thread limit and independently spot-checked critical sources.
+Discovery and follow-up complete; synthesis review IN_PROGRESS, delivery pending.
+Canonical report: results/coding-competence/research-next/report-source.md.
+Existing competence_readiness_review now independently audits that report and
+terminal summary claims, writing only research-next/review-astra.md.
+
+Current observed effective completion rate5777/307.08357315306785=18.81246835/s
+supersedes old22.83897/s for illustrative sizing.36*1536/rate+780=3719.33s and
+36*2048/rate+780=4699.10s, both beyond3600; no sufficient thinking cap established.
+Prepare isolated CPU/native compatibility check before any fresh semantic run.
+No larger/new budget assumed; source-grounded automatic-focus/larger paired proof
+remains outstanding. Useful automated parity counts; no perfect-control universal
+requirement, but failed registered gate unchanged and spent DEV remains excluded.
