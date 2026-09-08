@@ -43,7 +43,7 @@ old-bank access, or implementation edit was performed.
 ### Findings
 
 **1. High — Incomplete execution is not excluded from the primary inference or
-automatic continuation decision.**
+automatic continuation decision.** (resolved in Round 2, 2026-09-08)
 
 Evidence: SEMANTIC lines 111–115 classify technical exceptions/deadlines as
 INCOMPLETE; lines 127–137 score unavailable responses as failures; lines 147–166
@@ -117,3 +117,45 @@ Round 1 stops here. Resolve finding `source-semantic#1` in the specification and
 return the delta to this same reviewer session. No additional general research,
 semantic data authoring, implementation, or experimental evidence is required
 to resolve it.
+
+## Round 2 — 2026-09-08
+
+Score: 96/100
+
+Decision: **accepted; zero open high/critical findings.** Finding
+`source-semantic#1` is resolved. No new findings or scope expansion.
+
+Same reviewer session, purpose and threat model. Reviewed the narrow delta at
+commit `1b940000c4728fd64df38259ada7f931955f59b0`, with SEMANTIC.md SHA256
+`d892196fc32ed1e670152dc5904a50bac854d78dda82222f4da95e4c6b2826e5`.
+The file bytes match that commit. Before this round's permitted closure marker
+and append, the review matched its recorded Round 1 SHA256 exactly.
+
+The new eligibility paragraph requires all 36 scheduled calls returned within
+the registered bounds, complete required evidence/cost accounting, and an
+eligible bank for **both** primary inference and the practical advancement
+decision. INCOMPLETE and INELIGIBLE explicitly block both, including when
+partial counts meet the numeric bar. Unknown or unattempted answers cannot be
+counted as observed losses; a reduced primary test and partial-result advancement
+are expressly prohibited. The earlier conflicting unavailable-as-failure wording
+has been removed. Thus Round 1's unattempted final-base counterexample cannot
+produce a qualifying sign test or screen pass under the corrected specification.
+
+Normally returned capped/malformed answers still count as observed failures and
+do not independently make execution incomplete. The correction therefore binds
+decision eligibility to complete evidence without requiring perfect semantic or
+structural performance. Qualified partial observations and costs remain
+reportable, preserving useful evidence from an honest stopped run.
+
+The only other specification change accurately updates the FIT audit status;
+its trained capped failure remains explicit. Candidates, settings, limits,
+cost estimate, bank definition, statistical test and 12/18-with-family-coverage
+threshold are unchanged. Authoring-plan SHA256 is now
+`ed9a0f86a80ac629ee41b35cbedf66243d664988c8dca49f7630f9955c22bda0`;
+its only change is the specification binding. All six request files match their
+previous committed bytes and registered hashes.
+
+This accepts the corrected prospective specification and unchanged authoring
+requests. It does not accept labels that have not yet been authored or qualify
+an unimplemented generation consumer for launch. No experiment, model/data call,
+network access, code edit, or test suite was performed in this delta review.
