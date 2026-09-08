@@ -75,3 +75,15 @@ correction totals1,047.464635998 seconds (about17.46minutes) and138,408 reported
 service tokens; independent review/orchestration costs are additional. The
 corrected targets still require final Astra acceptance. No target-model test
 has been run and no second correction batch is available under this plan.
+
+## Independent source/label acceptance addendum — 2026-09-08
+
+Astra round4 gives qualified acceptance at96/100 with zero open high/critical
+findings, canonical review SHA256
+`ab90cf6f282961b16521ce4a6f3648f9fd74ee713a1e394d92feec414996c859`. Findings#2–#5 are resolved;
+medium#6 remains the explicitly deferred mixed-packet limitation above.
+Exactly accepted original documents00/01/03 and corrected documents02/04/05
+were copied byte-for-byte to author-NN/reviewed.json, without parsing or
+reserialization. These canonical copies are the sole accepted packet for later
+CPU preparation. The earlier pending statements are historical; this addendum
+supplies label acceptance only, not model performance or launch permission.

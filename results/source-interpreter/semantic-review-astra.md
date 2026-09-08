@@ -216,7 +216,7 @@ unchanged originals in `semantic/author-NN/authored.json`. Corrections must be
 authored by Kimi from the frozen sources; the reviewer specifies defects and
 scope, not replacement gold prose.
 
-**2. High — Author 02 loses source restrictions in its later targets.**
+**2. High — Author 02 loses source restrictions in its later targets.** (resolved in Round 4, 2026-09-08)
 
 - Queries 1/m13 and 2/m19, obligation 0: m01 restricts legitimate playlist sources
   to the published on-air page and automation CSV exports. m09 replaces source
@@ -237,7 +237,7 @@ These are target omissions with clear source support. Neither requires a source
 edit, a new task, or a different interpretation of the earlier task-handle-bound
 Subterranean Frequencies exception.
 
-**3. High — Author 04's final target drops the active shorthand definitions.**
+**3. High — Author 04's final target drops the active shorthand definitions.** (resolved in Round 4, 2026-09-08)
 
 Query 2/msg-40, obligation 14, permits the six code tokens but no longer states
 which alteration each token denotes. msg-21 specifies HM/hem, TI/take-in,
@@ -248,7 +248,7 @@ outside it, and the stronger full-name requirement for EMERGENCY entries.
 The missing mappings are substantive instructions for using the permission,
 not a demand to match one particular target wording.
 
-**4. High — Author 05 omits the adopted level-payload interface from all targets.**
+**4. High — Author 05 omits the adopted level-payload interface from all targets.** (resolved in Round 4, 2026-09-08)
 
 Queries 0/m11, 1/m25 and 2/m37: m08 proposes the level payload fields `ts`,
 `liters`, `pct`, `raw_mm` and `rssi`; m09 explicitly accepts that payload.
@@ -261,7 +261,7 @@ later additions. This is a persistent interface convention, not a requirement
 to repeat the current programming algorithm or the assistant's unadopted
 implementation choices.
 
-**5. High — Author 05 narrows permission or strengthens obligation modality.**
+**5. High — Author 05 narrows permission or strengthens obligation modality.** (resolved in Round 4, 2026-09-08)
 
 - Queries 1/m25 and 2/m37: m05 permits tuning filtering **and timing** details.
   m19 refines smoothing discretion with a three-reading floor and repeats the
@@ -277,7 +277,7 @@ implementation choices.
   permission from m33 is already represented and must remain intact.
 
 **6. Medium — Author 04 is an operational-documentation conversation, not an
-explicit coding discussion as requested.**
+explicit coding discussion as requested.** (deferred with reviewer concurrence in Round 4, 2026-09-08)
 
 The source asks for a written wardrobe protocol, then revisions to versions 2
 and 3, and consults an alteration-log store. It never establishes a software
@@ -355,3 +355,104 @@ the output cap, or add a second correction cycle. Return the corrected targets
 and the explicit #6 disposition to this same reviewer session for a narrow
 verification. This review accepts neither the current defective labels nor a
 GPU launch, and does not reopen the training recipe or broader coding claim.
+
+## Round 4 — 2026-09-08 — corrected-target delta and scope qualification
+
+Score: 96/100
+
+Decision: **qualified source/label acceptance; zero open high/critical
+findings.** Findings #2–#5 are resolved, #1 remains resolved, and medium #6
+remains an explicitly deferred dataset limitation with reviewer concurrence.
+No new findings or additional correction cycle.
+
+The accepted packet consists of the unchanged original authors 00, 01 and 03
+from Round 3, plus these corrected full documents under
+`semantic/correction-01/author-NN/authored.json`:
+
+| Author | Corrected query indices | Accepted corrected-document SHA256 |
+| --- | --- | --- |
+| 02 | 1, 2 | `32d097cd35797a407b2c4f16f4413194cadefbe8660efd5dc10b497db1087019` |
+| 04 | 2 | `471703e2d13c54a3fe868d20f26ab00b418822bf7c038014a29d1ff5aaac15aa` |
+| 05 | 0, 1, 2 | `a02d8909a259568986a9eec3f837b4ee12fabbcf7783002afaf6cfd88e7c6d9c` |
+
+The correction plan was frozen at `e962c5ac`, SHA256
+`e799abbdffac2732dc1c02e0192748e1db14f063e7ae06fd1912a18bb1b75f46`.
+All three request bytes match that commit and manifest, quote their relevant
+Round 3 findings verbatim, and embed the complete corresponding original JSON
+object without changes. No root- or reviewer-authored replacement target was
+supplied. The returned corrections are archived at `2167571d`.
+
+Root reported exact session 22398 terminal with exit 0. Independently read
+terminal CORRECTED_UNREVIEWED job receipt SHA256
+`a27f7f931e5977fc42bc4ddaf93bd550900feb944dfa9a8146d4a5725ece8159`;
+owned PID 176629 is absent. All three immutable-source guards pass. Independent
+standard-library comparisons reproduce the guards: every original document file
+is unchanged; corrected documents preserve all source messages, metadata,
+query IDs and order; exactly six allowed target objects differ and the other
+twelve targets across the packet remain identical. Each corrected object equals
+the parsed raw Kimi response, and every request/response/response-text/document
+hash reconciles. Guard objects also agree with the terminal job record. Root's
+separate reconciliation SHA256
+`a6627dcf7bd045c837d190f889aace3653aa530795d7c7e447d84760f7ffc0fe`
+agrees with these checks and correctly labels itself provenance-only.
+
+The one correction batch cost 278.22715863899793 seconds with at most two
+overlapping recorded requests. Returned service counts total 17,734 prompt plus
+23,463 completion tokens, 41,197 combined. Original authoring plus correction
+therefore totals 1,047.4646359980106 seconds and 138,408 reported service tokens;
+review and orchestration costs are additional. No target-model or tokenizer
+measurement is inferred from these service counts.
+
+### Verified closures
+
+- **#2 resolved:** radio query 1 now retains the two-source playlist restriction,
+  the replacement timing/display precedence, and the narrow comments permission.
+  Query 2 retains the same baseline restriction and explicitly limits archive
+  aliases to Crate Digger's Assembly, excluding the two earlier queues and airing
+  times. Other target items and the source remain unchanged.
+- **#3 resolved:** the costume document's final target restores all six code/name
+  mappings from msg-21. The October 5–8 window, full names outside it, and the
+  unchanged stronger EMERGENCY naming condition remain intact. Only that
+  obligation changed in the final target.
+- **#4 resolved:** every sensor target now includes the adopted `ts`, `liters`,
+  `pct`, `raw_mm`, `rssi` level interface and retained publication, grounded in
+  m08/m09 and m11. Later targets preserve the existing separately grounded
+  heavy-inflow and frost additions rather than replacing the base interface.
+- **#5 resolved:** sensor queries 1 and 2 restore filtering/timing discretion
+  with the later restrictions, including the smoothing floor, threshold
+  sign-off and frost cadence. Query 1 now expressly treats plain text as
+  permitted, while retaining the Sunday delivery and CSV obligations. Query 2's
+  later conditional HTML permission remains unchanged. No material regression
+  was found in the changed targets.
+
+### Qualification and interpretation retained
+
+I concur with the prospective #6 disposition in `semantic/PREPARATION.md`.
+The frozen qualification SHA256 is
+`623e9b8737adc6f4def880adc0d591a23421a3c5446be92da8ad755875798a2f`,
+verified against its `e962c5ac` Git blob. The current file, SHA256
+`fd2d6bb80daa108497d4739bb1bd1792fd0ee5865ac003e52cecd038e1403d5c`,
+preserves that entire text and adds only a post-terminal execution/cost record.
+This is an intact historical launch binding, not a requirement that the live
+report never acquire an explicitly identified execution appendix.
+
+The accepted bank is **five fictional coding/firmware conversations plus one
+operational-documentation conversation**, retaining all six families, eighteen
+checkpoints and thirty-six planned calls. All settings, candidates, thresholds,
+inferential rules and cost bounds remain unchanged. The eventual primary
+measurement is limited to this mixed authored packet. Acceptance does not turn
+author 04 into a coding example or supply code correctness, manual-prose parity,
+or adequate larger coding evidence.
+
+The existing interpretation of supported current-task restatements remains:
+they are optional when they merely repeat the current programming request;
+their omission alone is not a standing-focus defect. Historical interface
+conventions, applicability, permissions and exceptions remain required. No
+exact-wording criterion or new scoring rule is introduced by this qualification.
+
+This closes the single permitted label-correction stage. CPU preparation and
+implementation qualification may use exactly the accepted packet above, under
+their existing scope. This review performed no tokenizer/model/GPU operation,
+code edit, test suite or scorer invocation and grants no inference launch by
+itself. Source/label acceptance is not evidence of helper performance or the
+broader project's success.
