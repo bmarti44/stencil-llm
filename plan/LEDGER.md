@@ -2307,3 +2307,18 @@ or semantic DEV/evaluation, no generated-code execution. Resource arithmetic
 4096/18.812468347567442+780=997.72794108s is illustrative, not worst-case; hard
 1200stop governs. Draft/docs and complete code/preview require Astra review before
 launch. Compiler/apply compatibility is not competence or automatic-focus proof.
+
+2026-09-08 — STATE: THINKING SMOKE IMPLEMENTATION LIVE; PIN CLARIFICATIONS VERIFIED.
+Previous goal turn was progress: research acceptance747ba8bc and concrete CPU
+brief8404fd2e; current native Sol implementation and Astra review handles remain
+live. No model experiment launched. Astra found exact render serialization
+omits declared defaults: min_p absent means0.0, while all registered nondefault
+settings must be explicit. Parent verified pinned SamplingParams/serializer.
+A strict missing-min_p rejection would incorrectly fail this actual pin.
+
+Parent also independently inspected local tokenizer configuration: start151667,
+end151668, special=false; thinking suffix does not pre-open a block. Scope is
+no markers in actual cold/post-tool prompts, then unique generatedstart/end with
+strict-between count, decoded reasoning/rawarguments consistency and exact EOS
+handling. No open-prompt generalization needed. Prospective BRIEF clarification
+records these semantics before any model output; Sol informed to implement them.

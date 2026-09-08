@@ -67,6 +67,14 @@ supported fields against the pinned serving implementation; never silently drop
 an unsupported setting. Persist raw requests/responses, byte hashes/lengths,
 pending/partial receipts and technical errors before leaving a failure path.
 
+Prospective pin clarification (2026-09-08, independently verified by Astra and
+root): SamplingParams serialization omits declared defaults. An absent min_p
+therefore resolves to its documented0.0; if present, it must equal0.0. Require
+the nondefault temperature, top_p, top_k, seed, max_tokens and thinking budget
+explicitly. This is exact pinned serialization semantics, not an unsupported
+setting fallback. Sources: vllm/sampling_params.py and
+vllm/v1/serial_utils.py::_serialize_msgspec at commitfe9c3d6c5.
+
 For each completion require matching render/completion prompt IDs, exact usage
 and complete output-ID accounting, one named action, and the pin's supported
 successful finish reason. Length/cap, transport or schema failures terminate
@@ -81,6 +89,15 @@ tokens within512. Verify cold and post-tool prompt boundary state from actual
 render IDs; unexpected earlier end markers are an incompatibility, not a reason
 to modify history after launch. Reject missing, ambiguous or inconsistent
 boundary/accounting evidence. Raw response reasoning must be present as well.
+
+For this fixture the existing tokenizer has start151667/end151668, both added
+single tokens with special=false. Its thinking-enabled generation suffix does
+not pre-open reasoning. Require no boundary markers in either actual rendered
+prompt, then one generated start followed by one end. Count the IDs strictly
+between those markers; decoded reasoning must match the response reasoning and
+decoded final content must match the named raw arguments, with only the pinned
+terminal-EOS handling. Do not add general open-prompt reasoning support: that
+would require accounting for the processor's initialized prompt-suffix counter.
 
 Distinguish an observed count below the allowance from reaching its boundary.
 Neither observation alone proves that budget forcing caused termination; no
