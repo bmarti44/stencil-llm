@@ -115,3 +115,159 @@ rerun. Only this canonical review file was written; no commit was made.
 Residual uncertainty is empirical runtime, memory and numerical execution on
 the actual machine. The proposed bounded run exists to measure those facts;
 their absence before execution is not a specification defect.
+
+## Round 2 — 2026-09-08 — implementation
+
+Score: 84/100
+
+Decision: **NOT ACCEPTED for execution.** Two open high findings and one open
+medium finding below. The accepted specification is unchanged; these are
+implementation defects within its existing launch and measurement contract.
+Round 1 is preserved verbatim. Same author-disjoint Astra xhigh native reviewer,
+same purpose and trusted-but-fallible threat model; no reviewer substitution.
+
+Reviewed commit: `e4f45c2c57e416483dcbc6684cb8117ff287cff4`.
+
+- `scripts/source_interpreter_mechanics.py`, SHA-256
+  `20ab4f538a312e99f0bc95e2cee970092474256869d60c6c95436dcc3c3dd82a`.
+- `tests/test_source_interpreter_mechanics.py`, SHA-256
+  `28ad1f99cd480273a8d9afd281830a6b9d573fafb248dbbea826ec053191fe6c`.
+- Governing `MECHANICS.md`, unchanged SHA-256
+  `a43b1d4b48cb7f0478efb43b21ac6187dcaff89bf895761a32c3681898702945`.
+- Implementation brief, SHA-256
+  `1ee265c040218ff576ade662aa96a25c8fbb03ca1ffc58d49b303f9ddf2a09eb`.
+
+### Findings
+
+#### 1. [high] The registered direct-file launch cannot import its data consumer
+
+`source-interpreter-mechanics#1` — open.
+
+Evidence: `_source_module()` imports `src.stencil.focus` at runner line 167.
+The registered supervisor/child commands execute the runner by absolute file
+path, which places `ROOT/scripts` at `sys.path[0]`. The installed editable
+package supplies `ROOT/src`, not `ROOT`, so the package available in that
+environment is `stencil`, not `src.stencil`. Independently reproduced using
+the actual `.venv/bin/python`, replacing only `sys.path[0]` with the registered
+script directory: `ModuleNotFoundError: No module named 'src'`. This is an
+import-only CPU check; no model/runtime was loaded. Root independently reproduced
+the failure through `runpy.run_path` and the actual `validate_artifacts(False)`
+consumer and preserved `results/source-interpreter/mechanics-direct-import-error.log`.
+
+The nine passing tests do not exercise this path: pytest adds both `src` and
+`.` through `pyproject.toml:26`, the fresh import test imports from the repository
+root, and dry-run returns before `_source_module`. Root's separate module-style
+artifact qualification passed and is valid for that invocation, but cannot
+qualify the registered direct-file launch. The supervisor currently fails before
+reserving the GPU job; launching with `python -m` alone would leave the generated
+direct-file child command broken as well.
+
+Narrow correction: import the installed `stencil.focus.source_interpreter`
+package, or otherwise make the actual direct-file path explicitly valid without
+depending on pytest's path configuration. Add a fresh subprocess regression for
+the direct-file import/qualification consumer with no repository-root path
+injection; no model load is needed. Keep the accepted helper unchanged.
+
+#### 2. [high] A completed optimizer update can disappear from failure accounting
+
+`source-interpreter-mechanics#2` — open.
+
+Evidence: the actual training loop performs and synchronizes `optimizer.step()`
+at runner lines 999–1000, then calls gradient/update validation and resource
+collection at 1002–1003, and only afterward appends or writes any step receipt
+at 1022–1024. Both validation and resource collection can raise. For example,
+an absent/nonfinite adapter gradient is deliberately rejected by
+`validate_optimizer_step` after the optimizer invocation. A forced termination
+during the per-tensor CPU copies/hashes has the same accounting problem.
+In these cases the model has already undergone the update, but neither the
+in-memory completed-step list nor `step-*.json` records it. The exception result
+omits it, and `_partial_update_counts` at 1273–1290 reports only previously written
+full receipts. On the first update, the lifecycle can therefore report zero
+updates and zero warm-up updates after an actual warm-up update occurred.
+
+This matters to the stated purpose: technical failure must preserve completed
+work and actual update counts, and this one-shot run has no automatic retry to
+reconstruct lost evidence. It does not falsely turn this particular failure into
+a mechanics pass, but it loses required evidence from a failed measurement.
+The existing failing-child test writes complete step files itself before exiting,
+so it verifies recovery of those files without exercising this gap in the real
+step-writing order.
+
+Narrow correction: write a small durable current-step record before the work and
+durably record a synchronized optimizer completion before potentially failing
+validation/hash/resource work. Keep update completion distinct from validation
+success. Failure/timeout accounting should preserve confirmed completed updates
+and explicitly mark an interrupted, unresolved update as unknown or a lower
+bound, rather than claim an exact smaller count. This needs no transactional GPU
+framework: a few stage/status fields in the existing receipt path suffice.
+Exercise the actual step consumer with CPU doubles that fail immediately after
+the update, and verify the warm-up count plus incomplete status; also cover a
+pending-step receipt in the timeout consumer.
+
+#### 3. [medium] Terminal elapsed cost stops before supervisor finalization
+
+`source-interpreter-mechanics#3` — open.
+
+Evidence: `supervise_child` samples `ended = clock()` at runner line 1390,
+before reading/validating the child result, reading partial step records,
+enumerating partial files, writing the lifecycle receipt twice with fsync, or
+clearing the flag at 1446–1450. The saved `ended_monotonic` and COMPLETE decision
+both use that earlier timestamp; there is no later clock/bound check. Thus the
+recorded total interval excludes terminal accounting and flag cleanup, and a
+delay in that work can finish beyond the registered total bound while the
+supervisor still returns COMPLETE. This is a boundary/accounting defect, not a
+claim that normal small-file finalization has already overrun the budget.
+
+Narrow correction: retain child-exit time separately, measure finalization through
+cleanup/accounting, and make the final status/bound check use a suitably late
+monotonic sample. Record the full measured interval and distinguish any final
+receipt-emission tail that cannot describe itself. Add an injected-clock or
+delayed-finalization CPU test showing that accounting time is included and late
+finalization cannot retain COMPLETE. No new supervision service is needed.
+
+### Verified strengths and prior handoff fixes
+
+The native loss call passes the exact full labels unchanged; target/EOS masking
+and causal positions match the accepted row. Input hashes bind the frozen
+preview, accepted source documents and helper; the child additionally hashes
+base files and compares actual loaded tokenizer state with the accepted receipt.
+The selected interpreter/package versions are checked. Root reports the actual
+module-style artifact consumer passed in 0.06713999199564569 seconds with no heavy
+imports, recorded at `mechanics-artifact-check.json`, SHA-256
+`11d361550e4fcc7e514115a1ea601db390577b470c82814eadea45db0d68ce6c`;
+this corroborates the schema path while leaving finding 1 intact.
+
+The update checks reject absent gradients, nonfinite gradients, zero aggregate
+updates and incorrect optimizer membership while accepting a legitimate zero
+individual factor. Original parameters are frozen, their identities checked
+per step, and their full before/after bytes checked at the end. Per-step receipts
+now correctly disclose when original bytes were not rehashed. The corrected
+`Tensor.view(torch.uint8)` byte path is exercised by the targeted CPU tests.
+
+Standard FP32 PEFT save, exact byte parts, ordered reconstruction, canonical
+adapter-state equality, explicit `roundtrip` inference activation and the single
+no-gradient post-reload loss call match the accepted design. The original trunk
+is reused and checked afterward. No semantic generation or evaluation is added.
+
+The post-Popen registration/launch-receipt exception path now terminates and reaps
+the owned child, and the targeted injected registration-failure test passes.
+Happy exit, failing exit, timeout, preservation of a separate foreign flag/process,
+and recovery of already-written partial steps also pass. The immutable historical
+round-1 review binding plus current-review launch hash avoids the prior mutable
+review-hash cycle. These fixes are real; finding 2 concerns the remaining interval
+before a completed update gets its first durable receipt.
+
+### Validation and scope
+
+Independently ran `.venv/bin/pytest -q tests/test_source_interpreter_mechanics.py`:
+**9 passed in 1.99 seconds**. This includes fresh import and dry-run checks.
+Read both complete implementation files, the accepted spec/brief, relevant
+installed package/path evidence, and the latest ledger STATE. Rehashed both
+reviewed implementation files before writing this round; neither changed.
+
+No real training, target-model inference, model/weight loading, CUDA context,
+real adapter save, new semantic data, network download or full-suite run occurred.
+Only this canonical report was written; no implementation/spec/ledger edits or
+commit were made. The required corrections are confined to launch imports and
+measurement receipts; the registered model settings, data, four updates and
+scientific scope do not need to change.
