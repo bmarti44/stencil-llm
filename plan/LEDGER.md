@@ -2087,3 +2087,47 @@ Exact assembled CPU session51195 is terminal exit0: PASS4documents,851checks,
 at5998afc9 and referenced by data provenance, so later reconciliation appends do
 not obscure the exact acceptance hash. Same Astra reviewer checks only aggregate
 object identity, provenance and final CPU receipt next; no repeat semantic audit.
+
+2026-09-08 — STATE: CONTEXT QUALIFICATION AMBIGUITY RESOLVED IN PROSPECTIVE DRAFT.
+Astra completed exact bank reconciliation at96 (review SHA97e70030), all eight
+data findings closed. Runtime Sol reports8 targeted tests pass in6.39seconds.
+Launcher identified an ambiguity: requiring every global MAX_* history envelope
+to fit32768 would fail even cold inputs, since formula includes65536 maximum
+module bytes alone. Parent verified actual cold module bytes514/1287/978/1820.
+No actual model outputs or capacity failure motivated this correction.
+
+New independent Astra xhigh competence_readiness_review confirms specs require
+authoritative actual render before every call, not explicitly universal fit of
+unknown future histories, but prospective wording needs clarification. Drafted
+minimal PROTOCOL/RUNTIME-BRIEF change: four actual cold payloads get provisional
+local sizing;36-slot repeated-history envelopes are diagnostic; every exact
+actual native render+1024 must fit32768 before decode; overflow ends entire run
+incomplete/ineligible with no truncation, retry or rescue. Task/cap/gate/budget
+unchanged. Hold draft uncommitted until same readiness reviewer accepts it.
+Runtime and launcher coders settle targeted tests and hashes, then full independent
+readiness review proceeds on stable files. No server or worker launch yet.
+
+2026-09-08 — STATE: DATA READY; RUNTIME REVIEW ACTIVE; LAUNCHER FINISHING.
+Accepted bank archive ce6e1829. Final data reconciliation review SHA
+97e700308e6316863e4a2622a0214c5297ae083f3a3ee7cfdb84de03a293bc8e.
+Runtime stable source5a06b47db19d6acc5915fb308e73b80bc92d2abd80afda9e4c119c1166966b3a,
+tests3bb45142817ab731f0d6e3ace0d60f6eaff00c33bc8bacb16c2474034af6c38f.
+Sol8tests6.28seconds+Ruff; independent Astra8tests6.05seconds plus targeted
+over-context/schema/private-no-influence controls. No runtime blocker found yet.
+Root exact-bank --preview terminalexit0, no model calls:12reference responses
+155..624tokensincludingEOS,minheadroom400; four provisional cold JSON counts
+1343/2082/1871/2121. Runtime max617checks and36render+36generation;36global-size
+history envelopes diagnostic, not a universal fit claim. RESOURCE-PLAN.md binds
+current preview/CPU/source hashes: measured CPU projection11.393seconds vs120
+allowance, prior-rate fulloutput projection2394.0833seconds vs2700reservation.
+
+Astra preliminary ACCEPTS exact prospective sizing draft: PROTOCOL d99708ac,
+RUNTIME-BRIEF d6328b6f. Full scored readiness report remains in progress, so
+governing draft stays uncommitted. Launcher Sol is finishing targeted lifecycle
+checks and will hand stable hashes to same readiness reviewer. One integration
+question: CPU sandbox2second timeout vs driver's1second receipt reserve; launcher
+external timeout must retain hard reservation and cleanup. No new experiment
+launched. Next: collect launcher stable handoff, complete joint readiness review,
+fix confirmed findings through Sol, preserve old preview before any regeneration,
+then exact freeze/resource ownership checks and conditional single worker run.
+Goal still requires automatic focus and fresh larger paired evidence afterward.
