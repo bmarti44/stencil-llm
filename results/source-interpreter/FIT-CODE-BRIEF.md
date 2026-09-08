@@ -1,7 +1,9 @@
-# Fixed FIT runner — implementation brief (draft pending specification review)
+# Fixed FIT runner — implementation brief
 
-Do not implement or execute until the orchestrator supplies accepted FIT.md and
-review bindings. User roles: Sol xhigh implements; independent Astra xhigh
+Specification accepted by Astra xhigh round1 at96/100 with zero findings.
+FIT.md SHA256: f1f306e9ccac968013568dd6f0ed46a42d6df7297105c7a2531a83b7caa541a7.
+Accepted review SHA256: a7b9309c7bb22b0ffb0002f6761251212e3f55275c19432e9983fb548bb3bb10.
+This brief authorizes implementation and CPU checks only, never a model run. User roles: Sol xhigh implements; independent Astra xhigh
 reviews; Kimi K3 via Ollama authors semantic data. This task authors no data.
 
 Fit-on: only the eighteen exact accepted source-interpreter FIT preview rows,
