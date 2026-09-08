@@ -46,6 +46,22 @@ PROSE_BOUND_FILES = (
     "results/prose-maintenance/PROTOCOL.md",
     "results/prose-maintenance/kimi-dev-reviewed.json",
 )
+SOURCE_READER_BOUND_FILES = (
+    "tools/run_maintenance_dev.py",
+    "scripts/source_reader_dev.py",
+    "scripts/prose_maintenance_dev.py",
+    "scripts/maintenance_dev_check.py",
+    "src/stencil/focus/maintenance_updater.py",
+    "src/stencil/focus/maintenance_bank.py",
+    "src/stencil/focus/register.py",
+    "src/stencil/focus/loop.py",
+    "src/stencil/focus/renderer.py",
+    "src/stencil/focus/journal.py",
+    "results/factorial-prep/current-trunk-hashes.json",
+    "results/source-reader/PROTOCOL.md",
+    "results/source-reader/preview.json",
+    "results/prose-maintenance/kimi-dev-reviewed.json",
+)
 
 
 def command(args, **kwargs):
@@ -62,7 +78,9 @@ def main(argv=None):
     parser.add_argument("--run-dir", type=Path, required=True)
     parser.add_argument("--execute", action="store_true")
     parser.add_argument(
-        "--mode", choices=("maintenance", "cold", "prose"), default="maintenance"
+        "--mode",
+        choices=("maintenance", "cold", "prose", "source-reader"),
+        default="maintenance",
     )
     args = parser.parse_args(argv)
     run = args.run_dir.resolve()
@@ -78,6 +96,11 @@ def main(argv=None):
         driver_script = "scripts/prose_maintenance_dev.py"
         input_path = PROSE_INPUT
         name_prefix = "prose-"
+    elif args.mode == "source-reader":
+        bound_files = SOURCE_READER_BOUND_FILES
+        driver_script = "scripts/source_reader_dev.py"
+        input_path = PROSE_INPUT
+        name_prefix = "source-reader-"
     else:
         bound_files = BOUND_FILES
         driver_script = "scripts/maintenance_dev_check.py"
@@ -97,7 +120,9 @@ def main(argv=None):
         "--gpu-memory-utilization", "0.70", "--enable-prefix-caching",
         "--generation-config", "vllm",
     ]
-    plan = dict(container_command=container_command, gpu_held_ceiling_seconds=900,
+    gpu_held_ceiling_seconds = 2700 if args.mode == "source-reader" else 900
+    plan = dict(container_command=container_command,
+                gpu_held_ceiling_seconds=gpu_held_ceiling_seconds,
                 input=str(input_path), output_dir=str(run / "calls"), model="/model",
                 base_url="http://127.0.0.1:18088", max_tokens=1024,
                 startup_ceiling_seconds=600, cleanup_reserve_seconds=60,
@@ -161,7 +186,9 @@ def main(argv=None):
             except OSError:
                 pass
             time.sleep(1)
-        remaining = int(900 - (time.monotonic() - started) - 60)
+        remaining = int(
+            gpu_held_ceiling_seconds - (time.monotonic() - started) - 60
+        )
         if remaining <= 0:
             raise TimeoutError("no remaining inference budget")
         driver = [
@@ -219,7 +246,7 @@ def main(argv=None):
         if not cleaned:
             lifecycle["prior_status"] = lifecycle["status"]
             lifecycle["status"] = "CLEANUP_FAILED"
-        elif lifecycle["gpu_held_seconds"] > 900:
+        elif lifecycle["gpu_held_seconds"] > gpu_held_ceiling_seconds:
             lifecycle["prior_status"] = lifecycle["status"]
             lifecycle["status"] = "BUDGET_EXCEEDED"
         write_json(run / "lifecycle.json", lifecycle)

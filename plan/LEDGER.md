@@ -1572,3 +1572,34 @@ Prior updater already had fullhistory; missingstorage is not causal evidence.
 Research recommendation not independently reviewed or registered for inference.
 Next: independent Astra assessment of distinctness/value before implementation
 or any inference. Archive run+audit+research with explicitpaths now; no push.
+
+2026-09-07 — STATE: SOURCE-ONLY READER DECISION REVIEW IN PROGRESS.
+Previous goalturn PROGRESS: authoritative prose16 result+independent audit,
+stop-loss applied, and research archived in cf349694. Currentworktree has
+no tracked edits before thisentry; docker empty/noRUNNINGflags/GPUidle.
+Astra /root/prose_data_review reviews research and whether4callablation
+has enoughdecisionvalue; parent proposes full48view exposedDEV feasibility
+instead if substantiallydistinct and bounded. Sol read-only reuse/cost
+assessment inparallel; no implementation/inference launched. Fitnone,
+proposedDEVonly; goal requires largerfresh executable proof and automation.
+
+2026-09-07 — STATE: SOURCE48 IMPLEMENTATION IN PROGRESS.
+Independent Astra preliminary decision replaces low-action-value4callablation
+with48view source-only/no-feedback feasibility; formalreview pending.
+Solxhigh /root/prose_maintenance_impl allowlist scripts/source_reader_dev.py,
+tests/test_source_reader_dev.py,tools/run_maintenance_dev.py; newmode only,
+reuseauditedbank/transport; targetedtests and48exactpreviews before review.
+Reservation2700s/startup600/cleanup60,1024outputcap: measured24.75tokens/s
+projects~2646s atallcaps, notguarantee. Samepinnedtrunk, no inferenceyet.
+Onefixedrecipe: anysemanticfailure parks; passdirectstofreshlargercodingprep.
+
+2026-09-07 — STATE: SOURCE48 READY TO FREEZE/LAUNCH.
+Sol implementation complete; independent Astra decision95/readiness95,
+zeroopenhighcritical;22targetedtests, all48fakeHTTPrequestisolation and
+previewexact, fourmodeCLI; tokens346–894/29277totalCPUonly.
+Freeze scripts/source_reader_dev.py356cb4be, launcher70e6eef, protocolfe31c,
+preview5336b, reviewedDEVdea370 with all14boundfiles. Nextabsolutecommand:
+python3 /home/bmarti44/stencil-llm/tools/run_maintenance_dev.py --mode
+source-reader --run-dir /home/bmarti44/stencil-llm/results/quick-checks/
+source-reader-01 --execute.48calls2700total/600startup/60cleanup,1024cap.
+Nooutputfeedback/retries/gold; independentresultaudit afterterminalcleanup.
