@@ -1653,3 +1653,15 @@ Parent schema/4originalproject requests nowfreeze; KimiK3Ollama authors4
 independent6turn executableDEVepisodes sequentially, references+functional/
 currentobligationchecks+mutants. AllsemanticdataKimi-only; exactrawreceipts.
 No fit/evaluationdatareuse; no worker inference or training authorizedbydata.
+
+2026-09-07 — STATE: CODING72 KIMI AUTHORING RUNNING; CPU PREFLIGHT BUILDING.
+Authorloop unifiedsession67717 live, ownedPID4159403 registered;4requests
+sequential,900s perHTTPcall, no silencentretry. author00 completed412.986s,
+HTTP200done,37779evaltokens; outerJSONfence causedstrictparseERROR, then
+parentmechanicallyremovedonlyouterfence intoauthored.json withextraction.json.
+Originalreceipt/rawpreserved. author01 underway; resumehandle, don'trestart.
+Astra datareview finds author00present-nullvalidationHIGH andprevalidation
+orderMEDIUM; batchwithCPUresults forKimi-onlypatch. Solxhigh implements
+scripts/coding_worker_dev.py andtests/test_coding_worker_dev.py CPUonly:
+exactparser/splice/seccompconsumer, references+mutants, sizing. No worker.
+Prospectiveprotocol reviewed95designonly; finaldata/code/costpending.

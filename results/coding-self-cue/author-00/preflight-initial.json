@@ -1,0 +1,3272 @@
+{
+  "actual_http_prompts": 0,
+  "bank_error": null,
+  "code_sha256": {
+    "scripts/coding_worker_dev.py": "cb9fa7334b0364c3e54d795057515519777f30e88a50525808a7ff651b10eb4d",
+    "src/stencil/focus/slab_sandbox.py": "3dad55e31b23fd859a9fcf805b3694acc99c8efdb48c35ed82ca78b16f9d7de8"
+  },
+  "episode_count": 1,
+  "episodes": [
+    {
+      "elapsed_seconds": 3.6825207490182947,
+      "eligible": true,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "errors": [],
+      "final_module_sha256": "7788963927272a7e2909ea3f4e49f0086b27c9416be358da6561aa5e90998bde",
+      "initial_checks": [
+        {
+          "actual": "vase",
+          "check_id": "chk-clean-1",
+          "elapsed_seconds": 0.024271621980005875,
+          "error": null,
+          "expected_values": [
+            "vase"
+          ],
+          "passed": true,
+          "rule_ids": [],
+          "symbol": "_clean_token"
+        },
+        {
+          "actual": "hall",
+          "check_id": "chk-clean-2",
+          "elapsed_seconds": 0.02338026001234539,
+          "error": null,
+          "expected_values": [
+            "hall"
+          ],
+          "passed": true,
+          "rule_ids": [],
+          "symbol": "_clean_token"
+        }
+      ],
+      "initial_module_sha256": "3254f373aec7241eba31271a69c5d148c42afee2f42d95bfcf8f0b20406810a6",
+      "rounds": [
+        {
+          "counterfactual_reference_sizing": {
+            "actual_http_prompt": false,
+            "description": "manual recap plus reference fence; actual own-history worker requests are unknowable before inference",
+            "eligible": true,
+            "error": null,
+            "generation_cap": 768,
+            "headroom_tokens": 606,
+            "minimum_headroom_tokens": 128,
+            "response_sha256": "cd3eddc56a3db0c141e5e3b888e6f14df90a5ae0a0139641524fbd287f06620e",
+            "tokens_without_eos": 162
+          },
+          "index": 0,
+          "negative_controls": [
+            {
+              "checks": [
+                {
+                  "actual": "vase",
+                  "check_id": "chk-clean-1",
+                  "elapsed_seconds": 0.012713349016848952,
+                  "error": null,
+                  "expected_values": [
+                    "vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "hall",
+                  "check_id": "chk-clean-2",
+                  "elapsed_seconds": 0.013976696995086968,
+                  "error": null,
+                  "expected_values": [
+                    "hall"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "the blue vase",
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.013732616003835574,
+                  "error": null,
+                  "expected_values": [
+                    "The Blue Vase"
+                  ],
+                  "passed": false,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "maria's jar",
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.014331578015116975,
+                  "error": null,
+                  "expected_values": [
+                    "Maria's Jar"
+                  ],
+                  "passed": false,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "ERR",
+                  "check_id": "chk-r0-o1",
+                  "elapsed_seconds": 0.012588659999892116,
+                  "error": null,
+                  "expected_values": [
+                    "ERR"
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "r-invalid-err"
+                  ],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "ERR",
+                  "check_id": "chk-r0-o2",
+                  "elapsed_seconds": 0.023230884020449594,
+                  "error": null,
+                  "expected_values": [
+                    "ERR"
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "r-invalid-err"
+                  ],
+                  "symbol": "label_title"
+                }
+              ],
+              "control_id": "ctl-r0-f",
+              "current_obligations_passed": true,
+              "expected_failing_check_ids": [
+                "chk-r0-f1"
+              ],
+              "kind": "functional",
+              "named_checks_failed": true,
+              "patch_sha256": "9ea620d936342038fdeec4930d95753af0711ceb02e80662430a4445d85ea5c7",
+              "stable_functionality_passed": false,
+              "valid": true
+            },
+            {
+              "checks": [
+                {
+                  "actual": "vase",
+                  "check_id": "chk-clean-1",
+                  "elapsed_seconds": 0.013712504005525261,
+                  "error": null,
+                  "expected_values": [
+                    "vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "hall",
+                  "check_id": "chk-clean-2",
+                  "elapsed_seconds": 0.02207411199924536,
+                  "error": null,
+                  "expected_values": [
+                    "hall"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "The Blue Vase",
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.023798037000233307,
+                  "error": null,
+                  "expected_values": [
+                    "The Blue Vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "Maria's Jar",
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.012960485997609794,
+                  "error": null,
+                  "expected_values": [
+                    "Maria's Jar"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": null,
+                  "check_id": "chk-r0-o1",
+                  "elapsed_seconds": 0.014716731006046757,
+                  "error": null,
+                  "expected_values": [
+                    "ERR"
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "r-invalid-err"
+                  ],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": null,
+                  "check_id": "chk-r0-o2",
+                  "elapsed_seconds": 0.012459571997169405,
+                  "error": null,
+                  "expected_values": [
+                    "ERR"
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "r-invalid-err"
+                  ],
+                  "symbol": "label_title"
+                }
+              ],
+              "control_id": "ctl-r0-o",
+              "current_obligations_passed": false,
+              "expected_failing_check_ids": [
+                "chk-r0-o1"
+              ],
+              "kind": "obligation",
+              "named_checks_failed": true,
+              "patch_sha256": "8a63a366571102de835dfe30eda39586d894b7f5e068607333700fbefa948f12",
+              "stable_functionality_passed": true,
+              "valid": true
+            }
+          ],
+          "post_module_sha256": "182912d6a35b6d2813ad33492b3ea1c12925003409d9532af496d36363328718",
+          "pre_module_sha256": "3254f373aec7241eba31271a69c5d148c42afee2f42d95bfcf8f0b20406810a6",
+          "reference_checks": [
+            {
+              "actual": "vase",
+              "check_id": "chk-clean-1",
+              "elapsed_seconds": 0.022735202976036817,
+              "error": null,
+              "expected_values": [
+                "vase"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "_clean_token"
+            },
+            {
+              "actual": "hall",
+              "check_id": "chk-clean-2",
+              "elapsed_seconds": 0.013078101997962222,
+              "error": null,
+              "expected_values": [
+                "hall"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "_clean_token"
+            },
+            {
+              "actual": "The Blue Vase",
+              "check_id": "chk-r0-f1",
+              "elapsed_seconds": 0.024234422016888857,
+              "error": null,
+              "expected_values": [
+                "The Blue Vase"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_title"
+            },
+            {
+              "actual": "Maria's Jar",
+              "check_id": "chk-r0-f2",
+              "elapsed_seconds": 0.012727956986054778,
+              "error": null,
+              "expected_values": [
+                "Maria's Jar"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_title"
+            },
+            {
+              "actual": "ERR",
+              "check_id": "chk-r0-o1",
+              "elapsed_seconds": 0.02358344499953091,
+              "error": null,
+              "expected_values": [
+                "ERR"
+              ],
+              "passed": true,
+              "rule_ids": [
+                "r-invalid-err"
+              ],
+              "symbol": "label_title"
+            },
+            {
+              "actual": "ERR",
+              "check_id": "chk-r0-o2",
+              "elapsed_seconds": 0.023052386997733265,
+              "error": null,
+              "expected_values": [
+                "ERR"
+              ],
+              "passed": true,
+              "rule_ids": [
+                "r-invalid-err"
+              ],
+              "symbol": "label_title"
+            }
+          ],
+          "reference_passed": true,
+          "reference_patch_sha256": "5e371436d8cb7fabe3c0aa49d1e29bbae9ba5829a36ab3d60d2a72917c3c4bf6",
+          "target": {
+            "path": "module.py",
+            "symbol": "label_title"
+          }
+        },
+        {
+          "counterfactual_reference_sizing": {
+            "actual_http_prompt": false,
+            "description": "manual recap plus reference fence; actual own-history worker requests are unknowable before inference",
+            "eligible": true,
+            "error": null,
+            "generation_cap": 768,
+            "headroom_tokens": 520,
+            "minimum_headroom_tokens": 128,
+            "response_sha256": "2d6bd167a22aa4f2d921ef96a0603c077242cd2e06ecc2a038e2873dfbb4746e",
+            "tokens_without_eos": 248
+          },
+          "index": 1,
+          "negative_controls": [
+            {
+              "checks": [
+                {
+                  "actual": "vase",
+                  "check_id": "chk-clean-1",
+                  "elapsed_seconds": 0.01370063200010918,
+                  "error": null,
+                  "expected_values": [
+                    "vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "hall",
+                  "check_id": "chk-clean-2",
+                  "elapsed_seconds": 0.013500775006832555,
+                  "error": null,
+                  "expected_values": [
+                    "hall"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "The Blue Vase",
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.01300672598881647,
+                  "error": null,
+                  "expected_values": [
+                    "The Blue Vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "Maria's Jar",
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.012826229998609051,
+                  "error": null,
+                  "expected_values": [
+                    "Maria's Jar"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "007: urn",
+                  "check_id": "chk-r1-f1",
+                  "elapsed_seconds": 0.013179558009142056,
+                  "error": null,
+                  "expected_values": [
+                    "007: urn"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": "3000: ",
+                  "check_id": "chk-r1-f2",
+                  "elapsed_seconds": 0.014193449023878202,
+                  "error": null,
+                  "expected_values": [
+                    "3000"
+                  ],
+                  "passed": false,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": "007: urn, bronze",
+                  "check_id": "chk-r1-o1",
+                  "elapsed_seconds": 0.013124597986461595,
+                  "error": null,
+                  "expected_values": [
+                    "007: urn, bronze"
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "r-sort-stable-length"
+                  ],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": "012: dog, cat",
+                  "check_id": "chk-r1-o2",
+                  "elapsed_seconds": 0.013291078998008743,
+                  "error": null,
+                  "expected_values": [
+                    "012: dog, cat"
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "r-sort-stable-length"
+                  ],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": "ERR",
+                  "check_id": "chk-r1-o3",
+                  "elapsed_seconds": 0.01318011898547411,
+                  "error": null,
+                  "expected_values": [
+                    "ERR"
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "r-invalid-err"
+                  ],
+                  "symbol": "index_entry"
+                }
+              ],
+              "control_id": "ctl-r1-f",
+              "current_obligations_passed": true,
+              "expected_failing_check_ids": [
+                "chk-r1-f2"
+              ],
+              "kind": "functional",
+              "named_checks_failed": true,
+              "patch_sha256": "4d3caf0cb858c127fdeb3563fbb90ed4a230b4da115905835935996bb7f49e93",
+              "stable_functionality_passed": false,
+              "valid": true
+            },
+            {
+              "checks": [
+                {
+                  "actual": "vase",
+                  "check_id": "chk-clean-1",
+                  "elapsed_seconds": 0.013431494997348636,
+                  "error": null,
+                  "expected_values": [
+                    "vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "hall",
+                  "check_id": "chk-clean-2",
+                  "elapsed_seconds": 0.013524823007173836,
+                  "error": null,
+                  "expected_values": [
+                    "hall"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "The Blue Vase",
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.013079573982395232,
+                  "error": null,
+                  "expected_values": [
+                    "The Blue Vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "Maria's Jar",
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.013329062989214435,
+                  "error": null,
+                  "expected_values": [
+                    "Maria's Jar"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "007: urn",
+                  "check_id": "chk-r1-f1",
+                  "elapsed_seconds": 0.013138614012859762,
+                  "error": null,
+                  "expected_values": [
+                    "007: urn"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": "3000",
+                  "check_id": "chk-r1-f2",
+                  "elapsed_seconds": 0.013133366999682039,
+                  "error": null,
+                  "expected_values": [
+                    "3000"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": "007: bronze, urn",
+                  "check_id": "chk-r1-o1",
+                  "elapsed_seconds": 0.013338390999706462,
+                  "error": null,
+                  "expected_values": [
+                    "007: urn, bronze"
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "r-sort-stable-length"
+                  ],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": "012: cat, dog",
+                  "check_id": "chk-r1-o2",
+                  "elapsed_seconds": 0.013090069987811148,
+                  "error": null,
+                  "expected_values": [
+                    "012: dog, cat"
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "r-sort-stable-length"
+                  ],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": "ERR",
+                  "check_id": "chk-r1-o3",
+                  "elapsed_seconds": 0.013667254999745637,
+                  "error": null,
+                  "expected_values": [
+                    "ERR"
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "r-invalid-err"
+                  ],
+                  "symbol": "index_entry"
+                }
+              ],
+              "control_id": "ctl-r1-o",
+              "current_obligations_passed": false,
+              "expected_failing_check_ids": [
+                "chk-r1-o1"
+              ],
+              "kind": "obligation",
+              "named_checks_failed": true,
+              "patch_sha256": "486214f6254c0b62b62680698b6f45c8e4a687eea46b0c640752cc03c727d29f",
+              "stable_functionality_passed": true,
+              "valid": true
+            }
+          ],
+          "post_module_sha256": "418818cbd2430e97ab1d8641e25717facccccd8442eddbbea0ac9db368082900",
+          "pre_module_sha256": "182912d6a35b6d2813ad33492b3ea1c12925003409d9532af496d36363328718",
+          "reference_checks": [
+            {
+              "actual": "vase",
+              "check_id": "chk-clean-1",
+              "elapsed_seconds": 0.0164175349927973,
+              "error": null,
+              "expected_values": [
+                "vase"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "_clean_token"
+            },
+            {
+              "actual": "hall",
+              "check_id": "chk-clean-2",
+              "elapsed_seconds": 0.02279838698450476,
+              "error": null,
+              "expected_values": [
+                "hall"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "_clean_token"
+            },
+            {
+              "actual": "The Blue Vase",
+              "check_id": "chk-r0-f1",
+              "elapsed_seconds": 0.013372167013585567,
+              "error": null,
+              "expected_values": [
+                "The Blue Vase"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_title"
+            },
+            {
+              "actual": "Maria's Jar",
+              "check_id": "chk-r0-f2",
+              "elapsed_seconds": 0.013801624008920044,
+              "error": null,
+              "expected_values": [
+                "Maria's Jar"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_title"
+            },
+            {
+              "actual": "007: urn",
+              "check_id": "chk-r1-f1",
+              "elapsed_seconds": 0.024583143007475883,
+              "error": null,
+              "expected_values": [
+                "007: urn"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "index_entry"
+            },
+            {
+              "actual": "3000",
+              "check_id": "chk-r1-f2",
+              "elapsed_seconds": 0.022570674016606063,
+              "error": null,
+              "expected_values": [
+                "3000"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "index_entry"
+            },
+            {
+              "actual": "007: urn, bronze",
+              "check_id": "chk-r1-o1",
+              "elapsed_seconds": 0.01352311100345105,
+              "error": null,
+              "expected_values": [
+                "007: urn, bronze"
+              ],
+              "passed": true,
+              "rule_ids": [
+                "r-sort-stable-length"
+              ],
+              "symbol": "index_entry"
+            },
+            {
+              "actual": "012: dog, cat",
+              "check_id": "chk-r1-o2",
+              "elapsed_seconds": 0.025062825006898493,
+              "error": null,
+              "expected_values": [
+                "012: dog, cat"
+              ],
+              "passed": true,
+              "rule_ids": [
+                "r-sort-stable-length"
+              ],
+              "symbol": "index_entry"
+            },
+            {
+              "actual": "ERR",
+              "check_id": "chk-r1-o3",
+              "elapsed_seconds": 0.01307999002165161,
+              "error": null,
+              "expected_values": [
+                "ERR"
+              ],
+              "passed": true,
+              "rule_ids": [
+                "r-invalid-err"
+              ],
+              "symbol": "index_entry"
+            }
+          ],
+          "reference_passed": true,
+          "reference_patch_sha256": "013e6402b67b6070fa5ea7fc337bea271ff8870a65d92af69e3dabb2df86a3a7",
+          "target": {
+            "path": "module.py",
+            "symbol": "index_entry"
+          }
+        },
+        {
+          "counterfactual_reference_sizing": {
+            "actual_http_prompt": false,
+            "description": "manual recap plus reference fence; actual own-history worker requests are unknowable before inference",
+            "eligible": true,
+            "error": null,
+            "generation_cap": 768,
+            "headroom_tokens": 498,
+            "minimum_headroom_tokens": 128,
+            "response_sha256": "ed95666b496911f62dc34ab952e7ef9ba104637e5250ab4a426656405769ece9",
+            "tokens_without_eos": 270
+          },
+          "index": 2,
+          "negative_controls": [
+            {
+              "checks": [
+                {
+                  "actual": "vase",
+                  "check_id": "chk-clean-1",
+                  "elapsed_seconds": 0.013326118991244584,
+                  "error": null,
+                  "expected_values": [
+                    "vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "hall",
+                  "check_id": "chk-clean-2",
+                  "elapsed_seconds": 0.013590023008873686,
+                  "error": null,
+                  "expected_values": [
+                    "hall"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "The Blue Vase",
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.023846437979955226,
+                  "error": null,
+                  "expected_values": [
+                    "The Blue Vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "Maria's Jar",
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.01356591100920923,
+                  "error": null,
+                  "expected_values": [
+                    "Maria's Jar"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "007: urn",
+                  "check_id": "chk-r1-f1",
+                  "elapsed_seconds": 0.022132225014502183,
+                  "error": null,
+                  "expected_values": [
+                    "007: urn"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": "3000",
+                  "check_id": "chk-r1-f2",
+                  "elapsed_seconds": 0.013716312008909881,
+                  "error": null,
+                  "expected_values": [
+                    "3000"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": [
+                    "Vase",
+                    "Ada Lovelace",
+                    "1889"
+                  ],
+                  "check_id": "chk-r2-f1",
+                  "elapsed_seconds": 0.014455866010393947,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      "Vase",
+                      "by Ada Lovelace",
+                      "1889"
+                    ]
+                  ],
+                  "passed": false,
+                  "rule_ids": [],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": [
+                    "The Big Jar",
+                    "Li",
+                    "44"
+                  ],
+                  "check_id": "chk-r2-f2",
+                  "elapsed_seconds": 0.02288302598753944,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      "The Big Jar",
+                      "by Li",
+                      "44"
+                    ]
+                  ],
+                  "passed": false,
+                  "rule_ids": [],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": "ERR",
+                  "check_id": "chk-r2-o1",
+                  "elapsed_seconds": 0.022915730980457738,
+                  "error": null,
+                  "expected_values": [
+                    "ERR",
+                    null
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "r-invalid-err",
+                    "r-labels-null-ok"
+                  ],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": "ERR",
+                  "check_id": "chk-r2-o2",
+                  "elapsed_seconds": 0.01396120898425579,
+                  "error": null,
+                  "expected_values": [
+                    "ERR",
+                    null
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "r-invalid-err",
+                    "r-labels-null-ok"
+                  ],
+                  "symbol": "label_full"
+                }
+              ],
+              "control_id": "ctl-r2-f",
+              "current_obligations_passed": true,
+              "expected_failing_check_ids": [
+                "chk-r2-f1"
+              ],
+              "kind": "functional",
+              "named_checks_failed": true,
+              "patch_sha256": "37a5ef53b8b3d24673b9bf24c36bb8adcbd59032ab8cc1aa81e7ab1f171fcb5a",
+              "stable_functionality_passed": false,
+              "valid": true
+            },
+            {
+              "checks": [
+                {
+                  "actual": "vase",
+                  "check_id": "chk-clean-1",
+                  "elapsed_seconds": 0.02236852899659425,
+                  "error": null,
+                  "expected_values": [
+                    "vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "hall",
+                  "check_id": "chk-clean-2",
+                  "elapsed_seconds": 0.022465265996288508,
+                  "error": null,
+                  "expected_values": [
+                    "hall"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "The Blue Vase",
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.02305800298927352,
+                  "error": null,
+                  "expected_values": [
+                    "The Blue Vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "Maria's Jar",
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.023875252983998507,
+                  "error": null,
+                  "expected_values": [
+                    "Maria's Jar"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "007: urn",
+                  "check_id": "chk-r1-f1",
+                  "elapsed_seconds": 0.014694843004690483,
+                  "error": null,
+                  "expected_values": [
+                    "007: urn"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": "3000",
+                  "check_id": "chk-r1-f2",
+                  "elapsed_seconds": 0.022557249991223216,
+                  "error": null,
+                  "expected_values": [
+                    "3000"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": [
+                    "Vase",
+                    "by Ada Lovelace",
+                    "1889"
+                  ],
+                  "check_id": "chk-r2-f1",
+                  "elapsed_seconds": 0.014553610002622008,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      "Vase",
+                      "by Ada Lovelace",
+                      "1889"
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": [
+                    "The Big Jar",
+                    "by Li",
+                    "44"
+                  ],
+                  "check_id": "chk-r2-f2",
+                  "elapsed_seconds": 0.021881024003960192,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      "The Big Jar",
+                      "by Li",
+                      "44"
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": "error",
+                  "check_id": "chk-r2-o1",
+                  "elapsed_seconds": 0.013582087005488575,
+                  "error": null,
+                  "expected_values": [
+                    "ERR",
+                    null
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "r-invalid-err",
+                    "r-labels-null-ok"
+                  ],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": "error",
+                  "check_id": "chk-r2-o2",
+                  "elapsed_seconds": 0.022488113987492397,
+                  "error": null,
+                  "expected_values": [
+                    "ERR",
+                    null
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "r-invalid-err",
+                    "r-labels-null-ok"
+                  ],
+                  "symbol": "label_full"
+                }
+              ],
+              "control_id": "ctl-r2-o",
+              "current_obligations_passed": false,
+              "expected_failing_check_ids": [
+                "chk-r2-o1"
+              ],
+              "kind": "obligation",
+              "named_checks_failed": true,
+              "patch_sha256": "14e42a677a65876323b99e8d2a7b1b66e47d54daec918c86da02095e0a5a0308",
+              "stable_functionality_passed": true,
+              "valid": true
+            }
+          ],
+          "post_module_sha256": "e2eee63e4af1463d86480253672ba5c35ef4bd6009ef5dca5c6d36fd54569fa5",
+          "pre_module_sha256": "418818cbd2430e97ab1d8641e25717facccccd8442eddbbea0ac9db368082900",
+          "reference_checks": [
+            {
+              "actual": "vase",
+              "check_id": "chk-clean-1",
+              "elapsed_seconds": 0.013879544014343992,
+              "error": null,
+              "expected_values": [
+                "vase"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "_clean_token"
+            },
+            {
+              "actual": "hall",
+              "check_id": "chk-clean-2",
+              "elapsed_seconds": 0.013444984011584893,
+              "error": null,
+              "expected_values": [
+                "hall"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "_clean_token"
+            },
+            {
+              "actual": "The Blue Vase",
+              "check_id": "chk-r0-f1",
+              "elapsed_seconds": 0.013291957991896197,
+              "error": null,
+              "expected_values": [
+                "The Blue Vase"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_title"
+            },
+            {
+              "actual": "Maria's Jar",
+              "check_id": "chk-r0-f2",
+              "elapsed_seconds": 0.013576536002801731,
+              "error": null,
+              "expected_values": [
+                "Maria's Jar"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_title"
+            },
+            {
+              "actual": "007: urn",
+              "check_id": "chk-r1-f1",
+              "elapsed_seconds": 0.01378618399030529,
+              "error": null,
+              "expected_values": [
+                "007: urn"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "index_entry"
+            },
+            {
+              "actual": "3000",
+              "check_id": "chk-r1-f2",
+              "elapsed_seconds": 0.013225798000348732,
+              "error": null,
+              "expected_values": [
+                "3000"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "index_entry"
+            },
+            {
+              "actual": [
+                "Vase",
+                "by Ada Lovelace",
+                "1889"
+              ],
+              "check_id": "chk-r2-f1",
+              "elapsed_seconds": 0.013524152018362656,
+              "error": null,
+              "expected_values": [
+                [
+                  "Vase",
+                  "by Ada Lovelace",
+                  "1889"
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_full"
+            },
+            {
+              "actual": [
+                "The Big Jar",
+                "by Li",
+                "44"
+              ],
+              "check_id": "chk-r2-f2",
+              "elapsed_seconds": 0.013583911000750959,
+              "error": null,
+              "expected_values": [
+                [
+                  "The Big Jar",
+                  "by Li",
+                  "44"
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_full"
+            },
+            {
+              "actual": "ERR",
+              "check_id": "chk-r2-o1",
+              "elapsed_seconds": 0.013143574993591756,
+              "error": null,
+              "expected_values": [
+                "ERR",
+                null
+              ],
+              "passed": true,
+              "rule_ids": [
+                "r-invalid-err",
+                "r-labels-null-ok"
+              ],
+              "symbol": "label_full"
+            },
+            {
+              "actual": "ERR",
+              "check_id": "chk-r2-o2",
+              "elapsed_seconds": 0.01383980002719909,
+              "error": null,
+              "expected_values": [
+                "ERR",
+                null
+              ],
+              "passed": true,
+              "rule_ids": [
+                "r-invalid-err",
+                "r-labels-null-ok"
+              ],
+              "symbol": "label_full"
+            }
+          ],
+          "reference_passed": true,
+          "reference_patch_sha256": "c410b2fa6c502f435a5658cf40e5b7da089f9a723f7891ab57ad6d910fbfc095",
+          "target": {
+            "path": "module.py",
+            "symbol": "label_full"
+          }
+        },
+        {
+          "counterfactual_reference_sizing": {
+            "actual_http_prompt": false,
+            "description": "manual recap plus reference fence; actual own-history worker requests are unknowable before inference",
+            "eligible": true,
+            "error": null,
+            "generation_cap": 768,
+            "headroom_tokens": 415,
+            "minimum_headroom_tokens": 128,
+            "response_sha256": "e662833d2645472af396d607b8461dc0c44d597fb9d36cb2280293dbc52df715",
+            "tokens_without_eos": 353
+          },
+          "index": 3,
+          "negative_controls": [
+            {
+              "checks": [
+                {
+                  "actual": "vase",
+                  "check_id": "chk-clean-1",
+                  "elapsed_seconds": 0.021963696024613455,
+                  "error": null,
+                  "expected_values": [
+                    "vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "hall",
+                  "check_id": "chk-clean-2",
+                  "elapsed_seconds": 0.023490996012696996,
+                  "error": null,
+                  "expected_values": [
+                    "hall"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "The Blue Vase",
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.022659649985143915,
+                  "error": null,
+                  "expected_values": [
+                    "The Blue Vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "Maria's Jar",
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.014277130016125739,
+                  "error": null,
+                  "expected_values": [
+                    "Maria's Jar"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "007: urn",
+                  "check_id": "chk-r1-f1",
+                  "elapsed_seconds": 0.014545785990776494,
+                  "error": null,
+                  "expected_values": [
+                    "007: urn"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": "3000",
+                  "check_id": "chk-r1-f2",
+                  "elapsed_seconds": 0.013749351986916736,
+                  "error": null,
+                  "expected_values": [
+                    "3000"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": [
+                    "Vase",
+                    "by Ada Lovelace",
+                    "1889"
+                  ],
+                  "check_id": "chk-r2-f1",
+                  "elapsed_seconds": 0.023121428006561473,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      "Vase",
+                      "by Ada Lovelace",
+                      "1889"
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": [
+                    "The Big Jar",
+                    "by Li",
+                    "44"
+                  ],
+                  "check_id": "chk-r2-f2",
+                  "elapsed_seconds": 0.013965496007585898,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      "The Big Jar",
+                      "by Li",
+                      "44"
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": "Vase - From Crete",
+                  "check_id": "chk-r3-f1",
+                  "elapsed_seconds": 0.013949401007266715,
+                  "error": null,
+                  "expected_values": [
+                    "Vase: From Crete"
+                  ],
+                  "passed": false,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "Vase",
+                  "check_id": "chk-r3-f2",
+                  "elapsed_seconds": 0.022727217990905046,
+                  "error": null,
+                  "expected_values": [
+                    "Vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": {
+                    "detail": "bad-input",
+                    "status": "error"
+                  },
+                  "check_id": "chk-r3-o1",
+                  "elapsed_seconds": 0.014058409025892615,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "detail": "bad-input",
+                      "status": "error"
+                    },
+                    null
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "r-invalid-dict",
+                    "r-labels-null-ok"
+                  ],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": {
+                    "detail": "bad-input",
+                    "status": "error"
+                  },
+                  "check_id": "chk-r3-o2",
+                  "elapsed_seconds": 0.013687016005860642,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "detail": "bad-input",
+                      "status": "error"
+                    },
+                    null
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "r-invalid-dict",
+                    "r-labels-null-ok"
+                  ],
+                  "symbol": "label_title"
+                }
+              ],
+              "control_id": "ctl-r3-f",
+              "current_obligations_passed": true,
+              "expected_failing_check_ids": [
+                "chk-r3-f1"
+              ],
+              "kind": "functional",
+              "named_checks_failed": true,
+              "patch_sha256": "841c11bde1cec19e4e378b55e8c7acc98c19d457bc22ac9e3c231d9e585d35d9",
+              "stable_functionality_passed": false,
+              "valid": true
+            },
+            {
+              "checks": [
+                {
+                  "actual": "vase",
+                  "check_id": "chk-clean-1",
+                  "elapsed_seconds": 0.013495831022737548,
+                  "error": null,
+                  "expected_values": [
+                    "vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "hall",
+                  "check_id": "chk-clean-2",
+                  "elapsed_seconds": 0.014812362991506234,
+                  "error": null,
+                  "expected_values": [
+                    "hall"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "The Blue Vase",
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.014020985021488741,
+                  "error": null,
+                  "expected_values": [
+                    "The Blue Vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "Maria's Jar",
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.014906650991179049,
+                  "error": null,
+                  "expected_values": [
+                    "Maria's Jar"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "007: urn",
+                  "check_id": "chk-r1-f1",
+                  "elapsed_seconds": 0.022756146994652227,
+                  "error": null,
+                  "expected_values": [
+                    "007: urn"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": "3000",
+                  "check_id": "chk-r1-f2",
+                  "elapsed_seconds": 0.013178277993574739,
+                  "error": null,
+                  "expected_values": [
+                    "3000"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": [
+                    "Vase",
+                    "by Ada Lovelace",
+                    "1889"
+                  ],
+                  "check_id": "chk-r2-f1",
+                  "elapsed_seconds": 0.015341101010562852,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      "Vase",
+                      "by Ada Lovelace",
+                      "1889"
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": [
+                    "The Big Jar",
+                    "by Li",
+                    "44"
+                  ],
+                  "check_id": "chk-r2-f2",
+                  "elapsed_seconds": 0.01406228099949658,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      "The Big Jar",
+                      "by Li",
+                      "44"
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": "Vase: From Crete",
+                  "check_id": "chk-r3-f1",
+                  "elapsed_seconds": 0.013985639991005883,
+                  "error": null,
+                  "expected_values": [
+                    "Vase: From Crete"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "Vase",
+                  "check_id": "chk-r3-f2",
+                  "elapsed_seconds": 0.014537355018546805,
+                  "error": null,
+                  "expected_values": [
+                    "Vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "ERR",
+                  "check_id": "chk-r3-o1",
+                  "elapsed_seconds": 0.013496839004801586,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "detail": "bad-input",
+                      "status": "error"
+                    },
+                    null
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "r-invalid-dict",
+                    "r-labels-null-ok"
+                  ],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "ERR",
+                  "check_id": "chk-r3-o2",
+                  "elapsed_seconds": 0.014043656992726028,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "detail": "bad-input",
+                      "status": "error"
+                    },
+                    null
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "r-invalid-dict",
+                    "r-labels-null-ok"
+                  ],
+                  "symbol": "label_title"
+                }
+              ],
+              "control_id": "ctl-r3-o",
+              "current_obligations_passed": false,
+              "expected_failing_check_ids": [
+                "chk-r3-o1"
+              ],
+              "kind": "obligation",
+              "named_checks_failed": true,
+              "patch_sha256": "3e8c4fa57794f2a2fb3e062c7008d4437ee7b38bdf781c1fade5999560970158",
+              "stable_functionality_passed": true,
+              "valid": true
+            }
+          ],
+          "post_module_sha256": "4b500a326d5b0938503d41a4c56b24c1f20263b19fb543fa3aa396c87580cd48",
+          "pre_module_sha256": "e2eee63e4af1463d86480253672ba5c35ef4bd6009ef5dca5c6d36fd54569fa5",
+          "reference_checks": [
+            {
+              "actual": "vase",
+              "check_id": "chk-clean-1",
+              "elapsed_seconds": 0.014099096995778382,
+              "error": null,
+              "expected_values": [
+                "vase"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "_clean_token"
+            },
+            {
+              "actual": "hall",
+              "check_id": "chk-clean-2",
+              "elapsed_seconds": 0.01485999597935006,
+              "error": null,
+              "expected_values": [
+                "hall"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "_clean_token"
+            },
+            {
+              "actual": "The Blue Vase",
+              "check_id": "chk-r0-f1",
+              "elapsed_seconds": 0.014474489988060668,
+              "error": null,
+              "expected_values": [
+                "The Blue Vase"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_title"
+            },
+            {
+              "actual": "Maria's Jar",
+              "check_id": "chk-r0-f2",
+              "elapsed_seconds": 0.022231793001992628,
+              "error": null,
+              "expected_values": [
+                "Maria's Jar"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_title"
+            },
+            {
+              "actual": "007: urn",
+              "check_id": "chk-r1-f1",
+              "elapsed_seconds": 0.01359346299432218,
+              "error": null,
+              "expected_values": [
+                "007: urn"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "index_entry"
+            },
+            {
+              "actual": "3000",
+              "check_id": "chk-r1-f2",
+              "elapsed_seconds": 0.023706548992777243,
+              "error": null,
+              "expected_values": [
+                "3000"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "index_entry"
+            },
+            {
+              "actual": [
+                "Vase",
+                "by Ada Lovelace",
+                "1889"
+              ],
+              "check_id": "chk-r2-f1",
+              "elapsed_seconds": 0.014009497012011707,
+              "error": null,
+              "expected_values": [
+                [
+                  "Vase",
+                  "by Ada Lovelace",
+                  "1889"
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_full"
+            },
+            {
+              "actual": [
+                "The Big Jar",
+                "by Li",
+                "44"
+              ],
+              "check_id": "chk-r2-f2",
+              "elapsed_seconds": 0.01358261497807689,
+              "error": null,
+              "expected_values": [
+                [
+                  "The Big Jar",
+                  "by Li",
+                  "44"
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_full"
+            },
+            {
+              "actual": "Vase: From Crete",
+              "check_id": "chk-r3-f1",
+              "elapsed_seconds": 0.013447047007502988,
+              "error": null,
+              "expected_values": [
+                "Vase: From Crete"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_title"
+            },
+            {
+              "actual": "Vase",
+              "check_id": "chk-r3-f2",
+              "elapsed_seconds": 0.024063926975941285,
+              "error": null,
+              "expected_values": [
+                "Vase"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_title"
+            },
+            {
+              "actual": {
+                "detail": "bad-input",
+                "status": "error"
+              },
+              "check_id": "chk-r3-o1",
+              "elapsed_seconds": 0.014164104999508709,
+              "error": null,
+              "expected_values": [
+                {
+                  "detail": "bad-input",
+                  "status": "error"
+                },
+                null
+              ],
+              "passed": true,
+              "rule_ids": [
+                "r-invalid-dict",
+                "r-labels-null-ok"
+              ],
+              "symbol": "label_title"
+            },
+            {
+              "actual": {
+                "detail": "bad-input",
+                "status": "error"
+              },
+              "check_id": "chk-r3-o2",
+              "elapsed_seconds": 0.024243589985417202,
+              "error": null,
+              "expected_values": [
+                {
+                  "detail": "bad-input",
+                  "status": "error"
+                },
+                null
+              ],
+              "passed": true,
+              "rule_ids": [
+                "r-invalid-dict",
+                "r-labels-null-ok"
+              ],
+              "symbol": "label_title"
+            }
+          ],
+          "reference_passed": true,
+          "reference_patch_sha256": "11faa873c0cb9c6d743bbe6dd1372d4f4530869ab0db5d808418690aa1959ea7",
+          "target": {
+            "path": "module.py",
+            "symbol": "label_title"
+          }
+        },
+        {
+          "counterfactual_reference_sizing": {
+            "actual_http_prompt": false,
+            "description": "manual recap plus reference fence; actual own-history worker requests are unknowable before inference",
+            "eligible": true,
+            "error": null,
+            "generation_cap": 768,
+            "headroom_tokens": 360,
+            "minimum_headroom_tokens": 128,
+            "response_sha256": "26731406b85fabc4ad41cf5bf349eb0cd4c6060972edc85d9e92e12ccfb89c25",
+            "tokens_without_eos": 408
+          },
+          "index": 4,
+          "negative_controls": [
+            {
+              "checks": [
+                {
+                  "actual": "vase",
+                  "check_id": "chk-clean-1",
+                  "elapsed_seconds": 0.012564389006001875,
+                  "error": null,
+                  "expected_values": [
+                    "vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "hall",
+                  "check_id": "chk-clean-2",
+                  "elapsed_seconds": 0.012746085005346686,
+                  "error": null,
+                  "expected_values": [
+                    "hall"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "The Blue Vase",
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.012763956998242065,
+                  "error": null,
+                  "expected_values": [
+                    "The Blue Vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "Maria's Jar",
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.013354422990232706,
+                  "error": null,
+                  "expected_values": [
+                    "Maria's Jar"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "007: urn",
+                  "check_id": "chk-r1-f1",
+                  "elapsed_seconds": 0.01299515800201334,
+                  "error": null,
+                  "expected_values": [
+                    "007: urn"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": "3000",
+                  "check_id": "chk-r1-f2",
+                  "elapsed_seconds": 0.023053971002809703,
+                  "error": null,
+                  "expected_values": [
+                    "3000"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": [
+                    "Vase",
+                    "by Ada Lovelace",
+                    "1889"
+                  ],
+                  "check_id": "chk-r2-f1",
+                  "elapsed_seconds": 0.023521268012700602,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      "Vase",
+                      "by Ada Lovelace",
+                      "1889"
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": [
+                    "The Big Jar",
+                    "by Li",
+                    "44"
+                  ],
+                  "check_id": "chk-r2-f2",
+                  "elapsed_seconds": 0.02191705600125715,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      "The Big Jar",
+                      "by Li",
+                      "44"
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": "Vase: From Crete",
+                  "check_id": "chk-r3-f1",
+                  "elapsed_seconds": 0.013487927004462108,
+                  "error": null,
+                  "expected_values": [
+                    "Vase: From Crete"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "Vase",
+                  "check_id": "chk-r3-f2",
+                  "elapsed_seconds": 0.013597159995697439,
+                  "error": null,
+                  "expected_values": [
+                    "Vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "007: urn",
+                  "check_id": "chk-r4-f1",
+                  "elapsed_seconds": 0.018772790994262323,
+                  "error": null,
+                  "expected_values": [
+                    "007: urn"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": "012 (north wing)",
+                  "check_id": "chk-r4-f2",
+                  "elapsed_seconds": 0.023282179987290874,
+                  "error": null,
+                  "expected_values": [
+                    "012 (North Wing)"
+                  ],
+                  "passed": false,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": {
+                    "detail": "bad-input",
+                    "status": "error"
+                  },
+                  "check_id": "chk-r4-o1",
+                  "elapsed_seconds": 0.013480727007845417,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "detail": "bad-input",
+                      "status": "error"
+                    }
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "r-invalid-dict"
+                  ],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": {
+                    "detail": "bad-input",
+                    "status": "error"
+                  },
+                  "check_id": "chk-r4-o2",
+                  "elapsed_seconds": 0.013999608985614032,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "detail": "bad-input",
+                      "status": "error"
+                    }
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "r-invalid-dict"
+                  ],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": "009: dog, cat",
+                  "check_id": "chk-r4-o3",
+                  "elapsed_seconds": 0.023990501009393483,
+                  "error": null,
+                  "expected_values": [
+                    "009: dog, cat"
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "r-sort-stable-length"
+                  ],
+                  "symbol": "index_entry"
+                }
+              ],
+              "control_id": "ctl-r4-f",
+              "current_obligations_passed": true,
+              "expected_failing_check_ids": [
+                "chk-r4-f2"
+              ],
+              "kind": "functional",
+              "named_checks_failed": true,
+              "patch_sha256": "4fdbc7f45d5e6737a7fa28034413550e6cf15d2cf6afcaa67f237e174ac2b76c",
+              "stable_functionality_passed": false,
+              "valid": true
+            },
+            {
+              "checks": [
+                {
+                  "actual": "vase",
+                  "check_id": "chk-clean-1",
+                  "elapsed_seconds": 0.022186240006703883,
+                  "error": null,
+                  "expected_values": [
+                    "vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "hall",
+                  "check_id": "chk-clean-2",
+                  "elapsed_seconds": 0.014195802010362968,
+                  "error": null,
+                  "expected_values": [
+                    "hall"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "The Blue Vase",
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.023268530989298597,
+                  "error": null,
+                  "expected_values": [
+                    "The Blue Vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "Maria's Jar",
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.0218644319975283,
+                  "error": null,
+                  "expected_values": [
+                    "Maria's Jar"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "007: urn",
+                  "check_id": "chk-r1-f1",
+                  "elapsed_seconds": 0.014457177981967106,
+                  "error": null,
+                  "expected_values": [
+                    "007: urn"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": "3000",
+                  "check_id": "chk-r1-f2",
+                  "elapsed_seconds": 0.022696898027788848,
+                  "error": null,
+                  "expected_values": [
+                    "3000"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": [
+                    "Vase",
+                    "by Ada Lovelace",
+                    "1889"
+                  ],
+                  "check_id": "chk-r2-f1",
+                  "elapsed_seconds": 0.013238230982096866,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      "Vase",
+                      "by Ada Lovelace",
+                      "1889"
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": [
+                    "The Big Jar",
+                    "by Li",
+                    "44"
+                  ],
+                  "check_id": "chk-r2-f2",
+                  "elapsed_seconds": 0.01388538398896344,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      "The Big Jar",
+                      "by Li",
+                      "44"
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": "Vase: From Crete",
+                  "check_id": "chk-r3-f1",
+                  "elapsed_seconds": 0.023232628009282053,
+                  "error": null,
+                  "expected_values": [
+                    "Vase: From Crete"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "Vase",
+                  "check_id": "chk-r3-f2",
+                  "elapsed_seconds": 0.01394268000149168,
+                  "error": null,
+                  "expected_values": [
+                    "Vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "007: urn",
+                  "check_id": "chk-r4-f1",
+                  "elapsed_seconds": 0.02223227298236452,
+                  "error": null,
+                  "expected_values": [
+                    "007: urn"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": "012 (North Wing)",
+                  "check_id": "chk-r4-f2",
+                  "elapsed_seconds": 0.01456477801548317,
+                  "error": null,
+                  "expected_values": [
+                    "012 (North Wing)"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": null,
+                  "check_id": "chk-r4-o1",
+                  "elapsed_seconds": 0.012750629975926131,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "detail": "bad-input",
+                      "status": "error"
+                    }
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "r-invalid-dict"
+                  ],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": null,
+                  "check_id": "chk-r4-o2",
+                  "elapsed_seconds": 0.014064248010981828,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "detail": "bad-input",
+                      "status": "error"
+                    }
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "r-invalid-dict"
+                  ],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": "009: dog, cat",
+                  "check_id": "chk-r4-o3",
+                  "elapsed_seconds": 0.014033465005923063,
+                  "error": null,
+                  "expected_values": [
+                    "009: dog, cat"
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "r-sort-stable-length"
+                  ],
+                  "symbol": "index_entry"
+                }
+              ],
+              "control_id": "ctl-r4-o",
+              "current_obligations_passed": false,
+              "expected_failing_check_ids": [
+                "chk-r4-o1"
+              ],
+              "kind": "obligation",
+              "named_checks_failed": true,
+              "patch_sha256": "ed628662eb6ae3d5288bdb86a4318ddc49e4a5e434d2e4e97d2e85b7202273d9",
+              "stable_functionality_passed": true,
+              "valid": true
+            }
+          ],
+          "post_module_sha256": "990133ca3f8be8cb628792f3cd1c3d68cf7190d39f594d91eae92022e03497de",
+          "pre_module_sha256": "4b500a326d5b0938503d41a4c56b24c1f20263b19fb543fa3aa396c87580cd48",
+          "reference_checks": [
+            {
+              "actual": "vase",
+              "check_id": "chk-clean-1",
+              "elapsed_seconds": 0.01307589397765696,
+              "error": null,
+              "expected_values": [
+                "vase"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "_clean_token"
+            },
+            {
+              "actual": "hall",
+              "check_id": "chk-clean-2",
+              "elapsed_seconds": 0.014140633022179827,
+              "error": null,
+              "expected_values": [
+                "hall"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "_clean_token"
+            },
+            {
+              "actual": "The Blue Vase",
+              "check_id": "chk-r0-f1",
+              "elapsed_seconds": 0.013919817021815106,
+              "error": null,
+              "expected_values": [
+                "The Blue Vase"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_title"
+            },
+            {
+              "actual": "Maria's Jar",
+              "check_id": "chk-r0-f2",
+              "elapsed_seconds": 0.014902730996254832,
+              "error": null,
+              "expected_values": [
+                "Maria's Jar"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_title"
+            },
+            {
+              "actual": "007: urn",
+              "check_id": "chk-r1-f1",
+              "elapsed_seconds": 0.013880888000130653,
+              "error": null,
+              "expected_values": [
+                "007: urn"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "index_entry"
+            },
+            {
+              "actual": "3000",
+              "check_id": "chk-r1-f2",
+              "elapsed_seconds": 0.024248791014542803,
+              "error": null,
+              "expected_values": [
+                "3000"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "index_entry"
+            },
+            {
+              "actual": [
+                "Vase",
+                "by Ada Lovelace",
+                "1889"
+              ],
+              "check_id": "chk-r2-f1",
+              "elapsed_seconds": 0.01329426301526837,
+              "error": null,
+              "expected_values": [
+                [
+                  "Vase",
+                  "by Ada Lovelace",
+                  "1889"
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_full"
+            },
+            {
+              "actual": [
+                "The Big Jar",
+                "by Li",
+                "44"
+              ],
+              "check_id": "chk-r2-f2",
+              "elapsed_seconds": 0.013613638991955668,
+              "error": null,
+              "expected_values": [
+                [
+                  "The Big Jar",
+                  "by Li",
+                  "44"
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_full"
+            },
+            {
+              "actual": "Vase: From Crete",
+              "check_id": "chk-r3-f1",
+              "elapsed_seconds": 0.013729960017371923,
+              "error": null,
+              "expected_values": [
+                "Vase: From Crete"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_title"
+            },
+            {
+              "actual": "Vase",
+              "check_id": "chk-r3-f2",
+              "elapsed_seconds": 0.012876549997599795,
+              "error": null,
+              "expected_values": [
+                "Vase"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_title"
+            },
+            {
+              "actual": "007: urn",
+              "check_id": "chk-r4-f1",
+              "elapsed_seconds": 0.012816212984034792,
+              "error": null,
+              "expected_values": [
+                "007: urn"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "index_entry"
+            },
+            {
+              "actual": "012 (North Wing)",
+              "check_id": "chk-r4-f2",
+              "elapsed_seconds": 0.01318240599357523,
+              "error": null,
+              "expected_values": [
+                "012 (North Wing)"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "index_entry"
+            },
+            {
+              "actual": {
+                "detail": "bad-input",
+                "status": "error"
+              },
+              "check_id": "chk-r4-o1",
+              "elapsed_seconds": 0.013357351010199636,
+              "error": null,
+              "expected_values": [
+                {
+                  "detail": "bad-input",
+                  "status": "error"
+                }
+              ],
+              "passed": true,
+              "rule_ids": [
+                "r-invalid-dict"
+              ],
+              "symbol": "index_entry"
+            },
+            {
+              "actual": {
+                "detail": "bad-input",
+                "status": "error"
+              },
+              "check_id": "chk-r4-o2",
+              "elapsed_seconds": 0.012537348986370489,
+              "error": null,
+              "expected_values": [
+                {
+                  "detail": "bad-input",
+                  "status": "error"
+                }
+              ],
+              "passed": true,
+              "rule_ids": [
+                "r-invalid-dict"
+              ],
+              "symbol": "index_entry"
+            },
+            {
+              "actual": "009: dog, cat",
+              "check_id": "chk-r4-o3",
+              "elapsed_seconds": 0.013222773995948955,
+              "error": null,
+              "expected_values": [
+                "009: dog, cat"
+              ],
+              "passed": true,
+              "rule_ids": [
+                "r-sort-stable-length"
+              ],
+              "symbol": "index_entry"
+            }
+          ],
+          "reference_passed": true,
+          "reference_patch_sha256": "043c312557550940bdb938aa535f80012dd2c684c666223a02e0028dd5975c26",
+          "target": {
+            "path": "module.py",
+            "symbol": "index_entry"
+          }
+        },
+        {
+          "counterfactual_reference_sizing": {
+            "actual_http_prompt": false,
+            "description": "manual recap plus reference fence; actual own-history worker requests are unknowable before inference",
+            "eligible": true,
+            "error": null,
+            "generation_cap": 768,
+            "headroom_tokens": 375,
+            "minimum_headroom_tokens": 128,
+            "response_sha256": "9822ca09ed03426a7216f7657919e3035ec076c9f9f35cf723c2c8ba9b57d962",
+            "tokens_without_eos": 393
+          },
+          "index": 5,
+          "negative_controls": [
+            {
+              "checks": [
+                {
+                  "actual": "vase",
+                  "check_id": "chk-clean-1",
+                  "elapsed_seconds": 0.013180663023376837,
+                  "error": null,
+                  "expected_values": [
+                    "vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "hall",
+                  "check_id": "chk-clean-2",
+                  "elapsed_seconds": 0.013011829985771328,
+                  "error": null,
+                  "expected_values": [
+                    "hall"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "The Blue Vase",
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.012768596992827952,
+                  "error": null,
+                  "expected_values": [
+                    "The Blue Vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "Maria's Jar",
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.012933044985402375,
+                  "error": null,
+                  "expected_values": [
+                    "Maria's Jar"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "007: urn",
+                  "check_id": "chk-r1-f1",
+                  "elapsed_seconds": 0.012757414020597935,
+                  "error": null,
+                  "expected_values": [
+                    "007: urn"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": "3000",
+                  "check_id": "chk-r1-f2",
+                  "elapsed_seconds": 0.012925988994538784,
+                  "error": null,
+                  "expected_values": [
+                    "3000"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": [
+                    "Vase",
+                    "by Ada Lovelace",
+                    "1889"
+                  ],
+                  "check_id": "chk-r2-f1",
+                  "elapsed_seconds": 0.012724628992145881,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      "Vase",
+                      "by Ada Lovelace",
+                      "1889"
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": [
+                    "The Big Jar",
+                    "by Li",
+                    "44"
+                  ],
+                  "check_id": "chk-r2-f2",
+                  "elapsed_seconds": 0.02262795399292372,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      "The Big Jar",
+                      "by Li",
+                      "44"
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": "Vase: From Crete",
+                  "check_id": "chk-r3-f1",
+                  "elapsed_seconds": 0.0240363740012981,
+                  "error": null,
+                  "expected_values": [
+                    "Vase: From Crete"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "Vase",
+                  "check_id": "chk-r3-f2",
+                  "elapsed_seconds": 0.01387293598963879,
+                  "error": null,
+                  "expected_values": [
+                    "Vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "007: urn",
+                  "check_id": "chk-r4-f1",
+                  "elapsed_seconds": 0.014505003025988117,
+                  "error": null,
+                  "expected_values": [
+                    "007: urn"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": "012 (North Wing)",
+                  "check_id": "chk-r4-f2",
+                  "elapsed_seconds": 0.02190145500935614,
+                  "error": null,
+                  "expected_values": [
+                    "012 (North Wing)"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": [
+                    "Vase",
+                    "by Ada",
+                    "100",
+                    "inv. 005: gold"
+                  ],
+                  "check_id": "chk-r5-f1",
+                  "elapsed_seconds": 0.023887110000941902,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      "Vase",
+                      "by Ada",
+                      "100",
+                      "index 005: gold"
+                    ]
+                  ],
+                  "passed": false,
+                  "rule_ids": [],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": [
+                    "Jar",
+                    "by Li",
+                    "9"
+                  ],
+                  "check_id": "chk-r5-f2",
+                  "elapsed_seconds": 0.023818068992113695,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      "Jar",
+                      "by Li",
+                      "9"
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": "ERR",
+                  "check_id": "chk-r5-o1",
+                  "elapsed_seconds": 0.014293290005298331,
+                  "error": null,
+                  "expected_values": [
+                    "ERR",
+                    null
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "r-invalid-err",
+                    "r-labels-null-ok"
+                  ],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": "ERR",
+                  "check_id": "chk-r5-o2",
+                  "elapsed_seconds": 0.021982047997880727,
+                  "error": null,
+                  "expected_values": [
+                    "ERR",
+                    null
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "r-invalid-err",
+                    "r-labels-null-ok"
+                  ],
+                  "symbol": "label_full"
+                }
+              ],
+              "control_id": "ctl-r5-f",
+              "current_obligations_passed": true,
+              "expected_failing_check_ids": [
+                "chk-r5-f1"
+              ],
+              "kind": "functional",
+              "named_checks_failed": true,
+              "patch_sha256": "1b5a56e8e61999257384b7b8c9b839049b3dc3fa46554d0a23777806c7b0733b",
+              "stable_functionality_passed": false,
+              "valid": true
+            },
+            {
+              "checks": [
+                {
+                  "actual": "vase",
+                  "check_id": "chk-clean-1",
+                  "elapsed_seconds": 0.01320335001219064,
+                  "error": null,
+                  "expected_values": [
+                    "vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "hall",
+                  "check_id": "chk-clean-2",
+                  "elapsed_seconds": 0.014464617997873574,
+                  "error": null,
+                  "expected_values": [
+                    "hall"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "_clean_token"
+                },
+                {
+                  "actual": "The Blue Vase",
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.022556450014235452,
+                  "error": null,
+                  "expected_values": [
+                    "The Blue Vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "Maria's Jar",
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.023075363016687334,
+                  "error": null,
+                  "expected_values": [
+                    "Maria's Jar"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "007: urn",
+                  "check_id": "chk-r1-f1",
+                  "elapsed_seconds": 0.014294538006652147,
+                  "error": null,
+                  "expected_values": [
+                    "007: urn"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": "3000",
+                  "check_id": "chk-r1-f2",
+                  "elapsed_seconds": 0.023892677010735497,
+                  "error": null,
+                  "expected_values": [
+                    "3000"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": [
+                    "Vase",
+                    "by Ada Lovelace",
+                    "1889"
+                  ],
+                  "check_id": "chk-r2-f1",
+                  "elapsed_seconds": 0.024707976001081988,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      "Vase",
+                      "by Ada Lovelace",
+                      "1889"
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": [
+                    "The Big Jar",
+                    "by Li",
+                    "44"
+                  ],
+                  "check_id": "chk-r2-f2",
+                  "elapsed_seconds": 0.013070646004052833,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      "The Big Jar",
+                      "by Li",
+                      "44"
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": "Vase: From Crete",
+                  "check_id": "chk-r3-f1",
+                  "elapsed_seconds": 0.014150264993077144,
+                  "error": null,
+                  "expected_values": [
+                    "Vase: From Crete"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "Vase",
+                  "check_id": "chk-r3-f2",
+                  "elapsed_seconds": 0.014098760992055759,
+                  "error": null,
+                  "expected_values": [
+                    "Vase"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_title"
+                },
+                {
+                  "actual": "007: urn",
+                  "check_id": "chk-r4-f1",
+                  "elapsed_seconds": 0.023209843988297507,
+                  "error": null,
+                  "expected_values": [
+                    "007: urn"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": "012 (North Wing)",
+                  "check_id": "chk-r4-f2",
+                  "elapsed_seconds": 0.014550602005328983,
+                  "error": null,
+                  "expected_values": [
+                    "012 (North Wing)"
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "index_entry"
+                },
+                {
+                  "actual": [
+                    "Vase",
+                    "by Ada",
+                    "100",
+                    "index 005: gold"
+                  ],
+                  "check_id": "chk-r5-f1",
+                  "elapsed_seconds": 0.02447146299527958,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      "Vase",
+                      "by Ada",
+                      "100",
+                      "index 005: gold"
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": [
+                    "Jar",
+                    "by Li",
+                    "9"
+                  ],
+                  "check_id": "chk-r5-f2",
+                  "elapsed_seconds": 0.01423656998667866,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      "Jar",
+                      "by Li",
+                      "9"
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": {
+                    "detail": "bad-input",
+                    "status": "error"
+                  },
+                  "check_id": "chk-r5-o1",
+                  "elapsed_seconds": 0.01917266400414519,
+                  "error": null,
+                  "expected_values": [
+                    "ERR",
+                    null
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "r-invalid-err",
+                    "r-labels-null-ok"
+                  ],
+                  "symbol": "label_full"
+                },
+                {
+                  "actual": {
+                    "detail": "bad-input",
+                    "status": "error"
+                  },
+                  "check_id": "chk-r5-o2",
+                  "elapsed_seconds": 0.014404346002265811,
+                  "error": null,
+                  "expected_values": [
+                    "ERR",
+                    null
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "r-invalid-err",
+                    "r-labels-null-ok"
+                  ],
+                  "symbol": "label_full"
+                }
+              ],
+              "control_id": "ctl-r5-o",
+              "current_obligations_passed": false,
+              "expected_failing_check_ids": [
+                "chk-r5-o1"
+              ],
+              "kind": "obligation",
+              "named_checks_failed": true,
+              "patch_sha256": "27c9e9a1cf79d6261b126711d1eb6aba770809e56e14899048710b6307377ce2",
+              "stable_functionality_passed": true,
+              "valid": true
+            }
+          ],
+          "post_module_sha256": "7788963927272a7e2909ea3f4e49f0086b27c9416be358da6561aa5e90998bde",
+          "pre_module_sha256": "990133ca3f8be8cb628792f3cd1c3d68cf7190d39f594d91eae92022e03497de",
+          "reference_checks": [
+            {
+              "actual": "vase",
+              "check_id": "chk-clean-1",
+              "elapsed_seconds": 0.0134688240068499,
+              "error": null,
+              "expected_values": [
+                "vase"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "_clean_token"
+            },
+            {
+              "actual": "hall",
+              "check_id": "chk-clean-2",
+              "elapsed_seconds": 0.024111909995554015,
+              "error": null,
+              "expected_values": [
+                "hall"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "_clean_token"
+            },
+            {
+              "actual": "The Blue Vase",
+              "check_id": "chk-r0-f1",
+              "elapsed_seconds": 0.023541075992397964,
+              "error": null,
+              "expected_values": [
+                "The Blue Vase"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_title"
+            },
+            {
+              "actual": "Maria's Jar",
+              "check_id": "chk-r0-f2",
+              "elapsed_seconds": 0.024366518977330998,
+              "error": null,
+              "expected_values": [
+                "Maria's Jar"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_title"
+            },
+            {
+              "actual": "007: urn",
+              "check_id": "chk-r1-f1",
+              "elapsed_seconds": 0.014010553015395999,
+              "error": null,
+              "expected_values": [
+                "007: urn"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "index_entry"
+            },
+            {
+              "actual": "3000",
+              "check_id": "chk-r1-f2",
+              "elapsed_seconds": 0.013160837988834828,
+              "error": null,
+              "expected_values": [
+                "3000"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "index_entry"
+            },
+            {
+              "actual": [
+                "Vase",
+                "by Ada Lovelace",
+                "1889"
+              ],
+              "check_id": "chk-r2-f1",
+              "elapsed_seconds": 0.025082089006900787,
+              "error": null,
+              "expected_values": [
+                [
+                  "Vase",
+                  "by Ada Lovelace",
+                  "1889"
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_full"
+            },
+            {
+              "actual": [
+                "The Big Jar",
+                "by Li",
+                "44"
+              ],
+              "check_id": "chk-r2-f2",
+              "elapsed_seconds": 0.01291352600674145,
+              "error": null,
+              "expected_values": [
+                [
+                  "The Big Jar",
+                  "by Li",
+                  "44"
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_full"
+            },
+            {
+              "actual": "Vase: From Crete",
+              "check_id": "chk-r3-f1",
+              "elapsed_seconds": 0.01428330599446781,
+              "error": null,
+              "expected_values": [
+                "Vase: From Crete"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_title"
+            },
+            {
+              "actual": "Vase",
+              "check_id": "chk-r3-f2",
+              "elapsed_seconds": 0.013718503003474325,
+              "error": null,
+              "expected_values": [
+                "Vase"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_title"
+            },
+            {
+              "actual": "007: urn",
+              "check_id": "chk-r4-f1",
+              "elapsed_seconds": 0.013773913000477478,
+              "error": null,
+              "expected_values": [
+                "007: urn"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "index_entry"
+            },
+            {
+              "actual": "012 (North Wing)",
+              "check_id": "chk-r4-f2",
+              "elapsed_seconds": 0.013163605995941907,
+              "error": null,
+              "expected_values": [
+                "012 (North Wing)"
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "index_entry"
+            },
+            {
+              "actual": [
+                "Vase",
+                "by Ada",
+                "100",
+                "index 005: gold"
+              ],
+              "check_id": "chk-r5-f1",
+              "elapsed_seconds": 0.01305303000845015,
+              "error": null,
+              "expected_values": [
+                [
+                  "Vase",
+                  "by Ada",
+                  "100",
+                  "index 005: gold"
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_full"
+            },
+            {
+              "actual": [
+                "Jar",
+                "by Li",
+                "9"
+              ],
+              "check_id": "chk-r5-f2",
+              "elapsed_seconds": 0.013036661985097453,
+              "error": null,
+              "expected_values": [
+                [
+                  "Jar",
+                  "by Li",
+                  "9"
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "label_full"
+            },
+            {
+              "actual": "ERR",
+              "check_id": "chk-r5-o1",
+              "elapsed_seconds": 0.01281794099486433,
+              "error": null,
+              "expected_values": [
+                "ERR",
+                null
+              ],
+              "passed": true,
+              "rule_ids": [
+                "r-invalid-err",
+                "r-labels-null-ok"
+              ],
+              "symbol": "label_full"
+            },
+            {
+              "actual": "ERR",
+              "check_id": "chk-r5-o2",
+              "elapsed_seconds": 0.012886757991509512,
+              "error": null,
+              "expected_values": [
+                "ERR",
+                null
+              ],
+              "passed": true,
+              "rule_ids": [
+                "r-invalid-err",
+                "r-labels-null-ok"
+              ],
+              "symbol": "label_full"
+            }
+          ],
+          "reference_passed": true,
+          "reference_patch_sha256": "296d903c5b3d864ca8b5a5c9b1b2862371e35a3b029539b003af8b535e25d35a",
+          "target": {
+            "path": "module.py",
+            "symbol": "label_full"
+          }
+        }
+      ]
+    }
+  ],
+  "gpu_used": false,
+  "input_errors": [],
+  "inputs": [
+    {
+      "bytes": 47658,
+      "documents": 1,
+      "path": "results/coding-self-cue/author-00/authored.json",
+      "sha256": "bed583fb73bf3c0d03b3c6ee4ae47fb37b3f31984cf29c39b56be507c70f1fbd"
+    }
+  ],
+  "kind": "coding-self-cue-cpu-preflight",
+  "model_calls": 0,
+  "runtime": {
+    "elapsed_seconds": 3.6980386020150036,
+    "fresh_seccomp_process_per_check": true,
+    "generation_cap": 768,
+    "minimum_generation_headroom": 128
+  },
+  "schema_version": 1,
+  "scope": "individual",
+  "status": "ELIGIBLE"
+}
