@@ -58,7 +58,13 @@ def _write_qualification(root):
         document = {
             "public": {
                 "episode_id": episode_id,
-                "rounds": [{"index": index} for index in range(3)],
+                "rounds": [
+                    {
+                        "index": index,
+                        "request": {"task_handle": f"task-{index}"},
+                    }
+                    for index in range(3)
+                ],
             },
             "private": {
                 "rounds": [
@@ -70,9 +76,29 @@ def _write_qualification(root):
                         "oracle": {
                             "effective_rules": [
                                 {
-                                    "text": f"rule {project_index}-{index}",
-                                    "source_ids": [f"source-{project_index}-{index}"],
-                                }
+                                    "text": "future task only",
+                                    "source_ids": [f"future-{project_index}-{index}"],
+                                    "scope": f"task-{(index + 1) % 3}",
+                                    "strength": "required",
+                                },
+                                {
+                                    "text": "global permission",
+                                    "source_ids": [f"permission-{project_index}"],
+                                    "scope": "global",
+                                    "strength": "permitted",
+                                },
+                                {
+                                    "text": f"current rule {project_index}-{index}",
+                                    "source_ids": [f"current-{project_index}-{index}"],
+                                    "scope": f"task-{index}",
+                                    "strength": "required",
+                                },
+                                {
+                                    "text": "global exception",
+                                    "source_ids": [f"exception-{project_index}"],
+                                    "scope": "global",
+                                    "strength": "optional",
+                                },
                             ]
                         },
                     }
@@ -129,6 +155,25 @@ def _write_qualification(root):
         "elapsed_seconds": 0.2,
     }
 
+    def reference_body(document, round_index, kind):
+        private_round = document["private"]["rounds"][round_index]
+        if kind == "replace_function":
+            value = {"source": private_round["reference_patch"]}
+        else:
+            task_handle = document["public"]["rounds"][round_index]["request"][
+                "task_handle"
+            ]
+            value = {
+                "obligations": [
+                    {"text": rule["text"], "source_ids": rule["source_ids"]}
+                    for rule in private_round["oracle"]["effective_rules"]
+                    if rule["scope"] in {"global", task_handle}
+                ]
+            }
+        return json.dumps(
+            value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
+
     actions = []
     cold = []
     growth = []
@@ -146,7 +191,7 @@ def _write_qualification(root):
                 }
             )
             for kind in ("record_focus", "replace_function"):
-                body = launcher._expected_reference_body(document, round_index, kind)
+                body = reference_body(document, round_index, kind)
                 actions.append(
                     {
                         "episode_id": episode_id,
@@ -256,6 +301,23 @@ def test_artifacts_bind_two_inputs_cpu_preview_and_sources(tmp_path):
     receipt = launcher.validate_artifacts(
         input_paths, preflight, preview, root=tmp_path
     )
+
+    preview_value = json.loads(preview.read_text())
+    focus = next(
+        action
+        for action in preview_value["reference_actions"]
+        if action["episode_id"] == "auto-0"
+        and action["round_index"] == 0
+        and action["kind"] == "record_focus"
+    )
+    assert [
+        item["text"] for item in json.loads(focus["argument_body"])["obligations"]
+    ] == [
+        "global permission",
+        "current rule 0-0",
+        "global exception",
+    ]
+    assert "future task only" not in focus["argument_body"]
 
     assert receipt["documents"] == 2
     assert receipt["scheduled_requests"] == 6

@@ -249,10 +249,14 @@ def _expected_reference_body(document, round_index, kind):
     if kind == "replace_function":
         value = {"source": private_round["reference_patch"]}
     elif kind == "record_focus":
+        task_handle = document["public"]["rounds"][round_index]["request"][
+            "task_handle"
+        ]
         value = {
             "obligations": [
                 {"text": rule["text"], "source_ids": list(rule["source_ids"])}
                 for rule in private_round["oracle"]["effective_rules"]
+                if rule["scope"] in {"global", task_handle}
             ]
         }
     else:
