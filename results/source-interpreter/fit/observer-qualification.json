@@ -1,0 +1,105 @@
+{
+  "cases": [
+    {
+      "case": "initial-timeout",
+      "expected": "INCOMPLETE_INITIAL_TIMEOUT",
+      "receipt": {
+        "command": [
+          "/usr/bin/python3",
+          "-c",
+          "import json,time\nfrom pathlib import Path\nr=Path('/tmp/tmpssamy39y/initial-timeout')\nr.mkdir()\ntime.sleep(2.0)\n(r/\"lifecycle.json\").write_text(json.dumps({\"status\":\"COMPLETE\",\"child_exit_confirmed\":True}))\n"
+        ],
+        "elapsed_seconds": 0.1213018199778162,
+        "ended_monotonic": 229754.947446588,
+        "ended_unix": 1788876953.9459116,
+        "initial_deadline_monotonic": 229754.946144768,
+        "initial_training_bound_observed": false,
+        "initial_training_observation": null,
+        "observer_pid": 164684,
+        "owned_group_absent": true,
+        "owned_process_group": 164685,
+        "started_monotonic": 229754.826144768,
+        "started_unix": 1788876953.8246093,
+        "status": "INCOMPLETE_INITIAL_TIMEOUT",
+        "supervisor_exit_code": -15,
+        "supervisor_exit_confirmed": true,
+        "supervisor_pid": 164685,
+        "whole_deadline_monotonic": 229755.826144768
+      }
+    },
+    {
+      "case": "whole-timeout",
+      "expected": "INCOMPLETE_WHOLE_TIMEOUT",
+      "receipt": {
+        "command": [
+          "/usr/bin/python3",
+          "-c",
+          "import json,time\nfrom pathlib import Path\nr=Path('/tmp/tmpssamy39y/whole-timeout')\nr.mkdir()\n(r/\"current-stage.json\").write_text(json.dumps({\"stage\":\"generation-base\",\"status\":\"INTENT\"}))\ntime.sleep(2.0)\n(r/\"lifecycle.json\").write_text(json.dumps({\"status\":\"COMPLETE\",\"child_exit_confirmed\":True}))\n"
+        ],
+        "elapsed_seconds": 0.8034503749804571,
+        "ended_monotonic": 229755.767105546,
+        "ended_unix": 1788876954.7655714,
+        "initial_deadline_monotonic": 229755.463655171,
+        "initial_training_bound_observed": true,
+        "initial_training_observation": {
+          "elapsed_seconds": 0.021515903994441032,
+          "observed_monotonic": 229754.985171075,
+          "stage": {
+            "stage": "generation-base",
+            "status": "INTENT"
+          }
+        },
+        "observer_pid": 164684,
+        "owned_group_absent": true,
+        "owned_process_group": 164686,
+        "started_monotonic": 229754.963655171,
+        "started_unix": 1788876953.9621193,
+        "status": "INCOMPLETE_WHOLE_TIMEOUT",
+        "supervisor_exit_code": -15,
+        "supervisor_exit_confirmed": true,
+        "supervisor_pid": 164686,
+        "whole_deadline_monotonic": 229755.763655171
+      }
+    },
+    {
+      "case": "complete",
+      "expected": "COMPLETE_UNREVIEWED",
+      "receipt": {
+        "command": [
+          "/usr/bin/python3",
+          "-c",
+          "import json,time\nfrom pathlib import Path\nr=Path('/tmp/tmpssamy39y/complete')\nr.mkdir()\n(r/\"current-stage.json\").write_text(json.dumps({\"stage\":\"generation-base\",\"status\":\"INTENT\"}))\ntime.sleep(0.05)\n(r/\"lifecycle.json\").write_text(json.dumps({\"status\":\"COMPLETE\",\"child_exit_confirmed\":True}))\n"
+        ],
+        "elapsed_seconds": 0.07372966597904451,
+        "ended_monotonic": 229755.857783219,
+        "ended_unix": 1788876954.8562486,
+        "initial_deadline_monotonic": 229756.284053553,
+        "initial_training_bound_observed": true,
+        "initial_training_observation": {
+          "elapsed_seconds": 0.020917792979162186,
+          "observed_monotonic": 229755.804971346,
+          "stage": {
+            "stage": "generation-base",
+            "status": "INTENT"
+          }
+        },
+        "inner_lifecycle": {
+          "child_exit_confirmed": true,
+          "status": "COMPLETE"
+        },
+        "observer_pid": 164684,
+        "owned_group_absent": true,
+        "owned_process_group": 164703,
+        "started_monotonic": 229755.784053553,
+        "started_unix": 1788876954.7825177,
+        "status": "COMPLETE_UNREVIEWED",
+        "supervisor_exit_code": 0,
+        "supervisor_exit_confirmed": true,
+        "supervisor_pid": 164703,
+        "whole_deadline_monotonic": 229756.784053553
+      }
+    }
+  ],
+  "kind": "owned-dummy-process-qualification",
+  "model_calls": 0
+}

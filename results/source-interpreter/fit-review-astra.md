@@ -320,3 +320,113 @@ three findings, then request a focused delta review before the prospective
 single-run freeze. Fresh semantic comparison and larger executable coding
 utility remain unestablished; this is code review, not execution or utility
 evidence.
+
+## Round 3 — findings 1–3 correction review, 2026-09-08
+
+**Score: 96/100. ACCEPTED — runner implementation. Zero open findings,
+including zero high or critical findings.**
+
+Same independent native **gpt-6-astra, xhigh** session and user-directed reviewer
+substitution. This round checks the three corrections and their consequences;
+the accepted recipe and earlier scientific scope remain unchanged. Rounds 1–2
+and finding identities are preserved. This is code acceptance, not an actual FIT
+run result, transfer evidence or coding-utility result.
+
+Reviewed stable Sol correction commit
+`6949d66a8f2544a14f2a5c6d7c4286ed717fe084` and independently checked:
+
+| Artifact | SHA-256 |
+| --- | --- |
+| `scripts/source_interpreter_fit.py` | `fe526cc2fe61c183f2a2c4d5db801f8ac684c2f7ad8db7f01980994212c5ee36` |
+| `tests/test_source_interpreter_fit.py` | `b875ab92e37a50630ab99ddbf3c26afef4f57335d467af3b4fd6b3fe7ca8027e` |
+| `results/source-interpreter/FIT-FIX-BRIEF.md` | `3743f7f9950d9e2bfe3ab731d40aba8ce56de1272a1e9ff0c6bac039d348c959` |
+| Unchanged `results/source-interpreter/FIT.md` | `f1f306e9ccac968013568dd6f0ed46a42d6df7297105c7a2531a83b7caa541a7` |
+
+**Finding 1 — high, resolved 2026-09-08.** The shared `_publish_stage` path now
+keeps `current-stage.json` at `COMPLETION_PENDING` while writing terminal
+evidence. It samples after the required completion-record writes, checks again
+after publishing the observation records, and converts late completion into
+`DEADLINE`. The current stage remains pending until the next stage's durable
+intent or child exit; a prematurely visible per-stage `COMPLETE` file therefore
+does not disarm inner supervision. The supervisor enforces both `INTENT` and
+`COMPLETION_PENDING`. Training, generation, cleanup and finalization consumers
+use the corrected completion checks, and late generation publication sets the
+deadline fact and stops the fixed pair before its second call.
+
+The consuming regression for the original 301-second publication defect now
+returns `INCOMPLETE_DEADLINE`, invokes the generator only once and preserves
+the base stage as `DEADLINE`, with a post-write observation of 301. Independently
+exercised the actual supervisor with an owned dummy child that leaves its
+per-stage file `COMPLETE` but current stage `COMPLETION_PENDING`, then hangs.
+The supervisor reports `INCOMPLETE_STAGE_TIMEOUT` for `generation-base`,
+confirms/reaps the child and clears its flag; measured observer lifecycle was
+0.201464086 seconds under this small synthetic reservation. This directly
+qualifies pending-publication supervision rather than relying on an unchanged
+intent-only test.
+
+The corrected dry plan explicitly requires the root observer to start before
+supervisor launch and enforce the initial **1,220 seconds through pre-child
+qualification and durable training completion**, as well as the entire
+2,400-second process bound. The parent supplied its concrete observation rule:
+check the initial deadline before accepting a durable transition to either
+registered generation stage, which the fixed child can reach only after the
+training completion check; retain the initial bound until that transition or
+earlier supervisor exit. This conservatively avoids trusting a prematurely
+visible per-training completion file. That division of responsibility satisfies
+the initial-bound correction. The actual outer observer and its launch bindings
+still must be frozen and verified before execution; this report does not claim
+they have already run.
+
+**Finding 2 — medium, resolved 2026-09-08.**
+`_native_resolved_generation_config` now invokes the installed native
+`_prepare_generation_config` and `_prepare_generated_length` with the same
+checkpoint configuration, configuration kwargs and actual prefix length used
+by the subsequent ordinary generate path. Forward and control kwargs are
+recorded separately. Read the installed `GenerationMixin.generate` preparation
+sequence and PEFT delegation to check this agreement: for the registered
+decoder-only input-ID call, absent user config, fixed single return/beam and
+unchanged settings, the resolver receives the same effective configuration
+inputs and derives the same length. It does not change the generation recipe.
+
+The consumer test now uses the installed `GenerationConfig` and actual native
+resolver methods, rather than a fake manual overlay. It confirms inherited
+`None` fields resolve to `min_length=0`, `repetition_penalty=1.0` and
+`max_length=5014`, while `logits_to_keep` and `synced_gpus` remain explicit
+forward/control arguments. Both calls retain the prescribed prefix-only
+inputs, greedy/single-EOS settings and adapter modes. These are CPU
+configuration/API checks, not a live native model-generation measurement.
+
+**Finding 3 — medium, resolved 2026-09-08.** The actual partial-generation
+lifecycle consumer now consults the durable per-generation stage receipt when
+an output file is absent. No stage intent means `NOT_ATTEMPTED`; an existing
+stage with unavailable output means `UNAVAILABLE`, with availability unknown.
+This matches the fixed call order and the producer's rule that durable intent
+precedes invocation. The training-stop consumer test confirms both calls are
+`NOT_ATTEMPTED`; the new base hard-stop consumer test confirms base
+`UNAVAILABLE` and adapter `NOT_ATTEMPTED`. The independent pending-publication
+dummy check also produces that latter classification. No missing response is
+converted into zero generated tokens.
+
+Independent validation: `.venv/bin/python -m pytest -q
+tests/test_source_interpreter_fit.py` **10 passed in 2.69 seconds**. Ruff check,
+Ruff format check and `git diff --check` passed. The targeted suite includes
+the actual absolute direct-file artifact qualification from a temporary working
+directory with `PYTHONPATH` unset, plus import/dry checks that keep ML imports
+and run creation out of those non-executing paths. The native configuration
+tests import the installed HF/Torch Python dependencies on CPU; they instantiate
+no model and invoke no CUDA work. The additional pending-publication supervisor
+check imports no ML runtime. No frozen mechanics or full pytest suite was run.
+
+Read the complete runner/test delta: the 54-row schedule, actual loss/update
+loop, fresh adapter, standard FP32 archive/reload equality, original-parameter
+checks, two prefix-only calls and strict unchanged-output handling retain their
+round-2 behavior. No new finding or regression was identified. Only this
+canonical review was changed; no code, specification, ledger edit or commit
+was made. No weights, model/GPU operation, semantic generation, network, new
+data, preview regeneration or excluded evaluation bank was accessed.
+
+The next step is the prospectively bound single run with the required root
+observer, followed by independent review of its actual evidence. Acceptance
+here establishes readiness of the reviewed runner under that launch contract;
+fresh semantic comparison and adequate larger executable coding proof remain
+separate, unestablished requirements.

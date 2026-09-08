@@ -1,0 +1,90 @@
+{
+  "accepted_code_review": {
+    "open_findings": 0,
+    "path": "results/source-interpreter/fit-review-astra.md",
+    "round": 3,
+    "scope": "FIT runner corrections accepted; outer monitor review pending",
+    "score": 96,
+    "sha256": "fc2fada2f6463db7d4e8cb738c2086602c77dd69af303390f020f2dabafb5eac"
+  },
+  "attempts": 1,
+  "automatic_retry": false,
+  "bindings": {
+    "results/source-interpreter/FIT-CODE-BRIEF.md": {
+      "bytes": 7226,
+      "sha256": "9a3836c0e08944052d98c86c21e7b09c952778f396af0ac8133c813293328e6f"
+    },
+    "results/source-interpreter/FIT-FIX-BRIEF.md": {
+      "bytes": 4754,
+      "sha256": "3743f7f9950d9e2bfe3ab731d40aba8ce56de1272a1e9ff0c6bac039d348c959"
+    },
+    "results/source-interpreter/FIT.md": {
+      "bytes": 10540,
+      "sha256": "f1f306e9ccac968013568dd6f0ed46a42d6df7297105c7a2531a83b7caa541a7"
+    },
+    "results/source-interpreter/accepted-inputs.json": {
+      "bytes": 3415,
+      "sha256": "6beea4bb534e0991fc0444d634f92882ff61191880c43cf4e68da730753c4bf8"
+    },
+    "results/source-interpreter/fit/observer-qualification.json": {
+      "bytes": 4189,
+      "sha256": "fb8f8297fb9b2ff9d6c153bfe2314777ed47248243a2d547cc5dbcb63527bbc6"
+    },
+    "results/source-interpreter/preview.json": {
+      "bytes": 2142011,
+      "sha256": "5760764f748a088d9d105b6f89b6188785941239ea28c1e60d706f9d028a0326"
+    },
+    "scripts/source_interpreter_fit.py": {
+      "bytes": 75718,
+      "sha256": "fe526cc2fe61c183f2a2c4d5db801f8ac684c2f7ad8db7f01980994212c5ee36"
+    },
+    "scripts/source_interpreter_mechanics.py": {
+      "bytes": 69367,
+      "sha256": "4eb7cb46f0191e7481e162e03ee12db2d771e9a043792ddd3d6c825e50321927"
+    },
+    "src/stencil/focus/source_interpreter.py": {
+      "bytes": 40538,
+      "sha256": "ce8126cab730d5b3b652acccc2930db5bb6df1797dfa8181ef038fff2b7b927d"
+    },
+    "tests/test_source_interpreter_fit.py": {
+      "bytes": 20502,
+      "sha256": "b875ab92e37a50630ab99ddbf3c26afef4f57335d467af3b4fd6b3fe7ca8027e"
+    },
+    "tools/observe_source_fit.py": {
+      "bytes": 7347,
+      "sha256": "e04b4cc839d3d906f9ff85513b495c6e0cebcdd63c45cd9413819675679790ee"
+    }
+  },
+  "command": [
+    "/home/bmarti44/stencil-llm/.venv/bin/python",
+    "/home/bmarti44/stencil-llm/scripts/source_interpreter_fit.py",
+    "--run-dir",
+    "/home/bmarti44/stencil-llm/results/source-interpreter/fit/run-01",
+    "--execute"
+  ],
+  "cwd": "/home/bmarti44/stencil-llm",
+  "development_on": null,
+  "evaluated_on": null,
+  "fit_on": "eighteen accepted preassigned FIT rows only; timing uses FIT row14 prefix",
+  "interpretation": "fixed FIT training and two FIT-only generation cost calls; no fresh semantic or coding-utility evidence",
+  "kind": "source-interpreter-fit-root-launch-plan",
+  "launch_freeze_required": true,
+  "outer_observer": {
+    "clock_start": "monotonic immediately before supervisor Popen; preserve UTC/unix start too",
+    "implementation": "tools/observe_source_fit.py; main guard, standard library only, explicit --execute required",
+    "initial_release": "after checking initial deadline, observe durable current-stage.json for generation-base or generation-adapter INTENT/COMPLETION_PENDING; retain exact observed receipt and observation time",
+    "initial_release_rationale": "accepted child path can enter either generation stage only after its post-write training completion check; do not release on a per-training COMPLETE file alone",
+    "initial_training_seconds": 1220,
+    "log": "/home/bmarti44/stencil-llm/results/source-interpreter/fit/observer-01.log",
+    "poll_seconds": 0.25,
+    "process_ownership": "register observer and spawned supervisor PID immediately; Popen start_new_session=True creates one owned private group inherited by model child; signal only this launched group",
+    "receipt": "/home/bmarti44/stencil-llm/results/source-interpreter/fit/observer-01.json",
+    "short_complete_run": "confirmed whole supervisor exit within initial1220 seconds also bounds training; still validate result and lifecycle",
+    "success": "supervisor exit0, inner lifecycle COMPLETE with confirmed model-child exit, actual outer whole bound, and observed initial-training bound; still requires independent result audit",
+    "timeout": "preserve actual initial/whole timeout, owned-group termination and final elapsed through confirmed exit; unused time grants no retry",
+    "whole_process_seconds": 2400
+  },
+  "run_dir": "/home/bmarti44/stencil-llm/results/source-interpreter/fit/run-01",
+  "schema_version": 1,
+  "status": "DRAFT_AWAITING_OUTER_MONITOR_REVIEW_NOT_EXECUTABLE"
+}
