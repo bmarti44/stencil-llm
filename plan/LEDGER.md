@@ -2322,3 +2322,11 @@ no markers in actual cold/post-tool prompts, then unique generatedstart/end with
 strict-between count, decoded reasoning/rawarguments consistency and exact EOS
 handling. No open-prompt generalization needed. Prospective BRIEF clarification
 records these semantics before any model output; Sol informed to implement them.
+
+Astra preliminary native-source review complete, no unresolved contradiction
+after prospective clarification. results/coding-reasoning-smoke/review-astra.md
+SHA09a63f1d50d136458b7528c5b81f087c3604c0400e9643192e45723cf834df4c.
+Status PENDING final readiness, not scored acceptance. Reviewer now idle; resume
+same competence_readiness_review on stable Sol code/tests/preview/resource hashes.
+Nonstreaming complete output IDs and documented defaults suffice; no streaming
+or new instrumentation framework needed. Sol implementation handle remains live.
