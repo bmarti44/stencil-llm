@@ -1488,3 +1488,22 @@ review of exact four-call DEV diagnostic prompts/driver/resource reading;
 no inference until that separate freeze. New data, if needed, remains KimiK3
 via Ollama; no evaluation content reused. Keep two failed maintenance runs
 immutable. Commit result+research+handoff receipts locally; no push.
+
+2026-09-07 — STATE: COLD4 DIAGNOSTIC IMPLEMENTATION IN PROGRESS.
+Previous goal turn classified PROGRESS: reviewed second empirical failure and
+primary-source synthesis changed next action. Currentworktree clean except
+unrelated untracked weights/scripts; no running container. Native Sol xhigh
+/root/cold_diagnostic_impl owns newdriver/newtests and narrow launcher mode.
+Parent registers exact4call reading, same2originalKimi cold sources, no fitting
+or evaluation. No wrapper session ID/log fabricated; explicit usermodel roles.
+Independent Astra review precedes commit/freeze/900s local fourcall launch.
+
+2026-09-07 — STATE: COLD4 READY; ASTRA95 ACCEPTS.
+Independent actualCLIpreview/fakeHTTP4call controls and both launchermodes
+pass;24targetedtests. Parent/reviewer found transportlength+validJSON could
+apply in offline replay; Sol fixed, negativecontrol verifies zeroops and
+unchangedstate withrawretained. Review preserves resolvedhigh#1.
+Previewtokens147/1828/133/1813,1024outputcap,allwithin32768. Commit reviewed
+source/recipe/preview then run absolute tools/run_maintenance_dev.py --mode
+cold --run-dir /home/bmarti44/stencil-llm/results/quick-checks/maintenance-cold-01
+--execute. Native Astra /root/cold_result_review prepares source-only audit.
