@@ -326,7 +326,8 @@ def _validate_history(messages, spec):
             pending_id = _validate_tool_message(message, spec)[0]
         elif role == "tool":
             if (
-                set(message) != {"role", "tool_call_id", "name", "content"}
+                pending_id is None
+                or set(message) != {"role", "tool_call_id", "name", "content"}
                 or message["tool_call_id"] != pending_id
                 or message["name"] != spec.tool_name
                 or not isinstance(message["content"], str)

@@ -400,6 +400,27 @@ def test_generic_history_validates_matching_final_tool_without_reasoning():
     assert all("reasoning" not in message for message in outgoing)
 
 
+def test_payload_rejects_orphan_tool_result_with_null_call_id():
+    spec = make_spec("record_focus")
+    opener = NativeExchange(spec, {"obligations": []})
+    client = client_module.NativeReasoningToolClient(
+        "http://unit.test", "/model", spec, opener=opener
+    )
+    messages = [
+        {"role": "user", "content": "request"},
+        {
+            "role": "tool",
+            "tool_call_id": None,
+            "name": "record_focus",
+            "content": "orphan",
+        },
+    ]
+
+    with pytest.raises(ValueError, match="invalid tool-result"):
+        client.payload(messages)
+    assert opener.requests == []
+
+
 def test_partial_transport_retains_pending_and_raw_bytes():
     spec = make_spec()
     receipts = []
