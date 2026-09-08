@@ -1791,3 +1791,61 @@ registered under-one-hour feasibility check; optional large factorial remains
 unlaunched. Match competent manual reminders can be a benefit; larger proof is
 still required. Persist exact calls, own histories/state, checks and accounting
 in the same run. Do not change prompts/data/parameters after outputs.
+
+2026-09-08 — STATE: CODING72 LAUNCHED; RESUME OWNED SESSION39593.
+Freeze commitcf33e861; launcher session39593 is live in server startup.
+Owned container stencil-maintenance-coding-6f9d04c8ed87, launcher PID13554.
+RUNNING.flag and freeze.json exist under results/quick-checks/coding-self-cue-01;
+freeze binds10 committed files, modecoding, cap768,3,600s reservation. Startup
+may take several minutes. Resume the same session; observation timeout is not
+terminal and never justifies restarting. No prompt/data/code changes during
+this one-shot run. After terminal cleanup, independently review exact outputs,
+24 C recaps, actual code/check outcomes and full accounting before conclusions.
+
+2026-09-08 — STATE: CODING72 WORKER ACTIVE IN SESSION39593.
+Owned server became ready within600s; launcher gave driver3,044s remaining
+(excluding60s cleanup reserve). First observed manifest had4 calls/check sets
+recorded; current run continues the exact72-slot schedule without intervention.
+INCOMPLETE manifest while active is provisional. No early outcome verdict,
+retry, code change, or prompt adjustment. Poll the same owned session to terminal
+and verify cleanup before independent final result/recap audits.
+
+2026-09-08 — STATE: CODING72 ACTIVE; COMPLETED-PROJECT AUDITS OVERLAP INFERENCE.
+Session39593 confirmed live; latest observed26 calls/check sets,5 parse errors,
+zero transport/capacity/token-accounting failures. To reduce post-run delay,
+Astra semantic and integrity reviewers read completed project0 calls0–17 only
+and write separate PARTIAL review files outside bound inputs. No feedback or
+changes to inference, gates, source data, prompts or code; final verdict/cleanup
+checks still wait for terminal72-slot accounting. Send subsequent completed
+project batches only; never restart the run based on observation timeout.
+
+2026-09-08 — STATE: CODING72 TERMINAL; FIXED RECIPE PARKED; ASTRA RESEARCH ACTIVE.
+All 72 calls and 1,203 check outcomes were saved in the original run. Session
+39593 exited 2; do not resume or restart. Four output-cap failures make model
+evidence technically INCOMPLETE/CAPACITY-INELIGIBLE; accounting is complete.
+Recorded passing submission/check conjunctions: H 10/24, C 2/24, M 12/24;
+each arm passes zero complete six-step projects. C has 14 parser failures and
+two cap failures; these do not establish a sole causal diagnosis. Independent
+Astra xhigh integrity review accepted 96 with zero open high/critical findings.
+Separate Astra semantic audit found C recaps 12 clear, 2 ambiguous, 7 omissions,
+and 3 incorrect claims. Permission omissions are distinguished from false rules.
+GPU reservation was 1,714.459 seconds; owned server/container/PID/flag are gone.
+All frozen inputs remained unchanged; no retries, repairs or run-time feedback.
+Archive exact raw records, mechanical summary and both final reviews next.
+Do not increase the cap, repair the prompt, replay this spent DEV bank or scale
+this failed recipe. The manual control was not competent on this screen, and
+matching competent manual prose remains a valid target, not a superiority test.
+
+Research plan: reuse native Astra xhigh agents in two bounded primary-source
+lanes: source-grounded/trained instruction maintenance, and coding competence
+with executable feedback. Parent synthesizes evidence and disconfirming cases
+while preserving the terminal run. Deep-research workflow applies; update_plan
+is unavailable in the tool catalog, so this entry is the operative plan. No
+new inference, data generation or training is authorized by this research step.
+Fit-on none; current bank now exposed DEV. Frozen larger evaluation artifacts
+remain untouched. Goal active: reliable automatic focus and adequate fresh
+larger executable evidence are still unproved.
+
+Archive verification note: broad git diff --check flags original model-output
+whitespace and server-log carriage returns. Preserve these audited raw bytes;
+check authored Markdown/JSON and ledger separately. This is not a code repair.

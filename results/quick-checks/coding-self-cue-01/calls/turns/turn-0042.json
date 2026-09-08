@@ -1,0 +1,361 @@
+{
+  "all_checks_passed": false,
+  "arm": "H",
+  "call_index": 42,
+  "call_receipt": "calls/call-0042.json",
+  "canonical_history_after": [
+    {
+      "content": "Maintain the Python module across this conversation. Each request asks for one complete target function. Your response may contain brief prose before the code, then exactly one code fence whose opening line is ```python PATH. Inside the fence, submit exactly the requested synchronous function with its def at column zero and one positional argument. Do not submit other functions, a whole module, imports, tests, tool calls, or prose after the fence. Preserve the requested behavior and the standing user obligations that apply now.",
+      "role": "system"
+    },
+    {
+      "content": "One standing note before we touch this puzzle-tournament module: whenever you write a new function here or revise an existing one, make a malformed argument come back as JSON null (None) \u2014 never raise and never guess a value. That obligation binds only the function you are writing or editing at the time; anything already finished stays exactly as it is, and a later convention change will never silently oblige you to revisit completed code.",
+      "role": "user"
+    },
+    {
+      "content": "Let's start the scoring side of the tool. Implement solve_total(entry). The argument must be a dict describing one competitor's event: \"places\" is a list of finishing places (positive integers, 1 = first place), and \"bonus\" is an optional non-negative integer of extra points that defaults to 0 when absent. Extra keys are fine \u2014 ignore them. Booleans do not count as integers anywhere here. The result is the sum of base_points(p) for every listed place, plus the bonus. Anything that does not match this shape is malformed and should follow our standing convention.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef solve_total(entry):\n    \"\"\"Calculate the total score for a competitor's entry.\n\n    The entry must be a dictionary with \"places\" (a list of positive integers)\n    and an optional \"bonus\" (a non-negative integer). Any other keys are ignored.\n    Malformed input returns None.\n    \"\"\"\n    if not isinstance(entry, dict):\n        return None\n\n    places = entry.get(\"places\")\n    bonus = entry.get(\"bonus\", 0)\n\n    if not isinstance(places, list) or not all(isinstance(p, int) and p > 0 and not isinstance(p, bool) for p in places):\n        return None\n\n    if not isinstance(bonus, int) or bonus < 0 or isinstance(bonus, bool):\n        return None\n\n    total = sum(base_points(place) for place in places)\n    total += bonus\n    return total\n```",
+      "role": "assistant"
+    },
+    {
+      "content": "Switching over to the leaderboard task for the next piece. The standing null-for-malformed convention still holds for whatever you write now; the finished scoring work stays untouched.",
+      "role": "user"
+    },
+    {
+      "content": "Now the leaderboard job: implement rank_board(board). The argument must be a list of rows, where each row is a dict with \"name\" (a non-empty string) and \"total\" (an integer, which may be negative; booleans do not count). Names must be unique \u2014 a repeated name makes the whole input malformed, as does anything else that fails this shape. Return a new list of {\"name\": ..., \"total\": ...} dicts ordered by total from highest to lowest. Tie-handling rule for this task: rows with equal totals are ordered alphabetically by name, A to Z, meaning case-sensitive Python string lexicographic ordering by Unicode code points \u2014 no locale sorting and no case-folding. An empty list is valid input and returns an empty list.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef rank_board(board):\n    \"\"\"Rank a leaderboard board according to total scores.\n\n    The board must be a list of dictionaries with \"name\" (non-empty string) and \"total\" (integer).\n    Returns a new list sorted by total (highest to lowest), with ties broken by name (A-Z).\n    Malformed input returns None.\n    \"\"\"\n    if not isinstance(board, list):\n        return None\n\n    names = set()\n    ranked = []\n\n    for row in board:\n        if not isinstance(row, dict):\n            return None\n\n        name = row.get(\"name\")\n        total = row.get(\"total\")\n\n        if not isinstance(name, str) or len(name) == 0:\n            return None\n        if not isinstance(total, int) or isinstance(total, bool):\n            return None\n\n        if name in names:\n            return None\n        names.add(name)\n\n        ranked.append({\"name\": name, \"total\": total})\n\n    ranked.sort(key=lambda x: (-x[\"total\"], x[\"name\"]))\n    return ranked\n```",
+      "role": "assistant"
+    },
+    {
+      "content": "Hopping back to the scoring task for a moment \u2014 everything we already agreed about conventions still stands.",
+      "role": "user"
+    },
+    {
+      "content": "Unrelated idea for whenever we build the results display: we could give it a \"champion\" field naming whoever sits in first place. Just a thought \u2014 no need to act on it unless you decide you want it later.",
+      "role": "assistant"
+    },
+    {
+      "content": "Extend solve_total. An entry may now also carry \"drop\", a non-negative integer meaning: discard that many of the competitor's lowest base-point scores before adding up (the bonus is still added in full afterwards). Dropping more places than exist simply drops them all. Entries without \"drop\" must behave exactly as before. As a one-off for this function only, also accept the legacy spelling \"discard\" with the identical meaning; if an entry contains both \"drop\" and \"discard\", treat it as malformed. That alias is a one-time exception here \u2014 do not turn it into a general convention for anything else we write.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef solve_total(entry):\n    \"\"\"Calculate the total score for a competitor's entry.\n\n    The entry must be a dictionary with \"places\" (a list of positive integers)\n    and an optional \"bonus\" (a non-negative integer). Any other keys are ignored.\n    Malformed input returns None.\n    \"\"\"\n    if not isinstance(entry, dict):\n        return None\n\n    # Check for both \"drop\" and \"discard\" keys\n    if \"drop\" in entry and \"discard\" in entry:\n        return None\n\n    # Handle legacy \"discard\" key\n    drop = entry.get(\"drop\", entry.get(\"discard\", None))\n\n    # Validate drop value\n    if drop is not None:\n        if not isinstance(drop, int) or drop < 0 or isinstance(drop, bool):\n            return None\n\n    places = entry.get(\"places\")\n    bonus = entry.get(\"bonus\", 0)\n\n    if not isinstance(places, list) or not all(isinstance(p, int) and p > 0 and not isinstance(p, bool) for p in places):\n        return None\n\n    if not isinstance(bonus, int) or bonus < 0 or isinstance(bonus, bool):\n        return None\n\n    # Calculate base points\n    total = sum(base_points(place) for place in places)\n\n    # Apply drop if specified\n    if drop is not None:\n        # Sort places in ascending order (lowest first)\n        sorted_places = sorted(places)\n        # Drop the specified number of lowest places\n        adjusted_places = sorted_places[drop:]\n        # Recalculate total with dropped places\n        total = sum(base_points(place) for place in adjusted_places)\n\n    total += bonus\n    return total\n```",
+      "role": "assistant"
+    }
+  ],
+  "canonical_history_after_sha256": "c1a1a3f088f0f4ffb4cf3ab62508441f3ca54b755ceca343aad3b6412cac81ad",
+  "canonical_history_before": [
+    {
+      "content": "Maintain the Python module across this conversation. Each request asks for one complete target function. Your response may contain brief prose before the code, then exactly one code fence whose opening line is ```python PATH. Inside the fence, submit exactly the requested synchronous function with its def at column zero and one positional argument. Do not submit other functions, a whole module, imports, tests, tool calls, or prose after the fence. Preserve the requested behavior and the standing user obligations that apply now.",
+      "role": "system"
+    },
+    {
+      "content": "One standing note before we touch this puzzle-tournament module: whenever you write a new function here or revise an existing one, make a malformed argument come back as JSON null (None) \u2014 never raise and never guess a value. That obligation binds only the function you are writing or editing at the time; anything already finished stays exactly as it is, and a later convention change will never silently oblige you to revisit completed code.",
+      "role": "user"
+    },
+    {
+      "content": "Let's start the scoring side of the tool. Implement solve_total(entry). The argument must be a dict describing one competitor's event: \"places\" is a list of finishing places (positive integers, 1 = first place), and \"bonus\" is an optional non-negative integer of extra points that defaults to 0 when absent. Extra keys are fine \u2014 ignore them. Booleans do not count as integers anywhere here. The result is the sum of base_points(p) for every listed place, plus the bonus. Anything that does not match this shape is malformed and should follow our standing convention.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef solve_total(entry):\n    \"\"\"Calculate the total score for a competitor's entry.\n\n    The entry must be a dictionary with \"places\" (a list of positive integers)\n    and an optional \"bonus\" (a non-negative integer). Any other keys are ignored.\n    Malformed input returns None.\n    \"\"\"\n    if not isinstance(entry, dict):\n        return None\n\n    places = entry.get(\"places\")\n    bonus = entry.get(\"bonus\", 0)\n\n    if not isinstance(places, list) or not all(isinstance(p, int) and p > 0 and not isinstance(p, bool) for p in places):\n        return None\n\n    if not isinstance(bonus, int) or bonus < 0 or isinstance(bonus, bool):\n        return None\n\n    total = sum(base_points(place) for place in places)\n    total += bonus\n    return total\n```",
+      "role": "assistant"
+    },
+    {
+      "content": "Switching over to the leaderboard task for the next piece. The standing null-for-malformed convention still holds for whatever you write now; the finished scoring work stays untouched.",
+      "role": "user"
+    },
+    {
+      "content": "Now the leaderboard job: implement rank_board(board). The argument must be a list of rows, where each row is a dict with \"name\" (a non-empty string) and \"total\" (an integer, which may be negative; booleans do not count). Names must be unique \u2014 a repeated name makes the whole input malformed, as does anything else that fails this shape. Return a new list of {\"name\": ..., \"total\": ...} dicts ordered by total from highest to lowest. Tie-handling rule for this task: rows with equal totals are ordered alphabetically by name, A to Z, meaning case-sensitive Python string lexicographic ordering by Unicode code points \u2014 no locale sorting and no case-folding. An empty list is valid input and returns an empty list.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef rank_board(board):\n    \"\"\"Rank a leaderboard board according to total scores.\n\n    The board must be a list of dictionaries with \"name\" (non-empty string) and \"total\" (integer).\n    Returns a new list sorted by total (highest to lowest), with ties broken by name (A-Z).\n    Malformed input returns None.\n    \"\"\"\n    if not isinstance(board, list):\n        return None\n\n    names = set()\n    ranked = []\n\n    for row in board:\n        if not isinstance(row, dict):\n            return None\n\n        name = row.get(\"name\")\n        total = row.get(\"total\")\n\n        if not isinstance(name, str) or len(name) == 0:\n            return None\n        if not isinstance(total, int) or isinstance(total, bool):\n            return None\n\n        if name in names:\n            return None\n        names.add(name)\n\n        ranked.append({\"name\": name, \"total\": total})\n\n    ranked.sort(key=lambda x: (-x[\"total\"], x[\"name\"]))\n    return ranked\n```",
+      "role": "assistant"
+    }
+  ],
+  "canonical_history_natural": [
+    {
+      "content": "Maintain the Python module across this conversation. Each request asks for one complete target function. Your response may contain brief prose before the code, then exactly one code fence whose opening line is ```python PATH. Inside the fence, submit exactly the requested synchronous function with its def at column zero and one positional argument. Do not submit other functions, a whole module, imports, tests, tool calls, or prose after the fence. Preserve the requested behavior and the standing user obligations that apply now.",
+      "role": "system"
+    },
+    {
+      "content": "One standing note before we touch this puzzle-tournament module: whenever you write a new function here or revise an existing one, make a malformed argument come back as JSON null (None) \u2014 never raise and never guess a value. That obligation binds only the function you are writing or editing at the time; anything already finished stays exactly as it is, and a later convention change will never silently oblige you to revisit completed code.",
+      "role": "user"
+    },
+    {
+      "content": "Let's start the scoring side of the tool. Implement solve_total(entry). The argument must be a dict describing one competitor's event: \"places\" is a list of finishing places (positive integers, 1 = first place), and \"bonus\" is an optional non-negative integer of extra points that defaults to 0 when absent. Extra keys are fine \u2014 ignore them. Booleans do not count as integers anywhere here. The result is the sum of base_points(p) for every listed place, plus the bonus. Anything that does not match this shape is malformed and should follow our standing convention.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef solve_total(entry):\n    \"\"\"Calculate the total score for a competitor's entry.\n\n    The entry must be a dictionary with \"places\" (a list of positive integers)\n    and an optional \"bonus\" (a non-negative integer). Any other keys are ignored.\n    Malformed input returns None.\n    \"\"\"\n    if not isinstance(entry, dict):\n        return None\n\n    places = entry.get(\"places\")\n    bonus = entry.get(\"bonus\", 0)\n\n    if not isinstance(places, list) or not all(isinstance(p, int) and p > 0 and not isinstance(p, bool) for p in places):\n        return None\n\n    if not isinstance(bonus, int) or bonus < 0 or isinstance(bonus, bool):\n        return None\n\n    total = sum(base_points(place) for place in places)\n    total += bonus\n    return total\n```",
+      "role": "assistant"
+    },
+    {
+      "content": "Switching over to the leaderboard task for the next piece. The standing null-for-malformed convention still holds for whatever you write now; the finished scoring work stays untouched.",
+      "role": "user"
+    },
+    {
+      "content": "Now the leaderboard job: implement rank_board(board). The argument must be a list of rows, where each row is a dict with \"name\" (a non-empty string) and \"total\" (an integer, which may be negative; booleans do not count). Names must be unique \u2014 a repeated name makes the whole input malformed, as does anything else that fails this shape. Return a new list of {\"name\": ..., \"total\": ...} dicts ordered by total from highest to lowest. Tie-handling rule for this task: rows with equal totals are ordered alphabetically by name, A to Z, meaning case-sensitive Python string lexicographic ordering by Unicode code points \u2014 no locale sorting and no case-folding. An empty list is valid input and returns an empty list.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef rank_board(board):\n    \"\"\"Rank a leaderboard board according to total scores.\n\n    The board must be a list of dictionaries with \"name\" (non-empty string) and \"total\" (integer).\n    Returns a new list sorted by total (highest to lowest), with ties broken by name (A-Z).\n    Malformed input returns None.\n    \"\"\"\n    if not isinstance(board, list):\n        return None\n\n    names = set()\n    ranked = []\n\n    for row in board:\n        if not isinstance(row, dict):\n            return None\n\n        name = row.get(\"name\")\n        total = row.get(\"total\")\n\n        if not isinstance(name, str) or len(name) == 0:\n            return None\n        if not isinstance(total, int) or isinstance(total, bool):\n            return None\n\n        if name in names:\n            return None\n        names.add(name)\n\n        ranked.append({\"name\": name, \"total\": total})\n\n    ranked.sort(key=lambda x: (-x[\"total\"], x[\"name\"]))\n    return ranked\n```",
+      "role": "assistant"
+    },
+    {
+      "content": "Hopping back to the scoring task for a moment \u2014 everything we already agreed about conventions still stands.",
+      "role": "user"
+    },
+    {
+      "content": "Unrelated idea for whenever we build the results display: we could give it a \"champion\" field naming whoever sits in first place. Just a thought \u2014 no need to act on it unless you decide you want it later.",
+      "role": "assistant"
+    },
+    {
+      "content": "Extend solve_total. An entry may now also carry \"drop\", a non-negative integer meaning: discard that many of the competitor's lowest base-point scores before adding up (the bonus is still added in full afterwards). Dropping more places than exist simply drops them all. Entries without \"drop\" must behave exactly as before. As a one-off for this function only, also accept the legacy spelling \"discard\" with the identical meaning; if an entry contains both \"drop\" and \"discard\", treat it as malformed. That alias is a one-time exception here \u2014 do not turn it into a general convention for anything else we write.",
+      "role": "user"
+    }
+  ],
+  "check_status": "COMPLETE",
+  "checks": [
+    {
+      "actual": 10,
+      "check_id": "chk-init-1",
+      "elapsed_seconds": 0.02660696700331755,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        10
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "base_points"
+    },
+    {
+      "actual": 1,
+      "check_id": "chk-init-2",
+      "elapsed_seconds": 0.01397558901226148,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        1
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "base_points"
+    },
+    {
+      "actual": 0,
+      "check_id": "chk-init-3",
+      "elapsed_seconds": 0.021718456991948187,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        0
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "base_points"
+    },
+    {
+      "actual": 17,
+      "check_id": "chk-r0-f1",
+      "elapsed_seconds": 0.0228498530050274,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        17
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "solve_total"
+    },
+    {
+      "actual": 4,
+      "check_id": "chk-r0-f2",
+      "elapsed_seconds": 0.021933531010290608,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        4
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "solve_total"
+    },
+    {
+      "actual": 7,
+      "check_id": "chk-r0-f3",
+      "elapsed_seconds": 0.013070530985714868,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        7
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "solve_total"
+    },
+    {
+      "actual": [
+        {
+          "name": "Ada",
+          "total": 9
+        },
+        {
+          "name": "Bo",
+          "total": 5
+        }
+      ],
+      "check_id": "chk-r1-f1",
+      "elapsed_seconds": 0.022313515015412122,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "name": "Ada",
+            "total": 9
+          },
+          {
+            "name": "Bo",
+            "total": 5
+          }
+        ]
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "rank_board"
+    },
+    {
+      "actual": [],
+      "check_id": "chk-r1-f2",
+      "elapsed_seconds": 0.014103877008892596,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        []
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "rank_board"
+    },
+    {
+      "actual": 12,
+      "check_id": "chk-r2-f1",
+      "elapsed_seconds": 0.013177682994864881,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        17
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "solve_total"
+    },
+    {
+      "actual": 4,
+      "check_id": "chk-r2-f2",
+      "elapsed_seconds": 0.022102474991697818,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        8
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "solve_total"
+    },
+    {
+      "actual": 0,
+      "check_id": "chk-r2-f3",
+      "elapsed_seconds": 0.012970323004992679,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        0
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "solve_total"
+    },
+    {
+      "actual": 12,
+      "check_id": "chk-r2-f4",
+      "elapsed_seconds": 0.024134224018780515,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        12
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "solve_total"
+    },
+    {
+      "actual": null,
+      "check_id": "chk-r2-o1",
+      "elapsed_seconds": 0.02150471301865764,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        null
+      ],
+      "passed": true,
+      "rule_ids": [
+        "g-invalid-null"
+      ],
+      "symbol": "solve_total"
+    },
+    {
+      "actual": null,
+      "check_id": "chk-r2-o2",
+      "elapsed_seconds": 0.013095137983327731,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        null
+      ],
+      "passed": true,
+      "rule_ids": [
+        "g-invalid-null"
+      ],
+      "symbol": "solve_total"
+    }
+  ],
+  "decoder_error": null,
+  "episode_id": "kimi-coding-dev-puzzle-scores",
+  "extracted_fence": "```python module.py\ndef solve_total(entry):\n    \"\"\"Calculate the total score for a competitor's entry.\n\n    The entry must be a dictionary with \"places\" (a list of positive integers)\n    and an optional \"bonus\" (a non-negative integer). Any other keys are ignored.\n    Malformed input returns None.\n    \"\"\"\n    if not isinstance(entry, dict):\n        return None\n\n    # Check for both \"drop\" and \"discard\" keys\n    if \"drop\" in entry and \"discard\" in entry:\n        return None\n\n    # Handle legacy \"discard\" key\n    drop = entry.get(\"drop\", entry.get(\"discard\", None))\n\n    # Validate drop value\n    if drop is not None:\n        if not isinstance(drop, int) or drop < 0 or isinstance(drop, bool):\n            return None\n\n    places = entry.get(\"places\")\n    bonus = entry.get(\"bonus\", 0)\n\n    if not isinstance(places, list) or not all(isinstance(p, int) and p > 0 and not isinstance(p, bool) for p in places):\n        return None\n\n    if not isinstance(bonus, int) or bonus < 0 or isinstance(bonus, bool):\n        return None\n\n    # Calculate base points\n    total = sum(base_points(place) for place in places)\n\n    # Apply drop if specified\n    if drop is not None:\n        # Sort places in ascending order (lowest first)\n        sorted_places = sorted(places)\n        # Drop the specified number of lowest places\n        adjusted_places = sorted_places[drop:]\n        # Recalculate total with dropped places\n        total = sum(base_points(place) for place in adjusted_places)\n\n    total += bonus\n    return total\n```",
+  "extracted_prefix": "",
+  "issued_messages_sha256": "46a896185a09252cb424c4a0c4929a1eddf035d2d5cf8594f52ce0dbbea5d9a6",
+  "parse_error": null,
+  "patch_applied": true,
+  "post_module": "\"\"\"Puzzle tournament score aggregation and display pipeline.\"\"\"\n\n\ndef base_points(place):\n    \"\"\"Base points for a finishing place (1 = winner).\n\n    Non-integer or non-positive places yield 0.\n    \"\"\"\n    table = {1: 10, 2: 7, 3: 5, 4: 3}\n    if not isinstance(place, int) or isinstance(place, bool):\n        return 0\n    if place < 1:\n        return 0\n    return table.get(place, 1)\n\n\ndef solve_total(entry):\n    \"\"\"Calculate the total score for a competitor's entry.\n\n    The entry must be a dictionary with \"places\" (a list of positive integers)\n    and an optional \"bonus\" (a non-negative integer). Any other keys are ignored.\n    Malformed input returns None.\n    \"\"\"\n    if not isinstance(entry, dict):\n        return None\n\n    # Check for both \"drop\" and \"discard\" keys\n    if \"drop\" in entry and \"discard\" in entry:\n        return None\n\n    # Handle legacy \"discard\" key\n    drop = entry.get(\"drop\", entry.get(\"discard\", None))\n\n    # Validate drop value\n    if drop is not None:\n        if not isinstance(drop, int) or drop < 0 or isinstance(drop, bool):\n            return None\n\n    places = entry.get(\"places\")\n    bonus = entry.get(\"bonus\", 0)\n\n    if not isinstance(places, list) or not all(isinstance(p, int) and p > 0 and not isinstance(p, bool) for p in places):\n        return None\n\n    if not isinstance(bonus, int) or bonus < 0 or isinstance(bonus, bool):\n        return None\n\n    # Calculate base points\n    total = sum(base_points(place) for place in places)\n\n    # Apply drop if specified\n    if drop is not None:\n        # Sort places in ascending order (lowest first)\n        sorted_places = sorted(places)\n        # Drop the specified number of lowest places\n        adjusted_places = sorted_places[drop:]\n        # Recalculate total with dropped places\n        total = sum(base_points(place) for place in adjusted_places)\n\n    total += bonus\n    return total\n\n\ndef rank_board(board):\n    \"\"\"Rank a leaderboard board according to total scores.\n\n    The board must be a list of dictionaries with \"name\" (non-empty string) and \"total\" (integer).\n    Returns a new list sorted by total (highest to lowest), with ties broken by name (A-Z).\n    Malformed input returns None.\n    \"\"\"\n    if not isinstance(board, list):\n        return None\n\n    names = set()\n    ranked = []\n\n    for row in board:\n        if not isinstance(row, dict):\n            return None\n\n        name = row.get(\"name\")\n        total = row.get(\"total\")\n\n        if not isinstance(name, str) or len(name) == 0:\n            return None\n        if not isinstance(total, int) or isinstance(total, bool):\n            return None\n\n        if name in names:\n            return None\n        names.add(name)\n\n        ranked.append({\"name\": name, \"total\": total})\n\n    ranked.sort(key=lambda x: (-x[\"total\"], x[\"name\"]))\n    return ranked\n\n\ndef format_summary(data):\n    return None\n",
+  "post_module_sha256": "87d7bcc94b539902b01dd89ae1409075816cd83e8bccb871b250c2d50a1f4edb",
+  "pre_module": "\"\"\"Puzzle tournament score aggregation and display pipeline.\"\"\"\n\n\ndef base_points(place):\n    \"\"\"Base points for a finishing place (1 = winner).\n\n    Non-integer or non-positive places yield 0.\n    \"\"\"\n    table = {1: 10, 2: 7, 3: 5, 4: 3}\n    if not isinstance(place, int) or isinstance(place, bool):\n        return 0\n    if place < 1:\n        return 0\n    return table.get(place, 1)\n\n\ndef solve_total(entry):\n    \"\"\"Calculate the total score for a competitor's entry.\n\n    The entry must be a dictionary with \"places\" (a list of positive integers)\n    and an optional \"bonus\" (a non-negative integer). Any other keys are ignored.\n    Malformed input returns None.\n    \"\"\"\n    if not isinstance(entry, dict):\n        return None\n\n    places = entry.get(\"places\")\n    bonus = entry.get(\"bonus\", 0)\n\n    if not isinstance(places, list) or not all(isinstance(p, int) and p > 0 and not isinstance(p, bool) for p in places):\n        return None\n\n    if not isinstance(bonus, int) or bonus < 0 or isinstance(bonus, bool):\n        return None\n\n    total = sum(base_points(place) for place in places)\n    total += bonus\n    return total\n\n\ndef rank_board(board):\n    \"\"\"Rank a leaderboard board according to total scores.\n\n    The board must be a list of dictionaries with \"name\" (non-empty string) and \"total\" (integer).\n    Returns a new list sorted by total (highest to lowest), with ties broken by name (A-Z).\n    Malformed input returns None.\n    \"\"\"\n    if not isinstance(board, list):\n        return None\n\n    names = set()\n    ranked = []\n\n    for row in board:\n        if not isinstance(row, dict):\n            return None\n\n        name = row.get(\"name\")\n        total = row.get(\"total\")\n\n        if not isinstance(name, str) or len(name) == 0:\n            return None\n        if not isinstance(total, int) or isinstance(total, bool):\n            return None\n\n        if name in names:\n            return None\n        names.add(name)\n\n        ranked.append({\"name\": name, \"total\": total})\n\n    ranked.sort(key=lambda x: (-x[\"total\"], x[\"name\"]))\n    return ranked\n\n\ndef format_summary(data):\n    return None\n",
+  "pre_module_sha256": "cb9ac91b1a45fcf542ab85f9d33f9625a4ed4451dfc3d2ecf108378a02069b6b",
+  "raw_output": "```python module.py\ndef solve_total(entry):\n    \"\"\"Calculate the total score for a competitor's entry.\n\n    The entry must be a dictionary with \"places\" (a list of positive integers)\n    and an optional \"bonus\" (a non-negative integer). Any other keys are ignored.\n    Malformed input returns None.\n    \"\"\"\n    if not isinstance(entry, dict):\n        return None\n\n    # Check for both \"drop\" and \"discard\" keys\n    if \"drop\" in entry and \"discard\" in entry:\n        return None\n\n    # Handle legacy \"discard\" key\n    drop = entry.get(\"drop\", entry.get(\"discard\", None))\n\n    # Validate drop value\n    if drop is not None:\n        if not isinstance(drop, int) or drop < 0 or isinstance(drop, bool):\n            return None\n\n    places = entry.get(\"places\")\n    bonus = entry.get(\"bonus\", 0)\n\n    if not isinstance(places, list) or not all(isinstance(p, int) and p > 0 and not isinstance(p, bool) for p in places):\n        return None\n\n    if not isinstance(bonus, int) or bonus < 0 or isinstance(bonus, bool):\n        return None\n\n    # Calculate base points\n    total = sum(base_points(place) for place in places)\n\n    # Apply drop if specified\n    if drop is not None:\n        # Sort places in ascending order (lowest first)\n        sorted_places = sorted(places)\n        # Drop the specified number of lowest places\n        adjusted_places = sorted_places[drop:]\n        # Recalculate total with dropped places\n        total = sum(base_points(place) for place in adjusted_places)\n\n    total += bonus\n    return total\n```",
+  "request_id": "m-req-2",
+  "round_index": 2,
+  "schema_version": 1,
+  "slot_accounting_complete": true,
+  "source_message_ids": [
+    "m-hold-r2",
+    "m-sugg-champion"
+  ],
+  "submission_valid": true,
+  "target": {
+    "path": "module.py",
+    "symbol": "solve_total"
+  },
+  "task_handle": "scoring",
+  "technical_complete": true,
+  "turn_success": false,
+  "unfinished_check_ids": []
+}

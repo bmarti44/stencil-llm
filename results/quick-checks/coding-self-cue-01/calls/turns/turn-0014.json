@@ -1,0 +1,500 @@
+{
+  "all_checks_passed": false,
+  "arm": "M",
+  "call_index": 14,
+  "call_receipt": "calls/call-0014.json",
+  "canonical_history_after": [
+    {
+      "content": "Maintain the Python module across this conversation. Each request asks for one complete target function. Your response may contain brief prose before the code, then exactly one code fence whose opening line is ```python PATH. Inside the fence, submit exactly the requested synchronous function with its def at column zero and one positional argument. Do not submit other functions, a whole module, imports, tests, tool calls, or prose after the fence. Preserve the requested behavior and the standing user obligations that apply now.",
+      "role": "system"
+    },
+    {
+      "content": "We're building up the museum exhibit label pipeline step by step. This module has one finished helper (_clean_token) and three stub functions we'll grow over the next few edits. Two workstreams: 'wall-labels' for visitor-facing label text, and 'gallery-index' for the index board. I tell you which one each request belongs to.",
+      "role": "user"
+    },
+    {
+      "content": "Project-wide standing rule: whenever you write a new function or edit an existing one, any invalid input must return the string 'ERR'. Never raise exceptions, and never return null for the invalid case. This holds until I say otherwise, and it applies from the moment an edit is made \u2014 I never expect you to retro-fix untouched functions when conventions change.",
+      "role": "user"
+    },
+    {
+      "content": "First real edit, on the wall-labels side: implement label_title(record) in module.py. It takes exactly one JSON value, the exhibit record. The record is valid only if it is an object with a 'name' entry that is a string and that yields at least one clean token when the name is split on whitespace and each piece is passed through _clean_token. For a valid record return the cleaned name tokens, each capitalized, joined with single spaces \u2014 so {'name': 'The blue VASE!'} gives 'The Blue Vase'. Every other input (not an object, missing or non-string name, or a name with no cleanable token) is invalid; return the project's invalid-input result. Use _clean_token rather than writing your own cleanup.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef label_title(record):\n    if not isinstance(record, dict):\n        return 'ERR'\n    if 'name' not in record or not isinstance(record['name'], str):\n        return 'ERR'\n    tokens = record['name'].split()\n    cleaned_tokens = [_clean_token(token) for token in tokens]\n    if not cleaned_tokens or all(token == '' for token in cleaned_tokens):\n        return 'ERR'\n    return ' '.join(token.capitalize() for token in cleaned_tokens)\n```",
+      "role": "assistant"
+    },
+    {
+      "content": "One more project-wide rule before you start the index side: whenever an output presents a sorted list of cleaned tokens, sort by the cleaned token's length, shortest first, and when two cleaned tokens tie on length keep their original input order \u2014 a stable sort, explicitly not alphabetical order. This applies to any function you write or edit from now on.",
+      "role": "user"
+    },
+    {
+      "content": "Now switch workstreams: on the gallery-index side, implement index_entry(record). One JSON argument. Valid only if it is an object with 'number' an integer (booleans do not count) that is >= 0, and 'tags' a list whose elements are all strings. Clean every tag with _clean_token and drop the ones that become empty, then present the survivors sorted under the standing sorted-token convention. Render the number zero-padded to at least three digits (7 -> '007', 3000 -> '3000'). Return 'NNN: t1, t2' with the tokens joined by ', ' \u2014 and if no token survives, return just 'NNN' with no colon at all. Any other input shape is invalid; use the project's invalid-input result.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef index_entry(record):\n    if not isinstance(record, dict):\n        return 'ERR'\n    if 'number' not in record or not isinstance(record['number'], int) or record['number'] < 0:\n        return 'ERR'\n    if 'tags' not in record or not isinstance(record['tags'], list) or not all(isinstance(tag, str) for tag in record['tags']):\n        return 'ERR'\n    \n    cleaned_tags = [_clean_token(tag) for tag in record['tags']]\n    cleaned_tags = [tag for tag in cleaned_tags if tag]\n    \n    # Sort by length, preserving original order for ties\n    cleaned_tags.sort(key=lambda x: len(x))\n    \n    number_str = f\"{record['number']:03d}\"\n    \n    if not cleaned_tags:\n        return number_str\n    else:\n        return f\"{number_str}: {', '.join(cleaned_tags)}\"\n```",
+      "role": "assistant"
+    },
+    {
+      "content": "Quick scope note before this next edit, wall-labels only: in the label functions, for invalid input you MAY return null (None) instead of the otherwise-applicable invalid-input result. This is genuinely optional \u2014 the otherwise-applicable result remains fully acceptable and tests accept either. Permission, not a requirement, and it does not carry over to the gallery-index side.",
+      "role": "user"
+    },
+    {
+      "content": "Staying on wall-labels, implement label_full(record). One JSON argument. Valid only if it satisfies label_title's name requirement AND has 'artist', a string yielding at least one clean token, AND 'year', an integer (not a boolean) greater than 0. For a valid record return a three-element list in this exact order: label_title(record), then 'by ' followed by the capitalized cleaned artist tokens joined with single spaces, then str(year). Example: {'name': 'vase', 'artist': 'ada lovelace', 'year': 1889} -> ['Vase', 'by Ada Lovelace', '1889']. Anything else is invalid and follows the conventions currently in force for this workstream. This function's output is a fixed-order list of label lines, not a sorted token list.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef label_full(record):\n    # Check if record is a valid dictionary\n    if not isinstance(record, dict):\n        return None\n    \n    # Check if 'name' exists and is a string\n    if 'name' not in record or not isinstance(record['name'], str):\n        return None\n    \n    # Check if 'artist' exists and is a string\n    if 'artist' not in record or not isinstance(record['artist'], str):\n        return None\n    \n    # Check if 'year' exists and is a positive integer\n    if 'year' not in record or not isinstance(record['year'], int) or record['year'] <= 0:\n        return None\n    \n    # Validate name with label_title's requirements\n    name_tokens = record['name'].split()\n    cleaned_name_tokens = [_clean_token(token) for token in name_tokens]\n    if not cleaned_name_tokens or all(token == '' for token in cleaned_name_tokens):\n        return None\n    \n    # Validate artist with label_title's requirements\n    artist_tokens = record['artist'].split()\n    cleaned_artist_tokens = [_clean_token(token) for token in artist_tokens]\n    if not cleaned_artist_tokens or all(token == '' for token in cleaned_artist_tokens):\n        return None\n    \n    # Construct the label title\n    title = ' '.join(token.capitalize() for token in cleaned_name_tokens)\n    \n    # Construct the artist line\n    artist_line = 'by ' + ' '.join(token.capitalize() for token in cleaned_artist_tokens)\n    \n    # Year as string\n    year_line = str(record['year'])\n    \n    # Return the three-element list\n    return [title, artist_line, year_line]\n```",
+      "role": "assistant"
+    },
+    {
+      "content": "Project-wide convention change, effective for the next function you write or edit: invalid input must now return the object {\"status\": \"error\", \"detail\": \"bad-input\"} rather than the string 'ERR'. This replaces the earlier 'ERR' rule for newly written or edited code only \u2014 do not go back and rewrite functions that already return 'ERR'; they stay as they are. The wall-labels null permission from earlier is unchanged and still optional.",
+      "role": "user"
+    },
+    {
+      "content": "Still wall-labels: extend label_title. Keep every current valid-case behavior for records that have no 'subtitle'. New capability: a record may include 'subtitle'. If it is present it must be a string \u2014 a non-string subtitle makes the whole record invalid. A subtitle string that yields clean tokens gets appended to the title as ': ' plus its capitalized cleaned tokens joined by single spaces, e.g. {'name': 'vase', 'subtitle': 'from crete'} -> 'Vase: From Crete'. A subtitle string that cleans to nothing at all is simply ignored and the record stays valid. Invalid inputs follow whatever conventions currently govern freshly edited wall-labels code.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef label_title(record):\n    if not isinstance(record, dict):\n        return None\n    if 'name' not in record or not isinstance(record['name'], str):\n        return None\n    tokens = record['name'].split()\n    cleaned_tokens = [_clean_token(token) for token in tokens]\n    if not cleaned_tokens or all(token == '' for token in cleaned_tokens):\n        return None\n    \n    title = ' '.join(token.capitalize() for token in cleaned_tokens)\n    \n    if 'subtitle' in record:\n        if not isinstance(record['subtitle'], str):\n            return None\n        subtitle_tokens = record['subtitle'].split()\n        cleaned_subtitle_tokens = [_clean_token(token) for token in subtitle_tokens]\n        if cleaned_subtitle_tokens and not all(token == '' for token in cleaned_subtitle_tokens):\n            subtitle = ' '.join(token.capitalize() for token in cleaned_subtitle_tokens)\n            title += ': ' + subtitle\n    \n    return title\n```",
+      "role": "assistant"
+    },
+    {
+      "content": "Back to gallery-index work for this one. Nothing new rule-wise: the dict error object from my last convention note still governs any function you edit, the stable length-sort still governs sorted token outputs, and that null permission is still wall-labels only \u2014 it has never applied over here.",
+      "role": "user"
+    },
+    {
+      "content": "On the gallery-index side, extend index_entry. Records without a 'room' key must behave exactly as they do now, padding and tag ordering included. New capability: a record may include 'room'. If present it must be a string that yields at least one clean token, otherwise the record is invalid. When valid, append ' (' + the capitalized cleaned room tokens joined by single spaces + ')' to whatever line the entry already produced: {'number': 12, 'tags': [], 'room': 'north wing'} -> '012 (North Wing)'. Invalid input returns the convention currently in force for this workstream \u2014 mind which workstream this is.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef index_entry(record):\n    if not isinstance(record, dict):\n        return {\"status\": \"error\", \"detail\": \"bad-input\"}\n    if 'number' not in record or not isinstance(record['number'], int) or record['number'] < 0:\n        return {\"status\": \"error\", \"detail\": \"bad-input\"}\n    if 'tags' not in record or not isinstance(record['tags'], list) or not all(isinstance(tag, str) for tag in record['tags']):\n        return {\"status\": \"error\", \"detail\": \"bad-input\"}\n    \n    cleaned_tags = [_clean_token(tag) for tag in record['tags']]\n    cleaned_tags = [tag for tag in cleaned_tags if tag]\n    \n    # Sort by length, preserving original order for ties\n    cleaned_tags.sort(key=lambda x: len(x))\n    \n    number_str = f\"{record['number']:03d}\"\n    \n    if 'room' in record:\n        if not isinstance(record['room'], str):\n            return {\"status\": \"error\", \"detail\": \"bad-input\"}\n        room_tokens = record['room'].split()\n        cleaned_room_tokens = [_clean_token(token) for token in room_tokens]\n        if not cleaned_room_tokens or all(token == '' for token in cleaned_room_tokens):\n            return {\"status\": \"error\", \"detail\": \"bad-input\"}\n        room = ' '.join(token.capitalize() for token in cleaned_room_tokens)\n        number_str += f' ({room})'\n    \n    if not cleaned_tags:\n        return number_str\n    else:\n        return f\"{number_str}: {', '.join(cleaned_tags)}\"\n```",
+      "role": "assistant"
+    }
+  ],
+  "canonical_history_after_sha256": "60ad223745fc130c23423dd3c28d56873cb60903d19a6bb14cbba3c570948c91",
+  "canonical_history_before": [
+    {
+      "content": "Maintain the Python module across this conversation. Each request asks for one complete target function. Your response may contain brief prose before the code, then exactly one code fence whose opening line is ```python PATH. Inside the fence, submit exactly the requested synchronous function with its def at column zero and one positional argument. Do not submit other functions, a whole module, imports, tests, tool calls, or prose after the fence. Preserve the requested behavior and the standing user obligations that apply now.",
+      "role": "system"
+    },
+    {
+      "content": "We're building up the museum exhibit label pipeline step by step. This module has one finished helper (_clean_token) and three stub functions we'll grow over the next few edits. Two workstreams: 'wall-labels' for visitor-facing label text, and 'gallery-index' for the index board. I tell you which one each request belongs to.",
+      "role": "user"
+    },
+    {
+      "content": "Project-wide standing rule: whenever you write a new function or edit an existing one, any invalid input must return the string 'ERR'. Never raise exceptions, and never return null for the invalid case. This holds until I say otherwise, and it applies from the moment an edit is made \u2014 I never expect you to retro-fix untouched functions when conventions change.",
+      "role": "user"
+    },
+    {
+      "content": "First real edit, on the wall-labels side: implement label_title(record) in module.py. It takes exactly one JSON value, the exhibit record. The record is valid only if it is an object with a 'name' entry that is a string and that yields at least one clean token when the name is split on whitespace and each piece is passed through _clean_token. For a valid record return the cleaned name tokens, each capitalized, joined with single spaces \u2014 so {'name': 'The blue VASE!'} gives 'The Blue Vase'. Every other input (not an object, missing or non-string name, or a name with no cleanable token) is invalid; return the project's invalid-input result. Use _clean_token rather than writing your own cleanup.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef label_title(record):\n    if not isinstance(record, dict):\n        return 'ERR'\n    if 'name' not in record or not isinstance(record['name'], str):\n        return 'ERR'\n    tokens = record['name'].split()\n    cleaned_tokens = [_clean_token(token) for token in tokens]\n    if not cleaned_tokens or all(token == '' for token in cleaned_tokens):\n        return 'ERR'\n    return ' '.join(token.capitalize() for token in cleaned_tokens)\n```",
+      "role": "assistant"
+    },
+    {
+      "content": "One more project-wide rule before you start the index side: whenever an output presents a sorted list of cleaned tokens, sort by the cleaned token's length, shortest first, and when two cleaned tokens tie on length keep their original input order \u2014 a stable sort, explicitly not alphabetical order. This applies to any function you write or edit from now on.",
+      "role": "user"
+    },
+    {
+      "content": "Now switch workstreams: on the gallery-index side, implement index_entry(record). One JSON argument. Valid only if it is an object with 'number' an integer (booleans do not count) that is >= 0, and 'tags' a list whose elements are all strings. Clean every tag with _clean_token and drop the ones that become empty, then present the survivors sorted under the standing sorted-token convention. Render the number zero-padded to at least three digits (7 -> '007', 3000 -> '3000'). Return 'NNN: t1, t2' with the tokens joined by ', ' \u2014 and if no token survives, return just 'NNN' with no colon at all. Any other input shape is invalid; use the project's invalid-input result.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef index_entry(record):\n    if not isinstance(record, dict):\n        return 'ERR'\n    if 'number' not in record or not isinstance(record['number'], int) or record['number'] < 0:\n        return 'ERR'\n    if 'tags' not in record or not isinstance(record['tags'], list) or not all(isinstance(tag, str) for tag in record['tags']):\n        return 'ERR'\n    \n    cleaned_tags = [_clean_token(tag) for tag in record['tags']]\n    cleaned_tags = [tag for tag in cleaned_tags if tag]\n    \n    # Sort by length, preserving original order for ties\n    cleaned_tags.sort(key=lambda x: len(x))\n    \n    number_str = f\"{record['number']:03d}\"\n    \n    if not cleaned_tags:\n        return number_str\n    else:\n        return f\"{number_str}: {', '.join(cleaned_tags)}\"\n```",
+      "role": "assistant"
+    },
+    {
+      "content": "Quick scope note before this next edit, wall-labels only: in the label functions, for invalid input you MAY return null (None) instead of the otherwise-applicable invalid-input result. This is genuinely optional \u2014 the otherwise-applicable result remains fully acceptable and tests accept either. Permission, not a requirement, and it does not carry over to the gallery-index side.",
+      "role": "user"
+    },
+    {
+      "content": "Staying on wall-labels, implement label_full(record). One JSON argument. Valid only if it satisfies label_title's name requirement AND has 'artist', a string yielding at least one clean token, AND 'year', an integer (not a boolean) greater than 0. For a valid record return a three-element list in this exact order: label_title(record), then 'by ' followed by the capitalized cleaned artist tokens joined with single spaces, then str(year). Example: {'name': 'vase', 'artist': 'ada lovelace', 'year': 1889} -> ['Vase', 'by Ada Lovelace', '1889']. Anything else is invalid and follows the conventions currently in force for this workstream. This function's output is a fixed-order list of label lines, not a sorted token list.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef label_full(record):\n    # Check if record is a valid dictionary\n    if not isinstance(record, dict):\n        return None\n    \n    # Check if 'name' exists and is a string\n    if 'name' not in record or not isinstance(record['name'], str):\n        return None\n    \n    # Check if 'artist' exists and is a string\n    if 'artist' not in record or not isinstance(record['artist'], str):\n        return None\n    \n    # Check if 'year' exists and is a positive integer\n    if 'year' not in record or not isinstance(record['year'], int) or record['year'] <= 0:\n        return None\n    \n    # Validate name with label_title's requirements\n    name_tokens = record['name'].split()\n    cleaned_name_tokens = [_clean_token(token) for token in name_tokens]\n    if not cleaned_name_tokens or all(token == '' for token in cleaned_name_tokens):\n        return None\n    \n    # Validate artist with label_title's requirements\n    artist_tokens = record['artist'].split()\n    cleaned_artist_tokens = [_clean_token(token) for token in artist_tokens]\n    if not cleaned_artist_tokens or all(token == '' for token in cleaned_artist_tokens):\n        return None\n    \n    # Construct the label title\n    title = ' '.join(token.capitalize() for token in cleaned_name_tokens)\n    \n    # Construct the artist line\n    artist_line = 'by ' + ' '.join(token.capitalize() for token in cleaned_artist_tokens)\n    \n    # Year as string\n    year_line = str(record['year'])\n    \n    # Return the three-element list\n    return [title, artist_line, year_line]\n```",
+      "role": "assistant"
+    },
+    {
+      "content": "Project-wide convention change, effective for the next function you write or edit: invalid input must now return the object {\"status\": \"error\", \"detail\": \"bad-input\"} rather than the string 'ERR'. This replaces the earlier 'ERR' rule for newly written or edited code only \u2014 do not go back and rewrite functions that already return 'ERR'; they stay as they are. The wall-labels null permission from earlier is unchanged and still optional.",
+      "role": "user"
+    },
+    {
+      "content": "Still wall-labels: extend label_title. Keep every current valid-case behavior for records that have no 'subtitle'. New capability: a record may include 'subtitle'. If it is present it must be a string \u2014 a non-string subtitle makes the whole record invalid. A subtitle string that yields clean tokens gets appended to the title as ': ' plus its capitalized cleaned tokens joined by single spaces, e.g. {'name': 'vase', 'subtitle': 'from crete'} -> 'Vase: From Crete'. A subtitle string that cleans to nothing at all is simply ignored and the record stays valid. Invalid inputs follow whatever conventions currently govern freshly edited wall-labels code.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef label_title(record):\n    if not isinstance(record, dict):\n        return None\n    if 'name' not in record or not isinstance(record['name'], str):\n        return None\n    tokens = record['name'].split()\n    cleaned_tokens = [_clean_token(token) for token in tokens]\n    if not cleaned_tokens or all(token == '' for token in cleaned_tokens):\n        return None\n    \n    title = ' '.join(token.capitalize() for token in cleaned_tokens)\n    \n    if 'subtitle' in record:\n        if not isinstance(record['subtitle'], str):\n            return None\n        subtitle_tokens = record['subtitle'].split()\n        cleaned_subtitle_tokens = [_clean_token(token) for token in subtitle_tokens]\n        if cleaned_subtitle_tokens and not all(token == '' for token in cleaned_subtitle_tokens):\n            subtitle = ' '.join(token.capitalize() for token in cleaned_subtitle_tokens)\n            title += ': ' + subtitle\n    \n    return title\n```",
+      "role": "assistant"
+    }
+  ],
+  "canonical_history_natural": [
+    {
+      "content": "Maintain the Python module across this conversation. Each request asks for one complete target function. Your response may contain brief prose before the code, then exactly one code fence whose opening line is ```python PATH. Inside the fence, submit exactly the requested synchronous function with its def at column zero and one positional argument. Do not submit other functions, a whole module, imports, tests, tool calls, or prose after the fence. Preserve the requested behavior and the standing user obligations that apply now.",
+      "role": "system"
+    },
+    {
+      "content": "We're building up the museum exhibit label pipeline step by step. This module has one finished helper (_clean_token) and three stub functions we'll grow over the next few edits. Two workstreams: 'wall-labels' for visitor-facing label text, and 'gallery-index' for the index board. I tell you which one each request belongs to.",
+      "role": "user"
+    },
+    {
+      "content": "Project-wide standing rule: whenever you write a new function or edit an existing one, any invalid input must return the string 'ERR'. Never raise exceptions, and never return null for the invalid case. This holds until I say otherwise, and it applies from the moment an edit is made \u2014 I never expect you to retro-fix untouched functions when conventions change.",
+      "role": "user"
+    },
+    {
+      "content": "First real edit, on the wall-labels side: implement label_title(record) in module.py. It takes exactly one JSON value, the exhibit record. The record is valid only if it is an object with a 'name' entry that is a string and that yields at least one clean token when the name is split on whitespace and each piece is passed through _clean_token. For a valid record return the cleaned name tokens, each capitalized, joined with single spaces \u2014 so {'name': 'The blue VASE!'} gives 'The Blue Vase'. Every other input (not an object, missing or non-string name, or a name with no cleanable token) is invalid; return the project's invalid-input result. Use _clean_token rather than writing your own cleanup.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef label_title(record):\n    if not isinstance(record, dict):\n        return 'ERR'\n    if 'name' not in record or not isinstance(record['name'], str):\n        return 'ERR'\n    tokens = record['name'].split()\n    cleaned_tokens = [_clean_token(token) for token in tokens]\n    if not cleaned_tokens or all(token == '' for token in cleaned_tokens):\n        return 'ERR'\n    return ' '.join(token.capitalize() for token in cleaned_tokens)\n```",
+      "role": "assistant"
+    },
+    {
+      "content": "One more project-wide rule before you start the index side: whenever an output presents a sorted list of cleaned tokens, sort by the cleaned token's length, shortest first, and when two cleaned tokens tie on length keep their original input order \u2014 a stable sort, explicitly not alphabetical order. This applies to any function you write or edit from now on.",
+      "role": "user"
+    },
+    {
+      "content": "Now switch workstreams: on the gallery-index side, implement index_entry(record). One JSON argument. Valid only if it is an object with 'number' an integer (booleans do not count) that is >= 0, and 'tags' a list whose elements are all strings. Clean every tag with _clean_token and drop the ones that become empty, then present the survivors sorted under the standing sorted-token convention. Render the number zero-padded to at least three digits (7 -> '007', 3000 -> '3000'). Return 'NNN: t1, t2' with the tokens joined by ', ' \u2014 and if no token survives, return just 'NNN' with no colon at all. Any other input shape is invalid; use the project's invalid-input result.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef index_entry(record):\n    if not isinstance(record, dict):\n        return 'ERR'\n    if 'number' not in record or not isinstance(record['number'], int) or record['number'] < 0:\n        return 'ERR'\n    if 'tags' not in record or not isinstance(record['tags'], list) or not all(isinstance(tag, str) for tag in record['tags']):\n        return 'ERR'\n    \n    cleaned_tags = [_clean_token(tag) for tag in record['tags']]\n    cleaned_tags = [tag for tag in cleaned_tags if tag]\n    \n    # Sort by length, preserving original order for ties\n    cleaned_tags.sort(key=lambda x: len(x))\n    \n    number_str = f\"{record['number']:03d}\"\n    \n    if not cleaned_tags:\n        return number_str\n    else:\n        return f\"{number_str}: {', '.join(cleaned_tags)}\"\n```",
+      "role": "assistant"
+    },
+    {
+      "content": "Quick scope note before this next edit, wall-labels only: in the label functions, for invalid input you MAY return null (None) instead of the otherwise-applicable invalid-input result. This is genuinely optional \u2014 the otherwise-applicable result remains fully acceptable and tests accept either. Permission, not a requirement, and it does not carry over to the gallery-index side.",
+      "role": "user"
+    },
+    {
+      "content": "Staying on wall-labels, implement label_full(record). One JSON argument. Valid only if it satisfies label_title's name requirement AND has 'artist', a string yielding at least one clean token, AND 'year', an integer (not a boolean) greater than 0. For a valid record return a three-element list in this exact order: label_title(record), then 'by ' followed by the capitalized cleaned artist tokens joined with single spaces, then str(year). Example: {'name': 'vase', 'artist': 'ada lovelace', 'year': 1889} -> ['Vase', 'by Ada Lovelace', '1889']. Anything else is invalid and follows the conventions currently in force for this workstream. This function's output is a fixed-order list of label lines, not a sorted token list.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef label_full(record):\n    # Check if record is a valid dictionary\n    if not isinstance(record, dict):\n        return None\n    \n    # Check if 'name' exists and is a string\n    if 'name' not in record or not isinstance(record['name'], str):\n        return None\n    \n    # Check if 'artist' exists and is a string\n    if 'artist' not in record or not isinstance(record['artist'], str):\n        return None\n    \n    # Check if 'year' exists and is a positive integer\n    if 'year' not in record or not isinstance(record['year'], int) or record['year'] <= 0:\n        return None\n    \n    # Validate name with label_title's requirements\n    name_tokens = record['name'].split()\n    cleaned_name_tokens = [_clean_token(token) for token in name_tokens]\n    if not cleaned_name_tokens or all(token == '' for token in cleaned_name_tokens):\n        return None\n    \n    # Validate artist with label_title's requirements\n    artist_tokens = record['artist'].split()\n    cleaned_artist_tokens = [_clean_token(token) for token in artist_tokens]\n    if not cleaned_artist_tokens or all(token == '' for token in cleaned_artist_tokens):\n        return None\n    \n    # Construct the label title\n    title = ' '.join(token.capitalize() for token in cleaned_name_tokens)\n    \n    # Construct the artist line\n    artist_line = 'by ' + ' '.join(token.capitalize() for token in cleaned_artist_tokens)\n    \n    # Year as string\n    year_line = str(record['year'])\n    \n    # Return the three-element list\n    return [title, artist_line, year_line]\n```",
+      "role": "assistant"
+    },
+    {
+      "content": "Project-wide convention change, effective for the next function you write or edit: invalid input must now return the object {\"status\": \"error\", \"detail\": \"bad-input\"} rather than the string 'ERR'. This replaces the earlier 'ERR' rule for newly written or edited code only \u2014 do not go back and rewrite functions that already return 'ERR'; they stay as they are. The wall-labels null permission from earlier is unchanged and still optional.",
+      "role": "user"
+    },
+    {
+      "content": "Still wall-labels: extend label_title. Keep every current valid-case behavior for records that have no 'subtitle'. New capability: a record may include 'subtitle'. If it is present it must be a string \u2014 a non-string subtitle makes the whole record invalid. A subtitle string that yields clean tokens gets appended to the title as ': ' plus its capitalized cleaned tokens joined by single spaces, e.g. {'name': 'vase', 'subtitle': 'from crete'} -> 'Vase: From Crete'. A subtitle string that cleans to nothing at all is simply ignored and the record stays valid. Invalid inputs follow whatever conventions currently govern freshly edited wall-labels code.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef label_title(record):\n    if not isinstance(record, dict):\n        return None\n    if 'name' not in record or not isinstance(record['name'], str):\n        return None\n    tokens = record['name'].split()\n    cleaned_tokens = [_clean_token(token) for token in tokens]\n    if not cleaned_tokens or all(token == '' for token in cleaned_tokens):\n        return None\n    \n    title = ' '.join(token.capitalize() for token in cleaned_tokens)\n    \n    if 'subtitle' in record:\n        if not isinstance(record['subtitle'], str):\n            return None\n        subtitle_tokens = record['subtitle'].split()\n        cleaned_subtitle_tokens = [_clean_token(token) for token in subtitle_tokens]\n        if cleaned_subtitle_tokens and not all(token == '' for token in cleaned_subtitle_tokens):\n            subtitle = ' '.join(token.capitalize() for token in cleaned_subtitle_tokens)\n            title += ': ' + subtitle\n    \n    return title\n```",
+      "role": "assistant"
+    },
+    {
+      "content": "Back to gallery-index work for this one. Nothing new rule-wise: the dict error object from my last convention note still governs any function you edit, the stable length-sort still governs sorted token outputs, and that null permission is still wall-labels only \u2014 it has never applied over here.",
+      "role": "user"
+    },
+    {
+      "content": "On the gallery-index side, extend index_entry. Records without a 'room' key must behave exactly as they do now, padding and tag ordering included. New capability: a record may include 'room'. If present it must be a string that yields at least one clean token, otherwise the record is invalid. When valid, append ' (' + the capitalized cleaned room tokens joined by single spaces + ')' to whatever line the entry already produced: {'number': 12, 'tags': [], 'room': 'north wing'} -> '012 (North Wing)'. Invalid input returns the convention currently in force for this workstream \u2014 mind which workstream this is.",
+      "role": "user"
+    }
+  ],
+  "check_status": "COMPLETE",
+  "checks": [
+    {
+      "actual": "vase",
+      "check_id": "chk-clean-1",
+      "elapsed_seconds": 0.017943935992661864,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        "vase"
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "_clean_token"
+    },
+    {
+      "actual": "hall",
+      "check_id": "chk-clean-2",
+      "elapsed_seconds": 0.014751783019164577,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        "hall"
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "_clean_token"
+    },
+    {
+      "actual": "The Blue Vase",
+      "check_id": "chk-r0-f1",
+      "elapsed_seconds": 0.023334686004091054,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        "The Blue Vase"
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "label_title"
+    },
+    {
+      "actual": "Maria's Jar",
+      "check_id": "chk-r0-f2",
+      "elapsed_seconds": 0.012931203003972769,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        "Maria's Jar"
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "label_title"
+    },
+    {
+      "actual": "007: urn",
+      "check_id": "chk-r1-f1",
+      "elapsed_seconds": 0.023279310000361875,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        "007: urn"
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "index_entry"
+    },
+    {
+      "actual": "3000",
+      "check_id": "chk-r1-f2",
+      "elapsed_seconds": 0.013524308014893904,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        "3000"
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "index_entry"
+    },
+    {
+      "actual": [
+        "Vase",
+        "by Ada Lovelace",
+        "1889"
+      ],
+      "check_id": "chk-r2-f1",
+      "elapsed_seconds": 0.013765684008831158,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        [
+          "Vase",
+          "by Ada Lovelace",
+          "1889"
+        ]
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "label_full"
+    },
+    {
+      "actual": [
+        "The Big Jar",
+        "by Li",
+        "44"
+      ],
+      "check_id": "chk-r2-f2",
+      "elapsed_seconds": 0.013454851985443383,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        [
+          "The Big Jar",
+          "by Li",
+          "44"
+        ]
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "label_full"
+    },
+    {
+      "actual": "Vase: From Crete",
+      "check_id": "chk-r3-f1",
+      "elapsed_seconds": 0.023558893997687846,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        "Vase: From Crete"
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "label_title"
+    },
+    {
+      "actual": "Vase",
+      "check_id": "chk-r3-f2",
+      "elapsed_seconds": 0.013286899018567055,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        "Vase"
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "label_title"
+    },
+    {
+      "actual": "007: urn",
+      "check_id": "chk-r4-f1",
+      "elapsed_seconds": 0.012921459012432024,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        "007: urn"
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "index_entry"
+    },
+    {
+      "actual": "012 (North Wing)",
+      "check_id": "chk-r4-f2",
+      "elapsed_seconds": 0.022216138982912526,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        "012 (North Wing)"
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "index_entry"
+    },
+    {
+      "actual": "001",
+      "check_id": "chk-r4-o1",
+      "elapsed_seconds": 0.013032403017859906,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        {
+          "detail": "bad-input",
+          "status": "error"
+        }
+      ],
+      "passed": false,
+      "rule_ids": [
+        "r-invalid-dict"
+      ],
+      "symbol": "index_entry"
+    },
+    {
+      "actual": {
+        "detail": "bad-input",
+        "status": "error"
+      },
+      "check_id": "chk-r4-o2",
+      "elapsed_seconds": 0.022637148009380326,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        {
+          "detail": "bad-input",
+          "status": "error"
+        }
+      ],
+      "passed": true,
+      "rule_ids": [
+        "r-invalid-dict"
+      ],
+      "symbol": "index_entry"
+    },
+    {
+      "actual": "009: dog, cat",
+      "check_id": "chk-r4-o3",
+      "elapsed_seconds": 0.022495723998872563,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        "009: dog, cat"
+      ],
+      "passed": true,
+      "rule_ids": [
+        "r-sort-stable-length"
+      ],
+      "symbol": "index_entry"
+    },
+    {
+      "actual": {
+        "detail": "bad-input",
+        "status": "error"
+      },
+      "check_id": "chk-r4-o4",
+      "elapsed_seconds": 0.012854129978222772,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        {
+          "detail": "bad-input",
+          "status": "error"
+        }
+      ],
+      "passed": true,
+      "rule_ids": [
+        "r-invalid-dict"
+      ],
+      "symbol": "index_entry"
+    },
+    {
+      "actual": {
+        "detail": "bad-input",
+        "status": "error"
+      },
+      "check_id": "chk-r4-o5",
+      "elapsed_seconds": 0.02234805899206549,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        {
+          "detail": "bad-input",
+          "status": "error"
+        }
+      ],
+      "passed": true,
+      "rule_ids": [
+        "r-invalid-dict"
+      ],
+      "symbol": "index_entry"
+    }
+  ],
+  "decoder_error": null,
+  "episode_id": "kimi-coding-dev-exhibit-labels",
+  "extracted_fence": "```python module.py\ndef index_entry(record):\n    if not isinstance(record, dict):\n        return {\"status\": \"error\", \"detail\": \"bad-input\"}\n    if 'number' not in record or not isinstance(record['number'], int) or record['number'] < 0:\n        return {\"status\": \"error\", \"detail\": \"bad-input\"}\n    if 'tags' not in record or not isinstance(record['tags'], list) or not all(isinstance(tag, str) for tag in record['tags']):\n        return {\"status\": \"error\", \"detail\": \"bad-input\"}\n    \n    cleaned_tags = [_clean_token(tag) for tag in record['tags']]\n    cleaned_tags = [tag for tag in cleaned_tags if tag]\n    \n    # Sort by length, preserving original order for ties\n    cleaned_tags.sort(key=lambda x: len(x))\n    \n    number_str = f\"{record['number']:03d}\"\n    \n    if 'room' in record:\n        if not isinstance(record['room'], str):\n            return {\"status\": \"error\", \"detail\": \"bad-input\"}\n        room_tokens = record['room'].split()\n        cleaned_room_tokens = [_clean_token(token) for token in room_tokens]\n        if not cleaned_room_tokens or all(token == '' for token in cleaned_room_tokens):\n            return {\"status\": \"error\", \"detail\": \"bad-input\"}\n        room = ' '.join(token.capitalize() for token in cleaned_room_tokens)\n        number_str += f' ({room})'\n    \n    if not cleaned_tags:\n        return number_str\n    else:\n        return f\"{number_str}: {', '.join(cleaned_tags)}\"\n```",
+  "extracted_prefix": "",
+  "issued_messages_sha256": "0f17b12a9512a4a4f2a91681bcfc938269adb2972879980b878abddb8332a796",
+  "parse_error": null,
+  "patch_applied": true,
+  "post_module": "\"\"\"Museum exhibit label assembly pipeline (development build).\"\"\"\n\n\ndef _clean_token(token):\n    text = token.strip()\n    while text and not text[0].isalnum():\n        text = text[1:]\n    while text and not text[-1].isalnum():\n        text = text[:-1]\n    return text.lower()\n\n\ndef label_title(record):\n    if not isinstance(record, dict):\n        return None\n    if 'name' not in record or not isinstance(record['name'], str):\n        return None\n    tokens = record['name'].split()\n    cleaned_tokens = [_clean_token(token) for token in tokens]\n    if not cleaned_tokens or all(token == '' for token in cleaned_tokens):\n        return None\n    \n    title = ' '.join(token.capitalize() for token in cleaned_tokens)\n    \n    if 'subtitle' in record:\n        if not isinstance(record['subtitle'], str):\n            return None\n        subtitle_tokens = record['subtitle'].split()\n        cleaned_subtitle_tokens = [_clean_token(token) for token in subtitle_tokens]\n        if cleaned_subtitle_tokens and not all(token == '' for token in cleaned_subtitle_tokens):\n            subtitle = ' '.join(token.capitalize() for token in cleaned_subtitle_tokens)\n            title += ': ' + subtitle\n    \n    return title\n\n\ndef index_entry(record):\n    if not isinstance(record, dict):\n        return {\"status\": \"error\", \"detail\": \"bad-input\"}\n    if 'number' not in record or not isinstance(record['number'], int) or record['number'] < 0:\n        return {\"status\": \"error\", \"detail\": \"bad-input\"}\n    if 'tags' not in record or not isinstance(record['tags'], list) or not all(isinstance(tag, str) for tag in record['tags']):\n        return {\"status\": \"error\", \"detail\": \"bad-input\"}\n    \n    cleaned_tags = [_clean_token(tag) for tag in record['tags']]\n    cleaned_tags = [tag for tag in cleaned_tags if tag]\n    \n    # Sort by length, preserving original order for ties\n    cleaned_tags.sort(key=lambda x: len(x))\n    \n    number_str = f\"{record['number']:03d}\"\n    \n    if 'room' in record:\n        if not isinstance(record['room'], str):\n            return {\"status\": \"error\", \"detail\": \"bad-input\"}\n        room_tokens = record['room'].split()\n        cleaned_room_tokens = [_clean_token(token) for token in room_tokens]\n        if not cleaned_room_tokens or all(token == '' for token in cleaned_room_tokens):\n            return {\"status\": \"error\", \"detail\": \"bad-input\"}\n        room = ' '.join(token.capitalize() for token in cleaned_room_tokens)\n        number_str += f' ({room})'\n    \n    if not cleaned_tags:\n        return number_str\n    else:\n        return f\"{number_str}: {', '.join(cleaned_tags)}\"\n\n\ndef label_full(record):\n    # Check if record is a valid dictionary\n    if not isinstance(record, dict):\n        return None\n    \n    # Check if 'name' exists and is a string\n    if 'name' not in record or not isinstance(record['name'], str):\n        return None\n    \n    # Check if 'artist' exists and is a string\n    if 'artist' not in record or not isinstance(record['artist'], str):\n        return None\n    \n    # Check if 'year' exists and is a positive integer\n    if 'year' not in record or not isinstance(record['year'], int) or record['year'] <= 0:\n        return None\n    \n    # Validate name with label_title's requirements\n    name_tokens = record['name'].split()\n    cleaned_name_tokens = [_clean_token(token) for token in name_tokens]\n    if not cleaned_name_tokens or all(token == '' for token in cleaned_name_tokens):\n        return None\n    \n    # Validate artist with label_title's requirements\n    artist_tokens = record['artist'].split()\n    cleaned_artist_tokens = [_clean_token(token) for token in artist_tokens]\n    if not cleaned_artist_tokens or all(token == '' for token in cleaned_artist_tokens):\n        return None\n    \n    # Construct the label title\n    title = ' '.join(token.capitalize() for token in cleaned_name_tokens)\n    \n    # Construct the artist line\n    artist_line = 'by ' + ' '.join(token.capitalize() for token in cleaned_artist_tokens)\n    \n    # Year as string\n    year_line = str(record['year'])\n    \n    # Return the three-element list\n    return [title, artist_line, year_line]",
+  "post_module_sha256": "96d6ec372057a69c4e4e14b9b3a51bf826d145be7563cd6f5ee58ca58166545e",
+  "pre_module": "\"\"\"Museum exhibit label assembly pipeline (development build).\"\"\"\n\n\ndef _clean_token(token):\n    text = token.strip()\n    while text and not text[0].isalnum():\n        text = text[1:]\n    while text and not text[-1].isalnum():\n        text = text[:-1]\n    return text.lower()\n\n\ndef label_title(record):\n    if not isinstance(record, dict):\n        return None\n    if 'name' not in record or not isinstance(record['name'], str):\n        return None\n    tokens = record['name'].split()\n    cleaned_tokens = [_clean_token(token) for token in tokens]\n    if not cleaned_tokens or all(token == '' for token in cleaned_tokens):\n        return None\n    \n    title = ' '.join(token.capitalize() for token in cleaned_tokens)\n    \n    if 'subtitle' in record:\n        if not isinstance(record['subtitle'], str):\n            return None\n        subtitle_tokens = record['subtitle'].split()\n        cleaned_subtitle_tokens = [_clean_token(token) for token in subtitle_tokens]\n        if cleaned_subtitle_tokens and not all(token == '' for token in cleaned_subtitle_tokens):\n            subtitle = ' '.join(token.capitalize() for token in cleaned_subtitle_tokens)\n            title += ': ' + subtitle\n    \n    return title\n\n\ndef index_entry(record):\n    if not isinstance(record, dict):\n        return 'ERR'\n    if 'number' not in record or not isinstance(record['number'], int) or record['number'] < 0:\n        return 'ERR'\n    if 'tags' not in record or not isinstance(record['tags'], list) or not all(isinstance(tag, str) for tag in record['tags']):\n        return 'ERR'\n    \n    cleaned_tags = [_clean_token(tag) for tag in record['tags']]\n    cleaned_tags = [tag for tag in cleaned_tags if tag]\n    \n    # Sort by length, preserving original order for ties\n    cleaned_tags.sort(key=lambda x: len(x))\n    \n    number_str = f\"{record['number']:03d}\"\n    \n    if not cleaned_tags:\n        return number_str\n    else:\n        return f\"{number_str}: {', '.join(cleaned_tags)}\"\n\n\ndef label_full(record):\n    # Check if record is a valid dictionary\n    if not isinstance(record, dict):\n        return None\n    \n    # Check if 'name' exists and is a string\n    if 'name' not in record or not isinstance(record['name'], str):\n        return None\n    \n    # Check if 'artist' exists and is a string\n    if 'artist' not in record or not isinstance(record['artist'], str):\n        return None\n    \n    # Check if 'year' exists and is a positive integer\n    if 'year' not in record or not isinstance(record['year'], int) or record['year'] <= 0:\n        return None\n    \n    # Validate name with label_title's requirements\n    name_tokens = record['name'].split()\n    cleaned_name_tokens = [_clean_token(token) for token in name_tokens]\n    if not cleaned_name_tokens or all(token == '' for token in cleaned_name_tokens):\n        return None\n    \n    # Validate artist with label_title's requirements\n    artist_tokens = record['artist'].split()\n    cleaned_artist_tokens = [_clean_token(token) for token in artist_tokens]\n    if not cleaned_artist_tokens or all(token == '' for token in cleaned_artist_tokens):\n        return None\n    \n    # Construct the label title\n    title = ' '.join(token.capitalize() for token in cleaned_name_tokens)\n    \n    # Construct the artist line\n    artist_line = 'by ' + ' '.join(token.capitalize() for token in cleaned_artist_tokens)\n    \n    # Year as string\n    year_line = str(record['year'])\n    \n    # Return the three-element list\n    return [title, artist_line, year_line]",
+  "pre_module_sha256": "32d901e726eedd1183a2696f7e5c68c70f1e4d448cb6f34af2914e8da4ae5ad3",
+  "raw_output": "```python module.py\ndef index_entry(record):\n    if not isinstance(record, dict):\n        return {\"status\": \"error\", \"detail\": \"bad-input\"}\n    if 'number' not in record or not isinstance(record['number'], int) or record['number'] < 0:\n        return {\"status\": \"error\", \"detail\": \"bad-input\"}\n    if 'tags' not in record or not isinstance(record['tags'], list) or not all(isinstance(tag, str) for tag in record['tags']):\n        return {\"status\": \"error\", \"detail\": \"bad-input\"}\n    \n    cleaned_tags = [_clean_token(tag) for tag in record['tags']]\n    cleaned_tags = [tag for tag in cleaned_tags if tag]\n    \n    # Sort by length, preserving original order for ties\n    cleaned_tags.sort(key=lambda x: len(x))\n    \n    number_str = f\"{record['number']:03d}\"\n    \n    if 'room' in record:\n        if not isinstance(record['room'], str):\n            return {\"status\": \"error\", \"detail\": \"bad-input\"}\n        room_tokens = record['room'].split()\n        cleaned_room_tokens = [_clean_token(token) for token in room_tokens]\n        if not cleaned_room_tokens or all(token == '' for token in cleaned_room_tokens):\n            return {\"status\": \"error\", \"detail\": \"bad-input\"}\n        room = ' '.join(token.capitalize() for token in cleaned_room_tokens)\n        number_str += f' ({room})'\n    \n    if not cleaned_tags:\n        return number_str\n    else:\n        return f\"{number_str}: {', '.join(cleaned_tags)}\"\n```",
+  "request_id": "req-4",
+  "round_index": 4,
+  "schema_version": 1,
+  "slot_accounting_complete": true,
+  "source_message_ids": [
+    "m-hold-r4"
+  ],
+  "submission_valid": true,
+  "target": {
+    "path": "module.py",
+    "symbol": "index_entry"
+  },
+  "task_handle": "gallery-index",
+  "technical_complete": true,
+  "turn_success": false,
+  "unfinished_check_ids": []
+}

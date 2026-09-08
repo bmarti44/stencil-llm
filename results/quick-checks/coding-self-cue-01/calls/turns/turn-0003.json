@@ -1,0 +1,235 @@
+{
+  "all_checks_passed": false,
+  "arm": "H",
+  "call_index": 3,
+  "call_receipt": "calls/call-0003.json",
+  "canonical_history_after": [
+    {
+      "content": "Maintain the Python module across this conversation. Each request asks for one complete target function. Your response may contain brief prose before the code, then exactly one code fence whose opening line is ```python PATH. Inside the fence, submit exactly the requested synchronous function with its def at column zero and one positional argument. Do not submit other functions, a whole module, imports, tests, tool calls, or prose after the fence. Preserve the requested behavior and the standing user obligations that apply now.",
+      "role": "system"
+    },
+    {
+      "content": "We're building up the museum exhibit label pipeline step by step. This module has one finished helper (_clean_token) and three stub functions we'll grow over the next few edits. Two workstreams: 'wall-labels' for visitor-facing label text, and 'gallery-index' for the index board. I tell you which one each request belongs to.",
+      "role": "user"
+    },
+    {
+      "content": "Project-wide standing rule: whenever you write a new function or edit an existing one, any invalid input must return the string 'ERR'. Never raise exceptions, and never return null for the invalid case. This holds until I say otherwise, and it applies from the moment an edit is made \u2014 I never expect you to retro-fix untouched functions when conventions change.",
+      "role": "user"
+    },
+    {
+      "content": "First real edit, on the wall-labels side: implement label_title(record) in module.py. It takes exactly one JSON value, the exhibit record. The record is valid only if it is an object with a 'name' entry that is a string and that yields at least one clean token when the name is split on whitespace and each piece is passed through _clean_token. For a valid record return the cleaned name tokens, each capitalized, joined with single spaces \u2014 so {'name': 'The blue VASE!'} gives 'The Blue Vase'. Every other input (not an object, missing or non-string name, or a name with no cleanable token) is invalid; return the project's invalid-input result. Use _clean_token rather than writing your own cleanup.",
+      "role": "user"
+    },
+    {
+      "content": "One more project-wide rule before you start the index side: whenever an output presents a sorted list of cleaned tokens, sort by the cleaned token's length, shortest first, and when two cleaned tokens tie on length keep their original input order \u2014 a stable sort, explicitly not alphabetical order. This applies to any function you write or edit from now on.",
+      "role": "user"
+    },
+    {
+      "content": "Now switch workstreams: on the gallery-index side, implement index_entry(record). One JSON argument. Valid only if it is an object with 'number' an integer (booleans do not count) that is >= 0, and 'tags' a list whose elements are all strings. Clean every tag with _clean_token and drop the ones that become empty, then present the survivors sorted under the standing sorted-token convention. Render the number zero-padded to at least three digits (7 -> '007', 3000 -> '3000'). Return 'NNN: t1, t2' with the tokens joined by ', ' \u2014 and if no token survives, return just 'NNN' with no colon at all. Any other input shape is invalid; use the project's invalid-input result.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef index_entry(record):\n    if not isinstance(record, dict):\n        return \"ERR\"\n    \n    if \"number\" not in record or \"tags\" not in record:\n        return \"ERR\"\n    \n    number = record[\"number\"]\n    tags = record[\"tags\"]\n    \n    if not isinstance(number, int) or number < 0:\n        return \"ERR\"\n    \n    if not isinstance(tags, list) or not all(isinstance(tag, str) for tag in tags):\n        return \"ERR\"\n    \n    cleaned_tags = []\n    for tag in tags:\n        cleaned = _clean_token(tag)\n        if cleaned:\n            cleaned_tags.append(cleaned)\n    \n    if not cleaned_tags:\n        return f\"{number:03d}\"\n    \n    # Sort by length, stable sort\n    cleaned_tags.sort(key=lambda x: len(x))\n    \n    tag_str = \", \".join(cleaned_tags)\n    return f\"{number:03d}: {tag_str}\"\n```",
+      "role": "assistant"
+    }
+  ],
+  "canonical_history_after_sha256": "25fdc370b9dd1085710aee9431aa480f4b01d70e45d1bfdcb7b41321fd649de6",
+  "canonical_history_before": [
+    {
+      "content": "Maintain the Python module across this conversation. Each request asks for one complete target function. Your response may contain brief prose before the code, then exactly one code fence whose opening line is ```python PATH. Inside the fence, submit exactly the requested synchronous function with its def at column zero and one positional argument. Do not submit other functions, a whole module, imports, tests, tool calls, or prose after the fence. Preserve the requested behavior and the standing user obligations that apply now.",
+      "role": "system"
+    },
+    {
+      "content": "We're building up the museum exhibit label pipeline step by step. This module has one finished helper (_clean_token) and three stub functions we'll grow over the next few edits. Two workstreams: 'wall-labels' for visitor-facing label text, and 'gallery-index' for the index board. I tell you which one each request belongs to.",
+      "role": "user"
+    },
+    {
+      "content": "Project-wide standing rule: whenever you write a new function or edit an existing one, any invalid input must return the string 'ERR'. Never raise exceptions, and never return null for the invalid case. This holds until I say otherwise, and it applies from the moment an edit is made \u2014 I never expect you to retro-fix untouched functions when conventions change.",
+      "role": "user"
+    },
+    {
+      "content": "First real edit, on the wall-labels side: implement label_title(record) in module.py. It takes exactly one JSON value, the exhibit record. The record is valid only if it is an object with a 'name' entry that is a string and that yields at least one clean token when the name is split on whitespace and each piece is passed through _clean_token. For a valid record return the cleaned name tokens, each capitalized, joined with single spaces \u2014 so {'name': 'The blue VASE!'} gives 'The Blue Vase'. Every other input (not an object, missing or non-string name, or a name with no cleanable token) is invalid; return the project's invalid-input result. Use _clean_token rather than writing your own cleanup.",
+      "role": "user"
+    }
+  ],
+  "canonical_history_natural": [
+    {
+      "content": "Maintain the Python module across this conversation. Each request asks for one complete target function. Your response may contain brief prose before the code, then exactly one code fence whose opening line is ```python PATH. Inside the fence, submit exactly the requested synchronous function with its def at column zero and one positional argument. Do not submit other functions, a whole module, imports, tests, tool calls, or prose after the fence. Preserve the requested behavior and the standing user obligations that apply now.",
+      "role": "system"
+    },
+    {
+      "content": "We're building up the museum exhibit label pipeline step by step. This module has one finished helper (_clean_token) and three stub functions we'll grow over the next few edits. Two workstreams: 'wall-labels' for visitor-facing label text, and 'gallery-index' for the index board. I tell you which one each request belongs to.",
+      "role": "user"
+    },
+    {
+      "content": "Project-wide standing rule: whenever you write a new function or edit an existing one, any invalid input must return the string 'ERR'. Never raise exceptions, and never return null for the invalid case. This holds until I say otherwise, and it applies from the moment an edit is made \u2014 I never expect you to retro-fix untouched functions when conventions change.",
+      "role": "user"
+    },
+    {
+      "content": "First real edit, on the wall-labels side: implement label_title(record) in module.py. It takes exactly one JSON value, the exhibit record. The record is valid only if it is an object with a 'name' entry that is a string and that yields at least one clean token when the name is split on whitespace and each piece is passed through _clean_token. For a valid record return the cleaned name tokens, each capitalized, joined with single spaces \u2014 so {'name': 'The blue VASE!'} gives 'The Blue Vase'. Every other input (not an object, missing or non-string name, or a name with no cleanable token) is invalid; return the project's invalid-input result. Use _clean_token rather than writing your own cleanup.",
+      "role": "user"
+    },
+    {
+      "content": "One more project-wide rule before you start the index side: whenever an output presents a sorted list of cleaned tokens, sort by the cleaned token's length, shortest first, and when two cleaned tokens tie on length keep their original input order \u2014 a stable sort, explicitly not alphabetical order. This applies to any function you write or edit from now on.",
+      "role": "user"
+    },
+    {
+      "content": "Now switch workstreams: on the gallery-index side, implement index_entry(record). One JSON argument. Valid only if it is an object with 'number' an integer (booleans do not count) that is >= 0, and 'tags' a list whose elements are all strings. Clean every tag with _clean_token and drop the ones that become empty, then present the survivors sorted under the standing sorted-token convention. Render the number zero-padded to at least three digits (7 -> '007', 3000 -> '3000'). Return 'NNN: t1, t2' with the tokens joined by ', ' \u2014 and if no token survives, return just 'NNN' with no colon at all. Any other input shape is invalid; use the project's invalid-input result.",
+      "role": "user"
+    }
+  ],
+  "check_status": "COMPLETE",
+  "checks": [
+    {
+      "actual": "vase",
+      "check_id": "chk-clean-1",
+      "elapsed_seconds": 0.018542560981586576,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        "vase"
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "_clean_token"
+    },
+    {
+      "actual": "hall",
+      "check_id": "chk-clean-2",
+      "elapsed_seconds": 0.013636548013892025,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        "hall"
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "_clean_token"
+    },
+    {
+      "actual": null,
+      "check_id": "chk-r0-f1",
+      "elapsed_seconds": 0.022803835978265852,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        "The Blue Vase"
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "label_title"
+    },
+    {
+      "actual": null,
+      "check_id": "chk-r0-f2",
+      "elapsed_seconds": 0.013420547009445727,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        "Maria's Jar"
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "label_title"
+    },
+    {
+      "actual": "007: urn",
+      "check_id": "chk-r1-f1",
+      "elapsed_seconds": 0.013105602993164212,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        "007: urn"
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "index_entry"
+    },
+    {
+      "actual": "3000",
+      "check_id": "chk-r1-f2",
+      "elapsed_seconds": 0.022852477006381378,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        "3000"
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "index_entry"
+    },
+    {
+      "actual": "007: urn, bronze",
+      "check_id": "chk-r1-o1",
+      "elapsed_seconds": 0.013198610016843304,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        "007: urn, bronze"
+      ],
+      "passed": true,
+      "rule_ids": [
+        "r-sort-stable-length"
+      ],
+      "symbol": "index_entry"
+    },
+    {
+      "actual": "012: dog, cat",
+      "check_id": "chk-r1-o2",
+      "elapsed_seconds": 0.012671138014411554,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        "012: dog, cat"
+      ],
+      "passed": true,
+      "rule_ids": [
+        "r-sort-stable-length"
+      ],
+      "symbol": "index_entry"
+    },
+    {
+      "actual": "001: a",
+      "check_id": "chk-r1-o3",
+      "elapsed_seconds": 0.012333583988947794,
+      "episode_id": "kimi-coding-dev-exhibit-labels",
+      "error": null,
+      "expected_values": [
+        "ERR"
+      ],
+      "passed": false,
+      "rule_ids": [
+        "r-invalid-err"
+      ],
+      "symbol": "index_entry"
+    }
+  ],
+  "decoder_error": null,
+  "episode_id": "kimi-coding-dev-exhibit-labels",
+  "extracted_fence": "```python module.py\ndef index_entry(record):\n    if not isinstance(record, dict):\n        return \"ERR\"\n    \n    if \"number\" not in record or \"tags\" not in record:\n        return \"ERR\"\n    \n    number = record[\"number\"]\n    tags = record[\"tags\"]\n    \n    if not isinstance(number, int) or number < 0:\n        return \"ERR\"\n    \n    if not isinstance(tags, list) or not all(isinstance(tag, str) for tag in tags):\n        return \"ERR\"\n    \n    cleaned_tags = []\n    for tag in tags:\n        cleaned = _clean_token(tag)\n        if cleaned:\n            cleaned_tags.append(cleaned)\n    \n    if not cleaned_tags:\n        return f\"{number:03d}\"\n    \n    # Sort by length, stable sort\n    cleaned_tags.sort(key=lambda x: len(x))\n    \n    tag_str = \", \".join(cleaned_tags)\n    return f\"{number:03d}: {tag_str}\"\n```",
+  "extracted_prefix": "",
+  "issued_messages_sha256": "d697253c33665298005d293dff7667ea4feb14cc256aac6439a19c8431467ff5",
+  "parse_error": null,
+  "patch_applied": true,
+  "post_module": "\"\"\"Museum exhibit label assembly pipeline (development build).\"\"\"\n\n\ndef _clean_token(token):\n    text = token.strip()\n    while text and not text[0].isalnum():\n        text = text[1:]\n    while text and not text[-1].isalnum():\n        text = text[:-1]\n    return text.lower()\n\n\ndef label_title(record):\n    return None\n\n\ndef index_entry(record):\n    if not isinstance(record, dict):\n        return \"ERR\"\n    \n    if \"number\" not in record or \"tags\" not in record:\n        return \"ERR\"\n    \n    number = record[\"number\"]\n    tags = record[\"tags\"]\n    \n    if not isinstance(number, int) or number < 0:\n        return \"ERR\"\n    \n    if not isinstance(tags, list) or not all(isinstance(tag, str) for tag in tags):\n        return \"ERR\"\n    \n    cleaned_tags = []\n    for tag in tags:\n        cleaned = _clean_token(tag)\n        if cleaned:\n            cleaned_tags.append(cleaned)\n    \n    if not cleaned_tags:\n        return f\"{number:03d}\"\n    \n    # Sort by length, stable sort\n    cleaned_tags.sort(key=lambda x: len(x))\n    \n    tag_str = \", \".join(cleaned_tags)\n    return f\"{number:03d}: {tag_str}\"\n\n\ndef label_full(record):\n    return None",
+  "post_module_sha256": "c7d72f4fe8223729675d34d69b64f915527b1ccbd2b277b3b2fef0c2ba59dee6",
+  "pre_module": "\"\"\"Museum exhibit label assembly pipeline (development build).\"\"\"\n\n\ndef _clean_token(token):\n    text = token.strip()\n    while text and not text[0].isalnum():\n        text = text[1:]\n    while text and not text[-1].isalnum():\n        text = text[:-1]\n    return text.lower()\n\n\ndef label_title(record):\n    return None\n\n\ndef index_entry(record):\n    return None\n\n\ndef label_full(record):\n    return None",
+  "pre_module_sha256": "3254f373aec7241eba31271a69c5d148c42afee2f42d95bfcf8f0b20406810a6",
+  "raw_output": "```python module.py\ndef index_entry(record):\n    if not isinstance(record, dict):\n        return \"ERR\"\n    \n    if \"number\" not in record or \"tags\" not in record:\n        return \"ERR\"\n    \n    number = record[\"number\"]\n    tags = record[\"tags\"]\n    \n    if not isinstance(number, int) or number < 0:\n        return \"ERR\"\n    \n    if not isinstance(tags, list) or not all(isinstance(tag, str) for tag in tags):\n        return \"ERR\"\n    \n    cleaned_tags = []\n    for tag in tags:\n        cleaned = _clean_token(tag)\n        if cleaned:\n            cleaned_tags.append(cleaned)\n    \n    if not cleaned_tags:\n        return f\"{number:03d}\"\n    \n    # Sort by length, stable sort\n    cleaned_tags.sort(key=lambda x: len(x))\n    \n    tag_str = \", \".join(cleaned_tags)\n    return f\"{number:03d}: {tag_str}\"\n```",
+  "request_id": "req-1",
+  "round_index": 1,
+  "schema_version": 1,
+  "slot_accounting_complete": true,
+  "source_message_ids": [
+    "m-rule-sort"
+  ],
+  "submission_valid": true,
+  "target": {
+    "path": "module.py",
+    "symbol": "index_entry"
+  },
+  "task_handle": "gallery-index",
+  "technical_complete": true,
+  "turn_success": false,
+  "unfinished_check_ids": []
+}

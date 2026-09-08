@@ -1,0 +1,728 @@
+{
+  "all_checks_passed": false,
+  "arm": "C",
+  "call_index": 28,
+  "call_receipt": "calls/call-0028.json",
+  "canonical_history_after": [
+    {
+      "content": "Maintain the Python module across this conversation. Each request asks for one complete target function. Your response may contain brief prose before the code, then exactly one code fence whose opening line is ```python PATH. Inside the fence, submit exactly the requested synchronous function with its def at column zero and one positional argument. Do not submit other functions, a whole module, imports, tests, tool calls, or prose after the fence. Preserve the requested behavior and the standing user obligations that apply now.",
+      "role": "system"
+    },
+    {
+      "content": "Welcome to the lighting project. module.py holds a tiny validated helper plus three stubs we'll grow into a cue compaction and scheduling pipeline; times and durations are plain integers. Two standing rules for any function you write or edit in this project: 1) Whenever an argument doesn't match the documented valid shape, return exactly the string \"invalid\" \u2014 never null, and never raise. 2) Whenever you have to order items that compare equal on the ordering key, keep the order they first appeared in the input. These rules attach when a function is written or edited; I'll never silently expect you to rewrite earlier working functions when rules evolve.",
+      "role": "user"
+    },
+    {
+      "content": "One open choice, also standing: a compacted run may be represented either as a two-item list [level, count] or as an object {\"level\": <int>, \"count\": <int>}. Both are acceptable anywhere runs are produced \u2014 pick whichever you prefer; tests accept both.",
+      "role": "user"
+    },
+    {
+      "content": "Time to fill in compact_cue(payload) in module.py. It takes one argument: a list of light-level samples for one channel, where every sample must be a JSON integer (booleans are not integers here). Compact it into runs of equal consecutive values: return one run per maximal block of equal neighbors, each run recording that block's value and how many samples it contains, with runs in the order they occur. An empty list compacts to an empty list. Anything that isn't a valid sample list counts as invalid input \u2014 follow our standing rules for that, and for how runs may be represented. Submit just the new compact_cue definition.",
+      "role": "user"
+    },
+    {
+      "content": "Same two standing rules and the run-representation choice remain in effect \u2014 for the new scheduling function too.",
+      "role": "user"
+    },
+    {
+      "content": "Please implement schedule_cues(payload). payload is a list of cue objects; each cue must have an \"id\" (a string), an \"at\" (an integer >= 0, the requested start time) and a \"dur\" (an integer >= 1); ignore any extra keys, and booleans never count as integers. All cues share a single channel, so placed cues may not overlap. Place them greedily: consider cues in ascending requested start (resolving any ties the way our standing ordering rules require), and give each cue the earliest integer start that is at least its requested at and at least the end of the cue placed before it; its end is start + dur. Return the placements in placement order as objects {\"id\": ..., \"start\": ..., \"end\": ...}. An empty list schedules to an empty list; malformed payloads follow the standing invalid-input rules. Just the schedule_cues definition, please.",
+      "role": "user"
+    },
+    {
+      "content": "A new task-local standing rule, for the cue-scheduling task only: whenever a function you write or edit under cue-scheduling orders cues that share the same requested start time, order them longest duration first; if start and duration are both equal, keep input order. Where it applies, this overrides the global first-seen tie rule; the global rule stays in force everywhere else. It applies from the next scheduling function you write or edit. The invalid-string rule is unchanged.",
+      "role": "user"
+    },
+    {
+      "content": "Extend schedule_cues(payload) so it also accepts a dictionary form {\"cues\": <cue list exactly as before>, \"gap\": <integer >= 0>}. In that form, each cue placed after the first must start at least gap time units after the previously placed cue's end \u2014 i.e. it starts at its requested at if that is already at least end-of-previous plus gap, otherwise at the earliest integer start satisfying that. Plain list payloads must behave exactly as they do now (a gap of zero); ignore extra dictionary keys; a dictionary missing either key, or whose gap is not a non-negative integer (booleans are not integers), counts as invalid. Everything else \u2014 per-cue validation, the tie behavior required by the current standing rules, invalid-input handling \u2014 stays governed as before. Give me the full new schedule_cues definition.",
+      "role": "user"
+    },
+    {
+      "content": "Quick thought \u2014 should render_timeline signal bad payloads with an object like {\"error\": \"invalid\"} instead of the string? It might be friendlier for a future UI.",
+      "role": "assistant"
+    },
+    {
+      "content": "No \u2014 rejected. Bad payloads return exactly the string \"invalid\" everywhere, as the standing rule says; please don't introduce that error-object shape anywhere in the project. All other standing rules, including the cue-scheduling tie override, are unchanged.",
+      "role": "user"
+    },
+    {
+      "content": "Now implement render_timeline(payload), the integration step. A valid payload is an object {\"samples\": <a sample list as compact_cue accepts>, \"cues\": <a cue list as schedule_cues accepts>}; ignore extra keys. Return a two-element list [runs, plan]: runs is exactly what compact_cue returns for the samples, and plan is exactly what schedule_cues returns for the cues. If either component is invalid, the whole payload is invalid \u2014 per our standing rules (that means the plain string, not an error object). Just the render_timeline definition.",
+      "role": "user"
+    }
+  ],
+  "canonical_history_after_sha256": "dbd442056c56a553d1ce4788d1e5f49f8136708ffbbdecc55c453d0874a13c11",
+  "canonical_history_before": [
+    {
+      "content": "Maintain the Python module across this conversation. Each request asks for one complete target function. Your response may contain brief prose before the code, then exactly one code fence whose opening line is ```python PATH. Inside the fence, submit exactly the requested synchronous function with its def at column zero and one positional argument. Do not submit other functions, a whole module, imports, tests, tool calls, or prose after the fence. Preserve the requested behavior and the standing user obligations that apply now.",
+      "role": "system"
+    },
+    {
+      "content": "Welcome to the lighting project. module.py holds a tiny validated helper plus three stubs we'll grow into a cue compaction and scheduling pipeline; times and durations are plain integers. Two standing rules for any function you write or edit in this project: 1) Whenever an argument doesn't match the documented valid shape, return exactly the string \"invalid\" \u2014 never null, and never raise. 2) Whenever you have to order items that compare equal on the ordering key, keep the order they first appeared in the input. These rules attach when a function is written or edited; I'll never silently expect you to rewrite earlier working functions when rules evolve.",
+      "role": "user"
+    },
+    {
+      "content": "One open choice, also standing: a compacted run may be represented either as a two-item list [level, count] or as an object {\"level\": <int>, \"count\": <int>}. Both are acceptable anywhere runs are produced \u2014 pick whichever you prefer; tests accept both.",
+      "role": "user"
+    },
+    {
+      "content": "Time to fill in compact_cue(payload) in module.py. It takes one argument: a list of light-level samples for one channel, where every sample must be a JSON integer (booleans are not integers here). Compact it into runs of equal consecutive values: return one run per maximal block of equal neighbors, each run recording that block's value and how many samples it contains, with runs in the order they occur. An empty list compacts to an empty list. Anything that isn't a valid sample list counts as invalid input \u2014 follow our standing rules for that, and for how runs may be represented. Submit just the new compact_cue definition.",
+      "role": "user"
+    },
+    {
+      "content": "Same two standing rules and the run-representation choice remain in effect \u2014 for the new scheduling function too.",
+      "role": "user"
+    },
+    {
+      "content": "Please implement schedule_cues(payload). payload is a list of cue objects; each cue must have an \"id\" (a string), an \"at\" (an integer >= 0, the requested start time) and a \"dur\" (an integer >= 1); ignore any extra keys, and booleans never count as integers. All cues share a single channel, so placed cues may not overlap. Place them greedily: consider cues in ascending requested start (resolving any ties the way our standing ordering rules require), and give each cue the earliest integer start that is at least its requested at and at least the end of the cue placed before it; its end is start + dur. Return the placements in placement order as objects {\"id\": ..., \"start\": ..., \"end\": ...}. An empty list schedules to an empty list; malformed payloads follow the standing invalid-input rules. Just the schedule_cues definition, please.",
+      "role": "user"
+    },
+    {
+      "content": "A new task-local standing rule, for the cue-scheduling task only: whenever a function you write or edit under cue-scheduling orders cues that share the same requested start time, order them longest duration first; if start and duration are both equal, keep input order. Where it applies, this overrides the global first-seen tie rule; the global rule stays in force everywhere else. It applies from the next scheduling function you write or edit. The invalid-string rule is unchanged.",
+      "role": "user"
+    },
+    {
+      "content": "Extend schedule_cues(payload) so it also accepts a dictionary form {\"cues\": <cue list exactly as before>, \"gap\": <integer >= 0>}. In that form, each cue placed after the first must start at least gap time units after the previously placed cue's end \u2014 i.e. it starts at its requested at if that is already at least end-of-previous plus gap, otherwise at the earliest integer start satisfying that. Plain list payloads must behave exactly as they do now (a gap of zero); ignore extra dictionary keys; a dictionary missing either key, or whose gap is not a non-negative integer (booleans are not integers), counts as invalid. Everything else \u2014 per-cue validation, the tie behavior required by the current standing rules, invalid-input handling \u2014 stays governed as before. Give me the full new schedule_cues definition.",
+      "role": "user"
+    }
+  ],
+  "canonical_history_natural": [
+    {
+      "content": "Maintain the Python module across this conversation. Each request asks for one complete target function. Your response may contain brief prose before the code, then exactly one code fence whose opening line is ```python PATH. Inside the fence, submit exactly the requested synchronous function with its def at column zero and one positional argument. Do not submit other functions, a whole module, imports, tests, tool calls, or prose after the fence. Preserve the requested behavior and the standing user obligations that apply now.",
+      "role": "system"
+    },
+    {
+      "content": "Welcome to the lighting project. module.py holds a tiny validated helper plus three stubs we'll grow into a cue compaction and scheduling pipeline; times and durations are plain integers. Two standing rules for any function you write or edit in this project: 1) Whenever an argument doesn't match the documented valid shape, return exactly the string \"invalid\" \u2014 never null, and never raise. 2) Whenever you have to order items that compare equal on the ordering key, keep the order they first appeared in the input. These rules attach when a function is written or edited; I'll never silently expect you to rewrite earlier working functions when rules evolve.",
+      "role": "user"
+    },
+    {
+      "content": "One open choice, also standing: a compacted run may be represented either as a two-item list [level, count] or as an object {\"level\": <int>, \"count\": <int>}. Both are acceptable anywhere runs are produced \u2014 pick whichever you prefer; tests accept both.",
+      "role": "user"
+    },
+    {
+      "content": "Time to fill in compact_cue(payload) in module.py. It takes one argument: a list of light-level samples for one channel, where every sample must be a JSON integer (booleans are not integers here). Compact it into runs of equal consecutive values: return one run per maximal block of equal neighbors, each run recording that block's value and how many samples it contains, with runs in the order they occur. An empty list compacts to an empty list. Anything that isn't a valid sample list counts as invalid input \u2014 follow our standing rules for that, and for how runs may be represented. Submit just the new compact_cue definition.",
+      "role": "user"
+    },
+    {
+      "content": "Same two standing rules and the run-representation choice remain in effect \u2014 for the new scheduling function too.",
+      "role": "user"
+    },
+    {
+      "content": "Please implement schedule_cues(payload). payload is a list of cue objects; each cue must have an \"id\" (a string), an \"at\" (an integer >= 0, the requested start time) and a \"dur\" (an integer >= 1); ignore any extra keys, and booleans never count as integers. All cues share a single channel, so placed cues may not overlap. Place them greedily: consider cues in ascending requested start (resolving any ties the way our standing ordering rules require), and give each cue the earliest integer start that is at least its requested at and at least the end of the cue placed before it; its end is start + dur. Return the placements in placement order as objects {\"id\": ..., \"start\": ..., \"end\": ...}. An empty list schedules to an empty list; malformed payloads follow the standing invalid-input rules. Just the schedule_cues definition, please.",
+      "role": "user"
+    },
+    {
+      "content": "A new task-local standing rule, for the cue-scheduling task only: whenever a function you write or edit under cue-scheduling orders cues that share the same requested start time, order them longest duration first; if start and duration are both equal, keep input order. Where it applies, this overrides the global first-seen tie rule; the global rule stays in force everywhere else. It applies from the next scheduling function you write or edit. The invalid-string rule is unchanged.",
+      "role": "user"
+    },
+    {
+      "content": "Extend schedule_cues(payload) so it also accepts a dictionary form {\"cues\": <cue list exactly as before>, \"gap\": <integer >= 0>}. In that form, each cue placed after the first must start at least gap time units after the previously placed cue's end \u2014 i.e. it starts at its requested at if that is already at least end-of-previous plus gap, otherwise at the earliest integer start satisfying that. Plain list payloads must behave exactly as they do now (a gap of zero); ignore extra dictionary keys; a dictionary missing either key, or whose gap is not a non-negative integer (booleans are not integers), counts as invalid. Everything else \u2014 per-cue validation, the tie behavior required by the current standing rules, invalid-input handling \u2014 stays governed as before. Give me the full new schedule_cues definition.",
+      "role": "user"
+    },
+    {
+      "content": "Quick thought \u2014 should render_timeline signal bad payloads with an object like {\"error\": \"invalid\"} instead of the string? It might be friendlier for a future UI.",
+      "role": "assistant"
+    },
+    {
+      "content": "No \u2014 rejected. Bad payloads return exactly the string \"invalid\" everywhere, as the standing rule says; please don't introduce that error-object shape anywhere in the project. All other standing rules, including the cue-scheduling tie override, are unchanged.",
+      "role": "user"
+    },
+    {
+      "content": "Now implement render_timeline(payload), the integration step. A valid payload is an object {\"samples\": <a sample list as compact_cue accepts>, \"cues\": <a cue list as schedule_cues accepts>}; ignore extra keys. Return a two-element list [runs, plan]: runs is exactly what compact_cue returns for the samples, and plan is exactly what schedule_cues returns for the cues. If either component is invalid, the whole payload is invalid \u2014 per our standing rules (that means the plain string, not an error object). Just the render_timeline definition.",
+      "role": "user"
+    }
+  ],
+  "check_status": "COMPLETE",
+  "checks": [
+    {
+      "actual": 4,
+      "check_id": "ic-0",
+      "elapsed_seconds": 0.026938360009808093,
+      "episode_id": "kimi-coding-dev-lighting-cues",
+      "error": null,
+      "expected_values": [
+        4
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "as_int"
+    },
+    {
+      "actual": null,
+      "check_id": "ic-1",
+      "elapsed_seconds": 0.012995522003620863,
+      "episode_id": "kimi-coding-dev-lighting-cues",
+      "error": null,
+      "expected_values": [
+        null
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "as_int"
+    },
+    {
+      "actual": null,
+      "check_id": "ic-2",
+      "elapsed_seconds": 0.01342587498947978,
+      "episode_id": "kimi-coding-dev-lighting-cues",
+      "error": null,
+      "expected_values": [
+        null
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "as_int"
+    },
+    {
+      "actual": null,
+      "check_id": "f0a",
+      "elapsed_seconds": 0.022147002979181707,
+      "episode_id": "kimi-coding-dev-lighting-cues",
+      "error": null,
+      "expected_values": [
+        [
+          [
+            5,
+            3
+          ]
+        ],
+        [
+          {
+            "count": 3,
+            "level": 5
+          }
+        ]
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "compact_cue"
+    },
+    {
+      "actual": null,
+      "check_id": "f0b",
+      "elapsed_seconds": 0.021986570995068178,
+      "episode_id": "kimi-coding-dev-lighting-cues",
+      "error": null,
+      "expected_values": [
+        [
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        [
+          {
+            "count": 1,
+            "level": 1
+          },
+          {
+            "count": 2,
+            "level": 2
+          },
+          {
+            "count": 1,
+            "level": 1
+          }
+        ],
+        [
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          {
+            "count": 1,
+            "level": 1
+          }
+        ],
+        [
+          [
+            1,
+            1
+          ],
+          {
+            "count": 2,
+            "level": 2
+          },
+          [
+            1,
+            1
+          ]
+        ],
+        [
+          [
+            1,
+            1
+          ],
+          {
+            "count": 2,
+            "level": 2
+          },
+          {
+            "count": 1,
+            "level": 1
+          }
+        ],
+        [
+          {
+            "count": 1,
+            "level": 1
+          },
+          [
+            2,
+            2
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        [
+          {
+            "count": 1,
+            "level": 1
+          },
+          [
+            2,
+            2
+          ],
+          {
+            "count": 1,
+            "level": 1
+          }
+        ],
+        [
+          {
+            "count": 1,
+            "level": 1
+          },
+          {
+            "count": 2,
+            "level": 2
+          },
+          [
+            1,
+            1
+          ]
+        ]
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "compact_cue"
+    },
+    {
+      "actual": null,
+      "check_id": "f0c",
+      "elapsed_seconds": 0.021247575990855694,
+      "episode_id": "kimi-coding-dev-lighting-cues",
+      "error": null,
+      "expected_values": [
+        []
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "compact_cue"
+    },
+    {
+      "actual": null,
+      "check_id": "f1a",
+      "elapsed_seconds": 0.022027387021807954,
+      "episode_id": "kimi-coding-dev-lighting-cues",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "end": 2,
+            "id": "a",
+            "start": 0
+          },
+          {
+            "end": 4,
+            "id": "b",
+            "start": 2
+          }
+        ]
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "schedule_cues"
+    },
+    {
+      "actual": null,
+      "check_id": "f1b",
+      "elapsed_seconds": 0.012885891017504036,
+      "episode_id": "kimi-coding-dev-lighting-cues",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "end": 6,
+            "id": "x",
+            "start": 5
+          }
+        ]
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "schedule_cues"
+    },
+    {
+      "actual": null,
+      "check_id": "f1c",
+      "elapsed_seconds": 0.022061402996769175,
+      "episode_id": "kimi-coding-dev-lighting-cues",
+      "error": null,
+      "expected_values": [
+        []
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "schedule_cues"
+    },
+    {
+      "actual": null,
+      "check_id": "f2a",
+      "elapsed_seconds": 0.021472904976690188,
+      "episode_id": "kimi-coding-dev-lighting-cues",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "end": 2,
+            "id": "a",
+            "start": 0
+          },
+          {
+            "end": 5,
+            "id": "b",
+            "start": 3
+          }
+        ]
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "schedule_cues"
+    },
+    {
+      "actual": null,
+      "check_id": "f2b",
+      "elapsed_seconds": 0.02124765599728562,
+      "episode_id": "kimi-coding-dev-lighting-cues",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "end": 11,
+            "id": "a",
+            "start": 10
+          }
+        ]
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "schedule_cues"
+    },
+    {
+      "actual": null,
+      "check_id": "f2c",
+      "elapsed_seconds": 0.012765266001224518,
+      "episode_id": "kimi-coding-dev-lighting-cues",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "end": 1,
+            "id": "a",
+            "start": 0
+          },
+          {
+            "end": 6,
+            "id": "b",
+            "start": 5
+          }
+        ]
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "schedule_cues"
+    },
+    {
+      "actual": null,
+      "check_id": "f3a",
+      "elapsed_seconds": 0.012765057996148244,
+      "episode_id": "kimi-coding-dev-lighting-cues",
+      "error": null,
+      "expected_values": [
+        [
+          [
+            [
+              7,
+              2
+            ]
+          ],
+          [
+            {
+              "end": 1,
+              "id": "a",
+              "start": 0
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "count": 2,
+              "level": 7
+            }
+          ],
+          [
+            {
+              "end": 1,
+              "id": "a",
+              "start": 0
+            }
+          ]
+        ]
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "render_timeline"
+    },
+    {
+      "actual": null,
+      "check_id": "f3b",
+      "elapsed_seconds": 0.013231538992840797,
+      "episode_id": "kimi-coding-dev-lighting-cues",
+      "error": null,
+      "expected_values": [
+        [
+          [],
+          []
+        ]
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "render_timeline"
+    },
+    {
+      "actual": null,
+      "check_id": "f3c",
+      "elapsed_seconds": 0.022689019999234006,
+      "episode_id": "kimi-coding-dev-lighting-cues",
+      "error": null,
+      "expected_values": [
+        [
+          [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ]
+          ],
+          [
+            {
+              "end": 2,
+              "id": "a",
+              "start": 0
+            },
+            {
+              "end": 3,
+              "id": "b",
+              "start": 2
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "count": 1,
+              "level": 1
+            },
+            {
+              "count": 1,
+              "level": 2
+            }
+          ],
+          [
+            {
+              "end": 2,
+              "id": "a",
+              "start": 0
+            },
+            {
+              "end": 3,
+              "id": "b",
+              "start": 2
+            }
+          ]
+        ],
+        [
+          [
+            [
+              1,
+              1
+            ],
+            {
+              "count": 1,
+              "level": 2
+            }
+          ],
+          [
+            {
+              "end": 2,
+              "id": "a",
+              "start": 0
+            },
+            {
+              "end": 3,
+              "id": "b",
+              "start": 2
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "count": 1,
+              "level": 1
+            },
+            [
+              2,
+              1
+            ]
+          ],
+          [
+            {
+              "end": 2,
+              "id": "a",
+              "start": 0
+            },
+            {
+              "end": 3,
+              "id": "b",
+              "start": 2
+            }
+          ]
+        ]
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "render_timeline"
+    },
+    {
+      "actual": null,
+      "check_id": "o3a",
+      "elapsed_seconds": 0.012171729002147913,
+      "episode_id": "kimi-coding-dev-lighting-cues",
+      "error": null,
+      "expected_values": [
+        "invalid"
+      ],
+      "passed": false,
+      "rule_ids": [
+        "invalid-sentinel"
+      ],
+      "symbol": "render_timeline"
+    },
+    {
+      "actual": null,
+      "check_id": "o3b",
+      "elapsed_seconds": 0.012595905020134524,
+      "episode_id": "kimi-coding-dev-lighting-cues",
+      "error": null,
+      "expected_values": [
+        "invalid"
+      ],
+      "passed": false,
+      "rule_ids": [
+        "invalid-sentinel"
+      ],
+      "symbol": "render_timeline"
+    },
+    {
+      "actual": null,
+      "check_id": "o3c",
+      "elapsed_seconds": 0.013019154983339831,
+      "episode_id": "kimi-coding-dev-lighting-cues",
+      "error": null,
+      "expected_values": [
+        [
+          [],
+          [
+            {
+              "end": 3,
+              "id": "L",
+              "start": 1
+            },
+            {
+              "end": 4,
+              "id": "s",
+              "start": 3
+            }
+          ]
+        ]
+      ],
+      "passed": false,
+      "rule_ids": [
+        "tie-sched-dur"
+      ],
+      "symbol": "render_timeline"
+    },
+    {
+      "actual": null,
+      "check_id": "o3d",
+      "elapsed_seconds": 0.013155379012459889,
+      "episode_id": "kimi-coding-dev-lighting-cues",
+      "error": null,
+      "expected_values": [
+        "invalid"
+      ],
+      "passed": false,
+      "rule_ids": [
+        "invalid-sentinel"
+      ],
+      "symbol": "render_timeline"
+    }
+  ],
+  "decoder_error": null,
+  "episode_id": "kimi-coding-dev-lighting-cues",
+  "extracted_fence": null,
+  "extracted_prefix": null,
+  "issued_messages_sha256": "4d07fd6a8694d2debec575109178e989ed19479d39b1486209fa992e0a026544",
+  "parse_error": "PatchError: response fence must be ```python <path> with code",
+  "patch_applied": false,
+  "post_module": "def as_int(value):\n    if isinstance(value, bool):\n        return None\n    if isinstance(value, int):\n        return value\n    return None\n\n\ndef compact_cue(payload):\n    return None\n\n\ndef schedule_cues(payload):\n    return None\n\n\ndef render_timeline(payload):\n    return None\n",
+  "post_module_sha256": "310ee4afb33ce527e753d6674150c72bff12bcb9fcea2978af419601457a13d8",
+  "pre_module": "def as_int(value):\n    if isinstance(value, bool):\n        return None\n    if isinstance(value, int):\n        return value\n    return None\n\n\ndef compact_cue(payload):\n    return None\n\n\ndef schedule_cues(payload):\n    return None\n\n\ndef render_timeline(payload):\n    return None\n",
+  "pre_module_sha256": "310ee4afb33ce527e753d6674150c72bff12bcb9fcea2978af419601457a13d8",
+  "raw_output": "The standing obligations for this request include:\n1. Return exactly the string \"invalid\" for any input that doesn't match the documented valid shape.\n2. Maintain the order of items that compare equal on the ordering key, as per the global rule.\n3. For cue-scheduling, when cues share the same requested start time, order them longest duration first; if start and duration are both equal, keep input order.\n4. The function must handle both list and dictionary forms for the \"cues\" payload, with the dictionary form including an optional \"gap\" parameter.\n\n```python\ndef render_timeline(payload):\n    if not isinstance(payload, dict):\n        return \"invalid\"\n    \n    samples = payload.get(\"samples\")\n    cues = payload.get(\"cues\")\n    \n    if samples is None or cues is None:\n        return \"invalid\"\n    \n    # Validate samples\n    if not isinstance(samples, list):\n        return \"invalid\"\n    \n    for sample in samples:\n        if not isinstance(sample, int) and not (isinstance(sample, bool) and sample in (True, False)):\n            return \"invalid\"\n    \n    # Validate cues\n    if not isinstance(cues, list) and not (isinstance(cues, dict) and \"cues\" in cues):\n        return \"invalid\"\n    \n    # Handle dictionary form for cues\n    if isinstance(cues, dict):\n        if \"cues\" not in cues or \"gap\" not in cues:\n            return \"invalid\"\n        \n        gap = cues[\"gap\"]\n        if not isinstance(gap, int) or gap < 0:\n            return \"invalid\"\n        \n        cues_list = cues[\"cues\"]\n        gap_value = gap\n    else:\n        cues_list = cues\n        gap_value = 0\n    \n    # Validate each cue\n    for cue in cues_list:\n        if not isinstance(cue, dict):\n            return \"invalid\"\n        \n        cue_id = cue.get(\"id\")\n        at = cue.get(\"at\")\n        dur = cue.get(\"dur\")\n        \n        if not isinstance(cue_id, str) or not isinstance(at, int) or not isinstance(dur, int):\n            return \"invalid\"\n        \n        if at < 0 or dur < 1:\n            return \"invalid\"\n    \n    # Compact the samples\n    runs = compact_cue(samples)\n    if runs == \"invalid\":\n        return \"invalid\"\n    \n    # Schedule the cues\n    scheduled_cues = schedule_cues(cues)\n    if scheduled_cues == \"invalid\":\n        return \"invalid\"\n    \n    return [runs, scheduled_cues]\n```",
+  "request_id": "m-req-3",
+  "round_index": 3,
+  "schema_version": 1,
+  "slot_accounting_complete": true,
+  "source_message_ids": [
+    "m-src-3a",
+    "m-src-3b"
+  ],
+  "submission_valid": false,
+  "target": {
+    "path": "module.py",
+    "symbol": "render_timeline"
+  },
+  "task_handle": "cue-scheduling",
+  "technical_complete": true,
+  "turn_success": false,
+  "unfinished_check_ids": []
+}

@@ -1,0 +1,533 @@
+{
+  "all_checks_passed": false,
+  "arm": "C",
+  "call_index": 49,
+  "call_receipt": "calls/call-0049.json",
+  "canonical_history_after": [
+    {
+      "content": "Maintain the Python module across this conversation. Each request asks for one complete target function. Your response may contain brief prose before the code, then exactly one code fence whose opening line is ```python PATH. Inside the fence, submit exactly the requested synchronous function with its def at column zero and one positional argument. Do not submit other functions, a whole module, imports, tests, tool calls, or prose after the fence. Preserve the requested behavior and the standing user obligations that apply now.",
+      "role": "system"
+    },
+    {
+      "content": "One standing note before we touch this puzzle-tournament module: whenever you write a new function here or revise an existing one, make a malformed argument come back as JSON null (None) \u2014 never raise and never guess a value. That obligation binds only the function you are writing or editing at the time; anything already finished stays exactly as it is, and a later convention change will never silently oblige you to revisit completed code.",
+      "role": "user"
+    },
+    {
+      "content": "Let's start the scoring side of the tool. Implement solve_total(entry). The argument must be a dict describing one competitor's event: \"places\" is a list of finishing places (positive integers, 1 = first place), and \"bonus\" is an optional non-negative integer of extra points that defaults to 0 when absent. Extra keys are fine \u2014 ignore them. Booleans do not count as integers anywhere here. The result is the sum of base_points(p) for every listed place, plus the bonus. Anything that does not match this shape is malformed and should follow our standing convention.",
+      "role": "user"
+    },
+    {
+      "content": "Switching over to the leaderboard task for the next piece. The standing null-for-malformed convention still holds for whatever you write now; the finished scoring work stays untouched.",
+      "role": "user"
+    },
+    {
+      "content": "Now the leaderboard job: implement rank_board(board). The argument must be a list of rows, where each row is a dict with \"name\" (a non-empty string) and \"total\" (an integer, which may be negative; booleans do not count). Names must be unique \u2014 a repeated name makes the whole input malformed, as does anything else that fails this shape. Return a new list of {\"name\": ..., \"total\": ...} dicts ordered by total from highest to lowest. Tie-handling rule for this task: rows with equal totals are ordered alphabetically by name, A to Z, meaning case-sensitive Python string lexicographic ordering by Unicode code points \u2014 no locale sorting and no case-folding. An empty list is valid input and returns an empty list.",
+      "role": "user"
+    },
+    {
+      "content": "Hopping back to the scoring task for a moment \u2014 everything we already agreed about conventions still stands.",
+      "role": "user"
+    },
+    {
+      "content": "Unrelated idea for whenever we build the results display: we could give it a \"champion\" field naming whoever sits in first place. Just a thought \u2014 no need to act on it unless you decide you want it later.",
+      "role": "assistant"
+    },
+    {
+      "content": "Extend solve_total. An entry may now also carry \"drop\", a non-negative integer meaning: discard that many of the competitor's lowest base-point scores before adding up (the bonus is still added in full afterwards). Dropping more places than exist simply drops them all. Entries without \"drop\" must behave exactly as before. As a one-off for this function only, also accept the legacy spelling \"discard\" with the identical meaning; if an entry contains both \"drop\" and \"discard\", treat it as malformed. That alias is a one-time exception here \u2014 do not turn it into a general convention for anything else we write.",
+      "role": "user"
+    },
+    {
+      "content": "Leaderboard again. The standing null-for-malformed convention still applies to the function you edit now.",
+      "role": "user"
+    },
+    {
+      "content": "Revise rank_board. Keep everything about validation, the returned row shape, totals running from highest to lowest, and the empty-list case, but change the tie handling: rows with equal totals must now stay in the order they originally appeared in the input. That replaces the old alphabetical tie-break for this function \u2014 from this edit onward, stable input order is the leaderboard tie rule.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef rank_board(board):\n    \"\"\"Return a leaderboard sorted by total from highest to lowest, with ties broken by original input order.\"\"\"\n    if not isinstance(board, list):\n        return None\n    \n    # Validate each row in the board\n    for row in board:\n        if not isinstance(row, dict):\n            return None\n        if \"name\" not in row or \"total\" not in row:\n            return None\n        if not isinstance(row[\"name\"], str) or len(row[\"name\"]) == 0:\n            return None\n        if not isinstance(row[\"total\"], int) or isinstance(row[\"total\"], bool):\n            return None\n    \n    # Check for duplicate names\n    names = [row[\"name\"] for row in board]\n    if len(names) != len(set(names)):\n        return None\n    \n    # Sort by total descending, then by original order\n    return sorted(board, key=lambda x: (-x[\"total\"], names.index(x[\"name\"])))\n```",
+      "role": "assistant"
+    },
+    {
+      "content": "One convention change starting with this edit: when you write or edit a function from now on, malformed input should come back as the string \"invalid\" instead of null. This is not retroactive \u2014 solve_total and rank_board are finished and keep returning null for bad input, so don't go back and change them for this.",
+      "role": "user"
+    },
+    {
+      "content": "Write format_summary(data) for the leaderboard display. data is a board in exactly the rank_board input shape; use rank_board to validate and order it, and if rank_board rejects it then it counts as malformed here too. Return a dict with exactly two keys: \"lines\", a list of strings in ranked order numbered from 1 in the format \"1. Ada - 9\" (position, dot, space, name, space, hyphen, space, total), and \"count\", the number of rows. An empty board yields \"lines\": [] and \"count\": 0. Exactly those two keys \u2014 nothing extra.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef format_summary(data):\n    \"\"\"Return a formatted leaderboard summary from validated data.\"\"\"\n    # Validate and order the data using rank_board\n    ranked_board = rank_board(data)\n    if ranked_board is None:\n        return \"invalid\"\n    \n    # Format the lines and count\n    lines = []\n    for i, row in enumerate(ranked_board, 1):\n        lines.append(f\"{i}. {row['name']} - {row['total']}\")\n    \n    return {\n        \"lines\": lines,\n        \"count\": len(ranked_board)\n    }\n```",
+      "role": "assistant"
+    }
+  ],
+  "canonical_history_after_sha256": "afe84b8e50888f83896c07b1102951ea4fb553339e2f17c7ca0b2b42efa9854d",
+  "canonical_history_before": [
+    {
+      "content": "Maintain the Python module across this conversation. Each request asks for one complete target function. Your response may contain brief prose before the code, then exactly one code fence whose opening line is ```python PATH. Inside the fence, submit exactly the requested synchronous function with its def at column zero and one positional argument. Do not submit other functions, a whole module, imports, tests, tool calls, or prose after the fence. Preserve the requested behavior and the standing user obligations that apply now.",
+      "role": "system"
+    },
+    {
+      "content": "One standing note before we touch this puzzle-tournament module: whenever you write a new function here or revise an existing one, make a malformed argument come back as JSON null (None) \u2014 never raise and never guess a value. That obligation binds only the function you are writing or editing at the time; anything already finished stays exactly as it is, and a later convention change will never silently oblige you to revisit completed code.",
+      "role": "user"
+    },
+    {
+      "content": "Let's start the scoring side of the tool. Implement solve_total(entry). The argument must be a dict describing one competitor's event: \"places\" is a list of finishing places (positive integers, 1 = first place), and \"bonus\" is an optional non-negative integer of extra points that defaults to 0 when absent. Extra keys are fine \u2014 ignore them. Booleans do not count as integers anywhere here. The result is the sum of base_points(p) for every listed place, plus the bonus. Anything that does not match this shape is malformed and should follow our standing convention.",
+      "role": "user"
+    },
+    {
+      "content": "Switching over to the leaderboard task for the next piece. The standing null-for-malformed convention still holds for whatever you write now; the finished scoring work stays untouched.",
+      "role": "user"
+    },
+    {
+      "content": "Now the leaderboard job: implement rank_board(board). The argument must be a list of rows, where each row is a dict with \"name\" (a non-empty string) and \"total\" (an integer, which may be negative; booleans do not count). Names must be unique \u2014 a repeated name makes the whole input malformed, as does anything else that fails this shape. Return a new list of {\"name\": ..., \"total\": ...} dicts ordered by total from highest to lowest. Tie-handling rule for this task: rows with equal totals are ordered alphabetically by name, A to Z, meaning case-sensitive Python string lexicographic ordering by Unicode code points \u2014 no locale sorting and no case-folding. An empty list is valid input and returns an empty list.",
+      "role": "user"
+    },
+    {
+      "content": "Hopping back to the scoring task for a moment \u2014 everything we already agreed about conventions still stands.",
+      "role": "user"
+    },
+    {
+      "content": "Unrelated idea for whenever we build the results display: we could give it a \"champion\" field naming whoever sits in first place. Just a thought \u2014 no need to act on it unless you decide you want it later.",
+      "role": "assistant"
+    },
+    {
+      "content": "Extend solve_total. An entry may now also carry \"drop\", a non-negative integer meaning: discard that many of the competitor's lowest base-point scores before adding up (the bonus is still added in full afterwards). Dropping more places than exist simply drops them all. Entries without \"drop\" must behave exactly as before. As a one-off for this function only, also accept the legacy spelling \"discard\" with the identical meaning; if an entry contains both \"drop\" and \"discard\", treat it as malformed. That alias is a one-time exception here \u2014 do not turn it into a general convention for anything else we write.",
+      "role": "user"
+    },
+    {
+      "content": "Leaderboard again. The standing null-for-malformed convention still applies to the function you edit now.",
+      "role": "user"
+    },
+    {
+      "content": "Revise rank_board. Keep everything about validation, the returned row shape, totals running from highest to lowest, and the empty-list case, but change the tie handling: rows with equal totals must now stay in the order they originally appeared in the input. That replaces the old alphabetical tie-break for this function \u2014 from this edit onward, stable input order is the leaderboard tie rule.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef rank_board(board):\n    \"\"\"Return a leaderboard sorted by total from highest to lowest, with ties broken by original input order.\"\"\"\n    if not isinstance(board, list):\n        return None\n    \n    # Validate each row in the board\n    for row in board:\n        if not isinstance(row, dict):\n            return None\n        if \"name\" not in row or \"total\" not in row:\n            return None\n        if not isinstance(row[\"name\"], str) or len(row[\"name\"]) == 0:\n            return None\n        if not isinstance(row[\"total\"], int) or isinstance(row[\"total\"], bool):\n            return None\n    \n    # Check for duplicate names\n    names = [row[\"name\"] for row in board]\n    if len(names) != len(set(names)):\n        return None\n    \n    # Sort by total descending, then by original order\n    return sorted(board, key=lambda x: (-x[\"total\"], names.index(x[\"name\"])))\n```",
+      "role": "assistant"
+    }
+  ],
+  "canonical_history_natural": [
+    {
+      "content": "Maintain the Python module across this conversation. Each request asks for one complete target function. Your response may contain brief prose before the code, then exactly one code fence whose opening line is ```python PATH. Inside the fence, submit exactly the requested synchronous function with its def at column zero and one positional argument. Do not submit other functions, a whole module, imports, tests, tool calls, or prose after the fence. Preserve the requested behavior and the standing user obligations that apply now.",
+      "role": "system"
+    },
+    {
+      "content": "One standing note before we touch this puzzle-tournament module: whenever you write a new function here or revise an existing one, make a malformed argument come back as JSON null (None) \u2014 never raise and never guess a value. That obligation binds only the function you are writing or editing at the time; anything already finished stays exactly as it is, and a later convention change will never silently oblige you to revisit completed code.",
+      "role": "user"
+    },
+    {
+      "content": "Let's start the scoring side of the tool. Implement solve_total(entry). The argument must be a dict describing one competitor's event: \"places\" is a list of finishing places (positive integers, 1 = first place), and \"bonus\" is an optional non-negative integer of extra points that defaults to 0 when absent. Extra keys are fine \u2014 ignore them. Booleans do not count as integers anywhere here. The result is the sum of base_points(p) for every listed place, plus the bonus. Anything that does not match this shape is malformed and should follow our standing convention.",
+      "role": "user"
+    },
+    {
+      "content": "Switching over to the leaderboard task for the next piece. The standing null-for-malformed convention still holds for whatever you write now; the finished scoring work stays untouched.",
+      "role": "user"
+    },
+    {
+      "content": "Now the leaderboard job: implement rank_board(board). The argument must be a list of rows, where each row is a dict with \"name\" (a non-empty string) and \"total\" (an integer, which may be negative; booleans do not count). Names must be unique \u2014 a repeated name makes the whole input malformed, as does anything else that fails this shape. Return a new list of {\"name\": ..., \"total\": ...} dicts ordered by total from highest to lowest. Tie-handling rule for this task: rows with equal totals are ordered alphabetically by name, A to Z, meaning case-sensitive Python string lexicographic ordering by Unicode code points \u2014 no locale sorting and no case-folding. An empty list is valid input and returns an empty list.",
+      "role": "user"
+    },
+    {
+      "content": "Hopping back to the scoring task for a moment \u2014 everything we already agreed about conventions still stands.",
+      "role": "user"
+    },
+    {
+      "content": "Unrelated idea for whenever we build the results display: we could give it a \"champion\" field naming whoever sits in first place. Just a thought \u2014 no need to act on it unless you decide you want it later.",
+      "role": "assistant"
+    },
+    {
+      "content": "Extend solve_total. An entry may now also carry \"drop\", a non-negative integer meaning: discard that many of the competitor's lowest base-point scores before adding up (the bonus is still added in full afterwards). Dropping more places than exist simply drops them all. Entries without \"drop\" must behave exactly as before. As a one-off for this function only, also accept the legacy spelling \"discard\" with the identical meaning; if an entry contains both \"drop\" and \"discard\", treat it as malformed. That alias is a one-time exception here \u2014 do not turn it into a general convention for anything else we write.",
+      "role": "user"
+    },
+    {
+      "content": "Leaderboard again. The standing null-for-malformed convention still applies to the function you edit now.",
+      "role": "user"
+    },
+    {
+      "content": "Revise rank_board. Keep everything about validation, the returned row shape, totals running from highest to lowest, and the empty-list case, but change the tie handling: rows with equal totals must now stay in the order they originally appeared in the input. That replaces the old alphabetical tie-break for this function \u2014 from this edit onward, stable input order is the leaderboard tie rule.",
+      "role": "user"
+    },
+    {
+      "content": "```python module.py\ndef rank_board(board):\n    \"\"\"Return a leaderboard sorted by total from highest to lowest, with ties broken by original input order.\"\"\"\n    if not isinstance(board, list):\n        return None\n    \n    # Validate each row in the board\n    for row in board:\n        if not isinstance(row, dict):\n            return None\n        if \"name\" not in row or \"total\" not in row:\n            return None\n        if not isinstance(row[\"name\"], str) or len(row[\"name\"]) == 0:\n            return None\n        if not isinstance(row[\"total\"], int) or isinstance(row[\"total\"], bool):\n            return None\n    \n    # Check for duplicate names\n    names = [row[\"name\"] for row in board]\n    if len(names) != len(set(names)):\n        return None\n    \n    # Sort by total descending, then by original order\n    return sorted(board, key=lambda x: (-x[\"total\"], names.index(x[\"name\"])))\n```",
+      "role": "assistant"
+    },
+    {
+      "content": "One convention change starting with this edit: when you write or edit a function from now on, malformed input should come back as the string \"invalid\" instead of null. This is not retroactive \u2014 solve_total and rank_board are finished and keep returning null for bad input, so don't go back and change them for this.",
+      "role": "user"
+    },
+    {
+      "content": "Write format_summary(data) for the leaderboard display. data is a board in exactly the rank_board input shape; use rank_board to validate and order it, and if rank_board rejects it then it counts as malformed here too. Return a dict with exactly two keys: \"lines\", a list of strings in ranked order numbered from 1 in the format \"1. Ada - 9\" (position, dot, space, name, space, hyphen, space, total), and \"count\", the number of rows. An empty board yields \"lines\": [] and \"count\": 0. Exactly those two keys \u2014 nothing extra.",
+      "role": "user"
+    }
+  ],
+  "check_status": "COMPLETE",
+  "checks": [
+    {
+      "actual": 10,
+      "check_id": "chk-init-1",
+      "elapsed_seconds": 0.022444124013418332,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        10
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "base_points"
+    },
+    {
+      "actual": 1,
+      "check_id": "chk-init-2",
+      "elapsed_seconds": 0.02335340599529445,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        1
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "base_points"
+    },
+    {
+      "actual": 0,
+      "check_id": "chk-init-3",
+      "elapsed_seconds": 0.013893221010221168,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        0
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "base_points"
+    },
+    {
+      "actual": null,
+      "check_id": "chk-r0-f1",
+      "elapsed_seconds": 0.012974962999578565,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        17
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "solve_total"
+    },
+    {
+      "actual": null,
+      "check_id": "chk-r0-f2",
+      "elapsed_seconds": 0.013741028000367805,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        4
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "solve_total"
+    },
+    {
+      "actual": null,
+      "check_id": "chk-r0-f3",
+      "elapsed_seconds": 0.01379229300073348,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        7
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "solve_total"
+    },
+    {
+      "actual": [
+        {
+          "name": "Ada",
+          "total": 9
+        },
+        {
+          "name": "Bo",
+          "total": 5
+        }
+      ],
+      "check_id": "chk-r1-f1",
+      "elapsed_seconds": 0.012749649002216756,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "name": "Ada",
+            "total": 9
+          },
+          {
+            "name": "Bo",
+            "total": 5
+          }
+        ]
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "rank_board"
+    },
+    {
+      "actual": [],
+      "check_id": "chk-r1-f2",
+      "elapsed_seconds": 0.012858514004619792,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        []
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "rank_board"
+    },
+    {
+      "actual": null,
+      "check_id": "chk-r2-f1",
+      "elapsed_seconds": 0.012572256993735209,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        17
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "solve_total"
+    },
+    {
+      "actual": null,
+      "check_id": "chk-r2-f2",
+      "elapsed_seconds": 0.012903394002933055,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        8
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "solve_total"
+    },
+    {
+      "actual": null,
+      "check_id": "chk-r2-f3",
+      "elapsed_seconds": 0.013014033989747986,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        0
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "solve_total"
+    },
+    {
+      "actual": null,
+      "check_id": "chk-r2-f4",
+      "elapsed_seconds": 0.013795492995996028,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        12
+      ],
+      "passed": false,
+      "rule_ids": [],
+      "symbol": "solve_total"
+    },
+    {
+      "actual": [
+        {
+          "name": "Di",
+          "total": 4
+        },
+        {
+          "name": "Ed",
+          "total": 2
+        },
+        {
+          "name": "Cy",
+          "total": 1
+        }
+      ],
+      "check_id": "chk-r3-f1",
+      "elapsed_seconds": 0.013533827994251624,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "name": "Di",
+            "total": 4
+          },
+          {
+            "name": "Ed",
+            "total": 2
+          },
+          {
+            "name": "Cy",
+            "total": 1
+          }
+        ]
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "rank_board"
+    },
+    {
+      "actual": [
+        {
+          "name": "Mo",
+          "total": -2
+        }
+      ],
+      "check_id": "chk-r3-f2",
+      "elapsed_seconds": 0.01278245000867173,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        [
+          {
+            "name": "Mo",
+            "total": -2
+          }
+        ]
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "rank_board"
+    },
+    {
+      "actual": {
+        "count": 2,
+        "lines": [
+          "1. Ada - 9",
+          "2. Bo - 5"
+        ]
+      },
+      "check_id": "chk-r4-f1",
+      "elapsed_seconds": 0.012922050984343514,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        {
+          "count": 2,
+          "lines": [
+            "1. Ada - 9",
+            "2. Bo - 5"
+          ]
+        }
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "format_summary"
+    },
+    {
+      "actual": {
+        "count": 0,
+        "lines": []
+      },
+      "check_id": "chk-r4-f2",
+      "elapsed_seconds": 0.022050314990337938,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        {
+          "count": 0,
+          "lines": []
+        }
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "format_summary"
+    },
+    {
+      "actual": "invalid",
+      "check_id": "chk-r4-o1",
+      "elapsed_seconds": 0.023535757994977757,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        "invalid"
+      ],
+      "passed": true,
+      "rule_ids": [
+        "g-invalid-str"
+      ],
+      "symbol": "format_summary"
+    },
+    {
+      "actual": "invalid",
+      "check_id": "chk-r4-o2",
+      "elapsed_seconds": 0.013140643015503883,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        "invalid"
+      ],
+      "passed": true,
+      "rule_ids": [
+        "g-invalid-str"
+      ],
+      "symbol": "format_summary"
+    },
+    {
+      "actual": {
+        "count": 2,
+        "lines": [
+          "1. Zed - 7",
+          "2. Amy - 7"
+        ]
+      },
+      "check_id": "chk-r4-o3",
+      "elapsed_seconds": 0.02198213801602833,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "error": null,
+      "expected_values": [
+        {
+          "count": 2,
+          "lines": [
+            "1. Zed - 7",
+            "2. Amy - 7"
+          ]
+        }
+      ],
+      "passed": true,
+      "rule_ids": [
+        "t-tie-stable"
+      ],
+      "symbol": "format_summary"
+    }
+  ],
+  "decoder_error": null,
+  "episode_id": "kimi-coding-dev-puzzle-scores",
+  "extracted_fence": "```python module.py\ndef format_summary(data):\n    \"\"\"Return a formatted leaderboard summary from validated data.\"\"\"\n    # Validate and order the data using rank_board\n    ranked_board = rank_board(data)\n    if ranked_board is None:\n        return \"invalid\"\n    \n    # Format the lines and count\n    lines = []\n    for i, row in enumerate(ranked_board, 1):\n        lines.append(f\"{i}. {row['name']} - {row['total']}\")\n    \n    return {\n        \"lines\": lines,\n        \"count\": len(ranked_board)\n    }\n```",
+  "extracted_prefix": "The standing obligations for this request are:\n- When writing or editing a function, malformed input should return the string \"invalid\" instead of null (this is not retroactive)\n- The function must validate and order data using rank_board\n- The output must be a dict with exactly two keys: \"lines\" and \"count\"\n- \"lines\" must be a list of strings in ranked order with the format \"1. Ada - 9\"\n- \"count\" must be the number of rows\n- Empty boards should return \"lines\": [] and \"count\": 0\n\n",
+  "issued_messages_sha256": "794bf37afd87a126afbadd5626e044b20bdd3e2e5230b329b0222ea3d2c36ab3",
+  "parse_error": null,
+  "patch_applied": true,
+  "post_module": "\"\"\"Puzzle tournament score aggregation and display pipeline.\"\"\"\n\n\ndef base_points(place):\n    \"\"\"Base points for a finishing place (1 = winner).\n\n    Non-integer or non-positive places yield 0.\n    \"\"\"\n    table = {1: 10, 2: 7, 3: 5, 4: 3}\n    if not isinstance(place, int) or isinstance(place, bool):\n        return 0\n    if place < 1:\n        return 0\n    return table.get(place, 1)\n\n\ndef solve_total(entry):\n    return None\n\n\ndef rank_board(board):\n    \"\"\"Return a leaderboard sorted by total from highest to lowest, with ties broken by original input order.\"\"\"\n    if not isinstance(board, list):\n        return None\n    \n    # Validate each row in the board\n    for row in board:\n        if not isinstance(row, dict):\n            return None\n        if \"name\" not in row or \"total\" not in row:\n            return None\n        if not isinstance(row[\"name\"], str) or len(row[\"name\"]) == 0:\n            return None\n        if not isinstance(row[\"total\"], int) or isinstance(row[\"total\"], bool):\n            return None\n    \n    # Check for duplicate names\n    names = [row[\"name\"] for row in board]\n    if len(names) != len(set(names)):\n        return None\n    \n    # Sort by total descending, then by original order\n    return sorted(board, key=lambda x: (-x[\"total\"], names.index(x[\"name\"])))\n\n\ndef format_summary(data):\n    \"\"\"Return a formatted leaderboard summary from validated data.\"\"\"\n    # Validate and order the data using rank_board\n    ranked_board = rank_board(data)\n    if ranked_board is None:\n        return \"invalid\"\n    \n    # Format the lines and count\n    lines = []\n    for i, row in enumerate(ranked_board, 1):\n        lines.append(f\"{i}. {row['name']} - {row['total']}\")\n    \n    return {\n        \"lines\": lines,\n        \"count\": len(ranked_board)\n    }",
+  "post_module_sha256": "c1391fe4aefbe4b2252eb47578fc7f53e039d95ba7778556c0f9371ffa56e7b8",
+  "pre_module": "\"\"\"Puzzle tournament score aggregation and display pipeline.\"\"\"\n\n\ndef base_points(place):\n    \"\"\"Base points for a finishing place (1 = winner).\n\n    Non-integer or non-positive places yield 0.\n    \"\"\"\n    table = {1: 10, 2: 7, 3: 5, 4: 3}\n    if not isinstance(place, int) or isinstance(place, bool):\n        return 0\n    if place < 1:\n        return 0\n    return table.get(place, 1)\n\n\ndef solve_total(entry):\n    return None\n\n\ndef rank_board(board):\n    \"\"\"Return a leaderboard sorted by total from highest to lowest, with ties broken by original input order.\"\"\"\n    if not isinstance(board, list):\n        return None\n    \n    # Validate each row in the board\n    for row in board:\n        if not isinstance(row, dict):\n            return None\n        if \"name\" not in row or \"total\" not in row:\n            return None\n        if not isinstance(row[\"name\"], str) or len(row[\"name\"]) == 0:\n            return None\n        if not isinstance(row[\"total\"], int) or isinstance(row[\"total\"], bool):\n            return None\n    \n    # Check for duplicate names\n    names = [row[\"name\"] for row in board]\n    if len(names) != len(set(names)):\n        return None\n    \n    # Sort by total descending, then by original order\n    return sorted(board, key=lambda x: (-x[\"total\"], names.index(x[\"name\"])))\n\n\ndef format_summary(data):\n    return None\n",
+  "pre_module_sha256": "0b213196f57397002413e2a719eb02e53d003606f1d046081af5879a3978a9cd",
+  "raw_output": "The standing obligations for this request are:\n- When writing or editing a function, malformed input should return the string \"invalid\" instead of null (this is not retroactive)\n- The function must validate and order data using rank_board\n- The output must be a dict with exactly two keys: \"lines\" and \"count\"\n- \"lines\" must be a list of strings in ranked order with the format \"1. Ada - 9\"\n- \"count\" must be the number of rows\n- Empty boards should return \"lines\": [] and \"count\": 0\n\n```python module.py\ndef format_summary(data):\n    \"\"\"Return a formatted leaderboard summary from validated data.\"\"\"\n    # Validate and order the data using rank_board\n    ranked_board = rank_board(data)\n    if ranked_board is None:\n        return \"invalid\"\n    \n    # Format the lines and count\n    lines = []\n    for i, row in enumerate(ranked_board, 1):\n        lines.append(f\"{i}. {row['name']} - {row['total']}\")\n    \n    return {\n        \"lines\": lines,\n        \"count\": len(ranked_board)\n    }\n```",
+  "request_id": "m-req-4",
+  "round_index": 4,
+  "schema_version": 1,
+  "slot_accounting_complete": true,
+  "source_message_ids": [
+    "m-invalid-v2"
+  ],
+  "submission_valid": true,
+  "target": {
+    "path": "module.py",
+    "symbol": "format_summary"
+  },
+  "task_handle": "leaderboard",
+  "technical_complete": true,
+  "turn_success": false,
+  "unfinished_check_ids": []
+}
