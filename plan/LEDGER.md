@@ -1895,3 +1895,28 @@ coding evidence remain unproved; goal active, no external blocker.
 Final research acceptance: Astra xhigh round 2, 96/100, zero open findings;
 report SHA256 2366f03e82823949c33242926eed54e18996c046595bd6260cd657dabf5cce5f.
 This commit archives research and the CPU-only next action above, not a launch.
+
+2026-09-08 — STATE: COMPETENCE PROTOCOL AND DATA CONTRACT DRAFTED; CPU BUILD ACTIVE.
+Previous goal turn was progress: terminal run archived 27dc06b8, independent
+research accepted and archived 0cfeff6e. Current tree rechecked clean before
+new work; no old job is being resumed. Parent drafted new prospective protocol
+and nested public/private authoring contract under results/coding-competence/.
+Sol xhigh builds ONLY scripts/coding_competence_dev.py and its targeted test
+module, reusing unchanged strict parsing/splicing and seccomp checks. Astra
+xhigh independently reviews the two documents; second Astra checks pinned
+Qwen/native tool compatibility and exact tokenization. Kimi author requests
+will be frozen only once the contract is settled; no worker inference yet.
+
+2026-09-08 — STATE: COMPETENCE AUTHORING CONTRACT ACCEPTED; KIMI LAUNCH NEXT.
+Astra preparation round 2 accepted 96, zero open findings. Public full-output
+neutrality is explicit; functional-mutant overlap in composite obligation
+checks is allowed and recorded, while obligation mutants preserve stable
+functionality. Sol received these changes during CPU implementation. Freeze
+exact two documents, review, four original author requests, authoring plan and
+receipt driver now. Next launch is absolute authoring-driver.py: four independent
+Kimi K3/Ollama original DEV projects, with raw requests/responses and timing/token
+receipts. This is user-authorized data generation, not Qwen worker inference.
+No prior task examples or model responses enter author requests. Fit-on none.
+The driver registers its PID before calling Ollama; resume its exact session
+until terminal, never restart from an observation timeout. Astra semantic data
+review and Sol executable preflight follow; no inference launch before acceptance.
