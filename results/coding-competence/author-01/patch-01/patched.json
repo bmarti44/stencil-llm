@@ -1,0 +1,1447 @@
+{
+  "schema_version": 1,
+  "split": "dev",
+  "author": {
+    "name": "kimi",
+    "model": "kimi-k3:cloud"
+  },
+  "lineage": {
+    "fit_on": "none",
+    "development_on": "new original coding competence DEV",
+    "evaluated_on": "none"
+  },
+  "public": {
+    "episode_id": "kdl-2026-labsp-01",
+    "project": "lab-sample-processing-utility",
+    "task_handles": [
+      "normalize-batch",
+      "aggregate-run",
+      "final-report"
+    ],
+    "initial_file": {
+      "path": "lab_pipeline.py",
+      "text": "# lab_pipeline.py: laboratory sample cleaning, normalization, aggregation and reporting.\n# Conventions: functions take one JSON-style argument and return JSON-compatible\n# values; invalid input yields exactly the string \"invalid\". Sample entries are\n# validated only here in clean_sample.\n\n\ndef clean_sample(entry):\n    if not isinstance(entry, dict):\n        return \"invalid\"\n    if \"id\" not in entry or \"conc\" not in entry or \"vol\" not in entry:\n        return \"invalid\"\n    ident = entry[\"id\"]\n    conc = entry[\"conc\"]\n    vol = entry[\"vol\"]\n    if not isinstance(ident, str) or len(ident) == 0:\n        return \"invalid\"\n    if isinstance(conc, bool) or not isinstance(conc, (int, float)) or not conc > 0:\n        return \"invalid\"\n    if isinstance(vol, bool) or not isinstance(vol, (int, float)) or not vol > 0:\n        return \"invalid\"\n    flag = entry.get(\"flag\", False)\n    if not isinstance(flag, bool):\n        return \"invalid\"\n    group = entry.get(\"group\", \"unassigned\")\n    if not isinstance(group, str) or len(group) == 0:\n        return \"invalid\"\n    return {\"id\": ident, \"conc\": float(conc), \"vol\": float(vol), \"flag\": flag, \"group\": group}\n\n\ndef normalize_batch(payload):\n    return None\n\n\ndef aggregate_run(run):\n    return None\n\n\ndef build_report(job):\n    return None\n"
+    },
+    "initial_checks": [
+      {
+        "check_id": "kdl-ic-1",
+        "symbol": "clean_sample",
+        "input": {
+          "id": "S1",
+          "conc": 4,
+          "vol": 2
+        },
+        "expected_values": [
+          {
+            "id": "S1",
+            "conc": 4.0,
+            "vol": 2.0,
+            "flag": false,
+            "group": "unassigned"
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "kdl-ic-2",
+        "symbol": "clean_sample",
+        "input": {
+          "id": "A-9",
+          "conc": 1.5,
+          "vol": 0.5,
+          "flag": true,
+          "group": "liver"
+        },
+        "expected_values": [
+          {
+            "id": "A-9",
+            "conc": 1.5,
+            "vol": 0.5,
+            "flag": true,
+            "group": "liver"
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "kdl-ic-3",
+        "symbol": "clean_sample",
+        "input": {
+          "id": "S2",
+          "conc": 0,
+          "vol": 2
+        },
+        "expected_values": [
+          "invalid"
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "kdl-ic-4",
+        "symbol": "clean_sample",
+        "input": {
+          "id": "S3",
+          "conc": 2,
+          "vol": 3,
+          "flag": "yes"
+        },
+        "expected_values": [
+          "invalid"
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "kdl-ic-5",
+        "symbol": "clean_sample",
+        "input": {
+          "id": "B-1",
+          "conc": 3,
+          "vol": 0.25,
+          "note": "keep"
+        },
+        "expected_values": [
+          {
+            "id": "B-1",
+            "conc": 3.0,
+            "vol": 0.25,
+            "flag": false,
+            "group": "unassigned"
+          }
+        ],
+        "rule_ids": []
+      }
+    ],
+    "rounds": [
+      {
+        "index": 0,
+        "source_messages": [
+          {
+            "message_id": "m-setup",
+            "role": "user",
+            "text": "Conventions for this project: every function takes exactly one JSON-style argument and returns JSON-compatible values. Any input that does not meet its specification is rejected by returning exactly the string \"invalid\" (no exceptions, no other sentinel). A sample entry is an object with required keys \"id\" (a non-empty string), \"conc\" (a number strictly greater than 0) and \"vol\" (a number strictly greater than 0); it may also carry \"flag\" (a boolean, default false) and \"group\" (a non-empty string, default \"unassigned\"). Booleans are not numbers here. The existing clean_sample helper is the single place where entries are validated and normalized; whenever later functions need sample data they must call clean_sample rather than re-checking the fields themselves. Extra keys on any object are permitted and are simply ignored."
+          }
+        ],
+        "request": {
+          "message_id": "req-norm",
+          "role": "user",
+          "task_handle": "normalize-batch",
+          "text": "Implement normalize_batch. Its argument must be an object with \"samples\" (a non-empty list of sample entries) and \"dilution\" (a number strictly greater than 0); if that shape does not hold, return \"invalid\". Validate every entry by calling clean_sample; if any entry is rejected, return \"invalid\". Otherwise return an object {\"samples\": [...], \"total_mass\": number}. For each entry, in the same order as the input list, emit {\"id\", \"adj_conc\", \"mass\", \"flag\", \"group\"} where adj_conc is the cleaned concentration multiplied by the dilution and mass is adj_conc multiplied by the cleaned volume, carrying the cleaned flag and group values through. total_mass is the sum of all mass values. Use ordinary floating point; do not round, format, sort or reorder anything."
+        },
+        "target": {
+          "path": "lab_pipeline.py",
+          "symbol": "normalize_batch"
+        },
+        "public_checks": [
+          {
+            "check_id": "kdl-r0-pub-1",
+            "symbol": "normalize_batch",
+            "input": {
+              "samples": [
+                {
+                  "id": "S1",
+                  "conc": 2,
+                  "vol": 3
+                },
+                {
+                  "id": "S2",
+                  "conc": 1.5,
+                  "vol": 4
+                }
+              ],
+              "dilution": 2
+            },
+            "expected_values": [
+              {
+                "samples": [
+                  {
+                    "id": "S1",
+                    "adj_conc": 4.0,
+                    "mass": 12.0,
+                    "flag": false,
+                    "group": "unassigned"
+                  },
+                  {
+                    "id": "S2",
+                    "adj_conc": 3.0,
+                    "mass": 12.0,
+                    "flag": false,
+                    "group": "unassigned"
+                  }
+                ],
+                "total_mass": 24.0
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "kdl-r0-pub-2",
+            "symbol": "normalize_batch",
+            "input": {
+              "samples": [
+                {
+                  "id": "N1",
+                  "conc": 3,
+                  "vol": 2,
+                  "group": "ga"
+                },
+                {
+                  "id": "N2",
+                  "conc": 2.5,
+                  "vol": 2,
+                  "group": "gb",
+                  "flag": true
+                }
+              ],
+              "dilution": 4
+            },
+            "expected_values": [
+              {
+                "samples": [
+                  {
+                    "id": "N1",
+                    "adj_conc": 12.0,
+                    "mass": 24.0,
+                    "flag": false,
+                    "group": "ga"
+                  },
+                  {
+                    "id": "N2",
+                    "adj_conc": 10.0,
+                    "mass": 20.0,
+                    "flag": true,
+                    "group": "gb"
+                  }
+                ],
+                "total_mass": 44.0
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "kdl-r0-pub-3",
+            "symbol": "normalize_batch",
+            "input": {
+              "samples": [
+                {
+                  "id": "U1",
+                  "conc": 1.5,
+                  "vol": 2,
+                  "group": "u"
+                },
+                {
+                  "id": "U2",
+                  "conc": 4,
+                  "vol": 0.5,
+                  "group": "u"
+                }
+              ],
+              "dilution": 2
+            },
+            "expected_values": [
+              {
+                "samples": [
+                  {
+                    "id": "U1",
+                    "adj_conc": 3.0,
+                    "mass": 6.0,
+                    "flag": false,
+                    "group": "u"
+                  },
+                  {
+                    "id": "U2",
+                    "adj_conc": 8.0,
+                    "mass": 4.0,
+                    "flag": false,
+                    "group": "u"
+                  }
+                ],
+                "total_mass": 10.0
+              }
+            ],
+            "rule_ids": []
+          }
+        ]
+      },
+      {
+        "index": 1,
+        "source_messages": [
+          {
+            "message_id": "m-agg-note",
+            "role": "user",
+            "text": "For the aggregation step: flagged samples distort group statistics, so by default an aggregate must leave them out. The caller may pass \"include_flagged\": true to include everything; any non-boolean value for that key is invalid input. Groups come out sorted alphabetically by group name. Compute everything from normalize_batch output - call it, never duplicate the normalization math yourself."
+          },
+          {
+            "message_id": "m-report-plan",
+            "role": "user",
+            "text": "One thing for later: when we build the final report feature it will present exactly these aggregate numbers, so reports will also exclude flagged samples by default. Keep aggregate_run's interface stable for that."
+          }
+        ],
+        "request": {
+          "message_id": "req-agg",
+          "role": "user",
+          "task_handle": "aggregate-run",
+          "text": "Implement aggregate_run. Argument: an object with \"samples\" (non-empty list of entries), \"dilution\" (number > 0) and optionally \"include_flagged\" (boolean, default false). Anything missing, mistyped or rejected downstream returns \"invalid\". Get the normalized data by calling normalize_batch with the given samples and dilution. Skip flagged samples unless include_flagged is true. Group the remaining samples by their group value and return {\"groups\": [...], \"count\": n} where count is the number of samples that went into groups. Each group entry is {\"group\", \"count\", \"total_mass\", \"mean_conc\"}: the number of samples in that group, the sum of their mass values, and the arithmetic mean of their adj_conc values. Sort the group list by group name ascending. If every sample is filtered out, groups is an empty list and count is 0. No rounding or formatting."
+        },
+        "target": {
+          "path": "lab_pipeline.py",
+          "symbol": "aggregate_run"
+        },
+        "public_checks": [
+          {
+            "check_id": "kdl-r1-pub-1",
+            "symbol": "aggregate_run",
+            "input": {
+              "samples": [
+                {
+                  "id": "R1",
+                  "conc": 2,
+                  "vol": 3,
+                  "group": "alpha"
+                },
+                {
+                  "id": "R2",
+                  "conc": 4,
+                  "vol": 1,
+                  "group": "beta"
+                },
+                {
+                  "id": "R3",
+                  "conc": 6,
+                  "vol": 2,
+                  "group": "beta"
+                }
+              ],
+              "dilution": 1
+            },
+            "expected_values": [
+              {
+                "groups": [
+                  {
+                    "group": "alpha",
+                    "count": 1,
+                    "total_mass": 6.0,
+                    "mean_conc": 2.0
+                  },
+                  {
+                    "group": "beta",
+                    "count": 2,
+                    "total_mass": 16.0,
+                    "mean_conc": 5.0
+                  }
+                ],
+                "count": 3
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "kdl-r1-pub-2",
+            "symbol": "aggregate_run",
+            "input": {
+              "samples": [
+                {
+                  "id": "P1",
+                  "conc": 3,
+                  "vol": 2,
+                  "group": "a"
+                },
+                {
+                  "id": "P2",
+                  "conc": 1,
+                  "vol": 4,
+                  "group": "b"
+                }
+              ],
+              "dilution": 2,
+              "include_flagged": false
+            },
+            "expected_values": [
+              {
+                "groups": [
+                  {
+                    "group": "a",
+                    "count": 1,
+                    "total_mass": 12.0,
+                    "mean_conc": 6.0
+                  },
+                  {
+                    "group": "b",
+                    "count": 1,
+                    "total_mass": 8.0,
+                    "mean_conc": 2.0
+                  }
+                ],
+                "count": 2
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "kdl-r1-pub-3",
+            "symbol": "aggregate_run",
+            "input": {
+              "samples": [
+                {
+                  "id": "E1",
+                  "conc": 8,
+                  "vol": 1,
+                  "group": "east"
+                },
+                {
+                  "id": "E2",
+                  "conc": 2,
+                  "vol": 2,
+                  "group": "west"
+                },
+                {
+                  "id": "E3",
+                  "conc": 4,
+                  "vol": 1,
+                  "group": "west"
+                }
+              ],
+              "dilution": 0.5
+            },
+            "expected_values": [
+              {
+                "groups": [
+                  {
+                    "group": "east",
+                    "count": 1,
+                    "total_mass": 4.0,
+                    "mean_conc": 4.0
+                  },
+                  {
+                    "group": "west",
+                    "count": 2,
+                    "total_mass": 4.0,
+                    "mean_conc": 1.5
+                  }
+                ],
+                "count": 3
+              }
+            ],
+            "rule_ids": []
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "source_messages": [
+          {
+            "message_id": "m-report-change",
+            "role": "user",
+            "text": "Update to what I said earlier about the report: the final report is our complete measurement record, so its aggregate section must include flagged samples. When the report aggregates, it should ask for flagged samples to be included. This changes only the report feature - direct aggregate_run calls keep excluding flagged samples unless the caller opts in."
+          }
+        ],
+        "request": {
+          "message_id": "req-report",
+          "role": "user",
+          "task_handle": "final-report",
+          "text": "Implement build_report. Argument: an object with \"title\" (a non-empty string), \"samples\" and \"dilution\" as before; malformed input or any downstream rejection returns \"invalid\". Build the aggregate section by calling aggregate_run with the given samples and dilution and with include_flagged set to true, per the rule change. Return {\"title\", \"group_count\", \"grand_total_mass\", \"top_group\", \"groups\"}: group_count is the number of groups, grand_total_mass is the sum of the groups' total_mass values, groups is exactly the group list aggregate_run produced (same order), and top_group is the name of the group with the largest total_mass; if several tie, report the alphabetically first. Since every sample is included, there is always at least one group. No rounding or reformatting."
+        },
+        "target": {
+          "path": "lab_pipeline.py",
+          "symbol": "build_report"
+        },
+        "public_checks": [
+          {
+            "check_id": "kdl-r2-pub-1",
+            "symbol": "build_report",
+            "input": {
+              "title": "Run 9",
+              "samples": [
+                {
+                  "id": "H1",
+                  "conc": 2,
+                  "vol": 3,
+                  "group": "core"
+                },
+                {
+                  "id": "H2",
+                  "conc": 4,
+                  "vol": 1,
+                  "group": "core"
+                },
+                {
+                  "id": "H3",
+                  "conc": 6,
+                  "vol": 2,
+                  "group": "shell"
+                }
+              ],
+              "dilution": 1
+            },
+            "expected_values": [
+              {
+                "title": "Run 9",
+                "group_count": 2,
+                "grand_total_mass": 22.0,
+                "top_group": "shell",
+                "groups": [
+                  {
+                    "group": "core",
+                    "count": 2,
+                    "total_mass": 10.0,
+                    "mean_conc": 3.0
+                  },
+                  {
+                    "group": "shell",
+                    "count": 1,
+                    "total_mass": 12.0,
+                    "mean_conc": 6.0
+                  }
+                ]
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "kdl-r2-pub-2",
+            "symbol": "build_report",
+            "input": {
+              "title": "Solo",
+              "samples": [
+                {
+                  "id": "X",
+                  "conc": 5,
+                  "vol": 2,
+                  "group": "plasma"
+                }
+              ],
+              "dilution": 1
+            },
+            "expected_values": [
+              {
+                "title": "Solo",
+                "group_count": 1,
+                "grand_total_mass": 10.0,
+                "top_group": "plasma",
+                "groups": [
+                  {
+                    "group": "plasma",
+                    "count": 1,
+                    "total_mass": 10.0,
+                    "mean_conc": 5.0
+                  }
+                ]
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "kdl-r2-pub-3",
+            "symbol": "build_report",
+            "input": {
+              "title": "Duplex",
+              "samples": [
+                {
+                  "id": "J1",
+                  "conc": 5,
+                  "vol": 2,
+                  "group": "north"
+                },
+                {
+                  "id": "J2",
+                  "conc": 3,
+                  "vol": 1,
+                  "group": "south"
+                }
+              ],
+              "dilution": 2
+            },
+            "expected_values": [
+              {
+                "title": "Duplex",
+                "group_count": 2,
+                "grand_total_mass": 26.0,
+                "top_group": "north",
+                "groups": [
+                  {
+                    "group": "north",
+                    "count": 1,
+                    "total_mass": 20.0,
+                    "mean_conc": 10.0
+                  },
+                  {
+                    "group": "south",
+                    "count": 1,
+                    "total_mass": 6.0,
+                    "mean_conc": 6.0
+                  }
+                ]
+              }
+            ],
+            "rule_ids": []
+          }
+        ]
+      }
+    ]
+  },
+  "private": {
+    "rounds": [
+      {
+        "index": 0,
+        "manual_recap": "Project lab_pipeline.py. Standing global conventions: every function takes one JSON-style argument; any input that violates its specification returns exactly the string \"invalid\". A sample entry is an object with required id (non-empty string), conc (number strictly greater than 0; booleans are not numbers), vol (number strictly greater than 0), optional flag (boolean, default false) and optional group (non-empty string, default \"unassigned\"). Validation and normalization of entries happens only in the existing clean_sample helper; later functions must call it and must not re-check fields themselves. Extra keys on any object are permitted and ignored. clean_sample is implemented and must not change. Current target: normalize_batch(payload). payload must be an object with samples (non-empty list) and dilution (number > 0), else \"invalid\". Every entry is validated via clean_sample; any rejection makes the whole result \"invalid\". On success it returns {\"samples\": [...], \"total_mass\": ...} preserving input order; each emitted sample is {id, adj_conc, mass, flag, group} with adj_conc = conc*dilution and mass = adj_conc*vol, carrying cleaned flag/group; total_mass is the sum of masses. No rounding, formatting, sorting or reordering. aggregate_run and build_report remain future stubs.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "R-REJECT",
+              "scope": "global",
+              "strength": "required",
+              "text": "Any input not meeting its specification is rejected by returning exactly \"invalid\".",
+              "source_ids": [
+                "m-setup"
+              ]
+            },
+            {
+              "rule_id": "R-SCHEMA",
+              "scope": "global",
+              "strength": "required",
+              "text": "Sample entries require id (non-empty string), conc (number > 0), vol (number > 0); optional flag (boolean, default false) and group (non-empty string, default \"unassigned\"); booleans are not numbers.",
+              "source_ids": [
+                "m-setup"
+              ]
+            },
+            {
+              "rule_id": "R-HELPER",
+              "scope": "global",
+              "strength": "required",
+              "text": "clean_sample is the single validator/normalizer of entries; later functions must call it instead of re-checking fields.",
+              "source_ids": [
+                "m-setup"
+              ]
+            },
+            {
+              "rule_id": "R-EXTRA",
+              "scope": "global",
+              "strength": "permitted",
+              "text": "Extra keys on any object are permitted and ignored.",
+              "source_ids": [
+                "m-setup"
+              ]
+            },
+            {
+              "rule_id": "R-ORDER",
+              "scope": "normalize-batch",
+              "strength": "required",
+              "text": "The normalized sample list preserves the input sample order.",
+              "source_ids": [
+                "req-norm"
+              ]
+            }
+          ],
+          "inactive_rule_ids": []
+        },
+        "reference_patch": "def normalize_batch(payload):\n    if not isinstance(payload, dict):\n        return \"invalid\"\n    if \"samples\" not in payload or \"dilution\" not in payload:\n        return \"invalid\"\n    samples = payload[\"samples\"]\n    dilution = payload[\"dilution\"]\n    if not isinstance(samples, list) or len(samples) == 0:\n        return \"invalid\"\n    if isinstance(dilution, bool) or not isinstance(dilution, (int, float)) or not dilution > 0:\n        return \"invalid\"\n    dilution = float(dilution)\n    out_samples = []\n    total_mass = 0.0\n    for entry in samples:\n        cleaned = clean_sample(entry)\n        if cleaned == \"invalid\":\n            return \"invalid\"\n        adj_conc = cleaned[\"conc\"] * dilution\n        mass = adj_conc * cleaned[\"vol\"]\n        out_samples.append({\n            \"id\": cleaned[\"id\"],\n            \"adj_conc\": adj_conc,\n            \"mass\": mass,\n            \"flag\": cleaned[\"flag\"],\n            \"group\": cleaned[\"group\"],\n        })\n        total_mass += mass\n    return {\"samples\": out_samples, \"total_mass\": total_mass}",
+        "functional_checks": [
+          {
+            "check_id": "kdl-r0-fn-1",
+            "symbol": "normalize_batch",
+            "input": {
+              "samples": [
+                {
+                  "id": "T1",
+                  "conc": 8,
+                  "vol": 1,
+                  "group": "g2"
+                },
+                {
+                  "id": "T2",
+                  "conc": 3,
+                  "vol": 2,
+                  "group": "g1"
+                },
+                {
+                  "id": "T3",
+                  "conc": 5,
+                  "vol": 1,
+                  "group": "g2"
+                }
+              ],
+              "dilution": 1.25
+            },
+            "expected_values": [
+              {
+                "samples": [
+                  {
+                    "id": "T1",
+                    "adj_conc": 10.0,
+                    "mass": 10.0,
+                    "flag": false,
+                    "group": "g2"
+                  },
+                  {
+                    "id": "T2",
+                    "adj_conc": 3.75,
+                    "mass": 7.5,
+                    "flag": false,
+                    "group": "g1"
+                  },
+                  {
+                    "id": "T3",
+                    "adj_conc": 6.25,
+                    "mass": 6.25,
+                    "flag": false,
+                    "group": "g2"
+                  }
+                ],
+                "total_mass": 23.75
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "kdl-r0-fn-2",
+            "symbol": "normalize_batch",
+            "input": {
+              "samples": [
+                {
+                  "id": "T9",
+                  "conc": 2,
+                  "vol": 0
+                }
+              ],
+              "dilution": 2
+            },
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "kdl-r0-ob-1",
+            "symbol": "normalize_batch",
+            "input": {
+              "samples": [
+                {
+                  "id": "T7",
+                  "conc": 1,
+                  "vol": 1,
+                  "flag": "yes"
+                }
+              ],
+              "dilution": 1
+            },
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": [
+              "R-REJECT",
+              "R-SCHEMA"
+            ]
+          },
+          {
+            "check_id": "kdl-r0-ob-2",
+            "symbol": "normalize_batch",
+            "input": {
+              "samples": [
+                {
+                  "id": "B",
+                  "conc": 1,
+                  "vol": 2,
+                  "note": "n"
+                },
+                {
+                  "id": "A",
+                  "conc": 2,
+                  "vol": 1
+                }
+              ],
+              "dilution": 1
+            },
+            "expected_values": [
+              {
+                "samples": [
+                  {
+                    "id": "B",
+                    "adj_conc": 1.0,
+                    "mass": 2.0,
+                    "flag": false,
+                    "group": "unassigned"
+                  },
+                  {
+                    "id": "A",
+                    "adj_conc": 2.0,
+                    "mass": 2.0,
+                    "flag": false,
+                    "group": "unassigned"
+                  }
+                ],
+                "total_mass": 4.0
+              }
+            ],
+            "rule_ids": [
+              "R-ORDER",
+              "R-EXTRA"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "kdl-r0-nc-fn",
+            "kind": "functional",
+            "patch": "def normalize_batch(payload):\n    if not isinstance(payload, dict):\n        return \"invalid\"\n    if \"samples\" not in payload or \"dilution\" not in payload:\n        return \"invalid\"\n    samples = payload[\"samples\"]\n    dilution = payload[\"dilution\"]\n    if not isinstance(samples, list) or len(samples) == 0:\n        return \"invalid\"\n    if isinstance(dilution, bool) or not isinstance(dilution, (int, float)) or not dilution > 0:\n        return \"invalid\"\n    dilution = float(dilution)\n    out_samples = []\n    total_mass = 0.0\n    for entry in samples:\n        cleaned = clean_sample(entry)\n        if cleaned == \"invalid\":\n            return \"invalid\"\n        adj_conc = cleaned[\"conc\"] * dilution\n        mass = cleaned[\"conc\"] * cleaned[\"vol\"]\n        out_samples.append({\n            \"id\": cleaned[\"id\"],\n            \"adj_conc\": adj_conc,\n            \"mass\": mass,\n            \"flag\": cleaned[\"flag\"],\n            \"group\": cleaned[\"group\"],\n        })\n        total_mass += mass\n    return {\"samples\": out_samples, \"total_mass\": total_mass}",
+            "expected_failing_check_ids": [
+              "kdl-r0-fn-1"
+            ]
+          },
+          {
+            "control_id": "kdl-r0-nc-ob",
+            "kind": "obligation",
+            "patch": "def normalize_batch(payload):\n    if not isinstance(payload, dict):\n        return \"invalid\"\n    if \"samples\" not in payload or \"dilution\" not in payload:\n        return \"invalid\"\n    samples = payload[\"samples\"]\n    dilution = payload[\"dilution\"]\n    if not isinstance(samples, list) or len(samples) == 0:\n        return \"invalid\"\n    if isinstance(dilution, bool) or not isinstance(dilution, (int, float)) or not dilution > 0:\n        return \"invalid\"\n    dilution = float(dilution)\n    out_samples = []\n    total_mass = 0.0\n    for entry in samples:\n        cleaned = clean_sample(entry)\n        if cleaned == \"invalid\":\n            return \"invalid\"\n        adj_conc = cleaned[\"conc\"] * dilution\n        mass = adj_conc * cleaned[\"vol\"]\n        out_samples.append({\n            \"id\": cleaned[\"id\"],\n            \"adj_conc\": adj_conc,\n            \"mass\": mass,\n            \"flag\": cleaned[\"flag\"],\n            \"group\": cleaned[\"group\"],\n        })\n        total_mass += mass\n    out_samples = sorted(out_samples, key=lambda item: item[\"id\"])\n    return {\"samples\": out_samples, \"total_mass\": total_mass}",
+            "expected_failing_check_ids": [
+              "kdl-r0-ob-2"
+            ]
+          }
+        ]
+      },
+      {
+        "index": 1,
+        "manual_recap": "Cumulative state. Global conventions unchanged: one JSON-style argument; specification violations return exactly \"invalid\"; entry schema (id, conc > 0, vol > 0, optional boolean flag default false, optional non-empty string group default \"unassigned\"; booleans are not numbers); clean_sample is the only entry validator and must be called rather than re-checking; extra keys permitted and ignored. clean_sample is the provided initial helper and must not change. normalize_batch is an existing dependency governed by its required contract: given a valid payload it returns the order-preserving diluted entries ({id, adj_conc, mass, flag, group}) plus total_mass, with adj_conc = conc*dilution and mass = adj_conc*vol and no rounding, sorting or reordering, and returns \"invalid\" on any bad input. Whatever its present state, the actual existing normalize_batch code must be preserved as-is and called, not redefined, repaired or bypassed. Standing flag rule (global): aggregates exclude flagged samples unless the caller passes include_flagged true; include_flagged defaults to false and a non-boolean value is invalid; callers are permitted to opt into inclusion. Standing aggregation rules: data comes from calling normalize_batch (never recompute the normalization math); groups are sorted ascending by group name. Current target aggregate_run(run): validates run shape, calls the existing normalize_batch with the given samples and dilution, propagates \"invalid\", filters flagged unless include_flagged, groups by cleaned group value, returns {\"groups\": [{group, count, total_mass, mean_conc} ...], \"count\": n} with count of samples entering groups; empty selection gives groups [] and count 0. Standing note still in force now: the future final report will present these same aggregate numbers, so reports exclude flagged by default too. build_report remains a future stub.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "R-REJECT",
+              "scope": "global",
+              "strength": "required",
+              "text": "Any input not meeting its specification is rejected by returning exactly \"invalid\".",
+              "source_ids": [
+                "m-setup"
+              ]
+            },
+            {
+              "rule_id": "R-SCHEMA",
+              "scope": "global",
+              "strength": "required",
+              "text": "Sample entries require id (non-empty string), conc (number > 0), vol (number > 0); optional flag (boolean, default false) and group (non-empty string, default \"unassigned\"); booleans are not numbers.",
+              "source_ids": [
+                "m-setup"
+              ]
+            },
+            {
+              "rule_id": "R-HELPER",
+              "scope": "global",
+              "strength": "required",
+              "text": "clean_sample is the single validator/normalizer of entries; later functions must call it instead of re-checking fields.",
+              "source_ids": [
+                "m-setup"
+              ]
+            },
+            {
+              "rule_id": "R-EXTRA",
+              "scope": "global",
+              "strength": "permitted",
+              "text": "Extra keys on any object are permitted and ignored.",
+              "source_ids": [
+                "m-setup"
+              ]
+            },
+            {
+              "rule_id": "R-ORDER",
+              "scope": "normalize-batch",
+              "strength": "required",
+              "text": "The normalized sample list preserves the input sample order.",
+              "source_ids": [
+                "req-norm"
+              ]
+            },
+            {
+              "rule_id": "R-DEP-AGG",
+              "scope": "aggregate-run",
+              "strength": "required",
+              "text": "aggregate_run must obtain normalized samples by calling normalize_batch and must not duplicate the normalization math.",
+              "source_ids": [
+                "m-agg-note",
+                "req-agg"
+              ]
+            },
+            {
+              "rule_id": "R-FLAG",
+              "scope": "global",
+              "strength": "required",
+              "text": "Aggregates exclude flagged samples unless include_flagged is true (default false; non-boolean include_flagged is invalid).",
+              "source_ids": [
+                "m-agg-note",
+                "req-agg"
+              ]
+            },
+            {
+              "rule_id": "R-SORT",
+              "scope": "aggregate-run",
+              "strength": "required",
+              "text": "Aggregate groups are sorted ascending by group name.",
+              "source_ids": [
+                "m-agg-note",
+                "req-agg"
+              ]
+            },
+            {
+              "rule_id": "R-REPORT-DEFAULT",
+              "scope": "final-report",
+              "strength": "required",
+              "text": "The future final report presents aggregate_run's numbers, so reports exclude flagged samples by default.",
+              "source_ids": [
+                "m-report-plan"
+              ]
+            }
+          ],
+          "inactive_rule_ids": []
+        },
+        "reference_patch": "def aggregate_run(run):\n    if not isinstance(run, dict):\n        return \"invalid\"\n    if \"samples\" not in run or \"dilution\" not in run:\n        return \"invalid\"\n    include_flagged = run.get(\"include_flagged\", False)\n    if not isinstance(include_flagged, bool):\n        return \"invalid\"\n    normalized = normalize_batch({\"samples\": run[\"samples\"], \"dilution\": run[\"dilution\"]})\n    if normalized == \"invalid\":\n        return \"invalid\"\n    groups = {}\n    considered = 0\n    for sample in normalized[\"samples\"]:\n        if sample[\"flag\"] and not include_flagged:\n            continue\n        considered += 1\n        name = sample[\"group\"]\n        if name not in groups:\n            groups[name] = {\"count\": 0, \"total_mass\": 0.0, \"conc_sum\": 0.0}\n        bucket = groups[name]\n        bucket[\"count\"] += 1\n        bucket[\"total_mass\"] += sample[\"mass\"]\n        bucket[\"conc_sum\"] += sample[\"adj_conc\"]\n    out = []\n    for name in sorted(groups):\n        bucket = groups[name]\n        out.append({\n            \"group\": name,\n            \"count\": bucket[\"count\"],\n            \"total_mass\": bucket[\"total_mass\"],\n            \"mean_conc\": bucket[\"conc_sum\"] / bucket[\"count\"],\n        })\n    return {\"groups\": out, \"count\": considered}",
+        "functional_checks": [
+          {
+            "check_id": "kdl-r1-fn-1",
+            "symbol": "aggregate_run",
+            "input": {
+              "samples": [
+                {
+                  "id": "M1",
+                  "conc": 6,
+                  "vol": 1,
+                  "group": "m"
+                },
+                {
+                  "id": "A1",
+                  "conc": 4,
+                  "vol": 2,
+                  "group": "a"
+                },
+                {
+                  "id": "Z1",
+                  "conc": 2,
+                  "vol": 5,
+                  "group": "z"
+                },
+                {
+                  "id": "A2",
+                  "conc": 8,
+                  "vol": 1,
+                  "group": "a"
+                }
+              ],
+              "dilution": 0.5
+            },
+            "expected_values": [
+              {
+                "groups": [
+                  {
+                    "group": "a",
+                    "count": 2,
+                    "total_mass": 8.0,
+                    "mean_conc": 3.0
+                  },
+                  {
+                    "group": "m",
+                    "count": 1,
+                    "total_mass": 3.0,
+                    "mean_conc": 3.0
+                  },
+                  {
+                    "group": "z",
+                    "count": 1,
+                    "total_mass": 5.0,
+                    "mean_conc": 1.0
+                  }
+                ],
+                "count": 4
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "kdl-r1-fn-2",
+            "symbol": "aggregate_run",
+            "input": {
+              "samples": [
+                {
+                  "id": "V1",
+                  "conc": 1,
+                  "vol": 1
+                }
+              ],
+              "dilution": 1,
+              "include_flagged": "yes"
+            },
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "kdl-r1-fn-3",
+            "symbol": "aggregate_run",
+            "input": {
+              "samples": [
+                {
+                  "id": "D1",
+                  "conc": 4,
+                  "vol": 1,
+                  "group": "g"
+                },
+                {
+                  "id": "D2",
+                  "conc": 6,
+                  "vol": 1,
+                  "group": "g"
+                }
+              ],
+              "dilution": 0.5
+            },
+            "expected_values": [
+              {
+                "groups": [
+                  {
+                    "group": "g",
+                    "count": 2,
+                    "total_mass": 5.0,
+                    "mean_conc": 2.5
+                  }
+                ],
+                "count": 2
+              }
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "kdl-r1-ob-1",
+            "symbol": "aggregate_run",
+            "input": {
+              "samples": [
+                {
+                  "id": "L1",
+                  "conc": 2,
+                  "vol": 2,
+                  "flag": true,
+                  "group": "t"
+                },
+                {
+                  "id": "L2",
+                  "conc": 4,
+                  "vol": 1,
+                  "group": "t"
+                }
+              ],
+              "dilution": 1
+            },
+            "expected_values": [
+              {
+                "groups": [
+                  {
+                    "group": "t",
+                    "count": 1,
+                    "total_mass": 4.0,
+                    "mean_conc": 4.0
+                  }
+                ],
+                "count": 1
+              }
+            ],
+            "rule_ids": [
+              "R-FLAG"
+            ]
+          },
+          {
+            "check_id": "kdl-r1-ob-2",
+            "symbol": "aggregate_run",
+            "input": {
+              "samples": [
+                {
+                  "id": "L1",
+                  "conc": 2,
+                  "vol": 2,
+                  "flag": true,
+                  "group": "t"
+                },
+                {
+                  "id": "L2",
+                  "conc": 4,
+                  "vol": 1,
+                  "group": "t"
+                }
+              ],
+              "dilution": 1,
+              "include_flagged": true
+            },
+            "expected_values": [
+              {
+                "groups": [
+                  {
+                    "group": "t",
+                    "count": 2,
+                    "total_mass": 8.0,
+                    "mean_conc": 3.0
+                  }
+                ],
+                "count": 2
+              }
+            ],
+            "rule_ids": [
+              "R-FLAG"
+            ]
+          },
+          {
+            "check_id": "kdl-r1-ob-3",
+            "symbol": "aggregate_run",
+            "input": {
+              "samples": [
+                {
+                  "id": "W1",
+                  "conc": 3,
+                  "vol": 1,
+                  "flag": true
+                }
+              ],
+              "dilution": 1
+            },
+            "expected_values": [
+              {
+                "groups": [],
+                "count": 0
+              }
+            ],
+            "rule_ids": [
+              "R-FLAG"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "kdl-r1-nc-fn",
+            "kind": "functional",
+            "patch": "def aggregate_run(run):\n    if not isinstance(run, dict):\n        return \"invalid\"\n    if \"samples\" not in run or \"dilution\" not in run:\n        return \"invalid\"\n    include_flagged = run.get(\"include_flagged\", False)\n    if not isinstance(include_flagged, bool):\n        return \"invalid\"\n    normalized = normalize_batch({\"samples\": run[\"samples\"], \"dilution\": run[\"dilution\"]})\n    if normalized == \"invalid\":\n        return \"invalid\"\n    groups = {}\n    considered = 0\n    for sample in normalized[\"samples\"]:\n        if sample[\"flag\"] and not include_flagged:\n            continue\n        considered += 1\n        name = sample[\"group\"]\n        if name not in groups:\n            groups[name] = {\"count\": 0, \"total_mass\": 0.0, \"conc_sum\": 0.0}\n        bucket = groups[name]\n        bucket[\"count\"] += 1\n        bucket[\"total_mass\"] += sample[\"mass\"]\n        bucket[\"conc_sum\"] += sample[\"adj_conc\"]\n    out = []\n    for name in sorted(groups):\n        bucket = groups[name]\n        out.append({\n            \"group\": name,\n            \"count\": bucket[\"count\"],\n            \"total_mass\": bucket[\"total_mass\"],\n            \"mean_conc\": bucket[\"conc_sum\"],\n        })\n    return {\"groups\": out, \"count\": considered}",
+            "expected_failing_check_ids": [
+              "kdl-r1-fn-1",
+              "kdl-r1-fn-3",
+              "kdl-r1-ob-2"
+            ]
+          },
+          {
+            "control_id": "kdl-r1-nc-ob",
+            "kind": "obligation",
+            "patch": "def aggregate_run(run):\n    if not isinstance(run, dict):\n        return \"invalid\"\n    if \"samples\" not in run or \"dilution\" not in run:\n        return \"invalid\"\n    include_flagged = run.get(\"include_flagged\", False)\n    if not isinstance(include_flagged, bool):\n        return \"invalid\"\n    normalized = normalize_batch({\"samples\": run[\"samples\"], \"dilution\": run[\"dilution\"]})\n    if normalized == \"invalid\":\n        return \"invalid\"\n    groups = {}\n    considered = 0\n    for sample in normalized[\"samples\"]:\n        considered += 1\n        name = sample[\"group\"]\n        if name not in groups:\n            groups[name] = {\"count\": 0, \"total_mass\": 0.0, \"conc_sum\": 0.0}\n        bucket = groups[name]\n        bucket[\"count\"] += 1\n        bucket[\"total_mass\"] += sample[\"mass\"]\n        bucket[\"conc_sum\"] += sample[\"adj_conc\"]\n    out = []\n    for name in sorted(groups):\n        bucket = groups[name]\n        out.append({\n            \"group\": name,\n            \"count\": bucket[\"count\"],\n            \"total_mass\": bucket[\"total_mass\"],\n            \"mean_conc\": bucket[\"conc_sum\"] / bucket[\"count\"],\n        })\n    return {\"groups\": out, \"count\": considered}",
+            "expected_failing_check_ids": [
+              "kdl-r1-ob-1",
+              "kdl-r1-ob-3"
+            ]
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "manual_recap": "Cumulative state. Global conventions unchanged (single JSON-style argument; \"invalid\" sentinel; entry schema with strict types; clean_sample as the only entry validator; extra keys permitted and ignored). clean_sample is the provided initial helper and must not change. normalize_batch and aggregate_run are existing dependencies governed by their required contracts: normalize_batch delivers order-preserving diluted entries with mass and total_mass; aggregate_run obtains normalized data only by calling normalize_batch, excludes flagged samples unless include_flagged is true (default false; non-boolean include_flagged is invalid) and returns groups sorted ascending by group name with a sample count. Whatever their present state, the actual existing normalize_batch and aggregate_run code must be preserved as-is and used through calls, not redefined, repaired or bypassed. Standing-rule change: the earlier note that the report would reuse aggregate defaults is superseded; the report feature is the complete measurement record, so its aggregate section must include flagged samples, which build_report obtains by aggregating with include_flagged true. Current target build_report(job): job requires title (non-empty string), samples and dilution; malformed input or downstream rejection gives \"invalid\". It calls the existing aggregate_run with the given samples, dilution and include_flagged true and returns {title, group_count, grand_total_mass, top_group, groups}: groups is exactly aggregate_run's group list in the same order, group_count its length, grand_total_mass the sum of group total_mass values, and top_group the name of the group with the largest total_mass with ties going to the alphabetically first; at least one group always exists because every sample is included. No rounding or reformatting.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "R-REJECT",
+              "scope": "global",
+              "strength": "required",
+              "text": "Any input not meeting its specification is rejected by returning exactly \"invalid\".",
+              "source_ids": [
+                "m-setup"
+              ]
+            },
+            {
+              "rule_id": "R-SCHEMA",
+              "scope": "global",
+              "strength": "required",
+              "text": "Sample entries require id (non-empty string), conc (number > 0), vol (number > 0); optional flag (boolean, default false) and group (non-empty string, default \"unassigned\"); booleans are not numbers.",
+              "source_ids": [
+                "m-setup"
+              ]
+            },
+            {
+              "rule_id": "R-HELPER",
+              "scope": "global",
+              "strength": "required",
+              "text": "clean_sample is the single validator/normalizer of entries; later functions must call it instead of re-checking fields.",
+              "source_ids": [
+                "m-setup"
+              ]
+            },
+            {
+              "rule_id": "R-EXTRA",
+              "scope": "global",
+              "strength": "permitted",
+              "text": "Extra keys on any object are permitted and ignored.",
+              "source_ids": [
+                "m-setup"
+              ]
+            },
+            {
+              "rule_id": "R-ORDER",
+              "scope": "normalize-batch",
+              "strength": "required",
+              "text": "The normalized sample list preserves the input sample order.",
+              "source_ids": [
+                "req-norm"
+              ]
+            },
+            {
+              "rule_id": "R-DEP-AGG",
+              "scope": "aggregate-run",
+              "strength": "required",
+              "text": "aggregate_run must obtain normalized samples by calling normalize_batch and must not duplicate the normalization math.",
+              "source_ids": [
+                "m-agg-note",
+                "req-agg"
+              ]
+            },
+            {
+              "rule_id": "R-FLAG",
+              "scope": "global",
+              "strength": "required",
+              "text": "Aggregates exclude flagged samples unless include_flagged is true (default false; non-boolean include_flagged is invalid).",
+              "source_ids": [
+                "m-agg-note",
+                "req-agg",
+                "m-report-change"
+              ]
+            },
+            {
+              "rule_id": "R-SORT",
+              "scope": "aggregate-run",
+              "strength": "required",
+              "text": "Aggregate groups are sorted ascending by group name.",
+              "source_ids": [
+                "m-agg-note",
+                "req-agg"
+              ]
+            },
+            {
+              "rule_id": "R-FLAG-REPORT",
+              "scope": "final-report",
+              "strength": "required",
+              "text": "The final report's aggregate section must include flagged samples; the report aggregates with include_flagged true.",
+              "source_ids": [
+                "m-report-change",
+                "req-report"
+              ]
+            },
+            {
+              "rule_id": "R-DEP-REPORT",
+              "scope": "final-report",
+              "strength": "required",
+              "text": "build_report must build its aggregate section by calling aggregate_run, not by re-aggregating itself.",
+              "source_ids": [
+                "req-report"
+              ]
+            }
+          ],
+          "inactive_rule_ids": [
+            "R-REPORT-DEFAULT"
+          ]
+        },
+        "reference_patch": "def build_report(job):\n    if not isinstance(job, dict):\n        return \"invalid\"\n    if \"samples\" not in job or \"dilution\" not in job or \"title\" not in job:\n        return \"invalid\"\n    title = job[\"title\"]\n    if not isinstance(title, str) or len(title) == 0:\n        return \"invalid\"\n    aggregates = aggregate_run({\n        \"samples\": job[\"samples\"],\n        \"dilution\": job[\"dilution\"],\n        \"include_flagged\": True,\n    })\n    if aggregates == \"invalid\":\n        return \"invalid\"\n    groups = aggregates[\"groups\"]\n    grand_total = 0.0\n    top_group = None\n    top_mass = None\n    for group in groups:\n        grand_total += group[\"total_mass\"]\n        if top_mass is None or group[\"total_mass\"] > top_mass:\n            top_mass = group[\"total_mass\"]\n            top_group = group[\"group\"]\n    return {\n        \"title\": title,\n        \"group_count\": len(groups),\n        \"grand_total_mass\": grand_total,\n        \"top_group\": top_group,\n        \"groups\": groups,\n    }",
+        "functional_checks": [
+          {
+            "check_id": "kdl-r2-fn-1",
+            "symbol": "build_report",
+            "input": {
+              "title": "Tie",
+              "samples": [
+                {
+                  "id": "B1",
+                  "conc": 2,
+                  "vol": 4,
+                  "group": "b"
+                },
+                {
+                  "id": "A1",
+                  "conc": 4,
+                  "vol": 2,
+                  "group": "a"
+                }
+              ],
+              "dilution": 1
+            },
+            "expected_values": [
+              {
+                "title": "Tie",
+                "group_count": 2,
+                "grand_total_mass": 16.0,
+                "top_group": "a",
+                "groups": [
+                  {
+                    "group": "a",
+                    "count": 1,
+                    "total_mass": 8.0,
+                    "mean_conc": 4.0
+                  },
+                  {
+                    "group": "b",
+                    "count": 1,
+                    "total_mass": 8.0,
+                    "mean_conc": 2.0
+                  }
+                ]
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "kdl-r2-fn-2",
+            "symbol": "build_report",
+            "input": {
+              "title": "",
+              "samples": [
+                {
+                  "id": "Q1",
+                  "conc": 1,
+                  "vol": 1
+                }
+              ],
+              "dilution": 1
+            },
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "kdl-r2-fn-3",
+            "symbol": "build_report",
+            "input": {
+              "title": "Bad",
+              "samples": [
+                {
+                  "id": "Q2",
+                  "conc": -1,
+                  "vol": 1
+                }
+              ],
+              "dilution": 1
+            },
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "kdl-r2-ob-1",
+            "symbol": "build_report",
+            "input": {
+              "title": "Q",
+              "samples": [
+                {
+                  "id": "L1",
+                  "conc": 2,
+                  "vol": 2,
+                  "flag": true,
+                  "group": "t"
+                },
+                {
+                  "id": "L2",
+                  "conc": 4,
+                  "vol": 1,
+                  "group": "t"
+                }
+              ],
+              "dilution": 1
+            },
+            "expected_values": [
+              {
+                "title": "Q",
+                "group_count": 1,
+                "grand_total_mass": 8.0,
+                "top_group": "t",
+                "groups": [
+                  {
+                    "group": "t",
+                    "count": 2,
+                    "total_mass": 8.0,
+                    "mean_conc": 3.0
+                  }
+                ]
+              }
+            ],
+            "rule_ids": [
+              "R-FLAG-REPORT"
+            ]
+          },
+          {
+            "check_id": "kdl-r2-ob-2",
+            "symbol": "build_report",
+            "input": {
+              "title": "Flip",
+              "samples": [
+                {
+                  "id": "A1",
+                  "conc": 5,
+                  "vol": 1,
+                  "group": "a"
+                },
+                {
+                  "id": "B1",
+                  "conc": 2,
+                  "vol": 1,
+                  "group": "b"
+                },
+                {
+                  "id": "B2",
+                  "conc": 6,
+                  "vol": 1,
+                  "flag": true,
+                  "group": "b"
+                }
+              ],
+              "dilution": 1
+            },
+            "expected_values": [
+              {
+                "title": "Flip",
+                "group_count": 2,
+                "grand_total_mass": 13.0,
+                "top_group": "b",
+                "groups": [
+                  {
+                    "group": "a",
+                    "count": 1,
+                    "total_mass": 5.0,
+                    "mean_conc": 5.0
+                  },
+                  {
+                    "group": "b",
+                    "count": 2,
+                    "total_mass": 8.0,
+                    "mean_conc": 4.0
+                  }
+                ]
+              }
+            ],
+            "rule_ids": [
+              "R-FLAG-REPORT"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "kdl-r2-nc-fn",
+            "kind": "functional",
+            "patch": "def build_report(job):\n    if not isinstance(job, dict):\n        return \"invalid\"\n    if \"samples\" not in job or \"dilution\" not in job or \"title\" not in job:\n        return \"invalid\"\n    title = job[\"title\"]\n    if not isinstance(title, str) or len(title) == 0:\n        return \"invalid\"\n    aggregates = aggregate_run({\n        \"samples\": job[\"samples\"],\n        \"dilution\": job[\"dilution\"],\n        \"include_flagged\": True,\n    })\n    if aggregates == \"invalid\":\n        return \"invalid\"\n    groups = aggregates[\"groups\"]\n    grand_total = 0.0\n    top_group = None\n    top_mass = None\n    for group in groups:\n        grand_total += group[\"mean_conc\"]\n        if top_mass is None or group[\"total_mass\"] > top_mass:\n            top_mass = group[\"total_mass\"]\n            top_group = group[\"group\"]\n    return {\n        \"title\": title,\n        \"group_count\": len(groups),\n        \"grand_total_mass\": grand_total,\n        \"top_group\": top_group,\n        \"groups\": groups,\n    }",
+            "expected_failing_check_ids": [
+              "kdl-r2-fn-1",
+              "kdl-r2-ob-1",
+              "kdl-r2-ob-2"
+            ]
+          },
+          {
+            "control_id": "kdl-r2-nc-ob",
+            "kind": "obligation",
+            "patch": "def build_report(job):\n    if not isinstance(job, dict):\n        return \"invalid\"\n    if \"samples\" not in job or \"dilution\" not in job or \"title\" not in job:\n        return \"invalid\"\n    title = job[\"title\"]\n    if not isinstance(title, str) or len(title) == 0:\n        return \"invalid\"\n    aggregates = aggregate_run({\n        \"samples\": job[\"samples\"],\n        \"dilution\": job[\"dilution\"],\n    })\n    if aggregates == \"invalid\":\n        return \"invalid\"\n    groups = aggregates[\"groups\"]\n    grand_total = 0.0\n    top_group = None\n    top_mass = None\n    for group in groups:\n        grand_total += group[\"total_mass\"]\n        if top_mass is None or group[\"total_mass\"] > top_mass:\n            top_mass = group[\"total_mass\"]\n            top_group = group[\"group\"]\n    return {\n        \"title\": title,\n        \"group_count\": len(groups),\n        \"grand_total_mass\": grand_total,\n        \"top_group\": top_group,\n        \"groups\": groups,\n    }",
+            "expected_failing_check_ids": [
+              "kdl-r2-ob-1",
+              "kdl-r2-ob-2"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

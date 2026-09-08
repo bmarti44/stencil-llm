@@ -1,0 +1,539 @@
+[
+  {
+    "path": "/private/rounds/0/manual_recap",
+    "old_sha256": "0024aad7fdf68a47099c176b4bdcb24485e47cbdb1c7ced052b789906635c18b",
+    "value": "Module route_segments.py. normalize_segment (stable helper): accepts only dicts with exactly keys mode/origin/dest/minutes/fare_cents; mode in walk/bus/rail; codes are 3-letter alphabetic and unequal; minutes is a non-bool int in 1..600; fare_cents is a non-bool int in 0..100000 and must be 0 for walk; returns the canonical dict (codes uppercased) or None. Current target price_segment(segment): must call normalize_segment and return None if it does; quote raw = fare_cents + base + rate*minutes with base walk 0/bus 140/rail 320 and rate walk 0/bus 12/rail 25; when minutes >= 60 apply a 10 percent discount; standing rule round-half-up (global, required): every fractional-cent monetary result rounds to the nearest whole cent and an exact half-cent always rounds up; return exactly {mode, origin, dest, minutes, quote_cents}. Rule dep-normalize-v1 (scope price-quote, required): price_segment obtains validation and canonical field values only by calling normalize_segment, never duplicating the helper's checks, and any input the helper rejects surfaces as None. Implementation style is otherwise free."
+  },
+  {
+    "path": "/private/rounds/0/oracle",
+    "old_sha256": "61111166ba151027bd43287373464aa9fa98feca531d1165db73626ed1380418",
+    "value": {
+      "effective_rules": [
+        {
+          "rule_id": "rule-dep-normalize-v1",
+          "scope": "price-quote",
+          "strength": "required",
+          "text": "price_segment must obtain validation and canonical field values by calling normalize_segment and must return None whenever the helper returns None; it must never duplicate the helper's checks.",
+          "source_ids": [
+            "u-01"
+          ]
+        },
+        {
+          "rule_id": "rule-round-half-up",
+          "scope": "global",
+          "strength": "required",
+          "text": "Every fractional-cent monetary result rounds to the nearest whole cent, and an exact half-cent always rounds up.",
+          "source_ids": [
+            "u-01"
+          ]
+        }
+      ],
+      "inactive_rule_ids": []
+    }
+  },
+  {
+    "path": "/private/rounds/0/obligation_checks",
+    "old_sha256": "39af6a8085750b4c00d066f5281b710ec119fe79d9b48aae1842982e9ade71f1",
+    "value": [
+      {
+        "check_id": "chk-r0-obl-01",
+        "symbol": "price_segment",
+        "input": {
+          "mode": "bus",
+          "origin": "mia",
+          "dest": "orl",
+          "minutes": 60,
+          "fare_cents": 305
+        },
+        "expected_values": [
+          {
+            "mode": "bus",
+            "origin": "MIA",
+            "dest": "ORL",
+            "minutes": 60,
+            "quote_cents": 1049
+          }
+        ],
+        "rule_ids": [
+          "rule-round-half-up"
+        ]
+      },
+      {
+        "check_id": "chk-r0-obl-02",
+        "symbol": "price_segment",
+        "input": {
+          "mode": "rail",
+          "origin": "chi",
+          "dest": "stl",
+          "minutes": 70,
+          "fare_cents": 155
+        },
+        "expected_values": [
+          {
+            "mode": "rail",
+            "origin": "CHI",
+            "dest": "STL",
+            "minutes": 70,
+            "quote_cents": 2003
+          }
+        ],
+        "rule_ids": [
+          "rule-round-half-up"
+        ]
+      },
+      {
+        "check_id": "chk-r0-obl-03",
+        "symbol": "price_segment",
+        "input": {
+          "mode": "rail",
+          "origin": "aaa",
+          "dest": "aab",
+          "minutes": true,
+          "fare_cents": 0
+        },
+        "expected_values": [
+          null
+        ],
+        "rule_ids": [
+          "rule-dep-normalize-v1"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "/private/rounds/1/manual_recap",
+    "old_sha256": "101af3cadfcbd3148810fae9a36471a8a5dbd41714cd577a20d932812eb7cb54",
+    "value": "Module route_segments.py. normalize_segment is the stable validation helper with unchanged semantics. price_segment was implemented in round 0 under contracts that remain binding; this round must preserve them (not redefine, weaken or re-verify): dep-normalize-v1 (scope price-quote, required — price_segment validates only via normalize_segment and propagates its None) and round-half-up (global, required — every fractional-cent monetary result rounds to the nearest whole cent, exact half-cent up). Current target combine_segments(segments): returns None unless the input is a nonempty list. Rule dep-normalize-v2 (scope combine-legs, required): each element is normalized exclusively by calling normalize_segment with no re-checking of its own; any element normalizing to None makes the whole call return None. Rule merge-core (scope combine-legs, required): merge only adjacent legs sharing both mode and connection (first dest equals second origin), chain runs, preserve order, sum minutes and fare_cents. Standing rule merge-mode-scope-v1 (global, required): no feature ever merges legs across modes, here or in anything built later. Output is exactly {legs, leg_count, total_minutes, total_fare_cents}."
+  },
+  {
+    "path": "/private/rounds/1/oracle",
+    "old_sha256": "9ffa5e2ccac4b60b2ccee68c07735dff116955c47ceff493e89f0a1360f3df57",
+    "value": {
+      "effective_rules": [
+        {
+          "rule_id": "rule-dep-normalize-v1",
+          "scope": "price-quote",
+          "strength": "required",
+          "text": "price_segment must obtain validation and canonical field values by calling normalize_segment and must return None whenever the helper returns None; it must never duplicate the helper's checks.",
+          "source_ids": [
+            "u-01"
+          ]
+        },
+        {
+          "rule_id": "rule-round-half-up",
+          "scope": "global",
+          "strength": "required",
+          "text": "Every fractional-cent monetary result rounds to the nearest whole cent, and an exact half-cent always rounds up.",
+          "source_ids": [
+            "u-01"
+          ]
+        },
+        {
+          "rule_id": "rule-dep-normalize-v2",
+          "scope": "combine-legs",
+          "strength": "required",
+          "text": "combine_segments must normalize every element exclusively by calling normalize_segment, re-checking nothing itself; if any element normalizes to None, the whole call returns None.",
+          "source_ids": [
+            "u-02"
+          ]
+        },
+        {
+          "rule_id": "rule-merge-core",
+          "scope": "combine-legs",
+          "strength": "required",
+          "text": "combine_segments merges only adjacent legs that share both mode and connection (first dest equals second origin), chains runs of mergeable legs, preserves order, and sums minutes and fare_cents.",
+          "source_ids": [
+            "u-02"
+          ]
+        },
+        {
+          "rule_id": "rule-merge-mode-scope-v1",
+          "scope": "global",
+          "strength": "required",
+          "text": "No feature in this utility merges legs across modes, now or in anything built later.",
+          "source_ids": [
+            "u-02"
+          ]
+        }
+      ],
+      "inactive_rule_ids": []
+    }
+  },
+  {
+    "path": "/private/rounds/1/obligation_checks",
+    "old_sha256": "f8454175543216d9db6e2959ecb758e5b192c61205c54024710a1e6ced950a8c",
+    "value": [
+      {
+        "check_id": "chk-r1-obl-01",
+        "symbol": "combine_segments",
+        "input": [
+          {
+            "mode": "bus",
+            "origin": "atl",
+            "dest": "bhm",
+            "minutes": 30,
+            "fare_cents": 100
+          },
+          {
+            "mode": "walk",
+            "origin": "bhm",
+            "dest": "chl",
+            "minutes": 10,
+            "fare_cents": 0
+          }
+        ],
+        "expected_values": [
+          {
+            "legs": [
+              {
+                "mode": "bus",
+                "origin": "ATL",
+                "dest": "BHM",
+                "minutes": 30,
+                "fare_cents": 100
+              },
+              {
+                "mode": "walk",
+                "origin": "BHM",
+                "dest": "CHL",
+                "minutes": 10,
+                "fare_cents": 0
+              }
+            ],
+            "leg_count": 2,
+            "total_minutes": 40,
+            "total_fare_cents": 100
+          }
+        ],
+        "rule_ids": [
+          "rule-merge-mode-scope-v1",
+          "rule-merge-core"
+        ]
+      },
+      {
+        "check_id": "chk-r1-obl-02",
+        "symbol": "combine_segments",
+        "input": [
+          {
+            "mode": "bus",
+            "origin": "aus",
+            "dest": "dal",
+            "minutes": 10,
+            "fare_cents": 1
+          },
+          {
+            "mode": "rail",
+            "origin": "elp",
+            "dest": "ftw",
+            "minutes": 20,
+            "fare_cents": 2
+          },
+          {
+            "mode": "bus",
+            "origin": "dal",
+            "dest": "elp",
+            "minutes": 30,
+            "fare_cents": 3
+          }
+        ],
+        "expected_values": [
+          {
+            "legs": [
+              {
+                "mode": "bus",
+                "origin": "AUS",
+                "dest": "DAL",
+                "minutes": 10,
+                "fare_cents": 1
+              },
+              {
+                "mode": "rail",
+                "origin": "ELP",
+                "dest": "FTW",
+                "minutes": 20,
+                "fare_cents": 2
+              },
+              {
+                "mode": "bus",
+                "origin": "DAL",
+                "dest": "ELP",
+                "minutes": 30,
+                "fare_cents": 3
+              }
+            ],
+            "leg_count": 3,
+            "total_minutes": 60,
+            "total_fare_cents": 6
+          }
+        ],
+        "rule_ids": [
+          "rule-merge-core"
+        ]
+      },
+      {
+        "check_id": "chk-r1-obl-03",
+        "symbol": "combine_segments",
+        "input": [
+          {
+            "mode": "walk",
+            "origin": "pdx",
+            "dest": "sea",
+            "minutes": 15,
+            "fare_cents": 0
+          },
+          {
+            "mode": "bus",
+            "origin": "sea",
+            "dest": "sea",
+            "minutes": 5,
+            "fare_cents": 0
+          }
+        ],
+        "expected_values": [
+          null
+        ],
+        "rule_ids": [
+          "rule-dep-normalize-v2"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "/private/rounds/2/manual_recap",
+    "old_sha256": "e7ed30f05fcae990a73a15b915d7338d3ccb8cce4246065af25f67a933bf8d09",
+    "value": "Module route_segments.py. normalize_segment is the stable validation helper with unchanged semantics. price_segment and combine_segments were implemented in earlier rounds under contracts that remain binding; this round must preserve them (not redefine, weaken or re-verify): dep-normalize-v1 (scope price-quote), round-half-up (global), and dep-normalize-v2 plus merge-core (scope combine-legs — combine_segments normalizes only via the helper and merges only adjacent same-mode connected legs, chaining runs in order). The blanket no-cross-mode rule has been changed by the user: rule merge-mode-scope-v1 is retired; current rule merge-mode-scope-v2 (scope itinerary-summary, required) mandates cross-mode merging only inside build_itinerary, while combine_segments keeps its same-mode-only behavior. Current target build_itinerary(request): None unless request is a dict with exactly keys traveler (nonempty, non-whitespace string) and segments; that envelope validation is the only validation build_itinerary performs itself. Rule dep-normalize-v3 (scope itinerary-summary, required): segment validation comes solely from running combine_segments and later price_segment, with None propagating from either, and segment checks are never duplicated. build_itinerary then folds consecutive legs whenever a leg's origin equals the accumulated leg's dest, even across modes, keeping the earlier leg's mode and origin, taking the later dest, summing fare_cents, and summing minutes plus 7 transfer minutes when modes differ. Because folding keeps the earlier mode, a folded walk-mode leg carrying nonzero fare (for example a walk-then-rail chain whose rail fare lands on it) is rejected by the fixed helper when priced, so the whole call returns None rather than a priced quote. Quote each final leg via price_segment (None anywhere makes the whole result None) and output exactly {traveler, leg_count, legs, total_minutes, quote_cents}."
+  },
+  {
+    "path": "/private/rounds/2/oracle",
+    "old_sha256": "8c9629be338d35da2e3cffa530fdddec7f44581d1b33d05c5e835927a02258cd",
+    "value": {
+      "effective_rules": [
+        {
+          "rule_id": "rule-dep-normalize-v1",
+          "scope": "price-quote",
+          "strength": "required",
+          "text": "price_segment must obtain validation and canonical field values by calling normalize_segment and must return None whenever the helper returns None; it must never duplicate the helper's checks.",
+          "source_ids": [
+            "u-01"
+          ]
+        },
+        {
+          "rule_id": "rule-round-half-up",
+          "scope": "global",
+          "strength": "required",
+          "text": "Every fractional-cent monetary result rounds to the nearest whole cent, and an exact half-cent always rounds up.",
+          "source_ids": [
+            "u-01"
+          ]
+        },
+        {
+          "rule_id": "rule-dep-normalize-v2",
+          "scope": "combine-legs",
+          "strength": "required",
+          "text": "combine_segments must normalize every element exclusively by calling normalize_segment, re-checking nothing itself; if any element normalizes to None, the whole call returns None.",
+          "source_ids": [
+            "u-02"
+          ]
+        },
+        {
+          "rule_id": "rule-merge-core",
+          "scope": "combine-legs",
+          "strength": "required",
+          "text": "combine_segments merges only adjacent legs that share both mode and connection (first dest equals second origin), chains runs of mergeable legs, preserves order, and sums minutes and fare_cents.",
+          "source_ids": [
+            "u-02",
+            "u-03"
+          ]
+        },
+        {
+          "rule_id": "rule-dep-normalize-v3",
+          "scope": "itinerary-summary",
+          "strength": "required",
+          "text": "build_itinerary validates only the traveler/segments envelope itself; all segment validation is obtained solely through combine_segments and price_segment, None from either must propagate as None for the whole call, and segment checks must never be duplicated.",
+          "source_ids": [
+            "u-03"
+          ]
+        },
+        {
+          "rule_id": "rule-merge-mode-scope-v2",
+          "scope": "itinerary-summary",
+          "strength": "required",
+          "text": "Within build_itinerary only, consecutive legs whose destinations and origins connect must merge even across modes; the merged leg keeps the earlier leg's mode, sums fare_cents, and adds 7 transfer minutes when the merged legs have different modes; combine_segments retains its same-mode-only merging.",
+          "source_ids": [
+            "u-03",
+            "r-03"
+          ]
+        }
+      ],
+      "inactive_rule_ids": [
+        "rule-merge-mode-scope-v1"
+      ]
+    }
+  },
+  {
+    "path": "/private/rounds/2/obligation_checks",
+    "old_sha256": "4c8fbbce4af07d4f3f958a83f32b301c23695d498720e5e76511fe75257b33b7",
+    "value": [
+      {
+        "check_id": "chk-r2-obl-01",
+        "symbol": "build_itinerary",
+        "input": {
+          "traveler": "Gus",
+          "segments": [
+            {
+              "mode": "bus",
+              "origin": "aaa",
+              "dest": "bbb",
+              "minutes": 30,
+              "fare_cents": 100
+            },
+            {
+              "mode": "walk",
+              "origin": "bbb",
+              "dest": "ccc",
+              "minutes": 10,
+              "fare_cents": 0
+            }
+          ]
+        },
+        "expected_values": [
+          {
+            "traveler": "Gus",
+            "leg_count": 1,
+            "legs": [
+              {
+                "mode": "bus",
+                "origin": "AAA",
+                "dest": "CCC",
+                "minutes": 47,
+                "fare_cents": 100
+              }
+            ],
+            "total_minutes": 47,
+            "quote_cents": 804
+          }
+        ],
+        "rule_ids": [
+          "rule-merge-mode-scope-v2"
+        ]
+      },
+      {
+        "check_id": "chk-r2-obl-02",
+        "symbol": "build_itinerary",
+        "input": {
+          "traveler": "Hal",
+          "segments": [
+            {
+              "mode": "walk",
+              "origin": "aaa",
+              "dest": "bbb",
+              "minutes": 15,
+              "fare_cents": 0
+            },
+            {
+              "mode": "rail",
+              "origin": "bbb",
+              "dest": "ccc",
+              "minutes": 50,
+              "fare_cents": 300
+            }
+          ]
+        },
+        "expected_values": [
+          null
+        ],
+        "rule_ids": [
+          "rule-merge-mode-scope-v2"
+        ]
+      },
+      {
+        "check_id": "chk-r2-obl-03",
+        "symbol": "build_itinerary",
+        "input": {
+          "traveler": "Ivy",
+          "segments": [
+            {
+              "mode": "car",
+              "origin": "aaa",
+              "dest": "bbb",
+              "minutes": 9,
+              "fare_cents": 10
+            }
+          ]
+        },
+        "expected_values": [
+          null
+        ],
+        "rule_ids": [
+          "rule-dep-normalize-v3"
+        ]
+      },
+      {
+        "check_id": "chk-r2-obl-04",
+        "symbol": "build_itinerary",
+        "input": {
+          "traveler": "Kim",
+          "segments": [
+            {
+              "mode": "rail",
+              "origin": "mno",
+              "dest": "pqr",
+              "minutes": 50,
+              "fare_cents": 300
+            },
+            {
+              "mode": "walk",
+              "origin": "pqr",
+              "dest": "stu",
+              "minutes": 15,
+              "fare_cents": 0
+            }
+          ]
+        },
+        "expected_values": [
+          {
+            "traveler": "Kim",
+            "leg_count": 1,
+            "legs": [
+              {
+                "mode": "rail",
+                "origin": "MNO",
+                "dest": "STU",
+                "minutes": 72,
+                "fare_cents": 300
+              }
+            ],
+            "total_minutes": 72,
+            "quote_cents": 2178
+          }
+        ],
+        "rule_ids": [
+          "rule-merge-mode-scope-v2"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "/private/rounds/2/negative_controls",
+    "old_sha256": "59241c898f55f6da050187b358f815c3fff96f299a2adb1affa543320343a599",
+    "value": [
+      {
+        "control_id": "neg-r2-fun",
+        "kind": "functional",
+        "patch": "def build_itinerary(request):\n    if not isinstance(request, dict):\n        return None\n    if set(request.keys()) != {\"traveler\", \"segments\"}:\n        return None\n    traveler = request[\"traveler\"]\n    if not isinstance(traveler, str) or traveler.strip() == \"\":\n        return None\n    combined = combine_segments(request[\"segments\"])\n    if combined is None:\n        return None\n    legs = []\n    for leg in combined[\"legs\"]:\n        if legs:\n            last = legs[-1]\n            penalty = 0\n            if last[\"mode\"] != leg[\"mode\"]:\n                penalty = 7\n            legs[-1] = {\n                \"mode\": last[\"mode\"],\n                \"origin\": last[\"origin\"],\n                \"dest\": leg[\"dest\"],\n                \"minutes\": last[\"minutes\"] + leg[\"minutes\"] + penalty,\n                \"fare_cents\": last[\"fare_cents\"] + leg[\"fare_cents\"],\n            }\n            continue\n        legs.append(leg)\n    total_minutes = 0\n    quote_cents = 0\n    for leg in legs:\n        quote = price_segment(leg)\n        if quote is None:\n            return None\n        quote_cents = quote_cents + quote[\"quote_cents\"]\n        total_minutes = total_minutes + leg[\"minutes\"]\n    return {\n        \"traveler\": traveler,\n        \"leg_count\": len(legs),\n        \"legs\": legs,\n        \"total_minutes\": total_minutes,\n        \"quote_cents\": quote_cents,\n    }\n",
+        "expected_failing_check_ids": [
+          "chk-r2-fun-04"
+        ]
+      },
+      {
+        "control_id": "neg-r2-obl",
+        "kind": "obligation",
+        "patch": "def build_itinerary(request):\n    if not isinstance(request, dict):\n        return None\n    if set(request.keys()) != {\"traveler\", \"segments\"}:\n        return None\n    traveler = request[\"traveler\"]\n    if not isinstance(traveler, str) or traveler.strip() == \"\":\n        return None\n    combined = combine_segments(request[\"segments\"])\n    if combined is None:\n        return None\n    legs = []\n    for leg in combined[\"legs\"]:\n        if legs:\n            last = legs[-1]\n            if last[\"dest\"] == leg[\"origin\"]:\n                legs[-1] = {\n                    \"mode\": last[\"mode\"],\n                    \"origin\": last[\"origin\"],\n                    \"dest\": leg[\"dest\"],\n                    \"minutes\": last[\"minutes\"] + leg[\"minutes\"],\n                    \"fare_cents\": last[\"fare_cents\"] + leg[\"fare_cents\"],\n                }\n                continue\n        legs.append(leg)\n    total_minutes = 0\n    quote_cents = 0\n    for leg in legs:\n        quote = price_segment(leg)\n        if quote is None:\n            return None\n        quote_cents = quote_cents + quote[\"quote_cents\"]\n        total_minutes = total_minutes + leg[\"minutes\"]\n    return {\n        \"traveler\": traveler,\n        \"leg_count\": len(legs),\n        \"legs\": legs,\n        \"total_minutes\": total_minutes,\n        \"quote_cents\": quote_cents,\n    }\n",
+        "expected_failing_check_ids": [
+          "chk-r2-obl-01",
+          "chk-r2-obl-04"
+        ]
+      }
+    ]
+  }
+]

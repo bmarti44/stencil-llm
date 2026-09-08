@@ -1,0 +1,859 @@
+[
+  {
+    "path": "/public/rounds/0/public_checks",
+    "old_sha256": "5e2fa645ad384d368ec94a4a8874651f6f2b56c4c107879eeb9aab2f5a41b3a4",
+    "value": [
+      {
+        "check_id": "P0-01",
+        "symbol": "summarize_movements",
+        "input": [
+          {
+            "item": "screw",
+            "qty": 5,
+            "kind": "in"
+          },
+          {
+            "item": "screw",
+            "qty": 2,
+            "kind": "out"
+          },
+          {
+            "item": "bolt",
+            "qty": 4,
+            "kind": "in"
+          }
+        ],
+        "expected_values": [
+          {
+            "ok": true,
+            "items": {
+              "bolt": {
+                "in": 4,
+                "out": 0,
+                "net": 4
+              },
+              "screw": {
+                "in": 5,
+                "out": 2,
+                "net": 3
+              }
+            },
+            "total_in": 9,
+            "total_out": 2,
+            "count": 3
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "P0-02",
+        "symbol": "summarize_movements",
+        "input": [],
+        "expected_values": [
+          {
+            "ok": true,
+            "items": {},
+            "total_in": 0,
+            "total_out": 0,
+            "count": 0
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "P0-03",
+        "symbol": "summarize_movements",
+        "input": [
+          {
+            "item": "gear",
+            "qty": 3,
+            "kind": "in"
+          },
+          {
+            "item": "gear",
+            "qty": 1,
+            "kind": "in"
+          },
+          {
+            "item": "pin",
+            "qty": 2,
+            "kind": "out"
+          }
+        ],
+        "expected_values": [
+          {
+            "ok": true,
+            "items": {
+              "gear": {
+                "in": 4,
+                "out": 0,
+                "net": 4
+              },
+              "pin": {
+                "in": 0,
+                "out": 2,
+                "net": -2
+              }
+            },
+            "total_in": 4,
+            "total_out": 2,
+            "count": 3
+          }
+        ],
+        "rule_ids": []
+      }
+    ]
+  },
+  {
+    "path": "/public/rounds/1/public_checks",
+    "old_sha256": "195388931301c32fe51057ecba4a4f4702afb80f1402db469b6225022ea14cf7",
+    "value": [
+      {
+        "check_id": "P1-01",
+        "symbol": "reconcile_stock",
+        "input": {
+          "opening": {
+            "screw": 10
+          },
+          "movements": [
+            {
+              "item": "screw",
+              "qty": 3,
+              "kind": "out"
+            },
+            {
+              "item": "screw",
+              "qty": 5,
+              "kind": "in"
+            }
+          ]
+        },
+        "expected_values": [
+          {
+            "ok": true,
+            "closing": {
+              "screw": 12
+            },
+            "total_in": 5,
+            "total_out": 3
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "P1-02",
+        "symbol": "reconcile_stock",
+        "input": {
+          "opening": {},
+          "movements": []
+        },
+        "expected_values": [
+          {
+            "ok": true,
+            "closing": {},
+            "total_in": 0,
+            "total_out": 0
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "P1-03",
+        "symbol": "reconcile_stock",
+        "input": {
+          "opening": {
+            "nut": 4
+          },
+          "allow_backorder": [
+            "bolt"
+          ],
+          "movements": [
+            {
+              "item": "nut",
+              "qty": 1,
+              "kind": "out"
+            },
+            {
+              "item": "gear",
+              "qty": 6,
+              "kind": "in"
+            }
+          ]
+        },
+        "expected_values": [
+          {
+            "ok": true,
+            "closing": {
+              "gear": 6,
+              "nut": 3
+            },
+            "total_in": 6,
+            "total_out": 1
+          }
+        ],
+        "rule_ids": []
+      }
+    ]
+  },
+  {
+    "path": "/public/rounds/2/public_checks",
+    "old_sha256": "a5f9fbe182d6fdb1e04807946236588d6d1a2c74b9a016e0cca1038f867a78ea",
+    "value": [
+      {
+        "check_id": "P2-01",
+        "symbol": "audit_inventory",
+        "input": {
+          "opening": {
+            "screw": 8
+          },
+          "movements": [
+            {
+              "item": "screw",
+              "qty": 2,
+              "kind": "out"
+            }
+          ]
+        },
+        "expected_values": [
+          {
+            "ok": true,
+            "closing": {
+              "screw": 6
+            },
+            "shortages": [],
+            "shortage_count": 0,
+            "status": "clear",
+            "total_in": 0,
+            "total_out": 2
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "P2-02",
+        "symbol": "audit_inventory",
+        "input": {
+          "opening": {
+            "a": 3,
+            "b": 1
+          },
+          "movements": [
+            {
+              "item": "a",
+              "qty": 3,
+              "kind": "out"
+            },
+            {
+              "item": "b",
+              "qty": 4,
+              "kind": "in"
+            }
+          ]
+        },
+        "expected_values": [
+          {
+            "ok": true,
+            "closing": {
+              "a": 0,
+              "b": 5
+            },
+            "shortages": [],
+            "shortage_count": 0,
+            "status": "clear",
+            "total_in": 4,
+            "total_out": 3
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "P2-03",
+        "symbol": "audit_inventory",
+        "input": {
+          "opening": {
+            "bolt": 5,
+            "nut": 2
+          },
+          "movements": [
+            {
+              "item": "bolt",
+              "qty": 2,
+              "kind": "in"
+            },
+            {
+              "item": "nut",
+              "qty": 2,
+              "kind": "out"
+            },
+            {
+              "item": "nut",
+              "qty": 3,
+              "kind": "in"
+            }
+          ]
+        },
+        "expected_values": [
+          {
+            "ok": true,
+            "closing": {
+              "bolt": 7,
+              "nut": 3
+            },
+            "shortages": [],
+            "shortage_count": 0,
+            "status": "clear",
+            "total_in": 5,
+            "total_out": 2
+          }
+        ],
+        "rule_ids": []
+      }
+    ]
+  },
+  {
+    "path": "/public/rounds/1/source_messages/2/text",
+    "old_sha256": "6571cc14f0a9959d26b0b9b57ed73816656a674783669ea3c2197827f87826b8",
+    "value": "A negative closing balance is rejected unless the item is listed in allow_backorder. If several items violate, name the alphabetically first one together with its balance. Reuse the batch summarizer for movement validation and per-item nets instead of duplicating that logic. One settled directive for later work: an audit feature will be built on top of this, and its policy is already decided - the audit must reject every negative closing balance outright, ignoring any allow_backorder list. That audit directive is scoped to the future audit feature only; reconcile_stock itself keeps the backorder exemption described above."
+  },
+  {
+    "path": "/public/rounds/1/request/text",
+    "old_sha256": "2cc14edcc3a7b2637d3ba7624febbe43fc2e8e0e5ba273ffbb5f7c842a4a6cf2",
+    "value": "Implement reconcile_stock(payload). Exactly: payload must be an object whose only allowed fields are opening, movements and the optional allow_backorder; a non-object payload, a missing opening or movements, or any extra field returns {\"ok\": false, \"error\": \"payload must contain opening, movements and optional allow_backorder only\"}. opening must map nonblank item names (each a string containing at least one non-whitespace character) to nonnegative integers (true/false are not integers), otherwise return {\"ok\": false, \"error\": \"opening must map item names to nonnegative integers\"}. If present, allow_backorder must be a list of nonblank item-name strings (each containing at least one non-whitespace character), otherwise return {\"ok\": false, \"error\": \"allow_backorder must be a list of item names\"}. Then obtain movement validation and per-item nets by calling summarize_movements(payload[\"movements\"]); if that result is not ok, return it unchanged. Compute closing = opening balance plus the item's net, items that only move start from 0, opening-only items keep their balance. If any item not listed in allow_backorder closes below zero, return {\"ok\": false, \"error\": \"negative closing balance\", \"item\": <alphabetically first such item>, \"balance\": <its closing value>}. Otherwise return {\"ok\": true, \"closing\": {<item>: <closing balance> for every opening or moved item}, \"total_in\": <from the summary>, \"total_out\": <from the summary>}."
+  },
+  {
+    "path": "/public/rounds/2/source_messages/0/text",
+    "old_sha256": "04a1ccb0fc13f5780f2f72d470cf356c3fb3c1c6fdf0d141f3f6fc6823b59515",
+    "value": "About the audit directive I settled earlier - that the audit must reject every negative closing outright, ignoring allow_backorder: scrap it. The audit must follow the same backorder policy as reconciliation - items listed in allow_backorder may close negative and are then reported as shortages, while any other negative closing balance is still rejected."
+  },
+  {
+    "path": "/public/rounds/2/request/text",
+    "old_sha256": "30c5fd1b46180ad076adfcf5412faaeac03707af024f12ae9353543b4190bfd3",
+    "value": "Implement audit_inventory(payload). The payload shape and the negative-balance policy are exactly the current reconcile_stock contract, including the optional allow_backorder list; the earlier audit directive that the audit rejects every negative closing is withdrawn. audit_inventory must call reconcile_stock(payload) and, when that result is not ok, return it unchanged. When reconciliation succeeds, let shortages be the alphabetically sorted list of items whose closing balance is below zero, shortage_count its length, and status the string \"clear\" when there are no shortages else \"shortage\". Return {\"ok\": true, \"closing\": <the same closing object>, \"shortages\": [...], \"shortage_count\": <n>, \"status\": <\"clear\" or \"shortage\">, \"total_in\": <from the reconciliation result>, \"total_out\": <from the reconciliation result>}. Do not recompute movement totals yourself; take them from the reconciliation result."
+  },
+  {
+    "path": "/private/rounds/0/manual_recap",
+    "old_sha256": "3d5d83b568041cd9aeb3801762f32de46747558a29e696842949a85352cde88a",
+    "value": "parse_movement is a fixed, already-implemented helper and is reused rather than revalidated by hand: an entry must be an object with exactly the fields item, qty and kind; item must be a string containing at least one non-whitespace character; qty a positive integer (true/false are not integers); kind exactly 'in' or 'out'; it returns {\"ok\": true, \"movement\": {...}} or the first matching rejection among fields, item, qty, kind with the fixed error texts. The current target summarize_movements carries this required contract: a non-list batch returns {\"ok\": false, \"error\": \"batch must be a list\"}; every entry is validated with parse_movement and the first invalid entry rejects the whole batch with {\"ok\": false, \"error\": \"invalid movement at index N: <parse error>\"} using the zero-based index; valid batches merge repeated items and return per-item in/out totals with net = in minus out plus overall total_in, total_out and entry count; an empty batch returns ok with empty items and zeros. reconcile_stock and audit_inventory remain unimplemented stubs. Implementation style (loops, comprehensions, key iteration order) is free as long as the exact outputs are produced. This recap states required contracts and the current target only; it does not assert that any generated implementation already satisfies them."
+  },
+  {
+    "path": "/private/rounds/0/oracle",
+    "old_sha256": "b7a20be49b8dcc3484a0023cdd933eb41086ae8005ee4c2307c2797947433990",
+    "value": {
+      "effective_rules": [
+        {
+          "rule_id": "R-SUM-AGG",
+          "scope": "summarize-batch",
+          "strength": "required",
+          "text": "summarize_movements must merge every valid movement per item into in/out totals with net = in - out and report total_in, total_out and the entry count; an empty batch returns ok with empty items and zeros.",
+          "source_ids": [
+            "msg-003",
+            "msg-004"
+          ]
+        },
+        {
+          "rule_id": "R-SUM-INDEX",
+          "scope": "summarize-batch",
+          "strength": "required",
+          "text": "A non-list batch is rejected with 'batch must be a list'; the first entry failing parse_movement rejects the whole batch with 'invalid movement at index N: <parse error>' including the zero-based index and the helper's reason.",
+          "source_ids": [
+            "msg-003",
+            "msg-004"
+          ]
+        }
+      ],
+      "inactive_rule_ids": []
+    }
+  },
+  {
+    "path": "/private/rounds/1/manual_recap",
+    "old_sha256": "3624299db56de00133441ddc6e019add7cdec643ac919e8a0fb64700a67c2e19",
+    "value": "parse_movement is fixed and summarize_movements keeps its required contract exactly as established (merge per item, net = in - out, overall total_in/total_out and count; non-list rejection and zero-based indexed helper-error rejection); these remain standing obligations, and nothing here assumes earlier generated code already satisfies them. The current target reconcile_stock carries this required contract: payload must be an object with only opening, movements and the optional allow_backorder, else {\"ok\": false, \"error\": \"payload must contain opening, movements and optional allow_backorder only\"}; opening must map nonblank item names (each containing at least one non-whitespace character) to nonnegative integers (booleans excluded), else {\"ok\": false, \"error\": \"opening must map item names to nonnegative integers\"}; allow_backorder when present must be a list of nonblank item-name strings, else {\"ok\": false, \"error\": \"allow_backorder must be a list of item names\"}. Movement validation and per-item nets must come from calling summarize_movements(payload[\"movements\"]), and a non-ok summary is returned unchanged. Closing = opening plus net per item, movement-only items start at 0, opening-only items keep their balance. Any closing below zero for an item not in allow_backorder is rejected with {\"ok\": false, \"error\": \"negative closing balance\", \"item\": <alphabetically first violator>, \"balance\": <its closing>}; success returns closing, total_in and total_out from the summary. A settled prospective directive is also active for the later audit feature: the audit must reject every negative closing outright, ignoring allow_backorder; it is scoped to the audit task only and does not constrain reconcile_stock. audit_inventory remains an unimplemented stub. Style is free within the one function edit."
+  },
+  {
+    "path": "/private/rounds/1/oracle",
+    "old_sha256": "75c332760bfa49931ad01a03f670119b27533d0cf5878476fc83b7db3528062c",
+    "value": {
+      "effective_rules": [
+        {
+          "rule_id": "R-SUM-AGG",
+          "scope": "summarize-batch",
+          "strength": "required",
+          "text": "summarize_movements must merge every valid movement per item into in/out totals with net = in - out and report total_in, total_out and the entry count; an empty batch returns ok with empty items and zeros.",
+          "source_ids": [
+            "msg-003",
+            "msg-004"
+          ]
+        },
+        {
+          "rule_id": "R-SUM-INDEX",
+          "scope": "summarize-batch",
+          "strength": "required",
+          "text": "A non-list batch is rejected with 'batch must be a list'; the first entry failing parse_movement rejects the whole batch with 'invalid movement at index N: <parse error>' including the zero-based index and the helper's reason.",
+          "source_ids": [
+            "msg-003",
+            "msg-004"
+          ]
+        },
+        {
+          "rule_id": "R-REC-CLOSING",
+          "scope": "reconcile-stock",
+          "strength": "required",
+          "text": "Closing balance is opening plus the item's net movement; movement-only items start from 0 and opening-only items keep their balance.",
+          "source_ids": [
+            "msg-005",
+            "msg-008"
+          ]
+        },
+        {
+          "rule_id": "R-REC-NEG",
+          "scope": "reconcile-stock",
+          "strength": "required",
+          "text": "A closing below zero is rejected unless the item is listed in allow_backorder; rejection returns error 'negative closing balance' with the alphabetically first violating item and its balance. allow_backorder must be a list of nonblank item-name strings, each containing at least one non-whitespace character.",
+          "source_ids": [
+            "msg-005",
+            "msg-007",
+            "msg-008"
+          ]
+        },
+        {
+          "rule_id": "R-REC-DEP",
+          "scope": "reconcile-stock",
+          "strength": "required",
+          "text": "reconcile_stock must obtain movement validation and per-item nets by calling summarize_movements and must return its failure result unchanged.",
+          "source_ids": [
+            "msg-007",
+            "msg-008"
+          ]
+        },
+        {
+          "rule_id": "R-AUDIT-PLAN",
+          "scope": "audit-inventory",
+          "strength": "required",
+          "text": "Settled prospective directive for the later audit feature: the audit must reject every negative closing balance outright, ignoring any allow_backorder list. This directive is scoped to the future audit task only and does not constrain reconcile_stock.",
+          "source_ids": [
+            "msg-007"
+          ]
+        }
+      ],
+      "inactive_rule_ids": []
+    }
+  },
+  {
+    "path": "/private/rounds/2/manual_recap",
+    "old_sha256": "cf22d0c0f7c4e82a0f0e181de21d0f290a0a31f90bb2ccc50e05002ab5665fc0",
+    "value": "parse_movement, summarize_movements and reconcile_stock carry their required contracts exactly as established, including the reconciliation backorder policy: a closing below zero is rejected with error 'negative closing balance', the alphabetically first violator and its balance, unless the item is in allow_backorder; opening and allow_backorder names must be nonblank. These remain standing obligations, and nothing here assumes earlier generated code already satisfies them. The current target audit_inventory operates under a genuinely changed rule: the user's earlier binding directive that the audit reject every negative closing outright is withdrawn; the audit now follows the same backorder policy as reconciliation, so allow_backorder items may close negative and are then reported as shortages. audit_inventory must call reconcile_stock with the caller's payload and return a non-ok result unchanged (including error, item and balance fields). On success it returns the same closing object, shortages (the alphabetically sorted items closing below zero), shortage_count, status 'clear' when there are no shortages else 'shortage', and total_in/total_out taken from the reconciliation result rather than recomputed. Style is free within the single function; no other function may be modified."
+  },
+  {
+    "path": "/private/rounds/2/oracle",
+    "old_sha256": "df3a98073eda3c32b0750a5d4c1bca2c7289e4ec311b45f8f7d755e520b17df9",
+    "value": {
+      "effective_rules": [
+        {
+          "rule_id": "R-SUM-AGG",
+          "scope": "summarize-batch",
+          "strength": "required",
+          "text": "summarize_movements must merge every valid movement per item into in/out totals with net = in - out and report total_in, total_out and the entry count; an empty batch returns ok with empty items and zeros.",
+          "source_ids": [
+            "msg-003",
+            "msg-004"
+          ]
+        },
+        {
+          "rule_id": "R-SUM-INDEX",
+          "scope": "summarize-batch",
+          "strength": "required",
+          "text": "A non-list batch is rejected with 'batch must be a list'; the first entry failing parse_movement rejects the whole batch with 'invalid movement at index N: <parse error>' including the zero-based index and the helper's reason.",
+          "source_ids": [
+            "msg-003",
+            "msg-004"
+          ]
+        },
+        {
+          "rule_id": "R-REC-CLOSING",
+          "scope": "reconcile-stock",
+          "strength": "required",
+          "text": "Closing balance is opening plus the item's net movement; movement-only items start from 0 and opening-only items keep their balance.",
+          "source_ids": [
+            "msg-005",
+            "msg-008"
+          ]
+        },
+        {
+          "rule_id": "R-REC-NEG",
+          "scope": "reconcile-stock",
+          "strength": "required",
+          "text": "A closing below zero is rejected unless the item is listed in allow_backorder; rejection returns error 'negative closing balance' with the alphabetically first violating item and its balance. allow_backorder must be a list of nonblank item-name strings, each containing at least one non-whitespace character.",
+          "source_ids": [
+            "msg-005",
+            "msg-007",
+            "msg-008"
+          ]
+        },
+        {
+          "rule_id": "R-REC-DEP",
+          "scope": "reconcile-stock",
+          "strength": "required",
+          "text": "reconcile_stock must obtain movement validation and per-item nets by calling summarize_movements and must return its failure result unchanged.",
+          "source_ids": [
+            "msg-007",
+            "msg-008"
+          ]
+        },
+        {
+          "rule_id": "R-AUD-BACKORDER",
+          "scope": "audit-inventory",
+          "strength": "required",
+          "text": "The audit follows the reconciliation backorder policy: allow_backorder items may close negative and become reported shortages; any other negative closing balance remains rejected. This supersedes the withdrawn reject-all audit directive.",
+          "source_ids": [
+            "msg-009",
+            "msg-012"
+          ]
+        },
+        {
+          "rule_id": "R-AUD-DEP",
+          "scope": "audit-inventory",
+          "strength": "required",
+          "text": "audit_inventory must call reconcile_stock with the caller's payload and must return a non-ok reconciliation result unchanged.",
+          "source_ids": [
+            "msg-011",
+            "msg-012"
+          ]
+        },
+        {
+          "rule_id": "R-AUD-REPORT",
+          "scope": "audit-inventory",
+          "strength": "required",
+          "text": "A successful audit returns the same closing object, shortages as the alphabetically sorted items below zero, shortage_count, status 'clear' or 'shortage', and total_in/total_out taken from the reconciliation result.",
+          "source_ids": [
+            "msg-012"
+          ]
+        }
+      ],
+      "inactive_rule_ids": [
+        "R-AUDIT-PLAN"
+      ]
+    }
+  },
+  {
+    "path": "/private/rounds/1/functional_checks",
+    "old_sha256": "ef4f399d5e93b01cfeb027bdb0ad46d5779b64ec6add4a9951f0e73480243636",
+    "value": [
+      {
+        "check_id": "F1-01",
+        "symbol": "reconcile_stock",
+        "input": {
+          "opening": {
+            "w": 4,
+            "s": 3
+          },
+          "movements": [
+            {
+              "item": "w",
+              "qty": 6,
+              "kind": "in"
+            },
+            {
+              "item": "s",
+              "qty": 3,
+              "kind": "out"
+            },
+            {
+              "item": "n",
+              "qty": 2,
+              "kind": "in"
+            }
+          ]
+        },
+        "expected_values": [
+          {
+            "ok": true,
+            "closing": {
+              "n": 2,
+              "s": 0,
+              "w": 10
+            },
+            "total_in": 8,
+            "total_out": 3
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "F1-02",
+        "symbol": "reconcile_stock",
+        "input": {
+          "opening": {},
+          "movements": [
+            {
+              "item": "z",
+              "qty": 2,
+              "kind": "out"
+            },
+            {
+              "item": "z",
+              "qty": 5,
+              "kind": "in"
+            }
+          ]
+        },
+        "expected_values": [
+          {
+            "ok": true,
+            "closing": {
+              "z": 3
+            },
+            "total_in": 5,
+            "total_out": 2
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "F1-03",
+        "symbol": "reconcile_stock",
+        "input": {
+          "opening": {
+            "k": 5
+          },
+          "allow_backorder": [
+            "m"
+          ],
+          "movements": [
+            {
+              "item": "k",
+              "qty": 1,
+              "kind": "out"
+            }
+          ]
+        },
+        "expected_values": [
+          {
+            "ok": true,
+            "closing": {
+              "k": 4
+            },
+            "total_in": 0,
+            "total_out": 1
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "F1-04",
+        "symbol": "reconcile_stock",
+        "input": {
+          "opening": {
+            "p": 1
+          },
+          "allow_backorder": "p",
+          "movements": []
+        },
+        "expected_values": [
+          {
+            "ok": false,
+            "error": "allow_backorder must be a list of item names"
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "F1-05",
+        "symbol": "reconcile_stock",
+        "input": {
+          "opening": {
+            "   ": 3
+          },
+          "movements": []
+        },
+        "expected_values": [
+          {
+            "ok": false,
+            "error": "opening must map item names to nonnegative integers"
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "F1-06",
+        "symbol": "reconcile_stock",
+        "input": {
+          "opening": {},
+          "allow_backorder": [
+            "  "
+          ],
+          "movements": []
+        },
+        "expected_values": [
+          {
+            "ok": false,
+            "error": "allow_backorder must be a list of item names"
+          }
+        ],
+        "rule_ids": []
+      }
+    ]
+  },
+  {
+    "path": "/private/rounds/2/functional_checks",
+    "old_sha256": "0b91389401fa136eef3ddfd118a72955494f872fb6b7d862f0b97e757e8f138a",
+    "value": [
+      {
+        "check_id": "F2-01",
+        "symbol": "audit_inventory",
+        "input": {
+          "opening": {
+            "m": 5
+          },
+          "movements": [
+            {
+              "item": "m",
+              "qty": 5,
+              "kind": "out"
+            }
+          ]
+        },
+        "expected_values": [
+          {
+            "ok": true,
+            "closing": {
+              "m": 0
+            },
+            "shortages": [],
+            "shortage_count": 0,
+            "status": "clear",
+            "total_in": 0,
+            "total_out": 5
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "F2-02",
+        "symbol": "audit_inventory",
+        "input": {
+          "opening": {},
+          "movements": []
+        },
+        "expected_values": [
+          {
+            "ok": true,
+            "closing": {},
+            "shortages": [],
+            "shortage_count": 0,
+            "status": "clear",
+            "total_in": 0,
+            "total_out": 0
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "F2-03",
+        "symbol": "audit_inventory",
+        "input": {
+          "opening": {
+            "t": 2
+          },
+          "movements": [
+            {
+              "item": "t",
+              "qty": 3,
+              "kind": "in"
+            },
+            {
+              "item": "t",
+              "qty": 1,
+              "kind": "out"
+            }
+          ]
+        },
+        "expected_values": [
+          {
+            "ok": true,
+            "closing": {
+              "t": 4
+            },
+            "shortages": [],
+            "shortage_count": 0,
+            "status": "clear",
+            "total_in": 3,
+            "total_out": 1
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "F2-04",
+        "symbol": "audit_inventory",
+        "input": "not-a-payload",
+        "expected_values": [
+          {
+            "ok": false,
+            "error": "payload must contain opening, movements and optional allow_backorder only"
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "F2-05",
+        "symbol": "audit_inventory",
+        "input": {
+          "opening": {
+            "w": 1
+          }
+        },
+        "expected_values": [
+          {
+            "ok": false,
+            "error": "payload must contain opening, movements and optional allow_backorder only"
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "F2-06",
+        "symbol": "audit_inventory",
+        "input": {
+          "opening": {},
+          "movements": [],
+          "verbose": true
+        },
+        "expected_values": [
+          {
+            "ok": false,
+            "error": "payload must contain opening, movements and optional allow_backorder only"
+          }
+        ],
+        "rule_ids": []
+      }
+    ]
+  },
+  {
+    "path": "/private/rounds/2/negative_controls",
+    "old_sha256": "e927afa60b7e1f14768da620e22f180659c149bde2f7df773322bf1c0aa3785b",
+    "value": [
+      {
+        "control_id": "NC2-F",
+        "kind": "functional",
+        "patch": "def audit_inventory(payload):\n    result = reconcile_stock(payload)\n    if not result[\"ok\"]:\n        return result\n    closing = result[\"closing\"]\n    shortages = []\n    for name in closing:\n        if closing[name] < 0:\n            shortages.append(name)\n    shortages = sorted(shortages)\n    status = \"clear\"\n    if shortages:\n        status = \"shortage\"\n    return {\"ok\": True, \"closing\": closing, \"shortages\": shortages, \"shortage_count\": len(shortages), \"status\": status, \"total_in\": result[\"total_out\"], \"total_out\": result[\"total_in\"]}",
+        "expected_failing_check_ids": [
+          "F2-01",
+          "F2-03",
+          "O2-01",
+          "O2-02",
+          "O2-04"
+        ]
+      },
+      {
+        "control_id": "NC2-O",
+        "kind": "obligation",
+        "patch": "def audit_inventory(payload):\n    result = reconcile_stock(payload)\n    if not result[\"ok\"]:\n        return result\n    closing = result[\"closing\"]\n    violators = []\n    for name in closing:\n        if closing[name] < 0:\n            violators.append(name)\n    if violators:\n        first = sorted(violators)[0]\n        return {\"ok\": False, \"error\": \"negative closing balance\", \"item\": first, \"balance\": closing[first]}\n    shortages = []\n    for name in closing:\n        if closing[name] < 0:\n            shortages.append(name)\n    shortages = sorted(shortages)\n    status = \"clear\"\n    if shortages:\n        status = \"shortage\"\n    return {\"ok\": True, \"closing\": closing, \"shortages\": shortages, \"shortage_count\": len(shortages), \"status\": status, \"total_in\": result[\"total_in\"], \"total_out\": result[\"total_out\"]}",
+        "expected_failing_check_ids": [
+          "O2-01",
+          "O2-02",
+          "O2-04"
+        ]
+      }
+    ]
+  }
+]

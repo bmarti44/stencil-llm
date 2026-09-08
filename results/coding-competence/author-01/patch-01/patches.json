@@ -1,0 +1,423 @@
+[
+  {
+    "path": "/public/rounds/0/public_checks",
+    "old_sha256": "c71166d946883d940022c32b5744d637150fda8aa49a82944e7d71e398764bf1",
+    "value": [
+      {
+        "check_id": "kdl-r0-pub-1",
+        "symbol": "normalize_batch",
+        "input": {
+          "samples": [
+            {
+              "id": "S1",
+              "conc": 2,
+              "vol": 3
+            },
+            {
+              "id": "S2",
+              "conc": 1.5,
+              "vol": 4
+            }
+          ],
+          "dilution": 2
+        },
+        "expected_values": [
+          {
+            "samples": [
+              {
+                "id": "S1",
+                "adj_conc": 4.0,
+                "mass": 12.0,
+                "flag": false,
+                "group": "unassigned"
+              },
+              {
+                "id": "S2",
+                "adj_conc": 3.0,
+                "mass": 12.0,
+                "flag": false,
+                "group": "unassigned"
+              }
+            ],
+            "total_mass": 24.0
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "kdl-r0-pub-2",
+        "symbol": "normalize_batch",
+        "input": {
+          "samples": [
+            {
+              "id": "N1",
+              "conc": 3,
+              "vol": 2,
+              "group": "ga"
+            },
+            {
+              "id": "N2",
+              "conc": 2.5,
+              "vol": 2,
+              "group": "gb",
+              "flag": true
+            }
+          ],
+          "dilution": 4
+        },
+        "expected_values": [
+          {
+            "samples": [
+              {
+                "id": "N1",
+                "adj_conc": 12.0,
+                "mass": 24.0,
+                "flag": false,
+                "group": "ga"
+              },
+              {
+                "id": "N2",
+                "adj_conc": 10.0,
+                "mass": 20.0,
+                "flag": true,
+                "group": "gb"
+              }
+            ],
+            "total_mass": 44.0
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "kdl-r0-pub-3",
+        "symbol": "normalize_batch",
+        "input": {
+          "samples": [
+            {
+              "id": "U1",
+              "conc": 1.5,
+              "vol": 2,
+              "group": "u"
+            },
+            {
+              "id": "U2",
+              "conc": 4,
+              "vol": 0.5,
+              "group": "u"
+            }
+          ],
+          "dilution": 2
+        },
+        "expected_values": [
+          {
+            "samples": [
+              {
+                "id": "U1",
+                "adj_conc": 3.0,
+                "mass": 6.0,
+                "flag": false,
+                "group": "u"
+              },
+              {
+                "id": "U2",
+                "adj_conc": 8.0,
+                "mass": 4.0,
+                "flag": false,
+                "group": "u"
+              }
+            ],
+            "total_mass": 10.0
+          }
+        ],
+        "rule_ids": []
+      }
+    ]
+  },
+  {
+    "path": "/public/rounds/1/public_checks",
+    "old_sha256": "3db52ea08d8535ee21e6488e0cbab83d20d8167fc0a7c72a9f7596019d014295",
+    "value": [
+      {
+        "check_id": "kdl-r1-pub-1",
+        "symbol": "aggregate_run",
+        "input": {
+          "samples": [
+            {
+              "id": "R1",
+              "conc": 2,
+              "vol": 3,
+              "group": "alpha"
+            },
+            {
+              "id": "R2",
+              "conc": 4,
+              "vol": 1,
+              "group": "beta"
+            },
+            {
+              "id": "R3",
+              "conc": 6,
+              "vol": 2,
+              "group": "beta"
+            }
+          ],
+          "dilution": 1
+        },
+        "expected_values": [
+          {
+            "groups": [
+              {
+                "group": "alpha",
+                "count": 1,
+                "total_mass": 6.0,
+                "mean_conc": 2.0
+              },
+              {
+                "group": "beta",
+                "count": 2,
+                "total_mass": 16.0,
+                "mean_conc": 5.0
+              }
+            ],
+            "count": 3
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "kdl-r1-pub-2",
+        "symbol": "aggregate_run",
+        "input": {
+          "samples": [
+            {
+              "id": "P1",
+              "conc": 3,
+              "vol": 2,
+              "group": "a"
+            },
+            {
+              "id": "P2",
+              "conc": 1,
+              "vol": 4,
+              "group": "b"
+            }
+          ],
+          "dilution": 2,
+          "include_flagged": false
+        },
+        "expected_values": [
+          {
+            "groups": [
+              {
+                "group": "a",
+                "count": 1,
+                "total_mass": 12.0,
+                "mean_conc": 6.0
+              },
+              {
+                "group": "b",
+                "count": 1,
+                "total_mass": 8.0,
+                "mean_conc": 2.0
+              }
+            ],
+            "count": 2
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "kdl-r1-pub-3",
+        "symbol": "aggregate_run",
+        "input": {
+          "samples": [
+            {
+              "id": "E1",
+              "conc": 8,
+              "vol": 1,
+              "group": "east"
+            },
+            {
+              "id": "E2",
+              "conc": 2,
+              "vol": 2,
+              "group": "west"
+            },
+            {
+              "id": "E3",
+              "conc": 4,
+              "vol": 1,
+              "group": "west"
+            }
+          ],
+          "dilution": 0.5
+        },
+        "expected_values": [
+          {
+            "groups": [
+              {
+                "group": "east",
+                "count": 1,
+                "total_mass": 4.0,
+                "mean_conc": 4.0
+              },
+              {
+                "group": "west",
+                "count": 2,
+                "total_mass": 4.0,
+                "mean_conc": 1.5
+              }
+            ],
+            "count": 3
+          }
+        ],
+        "rule_ids": []
+      }
+    ]
+  },
+  {
+    "path": "/public/rounds/2/public_checks",
+    "old_sha256": "6b3eac9bc3dc22e1ca3b19388de5133fec0c13919088ffd705f8df2141e49145",
+    "value": [
+      {
+        "check_id": "kdl-r2-pub-1",
+        "symbol": "build_report",
+        "input": {
+          "title": "Run 9",
+          "samples": [
+            {
+              "id": "H1",
+              "conc": 2,
+              "vol": 3,
+              "group": "core"
+            },
+            {
+              "id": "H2",
+              "conc": 4,
+              "vol": 1,
+              "group": "core"
+            },
+            {
+              "id": "H3",
+              "conc": 6,
+              "vol": 2,
+              "group": "shell"
+            }
+          ],
+          "dilution": 1
+        },
+        "expected_values": [
+          {
+            "title": "Run 9",
+            "group_count": 2,
+            "grand_total_mass": 22.0,
+            "top_group": "shell",
+            "groups": [
+              {
+                "group": "core",
+                "count": 2,
+                "total_mass": 10.0,
+                "mean_conc": 3.0
+              },
+              {
+                "group": "shell",
+                "count": 1,
+                "total_mass": 12.0,
+                "mean_conc": 6.0
+              }
+            ]
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "kdl-r2-pub-2",
+        "symbol": "build_report",
+        "input": {
+          "title": "Solo",
+          "samples": [
+            {
+              "id": "X",
+              "conc": 5,
+              "vol": 2,
+              "group": "plasma"
+            }
+          ],
+          "dilution": 1
+        },
+        "expected_values": [
+          {
+            "title": "Solo",
+            "group_count": 1,
+            "grand_total_mass": 10.0,
+            "top_group": "plasma",
+            "groups": [
+              {
+                "group": "plasma",
+                "count": 1,
+                "total_mass": 10.0,
+                "mean_conc": 5.0
+              }
+            ]
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "kdl-r2-pub-3",
+        "symbol": "build_report",
+        "input": {
+          "title": "Duplex",
+          "samples": [
+            {
+              "id": "J1",
+              "conc": 5,
+              "vol": 2,
+              "group": "north"
+            },
+            {
+              "id": "J2",
+              "conc": 3,
+              "vol": 1,
+              "group": "south"
+            }
+          ],
+          "dilution": 2
+        },
+        "expected_values": [
+          {
+            "title": "Duplex",
+            "group_count": 2,
+            "grand_total_mass": 26.0,
+            "top_group": "north",
+            "groups": [
+              {
+                "group": "north",
+                "count": 1,
+                "total_mass": 20.0,
+                "mean_conc": 10.0
+              },
+              {
+                "group": "south",
+                "count": 1,
+                "total_mass": 6.0,
+                "mean_conc": 6.0
+              }
+            ]
+          }
+        ],
+        "rule_ids": []
+      }
+    ]
+  },
+  {
+    "path": "/private/rounds/1/manual_recap",
+    "old_sha256": "31d44cf76122d5fa2712d48e7d6d4348060ebcf2531db409938cf0c2755687f4",
+    "value": "Cumulative state. Global conventions unchanged: one JSON-style argument; specification violations return exactly \"invalid\"; entry schema (id, conc > 0, vol > 0, optional boolean flag default false, optional non-empty string group default \"unassigned\"; booleans are not numbers); clean_sample is the only entry validator and must be called rather than re-checking; extra keys permitted and ignored. clean_sample is the provided initial helper and must not change. normalize_batch is an existing dependency governed by its required contract: given a valid payload it returns the order-preserving diluted entries ({id, adj_conc, mass, flag, group}) plus total_mass, with adj_conc = conc*dilution and mass = adj_conc*vol and no rounding, sorting or reordering, and returns \"invalid\" on any bad input. Whatever its present state, the actual existing normalize_batch code must be preserved as-is and called, not redefined, repaired or bypassed. Standing flag rule (global): aggregates exclude flagged samples unless the caller passes include_flagged true; include_flagged defaults to false and a non-boolean value is invalid; callers are permitted to opt into inclusion. Standing aggregation rules: data comes from calling normalize_batch (never recompute the normalization math); groups are sorted ascending by group name. Current target aggregate_run(run): validates run shape, calls the existing normalize_batch with the given samples and dilution, propagates \"invalid\", filters flagged unless include_flagged, groups by cleaned group value, returns {\"groups\": [{group, count, total_mass, mean_conc} ...], \"count\": n} with count of samples entering groups; empty selection gives groups [] and count 0. Standing note still in force now: the future final report will present these same aggregate numbers, so reports exclude flagged by default too. build_report remains a future stub."
+  },
+  {
+    "path": "/private/rounds/2/manual_recap",
+    "old_sha256": "90bb20cb475a1984560cb24d1652353b3a11c1156f16bfbdb1342446b261bfd4",
+    "value": "Cumulative state. Global conventions unchanged (single JSON-style argument; \"invalid\" sentinel; entry schema with strict types; clean_sample as the only entry validator; extra keys permitted and ignored). clean_sample is the provided initial helper and must not change. normalize_batch and aggregate_run are existing dependencies governed by their required contracts: normalize_batch delivers order-preserving diluted entries with mass and total_mass; aggregate_run obtains normalized data only by calling normalize_batch, excludes flagged samples unless include_flagged is true (default false; non-boolean include_flagged is invalid) and returns groups sorted ascending by group name with a sample count. Whatever their present state, the actual existing normalize_batch and aggregate_run code must be preserved as-is and used through calls, not redefined, repaired or bypassed. Standing-rule change: the earlier note that the report would reuse aggregate defaults is superseded; the report feature is the complete measurement record, so its aggregate section must include flagged samples, which build_report obtains by aggregating with include_flagged true. Current target build_report(job): job requires title (non-empty string), samples and dilution; malformed input or downstream rejection gives \"invalid\". It calls the existing aggregate_run with the given samples, dilution and include_flagged true and returns {title, group_count, grand_total_mass, top_group, groups}: groups is exactly aggregate_run's group list in the same order, group_count its length, grand_total_mass the sum of group total_mass values, and top_group the name of the group with the largest total_mass with ties going to the alphabetically first; at least one group always exists because every sample is included. No rounding or reformatting."
+  }
+]

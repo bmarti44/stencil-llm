@@ -1,0 +1,652 @@
+[
+  {
+    "path": "/public/rounds/1/source_messages",
+    "old_sha256": "d4283fa58f188f41bc9a6377e29657be2cf45d5f1c5f255374987c69ae976123",
+    "value": [
+      {
+        "message_id": "m03",
+        "role": "user",
+        "text": "The outline builder is in. Two things before we move on. First, a forward-looking note: when we add the lookup tool later, I want query matching to ignore letter case — 'intro' should find 'Intro'. Second, the section index. It should run straight off the raw document lines: it builds the outline itself by calling build_outline, then walks the resulting outline depth-first (a parent, then its children, then the next sibling) and numbers sections. Top-level headings are \"1\", \"2\", and so on; children extend the parent's number with their position among the siblings, joined with dots at every depth. To pin the numbering down: numbers always follow a heading's original position among its siblings, counted before anything is left out — so if a heading ends up excluded, later siblings keep the numbers they already had rather than sliding up, and the sequence can skip. One scope-limited policy: only headings of level 3 or less get index entries — level 4 and deeper, along with everything beneath them, are left out of the index entirely. That cutoff belongs to indexing only."
+      }
+    ]
+  },
+  {
+    "path": "/public/rounds/1/request/text",
+    "old_sha256": "662f26771a516f91517ae359c84a26f3c6eaf2cdf9002ca56e753d7192f208fa",
+    "value": "Implement index_sections(lines). lines is the same list-of-strings document that build_outline accepts. Get the outline by calling build_outline(lines) — reuse it; do not re-implement heading detection, stripping, or nesting — and if it returns its error object, pass that object through unchanged as your result. From that outline, return a list of entries in depth-first pre-order (a parent, then its children, then the next sibling), one entry {\"number\": ..., \"title\": ...} per included heading. Numbering: a heading's number chain uses its original 1-based position among its siblings, joined with dots at every depth (top-level headings are \"1\", \"2\", ...; the children of section \"1\" are \"1.1\", \"1.2\", ...). Positions are counted before any exclusion: a heading that receives no entry still consumes its sibling position, so later siblings keep their original numbers and the sequence may skip. Per the indexing cutoff, include only headings whose level is 1, 2 or 3; skip any deeper node together with its whole subtree. An empty line list yields an empty outline and therefore []."
+  },
+  {
+    "path": "/public/rounds/1/public_checks",
+    "old_sha256": "6dc96c47e7f2202453a923a2634ea817e7ea5b3e3a76a4a08fbefb2e8f261c93",
+    "value": [
+      {
+        "check_id": "pc-i1",
+        "symbol": "index_sections",
+        "input": [
+          "# Alpha",
+          "# Beta"
+        ],
+        "expected_values": [
+          [
+            {
+              "number": "1",
+              "title": "Alpha"
+            },
+            {
+              "number": "2",
+              "title": "Beta"
+            }
+          ]
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "pc-i2",
+        "symbol": "index_sections",
+        "input": [
+          "# Root",
+          "## Sub"
+        ],
+        "expected_values": [
+          [
+            {
+              "number": "1",
+              "title": "Root"
+            },
+            {
+              "number": "1.1",
+              "title": "Sub"
+            }
+          ]
+        ],
+        "rule_ids": []
+      }
+    ]
+  },
+  {
+    "path": "/public/rounds/2/request/text",
+    "old_sha256": "48baf3ab64e08a8ffb558aae578f01e196e943d225050adbf91e29f0bdca7c7a",
+    "value": "Implement query_sections(request). request must be an object containing \"lines\" (the document line list accepted by build_outline) and \"text\" (the query string). If request is not an object, or either key is missing, or text is not a non-empty string, return exactly {\"error\": \"invalid query\"}. Get the section index by calling index_sections(lines) — reuse it; do not re-implement the build or the numbering — and if it returns its error object, pass that object through unchanged as your result. A section matches when the query text occurs somewhere in its title with exactly matching letter case, per the corrected rule from my last message. Return {\"matches\": [...]} where each match is {\"number\": ..., \"title\": ...} in index order; when nothing matches, return {\"matches\": []}."
+  },
+  {
+    "path": "/public/rounds/2/public_checks",
+    "old_sha256": "c269fbedeacb39a9ebfe59e74b3908d980a2dafcab0f8d7e64d27bcf2224d82d",
+    "value": [
+      {
+        "check_id": "pc-q1",
+        "symbol": "query_sections",
+        "input": {
+          "lines": [
+            "# Overview",
+            "# Deep Dive"
+          ],
+          "text": "Deep"
+        },
+        "expected_values": [
+          {
+            "matches": [
+              {
+                "number": "2",
+                "title": "Deep Dive"
+              }
+            ]
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "pc-q2",
+        "symbol": "query_sections",
+        "input": {
+          "lines": [
+            "# Guide",
+            "## Guide Extras"
+          ],
+          "text": "Guide"
+        },
+        "expected_values": [
+          {
+            "matches": [
+              {
+                "number": "1",
+                "title": "Guide"
+              },
+              {
+                "number": "1.1",
+                "title": "Guide Extras"
+              }
+            ]
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "pc-q3",
+        "symbol": "query_sections",
+        "input": {
+          "lines": [
+            "# Overview"
+          ],
+          "text": "zebra"
+        },
+        "expected_values": [
+          {
+            "matches": []
+          }
+        ],
+        "rule_ids": []
+      }
+    ]
+  },
+  {
+    "path": "/private/rounds/1/manual_recap",
+    "old_sha256": "1ebd225157d88fefeb32ca3cdb6371cb956df7f4ca4a3530b25ad9f583e5dd17",
+    "value": "Current target: index_sections(lines). parse_heading(line) is the initial helper and is known to be implemented: for a well-formed heading line (one to six '#' characters followed by one space) it returns {\"level\", \"title\"} with the raw, untrimmed title; anything else yields None. build_outline(lines) is the round-0 target function; its required contract, which this round preserves unchanged and routes through, is: the argument must be a list of strings, otherwise exactly {\"error\": \"invalid input\"}; heading detection only via parse_heading; stored titles stripped of surrounding whitespace; malformed lines ('#' without a following space, more than six '#', blank stripped title, plain prose) silently skipped as content; each heading nests under the most recent heading with a strictly lower level, else it is top-level; an empty list yields []. This recap does not assert that generated code already meets those contracts; index_sections must depend on the real build_outline so the builder's actual output feeds indexing. Required behavior for the current target: call build_outline(lines) to obtain the outline — no re-implemented detection or nesting — and if it returns its error object, pass that object through unchanged as the result. Otherwise return a list of entries {\"number\", \"title\"} in depth-first pre-order (a parent, then its children, then the next sibling), one per included heading. Numbers follow each heading's original 1-based position among its siblings, joined with dots from the top level down (\"1\", \"1.1\", \"1.1.1\"); positions are counted before any exclusion, so an excluded heading still consumes its sibling position and later siblings keep their original numbers (the sequence may skip). Rules in force: R-STRIP and R-IGNORE-BAD (global, required, unchanged) and R-DEEP (required, h2-index-sections scope): only headings of level 1-3 receive entries, deeper nodes and their entire subtrees are excluded, and this cutoff belongs to indexing only. An empty line list yields []. Standing instruction for the future h3 lookup tool (R-QUERY-CI, still in effect at this point): query matching is to ignore letter case."
+  },
+  {
+    "path": "/private/rounds/1/oracle",
+    "old_sha256": "a26ba1c354710b59d1c479193d14e5a1ad8b9c97e59198a821a662800a3f7d61",
+    "value": {
+      "effective_rules": [
+        {
+          "rule_id": "R-STRIP",
+          "scope": "global",
+          "strength": "required",
+          "text": "Titles stored in outline nodes — and therefore in everything derived from them — are stripped of surrounding whitespace.",
+          "source_ids": [
+            "m01",
+            "m02"
+          ]
+        },
+        {
+          "rule_id": "R-IGNORE-BAD",
+          "scope": "global",
+          "strength": "required",
+          "text": "Any line that is not a well-formed heading (missing space after the hashes, more than six hashes, blank title after stripping, plain prose) is treated as content and skipped silently; it never makes parsing fail.",
+          "source_ids": [
+            "m01",
+            "m02"
+          ]
+        },
+        {
+          "rule_id": "R-DEEP",
+          "scope": "h2-index-sections",
+          "strength": "required",
+          "text": "Indexing includes only headings of level 1-3; headings of level 4 or deeper, together with their entire subtrees, receive no index entry. Numbering still follows each heading's original position among its siblings, counted before this exclusion, so an excluded heading consumes its position and index numbers may skip.",
+          "source_ids": [
+            "m03",
+            "m04"
+          ]
+        },
+        {
+          "rule_id": "R-QUERY-CI",
+          "scope": "h3-query-outline",
+          "strength": "required",
+          "text": "Query matching ignores letter case, so a query matches a title regardless of capitalization.",
+          "source_ids": [
+            "m03"
+          ]
+        }
+      ],
+      "inactive_rule_ids": []
+    }
+  },
+  {
+    "path": "/private/rounds/1/reference_patch",
+    "old_sha256": "1fac23cbd93a0c6e178c0288752e9754fa8b79357c074fee37db92e63086490f",
+    "value": "def index_sections(lines):\n    outline = build_outline(lines)\n    if isinstance(outline, dict):\n        return outline\n    entries = []\n    stack = []\n    position = len(outline) - 1\n    while position >= 0:\n        stack.append((outline[position], str(position + 1)))\n        position -= 1\n    while stack:\n        node, number = stack.pop()\n        level = node[\"level\"]\n        if level > 3:\n            continue\n        entries.append({\"number\": number, \"title\": node[\"title\"]})\n        children = node[\"children\"]\n        child_pos = len(children) - 1\n        while child_pos >= 0:\n            stack.append((children[child_pos], number + \".\" + str(child_pos + 1)))\n            child_pos -= 1\n    return entries"
+  },
+  {
+    "path": "/private/rounds/1/functional_checks",
+    "old_sha256": "2e66752b61c408bbaedaaf8ad5e2ae43720cca62b5e32966f8e87fb75cdd7d49",
+    "value": [
+      {
+        "check_id": "pf-i1",
+        "symbol": "index_sections",
+        "input": [
+          "# A",
+          "## B",
+          "### C",
+          "## D",
+          "# E"
+        ],
+        "expected_values": [
+          [
+            {
+              "number": "1",
+              "title": "A"
+            },
+            {
+              "number": "1.1",
+              "title": "B"
+            },
+            {
+              "number": "1.1.1",
+              "title": "C"
+            },
+            {
+              "number": "1.2",
+              "title": "D"
+            },
+            {
+              "number": "2",
+              "title": "E"
+            }
+          ]
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "pf-i2",
+        "symbol": "index_sections",
+        "input": [],
+        "expected_values": [
+          []
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "pf-i3",
+        "symbol": "index_sections",
+        "input": "not a list of lines",
+        "expected_values": [
+          {
+            "error": "invalid input"
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "pf-i4",
+        "symbol": "index_sections",
+        "input": [
+          "# Alpha",
+          7
+        ],
+        "expected_values": [
+          {
+            "error": "invalid input"
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "pf-i5",
+        "symbol": "index_sections",
+        "input": [
+          "# A",
+          "## B",
+          "# C",
+          "## D"
+        ],
+        "expected_values": [
+          [
+            {
+              "number": "1",
+              "title": "A"
+            },
+            {
+              "number": "1.1",
+              "title": "B"
+            },
+            {
+              "number": "2",
+              "title": "C"
+            },
+            {
+              "number": "2.1",
+              "title": "D"
+            }
+          ]
+        ],
+        "rule_ids": []
+      }
+    ]
+  },
+  {
+    "path": "/private/rounds/1/obligation_checks",
+    "old_sha256": "e98f027e8b8166d3e629e65cab155e09e02b016398f3966a4be06c0d35e8071c",
+    "value": [
+      {
+        "check_id": "po-i1",
+        "symbol": "index_sections",
+        "input": [
+          "# Top",
+          "#### TooDeep"
+        ],
+        "expected_values": [
+          [
+            {
+              "number": "1",
+              "title": "Top"
+            }
+          ]
+        ],
+        "rule_ids": [
+          "R-DEEP"
+        ]
+      },
+      {
+        "check_id": "po-i2",
+        "symbol": "index_sections",
+        "input": [
+          "# L1",
+          "## L2",
+          "### L3",
+          "#### L4",
+          "### L5b"
+        ],
+        "expected_values": [
+          [
+            {
+              "number": "1",
+              "title": "L1"
+            },
+            {
+              "number": "1.1",
+              "title": "L2"
+            },
+            {
+              "number": "1.1.1",
+              "title": "L3"
+            },
+            {
+              "number": "1.1.2",
+              "title": "L5b"
+            }
+          ]
+        ],
+        "rule_ids": [
+          "R-DEEP"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "/private/rounds/1/negative_controls",
+    "old_sha256": "8f5eb1af9fbfccb9c044efd66fa1985a0fc505e0bade4d20face133564390622",
+    "value": [
+      {
+        "control_id": "nc-if",
+        "kind": "functional",
+        "patch": "def index_sections(lines):\n    outline = build_outline(lines)\n    if isinstance(outline, dict):\n        return outline\n    entries = []\n    work = [(outline, \"\")]\n    pos = 0\n    while pos < len(work):\n        nodes, prefix = work[pos]\n        pos += 1\n        ordinal = 0\n        while ordinal < len(nodes):\n            node = nodes[ordinal]\n            ordinal += 1\n            if node[\"level\"] > 3:\n                continue\n            if prefix == \"\":\n                number = str(ordinal)\n            else:\n                number = prefix + \".\" + str(ordinal)\n            entries.append({\"number\": number, \"title\": node[\"title\"]})\n            work.append((node[\"children\"], number))\n    return entries",
+        "expected_failing_check_ids": [
+          "pf-i1",
+          "pf-i5"
+        ]
+      },
+      {
+        "control_id": "nc-io",
+        "kind": "obligation",
+        "patch": "def index_sections(lines):\n    outline = build_outline(lines)\n    if isinstance(outline, dict):\n        return outline\n    entries = []\n    stack = []\n    position = len(outline) - 1\n    while position >= 0:\n        stack.append((outline[position], str(position + 1)))\n        position -= 1\n    while stack:\n        node, number = stack.pop()\n        entries.append({\"number\": number, \"title\": node[\"title\"]})\n        children = node[\"children\"]\n        child_pos = len(children) - 1\n        while child_pos >= 0:\n            stack.append((children[child_pos], number + \".\" + str(child_pos + 1)))\n            child_pos -= 1\n    return entries",
+        "expected_failing_check_ids": [
+          "po-i1",
+          "po-i2"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "/private/rounds/2/manual_recap",
+    "old_sha256": "832d5572cc304152d8c222f95dc970d572555a27cf7ceed69c279247b6ea7c34",
+    "value": "Current target: query_sections(request). parse_heading(line) is the initial helper and is known to be implemented. The required contracts set by earlier rounds remain authoritative and are preserved here; this round must route through the actual functions rather than copies, without any assertion that generated code already satisfies them: build_outline(lines) requires a list of strings else exactly {\"error\": \"invalid input\"}, detects headings only via parse_heading, stores stripped titles, silently skips malformed lines, nests each heading under the most recent lower-level heading, and returns [] for an empty list; index_sections(lines) must call build_outline, pass its error object through unchanged, and return depth-first pre-order entries {\"number\", \"title\"} with original-position dotted numbering (excluded headings still consume their sibling positions, so numbers may skip), including only levels 1-3 while deeper nodes and their whole subtrees stay out of the index. Required behavior for query_sections: request must be an object holding \"lines\" (the document line list accepted by build_outline) and \"text\"; a non-object request, a missing key, or a text that is missing, empty, or not a string yields exactly {\"error\": \"invalid query\"}. The index is obtained by calling index_sections(lines); any error object it returns is passed through unchanged as the result. Rule change for the h3-query-outline scope: the earlier case-insensitive plan (R-QUERY-CI) is rescinded and no longer in effect; R-QUERY-CS (required) now governs — a section matches only when the query text occurs in its title with identical letter case. Output: {\"matches\": [{\"number\", \"title\"}, ...]} in index order, or {\"matches\": []} when nothing matches."
+  },
+  {
+    "path": "/private/rounds/2/oracle",
+    "old_sha256": "2827bc65305fed933af0ac5e225501eb3d6274fdc2ff4c929303275c531bbc75",
+    "value": {
+      "effective_rules": [
+        {
+          "rule_id": "R-STRIP",
+          "scope": "global",
+          "strength": "required",
+          "text": "Titles stored in outline nodes — and therefore in everything derived from them — are stripped of surrounding whitespace.",
+          "source_ids": [
+            "m01",
+            "m02"
+          ]
+        },
+        {
+          "rule_id": "R-IGNORE-BAD",
+          "scope": "global",
+          "strength": "required",
+          "text": "Any line that is not a well-formed heading (missing space after the hashes, more than six hashes, blank title after stripping, plain prose) is treated as content and skipped silently; it never makes parsing fail.",
+          "source_ids": [
+            "m01",
+            "m02"
+          ]
+        },
+        {
+          "rule_id": "R-DEEP",
+          "scope": "h2-index-sections",
+          "strength": "required",
+          "text": "Indexing includes only headings of level 1-3; headings of level 4 or deeper, together with their entire subtrees, receive no index entry. Numbering still follows each heading's original position among its siblings, counted before this exclusion, so an excluded heading consumes its position and index numbers may skip.",
+          "source_ids": [
+            "m03",
+            "m04"
+          ]
+        },
+        {
+          "rule_id": "R-QUERY-CS",
+          "scope": "h3-query-outline",
+          "strength": "required",
+          "text": "Query matching is case-sensitive: a section title matches only when it contains the query text with identical letter case.",
+          "source_ids": [
+            "m03",
+            "m05",
+            "m06"
+          ]
+        }
+      ],
+      "inactive_rule_ids": [
+        "R-QUERY-CI"
+      ]
+    }
+  },
+  {
+    "path": "/private/rounds/2/reference_patch",
+    "old_sha256": "fe38769b836b4ac827bd25cfc09b2ece2e99ae696b2f3321671bb166567159bd",
+    "value": "def query_sections(request):\n    if not isinstance(request, dict):\n        return {\"error\": \"invalid query\"}\n    if \"lines\" not in request or \"text\" not in request:\n        return {\"error\": \"invalid query\"}\n    lines = request[\"lines\"]\n    text = request[\"text\"]\n    if not isinstance(text, str) or text == \"\":\n        return {\"error\": \"invalid query\"}\n    index = index_sections(lines)\n    if isinstance(index, dict):\n        return index\n    matches = []\n    for entry in index:\n        if text in entry[\"title\"]:\n            matches.append({\"number\": entry[\"number\"], \"title\": entry[\"title\"]})\n    return {\"matches\": matches}"
+  },
+  {
+    "path": "/private/rounds/2/functional_checks",
+    "old_sha256": "76edf2513422474b6ac8bb558fd592a9275504752a8bc3e93e734c3341841a95",
+    "value": [
+      {
+        "check_id": "pf-q1",
+        "symbol": "query_sections",
+        "input": {
+          "lines": [
+            "# Setup Guide",
+            "## InstallSteps",
+            "# Usage"
+          ],
+          "text": "Steps"
+        },
+        "expected_values": [
+          {
+            "matches": [
+              {
+                "number": "1.1",
+                "title": "InstallSteps"
+              }
+            ]
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "pf-q2",
+        "symbol": "query_sections",
+        "input": {
+          "lines": [
+            "# Alpha One",
+            "## One Alpha"
+          ],
+          "text": "Alpha"
+        },
+        "expected_values": [
+          {
+            "matches": [
+              {
+                "number": "1",
+                "title": "Alpha One"
+              },
+              {
+                "number": "1.1",
+                "title": "One Alpha"
+              }
+            ]
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "pf-q3",
+        "symbol": "query_sections",
+        "input": {
+          "lines": []
+        },
+        "expected_values": [
+          {
+            "error": "invalid query"
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "pf-q4",
+        "symbol": "query_sections",
+        "input": {
+          "lines": "oops",
+          "text": "x"
+        },
+        "expected_values": [
+          {
+            "error": "invalid input"
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "pf-q5",
+        "symbol": "query_sections",
+        "input": {
+          "lines": [],
+          "text": 5
+        },
+        "expected_values": [
+          {
+            "error": "invalid query"
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "pf-q6",
+        "symbol": "query_sections",
+        "input": {
+          "lines": [],
+          "text": ""
+        },
+        "expected_values": [
+          {
+            "error": "invalid query"
+          }
+        ],
+        "rule_ids": []
+      }
+    ]
+  },
+  {
+    "path": "/private/rounds/2/obligation_checks",
+    "old_sha256": "d5bda38d1cac3b1a17b6b52707531d1443d3229eb8edc3ebc0a4cfa0772aa3b0",
+    "value": [
+      {
+        "check_id": "po-q1",
+        "symbol": "query_sections",
+        "input": {
+          "lines": [
+            "# Introduction"
+          ],
+          "text": "intro"
+        },
+        "expected_values": [
+          {
+            "matches": []
+          }
+        ],
+        "rule_ids": [
+          "R-QUERY-CS"
+        ]
+      },
+      {
+        "check_id": "po-q2",
+        "symbol": "query_sections",
+        "input": {
+          "lines": [
+            "# Notes app",
+            "# notes from meeting"
+          ],
+          "text": "notes"
+        },
+        "expected_values": [
+          {
+            "matches": [
+              {
+                "number": "2",
+                "title": "notes from meeting"
+              }
+            ]
+          }
+        ],
+        "rule_ids": [
+          "R-QUERY-CS"
+        ]
+      },
+      {
+        "check_id": "po-q3",
+        "symbol": "query_sections",
+        "input": {
+          "lines": [
+            "# Root",
+            "#### Zebra deep"
+          ],
+          "text": "Zebra"
+        },
+        "expected_values": [
+          {
+            "matches": []
+          }
+        ],
+        "rule_ids": [
+          "R-DEEP"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "/private/rounds/2/negative_controls",
+    "old_sha256": "4d6f927e3c8caa373991b46235a4c8e72245325a81a334ddb26a196eb130d23c",
+    "value": [
+      {
+        "control_id": "nc-qf",
+        "kind": "functional",
+        "patch": "def query_sections(request):\n    if not isinstance(request, dict):\n        return {\"error\": \"invalid query\"}\n    if \"lines\" not in request or \"text\" not in request:\n        return {\"error\": \"invalid query\"}\n    lines = request[\"lines\"]\n    text = request[\"text\"]\n    if not isinstance(text, str) or text == \"\":\n        return {\"error\": \"invalid query\"}\n    index = index_sections(lines)\n    if isinstance(index, dict):\n        return index\n    matches = []\n    for entry in index:\n        if entry[\"title\"].startswith(text):\n            matches.append({\"number\": entry[\"number\"], \"title\": entry[\"title\"]})\n    return {\"matches\": matches}",
+        "expected_failing_check_ids": [
+          "pf-q1",
+          "pf-q2"
+        ]
+      },
+      {
+        "control_id": "nc-qo",
+        "kind": "obligation",
+        "patch": "def query_sections(request):\n    if not isinstance(request, dict):\n        return {\"error\": \"invalid query\"}\n    if \"lines\" not in request or \"text\" not in request:\n        return {\"error\": \"invalid query\"}\n    lines = request[\"lines\"]\n    text = request[\"text\"]\n    if not isinstance(text, str) or text == \"\":\n        return {\"error\": \"invalid query\"}\n    index = index_sections(lines)\n    if isinstance(index, dict):\n        return index\n    matches = []\n    for entry in index:\n        if text.lower() in entry[\"title\"].lower():\n            matches.append({\"number\": entry[\"number\"], \"title\": entry[\"title\"]})\n    return {\"matches\": matches}",
+        "expected_failing_check_ids": [
+          "po-q1",
+          "po-q2"
+        ]
+      }
+    ]
+  }
+]

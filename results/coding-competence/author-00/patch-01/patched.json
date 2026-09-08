@@ -1,0 +1,1041 @@
+{
+  "schema_version": 1,
+  "split": "dev",
+  "author": {
+    "name": "kimi",
+    "model": "kimi-k3:cloud"
+  },
+  "lineage": {
+    "fit_on": "none",
+    "development_on": "new original coding competence DEV",
+    "evaluated_on": "none"
+  },
+  "public": {
+    "episode_id": "ep-outline-001",
+    "project": "document-outline-utility",
+    "task_handles": [
+      "h1-build-outline",
+      "h2-index-sections",
+      "h3-query-outline"
+    ],
+    "initial_file": {
+      "path": "outline_utils.py",
+      "text": "def parse_heading(line):\n    if not isinstance(line, str):\n        return None\n    hashes = 0\n    for char in line:\n        if char == \"#\":\n            hashes += 1\n        else:\n            break\n    if hashes == 0 or hashes > 6:\n        return None\n    rest = line[hashes:]\n    if not rest.startswith(\" \"):\n        return None\n    return {\"level\": hashes, \"title\": rest[1:]}\n\n\ndef build_outline(lines):\n    return None\n\n\ndef index_sections(outline):\n    return None\n\n\ndef query_sections(request):\n    return None\n"
+    },
+    "initial_checks": [
+      {
+        "check_id": "ic-p1",
+        "symbol": "parse_heading",
+        "input": "## Getting Started",
+        "expected_values": [
+          {
+            "level": 2,
+            "title": "Getting Started"
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "ic-p2",
+        "symbol": "parse_heading",
+        "input": "just some prose",
+        "expected_values": [
+          null
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "ic-p3",
+        "symbol": "parse_heading",
+        "input": "#nospace",
+        "expected_values": [
+          null
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "ic-p4",
+        "symbol": "parse_heading",
+        "input": "##  Draft  ",
+        "expected_values": [
+          {
+            "level": 2,
+            "title": " Draft  "
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "ic-p5",
+        "symbol": "parse_heading",
+        "input": "####### too deep",
+        "expected_values": [
+          null
+        ],
+        "rule_ids": []
+      }
+    ],
+    "rounds": [
+      {
+        "index": 0,
+        "source_messages": [
+          {
+            "message_id": "m01",
+            "role": "user",
+            "text": "I'm starting a tiny document-outline utility. Everything lives in one module; each function takes a single JSON-style argument and returns a JSON-style value. The first piece, parse_heading, already works: it recognizes markdown heading lines (one to six '#' characters followed by one space) and returns the level plus the raw title text after that first space — it deliberately does not trim anything. Anything else gets None. Two standing decisions for everything we build here: (1) Titles stored in outlines, and therefore anything derived from them, must be stripped of surrounding whitespace. (2) Documents are messy — any line that is not a well-formed heading (plain prose, '#' with no following space, more than six '#', or a heading whose title is blank once stripped) is just content. Skip it quietly; never fail the whole parse over such a line."
+          }
+        ],
+        "request": {
+          "message_id": "m02",
+          "role": "user",
+          "task_handle": "h1-build-outline",
+          "text": "Implement build_outline(lines). lines must be a list of strings; if it is not a list, or any element is not a string, return exactly {\"error\": \"invalid input\"}. Use parse_heading to recognize heading lines — don't re-implement that detection. Following the standing decisions, silently ignore every non-heading line and every heading whose title is empty once stripped, and store each node's title stripped of surrounding whitespace. Return the top-level nodes as a list in document order, each node shaped {\"title\": ..., \"level\": ..., \"children\": [...]}. Nesting rule: a heading becomes a child of the most recent heading with a strictly lower level; if there is no such heading, it is top-level. An empty input list yields []."
+        },
+        "target": {
+          "path": "outline_utils.py",
+          "symbol": "build_outline"
+        },
+        "public_checks": [
+          {
+            "check_id": "pc-b1",
+            "symbol": "build_outline",
+            "input": [
+              "# Intro"
+            ],
+            "expected_values": [
+              [
+                {
+                  "title": "Intro",
+                  "level": 1,
+                  "children": []
+                }
+              ]
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "pc-b2",
+            "symbol": "build_outline",
+            "input": [
+              "# Alpha",
+              "## Beta",
+              "# Gamma"
+            ],
+            "expected_values": [
+              [
+                {
+                  "title": "Alpha",
+                  "level": 1,
+                  "children": [
+                    {
+                      "title": "Beta",
+                      "level": 2,
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "title": "Gamma",
+                  "level": 1,
+                  "children": []
+                }
+              ]
+            ],
+            "rule_ids": []
+          }
+        ]
+      },
+      {
+        "index": 1,
+        "source_messages": [
+          {
+            "message_id": "m03",
+            "role": "user",
+            "text": "The outline builder is in. Two things before we move on. First, a forward-looking note: when we add the lookup tool later, I want query matching to ignore letter case — 'intro' should find 'Intro'. Second, the section index. It should run straight off the raw document lines: it builds the outline itself by calling build_outline, then walks the resulting outline depth-first (a parent, then its children, then the next sibling) and numbers sections. Top-level headings are \"1\", \"2\", and so on; children extend the parent's number with their position among the siblings, joined with dots at every depth. To pin the numbering down: numbers always follow a heading's original position among its siblings, counted before anything is left out — so if a heading ends up excluded, later siblings keep the numbers they already had rather than sliding up, and the sequence can skip. One scope-limited policy: only headings of level 3 or less get index entries — level 4 and deeper, along with everything beneath them, are left out of the index entirely. That cutoff belongs to indexing only."
+          }
+        ],
+        "request": {
+          "message_id": "m04",
+          "role": "user",
+          "task_handle": "h2-index-sections",
+          "text": "Implement index_sections(lines). lines is the same list-of-strings document that build_outline accepts. Get the outline by calling build_outline(lines) — reuse it; do not re-implement heading detection, stripping, or nesting — and if it returns its error object, pass that object through unchanged as your result. From that outline, return a list of entries in depth-first pre-order (a parent, then its children, then the next sibling), one entry {\"number\": ..., \"title\": ...} per included heading. Numbering: a heading's number chain uses its original 1-based position among its siblings, joined with dots at every depth (top-level headings are \"1\", \"2\", ...; the children of section \"1\" are \"1.1\", \"1.2\", ...). Positions are counted before any exclusion: a heading that receives no entry still consumes its sibling position, so later siblings keep their original numbers and the sequence may skip. Per the indexing cutoff, include only headings whose level is 1, 2 or 3; skip any deeper node together with its whole subtree. An empty line list yields an empty outline and therefore []."
+        },
+        "target": {
+          "path": "outline_utils.py",
+          "symbol": "index_sections"
+        },
+        "public_checks": [
+          {
+            "check_id": "pc-i1",
+            "symbol": "index_sections",
+            "input": [
+              "# Alpha",
+              "# Beta"
+            ],
+            "expected_values": [
+              [
+                {
+                  "number": "1",
+                  "title": "Alpha"
+                },
+                {
+                  "number": "2",
+                  "title": "Beta"
+                }
+              ]
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "pc-i2",
+            "symbol": "index_sections",
+            "input": [
+              "# Root",
+              "## Sub"
+            ],
+            "expected_values": [
+              [
+                {
+                  "number": "1",
+                  "title": "Root"
+                },
+                {
+                  "number": "1.1",
+                  "title": "Sub"
+                }
+              ]
+            ],
+            "rule_ids": []
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "source_messages": [
+          {
+            "message_id": "m05",
+            "role": "user",
+            "text": "Last piece now: the lookup. One correction to what I told you before — scrap the case-insensitive plan for queries. Matching must be case-sensitive after all: 'intro' must not match 'Intro'; only identical letter case counts."
+          }
+        ],
+        "request": {
+          "message_id": "m06",
+          "role": "user",
+          "task_handle": "h3-query-outline",
+          "text": "Implement query_sections(request). request must be an object containing \"lines\" (the document line list accepted by build_outline) and \"text\" (the query string). If request is not an object, or either key is missing, or text is not a non-empty string, return exactly {\"error\": \"invalid query\"}. Get the section index by calling index_sections(lines) — reuse it; do not re-implement the build or the numbering — and if it returns its error object, pass that object through unchanged as your result. A section matches when the query text occurs somewhere in its title with exactly matching letter case, per the corrected rule from my last message. Return {\"matches\": [...]} where each match is {\"number\": ..., \"title\": ...} in index order; when nothing matches, return {\"matches\": []}."
+        },
+        "target": {
+          "path": "outline_utils.py",
+          "symbol": "query_sections"
+        },
+        "public_checks": [
+          {
+            "check_id": "pc-q1",
+            "symbol": "query_sections",
+            "input": {
+              "lines": [
+                "# Overview",
+                "# Deep Dive"
+              ],
+              "text": "Deep"
+            },
+            "expected_values": [
+              {
+                "matches": [
+                  {
+                    "number": "2",
+                    "title": "Deep Dive"
+                  }
+                ]
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "pc-q2",
+            "symbol": "query_sections",
+            "input": {
+              "lines": [
+                "# Guide",
+                "## Guide Extras"
+              ],
+              "text": "Guide"
+            },
+            "expected_values": [
+              {
+                "matches": [
+                  {
+                    "number": "1",
+                    "title": "Guide"
+                  },
+                  {
+                    "number": "1.1",
+                    "title": "Guide Extras"
+                  }
+                ]
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "pc-q3",
+            "symbol": "query_sections",
+            "input": {
+              "lines": [
+                "# Overview"
+              ],
+              "text": "zebra"
+            },
+            "expected_values": [
+              {
+                "matches": []
+              }
+            ],
+            "rule_ids": []
+          }
+        ]
+      }
+    ]
+  },
+  "private": {
+    "rounds": [
+      {
+        "index": 0,
+        "manual_recap": "Module state: parse_heading(line) works and must be reused — it returns {\"level\", \"title\"} with the raw untrimmed title for a well-formed heading line (one to six '#' then one space), else None. Now implementing build_outline(lines). Required: lines must be a list of strings; a non-list argument or any non-string element must produce exactly {\"error\": \"invalid input\"}. Each well-formed heading with a non-blank stripped title becomes a node {\"title\", \"level\", \"children\"}; a heading nests under the most recent heading with a strictly lower level, otherwise it is top-level; document order is preserved; an empty list yields []. Standing rules (required, global): (R-STRIP) every stored title is stripped of surrounding whitespace; (R-IGNORE-BAD) any line that is not a well-formed heading — plain prose, '#' without a following space, seven or more '#', or a title that is blank once stripped — is silently skipped as content and must never cause an error.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "R-STRIP",
+              "scope": "global",
+              "strength": "required",
+              "text": "Titles stored in outline nodes — and therefore in everything derived from them — are stripped of surrounding whitespace.",
+              "source_ids": [
+                "m01",
+                "m02"
+              ]
+            },
+            {
+              "rule_id": "R-IGNORE-BAD",
+              "scope": "global",
+              "strength": "required",
+              "text": "Any line that is not a well-formed heading (missing space after the hashes, more than six hashes, blank title after stripping, plain prose) is treated as content and skipped silently; it never makes parsing fail.",
+              "source_ids": [
+                "m01",
+                "m02"
+              ]
+            }
+          ],
+          "inactive_rule_ids": []
+        },
+        "reference_patch": "def build_outline(lines):\n    if isinstance(lines, bool) or not isinstance(lines, list):\n        return {\"error\": \"invalid input\"}\n    top = []\n    stack = []\n    for line in lines:\n        if not isinstance(line, str):\n            return {\"error\": \"invalid input\"}\n        head = parse_heading(line)\n        if head is None:\n            continue\n        title = head[\"title\"].strip()\n        if title == \"\":\n            continue\n        node = {\"title\": title, \"level\": head[\"level\"], \"children\": []}\n        while stack and stack[-1][\"level\"] >= node[\"level\"]:\n            stack.pop()\n        if stack:\n            stack[-1][\"children\"].append(node)\n        else:\n            top.append(node)\n        stack.append(node)\n    return top",
+        "functional_checks": [
+          {
+            "check_id": "pf-b1",
+            "symbol": "build_outline",
+            "input": [
+              "## Overview",
+              "#### Deep",
+              "# Wrap"
+            ],
+            "expected_values": [
+              [
+                {
+                  "title": "Overview",
+                  "level": 2,
+                  "children": [
+                    {
+                      "title": "Deep",
+                      "level": 4,
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "title": "Wrap",
+                  "level": 1,
+                  "children": []
+                }
+              ]
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "pf-b2",
+            "symbol": "build_outline",
+            "input": [
+              "draft note",
+              "# Real",
+              "tail"
+            ],
+            "expected_values": [
+              [
+                {
+                  "title": "Real",
+                  "level": 1,
+                  "children": []
+                }
+              ]
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "pf-b3",
+            "symbol": "build_outline",
+            "input": "not a list",
+            "expected_values": [
+              {
+                "error": "invalid input"
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "pf-b4",
+            "symbol": "build_outline",
+            "input": [
+              "# A",
+              7
+            ],
+            "expected_values": [
+              {
+                "error": "invalid input"
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "pf-b5",
+            "symbol": "build_outline",
+            "input": [],
+            "expected_values": [
+              []
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "pf-b6",
+            "symbol": "build_outline",
+            "input": [
+              "# One",
+              "# Two",
+              "# Three"
+            ],
+            "expected_values": [
+              [
+                {
+                  "title": "One",
+                  "level": 1,
+                  "children": []
+                },
+                {
+                  "title": "Two",
+                  "level": 1,
+                  "children": []
+                },
+                {
+                  "title": "Three",
+                  "level": 1,
+                  "children": []
+                }
+              ]
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "pf-b7",
+            "symbol": "build_outline",
+            "input": [
+              "# Top",
+              "## Mid",
+              "## Mid2"
+            ],
+            "expected_values": [
+              [
+                {
+                  "title": "Top",
+                  "level": 1,
+                  "children": [
+                    {
+                      "title": "Mid",
+                      "level": 2,
+                      "children": []
+                    },
+                    {
+                      "title": "Mid2",
+                      "level": 2,
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "po-b1",
+            "symbol": "build_outline",
+            "input": [
+              "#x",
+              "# Good"
+            ],
+            "expected_values": [
+              [
+                {
+                  "title": "Good",
+                  "level": 1,
+                  "children": []
+                }
+              ]
+            ],
+            "rule_ids": [
+              "R-IGNORE-BAD"
+            ]
+          },
+          {
+            "check_id": "po-b2",
+            "symbol": "build_outline",
+            "input": [
+              "####### too deep",
+              "# Real"
+            ],
+            "expected_values": [
+              [
+                {
+                  "title": "Real",
+                  "level": 1,
+                  "children": []
+                }
+              ]
+            ],
+            "rule_ids": [
+              "R-IGNORE-BAD"
+            ]
+          },
+          {
+            "check_id": "po-b3",
+            "symbol": "build_outline",
+            "input": [
+              "##   Spaced Title  "
+            ],
+            "expected_values": [
+              [
+                {
+                  "title": "Spaced Title",
+                  "level": 2,
+                  "children": []
+                }
+              ]
+            ],
+            "rule_ids": [
+              "R-STRIP"
+            ]
+          },
+          {
+            "check_id": "po-b4",
+            "symbol": "build_outline",
+            "input": [
+              "#   "
+            ],
+            "expected_values": [
+              []
+            ],
+            "rule_ids": [
+              "R-IGNORE-BAD"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "nc-bf",
+            "kind": "functional",
+            "patch": "def build_outline(lines):\n    if isinstance(lines, bool) or not isinstance(lines, list):\n        return {\"error\": \"invalid input\"}\n    top = []\n    stack = []\n    for line in lines:\n        if not isinstance(line, str):\n            return {\"error\": \"invalid input\"}\n        head = parse_heading(line)\n        if head is None:\n            continue\n        title = head[\"title\"].strip()\n        if title == \"\":\n            continue\n        node = {\"title\": title, \"level\": head[\"level\"], \"children\": []}\n        while stack and stack[-1][\"level\"] > node[\"level\"]:\n            stack.pop()\n        if stack:\n            stack[-1][\"children\"].append(node)\n        else:\n            top.append(node)\n        stack.append(node)\n    return top",
+            "expected_failing_check_ids": [
+              "pf-b6",
+              "pf-b7"
+            ]
+          },
+          {
+            "control_id": "nc-bo",
+            "kind": "obligation",
+            "patch": "def build_outline(lines):\n    if isinstance(lines, bool) or not isinstance(lines, list):\n        return {\"error\": \"invalid input\"}\n    top = []\n    stack = []\n    for line in lines:\n        if not isinstance(line, str):\n            return {\"error\": \"invalid input\"}\n        head = parse_heading(line)\n        if head is None:\n            if line.startswith(\"#\"):\n                return {\"error\": \"invalid input\"}\n            continue\n        title = head[\"title\"].strip()\n        if title == \"\":\n            continue\n        node = {\"title\": title, \"level\": head[\"level\"], \"children\": []}\n        while stack and stack[-1][\"level\"] >= node[\"level\"]:\n            stack.pop()\n        if stack:\n            stack[-1][\"children\"].append(node)\n        else:\n            top.append(node)\n        stack.append(node)\n    return top",
+            "expected_failing_check_ids": [
+              "po-b1",
+              "po-b2"
+            ]
+          }
+        ]
+      },
+      {
+        "index": 1,
+        "manual_recap": "Current target: index_sections(lines). parse_heading(line) is the initial helper and is known to be implemented: for a well-formed heading line (one to six '#' characters followed by one space) it returns {\"level\", \"title\"} with the raw, untrimmed title; anything else yields None. build_outline(lines) is the round-0 target function; its required contract, which this round preserves unchanged and routes through, is: the argument must be a list of strings, otherwise exactly {\"error\": \"invalid input\"}; heading detection only via parse_heading; stored titles stripped of surrounding whitespace; malformed lines ('#' without a following space, more than six '#', blank stripped title, plain prose) silently skipped as content; each heading nests under the most recent heading with a strictly lower level, else it is top-level; an empty list yields []. This recap does not assert that generated code already meets those contracts; index_sections must depend on the real build_outline so the builder's actual output feeds indexing. Required behavior for the current target: call build_outline(lines) to obtain the outline — no re-implemented detection or nesting — and if it returns its error object, pass that object through unchanged as the result. Otherwise return a list of entries {\"number\", \"title\"} in depth-first pre-order (a parent, then its children, then the next sibling), one per included heading. Numbers follow each heading's original 1-based position among its siblings, joined with dots from the top level down (\"1\", \"1.1\", \"1.1.1\"); positions are counted before any exclusion, so an excluded heading still consumes its sibling position and later siblings keep their original numbers (the sequence may skip). Rules in force: R-STRIP and R-IGNORE-BAD (global, required, unchanged) and R-DEEP (required, h2-index-sections scope): only headings of level 1-3 receive entries, deeper nodes and their entire subtrees are excluded, and this cutoff belongs to indexing only. An empty line list yields []. Standing instruction for the future h3 lookup tool (R-QUERY-CI, still in effect at this point): query matching is to ignore letter case.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "R-STRIP",
+              "scope": "global",
+              "strength": "required",
+              "text": "Titles stored in outline nodes — and therefore in everything derived from them — are stripped of surrounding whitespace.",
+              "source_ids": [
+                "m01",
+                "m02"
+              ]
+            },
+            {
+              "rule_id": "R-IGNORE-BAD",
+              "scope": "global",
+              "strength": "required",
+              "text": "Any line that is not a well-formed heading (missing space after the hashes, more than six hashes, blank title after stripping, plain prose) is treated as content and skipped silently; it never makes parsing fail.",
+              "source_ids": [
+                "m01",
+                "m02"
+              ]
+            },
+            {
+              "rule_id": "R-DEEP",
+              "scope": "h2-index-sections",
+              "strength": "required",
+              "text": "Indexing includes only headings of level 1-3; headings of level 4 or deeper, together with their entire subtrees, receive no index entry. Numbering still follows each heading's original position among its siblings, counted before this exclusion, so an excluded heading consumes its position and index numbers may skip.",
+              "source_ids": [
+                "m03",
+                "m04"
+              ]
+            },
+            {
+              "rule_id": "R-QUERY-CI",
+              "scope": "h3-query-outline",
+              "strength": "required",
+              "text": "Query matching ignores letter case, so a query matches a title regardless of capitalization.",
+              "source_ids": [
+                "m03"
+              ]
+            }
+          ],
+          "inactive_rule_ids": []
+        },
+        "reference_patch": "def index_sections(lines):\n    outline = build_outline(lines)\n    if isinstance(outline, dict):\n        return outline\n    entries = []\n    stack = []\n    position = len(outline) - 1\n    while position >= 0:\n        stack.append((outline[position], str(position + 1)))\n        position -= 1\n    while stack:\n        node, number = stack.pop()\n        level = node[\"level\"]\n        if level > 3:\n            continue\n        entries.append({\"number\": number, \"title\": node[\"title\"]})\n        children = node[\"children\"]\n        child_pos = len(children) - 1\n        while child_pos >= 0:\n            stack.append((children[child_pos], number + \".\" + str(child_pos + 1)))\n            child_pos -= 1\n    return entries",
+        "functional_checks": [
+          {
+            "check_id": "pf-i1",
+            "symbol": "index_sections",
+            "input": [
+              "# A",
+              "## B",
+              "### C",
+              "## D",
+              "# E"
+            ],
+            "expected_values": [
+              [
+                {
+                  "number": "1",
+                  "title": "A"
+                },
+                {
+                  "number": "1.1",
+                  "title": "B"
+                },
+                {
+                  "number": "1.1.1",
+                  "title": "C"
+                },
+                {
+                  "number": "1.2",
+                  "title": "D"
+                },
+                {
+                  "number": "2",
+                  "title": "E"
+                }
+              ]
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "pf-i2",
+            "symbol": "index_sections",
+            "input": [],
+            "expected_values": [
+              []
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "pf-i3",
+            "symbol": "index_sections",
+            "input": "not a list of lines",
+            "expected_values": [
+              {
+                "error": "invalid input"
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "pf-i4",
+            "symbol": "index_sections",
+            "input": [
+              "# Alpha",
+              7
+            ],
+            "expected_values": [
+              {
+                "error": "invalid input"
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "pf-i5",
+            "symbol": "index_sections",
+            "input": [
+              "# A",
+              "## B",
+              "# C",
+              "## D"
+            ],
+            "expected_values": [
+              [
+                {
+                  "number": "1",
+                  "title": "A"
+                },
+                {
+                  "number": "1.1",
+                  "title": "B"
+                },
+                {
+                  "number": "2",
+                  "title": "C"
+                },
+                {
+                  "number": "2.1",
+                  "title": "D"
+                }
+              ]
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "po-i1",
+            "symbol": "index_sections",
+            "input": [
+              "# Top",
+              "#### TooDeep"
+            ],
+            "expected_values": [
+              [
+                {
+                  "number": "1",
+                  "title": "Top"
+                }
+              ]
+            ],
+            "rule_ids": [
+              "R-DEEP"
+            ]
+          },
+          {
+            "check_id": "po-i2",
+            "symbol": "index_sections",
+            "input": [
+              "# L1",
+              "## L2",
+              "### L3",
+              "#### L4",
+              "### L5b"
+            ],
+            "expected_values": [
+              [
+                {
+                  "number": "1",
+                  "title": "L1"
+                },
+                {
+                  "number": "1.1",
+                  "title": "L2"
+                },
+                {
+                  "number": "1.1.1",
+                  "title": "L3"
+                },
+                {
+                  "number": "1.1.2",
+                  "title": "L5b"
+                }
+              ]
+            ],
+            "rule_ids": [
+              "R-DEEP"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "nc-if",
+            "kind": "functional",
+            "patch": "def index_sections(lines):\n    outline = build_outline(lines)\n    if isinstance(outline, dict):\n        return outline\n    entries = []\n    work = [(outline, \"\")]\n    pos = 0\n    while pos < len(work):\n        nodes, prefix = work[pos]\n        pos += 1\n        ordinal = 0\n        while ordinal < len(nodes):\n            node = nodes[ordinal]\n            ordinal += 1\n            if node[\"level\"] > 3:\n                continue\n            if prefix == \"\":\n                number = str(ordinal)\n            else:\n                number = prefix + \".\" + str(ordinal)\n            entries.append({\"number\": number, \"title\": node[\"title\"]})\n            work.append((node[\"children\"], number))\n    return entries",
+            "expected_failing_check_ids": [
+              "pf-i1",
+              "pf-i5"
+            ]
+          },
+          {
+            "control_id": "nc-io",
+            "kind": "obligation",
+            "patch": "def index_sections(lines):\n    outline = build_outline(lines)\n    if isinstance(outline, dict):\n        return outline\n    entries = []\n    stack = []\n    position = len(outline) - 1\n    while position >= 0:\n        stack.append((outline[position], str(position + 1)))\n        position -= 1\n    while stack:\n        node, number = stack.pop()\n        entries.append({\"number\": number, \"title\": node[\"title\"]})\n        children = node[\"children\"]\n        child_pos = len(children) - 1\n        while child_pos >= 0:\n            stack.append((children[child_pos], number + \".\" + str(child_pos + 1)))\n            child_pos -= 1\n    return entries",
+            "expected_failing_check_ids": [
+              "po-i1",
+              "po-i2"
+            ]
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "manual_recap": "Current target: query_sections(request). parse_heading(line) is the initial helper and is known to be implemented. The required contracts set by earlier rounds remain authoritative and are preserved here; this round must route through the actual functions rather than copies, without any assertion that generated code already satisfies them: build_outline(lines) requires a list of strings else exactly {\"error\": \"invalid input\"}, detects headings only via parse_heading, stores stripped titles, silently skips malformed lines, nests each heading under the most recent lower-level heading, and returns [] for an empty list; index_sections(lines) must call build_outline, pass its error object through unchanged, and return depth-first pre-order entries {\"number\", \"title\"} with original-position dotted numbering (excluded headings still consume their sibling positions, so numbers may skip), including only levels 1-3 while deeper nodes and their whole subtrees stay out of the index. Required behavior for query_sections: request must be an object holding \"lines\" (the document line list accepted by build_outline) and \"text\"; a non-object request, a missing key, or a text that is missing, empty, or not a string yields exactly {\"error\": \"invalid query\"}. The index is obtained by calling index_sections(lines); any error object it returns is passed through unchanged as the result. Rule change for the h3-query-outline scope: the earlier case-insensitive plan (R-QUERY-CI) is rescinded and no longer in effect; R-QUERY-CS (required) now governs — a section matches only when the query text occurs in its title with identical letter case. Output: {\"matches\": [{\"number\", \"title\"}, ...]} in index order, or {\"matches\": []} when nothing matches.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "R-STRIP",
+              "scope": "global",
+              "strength": "required",
+              "text": "Titles stored in outline nodes — and therefore in everything derived from them — are stripped of surrounding whitespace.",
+              "source_ids": [
+                "m01",
+                "m02"
+              ]
+            },
+            {
+              "rule_id": "R-IGNORE-BAD",
+              "scope": "global",
+              "strength": "required",
+              "text": "Any line that is not a well-formed heading (missing space after the hashes, more than six hashes, blank title after stripping, plain prose) is treated as content and skipped silently; it never makes parsing fail.",
+              "source_ids": [
+                "m01",
+                "m02"
+              ]
+            },
+            {
+              "rule_id": "R-DEEP",
+              "scope": "h2-index-sections",
+              "strength": "required",
+              "text": "Indexing includes only headings of level 1-3; headings of level 4 or deeper, together with their entire subtrees, receive no index entry. Numbering still follows each heading's original position among its siblings, counted before this exclusion, so an excluded heading consumes its position and index numbers may skip.",
+              "source_ids": [
+                "m03",
+                "m04"
+              ]
+            },
+            {
+              "rule_id": "R-QUERY-CS",
+              "scope": "h3-query-outline",
+              "strength": "required",
+              "text": "Query matching is case-sensitive: a section title matches only when it contains the query text with identical letter case.",
+              "source_ids": [
+                "m03",
+                "m05",
+                "m06"
+              ]
+            }
+          ],
+          "inactive_rule_ids": [
+            "R-QUERY-CI"
+          ]
+        },
+        "reference_patch": "def query_sections(request):\n    if not isinstance(request, dict):\n        return {\"error\": \"invalid query\"}\n    if \"lines\" not in request or \"text\" not in request:\n        return {\"error\": \"invalid query\"}\n    lines = request[\"lines\"]\n    text = request[\"text\"]\n    if not isinstance(text, str) or text == \"\":\n        return {\"error\": \"invalid query\"}\n    index = index_sections(lines)\n    if isinstance(index, dict):\n        return index\n    matches = []\n    for entry in index:\n        if text in entry[\"title\"]:\n            matches.append({\"number\": entry[\"number\"], \"title\": entry[\"title\"]})\n    return {\"matches\": matches}",
+        "functional_checks": [
+          {
+            "check_id": "pf-q1",
+            "symbol": "query_sections",
+            "input": {
+              "lines": [
+                "# Setup Guide",
+                "## InstallSteps",
+                "# Usage"
+              ],
+              "text": "Steps"
+            },
+            "expected_values": [
+              {
+                "matches": [
+                  {
+                    "number": "1.1",
+                    "title": "InstallSteps"
+                  }
+                ]
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "pf-q2",
+            "symbol": "query_sections",
+            "input": {
+              "lines": [
+                "# Alpha One",
+                "## One Alpha"
+              ],
+              "text": "Alpha"
+            },
+            "expected_values": [
+              {
+                "matches": [
+                  {
+                    "number": "1",
+                    "title": "Alpha One"
+                  },
+                  {
+                    "number": "1.1",
+                    "title": "One Alpha"
+                  }
+                ]
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "pf-q3",
+            "symbol": "query_sections",
+            "input": {
+              "lines": []
+            },
+            "expected_values": [
+              {
+                "error": "invalid query"
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "pf-q4",
+            "symbol": "query_sections",
+            "input": {
+              "lines": "oops",
+              "text": "x"
+            },
+            "expected_values": [
+              {
+                "error": "invalid input"
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "pf-q5",
+            "symbol": "query_sections",
+            "input": {
+              "lines": [],
+              "text": 5
+            },
+            "expected_values": [
+              {
+                "error": "invalid query"
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "pf-q6",
+            "symbol": "query_sections",
+            "input": {
+              "lines": [],
+              "text": ""
+            },
+            "expected_values": [
+              {
+                "error": "invalid query"
+              }
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "po-q1",
+            "symbol": "query_sections",
+            "input": {
+              "lines": [
+                "# Introduction"
+              ],
+              "text": "intro"
+            },
+            "expected_values": [
+              {
+                "matches": []
+              }
+            ],
+            "rule_ids": [
+              "R-QUERY-CS"
+            ]
+          },
+          {
+            "check_id": "po-q2",
+            "symbol": "query_sections",
+            "input": {
+              "lines": [
+                "# Notes app",
+                "# notes from meeting"
+              ],
+              "text": "notes"
+            },
+            "expected_values": [
+              {
+                "matches": [
+                  {
+                    "number": "2",
+                    "title": "notes from meeting"
+                  }
+                ]
+              }
+            ],
+            "rule_ids": [
+              "R-QUERY-CS"
+            ]
+          },
+          {
+            "check_id": "po-q3",
+            "symbol": "query_sections",
+            "input": {
+              "lines": [
+                "# Root",
+                "#### Zebra deep"
+              ],
+              "text": "Zebra"
+            },
+            "expected_values": [
+              {
+                "matches": []
+              }
+            ],
+            "rule_ids": [
+              "R-DEEP"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "nc-qf",
+            "kind": "functional",
+            "patch": "def query_sections(request):\n    if not isinstance(request, dict):\n        return {\"error\": \"invalid query\"}\n    if \"lines\" not in request or \"text\" not in request:\n        return {\"error\": \"invalid query\"}\n    lines = request[\"lines\"]\n    text = request[\"text\"]\n    if not isinstance(text, str) or text == \"\":\n        return {\"error\": \"invalid query\"}\n    index = index_sections(lines)\n    if isinstance(index, dict):\n        return index\n    matches = []\n    for entry in index:\n        if entry[\"title\"].startswith(text):\n            matches.append({\"number\": entry[\"number\"], \"title\": entry[\"title\"]})\n    return {\"matches\": matches}",
+            "expected_failing_check_ids": [
+              "pf-q1",
+              "pf-q2"
+            ]
+          },
+          {
+            "control_id": "nc-qo",
+            "kind": "obligation",
+            "patch": "def query_sections(request):\n    if not isinstance(request, dict):\n        return {\"error\": \"invalid query\"}\n    if \"lines\" not in request or \"text\" not in request:\n        return {\"error\": \"invalid query\"}\n    lines = request[\"lines\"]\n    text = request[\"text\"]\n    if not isinstance(text, str) or text == \"\":\n        return {\"error\": \"invalid query\"}\n    index = index_sections(lines)\n    if isinstance(index, dict):\n        return index\n    matches = []\n    for entry in index:\n        if text.lower() in entry[\"title\"].lower():\n            matches.append({\"number\": entry[\"number\"], \"title\": entry[\"title\"]})\n    return {\"matches\": matches}",
+            "expected_failing_check_ids": [
+              "po-q1",
+              "po-q2"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

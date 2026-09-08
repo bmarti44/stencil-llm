@@ -1,0 +1,1507 @@
+{
+  "schema_version": 1,
+  "split": "dev",
+  "author": {
+    "name": "kimi",
+    "model": "kimi-k3:cloud"
+  },
+  "lineage": {
+    "fit_on": "none",
+    "development_on": "new original coding competence DEV",
+    "evaluated_on": "none"
+  },
+  "public": {
+    "episode_id": "stockflow-dev-01",
+    "project": "stockflow-inventory-utility",
+    "task_handles": [
+      "summarize-batch",
+      "reconcile-stock",
+      "audit-inventory"
+    ],
+    "initial_file": {
+      "path": "stockflow.py",
+      "text": "def parse_movement(entry):\n    if not isinstance(entry, dict):\n        return {\"ok\": False, \"error\": \"entry must have exactly the fields item, qty and kind\"}\n    if set(entry.keys()) != {\"item\", \"qty\", \"kind\"}:\n        return {\"ok\": False, \"error\": \"entry must have exactly the fields item, qty and kind\"}\n    item = entry[\"item\"]\n    if not isinstance(item, str) or not item.strip():\n        return {\"ok\": False, \"error\": \"item must be a nonempty string\"}\n    qty = entry[\"qty\"]\n    if isinstance(qty, bool) or not isinstance(qty, int) or qty <= 0:\n        return {\"ok\": False, \"error\": \"qty must be a positive integer\"}\n    kind = entry[\"kind\"]\n    if kind != \"in\" and kind != \"out\":\n        return {\"ok\": False, \"error\": \"kind must be 'in' or 'out'\"}\n    return {\"ok\": True, \"movement\": {\"item\": item, \"qty\": qty, \"kind\": kind}}\n\n\ndef summarize_movements(batch):\n    return None\n\n\ndef reconcile_stock(payload):\n    return None\n\n\ndef audit_inventory(payload):\n    return None\n"
+    },
+    "initial_checks": [
+      {
+        "check_id": "IC-01",
+        "symbol": "parse_movement",
+        "input": {
+          "item": "screw",
+          "qty": 5,
+          "kind": "in"
+        },
+        "expected_values": [
+          {
+            "ok": true,
+            "movement": {
+              "item": "screw",
+              "qty": 5,
+              "kind": "in"
+            }
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "IC-02",
+        "symbol": "parse_movement",
+        "input": {
+          "item": "screw",
+          "qty": 0,
+          "kind": "in"
+        },
+        "expected_values": [
+          {
+            "ok": false,
+            "error": "qty must be a positive integer"
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "IC-03",
+        "symbol": "parse_movement",
+        "input": {
+          "item": "   ",
+          "qty": 2,
+          "kind": "out"
+        },
+        "expected_values": [
+          {
+            "ok": false,
+            "error": "item must be a nonempty string"
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "IC-04",
+        "symbol": "parse_movement",
+        "input": {
+          "item": "bolt",
+          "qty": 2,
+          "kind": "hold",
+          "bin": "A1"
+        },
+        "expected_values": [
+          {
+            "ok": false,
+            "error": "entry must have exactly the fields item, qty and kind"
+          }
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "IC-05",
+        "symbol": "parse_movement",
+        "input": {
+          "item": "bolt",
+          "qty": true,
+          "kind": "in"
+        },
+        "expected_values": [
+          {
+            "ok": false,
+            "error": "qty must be a positive integer"
+          }
+        ],
+        "rule_ids": []
+      }
+    ],
+    "rounds": [
+      {
+        "index": 0,
+        "source_messages": [
+          {
+            "message_id": "msg-001",
+            "role": "user",
+            "text": "We are building a small pure-Python inventory movement utility. One movement is a JSON object with exactly the fields item, qty and kind. A working parse_movement helper already validates a single entry; treat its behavior as fixed and reuse it rather than revalidating entries by hand."
+          },
+          {
+            "message_id": "msg-002",
+            "role": "assistant",
+            "text": "Understood. I will reuse parse_movement for movement validation and keep its exact behavior."
+          },
+          {
+            "message_id": "msg-003",
+            "role": "user",
+            "text": "First feature: batch summarization. Rules: every valid movement contributes to its item's in and out totals, an item's net is in minus out, and the same item appearing in several entries must be merged into one line. The report also carries overall total_in, total_out and the number of movement entries. If any entry is invalid, reject the whole batch and the error must say which zero-based index failed and include the helper's reason; a batch that is not a list is rejected outright with its own message."
+          }
+        ],
+        "request": {
+          "message_id": "msg-004",
+          "role": "user",
+          "task_handle": "summarize-batch",
+          "text": "Implement summarize_movements(batch). Exactly: if batch is not a list, return {\"ok\": false, \"error\": \"batch must be a list\"}. Otherwise validate each entry with parse_movement; on the first invalid entry return {\"ok\": false, \"error\": \"invalid movement at index N: <parse error>\"} where N is the entry's zero-based index and <parse error> is the helper's error text. When every entry is valid return {\"ok\": true, \"items\": {<item name>: {\"in\": total_in_for_item, \"out\": total_out_for_item, \"net\": in_minus_out}}, \"total_in\": <sum of all in quantities>, \"total_out\": <sum of all out quantities>, \"count\": <number of movement entries>}. An empty batch returns ok with empty items, zero totals and count 0. You may use any loop or comprehension style."
+        },
+        "target": {
+          "path": "stockflow.py",
+          "symbol": "summarize_movements"
+        },
+        "public_checks": [
+          {
+            "check_id": "P0-01",
+            "symbol": "summarize_movements",
+            "input": [
+              {
+                "item": "screw",
+                "qty": 5,
+                "kind": "in"
+              },
+              {
+                "item": "screw",
+                "qty": 2,
+                "kind": "out"
+              },
+              {
+                "item": "bolt",
+                "qty": 4,
+                "kind": "in"
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "items": {
+                  "bolt": {
+                    "in": 4,
+                    "out": 0,
+                    "net": 4
+                  },
+                  "screw": {
+                    "in": 5,
+                    "out": 2,
+                    "net": 3
+                  }
+                },
+                "total_in": 9,
+                "total_out": 2,
+                "count": 3
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "P0-02",
+            "symbol": "summarize_movements",
+            "input": [],
+            "expected_values": [
+              {
+                "ok": true,
+                "items": {},
+                "total_in": 0,
+                "total_out": 0,
+                "count": 0
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "P0-03",
+            "symbol": "summarize_movements",
+            "input": [
+              {
+                "item": "gear",
+                "qty": 3,
+                "kind": "in"
+              },
+              {
+                "item": "gear",
+                "qty": 1,
+                "kind": "in"
+              },
+              {
+                "item": "pin",
+                "qty": 2,
+                "kind": "out"
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "items": {
+                  "gear": {
+                    "in": 4,
+                    "out": 0,
+                    "net": 4
+                  },
+                  "pin": {
+                    "in": 0,
+                    "out": 2,
+                    "net": -2
+                  }
+                },
+                "total_in": 4,
+                "total_out": 2,
+                "count": 3
+              }
+            ],
+            "rule_ids": []
+          }
+        ]
+      },
+      {
+        "index": 1,
+        "source_messages": [
+          {
+            "message_id": "msg-005",
+            "role": "user",
+            "text": "Next feature: reconcile stock against an opening balance. The payload has opening (item name to nonnegative integer stock), movements (a batch like before), and optionally allow_backorder listing item names allowed to close below zero. Closing balance is opening plus the net movement per item; items that only appear in movements start from zero, and opening items without movement keep their balance."
+          },
+          {
+            "message_id": "msg-006",
+            "role": "assistant",
+            "text": "So closing equals opening plus per-item net. What should happen when a closing balance would drop below zero?"
+          },
+          {
+            "message_id": "msg-007",
+            "role": "user",
+            "text": "A negative closing balance is rejected unless the item is listed in allow_backorder. If several items violate, name the alphabetically first one together with its balance. Reuse the batch summarizer for movement validation and per-item nets instead of duplicating that logic. One settled directive for later work: an audit feature will be built on top of this, and its policy is already decided - the audit must reject every negative closing balance outright, ignoring any allow_backorder list. That audit directive is scoped to the future audit feature only; reconcile_stock itself keeps the backorder exemption described above."
+          }
+        ],
+        "request": {
+          "message_id": "msg-008",
+          "role": "user",
+          "task_handle": "reconcile-stock",
+          "text": "Implement reconcile_stock(payload). Exactly: payload must be an object whose only allowed fields are opening, movements and the optional allow_backorder; a non-object payload, a missing opening or movements, or any extra field returns {\"ok\": false, \"error\": \"payload must contain opening, movements and optional allow_backorder only\"}. opening must map nonblank item names (each a string containing at least one non-whitespace character) to nonnegative integers (true/false are not integers), otherwise return {\"ok\": false, \"error\": \"opening must map item names to nonnegative integers\"}. If present, allow_backorder must be a list of nonblank item-name strings (each containing at least one non-whitespace character), otherwise return {\"ok\": false, \"error\": \"allow_backorder must be a list of item names\"}. Then obtain movement validation and per-item nets by calling summarize_movements(payload[\"movements\"]); if that result is not ok, return it unchanged. Compute closing = opening balance plus the item's net, items that only move start from 0, opening-only items keep their balance. If any item not listed in allow_backorder closes below zero, return {\"ok\": false, \"error\": \"negative closing balance\", \"item\": <alphabetically first such item>, \"balance\": <its closing value>}. Otherwise return {\"ok\": true, \"closing\": {<item>: <closing balance> for every opening or moved item}, \"total_in\": <from the summary>, \"total_out\": <from the summary>}."
+        },
+        "target": {
+          "path": "stockflow.py",
+          "symbol": "reconcile_stock"
+        },
+        "public_checks": [
+          {
+            "check_id": "P1-01",
+            "symbol": "reconcile_stock",
+            "input": {
+              "opening": {
+                "screw": 10
+              },
+              "movements": [
+                {
+                  "item": "screw",
+                  "qty": 3,
+                  "kind": "out"
+                },
+                {
+                  "item": "screw",
+                  "qty": 5,
+                  "kind": "in"
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "ok": true,
+                "closing": {
+                  "screw": 12
+                },
+                "total_in": 5,
+                "total_out": 3
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "P1-02",
+            "symbol": "reconcile_stock",
+            "input": {
+              "opening": {},
+              "movements": []
+            },
+            "expected_values": [
+              {
+                "ok": true,
+                "closing": {},
+                "total_in": 0,
+                "total_out": 0
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "P1-03",
+            "symbol": "reconcile_stock",
+            "input": {
+              "opening": {
+                "nut": 4
+              },
+              "allow_backorder": [
+                "bolt"
+              ],
+              "movements": [
+                {
+                  "item": "nut",
+                  "qty": 1,
+                  "kind": "out"
+                },
+                {
+                  "item": "gear",
+                  "qty": 6,
+                  "kind": "in"
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "ok": true,
+                "closing": {
+                  "gear": 6,
+                  "nut": 3
+                },
+                "total_in": 6,
+                "total_out": 1
+              }
+            ],
+            "rule_ids": []
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "source_messages": [
+          {
+            "message_id": "msg-009",
+            "role": "user",
+            "text": "About the audit directive I settled earlier - that the audit must reject every negative closing outright, ignoring allow_backorder: scrap it. The audit must follow the same backorder policy as reconciliation - items listed in allow_backorder may close negative and are then reported as shortages, while any other negative closing balance is still rejected."
+          },
+          {
+            "message_id": "msg-010",
+            "role": "assistant",
+            "text": "Acknowledged: the audit follows the reconciliation backorder policy and flags backordered negative items as shortages."
+          },
+          {
+            "message_id": "msg-011",
+            "role": "user",
+            "text": "The audit must physically call reconcile_stock with the caller's payload, so any allow_backorder list flows through untouched, and a reconciliation failure must come back unchanged so callers see the exact same error."
+          }
+        ],
+        "request": {
+          "message_id": "msg-012",
+          "role": "user",
+          "task_handle": "audit-inventory",
+          "text": "Implement audit_inventory(payload). The payload shape and the negative-balance policy are exactly the current reconcile_stock contract, including the optional allow_backorder list; the earlier audit directive that the audit rejects every negative closing is withdrawn. audit_inventory must call reconcile_stock(payload) and, when that result is not ok, return it unchanged. When reconciliation succeeds, let shortages be the alphabetically sorted list of items whose closing balance is below zero, shortage_count its length, and status the string \"clear\" when there are no shortages else \"shortage\". Return {\"ok\": true, \"closing\": <the same closing object>, \"shortages\": [...], \"shortage_count\": <n>, \"status\": <\"clear\" or \"shortage\">, \"total_in\": <from the reconciliation result>, \"total_out\": <from the reconciliation result>}. Do not recompute movement totals yourself; take them from the reconciliation result."
+        },
+        "target": {
+          "path": "stockflow.py",
+          "symbol": "audit_inventory"
+        },
+        "public_checks": [
+          {
+            "check_id": "P2-01",
+            "symbol": "audit_inventory",
+            "input": {
+              "opening": {
+                "screw": 8
+              },
+              "movements": [
+                {
+                  "item": "screw",
+                  "qty": 2,
+                  "kind": "out"
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "ok": true,
+                "closing": {
+                  "screw": 6
+                },
+                "shortages": [],
+                "shortage_count": 0,
+                "status": "clear",
+                "total_in": 0,
+                "total_out": 2
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "P2-02",
+            "symbol": "audit_inventory",
+            "input": {
+              "opening": {
+                "a": 3,
+                "b": 1
+              },
+              "movements": [
+                {
+                  "item": "a",
+                  "qty": 3,
+                  "kind": "out"
+                },
+                {
+                  "item": "b",
+                  "qty": 4,
+                  "kind": "in"
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "ok": true,
+                "closing": {
+                  "a": 0,
+                  "b": 5
+                },
+                "shortages": [],
+                "shortage_count": 0,
+                "status": "clear",
+                "total_in": 4,
+                "total_out": 3
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "P2-03",
+            "symbol": "audit_inventory",
+            "input": {
+              "opening": {
+                "bolt": 5,
+                "nut": 2
+              },
+              "movements": [
+                {
+                  "item": "bolt",
+                  "qty": 2,
+                  "kind": "in"
+                },
+                {
+                  "item": "nut",
+                  "qty": 2,
+                  "kind": "out"
+                },
+                {
+                  "item": "nut",
+                  "qty": 3,
+                  "kind": "in"
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "ok": true,
+                "closing": {
+                  "bolt": 7,
+                  "nut": 3
+                },
+                "shortages": [],
+                "shortage_count": 0,
+                "status": "clear",
+                "total_in": 5,
+                "total_out": 2
+              }
+            ],
+            "rule_ids": []
+          }
+        ]
+      }
+    ]
+  },
+  "private": {
+    "rounds": [
+      {
+        "index": 0,
+        "manual_recap": "parse_movement is a fixed, already-implemented helper and is reused rather than revalidated by hand: an entry must be an object with exactly the fields item, qty and kind; item must be a string containing at least one non-whitespace character; qty a positive integer (true/false are not integers); kind exactly 'in' or 'out'; it returns {\"ok\": true, \"movement\": {...}} or the first matching rejection among fields, item, qty, kind with the fixed error texts. The current target summarize_movements carries this required contract: a non-list batch returns {\"ok\": false, \"error\": \"batch must be a list\"}; every entry is validated with parse_movement and the first invalid entry rejects the whole batch with {\"ok\": false, \"error\": \"invalid movement at index N: <parse error>\"} using the zero-based index; valid batches merge repeated items and return per-item in/out totals with net = in minus out plus overall total_in, total_out and entry count; an empty batch returns ok with empty items and zeros. reconcile_stock and audit_inventory remain unimplemented stubs. Implementation style (loops, comprehensions, key iteration order) is free as long as the exact outputs are produced. This recap states required contracts and the current target only; it does not assert that any generated implementation already satisfies them.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "R-SUM-AGG",
+              "scope": "summarize-batch",
+              "strength": "required",
+              "text": "summarize_movements must merge every valid movement per item into in/out totals with net = in - out and report total_in, total_out and the entry count; an empty batch returns ok with empty items and zeros.",
+              "source_ids": [
+                "msg-003",
+                "msg-004"
+              ]
+            },
+            {
+              "rule_id": "R-SUM-INDEX",
+              "scope": "summarize-batch",
+              "strength": "required",
+              "text": "A non-list batch is rejected with 'batch must be a list'; the first entry failing parse_movement rejects the whole batch with 'invalid movement at index N: <parse error>' including the zero-based index and the helper's reason.",
+              "source_ids": [
+                "msg-003",
+                "msg-004"
+              ]
+            }
+          ],
+          "inactive_rule_ids": []
+        },
+        "reference_patch": "def summarize_movements(batch):\n    if not isinstance(batch, list):\n        return {\"ok\": False, \"error\": \"batch must be a list\"}\n    items = {}\n    total_in = 0\n    total_out = 0\n    index = 0\n    for entry in batch:\n        parsed = parse_movement(entry)\n        if not parsed[\"ok\"]:\n            return {\"ok\": False, \"error\": \"invalid movement at index \" + str(index) + \": \" + parsed[\"error\"]}\n        movement = parsed[\"movement\"]\n        name = movement[\"item\"]\n        if name not in items:\n            items[name] = {\"in\": 0, \"out\": 0}\n        items[name][movement[\"kind\"]] += movement[\"qty\"]\n        if movement[\"kind\"] == \"in\":\n            total_in += movement[\"qty\"]\n        else:\n            total_out += movement[\"qty\"]\n        index += 1\n    report = {}\n    for name in sorted(items):\n        report[name] = {\"in\": items[name][\"in\"], \"out\": items[name][\"out\"], \"net\": items[name][\"in\"] - items[name][\"out\"]}\n    return {\"ok\": True, \"items\": report, \"total_in\": total_in, \"total_out\": total_out, \"count\": index}",
+        "functional_checks": [
+          {
+            "check_id": "F0-01",
+            "symbol": "summarize_movements",
+            "input": [
+              {
+                "item": "nail",
+                "qty": 10,
+                "kind": "in"
+              },
+              {
+                "item": "nail",
+                "qty": 10,
+                "kind": "out"
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "items": {
+                  "nail": {
+                    "in": 10,
+                    "out": 10,
+                    "net": 0
+                  }
+                },
+                "total_in": 10,
+                "total_out": 10,
+                "count": 2
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "F0-02",
+            "symbol": "summarize_movements",
+            "input": [
+              {
+                "item": "a",
+                "qty": 1,
+                "kind": "out"
+              },
+              {
+                "item": "b",
+                "qty": 2,
+                "kind": "out"
+              },
+              {
+                "item": "a",
+                "qty": 3,
+                "kind": "in"
+              },
+              {
+                "item": "a",
+                "qty": 1,
+                "kind": "in"
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "items": {
+                  "a": {
+                    "in": 4,
+                    "out": 1,
+                    "net": 3
+                  },
+                  "b": {
+                    "in": 0,
+                    "out": 2,
+                    "net": -2
+                  }
+                },
+                "total_in": 4,
+                "total_out": 3,
+                "count": 4
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "F0-03",
+            "symbol": "summarize_movements",
+            "input": [
+              {
+                "item": "nut",
+                "qty": 7,
+                "kind": "out"
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": true,
+                "items": {
+                  "nut": {
+                    "in": 0,
+                    "out": 7,
+                    "net": -7
+                  }
+                },
+                "total_in": 0,
+                "total_out": 7,
+                "count": 1
+              }
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "O0-01",
+            "symbol": "summarize_movements",
+            "input": [
+              {
+                "item": "screw",
+                "qty": 5,
+                "kind": "in"
+              },
+              {
+                "item": "screw",
+                "qty": 0,
+                "kind": "in"
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": false,
+                "error": "invalid movement at index 1: qty must be a positive integer"
+              }
+            ],
+            "rule_ids": [
+              "R-SUM-INDEX"
+            ]
+          },
+          {
+            "check_id": "O0-02",
+            "symbol": "summarize_movements",
+            "input": {
+              "a": 1
+            },
+            "expected_values": [
+              {
+                "ok": false,
+                "error": "batch must be a list"
+              }
+            ],
+            "rule_ids": [
+              "R-SUM-INDEX"
+            ]
+          },
+          {
+            "check_id": "O0-03",
+            "symbol": "summarize_movements",
+            "input": [
+              {
+                "item": "x",
+                "qty": 1,
+                "kind": "hold"
+              }
+            ],
+            "expected_values": [
+              {
+                "ok": false,
+                "error": "invalid movement at index 0: kind must be 'in' or 'out'"
+              }
+            ],
+            "rule_ids": [
+              "R-SUM-INDEX"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "NC0-F",
+            "kind": "functional",
+            "patch": "def summarize_movements(batch):\n    if not isinstance(batch, list):\n        return {\"ok\": False, \"error\": \"batch must be a list\"}\n    items = {}\n    total_in = 0\n    total_out = 0\n    index = 0\n    for entry in batch:\n        parsed = parse_movement(entry)\n        if not parsed[\"ok\"]:\n            return {\"ok\": False, \"error\": \"invalid movement at index \" + str(index) + \": \" + parsed[\"error\"]}\n        movement = parsed[\"movement\"]\n        name = movement[\"item\"]\n        if name not in items:\n            items[name] = {\"in\": 0, \"out\": 0}\n        items[name][movement[\"kind\"]] += movement[\"qty\"]\n        if movement[\"kind\"] == \"in\":\n            total_in += movement[\"qty\"]\n        else:\n            total_out += movement[\"qty\"]\n        index += 1\n    report = {}\n    for name in sorted(items):\n        report[name] = {\"in\": items[name][\"in\"], \"out\": items[name][\"out\"], \"net\": items[name][\"in\"] + items[name][\"out\"]}\n    return {\"ok\": True, \"items\": report, \"total_in\": total_in, \"total_out\": total_out, \"count\": index}",
+            "expected_failing_check_ids": [
+              "F0-01",
+              "F0-02",
+              "F0-03"
+            ]
+          },
+          {
+            "control_id": "NC0-O",
+            "kind": "obligation",
+            "patch": "def summarize_movements(batch):\n    if not isinstance(batch, list):\n        return {\"ok\": False, \"error\": \"batch must be a list\"}\n    items = {}\n    total_in = 0\n    total_out = 0\n    index = 0\n    for entry in batch:\n        parsed = parse_movement(entry)\n        if not parsed[\"ok\"]:\n            return {\"ok\": False, \"error\": parsed[\"error\"]}\n        movement = parsed[\"movement\"]\n        name = movement[\"item\"]\n        if name not in items:\n            items[name] = {\"in\": 0, \"out\": 0}\n        items[name][movement[\"kind\"]] += movement[\"qty\"]\n        if movement[\"kind\"] == \"in\":\n            total_in += movement[\"qty\"]\n        else:\n            total_out += movement[\"qty\"]\n        index += 1\n    report = {}\n    for name in sorted(items):\n        report[name] = {\"in\": items[name][\"in\"], \"out\": items[name][\"out\"], \"net\": items[name][\"in\"] - items[name][\"out\"]}\n    return {\"ok\": True, \"items\": report, \"total_in\": total_in, \"total_out\": total_out, \"count\": index}",
+            "expected_failing_check_ids": [
+              "O0-01",
+              "O0-03"
+            ]
+          }
+        ]
+      },
+      {
+        "index": 1,
+        "manual_recap": "parse_movement is fixed and summarize_movements keeps its required contract exactly as established (merge per item, net = in - out, overall total_in/total_out and count; non-list rejection and zero-based indexed helper-error rejection); these remain standing obligations, and nothing here assumes earlier generated code already satisfies them. The current target reconcile_stock carries this required contract: payload must be an object with only opening, movements and the optional allow_backorder, else {\"ok\": false, \"error\": \"payload must contain opening, movements and optional allow_backorder only\"}; opening must map nonblank item names (each containing at least one non-whitespace character) to nonnegative integers (booleans excluded), else {\"ok\": false, \"error\": \"opening must map item names to nonnegative integers\"}; allow_backorder when present must be a list of nonblank item-name strings, else {\"ok\": false, \"error\": \"allow_backorder must be a list of item names\"}. Movement validation and per-item nets must come from calling summarize_movements(payload[\"movements\"]), and a non-ok summary is returned unchanged. Closing = opening plus net per item, movement-only items start at 0, opening-only items keep their balance. Any closing below zero for an item not in allow_backorder is rejected with {\"ok\": false, \"error\": \"negative closing balance\", \"item\": <alphabetically first violator>, \"balance\": <its closing>}; success returns closing, total_in and total_out from the summary. A settled prospective directive is also active for the later audit feature: the audit must reject every negative closing outright, ignoring allow_backorder; it is scoped to the audit task only and does not constrain reconcile_stock. audit_inventory remains an unimplemented stub. Style is free within the one function edit.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "R-SUM-AGG",
+              "scope": "summarize-batch",
+              "strength": "required",
+              "text": "summarize_movements must merge every valid movement per item into in/out totals with net = in - out and report total_in, total_out and the entry count; an empty batch returns ok with empty items and zeros.",
+              "source_ids": [
+                "msg-003",
+                "msg-004"
+              ]
+            },
+            {
+              "rule_id": "R-SUM-INDEX",
+              "scope": "summarize-batch",
+              "strength": "required",
+              "text": "A non-list batch is rejected with 'batch must be a list'; the first entry failing parse_movement rejects the whole batch with 'invalid movement at index N: <parse error>' including the zero-based index and the helper's reason.",
+              "source_ids": [
+                "msg-003",
+                "msg-004"
+              ]
+            },
+            {
+              "rule_id": "R-REC-CLOSING",
+              "scope": "reconcile-stock",
+              "strength": "required",
+              "text": "Closing balance is opening plus the item's net movement; movement-only items start from 0 and opening-only items keep their balance.",
+              "source_ids": [
+                "msg-005",
+                "msg-008"
+              ]
+            },
+            {
+              "rule_id": "R-REC-NEG",
+              "scope": "reconcile-stock",
+              "strength": "required",
+              "text": "A closing below zero is rejected unless the item is listed in allow_backorder; rejection returns error 'negative closing balance' with the alphabetically first violating item and its balance. allow_backorder must be a list of nonblank item-name strings, each containing at least one non-whitespace character.",
+              "source_ids": [
+                "msg-005",
+                "msg-007",
+                "msg-008"
+              ]
+            },
+            {
+              "rule_id": "R-REC-DEP",
+              "scope": "reconcile-stock",
+              "strength": "required",
+              "text": "reconcile_stock must obtain movement validation and per-item nets by calling summarize_movements and must return its failure result unchanged.",
+              "source_ids": [
+                "msg-007",
+                "msg-008"
+              ]
+            },
+            {
+              "rule_id": "R-AUDIT-PLAN",
+              "scope": "audit-inventory",
+              "strength": "required",
+              "text": "Settled prospective directive for the later audit feature: the audit must reject every negative closing balance outright, ignoring any allow_backorder list. This directive is scoped to the future audit task only and does not constrain reconcile_stock.",
+              "source_ids": [
+                "msg-007"
+              ]
+            }
+          ],
+          "inactive_rule_ids": []
+        },
+        "reference_patch": "def reconcile_stock(payload):\n    if not isinstance(payload, dict):\n        return {\"ok\": False, \"error\": \"payload must contain opening, movements and optional allow_backorder only\"}\n    keys = set(payload.keys())\n    if \"opening\" not in keys or \"movements\" not in keys:\n        return {\"ok\": False, \"error\": \"payload must contain opening, movements and optional allow_backorder only\"}\n    for key in keys:\n        if key != \"opening\" and key != \"movements\" and key != \"allow_backorder\":\n            return {\"ok\": False, \"error\": \"payload must contain opening, movements and optional allow_backorder only\"}\n    opening = payload[\"opening\"]\n    if not isinstance(opening, dict):\n        return {\"ok\": False, \"error\": \"opening must map item names to nonnegative integers\"}\n    for name in opening:\n        value = opening[name]\n        if not isinstance(name, str) or not name.strip():\n            return {\"ok\": False, \"error\": \"opening must map item names to nonnegative integers\"}\n        if isinstance(value, bool) or not isinstance(value, int) or value < 0:\n            return {\"ok\": False, \"error\": \"opening must map item names to nonnegative integers\"}\n    allowed = payload.get(\"allow_backorder\", [])\n    if not isinstance(allowed, list):\n        return {\"ok\": False, \"error\": \"allow_backorder must be a list of item names\"}\n    for name in allowed:\n        if not isinstance(name, str) or not name.strip():\n            return {\"ok\": False, \"error\": \"allow_backorder must be a list of item names\"}\n    summary = summarize_movements(payload[\"movements\"])\n    if not summary[\"ok\"]:\n        return summary\n    closing = {}\n    for name in opening:\n        closing[name] = opening[name]\n    for name in summary[\"items\"]:\n        net = summary[\"items\"][name][\"net\"]\n        if name in closing:\n            closing[name] += net\n        else:\n            closing[name] = net\n    backorder = set(allowed)\n    violators = []\n    for name in closing:\n        if closing[name] < 0 and name not in backorder:\n            violators.append(name)\n    if violators:\n        first = sorted(violators)[0]\n        return {\"ok\": False, \"error\": \"negative closing balance\", \"item\": first, \"balance\": closing[first]}\n    return {\"ok\": True, \"closing\": closing, \"total_in\": summary[\"total_in\"], \"total_out\": summary[\"total_out\"]}",
+        "functional_checks": [
+          {
+            "check_id": "F1-01",
+            "symbol": "reconcile_stock",
+            "input": {
+              "opening": {
+                "w": 4,
+                "s": 3
+              },
+              "movements": [
+                {
+                  "item": "w",
+                  "qty": 6,
+                  "kind": "in"
+                },
+                {
+                  "item": "s",
+                  "qty": 3,
+                  "kind": "out"
+                },
+                {
+                  "item": "n",
+                  "qty": 2,
+                  "kind": "in"
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "ok": true,
+                "closing": {
+                  "n": 2,
+                  "s": 0,
+                  "w": 10
+                },
+                "total_in": 8,
+                "total_out": 3
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "F1-02",
+            "symbol": "reconcile_stock",
+            "input": {
+              "opening": {},
+              "movements": [
+                {
+                  "item": "z",
+                  "qty": 2,
+                  "kind": "out"
+                },
+                {
+                  "item": "z",
+                  "qty": 5,
+                  "kind": "in"
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "ok": true,
+                "closing": {
+                  "z": 3
+                },
+                "total_in": 5,
+                "total_out": 2
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "F1-03",
+            "symbol": "reconcile_stock",
+            "input": {
+              "opening": {
+                "k": 5
+              },
+              "allow_backorder": [
+                "m"
+              ],
+              "movements": [
+                {
+                  "item": "k",
+                  "qty": 1,
+                  "kind": "out"
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "ok": true,
+                "closing": {
+                  "k": 4
+                },
+                "total_in": 0,
+                "total_out": 1
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "F1-04",
+            "symbol": "reconcile_stock",
+            "input": {
+              "opening": {
+                "p": 1
+              },
+              "allow_backorder": "p",
+              "movements": []
+            },
+            "expected_values": [
+              {
+                "ok": false,
+                "error": "allow_backorder must be a list of item names"
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "F1-05",
+            "symbol": "reconcile_stock",
+            "input": {
+              "opening": {
+                "   ": 3
+              },
+              "movements": []
+            },
+            "expected_values": [
+              {
+                "ok": false,
+                "error": "opening must map item names to nonnegative integers"
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "F1-06",
+            "symbol": "reconcile_stock",
+            "input": {
+              "opening": {},
+              "allow_backorder": [
+                "  "
+              ],
+              "movements": []
+            },
+            "expected_values": [
+              {
+                "ok": false,
+                "error": "allow_backorder must be a list of item names"
+              }
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "O1-01",
+            "symbol": "reconcile_stock",
+            "input": {
+              "opening": {
+                "c": 1
+              },
+              "movements": [
+                {
+                  "item": "c",
+                  "qty": 3,
+                  "kind": "out"
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "ok": false,
+                "error": "negative closing balance",
+                "item": "c",
+                "balance": -2
+              }
+            ],
+            "rule_ids": [
+              "R-REC-NEG"
+            ]
+          },
+          {
+            "check_id": "O1-02",
+            "symbol": "reconcile_stock",
+            "input": {
+              "opening": {
+                "b": 0,
+                "a": 0
+              },
+              "movements": [
+                {
+                  "item": "b",
+                  "qty": 2,
+                  "kind": "out"
+                },
+                {
+                  "item": "a",
+                  "qty": 1,
+                  "kind": "out"
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "ok": false,
+                "error": "negative closing balance",
+                "item": "a",
+                "balance": -1
+              }
+            ],
+            "rule_ids": [
+              "R-REC-NEG"
+            ]
+          },
+          {
+            "check_id": "O1-03",
+            "symbol": "reconcile_stock",
+            "input": {
+              "opening": {
+                "d": 0
+              },
+              "allow_backorder": [
+                "d"
+              ],
+              "movements": [
+                {
+                  "item": "d",
+                  "qty": 2,
+                  "kind": "out"
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "ok": true,
+                "closing": {
+                  "d": -2
+                },
+                "total_in": 0,
+                "total_out": 2
+              }
+            ],
+            "rule_ids": [
+              "R-REC-NEG"
+            ]
+          },
+          {
+            "check_id": "O1-04",
+            "symbol": "reconcile_stock",
+            "input": {
+              "opening": {
+                "e": 0
+              },
+              "allow_backorder": [
+                "f"
+              ],
+              "movements": [
+                {
+                  "item": "e",
+                  "qty": 1,
+                  "kind": "out"
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "ok": false,
+                "error": "negative closing balance",
+                "item": "e",
+                "balance": -1
+              }
+            ],
+            "rule_ids": [
+              "R-REC-NEG"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "NC1-F",
+            "kind": "functional",
+            "patch": "def reconcile_stock(payload):\n    if not isinstance(payload, dict):\n        return {\"ok\": False, \"error\": \"payload must contain opening, movements and optional allow_backorder only\"}\n    keys = set(payload.keys())\n    if \"opening\" not in keys or \"movements\" not in keys:\n        return {\"ok\": False, \"error\": \"payload must contain opening, movements and optional allow_backorder only\"}\n    for key in keys:\n        if key != \"opening\" and key != \"movements\" and key != \"allow_backorder\":\n            return {\"ok\": False, \"error\": \"payload must contain opening, movements and optional allow_backorder only\"}\n    opening = payload[\"opening\"]\n    if not isinstance(opening, dict):\n        return {\"ok\": False, \"error\": \"opening must map item names to nonnegative integers\"}\n    for name in opening:\n        value = opening[name]\n        if not isinstance(name, str) or not name.strip():\n            return {\"ok\": False, \"error\": \"opening must map item names to nonnegative integers\"}\n        if isinstance(value, bool) or not isinstance(value, int) or value < 0:\n            return {\"ok\": False, \"error\": \"opening must map item names to nonnegative integers\"}\n    allowed = payload.get(\"allow_backorder\", [])\n    if not isinstance(allowed, list):\n        return {\"ok\": False, \"error\": \"allow_backorder must be a list of item names\"}\n    for name in allowed:\n        if not isinstance(name, str) or not name.strip():\n            return {\"ok\": False, \"error\": \"allow_backorder must be a list of item names\"}\n    summary = summarize_movements(payload[\"movements\"])\n    if not summary[\"ok\"]:\n        return summary\n    closing = {}\n    for name in summary[\"items\"]:\n        closing[name] = summary[\"items\"][name][\"net\"]\n    backorder = set(allowed)\n    violators = []\n    for name in closing:\n        if closing[name] < 0 and name not in backorder:\n            violators.append(name)\n    if violators:\n        first = sorted(violators)[0]\n        return {\"ok\": False, \"error\": \"negative closing balance\", \"item\": first, \"balance\": closing[first]}\n    return {\"ok\": True, \"closing\": closing, \"total_in\": summary[\"total_in\"], \"total_out\": summary[\"total_out\"]}",
+            "expected_failing_check_ids": [
+              "F1-01",
+              "F1-03",
+              "O1-01"
+            ]
+          },
+          {
+            "control_id": "NC1-O",
+            "kind": "obligation",
+            "patch": "def reconcile_stock(payload):\n    if not isinstance(payload, dict):\n        return {\"ok\": False, \"error\": \"payload must contain opening, movements and optional allow_backorder only\"}\n    keys = set(payload.keys())\n    if \"opening\" not in keys or \"movements\" not in keys:\n        return {\"ok\": False, \"error\": \"payload must contain opening, movements and optional allow_backorder only\"}\n    for key in keys:\n        if key != \"opening\" and key != \"movements\" and key != \"allow_backorder\":\n            return {\"ok\": False, \"error\": \"payload must contain opening, movements and optional allow_backorder only\"}\n    opening = payload[\"opening\"]\n    if not isinstance(opening, dict):\n        return {\"ok\": False, \"error\": \"opening must map item names to nonnegative integers\"}\n    for name in opening:\n        value = opening[name]\n        if not isinstance(name, str) or not name.strip():\n            return {\"ok\": False, \"error\": \"opening must map item names to nonnegative integers\"}\n        if isinstance(value, bool) or not isinstance(value, int) or value < 0:\n            return {\"ok\": False, \"error\": \"opening must map item names to nonnegative integers\"}\n    allowed = payload.get(\"allow_backorder\", [])\n    if not isinstance(allowed, list):\n        return {\"ok\": False, \"error\": \"allow_backorder must be a list of item names\"}\n    for name in allowed:\n        if not isinstance(name, str) or not name.strip():\n            return {\"ok\": False, \"error\": \"allow_backorder must be a list of item names\"}\n    summary = summarize_movements(payload[\"movements\"])\n    if not summary[\"ok\"]:\n        return summary\n    closing = {}\n    for name in opening:\n        closing[name] = opening[name]\n    for name in summary[\"items\"]:\n        net = summary[\"items\"][name][\"net\"]\n        if name in closing:\n            closing[name] += net\n        else:\n            closing[name] = net\n    backorder = set(allowed)\n    violators = []\n    for name in closing:\n        if closing[name] < 0 and name not in backorder:\n            violators.append(name)\n    if violators:\n        first = sorted(violators)[-1]\n        return {\"ok\": False, \"error\": \"negative closing balance\", \"item\": first, \"balance\": closing[first]}\n    return {\"ok\": True, \"closing\": closing, \"total_in\": summary[\"total_in\"], \"total_out\": summary[\"total_out\"]}",
+            "expected_failing_check_ids": [
+              "O1-02"
+            ]
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "manual_recap": "parse_movement, summarize_movements and reconcile_stock carry their required contracts exactly as established, including the reconciliation backorder policy: a closing below zero is rejected with error 'negative closing balance', the alphabetically first violator and its balance, unless the item is in allow_backorder; opening and allow_backorder names must be nonblank. These remain standing obligations, and nothing here assumes earlier generated code already satisfies them. The current target audit_inventory operates under a genuinely changed rule: the user's earlier binding directive that the audit reject every negative closing outright is withdrawn; the audit now follows the same backorder policy as reconciliation, so allow_backorder items may close negative and are then reported as shortages. audit_inventory must call reconcile_stock with the caller's payload and return a non-ok result unchanged (including error, item and balance fields). On success it returns the same closing object, shortages (the alphabetically sorted items closing below zero), shortage_count, status 'clear' when there are no shortages else 'shortage', and total_in/total_out taken from the reconciliation result rather than recomputed. Style is free within the single function; no other function may be modified.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "R-SUM-AGG",
+              "scope": "summarize-batch",
+              "strength": "required",
+              "text": "summarize_movements must merge every valid movement per item into in/out totals with net = in - out and report total_in, total_out and the entry count; an empty batch returns ok with empty items and zeros.",
+              "source_ids": [
+                "msg-003",
+                "msg-004"
+              ]
+            },
+            {
+              "rule_id": "R-SUM-INDEX",
+              "scope": "summarize-batch",
+              "strength": "required",
+              "text": "A non-list batch is rejected with 'batch must be a list'; the first entry failing parse_movement rejects the whole batch with 'invalid movement at index N: <parse error>' including the zero-based index and the helper's reason.",
+              "source_ids": [
+                "msg-003",
+                "msg-004"
+              ]
+            },
+            {
+              "rule_id": "R-REC-CLOSING",
+              "scope": "reconcile-stock",
+              "strength": "required",
+              "text": "Closing balance is opening plus the item's net movement; movement-only items start from 0 and opening-only items keep their balance.",
+              "source_ids": [
+                "msg-005",
+                "msg-008"
+              ]
+            },
+            {
+              "rule_id": "R-REC-NEG",
+              "scope": "reconcile-stock",
+              "strength": "required",
+              "text": "A closing below zero is rejected unless the item is listed in allow_backorder; rejection returns error 'negative closing balance' with the alphabetically first violating item and its balance. allow_backorder must be a list of nonblank item-name strings, each containing at least one non-whitespace character.",
+              "source_ids": [
+                "msg-005",
+                "msg-007",
+                "msg-008"
+              ]
+            },
+            {
+              "rule_id": "R-REC-DEP",
+              "scope": "reconcile-stock",
+              "strength": "required",
+              "text": "reconcile_stock must obtain movement validation and per-item nets by calling summarize_movements and must return its failure result unchanged.",
+              "source_ids": [
+                "msg-007",
+                "msg-008"
+              ]
+            },
+            {
+              "rule_id": "R-AUD-BACKORDER",
+              "scope": "audit-inventory",
+              "strength": "required",
+              "text": "The audit follows the reconciliation backorder policy: allow_backorder items may close negative and become reported shortages; any other negative closing balance remains rejected. This supersedes the withdrawn reject-all audit directive.",
+              "source_ids": [
+                "msg-009",
+                "msg-012"
+              ]
+            },
+            {
+              "rule_id": "R-AUD-DEP",
+              "scope": "audit-inventory",
+              "strength": "required",
+              "text": "audit_inventory must call reconcile_stock with the caller's payload and must return a non-ok reconciliation result unchanged.",
+              "source_ids": [
+                "msg-011",
+                "msg-012"
+              ]
+            },
+            {
+              "rule_id": "R-AUD-REPORT",
+              "scope": "audit-inventory",
+              "strength": "required",
+              "text": "A successful audit returns the same closing object, shortages as the alphabetically sorted items below zero, shortage_count, status 'clear' or 'shortage', and total_in/total_out taken from the reconciliation result.",
+              "source_ids": [
+                "msg-012"
+              ]
+            }
+          ],
+          "inactive_rule_ids": [
+            "R-AUDIT-PLAN"
+          ]
+        },
+        "reference_patch": "def audit_inventory(payload):\n    result = reconcile_stock(payload)\n    if not result[\"ok\"]:\n        return result\n    closing = result[\"closing\"]\n    shortages = []\n    for name in closing:\n        if closing[name] < 0:\n            shortages.append(name)\n    shortages = sorted(shortages)\n    status = \"clear\"\n    if shortages:\n        status = \"shortage\"\n    return {\"ok\": True, \"closing\": closing, \"shortages\": shortages, \"shortage_count\": len(shortages), \"status\": status, \"total_in\": result[\"total_in\"], \"total_out\": result[\"total_out\"]}",
+        "functional_checks": [
+          {
+            "check_id": "F2-01",
+            "symbol": "audit_inventory",
+            "input": {
+              "opening": {
+                "m": 5
+              },
+              "movements": [
+                {
+                  "item": "m",
+                  "qty": 5,
+                  "kind": "out"
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "ok": true,
+                "closing": {
+                  "m": 0
+                },
+                "shortages": [],
+                "shortage_count": 0,
+                "status": "clear",
+                "total_in": 0,
+                "total_out": 5
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "F2-02",
+            "symbol": "audit_inventory",
+            "input": {
+              "opening": {},
+              "movements": []
+            },
+            "expected_values": [
+              {
+                "ok": true,
+                "closing": {},
+                "shortages": [],
+                "shortage_count": 0,
+                "status": "clear",
+                "total_in": 0,
+                "total_out": 0
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "F2-03",
+            "symbol": "audit_inventory",
+            "input": {
+              "opening": {
+                "t": 2
+              },
+              "movements": [
+                {
+                  "item": "t",
+                  "qty": 3,
+                  "kind": "in"
+                },
+                {
+                  "item": "t",
+                  "qty": 1,
+                  "kind": "out"
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "ok": true,
+                "closing": {
+                  "t": 4
+                },
+                "shortages": [],
+                "shortage_count": 0,
+                "status": "clear",
+                "total_in": 3,
+                "total_out": 1
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "F2-04",
+            "symbol": "audit_inventory",
+            "input": "not-a-payload",
+            "expected_values": [
+              {
+                "ok": false,
+                "error": "payload must contain opening, movements and optional allow_backorder only"
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "F2-05",
+            "symbol": "audit_inventory",
+            "input": {
+              "opening": {
+                "w": 1
+              }
+            },
+            "expected_values": [
+              {
+                "ok": false,
+                "error": "payload must contain opening, movements and optional allow_backorder only"
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "F2-06",
+            "symbol": "audit_inventory",
+            "input": {
+              "opening": {},
+              "movements": [],
+              "verbose": true
+            },
+            "expected_values": [
+              {
+                "ok": false,
+                "error": "payload must contain opening, movements and optional allow_backorder only"
+              }
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "O2-01",
+            "symbol": "audit_inventory",
+            "input": {
+              "opening": {
+                "g": 1
+              },
+              "allow_backorder": [
+                "g"
+              ],
+              "movements": [
+                {
+                  "item": "g",
+                  "qty": 4,
+                  "kind": "out"
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "ok": true,
+                "closing": {
+                  "g": -3
+                },
+                "shortages": [
+                  "g"
+                ],
+                "shortage_count": 1,
+                "status": "shortage",
+                "total_in": 0,
+                "total_out": 4
+              }
+            ],
+            "rule_ids": [
+              "R-AUD-BACKORDER"
+            ]
+          },
+          {
+            "check_id": "O2-02",
+            "symbol": "audit_inventory",
+            "input": {
+              "opening": {
+                "h": 0,
+                "u": 2
+              },
+              "allow_backorder": [
+                "h"
+              ],
+              "movements": [
+                {
+                  "item": "h",
+                  "qty": 3,
+                  "kind": "out"
+                },
+                {
+                  "item": "u",
+                  "qty": 1,
+                  "kind": "out"
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "ok": true,
+                "closing": {
+                  "h": -3,
+                  "u": 1
+                },
+                "shortages": [
+                  "h"
+                ],
+                "shortage_count": 1,
+                "status": "shortage",
+                "total_in": 0,
+                "total_out": 4
+              }
+            ],
+            "rule_ids": [
+              "R-AUD-BACKORDER"
+            ]
+          },
+          {
+            "check_id": "O2-03",
+            "symbol": "audit_inventory",
+            "input": {
+              "opening": {
+                "q": 0
+              },
+              "allow_backorder": [
+                "r"
+              ],
+              "movements": [
+                {
+                  "item": "q",
+                  "qty": 2,
+                  "kind": "out"
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "ok": false,
+                "error": "negative closing balance",
+                "item": "q",
+                "balance": -2
+              }
+            ],
+            "rule_ids": [
+              "R-AUD-BACKORDER",
+              "R-REC-NEG"
+            ]
+          },
+          {
+            "check_id": "O2-04",
+            "symbol": "audit_inventory",
+            "input": {
+              "opening": {
+                "m1": 0,
+                "m2": 0
+              },
+              "allow_backorder": [
+                "m1",
+                "m2"
+              ],
+              "movements": [
+                {
+                  "item": "m2",
+                  "qty": 1,
+                  "kind": "out"
+                },
+                {
+                  "item": "m1",
+                  "qty": 2,
+                  "kind": "out"
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "ok": true,
+                "closing": {
+                  "m1": -2,
+                  "m2": -1
+                },
+                "shortages": [
+                  "m1",
+                  "m2"
+                ],
+                "shortage_count": 2,
+                "status": "shortage",
+                "total_in": 0,
+                "total_out": 3
+              }
+            ],
+            "rule_ids": [
+              "R-AUD-BACKORDER",
+              "R-AUD-REPORT"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "NC2-F",
+            "kind": "functional",
+            "patch": "def audit_inventory(payload):\n    result = reconcile_stock(payload)\n    if not result[\"ok\"]:\n        return result\n    closing = result[\"closing\"]\n    shortages = []\n    for name in closing:\n        if closing[name] < 0:\n            shortages.append(name)\n    shortages = sorted(shortages)\n    status = \"clear\"\n    if shortages:\n        status = \"shortage\"\n    return {\"ok\": True, \"closing\": closing, \"shortages\": shortages, \"shortage_count\": len(shortages), \"status\": status, \"total_in\": result[\"total_out\"], \"total_out\": result[\"total_in\"]}",
+            "expected_failing_check_ids": [
+              "F2-01",
+              "F2-03",
+              "O2-01",
+              "O2-02",
+              "O2-04"
+            ]
+          },
+          {
+            "control_id": "NC2-O",
+            "kind": "obligation",
+            "patch": "def audit_inventory(payload):\n    result = reconcile_stock(payload)\n    if not result[\"ok\"]:\n        return result\n    closing = result[\"closing\"]\n    violators = []\n    for name in closing:\n        if closing[name] < 0:\n            violators.append(name)\n    if violators:\n        first = sorted(violators)[0]\n        return {\"ok\": False, \"error\": \"negative closing balance\", \"item\": first, \"balance\": closing[first]}\n    shortages = []\n    for name in closing:\n        if closing[name] < 0:\n            shortages.append(name)\n    shortages = sorted(shortages)\n    status = \"clear\"\n    if shortages:\n        status = \"shortage\"\n    return {\"ok\": True, \"closing\": closing, \"shortages\": shortages, \"shortage_count\": len(shortages), \"status\": status, \"total_in\": result[\"total_in\"], \"total_out\": result[\"total_out\"]}",
+            "expected_failing_check_ids": [
+              "O2-01",
+              "O2-02",
+              "O2-04"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

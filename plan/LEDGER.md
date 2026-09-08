@@ -2003,3 +2003,40 @@ agents. Next: collect four terminal correction outcomes, inspect guarded
 application hashes, run accepted CPU preflight on patched files, send exact
 receipts/changed fields to the same semantic reviewer. Keep the full goal active;
 this is competence prerequisite preparation, not automated focus or larger proof.
+
+2026-09-08 — STATE: CORRECTION SESSION REVALIDATED LIVE; FIRST DELTA REVIEW STARTED.
+Previous goal turn was progress: accepted CPU consumer, preserved executable
+preflights, frozen guarded Kimi correction requests and live job 47137/PID35730.
+This turn re-read current ledger/tree and re-polled that same session live.
+Author01 correction returned PATCHED_UNREVIEWED at203.885s; root started accepted
+CPU preflight session40608 and the same Astra semantic reviewer checks its delta.
+Authors00/02/03 remain live in the original correction job; no relaunch.
+
+New independent Sol xhigh agent competence_launcher_impl implements ONLY
+ tools/run_coding_competence.py and tests/test_run_coding_competence.py, while
+coding_focus_impl owns new runtime/test files. They coordinate the CLI/preview
+contract directly. New launcher reuses pinned resource conventions with exact
+new artifact bindings and native flags, dry-run by default. Neither coder may
+launch a server, model or experiment. This parallel task is launcher code only;
+parent retains data/ledger and Astra reviews remain author-disjoint. Full goal
+unchanged: competence preparation does not establish automatic focus or larger
+proof, and no worker inference has occurred.
+
+2026-09-08 — STATE: FOUR CORRECTIONS TERMINAL; FINITE CHECKS PASS; SEMANTIC REVIEW ACTIVE.
+Original correction session 47137 exited 0. All four patch-01 artifacts returned
+from Kimi K3 through local Ollama; no relaunch. Parent independently reconstructed
+all raw reply replacements, verified exact allowed paths and old/new field hashes,
+original and patched file hashes, request/response hashes, and no extra changes.
+Replacement counts 00/01/02/03: 17/5/16/10. Accepted CPU preflights all terminal
+exit 0: sessions 19189/40608/10656/39314, executions 227/170/218/236 (851 total),
+elapsed 4.3411/3.1506/4.3601/4.7956 seconds. Zero worker model calls.
+
+Astra xhigh round 2 accepted author01 only at 96, preserving all eight finding
+identities. Same reviewer now checks the remaining three corrected deltas and
+complete bank semantics; finite passes do not imply source correctness. Early
+author03 feedback identifies residual assertions of prior implementation and an
+unsupported prohibition on itinerary validation; await complete scoped findings
+before another bounded Kimi correction. Two Sol xhigh agents continue disjoint
+runtime and launcher implementations. Full goal remains active; no new coding
+experiment launched and no automation result claimed. Archive terminal raw data
+and CPU receipts now, preserving original files and failed initial receipts.
