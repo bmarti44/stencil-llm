@@ -1753,3 +1753,28 @@ missing import-root bootstrap; Sol fixes it with an actual subprocess test.
 Astra also reproduced72 transport failures being marked COMPLETE; Sol must
 separate accounting completeness from missing technical/capacity evidence.
 No worker launch until accepted settled driver/launcher/preview and freeze.
+
+2026-09-07 — STATE: READINESS REVIEW CAUGHT VACUOUS TOKEN COUNTER.
+Astra actual installed-tokenizer probe found native_prompt_tokens returned
+len(BatchEncoding)=2 instead of input_ids length. Parent preview46318 terminal
+with twelve false2-token counts; preserve as preview-invalid-tokenizer.json.
+No worker saw these prompts. Sol fixes the extraction and adds real-tokenizer
+large-context before-network rejection. Native72-call fake-HTTP/real-seccomp
+review otherwise passed wire, cold identity, source/oracle/recap/state controls.
+Direct CLI and72-transport-failure classification defects already corrected;
+final settled bytes and launcher remain in readiness review.
+
+2026-09-08 — STATE: FINAL RUNNER SNAPSHOT TESTED; ASTRA READINESS REVIEW LIVE.
+Sol edits stopped. Driver0be26f7a, tests50fb9126, launcher40c2b582;23 targeted
+tests pass in25.43s, Ruff/compile/diff checks green. Corrected previewca4fdf09
+binds bank925d58b6 and actual native cold counts514–1,017; maximum conservative
+context including output10,082/32,768. Parent direct CLI and actual launcher
+artifact-validator smoke pass without creating a run directory. Invalid2-token
+preview is preserved separately. Known CLI, token counter, transport/capacity
+classification and usage-accounting findings are fixed; Astra re-verification
+and final launcher/preview assessment remain live as of this entry. No worker
+inference is running. Next: inspect final scored readiness review, commit exact
+accepted code/preview/review bytes, then launch one registered coding screen via
+absolute tools/run_maintenance_dev.py --mode coding --run-dir results/quick-checks/
+coding-self-cue-01 --execute (full paths at launch). Never change the recipe after
+worker outputs. Full goal remains active and unproved.
