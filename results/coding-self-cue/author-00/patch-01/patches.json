@@ -1,0 +1,284 @@
+{
+  "patches": [
+    {
+      "path": "/episode/rounds/3/reference_patch",
+      "old": "def label_title(record):\n    bad = {'status': 'error', 'detail': 'bad-input'}\n    if not isinstance(record, dict):\n        return bad\n    name = record.get('name')\n    if not isinstance(name, str):\n        return bad\n    tokens = []\n    for raw in name.split():\n        cleaned = _clean_token(raw)\n        if cleaned:\n            tokens.append(cleaned)\n    if not tokens:\n        return bad\n    title = ' '.join(token.capitalize() for token in tokens)\n    subtitle = record.get('subtitle')\n    if subtitle is not None:\n        if not isinstance(subtitle, str):\n            return bad\n        sub_tokens = []\n        for raw in subtitle.split():\n            cleaned = _clean_token(raw)\n            if cleaned:\n                sub_tokens.append(cleaned)\n        if sub_tokens:\n            title = title + ': ' + ' '.join(token.capitalize() for token in sub_tokens)\n    return title",
+      "new": "def label_title(record):\n    bad = {'status': 'error', 'detail': 'bad-input'}\n    if not isinstance(record, dict):\n        return bad\n    name = record.get('name')\n    if not isinstance(name, str):\n        return bad\n    tokens = []\n    for raw in name.split():\n        cleaned = _clean_token(raw)\n        if cleaned:\n            tokens.append(cleaned)\n    if not tokens:\n        return bad\n    title = ' '.join(token.capitalize() for token in tokens)\n    if 'subtitle' in record:\n        subtitle = record['subtitle']\n        if not isinstance(subtitle, str):\n            return bad\n        sub_tokens = []\n        for raw in subtitle.split():\n            cleaned = _clean_token(raw)\n            if cleaned:\n                sub_tokens.append(cleaned)\n        if sub_tokens:\n            title = title + ': ' + ' '.join(token.capitalize() for token in sub_tokens)\n    return title"
+    },
+    {
+      "path": "/episode/rounds/3/negative_controls/0/patch",
+      "old": "def label_title(record):\n    bad = {'status': 'error', 'detail': 'bad-input'}\n    if not isinstance(record, dict):\n        return bad\n    name = record.get('name')\n    if not isinstance(name, str):\n        return bad\n    tokens = []\n    for raw in name.split():\n        cleaned = _clean_token(raw)\n        if cleaned:\n            tokens.append(cleaned)\n    if not tokens:\n        return bad\n    title = ' '.join(token.capitalize() for token in tokens)\n    subtitle = record.get('subtitle')\n    if subtitle is not None:\n        if not isinstance(subtitle, str):\n            return bad\n        sub_tokens = []\n        for raw in subtitle.split():\n            cleaned = _clean_token(raw)\n            if cleaned:\n                sub_tokens.append(cleaned)\n        if sub_tokens:\n            title = title + ' - ' + ' '.join(token.capitalize() for token in sub_tokens)\n    return title",
+      "new": "def label_title(record):\n    bad = {'status': 'error', 'detail': 'bad-input'}\n    if not isinstance(record, dict):\n        return bad\n    name = record.get('name')\n    if not isinstance(name, str):\n        return bad\n    tokens = []\n    for raw in name.split():\n        cleaned = _clean_token(raw)\n        if cleaned:\n            tokens.append(cleaned)\n    if not tokens:\n        return bad\n    title = ' '.join(token.capitalize() for token in tokens)\n    if 'subtitle' in record:\n        subtitle = record['subtitle']\n        if not isinstance(subtitle, str):\n            return bad\n        sub_tokens = []\n        for raw in subtitle.split():\n            cleaned = _clean_token(raw)\n            if cleaned:\n                sub_tokens.append(cleaned)\n        if sub_tokens:\n            title = title + ' - ' + ' '.join(token.capitalize() for token in sub_tokens)\n    return title"
+    },
+    {
+      "path": "/episode/rounds/3/negative_controls/1/patch",
+      "old": "def label_title(record):\n    if not isinstance(record, dict):\n        return 'ERR'\n    name = record.get('name')\n    if not isinstance(name, str):\n        return 'ERR'\n    tokens = []\n    for raw in name.split():\n        cleaned = _clean_token(raw)\n        if cleaned:\n            tokens.append(cleaned)\n    if not tokens:\n        return 'ERR'\n    title = ' '.join(token.capitalize() for token in tokens)\n    subtitle = record.get('subtitle')\n    if subtitle is not None:\n        if not isinstance(subtitle, str):\n            return 'ERR'\n        sub_tokens = []\n        for raw in subtitle.split():\n            cleaned = _clean_token(raw)\n            if cleaned:\n                sub_tokens.append(cleaned)\n        if sub_tokens:\n            title = title + ': ' + ' '.join(token.capitalize() for token in sub_tokens)\n    return title",
+      "new": "def label_title(record):\n    if not isinstance(record, dict):\n        return 'ERR'\n    name = record.get('name')\n    if not isinstance(name, str):\n        return 'ERR'\n    tokens = []\n    for raw in name.split():\n        cleaned = _clean_token(raw)\n        if cleaned:\n            tokens.append(cleaned)\n    if not tokens:\n        return 'ERR'\n    title = ' '.join(token.capitalize() for token in tokens)\n    if 'subtitle' in record:\n        subtitle = record['subtitle']\n        if not isinstance(subtitle, str):\n            return 'ERR'\n        sub_tokens = []\n        for raw in subtitle.split():\n            cleaned = _clean_token(raw)\n            if cleaned:\n                sub_tokens.append(cleaned)\n        if sub_tokens:\n            title = title + ': ' + ' '.join(token.capitalize() for token in sub_tokens)\n    return title"
+    },
+    {
+      "path": "/episode/rounds/4/reference_patch",
+      "old": "def index_entry(record):\n    bad = {'status': 'error', 'detail': 'bad-input'}\n    if not isinstance(record, dict):\n        return bad\n    number = record.get('number')\n    if not isinstance(number, int) or isinstance(number, bool) or number < 0:\n        return bad\n    tags = record.get('tags')\n    if not isinstance(tags, list) or any(not isinstance(tag, str) for tag in tags):\n        return bad\n    room = record.get('room')\n    if room is not None and not isinstance(room, str):\n        return bad\n    room_tokens = []\n    if isinstance(room, str):\n        for raw in room.split():\n            cleaned = _clean_token(raw)\n            if cleaned:\n                room_tokens.append(cleaned)\n        if not room_tokens:\n            return bad\n    tokens = []\n    for raw in tags:\n        cleaned = _clean_token(raw)\n        if cleaned:\n            tokens.append(cleaned)\n    tokens = sorted(tokens, key=len)\n    number_text = str(number).zfill(3)\n    if tokens:\n        line = number_text + ': ' + ', '.join(tokens)\n    else:\n        line = number_text\n    if room_tokens:\n        line = line + ' (' + ' '.join(token.capitalize() for token in room_tokens) + ')'\n    return line",
+      "new": "def index_entry(record):\n    bad = {'status': 'error', 'detail': 'bad-input'}\n    if not isinstance(record, dict):\n        return bad\n    number = record.get('number')\n    if not isinstance(number, int) or isinstance(number, bool) or number < 0:\n        return bad\n    tags = record.get('tags')\n    if not isinstance(tags, list) or any(not isinstance(tag, str) for tag in tags):\n        return bad\n    room_tokens = []\n    if 'room' in record:\n        room = record['room']\n        if not isinstance(room, str):\n            return bad\n        for raw in room.split():\n            cleaned = _clean_token(raw)\n            if cleaned:\n                room_tokens.append(cleaned)\n        if not room_tokens:\n            return bad\n    tokens = []\n    for raw in tags:\n        cleaned = _clean_token(raw)\n        if cleaned:\n            tokens.append(cleaned)\n    tokens = sorted(tokens, key=len)\n    number_text = str(number).zfill(3)\n    if tokens:\n        line = number_text + ': ' + ', '.join(tokens)\n    else:\n        line = number_text\n    if room_tokens:\n        line = line + ' (' + ' '.join(token.capitalize() for token in room_tokens) + ')'\n    return line"
+    },
+    {
+      "path": "/episode/rounds/4/negative_controls/0/patch",
+      "old": "def index_entry(record):\n    bad = {'status': 'error', 'detail': 'bad-input'}\n    if not isinstance(record, dict):\n        return bad\n    number = record.get('number')\n    if not isinstance(number, int) or isinstance(number, bool) or number < 0:\n        return bad\n    tags = record.get('tags')\n    if not isinstance(tags, list) or any(not isinstance(tag, str) for tag in tags):\n        return bad\n    room = record.get('room')\n    if room is not None and not isinstance(room, str):\n        return bad\n    tokens = []\n    for raw in tags:\n        cleaned = _clean_token(raw)\n        if cleaned:\n            tokens.append(cleaned)\n    tokens = sorted(tokens, key=len)\n    number_text = str(number).zfill(3)\n    if tokens:\n        line = number_text + ': ' + ', '.join(tokens)\n    else:\n        line = number_text\n    if isinstance(room, str):\n        if not room.strip():\n            return bad\n        line = line + ' (' + room.strip() + ')'\n    return line",
+      "new": "def index_entry(record):\n    bad = {'status': 'error', 'detail': 'bad-input'}\n    if not isinstance(record, dict):\n        return bad\n    number = record.get('number')\n    if not isinstance(number, int) or isinstance(number, bool) or number < 0:\n        return bad\n    tags = record.get('tags')\n    if not isinstance(tags, list) or any(not isinstance(tag, str) for tag in tags):\n        return bad\n    tokens = []\n    for raw in tags:\n        cleaned = _clean_token(raw)\n        if cleaned:\n            tokens.append(cleaned)\n    tokens = sorted(tokens, key=len)\n    number_text = str(number).zfill(3)\n    if tokens:\n        line = number_text + ': ' + ', '.join(tokens)\n    else:\n        line = number_text\n    if 'room' in record:\n        room = record['room']\n        if not isinstance(room, str):\n            return bad\n        room_tokens = []\n        for raw in room.split():\n            cleaned = _clean_token(raw)\n            if cleaned:\n                room_tokens.append(cleaned)\n        if not room_tokens:\n            return bad\n        line = line + ' (' + room.strip() + ')'\n    return line"
+    },
+    {
+      "path": "/episode/rounds/4/negative_controls/1/patch",
+      "old": "def index_entry(record):\n    if not isinstance(record, dict):\n        return None\n    number = record.get('number')\n    if not isinstance(number, int) or isinstance(number, bool) or number < 0:\n        return None\n    tags = record.get('tags')\n    if not isinstance(tags, list) or any(not isinstance(tag, str) for tag in tags):\n        return None\n    room = record.get('room')\n    if room is not None and not isinstance(room, str):\n        return None\n    room_tokens = []\n    if isinstance(room, str):\n        for raw in room.split():\n            cleaned = _clean_token(raw)\n            if cleaned:\n                room_tokens.append(cleaned)\n        if not room_tokens:\n            return None\n    tokens = []\n    for raw in tags:\n        cleaned = _clean_token(raw)\n        if cleaned:\n            tokens.append(cleaned)\n    tokens = sorted(tokens, key=len)\n    number_text = str(number).zfill(3)\n    if tokens:\n        line = number_text + ': ' + ', '.join(tokens)\n    else:\n        line = number_text\n    if room_tokens:\n        line = line + ' (' + ' '.join(token.capitalize() for token in room_tokens) + ')'\n    return line",
+      "new": "def index_entry(record):\n    if not isinstance(record, dict):\n        return None\n    number = record.get('number')\n    if not isinstance(number, int) or isinstance(number, bool) or number < 0:\n        return None\n    tags = record.get('tags')\n    if not isinstance(tags, list) or any(not isinstance(tag, str) for tag in tags):\n        return None\n    room_tokens = []\n    if 'room' in record:\n        room = record['room']\n        if not isinstance(room, str):\n            return None\n        for raw in room.split():\n            cleaned = _clean_token(raw)\n            if cleaned:\n                room_tokens.append(cleaned)\n        if not room_tokens:\n            return None\n    tokens = []\n    for raw in tags:\n        cleaned = _clean_token(raw)\n        if cleaned:\n            tokens.append(cleaned)\n    tokens = sorted(tokens, key=len)\n    number_text = str(number).zfill(3)\n    if tokens:\n        line = number_text + ': ' + ', '.join(tokens)\n    else:\n        line = number_text\n    if room_tokens:\n        line = line + ' (' + ' '.join(token.capitalize() for token in room_tokens) + ')'\n    return line"
+    },
+    {
+      "path": "/episode/rounds/5/reference_patch",
+      "old": "def label_full(record):\n    if not isinstance(record, dict):\n        return 'ERR'\n    title = label_title(record)\n    if not isinstance(title, str) or title == 'ERR':\n        return 'ERR'\n    artist = record.get('artist')\n    if not isinstance(artist, str):\n        return 'ERR'\n    artist_tokens = []\n    for raw in artist.split():\n        cleaned = _clean_token(raw)\n        if cleaned:\n            artist_tokens.append(cleaned)\n    if not artist_tokens:\n        return 'ERR'\n    year = record.get('year')\n    if not isinstance(year, int) or isinstance(year, bool) or year <= 0:\n        return 'ERR'\n    lines = [title, 'by ' + ' '.join(token.capitalize() for token in artist_tokens), str(year)]\n    has_number = 'number' in record\n    has_tags = 'tags' in record\n    if has_number or has_tags:\n        if not (has_number and has_tags):\n            return 'ERR'\n        entry = index_entry(record)\n        if not isinstance(entry, str):\n            return 'ERR'\n        lines.append('index ' + entry)\n    return lines",
+      "new": "def label_full(record):\n    if not isinstance(record, dict):\n        return 'ERR'\n    title = label_title(record)\n    if not isinstance(title, str) or title == 'ERR':\n        return 'ERR'\n    artist = record.get('artist')\n    if not isinstance(artist, str):\n        return 'ERR'\n    artist_tokens = []\n    for raw in artist.split():\n        cleaned = _clean_token(raw)\n        if cleaned:\n            artist_tokens.append(cleaned)\n    if not artist_tokens:\n        return 'ERR'\n    year = record.get('year')\n    if not isinstance(year, int) or isinstance(year, bool) or year <= 0:\n        return 'ERR'\n    lines = [title, 'by ' + ' '.join(token.capitalize() for token in artist_tokens), str(year)]\n    has_number = 'number' in record\n    has_tags = 'tags' in record\n    if has_number or has_tags:\n        if not (has_number and has_tags):\n            return 'ERR'\n        number = record.get('number')\n        if not isinstance(number, int) or isinstance(number, bool) or number < 0:\n            return 'ERR'\n        tags = record.get('tags')\n        if not isinstance(tags, list) or any(not isinstance(tag, str) for tag in tags):\n            return 'ERR'\n        entry = index_entry(record)\n        if not isinstance(entry, str):\n            return 'ERR'\n        lines.append('index ' + entry)\n    return lines"
+    },
+    {
+      "path": "/episode/rounds/5/negative_controls/0/patch",
+      "old": "def label_full(record):\n    if not isinstance(record, dict):\n        return 'ERR'\n    title = label_title(record)\n    if not isinstance(title, str) or title == 'ERR':\n        return 'ERR'\n    artist = record.get('artist')\n    if not isinstance(artist, str):\n        return 'ERR'\n    artist_tokens = []\n    for raw in artist.split():\n        cleaned = _clean_token(raw)\n        if cleaned:\n            artist_tokens.append(cleaned)\n    if not artist_tokens:\n        return 'ERR'\n    year = record.get('year')\n    if not isinstance(year, int) or isinstance(year, bool) or year <= 0:\n        return 'ERR'\n    lines = [title, 'by ' + ' '.join(token.capitalize() for token in artist_tokens), str(year)]\n    has_number = 'number' in record\n    has_tags = 'tags' in record\n    if has_number or has_tags:\n        if not (has_number and has_tags):\n            return 'ERR'\n        entry = index_entry(record)\n        if not isinstance(entry, str):\n            return 'ERR'\n        lines.append('inv. ' + entry)\n    return lines",
+      "new": "def label_full(record):\n    if not isinstance(record, dict):\n        return 'ERR'\n    title = label_title(record)\n    if not isinstance(title, str) or title == 'ERR':\n        return 'ERR'\n    artist = record.get('artist')\n    if not isinstance(artist, str):\n        return 'ERR'\n    artist_tokens = []\n    for raw in artist.split():\n        cleaned = _clean_token(raw)\n        if cleaned:\n            artist_tokens.append(cleaned)\n    if not artist_tokens:\n        return 'ERR'\n    year = record.get('year')\n    if not isinstance(year, int) or isinstance(year, bool) or year <= 0:\n        return 'ERR'\n    lines = [title, 'by ' + ' '.join(token.capitalize() for token in artist_tokens), str(year)]\n    has_number = 'number' in record\n    has_tags = 'tags' in record\n    if has_number or has_tags:\n        if not (has_number and has_tags):\n            return 'ERR'\n        number = record.get('number')\n        if not isinstance(number, int) or isinstance(number, bool) or number < 0:\n            return 'ERR'\n        tags = record.get('tags')\n        if not isinstance(tags, list) or any(not isinstance(tag, str) for tag in tags):\n            return 'ERR'\n        entry = index_entry(record)\n        if not isinstance(entry, str):\n            return 'ERR'\n        lines.append('inv. ' + entry)\n    return lines"
+    },
+    {
+      "path": "/episode/rounds/5/negative_controls/1/patch",
+      "old": "def label_full(record):\n    bad = {'status': 'error', 'detail': 'bad-input'}\n    if not isinstance(record, dict):\n        return bad\n    title = label_title(record)\n    if not isinstance(title, str) or title == 'ERR':\n        return bad\n    artist = record.get('artist')\n    if not isinstance(artist, str):\n        return bad\n    artist_tokens = []\n    for raw in artist.split():\n        cleaned = _clean_token(raw)\n        if cleaned:\n            artist_tokens.append(cleaned)\n    if not artist_tokens:\n        return bad\n    year = record.get('year')\n    if not isinstance(year, int) or isinstance(year, bool) or year <= 0:\n        return bad\n    lines = [title, 'by ' + ' '.join(token.capitalize() for token in artist_tokens), str(year)]\n    has_number = 'number' in record\n    has_tags = 'tags' in record\n    if has_number or has_tags:\n        if not (has_number and has_tags):\n            return bad\n        entry = index_entry(record)\n        if not isinstance(entry, str):\n            return bad\n        lines.append('index ' + entry)\n    return lines",
+      "new": "def label_full(record):\n    bad = {'status': 'error', 'detail': 'bad-input'}\n    if not isinstance(record, dict):\n        return bad\n    title = label_title(record)\n    if not isinstance(title, str) or title == 'ERR':\n        return bad\n    artist = record.get('artist')\n    if not isinstance(artist, str):\n        return bad\n    artist_tokens = []\n    for raw in artist.split():\n        cleaned = _clean_token(raw)\n        if cleaned:\n            artist_tokens.append(cleaned)\n    if not artist_tokens:\n        return bad\n    year = record.get('year')\n    if not isinstance(year, int) or isinstance(year, bool) or year <= 0:\n        return bad\n    lines = [title, 'by ' + ' '.join(token.capitalize() for token in artist_tokens), str(year)]\n    has_number = 'number' in record\n    has_tags = 'tags' in record\n    if has_number or has_tags:\n        if not (has_number and has_tags):\n            return bad\n        number = record.get('number')\n        if not isinstance(number, int) or isinstance(number, bool) or number < 0:\n            return bad\n        tags = record.get('tags')\n        if not isinstance(tags, list) or any(not isinstance(tag, str) for tag in tags):\n            return bad\n        entry = index_entry(record)\n        if not isinstance(entry, str):\n            return bad\n        lines.append('index ' + entry)\n    return lines"
+    },
+    {
+      "path": "/episode/rounds/3/obligation_checks",
+      "old": [
+        {
+          "check_id": "chk-r3-o1",
+          "symbol": "label_title",
+          "input": null,
+          "expected_values": [
+            {
+              "status": "error",
+              "detail": "bad-input"
+            },
+            null
+          ],
+          "rule_ids": [
+            "r-invalid-dict",
+            "r-labels-null-ok"
+          ]
+        },
+        {
+          "check_id": "chk-r3-o2",
+          "symbol": "label_title",
+          "input": {
+            "name": "x",
+            "subtitle": 9
+          },
+          "expected_values": [
+            {
+              "status": "error",
+              "detail": "bad-input"
+            },
+            null
+          ],
+          "rule_ids": [
+            "r-invalid-dict",
+            "r-labels-null-ok"
+          ]
+        }
+      ],
+      "new": [
+        {
+          "check_id": "chk-r3-o1",
+          "symbol": "label_title",
+          "input": null,
+          "expected_values": [
+            {
+              "status": "error",
+              "detail": "bad-input"
+            },
+            null
+          ],
+          "rule_ids": [
+            "r-invalid-dict",
+            "r-labels-null-ok"
+          ]
+        },
+        {
+          "check_id": "chk-r3-o2",
+          "symbol": "label_title",
+          "input": {
+            "name": "x",
+            "subtitle": 9
+          },
+          "expected_values": [
+            {
+              "status": "error",
+              "detail": "bad-input"
+            },
+            null
+          ],
+          "rule_ids": [
+            "r-invalid-dict",
+            "r-labels-null-ok"
+          ]
+        },
+        {
+          "check_id": "chk-r3-o3",
+          "symbol": "label_title",
+          "input": {
+            "name": "vase",
+            "subtitle": null
+          },
+          "expected_values": [
+            {
+              "status": "error",
+              "detail": "bad-input"
+            },
+            null
+          ],
+          "rule_ids": [
+            "r-invalid-dict",
+            "r-labels-null-ok"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/episode/rounds/4/obligation_checks",
+      "old": [
+        {
+          "check_id": "chk-r4-o1",
+          "symbol": "index_entry",
+          "input": {
+            "number": true,
+            "tags": []
+          },
+          "expected_values": [
+            {
+              "status": "error",
+              "detail": "bad-input"
+            }
+          ],
+          "rule_ids": [
+            "r-invalid-dict"
+          ]
+        },
+        {
+          "check_id": "chk-r4-o2",
+          "symbol": "index_entry",
+          "input": "oops",
+          "expected_values": [
+            {
+              "status": "error",
+              "detail": "bad-input"
+            }
+          ],
+          "rule_ids": [
+            "r-invalid-dict"
+          ]
+        },
+        {
+          "check_id": "chk-r4-o3",
+          "symbol": "index_entry",
+          "input": {
+            "number": 9,
+            "tags": [
+              "dog",
+              "cat"
+            ]
+          },
+          "expected_values": [
+            "009: dog, cat"
+          ],
+          "rule_ids": [
+            "r-sort-stable-length"
+          ]
+        }
+      ],
+      "new": [
+        {
+          "check_id": "chk-r4-o1",
+          "symbol": "index_entry",
+          "input": {
+            "number": true,
+            "tags": []
+          },
+          "expected_values": [
+            {
+              "status": "error",
+              "detail": "bad-input"
+            }
+          ],
+          "rule_ids": [
+            "r-invalid-dict"
+          ]
+        },
+        {
+          "check_id": "chk-r4-o2",
+          "symbol": "index_entry",
+          "input": "oops",
+          "expected_values": [
+            {
+              "status": "error",
+              "detail": "bad-input"
+            }
+          ],
+          "rule_ids": [
+            "r-invalid-dict"
+          ]
+        },
+        {
+          "check_id": "chk-r4-o3",
+          "symbol": "index_entry",
+          "input": {
+            "number": 9,
+            "tags": [
+              "dog",
+              "cat"
+            ]
+          },
+          "expected_values": [
+            "009: dog, cat"
+          ],
+          "rule_ids": [
+            "r-sort-stable-length"
+          ]
+        },
+        {
+          "check_id": "chk-r4-o4",
+          "symbol": "index_entry",
+          "input": {
+            "number": 1,
+            "tags": [],
+            "room": null
+          },
+          "expected_values": [
+            {
+              "status": "error",
+              "detail": "bad-input"
+            }
+          ],
+          "rule_ids": [
+            "r-invalid-dict"
+          ]
+        },
+        {
+          "check_id": "chk-r4-o5",
+          "symbol": "index_entry",
+          "input": {
+            "number": 12,
+            "tags": [],
+            "room": "!!!"
+          },
+          "expected_values": [
+            {
+              "status": "error",
+              "detail": "bad-input"
+            }
+          ],
+          "rule_ids": [
+            "r-invalid-dict"
+          ]
+        }
+      ]
+    }
+  ]
+}
