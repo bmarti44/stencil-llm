@@ -305,3 +305,50 @@ The delta keeps the public preview signature, source/target construction, schema
 Independent validation: `.venv/bin/pytest -q tests/test_source_interpreter.py` **8 passed in 4.61s**; Ruff check, Ruff format check and `git diff --check` passed. The existing exact-decoding, first-target/EOS loss and nonvacuous right-padding checks also passed in that targeted run. A fresh import left both tokenizer/control caches empty and imported neither transformers nor torch. No real original, corrected or canonical packet was tokenized; no weights, model, generated code, GPU or HTTP operations ran.
 
 **Next evidence boundary:** the parent may run the already specified CPU preview once on the exact six accepted canonical inputs. Final preparation acceptance requires independent reconciliation of its full eighteen-row source/target/ID/loss and asset/environment receipts. Code acceptance and clean labels do not establish training feasibility, learned transfer or downstream utility, and imply no later training/inference launch decision.
+
+## Round 7 — final FIT preparation receipt audit 96/100; ACCEPTED
+
+2026-09-08. **Final FIT label, format and length preparation accepted at 96/100. Zero open findings, including zero high or critical findings.** All findings #1–#12 retain their previous dated closures. The actual CPU receipt completes the remaining preparation evidence: six accepted FIT conversations, all eighteen inclusive prefixes, faithful accepted targets and exact local-tokenizer/target-only-loss construction. This acceptance establishes neither training feasibility nor learned transfer, code utility or the broader goal.
+
+### Exact terminal evidence
+
+| Artifact under `results/source-interpreter/` | SHA-256 |
+| --- | --- |
+| `preview.json` — 2,142,011 bytes | `5760764f748a088d9d105b6f89b6188785941239ea28c1e60d706f9d028a0326` |
+| `preview-job.json` | `8702dd7fe17d5ddfa5b19235c5a800f30986a7b0e384b8f9092a5e87f135568f` |
+| `preview-job.log` | `dbbfdc6e2f6615cc5f3b99168dfe7be29129c371ad9a338be640727a3eb0843c7` |
+| `preview-launch-error.txt` — historical pre-execution diagnostic | `592e090e527a72da86e1280fdfc744721d780c43cc7f77933d7eeb3de60b285f` |
+
+The job binds freeze commit `b1f7d8776c87165ba35c11e46c2726f76db320b5`. Independently checked its five input bindings against both current bytes and the frozen Git blobs, including round-6 review SHA `36ffd3005bd4ece6bba9bd3c91b419443c5b456a37d8a6ab0c628017d13a4a51`, source SHA `ce8126ca…`, test SHA `7469ffb6…`, the accepted-input manifest and PREP. Checked all six canonical input hashes against their frozen blobs and their exact accepted correction bytes. The accepted-input manifest's archived data-review binding also matches.
+
+Owned CPU PID 129797 is present in the ownership registry. The preserved job/log report CPU_PREVIEW_COMPLETE, agree on the preview hash and contents, and are consistent with the parent's observation that exact session 39246 terminated with exit 0. Job wall time is **3.0557587146759033 seconds**; the helper's elapsed time is **2.9925791090063285 seconds**. These are CPU preparation durations, not model-generation or training rates.
+
+### Independently reconstructed evidence
+
+Parsed the saved receipt without dumping it and reconciled every row against its accepted document and query. Conversation/family/split identity, query index/anchor, current handle, whole-message count and band agree. Each saved source prefix is exactly the accepted original message list through its query, preserving text, Unicode, roles, IDs and order. Each target is exactly its accepted canonical compact JSON object. The prompt consists only of the fixed source-interpreter instruction and the current handle plus authentic source prefix; no future event, target annotation or earlier generated focus has been inserted into input.
+
+Loaded only the original local tokenizer in the recorded repository environment and checked the saved IDs, without invoking `preview()` or any preparation row builder. The stored prefix matches both actual template rendering and direct template tokenization with `enable_thinking=False` and `add_generation_prompt=True`. Prefix and target IDs independently encode/decode to their exact expected strings; the combined sequence decodes to that prefix, compact target JSON and the real EOS. All eighteen measured joint-encoding-equality flags are true; the registered construction remains separate prefix IDs plus target IDs plus EOS, rather than relying on that incidental equality.
+
+Every row has exactly one target EOS, token 151645. All target/EOS positions receive their exact token labels, all prefix positions are -100, every unpadded attention position is one, and every stored loss-position list is exactly the full target interval. The first target label and final EOS label are in the correct causal-LM positions. All source text/ID/handle and target token checks are free of the 26 reserved native control IDs, aside from the intentionally inserted template controls and appended EOS. All target citations remain visible in their respective prefixes.
+
+The one empty-focus target remains real supervision: author-00 query index 2 has six JSON tokens plus EOS, seven supervised tokens total. It is not an empty-loss row. No row was omitted, shortened or silently truncated.
+
+| Actual measured tokens | Total | Minimum per row | Maximum per row |
+| --- | ---: | ---: | ---: |
+| Prefix, masked from loss | 22,547 | 401 | 2,966 |
+| Target JSON plus EOS, supervised | 7,234 | 7 | 925 |
+| Full unpadded sequence | 29,781 | 499 | 3,891 |
+
+The longest row is **author-04, query index 2: 2,966 prefix + 925 target/EOS = 3,891 tokens**. Maximum full-sequence lengths by whole-conversation band are **1,637 short; 3,080 medium; 3,891 longer**. Independently recomputed every length value, count, minimum, median, maximum and per-band maximum in the receipt.
+
+Reconstructed all three padded batches from the saved rows and matched their recorded input-ID, attention-mask and label hashes. At width 3,891, the eighteen-row batch has 70,038 positions: 29,781 real tokens and 40,257 padding positions. Padding uses ID 151643, attention zero and label -100. Total supervised positions remain exactly 7,234, including eighteen EOS tokens; total masked positions are 62,804. This is a serialization/collation receipt, not a selected future training batch size or memory estimate.
+
+### Asset, environment and execution boundary
+
+The six actual tokenizer/config asset hashes match both the preview and the historical-original asset inventory. The saved base-asset receipt hash is `4987d6eec20a7628d45d64799cb8b7fc7250870be2e868755880e70b7e2b5227`. Independently matched the live tokenizer's backend, added-token metadata, special-token configuration, template and other recorded state fields to the receipt. Actual state SHA is `f323c38e2b0863aaff8f72dd3d2103c7779cc050ed8c39f7ea9c98e85c5da9c7`; normalized backend SHA is `a373b7ff0c52176575a72ede185c306613ef1c01a2346f900f3b631ce1dc23f9`. All 26 native control entries agree with the pinned asset inventory. Model weight shards were not loaded or rehashed in this audit.
+
+The environment matches `.venv/bin/python`, CPython 3.12.13, torch 2.13.0, transformers 5.16.1, tokenizers 0.23.1, PEFT 0.20.0 and accelerate 1.14.0, with exact interpreter path/prefix recorded. This confirms the actual preparation environment rather than substituting the different historical hash-job environment. It does not qualify a future CUDA/training operation.
+
+The preserved earlier inline-launch expression is syntactically invalid even inside its unchosen conditional branch. Independently checked that it fails at compilation, before that Python script can run imports, registration or the preview call. The diagnostic was already in the job's freeze commit. Its repair therefore precedes the first actual CPU measurement; there is no evidence here of a data-driven preview retry, altered input, cap or recipe.
+
+This audit called no preview function, generated no data, reran no unchanged tests and performed no model, GPU, HTTP or generated-code execution. The CPU preview and reconciliation used tokenizer operations only. No further work remains for this defined FIT label/format/length preparation unit. Any subsequent longest-sequence training-mechanics measurement, training recipe/budget, fresh transfer test or downstream utility experiment remains a separate prospective decision; no such launch or larger success follows from this acceptance.
