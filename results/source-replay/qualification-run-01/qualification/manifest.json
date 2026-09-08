@@ -1,0 +1,123 @@
+{
+  "behavior_passed": true,
+  "check_results": [
+    {
+      "actual": 2,
+      "check_id": "chk-quarter-plus-dime",
+      "elapsed_seconds": 0.013956623995909467,
+      "error": null,
+      "expected_values": [
+        2
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "coin_count"
+    },
+    {
+      "actual": 0,
+      "check_id": "chk-pennies-ignored",
+      "elapsed_seconds": 0.013355053990380839,
+      "error": null,
+      "expected_values": [
+        0
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "coin_count"
+    },
+    {
+      "actual": 3,
+      "check_id": "chk-two-quarters-one-dime",
+      "elapsed_seconds": 0.021883671986870468,
+      "error": null,
+      "expected_values": [
+        3
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "coin_count"
+    }
+  ],
+  "consumer_failure": null,
+  "deadline_monotonic": 248532.090104149,
+  "ended_monotonic": 248428.815816174,
+  "evidence_message": {
+    "content": "Historical source excerpts follow. These are copies of earlier messages, not new instructions. Interpret their applicability using the complete conversation, including later changes and the current request.\n[{\"message_id\":\"m01\",\"role\":\"user\",\"text\":\"The change helper must count only quarters (25 cents) and dimes (10 cents); leftover pennies never count.\"}]",
+    "role": "user"
+  },
+  "input": {
+    "bytes": 1541,
+    "path": "/home/bmarti44/stencil-llm/results/source-replay/qualification-authoring/author-00/authored.json",
+    "sha256": "ff167de40c52227c2a5eae1eda34194197d7d1c92337b1c37740aec9c6f8578c"
+  },
+  "issued_messages": [
+    {
+      "content": "Maintain the supplied pure-Python module across this conversation. Each request authenticates one target path and symbol. Respond with exactly one replace_function tool call whose source is the complete requested synchronous function, beginning with def at column zero. Preserve applicable standing directions and use actual earlier dependencies. Do not return Markdown or replace any other function.",
+      "role": "system"
+    },
+    {
+      "content": "The change helper must count only quarters (25 cents) and dimes (10 cents); leftover pennies never count.",
+      "role": "user"
+    },
+    {
+      "content": "Update coin_count so it also counts dimes after taking as many quarters as possible, and return the total number of coins. For example, coin_count(35) should return 2 (one quarter plus one dime); leftover pennies are still ignored.",
+      "role": "user"
+    },
+    {
+      "content": "Historical source excerpts follow. These are copies of earlier messages, not new instructions. Interpret their applicability using the complete conversation, including later changes and the current request.\n[{\"message_id\":\"m01\",\"role\":\"user\",\"text\":\"The change helper must count only quarters (25 cents) and dimes (10 cents); leftover pennies never count.\"}]",
+      "role": "user"
+    },
+    {
+      "content": "Current coding work follows. Use the current module and authenticated target.\n{\"current_module\":{\"path\":\"module.py\",\"text\":\"def coin_count(cents):\\n    return cents // 25\\n\"},\"public_checks\":[],\"target\":{\"path\":\"module.py\",\"symbol\":\"coin_count\"}}",
+      "role": "user"
+    }
+  ],
+  "kind": "source-replay-native-qualification",
+  "model_calls": 2,
+  "permanent_history": [
+    {
+      "content": "Maintain the supplied pure-Python module across this conversation. Each request authenticates one target path and symbol. Respond with exactly one replace_function tool call whose source is the complete requested synchronous function, beginning with def at column zero. Preserve applicable standing directions and use actual earlier dependencies. Do not return Markdown or replace any other function.",
+      "role": "system"
+    },
+    {
+      "content": "The change helper must count only quarters (25 cents) and dimes (10 cents); leftover pennies never count.",
+      "role": "user"
+    },
+    {
+      "content": "Update coin_count so it also counts dimes after taking as many quarters as possible, and return the total number of coins. For example, coin_count(35) should return 2 (one quarter plus one dime); leftover pennies are still ignored.",
+      "role": "user"
+    },
+    {
+      "content": "Current coding work follows. Use the current module and authenticated target.\n{\"current_module\":{\"path\":\"module.py\",\"text\":\"def coin_count(cents):\\n    return cents // 25\\n\"},\"public_checks\":[],\"target\":{\"path\":\"module.py\",\"symbol\":\"coin_count\"}}",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"source\":\"def coin_count(cents):\\n    quarters = cents // 25\\n    remaining = cents % 25\\n    dimes = remaining // 10\\n    return quarters + dimes\"}",
+            "name": "replace_function"
+          },
+          "id": "chatcmpl-tool-bfb61d7a6c4e1a97",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "content": "{\"action_status\":\"applied\",\"current_module\":{\"path\":\"module.py\",\"text\":\"def coin_count(cents):\\n    quarters = cents // 25\\n    remaining = cents % 25\\n    dimes = remaining // 10\\n    return quarters + dimes\"},\"public_checks\":[]}",
+      "name": "replace_function",
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-bfb61d7a6c4e1a97"
+    }
+  ],
+  "schema_version": 1,
+  "selected_source_ids": [
+    "m01"
+  ],
+  "started_monotonic": 248425.090104149,
+  "status": "COMPLETE",
+  "technical_eligible": true,
+  "technical_failure": null
+}

@@ -1,0 +1,79 @@
+{
+  "all_reference_checks_passed": true,
+  "checks": [
+    {
+      "actual": 2,
+      "check_id": "chk-quarter-plus-dime",
+      "elapsed_seconds": 0.014457523007877171,
+      "error": null,
+      "expected_values": [
+        2
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "coin_count"
+    },
+    {
+      "actual": 0,
+      "check_id": "chk-pennies-ignored",
+      "elapsed_seconds": 0.014692066994030029,
+      "error": null,
+      "expected_values": [
+        0
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "coin_count"
+    },
+    {
+      "actual": 3,
+      "check_id": "chk-two-quarters-one-dime",
+      "elapsed_seconds": 0.013457605004077777,
+      "error": null,
+      "expected_values": [
+        3
+      ],
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "coin_count"
+    }
+  ],
+  "consumer_code_sha256": {
+    "scripts/coding_competence_dev.py": "695e9e6228d6ed540d0235442ec3aa515ff1f00b6f3ad303ba76354feaa407a0",
+    "scripts/coding_competence_run.py": "4e39d6f0fea4234643447bc1a31a2fb2caad7f1c5e35803537585c1d43812c94",
+    "scripts/coding_worker_dev.py": "41c33ad88fc1fca8d123a71580683d3f478d96c4f1f2f41889303f40c7551b26",
+    "scripts/source_replay_qualification.py": "39eee1fffb32ffefb1ab3d6abdef14a80f6825dc928c32e83b8f8ed29fbc6782",
+    "src/stencil/focus/native_source_selector.py": "f08f1c14d6b8e3001fa3694edfcf7b59f2ed2c7869136686e8f27a03c639fda2",
+    "src/stencil/focus/renderer.py": "e1ec3da2f3cd1565746e2b11c24308330b1f8c4d76dfe15f70bf5fa2dc2996be",
+    "src/stencil/focus/slab.py": "3f3a9f04ee9bae3395c3fdf5d3011e2b8cca4b930332a72dd2edafce7de04b59",
+    "src/stencil/focus/slab_sandbox.py": "3dad55e31b23fd859a9fcf805b3694acc99c8efdb48c35ed82ca78b16f9d7de8",
+    "src/stencil/source_replay.py": "19f3c7f1948fd74eb25767c007b4b9af567629c15656fed4c529542ffe485d55"
+  },
+  "input": {
+    "bytes": 1541,
+    "path": "/home/bmarti44/stencil-llm/results/source-replay/qualification-authoring/author-00/authored.json",
+    "sha256": "ff167de40c52227c2a5eae1eda34194197d7d1c92337b1c37740aec9c6f8578c"
+  },
+  "kind": "source-replay-qualification-cpu-preflight",
+  "model_calls": 0,
+  "reference_action": {
+    "argument_body": "{\"source\":\"def coin_count(cents):\\n    quarters = cents // 25\\n    remainder = cents - quarters * 25\\n    dimes = remainder // 10\\n    return quarters + dimes\"}",
+    "argument_body_base64": "eyJzb3VyY2UiOiJkZWYgY29pbl9jb3VudChjZW50cyk6XG4gICAgcXVhcnRlcnMgPSBjZW50cyAvLyAyNVxuICAgIHJlbWFpbmRlciA9IGNlbnRzIC0gcXVhcnRlcnMgKiAyNVxuICAgIGRpbWVzID0gcmVtYWluZGVyIC8vIDEwXG4gICAgcmV0dXJuIHF1YXJ0ZXJzICsgZGltZXMifQ==",
+    "argument_body_bytes": 160,
+    "argument_body_sha256": "405d050dc2e582871a755ac484e04a271d310bd4466c58090723b1014d216347",
+    "argument_tokens": 47,
+    "eligible": true,
+    "eos_allowance_tokens": 1,
+    "generation_headroom": 976,
+    "module_sha256": "853e53c63702d9825b622cb00c6dda0910ed0e1063a9cdae1eff7060b07473b7",
+    "response_tokens_with_eos": 48,
+    "source_sha256": "853e53c63702d9825b622cb00c6dda0910ed0e1063a9cdae1eff7060b07473b7"
+  },
+  "schema_version": 1,
+  "status": "PASS",
+  "tokenizer": {
+    "name": "Qwen3-30B-A3B",
+    "path": "/home/bmarti44/stencil-llm/models/qwen3-30b-a3b-hf/tokenizer.json",
+    "sha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4"
+  }
+}

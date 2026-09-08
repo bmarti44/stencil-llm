@@ -31,12 +31,13 @@ claim. Original answers, references and reviews are preserved; no trial repair
 or rerun is being used. [Results](results/source-interpreter/semantic/RESULTS.md).
 
 Research has selected a small test of automatically recalling original instruction
-messages for the coding agent. Its design has passed independent review; the
-two-call technical check is implemented, with 43 targeted software tests passing.
-Independent review found two launch-control defects and one missing dependency
-check; corrections are underway before the technical run and four-project coding
-comparison. No successor model trial has launched. Resume
-from the latest STATE entry in [the project ledger](plan/LEDGER.md).
+messages for the coding agent. The implementation passed independent review and
+50 targeted software tests. Its first local technical trial completed both model
+calls and shut down cleanly in about 7 minutes 20 seconds; the generated patch
+passed all three mechanical fixture checks. Result review is pending. This
+qualifies the interface, not coding utility. The four-project comparison and
+larger fresh proof remain ahead. See [technical results](results/source-replay/QUALIFICATION-RESULTS.md)
+and resume from the latest STATE entry in [the project ledger](plan/LEDGER.md).
 
 ## Earlier result (2026-09-04): selective retention under cache eviction
 
