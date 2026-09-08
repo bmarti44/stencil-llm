@@ -1,0 +1,15 @@
+# Automatically maintained prose: third maintenance feasibility attempt
+
+The registered error-free maintenance bar failed. In the Rust conversation the updater explicitly limited global language and error-handling rules to the two named tasks. That loses the global applicability even though much of the useful rule content and subsequent edition replacement/restoration survived. This is a semantic failure, not an exact-wording mismatch. The independent review records the complete audit and distinguishes definite errors from ambiguous omissions.
+
+Independent semantic accounting: 34/48 views are unambiguously correct, eight are definitely incorrect, and six Rust FFI dependency views are ambiguous because “may also depend on libc” sits beside a standard-library baseline explicitly scoped to the other task. A charitable reading raises agreement to40/48; neither reading passes. Eight of16 complete turns and one of two complete trajectories agree. JavaScript's restriction to runtime dependencies leaves tooling dependencies permitted; omission of the explicit permission sentence is not counted as a wrong restriction. These correlated views are descriptive checks, not independent statistical samples.
+
+All 16 single-attempt calls completed with HTTP200 and normal stop, no candidate errors, retries, caps, gold resets or manual corrections. Fifteen user notes applied; one tool candidate was blocked by the registered role boundary and was identical to the previous notes, so it did not attempt a change. All nine frozen source hashes and all exact HTTP requests/responses and actual-note chains passed independent integrity audit. The frozen source commit is `3ff88b8f`; Kimi data SHA256 is `dea370797abc792677f22adb6e2c8a0284115e6b6c3672c0d4483a1f6e2b67f9`.
+
+Usage: 10,053 prompt and 2,230 completion tokens, 12,283 total. Calls took 90.13 seconds; total server reservation including startup and cleanup was 546.21 of 900 seconds. The owned container was stopped and removed successfully. These are measured machine costs, not measured human-time savings.
+
+Kimi K3 via Ollama authored the two new eight-turn development conversations, Sol xhigh implemented the runner, and independent Astra xhigh reviewed annotations, code and results. Prompts received authenticated natural source history and their own actual previous prose note. This was exposed development evidence, with no worker coding test or clean larger validation.
+
+Following the prospectively registered three-failure stop-loss, park the small single-updater maintenance recipe line. No further near-identical prompt repair or inference follows this result. Research may establish a substantially different hypothesis before another experiment is proposed and reviewed. Automatically matching good manual prose remains a valuable target; this failed recipe neither disproves that target nor establishes reliable automation.
+
+See [prospective protocol](../../prose-maintenance/PROTOCOL.md), [independent accuracy review](accuracy-review-astra.md), [call manifest](calls/manifest.json), [actual notes and receipts](calls/rows.jsonl), and [cleanup accounting](lifecycle.json).

@@ -1545,3 +1545,30 @@ Recipe/source/preview nowcommit; then absolute tools/run_maintenance_dev.py
 --mode prose --run-dir /home/bmarti44/stencil-llm/results/quick-checks/
 prose-maintenance-01 --execute.16calls/900stotal/600startup,1024outputcap.
 Fitnone; newexposedDEV only; no worker or largerproofclaim.
+
+2026-09-07 — STATE: PROSE16 RUNNING; PIN3ff88b8f.
+Liveunifiedsession90166; owncontainer stencil-maintenance-prose-11a8e8b69f69;
+freeze/flag at results/quick-checks/prose-maintenance-01. Resumeactualhandle,
+notrestartonobservationtimeout. IndependentAstra /root/prose_data_review
+continuesauthor-disjoint resultaudit afterterminalcleanup; source-onlyuntilthen.
+16singleattemptcalls/900s, preservedoriginalnewKimidata; no worker.
+
+2026-09-07 — STATE: PROSE16 COMPLETE/FAIL; SINGLE-UPDATER LINE PARKED.
+Session90166 terminal0; owncontainer removed;546.207/900seconds.
+16HTTP200/stop, noerrors/caps/retries;12283tokens,90.128sdriver.
+Independent Astra wire/hash/actualnotes audit passes; Rust global rules
+explicitly task-local, so prospective error-free bar fails. Third full
+maintenance failure triggers stop-loss; no further cosmetic promptrepair.
+Preserve result+independent semantic audit, explicit artifactcommit pending.
+Bounded research /root/research_qwen_protocol examines substantiallydifferent
+source-grounded reconstruction, no inference/code. Full goal stillunproven.
+
+2026-09-07 — STATE: PROSE16 AUDITED FAIL; NEXT HYPOTHESIS RESEARCH ONLY.
+Astra final:34/48unambiguouscorrect,8definiteGLOBALerrors,6ambiguousffi;
+charitable40/48stillfails;8/16complete turns,1/2trajectories(JS).
+Research report results/prose-maintenance/research-next-hypothesis.md proposes
+disposable source-only request-time reader and matched4call note ablation.
+Prior updater already had fullhistory; missingstorage is not causal evidence.
+Research recommendation not independently reviewed or registered for inference.
+Next: independent Astra assessment of distinctness/value before implementation
+or any inference. Archive run+audit+research with explicitpaths now; no push.
