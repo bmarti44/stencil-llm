@@ -85,6 +85,13 @@ not accumulate earlier supplements in subsequent prompts. Permanent history is
 never rewritten to change earlier model answers or tool results. All other
 history is retained; no summarization/eviction is tested. The selector is called
 once for S, even if the prior request failed. Hidden outcomes never steer work.
+Only check_id, symbol, input and expected_values from each active public check
+enter a work envelope. Interval endpoints, source_ids, behavior and rationale
+are controller/audit metadata and never enter a model prompt or tool feedback.
+In particular, no future retirement schedule or author-written interpretation is
+revealed. Tool feedback contains only genuine current public case results and
+action status. The sandbox adapter supplies rule_ids=[] internally to the reused
+run_checks interface; that compatibility field carries no rule interpretation.
 
 ## Data and preflight
 
@@ -136,14 +143,31 @@ tokens/second suggests 2041.2 generation seconds at full allowances, plus
 historical planning estimate, not a bound or a measured successor throughput.
 Measure qualification, but do not change recipe/caps/sample sizes from its
 answers. Register the actual affordable launch only if qualification succeeds.
+Two-call completion alone does not qualify screen affordability. Before launch,
+compute C = three times the sum of active public plus private check counts across
+all 12 project-rounds. Let q be the maximum observed per-check elapsed seconds
+from sequential reference/mutant CPU preflight, and r the slower of the two
+qualification render HTTP times. The frozen launch planning gate is
+600 + 2041.199447651 + max(120, C*q + 48*r + 60) + 60 <= 3000 seconds.
+The inner 60 reserves miscellaneous receipt/local work; the last 60 is cleanup.
+This retains the historical longer-worker generation estimate rather than
+substituting short-fixture token throughput. Publish qualification generation
+times and tokens as separate measured observations. The projection estimates
+affordability, not a bound on growing histories or bad-code execution; the whole
+deadline remains authoritative. Excess projection stops preparation without
+shrinking projects/checks/caps, changing prompts, or launching another fixture.
 
 Screen whole reservation is 3000 seconds, including startup, rendering,
 generation, checks, writes, shutdown and publication. Qualification plus screen
 is at most 3600 GPU-occupied/reserved seconds. Startup ceiling 600, per HTTP
-exchange ceiling 180, final cleanup reserve 60, all subordinate to the whole
+render+generation pair ceiling 180, final cleanup reserve 60, all subordinate to the whole
 deadline. A supervisor owns the server/job and ensures termination and a durable
 terminal receipt. Register owned PIDs; never terminate unowned processes. CPU
 authoring/preflight/review time and Kimi service cost are reported separately.
+Before each pair, set the client's deadline to the smaller of the global driver
+deadline and now+181 seconds (the unchanged worker reserves one second for its
+receipt). Both HTTP operations share that deadline; no frozen-worker mutation
+or independent 180-second reset between rendering and generation is permitted.
 
 Run projects in authored index order. Within each project run rounds 1,2,3.
 Within a round rotate worker arm order using (project_index+round_index) mod 3

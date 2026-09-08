@@ -35,6 +35,12 @@ Helpers may call one another; target names and non-target code must survive edit
 public_checks: list of check objects first introduced at this round. Checks do
 not require future functions to be implemented. Public checks are visible to
 workers when introduced; all active public checks accompany later work.
+The runtime projection contains only check_id, symbol, input, expected_values.
+All other check fields are controller/audit metadata, never model-visible or
+included in public tool feedback. In particular, future interval endpoints and
+author-written source rationales must not leak through the public projection.
+The reused sandbox receives those four executable fields plus internal rule_ids=[];
+this is a compatibility adapter, not an authored obligation list.
 
 private: {rounds, obsolete_mutant}.
 private.rounds: exactly three {index, reference_patch, checks} objects.

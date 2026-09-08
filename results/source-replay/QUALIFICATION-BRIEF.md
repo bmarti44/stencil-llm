@@ -40,6 +40,10 @@ consumers without transport/schema/render/token/context/cap/action error, exact
 source rendering, and clean timely shutdown. Worker hidden-check success is a
 separate observation; it is not a source-selection utility result. A fixture
 source/test defect stops preparation, rather than repairing it after answers.
+This qualifies the interface, not full-screen affordability. Preserve both render
+HTTP timings for SPEC.md's exact prospective launch projection, which also uses
+the actual accepted project's check counts and CPU preflight timings. That gate
+must pass before a screen launch; a successful tiny fixture cannot waive it.
 
 Whole GPU reservation 600 seconds including startup and cleanup; retain a
 60-second cleanup reserve and source-replay SPEC call limits. Persist partial
