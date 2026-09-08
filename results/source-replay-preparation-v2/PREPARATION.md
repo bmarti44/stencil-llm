@@ -73,6 +73,24 @@ reference action rejection, failed active reference checks, mutant action
 rejection or failure to demonstrate the designated retirement can use the single
 correction barrier. Structural ValueError and all other failures remain terminal.
 
+StageValidationError alone is insufficient: the reused run_checks also records
+local failures as check errors. Examine every available public/private/mutant
+result before deciding correction eligibility. Error must be null or exactly
+"InvalidProgram: " followed by one of these fixed labels: AttributeError,
+TypeError, ValueError, KeyError, IndexError, NameError, UnboundLocalError,
+ZeroDivisionError, OverflowError, RecursionError, AssertionError, RuntimeError,
+StopIteration. Any other error string makes the bank INCOMPLETE with no correction.
+In particular sandbox deadline/resource failure, resource bound, MemoryError,
+setup/process/JSON failures and unknown outer exceptions are terminal. Request,
+whole-job and between-check deadlines are always terminal. This rule takes
+precedence over the ordinary StageValidationError handling, including when the
+global correction allowance is still unused.
+
+This is a boundary on observable recorded errors, not perfect cause diagnosis:
+an opaque sandbox ValueError label can represent more than one internal cause.
+The whitelist deliberately permits that label while excluding unrecognized or
+path-bearing local exception text. No new sandbox/error framework is required.
+
 After all independent calls and validations at that ordinary stage finish:
 
 1. If any failure is outside the correction boundary, stop the bank.
@@ -124,7 +142,8 @@ For an active-reference failure, failed_checks contains only failing result
 records, ordered public then private as in actual validation. Each has exactly
 {check_id, passed, actual, error}, copied from that construction execution.
 For a mutant that did not fail, it contains the designated mutant result (which
-may have passed). For action rejection it is empty. Never include whole execution
+may have passed). Only null or the eligible exact error labels above may appear.
+For action rejection it is empty. Never include whole execution
 records, module text, timing, internal paths, sibling data or worker answers.
 
 Actual values and short recorded error strings here come solely from running

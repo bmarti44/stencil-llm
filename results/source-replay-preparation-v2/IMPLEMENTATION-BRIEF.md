@@ -48,7 +48,9 @@ correction barrier, consumed once even if fewer than four projects need it.
 
 Collect per-project validation outcomes instead of overwriting one failure
 variable. Mixed eligible/noneligible failure always stops. Only the four
-registered StageValidationError categories permit a correction. Successful
+registered StageValidationError categories with the exact eligible check-error
+projection permit a correction. Inspect all available result records first; any
+non-whitelisted error is INCOMPLETE with no correction, as the design specifies. Successful
 siblings' packet/reference states are accepted once; never reapply their actions
 or rerun their checks during the correction barrier. A failed project's correction
 starts from its unchanged pre-round reference and immutable accepted prior packets.
@@ -82,7 +84,9 @@ and every round to validate, plus final assembly; it is not source-bank approval
 Write consuming tests first and report the initial red failures. Cover:
 - No correction needed:16calls,4reserved unused slots,20slots total.
 - One and four failed siblings:17/20calls, one correction barrier only.
-- Mixed ineligible/eligible stage failures: no correction call.
+- Mixed ineligible/eligible stage failures: no correction call. Include wrapped
+  sandbox deadline/resource, memory, setup/process/JSON and unknown outer errors;
+  ordinary whitelisted sandbox computation errors remain eligible.
 - A failed correction or later failure: terminal stop, no second correction.
 - Preserved check partition and every immutable metadata field.
 - Successful siblings applied only once; failed originals and corrected evidence
