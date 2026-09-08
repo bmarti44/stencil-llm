@@ -231,3 +231,159 @@ novelty for this commonplace arithmetic task. No stronger novelty claim is
 needed. Read-only JSON/hash/arithmetic checks were performed with standard
 library tooling; no repository code import, repeated sandbox test, model,
 tokenizer, GPU, API call, old-bank read or other file edit was performed.
+
+## Round 3
+
+Score: 82/100
+
+2026-09-08. Same author-disjoint Astra xhigh reviewer. Disposition: REJECT the
+first-stage implementation at `8651ab66` pending the two high findings below.
+Open findings: source-replay#3 high, #4 high, #5 medium. Findings #1/#2 remain
+resolved; Rounds 1 and 2 are unchanged. Their combined pre-append SHA-256 was
+`7e487f81f169f956d1734e4e4cb518dc432b1f71da575287bed0ad3c3befc11d`.
+The orchestrator received concrete reproductions before this round finalized.
+No actual fixture preflight or native qualification is accepted by this round.
+
+### Reviewed bytes and scope
+
+The eight implementation/test files matched both archived commit `8651ab66` and
+the handoff `results/source-replay/implementation-sol.json`, SHA-256
+`51408a3f77fda296fdd3b48ffef8e34c0851a24539f1711343994d39dbf19467`.
+SPEC/DATA/QUALIFICATION-BRIEF remained at Round 1's final bindings. The additional
+IMPLEMENTATION-BRIEF SHA-256 is
+`f8cda57f72d5c7b995e80b0c7a5f86091b35b32635b2beaf10ac1938d49c9148`.
+
+| File | SHA-256 |
+| --- | --- |
+| `src/stencil/source_replay.py` | `19f3c7f1948fd74eb25767c007b4b9af567629c15656fed4c529542ffe485d55` |
+| `src/stencil/focus/native_source_selector.py` | `f08f1c14d6b8e3001fa3694edfcf7b59f2ed2c7869136686e8f27a03c639fda2` |
+| `scripts/source_replay_qualification.py` | `f0a2b2d53ab6c0dcf40a1dab74659d625ea97c5a78005a11c8fc939bcf60e9ce` |
+| `tools/run_source_replay_qualification.py` | `761bad5b047c3e68560553617236297e1079a4669482c8fb3a060030ac3c1c6e` |
+| `tests/test_source_replay.py` | `6872eecf6190ab9f75613b14606bcb8e742bb22a055d3a7ef43ef998afa6c48f` |
+| `tests/test_native_source_selector.py` | `71bc04742e747f1d5f76a5d265125523dad9ba243a8bd0392992700b060c6e41` |
+| `tests/test_source_replay_qualification.py` | `c911796aa3df0bfb731d0b22872de372d621821a79c66f6584ab92b8b8b8af47` |
+| `tests/test_run_source_replay_qualification.py` | `100aa3834e085789f80bea183a020b0bda2f5ada91e07f028d7396107f2ba24f` |
+
+Review covers only the first-stage renderer, selector client, two-call driver,
+launcher and their tests. The future multi-project runner, broader utility and
+manual-reminder comparison are not implementation prerequisites here.
+
+### 3. [high] Historical acceptance text can authorize an unaccepted implementation (open)
+
+`tools/run_source_replay_qualification.py:187–222` checks each acceptance by
+searching the complete bound file for accepted-disposition and zero-open-finding
+phrases. Those phrases remain in this append-only review after a later round
+rejects work. The same file can also be labeled specification, fixture and
+implementation without verifying the corresponding reviewed subjects or hashes.
+Matching the file's current digest does not establish that its current review
+accepts the code being launched.
+
+**Consumer reproduction:** constructed only temporary CPU stand-ins, with valid
+declared fixture/preflight/tokenizer/code hashes. The bound review contained
+Round 1 ACCEPT/zero open high findings followed by Round 3 REJECT/open high
+finding. Passed that one file under all three required acceptance kinds to the
+actual `validate_freeze`, retaining its actual required acceptance set. Validation
+returned successfully. This is a stale-acceptance failure in the consumed path,
+not a hypothetical malicious file replacement.
+
+**Required small fix:** validate the latest applicable canonical disposition,
+score threshold and open-finding state, and bind required reviewed subject
+hashes to the frozen specification, fixture and implementation. A narrow machine
+block in this existing review file or a local parser for its actual format is
+sufficient. Preserve historical rounds; do not reuse an incompatible legacy
+review format or build a general review framework. A latest rejected round and
+an accepted review of different subject hashes must fail the actual consumer.
+
+### 4. [high] Docker launch delivery can consume the cleanup reservation (open)
+
+The new plan sets both `reservation_seconds` and `startup_ceiling_seconds` to
+600. In the reused lifecycle, the initial `docker run -d` subprocess receives
+`min(global_remaining, startup_ceiling_seconds)` before health waiting begins.
+It can therefore consume the whole reservation. At that point the lifecycle
+skips ownership recovery/stop/remove work because its deadline has expired,
+potentially leaving the owned GPU container running.
+
+This finding is specifically about initial Docker command delivery.
+`wait_for_server` already subtracts its cleanup reserve; ordinary slow model
+health startup is not the uncovered path.
+
+**Consumer reproduction:** called the actual unchanged `owned.run_lifecycle`
+with the new plan and injected CPU clock/process objects. The fake Docker command
+returned a container ID after using its allowed 600 seconds. The lifecycle
+returned `CLEANUP_FAILED`, `cleaned:false`; its only issued command was Docker
+run, and the run flag remained. With the identical probe and an effective startup
+ceiling of 540, the lifecycle returned `INCOMPLETE_STARTUP`, `cleaned:true`, and
+issued logs/stop/remove operations within the remaining reserve. No Docker or
+network command was actually executed.
+
+**Required small fix:** clamp the new plan's effective startup allowance to
+`min(registered_startup_ceiling, reservation_seconds-cleanup_reserve_seconds)`.
+For this qualification that is 540 seconds. This implements the registered
+subordinate limits without changing the frozen lifecycle or increasing cost.
+Exercise late Docker delivery through the reused lifecycle, not just plan-field
+assertions. Preserving the flag when cleanup fails is correct but does not by
+itself enforce the reservation.
+
+### 5. [medium] A live sandbox serialization dependency is absent from the bindings (open)
+
+Both `PREFLIGHT_CODE_FILES` and `CORE_BOUND_FILES` omit
+`src/stencil/focus/renderer.py`. Its `compact` function is actually used by
+`coding_worker_dev._fresh_execute` to serialize cases and by
+`slab._execute_cached` to serialize the code/case payload delivered to the
+sandbox. A change to that serializer would not invalidate the current preflight
+or required launch bindings, despite changing a consumed execution dependency.
+
+Add this one existing file to both required hash sets and verify the mismatch
+path. No transitive-import framework or binding of unused modules is needed.
+The inspected renderer SHA-256 is
+`e1ec3da2f3cd1565746e2b11c24308330b1f8c4d76dfe15f70bf5fa2dc2996be`.
+
+### Checks that support the otherwise narrow implementation
+
+- Public builders use original source/request objects; the selector receives
+  no module, reference or tests. The qualification worker receives its initial
+  module and an empty public case list. Executable public-check projection strips
+  interval/grounding/rationale fields. Copies are chronological, Unicode text
+  survives JSON decoding, and supplements are omitted from permanent history.
+- The selector omits unsupported `uniqueItems` while rejecting duplicate IDs
+  in its actual consumer. Enum, maximum length, exact argument keys, forced tool,
+  nonthinking mode and 128-token cap remain fixed. Render and generation reuse
+  exact request bytes and reconcile schema, prompt IDs, output IDs and usage.
+  This implements the previously verified compatibility resolution; it does not
+  claim runtime qualification of the pinned image.
+- The preflight producer invokes the actual action/check path once. Runtime
+  consumes a bound receipt rather than rerunning references. It encodes the
+  native serialized source-argument JSON, adds one EOS token of allowance, checks
+  headroom, and records code/fixture/tokenizer identities. Source inspection
+  confirms that the local token-counter path names the existing Qwen3-30B-A3B
+  tokenizer. No tokenizer was loaded or native headroom measured in this review.
+- The earlier unconditional-reference-PASS, duplicate reference execution,
+  boolean schema-version and annotation defects are corrected in the inspected
+  paths. Applied wrong behavior remains a separate observation from technical
+  delivery. Action rejection is no-go, transport/cap/deadline failure is
+  incomplete, and output directories cannot silently resume an existing run.
+- Each native call pair receives the shared deadline; late return, call receipt
+  and final positive-manifest publication paths are checked. Launcher eligibility
+  also requires successful driver exit, timely lifecycle and proven cleanup.
+  Unproven cleanup retains the run flag. These are useful guards, subject to the
+  startup-reserve correction above.
+- Existing model identity checking compares current file size/mtime against a
+  bound prior hash inventory; it does not compute fresh weight hashes. That is
+  the stated narrow metadata qualification, not a stronger model-identity claim.
+
+### Independent validation performed
+
+Ran only the four new targeted CPU test files with bytecode/cache-provider
+writing disabled: **43 passed in 1.28 seconds**. Their fixture stand-ins use an
+injected byte counter, not a native tokenizer. Separately exercised the two
+failure reproductions above using temporary files and mocked processes/clocks.
+No actual accepted-fixture preflight, tokenizer/model load, GPU/container/API
+launch, old-bank access, code edit or commit occurred. Only this review file was
+edited in the repository.
+
+Read selected reused consumer/lifecycle source sections. Their four original
+hashes still match Round 1. Additional inspected dependency hashes are
+`src/stencil/focus/slab.py` =
+`3f3a9f04ee9bae3395c3fdf5d3011e2b8cca4b930332a72dd2edafce7de04b59`
+and `src/stencil/focus/slab_sandbox.py` =
+`3dad55e31b23fd859a9fcf805b3694acc99c8efdb48c35ed82ca78b16f9d7de8`.
