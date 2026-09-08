@@ -1,0 +1,438 @@
+{
+  "schema_version": 1,
+  "conversation_id": "source-fit-cal-20260908-04",
+  "family_id": "source-fit-family-20260908-04",
+  "split": "fit",
+  "messages": [
+    {
+      "message_id": "m01",
+      "role": "user",
+      "text": "Morning! Quick background before we start: I handle data admin for the Tideline Bird Observatory (TBO). Our volunteers walk fixed transects — Dunlin Flats North, Saltpan Loop, Reedbed Fringe — and log counts into a SQLite survey database. The county recorder wants quarterly handoffs, and so far I have been hand-knitting spreadsheets. Can we build a small utility, call it peewit-export, that pulls records out of the database and produces the handoff files?"
+    },
+    {
+      "message_id": "m02",
+      "role": "assistant",
+      "text": "Happy to. Before I sketch a design: which output format does the recorder accept, should any records be filtered out (verification state, species restrictions), and how should dates and coordinates be represented?"
+    },
+    {
+      "message_id": "m03",
+      "role": "user",
+      "text": "Format first: CSV only for now. The recorder's portal ingests CSV and nothing else, so do not build any other formats yet."
+    },
+    {
+      "message_id": "m04",
+      "role": "assistant",
+      "text": "CSV it is. Two details before I start: date formatting, and coordinate handling — do you want coordinates tidied to a standard precision?"
+    },
+    {
+      "message_id": "m05",
+      "role": "user",
+      "text": "Dates: ISO 8601, YYYY-MM-DD, everywhere in the output. No locale formats like 08/09/2026 — those have bitten us before."
+    },
+    {
+      "message_id": "m06",
+      "role": "assistant",
+      "text": "On coordinates, I would suggest snapping everything to a 4-decimal grid for a consistent look — the eastings and northings currently have mixed precision. Want that?"
+    },
+    {
+      "message_id": "m07",
+      "role": "user",
+      "text": "No — export coordinates exactly as recorded in the database, mixed precision and all. Never round, snap or normalise them; the recorder audits against the raw field logs."
+    },
+    {
+      "message_id": "m08",
+      "role": "user",
+      "text": "Filenames: tbo_<transect-slug>_<survey-date>.csv, all lower case, e.g. tbo_dunlin-flats-north_2026-06-14.csv. One file per transect per survey date."
+    },
+    {
+      "message_id": "m09",
+      "role": "user",
+      "text": "Filtering: our records carry a verification_status. Exclude anything 'pending' or 'rejected' from exports, unless the person running it passes --include-unverified, in which case those rows go in too."
+    },
+    {
+      "message_id": "m10",
+      "role": "user",
+      "text": "Sensitive species: the database flags these (Little Tern, Dartford Warbler and Nightjar at the moment). In the public profile, replace their coordinates with the centroid of their 2km grid square. The internal profile keeps exact coordinates. Public is the default profile; internal only when --profile internal is given."
+    },
+    {
+      "message_id": "m11",
+      "role": "assistant",
+      "text": "Recap so far: CSV-only output; ISO dates; coordinates verbatim; tbo_<slug>_<date>.csv naming; pending/rejected excluded unless --include-unverified; flagged sensitive species get 2km-square centroids in the public (default) profile and exact coords with --profile internal. Plan: a small CLI in one module with a thin DB layer and profile-driven output. Anything missing before I build?"
+    },
+    {
+      "message_id": "m12",
+      "role": "user",
+      "text": "That is the lot. Go ahead and build the first cut of peewit-export as agreed — a CLI that reads the survey DB and writes the CSV exports.",
+      "task_handle": "T1-scaffold-csv-export"
+    },
+    {
+      "message_id": "m13",
+      "role": "assistant",
+      "text": "Scaffold is up. Field mapping I am using: survey_date, transect_code, species_code, count, then easting/northing straight from the record, recorder_initials, and a free-text notes column. Kicking off a test run now."
+    },
+    {
+      "message_id": "m14",
+      "role": "tool",
+      "text": "$ peewit-export --transect dunlin-flats-north --date 2026-06-14 --profile internal\nexported 486 rows to tbo_dunlin-flats-north_2026-06-14.csv\nsample: 2026-06-14,DFN,COMTE,12,512345.4,391238.77,JK,flock on tideline\n2 pending rows skipped"
+    },
+    {
+      "message_id": "m15",
+      "role": "user",
+      "text": "Looks right. Lock in the header order exactly as: survey_date, transect_code, species_code, count, easting, northing, recorder_initials, notes. That precise order, no extra columns — the recorder parses positionally."
+    },
+    {
+      "message_id": "m16",
+      "role": "assistant",
+      "text": "Locked. For testing I would like a --dry-run flag that prints the rows to stdout instead of writing files — handy for QA. OK to add?"
+    },
+    {
+      "message_id": "m17",
+      "role": "user",
+      "text": "Sure — --dry-run is fine if it helps you test, but treat it as optional and do not sink more than a couple of hours into it."
+    },
+    {
+      "message_id": "m18",
+      "role": "user",
+      "text": "Compliance just reminded me of something important: Nightjar records are embargoed until 31 August 2026. Exclude them entirely from every export — internal and public — until then. For Nightjar specifically, that overrides the normal blur-in-public handling: total exclusion until the embargo lifts."
+    },
+    {
+      "message_id": "m19",
+      "role": "assistant",
+      "text": "Understood — Nightjar rows get filtered before the profile logic runs, until 2026-08-31. I will treat the embargo as an independent, non-overridable exclusion while it is in force. Re-running the suite to confirm."
+    },
+    {
+      "message_id": "m20",
+      "role": "tool",
+      "text": "$ peewit-export --transect saltpan-loop --date 2026-06-21 --profile internal\n441 rows exported to tbo_saltpan-loop_2026-06-21.csv\n12 Nightjar rows withheld under embargo (logged to stderr)\nchecks: header order OK; ISO dates OK; coordinates verbatim OK"
+    },
+    {
+      "message_id": "m21",
+      "role": "user",
+      "text": "One more ground rule: counts go out verbatim, including zero-count rows. Never drop a row because the count is zero and never smooth counts — some of the recorder's analyses depend on true zeros."
+    },
+    {
+      "message_id": "m22",
+      "role": "assistant",
+      "text": "Noted — zero rows stay. By the way, now that the filtering layer exists, adding a GeoJSON output would be cheap, and the recorder hinted they might want one eventually. Shall I add it now to get ahead?"
+    },
+    {
+      "message_id": "m23",
+      "role": "user",
+      "text": "Not yet — hold off on GeoJSON until the recorder actually confirms they want it. CSV remains the only output until then."
+    },
+    {
+      "message_id": "m24",
+      "role": "user",
+      "text": "Update: the recorder has confirmed they want GeoJSON as well, so add it as a second output alongside CSV. Requirements: RFC 7946 GeoJSON; WGS84; coordinates in longitude-latitude order; convert our stored grid references to lon/lat at full precision — no rounding, same rule as everything else. The public profile keeps the 2km-square centroid blur on sensitive species, internal stays exact, in GeoJSON too. Leave the CSV output exactly as agreed. Filenames follow the same convention: tbo_<transect-slug>_<survey-date>.geojson.",
+      "task_handle": "T2-add-geojson-output"
+    },
+    {
+      "message_id": "m25",
+      "role": "assistant",
+      "text": "Design: one GeoJSON Feature per exported record inside a FeatureCollection per transect-date; Point geometry using the active profile's coordinate handling; conversion to EPSG:4326 without precision truncation. The CSV code path stays untouched."
+    },
+    {
+      "message_id": "m26",
+      "role": "tool",
+      "text": "$ peewit-export --transect reedbed-fringe --date 2026-06-28 --profile public --format geojson\nwrote tbo_reedbed-fringe_2026-06-28.geojson (512 features)\ngeojsonlint: valid RFC 7946\n7 features across 3 sensitive species centroid-blurred\n4 Nightjar rows withheld under embargo"
+    },
+    {
+      "message_id": "m27",
+      "role": "user",
+      "text": "Validated at my end too. Set the feature properties with snake_case keys exactly: survey_date, transect_code, species_code, count, blurred. 'blurred' is a boolean and must be true only when the centroid substitution was actually applied."
+    },
+    {
+      "message_id": "m28",
+      "role": "user",
+      "text": "Slightly tangential: longer-term we might expose an authenticated API export with OAuth2. Park that thought completely — it is explicitly out of scope for this sprint's work on the exporter."
+    },
+    {
+      "message_id": "m29",
+      "role": "user",
+      "text": "If it costs you nothing, you may add a --summary flag that prints per-transect totals after a run. Condition: only if it does not delay the GeoJSON work at all; otherwise skip it."
+    },
+    {
+      "message_id": "m30",
+      "role": "assistant",
+      "text": "GeoJSON stayed on schedule, so I exercised the permission and added --summary; it prints per-transect totals (rows written, sensitive records blurred, embargoed rows withheld) after the file list."
+    },
+    {
+      "message_id": "m31",
+      "role": "tool",
+      "text": "$ peewit-export --transect dunlin-flats-north --date 2026-07-05 --profile public --summary\nfiles: tbo_dunlin-flats-north_2026-07-05.csv, tbo_dunlin-flats-north_2026-07-05.geojson\nsummary: 498 rows; 9 blurred (Little Tern, Dartford Warbler); 2 Nightjar withheld (embargo); 1 pending skipped"
+    },
+    {
+      "message_id": "m32",
+      "role": "user",
+      "text": "Calendar note: we are past 31 August now, so the Nightjar embargo has lapsed. From here on, treat Nightjar like any other sensitive species — centroid blur in the public profile, exact coordinates in internal. Remove the special-case exclusion."
+    },
+    {
+      "message_id": "m33",
+      "role": "assistant",
+      "text": "Embargo path retired; Nightjar now flows through the standard sensitive-species handling. The 'embargoed rows withheld' summary line will report zero for now — I will leave the line in place for any future embargo rather than deleting the reporting."
+    },
+    {
+      "message_id": "m34",
+      "role": "tool",
+      "text": "$ peewit-export --transect saltpan-loop --date 2026-09-02 --profile public\nwrote tbo_saltpan-loop_2026-09-02.csv and .geojson\nNightjar rows present with blurred=true\nregression check: header order, ISO dates, verbatim coordinates all unchanged"
+    },
+    {
+      "message_id": "m35",
+      "role": "user",
+      "text": "While regression is fresh in mind: the recorder diffs our files week to week, so a given transect-date must export byte-for-byte identically if nothing changed in the DB. Fixed row order: survey_date, then transect_code, then species_code. No other reordering."
+    },
+    {
+      "message_id": "m36",
+      "role": "assistant",
+      "text": "Locked sort order confirmed; I will also keep the writer deterministic so there are no dict-order surprises. Anything else before we wrap this phase — the weekly batch idea you mentioned, perhaps?"
+    },
+    {
+      "message_id": "m37",
+      "role": "user",
+      "text": "Yes, later this week I want a batch mode that runs a whole ISO week across all active transects in one go. Details to follow once I have squared it with the recorder — nothing to build on that yet."
+    },
+    {
+      "message_id": "m38",
+      "role": "assistant",
+      "text": "No batch work yet, then. Current steady state: dual CSV/GeoJSON export per transect-date under all the agreed rules. Say the word when the batch details land."
+    },
+    {
+      "message_id": "m39",
+      "role": "user",
+      "text": "One convention to note ahead of the batch work, whatever shape it takes: stdout carries only the paths of files actually written. Anything about skips, withholdings or errors goes to stderr."
+    },
+    {
+      "message_id": "m40",
+      "role": "user",
+      "text": "Details are squared — build the weekly batch runner now. For a given ISO week it must export every active transect, producing both the CSV and the GeoJSON per transect under all the existing conventions. Process transects in a deterministic order: slug ascending. If a transect has no eligible records for the week after the agreed filters, skip it and log the skip. Exit code: non-zero only when a file write fails; zero otherwise, including when transects were skipped. And the parked OAuth/API idea stays parked.",
+      "task_handle": "T3-weekly-batch-runner"
+    }
+  ],
+  "queries": [
+    {
+      "message_id": "m12",
+      "target": {
+        "obligations": [
+          {
+            "text": "CSV is the only output format to build for now; the county recorder's portal ingests CSV and nothing else, so no other formats should be produced yet.",
+            "source_ids": [
+              "m03"
+            ]
+          },
+          {
+            "text": "All dates in the output must be ISO 8601 (YYYY-MM-DD); no locale date formats anywhere.",
+            "source_ids": [
+              "m05"
+            ]
+          },
+          {
+            "text": "Export coordinates exactly as recorded in the database, preserving their original mixed precision; never round, snap or normalise them — the assistant's suggested 4-decimal grid snapping was explicitly declined and must not be applied.",
+            "source_ids": [
+              "m06",
+              "m07"
+            ]
+          },
+          {
+            "text": "Name each output file tbo_<transect-slug>_<survey-date>.csv, all lower case, one file per transect per survey date.",
+            "source_ids": [
+              "m08"
+            ]
+          },
+          {
+            "text": "Exclude records whose verification_status is 'pending' or 'rejected' from every export, unless the operator passes --include-unverified, in which case those records are included.",
+            "source_ids": [
+              "m09"
+            ]
+          },
+          {
+            "text": "Database-flagged sensitive species (currently Little Tern, Dartford Warbler and Nightjar): in the public profile replace their coordinates with the centroid of their 2km grid square; the internal profile keeps exact coordinates and is active only when --profile internal is given; public is the default profile.",
+            "source_ids": [
+              "m10"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "message_id": "m24",
+      "target": {
+        "obligations": [
+          {
+            "text": "The recorder has now confirmed GeoJSON, superseding the earlier 'CSV only until the recorder confirms' stance: GeoJSON is a required second output alongside CSV, and the existing CSV output must remain exactly as previously agreed.",
+            "source_ids": [
+              "m23",
+              "m24"
+            ]
+          },
+          {
+            "text": "The GeoJSON must conform to RFC 7946, use WGS84, and express coordinates in longitude-latitude order; converting the stored grid references to lon/lat must be done at full precision with no rounding.",
+            "source_ids": [
+              "m24"
+            ]
+          },
+          {
+            "text": "Dates remain ISO 8601 (YYYY-MM-DD) everywhere, with no locale formats; this applies to the new GeoJSON properties as well.",
+            "source_ids": [
+              "m05",
+              "m24"
+            ]
+          },
+          {
+            "text": "Beyond the required lon/lat conversion, coordinates are still exported exactly as recorded — never rounded, snapped or normalised; the earlier 4-decimal snapping suggestion remains declined.",
+            "source_ids": [
+              "m06",
+              "m07",
+              "m24"
+            ]
+          },
+          {
+            "text": "Filenames follow the lower-case convention tbo_<transect-slug>_<survey-date> with the format extension: .csv for CSV and .geojson for the new output.",
+            "source_ids": [
+              "m08",
+              "m24"
+            ]
+          },
+          {
+            "text": "The CSV header order is fixed exactly as survey_date, transect_code, species_code, count, easting, northing, recorder_initials, notes — no extra columns, since the recorder parses positionally.",
+            "source_ids": [
+              "m15"
+            ]
+          },
+          {
+            "text": "Exclude records with verification_status 'pending' or 'rejected' unless the operator passes --include-unverified, in which case they are included.",
+            "source_ids": [
+              "m09"
+            ]
+          },
+          {
+            "text": "Database-flagged sensitive species (currently Little Tern, Dartford Warbler and Nightjar): 2km grid-square centroid substitution in the public profile, exact coordinates in the internal profile (--profile internal), public by default — and this handling applies to the GeoJSON output too.",
+            "source_ids": [
+              "m10",
+              "m24"
+            ]
+          },
+          {
+            "text": "Nightjar exception in force until 31 August 2026: Nightjar records are excluded entirely from every export, internal and public; this overrides the normal blur-in-public handling for Nightjar specifically until the embargo lifts.",
+            "source_ids": [
+              "m18"
+            ]
+          },
+          {
+            "text": "Counts are exported verbatim, including zero-count rows; rows are never dropped because the count is zero and counts are never smoothed.",
+            "source_ids": [
+              "m21"
+            ]
+          },
+          {
+            "text": "Permission (optional, with a cap): a --dry-run flag that prints rows instead of writing files is permitted for testing, as an optional extra with no more than a couple of hours of effort.",
+            "source_ids": [
+              "m16",
+              "m17"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "message_id": "m40",
+      "target": {
+        "obligations": [
+          {
+            "text": "Every export produces both formats: CSV and GeoJSON; the GeoJSON must conform to RFC 7946, use WGS84 and express coordinates in longitude-latitude order, and the CSV output must remain as previously agreed.",
+            "source_ids": [
+              "m24"
+            ]
+          },
+          {
+            "text": "Dates are ISO 8601 (YYYY-MM-DD) everywhere, in both outputs; no locale formats.",
+            "source_ids": [
+              "m05",
+              "m24"
+            ]
+          },
+          {
+            "text": "Coordinates are exported exactly as recorded, never rounded, snapped or normalised; the grid-reference-to-lon/lat conversion for GeoJSON is done at full precision with no rounding (the declined 4-decimal snapping stays declined).",
+            "source_ids": [
+              "m06",
+              "m07",
+              "m24"
+            ]
+          },
+          {
+            "text": "Filenames follow the lower-case convention tbo_<transect-slug>_<survey-date>.<ext> with .csv and .geojson extensions.",
+            "source_ids": [
+              "m08",
+              "m24"
+            ]
+          },
+          {
+            "text": "The CSV header order is fixed exactly as survey_date, transect_code, species_code, count, easting, northing, recorder_initials, notes, with no extra columns.",
+            "source_ids": [
+              "m15"
+            ]
+          },
+          {
+            "text": "Exclude verification_status 'pending' and 'rejected' records unless the operator passes --include-unverified.",
+            "source_ids": [
+              "m09"
+            ]
+          },
+          {
+            "text": "Database-flagged sensitive species get 2km grid-square centroid coordinates in the public profile (the default) and exact coordinates in the internal profile, across both output formats. The Nightjar embargo has lapsed (past 31 August 2026), so the former total-exclusion special case is retired and Nightjar is now treated like any other sensitive species.",
+            "source_ids": [
+              "m10",
+              "m24",
+              "m32"
+            ]
+          },
+          {
+            "text": "Counts are exported verbatim, including zero-count rows; zero-count rows are never dropped and counts never smoothed.",
+            "source_ids": [
+              "m21"
+            ]
+          },
+          {
+            "text": "GeoJSON feature properties use exactly the snake_case keys survey_date, transect_code, species_code, count, blurred; 'blurred' is a boolean that is true only when the centroid substitution was actually applied.",
+            "source_ids": [
+              "m27"
+            ]
+          },
+          {
+            "text": "The authenticated API export with OAuth2 remains completely parked and out of scope for the exporter work — do not build any of it now.",
+            "source_ids": [
+              "m28",
+              "m40"
+            ]
+          },
+          {
+            "text": "Standing permissions: the optional --dry-run flag (granted with roughly a two-hour cap) and the --summary flag are in place; the --summary permission was conditional on not delaying the GeoJSON work, and that condition was met when it was added.",
+            "source_ids": [
+              "m16",
+              "m17",
+              "m29",
+              "m30"
+            ]
+          },
+          {
+            "text": "Exports are reproducible: for unchanged database contents a given transect-date exports byte-for-byte identically, with a fixed row order of survey_date, then transect_code, then species_code, and no other reordering.",
+            "source_ids": [
+              "m35"
+            ]
+          },
+          {
+            "text": "Output-stream convention for the batch work: stdout carries only the paths of files actually written; anything about skips, withholdings or errors goes to stderr.",
+            "source_ids": [
+              "m39"
+            ]
+          },
+          {
+            "text": "Batch scope and conventions for the new request: for a given ISO week export every active transect, producing both the CSV and the GeoJSON per transect under all existing conventions; process transects deterministically in slug-ascending order; skip a transect with no eligible records after the agreed filters and log the skip; exit non-zero only when a file write fails, and exit zero otherwise, including when transects were skipped.",
+            "source_ids": [
+              "m40"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
