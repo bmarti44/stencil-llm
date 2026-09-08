@@ -2330,3 +2330,28 @@ Status PENDING final readiness, not scored acceptance. Reviewer now idle; resume
 same competence_readiness_review on stable Sol code/tests/preview/resource hashes.
 Nonstreaming complete output IDs and documented defaults suffice; no streaming
 or new instrumentation framework needed. Sol implementation handle remains live.
+
+2026-09-08 — STATE: SMOKE DRIVER WRITTEN; NATIVE WHITESPACE MISMATCH CAUGHT EARLY.
+Previous goal turn made progress through independently verified native defaults/
+boundaries and commits a604771e/50df22d0. Current Sol handle revalidated live;
+driver file now written, focused tests and thin launcher underway. No inference.
+
+Root independently verified pinned qwen3 extract_reasoning partitions </think>
+and preserves following content unchanged; engine/serving.py named-tool branch
+passes content directly to FunctionCall.arguments. In-progress driver compared
+decoded_final.strip() to unstripped raw_arguments, incorrectly rejecting valid
+newlines. Sent Sol exact-source correction to compare unchanged decoded suffix
+after actual terminal-token treatment, with synthetic newline regression case.
+Also flagged initial prompt omissions from actual consumer restrictions. Sol
+retains ownership of all four new code/test files; no parent implementation edit.
+Same Astra reviewer informed for final stable-code verification.
+
+Root also rejected a new fragile launcher review-prose predicate ('accepted'
+and 'zero high or critical'): historical or equivalent wording makes it an
+unreliable acceptance checker. Preserve previous native ownership boundary:
+freeze exact readiness report/hash; root verifies final score/open findings and
+commits the acceptance decision before --execute. No extra parser/status-file
+framework. Same Astra reviewer informed. Sol now has driver and launcher written;
+focused consumer tests remain. Observed code-before-test-file sequencing differs
+from brief's tests-first request; asked Sol to disclose it honestly, not recreate
+a claimed TDD history. No frozen previous files were changed or model calls made.
