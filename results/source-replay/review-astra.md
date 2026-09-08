@@ -140,3 +140,94 @@ sections only. Exact inspected implementation-file SHA-256 values:
 No code imports, tests, models, GPU/Ollama calls, prior banks, recorded evaluation
 responses, commits or other file edits were performed. Research citations were
 used as accepted preparation context; this review makes no new literature claim.
+
+## Round 2
+
+Score: 96/100
+
+2026-09-08. Same author-disjoint Astra xhigh reviewer and canonical topic.
+Disposition: ACCEPT the authored mechanical fixture for the planned new-consumer
+preflight. No new findings; zero open high/critical findings. Findings #1 and #2
+remain resolved. This round reviews source/test grounding and preserved authoring
+evidence only, not Sol's evolving implementation, native delivery, or utility.
+Round 1 is unchanged; its complete pre-append SHA-256 was
+`3194ddc51e0a32b1fc5baf2bdbdbf8d0f31972b309e9b7797d98b195cf26523d`.
+
+### Exact reviewed fixture records
+
+All eight files below independently matched their committed bytes at
+`785e3158`. Paths are relative to `results/source-replay/`.
+
+| File | SHA-256 |
+| --- | --- |
+| `qualification-authoring-prompt.md` | `81dd02f61b05c76a13c7144c497fd20c8f0103bdf58e1384a26d97d3ef5b9296` |
+| `QUALIFICATION-BRIEF.md` | `ecc52bc7a046e084aa0a84cb68859ce45e4b757c38f129e8d61fc9ca88b4ea31` |
+| `qualification-authoring/author-00/request.json` | `9a4e5ed33a6a50f1d92d9dc96e5960d1a6bb5bfcb11f9c26b01c66dbefcae2bb` |
+| `qualification-authoring/author-00/response.json` | `7ce9946bb202201065e6cf2ab9d6864b42a30562ead05c3b6d945b91bcb3d892` |
+| `qualification-authoring/author-00/authored.json` | `ff167de40c52227c2a5eae1eda34194197d7d1c92337b1c37740aec9c6f8578c` |
+| `qualification-authoring/author-00/receipt.json` | `7f6a229da0dd0b6b53a4a0884e5ecfaddd0113b1c9de01ef0b90fad08be77e38` |
+| `qualification-authoring/job.json` | `887dd3d37dbf85fb595546be0d3f411afadb2735b7a9fc3a45b3cc6bd80fb821` |
+| `qualification-authoring/root-source-check.json` | `b729c9a181d08984782919a54447c416bc0bc67a55700b10ec790fc38ae0acc3` |
+
+### Source, schema and scope audit
+
+The fixture has the requested fields, one original user source `m01`, one direct
+user request `m02`, one existing synchronous one-argument function, its complete
+replacement, and three distinct finite integer cases. Source/request texts are
+105/231 UTF-8 bytes, below 640 each. The initial function and five-line reference
+use only elementary arithmetic; no external dependency or changing-rule puzzle
+is introduced. Native token headroom is not measured by this source audit and
+remains part of the actual preflight.
+
+The source restricts counted coins to quarters and dimes, and the request
+explicitly requires taking as many quarters as possible before dimes and ignoring
+the remainder. Thus the three cases follow directly:
+
+| Input | Quarters | Remaining cents | Dimes | Required count |
+| --- | --- | --- | --- | --- |
+| 35 | 1 | 10 | 1 | 2 |
+| 7 | 0 | 7 | 0 | 0 |
+| 60 | 2 | 10 | 1 | 3 |
+
+No source-permitted alternative allocation is forced out: quarters-first is
+explicit. The initial implementation omits dimes, exactly the requested change.
+The reference implements that arithmetic and agrees with all three expected
+outputs. Root's preserved action/module hash independently equals the exact
+reference UTF-8 hash
+`853e53c63702d9825b622cb00c6dda0910ed0e1063a9cdae1eff7060b07473b7`.
+The recorded unchanged-consumer audit reports all three passes in
+0.051326780987437814 seconds and explicitly marks `new_consumer_preflight:false`.
+Those execution results were inspected, not rerun or represented as this
+reviewer's execution.
+
+One case repeats the request's explicit example, and all inputs are positive.
+That is appropriate for the registered delivery fixture. It establishes no
+general negative-input behavior, reminder benefit, hidden-benchmark performance,
+or complete-focus target. The request itself restates the relevant coin rule;
+requiring a selector usefulness challenge here would change the accepted scope.
+Reference/check objects must still stay outside future model payloads.
+
+### Provenance and cost audit
+
+The exact request prompt equals the frozen authoring prompt. Parsing the raw
+response's `response` string reproduces the complete authored object without
+semantic edits; request, response, response-text and authored hashes match the
+receipt. The response-text SHA-256 is
+`05e898462be610f7445fc24c70e9d6f3eab60f288ffd2f47405199b3d7e6e8af`.
+The job records one request and no automatic retry. Its request names
+`kimi-k3:cloud`, with `stream:false` and `think:true`; the service response names
+`kimi-k3` and reports `done:true`, `done_reason:stop`. The new fixture purpose is
+explicit while the reused helper's legacy purpose is preserved separately.
+
+Raw response and receipt agree on 647 prompt tokens and 1682 generated service
+tokens, totaling 2329. Service duration is 32.198658203 seconds; receipt elapsed
+time is 32.32867383956909 seconds; whole authoring-job elapsed time is
+32.33978819299955 seconds. These distinct measures reconcile and are authoring
+costs, not local qualification or coding-worker measurements.
+
+The request contains fresh-authoring instructions and no old dataset/example
+payload. The lineage statement is an authorship record, not proof of universal
+novelty for this commonplace arithmetic task. No stronger novelty claim is
+needed. Read-only JSON/hash/arithmetic checks were performed with standard
+library tooling; no repository code import, repeated sandbox test, model,
+tokenizer, GPU, API call, old-bank read or other file edit was performed.
