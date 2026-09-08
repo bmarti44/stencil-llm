@@ -1695,3 +1695,11 @@ Astra agrees local IDs can remain when keyed with episode identity, avoiding
 unnecessary rewrites. C recap may accurately include immediate requirements
 without calling them future/global rules; protocol clarified before responses.
 No worker inference, fitting, or training has started.
+
+2026-09-07 — STATE: AUTHOR02 PATCH RUNNING; AUTHOR03 PATCH READY.
+Author02 patch-01 runs in owned unified session41150 (900s HTTP ceiling).
+Author03 eleven-path Kimi request fixes all-batch validation before stopping,
+clarifies existing Boolean integer behavior and request-only checksum refusal,
+and adds stable checks. Both prompts bind original hashes and exact old values.
+Independent Astra readiness review and Sol native driver implementation run
+in parallel on disjoint files. The worker experiment has not started.
