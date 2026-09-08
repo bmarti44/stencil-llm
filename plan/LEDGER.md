@@ -1849,3 +1849,49 @@ larger executable evidence are still unproved.
 Archive verification note: broad git diff --check flags original model-output
 whitespace and server-log carriage returns. Preserve these audited raw bytes;
 check authored Markdown/JSON and ledger separately. This is not a code repair.
+
+2026-09-08 — STATE: TERMINAL CODING SCREEN ARCHIVED; RESEARCH SELECTS COMPETENCE PREP.
+Archive commit 27dc06b8 contains all 228 requested raw/result/review/ledger
+artifacts; explicit git ls-files verification passed. Raw generated whitespace
+and server carriage returns were preserved, not normalized. Integrity reviewer
+also reconciled parent summary.json and RESULTS.md without rerunning code.
+
+Two native Astra xhigh research lanes and Sol xhigh read-only implementation
+inventory completed. Canonical synthesis is results/coding-self-cue/research-reset/
+report-source.md. Parent independently corrected an important research miss:
+VerIH v5 DOES evaluate a multi-turn subset. Unproved transfer is specifically
+our scoped coding lifecycle and proposed cheap local SFT, not multi-turn work
+in general. Source table, counterevidence and measured-cost arithmetic are on
+file. The final bounded Astra accuracy review binds the settled report bytes.
+
+Selected next action is CPU-only preparation of a fresh M-only competence
+prerequisite: four Kimi K3/Ollama-authored projects, three dependent requests
+each, at most three native edit/execute candidates per request (36 calls max).
+Public functional feedback and stopping must be physically separate from
+private final checks/obligation labels. Freeze one interface, preserve actual
+same-project state, and review direct-source/dependency correctness. Prospective
+12/12 final requests and 4/4 projects are a strict feasibility gate, not broad
+proof. Proposed 1,024 output limit and 2,700-second ceiling remain conditional
+on exact native-protocol reference headroom, context and execution sizing.
+No worker launch, new model data generation or training occurred in this
+research step; formal data/implementation/resource review remains before launch.
+
+Next concrete work: parent writes a short prospective protocol/data contract
+under results/coding-competence/; Sol xhigh implements only the new thin runner,
+public/private validator and targeted tests, reusing current seccomp/receipts;
+Kimi K3 via Ollama authors wholly fresh data once that contract is settled;
+Astra xhigh independently reviews. Existing NativeChatDecoder rejects tool roles,
+so native actions need a narrow explicit extension in the new runner, not an
+assumed existing capability. Preserve prior frozen experiment files/receipts.
+If competence fails, park this operating point rather than training a selector
+to compensate. If it passes, prepare one fresh supervised interpreter emitting
+complete prose obligations with per-obligation source IDs, with clean whole-
+conversation splits, unchanged-base comparison and measured fit cost. No old
+adapter or benchmark-derived rows are assumed clean. This learned mechanism,
+not another prompt, would be the new intervention. General DSL/graph/verifier
+frameworks are deferred. Automatic/manual parity and adequate larger useful
+coding evidence remain unproved; goal active, no external blocker.
+
+Final research acceptance: Astra xhigh round 2, 96/100, zero open findings;
+report SHA256 2366f03e82823949c33242926eed54e18996c046595bd6260cd657dabf5cce5f.
+This commit archives research and the CPU-only next action above, not a launch.
