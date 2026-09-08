@@ -241,14 +241,20 @@ def test_reserved_source_or_target_control_tokens_fail_actual_serializer():
 def test_collation_right_pads_inputs_and_masks_only_real_targets():
     tokenizer = source.load_tokenizer()
     rows = [
-        source.prepare_row(_document(message_count=count), 0, tokenizer)
+        source.prepare_row(_document(message_count=count), 1, tokenizer)
         for count in (8, 16)
     ]
+    assert rows[0].full_length != rows[1].full_length
 
     batch = source.collate(rows, pad_token_id=tokenizer.pad_token_id)
 
     assert len(batch["input_ids"]) == 2
     assert len(batch["input_ids"][0]) == len(batch["input_ids"][1])
+    padding_widths = [batch["width"] - row.full_length for row in rows]
+    assert sum(width > 0 for width in padding_widths) == 1
+    assert sum(width == 0 for width in padding_widths) == 1
+    assert sum(padding_widths) > 0
+    assert batch["padding_tokens"] == sum(padding_widths)
     for index, row in enumerate(rows):
         width = len(batch["input_ids"][index])
         assert batch["input_ids"][index][: row.full_length] == list(row.input_ids)
