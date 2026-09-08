@@ -1,0 +1,5 @@
+2026-09-08: first inline Python preview launch failed at compile time, exit1.
+SyntaxError: invalid syntax on the paths assignment, before any import, PID registration, file read/write, or preview call could execute.
+Invalid line: paths=[root[x['path'] for x in []]] if False else [root/x['path'] for x in manifest['documents']]
+Corrected command uses the direct list comprehension: paths=[root / item['path'] for item in manifest['documents']].
+No actual CPU preview was invoked; preview.json and preview-job.json are absent. This is a root orchestration syntax repair, not a repeat measurement or data-driven recipe change.
