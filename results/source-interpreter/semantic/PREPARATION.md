@@ -117,3 +117,32 @@ serialized state. Proceeding after qualified independent acceptance tests the
 fixed scientific comparison without another implementation/review cycle for a
 failure path whose whole-run decisions already fail closed. Full coding utility
 remains unproven. No test data, model setting, limit or scoring gate is changed.
+
+## 2026-09-08 — Actual CPU preparation, awaiting independent audit
+
+The one actual preparation launched from frozen commit
+820cf276448f90e8414dd911c7c33b5231d6d905 and terminated with exit0 in
+3.645484035 seconds (outer owner interval). Exact exec session12739 is terminal;
+owner189230 and CPU child189232 completed. No restart. Empty stderr and full
+stdout/command/timing/provenance are preserved in preparation-job.json,
+preparation-stdout.json and preparation-stderr.log. No model was loaded, GPU
+used, or generation called. Accepted-input SHA256 is
+fe2c1356f1f2abb5a6b70f83c638008c240e8bff4c8824e5064cd82c8ac2e8f7.
+
+All six accepted documents and18 queries were retained. Source prefixes range
+315–4059 tokens. References including EOS range7–1005 tokens; these descriptive
+lengths do not change the fixed output allowance. Maximum source prefix plus
+2048 is6107, below the32768 context limit. All individual lengths are preserved
+in preparation-root-check.json. No truncation, deletion, prompt/cap change or
+semantic correction occurred.
+
+The target-free generation manifest is562,048bytes, SHA256
+7f29793be4407c7db47eecf133a2efb696356c081e49044f2a430d296b6d47e3.
+The separate reference manifest is279,755bytes, SHA256
+9293858334b7cbcb1f6af5377f490ab8b9fe07260d7e041afa9b79b55d2aea5b.
+Root's actual-consumer validation passed, independently comparing every source
+prefix with the exact accepted messages through its query, every reference with
+its accepted target, target-plus-EOS identity and lengths, file hashes and
+preparation Git binding. This check took0.014563514seconds without invoking the
+tokenizer again. Actual CPU preparation and metadata correctness are not model
+accuracy or coding-utility evidence. Same Astra preparation audit is next.
