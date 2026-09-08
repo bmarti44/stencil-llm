@@ -1,0 +1,599 @@
+{
+  "attempts": 1,
+  "error": null,
+  "parsed_content": {
+    "private_checks": [
+      {
+        "active_from_round": 1,
+        "active_through_round": null,
+        "behavior": "functionality",
+        "check_id": "c05",
+        "expected_values": [
+          {
+            "error": "duration",
+            "ok": false,
+            "raw": "09:00;1h5;Lab;t"
+          }
+        ],
+        "input": "09:00;1h5;Lab;t",
+        "rationale": "m03 requires the clock form to carry either no minutes or exactly two minute digits; \"1h5\" has a single minute digit and is malformed, failing with \"duration\" at the same precedence slot as a bad minute count.",
+        "source_ids": [
+          "m03"
+        ],
+        "symbol": "parse_record"
+      },
+      {
+        "active_from_round": 1,
+        "active_through_round": null,
+        "behavior": "functionality",
+        "check_id": "c06",
+        "expected_values": [
+          {
+            "error": "duration",
+            "ok": false,
+            "raw": "2359;15;Lab;t"
+          }
+        ],
+        "input": "2359;15;Lab;t",
+        "rationale": "m04 admits \"2359\" as a valid four-digit start (1439, inside the numeric limits) and m03 keeps the 15-minute floor, but 1439+15 crosses midnight; the retained trim from the initial module (affirmed by m01) cuts dur to 1 minute and the post-trim under-15 rejection fires as a \"duration\" error.",
+        "source_ids": [
+          "m01",
+          "m04"
+        ],
+        "symbol": "parse_record"
+      },
+      {
+        "active_from_round": 1,
+        "active_through_round": 2,
+        "behavior": "functionality",
+        "check_id": "c07",
+        "expected_values": [
+          {
+            "day": "fri",
+            "dur": 120,
+            "end": 675,
+            "ok": true,
+            "priority": "normal",
+            "room": "Lab",
+            "start": 555,
+            "title": "w"
+          }
+        ],
+        "input": "fri;0915;2h;Lab;w",
+        "rationale": "Conditional interaction of the three new forms: m01 weekday token yields day \"fri\", m04 compact start \"0915\" gives 555, and m03's hour-only clock form \"2h\" converts to 120 minutes inside the 15-240 window; no # prefix means priority stays \"normal\" as the still-active convention dictates.",
+        "source_ids": [
+          "m01",
+          "m03",
+          "m04"
+        ],
+        "symbol": "parse_record"
+      },
+      {
+        "active_from_round": 1,
+        "active_through_round": null,
+        "behavior": "retained",
+        "check_id": "c08",
+        "expected_values": [
+          {
+            "error": "duration",
+            "ok": false,
+            "raw": "23:55;30;Lab;late"
+          }
+        ],
+        "input": "23:55;30;Lab;late",
+        "rationale": "m01 keeps the midnight trim with its post-trim rejection: 1435+30=1465 is trimmed to end 1440 leaving a 5-minute duration, which the initial module's rule rejects with \"duration\"; nothing in m01-m05 alters this path.",
+        "source_ids": [
+          "m01"
+        ],
+        "symbol": "parse_record"
+      },
+      {
+        "active_from_round": 1,
+        "active_through_round": null,
+        "behavior": "retained",
+        "check_id": "c09",
+        "expected_values": [
+          {
+            "error": "fields",
+            "ok": false,
+            "raw": "a;b;c"
+          }
+        ],
+        "input": "a;b;c",
+        "rationale": "m02 makes the field-count check contractual and first; with m01 only exactly 4 or exactly 5 segments form a record, so a 3-part row keeps the initial module's \"fields\" error with exactly ok, error and raw.",
+        "source_ids": [
+          "m01",
+          "m02"
+        ],
+        "symbol": "parse_record"
+      },
+      {
+        "active_from_round": 1,
+        "active_through_round": 2,
+        "behavior": "retained",
+        "check_id": "c10",
+        "expected_values": [
+          {
+            "day": "main",
+            "dur": 30,
+            "end": 630,
+            "ok": true,
+            "priority": "high",
+            "room": "Lab",
+            "start": 600,
+            "title": "focus"
+          }
+        ],
+        "input": "10:00;30;Lab;#focus",
+        "rationale": "m01 explicitly keeps the leading-# priority convention for this round and m05 asks to preserve still-applicable behavior: the # is stripped from the title, priority becomes \"high\", and the 4-field row keeps day \"main\".",
+        "source_ids": [
+          "m01",
+          "m05"
+        ],
+        "symbol": "parse_record"
+      },
+      {
+        "active_from_round": 1,
+        "active_through_round": 2,
+        "behavior": "functionality",
+        "check_id": "c11",
+        "expected_values": [
+          {
+            "error": "day",
+            "ok": false,
+            "raw": "Mon;09:00;30;Lab;t"
+          }
+        ],
+        "input": "Mon;09:00;30;Lab;t",
+        "rationale": "m01 lists the valid weekday tokens as all lowercase and m02 states a 5-field row whose first token is no valid weekday fails with \"day\" and never a silent default, so mixed-case \"Mon\" is rejected in round 1.",
+        "source_ids": [
+          "m01",
+          "m02"
+        ],
+        "symbol": "parse_record"
+      }
+    ],
+    "public_checks": [
+      {
+        "active_from_round": 1,
+        "active_through_round": 2,
+        "behavior": "functionality",
+        "check_id": "c01",
+        "expected_values": [
+          {
+            "day": "tue",
+            "dur": 45,
+            "end": 615,
+            "ok": true,
+            "priority": "normal",
+            "room": "Lab",
+            "start": 570,
+            "title": "standup"
+          }
+        ],
+        "input": "tue;09:30;45;Lab;standup",
+        "rationale": "m01 introduces the 5-field form: a valid lowercase weekday token leads the row and is stored in \"day\"; the remaining fields parse exactly as the initial 4-field rules, and with no leading # the priority stays \"normal\" per the convention m01 preserves.",
+        "source_ids": [
+          "m01"
+        ],
+        "symbol": "parse_record"
+      },
+      {
+        "active_from_round": 1,
+        "active_through_round": null,
+        "behavior": "functionality",
+        "check_id": "c02",
+        "expected_values": [
+          {
+            "error": "day",
+            "ok": false,
+            "raw": "xyz;xx;45;Lab;standup"
+          }
+        ],
+        "input": "xyz;xx;45;Lab;standup",
+        "rationale": "m02 makes a 5-field row with a non-weekday first token fail with \"day\" and fixes the checking order fields->day->start, so the \"day\" error fires even though the start token \"xx\" is also malformed; the error dict holds exactly ok, error and raw.",
+        "source_ids": [
+          "m02"
+        ],
+        "symbol": "parse_record"
+      },
+      {
+        "active_from_round": 1,
+        "active_through_round": 2,
+        "behavior": "functionality",
+        "check_id": "c03",
+        "expected_values": [
+          {
+            "day": "sat",
+            "dur": 90,
+            "end": 660,
+            "ok": true,
+            "priority": "high",
+            "room": "Gym",
+            "start": 570,
+            "title": "ladders"
+          }
+        ],
+        "input": "sat;0930;1h30;Gym;#ladders",
+        "rationale": "m04's end-to-end example: weekday token (m01), compact HHMM start \"0930\"=570 (m04) and clock duration \"1h30\"=90 minutes (m03) combine; the leading-# priority convention from the initial module still applies in round 1, so the title is stripped and priority is \"high\".",
+        "source_ids": [
+          "m01",
+          "m03",
+          "m04",
+          "m05"
+        ],
+        "symbol": "parse_record"
+      },
+      {
+        "active_from_round": 1,
+        "active_through_round": null,
+        "behavior": "retained",
+        "check_id": "c04",
+        "expected_values": [
+          {
+            "error": "start",
+            "ok": false,
+            "raw": "930;90;Lab;standup"
+          }
+        ],
+        "input": "930;90;Lab;standup",
+        "rationale": "The initial module rejected colonless starts; m01 keeps 4-field rows parsing exactly as before and m04 confirms that anything colonless other than exactly four digits, like \"930\", stays a \"start\" error.",
+        "source_ids": [
+          "m01",
+          "m04"
+        ],
+        "symbol": "parse_record"
+      }
+    ],
+    "reference_patch": "def parse_record(raw):\n    parts = [piece.strip() for piece in raw.split(\";\")]\n    if len(parts) not in (4, 5):\n        return {\"ok\": False, \"error\": \"fields\", \"raw\": raw}\n    day = \"main\"\n    if len(parts) == 5:\n        day = parts[0]\n        if day not in (\"mon\", \"tue\", \"wed\", \"thu\", \"fri\", \"sat\", \"sun\"):\n            return {\"ok\": False, \"error\": \"day\", \"raw\": raw}\n        parts = parts[1:]\n    start_s, dur_s, room, title = parts\n    if \":\" in start_s:\n        hour, sep, minute = start_s.partition(\":\")\n        if not hour.isdigit() or not minute.isdigit():\n            return {\"ok\": False, \"error\": \"start\", \"raw\": raw}\n    else:\n        if len(start_s) != 4 or not start_s.isdigit():\n            return {\"ok\": False, \"error\": \"start\", \"raw\": raw}\n        hour, minute = start_s[:2], start_s[2:]\n    start = int(hour) * 60 + int(minute)\n    if int(minute) > 59 or start > 1439:\n        return {\"ok\": False, \"error\": \"start\", \"raw\": raw}\n    if dur_s.isdigit():\n        dur = int(dur_s)\n    else:\n        hours, sep, mins = dur_s.partition(\"h\")\n        if not sep or not hours.isdigit():\n            return {\"ok\": False, \"error\": \"duration\", \"raw\": raw}\n        if mins == \"\":\n            dur = int(hours) * 60\n        elif len(mins) == 2 and mins.isdigit() and int(mins) <= 59:\n            dur = int(hours) * 60 + int(mins)\n        else:\n            return {\"ok\": False, \"error\": \"duration\", \"raw\": raw}\n    if dur < 15 or dur > 240:\n        return {\"ok\": False, \"error\": \"duration\", \"raw\": raw}\n    if room == \"\" or title == \"\":\n        return {\"ok\": False, \"error\": \"empty\", \"raw\": raw}\n    end = start + dur\n    if end > 1440:\n        end = 1440\n        dur = end - start\n        if dur < 15:\n            return {\"ok\": False, \"error\": \"duration\", \"raw\": raw}\n    priority = \"normal\"\n    if title.startswith(\"#\"):\n        priority = \"high\"\n        title = title[1:].strip()\n        if title == \"\":\n            return {\"ok\": False, \"error\": \"empty\", \"raw\": raw}\n    return {\"ok\": True, \"day\": day, \"start\": start, \"dur\": dur,\n            \"end\": end, \"room\": room, \"title\": title,\n            \"priority\": priority}"
+  },
+  "project_id": "staged-02",
+  "project_index": 1,
+  "request": {
+    "body_bytes": 21315,
+    "body_sha256": "7226a7f763b2be398249ea38d57bec6779c56d409e916dab478f5e66c4ecb865",
+    "raw_path": "raw/call-0005-request.bin",
+    "timeout_seconds": 450,
+    "url": "http://127.0.0.1:11434/api/generate"
+  },
+  "response": {
+    "body_bytes": 39380,
+    "body_sha256": "486a449de5e9ae1df9da422fcda8adf766aca88b58d3c3f8ad8f39c83dbb6804",
+    "done_reason": "stop",
+    "elapsed_seconds": 128.00155705100042,
+    "ended_at_unix": 1788904318.9361315,
+    "ended_monotonic": 257119.924261123,
+    "envelope": {
+      "created_at": "2026-09-08T21:51:58.903786321Z",
+      "done": true,
+      "done_reason": "stop",
+      "eval_count": 10450,
+      "model": "kimi-k3",
+      "prompt_eval_count": 4612,
+      "response": "{\"reference_patch\":\"def parse_record(raw):\\n    parts = [piece.strip() for piece in raw.split(\\\";\\\")]\\n    if len(parts) not in (4, 5):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"fields\\\", \\\"raw\\\": raw}\\n    day = \\\"main\\\"\\n    if len(parts) == 5:\\n        day = parts[0]\\n        if day not in (\\\"mon\\\", \\\"tue\\\", \\\"wed\\\", \\\"thu\\\", \\\"fri\\\", \\\"sat\\\", \\\"sun\\\"):\\n            return {\\\"ok\\\": False, \\\"error\\\": \\\"day\\\", \\\"raw\\\": raw}\\n        parts = parts[1:]\\n    start_s, dur_s, room, title = parts\\n    if \\\":\\\" in start_s:\\n        hour, sep, minute = start_s.partition(\\\":\\\")\\n        if not hour.isdigit() or not minute.isdigit():\\n            return {\\\"ok\\\": False, \\\"error\\\": \\\"start\\\", \\\"raw\\\": raw}\\n    else:\\n        if len(start_s) != 4 or not start_s.isdigit():\\n            return {\\\"ok\\\": False, \\\"error\\\": \\\"start\\\", \\\"raw\\\": raw}\\n        hour, minute = start_s[:2], start_s[2:]\\n    start = int(hour) * 60 + int(minute)\\n    if int(minute) > 59 or start > 1439:\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"start\\\", \\\"raw\\\": raw}\\n    if dur_s.isdigit():\\n        dur = int(dur_s)\\n    else:\\n        hours, sep, mins = dur_s.partition(\\\"h\\\")\\n        if not sep or not hours.isdigit():\\n            return {\\\"ok\\\": False, \\\"error\\\": \\\"duration\\\", \\\"raw\\\": raw}\\n        if mins == \\\"\\\":\\n            dur = int(hours) * 60\\n        elif len(mins) == 2 and mins.isdigit() and int(mins) <= 59:\\n            dur = int(hours) * 60 + int(mins)\\n        else:\\n            return {\\\"ok\\\": False, \\\"error\\\": \\\"duration\\\", \\\"raw\\\": raw}\\n    if dur < 15 or dur > 240:\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"duration\\\", \\\"raw\\\": raw}\\n    if room == \\\"\\\" or title == \\\"\\\":\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"empty\\\", \\\"raw\\\": raw}\\n    end = start + dur\\n    if end > 1440:\\n        end = 1440\\n        dur = end - start\\n        if dur < 15:\\n            return {\\\"ok\\\": False, \\\"error\\\": \\\"duration\\\", \\\"raw\\\": raw}\\n    priority = \\\"normal\\\"\\n    if title.startswith(\\\"#\\\"):\\n        priority = \\\"high\\\"\\n        title = title[1:].strip()\\n        if title == \\\"\\\":\\n            return {\\\"ok\\\": False, \\\"error\\\": \\\"empty\\\", \\\"raw\\\": raw}\\n    return {\\\"ok\\\": True, \\\"day\\\": day, \\\"start\\\": start, \\\"dur\\\": dur,\\n            \\\"end\\\": end, \\\"room\\\": room, \\\"title\\\": title,\\n            \\\"priority\\\": priority}\",\"public_checks\":[{\"check_id\":\"c01\",\"symbol\":\"parse_record\",\"input\":\"tue;09:30;45;Lab;standup\",\"expected_values\":[{\"ok\":true,\"day\":\"tue\",\"start\":570,\"dur\":45,\"end\":615,\"room\":\"Lab\",\"title\":\"standup\",\"priority\":\"normal\"}],\"active_from_round\":1,\"active_through_round\":2,\"source_ids\":[\"m01\"],\"behavior\":\"functionality\",\"rationale\":\"m01 introduces the 5-field form: a valid lowercase weekday token leads the row and is stored in \\\"day\\\"; the remaining fields parse exactly as the initial 4-field rules, and with no leading # the priority stays \\\"normal\\\" per the convention m01 preserves.\"},{\"check_id\":\"c02\",\"symbol\":\"parse_record\",\"input\":\"xyz;xx;45;Lab;standup\",\"expected_values\":[{\"ok\":false,\"error\":\"day\",\"raw\":\"xyz;xx;45;Lab;standup\"}],\"active_from_round\":1,\"active_through_round\":null,\"source_ids\":[\"m02\"],\"behavior\":\"functionality\",\"rationale\":\"m02 makes a 5-field row with a non-weekday first token fail with \\\"day\\\" and fixes the checking order fields->day->start, so the \\\"day\\\" error fires even though the start token \\\"xx\\\" is also malformed; the error dict holds exactly ok, error and raw.\"},{\"check_id\":\"c03\",\"symbol\":\"parse_record\",\"input\":\"sat;0930;1h30;Gym;#ladders\",\"expected_values\":[{\"ok\":true,\"day\":\"sat\",\"start\":570,\"dur\":90,\"end\":660,\"room\":\"Gym\",\"title\":\"ladders\",\"priority\":\"high\"}],\"active_from_round\":1,\"active_through_round\":2,\"source_ids\":[\"m01\",\"m03\",\"m04\",\"m05\"],\"behavior\":\"functionality\",\"rationale\":\"m04's end-to-end example: weekday token (m01), compact HHMM start \\\"0930\\\"=570 (m04) and clock duration \\\"1h30\\\"=90 minutes (m03) combine; the leading-# priority convention from the initial module still applies in round 1, so the title is stripped and priority is \\\"high\\\".\"},{\"check_id\":\"c04\",\"symbol\":\"parse_record\",\"input\":\"930;90;Lab;standup\",\"expected_values\":[{\"ok\":false,\"error\":\"start\",\"raw\":\"930;90;Lab;standup\"}],\"active_from_round\":1,\"active_through_round\":null,\"source_ids\":[\"m01\",\"m04\"],\"behavior\":\"retained\",\"rationale\":\"The initial module rejected colonless starts; m01 keeps 4-field rows parsing exactly as before and m04 confirms that anything colonless other than exactly four digits, like \\\"930\\\", stays a \\\"start\\\" error.\"}],\"private_checks\":[{\"check_id\":\"c05\",\"symbol\":\"parse_record\",\"input\":\"09:00;1h5;Lab;t\",\"expected_values\":[{\"ok\":false,\"error\":\"duration\",\"raw\":\"09:00;1h5;Lab;t\"}],\"active_from_round\":1,\"active_through_round\":null,\"source_ids\":[\"m03\"],\"behavior\":\"functionality\",\"rationale\":\"m03 requires the clock form to carry either no minutes or exactly two minute digits; \\\"1h5\\\" has a single minute digit and is malformed, failing with \\\"duration\\\" at the same precedence slot as a bad minute count.\"},{\"check_id\":\"c06\",\"symbol\":\"parse_record\",\"input\":\"2359;15;Lab;t\",\"expected_values\":[{\"ok\":false,\"error\":\"duration\",\"raw\":\"2359;15;Lab;t\"}],\"active_from_round\":1,\"active_through_round\":null,\"source_ids\":[\"m01\",\"m04\"],\"behavior\":\"functionality\",\"rationale\":\"m04 admits \\\"2359\\\" as a valid four-digit start (1439, inside the numeric limits) and m03 keeps the 15-minute floor, but 1439+15 crosses midnight; the retained trim from the initial module (affirmed by m01) cuts dur to 1 minute and the post-trim under-15 rejection fires as a \\\"duration\\\" error.\"},{\"check_id\":\"c07\",\"symbol\":\"parse_record\",\"input\":\"fri;0915;2h;Lab;w\",\"expected_values\":[{\"ok\":true,\"day\":\"fri\",\"start\":555,\"dur\":120,\"end\":675,\"room\":\"Lab\",\"title\":\"w\",\"priority\":\"normal\"}],\"active_from_round\":1,\"active_through_round\":2,\"source_ids\":[\"m01\",\"m03\",\"m04\"],\"behavior\":\"functionality\",\"rationale\":\"Conditional interaction of the three new forms: m01 weekday token yields day \\\"fri\\\", m04 compact start \\\"0915\\\" gives 555, and m03's hour-only clock form \\\"2h\\\" converts to 120 minutes inside the 15-240 window; no # prefix means priority stays \\\"normal\\\" as the still-active convention dictates.\"},{\"check_id\":\"c08\",\"symbol\":\"parse_record\",\"input\":\"23:55;30;Lab;late\",\"expected_values\":[{\"ok\":false,\"error\":\"duration\",\"raw\":\"23:55;30;Lab;late\"}],\"active_from_round\":1,\"active_through_round\":null,\"source_ids\":[\"m01\"],\"behavior\":\"retained\",\"rationale\":\"m01 keeps the midnight trim with its post-trim rejection: 1435+30=1465 is trimmed to end 1440 leaving a 5-minute duration, which the initial module's rule rejects with \\\"duration\\\"; nothing in m01-m05 alters this path.\"},{\"check_id\":\"c09\",\"symbol\":\"parse_record\",\"input\":\"a;b;c\",\"expected_values\":[{\"ok\":false,\"error\":\"fields\",\"raw\":\"a;b;c\"}],\"active_from_round\":1,\"active_through_round\":null,\"source_ids\":[\"m01\",\"m02\"],\"behavior\":\"retained\",\"rationale\":\"m02 makes the field-count check contractual and first; with m01 only exactly 4 or exactly 5 segments form a record, so a 3-part row keeps the initial module's \\\"fields\\\" error with exactly ok, error and raw.\"},{\"check_id\":\"c10\",\"symbol\":\"parse_record\",\"input\":\"10:00;30;Lab;#focus\",\"expected_values\":[{\"ok\":true,\"day\":\"main\",\"start\":600,\"dur\":30,\"end\":630,\"room\":\"Lab\",\"title\":\"focus\",\"priority\":\"high\"}],\"active_from_round\":1,\"active_through_round\":2,\"source_ids\":[\"m01\",\"m05\"],\"behavior\":\"retained\",\"rationale\":\"m01 explicitly keeps the leading-# priority convention for this round and m05 asks to preserve still-applicable behavior: the # is stripped from the title, priority becomes \\\"high\\\", and the 4-field row keeps day \\\"main\\\".\"},{\"check_id\":\"c11\",\"symbol\":\"parse_record\",\"input\":\"Mon;09:00;30;Lab;t\",\"expected_values\":[{\"ok\":false,\"error\":\"day\",\"raw\":\"Mon;09:00;30;Lab;t\"}],\"active_from_round\":1,\"active_through_round\":2,\"source_ids\":[\"m01\",\"m02\"],\"behavior\":\"functionality\",\"rationale\":\"m01 lists the valid weekday tokens as all lowercase and m02 states a 5-field row whose first token is no valid weekday fails with \\\"day\\\" and never a silent default, so mixed-case \\\"Mon\\\" is rejected in round 1.\"}]}",
+      "thinking": "Let me reason through round 1 requirements (m01-m05).\n\nRound 1: Update parse_record. Changes:\n- m01: 5-field form with weekday token: \"tue;09:30;45;Lab;standup\". Valid lowercase tokens mon..sun go into result \"day\". 4-field rows keep day \"main\". Everything else stays.\n- m02: 5-field row with invalid first token \u2192 error \"day\". Checking order: fields, day, start, duration, empty. Error dicts keep exactly ok, error, raw.\n- m03: durations as clock amounts \"1h\", \"2h15\", \"0h45\", plus plain minutes. Form: digits, lowercase h, optionally exactly two minute digits 00-59. \"2h\" fine, \"1h5\"/\"1h75\"/\"1.5h\"/\"90m\" not. \u2192 \"duration\" error. Apply 15-240 window and trim unchanged.\n- m04: start may be exactly four digits without colon, \"0915\"/\"2359\" meaning HHMM under same numeric limits. Other colonless like \"930\"/\"12345\" \u2192 \"start\" error. Colon form keeps one- or two-digit hours. \"sat;0930;1h30;Gym;#ladders\" parses end to end.\n\nSo round 1 parse_record:\n\n```python\ndef parse_record(raw):\n    parts = [piece.strip() for piece in raw.split(\";\")]\n    if len(parts) not in (4, 5):\n        return {\"ok\": False, \"error\": \"fields\", \"raw\": raw}\n    day = \"main\"\n    if len(parts) == 5:\n        token = parts[0]\n        days = {\"mon\", \"tue\", \"wed\", \"thu\", \"fri\", \"sat\", \"sun\"}\n        if token not in days:\n            return {\"ok\": False, \"error\": \"day\", \"raw\": raw}\n        day = token\n        start_s, dur_s, room, title = parts[1], parts[2], parts[3], parts[4]\n    else:\n        start_s, dur_s, room, title = parts\n    # start parsing: colon form or 4-digit HHMM\n    if \":\" in start_s:\n        hour, sep, minute = start_s.partition(\":\")\n        if not hour.isdigit() or not minute.isdigit():\n            return {\"ok\": False, \"error\": \"start\", \"raw\": raw}\n        ...\n```\n\nCareful: original colon check: hour, sep, minute = start_s.partition(\":\"); if not sep or not hour.isdigit() or not minute.isdigit() \u2192 start error; start = h*60+m; if int(minute)>59 or start>1439 \u2192 start error. Preserve exactly. Note the colon form with one- or two-digit hours. Also what about start like \"09:30:45\"? partition gives hour \"09\", minute \"30:45\" \u2192 not digit \u2192 start error. OK.\n\nColonless: must be exactly four digits \u2192 HHMM: hour = first two, minute last two. Same limits: minute <= 59 and total <= 1439. Note 4-digit check: `len(start_s) == 4 and start_s.isdigit()`. \"2359\" \u2192 23*60+59 = 1439 OK. \"2400\" \u2192 1440 \u2192 >1439 \u2192 start error. \"0960\"? minute 60 > 59 \u2192 start error.\n\nNon-colon, non-4-digit \u2192 start error.\n\nDuration: plain digits OR clock form: digits + \"h\" + optionally exactly two minute digits 00-59. Parse: if dur_s.isdigit() \u2192 minutes = int. Else clock: partition on \"h\": hours part must be digits (nonempty plain digits), rest either empty or exactly two digits with value 00-59. E.g., \"2h\" \u2192 120. \"2h15\" \u2192 135. \"1h5\" \u2192 error. \"1h75\" \u2192 error. \"1.5h\" \u2192 hours \"1.5\" not digit \u2192 error. \"90m\" \u2192 no h, not digit \u2192 error. \"h45\"? hours empty \u2192 not digit \u2192 error.\n\nConvert to minutes: int(hours)*60 + int(mins or 0). Then window 15-240. Then midnight trim: end = start+dur; if end > 1440 trim, recompute dur, if dur < 15 \u2192 duration error.\n\nThen room/title nonempty check \u2192 \"empty\". Title # handling stays in round 1 (priority convention stays until round 3).\n\nOrder: fields, day, start, duration, empty. Note: original code checked room/title empty before priority # handling. Keep that: after duration checks and trim, check room == \"\" or title == \"\" \u2192 \"empty\". Then priority: title startswith \"#\" \u2192 high, strip; if stripped empty \u2192 \"empty\".\n\nSuccess dict: {\"ok\": True, \"day\": day, \"start\": start, \"dur\": dur, \"end\": end, \"room\": room, \"title\": title, \"priority\": priority}.\n\nNow write the replacement function compactly (must fit within 1024 output tokens for whole JSON packet... \"Keep the replacement comfortably within 1024 output tokens including JSON escaping and 128 tokens of headroom.\" So reference_patch ~ under ~900 tokens. Fine.\n\nLet me write:\n\n```python\ndef parse_record(raw):\n    parts = [piece.strip() for piece in raw.split(\";\")]\n    if len(parts) not in (4, 5):\n        return {\"ok\": False, \"error\": \"fields\", \"raw\": raw}\n    day = \"main\"\n    if len(parts) == 5:\n        day = parts[0]\n        if day not in {\"mon\", \"tue\", \"wed\", \"thu\", \"fri\", \"sat\", \"sun\"}:\n            return {\"ok\": False, \"error\": \"day\", \"raw\": raw}\n        parts = parts[1:]\n    start_s, dur_s, room, title = parts\n    if \":\" in start_s:\n        hour, _, minute = start_s.partition(\":\")\n        if not hour.isdigit() or not minute.isdigit():\n            return {\"ok\": False, \"error\": \"start\", \"raw\": raw}\n    else:\n        if len(start_s) != 4 or not start_s.isdigit():\n            return {\"ok\": False, \"error\": \"start\", \"raw\": raw}\n        hour, minute = start_s[:2], start_s[2:]\n    start = int(hour) * 60 + int(minute)\n    if int(minute) > 59 or start > 1439:\n        return {\"ok\": False, \"error\": \"start\", \"raw\": raw}\n    if dur_s.isdigit():\n        dur = int(dur_s)\n    else:\n        hours, sep, mins = dur_s.partition(\"h\")\n        if not sep or not hours.isdigit():\n            return {\"ok\": False, \"error\": \"duration\", \"raw\": raw}\n        if mins == \"\":\n            dur = int(hours) * 60\n        elif len(mins) == 2 and mins.isdigit() and int(mins) < 60:\n            dur = int(hours) * 60 + int(mins)\n        else:\n            return {\"ok\": False, \"error\": \"duration\", \"raw\": raw}\n    if dur < 15 or dur > 240:\n        return {\"ok\": False, \"error\": \"duration\", \"raw\": raw}\n    if room == \"\" or title == \"\":\n        return {\"ok\": False, \"error\": \"empty\", \"raw\": raw}\n    end = start + dur\n    if end > 1440:\n        end = 1440\n        dur = end - start\n        if dur < 15:\n            return {\"ok\": False, \"error\": \"duration\", \"raw\": raw}\n    priority = \"normal\"\n    if title.startswith(\"#\"):\n        priority = \"high\"\n        title = title[1:].strip()\n        if title == \"\":\n            return {\"ok\": False, \"error\": \"empty\", \"raw\": raw}\n    return {\"ok\": True, \"day\": day, \"start\": start, \"dur\": dur,\n            \"end\": end, \"room\": room, \"title\": title,\n            \"priority\": priority}\n```\n\nWait ordering: original did the midnight trim inside duration validation before empty check? Original order: start check, duration digit check, dur window check, room/title empty check, end trim. Actually original: computes dur checks (15-240), then room/title empty, then end = start+dur, trim if >1440, recompute dur, if dur<15 \u2192 duration error. Then priority. My version above matches: window check, empty check, trim. Good \u2014 preserved exactly.\n\nHmm, but wait: original trim occurs after the empty check; per original code, yes:\n\n```\nif room == \"\" or title == \"\":  \u2192 empty error\nend = start + dur\nif end > 1440: trim...\n```\n\nYes I matched.\n\nOne subtlety on colon form: original requires `sep` present; with \":\" in start_s guaranteed. Original allows \"9:30\" (one-digit hour). Also \"012:30\"? hour \"012\" isdigit \u2192 12*60... int(\"012\")=12. Fine, preserved. My check drops the `not sep` since \":\" in start_s ensures sep. Equivalent.\n\nEdge: start_s like \"12:\" \u2192 minute \"\" \u2192 not digit \u2192 start error. \":30\" \u2192 hour \"\" \u2192 error. Good.\n\nEdge: what about \"1h5\"? mins \"5\", len 1 \u2192 duration error. \"1h75\" \u2192 int 75 not <60 \u2192 error. \"1.5h\" \u2192 partition \"h\" \u2192 hours \"1.5\"... wait \"1.5h\".partition(\"h\") \u2192 (\"1.5\", \"h\", \"\"). hours \"1.5\" not isdigit \u2192 duration error. Good. \"90m\" \u2192 not digit, partition \"h\" gives no sep \u2192 error. Good. What about \"2h15x\"? mins \"15x\" len 3 \u2192 error. \"10h00\" \u2192 600 >240 \u2192 duration error. \"0h45\" \u2192 45 fine.\n\nNow checks. Round 1 public checks (visible to workers), plus private checks. IDs unique across project, e.g., \"c01\"... Also round 1 needs at least two private cases incl. new functionality; at least two active private retained cases (can derive from starting module + initial sources). Retained: e.g., 4-field plain row parses with day \"main\", start error precedence, midnight trim, # priority kept (round 1 retains it).\n\nPublic checks round 1: a few cases:\n1. 5-field basic: \"tue;09:30;45;Lab;standup\" \u2192 {\"ok\": True, \"day\": \"tue\", \"start\": 570, \"dur\": 45, \"end\": 615, \"room\": \"Lab\", \"title\": \"standup\", \"priority\": \"normal\"}.\n2. Invalid day: \"xyz;09:30;45;Lab;standup\" \u2192 {\"ok\": False, \"error\": \"day\", \"raw\": \"xyz;09:30;45;Lab;standup\"}.\n3. Clock duration + compact start end-to-end: \"sat;0930;1h30;Gym;#ladders\" \u2192 ok, day sat, start 570, dur 90, end 660, title \"ladders\", priority \"high\".\n4. Retained 4-field: \"09:30;90;Lab;standup\" \u2192 day main, start 570 dur 90 end 660.\n\nPrivate checks round 1: at least two, with \u22651 functionality, \u22652 retained active. Retained cases active through round 3 must remain valid under final behavior. Careful: anything relying on priority \"high\" from # changes at round 3 (priority key removed). So a check expecting priority in output must expire round 2 (active_through_round 2). E.g., public check 3 above expects priority \"high\" \u2014 active rounds 1\u20132, expires before round 3. Good; set active_through_round: 2.\n\nRound-1 checks must have active_from_round 1; expiry can be 1, 2, or null.\n\nLet me design check set.\n\nPublic checks (round 1 introduction):\n\n- c01 (functionality, src m01): input \"tue;09:30;45;Lab;standup\", expected ok dict as above. Priority \"normal\" \u2014 stays valid through round 3? In round 3, success dict drops \"priority\" key. So this expected would change at round 3 \u2192 set active_through_round 2? But then round 3 loses this coverage; that's fine, round 3 adds its own. Alternatively make expected without priority until r3... can't; strict equality. Set active_through 2 for any success-dict checks introduced round 1. Hmm but requirement: \"rounds 2 and 3 also need at least two active private retirement cases\" and \"at each round, at least two active private cases must cover retained behavior\". Round 3's retained coverage can come from round-3-introduced checks tagged retained plus earlier active ones. Round 3 introduces 4-field retained etc. That's fine.\n\nActually wait \u2014 could I make round-1 success expectations that survive round 3 by choosing error inputs? Error checks survive. For success cases introduced r1, set expiry 2 (they test 5-field/clock/compact features with priority key present, valid r1\u2013r2).\n\n- c02 (functionality, m02): invalid day token \u2192 \"day\" error; also precedence: maybe \"xyz;bad;45;Lab;t\" \u2192 still \"day\" (day checked before start). Use that to pin order: input \"xyz;xx;45;Lab;standup\" expected day error. Active null (through 3) since day-error persists. Round 3 makes tokens case-insensitive, but \"xyz\" still invalid \u2192 still \"day\". Good, active null.\n\n- c03 (functionality, m03, m04): \"sat;0930;1h30;Gym;#ladders\" full success with priority high, expiry 2 (priority removed r3).\n\n- c04 (retained, m01): 4-field row unchanged: \"09:30;90;Lab;standup\" success with day main & priority normal \u2192 expiry 2. Or make a retained error case lasting null: \"930;90;Lab;standup\"? In round 1, \"930\" colonless non-4-digit \u2192 start error. Stays start error r3. Good as retained with null. Let me include both types across public/private.\n\nPrivate checks (round 1): need \u22652, \u22651 functionality; also \u22652 active retained for round 1.\n\n- c05 (functionality, m03): malformed clock \"1h5\": input \"09:00;1h5;Lab;t\" \u2192 duration error (null active). \n- c06 (functionality, m04): compact start boundary \"2359\": \"2359;15;Lab;t\" \u2192 start 1439, end 1454 \u2192 trim to 1440, dur 1 <15 \u2192 duration error! Hmm interesting: start 1439 + 15 = 1454 >1440 \u2192 trim dur=1 \u2192 duration error. That's a nice boundary/conditional interaction (m04 + trim). Expected {\"ok\": False, \"error\": \"duration\", ...}. Active null (trim unchanged in r3, window per-day only raises ceiling for sat/sun; this is main day \u2192 same). Actually wait r3 raises ceiling only for sat/sun; this row is 4-field main \u2192 240 cap, trim same. Valid through r3. \n\n- c07 (functionality, m04): \"0915\" compact: \"fri;0915;2h;Lab;w\" \u2192 start 555, dur 120, end 675, priority normal, expiry 2.\n\n- c08 (retained, m01/m02): midnight trim retained: \"23:30;60;Lab;late\" \u2192 start 1410, dur 60, end 1470\u21921440, dur 30, ok... end 1440 dur 30 success with priority normal \u2192 expiry 2 (priority key). Or use error-side: \"23:55;30;Lab;late\" \u2192 1435+30=1465\u2192trim dur=5 \u2192 duration error; active null. Use error-side for longevity; retained behavior (trim + under-15 rejection). \n\n- c09 (retained, m01): 4-field with # priority: \"#\" handling retained in r1\u2013r2: input \"10:00;30;Lab;#focus\" \u2192 priority high title focus. Expiry 2. And another retained: fields error \"a;b;c\" \u2192 fields error (3 parts) null active? r3 says exactly 4 or 5 segments; 3 parts still fields error \u2192 null. Good retained with null.\n\nThat's plenty. Let me count private round 1: c05 (func), c06 (func, boundary), c07 (func), c08 (retained), c09 (retained). \u22652 retained \u2713, \u22651 functionality \u2713.\n\nPublic round 1: c01\u2013c04.\n\nNow check IDs must be unique across project; using c01..c09 for round 1. Rounds 2 and 3 will use c10+. But I only output round 1's packet now! The task: \"Author exactly one round's reference patch and behavioral checks... Current round (integer): 1.\" So I output only round 1 packet: reference_patch, public_checks, private_checks. Right \u2014 for rounds 1 and 2 output those three keys. Round 3 adds obsolete_mutant. Current round is 1.\n\n\"Check IDs are unique across this project.\" Only my round's IDs exist so far; use c01..c0N.\n\nNow expected_values: list of accepted outputs, strict JSON equality. For dict outputs, one exact dict. For errors, exact dict.\n\nInput format: input is a JSON value \u2014 presumably the argument. For parse_record, input is the raw string. The sandbox presumably calls symbol(input). I'll use input as the string itself.\n\nLet me verify expected values carefully.\n\nc01: \"tue;09:30;45;Lab;standup\" \u2192 parts [\"tue\",\"09:30\",\"45\",\"Lab\",\"standup\"], 5 fields, day tue, start 570, dur 45, end 615. Output: {\"ok\": True, \"day\": \"tue\", \"start\": 570, \"dur\": 45, \"end\": 615, \"room\": \"Lab\", \"title\": \"standup\", \"priority\": \"normal\"}. Expiry 2.\n\nc02: \"xyz;xx;45;Lab;standup\" \u2192 day error (before start): {\"ok\": False, \"error\": \"day\", \"raw\": \"xyz;xx;45;Lab;standup\"}. Null expiry. Round 3: lowercased \"xyz\" still invalid \u2192 day. \u2713.\n\nc03: \"sat;0930;1h30;Gym;#ladders\" \u2192 day sat, start 9*60+30=570, dur 90, end 660, room Gym, title \"ladders\", priority high. Expiry 2 (priority key removed r3, and # kept in title r3).\n\nc04: \"930;90;Lab;standup\" \u2192 start error (colonless, len 3): {\"ok\": False, \"error\": \"start\", \"raw\": \"930;90;Lab;standup\"}. Retained (4-field shape preserved + start rules), null. Tag \"retained\"? It's retained from initial module behavior (colonless invalid initially: \"930\".partition(\":\") \u2192 no sep \u2192 start error). Source ids: m04 says \"930\" still a start error; m01 says 4-field rows keep parsing exactly as before. source_ids [\"m01\",\"m04\"]. behavior \"functionality\" or \"retained\"? m04 explicitly confirms it stays a start error \u2014 I'd tag functionality for m04's new compact-start feature boundary... Actually it's a boundary of new functionality (m04: anything else colonless like \"930\" is still start error). Tag functionality with m04; also retained. I'll tag \"retained\" since the behavior existed before (start error for that string) and m04 reaffirms. Hmm, in round 1, retained = from starting module + initial sources. Fine: tag retained, sources m01, m04.\n\nPrivate:\n\nc05: \"09:00;1h5;Lab;t\" \u2192 duration \"1h5\": not digit; partition \"h\" \u2192 (\"1\",\"h\",\"5\"); mins \"5\" len1 \u2192 duration error. {\"ok\": False, \"error\": \"duration\", \"raw\": ...}. functionality m03. Null.\n\nc06: \"2359;15;Lab;t\" \u2192 start 1439 ok (<=1439), dur 15 ok, end 1454 \u2192 trim end1440 dur1 \u2192 duration error. functionality boundary m04 (+trim from m01 \"midnight trim ... unchanged\" and original). source_ids [\"m01\",\"m04\"]. Null. Wait check m03: \"apply the usual 15-240 window plus the midnight trim unchanged\" \u2014 plain \"15\" is original. Trim source: initial module + m01 \"the midnight trim with its post-trim rejection ... stays put\". source_ids [\"m01\",\"m04\"] fine.\n\nc07: \"fri;0915;2h;Lab;w\" \u2192 day fri, start 555, dur 120 (2h), end 675, priority normal. Success dict expiry 2. functionality m03/m04/m01. source_ids [\"m01\",\"m03\",\"m04\"].\n\nc08: \"23:55;30;Lab;late\" \u2192 1435+30=1465 \u2192 trim dur 5 \u2192 duration error. retained (initial module behavior), sources m01 (trim stays). Null.\n\nc09: \"a;b;c\" \u2192 3 parts \u2192 fields error. retained. sources m01 (everything else stays) or m02 (order fields first). Null. Actually m14 later clarifies 6+ parts; 3 parts remains fields. Null fine.\n\nAlso add retained # priority test with expiry 2: c10: \"10:00;30;Lab;#focus\" \u2192 ok, title \"focus\", priority \"high\", day main. Tag retained (existing convention preserved per m01). sources [\"m01\"]. active_through 2. This will pair nicely with round-3 retirement coverage later. Include it.\n\nPrivate round 1: c05-c10 (6 checks; \u22652 \u2713). Retained active r1: c08, c09, c10 \u2713.\n\nAlso a \"day\" boundary: \"TUE;...\" uppercase \u2192 in round 1 invalid \u2192 day error; but round 3 makes it valid \u2192 expected changes. If I include now, expiry must be 2. Could add as functionality: \"Mon;09:00;30;Lab;t\" \u2192 day error, active 1-2. source m01 (all lowercase valid tokens; m02 unknown token fails). Good conditional/boundary. Add as public? Keep public compact: c01,c02,c03,c04. Add c11 private functionality \"Mon;09:00;30;Lab;t\" \u2192 day error, expiry 2. Rationale: m01 says valid tokens are all lowercase; r3 changes this, hence expiry 2. Good\u2014demonstrates interval correctness.\n\nAlso precedence check: fields before day: \"x;y\" (2 parts) \u2192 fields error even though first token isn't weekday. c09 covers fields. Enough.\n\nNow the reference patch. Double-check against original preserved behaviors:\n\n- 4-field: parts unpack fine.\n- Original also returned error for `len(parts) != 4` \u2014 now 4 or 5.\n- Original start check via partition; mine via \"in\". Equivalent for single colon. For \"1:2:3\": partition minute \"2:3\" not digit \u2192 error. Mine same. \u2713.\n- Compact start: exactly 4 digits. Also note original allowed colon form hours >2 digits e.g. \"123:45\"? hour \"123\" isdigit \u2192 start = 123*60+45 = 7425 > 1439 \u2192 start error. Mine same. \u2713.\n\nOne more: start_s with colon AND len 4, e.g., \"09:5\" \u2014 colon branch: minute \"5\" digit; start = 545; minute<=59 \u2192 ok. Original: same (sep present, digit checks pass). So \"09:5\" valid in both. Preserved. \u2713 (m04 doesn't restrict colon form.)\n\n- Duration plain: \"90\" \u2192 90. Original `dur_s.isdigit()`. Same.\n- Clock: what about \"h\"? partition \u2192 (\"\", \"h\", \"\") \u2192 hours \"\" not digit \u2192 error. \"1H\"? no lowercase h \u2192 not sep \u2192 error \u2713 (only lowercase h per m03).\n- \"2h05\" \u2192 125, ok. \"0h05\" \u2192 5 <15 duration error \u2713.\n- Unicode digits like \"\u00b2\"? isdigit true for some non-ASCII; original had same behavior; preserve. int(\"\u00b2\")? Actually int() of superscript raises... int(\"\u00b2\") ValueError? In Python, int(\"\u00b2\") raises ValueError? No\u2014int accepts any Unicode decimal digit (Nd category); superscript \u00b2 is No category \u2192 int(\"\u00b2\") raises ValueError while \"\u00b2\".isdigit() is True. Original code had same crash potential; preserving identical semantics is fine. Not our concern.\n\n- Empty check before trim? Original order: dur window \u2192 room/title empty \u2192 end trim. I have: window \u2192 empty \u2192 trim. \u2713 matches original (original checks empty before computing end). Let me re-read original:\n\n```\nif dur < 15 or dur > 240: duration error\nif room == \"\" or title == \"\": empty error\nend = start + dur\nif end > 1440: trim; if dur<15 duration error\npriority...\n```\n\nYes. My patch matches.\n\nBut wait\u2014my patch ordering currently: after duration parse, window check, then `if room == \"\" or title == \"\"`, then end/trim. Yes \u2713.\n\n- Priority: title.startswith(\"#\") strip. \u2713.\n\nSuccess dict includes day. Order of keys irrelevant (JSON equality is structural; dict equality in Python ignores order).\n\nNow token size: patch is moderate; whole JSON packet with ~11 checks might be large-ish but the 1024-token constraint applies to the replacement worker allowance... \"Keep the replacement comfortably within 1024 output tokens including JSON escaping and 128 tokens of headroom.\" That refers to reference_patch (~ fits easily). Total packet can be larger. Keep checks reasonably concise.\n\nCheck object fields: check_id, symbol, input, expected_values, active_from_round, active_through_round, source_ids, behavior, rationale.\n\nsource_ids: nonempty, unique, visible at introduction: m01\u2013m05 (m05 is the request). Use relevant ones.\n\nWrite rationales compact but source-grounded.\n\nLet me finalize expected dicts:\n\nc01: {\"ok\": True, \"day\": \"tue\", \"start\": 570, \"dur\": 45, \"end\": 615, \"room\": \"Lab\", \"title\": \"standup\", \"priority\": \"normal\"}\n\nc03: start \"0930\" \u2192 570; dur \"1h30\" \u2192 90; end 660; title \"ladders\"; priority \"high\"; day \"sat\"; room \"Gym\".\n\nc07: start \"0915\" \u2192 555; dur \"2h\" \u2192 120; end 675; room \"Lab\"; title \"w\"; priority \"normal\"; day \"fri\".\n\nc02: {\"ok\": False, \"error\": \"day\", \"raw\": \"xyz;xx;45;Lab;standup\"} \u2014 note day checked before start even though start \"xx\" invalid \u2713 (m02 order).\n\nc04: {\"ok\": False, \"error\": \"start\", \"raw\": \"930;90;Lab;standup\"}\n\nc05: {\"ok\": False, \"error\": \"duration\", \"raw\": \"09:00;1h5;Lab;t\"}\n\nc06: {\"ok\": False, \"error\": \"duration\", \"raw\": \"2359;15;Lab;t\"}\n\nc08: {\"ok\": False, \"error\": \"duration\", \"raw\": \"23:55;30;Lab;late\"}\n\nc09: {\"ok\": False, \"error\": \"fields\", \"raw\": \"a;b;c\"}\n\nc10: \"10:00;30;Lab;#focus\" \u2192 start 600, dur 30, end 630, title \"focus\", priority \"high\", day \"main\". Expiry 2.\n\nc11: \"Mon;09:00;30;Lab;t\" \u2192 day error, expiry 2 (r3 makes it parse). {\"ok\": False, \"error\": \"day\", \"raw\": \"Mon;09:00;30;Lab;t\"}.\n\nPublic vs private split: public c01, c02, c03, c04. private c05\u2013c11.\n\nRound1 requirement: \"Each round introduces at least two private cases including new functionality\" \u2713 (c05, c06, c07, c11 functionality). \"at least two active private cases must cover retained behavior\" \u2014 c08, c09, c10 tag retained \u2713. Public checks count separately; private checks required \u2014 fine.\n\nBehaviors tags: c01 functionality (m01), c02 functionality (m02), c03 functionality (m01/m03/m04), c04 retained (m01/m04), c05 functionality (m03), c06 functionality (m01/m04), c07 functionality, c08 retained (m01), c09 retained (m01/m02), c10 retained (m01), c11 functionality (m01/m02 \u2014 boundary, all-lowercase rule).\n\nRationales: cite message specifics.\n\nNow write reference_patch text with escaped \\n in JSON.\n\nPatch:\n\ndef parse_record(raw):\n    parts = [piece.strip() for piece in raw.split(\";\")]\n    if len(parts) not in (4, 5):\n        return {\"ok\": False, \"error\": \"fields\", \"raw\": raw}\n    day = \"main\"\n    if len(parts) == 5:\n        day = parts[0]\n        if day not in (\"mon\", \"tue\", \"wed\", \"thu\", \"fri\", \"sat\", \"sun\"):\n            return {\"ok\": False, \"error\": \"day\", \"raw\": raw}\n        parts = parts[1:]\n    start_s, dur_s, room, title = parts\n    if \":\" in start_s:\n        hour, sep, minute = start_s.partition(\":\")\n        if not hour.isdigit() or not minute.isdigit():\n            return {\"ok\": False, \"error\": \"start\", \"raw\": raw}\n    else:\n        if len(start_s) != 4 or not start_s.isdigit():\n            return {\"ok\": False, \"error\": \"start\", \"raw\": raw}\n        hour, minute = start_s[:2], start_s[2:]\n    start = int(hour) * 60 + int(minute)\n    if int(minute) > 59 or start > 1439:\n        return {\"ok\": False, \"error\": \"start\", \"raw\": raw}\n    if dur_s.isdigit():\n        dur = int(dur_s)\n    else:\n        hours, sep, mins = dur_s.partition(\"h\")\n        if not sep or not hours.isdigit():\n            return {\"ok\": False, \"error\": \"duration\", \"raw\": raw}\n        if mins == \"\":\n            dur = int(hours) * 60\n        elif len(mins) == 2 and mins.isdigit() and int(mins) <= 59:\n            dur = int(hours) * 60 + int(mins)\n        else:\n            return {\"ok\": False, \"error\": \"duration\", \"raw\": raw}\n    if dur < 15 or dur > 240:\n        return {\"ok\": False, \"error\": \"duration\", \"raw\": raw}\n    if room == \"\" or title == \"\":\n        return {\"ok\": False, \"error\": \"empty\", \"raw\": raw}\n    end = start + dur\n    if end > 1440:\n        end = 1440\n        dur = end - start\n        if dur < 15:\n            return {\"ok\": False, \"error\": \"duration\", \"raw\": raw}\n    priority = \"normal\"\n    if title.startswith(\"#\"):\n        priority = \"high\"\n        title = title[1:].strip()\n        if title == \"\":\n            return {\"ok\": False, \"error\": \"empty\", \"raw\": raw}\n    return {\"ok\": True, \"day\": day, \"start\": start, \"dur\": dur,\n            \"end\": end, \"room\": room, \"title\": title,\n            \"priority\": priority}\n\nCheck token count: ~450 tokens, fine.\n\nNote: unused variable `sep` in colon branch \u2014 harmless.\n\nDouble-check c06: \"2359;15;Lab;t\": 4 parts; start_s \"2359\" no colon, len4 digits \u2192 hour \"23\", minute \"59\" \u2192 start 1439, minute 59 \u226459, start \u22641439 ok. dur 15 ok. room/title nonempty. end 1454 >1440 \u2192 end 1440, dur 1 \u2192 <15 \u2192 duration error \u2713.\n\nc08: \"23:55;30;Lab;late\": start 1435; dur 30; end 1465 \u2192 trim dur 5 \u2192 duration error \u2713.\n\nc11 expiry 2: at r3, \"Mon\" lowercase\u2192\"mon\" valid. So expected would differ at r3 \u2192 expiry 2 correct \u2713.\n\nc10 expiry 2: r3 removes priority and keeps \"#focus\" verbatim \u2713 expires before r3 \u2713.\n\nc01 expiry 2: r3 removes priority key \u2192 expected changes \u2713 expiry 2.\n\nc03 expiry 2: same \u2713 (also # handling).\n\nc07 expiry 2: priority key \u2713.\n\nSo public active r3: c02, c04 survive. Fine; later rounds add their own.\n\nNo conflicting same-input cases. IDs c01\u2013c11 unique.\n\nRationales (compact):\n\nc01: m01 introduces 5-field weekday form with token stored in \"day\"; title without # keeps priority normal (initial convention preserved through m01\u2013m05).\nc02: m02 mandates \"fields, day, start, ...\" order and invalid weekday \u2192 \"day\", so \"day\" fires even with a bad start token; error dict holds exactly ok/error/raw.\nc03: m04's example row; combines compact HHMM start (m04) with clock duration \"1h30\" (m03) and #-priority still active in round 1 (initial module, unchanged by m01\u2013m04).\nc04: initial module rejects non-colon \"930\"; m04 reaffirms any colonless token other than exactly four digits stays a \"start\" error; 4-field shape preserved per m01.\nc05: m03 requires optional minutes after \"h\" be exactly two digits; \"1h5\" malformed \u2192 \"duration\" at the same slot as a bad minute count.\nc06: m04 accepts \"2359\" (1439, within limits); 15-min booking crosses midnight so the retained trim (m01) leaves dur 1 \u2192 post-trim under-15 \"duration\" rejection.\nc07: combines 5-field day (m01), compact start \"0915\" (m04) and \"2h\" hour-only clock form (m03) into a success; priority key still present per initial convention, so case expires before round 3 retirement.\n\nHmm, careful: rationale should not reveal future rounds? The instructions mention expiry intervals set knowing the schedule; rationale mentioning \"expires before round 3\" \u2014 rationales are controller metadata, never model-visible, and author knows full schedule. It's fine but maybe just say \"priority key present per the still-active #-convention\". Keep neutral.\n\nc08: midnight trim with post-trim under-15 rejection preserved from initial module per m01.\nc09: m01/m02 keep field-count check first; only 4 or 5 parts valid, so 3 parts \u2192 \"fields\".\nc10: m01 explicitly preserves the leading-# priority convention in round 1, so \"#focus\" yields priority high with stripped title.\nc11: m01 lists valid tokens as all lowercase; mixed-case \"Mon\" is unknown \u2192 \"day\" error under m02's rule.\n\nactive_through: c01 2, c02 null, c03 2, c04 null, c05 null, c06 null, c07 2, c08 null, c09 null, c10 2, c11 2.\n\nsource_ids: c01 [\"m01\"], c02 [\"m02\"], c03 [\"m03\",\"m04\",\"m05\"]? m05 is request \"implement latest changes preserving still-applicable behavior\" \u2014 include m05 where relevant (priority retained). c03 sources [\"m01\",\"m03\",\"m04\"] plus maybe m05. Request ID allowed (\"source_ids are nonempty unique source/request IDs visible at introduction\"). I'll include m05 in c10/c03 for the retained-priority aspect. c04 [\"m01\",\"m04\"]. c05 [\"m03\"]. c06 [\"m01\",\"m04\"]. c07 [\"m01\",\"m03\",\"m04\"]. c08 [\"m01\"]. c09 [\"m01\",\"m02\"]. c10 [\"m01\",\"m05\"]. c11 [\"m01\",\"m02\"].\n\nOutput JSON object only, keys: reference_patch, public_checks, private_checks.\n\nEnsure JSON validity; escape newlines as \\n within patch string.\n\nCompact but complete. Write it.",
+      "total_duration": 127891791415
+    },
+    "headers": {
+      "Alt-Svc": "h3=\":443\"; ma=2592000",
+      "Connection": "close",
+      "Content-Type": "application/json",
+      "Date": "Tue, 08 Sep 2026 21:51:58 GMT",
+      "Server": "Google Frontend",
+      "Set-Cookie": "aid=5bb3f9b7-ef6f-44b9-9ed2-55057df4910d; Path=/; Max-Age=31536000; HttpOnly; Secure; SameSite=Lax",
+      "Traceparent": "00-c717f536c8d73b76d6dfa50397ff95a5-327e95fdca658527-00",
+      "Transfer-Encoding": "chunked",
+      "Via": "1.1 google",
+      "X-Build-Commit": "0622d59fc49781ea22b9eac9a11bd999b99999ac",
+      "X-Build-Time": "2026-09-08T14:34:38-07:00",
+      "X-Cloud-Trace-Context": "c717f536c8d73b76d6dfa50397ff95a5/3638510466216854823",
+      "X-Frame-Options": "DENY",
+      "X-Request-Id": "515d0848-ab19-43ba-aef9-29975ac13d55"
+    },
+    "raw_path": "raw/call-0005-response.bin",
+    "reported_token_counts": {
+      "eval_count": 10450,
+      "prompt_eval_count": 4612
+    },
+    "response_bytes": 8089,
+    "response_complete": true,
+    "response_sha256": "94f03989941cc99cfb20e121de56e8c95191a95dc7e6c6683576d98f432bf0ed",
+    "started_at_unix": 1788904190.9211688,
+    "started_monotonic": 256991.922704072,
+    "status": 200,
+    "thinking_bytes": 28437,
+    "thinking_sha256": "0d5a7df81750df24f93d90fc3b14b32b02695cf1a97432a5164ec305ec4b939c"
+  },
+  "slot_index": 5,
+  "stage": 1,
+  "status": "COMPLETE",
+  "validation": {
+    "all_active_checks_passed": true,
+    "module_after": "\"\"\"Helpers for the shared studio booking log.\n\nRecords are text rows; rooms and days are plain strings.\n\"\"\"\n\n\ndef parse_record(raw):\n    parts = [piece.strip() for piece in raw.split(\";\")]\n    if len(parts) not in (4, 5):\n        return {\"ok\": False, \"error\": \"fields\", \"raw\": raw}\n    day = \"main\"\n    if len(parts) == 5:\n        day = parts[0]\n        if day not in (\"mon\", \"tue\", \"wed\", \"thu\", \"fri\", \"sat\", \"sun\"):\n            return {\"ok\": False, \"error\": \"day\", \"raw\": raw}\n        parts = parts[1:]\n    start_s, dur_s, room, title = parts\n    if \":\" in start_s:\n        hour, sep, minute = start_s.partition(\":\")\n        if not hour.isdigit() or not minute.isdigit():\n            return {\"ok\": False, \"error\": \"start\", \"raw\": raw}\n    else:\n        if len(start_s) != 4 or not start_s.isdigit():\n            return {\"ok\": False, \"error\": \"start\", \"raw\": raw}\n        hour, minute = start_s[:2], start_s[2:]\n    start = int(hour) * 60 + int(minute)\n    if int(minute) > 59 or start > 1439:\n        return {\"ok\": False, \"error\": \"start\", \"raw\": raw}\n    if dur_s.isdigit():\n        dur = int(dur_s)\n    else:\n        hours, sep, mins = dur_s.partition(\"h\")\n        if not sep or not hours.isdigit():\n            return {\"ok\": False, \"error\": \"duration\", \"raw\": raw}\n        if mins == \"\":\n            dur = int(hours) * 60\n        elif len(mins) == 2 and mins.isdigit() and int(mins) <= 59:\n            dur = int(hours) * 60 + int(mins)\n        else:\n            return {\"ok\": False, \"error\": \"duration\", \"raw\": raw}\n    if dur < 15 or dur > 240:\n        return {\"ok\": False, \"error\": \"duration\", \"raw\": raw}\n    if room == \"\" or title == \"\":\n        return {\"ok\": False, \"error\": \"empty\", \"raw\": raw}\n    end = start + dur\n    if end > 1440:\n        end = 1440\n        dur = end - start\n        if dur < 15:\n            return {\"ok\": False, \"error\": \"duration\", \"raw\": raw}\n    priority = \"normal\"\n    if title.startswith(\"#\"):\n        priority = \"high\"\n        title = title[1:].strip()\n        if title == \"\":\n            return {\"ok\": False, \"error\": \"empty\", \"raw\": raw}\n    return {\"ok\": True, \"day\": day, \"start\": start, \"dur\": dur,\n            \"end\": end, \"room\": room, \"title\": title,\n            \"priority\": priority}\n\n\ndef overlap(pair):\n    first, second = pair\n    return first[\"start\"] < second[\"end\"] and second[\"start\"] < first[\"end\"]\n\n\ndef find_conflicts(records):\n    hits = []\n    count = len(records)\n    for i in range(count):\n        left = records[i]\n        if not left.get(\"ok\"):\n            continue\n        for j in range(i + 1, count):\n            right = records[j]\n            if not right.get(\"ok\"):\n                continue\n            same_room = left[\"room\"] == right[\"room\"]\n            floating = (left.get(\"priority\") == \"high\"\n                        or right.get(\"priority\") == \"high\")\n            if not same_room and not floating:\n                continue\n            if overlap((left, right)):\n                hits.append([i, j])\n    return hits\n\n\ndef build_agenda(raws):\n    parsed = [parse_record(raw) for raw in raws]\n    entries = [rec for rec in parsed if rec.get(\"ok\")]\n    entries.sort(key=lambda rec: (rec[\"start\"], rec[\"room\"]))\n    bad = [i for i, rec in enumerate(parsed) if not rec.get(\"ok\")]\n    return {\"entries\": entries, \"bad\": bad,\n            \"conflicts\": find_conflicts(parsed),\n            \"total\": sum(rec[\"dur\"] for rec in entries)}\n",
+    "module_after_sha256": "ae6419f56c1e5bfd0996ff0d6035c74dff9b7a95f796ccd8f5281aa67ad43542",
+    "module_before": "\"\"\"Helpers for the shared studio booking log.\n\nRecords are text rows; rooms and days are plain strings.\n\"\"\"\n\n\ndef parse_record(raw):\n    parts = [piece.strip() for piece in raw.split(\";\")]\n    if len(parts) != 4:\n        return {\"ok\": False, \"error\": \"fields\", \"raw\": raw}\n    start_s, dur_s, room, title = parts\n    hour, sep, minute = start_s.partition(\":\")\n    if not sep or not hour.isdigit() or not minute.isdigit():\n        return {\"ok\": False, \"error\": \"start\", \"raw\": raw}\n    start = int(hour) * 60 + int(minute)\n    if int(minute) > 59 or start > 1439:\n        return {\"ok\": False, \"error\": \"start\", \"raw\": raw}\n    if not dur_s.isdigit():\n        return {\"ok\": False, \"error\": \"duration\", \"raw\": raw}\n    dur = int(dur_s)\n    if dur < 15 or dur > 240:\n        return {\"ok\": False, \"error\": \"duration\", \"raw\": raw}\n    if room == \"\" or title == \"\":\n        return {\"ok\": False, \"error\": \"empty\", \"raw\": raw}\n    end = start + dur\n    if end > 1440:\n        end = 1440\n        dur = end - start\n        if dur < 15:\n            return {\"ok\": False, \"error\": \"duration\", \"raw\": raw}\n    priority = \"normal\"\n    if title.startswith(\"#\"):\n        priority = \"high\"\n        title = title[1:].strip()\n        if title == \"\":\n            return {\"ok\": False, \"error\": \"empty\", \"raw\": raw}\n    return {\"ok\": True, \"day\": \"main\", \"start\": start, \"dur\": dur,\n            \"end\": end, \"room\": room, \"title\": title,\n            \"priority\": priority}\n\n\ndef overlap(pair):\n    first, second = pair\n    return first[\"start\"] < second[\"end\"] and second[\"start\"] < first[\"end\"]\n\n\ndef find_conflicts(records):\n    hits = []\n    count = len(records)\n    for i in range(count):\n        left = records[i]\n        if not left.get(\"ok\"):\n            continue\n        for j in range(i + 1, count):\n            right = records[j]\n            if not right.get(\"ok\"):\n                continue\n            same_room = left[\"room\"] == right[\"room\"]\n            floating = (left.get(\"priority\") == \"high\"\n                        or right.get(\"priority\") == \"high\")\n            if not same_room and not floating:\n                continue\n            if overlap((left, right)):\n                hits.append([i, j])\n    return hits\n\n\ndef build_agenda(raws):\n    parsed = [parse_record(raw) for raw in raws]\n    entries = [rec for rec in parsed if rec.get(\"ok\")]\n    entries.sort(key=lambda rec: (rec[\"start\"], rec[\"room\"]))\n    bad = [i for i, rec in enumerate(parsed) if not rec.get(\"ok\")]\n    return {\"entries\": entries, \"bad\": bad,\n            \"conflicts\": find_conflicts(parsed),\n            \"total\": sum(rec[\"dur\"] for rec in entries)}\n",
+    "module_before_sha256": "3468c729662ee2d5746e75e1a980e26a19582b21e88834816eb7698c9570397a",
+    "mutant": null,
+    "private_results": [
+      {
+        "actual": {
+          "error": "duration",
+          "ok": false,
+          "raw": "09:00;1h5;Lab;t"
+        },
+        "check_id": "c05",
+        "elapsed_seconds": 0.013794141006655991,
+        "error": null,
+        "expected_values": [
+          {
+            "error": "duration",
+            "ok": false,
+            "raw": "09:00;1h5;Lab;t"
+          }
+        ],
+        "input": "09:00;1h5;Lab;t",
+        "passed": true,
+        "rule_ids": [],
+        "symbol": "parse_record"
+      },
+      {
+        "actual": {
+          "error": "duration",
+          "ok": false,
+          "raw": "2359;15;Lab;t"
+        },
+        "check_id": "c06",
+        "elapsed_seconds": 0.025187377003021538,
+        "error": null,
+        "expected_values": [
+          {
+            "error": "duration",
+            "ok": false,
+            "raw": "2359;15;Lab;t"
+          }
+        ],
+        "input": "2359;15;Lab;t",
+        "passed": true,
+        "rule_ids": [],
+        "symbol": "parse_record"
+      },
+      {
+        "actual": {
+          "day": "fri",
+          "dur": 120,
+          "end": 675,
+          "ok": true,
+          "priority": "normal",
+          "room": "Lab",
+          "start": 555,
+          "title": "w"
+        },
+        "check_id": "c07",
+        "elapsed_seconds": 0.022393560997443274,
+        "error": null,
+        "expected_values": [
+          {
+            "day": "fri",
+            "dur": 120,
+            "end": 675,
+            "ok": true,
+            "priority": "normal",
+            "room": "Lab",
+            "start": 555,
+            "title": "w"
+          }
+        ],
+        "input": "fri;0915;2h;Lab;w",
+        "passed": true,
+        "rule_ids": [],
+        "symbol": "parse_record"
+      },
+      {
+        "actual": {
+          "error": "duration",
+          "ok": false,
+          "raw": "23:55;30;Lab;late"
+        },
+        "check_id": "c08",
+        "elapsed_seconds": 0.01406958099687472,
+        "error": null,
+        "expected_values": [
+          {
+            "error": "duration",
+            "ok": false,
+            "raw": "23:55;30;Lab;late"
+          }
+        ],
+        "input": "23:55;30;Lab;late",
+        "passed": true,
+        "rule_ids": [],
+        "symbol": "parse_record"
+      },
+      {
+        "actual": {
+          "error": "fields",
+          "ok": false,
+          "raw": "a;b;c"
+        },
+        "check_id": "c09",
+        "elapsed_seconds": 0.013764445000560954,
+        "error": null,
+        "expected_values": [
+          {
+            "error": "fields",
+            "ok": false,
+            "raw": "a;b;c"
+          }
+        ],
+        "input": "a;b;c",
+        "passed": true,
+        "rule_ids": [],
+        "symbol": "parse_record"
+      },
+      {
+        "actual": {
+          "day": "main",
+          "dur": 30,
+          "end": 630,
+          "ok": true,
+          "priority": "high",
+          "room": "Lab",
+          "start": 600,
+          "title": "focus"
+        },
+        "check_id": "c10",
+        "elapsed_seconds": 0.02330327598610893,
+        "error": null,
+        "expected_values": [
+          {
+            "day": "main",
+            "dur": 30,
+            "end": 630,
+            "ok": true,
+            "priority": "high",
+            "room": "Lab",
+            "start": 600,
+            "title": "focus"
+          }
+        ],
+        "input": "10:00;30;Lab;#focus",
+        "passed": true,
+        "rule_ids": [],
+        "symbol": "parse_record"
+      },
+      {
+        "actual": {
+          "error": "day",
+          "ok": false,
+          "raw": "Mon;09:00;30;Lab;t"
+        },
+        "check_id": "c11",
+        "elapsed_seconds": 0.014142285013804212,
+        "error": null,
+        "expected_values": [
+          {
+            "error": "day",
+            "ok": false,
+            "raw": "Mon;09:00;30;Lab;t"
+          }
+        ],
+        "input": "Mon;09:00;30;Lab;t",
+        "passed": true,
+        "rule_ids": [],
+        "symbol": "parse_record"
+      }
+    ],
+    "public_results": [
+      {
+        "actual": {
+          "day": "tue",
+          "dur": 45,
+          "end": 615,
+          "ok": true,
+          "priority": "normal",
+          "room": "Lab",
+          "start": 570,
+          "title": "standup"
+        },
+        "check_id": "c01",
+        "elapsed_seconds": 0.02317122698877938,
+        "error": null,
+        "expected_values": [
+          {
+            "day": "tue",
+            "dur": 45,
+            "end": 615,
+            "ok": true,
+            "priority": "normal",
+            "room": "Lab",
+            "start": 570,
+            "title": "standup"
+          }
+        ],
+        "input": "tue;09:30;45;Lab;standup",
+        "passed": true,
+        "rule_ids": [],
+        "symbol": "parse_record"
+      },
+      {
+        "actual": {
+          "error": "day",
+          "ok": false,
+          "raw": "xyz;xx;45;Lab;standup"
+        },
+        "check_id": "c02",
+        "elapsed_seconds": 0.014699263992952183,
+        "error": null,
+        "expected_values": [
+          {
+            "error": "day",
+            "ok": false,
+            "raw": "xyz;xx;45;Lab;standup"
+          }
+        ],
+        "input": "xyz;xx;45;Lab;standup",
+        "passed": true,
+        "rule_ids": [],
+        "symbol": "parse_record"
+      },
+      {
+        "actual": {
+          "day": "sat",
+          "dur": 90,
+          "end": 660,
+          "ok": true,
+          "priority": "high",
+          "room": "Gym",
+          "start": 570,
+          "title": "ladders"
+        },
+        "check_id": "c03",
+        "elapsed_seconds": 0.02321633099927567,
+        "error": null,
+        "expected_values": [
+          {
+            "day": "sat",
+            "dur": 90,
+            "end": 660,
+            "ok": true,
+            "priority": "high",
+            "room": "Gym",
+            "start": 570,
+            "title": "ladders"
+          }
+        ],
+        "input": "sat;0930;1h30;Gym;#ladders",
+        "passed": true,
+        "rule_ids": [],
+        "symbol": "parse_record"
+      },
+      {
+        "actual": {
+          "error": "start",
+          "ok": false,
+          "raw": "930;90;Lab;standup"
+        },
+        "check_id": "c04",
+        "elapsed_seconds": 0.014365198992891237,
+        "error": null,
+        "expected_values": [
+          {
+            "error": "start",
+            "ok": false,
+            "raw": "930;90;Lab;standup"
+          }
+        ],
+        "input": "930;90;Lab;standup",
+        "passed": true,
+        "rule_ids": [],
+        "symbol": "parse_record"
+      }
+    ],
+    "reference_source_sha256": "2941bb7726e0054b1b9294db11d1357d7c73e6881d84abab880449e8f682f72d",
+    "round_index": 1,
+    "target": {
+      "path": "module.py",
+      "symbol": "parse_record"
+    }
+  }
+}

@@ -1,0 +1,697 @@
+{
+  "attempts": 1,
+  "error": {
+    "kind": "validation",
+    "message": "reference failed an active check"
+  },
+  "parsed_content": {
+    "private_checks": [
+      {
+        "active_from_round": 1,
+        "active_through_round": 2,
+        "behavior": "functionality",
+        "check_id": "r1prv1",
+        "expected_values": [
+          {
+            "counts": {},
+            "peak": null,
+            "seen_kinds": [],
+            "status": "steady",
+            "total": 0,
+            "trend": "flat"
+          }
+        ],
+        "input": [
+          []
+        ],
+        "rationale": "m04 explicitly locks the empty-window edge case: total 0, counts {}, peak None, status 'steady', trend 'flat', seen_kinds [].",
+        "source_ids": [
+          "m04",
+          "m05"
+        ],
+        "symbol": "summarize_window"
+      },
+      {
+        "active_from_round": 1,
+        "active_through_round": 2,
+        "behavior": "functionality",
+        "check_id": "r1prv2",
+        "expected_values": [
+          {
+            "counts": {},
+            "peak": null,
+            "seen_kinds": [],
+            "status": "steady",
+            "total": 2,
+            "trend": "flat"
+          }
+        ],
+        "input": [
+          [
+            {
+              "kind": "alarm",
+              "muted": true,
+              "value": 99
+            },
+            {
+              "kind": "reading",
+              "muted": true,
+              "value": 80
+            }
+          ]
+        ],
+        "rationale": "Under m02 muted events are excluded from counts, peak, status and trend, so an all-muted window has no escalation label and the still-applicable pre-existing default 'steady' applies; m04 rejects the hallway idea of dropping muted events from total, so total stays 2.",
+        "source_ids": [
+          "m02",
+          "m04",
+          "m05"
+        ],
+        "symbol": "summarize_window"
+      },
+      {
+        "active_from_round": 1,
+        "active_through_round": 2,
+        "behavior": "functionality",
+        "check_id": "r1prv3",
+        "expected_values": [
+          {
+            "counts": {
+              "low": 2
+            },
+            "peak": 12,
+            "seen_kinds": [
+              "reading"
+            ],
+            "status": "steady",
+            "total": 3,
+            "trend": "flat"
+          }
+        ],
+        "input": [
+          [
+            {
+              "kind": "reading",
+              "ts": 1,
+              "value": 10
+            },
+            {
+              "kind": "reading",
+              "ts": 2,
+              "value": 12
+            },
+            {
+              "kind": "reading",
+              "muted": true,
+              "ts": 3,
+              "value": 90
+            }
+          ]
+        ],
+        "rationale": "m02 says only unmuted events go to trend_of: unmuted reading values are [10, 12], delta 2, so 'flat'; the trailing muted 90 reading must not flip the trend to 'rising', nor raise peak (stays 12) or counts, while still adding 1 to total.",
+        "source_ids": [
+          "m02",
+          "m05"
+        ],
+        "symbol": "summarize_window"
+      },
+      {
+        "active_from_round": 1,
+        "active_through_round": 2,
+        "behavior": "functionality",
+        "check_id": "r1prv4",
+        "expected_values": [
+          {
+            "counts": {
+              "normal": 1,
+              "unknown": 1,
+              "warning": 1
+            },
+            "peak": 40,
+            "seen_kinds": [
+              "alarm",
+              "reading"
+            ],
+            "status": "watch",
+            "total": 3,
+            "trend": "flat"
+          }
+        ],
+        "input": [
+          [
+            {
+              "kind": "reading"
+            },
+            {
+              "kind": "reading",
+              "value": 40
+            },
+            {
+              "kind": "alarm",
+              "value": 55
+            }
+          ]
+        ],
+        "rationale": "m04 requires events missing 'value' not to crash peak: the value-less reading keeps its unchanged 'unknown' label, peak comes only from the numeric 40 reading, and the 55 alarm keeps its still-applicable 'warning' label, so the preserved escalation rule yields 'watch'.",
+        "source_ids": [
+          "m04",
+          "m05"
+        ],
+        "symbol": "summarize_window"
+      },
+      {
+        "active_from_round": 1,
+        "active_through_round": 1,
+        "behavior": "retained",
+        "check_id": "r1prv5",
+        "expected_values": [
+          {
+            "counts": {
+              "notice": 2
+            },
+            "peak": null,
+            "seen_kinds": [
+              "alarm"
+            ],
+            "status": "steady",
+            "total": 2,
+            "trend": "flat"
+          }
+        ],
+        "input": [
+          [
+            {
+              "kind": "alarm",
+              "value": 20
+            },
+            {
+              "kind": "alarm"
+            }
+          ]
+        ],
+        "rationale": "m01 demands counts and status work exactly as they do now; at this round the unchanged classify_event still maps low-value and value-less alarms to 'notice', and nothing in m01-m04 retires that label, with no escalation so status remains 'steady'.",
+        "source_ids": [
+          "m01",
+          "m05"
+        ],
+        "symbol": "summarize_window"
+      },
+      {
+        "active_from_round": 1,
+        "active_through_round": 2,
+        "behavior": "retained",
+        "check_id": "r1prv6",
+        "expected_values": [
+          {
+            "counts": {
+              "critical": 1,
+              "ok": 1
+            },
+            "peak": null,
+            "seen_kinds": [
+              "alarm",
+              "heartbeat"
+            ],
+            "status": "alert",
+            "total": 2,
+            "trend": "flat"
+          }
+        ],
+        "input": [
+          [
+            {
+              "kind": "alarm",
+              "value": 95
+            },
+            {
+              "kind": "heartbeat"
+            }
+          ]
+        ],
+        "rationale": "m01 preserves existing aggregation while adding trend/seen_kinds: a 95 alarm ('critical') plus a heartbeat ('ok') yields status 'alert' under the unchanged escalation, peak None without numeric readings, and 'flat' because trend_of sees no reading values.",
+        "source_ids": [
+          "m01",
+          "m05"
+        ],
+        "symbol": "summarize_window"
+      }
+    ],
+    "public_checks": [
+      {
+        "active_from_round": 1,
+        "active_through_round": 2,
+        "behavior": "functionality",
+        "check_id": "r1pub1",
+        "expected_values": [
+          {
+            "counts": {
+              "low": 1,
+              "normal": 1
+            },
+            "peak": 30,
+            "seen_kinds": [
+              "reading"
+            ],
+            "status": "steady",
+            "total": 2,
+            "trend": "rising"
+          }
+        ],
+        "input": [
+          [
+            {
+              "kind": "reading",
+              "ts": 1,
+              "value": 10
+            },
+            {
+              "kind": "reading",
+              "ts": 2,
+              "value": 30
+            }
+          ]
+        ],
+        "rationale": "m01 requires a new 'trend' key equal to trend_of(events) while total, counts, peak and status keep working exactly as before; readings 10 then 30 give delta 20 so the unchanged trend_of returns 'rising', and counts/peak/status follow the pre-existing aggregation rules.",
+        "source_ids": [
+          "m01",
+          "m05"
+        ],
+        "symbol": "summarize_window"
+      },
+      {
+        "active_from_round": 1,
+        "active_through_round": 2,
+        "behavior": "functionality",
+        "check_id": "r1pub2",
+        "expected_values": [
+          {
+            "counts": {
+              "normal": 1,
+              "ok": 1
+            },
+            "peak": 60,
+            "seen_kinds": [
+              "heartbeat",
+              "reading"
+            ],
+            "status": "steady",
+            "total": 3,
+            "trend": "flat"
+          }
+        ],
+        "input": [
+          [
+            {
+              "kind": "alarm",
+              "muted": true,
+              "value": 95
+            },
+            {
+              "kind": "reading",
+              "ts": 2,
+              "value": 60
+            },
+            {
+              "kind": "heartbeat"
+            }
+          ]
+        ],
+        "rationale": "m02 keeps the muted 95-alarm in total but excludes it from counts, peak, status and trend; m03 adds sorted distinct seen_kinds of unmuted events; with a single unmuted reading value the unchanged trend_of '<2 values' rule yields 'flat' and no escalation label is counted, so status stays 'steady'.",
+        "source_ids": [
+          "m01",
+          "m02",
+          "m03",
+          "m05"
+        ],
+        "symbol": "summarize_window"
+      }
+    ],
+    "reference_patch": "def summarize_window(events):\n    counts = {}\n    peak = None\n    total = 0\n    unmuted = []\n    seen = []\n    for event in events:\n        total += 1\n        if event.get(\"muted\"):\n            continue\n        unmuted.append(event)\n        label = classify_event(event)\n        counts[label] = counts.get(label, 0) + 1\n        if event.get(\"kind\") == \"reading\":\n            value = event.get(\"value\")\n            if value is not None and (peak is None or value > peak):\n                peak = value\n        kind = event.get(\"kind\")\n        if isinstance(kind, str) and kind not in seen:\n            seen.append(kind)\n    status = \"steady\"\n    if counts.get(\"critical\"):\n        status = \"alert\"\n    elif counts.get(\"warning\") or counts.get(\"high\"):\n        status = \"watch\"\n    return {\"total\": total, \"counts\": counts, \"peak\": peak, \"status\": status, \"trend\": trend_of(unmuted), \"seen_kinds\": sorted(seen)}"
+  },
+  "project_id": "staged-04",
+  "project_index": 3,
+  "request": {
+    "body_bytes": 17617,
+    "body_sha256": "0b5e5bb5e2a0be9c040382984e81d9d228064711e8aae3c842ad459db5a0aff7",
+    "raw_path": "raw/call-0007-request.bin",
+    "timeout_seconds": 450,
+    "url": "http://127.0.0.1:11434/api/generate"
+  },
+  "response": {
+    "body_bytes": 38894,
+    "body_sha256": "71dc0ba91185b7caa0e1b1f648023a9f985b692123c1134446fe7f833cb0e198",
+    "done_reason": "stop",
+    "elapsed_seconds": 115.7303420160024,
+    "ended_at_unix": 1788904306.6669571,
+    "ended_monotonic": 257107.65342081,
+    "envelope": {
+      "created_at": "2026-09-08T21:51:46.634833277Z",
+      "done": true,
+      "done_reason": "stop",
+      "eval_count": 9087,
+      "model": "kimi-k3",
+      "prompt_eval_count": 3731,
+      "response": "{\"reference_patch\":\"def summarize_window(events):\\n    counts = {}\\n    peak = None\\n    total = 0\\n    unmuted = []\\n    seen = []\\n    for event in events:\\n        total += 1\\n        if event.get(\\\"muted\\\"):\\n            continue\\n        unmuted.append(event)\\n        label = classify_event(event)\\n        counts[label] = counts.get(label, 0) + 1\\n        if event.get(\\\"kind\\\") == \\\"reading\\\":\\n            value = event.get(\\\"value\\\")\\n            if value is not None and (peak is None or value > peak):\\n                peak = value\\n        kind = event.get(\\\"kind\\\")\\n        if isinstance(kind, str) and kind not in seen:\\n            seen.append(kind)\\n    status = \\\"steady\\\"\\n    if counts.get(\\\"critical\\\"):\\n        status = \\\"alert\\\"\\n    elif counts.get(\\\"warning\\\") or counts.get(\\\"high\\\"):\\n        status = \\\"watch\\\"\\n    return {\\\"total\\\": total, \\\"counts\\\": counts, \\\"peak\\\": peak, \\\"status\\\": status, \\\"trend\\\": trend_of(unmuted), \\\"seen_kinds\\\": sorted(seen)}\",\"public_checks\":[{\"check_id\":\"r1pub1\",\"symbol\":\"summarize_window\",\"input\":[[{\"kind\":\"reading\",\"value\":10,\"ts\":1},{\"kind\":\"reading\",\"value\":30,\"ts\":2}]],\"expected_values\":[{\"total\":2,\"counts\":{\"low\":1,\"normal\":1},\"peak\":30,\"status\":\"steady\",\"trend\":\"rising\",\"seen_kinds\":[\"reading\"]}],\"active_from_round\":1,\"active_through_round\":2,\"source_ids\":[\"m01\",\"m05\"],\"behavior\":\"functionality\",\"rationale\":\"m01 requires a new 'trend' key equal to trend_of(events) while total, counts, peak and status keep working exactly as before; readings 10 then 30 give delta 20 so the unchanged trend_of returns 'rising', and counts/peak/status follow the pre-existing aggregation rules.\"},{\"check_id\":\"r1pub2\",\"symbol\":\"summarize_window\",\"input\":[[{\"kind\":\"alarm\",\"value\":95,\"muted\":true},{\"kind\":\"reading\",\"value\":60,\"ts\":2},{\"kind\":\"heartbeat\"}]],\"expected_values\":[{\"total\":3,\"counts\":{\"normal\":1,\"ok\":1},\"peak\":60,\"status\":\"steady\",\"trend\":\"flat\",\"seen_kinds\":[\"heartbeat\",\"reading\"]}],\"active_from_round\":1,\"active_through_round\":2,\"source_ids\":[\"m01\",\"m02\",\"m03\",\"m05\"],\"behavior\":\"functionality\",\"rationale\":\"m02 keeps the muted 95-alarm in total but excludes it from counts, peak, status and trend; m03 adds sorted distinct seen_kinds of unmuted events; with a single unmuted reading value the unchanged trend_of '<2 values' rule yields 'flat' and no escalation label is counted, so status stays 'steady'.\"}],\"private_checks\":[{\"check_id\":\"r1prv1\",\"symbol\":\"summarize_window\",\"input\":[[]],\"expected_values\":[{\"total\":0,\"counts\":{},\"peak\":null,\"status\":\"steady\",\"trend\":\"flat\",\"seen_kinds\":[]}],\"active_from_round\":1,\"active_through_round\":2,\"source_ids\":[\"m04\",\"m05\"],\"behavior\":\"functionality\",\"rationale\":\"m04 explicitly locks the empty-window edge case: total 0, counts {}, peak None, status 'steady', trend 'flat', seen_kinds [].\"},{\"check_id\":\"r1prv2\",\"symbol\":\"summarize_window\",\"input\":[[{\"kind\":\"alarm\",\"value\":99,\"muted\":true},{\"kind\":\"reading\",\"value\":80,\"muted\":true}]],\"expected_values\":[{\"total\":2,\"counts\":{},\"peak\":null,\"status\":\"steady\",\"trend\":\"flat\",\"seen_kinds\":[]}],\"active_from_round\":1,\"active_through_round\":2,\"source_ids\":[\"m02\",\"m04\",\"m05\"],\"behavior\":\"functionality\",\"rationale\":\"Under m02 muted events are excluded from counts, peak, status and trend, so an all-muted window has no escalation label and the still-applicable pre-existing default 'steady' applies; m04 rejects the hallway idea of dropping muted events from total, so total stays 2.\"},{\"check_id\":\"r1prv3\",\"symbol\":\"summarize_window\",\"input\":[[{\"kind\":\"reading\",\"value\":10,\"ts\":1},{\"kind\":\"reading\",\"value\":12,\"ts\":2},{\"kind\":\"reading\",\"value\":90,\"ts\":3,\"muted\":true}]],\"expected_values\":[{\"total\":3,\"counts\":{\"low\":2},\"peak\":12,\"status\":\"steady\",\"trend\":\"flat\",\"seen_kinds\":[\"reading\"]}],\"active_from_round\":1,\"active_through_round\":2,\"source_ids\":[\"m02\",\"m05\"],\"behavior\":\"functionality\",\"rationale\":\"m02 says only unmuted events go to trend_of: unmuted reading values are [10, 12], delta 2, so 'flat'; the trailing muted 90 reading must not flip the trend to 'rising', nor raise peak (stays 12) or counts, while still adding 1 to total.\"},{\"check_id\":\"r1prv4\",\"symbol\":\"summarize_window\",\"input\":[[{\"kind\":\"reading\"},{\"kind\":\"reading\",\"value\":40},{\"kind\":\"alarm\",\"value\":55}]],\"expected_values\":[{\"total\":3,\"counts\":{\"unknown\":1,\"normal\":1,\"warning\":1},\"peak\":40,\"status\":\"watch\",\"trend\":\"flat\",\"seen_kinds\":[\"alarm\",\"reading\"]}],\"active_from_round\":1,\"active_through_round\":2,\"source_ids\":[\"m04\",\"m05\"],\"behavior\":\"functionality\",\"rationale\":\"m04 requires events missing 'value' not to crash peak: the value-less reading keeps its unchanged 'unknown' label, peak comes only from the numeric 40 reading, and the 55 alarm keeps its still-applicable 'warning' label, so the preserved escalation rule yields 'watch'.\"},{\"check_id\":\"r1prv5\",\"symbol\":\"summarize_window\",\"input\":[[{\"kind\":\"alarm\",\"value\":20},{\"kind\":\"alarm\"}]],\"expected_values\":[{\"total\":2,\"counts\":{\"notice\":2},\"peak\":null,\"status\":\"steady\",\"trend\":\"flat\",\"seen_kinds\":[\"alarm\"]}],\"active_from_round\":1,\"active_through_round\":1,\"source_ids\":[\"m01\",\"m05\"],\"behavior\":\"retained\",\"rationale\":\"m01 demands counts and status work exactly as they do now; at this round the unchanged classify_event still maps low-value and value-less alarms to 'notice', and nothing in m01-m04 retires that label, with no escalation so status remains 'steady'.\"},{\"check_id\":\"r1prv6\",\"symbol\":\"summarize_window\",\"input\":[[{\"kind\":\"alarm\",\"value\":95},{\"kind\":\"heartbeat\"}]],\"expected_values\":[{\"total\":2,\"counts\":{\"critical\":1,\"ok\":1},\"peak\":null,\"status\":\"alert\",\"trend\":\"flat\",\"seen_kinds\":[\"alarm\",\"heartbeat\"]}],\"active_from_round\":1,\"active_through_round\":2,\"source_ids\":[\"m01\",\"m05\"],\"behavior\":\"retained\",\"rationale\":\"m01 preserves existing aggregation while adding trend/seen_kinds: a 95 alarm ('critical') plus a heartbeat ('ok') yields status 'alert' under the unchanged escalation, peak None without numeric readings, and 'flat' because trend_of sees no reading values.\"}]}",
+      "thinking": "Let me work through round 1 of this project.\n\nThe task: author round 1's packet: reference_patch (replacement for `summarize_window`), public_checks, private_checks.\n\nRound 1 incorporates messages m01\u2013m04:\n- m01: keep total, counts, peak, status; add \"trend\" key = trend_of(events).\n- m02: muted events (with \"muted\": True) still count in \"total\", but excluded from counts, peak, status decision, and trend (pass only unmuted events to trend_of). Unflagged events behave as before; trend stays.\n- m03: add \"seen_kinds\": sorted list of distinct \"kind\" strings among unmuted events ([] when none). Independent.\n- m04: edge cases: empty window returns total 0, counts {}, peak None, status \"steady\", trend \"flat\", seen_kinds []. Missing \"value\" must not crash peak. Muted events stay in total (the hallway idea to drop them from total is rejected).\n\nImportant: round 1 must NOT anticipate future changes (notice retirement, fault kind, limit, info_share, worst, silent status). So status stays \"steady\" for all-muted windows at round 1 (that change comes in round 3). Careful: private checks must not assert \"silent\" in round 1.\n\nAlso important: checks introduced in round 1 that remain active in rounds 2 and 3 need to be consistent with future behavior or be expired. Hmm \u2014 \"active_through_round is null (through round 3) or an integer\". Since the labels change in round 2 (\"notice\" retired, replaced by \"info\"), any round-1 check whose expected counts include \"notice\" must expire at round 1 (active_through_round: 1), or avoid \"notice\" labels entirely.\n\nWait, but retained coverage requirements: \"Each round has at least two active private cases for retained behavior (round 1 may derive these from the starting module's specified behavior and initial source instructions).\" Round 1 checks need to be active at round 1. At round 2, retained cases come from round 1 active ones plus round 2. If I expire a notice-involving check at round 1, it's fine.\n\nBut the contract says: \"Avoid overlapping conflicting expected results. A changed expectation gets a new ID; the earlier case's frozen expiry must already make this consistent.\" So for any input whose expected output changes between rounds (due to notice -> info), the earlier check must expire before the later round introduces the conflicting one.\n\nSimplest approach for round 1: design checks whose expected values don't involve \"notice\", or expire any that do at round 1. Actually counts keys only include labels present. If inputs avoid low-value alarms and value-less alarms, no \"notice\" appears. Also status could be \"watch\" from warning or high \u2014 alarm with value >= 50 but < 90 gives \"warning\" in round 1 and round 2 as well (unchanged). \"high\" readings unchanged. Critical alarm >= 90 unchanged. So I can craft round-1 checks that stay valid through round 3 if they avoid:\n- \"notice\" labels (use alarm values >= 50 or >= 90, or readings, heartbeats).\n- fault events (round 2 adds them \u2014 but round-1 input with kind \"fault\" would return \"unknown\" label; in round 2 it'd return critical/warning/info. So avoid fault in checks that persist; or expire them at round 1... but fault kind wasn't visible in round 1 sources, so I shouldn't even use it).\n- all-muted status: round 1 expects \"steady\" for all-muted windows (since status derivation from counts which are all zero). Round 3 changes to \"silent\". So any round-1 check with all-muted input expecting \"steady\" must expire by round 2 (active_through_round <= 2) to avoid conflict with round 3. I can set expiry 2 and round 3 introduces a new check with same input expecting \"silent\". Or just set expiry 1 and not worry. But better to have coverage. The instruction says round 3 will need retirement checks for the \"steady\"-in-all-muted rule. That's round 3's problem. For round 1, I'll include an all-muted check with status \"steady\", trend \"flat\", counts {}, seen_kinds [], peak None, total N, and expire it at round 2 (active_through_round: 2), since round 3 supersedes it.\n\nHmm, but wait: in round 2, does all-muted still give \"steady\"? Round 2 only changes classify_event. Yes. So active_through_round 2 is fine.\n\nAlso info_share/worst keys are added in round 3 \u2014 the expected_values compare whole dict with strict JSON equality. So round-1 checks with full-dict expected values active through round 3 would fail in round 3 because the dict gains extra keys! Expected_values is compared using strict JSON equality against the function output. The output is a dict. In round 3, summarize_window returns extra keys info_share and worst. So any round-1 summarize_window check that remains active into round 3 would need expected dicts including those keys \u2014 but that would anticipate round 3. Hence all round-1 summarize_window full-dict checks MUST expire by round 2 at latest (active_through_round <= 2), so that round 3 can introduce new full-dict checks.\n\nHmm wait, is that right? Strict JSON equality \u2014 presumably deep equality between actual output and expected value. If expected lacks \"info_share\" but output has it, they're not equal. Yes. So round-1 checks that survive to round 3 must have expected values matching round-3 outputs, which we cannot know at round 1 without anticipating. Therefore expire every summarize_window full-dict round-1 check at round 2 at latest.\n\nBut then at round 3, retained private coverage must come from round-2 and round-3 checks. That's fine \u2014 contract says \"Coverage may reuse earlier active cases exactly as the contract permits\", but doesn't force round-1 cases to persist.\n\nCould I design round-1 checks whose expected value is not the whole dict? No \u2014 expected_values elements are compared against the function's return; they must be the full return value. So yes, full dict.\n\nSo plan: round-1 checks (both public and private) on summarize_window with active_through_round = 1 or 2. Choose which persist to round 2: those whose outputs don't change under round 2's classify_event changes. Labels produced by round-1 classifier: critical, warning, notice, high, low, normal, ok, unknown. Round 2 retires notice -> info. So a round-1 check whose counts/status involve \"notice\" must expire at round 1. Others can expire at round 2 (they'd otherwise conflict in round 3 due to new keys).\n\nLet me also think: should some round-1 checks persist through round 3? It's only possible for trend_of checks! trend_of is an existing function; round 1 doesn't change it, but I can add checks on trend_of symbol? They're allowed: symbol is an existing function. trend_of behavior never changes across rounds. A round-1 trend_of check could be active through round 3 and serve as retained coverage. That helps satisfy \"at each round, at least two active private cases must cover retained behavior\" \u2014 including cases introduced earlier that remain active.\n\nActually retained coverage at round 2 needs \u22652 active private retained cases. Round-2 introduces its own; round-1 checks that remain active also count (\"Coverage is derived from introduction and current round as well as the tag\"). I'll tag round-1 checks on unchanged behavior as \"functionality\" or \"retained\"? The behavior tag: \"functionality\" for new features, \"retained\" for preserved behavior, \"retirement\" for retired. For round 1: trend key = new functionality; muted handling = new functionality; seen_kinds = new; empty window edge = functionality (locking in). Cases asserting that unmuted events behave exactly as before (e.g., basic counts/peak/status preserved) = retained.\n\nLet me now write the round-1 reference patch:\n\n```python\ndef summarize_window(events):\n    counts = {}\n    peak = None\n    total = 0\n    unmuted = []\n    for event in events:\n        total += 1\n        if event.get(\"muted\"):\n            continue\n        unmuted.append(event)\n        label = classify_event(event)\n        counts[label] = counts.get(label, 0) + 1\n        if event.get(\"kind\") == \"reading\":\n            value = event.get(\"value\")\n            if value is not None and (peak is None or value > peak):\n                peak = value\n    status = \"steady\"\n    if counts.get(\"critical\"):\n        status = \"alert\"\n    elif counts.get(\"warning\") or counts.get(\"high\"):\n        status = \"watch\"\n    seen_kinds = sorted({event.get(\"kind\") for event in unmuted})\n    return {\"total\": total, \"counts\": counts, \"peak\": peak,\n            \"status\": status, \"trend\": trend_of(unmuted), \"seen_kinds\": seen_kinds}\n```\n\nWait \u2014 seen_kinds: \"distinct 'kind' strings among unmuted events\". If an event lacks \"kind\"? Events are dicts like {\"kind\": ...}. Assume kind always present. Using event.get(\"kind\") could include None; sorted with None and strings would error in Python 3. Safer: iterate and collect only strings? The spec says \"distinct kind strings\". I could do:\n\n```python\n    seen = []\n    for event in unmuted:\n        kind = event.get(\"kind\")\n        if isinstance(kind, str) and kind not in seen:\n            seen.append(kind)\n    seen_kinds = sorted(seen)\n```\n\nHmm, but keep it compact. Given events always have kind strings per spec, `sorted({e.get(\"kind\") for e in unmuted})` works, but if kind missing it puts None. To be safe, use the isinstance filter. Keep within token budget. Let me write compactly.\n\nAlso note m02: \"pass only the unmuted events to trend_of\". trend_of filters readings with values anyway.\n\nRound-1 patch must only replace summarize_window, not touch classify_event or trend_of. \"Produce only a replacement for this round's existing target function.\" Good.\n\nNow checks. Round 1: check IDs unique across project, e.g., \"r1-pub-01\" etc. Let me use IDs like \"c01\"... Any format. I'll use \"staged04-r1-pub-01\"? Keep compact: \"r1p1\", \"r1p2\" public; \"r1s1\"... Let me use descriptive: \"pub1a\", \"pub1b\", \"pvt1a\"... IDs must be unique across the project; prefixing with r1 ensures that.\n\nPublic checks (introduced round 1): visible to workers. Should cover the new functionality: trend key, muted handling, seen_kinds. Maybe 2-3 public checks.\n\nPrivate checks: at least 2, at least one functionality. Include retained-behavior derivable cases. Also include boundary/conditional interactions (muted + trend interplay, all-muted, empty, missing value, muted shouldn't affect peak, etc.). Also a notice-involving case expiring at round 1 to test the pre-existing classifier integration (retained through round 1 only).\n\nBut note: expiry intervals must be set correctly given the future schedule. Round-1 summarize_window checks: any that remain active into round 3 would need info_share/worst keys \u2014 impossible. So max expiry 2. And those involving \"notice\" must expire at 1. And all-muted \"steady\" must expire at 2 (round 3 supersedes with \"silent\" \u2014 and round 3 will introduce its own check).\n\nAlso think about potential conflicts: round 2 introduces checks on classify_event mostly (target is classify_event). Round 2 may also add summarize_window checks? Target is classify_event, but checks can be on any existing symbol. Doesn't matter for round 1 authoring; I only author round 1 now. But I must ensure round-1 checks that persist to round 2 remain CORRECT under round 2's reference (classify_event updated). Since summarize_window calls classify_event, round-1 outputs computed with the round-1 classifier must match round-2 classifier outputs for those inputs. Avoid notice-producing inputs in checks with expiry 2. Also avoid... round 2 doesn't change readings/heartbeat/alarm thresholds except notice->info. Alarm value >= 50 warning unchanged; >= 90 critical unchanged; below 50 becomes \"info\" in round 2 but \"notice\" in round 1 \u2014 avoid such inputs for expiry-2 checks (or expire at 1). Alarms with value None similarly. Unknown kinds unchanged (\"unknown\"). So expiry-2 checks use: critical alarms, warning alarms, readings (high/low/normal), heartbeats, unknown kinds \u2014 outputs identical in rounds 1 and 2.\n\nLet me now design the cases.\n\nPublic checks:\n\n1. \"r1-pub-trend\" \u2014 functionality: basic window with rising trend, no muted.\nInput: [{\"kind\": \"reading\", \"value\": 10, \"ts\": 1}, {\"kind\": \"reading\", \"value\": 30, \"ts\": 2}]\nclassify: 10 <= 25 -> \"low\"; 30 normal (25<30<75) -> \"normal\". counts {\"low\":1,\"normal\":1}. peak 30. total 2. status: no critical/warning/high -> \"steady\". trend: values [10,30], delta 20 >= 5 -> \"rising\". seen_kinds [\"reading\"].\nExpected: {\"total\":2,\"counts\":{\"low\":1,\"normal\":1},\"peak\":30,\"status\":\"steady\",\"trend\":\"rising\",\"seen_kinds\":[\"reading\"]}\nActive round 1 through 2 (no notice, outputs unchanged in round 2). Expire 2 to avoid round-3 conflict.\nsource_ids: m01, m05? m05 is the request. Include \"m01\",\"m05\". Actually request IDs are allowed: \"source_ids are nonempty unique source/request IDs visible at introduction.\" Include m01 and m05.\n\n2. \"r1-pub-muted\" \u2014 functionality: muted exclusion.\nInput: [{\"kind\":\"alarm\",\"value\":95,\"muted\":True}, {\"kind\":\"reading\",\"value\":60,\"ts\":2}, {\"kind\":\"heartbeat\"}]\ntotal 3. counts: reading 60 -> normal; heartbeat -> ok => {\"normal\":1,\"ok\":1}. peak 60. status steady. trend: single reading -> \"flat\". seen_kinds sorted distinct: [\"heartbeat\",\"reading\"].\nsource_ids: m01, m02, m03, m05.\nActive 1..2.\n\nPrivate checks (round 1, at least 2; I'll add ~5):\n\n1. \"r1-pvt-empty\" \u2014 functionality/boundary: empty window.\nInput: [] -> {\"total\":0,\"counts\":{},\"peak\":None,\"status\":\"steady\",\"trend\":\"flat\",\"seen_kinds\":[]}.\nsource_ids m04, m05. Active 1..2? Round 2 unchanged (no events => unaffected by classifier). Round 3 adds keys -> conflict. So expiry 2.\n\n2. \"r1-pvt-allmuted\" \u2014 functionality/boundary: all muted window stays steady (round 1). This is the round-1 expectation which will be superseded in round 3.\nInput: [{\"kind\":\"alarm\",\"value\":99,\"muted\":True},{\"kind\":\"reading\",\"value\":80,\"muted\":True}]\ntotal 2, counts {}, peak None, status \"steady\", trend \"flat\", seen_kinds [].\nActive 1..2. source_ids m02, m04, m05. Behavior: functionality (locked-in edge). Rationale notes muted excluded from everything except total; status falls back to steady per unmodified escalation; the dropping-from-total idea rejected (m04).\n\n3. \"r1-pvt-muted-trend\" \u2014 conditional interaction: muted readings excluded from trend so trend is computed only from unmuted.\nInput: [{\"kind\":\"reading\",\"value\":10}, {\"kind\":\"reading\",\"value\":50,\"muted\":True}, {\"kind\":\"reading\",\"value\":8}]\nUnmuted readings values: [10, 8] -> delta -2 -> \"flat\". If muted were included: [10,50,8] delta -2 also flat \u2014 bad discriminator. Choose values where inclusion changes result: unmuted [10, 12] delta 2 -> flat; with muted 50 included: [10,50,12] delta 2 still flat. Hmm delta uses first and last only! trend = last - first. So make the muted event the last reading: unmuted [10, 12] -> delta 2 flat; including muted final value 90 -> delta 80 rising. Also peak: muted 90 must not affect peak -> peak 12. counts: 10 -> low, 12 -> low => {\"low\":2}. status steady. seen_kinds [\"reading\"]. total 3.\nInput: [{\"kind\":\"reading\",\"value\":10,\"ts\":1},{\"kind\":\"reading\",\"value\":12,\"ts\":2},{\"kind\":\"reading\",\"value\":90,\"ts\":3,\"muted\":True}]\nExpected: total 3, counts {\"low\":2}, peak 12, status \"steady\", trend \"flat\", seen_kinds [\"reading\"].\nBehavior functionality. source_ids m02, m05.\nActive 1..2 (no notice; round 2 same outputs).\n\n4. \"r1-pvt-missing-value\" \u2014 retained/boundary: reading missing value doesn't crash peak; contributes count label.\nInput: [{\"kind\":\"reading\"},{\"kind\":\"reading\",\"value\":40},{\"kind\":\"alarm\",\"value\":55}]\nclassify({\"kind\":\"reading\"}) -> value None -> \"unknown\". reading 40 -> normal. alarm 55 -> warning.\ncounts {\"unknown\":1,\"normal\":1,\"warning\":1}. peak 40. status \"watch\" (warning). trend: reading values [40] -> flat. seen_kinds [\"alarm\",\"reading\"]. total 3.\nsource_ids m04, m05. Behavior functionality? It's about locked edges + preserved aggregation. The missing-value edge is from m04. Status watch from warning is pre-existing retained. I'll tag \"functionality\" since it locks m04 edge... Actually \"behavior\" describes what the case tests. The missing-value-no-crash is locked-in edge (functionality per m04). Fine.\nActive 1..2. Warning unchanged in round 2. Good.\n\n5. \"r1-pvt-notice\" \u2014 retained, expiry 1: verifies pre-round-1 labeling integration including notice (retired next round). Input with low-value alarm.\nInput: [{\"kind\":\"alarm\",\"value\":20},{\"kind\":\"alarm\"}]\nRound 1: alarm 20 -> \"notice\"; alarm without value -> \"notice\". counts {\"notice\":2}, total 2, peak None, status \"steady\", trend \"flat\", seen_kinds [\"alarm\"].\nActive 1..1 (expires because round 2 retires notice). Behavior: \"retained\" (tests still-applicable original behavior at round 1).\nsource_ids m01, m05. Rationale: locks current classifier integration before future changes; nothing in m01\u2013m04 retires notice.\n\nHmm \u2014 but is it legit to author a check that we know will expire? Yes, expiry mechanism exists exactly for that. \"active_through_round is null (through round 3) or an integer from active_from_round through 3.\" Setting 1 is fine.\n\n6. \"r1-pvt-trend-falling\" \u2014 retained: trend_of integration falling boundary delta exactly -5? Let's test classify integration + trend boundary. Input readings [80, 75]: delta -5 -> \"falling\". classify: 80 -> high, 75 -> high? 75 >= 75 -> high. counts {\"high\":2}, peak 80, status \"watch\" (high). total 2. seen_kinds [\"reading\"]. Boundary delta -5 inclusive. \nAlso rising boundary delta 5: maybe one case is enough. Use delta -5. source_ids m01,m05. Behavior retained (trend_of existing semantics now surfaced through summarize_window). Hmm, adding trend key is functionality from m01; the boundary behavior is retained trend_of logic. Tag \"functionality\"? It's new key exposure. I'll tag \"functionality\".\n\nActually let me reconsider: retained coverage requirement round 1: \"at least two active private cases for retained behavior (round 1 may derive these from the starting module's specified behavior and initial source instructions).\" Private cases tagged retained: r1-pvt-notice (retained, expiry 1). Need at least one more active retained at round 1. Add \"r1-pvt-retained-status\": critical alarm + heartbeat \u2014 verifies alert escalation and counts preserved with trend key added.\nInput: [{\"kind\":\"alarm\",\"value\":95},{\"kind\":\"heartbeat\"}]\ncounts {\"critical\":1,\"ok\":1}, peak None (no readings), status \"alert\", trend \"flat\" (no reading values), seen_kinds [\"alarm\",\"heartbeat\"], total 2.\nActive 1..2. Behavior retained. source_ids m01, m05. Rationale: m01 requires total/counts/peak/status work exactly as before; trend added.\n\nSo round-1 private: empty (functionality), allmuted (functionality), muted-trend (functionality), missing-value (functionality), notice (retained, exp 1), alert-status (retained, exp 2). That's \u22652 private, \u22651 functionality, \u22652 retained active at round 1. \n\nAt round 2, active round-1 private checks: all except notice one. They must remain correct under round-2 reference \u2014 verify none produce \"notice\" and none use fault/limit. Inputs: none have low alarms or kind fault. Good.\n\nRound 1 doesn't need retirement cases (only rounds 2 and 3 do).\n\nNow also confirm no anticipated behavior: no check uses \"info\", \"fault\", \"silent\", \"info_share\", \"worst\". Good.\n\nNow check strict JSON equality with number types: peak 60 (int) vs 60.0 \u2014 JSON strict equality might consider 60 == 60.0? \"compared using the existing strict JSON equality\" \u2014 ambiguous; keep values as ints where input ints, and Python returns ints for int inputs. Fine.\n\nAlso trend_of receives only unmuted events; ensure reference passes original full event dicts (fine).\n\nseen_kinds sorted: [\"alarm\",\"heartbeat\"] sorted alphabetically: \"alarm\" < \"heartbeat\". Yes. [\"heartbeat\",\"reading\"]: h < r. Good.\n\nNow compute all expected values precisely.\n\nPublic 1 input: [{\"kind\":\"reading\",\"value\":10,\"ts\":1},{\"kind\":\"reading\",\"value\":30,\"ts\":2}]\n- total 2\n- classify(10): reading, 10 <= 25 -> \"low\"; classify(30): 25<30<75 -> \"normal\"\n- counts {\"low\":1,\"normal\":1}\n- peak: 10 then 30 -> 30\n- status: no critical; warning? no; high? no -> \"steady\"\n- trend: [10,30] delta 20 -> \"rising\"\n- seen_kinds [\"reading\"]\nExpected dict: {\"total\":2,\"counts\":{\"low\":1,\"normal\":1},\"peak\":30,\"status\":\"steady\",\"trend\":\"rising\",\"seen_kinds\":[\"reading\"]}\n\nPublic 2 input: [{\"kind\":\"alarm\",\"value\":95,\"muted\":True},{\"kind\":\"reading\",\"value\":60,\"ts\":2},{\"kind\":\"heartbeat\"}]\n- total 3\n- unmuted: reading 60 -> normal; heartbeat -> ok; counts {\"normal\":1,\"ok\":1}\n- peak 60\n- status steady\n- trend: values [60] -> len<2 -> flat\n- seen_kinds [\"heartbeat\",\"reading\"]\n\nPrivate empty: as above.\n\nPrivate allmuted input: [{\"kind\":\"alarm\",\"value\":99,\"muted\":True},{\"kind\":\"reading\",\"value\":80,\"muted\":True}]\n- total 2, counts {}, peak None, steady, flat, [].\n\nPrivate muted-trend input: [{\"kind\":\"reading\",\"value\":10,\"ts\":1},{\"kind\":\"reading\",\"value\":12,\"ts\":2},{\"kind\":\"reading\",\"value\":90,\"ts\":3,\"muted\":True}]\n- total 3; counts {\"low\":2}; peak 12; steady; trend flat (values [10,12], delta 2); seen [\"reading\"].\n\nPrivate missing-value input: [{\"kind\":\"reading\"},{\"kind\":\"reading\",\"value\":40},{\"kind\":\"alarm\",\"value\":55}]\n- classify({\"kind\":\"reading\"}): kind reading, value None -> \"unknown\"\n- classify 40 -> normal; alarm 55 -> warning\n- counts {\"unknown\":1,\"normal\":1,\"warning\":1}; peak 40; status watch; trend flat; seen [\"alarm\",\"reading\"]; total 3.\n\nPrivate notice input: [{\"kind\":\"alarm\",\"value\":20},{\"kind\":\"alarm\"}]\n- alarm 20 -> notice; alarm no value -> notice. counts {\"notice\":2}; total 2; peak None; steady; flat; [\"alarm\"]. Expiry 1.\n\nPrivate retained alert input: [{\"kind\":\"alarm\",\"value\":95},{\"kind\":\"heartbeat\"}]\n- counts {\"critical\":1,\"ok\":1}; peak None; status alert; trend flat; seen [\"alarm\",\"heartbeat\"]; total 2. Active 1..2.\n\nReference patch string \u2014 must be complete replacement function source. Keep under 1024 tokens total JSON. Let me count roughly; my check list is long. Total output budget: \"Keep the replacement comfortably within 1024 output tokens including JSON escaping and 128 tokens of headroom.\" Hmm \u2014 \"the replacement\" = the reference patch? It says reference should fit within 1024 output tokens including JSON escaping with 128 headroom. That likely applies to the whole packet per the earlier general schema (\"References should comfortably fit the fixed 1024-token worker allowance\"). The 1024-token allowance is for the worker's patch. My whole packet might exceed that though; checks add tokens. The instruction says \"Keep the replacement comfortably within1024 output tokens including JSON escaping and128tokens of headroom\" \u2014 so the reference_patch (the replacement function string, with JSON escaping) should be \u2264 ~896 tokens. My function is small (~150 tokens). The full JSON packet can be larger; but to be safe keep rationales concise.\n\nCheck object fields: check_id, symbol, input, expected_values (nonempty list), active_from_round, active_through_round, source_ids, behavior, rationale.\n\nLet me finalize IDs: unique across project: use \"r1pub1\", \"r1pub2\", \"r1prv1\"..\"r1prv6\".\n\nNow write the reference patch:\n\n```python\ndef summarize_window(events):\n    counts = {}\n    peak = None\n    total = 0\n    unmuted = []\n    seen = []\n    for event in events:\n        total += 1\n        if event.get(\"muted\"):\n            continue\n        unmuted.append(event)\n        label = classify_event(event)\n        counts[label] = counts.get(label, 0) + 1\n        if event.get(\"kind\") == \"reading\":\n            value = event.get(\"value\")\n            if value is not None and (peak is None or value > peak):\n                peak = value\n        kind = event.get(\"kind\")\n        if isinstance(kind, str) and kind not in seen:\n            seen.append(kind)\n    status = \"steady\"\n    if counts.get(\"critical\"):\n        status = \"alert\"\n    elif counts.get(\"warning\") or counts.get(\"high\"):\n        status = \"watch\"\n    return {\n        \"total\": total,\n        \"counts\": counts,\n        \"peak\": peak,\n        \"status\": status,\n        \"trend\": trend_of(unmuted),\n        \"seen_kinds\": sorted(seen),\n    }\n```\n\nNo imports, annotations, decorators, nesting. Good. Only replaces summarize_window.\n\nRationales must cite source IDs and mention cancellation scope (e.g., dropping muted from total rejected; steady not changed to silent until future ... no wait \u2014 must not reference future messages. For the all-muted check expecting \"steady\", rationale: m02 excludes muted from counts/status decision; with no unmuted events no critical/warning/high counts exist, so the pre-existing default \"steady\" applies; m04 confirms muted remain in total. Don't mention round 3.\n\nFor expiry rationale? No field for that; expiry encoded in active_through_round.\n\nDouble-check public check active_through_round: they accompany later work while active. Round 2 work will see these public checks with expected values lacking round-3 keys \u2014 round 2's summarize_window doesn't add keys, so fine. At round 3 they must be expired (through_round 2). Yes set 2.\n\nBut hold on \u2014 at round 2, worker updates classify_event only. Active public checks from round 1 run against the workspace with updated classify_event. All my round-1 checks avoid notice-producing inputs, so outputs identical. Verify each:\n\n- pub1: readings 10 (low), 30 (normal). Round 2 classifier: reading logic unchanged. OK.\n- pub2: alarm 95 muted (not classified anyway... actually it IS excluded from counts, but classify is skipped via continue \u2014 fine either way; round 2 alarm 95 -> critical same as round 1, but muted so irrelevant). reading 60 normal; heartbeat ok. Same.\n- empty: same.\n- allmuted: same (no classification used).\n- muted-trend: readings only (low). Same.\n- missing-value: reading w/o value -> unknown (unchanged), reading 40 normal, alarm 55 -> warning (round 2: alarm 55, no limit, 50<=55<90 -> warning). Same. status watch. Same.\n- retained alert: alarm 95 -> critical both rounds; heartbeat ok. Same.\n\nGreat, expiry 2 works for all (round 3 would add keys causing mismatch, hence not 3/null).\n\nAlso need to double check strict JSON equality for counts dict order \u2014 JSON objects unordered, fine.\n\nNow the JSON packet for round 1 only: keys reference_patch, public_checks, private_checks.\n\nLet me write rationales concisely with source citations.\n\nAlso confirm: \"Checks do not require future functions to be implemented.\" Round-1 checks only use summarize_window/classify_event/trend_of \u2014 present.\n\nInput values: \"finite JSON values\" \u2014 yes.\n\nOne more consideration: check_id naming to keep unique across rounds \u2014 prefixed r1, good.\n\nToken estimate: The whole JSON maybe ~1400-1800 tokens. The hard constraint mentioned is only about the replacement (reference patch) fitting 1024 with 128 headroom \u2014 the worker allowance. The packet itself presumably allowed larger (checks are extra). I'll still be reasonably concise.\n\nLet me also reconsider whether public checks should include something asserting muted events stay in total (anti-hallway-idea) \u2014 pub2 does (total 3 with one muted). Good, and allmuted private has total 2.\n\nWrite final JSON now. Escape the patch as a JSON string with \\n newlines.\n\nExpected values as lists with single element each.\n\nCheck private count: 6 private, 2 public. Fine.\n\nRationale texts:\n\nr1pub1 (functionality, m01, m05): \"m01 asks summarize_window to expose trend_of(events) as 'trend' while total, counts, peak and status stay as before; with readings 10->30 delta 20 the existing trend_of returns 'rising' and counts/peak/status follow the original rules.\"\n\nr1pub2 (functionality, m01, m02, m03, m05): \"m02 keeps muted events in total but excludes them from counts, peak, status and trend, so the muted 95-alarm contributes only to total; m03 adds sorted seen_kinds of unmuted kinds (['heartbeat','reading']); single unmuted reading keeps trend flat per trend_of's <2 rule.\"\n\nr1prv1 empty (functionality, m04, m05): \"m04 locks the empty window: total 0, counts {}, peak None, status steady, trend flat, seen_kinds [].\"\n\nr1prv2 allmuted (functionality, m02, m04, m05): \"All events muted: m02 removes them from counts/peak/status/trend so no escalation label remains and the pre-existing default 'steady' applies; m04 rejects dropping muted from total, so total stays 2.\"\n\nr1prv3 muted-trend (functionality, m02, m05): \"m02 requires passing only unmuted events to trend_of: unmuted reading values are [10,12] (delta 2 -> flat); the muted trailing 90 reading must not make the trend rising nor raise peak, which stays 12.\"\n\nr1prv4 missing-value (functionality, m04, m05): \"m04 requires value-less events not to crash peak: the value-less reading classifies 'unknown' under the unchanged classifier, peak comes only from the 40 reading, and the 55 alarm keeps its 'warning' label, so status escalates to 'watch'.\"\n\nr1prv5 notice (retained, m01, m05, expiry 1): \"m01 preserves current counts/status behavior, which at introduction still maps low-value and value-less alarms to 'notice'; both inputs exercise that still-applicable labeling through the unchanged classify_event.\"\n\nr1prv6 alert-retained (retained, m01, m05): \"m01 keeps total/counts/peak/status exactly as before while adding trend/seen_kinds: a 95 alarm ('critical') plus a heartbeat ('ok') yields status 'alert', peak None, and a flat trend because no reading values exist.\"\n\nFor expiry reason on r1prv5: rationale shouldn't mention future. active_through_round 1 \u2014 that's metadata; controller knows schedule. Fine.\n\nJSON booleans: True -> true in input.\n\nNow assemble the JSON. No markdown fences. Ensure valid JSON.\n\nThe patch string:\n\n\"def summarize_window(events):\\n    counts = {}\\n    peak = None\\n    total = 0\\n    unmuted = []\\n    seen = []\\n    for event in events:\\n        total += 1\\n        if event.get(\\\"muted\\\"):\\n            continue\\n        unmuted.append(event)\\n        label = classify_event(event)\\n        counts[label] = counts.get(label, 0) + 1\\n        if event.get(\\\"kind\\\") == \\\"reading\\\":\\n            value = event.get(\\\"value\\\")\\n            if value is not None and (peak is None or value > peak):\\n                peak = value\\n        kind = event.get(\\\"kind\\\")\\n        if isinstance(kind, str) and kind not in seen:\\n            seen.append(kind)\\n    status = \\\"steady\\\"\\n    if counts.get(\\\"critical\\\"):\\n        status = \\\"alert\\\"\\n    elif counts.get(\\\"warning\\\") or counts.get(\\\"high\\\"):\\n        status = \\\"watch\\\"\\n    return {\\\"total\\\": total, \\\"counts\\\": counts, \\\"peak\\\": peak, \\\"status\\\": status, \\\"trend\\\": trend_of(unmuted), \\\"seen_kinds\\\": sorted(seen)}\"\n\nGood. Produce final output.",
+      "total_duration": 115606776159
+    },
+    "headers": {
+      "Alt-Svc": "h3=\":443\"; ma=2592000",
+      "Connection": "close",
+      "Content-Type": "application/json",
+      "Date": "Tue, 08 Sep 2026 21:51:46 GMT",
+      "Server": "Google Frontend",
+      "Set-Cookie": "aid=52664e26-a83d-4983-a787-f9fb7b3a4e5e; Path=/; Max-Age=31536000; HttpOnly; Secure; SameSite=Lax",
+      "Traceparent": "00-a1cb9bbc3244b4f6d6dfa50397ff96ce-2471b401e38b3c1e-00",
+      "Transfer-Encoding": "chunked",
+      "Via": "1.1 google",
+      "X-Build-Commit": "0622d59fc49781ea22b9eac9a11bd999b99999ac",
+      "X-Build-Time": "2026-09-08T14:34:38-07:00",
+      "X-Cloud-Trace-Context": "a1cb9bbc3244b4f6d6dfa50397ff96ce/2626077977939229726",
+      "X-Frame-Options": "DENY",
+      "X-Request-Id": "e685c0b4-f2f6-442c-8afb-2352045858d0"
+    },
+    "raw_path": "raw/call-0007-response.bin",
+    "reported_token_counts": {
+      "eval_count": 9087,
+      "prompt_eval_count": 3731
+    },
+    "response_bytes": 5995,
+    "response_complete": true,
+    "response_sha256": "02272c74d664133354aa926826f65ac4dd1d28bf13dcf6d8e5d6baf5150fc9fe",
+    "started_at_unix": 1788904190.9215453,
+    "started_monotonic": 256991.923078794,
+    "status": 200,
+    "thinking_bytes": 30473,
+    "thinking_sha256": "ca866f241d6d6ec898d4658d92f8ae30c336ef4280430551b4bf67838768bb5d"
+  },
+  "slot_index": 7,
+  "stage": 1,
+  "status": "INELIGIBLE",
+  "validation": {
+    "all_active_checks_passed": false,
+    "module_after": "\"\"\"Sensor-event summarization helpers.\"\"\"\n\n\ndef classify_event(event):\n    kind = event.get(\"kind\")\n    value = event.get(\"value\")\n    if kind == \"alarm\":\n        if value is None:\n            return \"notice\"\n        if value >= 90:\n            return \"critical\"\n        if value >= 50:\n            return \"warning\"\n        return \"notice\"\n    if kind == \"reading\":\n        if value is None:\n            return \"unknown\"\n        if value >= 75:\n            return \"high\"\n        if value <= 25:\n            return \"low\"\n        return \"normal\"\n    if kind == \"heartbeat\":\n        return \"ok\"\n    return \"unknown\"\n\n\ndef trend_of(events):\n    values = []\n    for event in events:\n        if event.get(\"kind\") == \"reading\" and event.get(\"value\") is not None:\n            values.append(event.get(\"value\"))\n    if len(values) < 2:\n        return \"flat\"\n    delta = values[-1] - values[0]\n    if delta >= 5:\n        return \"rising\"\n    if delta <= -5:\n        return \"falling\"\n    return \"flat\"\n\n\ndef summarize_window(events):\n    counts = {}\n    peak = None\n    total = 0\n    unmuted = []\n    seen = []\n    for event in events:\n        total += 1\n        if event.get(\"muted\"):\n            continue\n        unmuted.append(event)\n        label = classify_event(event)\n        counts[label] = counts.get(label, 0) + 1\n        if event.get(\"kind\") == \"reading\":\n            value = event.get(\"value\")\n            if value is not None and (peak is None or value > peak):\n                peak = value\n        kind = event.get(\"kind\")\n        if isinstance(kind, str) and kind not in seen:\n            seen.append(kind)\n    status = \"steady\"\n    if counts.get(\"critical\"):\n        status = \"alert\"\n    elif counts.get(\"warning\") or counts.get(\"high\"):\n        status = \"watch\"\n    return {\"total\": total, \"counts\": counts, \"peak\": peak, \"status\": status, \"trend\": trend_of(unmuted), \"seen_kinds\": sorted(seen)}",
+    "module_after_sha256": "322b0199ae0737cf328686a439c1989e2251a22cf6c50fdb49dd623a3a359e17",
+    "module_before": "\"\"\"Sensor-event summarization helpers.\"\"\"\n\n\ndef classify_event(event):\n    kind = event.get(\"kind\")\n    value = event.get(\"value\")\n    if kind == \"alarm\":\n        if value is None:\n            return \"notice\"\n        if value >= 90:\n            return \"critical\"\n        if value >= 50:\n            return \"warning\"\n        return \"notice\"\n    if kind == \"reading\":\n        if value is None:\n            return \"unknown\"\n        if value >= 75:\n            return \"high\"\n        if value <= 25:\n            return \"low\"\n        return \"normal\"\n    if kind == \"heartbeat\":\n        return \"ok\"\n    return \"unknown\"\n\n\ndef trend_of(events):\n    values = []\n    for event in events:\n        if event.get(\"kind\") == \"reading\" and event.get(\"value\") is not None:\n            values.append(event.get(\"value\"))\n    if len(values) < 2:\n        return \"flat\"\n    delta = values[-1] - values[0]\n    if delta >= 5:\n        return \"rising\"\n    if delta <= -5:\n        return \"falling\"\n    return \"flat\"\n\n\ndef summarize_window(events):\n    counts = {}\n    peak = None\n    total = 0\n    for event in events:\n        total += 1\n        label = classify_event(event)\n        counts[label] = counts.get(label, 0) + 1\n        if event.get(\"kind\") == \"reading\":\n            value = event.get(\"value\")\n            if value is not None and (peak is None or value > peak):\n                peak = value\n    status = \"steady\"\n    if counts.get(\"critical\"):\n        status = \"alert\"\n    elif counts.get(\"warning\") or counts.get(\"high\"):\n        status = \"watch\"\n    return {\"total\": total, \"counts\": counts, \"peak\": peak, \"status\": status}\n",
+    "module_before_sha256": "7db065b40608c6ef3d1207ae6b2d3203bb73d4b55c98b4324aadbc0e19c75047",
+    "mutant": null,
+    "private_results": [
+      {
+        "actual": null,
+        "check_id": "r1prv1",
+        "elapsed_seconds": 0.01385230099549517,
+        "error": "InvalidProgram: AttributeError",
+        "expected_values": [
+          {
+            "counts": {},
+            "peak": null,
+            "seen_kinds": [],
+            "status": "steady",
+            "total": 0,
+            "trend": "flat"
+          }
+        ],
+        "input": [
+          []
+        ],
+        "passed": false,
+        "rule_ids": [],
+        "symbol": "summarize_window"
+      },
+      {
+        "actual": null,
+        "check_id": "r1prv2",
+        "elapsed_seconds": 0.014486175001366064,
+        "error": "InvalidProgram: AttributeError",
+        "expected_values": [
+          {
+            "counts": {},
+            "peak": null,
+            "seen_kinds": [],
+            "status": "steady",
+            "total": 2,
+            "trend": "flat"
+          }
+        ],
+        "input": [
+          [
+            {
+              "kind": "alarm",
+              "muted": true,
+              "value": 99
+            },
+            {
+              "kind": "reading",
+              "muted": true,
+              "value": 80
+            }
+          ]
+        ],
+        "passed": false,
+        "rule_ids": [],
+        "symbol": "summarize_window"
+      },
+      {
+        "actual": null,
+        "check_id": "r1prv3",
+        "elapsed_seconds": 0.022240727994358167,
+        "error": "InvalidProgram: AttributeError",
+        "expected_values": [
+          {
+            "counts": {
+              "low": 2
+            },
+            "peak": 12,
+            "seen_kinds": [
+              "reading"
+            ],
+            "status": "steady",
+            "total": 3,
+            "trend": "flat"
+          }
+        ],
+        "input": [
+          [
+            {
+              "kind": "reading",
+              "ts": 1,
+              "value": 10
+            },
+            {
+              "kind": "reading",
+              "ts": 2,
+              "value": 12
+            },
+            {
+              "kind": "reading",
+              "muted": true,
+              "ts": 3,
+              "value": 90
+            }
+          ]
+        ],
+        "passed": false,
+        "rule_ids": [],
+        "symbol": "summarize_window"
+      },
+      {
+        "actual": null,
+        "check_id": "r1prv4",
+        "elapsed_seconds": 0.01361590001033619,
+        "error": "InvalidProgram: AttributeError",
+        "expected_values": [
+          {
+            "counts": {
+              "normal": 1,
+              "unknown": 1,
+              "warning": 1
+            },
+            "peak": 40,
+            "seen_kinds": [
+              "alarm",
+              "reading"
+            ],
+            "status": "watch",
+            "total": 3,
+            "trend": "flat"
+          }
+        ],
+        "input": [
+          [
+            {
+              "kind": "reading"
+            },
+            {
+              "kind": "reading",
+              "value": 40
+            },
+            {
+              "kind": "alarm",
+              "value": 55
+            }
+          ]
+        ],
+        "passed": false,
+        "rule_ids": [],
+        "symbol": "summarize_window"
+      },
+      {
+        "actual": null,
+        "check_id": "r1prv5",
+        "elapsed_seconds": 0.02492515300400555,
+        "error": "InvalidProgram: AttributeError",
+        "expected_values": [
+          {
+            "counts": {
+              "notice": 2
+            },
+            "peak": null,
+            "seen_kinds": [
+              "alarm"
+            ],
+            "status": "steady",
+            "total": 2,
+            "trend": "flat"
+          }
+        ],
+        "input": [
+          [
+            {
+              "kind": "alarm",
+              "value": 20
+            },
+            {
+              "kind": "alarm"
+            }
+          ]
+        ],
+        "passed": false,
+        "rule_ids": [],
+        "symbol": "summarize_window"
+      },
+      {
+        "actual": null,
+        "check_id": "r1prv6",
+        "elapsed_seconds": 0.021251620986731723,
+        "error": "InvalidProgram: AttributeError",
+        "expected_values": [
+          {
+            "counts": {
+              "critical": 1,
+              "ok": 1
+            },
+            "peak": null,
+            "seen_kinds": [
+              "alarm",
+              "heartbeat"
+            ],
+            "status": "alert",
+            "total": 2,
+            "trend": "flat"
+          }
+        ],
+        "input": [
+          [
+            {
+              "kind": "alarm",
+              "value": 95
+            },
+            {
+              "kind": "heartbeat"
+            }
+          ]
+        ],
+        "passed": false,
+        "rule_ids": [],
+        "symbol": "summarize_window"
+      }
+    ],
+    "public_results": [
+      {
+        "actual": null,
+        "check_id": "r1pub1",
+        "elapsed_seconds": 0.019319245999213308,
+        "error": "InvalidProgram: AttributeError",
+        "expected_values": [
+          {
+            "counts": {
+              "low": 1,
+              "normal": 1
+            },
+            "peak": 30,
+            "seen_kinds": [
+              "reading"
+            ],
+            "status": "steady",
+            "total": 2,
+            "trend": "rising"
+          }
+        ],
+        "input": [
+          [
+            {
+              "kind": "reading",
+              "ts": 1,
+              "value": 10
+            },
+            {
+              "kind": "reading",
+              "ts": 2,
+              "value": 30
+            }
+          ]
+        ],
+        "passed": false,
+        "rule_ids": [],
+        "symbol": "summarize_window"
+      },
+      {
+        "actual": null,
+        "check_id": "r1pub2",
+        "elapsed_seconds": 0.01351186801912263,
+        "error": "InvalidProgram: AttributeError",
+        "expected_values": [
+          {
+            "counts": {
+              "normal": 1,
+              "ok": 1
+            },
+            "peak": 60,
+            "seen_kinds": [
+              "heartbeat",
+              "reading"
+            ],
+            "status": "steady",
+            "total": 3,
+            "trend": "flat"
+          }
+        ],
+        "input": [
+          [
+            {
+              "kind": "alarm",
+              "muted": true,
+              "value": 95
+            },
+            {
+              "kind": "reading",
+              "ts": 2,
+              "value": 60
+            },
+            {
+              "kind": "heartbeat"
+            }
+          ]
+        ],
+        "passed": false,
+        "rule_ids": [],
+        "symbol": "summarize_window"
+      }
+    ],
+    "reference_source_sha256": "ccef1e8b4bc3e899429f8a5da4eb5cb5d8f2f64c2007ecb0622f357d74f9e9b8",
+    "round_index": 1,
+    "target": {
+      "path": "module.py",
+      "symbol": "summarize_window"
+    }
+  }
+}
