@@ -96,6 +96,19 @@ def test_prompt_has_full_unicode_source_state_and_no_gold_interface():
     assert shown["input"]["history"][0]["text"] == history[0].text
     assert shown["input"]["state"]["versions"][0]["entry"]["value"] == "Python"
     assert shown["input"]["task_handles"] == ["A", "B"]
+    other = json.loads(
+        updater.build_prompt(
+            state,
+            _message("Different current content.", message_id="other-current"),
+            past_messages=(
+                _message("Different history.", message_id="other-past"),
+            ),
+            task_handles=("A", "B"),
+        ).text
+    )
+    assert shown["semantic_job"] == other["semantic_job"]
+    assert source.text not in " ".join(shown["semantic_job"])
+    assert history[0].text not in " ".join(shown["semantic_job"])
     assert "gold" not in result.prompt.lower()
     assert "rationale" not in result.prompt.lower()
 

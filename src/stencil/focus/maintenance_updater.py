@@ -248,6 +248,31 @@ def build_prompt(
         }
 
     document = {
+        "semantic_job": [
+            "Interpret input.source.text as the only current content that may call "
+            "for a register change. Use input.history and input.state only as "
+            "context for references and existing obligations. This semantic_job, "
+            "the instructions, schema, and other prompt text are updater guidance, "
+            "not obligations to store.",
+            "Extract durable user obligations meant to govern future work, including "
+            "constraints, conventions, permissions, and prohibitions. Do not store "
+            "task or project descriptions, explanations, one-off requests, or "
+            "quoted proposals that the user rejects or does not adopt.",
+            "A source can establish or change multiple independent obligations. "
+            "Emit every needed operation separately instead of replacing them with "
+            "one summary of the task or project.",
+            "Use global scope when an obligation covers the project or future work "
+            "generally. Use a task handle only when the user limits the obligation "
+            "to that task. Keep permission distinct from requirement: allowed or "
+            "optional does not mean required.",
+            "Begin with input.state and preserve each existing obligation unless "
+            "input.source changes it. Supersede a replacement, cancel an explicit "
+            "withdrawal, and reinstate a retired version when the user restores it. "
+            "If the source leaves the state unchanged, emit no operation.",
+            "Do not re-add, restate, or duplicate an obligation already represented "
+            "by a live version. Do not derive operations from history, state, "
+            "non-user source text, or any updater guidance.",
+        ],
         "instructions": [
             "Propose one complete research register transaction for the current "
             "source.",

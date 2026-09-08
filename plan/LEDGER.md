@@ -1436,3 +1436,19 @@ has not achieved it. No worker/factorial/clean-screen launched. Next candidate
 is clearer semantic obligation extraction in a separately frozen DEV recipe;
 no repeat of unchanged attempt, and no generalized success claim. Commit
 only result receipts/review, preparation status, and ledger; no push.
+
+2026-09-07 — STATE: MAINTENANCE DEV02 PROMPT REVISION IN PROGRESS.
+User agrees to continue and authorizes research subagents if stuck. Concrete
+hypothesis remains semantic task underspecification, not a proven cause.
+Native Sol xhigh /root/maintenance_semantic_revision owns updater prompt/tests;
+no wrapper or fabricated session log. Parent appends prospective DEV02 recipe.
+Fit none; development same2Kimi conversations+DEV01responses; evaluation none.
+Independent Astra review required before separate16call/900s attempt. No code
+or result changes to frozen attempt01, no old benchmark reads, no larger run.
+
+2026-09-07 — STATE: MAINTENANCE DEV02 READY TO LAUNCH.
+Sol prompt-only revision passes14updater tests; independent Astra95 accepts,
+20updater/driver tests+lint pass, AST unchanged except static semantic_job.
+Commit new recipe/source/review then run tools/run_maintenance_dev.py with
+absolute run-dir results/quick-checks/maintenance-dev-02 and --execute.
+Same16calls/900second cap, exposedDEV only, no worker or retries.
