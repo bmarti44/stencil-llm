@@ -446,3 +446,127 @@ snapshot will be a subsequent exact-byte copy, not a speculative hash here.
 | `src/stencil/focus/renderer.py` | `e1ec3da2f3cd1565746e2b11c24308330b1f8c4d76dfe15f70bf5fa2dc2996be` |
 | `tests/test_source_replay_screen.py` | `635973b5f56462146401246c78cc06003ff2fd3738208cefdf802f6a934028bd` |
 | `results/source-replay-staged/PREPARATION-FIX-BRIEF.md` | `53f5e8a4f960a0f7fa215d9ab9181c0692145ee9cfbbcdb619699ad664449dcf` |
+
+## Round 4 — 2026-09-08
+
+Reviewer: the same native gpt-6-astra, xhigh, `/root/source_staged_review`.
+All 29236 prior review bytes are preserved verbatim, SHA-256
+`fafc289017e10b669eaa66b1e86703ba905ab0310ba7901a7646ec9b6e0a06d8`.
+The immutable preparation-code-review snapshot remains those exact prior bytes;
+this reporting round is appended only to the canonical review.
+
+Score: 96/100
+
+Disposition: ACCEPT
+
+Open findings: 0 critical, 0 high, 0 medium, 0 low. No new finding is added;
+`source-replay-staged#1` through `#3` remain resolved. Acceptance covers the
+stopped-run report's accuracy, evidence reconciliation and enforced stop only.
+The preparation itself remains **INELIGIBLE**. This is not source-bank acceptance,
+scientific-run approval or evidence of automatic reminder usefulness.
+
+Purpose and threat model: verify consequential reporting claims for a
+trusted-but-fallible recorder. I read the latest ledger STATE, report and audit,
+the authorized current failed-run records, the relevant staged-04 source/check/
+reference content and the unchanged actual consumer path. Other projects were
+inspected for artifact/request/record integrity, not given a full semantic audit.
+No earlier stopped-bank contents were opened. No reference or corrected-data
+execution, input unwrapping, code/data repair, model/API/tokenizer/GPU/container
+call, scientific preflight, subagent or restart occurred. Session 61895 was not
+repolled. Only this canonical review was written.
+
+### Diagnosis and scope of the result
+
+The report's packaging diagnosis is supported independently by the saved source
+and the actual consuming code. Staged-04 message m01 defines `events` as a list
+of event dictionaries. Message m04 specifies the empty-window result. All eight
+authored round-1 check inputs are singleton outer lists whose sole member is the
+event list; the empty-window check `r1prv1` has input `[[]]`.
+
+The preparation adapter copies `input` unchanged. `run_checks` supplies that
+value to `_fresh_execute`, which serializes one `(symbol, value)` case, and the
+isolated sandbox calls `env[name](value)`. It does not unpack an argument array.
+The saved reference's loop therefore receives a list as its first `event`, and
+its first `event.get("muted")` access has no such method. Every saved result is
+`passed=false`, `actual=null`, `error="InvalidProgram: AttributeError"`, matching
+that static diagnosis. The reference and before/after module hashes reconcile
+with their saved exact text. No claim that corrected inputs would pass has been
+tested or inferred, and no corrected artifact was constructed.
+
+The report properly limits the three other first-round outcomes to their
+recorded reference checks: staged-01 passes 10, staged-02 passes 11 and staged-03
+passes 9. These are neither independent source-semantic approvals nor coding-worker
+scores. The four stage-0 COMPLETE records establish the registered structural
+checkpoint only. The report does not promote those partial successes into an
+eligible bank, reduced-bank comparison or utility measurement.
+
+### Independent integrity and arithmetic reconciliation
+
+A read-only standard-library audit completed in 0.073495419 seconds, with zero
+reference executions. It independently established:
+
+- The audit manifest's exact file set equals all **28** files under
+  `preparation-run-01`. Their sizes sum to **939100 bytes**; every file is under
+  10 MB, hash-matches its manifest entry, is tracked by Git and is byte-identical
+  to archive commit `5d33831c`.
+- All **17** frozen subjects still match their hashes. The code-review snapshot
+  is the exact accepted Round 3 file, and the job's embedded freeze and freeze
+  hash match the immutable preparation freeze. Neither was changed for this
+  reporting round.
+- All **8** saved request bodies reproduce exactly from the frozen templates,
+  JSON options, domains/IDs and deterministic same-project scaffold assembly.
+  Stage-1 requests contain the full immutable scaffold, an empty prior-packet
+  array and the unchanged data contract. No validator feedback, thinking or
+  other-project material is inserted by that renderer.
+- Every raw response matches its byte count/hash, saved envelope and parsed
+  author value. Final-response and thinking sizes/hashes reconcile separately.
+  All eight responses are complete HTTP 200 envelopes reporting remote model
+  `kimi-k3`, `done=true` and `done_reason="stop"`. Their recorded durations fit
+  their assigned request allowances and the original whole deadline. Every
+  stage-1 request starts after all four stage-0 responses have ended.
+- Service counters sum to **19241 prompt** and **77119 generated tokens**.
+  These remain service-reported counters, as the report states, rather than
+  an independent billing measurement.
+- Saved reference results match the authored check IDs, inputs, symbols and
+  expected values. Counts reconcile as **10 + 11 + 9 + 8 = 38**, with **30
+  passes and 8 failures**. All eight failed-record summaries in the audit match
+  the underlying call-0007 records exactly.
+- The job and terminal agree on INELIGIBLE, terminal stage 1 and the reason
+  `reference failed an active check`. Recorded elapsed time recomputes to
+  **326.5759919609991 seconds**; terminal publication recomputes to
+  **326.5799810299941 seconds** after the same start, within the 2400-second
+  reservation. All sixteen slot identities/statuses reconcile with their call
+  and stage records: eight attempts, then eight UNATTEMPTED slots. There are no
+  final prepared projects or stage-2/3 request artifacts.
+
+Driver PID 268799 was absent at review. The exact historical exec-session number
+and exit 1 are root-supplied execution provenance; I did not query the finished
+handle. The recorded terminal status agrees with the frozen CLI's INELIGIBLE to
+exit-1 mapping. Nothing in this audit claims a new process execution or an
+independent replay of that historical shell observation.
+
+### Stop boundary and reviewed bindings
+
+The registered whole-bank stop was applied: no correction, retry, replacement,
+extra stage, reduced-bank scoring or repeat-bank permission follows from this
+failure. Accepted preparation code and the separate historical two-call trial
+remain their original limited evidence. No final bank, source approval, final
+scientific preflight or scientific worker comparison was produced. The parked
+scientific runner remains unaccepted as a whole, and larger untouched coding
+proof remains unmet. No additional semantic approval or implementation work on
+this stopped bank is needed to support the report.
+
+The following artifacts were verified byte-identical to `5d33831c`. The audit's
+bound manifest covers all 28 run files; the two calls named separately below
+contain the failure's exact source and reference/check evidence.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| `results/source-replay-staged/PREPARATION-RESULTS.md` | `c2b5ef68e4f41789d0757aeb9704b11e8819e7661e721fd696e57cbd46f95ab5` |
+| `results/source-replay-staged/preparation-root-audit.json` | `e91fc5c6c5cb2805abd43a2ee2296e8ab6a70b901d7561c265ae486c0407711c` |
+| `results/source-replay-staged/preparation-freeze.json` | `d198d9462ba4577615d89ea41a1139dc4d018d8d7895fc0132d4c79404916302` |
+| `results/source-replay-staged/preparation-code-review-at-acceptance.md` | `fafc289017e10b669eaa66b1e86703ba905ab0310ba7901a7646ec9b6e0a06d8` |
+| `results/source-replay-staged/preparation-run-01/calls/call-0003.json` | `e22208e0831c1af4cb4603e93dc7c3b3e6ecfdf5ad1f305afc2a9b392172bc89` |
+| `results/source-replay-staged/preparation-run-01/calls/call-0007.json` | `bd9468dc3eedf816125349a582b0d41454b9dfd3a11a67fb51e5e318275be5b5` |
+| `results/source-replay-staged/preparation-run-01/job.json` | `171a8166719fedf8c5cc45e12adc24d87e5b2671911fb5c79b5f29571acda359` |
+| `results/source-replay-staged/preparation-run-01/terminal.json` | `041c60fab165018ffb39340ff71938b668dc6b5bb00bede86f9c1274414e77f2` |
