@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "conversation_id": "source-fit-cal-20260908-00",
+  "family_id": "source-fit-family-20260908-00",
+  "split": "fit",
+  "messages": [
+    {
+      "message_id": "m01",
+      "role": "user",
+      "task_handle": "task-fit-20260908-01",
+      "text": "We're starting the reservation utility for Perihelion Ridge Observatory, the service astronomers will use to book instrument time on HELIX, ORCA and TUNDRA. First work item: a reservation module that models a single reservation request (instrument, target, requested UTC start, exposure count, per-exposure seconds, per-exposure readout, slew and setup estimate) and decides whether it fits inside one observing block. The math: occupation equals setup plus count times (exposure plus readout); the request fits when start plus occupation lands at or before the block end. Return a small result object carrying the computed end time and the fit verdict; a request that doesn't fit is a normal outcome, not an error. Standing rules for everything we build here: shipped code runs on the Python 3.11 standard library alone, no third-party packages; every timestamp we store or pass around is a timezone-aware UTC datetime, never a naive one; and every public function carries a Google-style docstring with runnable doctests."
+    },
+    {
+      "message_id": "m02",
+      "role": "assistant",
+      "text": "Got it: a pure domain core with no I/O yet, dataclasses for the request and the block, and the occupation math in one place. Two things before I write it. I'd suggest we log every rejected request with the instrument's long display name so support staff recognize it at a glance; want that? And when the inputs themselves are bad, say a negative exposure count or a naive datetime, do you want plain ValueError or something richer?"
+    },
+    {
+      "message_id": "m03",
+      "role": "user",
+      "text": "Something richer: create an errors module with ReservationInvalid for malformed requests and ReservationConflict for scheduling clashes, and a firm rule: never catch broad Exception anywhere in the codebase, domain errors propagate. Skip the display-name logging idea; in logs we always use the short instrument codes HELIX, ORCA, TUNDRA, never the long names, because support greps by code. One more standing convention: durations are integer seconds everywhere inside the system; floats are tolerated only at the JSON input boundary, where they get rounded half-up to whole seconds."
+    },
+    {
+      "message_id": "m04",
+      "role": "assistant",
+      "text": "Understood, dropping the display-name idea entirely. Errors module with ReservationInvalid and ReservationConflict under a common ReservationError base, integer-second durations in the interior with half-up rounding only at the JSON edge, short codes in all logs, and no broad Exception catches. One boundary question: at the CLI entry point, may I catch ReservationError once to print a clean message and exit nonzero instead of dumping a traceback on the observer?"
+    },
+    {
+      "message_id": "m05",
+      "role": "user",
+      "task_handle": "task-fit-20260908-02",
+      "text": "Yes on the CLI question, with limits: exactly one catch of ReservationError at the entry point, print and exit nonzero, and nowhere else in the codebase. Next work item: the availability planner. Given the night's window from sunset to sunrise, the existing reservations per instrument, and a required occupation in seconds, enumerate each instrument's free blocks: the gap from sunset to its first booking, the gaps between consecutive bookings, and the gap from its last booking to sunrise. Return the earliest free block per instrument that can hold the occupation. One change to our conventions: keep the Google-style docstrings, but drop the doctests; from now on every public function gets full type annotations and its own pytest module at tests/test_<module>.py. Tests may use pytest even though runtime code stays standard-library only."
+    },
+    {
+      "message_id": "m06",
+      "role": "assistant",
+      "text": "Clear. Planner as its own module, pure functions over the reservation list: sort by start, walk the gaps in order (pre-first, between bookings, post-last), and pick the earliest gap per instrument whose length covers the requested occupation. All stdlib, short codes in the logs, domain errors only. I'll wire up tests/test_reservation.py and tests/test_planner.py and run the suite now."
+    },
+    {
+      "message_id": "m07",
+      "role": "tool",
+      "text": "pytest -q\ntests/test_reservation.py ........ 8 passed\ntests/test_planner.py .............. 14 passed\n22 passed in 0.6s"
+    },
+    {
+      "message_id": "m08",
+      "role": "user",
+      "text": "Green on my side too. That planner is the last feature; the service is frozen for handoff after this. I'm scheduling the review with the night-ops team for Thursday."
+    },
+    {
+      "message_id": "m09",
+      "role": "assistant",
+      "text": "A good place to freeze. Handoff state: the reservation core plus the planner, both covered under the current conventions, the errors module, and the CLI wrapper with its single entry-point catch. I'll hold off on anything new until the review lands."
+    },
+    {
+      "message_id": "m10",
+      "role": "user",
+      "text": "Review is done and the service is handed off to ops. Effective now, every standing convention from this session is retired: the standard-library-only restriction, the timezone-aware UTC rule, integer-second durations with half-up boundary rounding, the domain-error and no-broad-Exception policy together with the CLI catch carve-out, the Google-docstring and pytest conventions, and the short-code logging rule. None of them carry over; treat whatever comes next strictly on its own terms."
+    },
+    {
+      "message_id": "m11",
+      "role": "assistant",
+      "text": "Understood: all session conventions retired, nothing inherited by future tasks. Each new request gets judged only on what it asks for itself."
+    },
+    {
+      "message_id": "m12",
+      "role": "user",
+      "task_handle": "task-fit-20260908-03",
+      "text": "Last ask, a one-off analysis helper for the director, totally separate from the service: given tonight's booked blocks on the master clock as (instrument, start, end) tuples, find the largest contiguous unscheduled gap. Algorithm: sort the blocks by start time; walk adjacent pairs and measure each gap from one block's end to the next block's start; also count the lead gap from sunset to the first block and the tail gap from the last block's end to sunrise; track the maximum gap and print it with its start and end."
+    }
+  ],
+  "queries": [
+    {
+      "message_id": "m01",
+      "target": {
+        "obligations": [
+          {
+            "text": "Shipped code must run on the Python 3.11 standard library alone; no third-party packages are permitted.",
+            "source_ids": [
+              "m01"
+            ]
+          },
+          {
+            "text": "Every timestamp stored or passed around must be a timezone-aware UTC datetime; naive datetimes are never allowed.",
+            "source_ids": [
+              "m01"
+            ]
+          },
+          {
+            "text": "Every public function must carry a Google-style docstring with runnable doctests.",
+            "source_ids": [
+              "m01"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "message_id": "m05",
+      "target": {
+        "obligations": [
+          {
+            "text": "Runtime/shipped code remains restricted to the Python 3.11 standard library with no third-party packages; tests are an exception to this restriction and may use pytest.",
+            "source_ids": [
+              "m01",
+              "m05"
+            ]
+          },
+          {
+            "text": "Every timestamp stored or passed around must be a timezone-aware UTC datetime, never a naive one.",
+            "source_ids": [
+              "m01"
+            ]
+          },
+          {
+            "text": "Malformed requests must raise ReservationInvalid and scheduling clashes must raise ReservationConflict, both defined in the errors module under a common ReservationError base; catching broad Exception is forbidden anywhere in the codebase, so domain errors propagate.",
+            "source_ids": [
+              "m03",
+              "m05"
+            ]
+          },
+          {
+            "text": "The sole permitted catch of ReservationError is exactly one catch at the CLI entry point, which prints a clean message and exits nonzero; ReservationError may be caught nowhere else in the codebase, so domain errors otherwise propagate. This limit is scoped to ReservationError catches and does not prohibit other specific exception catches, though catching broad Exception remains forbidden everywhere.",
+            "source_ids": [
+              "m05"
+            ]
+          },
+          {
+            "text": "Durations must be integer seconds everywhere inside the system; floats are tolerated only at the JSON input boundary, where they are rounded half-up to whole seconds.",
+            "source_ids": [
+              "m03"
+            ]
+          },
+          {
+            "text": "Logs must identify instruments by the short codes HELIX, ORCA and TUNDRA; long display names must never be used in logs.",
+            "source_ids": [
+              "m03"
+            ]
+          },
+          {
+            "text": "Google-style docstrings remain required for every public function, but the doctest requirement is retired and replaced: every public function must now have full type annotations and its own pytest module at tests/test_<module>.py.",
+            "source_ids": [
+              "m01",
+              "m05"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "message_id": "m12",
+      "target": {
+        "obligations": []
+      }
+    }
+  ]
+}

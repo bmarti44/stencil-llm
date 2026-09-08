@@ -1,0 +1,342 @@
+{
+  "schema_version": 1,
+  "conversation_id": "source-fit-cal-20260908-03",
+  "family_id": "source-fit-family-20260908-03",
+  "split": "fit",
+  "messages": [
+    {
+      "message_id": "m01",
+      "role": "user",
+      "text": "Kickoff for ForgeBay, our makerspace checkout helper: members check out consumable materials (filament, plywood, acrylic sheet) and durable tools (calipers, soldering stations). Baseline and standing rules: Python 3.11+, everything fully type-annotated; FastAPI with SQLAlchemy 2.x against a local SQLite file for dev; every new endpoint ships with pytest tests; no new third-party dependencies without asking me first."
+    },
+    {
+      "message_id": "m02",
+      "role": "assistant",
+      "text": "Proposed shape: app/ with routers/, models/, schemas/, services/. For out-of-stock holds, I'd suggest Redis with expiring keys instead of sweeping SQL rows — want that? And how should seed data handle member info?"
+    },
+    {
+      "message_id": "m03",
+      "role": "user",
+      "text": "No Redis — no external services at all for now. Holds and every other bit of state live in our application database. Seeds: only fictional member names, ever; never copy real member info out of the office spreadsheet into demo data."
+    },
+    {
+      "message_id": "m04",
+      "role": "assistant",
+      "text": "Layout plan, then: models split across catalog.py, checkout.py, members.py; routers mirror them 1:1; Alembic migration 0001 creates members, materials, checkouts. Adopt?"
+    },
+    {
+      "message_id": "m05",
+      "role": "user",
+      "text": "Adopt that layout with one correction — table names are plural snake_case (checkout_items, not CheckoutItem). One more convention: every API error is returned as an RFC 9457 problem+json body."
+    },
+    {
+      "message_id": "m06",
+      "role": "user",
+      "text": "First chunk of work: build the material catalog — GET /materials listing everything with live stock counts, and POST /checkouts that decrements stock atomically in one transaction. Insufficient stock means refuse with the agreed error format and change nothing. SKU is the public identifier everywhere.",
+      "task_handle": "task-catalog-checkout"
+    },
+    {
+      "message_id": "m07",
+      "role": "assistant",
+      "text": "Done: GET /materials, and POST /checkouts doing the stock check plus decrement inside a single transaction, returning a problem+json 409 on insufficient stock with no write. Fully typed; want me to run the suite?"
+    },
+    {
+      "message_id": "m08",
+      "role": "tool",
+      "text": "pytest -q: 14 passed, 0 failed. ruff check: no issues. Coverage on routers/catalog.py and routers/checkout.py: 96%."
+    },
+    {
+      "message_id": "m09",
+      "role": "user",
+      "text": "Nice. Next domain piece: durable tools (calipers, soldering stations) get due dates and an overdue fee — $1 per day late, capped at $10 per checkout. Consumables are never charged fees. Standing convention: all money amounts are stored as integer cents — never floats."
+    },
+    {
+      "message_id": "m10",
+      "role": "assistant",
+      "text": "I'll compute overdue from due_date versus now. Cleanest would be a nightly cron that sweeps and posts fees — add an app.scheduled module?"
+    },
+    {
+      "message_id": "m11",
+      "role": "user",
+      "text": "No background daemons or cron in this repo — overdue is computed lazily, at return time and whenever a checkout record is read. Also from ops: staging is approved to run Postgres now, so dev and tests stay on SQLite but keep all queries database-portable — no SQLite-only functions."
+    },
+    {
+      "message_id": "m12",
+      "role": "assistant",
+      "text": "Got it — lazy fee computation in the service layer, portable SQL only. One edge case for later: checkouts created before fees existed, do they accrue?"
+    },
+    {
+      "message_id": "m13",
+      "role": "user",
+      "text": "Build it: POST /checkouts/{id}/return for durable tools that computes the overdue fee lazily at return ($1/day, $10 cap, durable tools only, consumables exempt), persists a fee ledger entry, plus GET /fees showing a member's ledger. Leave that legacy edge flagged until I rule on it.",
+      "task_handle": "task-returns-fees"
+    },
+    {
+      "message_id": "m14",
+      "role": "assistant",
+      "text": "Return flow done: POST /checkouts/{id}/return computes the fee lazily and persists a fee_ledger row; GET /fees lists a member's ledger. The pre-fee-era checkouts are left accruing with a TODO until you decide."
+    },
+    {
+      "message_id": "m15",
+      "role": "tool",
+      "text": "pytest -q: 23 passed, 1 skipped (legacy-fee policy undecided). ruff check: no issues."
+    },
+    {
+      "message_id": "m16",
+      "role": "user",
+      "text": "Deciding that edge: checkouts created before the fee feature shipped are grandfathered — no fee ever. Separate standing rule: staff-role members may waive any fee, but only with a non-empty reason string, and every waiver must be written to the audit log."
+    },
+    {
+      "message_id": "m17",
+      "role": "assistant",
+      "text": "Legacy exemption keyed off created_at; waiver endpoint drafted. Next up: holds on out-of-stock consumables. One question — the front desk has a USB barcode scanner; does checkout need scanner integration?"
+    },
+    {
+      "message_id": "m18",
+      "role": "user",
+      "text": "None — the scanner is just an HID keyboard, it types the SKU and hits enter, so scanner-typed SKUs stay the same optional sku field on checkout. Don't write any driver or SDK code. (When we eventually do the member self-service portal — a different task, not now — we'll want SSO; ignore that for everything current.)"
+    },
+    {
+      "message_id": "m19",
+      "role": "assistant",
+      "text": "Holds design: material_holds(member_id, material_id, status, ready_at); earliest open hold wins on restock, then a 48-hour pickup window before lapse. Waivers endpoint: POST /fees/{id}/waive, staff-only, reason required. One thing — which timezone anchors the 'day' for due dates and the pickup window?"
+    },
+    {
+      "message_id": "m20",
+      "role": "user",
+      "text": "Store every timestamp in UTC; display in America/Chicago. Due times are end-of-day local — 23:59 America/Chicago on the due date."
+    },
+    {
+      "message_id": "m21",
+      "role": "user",
+      "text": "Final chunk: implement holds — members place holds on out-of-stock consumables, the earliest open hold wins when stock returns, and the holder gets a 48-hour pickup window before the hold lapses — and finish the staff fee-waiver endpoint per the rules we set. Keep both consistent with all standing conventions.",
+      "task_handle": "task-holds-waivers"
+    }
+  ],
+  "queries": [
+    {
+      "message_id": "m06",
+      "target": {
+        "obligations": [
+          {
+            "text": "All backend code is Python 3.11+ and fully type-annotated, built on FastAPI with SQLAlchemy 2.x against a local SQLite dev database, and no new third-party dependencies may be introduced without asking the user first.",
+            "source_ids": [
+              "m01"
+            ]
+          },
+          {
+            "text": "Every new endpoint ships with pytest tests.",
+            "source_ids": [
+              "m01"
+            ]
+          },
+          {
+            "text": "No external services are allowed for now (the assistant's Redis suggestion is declined); all feature state, including holds, lives in the application's own database.",
+            "source_ids": [
+              "m03"
+            ]
+          },
+          {
+            "text": "Seed and demo data contain only fictional member names; real member information must never be copied in from the office spreadsheet.",
+            "source_ids": [
+              "m03"
+            ]
+          },
+          {
+            "text": "Follow the explicitly adopted layout — app/ with routers/, models/, schemas/, services/, with models split across catalog.py, checkout.py, members.py and routers mirroring them — and name all tables in plural snake_case.",
+            "source_ids": [
+              "m02",
+              "m04",
+              "m05"
+            ]
+          },
+          {
+            "text": "Every API error is returned as an RFC 9457 problem+json body.",
+            "source_ids": [
+              "m05"
+            ]
+          },
+          {
+            "text": "SKU is the public identifier everywhere.",
+            "source_ids": [
+              "m06"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "message_id": "m13",
+      "target": {
+        "obligations": [
+          {
+            "text": "All backend code is Python 3.11+ and fully type-annotated, built on FastAPI with SQLAlchemy 2.x, and no new third-party dependencies may be introduced without asking the user first.",
+            "source_ids": [
+              "m01"
+            ]
+          },
+          {
+            "text": "Every new endpoint ships with pytest tests.",
+            "source_ids": [
+              "m01"
+            ]
+          },
+          {
+            "text": "Seed and demo data contain only fictional member names; real member information must never be copied in from the office spreadsheet.",
+            "source_ids": [
+              "m03"
+            ]
+          },
+          {
+            "text": "Follow the explicitly adopted layout — app/ with routers/, models/, schemas/, services/, with models split across catalog.py, checkout.py, members.py and routers mirroring them — and name all tables in plural snake_case.",
+            "source_ids": [
+              "m02",
+              "m04",
+              "m05"
+            ]
+          },
+          {
+            "text": "Every API error is returned as an RFC 9457 problem+json body.",
+            "source_ids": [
+              "m05"
+            ]
+          },
+          {
+            "text": "SKU is the public identifier everywhere.",
+            "source_ids": [
+              "m06"
+            ]
+          },
+          {
+            "text": "All money amounts are stored as integer cents — never floats.",
+            "source_ids": [
+              "m09"
+            ]
+          },
+          {
+            "text": "Overdue fees apply only to durable tools (calipers, soldering stations); consumable materials are never charged fees.",
+            "source_ids": [
+              "m09"
+            ]
+          },
+          {
+            "text": "No external services are permitted — the Redis suggestion was declined — and every bit of application state (holds, fee ledger entries, waivers included) lives in the application's own database: local SQLite for dev and tests, the approved Postgres on staging. No background daemons or cron jobs live in this repo either — the nightly-sweep suggestion was also declined — so overdue state is computed lazily, at return time and whenever a checkout record is read.",
+            "source_ids": [
+              "m03",
+              "m10",
+              "m11"
+            ]
+          },
+          {
+            "text": "Dev and tests remain on SQLite while staging is now approved for Postgres, so keep all queries database-portable — no SQLite-only functions.",
+            "source_ids": [
+              "m11"
+            ]
+          },
+          {
+            "text": "Whether pre-fee-era checkouts should accrue overdue fees remains an unresolved user decision — leave that legacy edge flagged until the user rules on it; this task settles no legacy-fee policy.",
+            "source_ids": [
+              "m12",
+              "m13"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "message_id": "m21",
+      "target": {
+        "obligations": [
+          {
+            "text": "All backend code is Python 3.11+ and fully type-annotated, built on FastAPI with SQLAlchemy 2.x, and no new third-party dependencies may be introduced without asking the user first.",
+            "source_ids": [
+              "m01"
+            ]
+          },
+          {
+            "text": "Every new endpoint ships with pytest tests.",
+            "source_ids": [
+              "m01"
+            ]
+          },
+          {
+            "text": "Seed and demo data contain only fictional member names; real member information must never be copied in from the office spreadsheet.",
+            "source_ids": [
+              "m03"
+            ]
+          },
+          {
+            "text": "Follow the explicitly adopted layout — app/ with routers/, models/, schemas/, services/, with models split across catalog.py, checkout.py, members.py and routers mirroring them — and name all tables in plural snake_case.",
+            "source_ids": [
+              "m02",
+              "m04",
+              "m05"
+            ]
+          },
+          {
+            "text": "Every API error is returned as an RFC 9457 problem+json body.",
+            "source_ids": [
+              "m05"
+            ]
+          },
+          {
+            "text": "SKU is the public identifier everywhere.",
+            "source_ids": [
+              "m06"
+            ]
+          },
+          {
+            "text": "All money amounts are stored as integer cents — never floats.",
+            "source_ids": [
+              "m09"
+            ]
+          },
+          {
+            "text": "Overdue fees apply only to durable tools (calipers, soldering stations); consumable materials are never charged fees.",
+            "source_ids": [
+              "m09"
+            ]
+          },
+          {
+            "text": "No external services are permitted — the Redis suggestion was declined — and every bit of application state (holds, fee ledger entries, waivers included) lives in the application's own database: local SQLite for dev and tests, the approved Postgres on staging. No background daemons or cron jobs live in this repo either — the nightly-sweep suggestion was also declined — so overdue state is computed lazily, at return time and whenever a checkout record is read.",
+            "source_ids": [
+              "m03",
+              "m10",
+              "m11"
+            ]
+          },
+          {
+            "text": "Dev and tests remain on SQLite while staging is approved for Postgres, so keep all queries database-portable — no SQLite-only functions.",
+            "source_ids": [
+              "m11"
+            ]
+          },
+          {
+            "text": "Checkouts created before the fee feature shipped are grandfathered — they never accrue overdue fees.",
+            "source_ids": [
+              "m16"
+            ]
+          },
+          {
+            "text": "Staff-role members may waive any fee, but only with a non-empty reason string, and every waiver must be written to the audit log.",
+            "source_ids": [
+              "m16"
+            ]
+          },
+          {
+            "text": "No barcode-scanner driver or SDK code: the desk scanner acts as a plain HID keyboard, so scanner-typed SKUs reuse the same optional sku field on checkout.",
+            "source_ids": [
+              "m18"
+            ]
+          },
+          {
+            "text": "Store every timestamp in UTC and display in America/Chicago; due times are end-of-day local — 23:59 America/Chicago on the due date.",
+            "source_ids": [
+              "m20"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

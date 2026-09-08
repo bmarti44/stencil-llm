@@ -2987,3 +2987,6 @@ Previous goal turn progressed: correctionterminal/archive94850a74, codefindingsa
 
 2026-09-08 — STATE: EXACT CORRECTED FIT LABELS ACCEPTED; CANONICAL COPY NEXT.
 Same Astra corrected-label round5 terminal96/100 closes goldfindings2-10, no newlabelsfindings, reportSHA8833bc2d957710772ab248acaf986434bc97e47ed14a57d94831109f26d63e42. Root read fullclosure and exactaccepted6hashes, agrees source-backed adjudication including whole-target citationcoverage, universalstateexamples and optionalpermission qualifications. All18labels accepted as FITpreparation only; sixcorrelatedfamilies not18independenttests. Next exactbytecopy correction-01/author-NN/authored.json to canonical author-NN/reviewed.json with accepted-inputs.json lineage binding; preserve alloriginals/corrections. Source/test fixes stillauthoritativelylive; no realCPUpreviewuntilAstra accepts their stabledelta. No modeltraining/inference, biggergoal remainsunproven.
+
+2026-09-08 — STATE: SIX CANONICAL REVIEWED INPUTS COPIED EXACTLY.
+Dataacceptancereview archivedce64382a. Canonical author00..05/reviewed.json are exact accepted Kimi correctedbytes, verifiedSHA+byteequality; accepted-inputs.json binds sixpaths/hashes/FITfamilies and archiveddatareview. No parsing/reserialization applied to copies and no semantic edits. Code11/12 fixes still in progress, so realCPUpreview remains pending.
