@@ -1,0 +1,590 @@
+{
+  "schema_version": 1,
+  "author": "kimi-k3:cloud",
+  "lineage": "Authored independently from scratch for prospective experiment replay-02; no benchmark, paper example, prior experiment, prior project, or existing coding challenge was consulted, reused, or adapted; no universal novelty claim is made.",
+  "public": {
+    "project_id": "replay-02",
+    "description": "Evolving grant-award helpers: three sequential edits to a small allocation module, including a long-service bonus that is explicitly retired and must stay retired.",
+    "initial_file": {
+      "path": "module.py",
+      "text": "\"\"\"Grant award helpers for the allocation desk.\n\npriority_points(case): need * 2 + tenure, plus 25 when tenure >= 12.\nband_name(case): apex at 140 points or more, core at 90 or more, else base.\naward_size(case): currently just caps the request at the band cap.\n\"\"\"\n\ndef priority_points(case):\n    points = case[\"need\"] * 2 + case[\"tenure\"]\n    if case[\"tenure\"] >= 12:\n        points = points + 25\n    return points\n\ndef band_name(case):\n    points = priority_points(case)\n    if points >= 140:\n        return \"apex\"\n    if points >= 90:\n        return \"core\"\n    return \"base\"\n\ndef award_size(case):\n    band = band_name(case)\n    caps = {\"apex\": 900, \"core\": 500, \"base\": 200}\n    amount = case[\"request\"]\n    cap = caps[band]\n    if amount > cap:\n        amount = cap\n    return amount\n"
+    },
+    "rounds": [
+      {
+        "index": 1,
+        "source_messages": [
+          {
+            "message_id": "m01",
+            "role": "user",
+            "text": "Our allocation desk module has three helpers. priority_points(case) returns need*2 + tenure, plus 25 when tenure is at least 12. band_name(case) returns apex for 140 points or more, core for 90 or more, else base. award_size(case) currently caps request at the band cap: apex 900, core 500, base 200. Each case is a dict with keys need, tenure, docs, request, hardship."
+          },
+          {
+            "message_id": "m02",
+            "role": "user",
+            "text": "New award policy: eligible awards keep the band caps exactly as they are, but after capping, any computed amount below 40 is raised to 40. All band caps exceed 40, so the floor can never push an amount above its cap."
+          },
+          {
+            "message_id": "m03",
+            "role": "user",
+            "text": "Eligibility rule: a case is ineligible when docs is falsy or when request is 0 or negative. Ineligible cases are awarded exactly 0, and the 40 floor never applies to them."
+          },
+          {
+            "message_id": "m04",
+            "role": "user",
+            "text": "Background only, please do not follow this: the retired 2019 handbook said 'award = request * 0.8, no caps'. That formula is obsolete; it is quoted here purely so you recognize it, not as a requirement."
+          }
+        ],
+        "request": {
+          "message_id": "m05",
+          "role": "user",
+          "text": "Please replace award_size to implement the policy above: ineligible cases return 0; otherwise cap the request at the band cap and then apply the 40 floor to the capped result. Do not change priority_points or band_name."
+        },
+        "target": {
+          "path": "module.py",
+          "symbol": "award_size"
+        },
+        "public_checks": [
+          {
+            "check_id": "c-pub-01",
+            "symbol": "award_size",
+            "input": {
+              "need": 80,
+              "tenure": 3,
+              "docs": true,
+              "request": 600,
+              "hardship": false
+            },
+            "expected_values": [
+              600
+            ],
+            "active_from_round": 1,
+            "active_through_round": null,
+            "source_ids": [
+              "m01",
+              "m02",
+              "m05"
+            ],
+            "behavior": "functionality",
+            "rationale": "m01 gives points 80*2+3=163 -> apex, cap 900; m05 caps request 600 at 900 -> 600; m02 floor is not triggered."
+          },
+          {
+            "check_id": "c-pub-02",
+            "symbol": "award_size",
+            "input": {
+              "need": 50,
+              "tenure": 20,
+              "docs": false,
+              "request": 300,
+              "hardship": true
+            },
+            "expected_values": [
+              0
+            ],
+            "active_from_round": 1,
+            "active_through_round": null,
+            "source_ids": [
+              "m03",
+              "m05"
+            ],
+            "behavior": "functionality",
+            "rationale": "m03: docs is falsy so the case is ineligible and the award is exactly 0; m05 requires this branch."
+          },
+          {
+            "check_id": "c-pub-03",
+            "symbol": "award_size",
+            "input": {
+              "need": 10,
+              "tenure": 0,
+              "docs": true,
+              "request": 20,
+              "hardship": false
+            },
+            "expected_values": [
+              40
+            ],
+            "active_from_round": 1,
+            "active_through_round": null,
+            "source_ids": [
+              "m01",
+              "m02",
+              "m05"
+            ],
+            "behavior": "functionality",
+            "rationale": "m01 gives 10*2+0=20 -> base, cap 200; capped amount 20 is below 40 so m02 floor raises it to 40."
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "source_messages": [
+          {
+            "message_id": "m06",
+            "role": "user",
+            "text": "Budget update, effective now: in priority_points the need weight rises from 2 to 3. The band thresholds, the caps, the floor and the eligibility rules all stay exactly as they are."
+          },
+          {
+            "message_id": "m07",
+            "role": "user",
+            "text": "Separate decision: the long-service bump is abolished. The +25 for tenure >= 12 is removed from priority_points for every case at every tenure; tenure still counts at face value, one point per year. Because band_name reads priority_points, scores and bands shift accordingly."
+          },
+          {
+            "message_id": "m08",
+            "role": "user",
+            "text": "Hardship cases get a small uplift: when hardship is truthy, add 10 points, applied after the need and tenure parts are combined."
+          },
+          {
+            "message_id": "m09",
+            "role": "user",
+            "text": "For awareness only, never adopted: a consultant draft proposed 'double tenure for everyone'. Leadership rejected it; quoted here so you can recognize the idea if it resurfaces, not as a rule."
+          }
+        ],
+        "request": {
+          "message_id": "m10",
+          "role": "user",
+          "text": "Please replace priority_points to apply this scoring update: compute need*3 + tenure, add 10 when hardship is truthy after the need and tenure parts are combined, and remove the long-service bump so no tenure ever adds 25. band_name and award_size must keep calling the new scoring with their own logic unchanged; do not edit them."
+        },
+        "target": {
+          "path": "module.py",
+          "symbol": "priority_points"
+        },
+        "public_checks": [
+          {
+            "check_id": "c-pub-04",
+            "symbol": "priority_points",
+            "input": {
+              "need": 40,
+              "tenure": 6,
+              "docs": true,
+              "request": 250,
+              "hardship": true
+            },
+            "expected_values": [
+              136
+            ],
+            "active_from_round": 2,
+            "active_through_round": 2,
+            "source_ids": [
+              "m06",
+              "m08",
+              "m10"
+            ],
+            "behavior": "functionality",
+            "rationale": "m06 raises the need weight to 3 and m08 adds the hardship uplift of 10 after combining parts: 40*3 + 6 + 10 = 136; m10 requests exactly this scoring. The interval ends at round 2 because the later hardship-policy change alters this value."
+          },
+          {
+            "check_id": "c-pub-05",
+            "symbol": "priority_points",
+            "input": {
+              "need": 45,
+              "tenure": 20,
+              "docs": true,
+              "request": 350,
+              "hardship": false
+            },
+            "expected_values": [
+              155
+            ],
+            "active_from_round": 2,
+            "active_through_round": null,
+            "source_ids": [
+              "m06",
+              "m07",
+              "m10"
+            ],
+            "behavior": "retirement",
+            "rationale": "m06 gives 45*3+20=155; tenure 20 would formerly trigger the +25 bump but m07 abolishes it for every tenure, so nothing extra is added. Hardship is false and request 350 stays below the later deduction cutoff, so 155 remains correct through round 3."
+          }
+        ]
+      },
+      {
+        "index": 3,
+        "source_messages": [
+          {
+            "message_id": "m11",
+            "role": "user",
+            "text": "Hardship policy strengthened: the hardship uplift in priority_points rises from 10 to 15 points. It is still added after the need and tenure parts are combined, and still only when hardship is truthy."
+          },
+          {
+            "message_id": "m12",
+            "role": "user",
+            "text": "New overreach signal: a request above 700 signals overreach. When request exceeds 700, subtract 5 points from the score, applied after the hardship uplift step. A request of exactly 700 is not overreach and loses nothing. Eligibility, the 40 floor and the band caps in award_size are all untouched."
+          },
+          {
+            "message_id": "m13",
+            "role": "user",
+            "text": "Scope check so nothing drifts: need still weighs 3 and tenure still counts at face value, one point per year. The long-service bump abolished in the budget update stays abolished; no tenure threshold adds anything. Band thresholds 140 and 90 stay exactly as they are."
+          },
+          {
+            "message_id": "m14",
+            "role": "user",
+            "text": "For recognition only, not a rule: an archived memo urges restoring the 25-point long-service bonus to honor senior staff. Leadership reaffirmed the bonus remains retired; the memo is quoted purely so you can recognize the idea if it resurfaces."
+          }
+        ],
+        "request": {
+          "message_id": "m15",
+          "role": "user",
+          "text": "Please replace priority_points again: keep need*3 + tenure, raise the hardship uplift to 15 applied after combining the need and tenure parts when hardship is truthy, and then subtract 5 when request exceeds 700. The long-service bump stays removed at every tenure. Do not change band_name or award_size."
+        },
+        "target": {
+          "path": "module.py",
+          "symbol": "priority_points"
+        },
+        "public_checks": [
+          {
+            "check_id": "c-pub-06",
+            "symbol": "priority_points",
+            "input": {
+              "need": 45,
+              "tenure": 10,
+              "docs": true,
+              "request": 720,
+              "hardship": true
+            },
+            "expected_values": [
+              155
+            ],
+            "active_from_round": 3,
+            "active_through_round": null,
+            "source_ids": [
+              "m06",
+              "m11",
+              "m12",
+              "m15"
+            ],
+            "behavior": "functionality",
+            "rationale": "Round 3 scoring: m06's weight gives 45*3+10=145, m11 raises the hardship uplift to 15 giving 160, and m12 subtracts 5 because request 720 exceeds 700, leaving 155; m15 requests exactly this combination."
+          },
+          {
+            "check_id": "c-pub-07",
+            "symbol": "award_size",
+            "input": {
+              "need": 20,
+              "tenure": 1,
+              "docs": true,
+              "request": 30,
+              "hardship": true
+            },
+            "expected_values": [
+              40
+            ],
+            "active_from_round": 3,
+            "active_through_round": null,
+            "source_ids": [
+              "m01",
+              "m02",
+              "m03",
+              "m11",
+              "m15"
+            ],
+            "behavior": "functionality",
+            "rationale": "Eligible under the standing m03 rule; the round-3 score is 20*3+1+15=76 (m11 uplift, no m12 deduction since request 30), so the band is base by m01's retained thresholds with cap 200; capped request 30 is below 40, so m02's standing floor raises the award to 40."
+          }
+        ]
+      }
+    ]
+  },
+  "private": {
+    "rounds": [
+      {
+        "index": 1,
+        "reference_patch": "def award_size(case):\n    if not case[\"docs\"] or case[\"request\"] <= 0:\n        return 0\n    band = band_name(case)\n    caps = {\"apex\": 900, \"core\": 500, \"base\": 200}\n    amount = case[\"request\"]\n    cap = caps[band]\n    if amount > cap:\n        amount = cap\n    if amount < 40:\n        amount = 40\n    return amount\n",
+        "checks": [
+          {
+            "check_id": "c-prv-01",
+            "symbol": "award_size",
+            "input": {
+              "need": 60,
+              "tenure": 12,
+              "docs": true,
+              "request": 950,
+              "hardship": false
+            },
+            "expected_values": [
+              900
+            ],
+            "active_from_round": 1,
+            "active_through_round": null,
+            "source_ids": [
+              "m01",
+              "m02",
+              "m03",
+              "m05"
+            ],
+            "behavior": "functionality",
+            "rationale": "Eligible per m03 (docs truthy, request 950 positive); m01 scoring 60*2+12+25=157 gives apex with cap 900, so m05 caps 950 at 900 and the m02 floor is irrelevant above the floor. Later rounds keep it apex (round 2 score 192; round 3 score 187 after the deduction), so 900 stays correct in every round."
+          },
+          {
+            "check_id": "c-prv-02",
+            "symbol": "award_size",
+            "input": {
+              "need": 90,
+              "tenure": 30,
+              "docs": true,
+              "request": 0,
+              "hardship": true
+            },
+            "expected_values": [
+              0
+            ],
+            "active_from_round": 1,
+            "active_through_round": null,
+            "source_ids": [
+              "m03",
+              "m05"
+            ],
+            "behavior": "functionality",
+            "rationale": "m03 makes request 0 ineligible regardless of the strong score or truthy hardship, so m05 must return exactly 0 and the floor never applies; no later message changes eligibility, so this stays active."
+          },
+          {
+            "check_id": "c-prv-03",
+            "symbol": "priority_points",
+            "input": {
+              "need": 55,
+              "tenure": 11,
+              "docs": true,
+              "request": 200,
+              "hardship": false
+            },
+            "expected_values": [
+              121
+            ],
+            "active_from_round": 1,
+            "active_through_round": 1,
+            "source_ids": [
+              "m01",
+              "m05"
+            ],
+            "behavior": "retained",
+            "rationale": "m01 specifies the starting formula: 55*2+11=121 with no bump because tenure 11 is below 12. m05 edits award_size only, so this scoring behavior is retained for round 1; round 2 legitimately rewrites the formula, hence the round-1-only interval."
+          },
+          {
+            "check_id": "c-prv-04",
+            "symbol": "band_name",
+            "input": {
+              "need": 45,
+              "tenure": 12,
+              "docs": true,
+              "request": 100,
+              "hardship": false
+            },
+            "expected_values": [
+              "core"
+            ],
+            "active_from_round": 1,
+            "active_through_round": 1,
+            "source_ids": [
+              "m01",
+              "m05"
+            ],
+            "behavior": "retained",
+            "rationale": "m01: 45*2+12 plus the original +25 long-service bump at tenure 12 totals 127, which is core under m01's 140/90 thresholds; m05 does not touch band_name or priority_points, so this banding behavior is retained for round 1. Round 2 retires the bump, closing the interval."
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "reference_patch": "def priority_points(case):\n    points = case[\"need\"] * 3 + case[\"tenure\"]\n    if case[\"hardship\"]:\n        points = points + 10\n    return points\n",
+        "checks": [
+          {
+            "check_id": "c-prv-05",
+            "symbol": "priority_points",
+            "input": {
+              "need": 40,
+              "tenure": 5,
+              "docs": true,
+              "request": 300,
+              "hardship": true
+            },
+            "expected_values": [
+              135
+            ],
+            "active_from_round": 2,
+            "active_through_round": 2,
+            "source_ids": [
+              "m06",
+              "m08",
+              "m10"
+            ],
+            "behavior": "functionality",
+            "rationale": "m06 need weight 3 plus face-value tenure: 40*3+5=125; m08 adds 10 for truthy hardship after the parts are combined, giving 135; m10 requests this scoring. The interval ends at round 2 because the round-3 uplift increase changes this value."
+          },
+          {
+            "check_id": "c-prv-06",
+            "symbol": "award_size",
+            "input": {
+              "need": 35,
+              "tenure": 8,
+              "docs": true,
+              "request": 600,
+              "hardship": false
+            },
+            "expected_values": [
+              500
+            ],
+            "active_from_round": 2,
+            "active_through_round": null,
+            "source_ids": [
+              "m01",
+              "m02",
+              "m03",
+              "m06",
+              "m10"
+            ],
+            "behavior": "functionality",
+            "rationale": "Eligible under the standing m03 rule; round-2 scoring 35*3+8=113 (m06) is core by m01's retained thresholds, so the retained core cap 500 binds: min(600,500)=500, and the m02 floor does not trigger. Request 600 never crosses the later 700 cutoff, so 500 persists through round 3."
+          },
+          {
+            "check_id": "c-prv-07",
+            "symbol": "priority_points",
+            "input": {
+              "need": 50,
+              "tenure": 15,
+              "docs": true,
+              "request": 500,
+              "hardship": false
+            },
+            "expected_values": [
+              165
+            ],
+            "active_from_round": 2,
+            "active_through_round": null,
+            "source_ids": [
+              "m06",
+              "m07",
+              "m10"
+            ],
+            "behavior": "retirement",
+            "rationale": "Tenure 15 once triggered the +25 bump, but m07 removes it for every tenure, so the score is 50*3+15=165 rather than 190 or 140; m06 supplies the weight and m10 requests the change. Hardship is false and request 500 stays below the later cutoff, so 165 remains the retirement witness through round 3."
+          },
+          {
+            "check_id": "c-prv-08",
+            "symbol": "priority_points",
+            "input": {
+              "need": 20,
+              "tenure": 12,
+              "docs": true,
+              "request": 400,
+              "hardship": false
+            },
+            "expected_values": [
+              72
+            ],
+            "active_from_round": 2,
+            "active_through_round": null,
+            "source_ids": [
+              "m06",
+              "m07",
+              "m10"
+            ],
+            "behavior": "retirement",
+            "rationale": "Boundary retirement: tenure exactly 12 was the old trigger point for +25; m07 abolishes it, so 20*3+12=72 rather than 97 or 77; m06 gives the weight, m10 the request. Request 400 never triggers the later deduction, so 72 stays active as retirement coverage through round 3."
+          }
+        ]
+      },
+      {
+        "index": 3,
+        "reference_patch": "def priority_points(case):\n    points = case[\"need\"] * 3 + case[\"tenure\"]\n    if case[\"hardship\"]:\n        points = points + 15\n    if case[\"request\"] > 700:\n        points = points - 5\n    return points\n",
+        "checks": [
+          {
+            "check_id": "c-prv-09",
+            "symbol": "priority_points",
+            "input": {
+              "need": 40,
+              "tenure": 5,
+              "docs": true,
+              "request": 300,
+              "hardship": true
+            },
+            "expected_values": [
+              140
+            ],
+            "active_from_round": 3,
+            "active_through_round": null,
+            "source_ids": [
+              "m06",
+              "m11",
+              "m15"
+            ],
+            "behavior": "functionality",
+            "rationale": "m11 raises the hardship uplift from 10 to 15: 40*3+5+15=140; request 300 draws no m12 deduction; m15 requests this. This is a new case ID and interval for the changed value at this input, which had a different expected value under its own round-2-only check."
+          },
+          {
+            "check_id": "c-prv-10",
+            "symbol": "priority_points",
+            "input": {
+              "need": 50,
+              "tenure": 0,
+              "docs": true,
+              "request": 800,
+              "hardship": false
+            },
+            "expected_values": [
+              145
+            ],
+            "active_from_round": 3,
+            "active_through_round": null,
+            "source_ids": [
+              "m06",
+              "m12",
+              "m15"
+            ],
+            "behavior": "functionality",
+            "rationale": "m12's overreach deduction: request 800 exceeds 700, so the score is 50*3+0 minus 5 = 145, applied after the uplift step which does nothing here since hardship is false; m06 supplies the weight and m15 requests the rule."
+          },
+          {
+            "check_id": "c-prv-11",
+            "symbol": "priority_points",
+            "input": {
+              "need": 50,
+              "tenure": 0,
+              "docs": true,
+              "request": 700,
+              "hardship": false
+            },
+            "expected_values": [
+              150
+            ],
+            "active_from_round": 3,
+            "active_through_round": null,
+            "source_ids": [
+              "m06",
+              "m12",
+              "m15"
+            ],
+            "behavior": "functionality",
+            "rationale": "Boundary of the m12 cutoff: request exactly 700 does not exceed 700, so nothing is deducted and the score remains 50*3+0=150; m06 and m15 confirm weight and scope."
+          },
+          {
+            "check_id": "c-prv-12",
+            "symbol": "priority_points",
+            "input": {
+              "need": 44,
+              "tenure": 13,
+              "docs": true,
+              "request": 600,
+              "hardship": false
+            },
+            "expected_values": [
+              145
+            ],
+            "active_from_round": 3,
+            "active_through_round": null,
+            "source_ids": [
+              "m06",
+              "m07",
+              "m13",
+              "m14",
+              "m15"
+            ],
+            "behavior": "retirement",
+            "rationale": "Still-retired rule at the final state: tenure 13 crosses the abolished 12-year trigger, yet m07 removed the +25 and m13 reaffirms it stays abolished; m14's quoted restoration memo is awareness-only and does not reactivate it. The correct score is 44*3+13=145 (request 600 draws no deduction); a final implementation restoring the bump would return 170 and fail this case."
+          }
+        ]
+      }
+    ],
+    "obsolete_mutant": {
+      "source": "def priority_points(case):\n    points = case[\"need\"] * 3 + case[\"tenure\"]\n    if case[\"tenure\"] >= 12:\n        points = points + 25\n    if case[\"hardship\"]:\n        points = points + 15\n    if case[\"request\"] > 700:\n        points = points - 5\n    return points\n",
+      "failing_check_id": "c-prv-12"
+    }
+  }
+}

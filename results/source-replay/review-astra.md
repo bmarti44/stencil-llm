@@ -793,3 +793,175 @@ The unmodified response-text SHA-256 values are, in authored order:
 No original project/response was changed. Corrected outputs require independent
 review; if the sole correction batch cannot yield an accepted complete bank,
 stop this preparation under the existing specification.
+
+## Round 7 — sole correction batch re-review and preparation stop
+
+Score: 84/100
+Disposition: REJECT the corrected bank. Stop this preparation under the accepted
+single-correction-batch rule; no scientific screen launch is eligible.
+Open findings: #11 high. One open high and zero open critical findings.
+Findings #6–#10 are resolved below; findings #1–#5 remain resolved.
+
+2026-09-08. Same author-disjoint Astra xhigh reviewer. Rounds 1–6 are
+byte-preserved; their combined pre-append SHA-256 was
+`066cef6b1f749c137914cbf77de4be3aa798824bf3876138d8e86fb5ce9d2f18`.
+All four requests in the sole correction batch are terminal. This round verifies
+their permitted changes, fully audits the newly completed replay-02 content and
+checks correction regressions. Unchanged checks retain their Round 6 review;
+they were not rerun or needlessly re-audited. No reference/module execution,
+consumer preflight, tokenizer/model load, API/GPU operation or old-bank access
+occurred. Only this canonical review was edited; no commit was made.
+
+### 6. [high] Two original responses do not form complete JSON documents (resolved 2026-09-08)
+
+Corrected author-00 and author-02 now return complete valid root JSON. Both
+authored files match their raw response text semantically and their recorded
+hashes. Independently compared original readable field values with corrected
+values using JSON representations that distinguish booleans from numbers.
+Author-00 changes no original field value. Author-02 changes only the permitted
+initial digit predicate described under #9. The invalid originals remain intact;
+their historical error status is not relabelled as success.
+
+### 7. [high] replay-02 is an unfinished project with no executable private validation (resolved 2026-09-08)
+
+Corrected author-01 preserves its original identity/description/lineage, initial
+module, entire first public round and second round's m06–m09 source messages and
+target. It supplies genuine m10–m15 chronology, three complete private rounds,
+source-string references and an actual final mutant naming c-prv-12. The
+structural omissions and placeholders are resolved. Its newly authored final
+request introduces a separate source-design defect, #11; closing this original
+incompleteness finding does not accept the corrected project.
+
+### 8. [high] replay-04 wraps all three reference functions in the wrong field type (resolved 2026-09-08)
+
+Corrected author-03 supplies each exact original reference source string directly
+as `reference_patch`, removing only its wrapper. No function source, newline,
+target or check outcome changed. All other field values are unchanged apart
+from the authorized p08 rationale correction under #10. No alternate schema or
+root normalization was introduced.
+
+### 9. [low] replay-03 misdescribes its starting digit predicate (resolved 2026-09-08)
+
+The initial `validate_code` now checks each of the four suffix characters for
+membership in `0123456789` before returning true. Non-string rejection, the
+case-sensitive INV-only prefix and exactly-four length remain unchanged. The
+other initial helper ASTs and module docstring match their originals. Every
+public instruction, reference, check/input/output/interval/rationale and mutant
+is unchanged. This aligns the starting implementation with m01 without adding
+a new testing requirement.
+
+### 10. [low] replay-04's p08 rationale overstates which threshold was retired (resolved 2026-09-08)
+
+The new rationale correctly says 1250 becomes budget because the old 1000 budget
+boundary was retired in favor of 1500. It explicitly preserves the 5000
+standard/premium boundary and says this case does not exercise that boundary.
+No input, expected value, cited source or interval changed.
+
+### 11. [high] The completed project's final request restates every surviving target rule (open 2026-09-08)
+
+Corrected replay-02's newly authored m15 directs the worker to keep
+`need*3 + tenure`, apply truthy hardship `+15`, then subtract 5 for request above
+700, and keep the long-service bump removed at every tenure. These are all the
+current `priority_points` rules, including the surviving need/tenure formula and
+earlier bonus retirement. The complete target logic is supplied in the current
+request itself; m13 also recaps the surviving scoring and band rules.
+
+The frozen SPEC's data section explicitly requires: “Current requests identify
+the change and do not restate all surviving rules.” This completion violates
+that registered source-design constraint. The correction prompt additionally
+forbids inventing a manual recap. The issue is the substantive target-rule recap,
+not the function name, action shape or a harmless reference to keeping earlier
+behavior. It materially changes one of only four project units in a prospective
+original-history reminder screen. Correct arithmetic and schema validity do not
+establish conformity to that workload requirement.
+
+The root independently confirmed the exact m15/target match and the existing
+SPEC wording. This is a regression in newly completed content, not a new
+perfect-selector, hidden-negative-case or manual-prose-superiority gate. No
+worker outcome was used to identify it. Fixing it would require another authored
+instruction change, but the only permitted correction batch has already been
+used. Therefore do not hand-rewrite m15, obtain another correction, drop or
+replace this project, relax the source constraint, or proceed to scientific
+consumer preflight/launch as an accepted bank. Apply the registered preparation
+stop. This rejection is a data-preparation result; it does not demonstrate that
+the frozen reminder mechanism improves or harms coding utility.
+
+### Audit of the newly completed replay-02 checks and references
+
+The completed project has seven public and twelve private checks, sixteen more
+than its three preserved public checks. All nineteen accepted values agree with
+their visible sources by independent arithmetic and scope review. Round 1
+returns zero for ineligible awards, otherwise caps the positive request and
+applies the 40 floor. Round 2 changes only `priority_points`: need weight 3,
+face-value tenure, truthy hardship +10, with the +25 long-service bump removed.
+Round 3 raises hardship to +15 and subtracts 5 only above request 700. The
+eligibility, floor, cap and band-threshold rules remain applicable. Quoted
+restoration material does not reactivate the retired bonus.
+
+Inclusive intervals correctly retire c-prv-03/c-prv-04 after round 1 and the
+round 2 hardship expectations c-pub-04/c-prv-05 after round 2. The same input
+formerly checked by c-prv-05 receives a distinct c-prv-09 version with the new
+value 140. No simultaneously active conflicting output was found. Round 1
+c-prv-03/c-prv-04 supply retained coverage; round 2 retains c-prv-01/c-prv-02,
+while c-prv-07/c-prv-08 exercise bonus retirement. Round 3 keeps both retirement
+cases plus c-prv-12, and retains earlier award/cap/eligibility behavior. Each
+round introduces multiple private cases with new functionality; the new
+deduction includes above-threshold and exact-700 cases. Thus absence of new
+`retained` tags in later rounds is not a coverage failure.
+
+Active public/private counts are **3/4, 5/6, 6/9**. The reference patches are
+316, 146 and 204 UTF-8 bytes; their ASTs define the intended synchronous
+single-argument targets without prohibited statements/decorators/annotations
+or nested definitions. The 262-byte final mutant restores the +25 branch.
+Its designated active private retirement case c-prv-12 requires
+`44*3 + 13 = 145`; the mutant's restored branch would yield 170. This is static
+reasoning, not an executed consumer result or measured native-token headroom.
+No wrong expected value or disallowed alternative was found in this completion.
+
+Checked its exact key sets, 15-message chronology, source visibility, finite JSON
+values, check-ID uniqueness, interval endpoints, target names and source bounds.
+Its longest source/request is 369 UTF-8 bytes. The corrected four-project bank
+contains **122 checks: 26 + 19 + 53 + 24**; unchanged project contents retain the
+previous static source/coverage review. These observations do not override #11.
+
+### Correction provenance, cost and exact reviewed hashes
+
+Verified every frozen correction request contains the unchanged common
+instructions/DATA contract, its project-specific authorized corrections and
+the exact unmodified text of that project's own original author response.
+The requests retain `kimi-k3:cloud`, `stream: false`, `think: true` and supply
+no coding-worker answer. All raw response, raw text, parsed document and receipt
+hashes reconcile. Comparison of typed JSON values establishes only the permitted
+deltas summarized above; the new m15 defect lies within the author-completed
+missing content, not an undisclosed replacement of an existing valid source.
+
+The four correction receipts total **24693 prompt tokens + 51989
+service-generated tokens**. The concurrent batch elapsed **234.452679139
+seconds**, distinct from the earlier original-authoring batch and native
+qualification. There was no automatic retry or scientific worker call. All
+returned outputs parse, but delivery completion is not source acceptance.
+No new launch-acceptance machine block is issued.
+
+Paths below are relative to `results/source-replay/`; hashes are SHA-256.
+SPEC/DATA and original artifacts retain their exact prior-round identities.
+
+| File | SHA-256 |
+| --- | --- |
+| `PROJECT-CORRECTION-PROMPT.md` | `4b2dc1344c16c862ca615cc24988975a0b50f116c1b65dca912abdb5729d87b2` |
+| `project-authoring/correction-01/job.json` | `4e37a621dcc48e3bd36dfec9eb8aba0e80f20cc0a2f737f4daeb743fe274caa3` |
+| `project-authoring/correction-01/author-00/request.json` | `db829be200f908f479b135b9177253d7fab85e69e0683cbcb7c1c6e2b40567a8` |
+| `project-authoring/correction-01/author-00/response.json` | `72529dbfa3710f91a42ceb7c763cc18a5f0f85d8db0329081b3a3eaf294aed4b` |
+| `project-authoring/correction-01/author-00/receipt.json` | `cc74f4e499bda62fc5282c74836673b7bafe6beeb2d855f3ab337ff804d205ef` |
+| `project-authoring/correction-01/author-00/authored.json` | `3747941287d143e360cdd4192155442ba0308012962cf84072f9a858b9db7c35` |
+| `project-authoring/correction-01/author-01/request.json` | `3905eba7ee9a8855d2b5d32c1ce2e01e8221ee018d0a7053ab797cbdcc0ad16a` |
+| `project-authoring/correction-01/author-01/response.json` | `b08737bc92ca7fb054d3ec94ab5bb748bbf44178be0e764b58027cd8bc9e6b2e` |
+| `project-authoring/correction-01/author-01/receipt.json` | `0411bbc7b056b2e2e3367345b3dfe1f1fa76d7be4202ef56f81cca9316a80210` |
+| `project-authoring/correction-01/author-01/authored.json` | `2ba6b215e23361f993c79a313185f24df32f27b973a9286bf8bd1d373a61b0bd` |
+| `project-authoring/correction-01/author-02/request.json` | `b0623f319a2ab2d4a717add132cd712ce6a3e484e31ac882da6b1c05d3829daa` |
+| `project-authoring/correction-01/author-02/response.json` | `bbaa48bc1a6023eaee7f8cbff6a256e5d5a09e3a14e239ffd9820455a898f03b` |
+| `project-authoring/correction-01/author-02/receipt.json` | `2a2bbee08665a927c685bcc9a9db26bc2d326bcae184cbe51832f738a4826779` |
+| `project-authoring/correction-01/author-02/authored.json` | `cc218e25e99e63d24cf277b9995bfe702f923c4737f7cf4babb6e33db7fdf5b8` |
+| `project-authoring/correction-01/author-03/request.json` | `cabaabe52a1d9ce1ce57fd70b6a34c80cfa7469e74cafbf5f34cd4828db2a412` |
+| `project-authoring/correction-01/author-03/response.json` | `e7806f7c6f80cc4190d8f64dd714d7d33c2f5bd92a3e02f5313c89abf629a77a` |
+| `project-authoring/correction-01/author-03/receipt.json` | `0a9ce8eb82b9dc9069b781766299e027112def11941e32175ad3c9a61a125801` |
+| `project-authoring/correction-01/author-03/authored.json` | `2c3e80b435683050b93f21f97054eb822ae7451471d225fb0c561740592c8748` |

@@ -30,14 +30,16 @@ screen is **INELIGIBLE**, so it cannot justify advancement or a training-benefit
 claim. Original answers, references and reviews are preserved; no trial repair
 or rerun is being used. [Results](results/source-interpreter/semantic/RESULTS.md).
 
-Research has selected a small test of automatically recalling original instruction
-messages for the coding agent. The implementation passed independent review and
-50 targeted software tests. Its first local technical trial completed both model
-calls and shut down cleanly in about 7 minutes 20 seconds; the generated patch
-passed all three mechanical fixture checks. Independent result review accepted
-the technical qualification at 96/100. This qualifies the interface, not coding utility. The four-project comparison and
-larger fresh proof remain ahead. See [technical results](results/source-replay/QUALIFICATION-RESULTS.md)
-and resume from the latest STATE entry in [the project ledger](plan/LEDGER.md).
+Automatically recalling original instruction messages passed a separate local
+technical trial: both model calls worked, the patch passed three fixture checks,
+and shutdown finished within the ten-minute limit. Independent review accepted
+that limited result at96/100. The planned four-project coding comparison then
+stopped during data preparation: after the sole allowed correction batch, one
+project's current request still restated its complete target formula, violating
+the registered workload rule. No coding comparison ran, so this does not measure
+whether automatic reminders help. See [preparation results](results/source-replay/PREPARATION-RESULTS.md)
+and [technical results](results/source-replay/QUALIFICATION-RESULTS.md).
+Resume from the latest STATE entry in [the project ledger](plan/LEDGER.md).
 
 ## Earlier result (2026-09-04): selective retention under cache eviction
 
