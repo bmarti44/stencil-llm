@@ -32,7 +32,8 @@ or rerun is being used. [Results](results/source-interpreter/semantic/RESULTS.md
 
 Research has selected a small test of automatically recalling original instruction
 messages for the coding agent. Its design has passed independent review; the
-two-call technical check is being implemented before the four-project coding
+two-call technical check is implemented, with 43 targeted software tests passing,
+and is undergoing independent code review before the four-project coding
 comparison. No successor model trial has launched. Resume
 from the latest STATE entry in [the project ledger](plan/LEDGER.md).
 
