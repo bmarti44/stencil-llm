@@ -1969,3 +1969,20 @@ enter that correction. Sol now implements only new coding_competence_run.py
 and targeted runtime tests per RUNTIME-BRIEF; CPU files remain frozen. Native
 contract plus semantic global-stop consistency review are complete; live native
 compatibility, final corrected data and whole resource freeze remain pending.
+
+2026-09-08 — STATE: SCOPED KIMI CORRECTIONS FROZEN; LAUNCH NEXT.
+Original finite preflight now confirms the semantic itinerary contradiction;
+01/02 numerical passes do not override eight open source-review findings.
+Prepared one Kimi correction request per original project, each with complete
+original content, only its relevant findings, explicit allowed field paths and
+precomputed exact old-value hashes. The driver checks full original hash,
+allowed exact paths, unique replacements and every old-value hash before
+writing one new patched.json; original authored.json remains unchanged. No
+reviewer/coder writes replacement data semantics. Runtime source brief is in
+Sol xhigh implementation concurrently; only its two new files may change.
+Commit these four correction requests, allowlists, plan and receipt driver now,
+then launch absolute correction-driver.py. Register owned PID and retain all
+raw replies, parsed operations, application hashes and usage/timing receipts.
+Resume its exact session to terminal; do not restart on observation timeout.
+After return, run corrected-data CPU preflight and Astra delta review; no Qwen
+worker inference or training is authorized by this authoring launch.
