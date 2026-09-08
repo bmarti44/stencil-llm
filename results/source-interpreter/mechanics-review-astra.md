@@ -379,3 +379,124 @@ and terminal exit evidence. No automatic retry or changed settings are added.
 Only this canonical review file was written. No code/spec/ledger edit, commit,
 model/weight load, CUDA context, real training/inference/save, semantic authoring,
 network request, preview regeneration or full-suite run occurred in this review.
+
+## Round 4 — 2026-09-08 — recorded mechanics result
+
+Score: 96/100
+
+Decision: **ACCEPTED: the registered mechanics measurement passes.** Zero new
+findings; findings 1–3 remain resolved and no findings are open at any severity.
+This accepts the measured local four-update mechanics/resource result, not
+learned transfer, coding usefulness or completion of the broader goal. Same
+author-disjoint Astra xhigh native reviewer, canonical topic and threat model.
+All prior rounds are preserved verbatim.
+
+Reviewed launch freeze: `a87a9e1de59a9d84eb1442ff035b92a6f69f5773`.
+Reviewed result archive: `9bc6f57f`. Exact principal artifact SHA-256 bindings,
+under `results/source-interpreter/mechanics/`:
+
+| Artifact | SHA-256 |
+| --- | --- |
+| `launch-plan.json` | `ba3192f97f60eae738041d7a93fdc033f51559dd109ea67388dc913e4bcf4432` |
+| `run-01/result.json` | `4829ecbbf212d02f7bf2b5b142fb28a42d3027565e2437551f952855880b9d07` |
+| `observer-01.json` | `dfb876be456264f83fceaee5127c8beebb95e9419e077e0496b447059511abcf` |
+| `run-01/lifecycle.json` | `07428578ce55da1455baeb43059713026984a8cb6ae660965380927a836eeb6f` |
+| `RESULTS.md` | `f464484f214ad6748eaeb51cce2cde6b2b8a615162aec7428639f71995457793` |
+| `adapter-description.md` | `d3a52c8efa59cd792bdee84b63fdf6e0685c34476efcd6a387db794987db51bc` |
+
+The accepted runner and tests remain exactly the round-3 hashes
+`4eb7cb46f0191e7481e162e03ee12db2d771e9a043792ddd3d6c825e50321927`
+and `d6aa5b3b888d2d11a6d573e996dd5de0c48927073f1b432cb957547c8d735bf4`.
+The launch binds the pre-audit canonical review hash
+`8a84893f0c70d0334b69092339b0f140d3635a953e5276fb7633f784ffa13d18`.
+
+### Reconciliation
+
+Independently parsed the raw receipts and histories and hashed the archived
+bytes with Python's standard library; no ML runtime or model was used.
+
+- **Launch and inputs:** all six launch-bound files match both current bytes
+  and their frozen Git blobs. Supervisor/start and child/result bindings match,
+  with the expected change from base-file verification pending to completed.
+  The recorded base hash map matches the qualified original asset receipt;
+  actual-tokenizer state and package bindings match the accepted preview.
+  Runtime records Python 3.12.13, torch 2.13.0+cu130, transformers 5.16.1 and
+  PEFT 0.20.0. Model, adapter, optimizer and seed settings match the reviewed
+  recipe. Row 14 remains 3,891 tokens, with 2,966 masked prefix positions and
+  925 target/EOS positions; the recorded native causal predictions are positions
+  2,965 through 3,889. Every step records those unchanged positions.
+
+- **Updates and persistence of work:** the four final step files equal their
+  result entries and the corresponding final history entries. The 20 history
+  entries contain exactly five ordered transitions per step: INTENT,
+  UPDATE_PENDING, UPDATE_CONFIRMED, VALIDATION_CONFIRMED, VALIDATED. All four
+  updates have positive finite loss, finite positive aggregate gradient/update
+  norms, confirmed optimizer membership and absent original gradients. The
+  first update records 72 nonzero gradient/update tensors; each later update
+  records 144. Initial adapter hashes match step 0's before hashes, and every
+  after-hash map matches the next step's before map. The lifecycle reports four
+  confirmed/validated updates, one warm-up and three timed, with no unknown
+  attempt. There is no loss-decline acceptance criterion.
+
+- **Frozen originals:** the initial runtime snapshot covers 398 distinct
+  parameter objects, all BF16, totaling 4,022,468,096 parameters. Its complete
+  hash map equals the final recorded before and after maps. The accepted runtime
+  consumer checks every original parameter's identity, shape, dtype, absence of
+  gradient and exact bytes; its successful assertions are recorded. Per-step
+  receipts correctly distinguish identity/gradient checks from the final full
+  byte comparison. This audit reconciles recorded runtime checks; it does not
+  claim an independent second live-weight measurement.
+
+- **Standard adapter archive and reload:** independently concatenated the two
+  tracked parts in memory and verified each part's size/hash, full byte identity
+  with both local standard checkpoint copies, and identical configurations.
+  The adapter is 11,815,504 bytes, SHA-256
+  `8c9331c334031f38192e34ac3f07321aeab4eb35c7b9dd8755fbada65cc518d9`;
+  parts are 9,000,000 and 2,815,504 bytes. Its header contains 144 FP32 tensors:
+  72 of shape [8,2560], 36 of [4096,8], and 36 of [1024,8], totaling 2,949,120
+  parameters and 11,796,480 payload bytes. Hashed every tensor's payload slice:
+  all match the saved-state receipt and the canonicalized final optimizer-step
+  hashes. Runtime records exact named-adapter reload with no missing/unexpected
+  adapter keys, then explicit `roundtrip` inference activation and one no-gradient
+  FIT loss call with no optimizer update. Its positive finite loss is
+  1.6475712060928345. All 26 archived files are tracked and at most 10,000,000
+  bytes; the two oversized standard checkpoint files remain local and untracked.
+
+- **Cost, resources and exit:** recomputation yields outer elapsed
+  **125.124811046 seconds**, below 600. The outer interval starts before the
+  supervisor and ends after confirmed supervisor exit; it extends 0.066388641
+  seconds beyond inner finalization, covering the explicitly excluded final
+  publication/exit tail. Inner elapsed is 124.737407189 seconds, child exit is
+  before its working deadline, and neither layer reports a timeout. Recomputed
+  timed forward/backward/optimizer mean is **3.316989359 seconds**, maximum
+  **3.320252671 seconds**. These exclude diagnostic/receipt overhead; outer cost
+  includes it. All six stage records match the result and current-stage receipt;
+  grouped model setup/reload intervals are not isolated load/inference timings.
+  Host availability and swap are recorded at startup, after load, each step,
+  save, reload and exit. Recorded peak Torch allocation is **16,003,389,952
+  bytes** and peak reservation **17,655,922,688 bytes**. These are allocator
+  measurements on unified memory, not a separate NVML pool or total process
+  memory. Supervisor 145172 and model child 145391 have recorded zero exits;
+  the exact three owned PIDs, including observer 145170, are absent at audit,
+  and the run flag is absent. The raw child log contains model-loading progress,
+  with no recorded traceback or retry.
+
+### Scope and audit method
+
+The two prose reports accurately distinguish the complete measured process from
+timed core intervals and restrict their claims to mechanics. Their audit-pending
+status describes the pre-review snapshot; this round supplies the independent
+acceptance. No corrective result or code change is required.
+
+The four updates and final loss call repeat one FIT example. They establish that
+the registered longest-row workload can update the fresh adapter correctly,
+preserve the original trunk under the recorded checks, and round-trip a standard
+checkpoint within the measured local cost. They do not establish semantic
+generalization, coding utility, longer-sequence feasibility or a final training
+recipe. Later full training must start fresh; a full FIT run and fresh same-base
+versus adapter semantic comparison still require their separate registration.
+This review selects neither data nor hyperparameters for that later work.
+
+Only this canonical review was written. No training/inference rerun, model or
+base-weight load, CUDA context, new generation/evaluation, unchanged test rerun,
+network access, semantic authoring, code/spec/ledger edit or commit occurred.

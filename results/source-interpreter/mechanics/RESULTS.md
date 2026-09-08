@@ -68,3 +68,14 @@ FIT run and a fresh same-base-versus-adapter semantic experiment. That experimen
 must test new conversations; useful coding behavior and adequate larger
 executable proof remain separate, unestablished requirements. Automatic parity
 with useful manual prose remains a meaningful benefit.
+
+## Independent acceptance addendum — 2026-09-08
+
+Astra xhigh round4 accepted this exact recorded mechanics measurement at96/100
+with zero findings. The original audit-pending snapshot above is retained.
+Canonical review SHA-256:
+`36412129ba95db784c5849e1675459f6cf3d1dd609745001fa28a3efb1d2cde5`.
+The audit additionally reconciled every saved adapter tensor's bytes against
+its final optimizer-step hash and confirmed the exact owned PIDs were absent.
+Mechanics feasibility at the measured length is accepted; transfer and coding
+utility remain unproven. No rerun or additional model call occurred.
