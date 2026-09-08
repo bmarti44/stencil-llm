@@ -230,3 +230,166 @@ bounded correction, use the normal unchanged validator and reference/control
 preflight, then independently review the changed source and all consequences
 before bank acceptance. No validation bypass, private fallback, model-output
 rescue or weakening of the frozen predecessor verdicts follows from this review.
+
+## Round 2 — 96/100; corrected two-project DEV bank accepted
+
+2026-09-08. Same native Astra xhigh reviewer; bounded correction and consequences
+review. All six prior findings are resolved below. Zero open findings, including
+zero open high or critical findings. This accepts the corrected data for the
+registered narrow engineering pilot; it does not authorize launch or establish
+model usefulness, parity, reliability or universal source correctness.
+
+| Corrected input | SHA-256 |
+| --- | --- |
+| `author-00/patch-01/patched.json` | `1a5f91d4e0fac8ee467741bbcafd581a11a40e04ddcdb384b41a49e8d54617b0` |
+| Its `preflight.json` | `7214fa326552c9e7b42b0b649fd0eedef4c903b6ab382067d4cc32ccf0ca6dcf` |
+| Its `parent-verification.json` | `93789e0344f10e8c2ab00714f9a829e66e227741248ac03a3b326d540e2d3ddc` |
+| `author-01/patch-01/patched.json` | `9e866c8ada769e6371615d509000ff02fd3d3dc6056e64e73213183417ee1dc8` |
+| Its `preflight.json` | `dc9bd29442eb7f336c56ea3354ee32e842df037455f22a96ca7b46837fd1095a` |
+| Its `parent-verification.json` | `13871a35e08ff45f57b13160f1dafe5424ec3289423943e7eccb5c036285e502` |
+
+The design and data-contract bindings from round 1 remain applicable. Original
+authoring outputs and their failed preflights remain historical evidence.
+
+I independently reconstructed all 16 and 22 replacements from the original
+documents, checking each allowlisted path and exact old/new value hash, and
+reproduced both patched files byte-for-byte. The saved patch lists equal the
+JSON extracted from the two terminal raw Kimi responses. Their response hashes
+are `fea2455b714ac673400ef8d2e01ab175147eabd97c211f08db269147e100d6fc`
+and `cc32d9f2af358536e8e38fdde7e193974d501aa49c5a2115f2db443cc4fb9e25`.
+Original message IDs, roles, ordering, task handles and targets are preserved;
+initial checks are unchanged. I inspected the changed source/code/check content,
+not just the guard claims.
+
+### Finding closures
+
+**Finding 1 — high, resolved 2026-09-08.** Project 00 now keeps each repeated
+rule's scope, strength and text consistent. Separate function-scoped error-list
+identities represent grouping and summary behavior. The original duplicate and
+no-sort identities remain stable; the summary's genuine local best-attempt
+exception is represented separately. Static identity comparison and the normal
+preflight both pass.
+
+**Finding 2 — high, resolved 2026-09-08.** `rule-report-errors` is now scoped to
+`validate-batch` and cites `m04`. Grouping's own rule cites `m08`; summary's cites
+`m11`/`m12`. Recaps explicitly distinguish those feature contracts from the
+global JSON-safe error-handling direction and do not claim an earlier global
+error-list mandate. Project 00's authentic conversation and all three reference
+algorithms are unchanged. The summary exception does not authorize changing
+validation or grouping.
+
+**Finding 3 — high, resolved 2026-09-08.** Project 00 replaces the identified
+public rejection/error-reporting cases with valid nontrivial batches and retains
+rejection coverage privately. Public examples contain no resubmissions; their
+student ordering already agrees with the declined alphabetical proposal, and
+public averages do not distinguish one from two decimal places. Private cases
+retain the duplicate, ordering and rounding distinctions. Empty error fields in
+valid success objects are specified API shape, not evidence that an invalid
+element was reported according to an undisclosed policy.
+
+Project 01's source was actually redesigned, rather than merely deleting oracle
+IDs. The initial user explicitly establishes one shared unknown-key policy and
+assigns identifiers, success schemas and other exact behavior to each feature's
+fixed API description. Normalization still requires the same T01-style IDs and
+the same helper-based cleaning; manifest title cleaning is now explicitly stated
+in its task. Existing informative success cases remain. The public invalid-order
+case is replaced with a delegated fixed-helper rejection case. No public case
+contains an unknown key, a duplicate-handling choice, or an equal ordering key
+that reveals the scoped tie policy; supported valid order modes do not reveal
+whether additional modes are forbidden. The meaningful standing unknown-key,
+sequencer-stability, manifest retirement/replacement and closed-order constraints
+remain source-supported and privately tested.
+
+These distinctions concern the standing policies under study, not invariance
+to every possible incorrect algorithm. The fixed API behavior is still required
+and public checks legitimately test it. This is neither empty-case substitution
+nor an easier replacement project.
+
+**Finding 4 — high, resolved 2026-09-08.** The new source specifies the
+alphabetically first unknown key, independent of authored insertion order.
+The initial parser and each reference use explicit sorted-key iteration;
+matching oracle/recap/request clauses and expectations change consistently.
+Multi-unknown-key private witnesses cover both the top-level payload and nested
+track entries, and later features retain their own witnesses. The corrected
+normalization obligation control chooses the reverse sorted key, providing a
+discriminating failure while preserving stable functionality. This is a genuine
+deterministic policy change before exposure, not expected-value-only repair or
+consumer modification. All other reference computation is unchanged.
+
+**Finding 5 — medium, resolved 2026-09-08.** Project 00's functional control now
+processes every element and preserves every valid record and error report. Its
+single intended defect swaps valid/invalid counts. Named private discriminators
+are updated and fail in the saved preflight. Its incidental full-output
+obligation failures are consistent with the permitted functional-result overlap;
+the preserve-attempt and error-reporting policies themselves are retained.
+
+**Finding 6 — medium, resolved 2026-09-08.** New private `chk-r2f-04` in project
+00 puts Ada in two assignments and correctly expects three counted scores but
+two distinct class-wide students. New `chk-r2o-04` puts a score of 96 before a
+later 71 for the same student and requires the best-score average of 90.0 with
+the other student's 84. Project 01 adds `chk-r0-f7`: a duplicate pair precedes
+an invalid third entry, and validation's track-3 error must win. These directly
+address the recorded distinctions; no broad test expansion was imposed.
+
+### Current-scope projection boundary
+
+For these reviewed documents, the active entries with scope `global` or the
+current request's task handle provide a source-correct complete standing-focus
+reference, with the following explicit semantic interpretation. This conclusion
+comes from reading the source and dependencies; the enum filter alone does not
+prove it for arbitrary future data.
+
+- In project 00, global attempt preservation remains the default. At the
+  summary, the included task-specific best-attempt text is its explicit counting
+  exception; the two are not read as conflicting absolute demands. Earlier
+  validation/grouping behavior remains intact. Their separate error-list
+  descriptions may be omitted from the current projection because the current
+  feature's own propagation rule and required dependency supply that contract.
+  The retired two-decimal rule is absent in later rounds.
+- In project 01, current sequencing includes its own delegation and stable-tie
+  requirement; the future manifest plan is excluded. Current manifest focus
+  includes its replacement tie rule, equal-length stability, unchanged duration
+  ordering, delegation, global unknown-key policy and closed order vocabulary.
+  It need not restate every implementation detail of the normalizer or
+  sequencer, whose actual code remains a required dependency. The retired
+  shortest-first manifest rule is absent.
+- The projected objects contain some accurate task-API notes as well as
+  standing rules. They are not a mandatory phrase list or a requirement that
+  selector prose reproduce the whole algorithm. Fixed success fields, grouping
+  without an extra averages field, and other fully specified current API details
+  remain in the original request. Semantic completeness must be judged against
+  the accepted standing-focus domain. Optional input fields are conditional
+  required API behavior, not permission to choose arbitrary outputs.
+
+This projection supplies a valid offline capacity reference; it is not runtime
+oracle input, semantic inference by code, or a guarantee the selector will
+produce a complete accurate view. Keep the original source as authority and
+judge actual selector omissions, additions, modality and scope independently.
+
+### Verification and capacity
+
+I inspected the parent's terminal normal preflights: project 00 **212 checks in
+4.148007289 seconds, PASS**; project 01 **253 checks in 5.066790319 seconds,
+PASS**. Both bind the exact corrected data hashes, contain no reference failure,
+and validate all controls. All obligation controls preserve cumulative stable
+private functionality and fail no public check. I did not repeat these 465
+executions. Static checks reconfirm unique check IDs, visible source citations,
+stable rule identities and no public/private symbol-input collisions.
+
+Local token counts of compact, unescaped-Unicode, sorted-key argument JSON:
+
+| Project | Round | Global + current focus | Reference edit |
+| --- | ---: | ---: | ---: |
+| 00 | 0 | 189 | 170 |
+| 00 | 1 | 193 | 105 |
+| 00 | 2 | 261 | 334 |
+| 01 | 0 | 141 | 585 |
+| 01 | 1 | 222 | 323 |
+| 01 | 2 | 327 | 687 |
+
+The largest argument leaves 334 tokens within the 1,021-token final allowance,
+above the required 128. These are exact reference-serialization counts, not
+native prompt counts or bounds on future generated JSON. Final preview must
+bind the accepted files and settled implementation. Finite checks and this
+source audit do not guarantee correctness for every possible input; no model
+output exists here and no empirical workflow-success claim follows.

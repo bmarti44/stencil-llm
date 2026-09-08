@@ -2709,3 +2709,71 @@ no model/Docker/data/realpreview. Launcheridleforreview, exactpreviewcontract
 settled; finalcombinedAstrareviewwaitsruntimefix/dataaccepted/actualCPUpreview/
 resourcehashes. Archivecurrentrawcorrections/preflights/preliminaryreview now.
 Fullautomaticfocus/adequatelargerproofstillunproven; goalactive, no externalblocker.
+
+2026-09-08 — STATE: RUNTIME PROJECTION FIX STABLE; DATA REVIEW FINISHING.
+User status answered: Astra xhigh researched and reviews, Sol xhigh implements,
+Kimi K3 via Ollama authors data. No research impasse; final data and launch
+readiness review precede the first automatic pilot. No automatic utility claim.
+Root independently verified 117cc471 diff and runtime SHA
+4e11075af871ce8bad7d0d9e85005a407f6ebd422da29468e08271cf1f1770cb, test SHA
+51d24fde085f2fd466477a67c33b5192d4dbfd7704b05f18b58a6bcb356b9c9a.
+Sol reports actual-preview regression red first, then 10 runtime tests passed,
+Ruff and diff checks passed. Root did not duplicate the suite. Launcher hashes
+ba6de2ce and ed5d06da independently match its stable handoff. Astra notified
+of the exact fix for later closure in the combined readiness topic.
+Resource draft now distinguishes typed current-focus projection from independent
+source completeness, without requiring repetition of the whole task algorithm.
+Astra remains sole author of data-review-astra.md and is finishing correction
+round 2. Canonical reviewed inputs and final CPU preview await that acceptance.
+No model job is running; full goal and larger proof remain active.
+
+2026-09-08 — STATE: BOTH CORRECTED PROJECTS ACCEPTED96; CPU PREVIEW NEXT.
+Astra data round 2 accepted both exact corrected inputs, all six findings closed,
+zero open findings. Root read the complete closures and checked review SHA
+e287b5de9c44f1d26f78dd8ed92906a6dd44d72e31b818388b3e381e1998dbce.
+Copied exact accepted patched bytes mechanically to author-00/reviewed.json
+(1a5f91d4...) and author-01/reviewed.json (9e866c8a...), with exclusive creation
+and source/destination hash verification. No semantic rewriting or new model call.
+Fit-on none; DEV-on only these fresh Kimi projects; evaluated-on none. Original
+authored data, guarded corrections, raw responses and failed preflights remain.
+
+Root identified launcher integration mismatch: _expected_reference_body still
+uses all-active inventory and would reject the runtime's corrected current-scope
+preview. Assigned same Sol xhigh launcher author narrow typed projection alignment
+and actual-validator regression before final combined review. Runtime is stable.
+Next launch one owned CPU-only preview using the accepted canonical bank directory;
+redirect full stdout to preview.json, extract standalone preflight from that exact
+parsed receipt. No model/server calls. Final resource and combined readiness
+review follow stable preview and launcher handoff. No automatic GPU run yet.
+
+2026-09-08 — STATE: FINAL CPU PREVIEW PASS; COMBINED READINESS IN PROGRESS.
+Owned preview session1275 terminal exit0, no restart or model calls. Exact
+canonical inputs bind reviewed accepted bytes. Preview PASS in8.343103286s;
+nested preflight PASS465checks8.286304592s. Extracted standalone preflight from
+that same parsed preview, with exclusive creation. Preview SHA86fbc268dfc44fc21f741c7cdc6200d5d1d8147112c10aa1072a48048ff977de;
+preflight SHA7df5934ac42445a02f3d1549ba54dcf1d83c4dc09925ce1308cb411ca41547f4.
+Current reference focus counts00:189/193/261,01:141/222/327; edits00:170/105/334,
+01:585/323/687. Minimum final argument spare334 exceeds128. Local cold request
+serialization plus2048reserve ranges2942..4433; not native prompt measurements
+or future history proof. Live sandbox maximum262; full18call denominator retained.
+Resource draft updated with exact evidence and unchanged3000s/combined3516.914703s
+ceiling. Same Astra now owns only combined review-astra.md; stable runtime delta
+can be reviewed while Sol aligns the launcher reference validator. Final launcher
+handoff then combined readiness, clean tracked freeze, and exclusivity before
+one run-01 launch. No automatic utility or larger proof established.
+
+2026-09-08 — STATE: LAUNCHER ALIGNED; FINAL COMBINED ASTRA REVIEW ACTIVE.
+Sol xhigh completed037703d8: launcherSHA0c66ad012f00dd67f3f4e6b9acd3393b172042c29f1794f793a366b073698eb6;
+testSHAc7632cd8a5fcb6771c37916167ea2930196a9b55f257b74edd892af076c2b6a0.
+Root rehashed and inspected exact scoped-reference delta. Sol actual-validator
+regression failed before fix, then8tests0.12s/Ruff/help/dry-run passed. Root called
+actual validate_artifacts and validate_smoke_evidence on stable real receipts: PASS,
+minimum reference spare334, six scheduled requests, max18calls, combined reservation
+3516.914703271992s. No reference rerun, model or server call. Preliminary Docker
+and GPU compute queries are empty; final launcher repeats exclusivity checks.
+Resource final SHAed9ce78cd73557b41eee7bee7636748f41147909ccd49aa70eba15703591b300.
+All final sources/data/preview/resource are stable and handed to same Astra for
+combined readiness; sole reviewer writable path review-astra.md. Runtime finding1
+already closed in component round2 at96, combined launch decision still pending.
+Archive accepted data/CPU/resource now with explicit paths; leave moving combined
+review for its final handoff. Do not launch until accepted and clean tracked freeze.
