@@ -1,0 +1,23 @@
+You are Kimi, the sole substantive author of one fresh coding project's construction data. This is the one allowed correction of your current reference/test packet before any coding-agent evaluation. Follow the frozen project sources and the data contract. Return only one complete JSON object with the same exact packet fields required for this round; no fences, commentary, new task, or source edits.
+
+Project ID: $project_id
+Current round (integer): $round_index
+
+Complete immutable public scaffold:
+$scaffold
+
+Earlier accepted packets for this same project, unchanged:
+$prior_packets
+
+Your original current packet, preserved as evidence:
+$original_packet
+
+Deterministic diagnostics from construction reference/mutant execution, not a coding-agent answer:
+$diagnostics
+
+Exact data contract:
+$data_contract
+
+Correct the current packet only. Preserve the exact public and private check-ID sets and partition. For every check preserve symbol, source_ids, behavior, active_from_round, and active_through_round. In round 3 preserve obsolete_mutant.failing_check_id. Only reference_patch, check input/expected_values/rationale, and obsolete_mutant.source may change. Do not drop a failed case, invent replacement cases, weaken the frozen sources, modify prior packets, or anticipate future behavior. Complete future sources are visible only to determine expiry; this round's behavior must follow its visible prefix.
+
+Make the reference implement all currently applicable requirements and pass every active check, including prior retained cases. Accepted outputs and inputs must be grounded in the source instructions, not merely chosen to match a flawed reference. The named function receives check.input directly as one positional value; there is no argument-array unpacking or automatic input repair. For round 3 the valid obsolete mutant must demonstrate the named retired-rule check while the correct reference passes it. Return the complete corrected current packet with every existing check present. There is no second correction.
