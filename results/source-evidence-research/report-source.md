@@ -53,9 +53,10 @@ guarantee.** LongMemEval generally finds that replacing original conversational
 rounds with facts/summaries loses QA performance, with multi-session reasoning
 an explicit exception. Its automatic pipeline sorts retrieved items by timestamp;
 round/session retrieval keys keep user-side text, and indexing uses model-generated
-facts with a 1.5B dense retriever. Original-round GPT-4o top-10 QA improves from
-67.0% to 72.0% when fact text augments the index keys; recall rises from 69.2%
-to 78.4%. The 8B reader deteriorates beyond roughly 3,000 retrieved tokens;
+facts with a 1.5B dense retriever. Main Table 3 reports original-round GPT-4o
+top-10 QA improving from 67.0% to 72.0% when fact text augments the index keys.
+Its recall change conflicts with Appendix Table 9 and is not used as evidence
+here. The 8B reader deteriorates beyond roughly 3,000 retrieved tokens;
 this cannot set our local allowance. The 500-question study measures memory QA,
 including updates, rather than coding, adoption or permission authority. Neither
 chronological order nor role preservation has an isolated causal result here.

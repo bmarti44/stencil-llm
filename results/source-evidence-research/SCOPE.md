@@ -28,7 +28,7 @@ covers repeated source exposure, instruction following and downstream utility.
 one focused follow-up wave. Distinguish QA, coding, authority/temporal semantics.
 3. COMPLETE: choose or reject one minimal hypothesis, with fresh quick-check
 outcomes, cost limits and stop condition. No launch authorization is implied.
-4. IN PROGRESS: produce and verify a concise repository Markdown report with primary
+4. COMPLETE: produce and verify a concise repository Markdown report with primary
 links, limitations and claim/source ledger. No external publication.
 
 Stop discovery when the plausible benefit, major counterevidence, local
@@ -46,3 +46,10 @@ PaLM2 plus negative GPT3.5 transfer. No broad discovery remains necessary.
 The evidence supports only a bounded prospective utility hypothesis, not an
 expected win or new inference-engine implementation. Await the compact agent
 records before synthesis; original-source retrieval is not proven superior.
+
+Research closed: independent Astra xhigh review96/100, no open findings. The
+only source-table inconsistency was independently verified and removed from
+the evidence used. Final synthesis SHA
+a7e7cb46c51734ad3600fbad78714fe2c02aa62b8a592bf9ee94b979ec7ae220.
+This status-only update follows the scope bytes checked by that review; no
+research question, exclusion, experiment setting or authorization changed.
