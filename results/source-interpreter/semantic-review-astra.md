@@ -1023,3 +1023,139 @@ Only this canonical review was written. No model/GPU execution, training,
 generation, re-preparation, new data, network operation, old-bank/FIT-target
 access, private-map access, unchanged full suite, code edit or commit was
 performed. Execution acceptance supplies no broader coding-utility proof.
+
+## Round 9 — 2026-09-08 — final reporting and registered stop
+
+Score: 96/100
+
+Decision: **final report and stop disposition accepted; zero open
+high/critical reporting findings. The semantic screen is INELIGIBLE.** The
+reference defect remains in the archived bank. This review does not repair it,
+reclassify the bank as valid, score a reduced bank, or authorize advancement.
+Prior implementation/execution closures and the #6/#10 qualifications remain
+preserved. The present candidate stops without a primary inference or practical
+screen score; larger coding utility and the project goal remain unproven.
+
+Reviewed the stable terminal adjudication/report at `5c644a66`, the frozen
+original judgments at `a951212e`, the final record check, relevant actual source
+evidence, and the new README Project status paragraph. During this round root
+prepended a current-status banner to RESULTS and labeled the earlier narrative
+as historical. I verified that the entire preceding `5c644a66` report remains
+byte-for-byte intact below that banner. This removes the misleading entry-point
+impression that judging is still pending, without altering the historical record.
+Exact reviewed hashes:
+
+| Artifact | SHA256 |
+| --- | --- |
+| `semantic/RESULTS.md`, with current-status banner | `f7e5ecae2adba9c7a93f070a4ab330bd11d4af9c7475b5aa09988be35f97692c` |
+| Original `semantic/assessment-astra.json` | `4cd37fcac61634e1ac73e1b3b930c26b28b99b09945c5426e21b31e47d434f06` |
+| Separate `semantic/assessment-astra-adjudication.json` | `d71b14dea823516ff2e26b8c139b164ab7e0c46e61db34fa455fd55ed556ce50` |
+| `semantic/assessment-final-check.json` | `a35a9d4e984f7965a9a75c9d4380b27642da25c31e41b38ec3aeb610800862dd` |
+| `semantic/judgment-archive.json` | `615ba69beb7cc19130656ebaf279849b827a88e6ea59de5380b973c66f432145` |
+| `semantic/kimi-assessment/judgment-job.json` | `c30c5863d784163f32e631f07c003e072e970e02da0e54df50304a53ad66c59e` |
+| `README.md` | `c441e9f10de45035d294f1db2e9f5f6c031d9e4fc178123bfb4193fc07705162` |
+
+### Escaped reference defect and eligibility
+
+I independently read the complete radio source and accepted final-query target.
+The source is clear: m13 permits the public comments inbox for Midday
+substitution-announcement confirmation, prohibits quoting commenter names, and
+requires ignoring an entire comment that mentions donor status. The subsequent
+m15/m17 changes concern ambiguity and thank-you treatment; neither retires that
+permission. At m19, reconciliation explicitly revisits the two prior queues
+under current rules. The Midday-scoped permission therefore remains relevant to
+that queue, without extending to the new weekend show.
+
+The final reference instead says the archive is the only additional permitted
+source and confines both earlier queues to standard legitimate sources. Those
+clauses exclude the surviving Midday permission. This is a material scope and
+completeness error, not a requirement to copy the reference's wording or a new
+interpretation invented to repair model performance.
+
+**This error escaped this reviewer's earlier source/label acceptance.** The
+Round 4 acceptance failed to detect the final reference's exclusion and cannot
+support an eligible semantic inference now. The earlier reports and specific
+correction closures remain historical evidence; they do not override the
+source or the discovered defect. Code, preparation and execution checks may
+remain correct while the reference bank is invalid for the registered claim.
+
+The final adjudicator's INELIGIBLE decision and root's stop follow the accepted
+SEMANTIC eligibility rule. The whole screen is disqualified; neither primary
+sign inference nor the 12/18 plus one-per-family practical screen is computed.
+No reference edit, checkpoint exclusion, repaired-label evaluation, reduced-bank
+score, model retry or control promotion is used. Valid execution and descriptive
+structural/cost observations remain reportable. This is not a null finding
+about whether training can work, nor evidence of equivalence or coding benefit.
+
+### Original judgments, separate adjudication and costs
+
+All 31 Kimi archive files are tracked and match their inventory sizes/hashes and
+exact `a951212e` Git blobs. Astra's original 36-record file matches its frozen
+hash and historical bytes. For each of Kimi's six responses I reconciled the
+request, raw response, response-text and parsed-original hashes. Plain JSON
+parsing, or removal of exactly one recorded outer JSON Markdown fence, produces
+the preserved original object with no semantic or enum edits. Each request
+contains its frozen blinded packet; no retry or extra judgment request occurred.
+
+Kimi returned all 36 response records, but the original
+`a471514d1ca0d52c94acb97b` stale/reinstatement field literally contains
+`PRESENT_CHECKED_ABSENT`, outside the registered enum. It remains unchanged and
+UNKNOWN as an original judgment. The terminal delivery status is correctly
+JUDGMENT_DELIVERY_INCOMPLETE, with session 68274 exit 2 and owned PID 195862
+absent. Terminal assessment work does not mean every original vote is valid.
+
+Monotonic endpoint subtraction reproduces Kimi's **719.241566905 seconds**.
+The six raw service receipts total **116,456 prompt plus 114,371 generated
+service tokens**, **230,827** combined; reconstructed request intervals have
+maximum concurrency two. These are service-reported judgment tokens and the
+batch's outer interval, not target-model generation cost or total reviewer and
+orchestration cost. The earlier measured execution costs remain separately
+preserved and unchanged.
+
+Without reading the private response map, independent multiset comparisons
+match all 36 blinded packets to the exact frozen source prefixes, reference
+objects, returned answer text and structural facts. All 72 original structural
+judgments and cited-source visibility checks reconcile. The single invalid
+Kimi enum is the sole category-schema exception and remains explicitly exposed.
+These are identity/structure checks, not a replacement semantic scorer.
+
+All thirteen disputed IDs occur exactly once in the separate adjudication file.
+Its recorded original field values match the immutable Astra/Kimi originals;
+its final fields match the stated dispositions, with valid category enums and
+cited IDs visible in the corresponding source prefix. It changes no original
+record. Three disputed answers originally marked FAIL by both judges receive
+separate PASS adjudications. Reading their complete returned answers confirms
+the stated methodological basis: explicit retirement, replacement or suspension
+qualifies earlier quoted clauses. Considering that complete wording is allowed
+by the frozen semantic rubric; requiring an additional historical label on each
+old clause would introduce a stricter format rule. These separate descriptive
+adjudications are not a repaired-bank score or a practical-gate result.
+
+The disclosed firmware ambiguity is also accurately reported: source m17 says
+to leave frost-watch only above 4 degrees Celsius, whereas the answer's
+“4 degrees Celsius hysteresis” does not uniquely specify that release boundary.
+The adjudication retains the ambiguity and FAIL for that answer. Its separate
+source judgment of the invalid Kimi field does not normalize or supply a valid
+original Kimi vote. No further answer or label adjudication was performed by
+this closing audit, and no aggregate semantic arm score was computed.
+
+### Reporting closure
+
+RESULTS now leads with the final INELIGIBLE status and clearly distinguishes
+the intact historical execution report from terminal addenda. README accurately
+says the 36-response comparison completed but an expected-answer defect prevents
+advancement or a training-benefit claim. Both preserve the larger coding goal
+as unproven and state that no successor model trial has launched. This audit
+does not assess or endorse the separate source-evidence research hypothesis.
+
+The generation and reference manifest hashes remain the exact Round 7 values.
+All original votes, disputed-vote records, source evidence and separate final
+adjudications are retained. The final check explicitly records no primary test,
+practical score, reference repair or model rerun. There is no remaining
+reporting correction or protocol cycle required for this stopped screen.
+
+Only this canonical review was written. Work was read-only CPU/metadata/source
+inspection: no code or label edit, model/weight/GPU operation, generation,
+re-preparation, rescoring, old-bank/benchmark access, private-map access,
+network operation, repeated test suite or commit. The bank remains invalid;
+acceptance here is acceptance of truthful reporting and the registered stop.
