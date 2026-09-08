@@ -2355,3 +2355,36 @@ framework. Same Astra reviewer informed. Sol now has driver and launcher written
 focused consumer tests remain. Observed code-before-test-file sequencing differs
 from brief's tests-first request; asked Sol to disclose it honestly, not recreate
 a claimed TDD history. No frozen previous files were changed or model calls made.
+
+2026-09-08 — STATE: THINKING SMOKE IMPLEMENTED; STABLE READINESS REVIEW NEXT.
+Previous goal turn made progress with native whitespace correction and concrete
+implementation files. Sol native xhigh handoff commit181cdf70995affc1b0361d6bb1ac7b85c32b1259:
+driver aa40011d5459e7e19455fe5baf828473cf65e478c64cc86a068ea366c1056746;
+driver tests e15a522d07043d8ecc4c820b3a8addb6a90ba1895c2ac1f4ebec573e990f6456;
+launcher 5fff5f12750bf30c3b16b3a20d66f6134b66810d41d5b66e24b2ce04d9b83650;
+launcher tests a2b008f56ee00f94007d67398dae5ac608a3e431742d06be5ce18445b99277e7.
+Sol20tests1.68s+Ruff, bothhelp, preview anddryrun PASS; code-before-tests deviation
+disclosed, no claimed TDD history. No wrapper log/session: nativecoding_focus_impl.
+
+Root reverified allfourhashes and generated canonical preview (CPUexit0,0calls),
+SHAd979623276e11f29dbb8d822f4dfee3d441b155e07f540ee9988522c5083e0fc.
+Cold353serializedJSONtokens/2401withoutput, notnativeprompt tokens;14code/tokenizer
+bindings. Updated resourceplan with exactpreview and honest later-context limit.
+Resume same Astra competence_readiness_review for complete scored readiness of
+stable code/tests/brief/resource/preview. Parent remains final acceptance and
+execution authority, no brittle review-prose authorization parser. No model run
+started; all run-01 semantics remain frozen NO-GO, fullfocusgoal remains active.
+
+2026-09-08 — STATE: SMOKE READINESS FOUND EXISTING-RUN PRESERVATION DEFECT; FIX ACTIVE.
+Astra independently20tests1.84s+Ruff PASS, verified overbudget/duplicate/prefix
+controls already present (root initial coverage concern refuted by exact tests).
+Confirmed medium finding1: existing run-dir mkdir failure then handler overwrites
+that directory's lifecycle.json. Root reproduced through actual main using only
+temporary files and mocked preparation/registration/lifecycle: oldbytes lost,
+statusINCOMPLETE_BEFORE_SERVER, lifecyclecalls0, newlycreatedflagcleaned. No real
+experiment files were touched. Sol xhigh narrow repair assigned only launcher
+and launcher tests: receipts written only in invocation-created directory, retain
+existing bytes, regression on actual main, no new lifecycle framework. Runtime
+remains stable. Astra finishes other baseline review and waits stabledelta.
+Original preview/resourceplan preserved as preview-r1.json/RESOURCE-PLAN-r1.md
+before refreshing against future fixed hashes. No model job launched.
