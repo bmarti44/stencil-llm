@@ -172,3 +172,10 @@ This shows basic extraction on two exposed cold messages and supports a small se
 The newly authored Kimi2x8 prose-memory trial at3ff88b8f completed16calls with no transport/cap errors. Rust notes explicitly relabeled global rules as task-specific, defeating registered error-free maintenance despite correct later edition replacement/restoration. Independent Astra audited exact source pins, wire receipts and own-note chains. [Result and semantic audit](quick-checks/prose-maintenance-01/RESULTS.md) preserve the full evidence.12,283tokens;90.13sdriver;546.21/900sreservation, owned container removed.
 
 This is the third full-maintenance failure. Park the small single-updater recipe line and do not repeat a cosmetic prompt repair. Research may identify a substantially different hypothesis; no new inference or worker run is underway. Automatic parity with good manual prose is still valuable and remains unproven, as do coding competence and larger clean validation. KimiK3/Ollama data, Solxhigh implementations, Astraxhigh reviews remain the requested roles.
+
+
+## 2026-09-07 continuation: source-only reader also fails
+
+Independent Astra accepted a distinct disposable request-time reader instead of a four-call note ablation. Sol implemented48independent GLOBAL/task queries from natural original history, no generated feedback, with all48requests previewed and frozen atd9a5c918. [Run result](quick-checks/source-reader-01/RESULTS.md): every answer says no active obligations despite explicit active rules; Astra confirms0/48views,0/16turns,0/2trajectories. Exact requests/preview/source prefixes/receipts and cleanup pass.29,565tokens,21.786sdriver,541.356/2700sreservation, owned container removed.
+
+Park this fixed reader recipe as prospectively required; the three failed recurrent-updater recipes stay parked. No prompt rescue or rerun. Bounded research is assessing materially different split extraction/reconciliation, a dedicated trained interpreter, and direct rule-selection-before-code approaches. No successor inference or training is underway. Automatic useful focus and larger clean executable proof remain unestablished.

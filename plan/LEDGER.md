@@ -1603,3 +1603,32 @@ python3 /home/bmarti44/stencil-llm/tools/run_maintenance_dev.py --mode
 source-reader --run-dir /home/bmarti44/stencil-llm/results/quick-checks/
 source-reader-01 --execute.48calls2700total/600startup/60cleanup,1024cap.
 Nooutputfeedback/retries/gold; independentresultaudit afterterminalcleanup.
+
+2026-09-07 — STATE: SOURCE48 RUNNING; PINd9a5c918.
+Liveunifiedsession96569; run results/quick-checks/source-reader-01.
+Resume samehandle, neverrestart on observationtimeout.48calls/2700total,
+600startup/60cleanup. Astra /root/prose_data_review source-only until
+parentterminalcleanupnotice, thenfull48meaning/evidence/integrityaudit.
+No priorgeneratednotes orfutureoutputs enteranyprompt. No worker.
+
+2026-09-07 — STATE: SOURCE48 TERMINAL/FAIL; RESULT AUDIT IN PROGRESS.
+Session96569 terminal0; owncontainer removed;541.356/2700seconds,
+21.786sdriver,48HTTPcalls/0errors;29277prompt+288completion=29565tokens.
+Parentall48outputs exact'No active standing obligations.' on positiveviews:
+0/48views,0/2trajectories pending independentAstra semantic/integrityaudit.
+Park fixedreader asregistered, norepair/retry; earlierrecurrentline staysparked.
+Research /root/research_qwen_protocol assesses splitextraction/reconciliation
+versusdedicatednew-data-trainedinterpreter, no code/inference. Fullgoalactive.
+
+2026-09-07 — STATE: SOURCE48 AUDITED FAIL; ASTRA XHIGH RESEARCH RESET.
+Independent Astra final confirms0/48views,0/16turns,0/2trajectories;
+all48exactemptyoutputs on activeviews, noambiguity.14pins/wire/preview/
+sourceprefixes/no-feedback/cost/cleanup pass. Priorclaimaddendum preserved.
+UseraskswhetherresearchisAstraxhigh andwhetherstuck. Parentdiscloses:
+reviewAstraxhigh verified; reusedresearchagentmodelnotverified; mechanism
+stuck, infrastructurefunctional. Explicitspawn /root/astra_research_reset
+modelgpt-6-astra effortxhigh, fork_none, primarywebresearch only.
+Earlierresearch report ranks actualcodingprefixselfcue, splitsemanticupdate,
+thennew-data-trainedinterpreter; explicitlyAstraresearch nowindependentassess.
+No inference/training/implementation underway; no recipeunparked. Archive
+source48+audit+initialresearch now; fullgoal remainsactive/unproved.
