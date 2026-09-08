@@ -34,8 +34,8 @@ Research has selected a small test of automatically recalling original instructi
 messages for the coding agent. The implementation passed independent review and
 50 targeted software tests. Its first local technical trial completed both model
 calls and shut down cleanly in about 7 minutes 20 seconds; the generated patch
-passed all three mechanical fixture checks. Result review is pending. This
-qualifies the interface, not coding utility. The four-project comparison and
+passed all three mechanical fixture checks. Independent result review accepted
+the technical qualification at 96/100. This qualifies the interface, not coding utility. The four-project comparison and
 larger fresh proof remain ahead. See [technical results](results/source-replay/QUALIFICATION-RESULTS.md)
 and resume from the latest STATE entry in [the project ledger](plan/LEDGER.md).
 

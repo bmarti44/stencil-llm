@@ -61,3 +61,12 @@ f9a082a7d80222165b781ecd139910c628578a51bcbeb3a491136b0fb57ae165
 archived in commit260bbca0 (also present in launch commit6ec12be8). Later review
 rounds are append-only; the historical launch review is recoverable from those
 commits and is not silently replaced in the frozen run.
+
+## Reporting precision addendum (2026-09-08, independent Round5 audit)
+
+The table's "Driver execution" value, 3.725712025 seconds, is specifically the
+driver manifest's internal start-to-end interval. The driver-exit receipt records
+3.812367201 seconds of process wall lifetime. Both exclude server startup and
+subsequent cleanup. The whole lifecycle/publication totals above remain unchanged.
+The original table is preserved; this clarification narrows the interval label
+without changing the result or eligibility.

@@ -53,8 +53,8 @@ Data and actual CPU preflight:
   Short fixture generation speed is never substituted. Report all costs.
 
 Runtime and schedule:
-- Four independent arm workspaces per project are NOT required: exactly three
-  H/S/R states per project, each initialized once from the same initial module.
+- Maintain exactly three H/S/R states per project, each initialized once from
+  the same initial module.
   Preserve each arm's actual module/history thereafter, including failed edits.
 - Project/round arrays use zero-based enumeration for rotation only:
   offset=(project_zero_index+round_zero_index)%3; rotate [H,S,R] left by offset.
