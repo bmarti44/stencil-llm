@@ -2661,3 +2661,51 @@ stillinprogress. Originalauthoringsession70405 andpreflight3413 areterminal and
 mustnotbepolled/restarted. SameAstra nextresumes datareviewoncorrectedstablebytes.
 BothSolnewruntime/launcherunitscontinue; source/testfiles aremoving and rootdoes
 notruntheirtests orclaimstable. No workerGPUjob/newbudget; fullgoalremainsactive.
+
+2026-09-08 — STATE: AUTOMATIC RUNTIME STABLE; COMBINED CODE REVIEW STARTED.
+Previousgoalturn madeprogress: guardedKimi correctionrequests committed/launched,
+clientaccepted96archived16e82a14. Currentturn re-readledger/tree andconfirmed
+exact20465correctionstilllive; no restart. BothSolhandles revalidatedrunning.
+Runtimeauthor finished7e75f057: scriptSHA758b99d48e7c3e8f8d817b32a1c4e97b0b348b710e07ef2588fa291266e8974f;
+testSHA86fb4e7ce04b61da3f712690707ad3e657728b7e70186410936fed4ed5590843,
+rootrehashed. Sol9targetedtests19.19s/Ruff/diffcheck; syntheticconsumer+sandboxonly,
+no realbank/model/servercalls. Unicodevisibility andtwoinputerrorreceipt fixes
+were completedbeforefinaltest/commit. Runtimeisstable; authoridleforreviewfixes.
+
+SameAstra beginscombinedreview-astra.md topic onstable runtime+acceptedclient,
+withlauncher/data/previewreadinesspending. Do notreadmovinglauncheruntilhandoff.
+Root spottedpreview_reference_arguments serializes allactiveoraclerules rather
+than currenttaskprojection; sentexactlocationasreviewquestion, no rootedit or
+severitynegotiation. This ispreviewmeaning/capacity, notliveoracleleakage.
+LauncherSol reports6lifecycle tests/Ruffgreenandfinishesstrictsyntheticartifact
+validators; no blocker. Combinedfinalreadiness stillawaits stablelauncher/data/
+CPUpreview/resourcebindings. Fullautomaticutility/parity/largerproof unproven.
+
+2026-09-08 — STATE: CORRECTED DATA FINITE PASS; DATA DELTA AND RUNTIME FIX ACTIVE.
+ExactKimi correction20465 terminalexit0, no restart, bothPATCHED_UNREVIEWED.
+00:16replacements/450.764878988s, patchSHA1a5f91d4e0fac8ee467741bbcafd581a11a40e04ddcdb384b41a49e8d54617b0;
+01:22replacements/553.481115341s, patchSHA9e866c8ada769e6371615d509000ff02fd3d3dc6056e64e73213183417ee1dc8.
+Root independently parsedrawresponses/reconstructedexactguardedpatches, verified
+allold/new/request/response/filehashes andoriginalmessageIDs/roles/order/targets,
+initialfunctionnames/signatures/stubs andinitialchecks. Parentverificationrecords
+explicitlynotsemanticacceptance. Alloriginalrawdataretained.
+
+OwnednormalCPUpreflight8037/15600bothterminalexit0:00PASS212checks4.148007289s;
+01PASS253checks5.066790319s, total465, zeroerrors. ParentPIDsregisteredbeforeexec,
+largeCLIJSONpreserved inperprojectpreflight.log ratherthanfloodingtooloutput.
+Astra nowresumescanonicaldata-review round2 oncorrectedbytes/semanticconsequences;
+finitePASSdoesnotcloseauthority/publicinvariancefindings. No workerexposureyet.
+
+RuntimepreliminaryAstra94, independent9tests20.25s/Ruff; soleMEDIUMfinding1:
+all-activeoracleinventory incorrectlyusedascurrentreference. ReviewSHA5458647167592a0ba00cbdf50aea73a79284014215ef94b187dfd4db167666b0.
+RootconfirmedandassignedSolnarrowtypedglobal/current-task projection +realpreview
+regression(redfirst), no changesliveselector/worker/gates/calls. Completecurrent
+sourcecoverage remainsindependentdatareview duty, notprovenbythetypedfilter.
+
+Launchercompleted4a5a451d20542c9dc4fa82316c34ef7e7031a5a1, sourceSHAba6de2cea075bd5264e3f52f48cdc72bc57a8f2665a48ad0ce61183c28ad83f4;
+testSHAed5d06dab46759594f2fb3361ebeebcadcff6a9c3d9b862011ed028d8f342e9e.
+Sol8tests0.11s/Ruffcheck+format/pycompile/diffcheck/absolutehelp+dryrunPASS,
+no model/Docker/data/realpreview. Launcheridleforreview, exactpreviewcontract
+settled; finalcombinedAstrareviewwaitsruntimefix/dataaccepted/actualCPUpreview/
+resourcehashes. Archivecurrentrawcorrections/preflights/preliminaryreview now.
+Fullautomaticfocus/adequatelargerproofstillunproven; goalactive, no externalblocker.
