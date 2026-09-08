@@ -2638,3 +2638,26 @@ applies Kimi values through unchangedguardedhelper, thennormalCPUpreflight and
 sameAstra fullconsequencedelta. Commitrequests/report/planbeforecalls. Newowned
 correctionjob willregisterPIDimmediately, callindices0/1 concurrently andpreserve
 rawreceipts/sessionto terminal. No localGPUworkerlaunch ornewbudget.
+
+Kimi correctionrequests/report/plan frozenb5ec3be2; exactnewsession20465live,
+launch/PIDreceiptwrittenbeforeHTTP. No observedtimeoutrestart. Re-pollsamehandle
+toterminalandverifyguardedapplicationexactlybeforeCPUpreflight. Astra nowcloses
+onlyclientlowfinding1 whilecorrectorsrun, thenresumes datareviewonstableoutputs.
+Launcher/drivercontract: canonicalpreflight.json equals parsedpreview['preflight']
+object fromonepreviewexecution, notsecondpreflightrun; bindbothbytehashes separately.
+No need newaggregationartifact orduplicateCPUjob. Allruntime/launchwork stillCPU,
+fullgoalandlargerproofremainactive/unproven.
+
+2026-09-08 — STATE: SHARED CLIENT ACCEPTED96; KIMI CORRECTIONS LIVE.
+Astra clientround2 closesonlyloworphanNonefinding1. Independentactualpayload
+regression1pass/15deselected0.02s plusRuff; priorfull15testaudit retained, Sol's
+16test0.21srun separatelyattributed. Source79beddd2 andtest1c9cf384 bindingsverified;
+finalreviewSHA1077006c3390ce85991e77716d28c1beb345a14be060f7a49f6d6daae6646d86.
+Archivefinalclientreviewwithout touchingrawpriorreporthistory. No openclientfindings.
+This isclientacceptanceonly, notpilotlaunch orautomaticutilityproof.
+
+CurrentKimi correctionPID87087/session20465, ownedbeforeHTTP, bothpatchrequests
+stillinprogress. Originalauthoringsession70405 andpreflight3413 areterminal and
+mustnotbepolled/restarted. SameAstra nextresumes datareviewoncorrectedstablebytes.
+BothSolnewruntime/launcherunitscontinue; source/testfiles aremoving and rootdoes
+notruntheirtests orclaimstable. No workerGPUjob/newbudget; fullgoalremainsactive.

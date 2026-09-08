@@ -116,3 +116,31 @@ Final runtime review must verify callers use this payload path, keep selector
 calls cold, preserve actual worker tool continuity, enforce the public/private
 boundary and stop/account for failures. None of the client validation establishes
 reminder usefulness, semantic competence, automatic parity or the larger goal.
+
+## Round 2 — 96/100; client accepted, zero open findings
+
+2026-09-08. Narrow finding-1 delta only, commit `59f19d67`. Final source SHA-256:
+`79beddd2d8aa50f637895c071ad5d46b791efd7cf6b1fefbd8d1de17c33263d7`.
+Final test SHA-256:
+`1c9cf384780f8a66cb9b66ad3cfacb7d9af2343f02733d93093bdf63704a22c4`.
+Round 1's brief, design and reused dependency bindings remain applicable; its
+earlier implementation bindings and findings remain historical evidence.
+
+**Finding 1 — low, resolved 2026-09-08.** The tool-result branch now rejects
+`pending_id is None` before comparing fields. A null tool ID therefore cannot
+match the absent-call sentinel. The added regression exercises the public
+`payload` path with an orphan null-ID `record_focus` result, expects the local
+validation failure and asserts zero HTTP calls. The shared branch covers both
+supported named tools. Inspection of the two-file delta found no other behavior
+change.
+
+Independent delta validation:
+`.venv/bin/pytest -q tests/test_native_reasoning_tool.py -k orphan` — **1 passed,
+15 deselected in 0.02 seconds**; Ruff on both files — **PASS**. The earlier full
+targeted suite remains recorded in round 1; the parent/coder's reported 16-test
+run was not represented as an additional independent full-suite run here.
+
+Zero open findings, including zero open high or critical findings. Acceptance
+covers this stable shared client only. Data correction, moving runtime and final
+launch readiness remain outside this delta. No model, data or server calls,
+generated-code execution, or edits outside this review file were performed.
