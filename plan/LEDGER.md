@@ -2490,3 +2490,28 @@ prospective feasibility proposal, not an accepted registration or scale result.
 Fresh Kimi data, manual reminder recipe, explicit utility gate and independent
 readiness/resource review remain necessary before inference. No research impasse.
 Full generalized automatic-focus goal remains active and unproven.
+
+2026-09-08 — STATE: DIRECT AUTOMATIC PILOT DRAFT; SHARED CLIENT IMPLEMENTATION.
+Previous goal turn made progress: audited technical result finalized and all20
+artifact/ledger paths archived and verified tracked at905abb93. Current tree
+rechecked; no inference job live. Astra bounded assessment says M-only nexttest
+is optional and risks detour; N2 can establish one usable workflow only, never
+parity/reliability. Root adopts direct automatic pilot preparation:6source-grounded
+selection calls plus up to12worker edits, same maximum18generations/3000s draft
+reservation. Native reasoning differs from parked nonthinking reader/self-cue;
+no training, replay or changed old verdict. Fullgoal remains active.
+DESIGN.md freezes nothing yet; independent design review next. Sol xhigh gets
+CLIENT-BRIEF.md allowlisting only new shared native reasoning client andtests,
+CPU fixtures only. This useful reversible implementation is independent of the
+final pilot gate/data approval; no wrapper or inference launch. Existing loaders
+accept1or4; load2freshsingleprojectfiles separately and check unionIDs.
+
+Fresh two-project authoring is independent of final inference design acceptance.
+Kimi K3 via local Ollama will receive only the reused per-document schema and
+new classroom/audio theme seeds; no old examples, failures or responses. Explicit
+new lineage in authoring-plan, schema literal preserved for unchanged loader.
+Freeze exact two request bodies/contract/helper hash before calls. Reuse unchanged
+main-guarded authoring helper with only its output BASE redirected in the caller;
+call one(0),one(1) concurrently, preserving original raw bodies/receipts. No
+semantic edit or GPU worker launch. Register caller PID immediately; retain exact
+session through terminal. Data unreviewed until CPU checks and Astra source audit.
