@@ -15,3 +15,10 @@ The isolated one-call updater and minimal 16-call DEV driver are implemented: 32
 ## Completed DEV attempt
 
 The registered run completed all 16 calls in a 620.47-second total reservation and cleaned up successfully. It failed semantic maintenance: the updater substituted project descriptions or prompt wording for standing obligations and repeatedly attempted duplicate additions. Five transactions were structurally accepted and eleven rejected; acceptance is not semantic correctness. See [the preserved result](../quick-checks/maintenance-dev-01/RESULTS.md) and its independent Astra audit. The paragraph above describes the pre-run state. No worker, clean screen, or larger factorial has run. Matching manually maintained prose automatically remains the target.
+
+
+## Second DEV attempt and research
+
+Attempt02 kept the same data/model/settings and added reviewed semantic guidance. It also failed complete maintenance:0/48views and0/2trajectories, with partial useful content credited by independent Astra. All16calls completed;615.55seconds including successful cleanup. [Preserved result](../quick-checks/maintenance-dev-02/RESULTS.md).
+
+Two user-authorized research agents examined primary protocol and memory-system sources. Their synthesis recommends a small diagnostic separating plain-language rule extraction from transaction handling, keeping automated prose as a valid candidate. [Research brief](research/research-brief.md). No third maintenance attempt or diagnostic inference has run. Exact diagnostic prompts/registration still need preparation.

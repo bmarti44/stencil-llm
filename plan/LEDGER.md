@@ -1452,3 +1452,39 @@ Sol prompt-only revision passes14updater tests; independent Astra95 accepts,
 Commit new recipe/source/review then run tools/run_maintenance_dev.py with
 absolute run-dir results/quick-checks/maintenance-dev-02 and --execute.
 Same16calls/900second cap, exposedDEV only, no worker or retries.
+
+2026-09-07 — STATE: MAINTENANCE DEV02 RUNNING; PINcccf963f.
+Launcher session51042; owncontainer stencil-maintenance-dev-7ac587da516e;
+freeze/flag at results/quick-checks/maintenance-dev-02. Resume actual handle
+without restart. Independent Astra /root/maintenance_dev_result_review prepares
+source-only audit, waits for terminal cleanup before inspecting responses.
+
+2026-09-07 — STATE: DEV02 COMPLETE; RESEARCH TO UNBLOCK.
+All16 calls, driver0, owncontainer stop/remove0,615.55/900seconds, flagclear.
+Observed missed cold obligations and duplicate additions persist; independent
+Astra result audit underway. No third prompt retry. User-authorized deep
+research lanes /root/research_qwen_protocol and /root/research_memory_updates
+read primary sources only; parent reconciles actual wire and evidence.
+Skill deep-research applied; update_plan tool unavailable, plan stored under
+results/factorial-prep/research/plan.md. No evaluation examples or fitting.
+
+2026-09-07 — STATE: DEV02 AUDITED FAILURE; RESEARCH SYNTHESIS REVIEW.
+Independent Astra confirms0/48completeviews,0/16turns,0/2trajectories;6valid
+transactions(2empty),4mutations/5adds,10rejections. Exact16HTTP/compiler and
+32state replays match. Partial dependency/modality extraction credited.
+Prompt43325+completion3724=47049tokens;615.55/900seconds;cleanedtrue.
+Two research lanes complete; parent verified primary consequential sources,
+local-template suffix and2039token reconstruction. Research brief recommends
+prospective4call cold extraction-vs-transaction diagnostic; not registered or
+launched. Astra /root/maintenance_revision_review audits synthesized claims.
+No third maintenance run; two failures count unchanged. No push or fitting.
+
+2026-09-07 — STATE: DEV02 AND UNBLOCKING RESEARCH COMPLETE.
+Independent result audit saved; independent research synthesis Astra95 with
+zerohighcritical accepts qualified recommendation. All7cited primary pages
+checked, localtemplate bytes/hash and2039tokens independently reproduced.
+No GPU job/flag remains. Next concrete work is Sol implementation and Astra
+review of exact four-call DEV diagnostic prompts/driver/resource reading;
+no inference until that separate freeze. New data, if needed, remains KimiK3
+via Ollama; no evaluation content reused. Keep two failed maintenance runs
+immutable. Commit result+research+handoff receipts locally; no push.
