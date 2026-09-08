@@ -156,3 +156,167 @@ operations, generation, data authoring, network, script imports, tests, rescorin
 of old outputs or access to excluded evaluation banks occurred. Only this
 canonical review file was written; no code, specification, ledger edit or commit
 was made.
+
+## Round 2 — implementation review, 2026-09-08
+
+**Score: 84/100. NOT ACCEPTED — implementation corrections required.**
+
+Same independent native **gpt-6-astra, xhigh** session and user-directed reviewer
+substitution as round 1. **Three open findings: #1 high; #2–#3 medium. Zero
+critical findings.** The accepted specification remains unchanged; this round
+does not reopen its scientific choices or the accepted preparation/mechanics
+findings. Round 1 and its input hash/history are preserved verbatim.
+
+Reviewed stable Sol commit
+`16d4d976ab3ebb8f7d650e5a9ce0ded134475344`, with independently checked current
+bindings:
+
+| Artifact | SHA-256 |
+| --- | --- |
+| `scripts/source_interpreter_fit.py` | `a405a9d045eecf90de4974b0c5415025e2418a512eed3f24536a897a36ad67d0` |
+| `tests/test_source_interpreter_fit.py` | `7b38c1bf4a9e4b901b5daa91de8b6806af7dd7d77ceff786da7fbe86b8fb8a8e` |
+| `results/source-interpreter/FIT.md` | `f1f306e9ccac968013568dd6f0ed46a42d6df7297105c7a2531a83b7caa541a7` |
+| `results/source-interpreter/FIT-CODE-BRIEF.md` | `9a3836c0e08944052d98c86c21e7b09c952778f396af0ac8133c813293328e6f` |
+
+### Findings
+
+**Finding 1 — high, OPEN. Stage deadlines can be bypassed by late completion
+publication.** `scripts/source_interpreter_fit.py:459` samples `monotonic`
+before writing the stage receipt, current-stage receipt and append-only history.
+Generation (`:697`) and training (`:1473`) then treat that pre-write timestamp
+as the completion/publication time. `validate_completion` (`:917`) accepts the
+same timestamp. Meanwhile, `supervise_child` (`:1126`) applies a stage's hard
+deadline only while current-stage status is `INTENT`; seeing `COMPLETE` drops
+the stage reservation even if its publication was late or later required
+publication is still blocked. The whole-process ceiling does not establish the
+separate 1,220/300-second stage bounds.
+
+Independently reproduced this through the actual `run_generation_pair`
+consumer with the existing CPU model/tokenizer fakes. A mutable monotonic clock
+starts at zero. Only the write of `stage-generation_base.json` with status
+`COMPLETE` advances it to 301 seconds before publishing the file. With the
+registered 300-second reservation, the actual consumer nevertheless returns
+`COMPLETE`, makes **both** generator calls, and records base
+`deadline_reached=false`. The durable base stage says `status=COMPLETE`,
+`monotonic=0`, `elapsed_seconds=0`, `hard_deadline_monotonic=300`. This is a
+missed-deadline success, not merely an imprecise latency field. No model, GPU or
+real sleep was involved. The exact executable reproduction was supplied to the
+parent, which independently reports the same result.
+
+**Required correction:** keep each stage reservation externally enforceable
+until its required durable completion is observed; distinguish timestamps
+sampled before writes from observations after those writes. Late or blocked
+publication must leave the stage incomplete and prevent a subsequent generation
+call. Add a consuming regression that delays completion publication itself,
+covering the shared training/generation completion mechanism rather than only
+an `INTENT`-stage hang. The initial training reservation must also be enforced
+from supervisor launch during pre-child qualification: `main` (`:1793`) charges
+qualification to an internal clock, but no child-stage watchdog exists until
+the child publishes training intent. A root outer observer can supply that
+initial enforcement; its launch contract must cover it explicitly, alongside
+the existing whole-process bound. This is the already accepted stage contract,
+not a new deadline or prerequisite experiment.
+
+**Finding 2 — medium, OPEN. The recorded “resolved generation configuration”
+is not the configuration Hugging Face resolves.** In
+`scripts/source_interpreter_fit.py:575`, `resolved_generation_config` is a
+manual overlay of the checkpoint object's `to_dict()` and all explicit kwargs.
+It omits library default resolution and input-dependent preparation and mixes
+generation configuration with forward/control arguments such as
+`logits_to_keep` and `synced_gpus`.
+
+Installed Transformers 5.16.1 primary code supplies a concrete mismatch:
+`generation/configuration_utils.py:390` initializes omitted `max_length`,
+`min_length` and `repetition_penalty` to `None`;
+`generation/utils.py:1771` fills library defaults, including 20, 0 and 1.0,
+respectively. `_prepare_generated_length` then derives **max_length=5,014**
+from the 2,966-token prefix plus the 2,048-token allowance. The runner's overlay
+retains unresolved values instead. The existing fake config contains only a
+small checkpoint dictionary and never exercises native resolution, so its
+green generation tests do not qualify this receipt field.
+
+**Required correction:** preserve the native resolved configuration actually
+used by the call, including applicable derived lengths, while recording explicit
+forward/control arguments separately. Add a consumer check with unset checkpoint
+fields that would acquire native defaults. Retain the same registered decoding
+settings. This finding concerns accurate required evidence; the explicit
+greedy/single-EOS kwargs themselves are compatible and do not require a recipe
+change or a model warm-up.
+
+**Finding 3 — medium, OPEN. Failure summaries label known unstarted calls as
+unavailable.** `scripts/source_interpreter_fit.py:1029`
+(`_partial_generation_calls`) assigns `UNAVAILABLE` to every missing generation
+file, without consulting the durable stage history or fixed call order. It is
+the actual lifecycle consumer used by `supervise_child` (`:1220`). Thus a
+training failure/hard timeout reports both generation calls as unavailable,
+and a hard timeout during base generation also reports the never-started
+adapter call as unavailable. The explicit pair exception path writes
+`NOT_ATTEMPTED` correctly; the externally terminated path cannot reach it.
+The existing hung-training test exercises precisely the missing-file case but
+does not check its generation classifications.
+
+**Required correction:** use durable generation intent and the fixed order to
+distinguish calls known not to have started from an in-flight or unresolved
+call whose output is unavailable. Keep unknown output unknown. Add failure-path
+consumer assertions for a training stop and a hard stop during base generation.
+FIT.md explicitly requires unstarted calls to be marked `NOT_ATTEMPTED`; this
+distinction makes the partial-work accounting usable without inventing a zero
+response or treating all absent files as attempted requests.
+
+### Verified implementation behavior
+
+The core recipe follows the accepted proposal. Qualification verifies accepted
+hashes and all eighteen rows through the existing source-binding/causal-label
+consumer, checks source order and all 54 scheduled token totals, and binds the
+runtime interpreter/package environment. The historical accepted specification
+review is verified through its fixed Git blob; current review/code hashes are
+recorded dynamically. This avoids a current-review hash cycle. Root's later
+launch manifest still needs to pin the final accepted code review.
+
+Inspection of the actual training loop confirms that each schedule item selects
+`rows[item['row_index']]`, constructs that row's full input/attention/label
+tensors and performs one optimizer update. Each step's durable intent includes
+ordinal, epoch, row/query identity and causal loss positions. The first update
+is part of 54. The reused numerical/optimizer and partial-update checks retain
+confirmed versus unknown optimizer completion. Frozen original initialization,
+fresh FP32 q/v LoRA, standard final save/byte archive/reconstruction and complete
+adapter-state comparison follow accepted mechanics; no mechanics adapter is
+loaded and no extra post-reload target-loss forward is added.
+
+The two actual generation invocations receive only prefix IDs and all-ones
+attention, with no labels or supplied past cache. The first call uses
+`disable_adapter`; the second explicitly activates `roundtrip` in inference
+mode. Runtime layer-state checks and original-trunk identity receipts accompany
+the calls. The final original-parameter check spans training and generation.
+Installed PEFT/HF source inspection supports these interfaces, including the
+plain Boolean monotonic stopping criterion consumed by `StoppingCriteriaList`.
+No live HF generation was performed in this review.
+
+Returned full and suffix IDs, terminal EOS handling, strict full-document
+structure/citation parsing, unmodified decoded UTF-8 bytes/hash and separate
+stop facts follow the specification. Invalid JSON or an ordinary returned cap
+still permits the second preplanned call; an ordinary technical exception or
+observed generation deadline stops it. Whole-call synchronization/timing is
+appropriate and makes no isolated decode-rate claim. Findings #1–#3 identify the
+remaining deadline and receipt gaps; they do not justify per-token hooks,
+semantic repair, another pilot or broader infrastructure.
+
+### Independent validation and boundary
+
+Ran `.venv/bin/python -m pytest -q tests/test_source_interpreter_fit.py`:
+**8 passed in 0.83 seconds**. This includes import checks excluding torch,
+transformers and PEFT; a dry invocation that creates no run; and actual absolute
+direct-file artifact qualification from a temporary working directory with
+`PYTHONPATH` removed, returning 18 rows/54 updates without a model load. Ruff
+check, Ruff format check and `git diff --check` passed. The additional bounded
+CPU publication reproduction above exposes a case absent from those eight
+tests. No frozen mechanics suite or full pytest suite was rerun.
+
+No actual FIT job, weights read, ML runtime import, GPU/model operation,
+generation, network access, semantic authoring, preview regeneration or excluded
+evaluation-bank access occurred. Only this canonical review was changed; no
+implementation, specification, ledger edit or commit was made. Correct the
+three findings, then request a focused delta review before the prospective
+single-run freeze. Fresh semantic comparison and larger executable coding
+utility remain unestablished; this is code review, not execution or utility
+evidence.
