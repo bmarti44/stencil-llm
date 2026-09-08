@@ -50,3 +50,35 @@ Parent measurement artifact: `parent-observation.json`, SHA-256
 lifecycle record is preserved. Astra xhigh is independently auditing these
 observations in `audit-astra.md`; append its accepted result below when complete.
 No empirical success claim or new experiment follows from these observations.
+
+## Accepted audit addendum — 2026-09-08
+
+Astra xhigh's independent audit is accepted. Its SHA-256 is
+`a4832c1be23ab6d80773dfa9635ee202d6ee0fde70f6cb8a62ed8bb6bbe1c330`. Root rehashed all16bound terminal evidence rows and independently
+verified the three high-consequence findings from native output, actual code and
+authentic sources. These are observed failures of the frozen experiment, not
+authorization to modify or rerun it. Original observations above remain intact.
+
+Final disposition: **INCOMPLETE; NO GO; this fixed recipe is parked.** Zero of
+two projects qualifies as a whole usable automatic-focus workflow. Classroom
+code has no material implementation/dependency defect found, but later reminders
+omit the global JSON/error/no-exception convention and the summary's no-sorting/
+arrival rule. Playlist's normalization ignores duplicate permission; sequencing
+inherits that defect and has unguarded invalid-order/missing-tracks failures. Its
+reminders also lose rule precision and scope. The final cap leaves the manifest
+function unimplemented. The audit does not treat omitted incidental API details
+as a requirement to repeat the whole algorithm.
+
+All six source-only selectors and actual worker histories were reconstructed;
+no private feedback, oracle focus replacement, source reset or human repair was
+found. Five first edits passed public checks, so this run did not exercise a
+successful repair iteration. Complete raw cost is confirmed at53,334tokens and
+1195.4825121320027owned seconds; prior smoke plus pilot1712.3972154039948seconds.
+Freeze and owned cleanup are confirmed. The raw capped cost correction does not
+complete the failed endpoint or alter the runtime's incomplete flag.
+
+The bounded positive remains three source-consistent Classroom edits. It does
+not establish complete automatic focus, a causal reminder benefit, manual-prose
+parity, general reliability or adequate larger proof. All current cases are
+spent DEV and excluded from new fitting and fresh tests. A materially different
+next hypothesis is under bounded research; no new model run is implied here.

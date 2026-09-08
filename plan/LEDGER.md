@@ -2837,3 +2837,40 @@ writable run-01/audit-astra.md. Early source defects being adjudicated under
 accepted standing-focus scope, not a demand to repeat current algorithm.
 Registered incomplete batch cannot continue; this fixed recipe is not a pass.
 Full goal remains active; next direction awaits final independent audit.
+
+2026-09-08 — STATE: TERMINAL AUDIT FINISHING; CONDITIONAL TRAINING FEASIBILITY.
+Previous goal turn made concrete progress: terminal pilot observed, raw cost
+reconstructed,49files archived1ef046a7, same Astra terminal audit launched.
+Current authoritative Astra handle active; exact47090 is terminal and not polled.
+Root and Astra agree standing-focus completeness does not require all current
+algorithm/API details. Real JSON/error and arrival/scope omissions remain.
+
+No new experiment launched. While audit finishes, assigned Sol xhigh read-only
+local inventory for the already accepted conditional supervised interpreter:
+existing clean base/LoRA mechanics, no weight load/script import/data execution,
+no old adapter or exposed bank reused. Root re-read prior accepted research and
+primary VerIH v5 methods/results; LoRA hierarchy gains coexist with general
+capability loss, and its60kdistilled traces/4H100RLVR do not establish cheap local
+current-focus SFT. Benchmark-derived paper rows remain excluded from new data.
+The next decision needs independent Astra targeted research and measured local
+feasibility; no cosmetic prompting rescue or bigger cap for the failed recipe.
+
+2026-09-08 — STATE: AUTOMATIC RECIPE PARKED; TRAINING RESEARCH ACTIVE.
+Astra terminal audit accepted: SHAa4832c1be23ab6d80773dfa9635ee202d6ee0fde70f6cb8a62ed8bb6bbe1c330.
+Root read full audit, checked16terminalbindings before append and independently
+confirmed cap, real global/scope focus omissions, unconditional duplicate
+rejection and unsafe sequencer order/missing-key behavior from code/source.
+Audit findings are observed frozen output failures, not code fixes to apply.
+Final INCOMPLETE/NO_GO,0/2qualified automatic workflows;4/6finite passed,5/6complete,
+Classroom3source-consistent edits are narrow positive only. Added accepted audit
+addendum and summary without altering original observations/receipts/readiness.
+Raw53334tokens/1195.482512s and combined1712.397215s confirmed; cleanup confirmed.
+
+Sol xhigh read-only inventory complete: local Qwen3-4Bbase and basic LoRA mechanics
+exist, old adapters excluded, long-conversation capacity/cost unmeasured. Saved
+inventory-sol.md under research-next. Explicitly activated same Astra xhigh for
+new bounded deep research (sole writable research-next/research-astra.md) using
+BRIEF.md and inventory; terminal audit and readiness frozen. Reassess supervised
+source-grounded interpretation versus source-preserving alternatives, one ranked
+materially different hypothesis and cheapest falsifiable measurement. No model
+call/training/newdata/newbudget, no cosmetic prompt/cap retry. Full goal active.
