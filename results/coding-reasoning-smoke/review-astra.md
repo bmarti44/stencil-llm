@@ -113,3 +113,107 @@ The original brief hash above remains the historical source-review snapshot.
 No unresolved prospective source contradiction was found. Source preparation
 is complete; final scored readiness will resume on a stable implementation,
 test, preview and resource-plan handoff, without waiting or polling here.
+
+## Round 1 — complete implementation review, 2026-09-08
+
+**Score: 89/100. Disposition: REVISIONS REQUESTED.** Open findings: critical 0,
+high 0, medium 1, low 0. Root independently reproduced finding #1 and requested
+its narrow correction before acceptance. No launch-readiness acceptance applies
+to this snapshot. Acceptance threshold remains 90/100 and zero open
+high/critical findings; severity is not inflated to encode the score.
+
+Stable implementation commit: `181cdf70995affc1b0361d6bb1ac7b85c32b1259`.
+
+| Reviewed artifact | SHA-256 |
+|---|---|
+| `scripts/qwen_thinking_tool_smoke.py` | `aa40011d5459e7e19455fe5baf828473cf65e478c64cc86a068ea366c1056746` |
+| `tests/test_qwen_thinking_tool_smoke.py` | `e15a522d07043d8ecc4c820b3a8addb6a90ba1895c2ac1f4ebec573e990f6456` |
+| `tools/run_qwen_thinking_tool_smoke.py` | `5fff5f12750bf30c3b16b3a20d66f6134b66810d41d5b66e24b2ce04d9b83650` |
+| `tests/test_run_qwen_thinking_tool_smoke.py` | `a2b008f56ee00f94007d67398dae5ac608a3e431742d06be5ce18445b99277e7` |
+| `BRIEF.md` | `b825673131c68c2436b9c3cc91df2c7ce8beb8a6912eca04f52ac125086db8b5` |
+| `RESOURCE-PLAN.md` | `65093ef7d879e5ace88d8fe44f265e04619198528bf4ffada4d240cc623ef7a1` |
+| `preview.json` | `d979623276e11f29dbb8d822f4dfee3d441b155e07f540ee9988522c5083e0fc` |
+
+### Findings
+
+**#1 — Medium: rejecting an existing run directory overwrites its lifecycle
+receipt.** In launcher `main`, `run.mkdir(..., exist_ok=False)` raises for an
+existing run. The enclosing exception handler then tests `run.exists()` and
+writes `INCOMPLETE_BEFORE_SERVER` into that existing directory's `lifecycle.json`.
+An ordinary mistaken reuse of a completed path therefore destroys a prior
+receipt even though no server was started. This violates the new-run and
+preserved-evidence contract.
+
+Independently reproduced through `main` using a temporary existing run, a
+sentinel lifecycle receipt, mocked preparation/PID registration, and a lifecycle
+stub that must never be reached. Result: original bytes not preserved; receipt
+replaced with `INCOMPLETE_BEFORE_SERVER`; zero lifecycle/process/model launches.
+Root independently obtained the same result. Correction: write failure receipts
+only into a directory successfully created by this invocation, preserve all
+existing run bytes, and retain cleanup of this invocation's newly reserved flag.
+Verify the actual `main` rejection path with a focused preservation test.
+
+### Verified behavior and meaningful checks
+
+Independently ran exactly the two registered targeted test files: **20 passed
+in 1.84 seconds**. Ruff passed on all four new files. These tests use fake HTTP
+and the real local tokenizer/compile-and-splice consumer; generated functions
+are not executed. They cover actual cold/post-tool history, same-body rendering
+and completion, omitted default min_p, wrong nondefault settings/schema/context,
+prompt-ID and usage disagreement, missing end, duplicate start, misplaced
+prefix, 513-token reasoning, compile rejection, durable partial HTTP bytes,
+dry-run safety and the reused lifecycle's driver/cleanup wiring. They are not
+an exhaustive response or operating-system fault matrix.
+
+An additional bounded CPU check exercised the real consumer with exactly 512
+reasoning IDs on both synthetic responses. It passed two calls, recorded
+`budget_boundary_reached`, and kept `termination_cause_proven=false`. This
+complements the suite's explicit 513-token rejection. No GPU/server request,
+semantic-bank read, generated-code execution or old-case replay occurred.
+
+The native adapter checks the nondefault settings and exact argument schema
+before decode, resolves only the documented omitted min_p default, checks the
+actual 2048-token reserve, and rejects prompt reasoning markers. Full output
+IDs must match usage; a unique initial start/end pair, nonempty matching
+reasoning text and an exact decoded final suffix are required. The parent's
+whitespace correction is present: comparison uses unchanged raw arguments,
+with one configured terminal EOS treated separately. The targeted newline/EOS
+test verifies this behavior. Strict observed-bound checks do not prove native
+forcing caused termination.
+
+The first prompt now discloses the relevant syntactic restrictions, including
+nested definitions and prohibited statements/builtins. The schedule applies
+the first actual source, preserves its module and helper, and sends its genuine
+assistant invocation and ID-matched compile/apply feedback into the second
+request. Raw reasoning stays in receipts and is absent from replayed messages.
+The feedback explicitly says the code was not executed. Failures stop remaining
+generations; compile/apply rejection is NO-GO, while native evidence/cap/transport
+failure is INCOMPLETE. Pending call records preserve interrupted work, rather
+than asserting it completed.
+
+The CPU preview recomputes exactly equal to the canonical artifact, including
+all 14 source/tokenizer hashes, request bytes/base64/hash and fixture digest.
+The launcher's actual preview validator accepts it. Cold serialized JSON counts
+353 local tokens, or 2401 with the output reserve; it is explicitly not an
+authoritative prompt count. Later generated history is unknown until actual
+rendering. Resource arithmetic remains 997.72794108 illustrative seconds against
+1200, without a promised worst-case rate.
+
+Launcher inspection confirms the pinned local image/model, explicit native
+reasoning configuration, forced named-tool driver settings, original ownership
+label/port compatibility, dry-run default, clean tracked input checks, exact
+metadata snapshots, trunk-receipt validation and pre-start resource recheck.
+It reuses the previously reviewed lifecycle unchanged: forwarded driver timeout
+leaves the 60-second cleanup reserve inside the shared 1200-second deadline;
+cleanup/evidence failure overrides success. The prior lifecycle timeout tests
+were not rerun because that helper did not change. Trunk verification reuses the
+accepted digest manifest with size/mtime checks; it does not rehash model
+weights on each launch.
+
+Readiness acceptance belongs to root after reading the final score/findings and
+committing the accepted snapshot. The launcher binds exact review bytes and
+does not infer approval from prose substrings. The disclosed code-before-tests
+sequence is not described as TDD. Apart from #1, this review found no further
+consequential defect within the fixed compatibility scope. The correction,
+updated launcher/test hashes and refreshed preview/resource bindings remain
+required before final acceptance.

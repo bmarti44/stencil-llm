@@ -2388,3 +2388,10 @@ existing bytes, regression on actual main, no new lifecycle framework. Runtime
 remains stable. Astra finishes other baseline review and waits stabledelta.
 Original preview/resourceplan preserved as preview-r1.json/RESOURCE-PLAN-r1.md
 before refreshing against future fixed hashes. No model job launched.
+
+Astra round1 readiness89/100, sole medium finding1, no high/critical findings.
+Canonicalreview SHAe2a4507fb743ed48b79da2aaf9c95509140e04ae0815e7e243fc8b381a25d200.
+Independently20tests1.84s+Ruff, exactpreview reproduction, real-consumer synthetic
+512reasoning-token boundary probe PASS with forcingcauseunproven;513rejected.
+No other consequential issue. Preserve round1 before narrowfixdelta. Final
+acceptance still waits launcher/testfix, refreshedpreview/resource andAstra closure.
