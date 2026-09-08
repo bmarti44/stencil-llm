@@ -1,0 +1,484 @@
+{
+  "patches": [
+    {
+      "path": "/episode/rounds/1/request/text",
+      "old": "Now the leaderboard job: implement rank_board(board). The argument must be a list of rows, where each row is a dict with \"name\" (a non-empty string) and \"total\" (an integer, which may be negative; booleans do not count). Names must be unique — a repeated name makes the whole input malformed, as does anything else that fails this shape. Return a new list of {\"name\": ..., \"total\": ...} dicts ordered by total from highest to lowest. Tie-handling rule for this task: rows with equal totals are ordered alphabetically by name, A to Z. An empty list is valid input and returns an empty list.",
+      "new": "Now the leaderboard job: implement rank_board(board). The argument must be a list of rows, where each row is a dict with \"name\" (a non-empty string) and \"total\" (an integer, which may be negative; booleans do not count). Names must be unique — a repeated name makes the whole input malformed, as does anything else that fails this shape. Return a new list of {\"name\": ..., \"total\": ...} dicts ordered by total from highest to lowest. Tie-handling rule for this task: rows with equal totals are ordered alphabetically by name, A to Z, meaning case-sensitive Python string lexicographic ordering by Unicode code points — no locale sorting and no case-folding. An empty list is valid input and returns an empty list."
+    },
+    {
+      "path": "/episode/rounds/1/manual_recap",
+      "old": "Standing obligations currently applicable to THIS edit: (1) Global, required, held — the newly written function returns null for malformed input (this edit only, not retroactive onto solve_total or base_points). (2) Leaderboard task, required, newly set — rows with equal totals are ordered alphabetically by name ascending. No output-field conventions exist yet.",
+      "new": "Standing obligations currently applicable to THIS edit: (1) Global, required, held — the newly written function returns null for malformed input (this edit only, not retroactive onto solve_total or base_points). (2) Leaderboard task, required, newly set — rows with equal totals are ordered alphabetically by name ascending, meaning case-sensitive Python string lexicographic ordering by Unicode code points with no locale sorting and no case-folding. No output-field conventions exist yet."
+    },
+    {
+      "path": "/episode/rounds/1/oracle/effective_rules/1/text",
+      "old": "Within the leaderboard task, rows with equal totals must be ordered alphabetically by name in ascending (A to Z) order.",
+      "new": "Within the leaderboard task, rows with equal totals must be ordered alphabetically by name in ascending (A to Z) order, meaning case-sensitive Python string lexicographic ordering by Unicode code points, with no locale sorting and no case-folding."
+    },
+    {
+      "path": "/episode/rounds/1/obligation_checks",
+      "old": [
+        {
+          "check_id": "chk-r1-o1",
+          "symbol": "rank_board",
+          "input": [
+            {
+              "name": "Zed",
+              "total": 7
+            },
+            {
+              "name": "Amy",
+              "total": 7
+            },
+            {
+              "name": "Max",
+              "total": 9
+            }
+          ],
+          "expected_values": [
+            [
+              {
+                "name": "Max",
+                "total": 9
+              },
+              {
+                "name": "Amy",
+                "total": 7
+              },
+              {
+                "name": "Zed",
+                "total": 7
+              }
+            ]
+          ],
+          "rule_ids": [
+            "t-tie-alpha"
+          ]
+        },
+        {
+          "check_id": "chk-r1-o2",
+          "symbol": "rank_board",
+          "input": {
+            "name": "Ada",
+            "total": 9
+          },
+          "expected_values": [
+            null
+          ],
+          "rule_ids": [
+            "g-invalid-null"
+          ]
+        },
+        {
+          "check_id": "chk-r1-o3",
+          "symbol": "rank_board",
+          "input": [
+            {
+              "name": "Ada",
+              "total": 1
+            },
+            {
+              "name": "Ada",
+              "total": 2
+            }
+          ],
+          "expected_values": [
+            null
+          ],
+          "rule_ids": [
+            "g-invalid-null"
+          ]
+        }
+      ],
+      "new": [
+        {
+          "check_id": "chk-r1-o1",
+          "symbol": "rank_board",
+          "input": [
+            {
+              "name": "Zed",
+              "total": 7
+            },
+            {
+              "name": "Amy",
+              "total": 7
+            },
+            {
+              "name": "Max",
+              "total": 9
+            }
+          ],
+          "expected_values": [
+            [
+              {
+                "name": "Max",
+                "total": 9
+              },
+              {
+                "name": "Amy",
+                "total": 7
+              },
+              {
+                "name": "Zed",
+                "total": 7
+              }
+            ]
+          ],
+          "rule_ids": [
+            "t-tie-alpha"
+          ]
+        },
+        {
+          "check_id": "chk-r1-o2",
+          "symbol": "rank_board",
+          "input": {
+            "name": "Ada",
+            "total": 9
+          },
+          "expected_values": [
+            null
+          ],
+          "rule_ids": [
+            "g-invalid-null"
+          ]
+        },
+        {
+          "check_id": "chk-r1-o3",
+          "symbol": "rank_board",
+          "input": [
+            {
+              "name": "Ada",
+              "total": 1
+            },
+            {
+              "name": "Ada",
+              "total": 2
+            }
+          ],
+          "expected_values": [
+            null
+          ],
+          "rule_ids": [
+            "g-invalid-null"
+          ]
+        },
+        {
+          "check_id": "chk-r1-o4",
+          "symbol": "rank_board",
+          "input": [
+            {
+              "name": "amy",
+              "total": 7
+            },
+            {
+              "name": "Bob",
+              "total": 7
+            },
+            {
+              "name": "Ada",
+              "total": 7
+            }
+          ],
+          "expected_values": [
+            [
+              {
+                "name": "Ada",
+                "total": 7
+              },
+              {
+                "name": "Bob",
+                "total": 7
+              },
+              {
+                "name": "amy",
+                "total": 7
+              }
+            ]
+          ],
+          "rule_ids": [
+            "t-tie-alpha"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/episode/rounds/5/negative_controls/0/patch",
+      "old": "def format_summary(data):\n    if isinstance(data, dict):\n        if \"entries\" not in data:\n            return \"invalid\"\n        entries = data[\"entries\"]\n        if not isinstance(entries, list):\n            return \"invalid\"\n        rows = []\n        for entry in entries:\n            if not isinstance(entry, dict):\n                return \"invalid\"\n            name = entry.get(\"name\")\n            if not isinstance(name, str) or name == \"\":\n                return \"invalid\"\n            total = solve_total({\"places\": entry.get(\"places\")})\n            if total is None:\n                return \"invalid\"\n            rows.append({\"name\": name, \"total\": total})\n        ordered = rank_board(rows)\n        if ordered is None:\n            return \"invalid\"\n        lines = []\n        for i, row in enumerate(ordered):\n            lines.append(str(i + 1) + \". \" + row[\"name\"] + \" - \" + str(row[\"total\"]))\n        champion = None\n        if ordered:\n            champion = ordered[0][\"name\"]\n        return {\"lines\": lines, \"count\": len(lines), \"champion\": champion}\n    ordered = rank_board(data)\n    if ordered is None:\n        return \"invalid\"\n    lines = []\n    for i, row in enumerate(ordered):\n        lines.append(str(i + 1) + \". \" + row[\"name\"] + \" - \" + str(row[\"total\"]))\n    return {\"lines\": lines, \"count\": len(lines)}",
+      "new": "def format_summary(data):\n    if isinstance(data, dict):\n        if \"entries\" not in data:\n            return \"invalid\"\n        entries = data[\"entries\"]\n        if not isinstance(entries, list):\n            return \"invalid\"\n        rows = []\n        for entry in entries:\n            if not isinstance(entry, dict):\n                return \"invalid\"\n            name = entry.get(\"name\")\n            if not isinstance(name, str) or name == \"\":\n                return \"invalid\"\n            if solve_total(entry) is None:\n                return \"invalid\"\n            total = solve_total({\"places\": entry.get(\"places\")})\n            if total is None:\n                return \"invalid\"\n            rows.append({\"name\": name, \"total\": total})\n        ordered = rank_board(rows)\n        if ordered is None:\n            return \"invalid\"\n        lines = []\n        for i, row in enumerate(ordered):\n            lines.append(str(i + 1) + \". \" + row[\"name\"] + \" - \" + str(row[\"total\"]))\n        champion = None\n        if ordered:\n            champion = ordered[0][\"name\"]\n        return {\"lines\": lines, \"count\": len(lines), \"champion\": champion}\n    ordered = rank_board(data)\n    if ordered is None:\n        return \"invalid\"\n    lines = []\n    for i, row in enumerate(ordered):\n        lines.append(str(i + 1) + \". \" + row[\"name\"] + \" - \" + str(row[\"total\"]))\n    return {\"lines\": lines, \"count\": len(lines)}"
+    },
+    {
+      "path": "/episode/rounds/5/obligation_checks",
+      "old": [
+        {
+          "check_id": "chk-r5-o1",
+          "symbol": "format_summary",
+          "input": {
+            "entries": []
+          },
+          "expected_values": [
+            {
+              "lines": [],
+              "count": 0,
+              "champion": null
+            }
+          ],
+          "rule_ids": [
+            "lb-champion"
+          ]
+        },
+        {
+          "check_id": "chk-r5-o2",
+          "symbol": "format_summary",
+          "input": {
+            "entries": [
+              {
+                "name": "Di",
+                "places": [
+                  3
+                ]
+              },
+              {
+                "name": "Ed",
+                "places": [
+                  2
+                ]
+              }
+            ]
+          },
+          "expected_values": [
+            {
+              "lines": [
+                "1. Ed - 7",
+                "2. Di - 5"
+              ],
+              "count": 2,
+              "champion": "Ed"
+            }
+          ],
+          "rule_ids": [
+            "lb-champion"
+          ]
+        },
+        {
+          "check_id": "chk-r5-o3",
+          "symbol": "format_summary",
+          "input": {
+            "entries": [
+              {
+                "name": "Ada",
+                "places": [
+                  0
+                ]
+              }
+            ]
+          },
+          "expected_values": [
+            "invalid"
+          ],
+          "rule_ids": [
+            "g-invalid-str"
+          ]
+        },
+        {
+          "check_id": "chk-r5-o4",
+          "symbol": "format_summary",
+          "input": {
+            "entries": [
+              {
+                "places": [
+                  1
+                ]
+              }
+            ]
+          },
+          "expected_values": [
+            "invalid"
+          ],
+          "rule_ids": [
+            "g-invalid-str"
+          ]
+        },
+        {
+          "check_id": "chk-r5-o5",
+          "symbol": "format_summary",
+          "input": {
+            "entries": [
+              {
+                "name": "Zed",
+                "places": [
+                  3
+                ]
+              },
+              {
+                "name": "Amy",
+                "places": [
+                  3
+                ]
+              }
+            ]
+          },
+          "expected_values": [
+            {
+              "lines": [
+                "1. Zed - 5",
+                "2. Amy - 5"
+              ],
+              "count": 2,
+              "champion": "Zed"
+            }
+          ],
+          "rule_ids": [
+            "t-tie-stable",
+            "lb-champion"
+          ]
+        }
+      ],
+      "new": [
+        {
+          "check_id": "chk-r5-o1",
+          "symbol": "format_summary",
+          "input": {
+            "entries": []
+          },
+          "expected_values": [
+            {
+              "lines": [],
+              "count": 0,
+              "champion": null
+            }
+          ],
+          "rule_ids": [
+            "lb-champion"
+          ]
+        },
+        {
+          "check_id": "chk-r5-o2",
+          "symbol": "format_summary",
+          "input": {
+            "entries": [
+              {
+                "name": "Di",
+                "places": [
+                  3
+                ]
+              },
+              {
+                "name": "Ed",
+                "places": [
+                  2
+                ]
+              }
+            ]
+          },
+          "expected_values": [
+            {
+              "lines": [
+                "1. Ed - 7",
+                "2. Di - 5"
+              ],
+              "count": 2,
+              "champion": "Ed"
+            }
+          ],
+          "rule_ids": [
+            "lb-champion"
+          ]
+        },
+        {
+          "check_id": "chk-r5-o3",
+          "symbol": "format_summary",
+          "input": {
+            "entries": [
+              {
+                "name": "Ada",
+                "places": [
+                  0
+                ]
+              }
+            ]
+          },
+          "expected_values": [
+            "invalid"
+          ],
+          "rule_ids": [
+            "g-invalid-str"
+          ]
+        },
+        {
+          "check_id": "chk-r5-o4",
+          "symbol": "format_summary",
+          "input": {
+            "entries": [
+              {
+                "places": [
+                  1
+                ]
+              }
+            ]
+          },
+          "expected_values": [
+            "invalid"
+          ],
+          "rule_ids": [
+            "g-invalid-str"
+          ]
+        },
+        {
+          "check_id": "chk-r5-o5",
+          "symbol": "format_summary",
+          "input": {
+            "entries": [
+              {
+                "name": "Zed",
+                "places": [
+                  3
+                ]
+              },
+              {
+                "name": "Amy",
+                "places": [
+                  3
+                ]
+              }
+            ]
+          },
+          "expected_values": [
+            {
+              "lines": [
+                "1. Zed - 5",
+                "2. Amy - 5"
+              ],
+              "count": 2,
+              "champion": "Zed"
+            }
+          ],
+          "rule_ids": [
+            "t-tie-stable",
+            "lb-champion"
+          ]
+        },
+        {
+          "check_id": "chk-r5-o6",
+          "symbol": "format_summary",
+          "input": {
+            "entries": [
+              {
+                "name": "Ada",
+                "places": [
+                  1
+                ],
+                "drop": -1
+              }
+            ]
+          },
+          "expected_values": [
+            "invalid"
+          ],
+          "rule_ids": [
+            "g-invalid-str"
+          ]
+        }
+      ]
+    }
+  ]
+}

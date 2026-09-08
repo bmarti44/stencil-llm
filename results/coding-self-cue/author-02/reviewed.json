@@ -1,0 +1,1225 @@
+{
+  "schema_version": 1,
+  "split": "dev",
+  "author": {
+    "name": "kimi",
+    "model": "kimi-k3:cloud"
+  },
+  "lineage": {
+    "fit_on": "none",
+    "development_on": "new original specification-authored coding episode",
+    "evaluated_on": "none"
+  },
+  "episode": {
+    "episode_id": "kimi-coding-dev-puzzle-scores",
+    "project": "Puzzle tournament score aggregation and display pipeline: a finished helper assigns base points by finishing place; per-competitor totals are aggregated with optional bonuses and dropped low rounds; leaderboard rows are validated and ranked; a summary formatter produces numbered display lines and, for raw entries, an adopted champion field.",
+    "task_handles": [
+      "scoring",
+      "leaderboard"
+    ],
+    "initial_file": {
+      "path": "module.py",
+      "text": "\"\"\"Puzzle tournament score aggregation and display pipeline.\"\"\"\n\n\ndef base_points(place):\n    \"\"\"Base points for a finishing place (1 = winner).\n\n    Non-integer or non-positive places yield 0.\n    \"\"\"\n    table = {1: 10, 2: 7, 3: 5, 4: 3}\n    if not isinstance(place, int) or isinstance(place, bool):\n        return 0\n    if place < 1:\n        return 0\n    return table.get(place, 1)\n\n\ndef solve_total(entry):\n    return None\n\n\ndef rank_board(board):\n    return None\n\n\ndef format_summary(data):\n    return None\n"
+    },
+    "initial_checks": [
+      {
+        "check_id": "chk-init-1",
+        "symbol": "base_points",
+        "input": 1,
+        "expected_values": [
+          10
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "chk-init-2",
+        "symbol": "base_points",
+        "input": 6,
+        "expected_values": [
+          1
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "chk-init-3",
+        "symbol": "base_points",
+        "input": 0,
+        "expected_values": [
+          0
+        ],
+        "rule_ids": []
+      }
+    ],
+    "rounds": [
+      {
+        "index": 0,
+        "source_messages": [
+          {
+            "message_id": "m-stand-invalid",
+            "role": "user",
+            "text": "One standing note before we touch this puzzle-tournament module: whenever you write a new function here or revise an existing one, make a malformed argument come back as JSON null (None) — never raise and never guess a value. That obligation binds only the function you are writing or editing at the time; anything already finished stays exactly as it is, and a later convention change will never silently oblige you to revisit completed code."
+          }
+        ],
+        "request": {
+          "message_id": "m-req-0",
+          "role": "user",
+          "task_handle": "scoring",
+          "text": "Let's start the scoring side of the tool. Implement solve_total(entry). The argument must be a dict describing one competitor's event: \"places\" is a list of finishing places (positive integers, 1 = first place), and \"bonus\" is an optional non-negative integer of extra points that defaults to 0 when absent. Extra keys are fine — ignore them. Booleans do not count as integers anywhere here. The result is the sum of base_points(p) for every listed place, plus the bonus. Anything that does not match this shape is malformed and should follow our standing convention."
+        },
+        "target": {
+          "path": "module.py",
+          "symbol": "solve_total"
+        },
+        "manual_recap": "Standing obligations currently applicable to THIS edit: (1) Global, required — the function now being written must return JSON null (None) for a malformed argument instead of raising or guessing; this binds only the code being written or edited, never already-finished functions such as base_points. No task-specific ordering rules or output-field conventions are in force yet.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "g-invalid-null",
+              "scope": null,
+              "strength": "required",
+              "text": "Any function newly written or edited in this module must return None (JSON null) when its single argument is malformed, rather than raising or guessing; the obligation binds only the function being written or edited and never requires revising already-finished code.",
+              "source_ids": [
+                "m-stand-invalid"
+              ]
+            }
+          ],
+          "inactive_rule_ids": []
+        },
+        "reference_patch": "def solve_total(entry):\n    if not isinstance(entry, dict):\n        return None\n    places = entry.get(\"places\")\n    if not isinstance(places, list):\n        return None\n    for p in places:\n        if not isinstance(p, int) or isinstance(p, bool) or p < 1:\n            return None\n    bonus = entry.get(\"bonus\", 0)\n    if not isinstance(bonus, int) or isinstance(bonus, bool) or bonus < 0:\n        return None\n    total = bonus\n    for p in places:\n        total += base_points(p)\n    return total",
+        "functional_checks": [
+          {
+            "check_id": "chk-r0-f1",
+            "symbol": "solve_total",
+            "input": {
+              "places": [
+                1,
+                3
+              ],
+              "bonus": 2
+            },
+            "expected_values": [
+              17
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "chk-r0-f2",
+            "symbol": "solve_total",
+            "input": {
+              "places": [
+                4,
+                5
+              ]
+            },
+            "expected_values": [
+              4
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "chk-r0-f3",
+            "symbol": "solve_total",
+            "input": {
+              "places": [
+                2
+              ],
+              "note": "ok"
+            },
+            "expected_values": [
+              7
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "chk-r0-o1",
+            "symbol": "solve_total",
+            "input": {
+              "places": "abc"
+            },
+            "expected_values": [
+              null
+            ],
+            "rule_ids": [
+              "g-invalid-null"
+            ]
+          },
+          {
+            "check_id": "chk-r0-o2",
+            "symbol": "solve_total",
+            "input": {
+              "places": [
+                2,
+                0
+              ]
+            },
+            "expected_values": [
+              null
+            ],
+            "rule_ids": [
+              "g-invalid-null"
+            ]
+          },
+          {
+            "check_id": "chk-r0-o3",
+            "symbol": "solve_total",
+            "input": {
+              "places": [
+                1
+              ],
+              "bonus": true
+            },
+            "expected_values": [
+              null
+            ],
+            "rule_ids": [
+              "g-invalid-null"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "nc-r0-f",
+            "kind": "functional",
+            "patch": "def solve_total(entry):\n    if not isinstance(entry, dict):\n        return None\n    places = entry.get(\"places\")\n    if not isinstance(places, list):\n        return None\n    for p in places:\n        if not isinstance(p, int) or isinstance(p, bool) or p < 1:\n            return None\n    bonus = entry.get(\"bonus\", 0)\n    if not isinstance(bonus, int) or isinstance(bonus, bool) or bonus < 0:\n        return None\n    total = 0\n    for p in places:\n        total += base_points(p)\n    return total + 2 * bonus",
+            "expected_failing_check_ids": [
+              "chk-r0-f1"
+            ]
+          },
+          {
+            "control_id": "nc-r0-o",
+            "kind": "obligation",
+            "patch": "def solve_total(entry):\n    if not isinstance(entry, dict):\n        return 0\n    places = entry.get(\"places\")\n    if not isinstance(places, list):\n        return 0\n    for p in places:\n        if not isinstance(p, int) or isinstance(p, bool) or p < 1:\n            return 0\n    bonus = entry.get(\"bonus\", 0)\n    if not isinstance(bonus, int) or isinstance(bonus, bool) or bonus < 0:\n        return 0\n    total = bonus\n    for p in places:\n        total += base_points(p)\n    return total",
+            "expected_failing_check_ids": [
+              "chk-r0-o1",
+              "chk-r0-o2",
+              "chk-r0-o3"
+            ]
+          }
+        ]
+      },
+      {
+        "index": 1,
+        "source_messages": [
+          {
+            "message_id": "m-hold-r1",
+            "role": "user",
+            "text": "Switching over to the leaderboard task for the next piece. The standing null-for-malformed convention still holds for whatever you write now; the finished scoring work stays untouched."
+          }
+        ],
+        "request": {
+          "message_id": "m-req-1",
+          "role": "user",
+          "task_handle": "leaderboard",
+          "text": "Now the leaderboard job: implement rank_board(board). The argument must be a list of rows, where each row is a dict with \"name\" (a non-empty string) and \"total\" (an integer, which may be negative; booleans do not count). Names must be unique — a repeated name makes the whole input malformed, as does anything else that fails this shape. Return a new list of {\"name\": ..., \"total\": ...} dicts ordered by total from highest to lowest. Tie-handling rule for this task: rows with equal totals are ordered alphabetically by name, A to Z, meaning case-sensitive Python string lexicographic ordering by Unicode code points — no locale sorting and no case-folding. An empty list is valid input and returns an empty list."
+        },
+        "target": {
+          "path": "module.py",
+          "symbol": "rank_board"
+        },
+        "manual_recap": "Standing obligations currently applicable to THIS edit: (1) Global, required, held — the newly written function returns null for malformed input (this edit only, not retroactive onto solve_total or base_points). (2) Leaderboard task, required, newly set — rows with equal totals are ordered alphabetically by name ascending, meaning case-sensitive Python string lexicographic ordering by Unicode code points with no locale sorting and no case-folding. No output-field conventions exist yet.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "g-invalid-null",
+              "scope": null,
+              "strength": "required",
+              "text": "Any function newly written or edited in this module must return None (JSON null) when its single argument is malformed, rather than raising or guessing; the obligation binds only the function being written or edited and never requires revising already-finished code.",
+              "source_ids": [
+                "m-stand-invalid"
+              ]
+            },
+            {
+              "rule_id": "t-tie-alpha",
+              "scope": "leaderboard",
+              "strength": "required",
+              "text": "Within the leaderboard task, rows with equal totals must be ordered alphabetically by name in ascending (A to Z) order, meaning case-sensitive Python string lexicographic ordering by Unicode code points, with no locale sorting and no case-folding.",
+              "source_ids": [
+                "m-req-1"
+              ]
+            }
+          ],
+          "inactive_rule_ids": []
+        },
+        "reference_patch": "def rank_board(board):\n    if not isinstance(board, list):\n        return None\n    rows = []\n    seen = set()\n    for item in board:\n        if not isinstance(item, dict):\n            return None\n        name = item.get(\"name\")\n        total = item.get(\"total\")\n        if not isinstance(name, str) or name == \"\":\n            return None\n        if not isinstance(total, int) or isinstance(total, bool):\n            return None\n        if name in seen:\n            return None\n        seen.add(name)\n        rows.append({\"name\": name, \"total\": total})\n    rows.sort(key=lambda row: (-row[\"total\"], row[\"name\"]))\n    return rows",
+        "functional_checks": [
+          {
+            "check_id": "chk-r1-f1",
+            "symbol": "rank_board",
+            "input": [
+              {
+                "name": "Bo",
+                "total": 5
+              },
+              {
+                "name": "Ada",
+                "total": 9
+              }
+            ],
+            "expected_values": [
+              [
+                {
+                  "name": "Ada",
+                  "total": 9
+                },
+                {
+                  "name": "Bo",
+                  "total": 5
+                }
+              ]
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "chk-r1-f2",
+            "symbol": "rank_board",
+            "input": [],
+            "expected_values": [
+              []
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "chk-r1-o1",
+            "symbol": "rank_board",
+            "input": [
+              {
+                "name": "Zed",
+                "total": 7
+              },
+              {
+                "name": "Amy",
+                "total": 7
+              },
+              {
+                "name": "Max",
+                "total": 9
+              }
+            ],
+            "expected_values": [
+              [
+                {
+                  "name": "Max",
+                  "total": 9
+                },
+                {
+                  "name": "Amy",
+                  "total": 7
+                },
+                {
+                  "name": "Zed",
+                  "total": 7
+                }
+              ]
+            ],
+            "rule_ids": [
+              "t-tie-alpha"
+            ]
+          },
+          {
+            "check_id": "chk-r1-o2",
+            "symbol": "rank_board",
+            "input": {
+              "name": "Ada",
+              "total": 9
+            },
+            "expected_values": [
+              null
+            ],
+            "rule_ids": [
+              "g-invalid-null"
+            ]
+          },
+          {
+            "check_id": "chk-r1-o3",
+            "symbol": "rank_board",
+            "input": [
+              {
+                "name": "Ada",
+                "total": 1
+              },
+              {
+                "name": "Ada",
+                "total": 2
+              }
+            ],
+            "expected_values": [
+              null
+            ],
+            "rule_ids": [
+              "g-invalid-null"
+            ]
+          },
+          {
+            "check_id": "chk-r1-o4",
+            "symbol": "rank_board",
+            "input": [
+              {
+                "name": "amy",
+                "total": 7
+              },
+              {
+                "name": "Bob",
+                "total": 7
+              },
+              {
+                "name": "Ada",
+                "total": 7
+              }
+            ],
+            "expected_values": [
+              [
+                {
+                  "name": "Ada",
+                  "total": 7
+                },
+                {
+                  "name": "Bob",
+                  "total": 7
+                },
+                {
+                  "name": "amy",
+                  "total": 7
+                }
+              ]
+            ],
+            "rule_ids": [
+              "t-tie-alpha"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "nc-r1-f",
+            "kind": "functional",
+            "patch": "def rank_board(board):\n    if not isinstance(board, list):\n        return None\n    rows = []\n    seen = set()\n    for item in board:\n        if not isinstance(item, dict):\n            return None\n        name = item.get(\"name\")\n        total = item.get(\"total\")\n        if not isinstance(name, str) or name == \"\":\n            return None\n        if not isinstance(total, int) or isinstance(total, bool):\n            return None\n        if name in seen:\n            return None\n        seen.add(name)\n        rows.append({\"name\": name, \"total\": total})\n    rows.sort(key=lambda row: (row[\"total\"], row[\"name\"]))\n    return rows",
+            "expected_failing_check_ids": [
+              "chk-r1-f1",
+              "chk-r1-o1"
+            ]
+          },
+          {
+            "control_id": "nc-r1-o",
+            "kind": "obligation",
+            "patch": "def rank_board(board):\n    if not isinstance(board, list):\n        return None\n    rows = []\n    seen = set()\n    for item in board:\n        if not isinstance(item, dict):\n            return None\n        name = item.get(\"name\")\n        total = item.get(\"total\")\n        if not isinstance(name, str) or name == \"\":\n            return None\n        if not isinstance(total, int) or isinstance(total, bool):\n            return None\n        if name in seen:\n            return None\n        seen.add(name)\n        rows.append({\"name\": name, \"total\": total})\n    rows.sort(key=lambda row: -row[\"total\"])\n    return rows",
+            "expected_failing_check_ids": [
+              "chk-r1-o1"
+            ]
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "source_messages": [
+          {
+            "message_id": "m-hold-r2",
+            "role": "user",
+            "text": "Hopping back to the scoring task for a moment — everything we already agreed about conventions still stands."
+          },
+          {
+            "message_id": "m-sugg-champion",
+            "role": "assistant",
+            "text": "Unrelated idea for whenever we build the results display: we could give it a \"champion\" field naming whoever sits in first place. Just a thought — no need to act on it unless you decide you want it later."
+          }
+        ],
+        "request": {
+          "message_id": "m-req-2",
+          "role": "user",
+          "task_handle": "scoring",
+          "text": "Extend solve_total. An entry may now also carry \"drop\", a non-negative integer meaning: discard that many of the competitor's lowest base-point scores before adding up (the bonus is still added in full afterwards). Dropping more places than exist simply drops them all. Entries without \"drop\" must behave exactly as before. As a one-off for this function only, also accept the legacy spelling \"discard\" with the identical meaning; if an entry contains both \"drop\" and \"discard\", treat it as malformed. That alias is a one-time exception here — do not turn it into a general convention for anything else we write."
+        },
+        "target": {
+          "path": "module.py",
+          "symbol": "solve_total"
+        },
+        "manual_recap": "Standing obligations currently applicable to THIS edit: only the global malformed-input convention — this edited function returns null for malformed input, and previously valid entries must keep their earlier totals. The leaderboard tie-break rule is scoped to the leaderboard task and does not apply here. The assistant's \"champion\" remark is a non-authoritative suggestion and creates no obligation. The legacy \"discard\" alias is a one-off request scoped to this function and changes no standing rule.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "g-invalid-null",
+              "scope": null,
+              "strength": "required",
+              "text": "Any function newly written or edited in this module must return None (JSON null) when its single argument is malformed, rather than raising or guessing; the obligation binds only the function being written or edited and never requires revising already-finished code.",
+              "source_ids": [
+                "m-stand-invalid"
+              ]
+            }
+          ],
+          "inactive_rule_ids": []
+        },
+        "reference_patch": "def solve_total(entry):\n    if not isinstance(entry, dict):\n        return None\n    places = entry.get(\"places\")\n    if not isinstance(places, list):\n        return None\n    for p in places:\n        if not isinstance(p, int) or isinstance(p, bool) or p < 1:\n            return None\n    bonus = entry.get(\"bonus\", 0)\n    if not isinstance(bonus, int) or isinstance(bonus, bool) or bonus < 0:\n        return None\n    if \"drop\" in entry and \"discard\" in entry:\n        return None\n    drop = 0\n    if \"drop\" in entry:\n        drop = entry[\"drop\"]\n    elif \"discard\" in entry:\n        drop = entry[\"discard\"]\n    if not isinstance(drop, int) or isinstance(drop, bool) or drop < 0:\n        return None\n    scores = sorted([base_points(p) for p in places], reverse=True)\n    keep = len(scores) - drop\n    if keep < 0:\n        keep = 0\n    return bonus + sum(scores[:keep])",
+        "functional_checks": [
+          {
+            "check_id": "chk-r2-f1",
+            "symbol": "solve_total",
+            "input": {
+              "places": [
+                1,
+                2,
+                3
+              ],
+              "drop": 1
+            },
+            "expected_values": [
+              17
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "chk-r2-f2",
+            "symbol": "solve_total",
+            "input": {
+              "places": [
+                4,
+                4,
+                2
+              ],
+              "discard": 2,
+              "bonus": 1
+            },
+            "expected_values": [
+              8
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "chk-r2-f3",
+            "symbol": "solve_total",
+            "input": {
+              "places": [
+                5
+              ],
+              "drop": 9
+            },
+            "expected_values": [
+              0
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "chk-r2-f4",
+            "symbol": "solve_total",
+            "input": {
+              "places": [
+                3,
+                3
+              ],
+              "bonus": 2
+            },
+            "expected_values": [
+              12
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "chk-r2-o1",
+            "symbol": "solve_total",
+            "input": {
+              "places": [
+                1
+              ],
+              "drop": -2
+            },
+            "expected_values": [
+              null
+            ],
+            "rule_ids": [
+              "g-invalid-null"
+            ]
+          },
+          {
+            "check_id": "chk-r2-o2",
+            "symbol": "solve_total",
+            "input": {
+              "places": [
+                1
+              ],
+              "drop": 1,
+              "discard": 1
+            },
+            "expected_values": [
+              null
+            ],
+            "rule_ids": [
+              "g-invalid-null"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "nc-r2-f",
+            "kind": "functional",
+            "patch": "def solve_total(entry):\n    if not isinstance(entry, dict):\n        return None\n    places = entry.get(\"places\")\n    if not isinstance(places, list):\n        return None\n    for p in places:\n        if not isinstance(p, int) or isinstance(p, bool) or p < 1:\n            return None\n    bonus = entry.get(\"bonus\", 0)\n    if not isinstance(bonus, int) or isinstance(bonus, bool) or bonus < 0:\n        return None\n    if \"drop\" in entry and \"discard\" in entry:\n        return None\n    drop = 0\n    if \"drop\" in entry:\n        drop = entry[\"drop\"]\n    elif \"discard\" in entry:\n        drop = entry[\"discard\"]\n    if not isinstance(drop, int) or isinstance(drop, bool) or drop < 0:\n        return None\n    scores = sorted([base_points(p) for p in places], reverse=True)\n    return bonus + sum(scores[min(drop, len(scores)):])",
+            "expected_failing_check_ids": [
+              "chk-r2-f1",
+              "chk-r2-f2"
+            ]
+          },
+          {
+            "control_id": "nc-r2-o",
+            "kind": "obligation",
+            "patch": "def solve_total(entry):\n    if not isinstance(entry, dict):\n        return None\n    places = entry.get(\"places\")\n    if not isinstance(places, list):\n        return None\n    for p in places:\n        if not isinstance(p, int) or isinstance(p, bool) or p < 1:\n            return None\n    bonus = entry.get(\"bonus\", 0)\n    if not isinstance(bonus, int) or isinstance(bonus, bool) or bonus < 0:\n        return None\n    if \"drop\" in entry and \"discard\" in entry:\n        return None\n    drop = 0\n    if \"drop\" in entry:\n        drop = entry[\"drop\"]\n    elif \"discard\" in entry:\n        drop = entry[\"discard\"]\n    if not isinstance(drop, int) or isinstance(drop, bool) or drop < 0:\n        return 0\n    scores = sorted([base_points(p) for p in places], reverse=True)\n    keep = len(scores) - drop\n    if keep < 0:\n        keep = 0\n    return bonus + sum(scores[:keep])",
+            "expected_failing_check_ids": [
+              "chk-r2-o1"
+            ]
+          }
+        ]
+      },
+      {
+        "index": 3,
+        "source_messages": [
+          {
+            "message_id": "m-hold-r3",
+            "role": "user",
+            "text": "Leaderboard again. The standing null-for-malformed convention still applies to the function you edit now."
+          }
+        ],
+        "request": {
+          "message_id": "m-req-3",
+          "role": "user",
+          "task_handle": "leaderboard",
+          "text": "Revise rank_board. Keep everything about validation, the returned row shape, totals running from highest to lowest, and the empty-list case, but change the tie handling: rows with equal totals must now stay in the order they originally appeared in the input. That replaces the old alphabetical tie-break for this function — from this edit onward, stable input order is the leaderboard tie rule."
+        },
+        "target": {
+          "path": "module.py",
+          "symbol": "rank_board"
+        },
+        "manual_recap": "Standing obligations currently applicable to THIS edit: (1) Global, required, held — the edited function returns null for malformed input. (2) Leaderboard task, required, changed — rows with equal totals now preserve original input order; the alphabetical tie-break is replaced for the function being edited. No output-field conventions apply. The earlier \"champion\" suggestion remains non-authoritative.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "g-invalid-null",
+              "scope": null,
+              "strength": "required",
+              "text": "Any function newly written or edited in this module must return None (JSON null) when its single argument is malformed, rather than raising or guessing; the obligation binds only the function being written or edited and never requires revising already-finished code.",
+              "source_ids": [
+                "m-stand-invalid"
+              ]
+            },
+            {
+              "rule_id": "t-tie-stable",
+              "scope": "leaderboard",
+              "strength": "required",
+              "text": "Within the leaderboard task, rows with equal totals must keep the order they originally appeared in the input (stable ordering); this replaces the earlier alphabetical tie-break for functions written or edited from the change onward.",
+              "source_ids": [
+                "m-req-3"
+              ]
+            }
+          ],
+          "inactive_rule_ids": [
+            "t-tie-alpha"
+          ]
+        },
+        "reference_patch": "def rank_board(board):\n    if not isinstance(board, list):\n        return None\n    rows = []\n    seen = set()\n    for item in board:\n        if not isinstance(item, dict):\n            return None\n        name = item.get(\"name\")\n        total = item.get(\"total\")\n        if not isinstance(name, str) or name == \"\":\n            return None\n        if not isinstance(total, int) or isinstance(total, bool):\n            return None\n        if name in seen:\n            return None\n        seen.add(name)\n        rows.append({\"name\": name, \"total\": total})\n    rows.sort(key=lambda row: -row[\"total\"])\n    return rows",
+        "functional_checks": [
+          {
+            "check_id": "chk-r3-f1",
+            "symbol": "rank_board",
+            "input": [
+              {
+                "name": "Cy",
+                "total": 1
+              },
+              {
+                "name": "Di",
+                "total": 4
+              },
+              {
+                "name": "Ed",
+                "total": 2
+              }
+            ],
+            "expected_values": [
+              [
+                {
+                  "name": "Di",
+                  "total": 4
+                },
+                {
+                  "name": "Ed",
+                  "total": 2
+                },
+                {
+                  "name": "Cy",
+                  "total": 1
+                }
+              ]
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "chk-r3-f2",
+            "symbol": "rank_board",
+            "input": [
+              {
+                "name": "Mo",
+                "total": -2
+              }
+            ],
+            "expected_values": [
+              [
+                {
+                  "name": "Mo",
+                  "total": -2
+                }
+              ]
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "chk-r3-o1",
+            "symbol": "rank_board",
+            "input": [
+              {
+                "name": "Zed",
+                "total": 7
+              },
+              {
+                "name": "Amy",
+                "total": 7
+              },
+              {
+                "name": "Max",
+                "total": 9
+              }
+            ],
+            "expected_values": [
+              [
+                {
+                  "name": "Max",
+                  "total": 9
+                },
+                {
+                  "name": "Zed",
+                  "total": 7
+                },
+                {
+                  "name": "Amy",
+                  "total": 7
+                }
+              ]
+            ],
+            "rule_ids": [
+              "t-tie-stable"
+            ]
+          },
+          {
+            "check_id": "chk-r3-o2",
+            "symbol": "rank_board",
+            "input": [
+              {
+                "name": "Bo",
+                "total": 3
+              },
+              {
+                "name": "Al",
+                "total": 3
+              }
+            ],
+            "expected_values": [
+              [
+                {
+                  "name": "Bo",
+                  "total": 3
+                },
+                {
+                  "name": "Al",
+                  "total": 3
+                }
+              ]
+            ],
+            "rule_ids": [
+              "t-tie-stable"
+            ]
+          },
+          {
+            "check_id": "chk-r3-o3",
+            "symbol": "rank_board",
+            "input": [
+              {
+                "name": "Ada",
+                "total": "9"
+              }
+            ],
+            "expected_values": [
+              null
+            ],
+            "rule_ids": [
+              "g-invalid-null"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "nc-r3-f",
+            "kind": "functional",
+            "patch": "def rank_board(board):\n    if not isinstance(board, list):\n        return None\n    rows = []\n    seen = set()\n    for item in board:\n        if not isinstance(item, dict):\n            return None\n        name = item.get(\"name\")\n        total = item.get(\"total\")\n        if not isinstance(name, str) or name == \"\":\n            return None\n        if not isinstance(total, int) or isinstance(total, bool):\n            return None\n        if name in seen:\n            return None\n        seen.add(name)\n        rows.append({\"name\": name, \"total\": total})\n    rows.sort(key=lambda row: row[\"total\"])\n    return rows",
+            "expected_failing_check_ids": [
+              "chk-r1-f1",
+              "chk-r3-f1",
+              "chk-r3-o1"
+            ]
+          },
+          {
+            "control_id": "nc-r3-o",
+            "kind": "obligation",
+            "patch": "def rank_board(board):\n    if not isinstance(board, list):\n        return None\n    rows = []\n    seen = set()\n    for item in board:\n        if not isinstance(item, dict):\n            return None\n        name = item.get(\"name\")\n        total = item.get(\"total\")\n        if not isinstance(name, str) or name == \"\":\n            return None\n        if not isinstance(total, int) or isinstance(total, bool):\n            return None\n        if name in seen:\n            return None\n        seen.add(name)\n        rows.append({\"name\": name, \"total\": total})\n    rows.sort(key=lambda row: (-row[\"total\"], row[\"name\"]))\n    return rows",
+            "expected_failing_check_ids": [
+              "chk-r3-o1",
+              "chk-r3-o2"
+            ]
+          }
+        ]
+      },
+      {
+        "index": 4,
+        "source_messages": [
+          {
+            "message_id": "m-invalid-v2",
+            "role": "user",
+            "text": "One convention change starting with this edit: when you write or edit a function from now on, malformed input should come back as the string \"invalid\" instead of null. This is not retroactive — solve_total and rank_board are finished and keep returning null for bad input, so don't go back and change them for this."
+          }
+        ],
+        "request": {
+          "message_id": "m-req-4",
+          "role": "user",
+          "task_handle": "leaderboard",
+          "text": "Write format_summary(data) for the leaderboard display. data is a board in exactly the rank_board input shape; use rank_board to validate and order it, and if rank_board rejects it then it counts as malformed here too. Return a dict with exactly two keys: \"lines\", a list of strings in ranked order numbered from 1 in the format \"1. Ada - 9\" (position, dot, space, name, space, hyphen, space, total), and \"count\", the number of rows. An empty board yields \"lines\": [] and \"count\": 0. Exactly those two keys — nothing extra."
+        },
+        "target": {
+          "path": "module.py",
+          "symbol": "format_summary"
+        },
+        "manual_recap": "Standing obligations currently applicable to THIS edit: (1) Global, required, changed — functions written or edited from now on return the string \"invalid\" for malformed input instead of null; this is explicitly not retroactive, so solve_total and rank_board keep their null behavior and must not be rewritten. (2) Leaderboard task, required, held — rows with equal totals keep original input order. The \"champion\" field is still only a non-authoritative assistant suggestion: it is not required, and the requested exact two-key output leaves no room for it.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "g-invalid-str",
+              "scope": null,
+              "strength": "required",
+              "text": "Any function newly written or edited after this convention takes effect must return the string \"invalid\" when its argument is malformed; functions finished earlier keep their established null-for-malformed behavior and must not be rewritten because of this change.",
+              "source_ids": [
+                "m-invalid-v2"
+              ]
+            },
+            {
+              "rule_id": "t-tie-stable",
+              "scope": "leaderboard",
+              "strength": "required",
+              "text": "Within the leaderboard task, rows with equal totals must keep the order they originally appeared in the input (stable ordering); this replaces the earlier alphabetical tie-break for functions written or edited from the change onward.",
+              "source_ids": [
+                "m-req-3"
+              ]
+            }
+          ],
+          "inactive_rule_ids": [
+            "g-invalid-null"
+          ]
+        },
+        "reference_patch": "def format_summary(data):\n    ordered = rank_board(data)\n    if ordered is None:\n        return \"invalid\"\n    lines = []\n    for i, row in enumerate(ordered):\n        lines.append(str(i + 1) + \". \" + row[\"name\"] + \" - \" + str(row[\"total\"]))\n    return {\"lines\": lines, \"count\": len(lines)}",
+        "functional_checks": [
+          {
+            "check_id": "chk-r4-f1",
+            "symbol": "format_summary",
+            "input": [
+              {
+                "name": "Bo",
+                "total": 5
+              },
+              {
+                "name": "Ada",
+                "total": 9
+              }
+            ],
+            "expected_values": [
+              {
+                "lines": [
+                  "1. Ada - 9",
+                  "2. Bo - 5"
+                ],
+                "count": 2
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "chk-r4-f2",
+            "symbol": "format_summary",
+            "input": [],
+            "expected_values": [
+              {
+                "lines": [],
+                "count": 0
+              }
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "chk-r4-o1",
+            "symbol": "format_summary",
+            "input": {
+              "name": "Ada",
+              "total": 9
+            },
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": [
+              "g-invalid-str"
+            ]
+          },
+          {
+            "check_id": "chk-r4-o2",
+            "symbol": "format_summary",
+            "input": [
+              {
+                "name": "Ada",
+                "total": "9"
+              }
+            ],
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": [
+              "g-invalid-str"
+            ]
+          },
+          {
+            "check_id": "chk-r4-o3",
+            "symbol": "format_summary",
+            "input": [
+              {
+                "name": "Zed",
+                "total": 7
+              },
+              {
+                "name": "Amy",
+                "total": 7
+              }
+            ],
+            "expected_values": [
+              {
+                "lines": [
+                  "1. Zed - 7",
+                  "2. Amy - 7"
+                ],
+                "count": 2
+              }
+            ],
+            "rule_ids": [
+              "t-tie-stable"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "nc-r4-f",
+            "kind": "functional",
+            "patch": "def format_summary(data):\n    ordered = rank_board(data)\n    if ordered is None:\n        return \"invalid\"\n    lines = []\n    for i, row in enumerate(ordered):\n        lines.append(str(i) + \". \" + row[\"name\"] + \" - \" + str(row[\"total\"]))\n    return {\"lines\": lines, \"count\": len(lines)}",
+            "expected_failing_check_ids": [
+              "chk-r4-f1",
+              "chk-r4-o3"
+            ]
+          },
+          {
+            "control_id": "nc-r4-o",
+            "kind": "obligation",
+            "patch": "def format_summary(data):\n    ordered = rank_board(data)\n    if ordered is None:\n        return None\n    lines = []\n    for i, row in enumerate(ordered):\n        lines.append(str(i + 1) + \". \" + row[\"name\"] + \" - \" + str(row[\"total\"]))\n    return {\"lines\": lines, \"count\": len(lines)}",
+            "expected_failing_check_ids": [
+              "chk-r4-o1",
+              "chk-r4-o2"
+            ]
+          }
+        ]
+      },
+      {
+        "index": 5,
+        "source_messages": [
+          {
+            "message_id": "m-hold-r5",
+            "role": "user",
+            "text": "Same leaderboard task, same current conventions: the \"invalid\" string for malformed input on anything you edit now."
+          }
+        ],
+        "request": {
+          "message_id": "m-req-5",
+          "role": "user",
+          "task_handle": "leaderboard",
+          "text": "Teach format_summary a second input form. If data is a dict with an \"entries\" key, that value must be a list of solve_total entries that each additionally carry a non-empty \"name\" string; compute every competitor's total with solve_total (its whole contract applies, drop handling included), then validate and order the resulting rows with rank_board, and format \"lines\" and \"count\" exactly as before. And let's adopt that \"champion\" idea you raised earlier: in this entries form only, the result carries a third key \"champion\" holding the name at the very top of the ranking, or null when there are no entries at all. The original board-list form keeps its exact two-key output so existing callers don't break. Anything malformed in either form returns \"invalid\"."
+        },
+        "target": {
+          "path": "module.py",
+          "symbol": "format_summary"
+        },
+        "manual_recap": "Standing obligations currently applicable to THIS edit: (1) Global, required, held — the edited function returns the string \"invalid\" for malformed input, in both input forms. (2) Leaderboard task, required, held — equal totals keep original input order. (3) Leaderboard task, required, newly adopted by explicit user instruction quoting the earlier assistant suggestion — the entries-form summary includes a \"champion\" key naming the top-ranked player (null when there are no rows); the board-list form keeps its exact two-key shape, and the adoption does not retroactively alter any other function.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "g-invalid-str",
+              "scope": null,
+              "strength": "required",
+              "text": "Any function newly written or edited after this convention takes effect must return the string \"invalid\" when its argument is malformed; functions finished earlier keep their established null-for-malformed behavior and must not be rewritten because of this change.",
+              "source_ids": [
+                "m-invalid-v2"
+              ]
+            },
+            {
+              "rule_id": "t-tie-stable",
+              "scope": "leaderboard",
+              "strength": "required",
+              "text": "Within the leaderboard task, rows with equal totals must keep the order they originally appeared in the input (stable ordering); this replaces the earlier alphabetical tie-break for functions written or edited from the change onward.",
+              "source_ids": [
+                "m-req-3"
+              ]
+            },
+            {
+              "rule_id": "lb-champion",
+              "scope": "leaderboard",
+              "strength": "required",
+              "text": "Within the leaderboard task, the entries-form summary must include a \"champion\" key holding the top-ranked name, or null when there are no rows; the plain board-list form keeps its exact two-key output.",
+              "source_ids": [
+                "m-sugg-champion",
+                "m-req-5"
+              ]
+            }
+          ],
+          "inactive_rule_ids": []
+        },
+        "reference_patch": "def format_summary(data):\n    if isinstance(data, dict):\n        if \"entries\" not in data:\n            return \"invalid\"\n        entries = data[\"entries\"]\n        if not isinstance(entries, list):\n            return \"invalid\"\n        rows = []\n        for entry in entries:\n            if not isinstance(entry, dict):\n                return \"invalid\"\n            name = entry.get(\"name\")\n            if not isinstance(name, str) or name == \"\":\n                return \"invalid\"\n            total = solve_total(entry)\n            if total is None:\n                return \"invalid\"\n            rows.append({\"name\": name, \"total\": total})\n        ordered = rank_board(rows)\n        if ordered is None:\n            return \"invalid\"\n        lines = []\n        for i, row in enumerate(ordered):\n            lines.append(str(i + 1) + \". \" + row[\"name\"] + \" - \" + str(row[\"total\"]))\n        champion = None\n        if ordered:\n            champion = ordered[0][\"name\"]\n        return {\"lines\": lines, \"count\": len(lines), \"champion\": champion}\n    ordered = rank_board(data)\n    if ordered is None:\n        return \"invalid\"\n    lines = []\n    for i, row in enumerate(ordered):\n        lines.append(str(i + 1) + \". \" + row[\"name\"] + \" - \" + str(row[\"total\"]))\n    return {\"lines\": lines, \"count\": len(lines)}",
+        "functional_checks": [
+          {
+            "check_id": "chk-r5-f1",
+            "symbol": "format_summary",
+            "input": {
+              "entries": [
+                {
+                  "name": "Bo",
+                  "places": [
+                    2,
+                    3
+                  ]
+                },
+                {
+                  "name": "Ada",
+                  "places": [
+                    1
+                  ]
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "lines": [
+                  "1. Bo - 12",
+                  "2. Ada - 10"
+                ],
+                "count": 2,
+                "champion": "Bo"
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "chk-r5-f2",
+            "symbol": "format_summary",
+            "input": {
+              "entries": [
+                {
+                  "name": "Cy",
+                  "places": [
+                    1,
+                    4
+                  ],
+                  "drop": 1
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "lines": [
+                  "1. Cy - 10"
+                ],
+                "count": 1,
+                "champion": "Cy"
+              }
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "chk-r5-o1",
+            "symbol": "format_summary",
+            "input": {
+              "entries": []
+            },
+            "expected_values": [
+              {
+                "lines": [],
+                "count": 0,
+                "champion": null
+              }
+            ],
+            "rule_ids": [
+              "lb-champion"
+            ]
+          },
+          {
+            "check_id": "chk-r5-o2",
+            "symbol": "format_summary",
+            "input": {
+              "entries": [
+                {
+                  "name": "Di",
+                  "places": [
+                    3
+                  ]
+                },
+                {
+                  "name": "Ed",
+                  "places": [
+                    2
+                  ]
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "lines": [
+                  "1. Ed - 7",
+                  "2. Di - 5"
+                ],
+                "count": 2,
+                "champion": "Ed"
+              }
+            ],
+            "rule_ids": [
+              "lb-champion"
+            ]
+          },
+          {
+            "check_id": "chk-r5-o3",
+            "symbol": "format_summary",
+            "input": {
+              "entries": [
+                {
+                  "name": "Ada",
+                  "places": [
+                    0
+                  ]
+                }
+              ]
+            },
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": [
+              "g-invalid-str"
+            ]
+          },
+          {
+            "check_id": "chk-r5-o4",
+            "symbol": "format_summary",
+            "input": {
+              "entries": [
+                {
+                  "places": [
+                    1
+                  ]
+                }
+              ]
+            },
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": [
+              "g-invalid-str"
+            ]
+          },
+          {
+            "check_id": "chk-r5-o5",
+            "symbol": "format_summary",
+            "input": {
+              "entries": [
+                {
+                  "name": "Zed",
+                  "places": [
+                    3
+                  ]
+                },
+                {
+                  "name": "Amy",
+                  "places": [
+                    3
+                  ]
+                }
+              ]
+            },
+            "expected_values": [
+              {
+                "lines": [
+                  "1. Zed - 5",
+                  "2. Amy - 5"
+                ],
+                "count": 2,
+                "champion": "Zed"
+              }
+            ],
+            "rule_ids": [
+              "t-tie-stable",
+              "lb-champion"
+            ]
+          },
+          {
+            "check_id": "chk-r5-o6",
+            "symbol": "format_summary",
+            "input": {
+              "entries": [
+                {
+                  "name": "Ada",
+                  "places": [
+                    1
+                  ],
+                  "drop": -1
+                }
+              ]
+            },
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": [
+              "g-invalid-str"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "nc-r5-f",
+            "kind": "functional",
+            "patch": "def format_summary(data):\n    if isinstance(data, dict):\n        if \"entries\" not in data:\n            return \"invalid\"\n        entries = data[\"entries\"]\n        if not isinstance(entries, list):\n            return \"invalid\"\n        rows = []\n        for entry in entries:\n            if not isinstance(entry, dict):\n                return \"invalid\"\n            name = entry.get(\"name\")\n            if not isinstance(name, str) or name == \"\":\n                return \"invalid\"\n            if solve_total(entry) is None:\n                return \"invalid\"\n            total = solve_total({\"places\": entry.get(\"places\")})\n            if total is None:\n                return \"invalid\"\n            rows.append({\"name\": name, \"total\": total})\n        ordered = rank_board(rows)\n        if ordered is None:\n            return \"invalid\"\n        lines = []\n        for i, row in enumerate(ordered):\n            lines.append(str(i + 1) + \". \" + row[\"name\"] + \" - \" + str(row[\"total\"]))\n        champion = None\n        if ordered:\n            champion = ordered[0][\"name\"]\n        return {\"lines\": lines, \"count\": len(lines), \"champion\": champion}\n    ordered = rank_board(data)\n    if ordered is None:\n        return \"invalid\"\n    lines = []\n    for i, row in enumerate(ordered):\n        lines.append(str(i + 1) + \". \" + row[\"name\"] + \" - \" + str(row[\"total\"]))\n    return {\"lines\": lines, \"count\": len(lines)}",
+            "expected_failing_check_ids": [
+              "chk-r5-f2"
+            ]
+          },
+          {
+            "control_id": "nc-r5-o",
+            "kind": "obligation",
+            "patch": "def format_summary(data):\n    if isinstance(data, dict):\n        if \"entries\" not in data:\n            return \"invalid\"\n        entries = data[\"entries\"]\n        if not isinstance(entries, list):\n            return \"invalid\"\n        rows = []\n        for entry in entries:\n            if not isinstance(entry, dict):\n                return \"invalid\"\n            name = entry.get(\"name\")\n            if not isinstance(name, str) or name == \"\":\n                return \"invalid\"\n            total = solve_total(entry)\n            if total is None:\n                return \"invalid\"\n            rows.append({\"name\": name, \"total\": total})\n        ordered = rank_board(rows)\n        if ordered is None:\n            return \"invalid\"\n        lines = []\n        for i, row in enumerate(ordered):\n            lines.append(str(i + 1) + \". \" + row[\"name\"] + \" - \" + str(row[\"total\"]))\n        champion = None\n        if rows:\n            champion = rows[0][\"name\"]\n        return {\"lines\": lines, \"count\": len(lines), \"champion\": champion}\n    ordered = rank_board(data)\n    if ordered is None:\n        return \"invalid\"\n    lines = []\n    for i, row in enumerate(ordered):\n        lines.append(str(i + 1) + \". \" + row[\"name\"] + \" - \" + str(row[\"total\"]))\n    return {\"lines\": lines, \"count\": len(lines)}",
+            "expected_failing_check_ids": [
+              "chk-r5-o2"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

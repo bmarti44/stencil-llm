@@ -1,0 +1,5174 @@
+{
+  "actual_http_prompts": 0,
+  "bank_error": null,
+  "code_sha256": {
+    "scripts/coding_worker_dev.py": "41c33ad88fc1fca8d123a71580683d3f478d96c4f1f2f41889303f40c7551b26",
+    "src/stencil/focus/slab_sandbox.py": "3dad55e31b23fd859a9fcf805b3694acc99c8efdb48c35ed82ca78b16f9d7de8"
+  },
+  "episode_count": 1,
+  "episodes": [
+    {
+      "elapsed_seconds": 5.288697592011886,
+      "eligible": true,
+      "episode_id": "kimi-coding-dev-puzzle-scores",
+      "errors": [],
+      "final_module_sha256": "009c98a5fa840c0b439fa751e9b0381d0b1aad15470bbc7079992edb6c8c1c78",
+      "initial_checks": [
+        {
+          "actual": 10,
+          "check_id": "chk-init-1",
+          "elapsed_seconds": 0.01445493201026693,
+          "error": null,
+          "expected_values": [
+            10
+          ],
+          "passed": true,
+          "rule_ids": [],
+          "symbol": "base_points"
+        },
+        {
+          "actual": 1,
+          "check_id": "chk-init-2",
+          "elapsed_seconds": 0.02480756997829303,
+          "error": null,
+          "expected_values": [
+            1
+          ],
+          "passed": true,
+          "rule_ids": [],
+          "symbol": "base_points"
+        },
+        {
+          "actual": 0,
+          "check_id": "chk-init-3",
+          "elapsed_seconds": 0.013140897994162515,
+          "error": null,
+          "expected_values": [
+            0
+          ],
+          "passed": true,
+          "rule_ids": [],
+          "symbol": "base_points"
+        }
+      ],
+      "initial_module_sha256": "87c7226e0d4dd6a291f9c8cb95181ecfa092e4b983c3814f71a62f46fc59f03e",
+      "rounds": [
+        {
+          "counterfactual_reference_sizing": {
+            "actual_http_prompt": false,
+            "description": "manual recap plus reference fence; actual own-history worker requests are unknowable before inference",
+            "eligible": true,
+            "error": null,
+            "generation_cap": 768,
+            "headroom_tokens": 564,
+            "minimum_headroom_tokens": 128,
+            "response_sha256": "e41e2109e240cfe42814d1a29607ec95cf24e6edc1a85964b666552305dbc8f9",
+            "tokens_without_eos": 204
+          },
+          "index": 0,
+          "negative_controls": [
+            {
+              "checks": [
+                {
+                  "actual": 10,
+                  "check_id": "chk-init-1",
+                  "elapsed_seconds": 0.013465825992170721,
+                  "error": null,
+                  "expected_values": [
+                    10
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 1,
+                  "check_id": "chk-init-2",
+                  "elapsed_seconds": 0.022136543004307896,
+                  "error": null,
+                  "expected_values": [
+                    1
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-init-3",
+                  "elapsed_seconds": 0.022920448012882844,
+                  "error": null,
+                  "expected_values": [
+                    0
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 19,
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.02356502498150803,
+                  "error": null,
+                  "expected_values": [
+                    17
+                  ],
+                  "passed": false,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 4,
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.0134032339847181,
+                  "error": null,
+                  "expected_values": [
+                    4
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 7,
+                  "check_id": "chk-r0-f3",
+                  "elapsed_seconds": 0.014168707974022254,
+                  "error": null,
+                  "expected_values": [
+                    7
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": null,
+                  "check_id": "chk-r0-o1",
+                  "elapsed_seconds": 0.013697187008801848,
+                  "error": null,
+                  "expected_values": [
+                    null
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "g-invalid-null"
+                  ],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": null,
+                  "check_id": "chk-r0-o2",
+                  "elapsed_seconds": 0.014317716006189585,
+                  "error": null,
+                  "expected_values": [
+                    null
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "g-invalid-null"
+                  ],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": null,
+                  "check_id": "chk-r0-o3",
+                  "elapsed_seconds": 0.021986990002915263,
+                  "error": null,
+                  "expected_values": [
+                    null
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "g-invalid-null"
+                  ],
+                  "symbol": "solve_total"
+                }
+              ],
+              "control_id": "nc-r0-f",
+              "current_obligations_passed": true,
+              "expected_failing_check_ids": [
+                "chk-r0-f1"
+              ],
+              "kind": "functional",
+              "named_checks_failed": true,
+              "patch_sha256": "7d1e8efa88a2dd8f4b955fbd285b390c9a83892e7fbb31a5402061e6827a1af4",
+              "stable_functionality_passed": false,
+              "valid": true
+            },
+            {
+              "checks": [
+                {
+                  "actual": 10,
+                  "check_id": "chk-init-1",
+                  "elapsed_seconds": 0.014257828006520867,
+                  "error": null,
+                  "expected_values": [
+                    10
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 1,
+                  "check_id": "chk-init-2",
+                  "elapsed_seconds": 0.022227534995181486,
+                  "error": null,
+                  "expected_values": [
+                    1
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-init-3",
+                  "elapsed_seconds": 0.013264098000945523,
+                  "error": null,
+                  "expected_values": [
+                    0
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 17,
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.013813475001370534,
+                  "error": null,
+                  "expected_values": [
+                    17
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 4,
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.01362382699153386,
+                  "error": null,
+                  "expected_values": [
+                    4
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 7,
+                  "check_id": "chk-r0-f3",
+                  "elapsed_seconds": 0.014517539995722473,
+                  "error": null,
+                  "expected_values": [
+                    7
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-r0-o1",
+                  "elapsed_seconds": 0.01358968301792629,
+                  "error": null,
+                  "expected_values": [
+                    null
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "g-invalid-null"
+                  ],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-r0-o2",
+                  "elapsed_seconds": 0.013718706992221996,
+                  "error": null,
+                  "expected_values": [
+                    null
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "g-invalid-null"
+                  ],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-r0-o3",
+                  "elapsed_seconds": 0.022139438980957493,
+                  "error": null,
+                  "expected_values": [
+                    null
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "g-invalid-null"
+                  ],
+                  "symbol": "solve_total"
+                }
+              ],
+              "control_id": "nc-r0-o",
+              "current_obligations_passed": false,
+              "expected_failing_check_ids": [
+                "chk-r0-o1",
+                "chk-r0-o2",
+                "chk-r0-o3"
+              ],
+              "kind": "obligation",
+              "named_checks_failed": true,
+              "patch_sha256": "be574381a1402f515f4692c47af9a65a592f9ae4ee03d2419e57dddbf5da1d91",
+              "stable_functionality_passed": true,
+              "valid": true
+            }
+          ],
+          "post_module_sha256": "21aa388acd693766ed28213a5b7ef27142c8c5bf3cfac26b7cb24096a57d25de",
+          "pre_module_sha256": "87c7226e0d4dd6a291f9c8cb95181ecfa092e4b983c3814f71a62f46fc59f03e",
+          "reference_checks": [
+            {
+              "actual": 10,
+              "check_id": "chk-init-1",
+              "elapsed_seconds": 0.013666275015566498,
+              "error": null,
+              "expected_values": [
+                10
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "base_points"
+            },
+            {
+              "actual": 1,
+              "check_id": "chk-init-2",
+              "elapsed_seconds": 0.024655778019223362,
+              "error": null,
+              "expected_values": [
+                1
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "base_points"
+            },
+            {
+              "actual": 0,
+              "check_id": "chk-init-3",
+              "elapsed_seconds": 0.012473201000830159,
+              "error": null,
+              "expected_values": [
+                0
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "base_points"
+            },
+            {
+              "actual": 17,
+              "check_id": "chk-r0-f1",
+              "elapsed_seconds": 0.02359520099707879,
+              "error": null,
+              "expected_values": [
+                17
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 4,
+              "check_id": "chk-r0-f2",
+              "elapsed_seconds": 0.024392226012423635,
+              "error": null,
+              "expected_values": [
+                4
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 7,
+              "check_id": "chk-r0-f3",
+              "elapsed_seconds": 0.013346913998248056,
+              "error": null,
+              "expected_values": [
+                7
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": null,
+              "check_id": "chk-r0-o1",
+              "elapsed_seconds": 0.025492403015960008,
+              "error": null,
+              "expected_values": [
+                null
+              ],
+              "passed": true,
+              "rule_ids": [
+                "g-invalid-null"
+              ],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": null,
+              "check_id": "chk-r0-o2",
+              "elapsed_seconds": 0.013388099003350362,
+              "error": null,
+              "expected_values": [
+                null
+              ],
+              "passed": true,
+              "rule_ids": [
+                "g-invalid-null"
+              ],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": null,
+              "check_id": "chk-r0-o3",
+              "elapsed_seconds": 0.014234116009902209,
+              "error": null,
+              "expected_values": [
+                null
+              ],
+              "passed": true,
+              "rule_ids": [
+                "g-invalid-null"
+              ],
+              "symbol": "solve_total"
+            }
+          ],
+          "reference_passed": true,
+          "reference_patch_sha256": "07bcad5f5a92ebd93c5630ce5ba404443bb166f472aa803d4bed2320f248be7b",
+          "target": {
+            "path": "module.py",
+            "symbol": "solve_total"
+          }
+        },
+        {
+          "counterfactual_reference_sizing": {
+            "actual_http_prompt": false,
+            "description": "manual recap plus reference fence; actual own-history worker requests are unknowable before inference",
+            "eligible": true,
+            "error": null,
+            "generation_cap": 768,
+            "headroom_tokens": 525,
+            "minimum_headroom_tokens": 128,
+            "response_sha256": "8f56a998ca2a9fb6c606033adca40a142b225e908cc546cb7b8a6a2ec373f952",
+            "tokens_without_eos": 243
+          },
+          "index": 1,
+          "negative_controls": [
+            {
+              "checks": [
+                {
+                  "actual": 10,
+                  "check_id": "chk-init-1",
+                  "elapsed_seconds": 0.013802658999338746,
+                  "error": null,
+                  "expected_values": [
+                    10
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 1,
+                  "check_id": "chk-init-2",
+                  "elapsed_seconds": 0.013565522996941581,
+                  "error": null,
+                  "expected_values": [
+                    1
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-init-3",
+                  "elapsed_seconds": 0.014012434985488653,
+                  "error": null,
+                  "expected_values": [
+                    0
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 17,
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.024113969993777573,
+                  "error": null,
+                  "expected_values": [
+                    17
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 4,
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.014258691022405401,
+                  "error": null,
+                  "expected_values": [
+                    4
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 7,
+                  "check_id": "chk-r0-f3",
+                  "elapsed_seconds": 0.013309731002664194,
+                  "error": null,
+                  "expected_values": [
+                    7
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Bo",
+                      "total": 5
+                    },
+                    {
+                      "name": "Ada",
+                      "total": 9
+                    }
+                  ],
+                  "check_id": "chk-r1-f1",
+                  "elapsed_seconds": 0.023696033022133633,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Ada",
+                        "total": 9
+                      },
+                      {
+                        "name": "Bo",
+                        "total": 5
+                      }
+                    ]
+                  ],
+                  "passed": false,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [],
+                  "check_id": "chk-r1-f2",
+                  "elapsed_seconds": 0.02298471998074092,
+                  "error": null,
+                  "expected_values": [
+                    []
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Amy",
+                      "total": 7
+                    },
+                    {
+                      "name": "Zed",
+                      "total": 7
+                    },
+                    {
+                      "name": "Max",
+                      "total": 9
+                    }
+                  ],
+                  "check_id": "chk-r1-o1",
+                  "elapsed_seconds": 0.02258071899996139,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Max",
+                        "total": 9
+                      },
+                      {
+                        "name": "Amy",
+                        "total": 7
+                      },
+                      {
+                        "name": "Zed",
+                        "total": 7
+                      }
+                    ]
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "t-tie-alpha"
+                  ],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": null,
+                  "check_id": "chk-r1-o2",
+                  "elapsed_seconds": 0.01364051501150243,
+                  "error": null,
+                  "expected_values": [
+                    null
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "g-invalid-null"
+                  ],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": null,
+                  "check_id": "chk-r1-o3",
+                  "elapsed_seconds": 0.013761570997303352,
+                  "error": null,
+                  "expected_values": [
+                    null
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "g-invalid-null"
+                  ],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Ada",
+                      "total": 7
+                    },
+                    {
+                      "name": "Bob",
+                      "total": 7
+                    },
+                    {
+                      "name": "amy",
+                      "total": 7
+                    }
+                  ],
+                  "check_id": "chk-r1-o4",
+                  "elapsed_seconds": 0.024435041996184736,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Ada",
+                        "total": 7
+                      },
+                      {
+                        "name": "Bob",
+                        "total": 7
+                      },
+                      {
+                        "name": "amy",
+                        "total": 7
+                      }
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "t-tie-alpha"
+                  ],
+                  "symbol": "rank_board"
+                }
+              ],
+              "control_id": "nc-r1-f",
+              "current_obligations_passed": false,
+              "expected_failing_check_ids": [
+                "chk-r1-f1",
+                "chk-r1-o1"
+              ],
+              "kind": "functional",
+              "named_checks_failed": true,
+              "patch_sha256": "936d442d4918336a7c8d1d7fec441a9bbadbf8ef1308111f1213256abc5e091d",
+              "stable_functionality_passed": false,
+              "valid": true
+            },
+            {
+              "checks": [
+                {
+                  "actual": 10,
+                  "check_id": "chk-init-1",
+                  "elapsed_seconds": 0.022319295007037,
+                  "error": null,
+                  "expected_values": [
+                    10
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 1,
+                  "check_id": "chk-init-2",
+                  "elapsed_seconds": 0.023906928981887177,
+                  "error": null,
+                  "expected_values": [
+                    1
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-init-3",
+                  "elapsed_seconds": 0.02373040100792423,
+                  "error": null,
+                  "expected_values": [
+                    0
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 17,
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.024386642005993053,
+                  "error": null,
+                  "expected_values": [
+                    17
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 4,
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.01312120200600475,
+                  "error": null,
+                  "expected_values": [
+                    4
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 7,
+                  "check_id": "chk-r0-f3",
+                  "elapsed_seconds": 0.013550322997616604,
+                  "error": null,
+                  "expected_values": [
+                    7
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Ada",
+                      "total": 9
+                    },
+                    {
+                      "name": "Bo",
+                      "total": 5
+                    }
+                  ],
+                  "check_id": "chk-r1-f1",
+                  "elapsed_seconds": 0.01365457900101319,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Ada",
+                        "total": 9
+                      },
+                      {
+                        "name": "Bo",
+                        "total": 5
+                      }
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [],
+                  "check_id": "chk-r1-f2",
+                  "elapsed_seconds": 0.013594098971225321,
+                  "error": null,
+                  "expected_values": [
+                    []
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Max",
+                      "total": 9
+                    },
+                    {
+                      "name": "Zed",
+                      "total": 7
+                    },
+                    {
+                      "name": "Amy",
+                      "total": 7
+                    }
+                  ],
+                  "check_id": "chk-r1-o1",
+                  "elapsed_seconds": 0.023746208986267447,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Max",
+                        "total": 9
+                      },
+                      {
+                        "name": "Amy",
+                        "total": 7
+                      },
+                      {
+                        "name": "Zed",
+                        "total": 7
+                      }
+                    ]
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "t-tie-alpha"
+                  ],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": null,
+                  "check_id": "chk-r1-o2",
+                  "elapsed_seconds": 0.01354030700167641,
+                  "error": null,
+                  "expected_values": [
+                    null
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "g-invalid-null"
+                  ],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": null,
+                  "check_id": "chk-r1-o3",
+                  "elapsed_seconds": 0.023866353003541008,
+                  "error": null,
+                  "expected_values": [
+                    null
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "g-invalid-null"
+                  ],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "amy",
+                      "total": 7
+                    },
+                    {
+                      "name": "Bob",
+                      "total": 7
+                    },
+                    {
+                      "name": "Ada",
+                      "total": 7
+                    }
+                  ],
+                  "check_id": "chk-r1-o4",
+                  "elapsed_seconds": 0.02390201698290184,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Ada",
+                        "total": 7
+                      },
+                      {
+                        "name": "Bob",
+                        "total": 7
+                      },
+                      {
+                        "name": "amy",
+                        "total": 7
+                      }
+                    ]
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "t-tie-alpha"
+                  ],
+                  "symbol": "rank_board"
+                }
+              ],
+              "control_id": "nc-r1-o",
+              "current_obligations_passed": false,
+              "expected_failing_check_ids": [
+                "chk-r1-o1"
+              ],
+              "kind": "obligation",
+              "named_checks_failed": true,
+              "patch_sha256": "374e9b706714794ed035cd6a87f10b4fbac66ef7769fa203ad4d2f1140cc3556",
+              "stable_functionality_passed": true,
+              "valid": true
+            }
+          ],
+          "post_module_sha256": "9b6607842ef3f8fe3e1b0541523b8c36cdb091e91223a5ec49c05f9fafefb4af",
+          "pre_module_sha256": "21aa388acd693766ed28213a5b7ef27142c8c5bf3cfac26b7cb24096a57d25de",
+          "reference_checks": [
+            {
+              "actual": 10,
+              "check_id": "chk-init-1",
+              "elapsed_seconds": 0.02456870599417016,
+              "error": null,
+              "expected_values": [
+                10
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "base_points"
+            },
+            {
+              "actual": 1,
+              "check_id": "chk-init-2",
+              "elapsed_seconds": 0.012826001999201253,
+              "error": null,
+              "expected_values": [
+                1
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "base_points"
+            },
+            {
+              "actual": 0,
+              "check_id": "chk-init-3",
+              "elapsed_seconds": 0.014897924003889784,
+              "error": null,
+              "expected_values": [
+                0
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "base_points"
+            },
+            {
+              "actual": 17,
+              "check_id": "chk-r0-f1",
+              "elapsed_seconds": 0.014094148005824536,
+              "error": null,
+              "expected_values": [
+                17
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 4,
+              "check_id": "chk-r0-f2",
+              "elapsed_seconds": 0.014058979984838516,
+              "error": null,
+              "expected_values": [
+                4
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 7,
+              "check_id": "chk-r0-f3",
+              "elapsed_seconds": 0.014034386986168101,
+              "error": null,
+              "expected_values": [
+                7
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": [
+                {
+                  "name": "Ada",
+                  "total": 9
+                },
+                {
+                  "name": "Bo",
+                  "total": 5
+                }
+              ],
+              "check_id": "chk-r1-f1",
+              "elapsed_seconds": 0.014832836983259767,
+              "error": null,
+              "expected_values": [
+                [
+                  {
+                    "name": "Ada",
+                    "total": 9
+                  },
+                  {
+                    "name": "Bo",
+                    "total": 5
+                  }
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "rank_board"
+            },
+            {
+              "actual": [],
+              "check_id": "chk-r1-f2",
+              "elapsed_seconds": 0.013646114995935932,
+              "error": null,
+              "expected_values": [
+                []
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "rank_board"
+            },
+            {
+              "actual": [
+                {
+                  "name": "Max",
+                  "total": 9
+                },
+                {
+                  "name": "Amy",
+                  "total": 7
+                },
+                {
+                  "name": "Zed",
+                  "total": 7
+                }
+              ],
+              "check_id": "chk-r1-o1",
+              "elapsed_seconds": 0.013573875010479242,
+              "error": null,
+              "expected_values": [
+                [
+                  {
+                    "name": "Max",
+                    "total": 9
+                  },
+                  {
+                    "name": "Amy",
+                    "total": 7
+                  },
+                  {
+                    "name": "Zed",
+                    "total": 7
+                  }
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [
+                "t-tie-alpha"
+              ],
+              "symbol": "rank_board"
+            },
+            {
+              "actual": null,
+              "check_id": "chk-r1-o2",
+              "elapsed_seconds": 0.014715475990669802,
+              "error": null,
+              "expected_values": [
+                null
+              ],
+              "passed": true,
+              "rule_ids": [
+                "g-invalid-null"
+              ],
+              "symbol": "rank_board"
+            },
+            {
+              "actual": null,
+              "check_id": "chk-r1-o3",
+              "elapsed_seconds": 0.013702131022000685,
+              "error": null,
+              "expected_values": [
+                null
+              ],
+              "passed": true,
+              "rule_ids": [
+                "g-invalid-null"
+              ],
+              "symbol": "rank_board"
+            },
+            {
+              "actual": [
+                {
+                  "name": "Ada",
+                  "total": 7
+                },
+                {
+                  "name": "Bob",
+                  "total": 7
+                },
+                {
+                  "name": "amy",
+                  "total": 7
+                }
+              ],
+              "check_id": "chk-r1-o4",
+              "elapsed_seconds": 0.01360257901251316,
+              "error": null,
+              "expected_values": [
+                [
+                  {
+                    "name": "Ada",
+                    "total": 7
+                  },
+                  {
+                    "name": "Bob",
+                    "total": 7
+                  },
+                  {
+                    "name": "amy",
+                    "total": 7
+                  }
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [
+                "t-tie-alpha"
+              ],
+              "symbol": "rank_board"
+            }
+          ],
+          "reference_passed": true,
+          "reference_patch_sha256": "1d0ce1cef00d3e802982700bb75b4432b03ce5c318e394f7292cf280422452a8",
+          "target": {
+            "path": "module.py",
+            "symbol": "rank_board"
+          }
+        },
+        {
+          "counterfactual_reference_sizing": {
+            "actual_http_prompt": false,
+            "description": "manual recap plus reference fence; actual own-history worker requests are unknowable before inference",
+            "eligible": true,
+            "error": null,
+            "generation_cap": 768,
+            "headroom_tokens": 440,
+            "minimum_headroom_tokens": 128,
+            "response_sha256": "d725cc701fd245ba0faf816fde53381c3b53311f7fd091394c95c996ed3c11a9",
+            "tokens_without_eos": 328
+          },
+          "index": 2,
+          "negative_controls": [
+            {
+              "checks": [
+                {
+                  "actual": 10,
+                  "check_id": "chk-init-1",
+                  "elapsed_seconds": 0.013343346014153212,
+                  "error": null,
+                  "expected_values": [
+                    10
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 1,
+                  "check_id": "chk-init-2",
+                  "elapsed_seconds": 0.012438658013707027,
+                  "error": null,
+                  "expected_values": [
+                    1
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-init-3",
+                  "elapsed_seconds": 0.012673185003222898,
+                  "error": null,
+                  "expected_values": [
+                    0
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 17,
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.0128886740130838,
+                  "error": null,
+                  "expected_values": [
+                    17
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 4,
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.013224227004684508,
+                  "error": null,
+                  "expected_values": [
+                    4
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 7,
+                  "check_id": "chk-r0-f3",
+                  "elapsed_seconds": 0.01360646597458981,
+                  "error": null,
+                  "expected_values": [
+                    7
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Ada",
+                      "total": 9
+                    },
+                    {
+                      "name": "Bo",
+                      "total": 5
+                    }
+                  ],
+                  "check_id": "chk-r1-f1",
+                  "elapsed_seconds": 0.012911569996504113,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Ada",
+                        "total": 9
+                      },
+                      {
+                        "name": "Bo",
+                        "total": 5
+                      }
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [],
+                  "check_id": "chk-r1-f2",
+                  "elapsed_seconds": 0.012834994005970657,
+                  "error": null,
+                  "expected_values": [
+                    []
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": 12,
+                  "check_id": "chk-r2-f1",
+                  "elapsed_seconds": 0.013112435000948608,
+                  "error": null,
+                  "expected_values": [
+                    17
+                  ],
+                  "passed": false,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 4,
+                  "check_id": "chk-r2-f2",
+                  "elapsed_seconds": 0.01255673699779436,
+                  "error": null,
+                  "expected_values": [
+                    8
+                  ],
+                  "passed": false,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-r2-f3",
+                  "elapsed_seconds": 0.012430689006578177,
+                  "error": null,
+                  "expected_values": [
+                    0
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 12,
+                  "check_id": "chk-r2-f4",
+                  "elapsed_seconds": 0.012345489987637848,
+                  "error": null,
+                  "expected_values": [
+                    12
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": null,
+                  "check_id": "chk-r2-o1",
+                  "elapsed_seconds": 0.01289857699885033,
+                  "error": null,
+                  "expected_values": [
+                    null
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "g-invalid-null"
+                  ],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": null,
+                  "check_id": "chk-r2-o2",
+                  "elapsed_seconds": 0.01250448200153187,
+                  "error": null,
+                  "expected_values": [
+                    null
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "g-invalid-null"
+                  ],
+                  "symbol": "solve_total"
+                }
+              ],
+              "control_id": "nc-r2-f",
+              "current_obligations_passed": true,
+              "expected_failing_check_ids": [
+                "chk-r2-f1",
+                "chk-r2-f2"
+              ],
+              "kind": "functional",
+              "named_checks_failed": true,
+              "patch_sha256": "cabbbaa64f2f5546269dc1d1bce3c82f0c488fa9346963cf2f87d55ff8d8c592",
+              "stable_functionality_passed": false,
+              "valid": true
+            },
+            {
+              "checks": [
+                {
+                  "actual": 10,
+                  "check_id": "chk-init-1",
+                  "elapsed_seconds": 0.012910530000226572,
+                  "error": null,
+                  "expected_values": [
+                    10
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 1,
+                  "check_id": "chk-init-2",
+                  "elapsed_seconds": 0.013453138992190361,
+                  "error": null,
+                  "expected_values": [
+                    1
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-init-3",
+                  "elapsed_seconds": 0.013079346012091264,
+                  "error": null,
+                  "expected_values": [
+                    0
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 17,
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.013099889998557046,
+                  "error": null,
+                  "expected_values": [
+                    17
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 4,
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.012713409989373758,
+                  "error": null,
+                  "expected_values": [
+                    4
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 7,
+                  "check_id": "chk-r0-f3",
+                  "elapsed_seconds": 0.013037266005994752,
+                  "error": null,
+                  "expected_values": [
+                    7
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Ada",
+                      "total": 9
+                    },
+                    {
+                      "name": "Bo",
+                      "total": 5
+                    }
+                  ],
+                  "check_id": "chk-r1-f1",
+                  "elapsed_seconds": 0.012793554022209719,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Ada",
+                        "total": 9
+                      },
+                      {
+                        "name": "Bo",
+                        "total": 5
+                      }
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [],
+                  "check_id": "chk-r1-f2",
+                  "elapsed_seconds": 0.012928145995829254,
+                  "error": null,
+                  "expected_values": [
+                    []
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": 17,
+                  "check_id": "chk-r2-f1",
+                  "elapsed_seconds": 0.012873362022219226,
+                  "error": null,
+                  "expected_values": [
+                    17
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 8,
+                  "check_id": "chk-r2-f2",
+                  "elapsed_seconds": 0.013682546996278688,
+                  "error": null,
+                  "expected_values": [
+                    8
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-r2-f3",
+                  "elapsed_seconds": 0.012509585008956492,
+                  "error": null,
+                  "expected_values": [
+                    0
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 12,
+                  "check_id": "chk-r2-f4",
+                  "elapsed_seconds": 0.012745137995807454,
+                  "error": null,
+                  "expected_values": [
+                    12
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-r2-o1",
+                  "elapsed_seconds": 0.012818705989047885,
+                  "error": null,
+                  "expected_values": [
+                    null
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "g-invalid-null"
+                  ],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": null,
+                  "check_id": "chk-r2-o2",
+                  "elapsed_seconds": 0.012911458004964516,
+                  "error": null,
+                  "expected_values": [
+                    null
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "g-invalid-null"
+                  ],
+                  "symbol": "solve_total"
+                }
+              ],
+              "control_id": "nc-r2-o",
+              "current_obligations_passed": false,
+              "expected_failing_check_ids": [
+                "chk-r2-o1"
+              ],
+              "kind": "obligation",
+              "named_checks_failed": true,
+              "patch_sha256": "37787ef50d4821a5f0b7e54314c2bbb85041170d9896660f8f63e76d172e61e8",
+              "stable_functionality_passed": true,
+              "valid": true
+            }
+          ],
+          "post_module_sha256": "f6a6394a62fdbe0e361fa47a7d8bd3cb84e8cf1507e0df2406fc1c44d0f8ad60",
+          "pre_module_sha256": "9b6607842ef3f8fe3e1b0541523b8c36cdb091e91223a5ec49c05f9fafefb4af",
+          "reference_checks": [
+            {
+              "actual": 10,
+              "check_id": "chk-init-1",
+              "elapsed_seconds": 0.021673934010323137,
+              "error": null,
+              "expected_values": [
+                10
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "base_points"
+            },
+            {
+              "actual": 1,
+              "check_id": "chk-init-2",
+              "elapsed_seconds": 0.01368109101895243,
+              "error": null,
+              "expected_values": [
+                1
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "base_points"
+            },
+            {
+              "actual": 0,
+              "check_id": "chk-init-3",
+              "elapsed_seconds": 0.025049138988833874,
+              "error": null,
+              "expected_values": [
+                0
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "base_points"
+            },
+            {
+              "actual": 17,
+              "check_id": "chk-r0-f1",
+              "elapsed_seconds": 0.012877761997515336,
+              "error": null,
+              "expected_values": [
+                17
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 4,
+              "check_id": "chk-r0-f2",
+              "elapsed_seconds": 0.023598785017384216,
+              "error": null,
+              "expected_values": [
+                4
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 7,
+              "check_id": "chk-r0-f3",
+              "elapsed_seconds": 0.013382225995883346,
+              "error": null,
+              "expected_values": [
+                7
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": [
+                {
+                  "name": "Ada",
+                  "total": 9
+                },
+                {
+                  "name": "Bo",
+                  "total": 5
+                }
+              ],
+              "check_id": "chk-r1-f1",
+              "elapsed_seconds": 0.013209091004682705,
+              "error": null,
+              "expected_values": [
+                [
+                  {
+                    "name": "Ada",
+                    "total": 9
+                  },
+                  {
+                    "name": "Bo",
+                    "total": 5
+                  }
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "rank_board"
+            },
+            {
+              "actual": [],
+              "check_id": "chk-r1-f2",
+              "elapsed_seconds": 0.012956466001924127,
+              "error": null,
+              "expected_values": [
+                []
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "rank_board"
+            },
+            {
+              "actual": 17,
+              "check_id": "chk-r2-f1",
+              "elapsed_seconds": 0.013113266002619639,
+              "error": null,
+              "expected_values": [
+                17
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 8,
+              "check_id": "chk-r2-f2",
+              "elapsed_seconds": 0.013463345996569842,
+              "error": null,
+              "expected_values": [
+                8
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 0,
+              "check_id": "chk-r2-f3",
+              "elapsed_seconds": 0.013085523009067401,
+              "error": null,
+              "expected_values": [
+                0
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 12,
+              "check_id": "chk-r2-f4",
+              "elapsed_seconds": 0.013083889993140474,
+              "error": null,
+              "expected_values": [
+                12
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": null,
+              "check_id": "chk-r2-o1",
+              "elapsed_seconds": 0.013503443013178185,
+              "error": null,
+              "expected_values": [
+                null
+              ],
+              "passed": true,
+              "rule_ids": [
+                "g-invalid-null"
+              ],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": null,
+              "check_id": "chk-r2-o2",
+              "elapsed_seconds": 0.013166385993827134,
+              "error": null,
+              "expected_values": [
+                null
+              ],
+              "passed": true,
+              "rule_ids": [
+                "g-invalid-null"
+              ],
+              "symbol": "solve_total"
+            }
+          ],
+          "reference_passed": true,
+          "reference_patch_sha256": "8768d4f1ccd2ff7dccbcd497741fb0a745b36d1e481d114e4fe00734f0ee2448",
+          "target": {
+            "path": "module.py",
+            "symbol": "solve_total"
+          }
+        },
+        {
+          "counterfactual_reference_sizing": {
+            "actual_http_prompt": false,
+            "description": "manual recap plus reference fence; actual own-history worker requests are unknowable before inference",
+            "eligible": true,
+            "error": null,
+            "generation_cap": 768,
+            "headroom_tokens": 547,
+            "minimum_headroom_tokens": 128,
+            "response_sha256": "b7c2405fc228c07933c20a23d5f07bace3e1496bab840ba8378de17369170db7",
+            "tokens_without_eos": 221
+          },
+          "index": 3,
+          "negative_controls": [
+            {
+              "checks": [
+                {
+                  "actual": 10,
+                  "check_id": "chk-init-1",
+                  "elapsed_seconds": 0.022351151012117043,
+                  "error": null,
+                  "expected_values": [
+                    10
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 1,
+                  "check_id": "chk-init-2",
+                  "elapsed_seconds": 0.02218716699280776,
+                  "error": null,
+                  "expected_values": [
+                    1
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-init-3",
+                  "elapsed_seconds": 0.02407606499036774,
+                  "error": null,
+                  "expected_values": [
+                    0
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 17,
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.021767710015410557,
+                  "error": null,
+                  "expected_values": [
+                    17
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 4,
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.023786272999132052,
+                  "error": null,
+                  "expected_values": [
+                    4
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 7,
+                  "check_id": "chk-r0-f3",
+                  "elapsed_seconds": 0.022314128000289202,
+                  "error": null,
+                  "expected_values": [
+                    7
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Bo",
+                      "total": 5
+                    },
+                    {
+                      "name": "Ada",
+                      "total": 9
+                    }
+                  ],
+                  "check_id": "chk-r1-f1",
+                  "elapsed_seconds": 0.02444872201886028,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Ada",
+                        "total": 9
+                      },
+                      {
+                        "name": "Bo",
+                        "total": 5
+                      }
+                    ]
+                  ],
+                  "passed": false,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [],
+                  "check_id": "chk-r1-f2",
+                  "elapsed_seconds": 0.022374207008397207,
+                  "error": null,
+                  "expected_values": [
+                    []
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": 17,
+                  "check_id": "chk-r2-f1",
+                  "elapsed_seconds": 0.0238210890092887,
+                  "error": null,
+                  "expected_values": [
+                    17
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 8,
+                  "check_id": "chk-r2-f2",
+                  "elapsed_seconds": 0.022210207011085004,
+                  "error": null,
+                  "expected_values": [
+                    8
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-r2-f3",
+                  "elapsed_seconds": 0.025256898981751874,
+                  "error": null,
+                  "expected_values": [
+                    0
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 12,
+                  "check_id": "chk-r2-f4",
+                  "elapsed_seconds": 0.022853967995615676,
+                  "error": null,
+                  "expected_values": [
+                    12
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Cy",
+                      "total": 1
+                    },
+                    {
+                      "name": "Ed",
+                      "total": 2
+                    },
+                    {
+                      "name": "Di",
+                      "total": 4
+                    }
+                  ],
+                  "check_id": "chk-r3-f1",
+                  "elapsed_seconds": 0.022491438983706757,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Di",
+                        "total": 4
+                      },
+                      {
+                        "name": "Ed",
+                        "total": 2
+                      },
+                      {
+                        "name": "Cy",
+                        "total": 1
+                      }
+                    ]
+                  ],
+                  "passed": false,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Mo",
+                      "total": -2
+                    }
+                  ],
+                  "check_id": "chk-r3-f2",
+                  "elapsed_seconds": 0.02123356598895043,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Mo",
+                        "total": -2
+                      }
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Zed",
+                      "total": 7
+                    },
+                    {
+                      "name": "Amy",
+                      "total": 7
+                    },
+                    {
+                      "name": "Max",
+                      "total": 9
+                    }
+                  ],
+                  "check_id": "chk-r3-o1",
+                  "elapsed_seconds": 0.02429040099377744,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Max",
+                        "total": 9
+                      },
+                      {
+                        "name": "Zed",
+                        "total": 7
+                      },
+                      {
+                        "name": "Amy",
+                        "total": 7
+                      }
+                    ]
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "t-tie-stable"
+                  ],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Bo",
+                      "total": 3
+                    },
+                    {
+                      "name": "Al",
+                      "total": 3
+                    }
+                  ],
+                  "check_id": "chk-r3-o2",
+                  "elapsed_seconds": 0.013074387010419741,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Bo",
+                        "total": 3
+                      },
+                      {
+                        "name": "Al",
+                        "total": 3
+                      }
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "t-tie-stable"
+                  ],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": null,
+                  "check_id": "chk-r3-o3",
+                  "elapsed_seconds": 0.013923827005783096,
+                  "error": null,
+                  "expected_values": [
+                    null
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "g-invalid-null"
+                  ],
+                  "symbol": "rank_board"
+                }
+              ],
+              "control_id": "nc-r3-f",
+              "current_obligations_passed": false,
+              "expected_failing_check_ids": [
+                "chk-r1-f1",
+                "chk-r3-f1",
+                "chk-r3-o1"
+              ],
+              "kind": "functional",
+              "named_checks_failed": true,
+              "patch_sha256": "1b109093f989f80522a85f865e498bb4d0cd4a122e3ef8515b27459d22c3eb44",
+              "stable_functionality_passed": false,
+              "valid": true
+            },
+            {
+              "checks": [
+                {
+                  "actual": 10,
+                  "check_id": "chk-init-1",
+                  "elapsed_seconds": 0.013504066999303177,
+                  "error": null,
+                  "expected_values": [
+                    10
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 1,
+                  "check_id": "chk-init-2",
+                  "elapsed_seconds": 0.01522467698669061,
+                  "error": null,
+                  "expected_values": [
+                    1
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-init-3",
+                  "elapsed_seconds": 0.013940242992248386,
+                  "error": null,
+                  "expected_values": [
+                    0
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 17,
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.013603619008790702,
+                  "error": null,
+                  "expected_values": [
+                    17
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 4,
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.014350884011946619,
+                  "error": null,
+                  "expected_values": [
+                    4
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 7,
+                  "check_id": "chk-r0-f3",
+                  "elapsed_seconds": 0.024775490979664028,
+                  "error": null,
+                  "expected_values": [
+                    7
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Ada",
+                      "total": 9
+                    },
+                    {
+                      "name": "Bo",
+                      "total": 5
+                    }
+                  ],
+                  "check_id": "chk-r1-f1",
+                  "elapsed_seconds": 0.0246877140016295,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Ada",
+                        "total": 9
+                      },
+                      {
+                        "name": "Bo",
+                        "total": 5
+                      }
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [],
+                  "check_id": "chk-r1-f2",
+                  "elapsed_seconds": 0.023984738014405593,
+                  "error": null,
+                  "expected_values": [
+                    []
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": 17,
+                  "check_id": "chk-r2-f1",
+                  "elapsed_seconds": 0.023975904972758144,
+                  "error": null,
+                  "expected_values": [
+                    17
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 8,
+                  "check_id": "chk-r2-f2",
+                  "elapsed_seconds": 0.02446688199415803,
+                  "error": null,
+                  "expected_values": [
+                    8
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-r2-f3",
+                  "elapsed_seconds": 0.013696979003725573,
+                  "error": null,
+                  "expected_values": [
+                    0
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 12,
+                  "check_id": "chk-r2-f4",
+                  "elapsed_seconds": 0.015108166000572965,
+                  "error": null,
+                  "expected_values": [
+                    12
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Di",
+                      "total": 4
+                    },
+                    {
+                      "name": "Ed",
+                      "total": 2
+                    },
+                    {
+                      "name": "Cy",
+                      "total": 1
+                    }
+                  ],
+                  "check_id": "chk-r3-f1",
+                  "elapsed_seconds": 0.014802788005908951,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Di",
+                        "total": 4
+                      },
+                      {
+                        "name": "Ed",
+                        "total": 2
+                      },
+                      {
+                        "name": "Cy",
+                        "total": 1
+                      }
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Mo",
+                      "total": -2
+                    }
+                  ],
+                  "check_id": "chk-r3-f2",
+                  "elapsed_seconds": 0.01345854700775817,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Mo",
+                        "total": -2
+                      }
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Max",
+                      "total": 9
+                    },
+                    {
+                      "name": "Amy",
+                      "total": 7
+                    },
+                    {
+                      "name": "Zed",
+                      "total": 7
+                    }
+                  ],
+                  "check_id": "chk-r3-o1",
+                  "elapsed_seconds": 0.013466242991853505,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Max",
+                        "total": 9
+                      },
+                      {
+                        "name": "Zed",
+                        "total": 7
+                      },
+                      {
+                        "name": "Amy",
+                        "total": 7
+                      }
+                    ]
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "t-tie-stable"
+                  ],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Al",
+                      "total": 3
+                    },
+                    {
+                      "name": "Bo",
+                      "total": 3
+                    }
+                  ],
+                  "check_id": "chk-r3-o2",
+                  "elapsed_seconds": 0.013464898976963013,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Bo",
+                        "total": 3
+                      },
+                      {
+                        "name": "Al",
+                        "total": 3
+                      }
+                    ]
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "t-tie-stable"
+                  ],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": null,
+                  "check_id": "chk-r3-o3",
+                  "elapsed_seconds": 0.013584241998614743,
+                  "error": null,
+                  "expected_values": [
+                    null
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "g-invalid-null"
+                  ],
+                  "symbol": "rank_board"
+                }
+              ],
+              "control_id": "nc-r3-o",
+              "current_obligations_passed": false,
+              "expected_failing_check_ids": [
+                "chk-r3-o1",
+                "chk-r3-o2"
+              ],
+              "kind": "obligation",
+              "named_checks_failed": true,
+              "patch_sha256": "1d0ce1cef00d3e802982700bb75b4432b03ce5c318e394f7292cf280422452a8",
+              "stable_functionality_passed": true,
+              "valid": true
+            }
+          ],
+          "post_module_sha256": "d707744e5b6d575ebc7b220d65cda09c8cd3ad203ad9c14bd5bc1fdace55a25d",
+          "pre_module_sha256": "f6a6394a62fdbe0e361fa47a7d8bd3cb84e8cf1507e0df2406fc1c44d0f8ad60",
+          "reference_checks": [
+            {
+              "actual": 10,
+              "check_id": "chk-init-1",
+              "elapsed_seconds": 0.01361077101319097,
+              "error": null,
+              "expected_values": [
+                10
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "base_points"
+            },
+            {
+              "actual": 1,
+              "check_id": "chk-init-2",
+              "elapsed_seconds": 0.013476066989824176,
+              "error": null,
+              "expected_values": [
+                1
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "base_points"
+            },
+            {
+              "actual": 0,
+              "check_id": "chk-init-3",
+              "elapsed_seconds": 0.013049489993136376,
+              "error": null,
+              "expected_values": [
+                0
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "base_points"
+            },
+            {
+              "actual": 17,
+              "check_id": "chk-r0-f1",
+              "elapsed_seconds": 0.013189427001634613,
+              "error": null,
+              "expected_values": [
+                17
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 4,
+              "check_id": "chk-r0-f2",
+              "elapsed_seconds": 0.012894498009700328,
+              "error": null,
+              "expected_values": [
+                4
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 7,
+              "check_id": "chk-r0-f3",
+              "elapsed_seconds": 0.013033233990427107,
+              "error": null,
+              "expected_values": [
+                7
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": [
+                {
+                  "name": "Ada",
+                  "total": 9
+                },
+                {
+                  "name": "Bo",
+                  "total": 5
+                }
+              ],
+              "check_id": "chk-r1-f1",
+              "elapsed_seconds": 0.013092162000248209,
+              "error": null,
+              "expected_values": [
+                [
+                  {
+                    "name": "Ada",
+                    "total": 9
+                  },
+                  {
+                    "name": "Bo",
+                    "total": 5
+                  }
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "rank_board"
+            },
+            {
+              "actual": [],
+              "check_id": "chk-r1-f2",
+              "elapsed_seconds": 0.013117313996190205,
+              "error": null,
+              "expected_values": [
+                []
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "rank_board"
+            },
+            {
+              "actual": 17,
+              "check_id": "chk-r2-f1",
+              "elapsed_seconds": 0.012886098003946245,
+              "error": null,
+              "expected_values": [
+                17
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 8,
+              "check_id": "chk-r2-f2",
+              "elapsed_seconds": 0.012687234004260972,
+              "error": null,
+              "expected_values": [
+                8
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 0,
+              "check_id": "chk-r2-f3",
+              "elapsed_seconds": 0.012617889005923644,
+              "error": null,
+              "expected_values": [
+                0
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 12,
+              "check_id": "chk-r2-f4",
+              "elapsed_seconds": 0.021653566014720127,
+              "error": null,
+              "expected_values": [
+                12
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": [
+                {
+                  "name": "Di",
+                  "total": 4
+                },
+                {
+                  "name": "Ed",
+                  "total": 2
+                },
+                {
+                  "name": "Cy",
+                  "total": 1
+                }
+              ],
+              "check_id": "chk-r3-f1",
+              "elapsed_seconds": 0.023151344998041168,
+              "error": null,
+              "expected_values": [
+                [
+                  {
+                    "name": "Di",
+                    "total": 4
+                  },
+                  {
+                    "name": "Ed",
+                    "total": 2
+                  },
+                  {
+                    "name": "Cy",
+                    "total": 1
+                  }
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "rank_board"
+            },
+            {
+              "actual": [
+                {
+                  "name": "Mo",
+                  "total": -2
+                }
+              ],
+              "check_id": "chk-r3-f2",
+              "elapsed_seconds": 0.023265088006155565,
+              "error": null,
+              "expected_values": [
+                [
+                  {
+                    "name": "Mo",
+                    "total": -2
+                  }
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "rank_board"
+            },
+            {
+              "actual": [
+                {
+                  "name": "Max",
+                  "total": 9
+                },
+                {
+                  "name": "Zed",
+                  "total": 7
+                },
+                {
+                  "name": "Amy",
+                  "total": 7
+                }
+              ],
+              "check_id": "chk-r3-o1",
+              "elapsed_seconds": 0.023852417012676597,
+              "error": null,
+              "expected_values": [
+                [
+                  {
+                    "name": "Max",
+                    "total": 9
+                  },
+                  {
+                    "name": "Zed",
+                    "total": 7
+                  },
+                  {
+                    "name": "Amy",
+                    "total": 7
+                  }
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [
+                "t-tie-stable"
+              ],
+              "symbol": "rank_board"
+            },
+            {
+              "actual": [
+                {
+                  "name": "Bo",
+                  "total": 3
+                },
+                {
+                  "name": "Al",
+                  "total": 3
+                }
+              ],
+              "check_id": "chk-r3-o2",
+              "elapsed_seconds": 0.023404369014315307,
+              "error": null,
+              "expected_values": [
+                [
+                  {
+                    "name": "Bo",
+                    "total": 3
+                  },
+                  {
+                    "name": "Al",
+                    "total": 3
+                  }
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [
+                "t-tie-stable"
+              ],
+              "symbol": "rank_board"
+            },
+            {
+              "actual": null,
+              "check_id": "chk-r3-o3",
+              "elapsed_seconds": 0.023815216991351917,
+              "error": null,
+              "expected_values": [
+                null
+              ],
+              "passed": true,
+              "rule_ids": [
+                "g-invalid-null"
+              ],
+              "symbol": "rank_board"
+            }
+          ],
+          "reference_passed": true,
+          "reference_patch_sha256": "374e9b706714794ed035cd6a87f10b4fbac66ef7769fa203ad4d2f1140cc3556",
+          "target": {
+            "path": "module.py",
+            "symbol": "rank_board"
+          }
+        },
+        {
+          "counterfactual_reference_sizing": {
+            "actual_http_prompt": false,
+            "description": "manual recap plus reference fence; actual own-history worker requests are unknowable before inference",
+            "eligible": true,
+            "error": null,
+            "generation_cap": 768,
+            "headroom_tokens": 571,
+            "minimum_headroom_tokens": 128,
+            "response_sha256": "baf845509178899d4aa591480379a13aae92e40d64974b5fbf760cdff59276a6",
+            "tokens_without_eos": 197
+          },
+          "index": 4,
+          "negative_controls": [
+            {
+              "checks": [
+                {
+                  "actual": 10,
+                  "check_id": "chk-init-1",
+                  "elapsed_seconds": 0.022829039982752874,
+                  "error": null,
+                  "expected_values": [
+                    10
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 1,
+                  "check_id": "chk-init-2",
+                  "elapsed_seconds": 0.023552176979137585,
+                  "error": null,
+                  "expected_values": [
+                    1
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-init-3",
+                  "elapsed_seconds": 0.02268304000608623,
+                  "error": null,
+                  "expected_values": [
+                    0
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 17,
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.022401615016860887,
+                  "error": null,
+                  "expected_values": [
+                    17
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 4,
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.02476840201416053,
+                  "error": null,
+                  "expected_values": [
+                    4
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 7,
+                  "check_id": "chk-r0-f3",
+                  "elapsed_seconds": 0.023522897012298927,
+                  "error": null,
+                  "expected_values": [
+                    7
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Ada",
+                      "total": 9
+                    },
+                    {
+                      "name": "Bo",
+                      "total": 5
+                    }
+                  ],
+                  "check_id": "chk-r1-f1",
+                  "elapsed_seconds": 0.014337683998746797,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Ada",
+                        "total": 9
+                      },
+                      {
+                        "name": "Bo",
+                        "total": 5
+                      }
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [],
+                  "check_id": "chk-r1-f2",
+                  "elapsed_seconds": 0.022367294994182885,
+                  "error": null,
+                  "expected_values": [
+                    []
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": 17,
+                  "check_id": "chk-r2-f1",
+                  "elapsed_seconds": 0.023179728974355385,
+                  "error": null,
+                  "expected_values": [
+                    17
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 8,
+                  "check_id": "chk-r2-f2",
+                  "elapsed_seconds": 0.02489400201011449,
+                  "error": null,
+                  "expected_values": [
+                    8
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-r2-f3",
+                  "elapsed_seconds": 0.022802976018283516,
+                  "error": null,
+                  "expected_values": [
+                    0
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 12,
+                  "check_id": "chk-r2-f4",
+                  "elapsed_seconds": 0.0134484349982813,
+                  "error": null,
+                  "expected_values": [
+                    12
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Di",
+                      "total": 4
+                    },
+                    {
+                      "name": "Ed",
+                      "total": 2
+                    },
+                    {
+                      "name": "Cy",
+                      "total": 1
+                    }
+                  ],
+                  "check_id": "chk-r3-f1",
+                  "elapsed_seconds": 0.0222815349989105,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Di",
+                        "total": 4
+                      },
+                      {
+                        "name": "Ed",
+                        "total": 2
+                      },
+                      {
+                        "name": "Cy",
+                        "total": 1
+                      }
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Mo",
+                      "total": -2
+                    }
+                  ],
+                  "check_id": "chk-r3-f2",
+                  "elapsed_seconds": 0.012903426017146558,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Mo",
+                        "total": -2
+                      }
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": {
+                    "count": 2,
+                    "lines": [
+                      "0. Ada - 9",
+                      "1. Bo - 5"
+                    ]
+                  },
+                  "check_id": "chk-r4-f1",
+                  "elapsed_seconds": 0.013682674994925037,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "count": 2,
+                      "lines": [
+                        "1. Ada - 9",
+                        "2. Bo - 5"
+                      ]
+                    }
+                  ],
+                  "passed": false,
+                  "rule_ids": [],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": {
+                    "count": 0,
+                    "lines": []
+                  },
+                  "check_id": "chk-r4-f2",
+                  "elapsed_seconds": 0.024472657998558134,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "count": 0,
+                      "lines": []
+                    }
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": "invalid",
+                  "check_id": "chk-r4-o1",
+                  "elapsed_seconds": 0.024401346017839387,
+                  "error": null,
+                  "expected_values": [
+                    "invalid"
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "g-invalid-str"
+                  ],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": "invalid",
+                  "check_id": "chk-r4-o2",
+                  "elapsed_seconds": 0.02429998602019623,
+                  "error": null,
+                  "expected_values": [
+                    "invalid"
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "g-invalid-str"
+                  ],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": {
+                    "count": 2,
+                    "lines": [
+                      "0. Zed - 7",
+                      "1. Amy - 7"
+                    ]
+                  },
+                  "check_id": "chk-r4-o3",
+                  "elapsed_seconds": 0.024253762006992474,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "count": 2,
+                      "lines": [
+                        "1. Zed - 7",
+                        "2. Amy - 7"
+                      ]
+                    }
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "t-tie-stable"
+                  ],
+                  "symbol": "format_summary"
+                }
+              ],
+              "control_id": "nc-r4-f",
+              "current_obligations_passed": false,
+              "expected_failing_check_ids": [
+                "chk-r4-f1",
+                "chk-r4-o3"
+              ],
+              "kind": "functional",
+              "named_checks_failed": true,
+              "patch_sha256": "53f971a254d98ec9eedb9c644b148ce859845d3691f6efc74272b5ae046f7738",
+              "stable_functionality_passed": false,
+              "valid": true
+            },
+            {
+              "checks": [
+                {
+                  "actual": 10,
+                  "check_id": "chk-init-1",
+                  "elapsed_seconds": 0.02193041399004869,
+                  "error": null,
+                  "expected_values": [
+                    10
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 1,
+                  "check_id": "chk-init-2",
+                  "elapsed_seconds": 0.013714804023038596,
+                  "error": null,
+                  "expected_values": [
+                    1
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-init-3",
+                  "elapsed_seconds": 0.013887523004086688,
+                  "error": null,
+                  "expected_values": [
+                    0
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 17,
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.01429933198960498,
+                  "error": null,
+                  "expected_values": [
+                    17
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 4,
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.013917044008849189,
+                  "error": null,
+                  "expected_values": [
+                    4
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 7,
+                  "check_id": "chk-r0-f3",
+                  "elapsed_seconds": 0.013650562992552295,
+                  "error": null,
+                  "expected_values": [
+                    7
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Ada",
+                      "total": 9
+                    },
+                    {
+                      "name": "Bo",
+                      "total": 5
+                    }
+                  ],
+                  "check_id": "chk-r1-f1",
+                  "elapsed_seconds": 0.014217315008863807,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Ada",
+                        "total": 9
+                      },
+                      {
+                        "name": "Bo",
+                        "total": 5
+                      }
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [],
+                  "check_id": "chk-r1-f2",
+                  "elapsed_seconds": 0.012886273994809017,
+                  "error": null,
+                  "expected_values": [
+                    []
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": 17,
+                  "check_id": "chk-r2-f1",
+                  "elapsed_seconds": 0.013738964014919475,
+                  "error": null,
+                  "expected_values": [
+                    17
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 8,
+                  "check_id": "chk-r2-f2",
+                  "elapsed_seconds": 0.013412706000963226,
+                  "error": null,
+                  "expected_values": [
+                    8
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-r2-f3",
+                  "elapsed_seconds": 0.013111794978613034,
+                  "error": null,
+                  "expected_values": [
+                    0
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 12,
+                  "check_id": "chk-r2-f4",
+                  "elapsed_seconds": 0.01346814600401558,
+                  "error": null,
+                  "expected_values": [
+                    12
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Di",
+                      "total": 4
+                    },
+                    {
+                      "name": "Ed",
+                      "total": 2
+                    },
+                    {
+                      "name": "Cy",
+                      "total": 1
+                    }
+                  ],
+                  "check_id": "chk-r3-f1",
+                  "elapsed_seconds": 0.013114754983689636,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Di",
+                        "total": 4
+                      },
+                      {
+                        "name": "Ed",
+                        "total": 2
+                      },
+                      {
+                        "name": "Cy",
+                        "total": 1
+                      }
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Mo",
+                      "total": -2
+                    }
+                  ],
+                  "check_id": "chk-r3-f2",
+                  "elapsed_seconds": 0.013549859024351463,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Mo",
+                        "total": -2
+                      }
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": {
+                    "count": 2,
+                    "lines": [
+                      "1. Ada - 9",
+                      "2. Bo - 5"
+                    ]
+                  },
+                  "check_id": "chk-r4-f1",
+                  "elapsed_seconds": 0.013748915022006258,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "count": 2,
+                      "lines": [
+                        "1. Ada - 9",
+                        "2. Bo - 5"
+                      ]
+                    }
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": {
+                    "count": 0,
+                    "lines": []
+                  },
+                  "check_id": "chk-r4-f2",
+                  "elapsed_seconds": 0.0132148020202294,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "count": 0,
+                      "lines": []
+                    }
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": null,
+                  "check_id": "chk-r4-o1",
+                  "elapsed_seconds": 0.01393026000005193,
+                  "error": null,
+                  "expected_values": [
+                    "invalid"
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "g-invalid-str"
+                  ],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": null,
+                  "check_id": "chk-r4-o2",
+                  "elapsed_seconds": 0.024648689985042438,
+                  "error": null,
+                  "expected_values": [
+                    "invalid"
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "g-invalid-str"
+                  ],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": {
+                    "count": 2,
+                    "lines": [
+                      "1. Zed - 7",
+                      "2. Amy - 7"
+                    ]
+                  },
+                  "check_id": "chk-r4-o3",
+                  "elapsed_seconds": 0.024363089993130416,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "count": 2,
+                      "lines": [
+                        "1. Zed - 7",
+                        "2. Amy - 7"
+                      ]
+                    }
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "t-tie-stable"
+                  ],
+                  "symbol": "format_summary"
+                }
+              ],
+              "control_id": "nc-r4-o",
+              "current_obligations_passed": false,
+              "expected_failing_check_ids": [
+                "chk-r4-o1",
+                "chk-r4-o2"
+              ],
+              "kind": "obligation",
+              "named_checks_failed": true,
+              "patch_sha256": "5c9f57ebcc17938100b8c9318a4d2537e32ab4f84c01c74fe0e8e3a0289f118d",
+              "stable_functionality_passed": true,
+              "valid": true
+            }
+          ],
+          "post_module_sha256": "bcfa7cabb44fa00d487673fb84b15b358c56ab7cb31cb0639dfb527ffbfc7d41",
+          "pre_module_sha256": "d707744e5b6d575ebc7b220d65cda09c8cd3ad203ad9c14bd5bc1fdace55a25d",
+          "reference_checks": [
+            {
+              "actual": 10,
+              "check_id": "chk-init-1",
+              "elapsed_seconds": 0.013015169999562204,
+              "error": null,
+              "expected_values": [
+                10
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "base_points"
+            },
+            {
+              "actual": 1,
+              "check_id": "chk-init-2",
+              "elapsed_seconds": 0.013630002998979762,
+              "error": null,
+              "expected_values": [
+                1
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "base_points"
+            },
+            {
+              "actual": 0,
+              "check_id": "chk-init-3",
+              "elapsed_seconds": 0.012920209992444143,
+              "error": null,
+              "expected_values": [
+                0
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "base_points"
+            },
+            {
+              "actual": 17,
+              "check_id": "chk-r0-f1",
+              "elapsed_seconds": 0.013551491021644324,
+              "error": null,
+              "expected_values": [
+                17
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 4,
+              "check_id": "chk-r0-f2",
+              "elapsed_seconds": 0.013861699000699446,
+              "error": null,
+              "expected_values": [
+                4
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 7,
+              "check_id": "chk-r0-f3",
+              "elapsed_seconds": 0.022853392001707107,
+              "error": null,
+              "expected_values": [
+                7
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": [
+                {
+                  "name": "Ada",
+                  "total": 9
+                },
+                {
+                  "name": "Bo",
+                  "total": 5
+                }
+              ],
+              "check_id": "chk-r1-f1",
+              "elapsed_seconds": 0.022078510985011235,
+              "error": null,
+              "expected_values": [
+                [
+                  {
+                    "name": "Ada",
+                    "total": 9
+                  },
+                  {
+                    "name": "Bo",
+                    "total": 5
+                  }
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "rank_board"
+            },
+            {
+              "actual": [],
+              "check_id": "chk-r1-f2",
+              "elapsed_seconds": 0.02209817399852909,
+              "error": null,
+              "expected_values": [
+                []
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "rank_board"
+            },
+            {
+              "actual": 17,
+              "check_id": "chk-r2-f1",
+              "elapsed_seconds": 0.025083539017941803,
+              "error": null,
+              "expected_values": [
+                17
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 8,
+              "check_id": "chk-r2-f2",
+              "elapsed_seconds": 0.02485083500505425,
+              "error": null,
+              "expected_values": [
+                8
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 0,
+              "check_id": "chk-r2-f3",
+              "elapsed_seconds": 0.024261729995487258,
+              "error": null,
+              "expected_values": [
+                0
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 12,
+              "check_id": "chk-r2-f4",
+              "elapsed_seconds": 0.022087118995841593,
+              "error": null,
+              "expected_values": [
+                12
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": [
+                {
+                  "name": "Di",
+                  "total": 4
+                },
+                {
+                  "name": "Ed",
+                  "total": 2
+                },
+                {
+                  "name": "Cy",
+                  "total": 1
+                }
+              ],
+              "check_id": "chk-r3-f1",
+              "elapsed_seconds": 0.02377921700826846,
+              "error": null,
+              "expected_values": [
+                [
+                  {
+                    "name": "Di",
+                    "total": 4
+                  },
+                  {
+                    "name": "Ed",
+                    "total": 2
+                  },
+                  {
+                    "name": "Cy",
+                    "total": 1
+                  }
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "rank_board"
+            },
+            {
+              "actual": [
+                {
+                  "name": "Mo",
+                  "total": -2
+                }
+              ],
+              "check_id": "chk-r3-f2",
+              "elapsed_seconds": 0.02309755200985819,
+              "error": null,
+              "expected_values": [
+                [
+                  {
+                    "name": "Mo",
+                    "total": -2
+                  }
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "rank_board"
+            },
+            {
+              "actual": {
+                "count": 2,
+                "lines": [
+                  "1. Ada - 9",
+                  "2. Bo - 5"
+                ]
+              },
+              "check_id": "chk-r4-f1",
+              "elapsed_seconds": 0.023292112979106605,
+              "error": null,
+              "expected_values": [
+                {
+                  "count": 2,
+                  "lines": [
+                    "1. Ada - 9",
+                    "2. Bo - 5"
+                  ]
+                }
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "format_summary"
+            },
+            {
+              "actual": {
+                "count": 0,
+                "lines": []
+              },
+              "check_id": "chk-r4-f2",
+              "elapsed_seconds": 0.022920846997294575,
+              "error": null,
+              "expected_values": [
+                {
+                  "count": 0,
+                  "lines": []
+                }
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "format_summary"
+            },
+            {
+              "actual": "invalid",
+              "check_id": "chk-r4-o1",
+              "elapsed_seconds": 0.022862271987833083,
+              "error": null,
+              "expected_values": [
+                "invalid"
+              ],
+              "passed": true,
+              "rule_ids": [
+                "g-invalid-str"
+              ],
+              "symbol": "format_summary"
+            },
+            {
+              "actual": "invalid",
+              "check_id": "chk-r4-o2",
+              "elapsed_seconds": 0.023142960999393836,
+              "error": null,
+              "expected_values": [
+                "invalid"
+              ],
+              "passed": true,
+              "rule_ids": [
+                "g-invalid-str"
+              ],
+              "symbol": "format_summary"
+            },
+            {
+              "actual": {
+                "count": 2,
+                "lines": [
+                  "1. Zed - 7",
+                  "2. Amy - 7"
+                ]
+              },
+              "check_id": "chk-r4-o3",
+              "elapsed_seconds": 0.023168975982116535,
+              "error": null,
+              "expected_values": [
+                {
+                  "count": 2,
+                  "lines": [
+                    "1. Zed - 7",
+                    "2. Amy - 7"
+                  ]
+                }
+              ],
+              "passed": true,
+              "rule_ids": [
+                "t-tie-stable"
+              ],
+              "symbol": "format_summary"
+            }
+          ],
+          "reference_passed": true,
+          "reference_patch_sha256": "13a1d504bbc9292adb9b126a1edd80f26672bcc400c9553125d5adab9f765984",
+          "target": {
+            "path": "module.py",
+            "symbol": "format_summary"
+          }
+        },
+        {
+          "counterfactual_reference_sizing": {
+            "actual_http_prompt": false,
+            "description": "manual recap plus reference fence; actual own-history worker requests are unknowable before inference",
+            "eligible": true,
+            "error": null,
+            "generation_cap": 768,
+            "headroom_tokens": 348,
+            "minimum_headroom_tokens": 128,
+            "response_sha256": "4be1e84eea8e05cddaf9e86a681feb7ec587a2954d716e46bc8807209697c929",
+            "tokens_without_eos": 420
+          },
+          "index": 5,
+          "negative_controls": [
+            {
+              "checks": [
+                {
+                  "actual": 10,
+                  "check_id": "chk-init-1",
+                  "elapsed_seconds": 0.013823491986840963,
+                  "error": null,
+                  "expected_values": [
+                    10
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 1,
+                  "check_id": "chk-init-2",
+                  "elapsed_seconds": 0.021636062010657042,
+                  "error": null,
+                  "expected_values": [
+                    1
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-init-3",
+                  "elapsed_seconds": 0.023880976979853585,
+                  "error": null,
+                  "expected_values": [
+                    0
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 17,
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.014231556007871404,
+                  "error": null,
+                  "expected_values": [
+                    17
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 4,
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.02235534298233688,
+                  "error": null,
+                  "expected_values": [
+                    4
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 7,
+                  "check_id": "chk-r0-f3",
+                  "elapsed_seconds": 0.013736675988184288,
+                  "error": null,
+                  "expected_values": [
+                    7
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Ada",
+                      "total": 9
+                    },
+                    {
+                      "name": "Bo",
+                      "total": 5
+                    }
+                  ],
+                  "check_id": "chk-r1-f1",
+                  "elapsed_seconds": 0.014122483000392094,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Ada",
+                        "total": 9
+                      },
+                      {
+                        "name": "Bo",
+                        "total": 5
+                      }
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [],
+                  "check_id": "chk-r1-f2",
+                  "elapsed_seconds": 0.01376931500271894,
+                  "error": null,
+                  "expected_values": [
+                    []
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": 17,
+                  "check_id": "chk-r2-f1",
+                  "elapsed_seconds": 0.02181732701137662,
+                  "error": null,
+                  "expected_values": [
+                    17
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 8,
+                  "check_id": "chk-r2-f2",
+                  "elapsed_seconds": 0.014274355984525755,
+                  "error": null,
+                  "expected_values": [
+                    8
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-r2-f3",
+                  "elapsed_seconds": 0.014434659999096766,
+                  "error": null,
+                  "expected_values": [
+                    0
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 12,
+                  "check_id": "chk-r2-f4",
+                  "elapsed_seconds": 0.023437185009242967,
+                  "error": null,
+                  "expected_values": [
+                    12
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Di",
+                      "total": 4
+                    },
+                    {
+                      "name": "Ed",
+                      "total": 2
+                    },
+                    {
+                      "name": "Cy",
+                      "total": 1
+                    }
+                  ],
+                  "check_id": "chk-r3-f1",
+                  "elapsed_seconds": 0.025137202988844365,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Di",
+                        "total": 4
+                      },
+                      {
+                        "name": "Ed",
+                        "total": 2
+                      },
+                      {
+                        "name": "Cy",
+                        "total": 1
+                      }
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Mo",
+                      "total": -2
+                    }
+                  ],
+                  "check_id": "chk-r3-f2",
+                  "elapsed_seconds": 0.012950625998200849,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Mo",
+                        "total": -2
+                      }
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": {
+                    "count": 2,
+                    "lines": [
+                      "1. Ada - 9",
+                      "2. Bo - 5"
+                    ]
+                  },
+                  "check_id": "chk-r4-f1",
+                  "elapsed_seconds": 0.01374059499357827,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "count": 2,
+                      "lines": [
+                        "1. Ada - 9",
+                        "2. Bo - 5"
+                      ]
+                    }
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": {
+                    "count": 0,
+                    "lines": []
+                  },
+                  "check_id": "chk-r4-f2",
+                  "elapsed_seconds": 0.013816388003760949,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "count": 0,
+                      "lines": []
+                    }
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": {
+                    "champion": "Bo",
+                    "count": 2,
+                    "lines": [
+                      "1. Bo - 12",
+                      "2. Ada - 10"
+                    ]
+                  },
+                  "check_id": "chk-r5-f1",
+                  "elapsed_seconds": 0.013742402981733903,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "champion": "Bo",
+                      "count": 2,
+                      "lines": [
+                        "1. Bo - 12",
+                        "2. Ada - 10"
+                      ]
+                    }
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": {
+                    "champion": "Cy",
+                    "count": 1,
+                    "lines": [
+                      "1. Cy - 13"
+                    ]
+                  },
+                  "check_id": "chk-r5-f2",
+                  "elapsed_seconds": 0.024670449987752363,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "champion": "Cy",
+                      "count": 1,
+                      "lines": [
+                        "1. Cy - 10"
+                      ]
+                    }
+                  ],
+                  "passed": false,
+                  "rule_ids": [],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": {
+                    "champion": null,
+                    "count": 0,
+                    "lines": []
+                  },
+                  "check_id": "chk-r5-o1",
+                  "elapsed_seconds": 0.024119570007314906,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "champion": null,
+                      "count": 0,
+                      "lines": []
+                    }
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "lb-champion"
+                  ],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": {
+                    "champion": "Ed",
+                    "count": 2,
+                    "lines": [
+                      "1. Ed - 7",
+                      "2. Di - 5"
+                    ]
+                  },
+                  "check_id": "chk-r5-o2",
+                  "elapsed_seconds": 0.02461553900502622,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "champion": "Ed",
+                      "count": 2,
+                      "lines": [
+                        "1. Ed - 7",
+                        "2. Di - 5"
+                      ]
+                    }
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "lb-champion"
+                  ],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": "invalid",
+                  "check_id": "chk-r5-o3",
+                  "elapsed_seconds": 0.023809937003534287,
+                  "error": null,
+                  "expected_values": [
+                    "invalid"
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "g-invalid-str"
+                  ],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": "invalid",
+                  "check_id": "chk-r5-o4",
+                  "elapsed_seconds": 0.023709665023488924,
+                  "error": null,
+                  "expected_values": [
+                    "invalid"
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "g-invalid-str"
+                  ],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": {
+                    "champion": "Zed",
+                    "count": 2,
+                    "lines": [
+                      "1. Zed - 5",
+                      "2. Amy - 5"
+                    ]
+                  },
+                  "check_id": "chk-r5-o5",
+                  "elapsed_seconds": 0.013938627991592512,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "champion": "Zed",
+                      "count": 2,
+                      "lines": [
+                        "1. Zed - 5",
+                        "2. Amy - 5"
+                      ]
+                    }
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "t-tie-stable",
+                    "lb-champion"
+                  ],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": "invalid",
+                  "check_id": "chk-r5-o6",
+                  "elapsed_seconds": 0.025176930997986346,
+                  "error": null,
+                  "expected_values": [
+                    "invalid"
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "g-invalid-str"
+                  ],
+                  "symbol": "format_summary"
+                }
+              ],
+              "control_id": "nc-r5-f",
+              "current_obligations_passed": true,
+              "expected_failing_check_ids": [
+                "chk-r5-f2"
+              ],
+              "kind": "functional",
+              "named_checks_failed": true,
+              "patch_sha256": "fc8a7e502ec365c095e21db63165e3811518d906053263951f2be79feb46bddf",
+              "stable_functionality_passed": false,
+              "valid": true
+            },
+            {
+              "checks": [
+                {
+                  "actual": 10,
+                  "check_id": "chk-init-1",
+                  "elapsed_seconds": 0.02282865598681383,
+                  "error": null,
+                  "expected_values": [
+                    10
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 1,
+                  "check_id": "chk-init-2",
+                  "elapsed_seconds": 0.024274994008010253,
+                  "error": null,
+                  "expected_values": [
+                    1
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-init-3",
+                  "elapsed_seconds": 0.01365533098578453,
+                  "error": null,
+                  "expected_values": [
+                    0
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "base_points"
+                },
+                {
+                  "actual": 17,
+                  "check_id": "chk-r0-f1",
+                  "elapsed_seconds": 0.025831203995039687,
+                  "error": null,
+                  "expected_values": [
+                    17
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 4,
+                  "check_id": "chk-r0-f2",
+                  "elapsed_seconds": 0.02175079900189303,
+                  "error": null,
+                  "expected_values": [
+                    4
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 7,
+                  "check_id": "chk-r0-f3",
+                  "elapsed_seconds": 0.02316129600512795,
+                  "error": null,
+                  "expected_values": [
+                    7
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Ada",
+                      "total": 9
+                    },
+                    {
+                      "name": "Bo",
+                      "total": 5
+                    }
+                  ],
+                  "check_id": "chk-r1-f1",
+                  "elapsed_seconds": 0.02373920098762028,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Ada",
+                        "total": 9
+                      },
+                      {
+                        "name": "Bo",
+                        "total": 5
+                      }
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [],
+                  "check_id": "chk-r1-f2",
+                  "elapsed_seconds": 0.023297633015317842,
+                  "error": null,
+                  "expected_values": [
+                    []
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": 17,
+                  "check_id": "chk-r2-f1",
+                  "elapsed_seconds": 0.02361790501163341,
+                  "error": null,
+                  "expected_values": [
+                    17
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 8,
+                  "check_id": "chk-r2-f2",
+                  "elapsed_seconds": 0.013603426981717348,
+                  "error": null,
+                  "expected_values": [
+                    8
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 0,
+                  "check_id": "chk-r2-f3",
+                  "elapsed_seconds": 0.013712195010157302,
+                  "error": null,
+                  "expected_values": [
+                    0
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": 12,
+                  "check_id": "chk-r2-f4",
+                  "elapsed_seconds": 0.012954178004292771,
+                  "error": null,
+                  "expected_values": [
+                    12
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "solve_total"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Di",
+                      "total": 4
+                    },
+                    {
+                      "name": "Ed",
+                      "total": 2
+                    },
+                    {
+                      "name": "Cy",
+                      "total": 1
+                    }
+                  ],
+                  "check_id": "chk-r3-f1",
+                  "elapsed_seconds": 0.013682546996278688,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Di",
+                        "total": 4
+                      },
+                      {
+                        "name": "Ed",
+                        "total": 2
+                      },
+                      {
+                        "name": "Cy",
+                        "total": 1
+                      }
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": [
+                    {
+                      "name": "Mo",
+                      "total": -2
+                    }
+                  ],
+                  "check_id": "chk-r3-f2",
+                  "elapsed_seconds": 0.013324450992513448,
+                  "error": null,
+                  "expected_values": [
+                    [
+                      {
+                        "name": "Mo",
+                        "total": -2
+                      }
+                    ]
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "rank_board"
+                },
+                {
+                  "actual": {
+                    "count": 2,
+                    "lines": [
+                      "1. Ada - 9",
+                      "2. Bo - 5"
+                    ]
+                  },
+                  "check_id": "chk-r4-f1",
+                  "elapsed_seconds": 0.013913682982092723,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "count": 2,
+                      "lines": [
+                        "1. Ada - 9",
+                        "2. Bo - 5"
+                      ]
+                    }
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": {
+                    "count": 0,
+                    "lines": []
+                  },
+                  "check_id": "chk-r4-f2",
+                  "elapsed_seconds": 0.013412626984063536,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "count": 0,
+                      "lines": []
+                    }
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": {
+                    "champion": "Bo",
+                    "count": 2,
+                    "lines": [
+                      "1. Bo - 12",
+                      "2. Ada - 10"
+                    ]
+                  },
+                  "check_id": "chk-r5-f1",
+                  "elapsed_seconds": 0.013373459019931033,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "champion": "Bo",
+                      "count": 2,
+                      "lines": [
+                        "1. Bo - 12",
+                        "2. Ada - 10"
+                      ]
+                    }
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": {
+                    "champion": "Cy",
+                    "count": 1,
+                    "lines": [
+                      "1. Cy - 10"
+                    ]
+                  },
+                  "check_id": "chk-r5-f2",
+                  "elapsed_seconds": 0.013630243018269539,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "champion": "Cy",
+                      "count": 1,
+                      "lines": [
+                        "1. Cy - 10"
+                      ]
+                    }
+                  ],
+                  "passed": true,
+                  "rule_ids": [],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": {
+                    "champion": null,
+                    "count": 0,
+                    "lines": []
+                  },
+                  "check_id": "chk-r5-o1",
+                  "elapsed_seconds": 0.013240529980976135,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "champion": null,
+                      "count": 0,
+                      "lines": []
+                    }
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "lb-champion"
+                  ],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": {
+                    "champion": "Di",
+                    "count": 2,
+                    "lines": [
+                      "1. Ed - 7",
+                      "2. Di - 5"
+                    ]
+                  },
+                  "check_id": "chk-r5-o2",
+                  "elapsed_seconds": 0.013305986998602748,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "champion": "Ed",
+                      "count": 2,
+                      "lines": [
+                        "1. Ed - 7",
+                        "2. Di - 5"
+                      ]
+                    }
+                  ],
+                  "passed": false,
+                  "rule_ids": [
+                    "lb-champion"
+                  ],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": "invalid",
+                  "check_id": "chk-r5-o3",
+                  "elapsed_seconds": 0.01333310702466406,
+                  "error": null,
+                  "expected_values": [
+                    "invalid"
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "g-invalid-str"
+                  ],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": "invalid",
+                  "check_id": "chk-r5-o4",
+                  "elapsed_seconds": 0.013362914993194863,
+                  "error": null,
+                  "expected_values": [
+                    "invalid"
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "g-invalid-str"
+                  ],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": {
+                    "champion": "Zed",
+                    "count": 2,
+                    "lines": [
+                      "1. Zed - 5",
+                      "2. Amy - 5"
+                    ]
+                  },
+                  "check_id": "chk-r5-o5",
+                  "elapsed_seconds": 0.013401297997916117,
+                  "error": null,
+                  "expected_values": [
+                    {
+                      "champion": "Zed",
+                      "count": 2,
+                      "lines": [
+                        "1. Zed - 5",
+                        "2. Amy - 5"
+                      ]
+                    }
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "t-tie-stable",
+                    "lb-champion"
+                  ],
+                  "symbol": "format_summary"
+                },
+                {
+                  "actual": "invalid",
+                  "check_id": "chk-r5-o6",
+                  "elapsed_seconds": 0.013495266990503296,
+                  "error": null,
+                  "expected_values": [
+                    "invalid"
+                  ],
+                  "passed": true,
+                  "rule_ids": [
+                    "g-invalid-str"
+                  ],
+                  "symbol": "format_summary"
+                }
+              ],
+              "control_id": "nc-r5-o",
+              "current_obligations_passed": false,
+              "expected_failing_check_ids": [
+                "chk-r5-o2"
+              ],
+              "kind": "obligation",
+              "named_checks_failed": true,
+              "patch_sha256": "dfcf050179e751088b17ac968e9c6ce6c3cd8ee7ea8bb1fe704034fb9126e33b",
+              "stable_functionality_passed": true,
+              "valid": true
+            }
+          ],
+          "post_module_sha256": "009c98a5fa840c0b439fa751e9b0381d0b1aad15470bbc7079992edb6c8c1c78",
+          "pre_module_sha256": "bcfa7cabb44fa00d487673fb84b15b358c56ab7cb31cb0639dfb527ffbfc7d41",
+          "reference_checks": [
+            {
+              "actual": 10,
+              "check_id": "chk-init-1",
+              "elapsed_seconds": 0.013458178989822045,
+              "error": null,
+              "expected_values": [
+                10
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "base_points"
+            },
+            {
+              "actual": 1,
+              "check_id": "chk-init-2",
+              "elapsed_seconds": 0.013844146975316107,
+              "error": null,
+              "expected_values": [
+                1
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "base_points"
+            },
+            {
+              "actual": 0,
+              "check_id": "chk-init-3",
+              "elapsed_seconds": 0.01363993901759386,
+              "error": null,
+              "expected_values": [
+                0
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "base_points"
+            },
+            {
+              "actual": 17,
+              "check_id": "chk-r0-f1",
+              "elapsed_seconds": 0.013506963005056605,
+              "error": null,
+              "expected_values": [
+                17
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 4,
+              "check_id": "chk-r0-f2",
+              "elapsed_seconds": 0.013461155002005398,
+              "error": null,
+              "expected_values": [
+                4
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 7,
+              "check_id": "chk-r0-f3",
+              "elapsed_seconds": 0.013835715013556182,
+              "error": null,
+              "expected_values": [
+                7
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": [
+                {
+                  "name": "Ada",
+                  "total": 9
+                },
+                {
+                  "name": "Bo",
+                  "total": 5
+                }
+              ],
+              "check_id": "chk-r1-f1",
+              "elapsed_seconds": 0.014042275986867025,
+              "error": null,
+              "expected_values": [
+                [
+                  {
+                    "name": "Ada",
+                    "total": 9
+                  },
+                  {
+                    "name": "Bo",
+                    "total": 5
+                  }
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "rank_board"
+            },
+            {
+              "actual": [],
+              "check_id": "chk-r1-f2",
+              "elapsed_seconds": 0.022912543994607404,
+              "error": null,
+              "expected_values": [
+                []
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "rank_board"
+            },
+            {
+              "actual": 17,
+              "check_id": "chk-r2-f1",
+              "elapsed_seconds": 0.013779314991552383,
+              "error": null,
+              "expected_values": [
+                17
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 8,
+              "check_id": "chk-r2-f2",
+              "elapsed_seconds": 0.02297710400307551,
+              "error": null,
+              "expected_values": [
+                8
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 0,
+              "check_id": "chk-r2-f3",
+              "elapsed_seconds": 0.022909520019311458,
+              "error": null,
+              "expected_values": [
+                0
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": 12,
+              "check_id": "chk-r2-f4",
+              "elapsed_seconds": 0.02359870501095429,
+              "error": null,
+              "expected_values": [
+                12
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "solve_total"
+            },
+            {
+              "actual": [
+                {
+                  "name": "Di",
+                  "total": 4
+                },
+                {
+                  "name": "Ed",
+                  "total": 2
+                },
+                {
+                  "name": "Cy",
+                  "total": 1
+                }
+              ],
+              "check_id": "chk-r3-f1",
+              "elapsed_seconds": 0.014544692006893456,
+              "error": null,
+              "expected_values": [
+                [
+                  {
+                    "name": "Di",
+                    "total": 4
+                  },
+                  {
+                    "name": "Ed",
+                    "total": 2
+                  },
+                  {
+                    "name": "Cy",
+                    "total": 1
+                  }
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "rank_board"
+            },
+            {
+              "actual": [
+                {
+                  "name": "Mo",
+                  "total": -2
+                }
+              ],
+              "check_id": "chk-r3-f2",
+              "elapsed_seconds": 0.022032542998204008,
+              "error": null,
+              "expected_values": [
+                [
+                  {
+                    "name": "Mo",
+                    "total": -2
+                  }
+                ]
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "rank_board"
+            },
+            {
+              "actual": {
+                "count": 2,
+                "lines": [
+                  "1. Ada - 9",
+                  "2. Bo - 5"
+                ]
+              },
+              "check_id": "chk-r4-f1",
+              "elapsed_seconds": 0.024075426015770063,
+              "error": null,
+              "expected_values": [
+                {
+                  "count": 2,
+                  "lines": [
+                    "1. Ada - 9",
+                    "2. Bo - 5"
+                  ]
+                }
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "format_summary"
+            },
+            {
+              "actual": {
+                "count": 0,
+                "lines": []
+              },
+              "check_id": "chk-r4-f2",
+              "elapsed_seconds": 0.022855439980048686,
+              "error": null,
+              "expected_values": [
+                {
+                  "count": 0,
+                  "lines": []
+                }
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "format_summary"
+            },
+            {
+              "actual": {
+                "champion": "Bo",
+                "count": 2,
+                "lines": [
+                  "1. Bo - 12",
+                  "2. Ada - 10"
+                ]
+              },
+              "check_id": "chk-r5-f1",
+              "elapsed_seconds": 0.01477448400692083,
+              "error": null,
+              "expected_values": [
+                {
+                  "champion": "Bo",
+                  "count": 2,
+                  "lines": [
+                    "1. Bo - 12",
+                    "2. Ada - 10"
+                  ]
+                }
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "format_summary"
+            },
+            {
+              "actual": {
+                "champion": "Cy",
+                "count": 1,
+                "lines": [
+                  "1. Cy - 10"
+                ]
+              },
+              "check_id": "chk-r5-f2",
+              "elapsed_seconds": 0.013583778985776007,
+              "error": null,
+              "expected_values": [
+                {
+                  "champion": "Cy",
+                  "count": 1,
+                  "lines": [
+                    "1. Cy - 10"
+                  ]
+                }
+              ],
+              "passed": true,
+              "rule_ids": [],
+              "symbol": "format_summary"
+            },
+            {
+              "actual": {
+                "champion": null,
+                "count": 0,
+                "lines": []
+              },
+              "check_id": "chk-r5-o1",
+              "elapsed_seconds": 0.023518513015005738,
+              "error": null,
+              "expected_values": [
+                {
+                  "champion": null,
+                  "count": 0,
+                  "lines": []
+                }
+              ],
+              "passed": true,
+              "rule_ids": [
+                "lb-champion"
+              ],
+              "symbol": "format_summary"
+            },
+            {
+              "actual": {
+                "champion": "Ed",
+                "count": 2,
+                "lines": [
+                  "1. Ed - 7",
+                  "2. Di - 5"
+                ]
+              },
+              "check_id": "chk-r5-o2",
+              "elapsed_seconds": 0.024994979001348838,
+              "error": null,
+              "expected_values": [
+                {
+                  "champion": "Ed",
+                  "count": 2,
+                  "lines": [
+                    "1. Ed - 7",
+                    "2. Di - 5"
+                  ]
+                }
+              ],
+              "passed": true,
+              "rule_ids": [
+                "lb-champion"
+              ],
+              "symbol": "format_summary"
+            },
+            {
+              "actual": "invalid",
+              "check_id": "chk-r5-o3",
+              "elapsed_seconds": 0.021975902986014262,
+              "error": null,
+              "expected_values": [
+                "invalid"
+              ],
+              "passed": true,
+              "rule_ids": [
+                "g-invalid-str"
+              ],
+              "symbol": "format_summary"
+            },
+            {
+              "actual": "invalid",
+              "check_id": "chk-r5-o4",
+              "elapsed_seconds": 0.013479378976626322,
+              "error": null,
+              "expected_values": [
+                "invalid"
+              ],
+              "passed": true,
+              "rule_ids": [
+                "g-invalid-str"
+              ],
+              "symbol": "format_summary"
+            },
+            {
+              "actual": {
+                "champion": "Zed",
+                "count": 2,
+                "lines": [
+                  "1. Zed - 5",
+                  "2. Amy - 5"
+                ]
+              },
+              "check_id": "chk-r5-o5",
+              "elapsed_seconds": 0.013783491012873128,
+              "error": null,
+              "expected_values": [
+                {
+                  "champion": "Zed",
+                  "count": 2,
+                  "lines": [
+                    "1. Zed - 5",
+                    "2. Amy - 5"
+                  ]
+                }
+              ],
+              "passed": true,
+              "rule_ids": [
+                "t-tie-stable",
+                "lb-champion"
+              ],
+              "symbol": "format_summary"
+            },
+            {
+              "actual": "invalid",
+              "check_id": "chk-r5-o6",
+              "elapsed_seconds": 0.0240733620012179,
+              "error": null,
+              "expected_values": [
+                "invalid"
+              ],
+              "passed": true,
+              "rule_ids": [
+                "g-invalid-str"
+              ],
+              "symbol": "format_summary"
+            }
+          ],
+          "reference_passed": true,
+          "reference_patch_sha256": "a9bc8cca5c9e6c0fb995f4152e82d7903994de6b44cc5c19242bb6ab524d85b8",
+          "target": {
+            "path": "module.py",
+            "symbol": "format_summary"
+          }
+        }
+      ]
+    }
+  ],
+  "gpu_used": false,
+  "input_errors": [],
+  "inputs": [
+    {
+      "bytes": 53600,
+      "documents": 1,
+      "path": "results/coding-self-cue/author-02/reviewed.json",
+      "sha256": "7ac3cc8695f37459bc1d289a20732a57179f2a2437ab5e35fb28f52c6491b3ae"
+    }
+  ],
+  "kind": "coding-self-cue-cpu-preflight",
+  "model_calls": 0,
+  "runtime": {
+    "elapsed_seconds": 5.316881198988995,
+    "fresh_seccomp_process_per_check": true,
+    "generation_cap": 768,
+    "minimum_generation_headroom": 128
+  },
+  "schema_version": 1,
+  "scope": "individual",
+  "status": "ELIGIBLE"
+}
