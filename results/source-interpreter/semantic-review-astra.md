@@ -482,7 +482,7 @@ the accepted canonical copies committed separately at `284d53ca`. Exact bytes:
 ### Findings
 
 **7. High — The actual original base assets are not verified against their
-recorded bytes before model loading.**
+recorded bytes before model loading.** (resolved in Round 6, 2026-09-08)
 
 Evidence: `qualify_static` (lines 185–240) binds the `base-assets.json` receipt,
 but never checks the thirteen actual files described by that receipt.
@@ -512,7 +512,8 @@ obtain this check. Exercise the actual verification consumer with a synthetic
 same-size altered asset and confirm rejection before model loading.
 
 **8. High — Final per-call record publication can exceed the call deadline
-and still pass complete-execution validation.**
+and still pass complete-execution validation.** (resolved in Round 6, 2026-09-08;
+new interrupted-confirmation regression recorded separately as medium #10)
 
 Evidence: `run_inference_schedule` checks the root stage publication against
 the hard deadline at lines 925–940, then builds and durably writes
@@ -549,7 +550,8 @@ needed. Add a negative regression through the real schedule and complete-result
 consumer for this publication delay, including the final scheduled call.
 
 **9. Medium — Loaded adapter payload identity is checked only against its own
-initial state, not against the frozen serialized payloads.**
+initial state, not against the frozen serialized payloads.** (resolved in
+Round 6, 2026-09-08)
 
 Evidence: `_verify_adapter_files` correctly checks both archived parts and the
 standard adapter file's exact hash, and `PeftModel.from_pretrained` loads the
@@ -621,3 +623,139 @@ acceptance; preserve the accepted data and registered settings. The small
 identity correction for #9 can accompany them without changing the experiment.
 Actual CPU preparation, its preview audit and final launch freeze remain future
 steps. This review grants no model execution authority or performance claim.
+
+## Round 6 — 2026-09-08 — identity and publication correction delta
+
+Score: 94/100
+
+Decision: **qualified implementation acceptance; zero open high/critical
+findings.** Findings #7–#9 are resolved. A new medium #10 records incorrect
+partial evidence after an interrupted confirmation; it is deferred with the
+specific reporting restriction and reviewer concurrence below. Findings #1–#5
+remain resolved and #6 remains deferred under the
+explicit five-coding/firmware plus one operational-documentation qualification.
+The review threshold is met, but this is neither model-launch acceptance nor
+evidence that the helper performs well.
+
+Reviewed stable Sol commit `1327643ec4edcafdcf85a279870da13d6db66dc9` against
+the Round 5 bytes, under `SEMANTIC-FIX-BRIEF.md` SHA256
+`69588e4b9010d3897055c550d4b1528f10159dad1c811bd9aa17f60ed1189974`.
+The implementation and test hashes independently match the handoff:
+
+| Artifact | SHA256 |
+| --- | --- |
+| `scripts/source_interpreter_semantic.py` | `3c6b5d71dc0e33542cbd188bff6b939cf40185d086bf8f65671c18652f409348` |
+| `tests/test_source_interpreter_semantic.py` | `10a95f304fd22ac3a894e0baa27d8ee18b1afed7cfd2041d8cafa2414143029d` |
+| Canonical review before this round | `c62300ff211bb2aabac0d9b134b9f839990412617e27192ab38aedef98afe70f` |
+
+### Verified closures
+
+- **#7 resolved:** `verify_current_base_assets` reads every entry in the frozen
+  asset receipt, checks current size and SHA256, requires the historical-original
+  flag, and reconciles file count and total bytes. The actual child calls it
+  before ML imports/model loading and after generation, retaining both receipts
+  in files and the final result. The existing frozen-receipt binding and
+  in-memory original-tensor invariance remain in place. Startup/whole supervision
+  still covers this work. Static qualification does not call the weight-reading
+  helper. The synthetic same-size altered-file regression rejects the mismatch
+  through the actual verification helper.
+- **#8 resolved for the original normal-execution defect:** the final semantic
+  call record is now COMPLETION_PENDING and is published before a unique
+  hash-bound completion confirmation. The schedule checks publication after
+  both the call record and confirmation writes, stops on a late write, and
+  retains the active watchdog until the next stage. Actual schedule/FIT-call
+  regressions delay ordinal 0 and ordinal 35 call records past their deadlines:
+  both stop immediately, keep known raw output as UNAVAILABLE, and fail complete
+  validation. A delayed confirmation also stops. Deleting the final confirmation
+  from an otherwise complete synthetic schedule makes the final call UNAVAILABLE
+  and complete validation reject it. The former path that normally returned
+  COMPLETE and advanced after a late final call-record write is closed.
+- **#9 resolved:** after native PEFT loading, the actual child reads the already
+  hash-verified standard safetensors payload into CPU state and compares it with
+  the loaded adapter via `compare_adapter_states`. Keys, shapes, dtypes and
+  exact tensor byte hashes must agree before the first generation. The retained
+  receipt includes per-tensor evidence; the existing 144-tensor/2,949,120-element
+  checks and exact before/after invariance remain. A same-shape, same-dtype,
+  different-value CPU tensor fails the actual comparison boundary; matching
+  values pass. This review did not read the real serialized adapter.
+
+### New regression introduced by the publication correction
+
+**10. Medium — Interrupted confirmation publication can promote provisional
+evidence to a timely RETURNED call in partial records.** (deferred in Round 6,
+2026-09-08, with the reporting restriction and reviewer concurrence below)
+
+Evidence: `_publish_call_completion` writes COMPLETE with
+`completion_records_within_deadline=true` before its last publication clock
+check (lines 835–850). A later check normally detects an overrun and writes
+DEADLINE, as the new passing regressions demonstrate. If publication or its
+following history append raises after the provisional bytes exist, or the child
+is stopped there, that downgrade cannot occur. `_confirmed_call_status` then
+accepts the provisional confirmation without evidence that execution passed the
+last clock check. The root stage is still COMPLETION_PENDING.
+
+Independent synthetic reproduction used the actual schedule, actual FIT
+single-call consumer and existing fake model/tokenizer primitives. The final
+`call-35-completion.json` confirmation containing the observed-time fields was
+written, the injected clock advanced to 1.01 against a 1.0 deadline, and the
+writer raised OSError before returning. The schedule propagated that error.
+Nevertheless, `partial_call_records` reported all 36 calls RETURNED, with the
+last call's `completion_publication_confirmed` and `within_deadline_confirmed`
+both true; `validate_complete_calls` accepted all 36. Root independently
+reproduced the same result. No real packet or model call was involved.
+
+Severity is medium because the actual child exception or watchdog termination
+still forces an incomplete execution, and the supervisor keeps both inference
+and advancement eligibility false. This is not the Round 5 normal complete-run
+bypass. The remaining harm is false certainty in partial timing/completion
+evidence and acceptance by the standalone complete-call validator.
+
+Bounded correction: use existing execution progress beyond the pending call
+(the next INTENT or existing post-generation-validation transition), or
+equivalent existing supervision evidence, to distinguish a confirmation whose
+final check returned from one interrupted while publication was pending. Keep
+the interrupted active call UNAVAILABLE, retaining its known output, counts and
+timing. Add the demonstrated late-write-then-interruption case through the real
+partial/complete consumers. Another chain of self-confirming receipt writes is
+unnecessary. No new model call, source change, timing allowance or framework is
+requested.
+
+Disposition: I read and concur with the concrete deferral in
+`semantic/PREPARATION.md`, section “Bounded disposition of
+interrupted-confirmation residual,” committed at `9d426217`. For an interrupted
+or INCOMPLETE run, root will treat the active pending call's completion/deadline
+as UNKNOWN unless existing later-INTENT or post-generation evidence establishes
+advancement beyond it. Provisional RETURNED/timely flags are not authoritative
+for that call. Preserve every original receipt and all known raw output/cost
+facts; do not repair evidence, infer unknown outcomes, run primary inference or
+advance from an incomplete screen. A COMPLETE claim requires successful actual
+child, supervisor and outer observation, never the standalone call validator
+alone. This restriction addresses the remaining scientific consequence without
+claiming to fix the code defect or changing a threshold. Given the verified
+whole-run failure behavior, deferring this medium defect for this one-shot
+screen passes the burden test; another implementation cycle is not required.
+
+### Verification and scope
+
+Independent targeted suite: **13 passed in 14.89 seconds**. This includes the
+five newly passing cases (first/final publication are separate parameter cases)
+plus the previous target-separation, ordinary capped-return continuation,
+native-generation plumbing, owned-child timeout/cleanup, partial raw-output
+recovery and direct `/tmp` invocation checks. Ruff check, format check and
+delta whitespace check passed. The additional interrupted-confirmation
+reproduction is the failing behavior documented as #10, not a passing test.
+
+The optional `semantic/ASSESSMENT.md` conformity read found no new metric or
+changed threshold. It preserves independent blinded source-authoritative
+judgments, optional immediate-task restatement, unknown unattempted work,
+unsalvaged invalid output, preserved original votes, whole-screen ineligibility
+for post-look reference defects, six-conversation sign inference, and the
+separate 12/18 plus one-per-family practical screen. I did not open the private
+response map or any model response. The mixed-packet limitation remains explicit.
+
+No actual withheld source/target read, packet tokenization, original/adapter
+weight read, model/GPU execution, network access, full suite, frozen-helper
+modification, code edit or commit was performed. Only this canonical review is
+written. Actual CPU preparation and its audit remain later steps; any subsequent
+bounded correction needs its own stable delta verification. This round makes no
+semantic-performance or larger coding-utility claim.
