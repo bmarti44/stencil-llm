@@ -74,10 +74,21 @@ non-thinking, temperature 0, seed 20260908, context 32768. Native tool protocol,
 server parser flags, exact request tokenization and code hashes require explicit
 preflight verification. Candidate per-call cap 1024 and reservation 2700 seconds
 (startup 600, execution allowance 120, cleanup 60) are provisional until reference
-actions have at least 128 native generation tokens headroom, all contexts fit,
-and measured CPU/resource estimates are accepted. Hard existing authorization
-ceiling remains 3600 seconds. No launch before reviewed data, implementation,
-preflight, exact freeze and ownership/resource checks.
+actions have at least 128 native generation tokens headroom, provisional local
+sizing of the four actual known cold payloads fits the context allowance, and
+measured CPU/resource estimates are accepted. Before every generation, the
+identical native request must pass authoritative render validation with its
+actual prompt tokens plus the 1024 output allowance at most 32768. Unknown
+future generated histories are not claimed to fit universally. Report the
+36-slot conservative history/resource envelopes, including repeated current
+modules; envelopes based on global maximum accepted file/result sizes are
+diagnostics, not launch gates or proof that actual requests cannot fit. Any
+actual render overflow ends the whole run as technically incomplete and
+ineligible, without truncation, retries, cap changes or prompt repair. This
+prospective clarification changes no task, candidate budget or success gate.
+Hard existing authorization ceiling remains 3600 seconds. No launch before
+reviewed data, implementation, preflight, exact freeze and ownership/resource
+checks.
 
 Record write-ahead call receipts, exact native request/raw response bytes and
 hashes, tool arguments/IDs, apply decisions, actual pre/post modules, genuine

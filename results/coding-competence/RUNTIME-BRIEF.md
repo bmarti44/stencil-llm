@@ -67,8 +67,11 @@ execution timing, and conservative context/resource bounds. Local prompt sizes
 are provisional until native render comparison; do not label them exact cold
 requests or replace unknown future worker states with oracle states. No silent
 context truncation. Repeated current-module observations must be accounted for
-in bounds. Default settings are the prospective constants, not tunable via
-post-output rescue flags. Main-guarded direct absolute CLI works from /tmp.
+in bounds. Global accepted-size envelopes are diagnostic; they do not establish
+universal fit of unknown future histories and are not a launch gate. Qualify the
+four actual known cold payloads provisionally and enforce authoritative actual
+render fit before every decode, per the clarified protocol. Default settings
+are the prospective constants, not tunable via post-output rescue flags. Main-guarded direct absolute CLI works from /tmp.
 
 Write meaningful targeted tests first for the consuming paths: a fake HTTP
 server returning actual render/completion shapes with the real tokenizer and

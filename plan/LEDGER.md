@@ -2166,3 +2166,27 @@ its stable tests/hash handoff; same Astra reviewer completes joint readiness.
 Canonical source/data reviews will be tracked-clean freeze inputs; parent
 remains acceptance authority, with no extra review-parser framework. Governing
 sizing drafts remain uncommitted until full readiness acceptance.
+
+2026-09-08 — STATE: READINESS ACCEPTED; EXACT FREEZE AND SINGLE COMPETENCE RUN NEXT.
+Astra finalround2 ACCEPT96, zeroopenfindings. Runtime finding1medium resolved
+by2ssandbox+1sreceipt admission; launcherfinding2low resolved bynormalizing
+unexpecteddrivercodes toincomplete2 whilepreservingrawcode/logs/cleanup.
+Independent9runtimetests6.50seconds+13launchertests0.25seconds. Readiness SHA
+67be720256fb0d7bdcc4e343c727447e51199cfe1a3a49d53072fe7834862603
+binds finalruntime4e39d6f0, launcher020d112e, testsce991821/77a44981,
+previewe9773cdd, accepted prospective docs/data/CPU/resource receipts.
+Parent independently reverified exact reviewed bytes before commit.
+
+Freeze accepted governing sizing clarification, new runtime/launcher/tests and
+canonical readiness report now. Next absolute command: .venv/bin/python
+/home/bmarti44/stencil-llm/tools/run_coding_competence.py --run-dir
+/home/bmarti44/stencil-llm/results/coding-competence/run-01 --execute.
+Register owned launcherPID beforestart; capture launch-01.log outside newrun.
+Launcher must pass cleantracked source/data/trunk, lock, flags, container/GPU
+ownership checks and freeze exact inputs before serverstart. One M-only run:
+4projects×3requests, atmost3calls/request (36total), fixed1024cap/32768context,
+2700seconds total including startup andcleanup (3600absoluteauthorization).
+Every generation requires exactnative render/context/grammar validation; any
+technicalfailure ends entirerun without repair/retry. No private results affect
+publicstopping. Source/dependency and lifecycle audit still required after any
+mechanicalpass. No automaticfocus/largerproof follows from this prerequisite.
