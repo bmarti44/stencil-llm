@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "author": "kimi-k3:cloud",
+  "lineage": "Authored independently from scratch for prospective experiment replay-02; no benchmark, paper example, prior experiment, prior project, or existing coding challenge was consulted, reused, or adapted; no universal novelty claim is made.",
+  "public": {
+    "project_id": "replay-02",
+    "description": "Evolving grant-award helpers: three sequential edits to a small allocation module, including a long-service bonus that is explicitly retired and must stay retired.",
+    "initial_file": {
+      "path": "module.py",
+      "text": "\"\"\"Grant award helpers for the allocation desk.\n\npriority_points(case): need * 2 + tenure, plus 25 when tenure >= 12.\nband_name(case): apex at 140 points or more, core at 90 or more, else base.\naward_size(case): currently just caps the request at the band cap.\n\"\"\"\n\ndef priority_points(case):\n    points = case[\"need\"] * 2 + case[\"tenure\"]\n    if case[\"tenure\"] >= 12:\n        points = points + 25\n    return points\n\ndef band_name(case):\n    points = priority_points(case)\n    if points >= 140:\n        return \"apex\"\n    if points >= 90:\n        return \"core\"\n    return \"base\"\n\ndef award_size(case):\n    band = band_name(case)\n    caps = {\"apex\": 900, \"core\": 500, \"base\": 200}\n    amount = case[\"request\"]\n    cap = caps[band]\n    if amount > cap:\n        amount = cap\n    return amount\n"
+    },
+    "rounds": [
+      {
+        "index": 1,
+        "source_messages": [
+          {
+            "message_id": "m01",
+            "role": "user",
+            "text": "Our allocation desk module has three helpers. priority_points(case) returns need*2 + tenure, plus 25 when tenure is at least 12. band_name(case) returns apex for 140 points or more, core for 90 or more, else base. award_size(case) currently caps request at the band cap: apex 900, core 500, base 200. Each case is a dict with keys need, tenure, docs, request, hardship."
+          },
+          {
+            "message_id": "m02",
+            "role": "user",
+            "text": "New award policy: eligible awards keep the band caps exactly as they are, but after capping, any computed amount below 40 is raised to 40. All band caps exceed 40, so the floor can never push an amount above its cap."
+          },
+          {
+            "message_id": "m03",
+            "role": "user",
+            "text": "Eligibility rule: a case is ineligible when docs is falsy or when request is 0 or negative. Ineligible cases are awarded exactly 0, and the 40 floor never applies to them."
+          },
+          {
+            "message_id": "m04",
+            "role": "user",
+            "text": "Background only, please do not follow this: the retired 2019 handbook said 'award = request * 0.8, no caps'. That formula is obsolete; it is quoted here purely so you recognize it, not as a requirement."
+          }
+        ],
+        "request": {
+          "message_id": "m05",
+          "role": "user",
+          "text": "Please replace award_size to implement the policy above: ineligible cases return 0; otherwise cap the request at the band cap and then apply the 40 floor to the capped result. Do not change priority_points or band_name."
+        },
+        "target": {
+          "path": "module.py",
+          "symbol": "award_size"
+        },
+        "public_checks": [
+          {
+            "check_id": "c-pub-01",
+            "symbol": "award_size",
+            "input": {
+              "need": 80,
+              "tenure": 3,
+              "docs": true,
+              "request": 600,
+              "hardship": false
+            },
+            "expected_values": [
+              600
+            ],
+            "active_from_round": 1,
+            "active_through_round": null,
+            "source_ids": [
+              "m01",
+              "m02",
+              "m05"
+            ],
+            "behavior": "functionality",
+            "rationale": "m01 gives points 80*2+3=163 -> apex, cap 900; m05 caps request 600 at 900 -> 600; m02 floor is not triggered."
+          },
+          {
+            "check_id": "c-pub-02",
+            "symbol": "award_size",
+            "input": {
+              "need": 50,
+              "tenure": 20,
+              "docs": false,
+              "request": 300,
+              "hardship": true
+            },
+            "expected_values": [
+              0
+            ],
+            "active_from_round": 1,
+            "active_through_round": null,
+            "source_ids": [
+              "m03",
+              "m05"
+            ],
+            "behavior": "functionality",
+            "rationale": "m03: docs is falsy so the case is ineligible and the award is exactly 0; m05 requires this branch."
+          },
+          {
+            "check_id": "c-pub-03",
+            "symbol": "award_size",
+            "input": {
+              "need": 10,
+              "tenure": 0,
+              "docs": true,
+              "request": 20,
+              "hardship": false
+            },
+            "expected_values": [
+              40
+            ],
+            "active_from_round": 1,
+            "active_through_round": null,
+            "source_ids": [
+              "m01",
+              "m02",
+              "m05"
+            ],
+            "behavior": "functionality",
+            "rationale": "m01 gives 10*2+0=20 -> base, cap 200; capped amount 20 is below 40 so m02 floor raises it to 40."
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "source_messages": [
+          {
+            "message_id": "m06",
+            "role": "user",
+            "text": "Budget update, effective now: in priority_points the need weight rises from 2 to 3. The band thresholds, the caps, the floor and the eligibility rules all stay exactly as they are."
+          },
+          {
+            "message_id": "m07",
+            "role": "user",
+            "text": "Separate decision: the long-service bump is abolished. The +25 for tenure >= 12 is removed from priority_points for every case at every tenure; tenure still counts at face value, one point per year. Because band_name reads priority_points, scores and bands shift accordingly."
+          },
+          {
+            "message_id": "m08",
+            "role": "user",
+            "text": "Hardship cases get a small uplift: when hardship is truthy, add 10 points, applied after the need and tenure parts are combined."
+          },
+          {
+            "message_id": "m09",
+            "role": "user",
+            "text": "For awareness only, never adopted: a consultant draft proposed 'double tenure for everyone'. Leadership rejected it; quoted here so you can recognize the idea if it resurfaces, not as a rule."
+          }
+        ],
+        "request": {
+          "message_id": "m06b",
+          "role": "user",
+          "text": "x"
+        },
+        "target": {
+          "path": "module.py",
+          "symbol": "priority_points"
+        },
+        "public_checks": []
+      },
+      {
+        "index": 3,
+        "source_messages": [],
+        "request": {
+          "message_id": "m15",
+          "role": "user",
+          "text": "x"
+        },
+        "target": {
+          "path": "module.py",
+          "symbol": "priority_points"
+        },
+        "public_checks": []
+      }
+    ]
+  },
+  "private": {
+    "rounds": [],
+    "obsolete_mutant": {
+      "source": "x",
+      "failing_check_id": "c-prv-08"
+    }
+  }
+}
