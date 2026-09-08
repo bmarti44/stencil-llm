@@ -228,3 +228,54 @@ Ran `.venv/bin/pytest -q tests/test_source_interpreter.py`: **7 passed in 2.08s*
 A fresh process import left both transformers and torch unimported and the lazy tokenizer cache empty. The bounded additional controls used only the actual local tokenizer, temporary synthetic documents and read-only asset metadata. They exercised the two concrete findings through `prepare_row()` and `preview()`. No real original or corrected packet was tokenized; no weights, generated code, GPU, model, HTTP, training or serving operation ran. No other implementation or data file was edited.
 
 **Current disposition:** code-only 94/100 with #11 and #12 open medium, pending narrow correction verification. Across the preparation topic the six high gold findings and three medium gold findings also remain open. Final preparation remains **PENDING** accepted corrected labels, corrected authoritative-tokenizer consumer evidence and the complete eighteen-row real CPU preview.
+
+## Round 5 — guarded corrected labels 96/100; labels ACCEPTED
+
+2026-09-08. Re-reviewed the exact twelve Kimi-authored target replacements and their consequences against the unchanged source conversations. All nine original-data findings #2–#10 are resolved below. **Labels-only disposition: accepted, 96/100, zero open label findings and zero open high or critical findings.** This does not accept the moving code correction or constitute final preparation acceptance; code findings #11 and #12 remain open medium pending their own stable handoff and review.
+
+### Guarded lineage and exact accepted inputs
+
+Correction plan SHA-256: `9cabf65f1ac50eb370c66040df3bdf535785c1380daafd7e9086e3690c12a689`. Exact differences artifact `results/source-interpreter/correction-01/changes.json` SHA-256: `127e3848f566fd23c43d89eca554449b48de47cd69de3ebc744b45cf77907c23`. It binds each original, corrected document and immutable-source guard; independently rehashed all those bindings.
+
+The six correction requests equal their frozen bytes in commit `0fb6a29a`. Their plan binds the original-data review through Git commit `7e85790b62ab4e6da2d515c80c6519317400b015`; independently verified that archived review blob has SHA `aea791fad383cc2efdd767bed595becd8d867d1d57ea886661ad6d0ff8239f93`. The canonical review's later append operations therefore do not change the correction request's governing evidence.
+
+Independently reconstructed every guarded replacement from its exact `expected_old` and `value`, obtaining the corresponding corrected document. For each author, request/raw-response/response-text/document receipt hashes match, the raw response is terminal with `done=true` and reason `stop`, and parsing its response text yields exactly the saved corrected document. Duplicate JSON keys were rejected during this verification. All source-message values, text and order, top-level metadata, query anchors and unallowlisted targets remain unchanged. Exactly twelve targets changed and six did not; there was no semantic edit by this reviewer.
+
+Accepted paths below are under `results/source-interpreter/correction-01/`:
+
+| Corrected document | SHA-256 | Changed query indices |
+| --- | --- | --- |
+| `author-00/authored.json` | `8b9765feb169632874d357cda45f000ddf460f013b100a45790e5e8c4462196f` | 1 |
+| `author-01/authored.json` | `99d9c054b52be7c4cda07dc53a394b5bf82d6273584505ce64ff299336cc8c58` | 1, 2 |
+| `author-02/authored.json` | `2c2ecc9868b9a65592a3295788a93944b1a87fd1732864da076953405f128e34` | 0, 1, 2 |
+| `author-03/authored.json` | `82dced3eeaa4046badc83509e6570fce34f19fdba7745cf343a8ac7cab29530a` | 0, 1, 2 |
+| `author-04/authored.json` | `bf064b0d385479abc3dddcf6f2de8f9b85734a8157621faeed6312cb247051a5` | 2 |
+| `author-05/authored.json` | `ee0f327dbe1957170a99f93e9d25c4edf4fb6c6ed059765504aaea06d034ecb3` | 1, 2 |
+
+### Finding closures and consequence review
+
+**Finding 2 — high, resolved 2026-09-08.** Author-00 m05 now scopes the location limit to `ReservationError` catches and retains domain-error propagation, while distinguishing unrelated specific catches from the still-forbidden broad `Exception` catch. It no longer invents a ban on every exception handler. Its citation to m05 anchors the CLI permission; the adjacent unchanged obligation already cites m03 for the repeated global broad-Exception rule. Read as the complete target, the source/adoption chain remains visible and supported. Adding m03/m04 to the repeated clause could make citation granularity more explicit, but the current target does not introduce unsupported authority or lose the governing source, so no new label defect is recorded.
+
+**Finding 3 — high, resolved 2026-09-08.** Author-01 m-11 now includes the mandatory emergency-bypass audit writes rather than excluding them from an exhaustive booking/hold-only permission. `request_id` is required in every audit entry, not promoted into a new bypass-input condition. The actual incident/supervisor conditions, role restrictions, no-production boundary and conflict-implies-no-write rule remain. The tentative-hold wording explicitly retains validation priority; it does not establish the unsupported equivalence between every wildlife hold and a validation conflict.
+
+**Finding 4 — medium, resolved 2026-09-08.** Author-01's preview focus removes the unrelated POST no-saving and response-status contracts. Author-05's later targets remove the old importer-only and unrelated show/list contracts identified in round 3. The correction retains applicable global and domain constraints: nullable `loaded_by`, cents, storage and revision rules, gas/oos semantics relevant to report counts, output restrictions, and the path/force condition. The show-only UTC exception correctly remains as a qualification on the otherwise global display convention, without adding that flag to report.
+
+**Finding 5 — medium, resolved 2026-09-08.** All three author-02 targets now retain the source's project-wide naming scope while preserving explicitly prescribed identifiers such as `LoanError`. Public-function docstring requirements remain separately scoped. No source convention was narrowed to make this correction easier.
+
+**Finding 6 — high, resolved 2026-09-08.** Both later author-03 targets restore every bit of application state to the application database and explicitly preserve SQLite dev/test versus approved staging Postgres. The same clause retains no unapproved external services and no daemon/cron computation. Its parenthetical examples include waivers even at m13; this illustrates the already universal state-location rule and does not instruct creating a waiver feature before it is requested. The correction's governing statement is the source-grounded universal invariant, not an added future-task instruction.
+
+**Finding 7 — medium, resolved 2026-09-08.** All three author-03 layout labels now cite m02, m04 and m05, preserving the originating directory proposal, refined layout and user adoption with the plural-table correction. The layout text is unchanged. This fixes the recorded provenance gap without claiming that arbitrary assistant suggestions have user authority or requiring repetition of every migration operation.
+
+**Finding 8 — high, resolved 2026-09-08.** Author-03 m13 now explicitly retains the unresolved pre-fee-era policy and the instruction to leave that edge flagged until the user rules. It cites m12–m13 and does not import the future grandfathering decision. At m21 the actual later grandfathering instruction remains intact.
+
+**Finding 9 — high, resolved 2026-09-08.** Author-04 m40 now distinguishes optional permission from an unsupported implementation-state assertion, preserves dry-run's effort cap, and preserves both summary conditions: no cost and no GeoJSON delay. It treats m30 as a fallible implementation report, not a new user authorization or proof that both conditions held. It also explicitly gives the newer stdout-only-written-paths convention priority for the current batch. The label is verbose but faithful; verbosity alone does not justify shortening semantic difficulty or choosing a capacity limit before the CPU measurement.
+
+**Finding 10 — high, resolved 2026-09-08.** Both later author-05 targets retain the adopted `batches`/`entries` split with m14/m15 provenance and restore the unqualified no-database-triggers rule. `bump_rev()` on every write, cents, nullable `loaded_by` and WAL/no-custom-locking remain. The correction changes labels rather than retroactively weakening the source contract.
+
+### Resulting label boundary
+
+The source families, meaningful project development, scope changes, algorithms and whole-conversation length bands are unchanged. All eighteen targets retain valid visible citations and the expected shape. The sole empty focus, author-00 m12 after total retirement, remains unchanged and legitimate; the other seventeen targets remain nonempty. No material consequence or regression was found in the changed labels or their interaction with unchanged obligations. The retained format, permission and domain constraints are accepted as current standing focus; this is not a requirement to repeat the full current programming algorithm.
+
+This acceptance qualifies these exact FIT labels for the specified preparation, not learned transfer, code usefulness, representation superiority or a perfect-selector prerequisite for later utility work. The six families and their eighteen correlated prefixes remain FIT-only. All original and correction provenance must remain preserved when the parent copies these exact accepted bytes to canonical preparation inputs.
+
+No moving code was inspected in this round, and no code tests, real-packet tokenization, model, GPU or HTTP calls were run. Final preparation remains **PENDING** verification of the stable fixes for code findings #11–#12 and the complete eighteen-row actual-token CPU receipt. **Current open findings: #11 and #12, both medium; zero open high or critical.**
