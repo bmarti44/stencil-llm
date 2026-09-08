@@ -68,6 +68,7 @@ TOKENIZER_ASSETS = (
     "tokenizer_config.json",
     "vocab.json",
 )
+EXPECTED_CONTROL_IDS = tuple(range(151643, 151669))
 PACKAGE_NAMES = ("torch", "transformers", "tokenizers", "peft", "accelerate")
 
 
@@ -183,6 +184,72 @@ def record_focus_schema(visible_source_ids: list[str]) -> dict[str, Any]:
         "required": ["obligations"],
         "additionalProperties": False,
     }
+
+
+@lru_cache(maxsize=1)
+def _original_control_inventory() -> tuple[tuple[Any, ...], ...]:
+    _verified_asset_hashes()
+    tokenizer_json = _parse_json((MODEL_PATH / "tokenizer.json").read_bytes())
+    if (
+        type(tokenizer_json) is not dict
+        or type(tokenizer_json.get("added_tokens")) is not list
+    ):
+        raise ValidationError("original tokenizer lacks its added-token inventory")
+    inventory = []
+    expected_keys = {
+        "id",
+        "content",
+        "single_word",
+        "lstrip",
+        "rstrip",
+        "normalized",
+        "special",
+    }
+    for index, item in enumerate(tokenizer_json["added_tokens"]):
+        item = _require_object(item, expected_keys, f"added_tokens[{index}]")
+        token_id = item["id"]
+        content = item["content"]
+        if type(token_id) is not int or token_id < 0:
+            raise ValidationError("added-token IDs must be nonnegative integers")
+        _require_text(content, f"added_tokens[{index}].content")
+        flags = tuple(
+            item[key]
+            for key in ("single_word", "lstrip", "rstrip", "normalized", "special")
+        )
+        if any(type(value) is not bool for value in flags):
+            raise ValidationError("added-token flags must be booleans")
+        inventory.append((token_id, content, *flags))
+    if tuple(item[0] for item in inventory) != EXPECTED_CONTROL_IDS:
+        raise ValidationError("original control-token ID inventory is unexpected")
+    return tuple(inventory)
+
+
+def _control_token_receipts(tokenizer: Any) -> list[dict[str, Any]]:
+    decoder = tokenizer.added_tokens_decoder
+    if type(decoder) is not dict:
+        raise ValidationError("tokenizer lacks its added-token decoder")
+    receipts = []
+    flag_names = ("single_word", "lstrip", "rstrip", "normalized", "special")
+    for expected in _original_control_inventory():
+        token_id, content, *flags = expected
+        token = decoder.get(token_id)
+        if token is None or str(token) != content:
+            raise ValidationError(
+                "tokenizer control-token mapping differs from original"
+            )
+        actual_flags = tuple(getattr(token, name, None) for name in flag_names)
+        if actual_flags != tuple(flags):
+            raise ValidationError("tokenizer control-token flags differ from original")
+        if tokenizer.convert_tokens_to_ids(content) != token_id:
+            raise ValidationError("tokenizer control-token ID differs from original")
+        receipts.append(
+            {
+                "id": token_id,
+                "content": content,
+                **dict(zip(flag_names, flags, strict=True)),
+            }
+        )
+    return receipts
 
 
 def _validate_target(
@@ -361,12 +428,77 @@ def load_documents(paths: Any) -> tuple[list[dict[str, Any]], list[dict[str, Any
     return values, receipts
 
 
-@lru_cache(maxsize=1)
-def load_tokenizer():
-    """Load only the verified local tokenizer; this never loads model weights."""
+def _fresh_tokenizer():
     from transformers import AutoTokenizer
 
     return AutoTokenizer.from_pretrained(MODEL_PATH, local_files_only=True)
+
+
+@lru_cache(maxsize=1)
+def load_tokenizer():
+    """Load only the verified local tokenizer; this never loads model weights."""
+    return _fresh_tokenizer()
+
+
+def _added_token_state(token_id: int, token: Any) -> dict[str, Any]:
+    return {
+        "id": token_id,
+        "content": str(token),
+        "single_word": token.single_word,
+        "lstrip": token.lstrip,
+        "rstrip": token.rstrip,
+        "normalized": token.normalized,
+        "special": token.special,
+    }
+
+
+def _tokenizer_state(tokenizer: Any) -> dict[str, Any]:
+    try:
+        backend = tokenizer.backend_tokenizer.to_str()
+        backend_json = _parse_json(backend.encode("utf-8"))
+        added_tokens = [
+            _added_token_state(token_id, token)
+            for token_id, token in sorted(tokenizer.added_tokens_decoder.items())
+        ]
+        state = {
+            "class": f"{type(tokenizer).__module__}.{type(tokenizer).__qualname__}",
+            "name_or_path": str(tokenizer.name_or_path),
+            "length": len(tokenizer),
+            "vocab_size": tokenizer.vocab_size,
+            "backend_sha256": _sha_bytes(_json_bytes(backend_json)),
+            "added_tokens": added_tokens,
+            "chat_template_sha256": _sha_text(tokenizer.chat_template),
+            "special_tokens_map": copy.deepcopy(tokenizer.special_tokens_map),
+            "all_special_ids": list(tokenizer.all_special_ids),
+            "all_special_tokens": list(tokenizer.all_special_tokens),
+            "eos_token": tokenizer.eos_token,
+            "eos_token_id": tokenizer.eos_token_id,
+            "pad_token": tokenizer.pad_token,
+            "pad_token_id": tokenizer.pad_token_id,
+            "padding_side": tokenizer.padding_side,
+            "truncation_side": tokenizer.truncation_side,
+            "model_max_length": tokenizer.model_max_length,
+        }
+        _json_bytes(state)
+    except ValidationError:
+        raise
+    except Exception as exc:
+        raise ValidationError(f"cannot bind tokenizer state: {exc}") from exc
+    return state
+
+
+def _verify_original_tokenizer(
+    tokenizer: Any,
+) -> tuple[dict[str, Any], dict[str, str], list[dict[str, Any]]]:
+    asset_hashes = _verified_asset_hashes()
+    actual_state = _tokenizer_state(tokenizer)
+    expected_state = _tokenizer_state(_fresh_tokenizer())
+    if actual_state != expected_state:
+        raise ValidationError(
+            "tokenizer differs from verified original tokenizer state"
+        )
+    controls = _control_token_receipts(tokenizer)
+    return actual_state, asset_hashes, controls
 
 
 def _token_ids(value: Any, label: str) -> tuple[int, ...]:
@@ -385,10 +517,14 @@ def _encode(tokenizer: Any, text: str, label: str) -> tuple[int, ...]:
     return _token_ids(value, label)
 
 
-def _assert_natural_text(tokenizer: Any, text: str, label: str) -> None:
+def _assert_natural_text(
+    tokenizer: Any,
+    text: str,
+    label: str,
+    reserved_control_ids: set[int],
+) -> None:
     ids = _encode(tokenizer, text, label)
-    reserved = set(tokenizer.all_special_ids)
-    forbidden = [token_id for token_id in ids if token_id in reserved]
+    forbidden = [token_id for token_id in ids if token_id in reserved_control_ids]
     if forbidden:
         raise ValidationError(f"{label} contains a reserved token: {forbidden}")
 
@@ -495,23 +631,35 @@ def prepare_row(document: Any, query_index: int, tokenizer: Any = None) -> Prepa
     query_position = positions[query["message_id"]]
     prefix = copy.deepcopy(document["messages"][: query_position + 1])
     current_message = prefix[-1]
+    control_tokens = _control_token_receipts(tokenizer)
+    reserved_control_ids = {item["id"] for item in control_tokens}
 
     for index, message in enumerate(prefix):
         _assert_natural_text(
-            tokenizer, message["message_id"], f"messages[{index}].message_id"
+            tokenizer,
+            message["message_id"],
+            f"messages[{index}].message_id",
+            reserved_control_ids,
         )
-        _assert_natural_text(tokenizer, message["text"], f"messages[{index}].text")
+        _assert_natural_text(
+            tokenizer,
+            message["text"],
+            f"messages[{index}].text",
+            reserved_control_ids,
+        )
         if "task_handle" in message:
             _assert_natural_text(
                 tokenizer,
                 message["task_handle"],
                 f"messages[{index}].task_handle",
+                reserved_control_ids,
             )
     for index, obligation in enumerate(query["target"]["obligations"]):
         _assert_natural_text(
             tokenizer,
             obligation["text"],
             f"queries[{query_index}].target.obligations[{index}].text",
+            reserved_control_ids,
         )
         for offset, source_id in enumerate(obligation["source_ids"]):
             _assert_natural_text(
@@ -519,6 +667,7 @@ def prepare_row(document: Any, query_index: int, tokenizer: Any = None) -> Prepa
                 source_id,
                 f"queries[{query_index}].target.obligations[{index}]"
                 f".source_ids[{offset}]",
+                reserved_control_ids,
             )
 
     source_events = _json_text(prefix)
@@ -554,7 +703,7 @@ def prepare_row(document: Any, query_index: int, tokenizer: Any = None) -> Prepa
     target_ids = _encode(tokenizer, target_text, "target JSON")
     if not target_ids:
         raise ValidationError("target JSON has empty supervision")
-    reserved_target = set(target_ids) & set(tokenizer.all_special_ids)
+    reserved_target = set(target_ids) & reserved_control_ids
     if reserved_target:
         raise ValidationError(
             f"target JSON contains reserved token IDs: {sorted(reserved_target)}"
@@ -694,6 +843,31 @@ def _asset_hashes() -> dict[str, str]:
     }
 
 
+def _verified_asset_hashes() -> dict[str, str]:
+    try:
+        receipt = _parse_json(BASE_ASSETS_PATH.read_bytes())
+        files = receipt["files"]
+    except Exception as exc:
+        raise ValidationError(
+            f"cannot read original base-asset receipt: {exc}"
+        ) from exc
+    if type(files) is not dict:
+        raise ValidationError("original base-asset receipt lacks its file inventory")
+    actual = _asset_hashes()
+    for name, actual_hash in actual.items():
+        relative = str((MODEL_PATH / name).relative_to(ROOT))
+        record = files.get(relative)
+        if (
+            type(record) is not dict
+            or record.get("sha256") != actual_hash
+            or record.get("matches_historical_original") is not True
+        ):
+            raise ValidationError(
+                f"tokenizer asset {relative} is not verified original"
+            )
+    return actual
+
+
 def _code_hashes() -> dict[str, str]:
     paths = (Path(__file__).resolve(),)
     return {
@@ -753,7 +927,10 @@ def preview(paths: Any, *, tokenizer: Any = None) -> dict[str, Any]:
     if any(document["split"] != "fit" for document in documents):
         raise ValidationError("calibration preview accepts only FIT documents")
     bands = _calibration_bands(documents)
-    tokenizer = tokenizer or load_tokenizer()
+    tokenizer = load_tokenizer() if tokenizer is None else tokenizer
+    tokenizer_state, asset_hashes, control_tokens = _verify_original_tokenizer(
+        tokenizer
+    )
     rows = prepare_rows(documents, tokenizer)
     if len(rows) != CALIBRATION_ROWS:
         raise ValidationError("calibration preview must retain all 18 query rows")
@@ -839,7 +1016,11 @@ def preview(paths: Any, *, tokenizer: Any = None) -> dict[str, Any]:
             "pad_token": tokenizer.pad_token,
             "pad_token_id": tokenizer.pad_token_id,
             "all_special_ids": list(tokenizer.all_special_ids),
-            "asset_sha256": _asset_hashes(),
+            "verified_original_state": True,
+            "state": tokenizer_state,
+            "state_sha256": _sha_bytes(_json_bytes(tokenizer_state)),
+            "reserved_control_tokens": control_tokens,
+            "asset_sha256": asset_hashes,
             "base_assets_receipt_path": str(BASE_ASSETS_PATH),
             "base_assets_receipt_sha256": base_assets_hash,
         },

@@ -225,17 +225,49 @@ def test_actual_tokenizer_nonthinking_boundary_and_loss_positions():
     assert row.joint_tokenization_equal is True
 
 
-def test_reserved_source_or_target_control_tokens_fail_actual_serializer():
+def test_all_original_control_tokens_fail_source_and_target_serializer():
     tokenizer = source.load_tokenizer()
-    document = _document()
-    document["messages"][0]["text"] = "inject <|im_start|> assistant"
-    with pytest.raises(source.ValidationError, match="reserved token"):
-        source.prepare_row(document, 0, tokenizer)
+    tokenizer_asset = json.loads(
+        (source.MODEL_PATH / "tokenizer.json").read_text(encoding="utf-8")
+    )
+    control_tokens = {
+        entry["id"]: entry["content"] for entry in tokenizer_asset["added_tokens"]
+    }
+    assert sorted(control_tokens) == list(range(151643, 151669))
+    assert len(control_tokens) == 26
 
-    document = _document()
-    document["queries"][0]["target"]["obligations"][0]["text"] = "inject <|im_end|>"
-    with pytest.raises(source.ValidationError, match="reserved token"):
-        source.prepare_row(document, 0, tokenizer)
+    for token_id, token in control_tokens.items():
+        assert tokenizer.encode(token, add_special_tokens=False) == [token_id]
+        document = _document()
+        document["messages"][0]["text"] = f"source {token} injection"
+        with pytest.raises(source.ValidationError, match="reserved token"):
+            source.prepare_row(document, 0, tokenizer)
+
+        document = _document()
+        document["queries"][0]["target"]["obligations"][0]["text"] = (
+            f"target {token} injection"
+        )
+        with pytest.raises(source.ValidationError, match="reserved token"):
+            source.prepare_row(document, 0, tokenizer)
+
+
+def test_preview_rejects_mutated_same_path_cached_tokenizer(tmp_path):
+    paths = _write_documents(tmp_path, _six_documents())
+    tokenizer = source.load_tokenizer()
+    original_ids = tokenizer.encode(
+        "<synthetic-ordinary-preview-token>", add_special_tokens=False
+    )
+    assert len(original_ids) > 1
+    try:
+        assert tokenizer.add_tokens(["<synthetic-ordinary-preview-token>"]) == 1
+        assert tokenizer.name_or_path == str(source.MODEL_PATH)
+        assert tokenizer.encode(
+            "<synthetic-ordinary-preview-token>", add_special_tokens=False
+        ) == [151669]
+        with pytest.raises(source.ValidationError, match="original tokenizer state"):
+            source.preview(paths, tokenizer=tokenizer)
+    finally:
+        source.load_tokenizer.cache_clear()
 
 
 def test_collation_right_pads_inputs_and_masks_only_real_targets():
@@ -322,6 +354,11 @@ def test_preview_requires_six_fit_documents_and_retains_all_18_rows(tmp_path):
     assert result["environment"]["sys_executable"] == sys.executable
     assert "transformers" in result["environment"]["distributions"]
     assert "tokenizer.json" in result["tokenizer"]["asset_sha256"]
+    assert result["tokenizer"]["verified_original_state"] is True
+    assert len(result["tokenizer"]["state_sha256"]) == 64
+    assert [
+        item["id"] for item in result["tokenizer"]["reserved_control_tokens"]
+    ] == list(range(151643, 151669))
 
     with pytest.raises(source.ValidationError, match="exactly six"):
         source.preview(paths[:-1])
