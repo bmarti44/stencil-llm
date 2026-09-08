@@ -1946,3 +1946,26 @@ private cases, source-grounded reminders and public neutrality. Sol completes
 CPU validator targeted tests before executable preflight. No Qwen worker or
 GPU experiment has launched; native runtime remains a separate implementation
 unit described in RUNTIME-BRIEF.md. Goal active, larger proof still required.
+
+2026-09-08 — STATE: CPU VALIDATOR ACCEPTED; DATA CORRECTIONS AND RUNTIME NEXT.
+Sol CPU source 695e9e62/tests 2c324652 accepted by Astra round 2 at 96, zero
+open findings; independent 10 tests 2.69s and Ruff pass. Fixed inappropriate
+current-handle-only filtering, mixed-kind failure-ID rejection, exact tool
+argument schema and invalid-input receipt provenance. Parent reran unchanged
+four authored inputs, preserving initial INVALID receipts. Author00 remains
+INVALID for its genuine missing builder dependency; author01 PASS/170 checks,
+author02 PASS/197 checks, author03 FAIL/233 checks on the same itinerary
+expectation independently found by the semantic reviewer. All three execution
+sessions 10947/58646/76517 are terminal (0/0/2). No model inference occurred.
+
+Astra static data review remains NOT ACCEPTED (68): eight numbered findings
+cover genuine dependency integration, public policy leakage, recaps asserting
+unknown code success, a merely tentative old audit rule, scope/validation
+ambiguities, the itinerary contradiction, and an audit obligation mutant with
+unrelated envelope defects. Passing finite CPU checks does not resolve these.
+Kimi receives one scoped correction bundle per project, using exact old-value
+hash guards and preserving originals. No new task families or worker outputs
+enter that correction. Sol now implements only new coding_competence_run.py
+and targeted runtime tests per RUNTIME-BRIEF; CPU files remain frozen. Native
+contract plus semantic global-stop consistency review are complete; live native
+compatibility, final corrected data and whole resource freeze remain pending.
