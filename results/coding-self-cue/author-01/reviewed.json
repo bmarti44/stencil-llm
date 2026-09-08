@@ -1,0 +1,1905 @@
+{
+  "schema_version": 1,
+  "split": "dev",
+  "author": {
+    "name": "kimi",
+    "model": "kimi-k3:cloud"
+  },
+  "lineage": {
+    "fit_on": "none",
+    "development_on": "new original specification-authored coding episode",
+    "evaluated_on": "none"
+  },
+  "episode": {
+    "episode_id": "kimi-coding-dev-lighting-cues",
+    "project": "A single-channel stage-lighting toolkit using integer time units: run-length compaction of per-channel level samples, greedy non-overlapping scheduling of named cues with requested starts and durations, and an integration step that renders both results together.",
+    "task_handles": [
+      "cue-compaction",
+      "cue-scheduling"
+    ],
+    "initial_file": {
+      "path": "module.py",
+      "text": "def as_int(value):\n    if isinstance(value, bool):\n        return None\n    if isinstance(value, int):\n        return value\n    return None\n\n\ndef compact_cue(payload):\n    return None\n\n\ndef schedule_cues(payload):\n    return None\n\n\ndef render_timeline(payload):\n    return None\n"
+    },
+    "initial_checks": [
+      {
+        "check_id": "ic-0",
+        "symbol": "as_int",
+        "input": 4,
+        "expected_values": [
+          4
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "ic-1",
+        "symbol": "as_int",
+        "input": true,
+        "expected_values": [
+          null
+        ],
+        "rule_ids": []
+      },
+      {
+        "check_id": "ic-2",
+        "symbol": "as_int",
+        "input": "4",
+        "expected_values": [
+          null
+        ],
+        "rule_ids": []
+      }
+    ],
+    "rounds": [
+      {
+        "index": 0,
+        "source_messages": [
+          {
+            "message_id": "m-src-0a",
+            "role": "user",
+            "text": "Welcome to the lighting project. module.py holds a tiny validated helper plus three stubs we'll grow into a cue compaction and scheduling pipeline; times and durations are plain integers. Two standing rules for any function you write or edit in this project: 1) Whenever an argument doesn't match the documented valid shape, return exactly the string \"invalid\" — never null, and never raise. 2) Whenever you have to order items that compare equal on the ordering key, keep the order they first appeared in the input. These rules attach when a function is written or edited; I'll never silently expect you to rewrite earlier working functions when rules evolve."
+          },
+          {
+            "message_id": "m-src-0b",
+            "role": "user",
+            "text": "One open choice, also standing: a compacted run may be represented either as a two-item list [level, count] or as an object {\"level\": <int>, \"count\": <int>}. Both are acceptable anywhere runs are produced — pick whichever you prefer; tests accept both."
+          }
+        ],
+        "request": {
+          "message_id": "m-req-0",
+          "role": "user",
+          "task_handle": "cue-compaction",
+          "text": "Time to fill in compact_cue(payload) in module.py. It takes one argument: a list of light-level samples for one channel, where every sample must be a JSON integer (booleans are not integers here). Compact it into runs of equal consecutive values: return one run per maximal block of equal neighbors, each run recording that block's value and how many samples it contains, with runs in the order they occur. An empty list compacts to an empty list. Anything that isn't a valid sample list counts as invalid input — follow our standing rules for that, and for how runs may be represented. Submit just the new compact_cue definition."
+        },
+        "target": {
+          "path": "module.py",
+          "symbol": "compact_cue"
+        },
+        "manual_recap": "Currently applicable standing obligations for this edit: (1) Global, required — invalid-input representation: any payload that does not match the documented valid shape (not a list, or any element that is not a JSON integer) must return exactly the string \"invalid\"; never null, never an error object, never an exception. (2) Global, permitted — run representation: each produced run may be a two-element list [level, count] or an object {\"level\": ..., \"count\": ...}; both are always acceptable and neither is mandatory. No task-local override exists. The global first-seen tie rule is live but imposes nothing here, because this function preserves input order and resolves no equal-key ordering.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "invalid-sentinel",
+              "scope": null,
+              "strength": "required",
+              "text": "For any function you write or edit in this project, an argument that does not match the documented valid shape must return exactly the string \"invalid\"; it must not return null or any error object and must not raise.",
+              "source_ids": [
+                "m-src-0a"
+              ]
+            },
+            {
+              "rule_id": "run-repr",
+              "scope": null,
+              "strength": "permitted",
+              "text": "A compacted run may be returned either as a two-element list [level, count] or as an object {\"level\": <int>, \"count\": <int>}; both representations are always acceptable and tests must accept either.",
+              "source_ids": [
+                "m-src-0b"
+              ]
+            }
+          ],
+          "inactive_rule_ids": []
+        },
+        "reference_patch": "def compact_cue(payload):\n    if not isinstance(payload, list):\n        return \"invalid\"\n    for value in payload:\n        if as_int(value) is None:\n            return \"invalid\"\n    runs = []\n    for value in payload:\n        if runs and runs[-1][0] == value:\n            runs[-1][1] += 1\n        else:\n            runs.append([value, 1])\n    return runs",
+        "functional_checks": [
+          {
+            "check_id": "f0a",
+            "symbol": "compact_cue",
+            "input": [
+              5,
+              5,
+              5
+            ],
+            "expected_values": [
+              [
+                [
+                  5,
+                  3
+                ]
+              ],
+              [
+                {
+                  "level": 5,
+                  "count": 3
+                }
+              ]
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "f0b",
+            "symbol": "compact_cue",
+            "input": [
+              1,
+              2,
+              2,
+              1
+            ],
+            "expected_values": [
+              [
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ]
+              ],
+              [
+                {
+                  "level": 1,
+                  "count": 1
+                },
+                {
+                  "level": 2,
+                  "count": 2
+                },
+                {
+                  "level": 1,
+                  "count": 1
+                }
+              ],
+              [
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ],
+                {
+                  "level": 1,
+                  "count": 1
+                }
+              ],
+              [
+                [
+                  1,
+                  1
+                ],
+                {
+                  "level": 2,
+                  "count": 2
+                },
+                [
+                  1,
+                  1
+                ]
+              ],
+              [
+                [
+                  1,
+                  1
+                ],
+                {
+                  "level": 2,
+                  "count": 2
+                },
+                {
+                  "level": 1,
+                  "count": 1
+                }
+              ],
+              [
+                {
+                  "level": 1,
+                  "count": 1
+                },
+                [
+                  2,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ]
+              ],
+              [
+                {
+                  "level": 1,
+                  "count": 1
+                },
+                [
+                  2,
+                  2
+                ],
+                {
+                  "level": 1,
+                  "count": 1
+                }
+              ],
+              [
+                {
+                  "level": 1,
+                  "count": 1
+                },
+                {
+                  "level": 2,
+                  "count": 2
+                },
+                [
+                  1,
+                  1
+                ]
+              ]
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "f0c",
+            "symbol": "compact_cue",
+            "input": [],
+            "expected_values": [
+              []
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "o0a",
+            "symbol": "compact_cue",
+            "input": 7,
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": [
+              "invalid-sentinel"
+            ]
+          },
+          {
+            "check_id": "o0b",
+            "symbol": "compact_cue",
+            "input": [
+              1,
+              true
+            ],
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": [
+              "invalid-sentinel"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "nc0-f",
+            "kind": "functional",
+            "patch": "def compact_cue(payload):\n    if not isinstance(payload, list):\n        return \"invalid\"\n    for value in payload:\n        if as_int(value) is None:\n            return \"invalid\"\n    return [[value, 1] for value in payload]",
+            "expected_failing_check_ids": [
+              "f0a",
+              "f0b"
+            ]
+          },
+          {
+            "control_id": "nc0-o",
+            "kind": "obligation",
+            "patch": "def compact_cue(payload):\n    if not isinstance(payload, list):\n        return None\n    for value in payload:\n        if as_int(value) is None:\n            return None\n    runs = []\n    for value in payload:\n        if runs and runs[-1][0] == value:\n            runs[-1][1] += 1\n        else:\n            runs.append([value, 1])\n    return runs",
+            "expected_failing_check_ids": [
+              "o0a",
+              "o0b"
+            ]
+          }
+        ]
+      },
+      {
+        "index": 1,
+        "source_messages": [
+          {
+            "message_id": "m-src-1a",
+            "role": "user",
+            "text": "Same two standing rules and the run-representation choice remain in effect — for the new scheduling function too."
+          }
+        ],
+        "request": {
+          "message_id": "m-req-1",
+          "role": "user",
+          "task_handle": "cue-scheduling",
+          "text": "Please implement schedule_cues(payload). payload is a list of cue objects; each cue must have an \"id\" (a string), an \"at\" (an integer >= 0, the requested start time) and a \"dur\" (an integer >= 1); ignore any extra keys, and booleans never count as integers. All cues share a single channel, so placed cues may not overlap. Place them greedily: consider cues in ascending requested start (resolving any ties the way our standing ordering rules require), and give each cue the earliest integer start that is at least its requested at and at least the end of the cue placed before it; its end is start + dur. Return the placements in placement order as objects {\"id\": ..., \"start\": ..., \"end\": ...}. An empty list schedules to an empty list; malformed payloads follow the standing invalid-input rules. Just the schedule_cues definition, please."
+        },
+        "target": {
+          "path": "module.py",
+          "symbol": "schedule_cues"
+        },
+        "manual_recap": "Currently applicable standing obligations for this edit (task cue-scheduling): (1) Global, required — invalid-input representation: any payload violating the documented shape (not a list, or a cue with a missing/mistyped id, at, or dur) must return exactly the string \"invalid\". (2) Global, required — ordering ties: cues that share the same requested start time must keep their first-seen input order; no task-local override exists yet, so this global rule governs cue-scheduling here. The run-representation permission does not apply because this function produces no runs.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "invalid-sentinel",
+              "scope": null,
+              "strength": "required",
+              "text": "For any function you write or edit in this project, an argument that does not match the documented valid shape must return exactly the string \"invalid\"; it must not return null or any error object and must not raise.",
+              "source_ids": [
+                "m-src-0a",
+                "m-src-1a"
+              ]
+            },
+            {
+              "rule_id": "tie-first-seen",
+              "scope": null,
+              "strength": "required",
+              "text": "Whenever a function you write or edit must order items that compare equal on the active ordering key, the tied items must keep the relative order in which they first appeared in the input.",
+              "source_ids": [
+                "m-src-0a",
+                "m-src-1a"
+              ]
+            }
+          ],
+          "inactive_rule_ids": []
+        },
+        "reference_patch": "def schedule_cues(payload):\n    if not isinstance(payload, list):\n        return \"invalid\"\n    order = []\n    for index, cue in enumerate(payload):\n        if not isinstance(cue, dict):\n            return \"invalid\"\n        cue_id = cue.get(\"id\")\n        at = as_int(cue.get(\"at\"))\n        dur = as_int(cue.get(\"dur\"))\n        if not isinstance(cue_id, str) or at is None or dur is None or at < 0 or dur < 1:\n            return \"invalid\"\n        order.append((at, index, cue_id, dur))\n    plan = []\n    last_end = 0\n    for at, index, cue_id, dur in sorted(order):\n        start = at if at > last_end else last_end\n        plan.append({\"id\": cue_id, \"start\": start, \"end\": start + dur})\n        last_end = start + dur\n    return plan",
+        "functional_checks": [
+          {
+            "check_id": "f1a",
+            "symbol": "schedule_cues",
+            "input": [
+              {
+                "id": "a",
+                "at": 0,
+                "dur": 2
+              },
+              {
+                "id": "b",
+                "at": 1,
+                "dur": 2
+              }
+            ],
+            "expected_values": [
+              [
+                {
+                  "id": "a",
+                  "start": 0,
+                  "end": 2
+                },
+                {
+                  "id": "b",
+                  "start": 2,
+                  "end": 4
+                }
+              ]
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "f1b",
+            "symbol": "schedule_cues",
+            "input": [
+              {
+                "id": "x",
+                "at": 5,
+                "dur": 1
+              }
+            ],
+            "expected_values": [
+              [
+                {
+                  "id": "x",
+                  "start": 5,
+                  "end": 6
+                }
+              ]
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "f1c",
+            "symbol": "schedule_cues",
+            "input": [],
+            "expected_values": [
+              []
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "o1a",
+            "symbol": "schedule_cues",
+            "input": {
+              "cues": []
+            },
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": [
+              "invalid-sentinel"
+            ]
+          },
+          {
+            "check_id": "o1b",
+            "symbol": "schedule_cues",
+            "input": [
+              {
+                "id": "b",
+                "at": 3,
+                "dur": 1
+              },
+              {
+                "id": "a",
+                "at": 3,
+                "dur": 1
+              }
+            ],
+            "expected_values": [
+              [
+                {
+                  "id": "b",
+                  "start": 3,
+                  "end": 4
+                },
+                {
+                  "id": "a",
+                  "start": 4,
+                  "end": 5
+                }
+              ]
+            ],
+            "rule_ids": [
+              "tie-first-seen"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "nc1-f",
+            "kind": "functional",
+            "patch": "def schedule_cues(payload):\n    if not isinstance(payload, list):\n        return \"invalid\"\n    plan = []\n    for cue in payload:\n        if not isinstance(cue, dict):\n            return \"invalid\"\n        cue_id = cue.get(\"id\")\n        at = as_int(cue.get(\"at\"))\n        dur = as_int(cue.get(\"dur\"))\n        if not isinstance(cue_id, str) or at is None or dur is None or at < 0 or dur < 1:\n            return \"invalid\"\n        plan.append({\"id\": cue_id, \"start\": at, \"end\": at + dur})\n    return plan",
+            "expected_failing_check_ids": [
+              "f1a"
+            ]
+          },
+          {
+            "control_id": "nc1-o",
+            "kind": "obligation",
+            "patch": "def schedule_cues(payload):\n    if not isinstance(payload, list):\n        return \"invalid\"\n    order = []\n    for index, cue in enumerate(payload):\n        if not isinstance(cue, dict):\n            return \"invalid\"\n        cue_id = cue.get(\"id\")\n        at = as_int(cue.get(\"at\"))\n        dur = as_int(cue.get(\"dur\"))\n        if not isinstance(cue_id, str) or at is None or dur is None or at < 0 or dur < 1:\n            return \"invalid\"\n        order.append((at, cue_id, dur))\n    plan = []\n    last_end = 0\n    for at, cue_id, dur in sorted(order):\n        start = at if at > last_end else last_end\n        plan.append({\"id\": cue_id, \"start\": start, \"end\": start + dur})\n        last_end = start + dur\n    return plan",
+            "expected_failing_check_ids": [
+              "o1b"
+            ]
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "source_messages": [
+          {
+            "message_id": "m-src-2a",
+            "role": "user",
+            "text": "A new task-local standing rule, for the cue-scheduling task only: whenever a function you write or edit under cue-scheduling orders cues that share the same requested start time, order them longest duration first; if start and duration are both equal, keep input order. Where it applies, this overrides the global first-seen tie rule; the global rule stays in force everywhere else. It applies from the next scheduling function you write or edit. The invalid-string rule is unchanged."
+          }
+        ],
+        "request": {
+          "message_id": "m-req-2",
+          "role": "user",
+          "task_handle": "cue-scheduling",
+          "text": "Extend schedule_cues(payload) so it also accepts a dictionary form {\"cues\": <cue list exactly as before>, \"gap\": <integer >= 0>}. In that form, each cue placed after the first must start at least gap time units after the previously placed cue's end — i.e. it starts at its requested at if that is already at least end-of-previous plus gap, otherwise at the earliest integer start satisfying that. Plain list payloads must behave exactly as they do now (a gap of zero); ignore extra dictionary keys; a dictionary missing either key, or whose gap is not a non-negative integer (booleans are not integers), counts as invalid. Everything else — per-cue validation, the tie behavior required by the current standing rules, invalid-input handling — stays governed as before. Give me the full new schedule_cues definition."
+        },
+        "target": {
+          "path": "module.py",
+          "symbol": "schedule_cues"
+        },
+        "manual_recap": "Currently applicable standing obligations for this edit (task cue-scheduling): (1) Global, required — invalid-input representation: any invalid payload, including a dictionary with a missing or mistyped gap or cues entry, returns exactly the string \"invalid\". (2) Task-local, required override — for cue-scheduling start-time ties: cues sharing a requested start are ordered longest-duration-first, with first-seen input order only when both start and duration tie; this replaces the global first-seen tie rule for cue-scheduling start-time ties in any function you now write or edit under this task. (3) Global, required — the first-seen tie rule itself remains in force for every other equal-key ordering and for the other task. Run representation permission: not applicable, no runs are produced.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "invalid-sentinel",
+              "scope": null,
+              "strength": "required",
+              "text": "For any function you write or edit in this project, an argument that does not match the documented valid shape must return exactly the string \"invalid\"; it must not return null or any error object and must not raise.",
+              "source_ids": [
+                "m-src-0a"
+              ]
+            },
+            {
+              "rule_id": "tie-sched-dur",
+              "scope": "cue-scheduling",
+              "strength": "required",
+              "text": "For functions written or edited under the cue-scheduling task: cues that share the same requested start time must be ordered longest-duration-first; cues tied on both start and duration keep input order. This overrides tie-first-seen only for cue-scheduling start-time ties.",
+              "source_ids": [
+                "m-src-2a"
+              ]
+            },
+            {
+              "rule_id": "tie-first-seen",
+              "scope": null,
+              "strength": "required",
+              "text": "Whenever a function you write or edit must order items that compare equal on the active ordering key, the tied items must keep the relative order in which they first appeared in the input.",
+              "source_ids": [
+                "m-src-0a"
+              ]
+            }
+          ],
+          "inactive_rule_ids": []
+        },
+        "reference_patch": "def schedule_cues(payload):\n    if isinstance(payload, dict):\n        cues_in = payload.get(\"cues\")\n        gap = as_int(payload.get(\"gap\"))\n        if gap is None or gap < 0:\n            return \"invalid\"\n    else:\n        cues_in = payload\n        gap = 0\n    if not isinstance(cues_in, list):\n        return \"invalid\"\n    order = []\n    for index, cue in enumerate(cues_in):\n        if not isinstance(cue, dict):\n            return \"invalid\"\n        cue_id = cue.get(\"id\")\n        at = as_int(cue.get(\"at\"))\n        dur = as_int(cue.get(\"dur\"))\n        if not isinstance(cue_id, str) or at is None or dur is None or at < 0 or dur < 1:\n            return \"invalid\"\n        order.append((at, -dur, index, cue_id, dur))\n    plan = []\n    last_end = 0\n    for at, neg_dur, index, cue_id, dur in sorted(order):\n        base = last_end if not plan else last_end + gap\n        start = at if at > base else base\n        plan.append({\"id\": cue_id, \"start\": start, \"end\": start + dur})\n        last_end = start + dur\n    return plan",
+        "functional_checks": [
+          {
+            "check_id": "f2a",
+            "symbol": "schedule_cues",
+            "input": {
+              "cues": [
+                {
+                  "id": "a",
+                  "at": 0,
+                  "dur": 2
+                },
+                {
+                  "id": "b",
+                  "at": 2,
+                  "dur": 2
+                }
+              ],
+              "gap": 1
+            },
+            "expected_values": [
+              [
+                {
+                  "id": "a",
+                  "start": 0,
+                  "end": 2
+                },
+                {
+                  "id": "b",
+                  "start": 3,
+                  "end": 5
+                }
+              ]
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "f2b",
+            "symbol": "schedule_cues",
+            "input": {
+              "cues": [
+                {
+                  "id": "a",
+                  "at": 10,
+                  "dur": 1
+                }
+              ],
+              "gap": 0
+            },
+            "expected_values": [
+              [
+                {
+                  "id": "a",
+                  "start": 10,
+                  "end": 11
+                }
+              ]
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "f2c",
+            "symbol": "schedule_cues",
+            "input": [
+              {
+                "id": "a",
+                "at": 0,
+                "dur": 1
+              },
+              {
+                "id": "b",
+                "at": 5,
+                "dur": 1
+              }
+            ],
+            "expected_values": [
+              [
+                {
+                  "id": "a",
+                  "start": 0,
+                  "end": 1
+                },
+                {
+                  "id": "b",
+                  "start": 5,
+                  "end": 6
+                }
+              ]
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "o2a",
+            "symbol": "schedule_cues",
+            "input": [
+              {
+                "id": "s",
+                "at": 4,
+                "dur": 1
+              },
+              {
+                "id": "L",
+                "at": 4,
+                "dur": 3
+              }
+            ],
+            "expected_values": [
+              [
+                {
+                  "id": "L",
+                  "start": 4,
+                  "end": 7
+                },
+                {
+                  "id": "s",
+                  "start": 7,
+                  "end": 8
+                }
+              ]
+            ],
+            "rule_ids": [
+              "tie-sched-dur"
+            ]
+          },
+          {
+            "check_id": "o2b",
+            "symbol": "schedule_cues",
+            "input": {
+              "cues": [],
+              "gap": -1
+            },
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": [
+              "invalid-sentinel"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "nc2-f",
+            "kind": "functional",
+            "patch": "def schedule_cues(payload):\n    if isinstance(payload, dict):\n        cues_in = payload.get(\"cues\")\n        gap = as_int(payload.get(\"gap\"))\n        if gap is None or gap < 0:\n            return \"invalid\"\n    else:\n        cues_in = payload\n        gap = 0\n    if not isinstance(cues_in, list):\n        return \"invalid\"\n    order = []\n    for index, cue in enumerate(cues_in):\n        if not isinstance(cue, dict):\n            return \"invalid\"\n        cue_id = cue.get(\"id\")\n        at = as_int(cue.get(\"at\"))\n        dur = as_int(cue.get(\"dur\"))\n        if not isinstance(cue_id, str) or at is None or dur is None or at < 0 or dur < 1:\n            return \"invalid\"\n        order.append((at, -dur, index, cue_id, dur))\n    plan = []\n    last_end = 0\n    for at, neg_dur, index, cue_id, dur in sorted(order):\n        start = at if at > last_end else last_end\n        plan.append({\"id\": cue_id, \"start\": start, \"end\": start + dur})\n        last_end = start + dur\n    return plan",
+            "expected_failing_check_ids": [
+              "f2a"
+            ]
+          },
+          {
+            "control_id": "nc2-o",
+            "kind": "obligation",
+            "patch": "def schedule_cues(payload):\n    if isinstance(payload, dict):\n        cues_in = payload.get(\"cues\")\n        gap = as_int(payload.get(\"gap\"))\n        if gap is None or gap < 0:\n            return \"invalid\"\n    else:\n        cues_in = payload\n        gap = 0\n    if not isinstance(cues_in, list):\n        return \"invalid\"\n    order = []\n    for index, cue in enumerate(cues_in):\n        if not isinstance(cue, dict):\n            return \"invalid\"\n        cue_id = cue.get(\"id\")\n        at = as_int(cue.get(\"at\"))\n        dur = as_int(cue.get(\"dur\"))\n        if not isinstance(cue_id, str) or at is None or dur is None or at < 0 or dur < 1:\n            return \"invalid\"\n        order.append((at, index, cue_id, dur))\n    plan = []\n    last_end = 0\n    for at, index, cue_id, dur in sorted(order):\n        base = last_end if not plan else last_end + gap\n        start = at if at > base else base\n        plan.append({\"id\": cue_id, \"start\": start, \"end\": start + dur})\n        last_end = start + dur\n    return plan",
+            "expected_failing_check_ids": [
+              "o2a"
+            ]
+          }
+        ]
+      },
+      {
+        "index": 3,
+        "source_messages": [
+          {
+            "message_id": "m-src-3a",
+            "role": "assistant",
+            "text": "Quick thought — should render_timeline signal bad payloads with an object like {\"error\": \"invalid\"} instead of the string? It might be friendlier for a future UI."
+          },
+          {
+            "message_id": "m-src-3b",
+            "role": "user",
+            "text": "No — rejected. Bad payloads return exactly the string \"invalid\" everywhere, as the standing rule says; please don't introduce that error-object shape anywhere in the project. All other standing rules, including the cue-scheduling tie override, are unchanged."
+          }
+        ],
+        "request": {
+          "message_id": "m-req-3",
+          "role": "user",
+          "task_handle": "cue-scheduling",
+          "text": "Now implement render_timeline(payload), the integration step. A valid payload is an object {\"samples\": <a sample list as compact_cue accepts>, \"cues\": <a cue list as schedule_cues accepts>}; ignore extra keys. Return a two-element list [runs, plan]: runs is exactly what compact_cue returns for the samples, and plan is exactly what schedule_cues returns for the cues. If either component is invalid, the whole payload is invalid — per our standing rules (that means the plain string, not an error object). Just the render_timeline definition."
+        },
+        "target": {
+          "path": "module.py",
+          "symbol": "render_timeline"
+        },
+        "manual_recap": "Currently applicable standing obligations for this edit (task cue-scheduling): (1) Global, required — invalid-input representation: if either part of the payload is invalid, return exactly the string \"invalid\"; the assistant's quoted suggestion of an {\"error\": \"invalid\"} object was explicitly rejected and is not permitted anywhere. (2) Task-local, required — the cue-scheduling longest-duration-first override governs any cue ordering this function emits that involves equal requested start times (input order only when durations also tie); the global first-seen rule remains the fallback outside that case. (3) Global, permitted — the runs portion may use either run representation; this stays a choice, not a requirement.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "invalid-sentinel",
+              "scope": null,
+              "strength": "required",
+              "text": "For any function you write or edit in this project, an argument that does not match the documented valid shape must return exactly the string \"invalid\"; it must not return null or any error object and must not raise.",
+              "source_ids": [
+                "m-src-0a",
+                "m-src-3b"
+              ]
+            },
+            {
+              "rule_id": "tie-sched-dur",
+              "scope": "cue-scheduling",
+              "strength": "required",
+              "text": "For functions written or edited under the cue-scheduling task: cues that share the same requested start time must be ordered longest-duration-first; cues tied on both start and duration keep input order. This overrides tie-first-seen only for cue-scheduling start-time ties.",
+              "source_ids": [
+                "m-src-2a"
+              ]
+            },
+            {
+              "rule_id": "run-repr",
+              "scope": null,
+              "strength": "permitted",
+              "text": "A compacted run may be returned either as a two-element list [level, count] or as an object {\"level\": <int>, \"count\": <int>}; both representations are always acceptable and tests must accept either.",
+              "source_ids": [
+                "m-src-0b"
+              ]
+            }
+          ],
+          "inactive_rule_ids": []
+        },
+        "reference_patch": "def render_timeline(payload):\n    if not isinstance(payload, dict):\n        return \"invalid\"\n    samples = payload.get(\"samples\")\n    cues = payload.get(\"cues\")\n    if not isinstance(samples, list) or not isinstance(cues, list):\n        return \"invalid\"\n    runs = compact_cue(samples)\n    if runs == \"invalid\":\n        return \"invalid\"\n    plan = schedule_cues(cues)\n    if plan == \"invalid\":\n        return \"invalid\"\n    return [runs, plan]",
+        "functional_checks": [
+          {
+            "check_id": "f3a",
+            "symbol": "render_timeline",
+            "input": {
+              "samples": [
+                7,
+                7
+              ],
+              "cues": [
+                {
+                  "id": "a",
+                  "at": 0,
+                  "dur": 1
+                }
+              ]
+            },
+            "expected_values": [
+              [
+                [
+                  [
+                    7,
+                    2
+                  ]
+                ],
+                [
+                  {
+                    "id": "a",
+                    "start": 0,
+                    "end": 1
+                  }
+                ]
+              ],
+              [
+                [
+                  {
+                    "level": 7,
+                    "count": 2
+                  }
+                ],
+                [
+                  {
+                    "id": "a",
+                    "start": 0,
+                    "end": 1
+                  }
+                ]
+              ]
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "f3b",
+            "symbol": "render_timeline",
+            "input": {
+              "samples": [],
+              "cues": []
+            },
+            "expected_values": [
+              [
+                [],
+                []
+              ]
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "f3c",
+            "symbol": "render_timeline",
+            "input": {
+              "samples": [
+                1,
+                2
+              ],
+              "cues": [
+                {
+                  "id": "a",
+                  "at": 0,
+                  "dur": 2
+                },
+                {
+                  "id": "b",
+                  "at": 1,
+                  "dur": 1
+                }
+              ]
+            },
+            "expected_values": [
+              [
+                [
+                  [
+                    1,
+                    1
+                  ],
+                  [
+                    2,
+                    1
+                  ]
+                ],
+                [
+                  {
+                    "id": "a",
+                    "start": 0,
+                    "end": 2
+                  },
+                  {
+                    "id": "b",
+                    "start": 2,
+                    "end": 3
+                  }
+                ]
+              ],
+              [
+                [
+                  {
+                    "level": 1,
+                    "count": 1
+                  },
+                  {
+                    "level": 2,
+                    "count": 1
+                  }
+                ],
+                [
+                  {
+                    "id": "a",
+                    "start": 0,
+                    "end": 2
+                  },
+                  {
+                    "id": "b",
+                    "start": 2,
+                    "end": 3
+                  }
+                ]
+              ],
+              [
+                [
+                  [
+                    1,
+                    1
+                  ],
+                  {
+                    "level": 2,
+                    "count": 1
+                  }
+                ],
+                [
+                  {
+                    "id": "a",
+                    "start": 0,
+                    "end": 2
+                  },
+                  {
+                    "id": "b",
+                    "start": 2,
+                    "end": 3
+                  }
+                ]
+              ],
+              [
+                [
+                  {
+                    "level": 1,
+                    "count": 1
+                  },
+                  [
+                    2,
+                    1
+                  ]
+                ],
+                [
+                  {
+                    "id": "a",
+                    "start": 0,
+                    "end": 2
+                  },
+                  {
+                    "id": "b",
+                    "start": 2,
+                    "end": 3
+                  }
+                ]
+              ]
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "o3a",
+            "symbol": "render_timeline",
+            "input": {
+              "samples": [
+                1,
+                "x"
+              ],
+              "cues": []
+            },
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": [
+              "invalid-sentinel"
+            ]
+          },
+          {
+            "check_id": "o3b",
+            "symbol": "render_timeline",
+            "input": {
+              "samples": [],
+              "cues": [
+                {
+                  "id": "a",
+                  "at": 0,
+                  "dur": 0
+                }
+              ]
+            },
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": [
+              "invalid-sentinel"
+            ]
+          },
+          {
+            "check_id": "o3c",
+            "symbol": "render_timeline",
+            "input": {
+              "samples": [],
+              "cues": [
+                {
+                  "id": "s",
+                  "at": 1,
+                  "dur": 1
+                },
+                {
+                  "id": "L",
+                  "at": 1,
+                  "dur": 2
+                }
+              ]
+            },
+            "expected_values": [
+              [
+                [],
+                [
+                  {
+                    "id": "L",
+                    "start": 1,
+                    "end": 3
+                  },
+                  {
+                    "id": "s",
+                    "start": 3,
+                    "end": 4
+                  }
+                ]
+              ]
+            ],
+            "rule_ids": [
+              "tie-sched-dur"
+            ]
+          },
+          {
+            "check_id": "o3d",
+            "symbol": "render_timeline",
+            "input": {
+              "samples": [],
+              "cues": {
+                "cues": [],
+                "gap": 0
+              }
+            },
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": [
+              "invalid-sentinel"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "nc3-f",
+            "kind": "functional",
+            "patch": "def render_timeline(payload):\n    if not isinstance(payload, dict):\n        return \"invalid\"\n    samples = payload.get(\"samples\")\n    cues = payload.get(\"cues\")\n    if not isinstance(samples, list) or not isinstance(cues, list):\n        return \"invalid\"\n    runs = compact_cue(samples)\n    if runs == \"invalid\":\n        return \"invalid\"\n    plan = schedule_cues(cues)\n    if plan == \"invalid\":\n        return \"invalid\"\n    return [plan, runs]",
+            "expected_failing_check_ids": [
+              "f3a",
+              "f3c"
+            ]
+          },
+          {
+            "control_id": "nc3-o",
+            "kind": "obligation",
+            "patch": "def render_timeline(payload):\n    if not isinstance(payload, dict):\n        return {\"error\": \"invalid\"}\n    samples = payload.get(\"samples\")\n    cues = payload.get(\"cues\")\n    if not isinstance(samples, list) or not isinstance(cues, list):\n        return \"invalid\"\n    runs = compact_cue(samples)\n    if runs == \"invalid\":\n        return {\"error\": \"invalid\"}\n    plan = schedule_cues(cues)\n    if plan == \"invalid\":\n        return {\"error\": \"invalid\"}\n    return [runs, plan]",
+            "expected_failing_check_ids": [
+              "o3a",
+              "o3b"
+            ]
+          }
+        ]
+      },
+      {
+        "index": 4,
+        "source_messages": [
+          {
+            "message_id": "m-src-4a",
+            "role": "user",
+            "text": "House-keeping before your next edit: I'm cancelling the cue-scheduling longest-duration-first tiebreak. From the next function you write or edit, ties on any ordering key follow the ordinary first-seen rule again, in both tasks. Nothing already written needs rework for this — schedule_cues keeps its documented behavior."
+          },
+          {
+            "message_id": "m-src-4b",
+            "role": "user",
+            "text": "Also, one new global standing rule, additive to the others (the invalid-string rule, the tie rule, and the run-representation choice all stand): whenever you write or edit a function that returns a JSON object, that object must contain the key \"version\" with the integer value 1. As always it binds functions when you write or edit them — existing functions keep their current shape until their next edit."
+          }
+        ],
+        "request": {
+          "message_id": "m-req-4",
+          "role": "user",
+          "task_handle": "cue-compaction",
+          "text": "Extend compact_cue(payload) so that, besides the plain sample list, it also accepts an object {\"samples\": <sample list as before>, \"tol\": <integer >= 0>}. In that form, merge samples into one run while each sample differs from the run's first value by at most tol; the run keeps that first value as its value and counts every merged sample, and a sample that differs by more than tol from the run's first value opens a new run. Plain list payloads keep working exactly as before (same as tol 0). Ignore extra object keys. A tol that is missing, negative, or not an integer (booleans included), or samples that are missing or not a valid sample list, is invalid — standing rules as usual. Please send the complete new compact_cue definition."
+        },
+        "target": {
+          "path": "module.py",
+          "symbol": "compact_cue"
+        },
+        "manual_recap": "Currently applicable standing obligations for this edit (task cue-compaction): (1) Global, required — invalid-input representation: invalid payloads (bad or missing tol, bad or missing samples, or any previously invalid shape) return exactly the string \"invalid\". (2) Global, permitted — run representation continues to allow both [level, count] lists and {\"level\":..., \"count\":...} objects; either is acceptable. No other standing rule constrains this edit: the longest-duration-first tiebreak was cancelled this turn and never applied to this task anyway; the restored global first-seen tie rule is live but governs no equal-key ordering here; the newly added version-on-objects rule binds only functions that return JSON objects, this function returns lists, and it does not authorize reworking any existing function.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "invalid-sentinel",
+              "scope": null,
+              "strength": "required",
+              "text": "For any function you write or edit in this project, an argument that does not match the documented valid shape must return exactly the string \"invalid\"; it must not return null or any error object and must not raise.",
+              "source_ids": [
+                "m-src-0a",
+                "m-src-3b"
+              ]
+            },
+            {
+              "rule_id": "run-repr",
+              "scope": null,
+              "strength": "permitted",
+              "text": "A compacted run may be returned either as a two-element list [level, count] or as an object {\"level\": <int>, \"count\": <int>}; both representations are always acceptable and tests must accept either.",
+              "source_ids": [
+                "m-src-0b"
+              ]
+            }
+          ],
+          "inactive_rule_ids": [
+            "tie-sched-dur"
+          ]
+        },
+        "reference_patch": "def compact_cue(payload):\n    if isinstance(payload, dict):\n        samples = payload.get(\"samples\")\n        tol = as_int(payload.get(\"tol\"))\n        if tol is None or tol < 0:\n            return \"invalid\"\n    else:\n        samples = payload\n        tol = 0\n    if not isinstance(samples, list):\n        return \"invalid\"\n    for value in samples:\n        if as_int(value) is None:\n            return \"invalid\"\n    runs = []\n    for value in samples:\n        if runs and abs(value - runs[-1][0]) <= tol:\n            runs[-1][1] += 1\n        else:\n            runs.append([value, 1])\n    return runs",
+        "functional_checks": [
+          {
+            "check_id": "f4a",
+            "symbol": "compact_cue",
+            "input": {
+              "samples": [
+                10,
+                11,
+                30
+              ],
+              "tol": 1
+            },
+            "expected_values": [
+              [
+                [
+                  10,
+                  2
+                ],
+                [
+                  30,
+                  1
+                ]
+              ],
+              [
+                {
+                  "level": 10,
+                  "count": 2
+                },
+                {
+                  "level": 30,
+                  "count": 1
+                }
+              ],
+              [
+                [
+                  10,
+                  2
+                ],
+                {
+                  "level": 30,
+                  "count": 1
+                }
+              ],
+              [
+                {
+                  "level": 10,
+                  "count": 2
+                },
+                [
+                  30,
+                  1
+                ]
+              ]
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "f4b",
+            "symbol": "compact_cue",
+            "input": {
+              "samples": [
+                5,
+                5
+              ],
+              "tol": 0
+            },
+            "expected_values": [
+              [
+                [
+                  5,
+                  2
+                ]
+              ],
+              [
+                {
+                  "level": 5,
+                  "count": 2
+                }
+              ]
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "f4c",
+            "symbol": "compact_cue",
+            "input": [
+              1,
+              2,
+              2,
+              1
+            ],
+            "expected_values": [
+              [
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ]
+              ],
+              [
+                {
+                  "level": 1,
+                  "count": 1
+                },
+                {
+                  "level": 2,
+                  "count": 2
+                },
+                {
+                  "level": 1,
+                  "count": 1
+                }
+              ],
+              [
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ],
+                {
+                  "level": 1,
+                  "count": 1
+                }
+              ],
+              [
+                [
+                  1,
+                  1
+                ],
+                {
+                  "level": 2,
+                  "count": 2
+                },
+                [
+                  1,
+                  1
+                ]
+              ],
+              [
+                [
+                  1,
+                  1
+                ],
+                {
+                  "level": 2,
+                  "count": 2
+                },
+                {
+                  "level": 1,
+                  "count": 1
+                }
+              ],
+              [
+                {
+                  "level": 1,
+                  "count": 1
+                },
+                [
+                  2,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ]
+              ],
+              [
+                {
+                  "level": 1,
+                  "count": 1
+                },
+                [
+                  2,
+                  2
+                ],
+                {
+                  "level": 1,
+                  "count": 1
+                }
+              ],
+              [
+                {
+                  "level": 1,
+                  "count": 1
+                },
+                {
+                  "level": 2,
+                  "count": 2
+                },
+                [
+                  1,
+                  1
+                ]
+              ]
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "f4d",
+            "symbol": "compact_cue",
+            "input": {
+              "samples": [
+                0,
+                1,
+                3
+              ],
+              "tol": 2
+            },
+            "expected_values": [
+              [
+                [
+                  0,
+                  2
+                ],
+                [
+                  3,
+                  1
+                ]
+              ],
+              [
+                {
+                  "level": 0,
+                  "count": 2
+                },
+                {
+                  "level": 3,
+                  "count": 1
+                }
+              ],
+              [
+                [
+                  0,
+                  2
+                ],
+                {
+                  "level": 3,
+                  "count": 1
+                }
+              ],
+              [
+                {
+                  "level": 0,
+                  "count": 2
+                },
+                [
+                  3,
+                  1
+                ]
+              ]
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "o4a",
+            "symbol": "compact_cue",
+            "input": {
+              "samples": [
+                1
+              ],
+              "tol": -1
+            },
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": [
+              "invalid-sentinel"
+            ]
+          },
+          {
+            "check_id": "o4b",
+            "symbol": "compact_cue",
+            "input": {
+              "samples": [
+                1
+              ],
+              "tol": true
+            },
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": [
+              "invalid-sentinel"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "nc4-f",
+            "kind": "functional",
+            "patch": "def compact_cue(payload):\n    if isinstance(payload, dict):\n        samples = payload.get(\"samples\")\n        tol = as_int(payload.get(\"tol\"))\n        if tol is None or tol < 0:\n            return \"invalid\"\n    else:\n        samples = payload\n        tol = 0\n    if not isinstance(samples, list):\n        return \"invalid\"\n    for value in samples:\n        if as_int(value) is None:\n            return \"invalid\"\n    runs = []\n    previous = None\n    for value in samples:\n        if runs and abs(value - previous) <= tol:\n            runs[-1][1] += 1\n        else:\n            runs.append([value, 1])\n        previous = value\n    return runs",
+            "expected_failing_check_ids": [
+              "f4d"
+            ]
+          },
+          {
+            "control_id": "nc4-o",
+            "kind": "obligation",
+            "patch": "def compact_cue(payload):\n    if isinstance(payload, dict):\n        samples = payload.get(\"samples\")\n        tol = payload.get(\"tol\")\n        if not isinstance(tol, int) or tol < 0:\n            return \"invalid\"\n    else:\n        samples = payload\n        tol = 0\n    if not isinstance(samples, list):\n        return \"invalid\"\n    for value in samples:\n        if as_int(value) is None:\n            return \"invalid\"\n    runs = []\n    for value in samples:\n        if runs and abs(value - runs[-1][0]) <= tol:\n            runs[-1][1] += 1\n        else:\n            runs.append([value, 1])\n    return runs",
+            "expected_failing_check_ids": [
+              "o4b"
+            ]
+          }
+        ]
+      },
+      {
+        "index": 5,
+        "source_messages": [
+          {
+            "message_id": "m-src-5a",
+            "role": "user",
+            "text": "Reminder of the current standing rules, all still in force together: invalid payloads return the string \"invalid\"; equal ordering keys keep first-seen order in both tasks (the duration-first exception is gone); objects returned by functions you write or edit carry \"version\": 1; run entries may be lists or objects, your choice."
+          }
+        ],
+        "request": {
+          "message_id": "m-req-5",
+          "role": "user",
+          "task_handle": "cue-scheduling",
+          "text": "Final upgrade to render_timeline(payload). Keep today's behavior for payloads like the ones it already accepts, and add three things. First, the payload may optionally include \"tol\" (an integer >= 0); when present, compact the samples in tolerance mode with that tol. Second, it may optionally include \"gap\" (an integer >= 0); when present, schedule the cues with that gap. A supplied tol or gap that is not a non-negative integer makes the payload invalid. Third, if the payload carries \"detail\": true, return an object instead of the [runs, plan] list: the same runs and plan under keys \"runs\" and \"plan\", plus a key \"order\" holding the cue ids sorted by their requested start time ascending, with equal requested starts resolved exactly as our standing ordering rules now require. A \"detail\" of false (or absent) keeps the current list result; any non-boolean detail value is invalid. As always, honor every standing rule currently in force, including the one about returned objects. Full new render_timeline definition, please."
+        },
+        "target": {
+          "path": "module.py",
+          "symbol": "render_timeline"
+        },
+        "manual_recap": "Currently applicable standing obligations for this edit (task cue-scheduling): (1) Global, required — invalid-input representation: any invalid payload (bad tol/gap/detail, or invalid samples/cues surfaced through the documented validation) returns exactly the string \"invalid\". (2) Global, required — the restored first-seen tie rule: in the new \"order\" list, ids of cues sharing a requested start keep their input order; the cancelled longest-duration-first tiebreak must not be used. (3) Global, required — the version-on-objects convention: because the detail result is a JSON object returned by a function now being edited, it must include \"version\": 1; this does not require changing the function's legacy list result or reworking compact_cue/schedule_cues, which keep their documented behavior. (4) Global, permitted — runs may use either representation; a choice, not a requirement.",
+        "oracle": {
+          "effective_rules": [
+            {
+              "rule_id": "invalid-sentinel",
+              "scope": null,
+              "strength": "required",
+              "text": "For any function you write or edit in this project, an argument that does not match the documented valid shape must return exactly the string \"invalid\"; it must not return null or any error object and must not raise.",
+              "source_ids": [
+                "m-src-0a",
+                "m-src-3b",
+                "m-src-5a"
+              ]
+            },
+            {
+              "rule_id": "tie-first-seen",
+              "scope": null,
+              "strength": "required",
+              "text": "Whenever a function you write or edit must order items that compare equal on the active ordering key, the tied items must keep the relative order in which they first appeared in the input.",
+              "source_ids": [
+                "m-src-0a",
+                "m-src-4a",
+                "m-src-5a"
+              ]
+            },
+            {
+              "rule_id": "dict-version",
+              "scope": null,
+              "strength": "required",
+              "text": "For any function you write or edit whose return value is a JSON object, the returned object must include the key \"version\" with the integer value 1. It applies to a function when it is written or edited, not retroactively.",
+              "source_ids": [
+                "m-src-4b",
+                "m-src-5a"
+              ]
+            },
+            {
+              "rule_id": "run-repr",
+              "scope": null,
+              "strength": "permitted",
+              "text": "A compacted run may be returned either as a two-element list [level, count] or as an object {\"level\": <int>, \"count\": <int>}; both representations are always acceptable and tests must accept either.",
+              "source_ids": [
+                "m-src-0b",
+                "m-src-5a"
+              ]
+            }
+          ],
+          "inactive_rule_ids": []
+        },
+        "reference_patch": "def render_timeline(payload):\n    if not isinstance(payload, dict):\n        return \"invalid\"\n    detail = payload.get(\"detail\", False)\n    if not isinstance(detail, bool):\n        return \"invalid\"\n    samples = payload.get(\"samples\")\n    cues = payload.get(\"cues\")\n    if not isinstance(samples, list) or not isinstance(cues, list):\n        return \"invalid\"\n    if \"tol\" in payload:\n        sample_arg = {\"samples\": samples, \"tol\": payload.get(\"tol\")}\n    else:\n        sample_arg = samples\n    if \"gap\" in payload:\n        cue_arg = {\"cues\": cues, \"gap\": payload.get(\"gap\")}\n    else:\n        cue_arg = cues\n    runs = compact_cue(sample_arg)\n    if runs == \"invalid\":\n        return \"invalid\"\n    plan = schedule_cues(cue_arg)\n    if plan == \"invalid\":\n        return \"invalid\"\n    if not detail:\n        return [runs, plan]\n    order = []\n    for index, cue in enumerate(cues):\n        order.append((cue[\"at\"], index, cue[\"id\"]))\n    order.sort()\n    ids = []\n    for at, index, cue_id in order:\n        ids.append(cue_id)\n    return {\"runs\": runs, \"plan\": plan, \"order\": ids, \"version\": 1}",
+        "functional_checks": [
+          {
+            "check_id": "f5a",
+            "symbol": "render_timeline",
+            "input": {
+              "samples": [
+                1,
+                1,
+                2
+              ],
+              "cues": []
+            },
+            "expected_values": [
+              [
+                [
+                  [
+                    1,
+                    2
+                  ],
+                  [
+                    2,
+                    1
+                  ]
+                ],
+                []
+              ],
+              [
+                [
+                  {
+                    "level": 1,
+                    "count": 2
+                  },
+                  {
+                    "level": 2,
+                    "count": 1
+                  }
+                ],
+                []
+              ],
+              [
+                [
+                  [
+                    1,
+                    2
+                  ],
+                  {
+                    "level": 2,
+                    "count": 1
+                  }
+                ],
+                []
+              ],
+              [
+                [
+                  {
+                    "level": 1,
+                    "count": 2
+                  },
+                  [
+                    2,
+                    1
+                  ]
+                ],
+                []
+              ]
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "f5b",
+            "symbol": "render_timeline",
+            "input": {
+              "samples": [
+                10,
+                11,
+                30
+              ],
+              "cues": [],
+              "tol": 1
+            },
+            "expected_values": [
+              [
+                [
+                  [
+                    10,
+                    2
+                  ],
+                  [
+                    30,
+                    1
+                  ]
+                ],
+                []
+              ],
+              [
+                [
+                  {
+                    "level": 10,
+                    "count": 2
+                  },
+                  {
+                    "level": 30,
+                    "count": 1
+                  }
+                ],
+                []
+              ],
+              [
+                [
+                  [
+                    10,
+                    2
+                  ],
+                  {
+                    "level": 30,
+                    "count": 1
+                  }
+                ],
+                []
+              ],
+              [
+                [
+                  {
+                    "level": 10,
+                    "count": 2
+                  },
+                  [
+                    30,
+                    1
+                  ]
+                ],
+                []
+              ]
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "f5c",
+            "symbol": "render_timeline",
+            "input": {
+              "samples": [],
+              "cues": [
+                {
+                  "id": "a",
+                  "at": 0,
+                  "dur": 2
+                },
+                {
+                  "id": "b",
+                  "at": 2,
+                  "dur": 1
+                }
+              ],
+              "gap": 2
+            },
+            "expected_values": [
+              [
+                [],
+                [
+                  {
+                    "id": "a",
+                    "start": 0,
+                    "end": 2
+                  },
+                  {
+                    "id": "b",
+                    "start": 4,
+                    "end": 5
+                  }
+                ]
+              ]
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "f5d",
+            "symbol": "render_timeline",
+            "input": {
+              "samples": [],
+              "cues": [
+                {
+                  "id": "z",
+                  "at": 0,
+                  "dur": 1
+                },
+                {
+                  "id": "a",
+                  "at": 3,
+                  "dur": 1
+                }
+              ],
+              "detail": true
+            },
+            "expected_values": [
+              {
+                "runs": [],
+                "plan": [
+                  {
+                    "id": "z",
+                    "start": 0,
+                    "end": 1
+                  },
+                  {
+                    "id": "a",
+                    "start": 3,
+                    "end": 4
+                  }
+                ],
+                "order": [
+                  "z",
+                  "a"
+                ],
+                "version": 1
+              }
+            ],
+            "rule_ids": []
+          },
+          {
+            "check_id": "f5e",
+            "symbol": "render_timeline",
+            "input": {
+              "samples": [
+                3
+              ],
+              "cues": [],
+              "detail": false
+            },
+            "expected_values": [
+              [
+                [
+                  [
+                    3,
+                    1
+                  ]
+                ],
+                []
+              ],
+              [
+                [
+                  {
+                    "level": 3,
+                    "count": 1
+                  }
+                ],
+                []
+              ]
+            ],
+            "rule_ids": []
+          }
+        ],
+        "obligation_checks": [
+          {
+            "check_id": "o5a",
+            "symbol": "render_timeline",
+            "input": {
+              "samples": [],
+              "cues": [
+                {
+                  "id": "x",
+                  "at": 2,
+                  "dur": 1
+                },
+                {
+                  "id": "y",
+                  "at": 2,
+                  "dur": 3
+                }
+              ],
+              "detail": true
+            },
+            "expected_values": [
+              {
+                "runs": [],
+                "plan": [
+                  {
+                    "id": "y",
+                    "start": 2,
+                    "end": 5
+                  },
+                  {
+                    "id": "x",
+                    "start": 5,
+                    "end": 6
+                  }
+                ],
+                "order": [
+                  "x",
+                  "y"
+                ],
+                "version": 1
+              }
+            ],
+            "rule_ids": [
+              "tie-first-seen"
+            ]
+          },
+          {
+            "check_id": "o5b",
+            "symbol": "render_timeline",
+            "input": {
+              "samples": [],
+              "cues": [],
+              "detail": true
+            },
+            "expected_values": [
+              {
+                "runs": [],
+                "plan": [],
+                "order": [],
+                "version": 1
+              }
+            ],
+            "rule_ids": [
+              "dict-version"
+            ]
+          },
+          {
+            "check_id": "o5c",
+            "symbol": "render_timeline",
+            "input": {
+              "samples": [
+                1
+              ],
+              "cues": [],
+              "tol": true
+            },
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": [
+              "invalid-sentinel"
+            ]
+          },
+          {
+            "check_id": "o5d",
+            "symbol": "render_timeline",
+            "input": {
+              "samples": {
+                "samples": [],
+                "tol": 0
+              },
+              "cues": []
+            },
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": [
+              "invalid-sentinel"
+            ]
+          },
+          {
+            "check_id": "o5e",
+            "symbol": "render_timeline",
+            "input": {
+              "samples": [],
+              "cues": {
+                "cues": [],
+                "gap": 0
+              }
+            },
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": [
+              "invalid-sentinel"
+            ]
+          },
+          {
+            "check_id": "o5f",
+            "symbol": "render_timeline",
+            "input": {
+              "samples": [],
+              "cues": {
+                "cues": [],
+                "gap": 0
+              },
+              "detail": true
+            },
+            "expected_values": [
+              "invalid"
+            ],
+            "rule_ids": [
+              "invalid-sentinel"
+            ]
+          }
+        ],
+        "negative_controls": [
+          {
+            "control_id": "nc5-f",
+            "kind": "functional",
+            "patch": "def render_timeline(payload):\n    if not isinstance(payload, dict):\n        return \"invalid\"\n    detail = payload.get(\"detail\", False)\n    if not isinstance(detail, bool):\n        return \"invalid\"\n    samples = payload.get(\"samples\")\n    cues = payload.get(\"cues\")\n    if not isinstance(samples, list) or not isinstance(cues, list):\n        return \"invalid\"\n    if \"tol\" in payload:\n        sample_arg = {\"samples\": samples, \"tol\": payload.get(\"tol\")}\n    else:\n        sample_arg = samples\n    if \"gap\" in payload:\n        cue_arg = {\"cues\": cues, \"gap\": payload.get(\"gap\")}\n    else:\n        cue_arg = cues\n    runs = compact_cue(sample_arg)\n    if runs == \"invalid\":\n        return \"invalid\"\n    plan = schedule_cues(cue_arg)\n    if plan == \"invalid\":\n        return \"invalid\"\n    if not detail:\n        return [runs, plan]\n    order = []\n    for index, cue in enumerate(cues):\n        order.append((cue[\"id\"], index))\n    order.sort()\n    ids = []\n    for cue_id, index in order:\n        ids.append(cue_id)\n    return {\"runs\": runs, \"plan\": plan, \"order\": ids, \"version\": 1}",
+            "expected_failing_check_ids": [
+              "f5d"
+            ]
+          },
+          {
+            "control_id": "nc5-o",
+            "kind": "obligation",
+            "patch": "def render_timeline(payload):\n    if not isinstance(payload, dict):\n        return \"invalid\"\n    detail = payload.get(\"detail\", False)\n    if not isinstance(detail, bool):\n        return \"invalid\"\n    samples = payload.get(\"samples\")\n    cues = payload.get(\"cues\")\n    if not isinstance(samples, list) or not isinstance(cues, list):\n        return \"invalid\"\n    if \"tol\" in payload:\n        sample_arg = {\"samples\": samples, \"tol\": payload.get(\"tol\")}\n    else:\n        sample_arg = samples\n    if \"gap\" in payload:\n        cue_arg = {\"cues\": cues, \"gap\": payload.get(\"gap\")}\n    else:\n        cue_arg = cues\n    runs = compact_cue(sample_arg)\n    if runs == \"invalid\":\n        return \"invalid\"\n    plan = schedule_cues(cue_arg)\n    if plan == \"invalid\":\n        return \"invalid\"\n    if not detail:\n        return [runs, plan]\n    order = []\n    for index, cue in enumerate(cues):\n        order.append((cue[\"at\"], -cue[\"dur\"], index, cue[\"id\"]))\n    order.sort()\n    ids = []\n    for at, neg_dur, index, cue_id in order:\n        ids.append(cue_id)\n    return {\"runs\": runs, \"plan\": plan, \"order\": ids, \"version\": 1}",
+            "expected_failing_check_ids": [
+              "o5a"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

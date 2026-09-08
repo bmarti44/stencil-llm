@@ -1,0 +1,180 @@
+{
+  "patches": [
+    {
+      "path": "/episode/rounds/3/obligation_checks",
+      "old": [
+        {
+          "check_id": "o3a",
+          "symbol": "render_timeline",
+          "input": {
+            "samples": [
+              1,
+              "x"
+            ],
+            "cues": []
+          },
+          "expected_values": [
+            "invalid"
+          ],
+          "rule_ids": [
+            "invalid-sentinel"
+          ]
+        },
+        {
+          "check_id": "o3b",
+          "symbol": "render_timeline",
+          "input": {
+            "samples": [],
+            "cues": [
+              {
+                "id": "a",
+                "at": 0,
+                "dur": 0
+              }
+            ]
+          },
+          "expected_values": [
+            "invalid"
+          ],
+          "rule_ids": [
+            "invalid-sentinel"
+          ]
+        },
+        {
+          "check_id": "o3c",
+          "symbol": "render_timeline",
+          "input": {
+            "samples": [],
+            "cues": [
+              {
+                "id": "s",
+                "at": 1,
+                "dur": 1
+              },
+              {
+                "id": "L",
+                "at": 1,
+                "dur": 2
+              }
+            ]
+          },
+          "expected_values": [
+            [
+              [],
+              [
+                {
+                  "id": "L",
+                  "start": 1,
+                  "end": 3
+                },
+                {
+                  "id": "s",
+                  "start": 3,
+                  "end": 4
+                }
+              ]
+            ]
+          ],
+          "rule_ids": [
+            "tie-sched-dur"
+          ]
+        }
+      ],
+      "new": [
+        {
+          "check_id": "o3a",
+          "symbol": "render_timeline",
+          "input": {
+            "samples": [
+              1,
+              "x"
+            ],
+            "cues": []
+          },
+          "expected_values": [
+            "invalid"
+          ],
+          "rule_ids": [
+            "invalid-sentinel"
+          ]
+        },
+        {
+          "check_id": "o3b",
+          "symbol": "render_timeline",
+          "input": {
+            "samples": [],
+            "cues": [
+              {
+                "id": "a",
+                "at": 0,
+                "dur": 0
+              }
+            ]
+          },
+          "expected_values": [
+            "invalid"
+          ],
+          "rule_ids": [
+            "invalid-sentinel"
+          ]
+        },
+        {
+          "check_id": "o3c",
+          "symbol": "render_timeline",
+          "input": {
+            "samples": [],
+            "cues": [
+              {
+                "id": "s",
+                "at": 1,
+                "dur": 1
+              },
+              {
+                "id": "L",
+                "at": 1,
+                "dur": 2
+              }
+            ]
+          },
+          "expected_values": [
+            [
+              [],
+              [
+                {
+                  "id": "L",
+                  "start": 1,
+                  "end": 3
+                },
+                {
+                  "id": "s",
+                  "start": 3,
+                  "end": 4
+                }
+              ]
+            ]
+          ],
+          "rule_ids": [
+            "tie-sched-dur"
+          ]
+        },
+        {
+          "check_id": "o3d",
+          "symbol": "render_timeline",
+          "input": {
+            "samples": [],
+            "cues": {
+              "cues": [],
+              "gap": 0
+            }
+          },
+          "expected_values": [
+            "invalid"
+          ],
+          "rule_ids": [
+            "invalid-sentinel"
+          ]
+        }
+      ]
+    }
+  ]
+}

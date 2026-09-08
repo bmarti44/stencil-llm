@@ -1684,3 +1684,14 @@ files; no worker inference is running. All four Kimi author calls completed.
 Author00 data accepted; author01 corrected 16 paths using exact old-value guards
 and preserved the rejected patch proposal. Author02/03 bounded Kimi corrections
 remain. Fit-on none; fresh DEV data only. The full goal remains unproved.
+
+2026-09-07 — STATE: AUTHOR01 CORRECTED; AUTHOR02 PATCH REQUEST FROZEN NEXT.
+Author01 exact Kimi patch composition passes six references and twelve controls
+in 5.742 seconds; Astra semantic re-review pending. Author02 six-path request
+clarifies case-sensitive tie ordering and isolates its functional mutant from
+malformed-input validation; all semantic edits remain Kimi-authored. Author03
+needs all-batch validation and two source clarifications. All raw calls saved.
+Astra agrees local IDs can remain when keyed with episode identity, avoiding
+unnecessary rewrites. C recap may accurately include immediate requirements
+without calling them future/global rules; protocol clarified before responses.
+No worker inference, fitting, or training has started.
