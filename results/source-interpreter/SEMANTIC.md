@@ -1,8 +1,9 @@
 # Fresh source-interpreter comparison
 
 Draft for independent review, 2026-09-08. No data authoring or model launch
-until the specification is accepted. Actual FIT-result audit is concurrently
-pending. This is a small falsification screen, not the larger coding proof.
+until the specification is accepted. Actual FIT-result audit is accepted in
+fit-review-astra.md round5; the trained capped response remains a failure.
+This is a small falsification screen, not the larger coding proof.
 
 Fit-on: only the eighteen accepted FIT rows already used for the fixed final
 adapter. Development-on: none in this comparison. Evaluated-on: six wholly new
@@ -130,8 +131,9 @@ unsupported added instruction; wrong authority; wrong scope/condition/exception;
 wrong permission/obligation modality; stale or prematurely reinstated rule;
 and missing/incorrect supporting citation. Record each defect as present/absent
 per response, allowing overlap. Complete-current-focus success requires a
-complete structurally valid response and no material semantic defect. Capped,
-malformed or unavailable responses fail; do not salvage a good-looking prefix.
+complete structurally valid response and no material semantic defect. Returned
+capped or malformed responses fail; unavailable or not-attempted responses
+remain unknown and make the screen incomplete. Do not salvage a good-looking prefix.
 Report structural failures separately, without inventing detailed semantic
 judgments for unrecoverable output. No claims that absent defect coding means
 an invalid answer is semantically correct.
@@ -139,10 +141,23 @@ an invalid answer is semantically correct.
 Preserve both independent judgments. Root verifies disagreements against source
 and sends specific evidence for Astra adjudication, recording the original
 votes and final rationale. Any unresolved material ambiguity is scored failure
-for the affected response and disclosed; never exclude a pair. Evidence of a
+for the affected returned response and disclosed; never exclude a pair. Evidence of a
 reference-label defect after unblinding makes that checkpoint ineligible for
 an unqualified semantic claim and the overall screen INELIGIBLE, not a repaired
 or smaller scored bank. Raw structural outcomes and costs remain reportable.
+
+Eligibility is explicit: primary inference and the practical advancement
+decision below require all36 scheduled calls to have RETURNED within the
+registered deadlines, complete required receipts and cost accounting, and no
+bank-level ineligibility. Any technical exception, deadline, unavailable or
+not-attempted call makes the screen INCOMPLETE and blocks both decisions,
+regardless of partial counts. Any INELIGIBLE screen also blocks both. Report
+only observed partial descriptive evidence and costs in those cases; never
+convert a missing/unattempted comparison into an observed loss, run a reduced
+primary test, or use partial results to advance. Returned capped/malformed
+answers remain observed failures and do not by themselves make execution
+incomplete. Thus the full36-call screen may remain eligible while containing
+imperfect responses; complete execution is not a perfect-selector requirement.
 
 Primary descriptive measure: complete-current-focus counts per conversation
 (0–3), and aggregate/18 for each arm. Also report fully correct conversations
