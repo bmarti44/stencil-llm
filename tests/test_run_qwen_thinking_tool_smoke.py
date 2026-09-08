@@ -150,3 +150,41 @@ def test_launcher_dry_run_and_preview_never_start_a_process(tmp_path):
     )
     assert preview.returncode == 0, preview.stderr
     assert json.loads(preview.stdout)["model_calls"] == 0
+
+
+def test_execute_preserves_an_existing_run_directory(monkeypatch, tmp_path):
+    results = tmp_path / "coding-reasoning-smoke"
+    results.mkdir()
+    run = results / "run-existing"
+    run.mkdir()
+    lifecycle = run / "lifecycle.json"
+    sentinel = b'{"status":"EXISTING"}\n'
+    lifecycle.write_bytes(sentinel)
+    run_flag = results / "RUNNING.flag"
+    lifecycle_calls = []
+
+    monkeypatch.setattr(launcher, "RESULTS_DIR", results)
+    monkeypatch.setattr(launcher, "RUN_FLAG", run_flag)
+    monkeypatch.setattr(owned, "register_pid", lambda _pid: None)
+    monkeypatch.setattr(
+        launcher,
+        "prepare_execution",
+        lambda *_args, **_kwargs: {"environment": {"git_head": "a" * 40}},
+    )
+    monkeypatch.setattr(
+        owned,
+        "acquire_review_lock",
+        lambda _path: (tmp_path / "review.lock").open("a+"),
+    )
+    monkeypatch.setattr(
+        owned,
+        "run_lifecycle",
+        lambda *_args, **_kwargs: lifecycle_calls.append(True),
+    )
+
+    with pytest.raises(FileExistsError):
+        launcher.main(["--run-dir", str(run), "--execute"])
+
+    assert lifecycle.read_bytes() == sentinel
+    assert lifecycle_calls == []
+    assert not run_flag.exists()

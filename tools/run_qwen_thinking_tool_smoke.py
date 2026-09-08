@@ -414,8 +414,10 @@ def main(argv=None):
     review_handle = owned.acquire_review_lock(REVIEW_LOCK)
     try:
         _reserve_flag(run, plan["container_name"])
+        run_created = False
         try:
             run.mkdir(parents=False, exist_ok=False)
+            run_created = True
             plan["execute"] = True
             freeze = {
                 "schema_version": 1,
@@ -433,7 +435,7 @@ def main(argv=None):
             code, _lifecycle = owned.run_lifecycle(plan, run_flag=RUN_FLAG)
             return code
         except Exception:
-            if run.exists():
+            if run_created:
                 owned._write_json(
                     run / "lifecycle.json",
                     {
