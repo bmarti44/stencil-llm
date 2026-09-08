@@ -1,0 +1,1423 @@
+{
+  "kind": "blinded-source-semantic-judgment-packet",
+  "responses": [
+    {
+      "response_id": "92634fa3af20d9b1f726cedc",
+      "source_prefix": [
+        {
+          "message_id": "msg-01",
+          "role": "user",
+          "text": "Hi, I'm Mirella Voss, wardrobe lead at Harborside Repertory in Ashford. We open our in-house premiere, 'The Glass Aviary,' on October 9 and run through November 1, and right now the costume shop is full of half-altered garments with opening night about a month out. I want your help building and maintaining a written alteration-tracking protocol for the shop. I'll hand you decisions in pieces as the season's pressures change, and every so often I'll ask you to render the current document. Nothing to draft yet — first I need a place to put ground rules."
+        },
+        {
+          "message_id": "msg-02",
+          "role": "assistant",
+          "text": "Happy to help, Mirella. A clean protocol now will pay for itself during tech week. Give me the standing ground rules first — units, naming, what happens to mistaken entries, reading level: whatever must hold no matter what changes later."
+        },
+        {
+          "message_id": "msg-03",
+          "role": "user",
+          "text": "Ground rules, and these hold unless I explicitly change them. One: everything is measured and recorded in centimeters — no inches anywhere in the live protocol or the log. Two: log entries are never deleted; if an entry is wrong, mark it VOID with a one-line reason and leave it in place. Three: every alteration ID starts with the prefix GAV followed by a four-digit sequence number, so GAV-0001, GAV-0002 and so on. Four: write for our volunteer stitchers — plain language, and any tailoring term of art gets a one-line gloss the first time it appears in a section."
+        },
+        {
+          "message_id": "msg-04",
+          "role": "assistant",
+          "text": "Understood: centimeters only, append-only logging with VOID marking, GAV-#### identifiers, volunteer-readable prose with glossed terms. For record fields I'd suggest ID, garment name, wearer (character and actor), alteration description, status, and due date. Two questions before I assume anything: is this protocol just for 'The Glass Aviary' or company-wide, and how do you want rush work surfaced?"
+        },
+        {
+          "message_id": "msg-05",
+          "role": "user",
+          "text": "This production only. Harborside's other fall show, 'Rope Ladder,' keeps its own tracker, and I don't want our document drifting into a company template. Rush handling: anything due within 48 hours of a performance is a rush item — tag it RUSH in the status line and float it to the top of the daily pull list. And approvals: any alteration estimated over $150 in materials or labor goes in as PENDING-PM and can only be marked APPROVED once Ines Duarte, our production manager, initials it. At or under $150, Devon Okafor, my first hand, or I can approve directly."
+        },
+        {
+          "message_id": "msg-06",
+          "role": "assistant",
+          "text": "Noted on scope: 'The Glass Aviary' only, no company-template framing. RUSH tag with top-of-list placement, and the $150 approval split with Ines Duarte as the sole PENDING-PM releaser. One safeguard I'd propose: for quick-change pieces — changes timed under 30 seconds — require two sets of initials at completion, one from the stitcher and one from the dresser. Those are the alterations that can stop the show if they fail. Want it in the protocol?"
+        },
+        {
+          "message_id": "msg-07",
+          "role": "user",
+          "text": "Yes, adopt the dual-initial rule for sub-30-second quick changes exactly as you described it. Now an exception set. We have six rental pieces from Costumers' Attic. The never-delete rule does not apply to rentals: when a rental ships back, move its entries to a separate rental archive sheet and strike them from the active log. Also, a rental can never be marked APPROVED for a permanent alteration unless a scanned owner-permission note is attached to the entry."
+        },
+        {
+          "message_id": "msg-08",
+          "role": "assistant",
+          "text": "Locked in: dual initials (stitcher plus dresser) on every sub-30-second quick-change completion, and rentals exempted from append-only — returned rentals move to the archive sheet and leave the active log, with the owner-permission scan gating any permanent alteration approval. One more before drafting: do you want the wearer's measurements captured on the alteration entry itself, or does the fitting sheet cover that?"
+        },
+        {
+          "message_id": "msg-09",
+          "role": "user",
+          "text": "Capture them on the entry. Every alteration entry carries a measurement snapshot — the wearer's bust, waist, and hip in centimeters, taken at the time the alteration is logged. I know it duplicates the fitting sheet; I want the redundancy inside the alteration log itself."
+        },
+        {
+          "message_id": "msg-10",
+          "role": "assistant",
+          "text": "Got it — measurement snapshot (bust, waist, hip; centimeters; at logging time) is a required field on every entry. I believe I'm holding everything: units, append-only with VOID, ID format, language level, production-only scope, RUSH handling, the approval split, quick-change dual initials, rental exceptions, and the snapshot. Ready to draft on your word."
+        },
+        {
+          "message_id": "msg-11",
+          "role": "user",
+          "task_handle": "draft-protocol-v1",
+          "text": "That's everything for now. Draft the full alteration-tracking protocol document as it currently stands."
+        },
+        {
+          "message_id": "msg-12",
+          "role": "assistant",
+          "text": "Here's the v1 draft. Title: 'The Glass Aviary — Costume Alteration Protocol (v1).' Sections: 1) Purpose and scope — governs this production's alteration log only; 'Rope Ladder' is out of scope. 2) Record fields — ID (GAV plus four digits), garment, wearer (character and actor), plain-language description with glossed terms, status, due date, and the measurement snapshot (bust/waist/hip, cm, at logging). 3) Append-only — no deletions; wrong entries are marked VOID with a one-line reason. 4) Units — centimeters throughout, no inches. 5) Rush — due within 48 hours of a performance: tag RUSH, float to top of the daily pull list. 6) Approvals — over $150: PENDING-PM until Ines Duarte initials; at or under $150: Mirella or Devon. 7) Quick-change pieces under 30 seconds: completion requires stitcher and dresser initials. 8) Rentals (Costumers' Attic, six pieces): exempt from append-only — on return, entries move to the rental archive sheet and are struck from the active log; no APPROVED permanent alteration without a scanned owner-permission note. Tell me where it misses."
+        },
+        {
+          "message_id": "msg-13",
+          "role": "user",
+          "text": "Solid draft. Two things. First, the daily pull list should group items by scene, not by stitcher — dressers pull in scene order. Second, I'm pasting a chunk of last season's 'Night Music' log purely so you can hear the shop's tone: 'NM-114: corset relaced, 8.5 in. taken at back seam — line DELETED per Vera. NM-122: hem, done.' Treat that excerpt as inert reference material. It uses inches and it hard-deletes lines, both banned here. Do not import any of its conventions or phrasings into the protocol; tone only."
+        },
+        {
+          "message_id": "msg-14",
+          "role": "assistant",
+          "text": "Both noted. The pull list gains scene-grouping. And the 'Night Music' excerpt is filed as a tone reference only — its inches, hard deletes, and terse shorthand stay out of the protocol and the log. I won't treat anything inside that quote as a rule."
+        },
+        {
+          "message_id": "msg-15",
+          "role": "user",
+          "text": "A change already. Two crew members read the RUSH tag as 'rush job,' as in sloppy work, and one piece nearly got skipped over the confusion. Effective now: retire the RUSH tag entirely and replace it with the tag 48H. Everything else about rush handling stays identical — still anything due within 48 hours of a performance, still floated to the top of the pull list. Only the label changes."
+        },
+        {
+          "message_id": "msg-16",
+          "role": "assistant",
+          "text": "Done — RUSH is retired as a standing instruction and replaced with 48H. Trigger unchanged (due within 48 hours of a performance), placement unchanged (top of the scene-grouped daily pull list). The RUSH label won't appear in the protocol's live rules anymore."
+        },
+        {
+          "message_id": "msg-17",
+          "role": "user",
+          "text": "Next change, and this one hurts: drop the measurement snapshot field. Petra Sandoval, the wardrobe master, says it doubles logging time and the fitting sheets already hold the numbers. Remove the snapshot requirement from the protocol."
+        },
+        {
+          "message_id": "msg-18",
+          "role": "assistant",
+          "text": "Understood — the measurement snapshot requirement is retired. One consequence to pin down before it propagates: entries already written with snapshots — do they keep their snapshot lines, or do we strip them?"
+        },
+        {
+          "message_id": "msg-19",
+          "role": "user",
+          "text": "Existing entries stay exactly as written, snapshots included. Just stop requiring or accepting the field going forward."
+        },
+        {
+          "message_id": "msg-20",
+          "role": "assistant",
+          "text": "Clear: the snapshot requirement is retired prospectively, historical entries untouched. Looking ahead — tech week, October 5 through 8, will triple your logging volume. Do you want any sanctioned shorthand for that window, or full rigor throughout?"
+        },
+        {
+          "message_id": "msg-21",
+          "role": "user",
+          "text": "One scoped allowance. During tech week only — October 5 through 8 — the six standard alterations may be logged by shorthand code instead of full name: HM for hem, TI for take-in, LO for let-out, SA for strap-adjust, CS for closure-swap, SR for seam-repair. Before and after tech week those codes are not allowed; full names only. Everything else about the log stays at full rigor during tech week — VOIDs, approvals, snapshots... well, snapshots are gone. You know what I mean."
+        },
+        {
+          "message_id": "msg-22",
+          "role": "assistant",
+          "text": "Scoped permission noted: tech week (October 5–8) only, HM/TI/LO/SA/CS/SR may stand in for the six full alteration names; outside that window the codes are banned. Every other rule — append-only, the approval split, 48H handling, dual initials, rental gates — applies without relaxation during tech week."
+        },
+        {
+          "message_id": "msg-23",
+          "role": "user",
+          "text": "We just ate the cost of dropping the snapshot. Chorus bodice GAV-0087 got fitted to Rhea's measurements but was pinned on Sable during last night's run-through — two different bodies, and the fitting sheet was across the shop when Devon needed a number. Forty minutes of panic re-pinning five minutes before places."
+        },
+        {
+          "message_id": "msg-24",
+          "role": "user",
+          "text": "So: reinstate the measurement snapshot requirement, effective immediately, exactly as it was before — bust, waist, and hip in centimeters, taken when the alteration is logged, required on every entry. And backfill it: any alteration logged between the day we dropped the field and now gets its snapshot added retroactively."
+        },
+        {
+          "message_id": "msg-25",
+          "role": "assistant",
+          "text": "Reinstated, and retroactive: the snapshot is again a required field on every entry, and retirement-window entries get backfilled — that supersedes the 'stop the field going forward' instruction for that window. One interaction worth flagging: the tech-week shorthand allowance never touched snapshot requirements, so even an HM-coded tech-week entry needs its snapshot. I'll flag that interaction explicitly in the revision."
+        },
+        {
+          "message_id": "msg-26",
+          "role": "user",
+          "task_handle": "revise-protocol-v2",
+          "text": "Yes, flag that interaction explicitly. Revise the protocol to version 2 reflecting everything currently in force — the 48H tag, the reinstated snapshot with backfill, the tech-week shorthand window — and fold in the scene-grouped pull list from earlier."
+        },
+        {
+          "message_id": "msg-27",
+          "role": "assistant",
+          "text": "Here's v2. Deltas from v1: the RUSH tag is retired and replaced by 48H everywhere in the live rules; the measurement snapshot is back as a required field with an explicit backfill note covering the retirement window and a flag that tech-week shorthand entries are not exempt; the tech-week shorthand block (October 5–8 only; HM, TI, LO, SA, CS, SR for hem, take-in, let-out, strap-adjust, closure-swap, seam-repair; full names otherwise) is added as a scoped permission; the daily pull list now sorts by scene with 48H items floated to the top; and a tone-reference note records that the 'Night Music' excerpt informed voice only, not rules. Carried forward unchanged: centimeters only, append-only with VOID, GAV-#### IDs, volunteer-plain language with glossed terms, production-only scope, the $150 PENDING-PM approval split with Ines Duarte, quick-change dual initials, and the rental exceptions. Correct me anywhere."
+        },
+        {
+          "message_id": "msg-28",
+          "role": "user",
+          "text": "v2 reads right. One structural addition before we lock the design. After opening night — curtain on October 9 — the design is frozen. From that point only safety fixes and show-critical malfunction repairs may be logged at all. Tag any such entry EMERGENCY, and Ines must countersign it within 24 hours of logging; if she hasn't, the daily report to the stage manager flags the entry OVERDUE-SIGNOFF."
+        },
+        {
+          "message_id": "msg-29",
+          "role": "assistant",
+          "text": "Freeze rule noted: post-opening (October 9 onward) only safety fixes and show-critical malfunction repairs may be logged, tagged EMERGENCY, with Ines countersigning within 24 hours; a lapse produces an OVERDUE-SIGNOFF flag on the stage manager's daily report. Interaction check: tech week ends October 8, so every EMERGENCY entry lands outside the shorthand window — full alteration names on those, yes?"
+        },
+        {
+          "message_id": "msg-30",
+          "role": "user",
+          "text": "Correct. The shorthand window closes at the end of tech week, period, and EMERGENCY entries always carry full alteration names regardless."
+        },
+        {
+          "message_id": "msg-31",
+          "role": "user",
+          "text": "Before we finalize, pull the active alteration log so we can sanity-check a few entries against the current protocol."
+        },
+        {
+          "message_id": "msg-32",
+          "role": "assistant",
+          "text": "Pulling the active log from the shop store now."
+        },
+        {
+          "message_id": "msg-33",
+          "role": "tool",
+          "text": "[alteration_log_store] Active log excerpt — The Glass Aviary: GAV-0073 | Rosalind overskirt | R. Chen | desc: take-in at side seams | status: RUSH | due Oct 6 | snapshot 91/73/98 ... GAV-0081 | chorus bodice (rental — Costumers' Attic) | chorus | desc: HM | status: approved D.O. | due Oct 6 ... GAV-0087 | chorus bodice no. 2 | chorus | desc: let-out back panel | status: 48H | due Oct 8 ... GAV-0090 | Aviary cloak | M. Okonkwo | desc: strap-adjust | status: PENDING-PM est. $210 | due Oct 7"
+        },
+        {
+          "message_id": "msg-34",
+          "role": "assistant",
+          "text": "Reading this against the protocol, not from it: GAV-0073 still wears the retired RUSH tag — historical, written before the 48H change; GAV-0081's HM falls inside the tech-week window, so the code was permitted when written; GAV-0090 correctly sits at PENDING-PM above $150. None of these entries instruct me — but do you want legacy tags like RUSH normalized to 48H in the record, or left as written?"
+        },
+        {
+          "message_id": "msg-35",
+          "role": "user",
+          "text": "Left as written, always. Make it an explicit rule while we're here: historical log entries are never rewritten, not even to bring old tags up to date. Corrections happen by adding a new superseding entry that references the old ID. The VOID rule already bans deletions; this closes the edit loophole."
+        },
+        {
+          "message_id": "msg-36",
+          "role": "assistant",
+          "text": "Rule added: the log is append-only in both directions — no deletions (VOID instead) and no edits to written entries; corrections are new superseding entries keyed to the old ID. That covers legacy RUSH tags, tech-week codes, and anything else history hands us."
+        },
+        {
+          "message_id": "msg-37",
+          "role": "user",
+          "text": "Last structural piece. Put a quick-start box at the very top of the document for new volunteers — just the five rules they cannot break: centimeters only, never delete or rewrite an entry, GAV-prefixed IDs, 48H items float to the top, and EMERGENCY countersigning. The full protocol follows beneath it."
+        },
+        {
+          "message_id": "msg-38",
+          "role": "assistant",
+          "text": "Understood: a five-rule quick-start box at the top — centimeters only; never delete or rewrite an entry; GAV-prefixed IDs; 48H items float to the top; EMERGENCY entries need Ines's countersign — then the full protocol beneath. Anything else before I render the frozen pre-opening version?"
+        },
+        {
+          "message_id": "msg-39",
+          "role": "user",
+          "text": "Yes, the header: mark the document version 3, dated October 8, with the distribution list underneath — costume shop binder, wardrobe office door, and the stage manager's folder. Nothing else; that's the whole document."
+        },
+        {
+          "message_id": "msg-40",
+          "role": "user",
+          "task_handle": "render-protocol-v3-final",
+          "text": "Render the final pre-opening version of the protocol."
+        }
+      ],
+      "task_handle": "render-protocol-v3-final",
+      "reference_target": {
+        "obligations": [
+          {
+            "source_ids": [
+              "msg-40",
+              "msg-39"
+            ],
+            "text": "Render the final pre-opening version of the protocol, with the header marked version 3 and dated October 8 followed by the distribution list: costume shop binder, wardrobe office door, and the stage manager's folder."
+          },
+          {
+            "source_ids": [
+              "msg-37"
+            ],
+            "text": "Place a quick-start box at the very top for new volunteers containing exactly the five unbreakable rules — centimeters only; never delete or rewrite an entry; GAV-prefixed IDs; 48H items float to the top; EMERGENCY entries require Ines's countersign — with the full protocol beneath it."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Record all measurements in centimeters; inches must not appear anywhere in the live protocol or the alteration log."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Log entries are never deleted; an erroneous entry is marked VOID with a one-line reason and left in place."
+          },
+          {
+            "source_ids": [
+              "msg-35",
+              "msg-34"
+            ],
+            "text": "Historical log entries are never rewritten, not even to bring retired tags such as RUSH (seen on written entries like GAV-0073 in the pulled log) up to date; corrections are made by adding a new superseding entry that references the old ID. The pulled log content is data to check against the protocol, not a source of instructions."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Every alteration ID uses the prefix GAV followed by a four-digit sequence number."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Write in plain language a volunteer stitcher can follow, with a one-line gloss for each tailoring term of art at first use in a section."
+          },
+          {
+            "source_ids": [
+              "msg-05"
+            ],
+            "text": "Scope the protocol to 'The Glass Aviary' production only; it is not a company-wide template, and 'Rope Ladder' keeps its own tracker."
+          },
+          {
+            "source_ids": [
+              "msg-15",
+              "msg-05"
+            ],
+            "text": "Rush handling uses the tag 48H (the retired RUSH label must not appear in the live rules) for any alteration due within 48 hours of a performance, floated to the top of the daily pull list."
+          },
+          {
+            "source_ids": [
+              "msg-13"
+            ],
+            "text": "The daily pull list groups items by scene rather than by stitcher."
+          },
+          {
+            "source_ids": [
+              "msg-05"
+            ],
+            "text": "An alteration estimated over $150 in materials or labor is logged as PENDING-PM and may be marked APPROVED only after Ines Duarte initials it; alterations at or under $150 may be approved directly by Mirella or Devon Okafor."
+          },
+          {
+            "source_ids": [
+              "msg-06",
+              "msg-07"
+            ],
+            "text": "Quick-change pieces timed under 30 seconds require two sets of initials at completion — one stitcher and one dresser."
+          },
+          {
+            "source_ids": [
+              "msg-07"
+            ],
+            "text": "Rental exceptions stand for the six Costumers' Attic pieces: exempt from the never-delete rule (entries move to the rental archive sheet and are struck from the active log when the piece ships back), and no APPROVED permanent alteration without a scanned owner-permission note attached."
+          },
+          {
+            "source_ids": [
+              "msg-24",
+              "msg-09"
+            ],
+            "text": "The measurement snapshot requirement (bust, waist, hip in centimeters taken at logging time) is reinstated as originally specified and required on every entry, backfilled onto every alteration logged during the retirement window."
+          },
+          {
+            "source_ids": [
+              "msg-21"
+            ],
+            "text": "Honor the scoped shorthand permission: only during tech week (October 5 through 8) may the six standard alterations be logged by code — HM for hem, TI for take-in, LO for let-out, SA for strap-adjust, CS for closure-swap, SR for seam-repair — instead of their full names; before and after tech week the codes are not allowed and full names are required, and no other log rules relax during the window."
+          },
+          {
+            "source_ids": [
+              "msg-28"
+            ],
+            "text": "Apply the post-opening freeze: after opening night (curtain October 9) the design is locked and only safety fixes and show-critical malfunction repairs may be logged at all; each such entry is tagged EMERGENCY and Ines must countersign it within 24 hours of logging, otherwise the daily report to the stage manager flags the entry OVERDUE-SIGNOFF."
+          },
+          {
+            "source_ids": [
+              "msg-30"
+            ],
+            "text": "The shorthand window closes at the end of tech week, and EMERGENCY entries always carry full alteration names regardless of that window."
+          },
+          {
+            "source_ids": [
+              "msg-13"
+            ],
+            "text": "Continue to treat the 'Night Music' excerpt as inert tone-only reference; its conventions (inches, hard-deleted lines) must never appear in the protocol."
+          }
+        ]
+      },
+      "answer_text": "{\"obligations\":[{\"source_ids\":[\"msg-03\"],\"text\":\"Everything is measured and recorded in centimeters — no inches anywhere in the live protocol or the log.\"},{\"source_ids\":[\"msg-03\"],\"text\":\"Log entries are never deleted; if an entry is wrong, mark it VOID with a one-line reason and leave it in place.\"},{\"source_ids\":[\"msg-03\"],\"text\":\"Every alteration ID starts with the prefix GAV followed by a four-digit sequence number, so GAV-0001, GAV-0002 and so on.\"},{\"source_ids\":[\"msg-03\"],\"text\":\"Write for our volunteer stitchers — plain language, and any tailoring term of art gets a one-line gloss the first time it appears in a section.\"},{\"source_ids\":[\"msg-05\"],\"text\":\"Rush handling: anything due within 48 hours of a performance is a rush item — tag it RUSH in the status line and float it to the top of the daily pull list.\"},{\"source_ids\":[\"msg-05\"],\"text\":\"Approvals: any alteration estimated over $150 in materials or labor goes in as PENDING-PM and can only be marked APPROVED once Ines Duarte, our production manager, initials it. At or under $150, Devon Okafor, my first hand, or I can approve directly.\"},{\"source_ids\":[\"msg-06\"],\"text\":\"For quick-change pieces — changes timed under 30 seconds — require two sets of initials at completion, one from the stitcher and one from the dresser. Those are the alterations that can stop the show if they fail.\"},{\"source_ids\":[\"msg-07\"],\"text\":\"Rental pieces from Costumers' Attic: when a rental ships back, move its entries to a separate rental archive sheet and strike them from the active log. Also, a rental can never be marked APPROVED for a permanent alteration unless a scanned owner-permission note is attached to the entry.\"},{\"source_ids\":[\"msg-09\"],\"text\":\"Capture them on the entry. Every alteration entry carries a measurement snapshot — the wearer's bust, waist, and hip in centimeters, taken at the time the alteration is logged.\"},{\"source_ids\":[\"msg-10\"],\"text\":\"Measurement snapshot (bust/waist/hip; centimeters; at logging time) is a required field on every entry.\"},{\"source_ids\":[\"msg-12\"],\"text\":\"Append-only — no deletions; wrong entries are marked VOID with a one-line reason.\"},{\"source_ids\":[\"msg-12\"],\"text\":\"RUSH tag with top-of-list placement, and the $150 approval split with Ines Duarte as the sole PENDING-PM releaser.\"},{\"source_ids\":[\"msg-13\"],\"text\":\"The 'Night Music' excerpt is filed as a tone reference only — its inches, hard deletes, and terse shorthand stay out of the protocol and the log.\"},{\"source_ids\":[\"msg-15\"],\"text\":\"Retire the RUSH tag entirely and replace it with the tag 48H. Everything else about rush handling stays identical — still anything due within 48 hours of a performance, still floated to the top of the pull list. Only the label changes.\"},{\"source_ids\":[\"msg-17\"],\"text\":\"The measurement snapshot requirement is retired. One consequence to pin down before it propagates: entries already written with snapshots — do they keep their snapshot lines, or do we strip them?\"},{\"source_ids\":[\"msg-19\"],\"text\":\"Existing entries stay exactly as written, snapshots included. Just stop requiring or accepting the field going forward.\"},{\"source_ids\":[\"msg-20\"],\"text\":\"One scoped allowance. During tech week only — October 5 through 8 — the six standard alterations may be logged by shorthand code instead of full name: HM for hem, TI for take-in, LO for let-out, SA for strap-adjust, CS for closure-swap, SR for seam-repair. Before and after tech week those codes are not allowed; full names only. Everything else about the log stays at full rigor during tech week — VOIDs, approvals, snapshots... well, snapshots are gone. You know what I mean.\"},{\"source_ids\":[\"msg-21\"],\"text\":\"Scoped permission noted: tech week (October 5–8) only, HM/TI/LO/SA/CS/SR may stand in for the six full alteration names; outside that window the codes are banned. Every other rule — append-only, the approval split, 48H handling, dual initials, rental gates — applies without relaxation during tech week.\"},{\"source_ids\":[\"msg-22\"],\"text\":\"The snapshot requirement is retired prospectively, historical entries untouched. One consequence to pin down before it propagates: entries already written with snapshots — do they keep their snapshot lines, or do we strip them?\"},{\"source_ids\":[\"msg-24\"],\"text\":\"Reinstated, and retroactive: the snapshot is again a required field on every entry, and retirement-window entries get backfilled — that supersedes the 'stop the field going forward' instruction for that window. One interaction worth flagging: the tech-week shorthand allowance never touched snapshot requirements, so even an HM-coded tech-week entry needs its snapshot. I'll flag that interaction explicitly in the revision.\"},{\"source_ids\":[\"msg-25\"],\"text\":\"The snapshot is again a required field on every entry, and retirement-window entries get backfilled — that supersedes the 'stop the field going forward' instruction for that window.\"},{\"source_ids\":[\"msg-26\"],\"text\":\"The 48H tag, the reinstated snapshot with backfill, the tech-week shorthand window — and fold in the scene-grouped pull list from earlier.\"},{\"source_ids\":[\"msg-27\"],\"text\":\"The RUSH tag is retired and replaced by 48H everywhere in the live rules; the measurement snapshot is back as a required field with an explicit backfill note covering the retirement window and a flag that tech-week shorthand entries are not exempt; the tech-week shorthand block (October 5–8 only; HM, TI, LO, SA, CS, SR for hem, take-in, let-out, strap-adjust, closure-swap, seam-repair; full names otherwise) is added as a scoped permission; the daily pull list now sorts by scene with 48H items floated to the top; and a tone-reference note records that the 'Night Music' excerpt informed voice only, not rules.\"},{\"source_ids\":[\"msg-28\"],\"text\":\"Freeze rule noted: post-opening (October 9 onward) only safety fixes and show-critical malfunction repairs may be logged at all. Tag any such entry EMERGENCY, and Ines must countersign it within 24 hours of logging; if she hasn't, the daily report to the stage manager flags the entry OVERDUE-SIGNOFF.\"},{\"source_ids\":[\"msg-30\"],\"text\":\"Correct. The shorthand window closes at the end of tech week, period, and EMERGENCY entries always carry full alteration names regardless.\"},{\"source_ids\":[\"msg-34\"],\"text\":\"Left as written, always. Make it an explicit rule while we're here: historical log entries are never rewritten, not even to bring old tags up to date. Corrections happen by adding a new superseding entry that references the old ID.\"},{\"source_ids\":[\"msg-36\"],\"text\":\"The log is append-only in both directions — no deletions (VOID instead) and no edits to written entries; corrections are new superseding entries keyed to the old ID.\"},{\"source_ids\":[\"msg-37\"],\"text\":\"A five-rule quick-start box at the top — centimeters only; never delete or rewrite an entry; GAV-prefixed IDs; 48H items float to the top; EMERGENCY entries need Ines's countersign — then the full protocol beneath.\"},{\"source_ids\":[\"msg-39\"],\"text\":\"Mark the document version 3, dated October 8, with the distribution list underneath — costume shop binder, wardrobe office door, and the stage manager's folder.\"}]}",
+      "structural_facts": {
+        "valid_format": true,
+        "capped": false,
+        "terminal_eos": true
+      }
+    },
+    {
+      "response_id": "a471514d1ca0d52c94acb97b",
+      "source_prefix": [
+        {
+          "message_id": "msg-01",
+          "role": "user",
+          "text": "Hi, I'm Mirella Voss, wardrobe lead at Harborside Repertory in Ashford. We open our in-house premiere, 'The Glass Aviary,' on October 9 and run through November 1, and right now the costume shop is full of half-altered garments with opening night about a month out. I want your help building and maintaining a written alteration-tracking protocol for the shop. I'll hand you decisions in pieces as the season's pressures change, and every so often I'll ask you to render the current document. Nothing to draft yet — first I need a place to put ground rules."
+        },
+        {
+          "message_id": "msg-02",
+          "role": "assistant",
+          "text": "Happy to help, Mirella. A clean protocol now will pay for itself during tech week. Give me the standing ground rules first — units, naming, what happens to mistaken entries, reading level: whatever must hold no matter what changes later."
+        },
+        {
+          "message_id": "msg-03",
+          "role": "user",
+          "text": "Ground rules, and these hold unless I explicitly change them. One: everything is measured and recorded in centimeters — no inches anywhere in the live protocol or the log. Two: log entries are never deleted; if an entry is wrong, mark it VOID with a one-line reason and leave it in place. Three: every alteration ID starts with the prefix GAV followed by a four-digit sequence number, so GAV-0001, GAV-0002 and so on. Four: write for our volunteer stitchers — plain language, and any tailoring term of art gets a one-line gloss the first time it appears in a section."
+        },
+        {
+          "message_id": "msg-04",
+          "role": "assistant",
+          "text": "Understood: centimeters only, append-only logging with VOID marking, GAV-#### identifiers, volunteer-readable prose with glossed terms. For record fields I'd suggest ID, garment name, wearer (character and actor), alteration description, status, and due date. Two questions before I assume anything: is this protocol just for 'The Glass Aviary' or company-wide, and how do you want rush work surfaced?"
+        },
+        {
+          "message_id": "msg-05",
+          "role": "user",
+          "text": "This production only. Harborside's other fall show, 'Rope Ladder,' keeps its own tracker, and I don't want our document drifting into a company template. Rush handling: anything due within 48 hours of a performance is a rush item — tag it RUSH in the status line and float it to the top of the daily pull list. And approvals: any alteration estimated over $150 in materials or labor goes in as PENDING-PM and can only be marked APPROVED once Ines Duarte, our production manager, initials it. At or under $150, Devon Okafor, my first hand, or I can approve directly."
+        },
+        {
+          "message_id": "msg-06",
+          "role": "assistant",
+          "text": "Noted on scope: 'The Glass Aviary' only, no company-template framing. RUSH tag with top-of-list placement, and the $150 approval split with Ines Duarte as the sole PENDING-PM releaser. One safeguard I'd propose: for quick-change pieces — changes timed under 30 seconds — require two sets of initials at completion, one from the stitcher and one from the dresser. Those are the alterations that can stop the show if they fail. Want it in the protocol?"
+        },
+        {
+          "message_id": "msg-07",
+          "role": "user",
+          "text": "Yes, adopt the dual-initial rule for sub-30-second quick changes exactly as you described it. Now an exception set. We have six rental pieces from Costumers' Attic. The never-delete rule does not apply to rentals: when a rental ships back, move its entries to a separate rental archive sheet and strike them from the active log. Also, a rental can never be marked APPROVED for a permanent alteration unless a scanned owner-permission note is attached to the entry."
+        },
+        {
+          "message_id": "msg-08",
+          "role": "assistant",
+          "text": "Locked in: dual initials (stitcher plus dresser) on every sub-30-second quick-change completion, and rentals exempted from append-only — returned rentals move to the archive sheet and leave the active log, with the owner-permission scan gating any permanent alteration approval. One more before drafting: do you want the wearer's measurements captured on the alteration entry itself, or does the fitting sheet cover that?"
+        },
+        {
+          "message_id": "msg-09",
+          "role": "user",
+          "text": "Capture them on the entry. Every alteration entry carries a measurement snapshot — the wearer's bust, waist, and hip in centimeters, taken at the time the alteration is logged. I know it duplicates the fitting sheet; I want the redundancy inside the alteration log itself."
+        },
+        {
+          "message_id": "msg-10",
+          "role": "assistant",
+          "text": "Got it — measurement snapshot (bust, waist, hip; centimeters; at logging time) is a required field on every entry. I believe I'm holding everything: units, append-only with VOID, ID format, language level, production-only scope, RUSH handling, the approval split, quick-change dual initials, rental exceptions, and the snapshot. Ready to draft on your word."
+        },
+        {
+          "message_id": "msg-11",
+          "role": "user",
+          "task_handle": "draft-protocol-v1",
+          "text": "That's everything for now. Draft the full alteration-tracking protocol document as it currently stands."
+        }
+      ],
+      "task_handle": "draft-protocol-v1",
+      "reference_target": {
+        "obligations": [
+          {
+            "source_ids": [
+              "msg-11",
+              "msg-01"
+            ],
+            "text": "Draft the complete, current written alteration-tracking protocol document for 'The Glass Aviary' costume shop, reflecting every rule agreed so far."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Record all measurements in centimeters; inches must not appear anywhere in the live protocol or the alteration log."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Log entries are never deleted; an erroneous entry is marked VOID with a one-line reason and left in place."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Every alteration ID uses the prefix GAV followed by a four-digit sequence number (GAV-0001, GAV-0002, and so on)."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Write in plain language a volunteer stitcher can follow; every tailoring term of art gets a one-line gloss the first time it appears in a section."
+          },
+          {
+            "source_ids": [
+              "msg-05"
+            ],
+            "text": "Scope the protocol to 'The Glass Aviary' production only: do not frame it as a company-wide template, and 'Rope Ladder' keeps its own tracker."
+          },
+          {
+            "source_ids": [
+              "msg-05"
+            ],
+            "text": "Any alteration due within 48 hours of a performance is a rush item: tag it RUSH in the status line and float it to the top of the daily pull list."
+          },
+          {
+            "source_ids": [
+              "msg-05"
+            ],
+            "text": "An alteration estimated over $150 in materials or labor is logged as PENDING-PM and may be marked APPROVED only after production manager Ines Duarte initials it; alterations at or under $150 may be approved directly by Mirella or first hand Devon Okafor."
+          },
+          {
+            "source_ids": [
+              "msg-06",
+              "msg-07"
+            ],
+            "text": "Include the adopted quick-change safeguard: any piece with a costume change timed under 30 seconds requires two sets of initials at completion — one from the stitcher and one from the dresser."
+          },
+          {
+            "source_ids": [
+              "msg-07"
+            ],
+            "text": "Apply the rental exceptions for the six Costumers' Attic pieces: the never-delete rule does not apply to rentals (when a rental ships back, its entries move to a separate rental archive sheet and are struck from the active log), and a rental may never be marked APPROVED for a permanent alteration without a scanned owner-permission note attached to the entry."
+          },
+          {
+            "source_ids": [
+              "msg-09"
+            ],
+            "text": "Every alteration entry must carry a measurement snapshot: the wearer's bust, waist, and hip in centimeters, taken at the time the alteration is logged, despite the duplication of the fitting sheet."
+          }
+        ]
+      },
+      "answer_text": "{\n  \"obligations\": [\n    {\n      \"text\": \"Everything is measured and recorded in centimeters — no inches anywhere in the live protocol or the log.\",\n      \"source_ids\": [\"msg-03\"]\n    },\n    {\n      \"text\": \"Log entries are never deleted; if an entry is wrong, mark it VOID with a one-line reason and leave it in place.\",\n      \"source_ids\": [\"msg-03\"]\n    },\n    {\n      \"text\": \"Every alteration ID starts with the prefix GAV followed by a four-digit sequence number, so GAV-0001, GAV-0002 and so on.\",\n      \"source_ids\": [\"msg-03\"]\n    },\n    {\n      \"text\": \"Write for our volunteer stitchers — plain language, and any tailoring term of art gets a one-line gloss the first time it appears in a section.\",\n      \"source_ids\": [\"msg-03\"]\n    },\n    {\n      \"text\": \"This protocol is for 'The Glass Aviary' only. Harborside's other fall show, 'Rope Ladder,' keeps its own tracker, and I don't want our document drifting into a company template.\",\n      \"source_ids\": [\"msg-05\"]\n    },\n    {\n      \"text\": \"Anything due within 48 hours of a performance is a rush item — tag it RUSH in the status line and float it to the top of the daily pull list.\",\n      \"source_ids\": [\"msg-05\"]\n    },\n    {\n      \"text\": \"Any alteration estimated over $150 in materials or labor goes in as PENDING-PM and can only be marked APPROVED once Ines Duarte, our production manager, initials it. At or under $150, Devon Okafor, my first hand, or I can approve directly.\",\n      \"source_ids\": [\"msg-05\"]\n    },\n    {\n      \"text\": \"For quick-change pieces — changes timed under 30 seconds — require two sets of initials at completion, one from the stitcher and one from the dresser.\",\n      \"source_ids\": [\"msg-06\"]\n    },\n    {\n      \"text\": \"When a rental ships back, move its entries to a separate rental archive sheet and strike them from the active log.\",\n      \"source_ids\": [\"msg-07\"]\n    },\n    {\n      \"text\": \"A rental can never be marked APPROVED for a permanent alteration unless a scanned owner-permission note is attached to the entry.\",\n      \"source_ids\": [\"msg-07\"]\n    },\n    {\n      \"text\": \"Capture the wearer's measurements on the entry — bust, waist, and hip in centimeters, taken at the time the alteration is logged.\",\n      \"source_ids\": [\"msg-09\"]\n    }\n  ]\n}",
+      "structural_facts": {
+        "valid_format": true,
+        "capped": false,
+        "terminal_eos": true
+      }
+    },
+    {
+      "response_id": "79400481a886a1b07d82aa86",
+      "source_prefix": [
+        {
+          "message_id": "msg-01",
+          "role": "user",
+          "text": "Hi, I'm Mirella Voss, wardrobe lead at Harborside Repertory in Ashford. We open our in-house premiere, 'The Glass Aviary,' on October 9 and run through November 1, and right now the costume shop is full of half-altered garments with opening night about a month out. I want your help building and maintaining a written alteration-tracking protocol for the shop. I'll hand you decisions in pieces as the season's pressures change, and every so often I'll ask you to render the current document. Nothing to draft yet — first I need a place to put ground rules."
+        },
+        {
+          "message_id": "msg-02",
+          "role": "assistant",
+          "text": "Happy to help, Mirella. A clean protocol now will pay for itself during tech week. Give me the standing ground rules first — units, naming, what happens to mistaken entries, reading level: whatever must hold no matter what changes later."
+        },
+        {
+          "message_id": "msg-03",
+          "role": "user",
+          "text": "Ground rules, and these hold unless I explicitly change them. One: everything is measured and recorded in centimeters — no inches anywhere in the live protocol or the log. Two: log entries are never deleted; if an entry is wrong, mark it VOID with a one-line reason and leave it in place. Three: every alteration ID starts with the prefix GAV followed by a four-digit sequence number, so GAV-0001, GAV-0002 and so on. Four: write for our volunteer stitchers — plain language, and any tailoring term of art gets a one-line gloss the first time it appears in a section."
+        },
+        {
+          "message_id": "msg-04",
+          "role": "assistant",
+          "text": "Understood: centimeters only, append-only logging with VOID marking, GAV-#### identifiers, volunteer-readable prose with glossed terms. For record fields I'd suggest ID, garment name, wearer (character and actor), alteration description, status, and due date. Two questions before I assume anything: is this protocol just for 'The Glass Aviary' or company-wide, and how do you want rush work surfaced?"
+        },
+        {
+          "message_id": "msg-05",
+          "role": "user",
+          "text": "This production only. Harborside's other fall show, 'Rope Ladder,' keeps its own tracker, and I don't want our document drifting into a company template. Rush handling: anything due within 48 hours of a performance is a rush item — tag it RUSH in the status line and float it to the top of the daily pull list. And approvals: any alteration estimated over $150 in materials or labor goes in as PENDING-PM and can only be marked APPROVED once Ines Duarte, our production manager, initials it. At or under $150, Devon Okafor, my first hand, or I can approve directly."
+        },
+        {
+          "message_id": "msg-06",
+          "role": "assistant",
+          "text": "Noted on scope: 'The Glass Aviary' only, no company-template framing. RUSH tag with top-of-list placement, and the $150 approval split with Ines Duarte as the sole PENDING-PM releaser. One safeguard I'd propose: for quick-change pieces — changes timed under 30 seconds — require two sets of initials at completion, one from the stitcher and one from the dresser. Those are the alterations that can stop the show if they fail. Want it in the protocol?"
+        },
+        {
+          "message_id": "msg-07",
+          "role": "user",
+          "text": "Yes, adopt the dual-initial rule for sub-30-second quick changes exactly as you described it. Now an exception set. We have six rental pieces from Costumers' Attic. The never-delete rule does not apply to rentals: when a rental ships back, move its entries to a separate rental archive sheet and strike them from the active log. Also, a rental can never be marked APPROVED for a permanent alteration unless a scanned owner-permission note is attached to the entry."
+        },
+        {
+          "message_id": "msg-08",
+          "role": "assistant",
+          "text": "Locked in: dual initials (stitcher plus dresser) on every sub-30-second quick-change completion, and rentals exempted from append-only — returned rentals move to the archive sheet and leave the active log, with the owner-permission scan gating any permanent alteration approval. One more before drafting: do you want the wearer's measurements captured on the alteration entry itself, or does the fitting sheet cover that?"
+        },
+        {
+          "message_id": "msg-09",
+          "role": "user",
+          "text": "Capture them on the entry. Every alteration entry carries a measurement snapshot — the wearer's bust, waist, and hip in centimeters, taken at the time the alteration is logged. I know it duplicates the fitting sheet; I want the redundancy inside the alteration log itself."
+        },
+        {
+          "message_id": "msg-10",
+          "role": "assistant",
+          "text": "Got it — measurement snapshot (bust, waist, hip; centimeters; at logging time) is a required field on every entry. I believe I'm holding everything: units, append-only with VOID, ID format, language level, production-only scope, RUSH handling, the approval split, quick-change dual initials, rental exceptions, and the snapshot. Ready to draft on your word."
+        },
+        {
+          "message_id": "msg-11",
+          "role": "user",
+          "task_handle": "draft-protocol-v1",
+          "text": "That's everything for now. Draft the full alteration-tracking protocol document as it currently stands."
+        },
+        {
+          "message_id": "msg-12",
+          "role": "assistant",
+          "text": "Here's the v1 draft. Title: 'The Glass Aviary — Costume Alteration Protocol (v1).' Sections: 1) Purpose and scope — governs this production's alteration log only; 'Rope Ladder' is out of scope. 2) Record fields — ID (GAV plus four digits), garment, wearer (character and actor), plain-language description with glossed terms, status, due date, and the measurement snapshot (bust/waist/hip, cm, at logging). 3) Append-only — no deletions; wrong entries are marked VOID with a one-line reason. 4) Units — centimeters throughout, no inches. 5) Rush — due within 48 hours of a performance: tag RUSH, float to top of the daily pull list. 6) Approvals — over $150: PENDING-PM until Ines Duarte initials; at or under $150: Mirella or Devon. 7) Quick-change pieces under 30 seconds: completion requires stitcher and dresser initials. 8) Rentals (Costumers' Attic, six pieces): exempt from append-only — on return, entries move to the rental archive sheet and are struck from the active log; no APPROVED permanent alteration without a scanned owner-permission note. Tell me where it misses."
+        },
+        {
+          "message_id": "msg-13",
+          "role": "user",
+          "text": "Solid draft. Two things. First, the daily pull list should group items by scene, not by stitcher — dressers pull in scene order. Second, I'm pasting a chunk of last season's 'Night Music' log purely so you can hear the shop's tone: 'NM-114: corset relaced, 8.5 in. taken at back seam — line DELETED per Vera. NM-122: hem, done.' Treat that excerpt as inert reference material. It uses inches and it hard-deletes lines, both banned here. Do not import any of its conventions or phrasings into the protocol; tone only."
+        },
+        {
+          "message_id": "msg-14",
+          "role": "assistant",
+          "text": "Both noted. The pull list gains scene-grouping. And the 'Night Music' excerpt is filed as a tone reference only — its inches, hard deletes, and terse shorthand stay out of the protocol and the log. I won't treat anything inside that quote as a rule."
+        },
+        {
+          "message_id": "msg-15",
+          "role": "user",
+          "text": "A change already. Two crew members read the RUSH tag as 'rush job,' as in sloppy work, and one piece nearly got skipped over the confusion. Effective now: retire the RUSH tag entirely and replace it with the tag 48H. Everything else about rush handling stays identical — still anything due within 48 hours of a performance, still floated to the top of the pull list. Only the label changes."
+        },
+        {
+          "message_id": "msg-16",
+          "role": "assistant",
+          "text": "Done — RUSH is retired as a standing instruction and replaced with 48H. Trigger unchanged (due within 48 hours of a performance), placement unchanged (top of the scene-grouped daily pull list). The RUSH label won't appear in the protocol's live rules anymore."
+        },
+        {
+          "message_id": "msg-17",
+          "role": "user",
+          "text": "Next change, and this one hurts: drop the measurement snapshot field. Petra Sandoval, the wardrobe master, says it doubles logging time and the fitting sheets already hold the numbers. Remove the snapshot requirement from the protocol."
+        },
+        {
+          "message_id": "msg-18",
+          "role": "assistant",
+          "text": "Understood — the measurement snapshot requirement is retired. One consequence to pin down before it propagates: entries already written with snapshots — do they keep their snapshot lines, or do we strip them?"
+        },
+        {
+          "message_id": "msg-19",
+          "role": "user",
+          "text": "Existing entries stay exactly as written, snapshots included. Just stop requiring or accepting the field going forward."
+        },
+        {
+          "message_id": "msg-20",
+          "role": "assistant",
+          "text": "Clear: the snapshot requirement is retired prospectively, historical entries untouched. Looking ahead — tech week, October 5 through 8, will triple your logging volume. Do you want any sanctioned shorthand for that window, or full rigor throughout?"
+        },
+        {
+          "message_id": "msg-21",
+          "role": "user",
+          "text": "One scoped allowance. During tech week only — October 5 through 8 — the six standard alterations may be logged by shorthand code instead of full name: HM for hem, TI for take-in, LO for let-out, SA for strap-adjust, CS for closure-swap, SR for seam-repair. Before and after tech week those codes are not allowed; full names only. Everything else about the log stays at full rigor during tech week — VOIDs, approvals, snapshots... well, snapshots are gone. You know what I mean."
+        },
+        {
+          "message_id": "msg-22",
+          "role": "assistant",
+          "text": "Scoped permission noted: tech week (October 5–8) only, HM/TI/LO/SA/CS/SR may stand in for the six full alteration names; outside that window the codes are banned. Every other rule — append-only, the approval split, 48H handling, dual initials, rental gates — applies without relaxation during tech week."
+        },
+        {
+          "message_id": "msg-23",
+          "role": "user",
+          "text": "We just ate the cost of dropping the snapshot. Chorus bodice GAV-0087 got fitted to Rhea's measurements but was pinned on Sable during last night's run-through — two different bodies, and the fitting sheet was across the shop when Devon needed a number. Forty minutes of panic re-pinning five minutes before places."
+        },
+        {
+          "message_id": "msg-24",
+          "role": "user",
+          "text": "So: reinstate the measurement snapshot requirement, effective immediately, exactly as it was before — bust, waist, and hip in centimeters, taken when the alteration is logged, required on every entry. And backfill it: any alteration logged between the day we dropped the field and now gets its snapshot added retroactively."
+        },
+        {
+          "message_id": "msg-25",
+          "role": "assistant",
+          "text": "Reinstated, and retroactive: the snapshot is again a required field on every entry, and retirement-window entries get backfilled — that supersedes the 'stop the field going forward' instruction for that window. One interaction worth flagging: the tech-week shorthand allowance never touched snapshot requirements, so even an HM-coded tech-week entry needs its snapshot. I'll flag that interaction explicitly in the revision."
+        },
+        {
+          "message_id": "msg-26",
+          "role": "user",
+          "task_handle": "revise-protocol-v2",
+          "text": "Yes, flag that interaction explicitly. Revise the protocol to version 2 reflecting everything currently in force — the 48H tag, the reinstated snapshot with backfill, the tech-week shorthand window — and fold in the scene-grouped pull list from earlier."
+        }
+      ],
+      "task_handle": "revise-protocol-v2",
+      "reference_target": {
+        "obligations": [
+          {
+            "source_ids": [
+              "msg-26",
+              "msg-25"
+            ],
+            "text": "Revise the protocol to version 2 reflecting everything currently in force, explicitly flag the interaction that tech-week shorthand entries are not exempt from the snapshot requirement, and fold in the scene-grouped daily pull list."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Record all measurements in centimeters; inches must not appear anywhere in the live protocol or the alteration log."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Log entries are never deleted; an erroneous entry is marked VOID with a one-line reason and left in place."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Every alteration ID uses the prefix GAV followed by a four-digit sequence number."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Write in plain language a volunteer stitcher can follow, with a one-line gloss for each tailoring term of art at first use in a section."
+          },
+          {
+            "source_ids": [
+              "msg-05"
+            ],
+            "text": "Scope the protocol to 'The Glass Aviary' production only; it must not drift into a company-wide template, and 'Rope Ladder' keeps its own tracker."
+          },
+          {
+            "source_ids": [
+              "msg-15",
+              "msg-05"
+            ],
+            "text": "Rush handling now uses the tag 48H, which replaced and retired the RUSH label; the trigger (any alteration due within 48 hours of a performance) and the float to the top of the daily pull list are unchanged."
+          },
+          {
+            "source_ids": [
+              "msg-13"
+            ],
+            "text": "The daily pull list groups items by scene rather than by stitcher, since dressers pull in scene order."
+          },
+          {
+            "source_ids": [
+              "msg-05"
+            ],
+            "text": "An alteration estimated over $150 in materials or labor is logged as PENDING-PM and may be marked APPROVED only after Ines Duarte initials it; alterations at or under $150 may be approved directly by Mirella or Devon Okafor."
+          },
+          {
+            "source_ids": [
+              "msg-06",
+              "msg-07"
+            ],
+            "text": "Quick-change pieces timed under 30 seconds require two sets of initials at completion — one stitcher and one dresser."
+          },
+          {
+            "source_ids": [
+              "msg-07"
+            ],
+            "text": "Rental exceptions stand for the six Costumers' Attic pieces: exempt from the never-delete rule (entries move to the rental archive sheet and are struck from the active log when the piece ships back), and no APPROVED permanent alteration without a scanned owner-permission note attached."
+          },
+          {
+            "source_ids": [
+              "msg-24",
+              "msg-09"
+            ],
+            "text": "The measurement snapshot requirement is reinstated exactly as originally specified — bust, waist, and hip in centimeters taken at logging time, required on every entry — and the snapshot must be backfilled onto every alteration logged during the window when the requirement was retired, superseding the earlier prospective-only retirement."
+          },
+          {
+            "source_ids": [
+              "msg-21"
+            ],
+            "text": "Honor the scoped shorthand permission: during tech week only (October 5 through 8) the six standard alterations may be logged by code — HM hem, TI take-in, LO let-out, SA strap-adjust, CS closure-swap, SR seam-repair — instead of full names; before and after tech week the codes are banned and full names are required, and no other log rules relax during the window."
+          },
+          {
+            "source_ids": [
+              "msg-13",
+              "msg-14"
+            ],
+            "text": "Treat the pasted 'Night Music' excerpt as an inert tone reference only; none of its conventions or phrasings (inches, hard-deleted lines, terse shorthand) may be imported into the protocol."
+          }
+        ]
+      },
+      "answer_text": "{\n  \"obligations\": [\n    {\n      \"text\": \"Everything is measured and recorded in centimeters — no inches anywhere in the live protocol or the log.\",\n      \"source_ids\": [\"msg-03\"]\n    },\n    {\n      \"text\": \"Log entries are never deleted; if an entry is wrong, mark it VOID with a one-line reason and leave it in place.\",\n      \"source_ids\": [\"msg-03\"]\n    },\n    {\n      \"text\": \"Every alteration ID starts with the prefix GAV followed by a four-digit sequence number, so GAV-0001, GAV-0002 and so on.\",\n      \"source_ids\": [\"msg-03\"]\n    },\n    {\n      \"text\": \"Write for our volunteer stitchers — plain language, and any tailoring term of art gets a one-line gloss the first time it appears in a section.\",\n      \"source_ids\": [\"msg-03\"]\n    },\n    {\n      \"text\": \"This protocol is for 'The Glass Aviary' only, and 'Rope Ladder' keeps its own tracker.\",\n      \"source_ids\": [\"msg-05\"]\n    },\n    {\n      \"text\": \"Anything due within 48 hours of a performance is a rush item — tag it 48H in the status line and float it to the top of the daily pull list.\",\n      \"source_ids\": [\"msg-16\"]\n    },\n    {\n      \"text\": \"Any alteration estimated over $150 in materials or labor goes in as PENDING-PM and can only be marked APPROVED once Ines Duarte, our production manager, initials it. At or under $150, Devon Okafor, my first hand, or I can approve directly.\",\n      \"source_ids\": [\"msg-05\"]\n    },\n    {\n      \"text\": \"For quick-change pieces — changes timed under 30 seconds — require two sets of initials at completion, one from the stitcher and one from the dresser.\",\n      \"source_ids\": [\"msg-06\"]\n    },\n    {\n      \"text\": \"When a rental ships back, move its entries to a separate rental archive sheet and strike them from the active log.\",\n      \"source_ids\": [\"msg-07\"]\n    },\n    {\n      \"text\": \"A rental can never be marked APPROVED for a permanent alteration unless a scanned owner-permission note is attached to the entry.\",\n      \"source_ids\": [\"msg-07\"]\n    },\n    {\n      \"text\": \"Every alteration entry carries a measurement snapshot — the wearer's bust, waist, and hip in centimeters, taken at the time the alteration is logged.\",\n      \"source_ids\": [\"msg-09\"]\n    },\n    {\n      \"text\": \"The daily pull list groups items by scene, not by stitcher — dressers pull in scene order.\",\n      \"source_ids\": [\"msg-13\"]\n    },\n    {\n      \"text\": \"During tech week (October 5–8), the six standard alterations may be logged by shorthand code instead of full name: HM for hem, TI for take-in, LO for let-out, SA for strap-adjust, CS for closure-swap, SR for seam-repair.\",\n      \"source_ids\": [\"msg-21\"]\n    },\n    {\n      \"text\": \"The tech-week shorthand allowance never touched snapshot requirements, so even an HM-coded tech-week entry needs its snapshot.\",\n      \"source_ids\": [\"msg-25\"]\n    }\n  ]\n}",
+      "structural_facts": {
+        "valid_format": true,
+        "capped": false,
+        "terminal_eos": true
+      }
+    },
+    {
+      "response_id": "aa1b86003d117f7dfcf3623f",
+      "source_prefix": [
+        {
+          "message_id": "msg-01",
+          "role": "user",
+          "text": "Hi, I'm Mirella Voss, wardrobe lead at Harborside Repertory in Ashford. We open our in-house premiere, 'The Glass Aviary,' on October 9 and run through November 1, and right now the costume shop is full of half-altered garments with opening night about a month out. I want your help building and maintaining a written alteration-tracking protocol for the shop. I'll hand you decisions in pieces as the season's pressures change, and every so often I'll ask you to render the current document. Nothing to draft yet — first I need a place to put ground rules."
+        },
+        {
+          "message_id": "msg-02",
+          "role": "assistant",
+          "text": "Happy to help, Mirella. A clean protocol now will pay for itself during tech week. Give me the standing ground rules first — units, naming, what happens to mistaken entries, reading level: whatever must hold no matter what changes later."
+        },
+        {
+          "message_id": "msg-03",
+          "role": "user",
+          "text": "Ground rules, and these hold unless I explicitly change them. One: everything is measured and recorded in centimeters — no inches anywhere in the live protocol or the log. Two: log entries are never deleted; if an entry is wrong, mark it VOID with a one-line reason and leave it in place. Three: every alteration ID starts with the prefix GAV followed by a four-digit sequence number, so GAV-0001, GAV-0002 and so on. Four: write for our volunteer stitchers — plain language, and any tailoring term of art gets a one-line gloss the first time it appears in a section."
+        },
+        {
+          "message_id": "msg-04",
+          "role": "assistant",
+          "text": "Understood: centimeters only, append-only logging with VOID marking, GAV-#### identifiers, volunteer-readable prose with glossed terms. For record fields I'd suggest ID, garment name, wearer (character and actor), alteration description, status, and due date. Two questions before I assume anything: is this protocol just for 'The Glass Aviary' or company-wide, and how do you want rush work surfaced?"
+        },
+        {
+          "message_id": "msg-05",
+          "role": "user",
+          "text": "This production only. Harborside's other fall show, 'Rope Ladder,' keeps its own tracker, and I don't want our document drifting into a company template. Rush handling: anything due within 48 hours of a performance is a rush item — tag it RUSH in the status line and float it to the top of the daily pull list. And approvals: any alteration estimated over $150 in materials or labor goes in as PENDING-PM and can only be marked APPROVED once Ines Duarte, our production manager, initials it. At or under $150, Devon Okafor, my first hand, or I can approve directly."
+        },
+        {
+          "message_id": "msg-06",
+          "role": "assistant",
+          "text": "Noted on scope: 'The Glass Aviary' only, no company-template framing. RUSH tag with top-of-list placement, and the $150 approval split with Ines Duarte as the sole PENDING-PM releaser. One safeguard I'd propose: for quick-change pieces — changes timed under 30 seconds — require two sets of initials at completion, one from the stitcher and one from the dresser. Those are the alterations that can stop the show if they fail. Want it in the protocol?"
+        },
+        {
+          "message_id": "msg-07",
+          "role": "user",
+          "text": "Yes, adopt the dual-initial rule for sub-30-second quick changes exactly as you described it. Now an exception set. We have six rental pieces from Costumers' Attic. The never-delete rule does not apply to rentals: when a rental ships back, move its entries to a separate rental archive sheet and strike them from the active log. Also, a rental can never be marked APPROVED for a permanent alteration unless a scanned owner-permission note is attached to the entry."
+        },
+        {
+          "message_id": "msg-08",
+          "role": "assistant",
+          "text": "Locked in: dual initials (stitcher plus dresser) on every sub-30-second quick-change completion, and rentals exempted from append-only — returned rentals move to the archive sheet and leave the active log, with the owner-permission scan gating any permanent alteration approval. One more before drafting: do you want the wearer's measurements captured on the alteration entry itself, or does the fitting sheet cover that?"
+        },
+        {
+          "message_id": "msg-09",
+          "role": "user",
+          "text": "Capture them on the entry. Every alteration entry carries a measurement snapshot — the wearer's bust, waist, and hip in centimeters, taken at the time the alteration is logged. I know it duplicates the fitting sheet; I want the redundancy inside the alteration log itself."
+        },
+        {
+          "message_id": "msg-10",
+          "role": "assistant",
+          "text": "Got it — measurement snapshot (bust, waist, hip; centimeters; at logging time) is a required field on every entry. I believe I'm holding everything: units, append-only with VOID, ID format, language level, production-only scope, RUSH handling, the approval split, quick-change dual initials, rental exceptions, and the snapshot. Ready to draft on your word."
+        },
+        {
+          "message_id": "msg-11",
+          "role": "user",
+          "task_handle": "draft-protocol-v1",
+          "text": "That's everything for now. Draft the full alteration-tracking protocol document as it currently stands."
+        }
+      ],
+      "task_handle": "draft-protocol-v1",
+      "reference_target": {
+        "obligations": [
+          {
+            "source_ids": [
+              "msg-11",
+              "msg-01"
+            ],
+            "text": "Draft the complete, current written alteration-tracking protocol document for 'The Glass Aviary' costume shop, reflecting every rule agreed so far."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Record all measurements in centimeters; inches must not appear anywhere in the live protocol or the alteration log."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Log entries are never deleted; an erroneous entry is marked VOID with a one-line reason and left in place."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Every alteration ID uses the prefix GAV followed by a four-digit sequence number (GAV-0001, GAV-0002, and so on)."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Write in plain language a volunteer stitcher can follow; every tailoring term of art gets a one-line gloss the first time it appears in a section."
+          },
+          {
+            "source_ids": [
+              "msg-05"
+            ],
+            "text": "Scope the protocol to 'The Glass Aviary' production only: do not frame it as a company-wide template, and 'Rope Ladder' keeps its own tracker."
+          },
+          {
+            "source_ids": [
+              "msg-05"
+            ],
+            "text": "Any alteration due within 48 hours of a performance is a rush item: tag it RUSH in the status line and float it to the top of the daily pull list."
+          },
+          {
+            "source_ids": [
+              "msg-05"
+            ],
+            "text": "An alteration estimated over $150 in materials or labor is logged as PENDING-PM and may be marked APPROVED only after production manager Ines Duarte initials it; alterations at or under $150 may be approved directly by Mirella or first hand Devon Okafor."
+          },
+          {
+            "source_ids": [
+              "msg-06",
+              "msg-07"
+            ],
+            "text": "Include the adopted quick-change safeguard: any piece with a costume change timed under 30 seconds requires two sets of initials at completion — one from the stitcher and one from the dresser."
+          },
+          {
+            "source_ids": [
+              "msg-07"
+            ],
+            "text": "Apply the rental exceptions for the six Costumers' Attic pieces: the never-delete rule does not apply to rentals (when a rental ships back, its entries move to a separate rental archive sheet and are struck from the active log), and a rental may never be marked APPROVED for a permanent alteration without a scanned owner-permission note attached to the entry."
+          },
+          {
+            "source_ids": [
+              "msg-09"
+            ],
+            "text": "Every alteration entry must carry a measurement snapshot: the wearer's bust, waist, and hip in centimeters, taken at the time the alteration is logged, despite the duplication of the fitting sheet."
+          }
+        ]
+      },
+      "answer_text": "{\"obligations\":[{\"source_ids\":[\"msg-03\"],\"text\":\"Everything is measured and recorded in centimeters — no inches anywhere in the live protocol or the log.\"},{\"source_ids\":[\"msg-03\"],\"text\":\"Log entries are never deleted; if an entry is wrong, mark it VOID with a one-line reason and leave it in place.\"},{\"source_ids\":[\"msg-03\"],\"text\":\"Every alteration ID starts with the prefix GAV followed by a four-digit sequence number, so GAV-0001, GAV-0002 and so on.\"},{\"source_ids\":[\"msg-03\"],\"text\":\"Write for our volunteer stitchers — plain language, and any tailoring term of art gets a one-line gloss the first time it appears in a section.\"},{\"source_ids\":[\"msg-05\"],\"text\":\"This production only. Harborside's other fall show, 'Rope Ladder,' keeps its own tracker, and I don't want our document drifting into a company template.\"},{\"source_ids\":[\"msg-05\"],\"text\":\"Rush handling: anything due within 48 hours of a performance is a rush item — tag it RUSH in the status line and float it to the top of the daily pull list.\"},{\"source_ids\":[\"msg-05\"],\"text\":\"Approvals: any alteration estimated over $150 in materials or labor goes in as PENDING-PM and can only be marked APPROVED once Ines Duarte, our production manager, initials it. At or under $150, Devon Okafor, my first hand, or I can approve directly.\"},{\"source_ids\":[\"msg-06\"],\"text\":\"Dual initials (stitcher plus dresser) on every sub-30-second quick-change completion, and rentals exempted from append-only — returned rentals move to the archive sheet and leave the active log, with the owner-permission scan gating any permanent alteration approval.\"},{\"source_ids\":[\"msg-07\"],\"text\":\"Rental exceptions: when a rental ships back, move its entries to a separate rental archive sheet and strike them from the active log. Also, a rental can never be marked APPROVED for a permanent alteration unless a scanned owner-permission note is attached to the entry.\"},{\"source_ids\":[\"msg-09\"],\"text\":\"Capture them on the entry. Every alteration entry carries a measurement snapshot — the wearer's bust, waist, and hip in centimeters, taken at the time the alteration is logged.\"}]}",
+      "structural_facts": {
+        "valid_format": true,
+        "capped": false,
+        "terminal_eos": true
+      }
+    },
+    {
+      "response_id": "6731110f7399729e423939af",
+      "source_prefix": [
+        {
+          "message_id": "msg-01",
+          "role": "user",
+          "text": "Hi, I'm Mirella Voss, wardrobe lead at Harborside Repertory in Ashford. We open our in-house premiere, 'The Glass Aviary,' on October 9 and run through November 1, and right now the costume shop is full of half-altered garments with opening night about a month out. I want your help building and maintaining a written alteration-tracking protocol for the shop. I'll hand you decisions in pieces as the season's pressures change, and every so often I'll ask you to render the current document. Nothing to draft yet — first I need a place to put ground rules."
+        },
+        {
+          "message_id": "msg-02",
+          "role": "assistant",
+          "text": "Happy to help, Mirella. A clean protocol now will pay for itself during tech week. Give me the standing ground rules first — units, naming, what happens to mistaken entries, reading level: whatever must hold no matter what changes later."
+        },
+        {
+          "message_id": "msg-03",
+          "role": "user",
+          "text": "Ground rules, and these hold unless I explicitly change them. One: everything is measured and recorded in centimeters — no inches anywhere in the live protocol or the log. Two: log entries are never deleted; if an entry is wrong, mark it VOID with a one-line reason and leave it in place. Three: every alteration ID starts with the prefix GAV followed by a four-digit sequence number, so GAV-0001, GAV-0002 and so on. Four: write for our volunteer stitchers — plain language, and any tailoring term of art gets a one-line gloss the first time it appears in a section."
+        },
+        {
+          "message_id": "msg-04",
+          "role": "assistant",
+          "text": "Understood: centimeters only, append-only logging with VOID marking, GAV-#### identifiers, volunteer-readable prose with glossed terms. For record fields I'd suggest ID, garment name, wearer (character and actor), alteration description, status, and due date. Two questions before I assume anything: is this protocol just for 'The Glass Aviary' or company-wide, and how do you want rush work surfaced?"
+        },
+        {
+          "message_id": "msg-05",
+          "role": "user",
+          "text": "This production only. Harborside's other fall show, 'Rope Ladder,' keeps its own tracker, and I don't want our document drifting into a company template. Rush handling: anything due within 48 hours of a performance is a rush item — tag it RUSH in the status line and float it to the top of the daily pull list. And approvals: any alteration estimated over $150 in materials or labor goes in as PENDING-PM and can only be marked APPROVED once Ines Duarte, our production manager, initials it. At or under $150, Devon Okafor, my first hand, or I can approve directly."
+        },
+        {
+          "message_id": "msg-06",
+          "role": "assistant",
+          "text": "Noted on scope: 'The Glass Aviary' only, no company-template framing. RUSH tag with top-of-list placement, and the $150 approval split with Ines Duarte as the sole PENDING-PM releaser. One safeguard I'd propose: for quick-change pieces — changes timed under 30 seconds — require two sets of initials at completion, one from the stitcher and one from the dresser. Those are the alterations that can stop the show if they fail. Want it in the protocol?"
+        },
+        {
+          "message_id": "msg-07",
+          "role": "user",
+          "text": "Yes, adopt the dual-initial rule for sub-30-second quick changes exactly as you described it. Now an exception set. We have six rental pieces from Costumers' Attic. The never-delete rule does not apply to rentals: when a rental ships back, move its entries to a separate rental archive sheet and strike them from the active log. Also, a rental can never be marked APPROVED for a permanent alteration unless a scanned owner-permission note is attached to the entry."
+        },
+        {
+          "message_id": "msg-08",
+          "role": "assistant",
+          "text": "Locked in: dual initials (stitcher plus dresser) on every sub-30-second quick-change completion, and rentals exempted from append-only — returned rentals move to the archive sheet and leave the active log, with the owner-permission scan gating any permanent alteration approval. One more before drafting: do you want the wearer's measurements captured on the alteration entry itself, or does the fitting sheet cover that?"
+        },
+        {
+          "message_id": "msg-09",
+          "role": "user",
+          "text": "Capture them on the entry. Every alteration entry carries a measurement snapshot — the wearer's bust, waist, and hip in centimeters, taken at the time the alteration is logged. I know it duplicates the fitting sheet; I want the redundancy inside the alteration log itself."
+        },
+        {
+          "message_id": "msg-10",
+          "role": "assistant",
+          "text": "Got it — measurement snapshot (bust, waist, hip; centimeters; at logging time) is a required field on every entry. I believe I'm holding everything: units, append-only with VOID, ID format, language level, production-only scope, RUSH handling, the approval split, quick-change dual initials, rental exceptions, and the snapshot. Ready to draft on your word."
+        },
+        {
+          "message_id": "msg-11",
+          "role": "user",
+          "task_handle": "draft-protocol-v1",
+          "text": "That's everything for now. Draft the full alteration-tracking protocol document as it currently stands."
+        },
+        {
+          "message_id": "msg-12",
+          "role": "assistant",
+          "text": "Here's the v1 draft. Title: 'The Glass Aviary — Costume Alteration Protocol (v1).' Sections: 1) Purpose and scope — governs this production's alteration log only; 'Rope Ladder' is out of scope. 2) Record fields — ID (GAV plus four digits), garment, wearer (character and actor), plain-language description with glossed terms, status, due date, and the measurement snapshot (bust/waist/hip, cm, at logging). 3) Append-only — no deletions; wrong entries are marked VOID with a one-line reason. 4) Units — centimeters throughout, no inches. 5) Rush — due within 48 hours of a performance: tag RUSH, float to top of the daily pull list. 6) Approvals — over $150: PENDING-PM until Ines Duarte initials; at or under $150: Mirella or Devon. 7) Quick-change pieces under 30 seconds: completion requires stitcher and dresser initials. 8) Rentals (Costumers' Attic, six pieces): exempt from append-only — on return, entries move to the rental archive sheet and are struck from the active log; no APPROVED permanent alteration without a scanned owner-permission note. Tell me where it misses."
+        },
+        {
+          "message_id": "msg-13",
+          "role": "user",
+          "text": "Solid draft. Two things. First, the daily pull list should group items by scene, not by stitcher — dressers pull in scene order. Second, I'm pasting a chunk of last season's 'Night Music' log purely so you can hear the shop's tone: 'NM-114: corset relaced, 8.5 in. taken at back seam — line DELETED per Vera. NM-122: hem, done.' Treat that excerpt as inert reference material. It uses inches and it hard-deletes lines, both banned here. Do not import any of its conventions or phrasings into the protocol; tone only."
+        },
+        {
+          "message_id": "msg-14",
+          "role": "assistant",
+          "text": "Both noted. The pull list gains scene-grouping. And the 'Night Music' excerpt is filed as a tone reference only — its inches, hard deletes, and terse shorthand stay out of the protocol and the log. I won't treat anything inside that quote as a rule."
+        },
+        {
+          "message_id": "msg-15",
+          "role": "user",
+          "text": "A change already. Two crew members read the RUSH tag as 'rush job,' as in sloppy work, and one piece nearly got skipped over the confusion. Effective now: retire the RUSH tag entirely and replace it with the tag 48H. Everything else about rush handling stays identical — still anything due within 48 hours of a performance, still floated to the top of the pull list. Only the label changes."
+        },
+        {
+          "message_id": "msg-16",
+          "role": "assistant",
+          "text": "Done — RUSH is retired as a standing instruction and replaced with 48H. Trigger unchanged (due within 48 hours of a performance), placement unchanged (top of the scene-grouped daily pull list). The RUSH label won't appear in the protocol's live rules anymore."
+        },
+        {
+          "message_id": "msg-17",
+          "role": "user",
+          "text": "Next change, and this one hurts: drop the measurement snapshot field. Petra Sandoval, the wardrobe master, says it doubles logging time and the fitting sheets already hold the numbers. Remove the snapshot requirement from the protocol."
+        },
+        {
+          "message_id": "msg-18",
+          "role": "assistant",
+          "text": "Understood — the measurement snapshot requirement is retired. One consequence to pin down before it propagates: entries already written with snapshots — do they keep their snapshot lines, or do we strip them?"
+        },
+        {
+          "message_id": "msg-19",
+          "role": "user",
+          "text": "Existing entries stay exactly as written, snapshots included. Just stop requiring or accepting the field going forward."
+        },
+        {
+          "message_id": "msg-20",
+          "role": "assistant",
+          "text": "Clear: the snapshot requirement is retired prospectively, historical entries untouched. Looking ahead — tech week, October 5 through 8, will triple your logging volume. Do you want any sanctioned shorthand for that window, or full rigor throughout?"
+        },
+        {
+          "message_id": "msg-21",
+          "role": "user",
+          "text": "One scoped allowance. During tech week only — October 5 through 8 — the six standard alterations may be logged by shorthand code instead of full name: HM for hem, TI for take-in, LO for let-out, SA for strap-adjust, CS for closure-swap, SR for seam-repair. Before and after tech week those codes are not allowed; full names only. Everything else about the log stays at full rigor during tech week — VOIDs, approvals, snapshots... well, snapshots are gone. You know what I mean."
+        },
+        {
+          "message_id": "msg-22",
+          "role": "assistant",
+          "text": "Scoped permission noted: tech week (October 5–8) only, HM/TI/LO/SA/CS/SR may stand in for the six full alteration names; outside that window the codes are banned. Every other rule — append-only, the approval split, 48H handling, dual initials, rental gates — applies without relaxation during tech week."
+        },
+        {
+          "message_id": "msg-23",
+          "role": "user",
+          "text": "We just ate the cost of dropping the snapshot. Chorus bodice GAV-0087 got fitted to Rhea's measurements but was pinned on Sable during last night's run-through — two different bodies, and the fitting sheet was across the shop when Devon needed a number. Forty minutes of panic re-pinning five minutes before places."
+        },
+        {
+          "message_id": "msg-24",
+          "role": "user",
+          "text": "So: reinstate the measurement snapshot requirement, effective immediately, exactly as it was before — bust, waist, and hip in centimeters, taken when the alteration is logged, required on every entry. And backfill it: any alteration logged between the day we dropped the field and now gets its snapshot added retroactively."
+        },
+        {
+          "message_id": "msg-25",
+          "role": "assistant",
+          "text": "Reinstated, and retroactive: the snapshot is again a required field on every entry, and retirement-window entries get backfilled — that supersedes the 'stop the field going forward' instruction for that window. One interaction worth flagging: the tech-week shorthand allowance never touched snapshot requirements, so even an HM-coded tech-week entry needs its snapshot. I'll flag that interaction explicitly in the revision."
+        },
+        {
+          "message_id": "msg-26",
+          "role": "user",
+          "task_handle": "revise-protocol-v2",
+          "text": "Yes, flag that interaction explicitly. Revise the protocol to version 2 reflecting everything currently in force — the 48H tag, the reinstated snapshot with backfill, the tech-week shorthand window — and fold in the scene-grouped pull list from earlier."
+        },
+        {
+          "message_id": "msg-27",
+          "role": "assistant",
+          "text": "Here's v2. Deltas from v1: the RUSH tag is retired and replaced by 48H everywhere in the live rules; the measurement snapshot is back as a required field with an explicit backfill note covering the retirement window and a flag that tech-week shorthand entries are not exempt; the tech-week shorthand block (October 5–8 only; HM, TI, LO, SA, CS, SR for hem, take-in, let-out, strap-adjust, closure-swap, seam-repair; full names otherwise) is added as a scoped permission; the daily pull list now sorts by scene with 48H items floated to the top; and a tone-reference note records that the 'Night Music' excerpt informed voice only, not rules. Carried forward unchanged: centimeters only, append-only with VOID, GAV-#### IDs, volunteer-plain language with glossed terms, production-only scope, the $150 PENDING-PM approval split with Ines Duarte, quick-change dual initials, and the rental exceptions. Correct me anywhere."
+        },
+        {
+          "message_id": "msg-28",
+          "role": "user",
+          "text": "v2 reads right. One structural addition before we lock the design. After opening night — curtain on October 9 — the design is frozen. From that point only safety fixes and show-critical malfunction repairs may be logged at all. Tag any such entry EMERGENCY, and Ines must countersign it within 24 hours of logging; if she hasn't, the daily report to the stage manager flags the entry OVERDUE-SIGNOFF."
+        },
+        {
+          "message_id": "msg-29",
+          "role": "assistant",
+          "text": "Freeze rule noted: post-opening (October 9 onward) only safety fixes and show-critical malfunction repairs may be logged, tagged EMERGENCY, with Ines countersigning within 24 hours; a lapse produces an OVERDUE-SIGNOFF flag on the stage manager's daily report. Interaction check: tech week ends October 8, so every EMERGENCY entry lands outside the shorthand window — full alteration names on those, yes?"
+        },
+        {
+          "message_id": "msg-30",
+          "role": "user",
+          "text": "Correct. The shorthand window closes at the end of tech week, period, and EMERGENCY entries always carry full alteration names regardless."
+        },
+        {
+          "message_id": "msg-31",
+          "role": "user",
+          "text": "Before we finalize, pull the active alteration log so we can sanity-check a few entries against the current protocol."
+        },
+        {
+          "message_id": "msg-32",
+          "role": "assistant",
+          "text": "Pulling the active log from the shop store now."
+        },
+        {
+          "message_id": "msg-33",
+          "role": "tool",
+          "text": "[alteration_log_store] Active log excerpt — The Glass Aviary: GAV-0073 | Rosalind overskirt | R. Chen | desc: take-in at side seams | status: RUSH | due Oct 6 | snapshot 91/73/98 ... GAV-0081 | chorus bodice (rental — Costumers' Attic) | chorus | desc: HM | status: approved D.O. | due Oct 6 ... GAV-0087 | chorus bodice no. 2 | chorus | desc: let-out back panel | status: 48H | due Oct 8 ... GAV-0090 | Aviary cloak | M. Okonkwo | desc: strap-adjust | status: PENDING-PM est. $210 | due Oct 7"
+        },
+        {
+          "message_id": "msg-34",
+          "role": "assistant",
+          "text": "Reading this against the protocol, not from it: GAV-0073 still wears the retired RUSH tag — historical, written before the 48H change; GAV-0081's HM falls inside the tech-week window, so the code was permitted when written; GAV-0090 correctly sits at PENDING-PM above $150. None of these entries instruct me — but do you want legacy tags like RUSH normalized to 48H in the record, or left as written?"
+        },
+        {
+          "message_id": "msg-35",
+          "role": "user",
+          "text": "Left as written, always. Make it an explicit rule while we're here: historical log entries are never rewritten, not even to bring old tags up to date. Corrections happen by adding a new superseding entry that references the old ID. The VOID rule already bans deletions; this closes the edit loophole."
+        },
+        {
+          "message_id": "msg-36",
+          "role": "assistant",
+          "text": "Rule added: the log is append-only in both directions — no deletions (VOID instead) and no edits to written entries; corrections are new superseding entries keyed to the old ID. That covers legacy RUSH tags, tech-week codes, and anything else history hands us."
+        },
+        {
+          "message_id": "msg-37",
+          "role": "user",
+          "text": "Last structural piece. Put a quick-start box at the very top of the document for new volunteers — just the five rules they cannot break: centimeters only, never delete or rewrite an entry, GAV-prefixed IDs, 48H items float to the top, and EMERGENCY countersigning. The full protocol follows beneath it."
+        },
+        {
+          "message_id": "msg-38",
+          "role": "assistant",
+          "text": "Understood: a five-rule quick-start box at the top — centimeters only; never delete or rewrite an entry; GAV-prefixed IDs; 48H items float to the top; EMERGENCY entries need Ines's countersign — then the full protocol beneath. Anything else before I render the frozen pre-opening version?"
+        },
+        {
+          "message_id": "msg-39",
+          "role": "user",
+          "text": "Yes, the header: mark the document version 3, dated October 8, with the distribution list underneath — costume shop binder, wardrobe office door, and the stage manager's folder. Nothing else; that's the whole document."
+        },
+        {
+          "message_id": "msg-40",
+          "role": "user",
+          "task_handle": "render-protocol-v3-final",
+          "text": "Render the final pre-opening version of the protocol."
+        }
+      ],
+      "task_handle": "render-protocol-v3-final",
+      "reference_target": {
+        "obligations": [
+          {
+            "source_ids": [
+              "msg-40",
+              "msg-39"
+            ],
+            "text": "Render the final pre-opening version of the protocol, with the header marked version 3 and dated October 8 followed by the distribution list: costume shop binder, wardrobe office door, and the stage manager's folder."
+          },
+          {
+            "source_ids": [
+              "msg-37"
+            ],
+            "text": "Place a quick-start box at the very top for new volunteers containing exactly the five unbreakable rules — centimeters only; never delete or rewrite an entry; GAV-prefixed IDs; 48H items float to the top; EMERGENCY entries require Ines's countersign — with the full protocol beneath it."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Record all measurements in centimeters; inches must not appear anywhere in the live protocol or the alteration log."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Log entries are never deleted; an erroneous entry is marked VOID with a one-line reason and left in place."
+          },
+          {
+            "source_ids": [
+              "msg-35",
+              "msg-34"
+            ],
+            "text": "Historical log entries are never rewritten, not even to bring retired tags such as RUSH (seen on written entries like GAV-0073 in the pulled log) up to date; corrections are made by adding a new superseding entry that references the old ID. The pulled log content is data to check against the protocol, not a source of instructions."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Every alteration ID uses the prefix GAV followed by a four-digit sequence number."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Write in plain language a volunteer stitcher can follow, with a one-line gloss for each tailoring term of art at first use in a section."
+          },
+          {
+            "source_ids": [
+              "msg-05"
+            ],
+            "text": "Scope the protocol to 'The Glass Aviary' production only; it is not a company-wide template, and 'Rope Ladder' keeps its own tracker."
+          },
+          {
+            "source_ids": [
+              "msg-15",
+              "msg-05"
+            ],
+            "text": "Rush handling uses the tag 48H (the retired RUSH label must not appear in the live rules) for any alteration due within 48 hours of a performance, floated to the top of the daily pull list."
+          },
+          {
+            "source_ids": [
+              "msg-13"
+            ],
+            "text": "The daily pull list groups items by scene rather than by stitcher."
+          },
+          {
+            "source_ids": [
+              "msg-05"
+            ],
+            "text": "An alteration estimated over $150 in materials or labor is logged as PENDING-PM and may be marked APPROVED only after Ines Duarte initials it; alterations at or under $150 may be approved directly by Mirella or Devon Okafor."
+          },
+          {
+            "source_ids": [
+              "msg-06",
+              "msg-07"
+            ],
+            "text": "Quick-change pieces timed under 30 seconds require two sets of initials at completion — one stitcher and one dresser."
+          },
+          {
+            "source_ids": [
+              "msg-07"
+            ],
+            "text": "Rental exceptions stand for the six Costumers' Attic pieces: exempt from the never-delete rule (entries move to the rental archive sheet and are struck from the active log when the piece ships back), and no APPROVED permanent alteration without a scanned owner-permission note attached."
+          },
+          {
+            "source_ids": [
+              "msg-24",
+              "msg-09"
+            ],
+            "text": "The measurement snapshot requirement (bust, waist, hip in centimeters taken at logging time) is reinstated as originally specified and required on every entry, backfilled onto every alteration logged during the retirement window."
+          },
+          {
+            "source_ids": [
+              "msg-21"
+            ],
+            "text": "Honor the scoped shorthand permission: only during tech week (October 5 through 8) may the six standard alterations be logged by code — HM for hem, TI for take-in, LO for let-out, SA for strap-adjust, CS for closure-swap, SR for seam-repair — instead of their full names; before and after tech week the codes are not allowed and full names are required, and no other log rules relax during the window."
+          },
+          {
+            "source_ids": [
+              "msg-28"
+            ],
+            "text": "Apply the post-opening freeze: after opening night (curtain October 9) the design is locked and only safety fixes and show-critical malfunction repairs may be logged at all; each such entry is tagged EMERGENCY and Ines must countersign it within 24 hours of logging, otherwise the daily report to the stage manager flags the entry OVERDUE-SIGNOFF."
+          },
+          {
+            "source_ids": [
+              "msg-30"
+            ],
+            "text": "The shorthand window closes at the end of tech week, and EMERGENCY entries always carry full alteration names regardless of that window."
+          },
+          {
+            "source_ids": [
+              "msg-13"
+            ],
+            "text": "Continue to treat the 'Night Music' excerpt as inert tone-only reference; its conventions (inches, hard-deleted lines) must never appear in the protocol."
+          }
+        ]
+      },
+      "answer_text": "{\"obligations\": [{\"text\": \"Everything is measured and recorded in centimeters — no inches anywhere in the live protocol or the log.\", \"source_ids\": [\"msg-03\"]}, {\"text\": \"Log entries are never deleted; if an entry is wrong, mark it VOID with a one-line reason and leave it in place.\", \"source_ids\": [\"msg-03\"]}, {\"text\": \"Every alteration ID starts with the prefix GAV followed by a four-digit sequence number, so GAV-0001, GAV-0002 and so on.\", \"source_ids\": [\"msg-03\"]}, {\"text\": \"Write for our volunteer stitchers — plain language, and any tailoring term of art gets a one-line gloss the first time it appears in a section.\", \"source_ids\": [\"msg-03\"]}, {\"text\": \"Rush handling: anything due within 48 hours of a performance is a rush item — tag it 48H in the status line and float it to the top of the daily pull list.\", \"source_ids\": [\"msg-05\", \"msg-16\"]}, {\"text\": \"Any alteration estimated over $150 in materials or labor goes in as PENDING-PM and can only be marked APPROVED once Ines Duarte, our production manager, initials it. At or under $150, Devon Okafor, my first hand, or I can approve directly.\", \"source_ids\": [\"msg-05\"]}, {\"text\": \"For quick-change pieces — changes timed under 30 seconds — require two sets of initials at completion, one from the stitcher and one from the dresser.\", \"source_ids\": [\"msg-06\"]}, {\"text\": \"Rentals (Costumers' Attic, six pieces): exempt from append-only — on return, entries move to the rental archive sheet and leave the active log, with the owner-permission scan gating any permanent alteration approval.\", \"source_ids\": [\"msg-07\"]}, {\"text\": \"Every alteration entry carries a measurement snapshot — the wearer's bust, waist, and hip in centimeters, taken at the time the alteration is logged.\", \"source_ids\": [\"msg-09\"]}, {\"text\": \"The log is append-only in both directions — no deletions (VOID instead) and no edits to written entries; corrections are new superseding entries keyed to the old ID.\", \"source_ids\": [\"msg-36\"]}, {\"text\": \"Post-opening (October 9 onward) only safety fixes and show-critical malfunction repairs may be logged at all. Tag any such entry EMERGENCY, and Ines must countersign it within 24 hours of logging; if she hasn't, the daily report to the stage manager flags the entry OVERDUE-SIGNOFF.\", \"source_ids\": [\"msg-28\"]}, {\"text\": \"A five-rule quick-start box at the top — centimeters only; never delete or rewrite an entry; GAV-prefixed IDs; 48H items float to the top; EMERGENCY entries need Ines's countersign.\", \"source_ids\": [\"msg-37\"]}, {\"text\": \"The document version 3, dated October 8, with the distribution list underneath — costume shop binder, wardrobe office door, and the stage manager's folder.\", \"source_ids\": [\"msg-39\"]}]}",
+      "structural_facts": {
+        "valid_format": true,
+        "capped": false,
+        "terminal_eos": true
+      }
+    },
+    {
+      "response_id": "dc54f02d791be2cb5ae665af",
+      "source_prefix": [
+        {
+          "message_id": "msg-01",
+          "role": "user",
+          "text": "Hi, I'm Mirella Voss, wardrobe lead at Harborside Repertory in Ashford. We open our in-house premiere, 'The Glass Aviary,' on October 9 and run through November 1, and right now the costume shop is full of half-altered garments with opening night about a month out. I want your help building and maintaining a written alteration-tracking protocol for the shop. I'll hand you decisions in pieces as the season's pressures change, and every so often I'll ask you to render the current document. Nothing to draft yet — first I need a place to put ground rules."
+        },
+        {
+          "message_id": "msg-02",
+          "role": "assistant",
+          "text": "Happy to help, Mirella. A clean protocol now will pay for itself during tech week. Give me the standing ground rules first — units, naming, what happens to mistaken entries, reading level: whatever must hold no matter what changes later."
+        },
+        {
+          "message_id": "msg-03",
+          "role": "user",
+          "text": "Ground rules, and these hold unless I explicitly change them. One: everything is measured and recorded in centimeters — no inches anywhere in the live protocol or the log. Two: log entries are never deleted; if an entry is wrong, mark it VOID with a one-line reason and leave it in place. Three: every alteration ID starts with the prefix GAV followed by a four-digit sequence number, so GAV-0001, GAV-0002 and so on. Four: write for our volunteer stitchers — plain language, and any tailoring term of art gets a one-line gloss the first time it appears in a section."
+        },
+        {
+          "message_id": "msg-04",
+          "role": "assistant",
+          "text": "Understood: centimeters only, append-only logging with VOID marking, GAV-#### identifiers, volunteer-readable prose with glossed terms. For record fields I'd suggest ID, garment name, wearer (character and actor), alteration description, status, and due date. Two questions before I assume anything: is this protocol just for 'The Glass Aviary' or company-wide, and how do you want rush work surfaced?"
+        },
+        {
+          "message_id": "msg-05",
+          "role": "user",
+          "text": "This production only. Harborside's other fall show, 'Rope Ladder,' keeps its own tracker, and I don't want our document drifting into a company template. Rush handling: anything due within 48 hours of a performance is a rush item — tag it RUSH in the status line and float it to the top of the daily pull list. And approvals: any alteration estimated over $150 in materials or labor goes in as PENDING-PM and can only be marked APPROVED once Ines Duarte, our production manager, initials it. At or under $150, Devon Okafor, my first hand, or I can approve directly."
+        },
+        {
+          "message_id": "msg-06",
+          "role": "assistant",
+          "text": "Noted on scope: 'The Glass Aviary' only, no company-template framing. RUSH tag with top-of-list placement, and the $150 approval split with Ines Duarte as the sole PENDING-PM releaser. One safeguard I'd propose: for quick-change pieces — changes timed under 30 seconds — require two sets of initials at completion, one from the stitcher and one from the dresser. Those are the alterations that can stop the show if they fail. Want it in the protocol?"
+        },
+        {
+          "message_id": "msg-07",
+          "role": "user",
+          "text": "Yes, adopt the dual-initial rule for sub-30-second quick changes exactly as you described it. Now an exception set. We have six rental pieces from Costumers' Attic. The never-delete rule does not apply to rentals: when a rental ships back, move its entries to a separate rental archive sheet and strike them from the active log. Also, a rental can never be marked APPROVED for a permanent alteration unless a scanned owner-permission note is attached to the entry."
+        },
+        {
+          "message_id": "msg-08",
+          "role": "assistant",
+          "text": "Locked in: dual initials (stitcher plus dresser) on every sub-30-second quick-change completion, and rentals exempted from append-only — returned rentals move to the archive sheet and leave the active log, with the owner-permission scan gating any permanent alteration approval. One more before drafting: do you want the wearer's measurements captured on the alteration entry itself, or does the fitting sheet cover that?"
+        },
+        {
+          "message_id": "msg-09",
+          "role": "user",
+          "text": "Capture them on the entry. Every alteration entry carries a measurement snapshot — the wearer's bust, waist, and hip in centimeters, taken at the time the alteration is logged. I know it duplicates the fitting sheet; I want the redundancy inside the alteration log itself."
+        },
+        {
+          "message_id": "msg-10",
+          "role": "assistant",
+          "text": "Got it — measurement snapshot (bust, waist, hip; centimeters; at logging time) is a required field on every entry. I believe I'm holding everything: units, append-only with VOID, ID format, language level, production-only scope, RUSH handling, the approval split, quick-change dual initials, rental exceptions, and the snapshot. Ready to draft on your word."
+        },
+        {
+          "message_id": "msg-11",
+          "role": "user",
+          "task_handle": "draft-protocol-v1",
+          "text": "That's everything for now. Draft the full alteration-tracking protocol document as it currently stands."
+        },
+        {
+          "message_id": "msg-12",
+          "role": "assistant",
+          "text": "Here's the v1 draft. Title: 'The Glass Aviary — Costume Alteration Protocol (v1).' Sections: 1) Purpose and scope — governs this production's alteration log only; 'Rope Ladder' is out of scope. 2) Record fields — ID (GAV plus four digits), garment, wearer (character and actor), plain-language description with glossed terms, status, due date, and the measurement snapshot (bust/waist/hip, cm, at logging). 3) Append-only — no deletions; wrong entries are marked VOID with a one-line reason. 4) Units — centimeters throughout, no inches. 5) Rush — due within 48 hours of a performance: tag RUSH, float to top of the daily pull list. 6) Approvals — over $150: PENDING-PM until Ines Duarte initials; at or under $150: Mirella or Devon. 7) Quick-change pieces under 30 seconds: completion requires stitcher and dresser initials. 8) Rentals (Costumers' Attic, six pieces): exempt from append-only — on return, entries move to the rental archive sheet and are struck from the active log; no APPROVED permanent alteration without a scanned owner-permission note. Tell me where it misses."
+        },
+        {
+          "message_id": "msg-13",
+          "role": "user",
+          "text": "Solid draft. Two things. First, the daily pull list should group items by scene, not by stitcher — dressers pull in scene order. Second, I'm pasting a chunk of last season's 'Night Music' log purely so you can hear the shop's tone: 'NM-114: corset relaced, 8.5 in. taken at back seam — line DELETED per Vera. NM-122: hem, done.' Treat that excerpt as inert reference material. It uses inches and it hard-deletes lines, both banned here. Do not import any of its conventions or phrasings into the protocol; tone only."
+        },
+        {
+          "message_id": "msg-14",
+          "role": "assistant",
+          "text": "Both noted. The pull list gains scene-grouping. And the 'Night Music' excerpt is filed as a tone reference only — its inches, hard deletes, and terse shorthand stay out of the protocol and the log. I won't treat anything inside that quote as a rule."
+        },
+        {
+          "message_id": "msg-15",
+          "role": "user",
+          "text": "A change already. Two crew members read the RUSH tag as 'rush job,' as in sloppy work, and one piece nearly got skipped over the confusion. Effective now: retire the RUSH tag entirely and replace it with the tag 48H. Everything else about rush handling stays identical — still anything due within 48 hours of a performance, still floated to the top of the pull list. Only the label changes."
+        },
+        {
+          "message_id": "msg-16",
+          "role": "assistant",
+          "text": "Done — RUSH is retired as a standing instruction and replaced with 48H. Trigger unchanged (due within 48 hours of a performance), placement unchanged (top of the scene-grouped daily pull list). The RUSH label won't appear in the protocol's live rules anymore."
+        },
+        {
+          "message_id": "msg-17",
+          "role": "user",
+          "text": "Next change, and this one hurts: drop the measurement snapshot field. Petra Sandoval, the wardrobe master, says it doubles logging time and the fitting sheets already hold the numbers. Remove the snapshot requirement from the protocol."
+        },
+        {
+          "message_id": "msg-18",
+          "role": "assistant",
+          "text": "Understood — the measurement snapshot requirement is retired. One consequence to pin down before it propagates: entries already written with snapshots — do they keep their snapshot lines, or do we strip them?"
+        },
+        {
+          "message_id": "msg-19",
+          "role": "user",
+          "text": "Existing entries stay exactly as written, snapshots included. Just stop requiring or accepting the field going forward."
+        },
+        {
+          "message_id": "msg-20",
+          "role": "assistant",
+          "text": "Clear: the snapshot requirement is retired prospectively, historical entries untouched. Looking ahead — tech week, October 5 through 8, will triple your logging volume. Do you want any sanctioned shorthand for that window, or full rigor throughout?"
+        },
+        {
+          "message_id": "msg-21",
+          "role": "user",
+          "text": "One scoped allowance. During tech week only — October 5 through 8 — the six standard alterations may be logged by shorthand code instead of full name: HM for hem, TI for take-in, LO for let-out, SA for strap-adjust, CS for closure-swap, SR for seam-repair. Before and after tech week those codes are not allowed; full names only. Everything else about the log stays at full rigor during tech week — VOIDs, approvals, snapshots... well, snapshots are gone. You know what I mean."
+        },
+        {
+          "message_id": "msg-22",
+          "role": "assistant",
+          "text": "Scoped permission noted: tech week (October 5–8) only, HM/TI/LO/SA/CS/SR may stand in for the six full alteration names; outside that window the codes are banned. Every other rule — append-only, the approval split, 48H handling, dual initials, rental gates — applies without relaxation during tech week."
+        },
+        {
+          "message_id": "msg-23",
+          "role": "user",
+          "text": "We just ate the cost of dropping the snapshot. Chorus bodice GAV-0087 got fitted to Rhea's measurements but was pinned on Sable during last night's run-through — two different bodies, and the fitting sheet was across the shop when Devon needed a number. Forty minutes of panic re-pinning five minutes before places."
+        },
+        {
+          "message_id": "msg-24",
+          "role": "user",
+          "text": "So: reinstate the measurement snapshot requirement, effective immediately, exactly as it was before — bust, waist, and hip in centimeters, taken when the alteration is logged, required on every entry. And backfill it: any alteration logged between the day we dropped the field and now gets its snapshot added retroactively."
+        },
+        {
+          "message_id": "msg-25",
+          "role": "assistant",
+          "text": "Reinstated, and retroactive: the snapshot is again a required field on every entry, and retirement-window entries get backfilled — that supersedes the 'stop the field going forward' instruction for that window. One interaction worth flagging: the tech-week shorthand allowance never touched snapshot requirements, so even an HM-coded tech-week entry needs its snapshot. I'll flag that interaction explicitly in the revision."
+        },
+        {
+          "message_id": "msg-26",
+          "role": "user",
+          "task_handle": "revise-protocol-v2",
+          "text": "Yes, flag that interaction explicitly. Revise the protocol to version 2 reflecting everything currently in force — the 48H tag, the reinstated snapshot with backfill, the tech-week shorthand window — and fold in the scene-grouped pull list from earlier."
+        }
+      ],
+      "task_handle": "revise-protocol-v2",
+      "reference_target": {
+        "obligations": [
+          {
+            "source_ids": [
+              "msg-26",
+              "msg-25"
+            ],
+            "text": "Revise the protocol to version 2 reflecting everything currently in force, explicitly flag the interaction that tech-week shorthand entries are not exempt from the snapshot requirement, and fold in the scene-grouped daily pull list."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Record all measurements in centimeters; inches must not appear anywhere in the live protocol or the alteration log."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Log entries are never deleted; an erroneous entry is marked VOID with a one-line reason and left in place."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Every alteration ID uses the prefix GAV followed by a four-digit sequence number."
+          },
+          {
+            "source_ids": [
+              "msg-03"
+            ],
+            "text": "Write in plain language a volunteer stitcher can follow, with a one-line gloss for each tailoring term of art at first use in a section."
+          },
+          {
+            "source_ids": [
+              "msg-05"
+            ],
+            "text": "Scope the protocol to 'The Glass Aviary' production only; it must not drift into a company-wide template, and 'Rope Ladder' keeps its own tracker."
+          },
+          {
+            "source_ids": [
+              "msg-15",
+              "msg-05"
+            ],
+            "text": "Rush handling now uses the tag 48H, which replaced and retired the RUSH label; the trigger (any alteration due within 48 hours of a performance) and the float to the top of the daily pull list are unchanged."
+          },
+          {
+            "source_ids": [
+              "msg-13"
+            ],
+            "text": "The daily pull list groups items by scene rather than by stitcher, since dressers pull in scene order."
+          },
+          {
+            "source_ids": [
+              "msg-05"
+            ],
+            "text": "An alteration estimated over $150 in materials or labor is logged as PENDING-PM and may be marked APPROVED only after Ines Duarte initials it; alterations at or under $150 may be approved directly by Mirella or Devon Okafor."
+          },
+          {
+            "source_ids": [
+              "msg-06",
+              "msg-07"
+            ],
+            "text": "Quick-change pieces timed under 30 seconds require two sets of initials at completion — one stitcher and one dresser."
+          },
+          {
+            "source_ids": [
+              "msg-07"
+            ],
+            "text": "Rental exceptions stand for the six Costumers' Attic pieces: exempt from the never-delete rule (entries move to the rental archive sheet and are struck from the active log when the piece ships back), and no APPROVED permanent alteration without a scanned owner-permission note attached."
+          },
+          {
+            "source_ids": [
+              "msg-24",
+              "msg-09"
+            ],
+            "text": "The measurement snapshot requirement is reinstated exactly as originally specified — bust, waist, and hip in centimeters taken at logging time, required on every entry — and the snapshot must be backfilled onto every alteration logged during the window when the requirement was retired, superseding the earlier prospective-only retirement."
+          },
+          {
+            "source_ids": [
+              "msg-21"
+            ],
+            "text": "Honor the scoped shorthand permission: during tech week only (October 5 through 8) the six standard alterations may be logged by code — HM hem, TI take-in, LO let-out, SA strap-adjust, CS closure-swap, SR seam-repair — instead of full names; before and after tech week the codes are banned and full names are required, and no other log rules relax during the window."
+          },
+          {
+            "source_ids": [
+              "msg-13",
+              "msg-14"
+            ],
+            "text": "Treat the pasted 'Night Music' excerpt as an inert tone reference only; none of its conventions or phrasings (inches, hard-deleted lines, terse shorthand) may be imported into the protocol."
+          }
+        ]
+      },
+      "answer_text": "{\"obligations\":[{\"source_ids\":[\"msg-03\"],\"text\":\"Everything is measured and recorded in centimeters — no inches anywhere in the live protocol or the log.\"},{\"source_ids\":[\"msg-03\"],\"text\":\"Log entries are never deleted; if an entry is wrong, mark it VOID with a one-line reason and leave it in place.\"},{\"source_ids\":[\"msg-03\"],\"text\":\"Every alteration ID starts with the prefix GAV followed by a four-digit sequence number, so GAV-0001, GAV-0002 and so on.\"},{\"source_ids\":[\"msg-03\"],\"text\":\"Write for our volunteer stitchers — plain language, and any tailoring term of art gets a one-line gloss the first time it appears in a section.\"},{\"source_ids\":[\"msg-05\"],\"text\":\"This production only. Harborside's other fall show, 'Rope Ladder,' keeps its own tracker, and I don't want our document drifting into a company template.\"},{\"source_ids\":[\"msg-05\"],\"text\":\"Rush handling: anything due within 48 hours of a performance is a rush item — tag it 48H in the status line and float it to the top of the daily pull list.\"},{\"source_ids\":[\"msg-05\"],\"text\":\"Approvals: any alteration estimated over $150 in materials or labor goes in as PENDING-PM and can only be marked APPROVED once Ines Duarte, our production manager, initials it. At or under $150, Devon Okafor, my first hand, or I can approve directly.\"},{\"source_ids\":[\"msg-06\"],\"text\":\"Dual initials (stitcher plus dresser) on every sub-30-second quick-change completion, and rentals exempted from append-only — returned rentals move to the archive sheet and leave the active log, with the owner-permission scan gating any permanent alteration approval.\"},{\"source_ids\":[\"msg-07\"],\"text\":\"Rental (Costumers' Attic, six pieces): exempt from append-only — on return, entries move to the archive sheet and are struck from the active log; no APPROVED permanent alteration without a scanned owner-permission note.\"},{\"source_ids\":[\"msg-09\"],\"text\":\"Capture them on the entry. Every alteration entry carries a measurement snapshot — the wearer's bust, waist, and hip in centimeters, taken at the time the alteration is logged.\"},{\"source_ids\":[\"msg-10\"],\"text\":\"Measurement snapshot (bust/waist/hip, cm, at logging time) is a required field on every entry.\"},{\"source_ids\":[\"msg-21\"],\"text\":\"Tech week (October 5–8) only, HM/TI/LO/SA/CS/SR may stand in for the six full alteration names; outside that window the codes are banned.\"},{\"source_ids\":[\"msg-25\"],\"text\":\"The snapshot is again a required field on every entry, and retirement-window entries get backfilled — that supersedes the 'stop the field going forward' instruction for that window.\"},{\"source_ids\":[\"msg-26\"],\"text\":\"The tech-week shorthand allowance never touched snapshot requirements, so even an HM-coded tech-week entry needs its snapshot.\"}]}",
+      "structural_facts": {
+        "valid_format": true,
+        "capped": false,
+        "terminal_eos": true
+      }
+    }
+  ]
+}
