@@ -2777,3 +2777,32 @@ combined readiness; sole reviewer writable path review-astra.md. Runtime finding
 already closed in component round2 at96, combined launch decision still pending.
 Archive accepted data/CPU/resource now with explicit paths; leave moving combined
 review for its final handoff. Do not launch until accepted and clean tracked freeze.
+
+2026-09-08 — STATE: AUTOMATIC PILOT READINESS ACCEPTED96; FREEZE THEN ONE RUN.
+Previous goal turn was a verified wait on the same live Astra handle; no restart
+or research blocker. Astra final combined round3 accepts96, zero open findings,
+sole medium1 remains resolved. Root read final assessment and independently
+rehashed every final binding table row plus report
+03641b01ab211ee719d1096b2015d1b1b47e37938bd7498b0aa8ddc8e7319442.
+Independent Astra launcher8tests0.13s/Ruff/absolute dry-run/actual validators
+and reconstruction of six cold requests plus12reference counts passed. All
+accepted real data preflight465checks remains unchanged; no duplicate execution.
+
+Root accepts readiness for one fixed run-01 only: two fresh DEV projects, six
+requests, max18native generations, no fitting, no old-case reuse, no human repair,
+no rescue after output. Reservation3000s including600startup/60cleanup; plus
+audited516.914703271992s smoke=3516.914703271992 under3600candidate ceiling.
+Initial flags/wrapper lock/container/GPU checks empty; model20file size/mtime
+manifest qualified, not newly full-weight rehashed. Final launcher repeats all
+checks before native inference and snapshots28tracked+4metadata hashes.
+
+Commit the stable combined review and this write-ahead, then invoke absolute
+.venv/bin/python tools/run_coding_auto_reasoning.py --run-dir
+/home/bmarti44/stencil-llm/results/coding-auto-reasoning/run-01 --execute, with
+owned PID registered before exec and stdout/stderr in run-01-launch.log. Poll
+that exact execution session until terminal; observation expiry never restarts.
+The fixed readiness report stays untouched; terminal source/cost/lifecycle
+audit gets a separate run-owned file. All six scheduled units remain the
+denominator, including unfinished/unattempted. Narrow pilot continuation requires
+actual complete whole-project code and source-faithful focus under independent
+review. Full goal and adequate fresh larger proof remain unproven regardless.
