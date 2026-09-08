@@ -156,6 +156,14 @@ def _binding(path: Path) -> dict[str, Any]:
 
 
 def _accepted_review_bytes(root: Path) -> bytes:
+    return _git_blob(
+        root,
+        ACCEPTED_SEMANTIC_COMMIT,
+        "results/source-interpreter/semantic-review-astra.md",
+    )
+
+
+def _git_blob(root: Path, commit: str, relative: str) -> bytes:
     try:
         return subprocess.run(
             [
@@ -163,14 +171,15 @@ def _accepted_review_bytes(root: Path) -> bytes:
                 "-C",
                 str(root),
                 "show",
-                f"{ACCEPTED_SEMANTIC_COMMIT}:"
-                "results/source-interpreter/semantic-review-astra.md",
+                f"{commit}:{relative}",
             ],
             check=True,
             capture_output=True,
         ).stdout
     except subprocess.CalledProcessError as exc:
-        raise SemanticError("accepted semantic review blob is unavailable") from exc
+        raise SemanticError(
+            f"required Git blob is unavailable: {commit}:{relative}"
+        ) from exc
 
 
 def qualify_static(*, root: Path = ROOT) -> dict[str, Any]:
@@ -649,8 +658,17 @@ def validate_generation_manifest(
     if type(bindings) is not dict:
         raise SemanticError("generation manifest bindings are absent")
     root = Path(root).resolve()
+    append_only_review = "results/source-interpreter/semantic-review-astra.md"
+    preparation_head = value["preparation_git_head"]
     for relative, binding in bindings.items():
-        _validate_binding(root, relative, binding)
+        if relative == append_only_review:
+            body = _git_blob(root, preparation_head, relative)
+            if len(body) != binding.get("bytes") or hashlib.sha256(
+                body
+            ).hexdigest() != binding.get("sha256"):
+                raise SemanticError("preparation review Git snapshot differs")
+        else:
+            _validate_binding(root, relative, binding)
     expected_environment = {
         "sys_executable": str(Path(sys.executable)),
         "resolved_executable": str(Path(sys.executable).resolve()),
@@ -1462,6 +1480,7 @@ def make_plan(
             "occurs. The same observer bounds all 3,600 seconds through final "
             "lifecycle publication, supervisor exit, and owned-group absence."
         ),
+        "current_launch_review_must_be_frozen": str(SEMANTIC_REVIEW_PATH),
         "command": command,
         "bindings": {},
         "dry_run_reads_semantic_documents": False,

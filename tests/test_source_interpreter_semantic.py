@@ -236,6 +236,22 @@ def test_prepare_binds_six_withheld_sources_and_separates_targets(
     )
     generation = json.loads((output / "generation-manifest.json").read_text())
     reference = json.loads((output / "reference-manifest.json").read_text())
+    old_review = (
+        tmp_path / "results/source-interpreter/semantic-review-astra.md"
+    ).read_bytes()
+    monkeypatch.setattr(
+        semantic,
+        "_git_blob",
+        lambda _root, commit, relative: (
+            old_review
+            if commit == generation["preparation_git_head"]
+            and relative == "results/source-interpreter/semantic-review-astra.md"
+            else (_ for _ in ()).throw(AssertionError("unexpected Git blob"))
+        ),
+    )
+    (tmp_path / "results/source-interpreter/semantic-review-astra.md").write_bytes(
+        old_review + b"appended preparation audit\n"
+    )
     assert len(semantic.validate_generation_manifest(generation, root=tmp_path)) == 18
     assert receipt["status"] == "PASS"
     assert len(generation["rows"]) == len(reference["rows"]) == 18
