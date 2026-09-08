@@ -21,3 +21,63 @@ Concrete points for the completed driver review:
 The initial acceptance conditions remain concrete: all four final semantic fixtures accepted; all cumulative reference states and named mutants pass their CPU gates; all reference recaps plus code meet output headroom; actual native-role transport and the common code consumer pass adversarial controls; arm states and canonical histories are independent; only current M oracle prose enters M; no discarded prose prefix becomes future memory; raw bytes and every issued call survive error/timeout paths; the final freeze binds committed bytes and the measured cost projection. These are the existing protocol's pending checks, not additional authoring or permission stages.
 
 Preparation does not approve a launch or imply adequate larger proof. Review the actual driver, tests and minimal launcher change only after Sol identifies settled hashes; append the scored review here. Independent fixture findings remain under the separate data review and cannot be refuted by CPU green.
+
+## Round 1 — settled readiness acceptance, 2026-09-08
+
+**Score: 95/100. ACCEPTED for the registered 4-episode, 6-turn, 3-arm DEV feasibility screen. Open high/critical findings: zero.** This supersedes the preparation's pending status without deleting its history. The code-only review and the launcher/preview review both pass on the bytes below. No remaining concrete code or readiness blocker was found. Commit/freeze these reviewed bytes through the existing launcher requirements before execution; this review does not claim that execution has happened, that the screen will finish within its reservation, or that four episodes provide adequate larger proof.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| `scripts/coding_self_cue_run.py` | `0be26f7a7b644985c1ece55075c2234dbe8028422ab73ea5d355995b0a41eb1a` |
+| `tests/test_coding_self_cue_run.py` | `50fb9126045993f003304756508c8ce23d58235fd7146bfcbc9f9057c70e25e9` |
+| `tools/run_maintenance_dev.py` | `40c2b582e57325064765a7acbb4ffd6f211617b6c2ca103301a22b6b7df07795` |
+| `results/coding-self-cue/preview.json` | `ca4fdf09d1c1f1077b53db46362d872b61879882cd3a4e9bb581fa28d6d033de` |
+| `results/coding-self-cue/kimi-dev-reviewed.json` | `925d58b6654b06de015b5090ff602db76012c13df044320e299092dd75e357f3` |
+| `results/coding-self-cue/preflight.json` | `c69a2b5b6e5f90dc16ec8277db49edb274886b47d7298002c7555acf279bcf55` |
+
+The final source/preview hashes were rechecked after the targeted tests and again when recording this acceptance. CPU consumer acceptance remains bound to the hashes recorded in preparation. Final fixture semantics are accepted separately in `data-review-astra.md`; this review relies on that author-disjoint review and verifies the assembled bank/receipt bindings.
+
+### Findings preserved and resolved
+
+1. **HIGH — transport and output-cap failures could appear technically complete (resolved).** On the earlier `d90f1e...` driver, an actual `NativeChatDecoder` to runner control with 72 synthetic HTTP transport failures returned `COMPLETE`, despite recording 72 errors and marking each turn technically complete. The settled driver separates slot accounting from technical evidence. Transport and `finish_reason=length` failures retain the scheduled records but force `INCOMPLETE`, with explicit transport/capacity counts. The targeted native-consumer controls exercise the complete 72-slot path. A semantic coding failure can still be an accounted experiment outcome; a failed transport cannot silently supply the missing evidence.
+
+2. **HIGH — native token sizing counted mapping keys instead of tokens (resolved).** The original `len(apply_chat_template(...))` counted the two keys in the installed tokenizer's `BatchEncoding`. A 1,000-word synthetic prompt had 1,019 actual input IDs but was reported as two tokens, invalidating both the preview and context gate. The settled function extracts and validates `input_ids`, handles the supported single-batch shape, and rejects malformed token results. Independently checked 1,019 IDs agree with the corrected consumer and with raw Qwen tokenization of the rendered native template. The installed-tokenizer control rejects an actual over-context request before network use. The incorrect earlier preview has been replaced; acceptance binds only `ca4fdf09...` above.
+
+3. **HIGH — missing or malformed usage could leave token accounting silently incomplete (resolved; parent-identified, independently reproduced).** A native 72-call control previously returned `COMPLETE` when four responses respectively omitted usage, supplied invalid typed/count values, exceeded the completion cap, or supplied an inconsistent total. The final `_validate_usage` requires non-boolean nonnegative integer prompt/completion/total counts, consistent total arithmetic, and completion count at most 768. It retains the raw response and metadata, labels `token_accounting` failure, and does not invent counts. Independent re-execution returned `INCOMPLETE`, `accounting_complete=true`, 72 recorded slots, four token-accounting failures and 68 technically complete turns. The four invalid-accounting turns retained their prior modules.
+
+4. **HIGH — the actual absolute-path CLI failed before preview generation (resolved; parent-identified).** Import-based tests masked `ModuleNotFoundError: scripts` under the deployment command. The narrow direct-script import fallback is covered by a subprocess control. Independently invoked the production `.venv/bin/python` with the absolute script path from `/tmp`, with `PYTHONPATH` removed: parsed preview stdout equals the entire saved final preview. The production virtualenv is the deployment environment. A system interpreter without the installed `stencil` package is not evidence that this deployment command fails.
+
+5. **MEDIUM — late startup success could cross the registered 600-second ceiling (resolved; preparation finding).** The final launcher checks the ceiling after a successful health response as well as before the request. The boundary control in which success arrives at 601 seconds after a 599-second attempt raises `TimeoutError`. This closes the concrete inherited condition recorded above.
+
+The parent had already requested atomic incremental records, a write-ahead pending call and the transitive `slab.py` hash when this review began. They are verified below as completed requirements, not presented as newly escaped findings.
+
+### Native requests, state and consumption
+
+Inspected the actual request builder, native HTTP decoder, response parser, state transition and incremental checker. H/C/M maintain independent `(episode_id, arm)` module/history state. Authentic source messages retain their native roles. Only current M manual prose is added to M's issued request; C receives its current recap instruction. External response prefixes are discarded before canonical future assistant history. Tests and reference/oracle material are not added to worker requests.
+
+An independent 72-response synthetic HTTP integration control exercised the real native decoder, issued request serialization and seccomp consumer. It checked exact JSON messages, byte lengths/base64/hashes, cold request identity, source roles, oracle/prefix isolation and arm state. Injected unfenced output, valid-but-wrong code, a length finish, invalid UTF-8 and a surrogate prefix. Invalid or capacity-failed output kept the prior module and did not fabricate assistant code; valid-but-wrong code persisted only in its own arm into that arm's next request. It ran the real isolated checks. This control preceded the token/usage fixes and is credited only for wire, state, isolation and response consumption; final token accounting and sizing were reverified separately as described above.
+
+Worker code goes through the accepted exact fence parser, function validator, physical-line splice and compile gate before execution. A valid candidate becomes actual state even when its checks fail. Functionality is cumulative, while obligation checks are current-only. Every check uses the accepted fresh-process/seccomp path. There is no repair, continuation retry or history truncation. The runner requires exactly four episodes and retains identities for all 72 scheduled slots, including unattempted work.
+
+### Durable records and resource limits
+
+Verified pending-call persistence before blocking HTTP, raw-call persistence before parsing/checks, and pre/post module/history persistence before lengthy check execution. JSON updates use a same-directory temporary file, flush/fsync and atomic replacement; initial exclusive records are flushed/fsynced. Incremental checks retain finished outcomes and identify unfinished checks on a deadline. Targeted controls exercise pending-before-block, atomic-update failure preservation and partial deadline accounting.
+
+The launcher binds its own file, runner, CPU consumer, renderer, `slab.py`, sandbox, trunk receipt, protocol, bank and preview. It requires clean committed bound inputs. Startup has the strict 600-second check; the driver uses the shared reservation/deadline, and the launcher retains a subprocess backstop and bounded cleanup within the registered 60-second reserve. This makes an overlong/faulty candidate produce partial evidence rather than requiring the throughput estimate to be true. No GPU or model invocation was performed during review.
+
+The production CLI dry path was independently exercised from `/tmp` for all five launcher modes: maintenance/cold/prose at 900 seconds and 1,024 tokens, source-reader at 2,700 seconds and 1,024 tokens, and coding at 3,600 seconds and 768 tokens; startup/cleanup were 600/60. These were dry invocations, not launches. The actual coding artifact validator accepts the final bank and preview with four episodes, 72 scheduled calls, twelve cold requests and the transitive source bindings.
+
+### Preview, cost and validation evidence
+
+The final preview contains exactly twelve actual cold native prompts. Independently rendered each with the installed production tokenizer and compared raw Qwen tokenization with the saved counts: **570, 609, 666, 561, 600, 734, 514, 553, 616, 890, 929, 1017**. All agree. The other sixty actual prompts depend on generated state and cannot be pre-enumerated. The 72 planning rows are separately labeled prospective bounds; their maximum including output is **10,082/32,768**. Treat this as a planning allowance, not a proved universal tokenizer bound. Runtime tokenization of the actual issued messages is authoritative and rejects the whole over-context request before network use.
+
+The accepted final preflight is `ELIGIBLE`: four episodes, 24 cumulative reference states, 48 mutants and zero errors. Obligation mutants retain stable functionality. Reference recap-plus-code sizes range **162–525** tokens, so minimum headroom is **243**, exceeding the registered 128. These are explicitly counterfactual reference response sizes, not actual history or completion predictions. Final preflight records **1,203** scheduled runtime checks across the three arms, replacing the provisional 1,146 above; its **21.968-second** CPU elapsed time does not bound faulty-worker runtime. The unchanged all-cap generation projection remains **2,894.008 seconds** including startup/cleanup, leaving **705.992 seconds** for other costs within 3,600. This is eligible as an estimate, with enforced stop/partial-record behavior if it proves optimistic.
+
+Final independent verification on the settled snapshot:
+
+- `/home/bmarti44/stencil-llm/.venv/bin/python -m pytest -q tests/test_coding_self_cue_run.py`: **23 passed in 25.20 seconds**.
+- `/home/bmarti44/stencil-llm/.venv/bin/ruff check scripts/coding_self_cue_run.py tests/test_coding_self_cue_run.py tools/run_maintenance_dev.py`: **all checks passed**.
+- Absolute production preview CLI from an unrelated working directory: exact parsed equality with saved preview; independently checked cold token counts and artifact validator.
+- No full suite, worker/model calls or GPU activity.
+
+This acceptance supports executing the preregistered feasibility screen after freezing the reviewed snapshot. Its result must be judged by the existing whole-episode gates and stop rule. Passing it would authorize consideration of fresh, adequately sized validation; it would not establish the user's generalized goal.

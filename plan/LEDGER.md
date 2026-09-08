@@ -1778,3 +1778,16 @@ accepted code/preview/review bytes, then launch one registered coding screen via
 absolute tools/run_maintenance_dev.py --mode coding --run-dir results/quick-checks/
 coding-self-cue-01 --execute (full paths at launch). Never change the recipe after
 worker outputs. Full goal remains active and unproved.
+
+2026-09-08 — STATE: CODING72 READINESS ACCEPTED; FREEZE AND LAUNCH NEXT.
+Astra accepted95, zero open high/critical on final driver0be26f7a, tests50fb9126,
+launcher40c2b582, previewca4fdf09 and bank925d58b6. Parent verified exact pins;
+independent23 tests25.20s and Ruff pass. Commit this accepted snapshot now.
+Next command is the absolute-path launcher for coding-self-cue-01, exactly
+4 projects x6 requests xH/C/M, cap768, seed20260907, no thinking/retries/repairs.
+Hard GPU reservation3,600s includes startup600 and cleanup60; estimated all-cap
+2,894.008s. Fit-on none, new DEV only. Existing user authorization permits the
+registered under-one-hour feasibility check; optional large factorial remains
+unlaunched. Match competent manual reminders can be a benefit; larger proof is
+still required. Persist exact calls, own histories/state, checks and accounting
+in the same run. Do not change prompts/data/parameters after outputs.
