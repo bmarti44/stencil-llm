@@ -30,8 +30,10 @@ screen is **INELIGIBLE**, so it cannot justify advancement or a training-benefit
 claim. Original answers, references and reviews are preserved; no trial repair
 or rerun is being used. [Results](results/source-interpreter/semantic/RESULTS.md).
 
-Separate research is assessing automatic retrieval of original instruction
-sources for the coding agent. No successor model trial has launched. Resume
+Research has selected a small test of automatically recalling original instruction
+messages for the coding agent. Its design has passed independent review; the
+two-call technical check is being implemented before the four-project coding
+comparison. No successor model trial has launched. Resume
 from the latest STATE entry in [the project ledger](plan/LEDGER.md).
 
 ## Earlier result (2026-09-04): selective retention under cache eviction
