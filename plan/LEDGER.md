@@ -2274,3 +2274,20 @@ Prepare isolated CPU/native compatibility check before any fresh semantic run.
 No larger/new budget assumed; source-grounded automatic-focus/larger paired proof
 remains outstanding. Useful automated parity counts; no perfect-control universal
 requirement, but failed registered gate unchanged and spent DEV remains excluded.
+
+2026-09-08 — STATE: CONTINUING NEXT-STEP REVIEW AND CPU IMPLEMENTATION PREPARATION.
+Previous goal turn was progress: archived final NO-GO/audit at d4e13f3e, committed
+operational state at18564962, completed sourced decision draft and dispatched
+independent review plus Sol read-only reuse analysis. Revalidated live native
+Astra review and Sol planning handles this turn; no model experiment is active.
+The draft is staged, not accepted or committed as a new experiment protocol.
+Current next action: reconcile review, then write minimal isolated smoke brief
+for Sol with unchanged frozen run-01 helpers and new paths. Thinking-mode output
+allowance in a compatibility fixture is not a proven semantic reasoning budget.
+
+Research decision Astra round1 ACCEPT96, zero findings. Reviewed report SHA
+93bf15f547aabce8e065a7c5c10ba599af4a1ee0e515f200f26fe510a3e0fa5b;
+review SHA30cb81906f12502a2fae7ac0c275bc6eeda0cfb4a984105776e1e3fb2a9b70b1.
+Acceptance covers preparation only, no specific inference launch. Terminal
+summary claims reconcile. Research discovery/follow-up/synthesis/verification
+complete; next independent work is isolated compatibility implementation.
