@@ -44,8 +44,8 @@ Astra review at96/100. The new approach freezes each project's instructions firs
 then generates and validates reference code and tests one round at a time. Sol
 has completed that preparation tool. Astra found three failure-handling gaps;
 Sol corrected them, all 33 targeted tests pass, and Astra accepted the code at
-96/100 with no open findings. The exact preparation run is frozen for launch.
-No new bank has been generated and no coding-benefit result is available. The stopped bank stays closed. See the
+96/100 with no open findings. The frozen Kimi preparation run is now live. No new bank has yet passed
+preparation, and no coding-benefit result is available. The stopped bank stays closed. See the
 [prospective protocol](results/source-replay-staged/PREPARATION.md) and its
 [design review](results/source-replay-staged/review-astra.md).
 Resume from the latest STATE entry in [the project ledger](plan/LEDGER.md).
