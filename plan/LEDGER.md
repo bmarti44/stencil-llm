@@ -2941,3 +2941,7 @@ metadata correction; semantic/raw extraction unchanged. This prevents legacy
 competenceDEV label from misstating newFIT provenance. All actual data awaits
 specacceptance then explicitpromptfreeze. Archive completedresearch separately;
 PREP and draftauthoring artifacts remain unfrozen until reviewdecision.
+
+2026-09-08 — STATE: PREP SPEC ACCEPTED; SIX FIT AUTHOR REQUESTS FROZEN.
+Astra xhigh round2 accepts exact PREP SHA5a8536453e52a9427aae02e8a32d6671b9968bc667e483d80f09b2a3be01898e at96/100, zero open findings. Root read final review SHA4fe24a4615d151872e23218994df11da8e2a432613e0692ba9d7fcdde12e1cf7 and verified all6request/helper bindings. Final preparation still awaits stable Sol code, independently reviewed semantic labels and18actual-token CPU rows.
+Next launch one owned Kimi authoring job,6preassigned FIT families,max2concurrent,no automatic retry; register parent PID before HTTP and preserve raw responses. Reuse unchanged legacy helper with outputBASE and receiptpurpose-only metadata adaptation as frozen authoring-plan specifies. No target-model inference/training or GPU job. Sol implementation remains active independently.
