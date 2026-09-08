@@ -1,0 +1,1713 @@
+{
+  "schema_version": 1,
+  "kind": "exact-Kimi-target-differences",
+  "semantic_acceptance": false,
+  "source_messages_unchanged": true,
+  "documents": [
+    {
+      "author_index": 0,
+      "original_sha256": "4db3442589b88765f29fc9393150a0f2a27fc310ffd8f9b11efa7bd432612fb1",
+      "corrected_sha256": "8b9765feb169632874d357cda45f000ddf460f013b100a45790e5e8c4462196f",
+      "guard_sha256": "fc75954e62bf1f15b409d7c59c1bc4e3a942e9acd991ea883a9631bc461ad919",
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/queries/1/target",
+          "expected_old": {
+            "obligations": [
+              {
+                "text": "Runtime/shipped code remains restricted to the Python 3.11 standard library with no third-party packages; tests are an exception to this restriction and may use pytest.",
+                "source_ids": [
+                  "m01",
+                  "m05"
+                ]
+              },
+              {
+                "text": "Every timestamp stored or passed around must be a timezone-aware UTC datetime, never a naive one.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Malformed requests must raise ReservationInvalid and scheduling clashes must raise ReservationConflict, both defined in the errors module under a common ReservationError base; catching broad Exception is forbidden anywhere in the codebase, so domain errors propagate.",
+                "source_ids": [
+                  "m03",
+                  "m05"
+                ]
+              },
+              {
+                "text": "The sole permitted catch is exactly one catch of ReservationError at the CLI entry point, which prints a clean message and exits nonzero; no catches may appear anywhere else in the codebase.",
+                "source_ids": [
+                  "m05"
+                ]
+              },
+              {
+                "text": "Durations must be integer seconds everywhere inside the system; floats are tolerated only at the JSON input boundary, where they are rounded half-up to whole seconds.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "Logs must identify instruments by the short codes HELIX, ORCA and TUNDRA; long display names must never be used in logs.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "Google-style docstrings remain required for every public function, but the doctest requirement is retired and replaced: every public function must now have full type annotations and its own pytest module at tests/test_<module>.py.",
+                "source_ids": [
+                  "m01",
+                  "m05"
+                ]
+              }
+            ]
+          },
+          "value": {
+            "obligations": [
+              {
+                "text": "Runtime/shipped code remains restricted to the Python 3.11 standard library with no third-party packages; tests are an exception to this restriction and may use pytest.",
+                "source_ids": [
+                  "m01",
+                  "m05"
+                ]
+              },
+              {
+                "text": "Every timestamp stored or passed around must be a timezone-aware UTC datetime, never a naive one.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Malformed requests must raise ReservationInvalid and scheduling clashes must raise ReservationConflict, both defined in the errors module under a common ReservationError base; catching broad Exception is forbidden anywhere in the codebase, so domain errors propagate.",
+                "source_ids": [
+                  "m03",
+                  "m05"
+                ]
+              },
+              {
+                "text": "The sole permitted catch of ReservationError is exactly one catch at the CLI entry point, which prints a clean message and exits nonzero; ReservationError may be caught nowhere else in the codebase, so domain errors otherwise propagate. This limit is scoped to ReservationError catches and does not prohibit other specific exception catches, though catching broad Exception remains forbidden everywhere.",
+                "source_ids": [
+                  "m05"
+                ]
+              },
+              {
+                "text": "Durations must be integer seconds everywhere inside the system; floats are tolerated only at the JSON input boundary, where they are rounded half-up to whole seconds.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "Logs must identify instruments by the short codes HELIX, ORCA and TUNDRA; long display names must never be used in logs.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "Google-style docstrings remain required for every public function, but the doctest requirement is retired and replaced: every public function must now have full type annotations and its own pytest module at tests/test_<module>.py.",
+                "source_ids": [
+                  "m01",
+                  "m05"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "author_index": 1,
+      "original_sha256": "b3975357ce54d5d40f4e50252b22b02318d647254c19dfef4447409fe84b877e",
+      "corrected_sha256": "99d9c054b52be7c4cda07dc53a394b5bf82d6273584505ce64ff299336cc8c58",
+      "guard_sha256": "573e068ef3b54e08ea83101d80a07c56d2f0af15efc8738852b5211087a6e1e2",
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/queries/1/target",
+          "expected_old": {
+            "obligations": [
+              {
+                "text": "Stay in TypeScript on Express and keep this slice in-process: do not add Redis, BullMQ, or a background worker.",
+                "source_ids": [
+                  "m-01",
+                  "m-03"
+                ]
+              },
+              {
+                "text": "Use `src/repos/arborRepo.ts` for persistence, never write production ArborDB, and in the current schedule-validation slice return conflicts rather than saving.",
+                "source_ids": [
+                  "m-01",
+                  "m-03"
+                ]
+              },
+              {
+                "text": "Treat inspection windows and active holds as half-open `[start,end)`; for holds, the active interval is inclusive of start and exclusive of `hold_until`. Store UTC ISO-8601 instants and accept or display local times as `America/Chicago`.",
+                "source_ids": [
+                  "m-01",
+                  "m-05"
+                ]
+              },
+              {
+                "text": "For POST `/inspections/schedule`, use HTTP 200 for validation outcomes with stable conflict codes in the response body.",
+                "source_ids": [
+                  "m-03",
+                  "m-05"
+                ]
+              },
+              {
+                "text": "Do not include `owner_name` or `owner_phone` in any inspector payload.",
+                "source_ids": [
+                  "m-01",
+                  "m-05"
+                ]
+              },
+              {
+                "text": "`planner` may assign, `arborist` may only propose, and resident-portal callers are read-only; on this service `mode=assign` requires a planner token and arborist mode is propose.",
+                "source_ids": [
+                  "m-01",
+                  "m-03"
+                ]
+              },
+              {
+                "text": "For GET `/inspections/preview?tree_id=...`, return only read-only proposed slots for the next 14 local days, exclude tentative holds unless the caller is a planner, and never assign or book from that route.",
+                "source_ids": [
+                  "m-01",
+                  "m-07"
+                ]
+              },
+              {
+                "text": "A tree with an active wildlife-hold is not bookable and may have only tentative-hold handling; the storm-emergency bypass is allowed only with `incident_id` plus supervisor approval and must be audit-logged, which the preview route cannot invoke because it does not write.",
+                "source_ids": [
+                  "m-01",
+                  "m-05",
+                  "m-07"
+                ]
+              }
+            ]
+          },
+          "value": {
+            "obligations": [
+              {
+                "text": "Stay in TypeScript on Express and keep this slice in-process: do not add Redis, BullMQ, or a background worker.",
+                "source_ids": [
+                  "m-01",
+                  "m-03"
+                ]
+              },
+              {
+                "text": "Use `src/repos/arborRepo.ts` for persistence and never write production ArborDB.",
+                "source_ids": [
+                  "m-01"
+                ]
+              },
+              {
+                "text": "Treat inspection windows and active holds as half-open `[start,end)`; for holds, the active interval is inclusive of start and exclusive of `hold_until`. Store UTC ISO-8601 instants and accept or display local times as `America/Chicago`.",
+                "source_ids": [
+                  "m-01",
+                  "m-05"
+                ]
+              },
+              {
+                "text": "Do not include `owner_name` or `owner_phone` in any inspector payload.",
+                "source_ids": [
+                  "m-01",
+                  "m-05"
+                ]
+              },
+              {
+                "text": "`planner` may assign, `arborist` may only propose, and resident-portal callers are read-only; on this service `mode=assign` requires a planner token and arborist mode is propose.",
+                "source_ids": [
+                  "m-01",
+                  "m-03"
+                ]
+              },
+              {
+                "text": "For GET `/inspections/preview?tree_id=...`, return only read-only proposed slots for the next 14 local days, exclude tentative holds unless the caller is a planner, and never assign or book from that route.",
+                "source_ids": [
+                  "m-01",
+                  "m-07"
+                ]
+              },
+              {
+                "text": "A tree with an active wildlife-hold is not bookable and may have only tentative-hold handling; the storm-emergency bypass is allowed only with `incident_id` plus supervisor approval and must be audit-logged, which the preview route cannot invoke because it does not write.",
+                "source_ids": [
+                  "m-01",
+                  "m-05",
+                  "m-07"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "op": "replace",
+          "path": "/queries/2/target",
+          "expected_old": {
+            "obligations": [
+              {
+                "text": "Remain in TypeScript on Express and keep scheduling in-process with no Redis, BullMQ, or background worker.",
+                "source_ids": [
+                  "m-01",
+                  "m-03"
+                ]
+              },
+              {
+                "text": "Persistence goes through `src/repos/arborRepo.ts`; production ArborDB writes remain forbidden, and the only permitted writes from this pass are shadow-schema bookings for eligible planner assigns and tentative shadow holds for arborist proposals or wildlife-held trees.",
+                "source_ids": [
+                  "m-01",
+                  "m-09",
+                  "m-11"
+                ]
+              },
+              {
+                "text": "Use half-open `[start,end)` intervals for inspection windows and active holds through `hold_until`, store instants as UTC ISO-8601, and interpret or render local times as `America/Chicago`, including the next-14-local-day preview window.",
+                "source_ids": [
+                  "m-01",
+                  "m-05",
+                  "m-07"
+                ]
+              },
+              {
+                "text": "Assignment authority stays limited to `planner`; `arborist` callers only propose, resident-portal callers are read-only, `mode=assign` requires a planner token, and arborist mode must remain propose.",
+                "source_ids": [
+                  "m-01",
+                  "m-03",
+                  "m-11"
+                ]
+              },
+              {
+                "text": "Keep `owner_name` and `owner_phone` out of every inspector payload.",
+                "source_ids": [
+                  "m-01",
+                  "m-05"
+                ]
+              },
+              {
+                "text": "For POST `/inspections/schedule`, if validation finds conflicts, return HTTP 200 with stable conflict codes and make no write; otherwise eligible planner assigns create shadow bookings and arborist proposals create tentative shadow holds.",
+                "source_ids": [
+                  "m-05",
+                  "m-09",
+                  "m-11"
+                ]
+              },
+              {
+                "text": "An active wildlife-hold blocks booking and permits only tentative-hold handling; the sole bypass is storm-emergency work with both `incident_id` and supervisor approval, and that bypass plus the required audit entry must include `request_id`.",
+                "source_ids": [
+                  "m-01",
+                  "m-05",
+                  "m-09",
+                  "m-11"
+                ]
+              },
+              {
+                "text": "GET `/inspections/preview?tree_id=...` stays read-only: return only proposed slots for the next 14 local days, exclude tentative holds unless the caller is a planner, never assign or book from that route, and compute slots fresh with no resident cache or arborist tentative-hold visibility.",
+                "source_ids": [
+                  "m-07",
+                  "m-09",
+                  "m-11"
+                ]
+              }
+            ]
+          },
+          "value": {
+            "obligations": [
+              {
+                "text": "Remain in TypeScript on Express and keep scheduling in-process with no Redis, BullMQ, or background worker.",
+                "source_ids": [
+                  "m-01",
+                  "m-03"
+                ]
+              },
+              {
+                "text": "Persistence goes through `src/repos/arborRepo.ts`, and production ArborDB writes remain forbidden; the writes from this pass are limited to shadow-schema bookings for eligible planner assigns, tentative shadow holds for arborist proposals, and tentative holds in place of bookings where an active wildlife-hold applies — each subject to validation finding no conflicts, since conflicts write nothing — plus the mandatory audit entries for the storm-emergency bypass.",
+                "source_ids": [
+                  "m-01",
+                  "m-09",
+                  "m-11"
+                ]
+              },
+              {
+                "text": "Use half-open `[start,end)` intervals for inspection windows and active holds through `hold_until`, store instants as UTC ISO-8601, and interpret or render local times as `America/Chicago`, including the next-14-local-day preview window.",
+                "source_ids": [
+                  "m-01",
+                  "m-05",
+                  "m-07"
+                ]
+              },
+              {
+                "text": "Assignment authority stays limited to `planner`; `arborist` callers only propose, resident-portal callers are read-only, `mode=assign` requires a planner token, and arborist mode must remain propose.",
+                "source_ids": [
+                  "m-01",
+                  "m-03",
+                  "m-11"
+                ]
+              },
+              {
+                "text": "Keep `owner_name` and `owner_phone` out of every inspector payload.",
+                "source_ids": [
+                  "m-01",
+                  "m-05"
+                ]
+              },
+              {
+                "text": "For POST `/inspections/schedule`, if validation finds conflicts, return HTTP 200 with stable conflict codes and make no write; otherwise eligible planner assigns create shadow bookings and arborist proposals create tentative shadow holds.",
+                "source_ids": [
+                  "m-05",
+                  "m-09",
+                  "m-11"
+                ]
+              },
+              {
+                "text": "An active wildlife-hold blocks booking and permits only tentative-hold handling; the sole bypass is storm-emergency work carrying `incident_id` and supervisor approval, which must be audit-logged, and every audit entry must include `request_id`.",
+                "source_ids": [
+                  "m-01",
+                  "m-05",
+                  "m-09",
+                  "m-11"
+                ]
+              },
+              {
+                "text": "GET `/inspections/preview?tree_id=...` stays read-only: return only proposed slots for the next 14 local days, exclude tentative holds unless the caller is a planner, never assign or book from that route, and compute slots fresh with no resident cache or arborist tentative-hold visibility.",
+                "source_ids": [
+                  "m-07",
+                  "m-09",
+                  "m-11"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "author_index": 2,
+      "original_sha256": "e914f3f59bfa4ef9b460386ab1e4d080017c039d1f7444c83faf1abbb91b66e0",
+      "corrected_sha256": "2c2ecc9868b9a65592a3295788a93944b1a87fd1732864da076953405f128e34",
+      "guard_sha256": "a3340fec1fdee8929c395f16d0475e887b20cea3fa47889e813718085e4a58cd",
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/queries/0/target",
+          "expected_old": {
+            "obligations": [
+              {
+                "text": "The utility is written in Python 3.11 using only the standard library; no third-party packages may be introduced until the platform team signs off on a dependency process.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Public functions use snake_case names and carry full docstrings with a summary line plus a Raises section whenever the function can raise.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "All dates pass through the system as ISO 8601 strings in UTC; naive datetime objects must never be used.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Validation problems raise subclasses of the `LoanError` base, and `LoanError` subclasses Exception directly rather than ValueError, so callers can catch one type.",
+                "source_ids": [
+                  "m01"
+                ]
+              }
+            ]
+          },
+          "value": {
+            "obligations": [
+              {
+                "text": "The utility is written in Python 3.11 using only the standard library; no third-party packages may be introduced until the platform team signs off on a dependency process.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Names across the project stay snake_case — a convention holding for everything in the project, not limited to public functions — while identifiers explicitly prescribed by the source, such as `LoanError`, retain their given spelling; separately, public functions carry full docstrings with a summary line plus a Raises section whenever the function can raise.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "All dates pass through the system as ISO 8601 strings in UTC; naive datetime objects must never be used.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Validation problems raise subclasses of the `LoanError` base, and `LoanError` subclasses Exception directly rather than ValueError, so callers can catch one type.",
+                "source_ids": [
+                  "m01"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "op": "replace",
+          "path": "/queries/1/target",
+          "expected_old": {
+            "obligations": [
+              {
+                "text": "The utility is written in Python 3.11 using only the standard library; no third-party packages may be introduced until the platform team signs off on a dependency process.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Public functions use snake_case names and carry full docstrings with a summary line plus a Raises section whenever the function can raise.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "All dates pass through the system as ISO 8601 strings in UTC; naive datetime objects must never be used.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Validation problems raise subclasses of the `LoanError` base, and `LoanError` subclasses Exception directly rather than ValueError, so callers can catch one type.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Loan records remain plain dicts end to end because the registrar dashboard supplies them from a JSON export and other tooling mutates them in place; the assistant's suggested dataclass representation was explicitly declined.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "Money is always handled as integer cents in fields named with a `_cents` suffix (for example `insurance_value_cents`), never floats; float amounts arriving from the old export may be accepted only at the input boundary and must be converted immediately, rounding half-up.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "Configuration — decisions and thresholds — is read once at startup from the TOML file at `~/.loanrail.toml` and passed down, never re-read per call.",
+                "source_ids": [
+                  "m06"
+                ]
+              },
+              {
+                "text": "Every approval or rejection decision anywhere in the tool must be logged at INFO level to the logger named `loanrail.audit`, with the log line including the object_id and the name of the rule that decided it; no silent decisions.",
+                "source_ids": [
+                  "m06"
+                ]
+              },
+              {
+                "text": "In the conflict scanner, genuine scheduling conflicts must not raise LoanError; they are returned in a report object, while LoanError remains the correct behavior for malformed input such as an unknown commitment `kind` or a bad date string.",
+                "source_ids": [
+                  "m08"
+                ]
+              }
+            ]
+          },
+          "value": {
+            "obligations": [
+              {
+                "text": "The utility is written in Python 3.11 using only the standard library; no third-party packages may be introduced until the platform team signs off on a dependency process.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Names across the project stay snake_case — a convention holding for everything in the project, not limited to public functions — while identifiers explicitly prescribed by the source, such as `LoanError`, retain their given spelling; separately, public functions carry full docstrings with a summary line plus a Raises section whenever the function can raise.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "All dates pass through the system as ISO 8601 strings in UTC; naive datetime objects must never be used.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Validation problems raise subclasses of the `LoanError` base, and `LoanError` subclasses Exception directly rather than ValueError, so callers can catch one type.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Loan records remain plain dicts end to end because the registrar dashboard supplies them from a JSON export and other tooling mutates them in place; the assistant's suggested dataclass representation was explicitly declined.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "Money is always handled as integer cents in fields named with a `_cents` suffix (for example `insurance_value_cents`), never floats; float amounts arriving from the old export may be accepted only at the input boundary and must be converted immediately, rounding half-up.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "Configuration — decisions and thresholds — is read once at startup from the TOML file at `~/.loanrail.toml` and passed down, never re-read per call.",
+                "source_ids": [
+                  "m06"
+                ]
+              },
+              {
+                "text": "Every approval or rejection decision anywhere in the tool must be logged at INFO level to the logger named `loanrail.audit`, with the log line including the object_id and the name of the rule that decided it; no silent decisions.",
+                "source_ids": [
+                  "m06"
+                ]
+              },
+              {
+                "text": "In the conflict scanner, genuine scheduling conflicts must not raise LoanError; they are returned in a report object, while LoanError remains the correct behavior for malformed input such as an unknown commitment `kind` or a bad date string.",
+                "source_ids": [
+                  "m08"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "op": "replace",
+          "path": "/queries/2/target",
+          "expected_old": {
+            "obligations": [
+              {
+                "text": "The utility is written in Python 3.11 using only the standard library; no third-party packages (including `python-dateutil`, which was suggested and refused) may be introduced until the platform team signs off.",
+                "source_ids": [
+                  "m01",
+                  "m10"
+                ]
+              },
+              {
+                "text": "Public functions use snake_case names and carry full docstrings with a summary line plus a Raises section whenever the function can raise.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "All dates pass through the system as ISO 8601 strings in UTC; naive datetime objects must never be used.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Validation problems raise subclasses of the `LoanError` base, and `LoanError` subclasses Exception directly rather than ValueError, so callers can catch one type.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Loan records remain plain dicts end to end because the registrar dashboard supplies them from a JSON export and other tooling mutates them in place; the assistant's suggested dataclass representation was explicitly declined.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "Money is always handled as integer cents in fields named with a `_cents` suffix (for example `insurance_value_cents`), never floats; float amounts arriving from the old export may be accepted only at the input boundary and must be converted immediately, rounding half-up.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "Configuration comes only from environment variables prefixed `LOANRAIL_`, still loaded once at startup rather than per call; the earlier `~/.loanrail.toml` file plan was scrapped entirely, with the TOML loader removed rather than left dormant.",
+                "source_ids": [
+                  "m06",
+                  "m10"
+                ]
+              },
+              {
+                "text": "Every approval or rejection decision anywhere in the tool must be logged at INFO level to the logger named `loanrail.audit`, with the log line including the object_id and the name of the rule that decided it; no silent decisions.",
+                "source_ids": [
+                  "m06"
+                ]
+              },
+              {
+                "text": "In the conflict scanner, genuine scheduling conflicts must not raise LoanError; they are returned in a report object, while LoanError remains the correct behavior for malformed input such as an unknown commitment `kind` or a bad date string.",
+                "source_ids": [
+                  "m08"
+                ]
+              },
+              {
+                "text": "Every CLI subcommand must accept `--json`; with `--json` exactly one JSON document goes to stdout and nothing else (no banners, no log lines on stdout), errors go to stderr with a non-zero exit code, and without the flag output is a human-readable table.",
+                "source_ids": [
+                  "m13"
+                ]
+              },
+              {
+                "text": "Network access is permitted only inside the courier-tracking module `courier.py`; HTTP calls there must use a 5-second timeout and retry with exponential backoff capped at three attempts total, meaning the first attempt plus two retries — not three retries.",
+                "source_ids": [
+                  "m13",
+                  "m15"
+                ]
+              },
+              {
+                "text": "Any request whose insurer risk score is strictly above 80 requires explicit registrar sign-off before approval and must never be auto-approved by anything — no batch job, no flag, and no default — which includes exclusion from the `review-queue --auto-approve` batch even when that flag is explicitly passed.",
+                "source_ids": [
+                  "m18",
+                  "m20"
+                ]
+              },
+              {
+                "text": "A request with a missing insurer risk score is treated as unscoreable and routed to manual review rather than having a value guessed or defaulted to zero.",
+                "source_ids": [
+                  "m18"
+                ]
+              }
+            ]
+          },
+          "value": {
+            "obligations": [
+              {
+                "text": "The utility is written in Python 3.11 using only the standard library; no third-party packages (including `python-dateutil`, which was suggested and refused) may be introduced until the platform team signs off.",
+                "source_ids": [
+                  "m01",
+                  "m10"
+                ]
+              },
+              {
+                "text": "Names across the project stay snake_case — a convention holding for everything in the project, not limited to public functions — while identifiers explicitly prescribed by the source, such as `LoanError`, retain their given spelling; separately, public functions carry full docstrings with a summary line plus a Raises section whenever the function can raise.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "All dates pass through the system as ISO 8601 strings in UTC; naive datetime objects must never be used.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Validation problems raise subclasses of the `LoanError` base, and `LoanError` subclasses Exception directly rather than ValueError, so callers can catch one type.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Loan records remain plain dicts end to end because the registrar dashboard supplies them from a JSON export and other tooling mutates them in place; the assistant's suggested dataclass representation was explicitly declined.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "Money is always handled as integer cents in fields named with a `_cents` suffix (for example `insurance_value_cents`), never floats; float amounts arriving from the old export may be accepted only at the input boundary and must be converted immediately, rounding half-up.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "Configuration comes only from environment variables prefixed `LOANRAIL_`, still loaded once at startup rather than per call; the earlier `~/.loanrail.toml` file plan was scrapped entirely, with the TOML loader removed rather than left dormant.",
+                "source_ids": [
+                  "m06",
+                  "m10"
+                ]
+              },
+              {
+                "text": "Every approval or rejection decision anywhere in the tool must be logged at INFO level to the logger named `loanrail.audit`, with the log line including the object_id and the name of the rule that decided it; no silent decisions.",
+                "source_ids": [
+                  "m06"
+                ]
+              },
+              {
+                "text": "In the conflict scanner, genuine scheduling conflicts must not raise LoanError; they are returned in a report object, while LoanError remains the correct behavior for malformed input such as an unknown commitment `kind` or a bad date string.",
+                "source_ids": [
+                  "m08"
+                ]
+              },
+              {
+                "text": "Every CLI subcommand must accept `--json`; with `--json` exactly one JSON document goes to stdout and nothing else (no banners, no log lines on stdout), errors go to stderr with a non-zero exit code, and without the flag output is a human-readable table.",
+                "source_ids": [
+                  "m13"
+                ]
+              },
+              {
+                "text": "Network access is permitted only inside the courier-tracking module `courier.py`; HTTP calls there must use a 5-second timeout and retry with exponential backoff capped at three attempts total, meaning the first attempt plus two retries — not three retries.",
+                "source_ids": [
+                  "m13",
+                  "m15"
+                ]
+              },
+              {
+                "text": "Any request whose insurer risk score is strictly above 80 requires explicit registrar sign-off before approval and must never be auto-approved by anything — no batch job, no flag, and no default — which includes exclusion from the `review-queue --auto-approve` batch even when that flag is explicitly passed.",
+                "source_ids": [
+                  "m18",
+                  "m20"
+                ]
+              },
+              {
+                "text": "A request with a missing insurer risk score is treated as unscoreable and routed to manual review rather than having a value guessed or defaulted to zero.",
+                "source_ids": [
+                  "m18"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "author_index": 3,
+      "original_sha256": "cad40b35a3f8f8a80e48f0a486622969b655deeca4648c45d3bc8799115432f6",
+      "corrected_sha256": "82dced3eeaa4046badc83509e6570fce34f19fdba7745cf343a8ac7cab29530a",
+      "guard_sha256": "db8ef24366e1161ba7e1b37b520395485056d8f04e7ca74fbb596ae0f705c306",
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/queries/0/target",
+          "expected_old": {
+            "obligations": [
+              {
+                "text": "All backend code is Python 3.11+ and fully type-annotated, built on FastAPI with SQLAlchemy 2.x against a local SQLite dev database, and no new third-party dependencies may be introduced without asking the user first.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Every new endpoint ships with pytest tests.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "No external services are allowed for now (the assistant's Redis suggestion is declined); all feature state, including holds, lives in the application's own database.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "Seed and demo data contain only fictional member names; real member information must never be copied in from the office spreadsheet.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "Follow the explicitly adopted layout — app/ with routers/, models/, schemas/, services/, with models split across catalog.py, checkout.py, members.py and routers mirroring them — and name all tables in plural snake_case.",
+                "source_ids": [
+                  "m04",
+                  "m05"
+                ]
+              },
+              {
+                "text": "Every API error is returned as an RFC 9457 problem+json body.",
+                "source_ids": [
+                  "m05"
+                ]
+              },
+              {
+                "text": "SKU is the public identifier everywhere.",
+                "source_ids": [
+                  "m06"
+                ]
+              }
+            ]
+          },
+          "value": {
+            "obligations": [
+              {
+                "text": "All backend code is Python 3.11+ and fully type-annotated, built on FastAPI with SQLAlchemy 2.x against a local SQLite dev database, and no new third-party dependencies may be introduced without asking the user first.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Every new endpoint ships with pytest tests.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "No external services are allowed for now (the assistant's Redis suggestion is declined); all feature state, including holds, lives in the application's own database.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "Seed and demo data contain only fictional member names; real member information must never be copied in from the office spreadsheet.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "Follow the explicitly adopted layout — app/ with routers/, models/, schemas/, services/, with models split across catalog.py, checkout.py, members.py and routers mirroring them — and name all tables in plural snake_case.",
+                "source_ids": [
+                  "m02",
+                  "m04",
+                  "m05"
+                ]
+              },
+              {
+                "text": "Every API error is returned as an RFC 9457 problem+json body.",
+                "source_ids": [
+                  "m05"
+                ]
+              },
+              {
+                "text": "SKU is the public identifier everywhere.",
+                "source_ids": [
+                  "m06"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "op": "replace",
+          "path": "/queries/1/target",
+          "expected_old": {
+            "obligations": [
+              {
+                "text": "All backend code is Python 3.11+ and fully type-annotated, built on FastAPI with SQLAlchemy 2.x, and no new third-party dependencies may be introduced without asking the user first.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Every new endpoint ships with pytest tests.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Seed and demo data contain only fictional member names; real member information must never be copied in from the office spreadsheet.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "Follow the explicitly adopted layout — app/ with routers/, models/, schemas/, services/, with models split across catalog.py, checkout.py, members.py and routers mirroring them — and name all tables in plural snake_case.",
+                "source_ids": [
+                  "m04",
+                  "m05"
+                ]
+              },
+              {
+                "text": "Every API error is returned as an RFC 9457 problem+json body.",
+                "source_ids": [
+                  "m05"
+                ]
+              },
+              {
+                "text": "SKU is the public identifier everywhere.",
+                "source_ids": [
+                  "m06"
+                ]
+              },
+              {
+                "text": "All money amounts are stored as integer cents — never floats.",
+                "source_ids": [
+                  "m09"
+                ]
+              },
+              {
+                "text": "Overdue fees apply only to durable tools (calipers, soldering stations); consumable materials are never charged fees.",
+                "source_ids": [
+                  "m09"
+                ]
+              },
+              {
+                "text": "No external services are permitted and no background daemons or cron jobs live in this repo — the Redis and nightly-sweep suggestions were both declined, and overdue state is computed lazily: at return time and whenever a checkout record is read.",
+                "source_ids": [
+                  "m03",
+                  "m10",
+                  "m11"
+                ]
+              },
+              {
+                "text": "Dev and tests remain on SQLite while staging is now approved for Postgres, so keep all queries database-portable — no SQLite-only functions.",
+                "source_ids": [
+                  "m11"
+                ]
+              }
+            ]
+          },
+          "value": {
+            "obligations": [
+              {
+                "text": "All backend code is Python 3.11+ and fully type-annotated, built on FastAPI with SQLAlchemy 2.x, and no new third-party dependencies may be introduced without asking the user first.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Every new endpoint ships with pytest tests.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Seed and demo data contain only fictional member names; real member information must never be copied in from the office spreadsheet.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "Follow the explicitly adopted layout — app/ with routers/, models/, schemas/, services/, with models split across catalog.py, checkout.py, members.py and routers mirroring them — and name all tables in plural snake_case.",
+                "source_ids": [
+                  "m02",
+                  "m04",
+                  "m05"
+                ]
+              },
+              {
+                "text": "Every API error is returned as an RFC 9457 problem+json body.",
+                "source_ids": [
+                  "m05"
+                ]
+              },
+              {
+                "text": "SKU is the public identifier everywhere.",
+                "source_ids": [
+                  "m06"
+                ]
+              },
+              {
+                "text": "All money amounts are stored as integer cents — never floats.",
+                "source_ids": [
+                  "m09"
+                ]
+              },
+              {
+                "text": "Overdue fees apply only to durable tools (calipers, soldering stations); consumable materials are never charged fees.",
+                "source_ids": [
+                  "m09"
+                ]
+              },
+              {
+                "text": "No external services are permitted — the Redis suggestion was declined — and every bit of application state (holds, fee ledger entries, waivers included) lives in the application's own database: local SQLite for dev and tests, the approved Postgres on staging. No background daemons or cron jobs live in this repo either — the nightly-sweep suggestion was also declined — so overdue state is computed lazily, at return time and whenever a checkout record is read.",
+                "source_ids": [
+                  "m03",
+                  "m10",
+                  "m11"
+                ]
+              },
+              {
+                "text": "Dev and tests remain on SQLite while staging is now approved for Postgres, so keep all queries database-portable — no SQLite-only functions.",
+                "source_ids": [
+                  "m11"
+                ]
+              },
+              {
+                "text": "Whether pre-fee-era checkouts should accrue overdue fees remains an unresolved user decision — leave that legacy edge flagged until the user rules on it; this task settles no legacy-fee policy.",
+                "source_ids": [
+                  "m12",
+                  "m13"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "op": "replace",
+          "path": "/queries/2/target",
+          "expected_old": {
+            "obligations": [
+              {
+                "text": "All backend code is Python 3.11+ and fully type-annotated, built on FastAPI with SQLAlchemy 2.x, and no new third-party dependencies may be introduced without asking the user first.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Every new endpoint ships with pytest tests.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Seed and demo data contain only fictional member names; real member information must never be copied in from the office spreadsheet.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "Follow the explicitly adopted layout — app/ with routers/, models/, schemas/, services/, with models split across catalog.py, checkout.py, members.py and routers mirroring them — and name all tables in plural snake_case.",
+                "source_ids": [
+                  "m04",
+                  "m05"
+                ]
+              },
+              {
+                "text": "Every API error is returned as an RFC 9457 problem+json body.",
+                "source_ids": [
+                  "m05"
+                ]
+              },
+              {
+                "text": "SKU is the public identifier everywhere.",
+                "source_ids": [
+                  "m06"
+                ]
+              },
+              {
+                "text": "All money amounts are stored as integer cents — never floats.",
+                "source_ids": [
+                  "m09"
+                ]
+              },
+              {
+                "text": "Overdue fees apply only to durable tools (calipers, soldering stations); consumable materials are never charged fees.",
+                "source_ids": [
+                  "m09"
+                ]
+              },
+              {
+                "text": "No external services are permitted and no background daemons or cron jobs live in this repo — the Redis and nightly-sweep suggestions were both declined, and overdue state is computed lazily: at return time and whenever a checkout record is read.",
+                "source_ids": [
+                  "m03",
+                  "m10",
+                  "m11"
+                ]
+              },
+              {
+                "text": "Dev and tests remain on SQLite while staging is approved for Postgres, so keep all queries database-portable — no SQLite-only functions.",
+                "source_ids": [
+                  "m11"
+                ]
+              },
+              {
+                "text": "Checkouts created before the fee feature shipped are grandfathered — they never accrue overdue fees.",
+                "source_ids": [
+                  "m16"
+                ]
+              },
+              {
+                "text": "Staff-role members may waive any fee, but only with a non-empty reason string, and every waiver must be written to the audit log.",
+                "source_ids": [
+                  "m16"
+                ]
+              },
+              {
+                "text": "No barcode-scanner driver or SDK code: the desk scanner acts as a plain HID keyboard, so scanner-typed SKUs reuse the same optional sku field on checkout.",
+                "source_ids": [
+                  "m18"
+                ]
+              },
+              {
+                "text": "Store every timestamp in UTC and display in America/Chicago; due times are end-of-day local — 23:59 America/Chicago on the due date.",
+                "source_ids": [
+                  "m20"
+                ]
+              }
+            ]
+          },
+          "value": {
+            "obligations": [
+              {
+                "text": "All backend code is Python 3.11+ and fully type-annotated, built on FastAPI with SQLAlchemy 2.x, and no new third-party dependencies may be introduced without asking the user first.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Every new endpoint ships with pytest tests.",
+                "source_ids": [
+                  "m01"
+                ]
+              },
+              {
+                "text": "Seed and demo data contain only fictional member names; real member information must never be copied in from the office spreadsheet.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "Follow the explicitly adopted layout — app/ with routers/, models/, schemas/, services/, with models split across catalog.py, checkout.py, members.py and routers mirroring them — and name all tables in plural snake_case.",
+                "source_ids": [
+                  "m02",
+                  "m04",
+                  "m05"
+                ]
+              },
+              {
+                "text": "Every API error is returned as an RFC 9457 problem+json body.",
+                "source_ids": [
+                  "m05"
+                ]
+              },
+              {
+                "text": "SKU is the public identifier everywhere.",
+                "source_ids": [
+                  "m06"
+                ]
+              },
+              {
+                "text": "All money amounts are stored as integer cents — never floats.",
+                "source_ids": [
+                  "m09"
+                ]
+              },
+              {
+                "text": "Overdue fees apply only to durable tools (calipers, soldering stations); consumable materials are never charged fees.",
+                "source_ids": [
+                  "m09"
+                ]
+              },
+              {
+                "text": "No external services are permitted — the Redis suggestion was declined — and every bit of application state (holds, fee ledger entries, waivers included) lives in the application's own database: local SQLite for dev and tests, the approved Postgres on staging. No background daemons or cron jobs live in this repo either — the nightly-sweep suggestion was also declined — so overdue state is computed lazily, at return time and whenever a checkout record is read.",
+                "source_ids": [
+                  "m03",
+                  "m10",
+                  "m11"
+                ]
+              },
+              {
+                "text": "Dev and tests remain on SQLite while staging is approved for Postgres, so keep all queries database-portable — no SQLite-only functions.",
+                "source_ids": [
+                  "m11"
+                ]
+              },
+              {
+                "text": "Checkouts created before the fee feature shipped are grandfathered — they never accrue overdue fees.",
+                "source_ids": [
+                  "m16"
+                ]
+              },
+              {
+                "text": "Staff-role members may waive any fee, but only with a non-empty reason string, and every waiver must be written to the audit log.",
+                "source_ids": [
+                  "m16"
+                ]
+              },
+              {
+                "text": "No barcode-scanner driver or SDK code: the desk scanner acts as a plain HID keyboard, so scanner-typed SKUs reuse the same optional sku field on checkout.",
+                "source_ids": [
+                  "m18"
+                ]
+              },
+              {
+                "text": "Store every timestamp in UTC and display in America/Chicago; due times are end-of-day local — 23:59 America/Chicago on the due date.",
+                "source_ids": [
+                  "m20"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "author_index": 4,
+      "original_sha256": "3603763508be712f44327d42ae7450fc27a5029d2e40869b698902d5c96e54c5",
+      "corrected_sha256": "bf064b0d385479abc3dddcf6f2de8f9b85734a8157621faeed6312cb247051a5",
+      "guard_sha256": "d322cfb1c4464e0b6f3871f3da7eadd7c1649d97bdbb2e5bab0e20789ae7a660",
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/queries/2/target",
+          "expected_old": {
+            "obligations": [
+              {
+                "text": "Every export produces both formats: CSV and GeoJSON; the GeoJSON must conform to RFC 7946, use WGS84 and express coordinates in longitude-latitude order, and the CSV output must remain as previously agreed.",
+                "source_ids": [
+                  "m24"
+                ]
+              },
+              {
+                "text": "Dates are ISO 8601 (YYYY-MM-DD) everywhere, in both outputs; no locale formats.",
+                "source_ids": [
+                  "m05",
+                  "m24"
+                ]
+              },
+              {
+                "text": "Coordinates are exported exactly as recorded, never rounded, snapped or normalised; the grid-reference-to-lon/lat conversion for GeoJSON is done at full precision with no rounding (the declined 4-decimal snapping stays declined).",
+                "source_ids": [
+                  "m06",
+                  "m07",
+                  "m24"
+                ]
+              },
+              {
+                "text": "Filenames follow the lower-case convention tbo_<transect-slug>_<survey-date>.<ext> with .csv and .geojson extensions.",
+                "source_ids": [
+                  "m08",
+                  "m24"
+                ]
+              },
+              {
+                "text": "The CSV header order is fixed exactly as survey_date, transect_code, species_code, count, easting, northing, recorder_initials, notes, with no extra columns.",
+                "source_ids": [
+                  "m15"
+                ]
+              },
+              {
+                "text": "Exclude verification_status 'pending' and 'rejected' records unless the operator passes --include-unverified.",
+                "source_ids": [
+                  "m09"
+                ]
+              },
+              {
+                "text": "Database-flagged sensitive species get 2km grid-square centroid coordinates in the public profile (the default) and exact coordinates in the internal profile, across both output formats. The Nightjar embargo has lapsed (past 31 August 2026), so the former total-exclusion special case is retired and Nightjar is now treated like any other sensitive species.",
+                "source_ids": [
+                  "m10",
+                  "m24",
+                  "m32"
+                ]
+              },
+              {
+                "text": "Counts are exported verbatim, including zero-count rows; zero-count rows are never dropped and counts never smoothed.",
+                "source_ids": [
+                  "m21"
+                ]
+              },
+              {
+                "text": "GeoJSON feature properties use exactly the snake_case keys survey_date, transect_code, species_code, count, blurred; 'blurred' is a boolean that is true only when the centroid substitution was actually applied.",
+                "source_ids": [
+                  "m27"
+                ]
+              },
+              {
+                "text": "The authenticated API export with OAuth2 remains completely parked and out of scope for the exporter work — do not build any of it now.",
+                "source_ids": [
+                  "m28",
+                  "m40"
+                ]
+              },
+              {
+                "text": "Standing permissions: the optional --dry-run flag (granted with roughly a two-hour cap) and the --summary flag are in place; the --summary permission was conditional on not delaying the GeoJSON work, and that condition was met when it was added.",
+                "source_ids": [
+                  "m16",
+                  "m17",
+                  "m29",
+                  "m30"
+                ]
+              },
+              {
+                "text": "Exports are reproducible: for unchanged database contents a given transect-date exports byte-for-byte identically, with a fixed row order of survey_date, then transect_code, then species_code, and no other reordering.",
+                "source_ids": [
+                  "m35"
+                ]
+              },
+              {
+                "text": "Output-stream convention for the batch work: stdout carries only the paths of files actually written; anything about skips, withholdings or errors goes to stderr.",
+                "source_ids": [
+                  "m39"
+                ]
+              },
+              {
+                "text": "Batch scope and conventions for the new request: for a given ISO week export every active transect, producing both the CSV and the GeoJSON per transect under all existing conventions; process transects deterministically in slug-ascending order; skip a transect with no eligible records after the agreed filters and log the skip; exit non-zero only when a file write fails, and exit zero otherwise, including when transects were skipped.",
+                "source_ids": [
+                  "m40"
+                ]
+              }
+            ]
+          },
+          "value": {
+            "obligations": [
+              {
+                "text": "Every export produces both formats: CSV and GeoJSON; the GeoJSON must conform to RFC 7946, use WGS84 and express coordinates in longitude-latitude order, and the CSV output must remain as previously agreed.",
+                "source_ids": [
+                  "m24"
+                ]
+              },
+              {
+                "text": "Dates are ISO 8601 (YYYY-MM-DD) everywhere, in both outputs; no locale formats.",
+                "source_ids": [
+                  "m05",
+                  "m24"
+                ]
+              },
+              {
+                "text": "Coordinates are exported exactly as recorded, never rounded, snapped or normalised; the grid-reference-to-lon/lat conversion for GeoJSON is done at full precision with no rounding (the declined 4-decimal snapping stays declined).",
+                "source_ids": [
+                  "m06",
+                  "m07",
+                  "m24"
+                ]
+              },
+              {
+                "text": "Filenames follow the lower-case convention tbo_<transect-slug>_<survey-date>.<ext> with .csv and .geojson extensions.",
+                "source_ids": [
+                  "m08",
+                  "m24"
+                ]
+              },
+              {
+                "text": "The CSV header order is fixed exactly as survey_date, transect_code, species_code, count, easting, northing, recorder_initials, notes, with no extra columns.",
+                "source_ids": [
+                  "m15"
+                ]
+              },
+              {
+                "text": "Exclude verification_status 'pending' and 'rejected' records unless the operator passes --include-unverified.",
+                "source_ids": [
+                  "m09"
+                ]
+              },
+              {
+                "text": "Database-flagged sensitive species get 2km grid-square centroid coordinates in the public profile (the default) and exact coordinates in the internal profile, across both output formats. The Nightjar embargo has lapsed (past 31 August 2026), so the former total-exclusion special case is retired and Nightjar is now treated like any other sensitive species.",
+                "source_ids": [
+                  "m10",
+                  "m24",
+                  "m32"
+                ]
+              },
+              {
+                "text": "Counts are exported verbatim, including zero-count rows; zero-count rows are never dropped and counts never smoothed.",
+                "source_ids": [
+                  "m21"
+                ]
+              },
+              {
+                "text": "GeoJSON feature properties use exactly the snake_case keys survey_date, transect_code, species_code, count, blurred; 'blurred' is a boolean that is true only when the centroid substitution was actually applied.",
+                "source_ids": [
+                  "m27"
+                ]
+              },
+              {
+                "text": "The authenticated API export with OAuth2 remains completely parked and out of scope for the exporter work — do not build any of it now.",
+                "source_ids": [
+                  "m28",
+                  "m40"
+                ]
+              },
+              {
+                "text": "Optional, qualified user permissions — permission only, not established implementation state: (1) --dry-run, printing the rows to stdout instead of writing files, is permitted for testing as an optional extra capped at a couple of hours of effort; no source reports that --dry-run was implemented. (2) --summary, printing per-transect totals after a run, is permitted only if both user conditions hold — it costs nothing, and it does not delay the GeoJSON work at all, otherwise it must be skipped; the assistant's statement that GeoJSON stayed on schedule and that it exercised the permission is a fallible reported-implementation claim, not user confirmation that both conditions were satisfied. These older optional display permissions do not override the newer m39 stream convention that governs the current batch: stdout carries only the paths of files actually written (anything about skips, withholdings or errors goes to stderr), so any optional-feature output that is not a written file path must not go to stdout.",
+                "source_ids": [
+                  "m16",
+                  "m17",
+                  "m29",
+                  "m30",
+                  "m39"
+                ]
+              },
+              {
+                "text": "Exports are reproducible: for unchanged database contents a given transect-date exports byte-for-byte identically, with a fixed row order of survey_date, then transect_code, then species_code, and no other reordering.",
+                "source_ids": [
+                  "m35"
+                ]
+              },
+              {
+                "text": "Output-stream convention for the batch work: stdout carries only the paths of files actually written; anything about skips, withholdings or errors goes to stderr.",
+                "source_ids": [
+                  "m39"
+                ]
+              },
+              {
+                "text": "Batch scope and conventions for the new request: for a given ISO week export every active transect, producing both the CSV and the GeoJSON per transect under all existing conventions; process transects deterministically in slug-ascending order; skip a transect with no eligible records after the agreed filters and log the skip; exit non-zero only when a file write fails, and exit zero otherwise, including when transects were skipped.",
+                "source_ids": [
+                  "m40"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "author_index": 5,
+      "original_sha256": "285f4e2b4446f8f5455276a925083d726c1fcd1f35af47ae2504d9a5bf3b3514",
+      "corrected_sha256": "ee0f327dbe1957170a99f93e9d25c4edf4fb6c6ed059765504aaea06d034ecb3",
+      "guard_sha256": "2bd279ba25d78644f1ae5f058a5e4992299822f0cf857a53f8b9492a8393ca88",
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/queries/1/target",
+          "expected_old": {
+            "obligations": [
+              {
+                "text": "Global convention applying to every milestone of this project: no third-party dependencies — standard library only — and the code must run on Python 3.9.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "All timestamps are stored as UTC ISO-8601 with seconds precision, while anything printed for humans displays America/Chicago local time.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "Every command exits with code 0 on success even when rows are skipped, and skip counts go to stderr, never to stdout.",
+                "source_ids": [
+                  "m05"
+                ]
+              },
+              {
+                "text": "Importer empty-cell handling: empty optional fields (loaded_by, glaze, notes) become null; an empty required field (kiln_type, cone, fired_at) means the whole row is skipped and counted — skipping is not an error and must not raise.",
+                "source_ids": [
+                  "m07"
+                ]
+              },
+              {
+                "text": "In the importer, keep every string byte-for-byte as it appears in the file: no trimming, no case folding, no deduplication (the assistant's slugify suggestion was rejected).",
+                "source_ids": [
+                  "m09"
+                ]
+              },
+              {
+                "text": "Importer scoping rule still in force at this point: only electric rows are handled; any row whose kiln_type is 'gas' is skipped and counted, with a single warning line per file, because gas support is deferred.",
+                "source_ids": [
+                  "m10"
+                ]
+              },
+              {
+                "text": "Storage convention: the default database file is ~/.kilnlog/batches.db, and every command takes --db to override that path.",
+                "source_ids": [
+                  "m13"
+                ]
+              },
+              {
+                "text": "Never store money as a float — glaze cost is stored as integer cents in the glaze_cost_cents column.",
+                "source_ids": [
+                  "m15"
+                ]
+              },
+              {
+                "text": "No database triggers for revision tracking; every write path calls a bump_rev() helper that increments an integer rev column on the batch. The assistant's trigger-based updated_at proposal was rejected.",
+                "source_ids": [
+                  "m15"
+                ]
+              },
+              {
+                "text": "entries record loaded_by, which must be allowed to be NULL and must never be made required in any command or validation.",
+                "source_ids": [
+                  "m17"
+                ]
+              },
+              {
+                "text": "Open the database in WAL mode so two processes don't corrupt the file; do not build any custom locking.",
+                "source_ids": [
+                  "m19"
+                ]
+              }
+            ]
+          },
+          "value": {
+            "obligations": [
+              {
+                "text": "Global convention applying to every milestone of this project: no third-party dependencies — standard library only — and the code must run on Python 3.9.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "All timestamps are stored as UTC ISO-8601 with seconds precision, while anything printed for humans displays America/Chicago local time.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "Every command exits with code 0 on success even when rows are skipped, and skip counts go to stderr, never to stdout.",
+                "source_ids": [
+                  "m05"
+                ]
+              },
+              {
+                "text": "Storage convention: the default database file is ~/.kilnlog/batches.db, and every command takes --db to override that path.",
+                "source_ids": [
+                  "m13"
+                ]
+              },
+              {
+                "text": "Adopted storage layout: two tables, batches and entries — the assistant proposed this split and the user explicitly adopted it ('Adopt the two-table split').",
+                "source_ids": [
+                  "m14",
+                  "m15"
+                ]
+              },
+              {
+                "text": "Never store money as a float — glaze cost is stored as integer cents in the glaze_cost_cents column.",
+                "source_ids": [
+                  "m15"
+                ]
+              },
+              {
+                "text": "No database triggers; instead, every write path calls a bump_rev() helper that increments an integer rev column on the batch. The assistant's trigger-based updated_at proposal was rejected.",
+                "source_ids": [
+                  "m15"
+                ]
+              },
+              {
+                "text": "entries record loaded_by, which must be allowed to be NULL and must never be made required in any command or validation.",
+                "source_ids": [
+                  "m17"
+                ]
+              },
+              {
+                "text": "Open the database in WAL mode so two processes don't corrupt the file; do not build any custom locking.",
+                "source_ids": [
+                  "m19"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "op": "replace",
+          "path": "/queries/2/target",
+          "expected_old": {
+            "obligations": [
+              {
+                "text": "Global convention applying to every milestone of this project: no third-party dependencies — standard library only — and the code must run on Python 3.9.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "All timestamps are stored as UTC ISO-8601 with seconds precision and displayed in America/Chicago local time — sole exception: `show` has a --utc flag that prints the stored UTC timestamp verbatim, and --utc exists only on show.",
+                "source_ids": [
+                  "m03",
+                  "m27"
+                ]
+              },
+              {
+                "text": "Every command exits with code 0 on success even when rows are skipped, and skip counts go to stderr, never to stdout.",
+                "source_ids": [
+                  "m05"
+                ]
+              },
+              {
+                "text": "Importer empty-cell handling: empty optional fields (loaded_by, glaze, notes) become null; an empty required field (kiln_type, cone, fired_at) means the whole row is skipped and counted — skipping is not an error and must not raise.",
+                "source_ids": [
+                  "m07"
+                ]
+              },
+              {
+                "text": "In the importer, keep every string byte-for-byte as it appears in the file: no trimming, no case folding, no deduplication.",
+                "source_ids": [
+                  "m09"
+                ]
+              },
+              {
+                "text": "Gas firing rows are now supported everywhere, import included, treated like electric — the former 'skip gas with a warning' importer rule was retired — with one exception: rows whose atmosphere column reads 'reduction' must get an oos flag set to true.",
+                "source_ids": [
+                  "m30"
+                ]
+              },
+              {
+                "text": "For `show`, print the atmosphere line only for gas batches; electric batches must never show it.",
+                "source_ids": [
+                  "m32"
+                ]
+              },
+              {
+                "text": "Storage convention: the default database file is ~/.kilnlog/batches.db, and every command takes --db to override that path.",
+                "source_ids": [
+                  "m13"
+                ]
+              },
+              {
+                "text": "Never store money as a float — glaze cost is stored as integer cents in the glaze_cost_cents column.",
+                "source_ids": [
+                  "m15"
+                ]
+              },
+              {
+                "text": "No database triggers for revision tracking; every write path calls a bump_rev() helper that increments an integer rev column on the batch.",
+                "source_ids": [
+                  "m15"
+                ]
+              },
+              {
+                "text": "entries record loaded_by, which must be allowed to be NULL and must never be made required in any command or validation.",
+                "source_ids": [
+                  "m17"
+                ]
+              },
+              {
+                "text": "Open the database in WAL mode so two processes don't corrupt the file; do not build any custom locking.",
+                "source_ids": [
+                  "m19"
+                ]
+              },
+              {
+                "text": "When `list` is run with --kiln <name> (its only filter), it prints a final totals line for that kiln: batch count and total glaze_cost_cents.",
+                "source_ids": [
+                  "m24"
+                ]
+              },
+              {
+                "text": "No ANSI color codes anywhere in anything kilnlog prints, ever — the outputs get pasted into plain-text emails.",
+                "source_ids": [
+                  "m26"
+                ]
+              },
+              {
+                "text": "If any command would write a file outside ~/.kilnlog, it must refuse unless the user passes --force; writing inside ~/.kilnlog never needs --force.",
+                "source_ids": [
+                  "m36"
+                ]
+              }
+            ]
+          },
+          "value": {
+            "obligations": [
+              {
+                "text": "Global convention applying to every milestone of this project: no third-party dependencies — standard library only — and the code must run on Python 3.9.",
+                "source_ids": [
+                  "m03"
+                ]
+              },
+              {
+                "text": "All timestamps are stored as UTC ISO-8601 with seconds precision and displayed in America/Chicago local time — sole exception: `show` has a --utc flag that prints the stored UTC timestamp verbatim, and --utc exists only on show.",
+                "source_ids": [
+                  "m03",
+                  "m27"
+                ]
+              },
+              {
+                "text": "Every command exits with code 0 on success even when rows are skipped, and skip counts go to stderr, never to stdout.",
+                "source_ids": [
+                  "m05"
+                ]
+              },
+              {
+                "text": "Gas firing rows are now supported everywhere, import included, treated like electric — the former 'skip gas with a warning' importer rule was retired — with one exception: rows whose atmosphere column reads 'reduction' must get an oos flag set to true.",
+                "source_ids": [
+                  "m30"
+                ]
+              },
+              {
+                "text": "Storage convention: the default database file is ~/.kilnlog/batches.db, and every command takes --db to override that path.",
+                "source_ids": [
+                  "m13"
+                ]
+              },
+              {
+                "text": "Adopted storage layout: two tables, batches and entries — the assistant proposed this split and the user explicitly adopted it ('Adopt the two-table split').",
+                "source_ids": [
+                  "m14",
+                  "m15"
+                ]
+              },
+              {
+                "text": "Never store money as a float — glaze cost is stored as integer cents in the glaze_cost_cents column.",
+                "source_ids": [
+                  "m15"
+                ]
+              },
+              {
+                "text": "No database triggers; instead, every write path calls a bump_rev() helper that increments an integer rev column on the batch.",
+                "source_ids": [
+                  "m15"
+                ]
+              },
+              {
+                "text": "entries record loaded_by, which must be allowed to be NULL and must never be made required in any command or validation.",
+                "source_ids": [
+                  "m17"
+                ]
+              },
+              {
+                "text": "Open the database in WAL mode so two processes don't corrupt the file; do not build any custom locking.",
+                "source_ids": [
+                  "m19"
+                ]
+              },
+              {
+                "text": "No ANSI color codes anywhere in anything kilnlog prints, ever — the outputs get pasted into plain-text emails.",
+                "source_ids": [
+                  "m26"
+                ]
+              },
+              {
+                "text": "If any command would write a file outside ~/.kilnlog, it must refuse unless the user passes --force; writing inside ~/.kilnlog never needs --force.",
+                "source_ids": [
+                  "m36"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
