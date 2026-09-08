@@ -1988,7 +1988,7 @@
           ],
           "inactive_rule_ids": []
         },
-        "reference_patch": "def plan_report(payload):\n    if not isinstance(payload, dict):\n        return \"INVALID\"\n    tray = payload.get(\"tray\")\n    batches = payload.get(\"batches\")\n    stop_on_shortfall = payload.get(\"stop_on_shortfall\", False)\n    if not is_tray(tray):\n        return \"INVALID\"\n    if not isinstance(stop_on_shortfall, bool):\n        return \"INVALID\"\n    if not isinstance(batches, list) or len(batches) == 0:\n        return \"INVALID\"\n    outcomes = []\n    occupied_all = []\n    for batch in batches:\n        working = {\"rows\": tray[\"rows\"], \"cols\": tray[\"cols\"], \"blocked\": tray[\"blocked\"] + occupied_all}\n        outcome = assign_slots({\"tray\": working, \"batch\": batch})\n        if outcome == \"BAD\":\n            return \"INVALID\"\n        outcomes.append(outcome)\n        occupied_all = occupied_all + outcome[\"placed\"]\n    results = []\n    occupied = []\n    stopped_bid = None\n    for outcome in outcomes:\n        if stop_on_shortfall and outcome[\"unplaced\"] > 0:\n            stopped_bid = outcome[\"bid\"]\n            break\n        results.append(outcome)\n        occupied = occupied + outcome[\"placed\"]\n    summary = summarize_occupancy({\"tray\": tray, \"placed\": occupied})\n    report = {\"ok\": True, \"results\": results, \"summary\": summary}\n    if stop_on_shortfall:\n        open_slots = []\n        for r in range(tray[\"rows\"]):\n            for c in range(tray[\"cols\"]):\n                cell = [r, c]\n                if cell in tray[\"blocked\"] or cell in occupied:\n                    continue\n                open_slots.append(cell)\n        report[\"stopped_bid\"] = stopped_bid\n        report[\"open_slots\"] = open_slots\n    return report",
+        "reference_patch": "def plan_report(payload):\n    if not isinstance(payload, dict):\n        return \"INVALID\"\n    tray = payload.get(\"tray\")\n    batches = payload.get(\"batches\")\n    stop_on_shortfall = payload.get(\"stop_on_shortfall\", False)\n    if not is_tray(tray):\n        return \"INVALID\"\n    if not isinstance(stop_on_shortfall, bool):\n        return \"INVALID\"\n    if not isinstance(batches, list) or len(batches) == 0:\n        return \"INVALID\"\n    results = []\n    occupied = []\n    stopped_bid = None\n    for batch in batches:\n        working = {\"rows\": tray[\"rows\"], \"cols\": tray[\"cols\"], \"blocked\": tray[\"blocked\"] + occupied}\n        outcome = assign_slots({\"tray\": working, \"batch\": batch})\n        if outcome == \"BAD\":\n            return \"INVALID\"\n        if stop_on_shortfall and stopped_bid is None and outcome[\"unplaced\"] > 0:\n            stopped_bid = outcome[\"bid\"]\n            continue\n        if stopped_bid is None:\n            results.append(outcome)\n            occupied = occupied + outcome[\"placed\"]\n    summary = summarize_occupancy({\"tray\": tray, \"placed\": occupied})\n    report = {\"ok\": True, \"results\": results, \"summary\": summary}\n    if stop_on_shortfall:\n        open_slots = []\n        for r in range(tray[\"rows\"]):\n            for c in range(tray[\"cols\"]):\n                cell = [r, c]\n                if cell in tray[\"blocked\"] or cell in occupied:\n                    continue\n                open_slots.append(cell)\n        report[\"stopped_bid\"] = stopped_bid\n        report[\"open_slots\"] = open_slots\n    return report",
         "functional_checks": [
           {
             "check_id": "rf51",
@@ -2281,6 +2281,71 @@
               "INVALID"
             ],
             "rule_ids": []
+          },
+          {
+            "check_id": "rf58",
+            "symbol": "plan_report",
+            "input": {
+              "tray": {
+                "rows": 1,
+                "cols": 2,
+                "blocked": []
+              },
+              "batches": [
+                {
+                  "bid": "a",
+                  "count": 1
+                },
+                {
+                  "bid": "b",
+                  "count": 2
+                },
+                {
+                  "bid": "c",
+                  "count": 1,
+                  "skip": [
+                    [
+                      0,
+                      1
+                    ]
+                  ]
+                }
+              ],
+              "stop_on_shortfall": true
+            },
+            "expected_values": [
+              {
+                "ok": true,
+                "results": [
+                  {
+                    "bid": "a",
+                    "placed": [
+                      [
+                        0,
+                        0
+                      ]
+                    ],
+                    "unplaced": 0
+                  }
+                ],
+                "summary": {
+                  "filled": 1,
+                  "open": 1,
+                  "first_open": [
+                    0,
+                    1
+                  ]
+                },
+                "stopped_bid": "b",
+                "open_slots": [
+                  [
+                    0,
+                    1
+                  ]
+                ]
+              }
+            ],
+            "rule_ids": []
           }
         ],
         "obligation_checks": [
@@ -2547,7 +2612,7 @@
           {
             "control_id": "ctrl-5o",
             "kind": "obligation",
-            "patch": "def plan_report(payload):\n    if not isinstance(payload, dict):\n        return \"INVALID\"\n    tray = payload.get(\"tray\")\n    batches = payload.get(\"batches\")\n    stop_on_shortfall = payload.get(\"stop_on_shortfall\", False)\n    if not is_tray(tray):\n        return \"INVALID\"\n    if not isinstance(stop_on_shortfall, bool):\n        return \"INVALID\"\n    if not isinstance(batches, list) or len(batches) == 0:\n        return \"INVALID\"\n    outcomes = []\n    occupied_all = []\n    for batch in batches:\n        working = {\"rows\": tray[\"rows\"], \"cols\": tray[\"cols\"], \"blocked\": tray[\"blocked\"] + occupied_all}\n        outcome = assign_slots({\"tray\": working, \"batch\": batch})\n        if outcome == \"BAD\":\n            return \"INVALID\"\n        outcomes.append(outcome)\n        occupied_all = occupied_all + outcome[\"placed\"]\n    results = []\n    occupied = []\n    stopped_bid = None\n    for outcome in outcomes:\n        if stop_on_shortfall and outcome[\"unplaced\"] > 0:\n            stopped_bid = outcome[\"bid\"]\n            break\n        results.append(outcome)\n        occupied = occupied + outcome[\"placed\"]\n    summary = summarize_occupancy({\"tray\": tray, \"placed\": occupied})\n    report = {\"ok\": True, \"results\": results, \"summary\": summary}\n    if stop_on_shortfall:\n        open_slots = []\n        for c in range(tray[\"cols\"]):\n            for r in range(tray[\"rows\"]):\n                cell = [r, c]\n                if cell in tray[\"blocked\"] or cell in occupied:\n                    continue\n                open_slots.append(cell)\n        report[\"stopped_bid\"] = stopped_bid\n        report[\"open_slots\"] = open_slots\n    return report",
+            "patch": "def plan_report(payload):\n    if not isinstance(payload, dict):\n        return \"INVALID\"\n    tray = payload.get(\"tray\")\n    batches = payload.get(\"batches\")\n    stop_on_shortfall = payload.get(\"stop_on_shortfall\", False)\n    if not is_tray(tray):\n        return \"INVALID\"\n    if not isinstance(stop_on_shortfall, bool):\n        return \"INVALID\"\n    if not isinstance(batches, list) or len(batches) == 0:\n        return \"INVALID\"\n    results = []\n    occupied = []\n    stopped_bid = None\n    for batch in batches:\n        working = {\"rows\": tray[\"rows\"], \"cols\": tray[\"cols\"], \"blocked\": tray[\"blocked\"] + occupied}\n        outcome = assign_slots({\"tray\": working, \"batch\": batch})\n        if outcome == \"BAD\":\n            return \"INVALID\"\n        if stop_on_shortfall and stopped_bid is None and outcome[\"unplaced\"] > 0:\n            stopped_bid = outcome[\"bid\"]\n            continue\n        if stopped_bid is None:\n            results.append(outcome)\n            occupied = occupied + outcome[\"placed\"]\n    summary = summarize_occupancy({\"tray\": tray, \"placed\": occupied})\n    report = {\"ok\": True, \"results\": results, \"summary\": summary}\n    if stop_on_shortfall:\n        open_slots = []\n        for c in range(tray[\"cols\"]):\n            for r in range(tray[\"rows\"]):\n                cell = [r, c]\n                if cell in tray[\"blocked\"] or cell in occupied:\n                    continue\n                open_slots.append(cell)\n        report[\"stopped_bid\"] = stopped_bid\n        report[\"open_slots\"] = open_slots\n    return report",
             "expected_failing_check_ids": [
               "ord51"
             ]

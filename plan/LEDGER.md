@@ -1732,3 +1732,24 @@ mutant, adding one functional regression check. The functional mutant intentiona
 ignores stopping, so its related occupancy failure is disclosed causal overlap.
 Source Boolean and checksum-scope clarifications are accepted; only finding11
 remains open for this project. Sol driver exists; targeted tests are underway.
+
+2026-09-07 — STATE: ALL FOUR DATA FRAGMENTS ACCEPTED; FINAL BANK PREFLIGHT.
+Author03 patch02 terminal134.622s,21,913 prompt+14,813 completion tokens.
+Three guarded Kimi edits applied; final SHA6c6d1e7c. Parent and independent
+Astra verified late-invalid and discarded-occupancy cases. All four fragments
+accepted96, zero open high/critical. Exact final array assembly replaces only
+the preserved provisional attempt; no local ID transformations. Final combined
+CPU preflight and Astra serialization/provenance check follow. Native driver
+review now overlaps Sol targeted tests and launcher work, acceptance waits
+for settled bytes. No worker inference or fitting has started.
+
+2026-09-07 — STATE: FINAL CODING72 DATA ACCEPTED; RUNNER FIXES IN REVIEW.
+Astra data acceptance96, zero open high/critical, all13 findings retained.
+Final bank925d58b6 is exact four-fragment array; preflightc69a2b5b verifies
+24 references/48 controls,1,203 main executions,21.968s CPU,162–525 tokens
+per reference recap+code. No HTTP/model/GPU work. Commit this accepted bank
+and preserved Kimi patch02 evidence now. Native runner actual CLI failed a
+missing import-root bootstrap; Sol fixes it with an actual subprocess test.
+Astra also reproduced72 transport failures being marked COMPLETE; Sol must
+separate accounting completeness from missing technical/capacity evidence.
+No worker launch until accepted settled driver/launcher/preview and freeze.
