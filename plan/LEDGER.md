@@ -2576,3 +2576,43 @@ unaffected. ReviewSHA0b7b71c534ae6d91bb2756756c7edf573e57bfbab5ba4b0a9d0434fdc97
 RootassignedsameSoloneguard+consumingregressionredfirst, explicit2pathcommit,
 thenresumealreadydispatchedruntime. No broadenedredesign. Astrawillcloseexactdelta.
 Fullautomaticfocus/largerproofstillunproven; no workerinferencejob ornewbudget.
+
+To avoid serialized implementation work, root rechecked the earlier launcher's
+actual model record (ledger line2015: native Sol xhigh competence_launcher_impl).
+That existing handle is pending_init; bounded new LAUNCHER-BRIEF twofile task
+will be sent there, not a fresh spawn (threadlimit). It reuses ownedrun_lifecycle
+and testedcontainercommand, coordinates new CLI/preview withruntimeauthor, no
+server/model/data execution or frozenfileedits. Do not assume the handle is live
+until tool/agent state confirms. No external or research blocker exists.
+
+2026-09-08 — STATE: BOTH FRESH PROJECTS GENERATED; DATA CORRECTION AUDIT ACTIVE.
+Exactauthoring70405 terminalexit0, no restart. Project01 HTTP200/donestop,
+1046.942690372467s,1820prompt/72333reportedgenerationtokens. Authored85767bytes,
+SHA986644670e47f42b2f3ffebad54d97fb3dfc5098c4644e3f3259e1b6273d169a;
+rawresponseSHAc166f76102aec193a3324b1219712a68f5c268603b67dfa227a8b857cebb0790.
+Rootverifiedrawhashes/bothterminalstatuses. Archivewholejoblogs/terminalreceipt
+andproject01rawfiles now. No Kimi/model call remainslive.
+
+Project01 existingCPUpreflight session3413 terminalexit2:235sandboxexecutions
+4.270335289009381s, sole referencefail chk-r0-obl-2 (actualunexpectedkeyalpha,
+expectedzeta). Astra confirms unchangedcompactserialization sortsobjectkeys;
+changingonlyexpectedvalue would conceal authored-order loss. Further highdataissue:
+publiccasesexpose declaredstanding whitespace/ID/error-text rules, violatingpublic
+full-output invariance. Project00 also has unsupportedglobal scope for m04errors
+andcontrol/coveragequestions. Astra samecanonicaldata-review compilingbothprojects'
+actionablecorrectionpaths; rootwillsendKimi boundedcorrection onlyafterreport.
+No data/code edits or validationbypass, no evaluation-derived fitting.
+
+Sharedclientlowfix stable59f19d67; actualredregression then16tests0.21s/Ruffgreen.
+SourceSHA79beddd2d8aa50f637895c071ad5d46b791efd7cf6b1fefbd8d1de17c33263d7;
+testSHA1c9cf384780f8a66cb9b66ad3cfacb7d9af2343f02733d93093bdf63704a22c4,
+rootrehashed. Astra exactdelta closurequeuedafterboundeddatareport. Solruntime
+resumed. Existinglauncheragent competence_launcher_impl confirmedACTIVE Solxhigh
+onnewtwofileLAUNCHER-BRIEF; bothcoders coordinateAPI independently.
+
+Concreteintegrationdecision: frozenrun_lifecycle forwardsone --input, so newdriver
+accepts bankdirectoryandresolvesexact author-00/reviewed.json +author-01/reviewed.json;
+no glob/delimiter/extramanifest or oldlifecycleedit. Reports boundatdesign-review,
+client-review,data-review andonefinalcombinedreview-astra.md (runtime+launcher+
+preview/resource readiness); avoid redundantseparatelauncher/runtime reports.
+Fullgoalactive: automaticpilot unrun, utility/parity/largerproof stillunproven.
