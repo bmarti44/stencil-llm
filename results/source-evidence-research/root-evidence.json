@@ -1,0 +1,71 @@
+{
+  "kind": "research-primary-evidence-working-notes",
+  "access_date": "2026-09-08",
+  "status": "ROOT_DISCOVERY_COMPLETE_AGENT_LANE_PENDING",
+  "sources": [
+    {
+      "title": "Prompt Repetition Improves Non-Reasoning LLMs",
+      "authors": "Leviathan, Kalman, Matias; Google Research",
+      "date": "2025-12-17 v1",
+      "url": "https://arxiv.org/html/2512.14982v1",
+      "visible_refs": [
+        "turn117view0"
+      ],
+      "sections": [
+        "2 Experiments",
+        "A.2"
+      ],
+      "evidence": "Seven API models; QA/math plus two synthetic retrieval tasks, not executable coding. With reasoning disabled,47/70 combinations improved under authors McNemar p<0.1 convention,0losses. With step-by-step encouragement:5wins/1loss/22ties. Long Anthropic requests sometimes increased latency; API timing has network/load uncertainty.",
+      "implication": "Re-exposure is plausible, but no local latency, automatic selection, temporal authority or coding benefit is established.",
+      "confidence": "high for reported methods; transfer unproven",
+      "next_gap": "Compare selected original evidence to ordinary history and an equal-budget recency source control, prospectively; do not import benchmarks."
+    },
+    {
+      "title": "We Are What We Repeatedly Do: Improving Long Context Instruction Following",
+      "authors": "Robinette et al.; Google DeepMind and Vanderbilt; ACL",
+      "date": "2026-03 EACL Findings",
+      "url": "https://aclanthology.org/2026.findings-eacl.254.pdf",
+      "visible_refs": [
+        "turn118view0",
+        "turn120view4",
+        "turn121view0"
+      ],
+      "sections": [
+        "6.1",
+        "8 Limitations"
+      ],
+      "evidence": "Reinstruct repeats a known instruction on the next user turn when noncompliance is detected. Evaluation uses28 instructions across10verifiable formats and fourGemma/Llama models. Authors limit claims about qualitative quality/factuality and explicitly omit system prompts.",
+      "implication": "Supports reminders of known rules, not automatic identification of current ones or coding competence. A detector with known instructions is an extra oracle in transfer.",
+      "confidence": "high for method/limitations; no claimed local effect size",
+      "next_gap": "Need independent executable outcomes; no instruction-gold perfection gate."
+    },
+    {
+      "title": "Language Models Can Control Their Own Attention",
+      "date": "2026-09 arXiv2609.02737v1",
+      "url": "https://arxiv.org/html/2609.02737v1",
+      "visible_refs": [
+        "turn118view2",
+        "turn118view3",
+        "turn118view4",
+        "turn120view0"
+      ],
+      "sections": [
+        "4",
+        "5.1",
+        "5.2",
+        "5.4",
+        "8.2"
+      ],
+      "evidence": "Declarative global/focus/local masks tested on15fixed-context QA sources. Code_repo is repository QA, not execution. Largest Gemma/Qwen average accuracy drops1.27/2.75percentage points; smaller Gemma/Qwen retain29%/64%baseline accuracy. Protocol increases decoding; reported optimized decode time0.71x/0.77x is B200 roofline modeling.",
+      "implication": "Readable selection is possible, but this does not justify replacing local inference engine, new model downloads or reopening old steering as proven. Full-context unmasked protocol ablation raises attention cost rather than proving coding improvement.",
+      "confidence": "high for stated boundary; local benefit unknown",
+      "next_gap": "No further kernel research for this source-evidence quick-check decision."
+    }
+  ],
+  "discovery_queries": [
+    "site:arxiv.org prompt repetition improves instruction following non reasoning language models 2025 2026",
+    "site:arxiv.org instruction following long context repeated instructions coding attention distraction source evidence"
+  ],
+  "stopping_reason": "Root lane resolves re-exposure plausibility and limits; more broad searches would repeat adjacent QA evidence. Await independent source-retrieval/coding lane, then verify consequential claims in one focused wave.",
+  "exposure_note": "Some web tools returned example text within research papers; no dataset acquired or example used for fit, selection, authoring or evaluation. Future data must be independently authored."
+}

@@ -16,7 +16,25 @@ information and selecting what to use now. Stencil studies explicit retention
 and retrieval around a frozen language model. These experiments do not test
 the biological theory or demonstrate a wave mechanism.
 
-## Current result (2026-09-04): selective retention under cache eviction
+## Project status (2026-09-08)
+
+Stencil remains a research prototype. Timely reminders have helped instruction
+following in bounded tests, but useful automatic focus on larger coding projects
+is still unproven. Automating useful manual reminders is a meaningful benefit;
+beating manual prose is not required. See the superseding clarification in
+[the current goal](results/CURRENT-GOAL.md).
+
+The latest trained instruction helper completed its fresh 36-response comparison,
+but independent source review found an error in an expected answer. The whole
+screen is **INELIGIBLE**, so it cannot justify advancement or a training-benefit
+claim. Original answers, references and reviews are preserved; no trial repair
+or rerun is being used. [Results](results/source-interpreter/semantic/RESULTS.md).
+
+Separate research is assessing automatic retrieval of original instruction
+sources for the coding agent. No successor model trial has launched. Resume
+from the latest STATE entry in [the project ledger](plan/LEDGER.md).
+
+## Earlier result (2026-09-04): selective retention under cache eviction
 
 On frozen Qwen3-1.7B, selected historical KV pins plus text reinjection
 substantially recovered aged-instruction compliance lost under pre-query
