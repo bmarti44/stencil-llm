@@ -2904,3 +2904,40 @@ prospective repo .venv/bin/python independently confirms torch2.13.0/transformer
 interpreter with training environment. No packages changed or model scripts
 imported. Astra notified of concrete artifact while bounded research continues.
 No new semantic data/model run or selected training recipe; full goal active.
+
+2026-09-08 — STATE: BOUNDED RESEARCH COMPLETE; FIT-ONLY PREPARATION REVIEW NEXT.
+Same Astra research terminal report SHA879f1ece8e7a8b5cd5fef63cb3808073e870d7255c0cfec8c1038ae451c71bdc.
+Root read report, verified7localbindings, independently spot-checked primary
+VerIH/LLMLingua/Qwen/TRL distinctions and recomputed2,949,120rank8qvparameters
+(45MiBfor4fp32arrays, not activationmemory). Research supports fresh learned
+current-focus candidate; cheap SFT transfer remains unknown. Local HF identical
+base/adapter final-only protocol avoids premature newserver. Research stopped
+at concrete local labels/lengths/mechanics/transfer uncertainty.
+
+Root wrote results/source-interpreter/PREP.md: six wholly new FIT-only Kimi
+conversations across short/medium/long bands,3querieseach,18prefix targets. All
+scenario families assignedFITbeforeauthoring; no futureDEV/withheld data used
+to choose format/lengths/caps. Semantic labels independently reviewed; no code
+reference projects/newserver/training framework at this stage. Exact localHF
+nonthinking prefix, JSON+EOS target-only loss, original source boundaries and
+full untruncatedCPU receipts will be tested. No modeltraining/targetinference
+or new budget. Astra nextreviews this root-authored prep in canonical
+results/source-interpreter/review-astra.md before data authoring.
+Full goal stillrequires adequate fresh larger executable proof; no selector
+perfection or idealmanual prerequisite is introduced for later pairedutility.
+
+2026-09-08 — STATE: CPU HELPER IMPLEMENTING; SIX AUTHOR REQUESTS PREPARED.
+Astra spec review identified medium query-placement gap: nominal long source
+could have all queries near its start. Root independently confirmed and amended
+PREP/brief so finalquerymust be finalsource message; actualprefix tokenlengths
+remain separate from messagebands. No extra data/tokenquota introduced.
+Sol xhigh now implements only source_interpreter.py and its targeted test per
+CODE-BRIEF.md; no realdata/model/HTTP/GPU/trainer/server. Movingcode excluded
+from current Astra spec-only review.
+Root prepared6Kimi requests and authoring-plan.json, allFIT beforeauthoring,
+max2concurrency, noautoretry, exacthelper/source/requesthashes. NoHTTPcalls yet.
+Reuse legacy authoring helper with outputBASEredirect and receiptpurpose-only
+metadata correction; semantic/raw extraction unchanged. This prevents legacy
+competenceDEV label from misstating newFIT provenance. All actual data awaits
+specacceptance then explicitpromptfreeze. Archive completedresearch separately;
+PREP and draftauthoring artifacts remain unfrozen until reviewdecision.
