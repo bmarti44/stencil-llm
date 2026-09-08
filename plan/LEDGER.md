@@ -2616,3 +2616,25 @@ no glob/delimiter/extramanifest or oldlifecycleedit. Reports boundatdesign-revie
 client-review,data-review andonefinalcombinedreview-astra.md (runtime+launcher+
 preview/resource readiness); avoid redundantseparatelauncher/runtime reports.
 Fullgoalactive: automaticpilot unrun, utility/parity/largerproof stillunproven.
+
+2026-09-08 — STATE: DATA REVIEW68; GUARDED KIMI CORRECTION REQUESTS FROZEN NEXT.
+Previousgoalturn madeprogress: bothauthoroutputs/preflights archived993b3844,
+clientfixcommitted, bothSolimplementersactiveandCLIconstraintresolved. Current
+Astra datareview68: high1 immutableidentities, high2 unsupportedglobalscope,
+high3 publicruleleakage, high4 objectorder lost; medium5 confoundedmutant,
+medium6 missingprivatecombinations. ReviewSHA002a66d47f6db8244d8c09b1bae8d93f93f1c2c77737a6f2a29ba2b3d11c02bc.
+Root independently verified allhighs via data/identitydiff/source and compact
+sort_keys=True at actualconsumer serialization paths. Neitherprojectaccepted.
+
+PrepareoneguardedKimi-onlycorrection peroriginalproject,18allowedfieldsfor00,
+28for01, exactoldvaluehashes/requestbodies plus unchangedcorrection-driver hash.
+00 retainsnaturalsources/referencealgorithms andcorrectslabels/publicchecks/
+privatecoverage/controls. 01 requiresgenuine source/API-versus-standing separation
+and deterministicunknownkeypolicy, with originalfeaturebehavior/dependencies/
+nontrivialscopechanges retained. No clearingIDs, hidingliveobligations, trivial
+publiccases, expected-only keyorderrescue, easierreplacementproject oroldcase.
+Originalrawdocumentsuntouched; no targetworkeroutputexists. Root onlymechanically
+applies Kimi values through unchangedguardedhelper, thennormalCPUpreflight and
+sameAstra fullconsequencedelta. Commitrequests/report/planbeforecalls. Newowned
+correctionjob willregisterPIDimmediately, callindices0/1 concurrently andpreserve
+rawreceipts/sessionto terminal. No localGPUworkerlaunch ornewbudget.
