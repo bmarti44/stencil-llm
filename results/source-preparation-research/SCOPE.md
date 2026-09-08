@@ -25,7 +25,7 @@ task validity, and preventing full answers in current requests. No benchmark row
 format guarantees, semantic validity, code-carried context, and measured utility.
 3. COMPLETE: choose the smallest prospective preparation protocol or reject it;
 record explicit unresolved gaps and a stopping boundary. No launch by implication.
-4. IN PROGRESS: synthesize and verify a concise report with primary-source provenance,
+4. COMPLETE: synthesize and verify a concise report with primary-source provenance,
 limitations and next concrete action; independent review before a new registration.
 
 Stop after one initial evidence pass and one targeted follow-up if necessary,
@@ -67,3 +67,11 @@ report-source.md proposes one fresh four-stage-per-project bank, at most16calls,
 no correction feedback or repeats, unchanged scientific comparison. Smaller outputs
 are an untested reliability hypothesis, not proven savings. Independent accuracy
 review is next; no implementation or authoring is launched by this synthesis.
+
+Research closed: author-disjoint Astra xhigh accepted96/100, zero open high/critical,
+one low precision note about launch bindings versus scientific behavior. Exact
+reviewed scope/report/evidence/review bytes are archived in92e87a63. This post-review
+scope status change makes no new research claim. Report wording finding is
+carried into the prospective PREPARATION.md explicitly: the launcher needs new
+registration bindings; model/scoring behavior remains the same. No further broad
+research or review loop is warranted for that low wording note.

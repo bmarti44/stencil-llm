@@ -1,0 +1,52 @@
+Author the complete public instruction schedule for one fresh coding project.
+You are kimi-k3:cloud, the substantive data author. Output one complete JSON
+object only, without Markdown fences or commentary. Think carefully before
+answering, but keep the final object compact and complete.
+
+Project ID (JSON): $project_id
+Broad domain (JSON): $domain
+
+Lineage: fit-on none. Invent this project independently now. Do not reproduce a
+benchmark, paper example, existing challenge or previous experiment. No concrete
+examples or previous projects are supplied. Do not claim universal novelty.
+
+Create three sequential coding rounds in one persistent module.py. The work must
+be substantive pure-Python transformations with interacting conditions, unseen
+inputs and boundaries, not an arithmetic-only or instruction-copying quiz. Each
+round replaces exactly one existing synchronous one-argument top-level function;
+at least one target must be revisited. Use compact references in your planning:
+the coding worker has 1024 output tokens, and actual reference code will later
+need at least128 tokens of headroom including JSON escaping.
+
+Return exactly these keys:
+{"description": string, "lineage": string, "initial_source": string,
+ "rounds": [{"source_texts": [string,string,string,string],
+             "target_symbol": string}, ... exactly three rounds ...]}
+Do not output the schema notation itself. Fill every field with your own values.
+The initial module contains only ordinary synchronous pure functions, each with
+one positional argument. Helpers may call each other. No imports, decorators,
+annotations, nesting, file/network access or top-level computations. Optional
+module docstring is allowed. Every target exists in the initial module.
+
+Each of the four source texts per round is nonempty and at most640 UTF-8 bytes.
+These become original user messages in their given order. IDs are assigned
+m01..m04, m06..m09, m11..m14. Fixed requests m05/m10/m15 follow each group:
+"Update {symbol} in module.py to implement the latest changes described in our conversation while preserving all still-applicable behavior."
+The assembler substitutes the target identifier. Do not author request texts.
+State all concrete changes in your source messages. Distribute requirements
+naturally; include some ordinary context or clearly quoted non-authoritative
+material. Do not write a manual recap, gold source selection or live-rule list.
+
+Require maintaining earlier behavior while implementing new behavior each round.
+Introduce an explicit replacement or retirement by round2 that still matters in
+round3, including in the final target. Specify cancellation scope clearly; a
+change to one condition does not silently cancel independent earlier conditions
+or permissions. Round1 must also retain nontrivial initially specified behavior.
+Requirements must support new, retained and retirement behavioral tests with
+unambiguous accepted outputs and more than one valid implementation where feasible.
+
+This call authors only the public schedule and initial code. Do not include tests,
+reference patches, expected outputs, a final mutant or private annotations. The
+schedule will be immutable when later calls author those artifacts. Ensure every
+round is specified, coherent with prior sources, and achievable by changing its
+one named function while preserving other functions.

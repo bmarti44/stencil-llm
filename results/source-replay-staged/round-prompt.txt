@@ -1,0 +1,61 @@
+Author exactly one round's reference patch and behavioral checks for the fixed
+fresh coding project below. You are kimi-k3:cloud. Output one complete JSON object
+only, without Markdown fences, commentary, schema placeholders or partial data.
+
+Project ID (JSON): $project_id
+Current round (integer): $round_index
+Immutable scaffold with assembled original messages/requests (JSON):
+$scaffold
+Immutable earlier accepted round packets for this same project (JSON):
+$prior_packets
+
+Lineage: these are author-created materials for this same fresh project, not
+coding-worker answers. Do not import any other project or benchmark example.
+Do not edit or restate the scaffold or prior packets in your output. No validator
+feedback or correction attempt is provided or permitted.
+
+For rounds1 and2 output exactly:
+{"reference_patch": string, "public_checks": [check objects],
+ "private_checks": [check objects]}.
+For round3 output those same keys and additionally
+"obsolete_mutant": {"source": string, "failing_check_id": string}.
+Use the exact check object fields and semantics in the appended data contract.
+The assembler supplies round indices and separates public/private fields.
+
+The complete future schedule is visible ONLY so you can set check expiry
+intervals correctly. Current expected behavior and the reference must follow
+only instructions visible through this round: m01..m05 in round1, m01..m10 in
+round2, m01..m15 in round3. Never anticipate a future change. Citing an earlier
+message does not justify an expectation that actually depends on a future one.
+Use explicit source-grounded rationales, including cancellation scope and
+independent conditions that survive. All allowed outputs must remain accepted.
+
+Produce only a replacement for this round's existing target function. Earlier
+reference patches apply sequentially to the initial module; do not reset or
+change other functions. Keep the replacement comfortably within1024 output
+tokens including JSON escaping and128tokens of headroom. Do not add imports,
+annotations, decorators, nested functions or top-level execution.
+
+Add compact, meaningful public and private cases without duplicating old cases
+that remain active. Each round introduces at least two private cases including
+new functionality. At each round, at least two active private cases must cover
+retained behavior; rounds2 and3 also need at least two active private retirement
+cases. Coverage may reuse earlier active cases exactly as the contract permits.
+Include conditional interactions and boundaries. Check IDs are unique across
+this project. Introduction is the current round; expiry is inclusive or null.
+Avoid overlapping conflicting expected results. A changed expectation gets a
+new ID; the earlier case's frozen expiry must already make this consistent.
+
+At round3, the additional mutant must be a valid replacement for the final
+target that incorrectly preserves an actually retired rule. It must fail its
+named active PRIVATE retirement check, while the correct final reference passes.
+Do not provide a mutant in earlier rounds.
+
+Reason through the accumulated reference state and all active checks before
+responding. Do not claim you executed Python unless you actually did. Local
+execution will validate your artifacts afterward; a failure stops preparation.
+
+The following unchanged check/reference contract is authoritative for the
+assembled project. Return only this round packet's fields above, not a whole
+project object:
+$data_contract
