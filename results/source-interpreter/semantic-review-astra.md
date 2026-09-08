@@ -759,3 +759,121 @@ modification, code edit or commit was performed. Only this canonical review is
 written. Actual CPU preparation and its audit remain later steps; any subsequent
 bounded correction needs its own stable delta verification. This round makes no
 semantic-performance or larger coding-utility claim.
+
+## Round 7 — 2026-09-08 — actual CPU preparation audit
+
+Score: 96/100
+
+Decision: **actual prepared packet accepted; zero open high/critical findings
+and no new findings.** Previous closures remain intact. Medium #6 remains the
+explicit mixed-packet limitation; medium #10 remains deferred with its
+interrupted-call reporting restriction. This accepts the exact preparation
+artifacts for root's final launch freeze, not an inference result or the broader
+coding-utility goal.
+
+The actual preparation was frozen at
+`820cf276448f90e8414dd911c7c33b5231d6d905` and archived at `40986a5c`.
+Independently read the actual job/stdout/stderr/root-check records, latest
+PREPARATION addendum, canonical accepted inputs, all six accepted documents,
+both prepared manifests, and the relevant native tokenizer/template consumer.
+Exact artifact bindings:
+
+| Artifact | Bytes | SHA256 |
+| --- | ---: | --- |
+| `semantic/accepted-inputs.json` | 2856 | `fe2c1356f1f2abb5a6b70f83c638008c240e8bff4c8824e5064cd82c8ac2e8f7` |
+| `semantic/prepared/generation-manifest.json` | 562048 | `7f29793be4407c7db47eecf133a2efb696356c081e49044f2a430d296b6d47e3` |
+| `semantic/prepared/reference-manifest.json` | 279755 | `9293858334b7cbcb1f6af5377f490ab8b9fe07260d7e041afa9b79b55d2aea5b` |
+| `semantic/preparation-job.json` | 1204 | `62b5136e5f15de24eb8ae1fb8d0866d75519bb23c86687818839933cf3315bdd` |
+| `semantic/preparation-root-check.json` | 3905 | `14465a3c49c47635cdf49628a47f2df4b6c9f76fcb17b00308efd4ce1a3ace13` |
+
+### Actual data and encoding checks
+
+Independent read-only validation passed through the actual
+`validate_generation_manifest` consumer and checked accepted-input/corpus
+identity. All six canonical document files equal their accepted `284d53ca`
+Git blobs byte-for-byte. Every input receipt matches its document's current
+size, SHA256, withheld conversation/family identity and successful parse status.
+Exactly eighteen rows remain, three queries per family, with each final query
+at its document's final message. The sole empty reference remains author 00,
+query index 1. No source, target, row, ordering or applicability label changed.
+
+For every row, I independently selected the accepted messages through the query
+ID, serialized that exact prefix and current task handle into the frozen
+system/user prompt, and applied the local native chat template with
+`add_generation_prompt=True` and `enable_thinking=False`. Direct native template
+tokenization and separate encoding of the rendered template with
+`add_special_tokens=False` both exactly equal the stored prefix token IDs.
+Decoding reproduces the full rendered prefix. Visible source IDs, query IDs,
+task handles, row identity, source-prefix hash and prefix-ID hash all reconcile.
+No future message or reference target enters the constructed generation prompt.
+
+Every separate reference is exactly the canonical serialization of its accepted
+target, with identical native token IDs, decoded text and text hash. Each adds
+one EOS 151645, and no target token before that EOS is a reserved control ID.
+Reference identity, target/full lengths and query correspondence agree with
+generation rows. The generation manifest's exact schema contains source/prefix
+material and metadata, while target text and target IDs remain in the separate
+reference manifest. The already reviewed inference child consumes only the
+generation manifest.
+
+The freshly loaded CPU tokenizer state equals the recorded state, including
+backend/template hashes, token vocabulary, added/control-token properties and
+EOS/PAD values. All six tokenizer/config asset hashes match the verified
+original asset receipt. This checked tokenizer assets only, not model weights.
+The manifest's interpreter/virtual-environment paths and installed package
+versions pass the actual environment validator. Generation settings remain
+identical to the fixed FIT generation settings, including greedy decoding,
+2048 new-token allowance and EOS/PAD 151645/151643. The fixed alternating order
+still schedules exactly eighteen base and eighteen adapter calls.
+
+Recomputed length ranges are prefix **315–4059** and reference including EOS
+**7–1005**. The largest prefix plus the unchanged 2048 output allowance is
+**6107**, below **32768**. All eighteen individual rows match root's reported
+length table. These reference lengths are descriptive and neither guarantee
+that generated answers fit the cap nor justify changing it.
+
+### Provenance, cost and launch interface
+
+Every preparation binding matches the exact recorded preparation Git snapshot.
+In particular, the review binding resolves to Round 6 SHA256
+`ec917ecc069a70e8a84f52b8853c96ae8beef0708e0113bb172aa488f988e0e8`
+at that snapshot. Current non-review bindings also pass the real generation
+consumer. Appending this Round 7 review does not require regenerating either
+manifest or changing accepted inputs: the historical preparation review remains
+fixed, and the current launch review is bound separately.
+
+The actual command used the canonical absolute `--prepare` paths from `/tmp`
+with PYTHONPATH unset. The terminal receipt records exit 0 and owner/child PIDs
+189230/189232; both are absent. Exact stdout/stderr byte/hash receipts match,
+stderr is empty, and stdout reports PASS, six documents, eighteen rows,
+thirty-six scheduled calls, no model loaded and no GPU use. Monotonic endpoint
+subtraction independently reproduces the recorded outer preparation cost
+**3.645484035 seconds**. The inspected execution branch loads only the tokenizer
+and prepares manifests; no generation branch is invoked.
+
+The independent read-only encoding/provenance audit took **3.026325929 seconds**
+after audit imports, separately from the actual preparation's outer interval.
+It did not call `prepare_packet`/`--prepare` again or write any prepared artifact.
+This is verification cost, not a second preparation run or model measurement.
+
+Also checked draft launch plan SHA256
+`2cbdb5d54c8bd3ae90ac0969dacf2f59814b93fee7c5a0eef6cb7625f159b57e`
+against its `32c9d0bf` Git blob. The command points to the exact generation
+manifest and fresh run-01 path; settings/order match the actual manifest.
+The required outer observer retains startup 660 seconds and whole publication/
+exit 3600 seconds; the bound implementation retains generation 300 seconds
+and the final 15-second cleanup reserve. All 26 nonprivate binding contents
+reconcile. The private response map was excluded from reading/hash verification;
+its inert advertised binding was visible in the plan, but its contents were not
+opened. The draft explicitly carries #6/#10 reporting qualifications and
+remains marked nonexecuting pending this audit. Root's final freeze must bind
+the current completed review and any acceptance-only report addendum while
+preserving code, data, prepared manifests, settings and limits.
+
+The preparation report accurately distinguishes authoring cost, actual CPU
+preparation, and still-unmeasured model performance. No original/adapter weight
+read, model/GPU operation, generation, network access, old-bank/FIT-target
+access, private-map access, full suite, code edit or commit was performed in
+this audit. Only this canonical review is written. The accepted packet remains
+a qualified fresh instruction-reading screen; larger executable coding utility
+is still unproven.

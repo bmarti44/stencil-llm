@@ -146,3 +146,16 @@ its accepted target, target-plus-EOS identity and lengths, file hashes and
 preparation Git binding. This check took0.014563514seconds without invoking the
 tokenizer again. Actual CPU preparation and metadata correctness are not model
 accuracy or coding-utility evidence. Same Astra preparation audit is next.
+
+## 2026-09-08 — Actual preparation accepted
+
+Astra round7 accepts these exact artifacts at96/100, no new findings or open
+high/critical; canonical review SHA256
+51c6546f8e62cfef2b182daa7488389af311fbe9b0fe935e1c1a8bad3d1f499d.
+All18 native input and reference encodings independently matched, without
+rerunning preparation. Its read-only encoding audit cost3.026325929seconds
+after audit imports. Both prepared manifests and accepted-inputs remain
+byte-for-byte frozen. The mixed-packet and interrupted-pending-call reporting
+qualifications remain. Root may now freeze and execute the registered one-shot
+36-call comparison using the existing outer observer. This acceptance is not
+model accuracy or coding utility.
