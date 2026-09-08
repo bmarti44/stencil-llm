@@ -24,11 +24,11 @@ fallback plan required by the deep-research skill; no permission is needed.
 1. COMPLETE: primary-source discovery. Astra evidence lane covers original
 source retrieval/provenance in multi-turn agents and coding memory; root lane
 covers repeated source exposure, instruction following and downstream utility.
-2. IN PROGRESS: merge evidence, verify consequential claims and contradictions with
+2. COMPLETE: merge evidence, verify consequential claims and contradictions with
 one focused follow-up wave. Distinguish QA, coding, authority/temporal semantics.
-3. PENDING: choose or reject one minimal hypothesis, with fresh quick-check
+3. COMPLETE: choose or reject one minimal hypothesis, with fresh quick-check
 outcomes, cost limits and stop condition. No launch authorization is implied.
-4. PENDING: produce and verify a concise repository Markdown report with primary
+4. IN PROGRESS: produce and verify a concise repository Markdown report with primary
 links, limitations and claim/source ledger. No external publication.
 
 Stop discovery when the plausible benefit, major counterevidence, local
