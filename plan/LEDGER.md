@@ -1713,3 +1713,22 @@ Author03 session39734, owned PID4186219, continues its eleven-path correction.
 Sol xhigh implements native driver/targeted tests/minimal launcher on three-file
 allowlist; CPU snapshot remains frozen. Astra readiness pre-audit records strict
 startup deadline and per-check partial-record requirements. No GPU work begun.
+
+2026-09-07 — STATE: FOUR CORRECTED PROJECTS ASSEMBLED; FINAL DATA REVIEW PENDING.
+Author03 session39734 terminal:203.232s,21,362 prompt+22,663 completion tokens.
+Eleven guarded Kimi changes applied, SHAab239e65. Parent reproduced HIGH11
+before correction and confirmed INVALID afterward. CPU references/controls
+pass in7.191s; largest response525 tokens. Astra bounded review pending.
+Combined candidate bank is exact JSON concatenation of four corrected objects,
+with per-episode IDs unchanged and full input/output provenance. Final combined
+CPU preflight follows; semantic acceptance and worker readiness remain separate.
+
+2026-09-07 — STATE: AUTHOR03 REGRESSION VERIFIED; THREE-PATH KIMI CORRECTION READY.
+The first combined bank passes its existing CPU checks, but Astra found the
+author03 correction validates against imaginary placements after the stopping
+batch. Parent reproduced INVALID on a valid later skip. Preserve attempt01
+assembly/preflight; no worker saw it. Kimi patch02 fixes reference and obligation
+mutant, adding one functional regression check. The functional mutant intentionally
+ignores stopping, so its related occupancy failure is disclosed causal overlap.
+Source Boolean and checksum-scope clarifications are accepted; only finding11
+remains open for this project. Sol driver exists; targeted tests are underway.

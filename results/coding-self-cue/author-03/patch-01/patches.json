@@ -1,0 +1,1291 @@
+{
+  "patches": [
+    {
+      "path": "/episode/rounds/5/reference_patch",
+      "old": "def plan_report(payload):\n    if not isinstance(payload, dict):\n        return \"INVALID\"\n    tray = payload.get(\"tray\")\n    batches = payload.get(\"batches\")\n    stop_on_shortfall = payload.get(\"stop_on_shortfall\", False)\n    if not is_tray(tray):\n        return \"INVALID\"\n    if not isinstance(stop_on_shortfall, bool):\n        return \"INVALID\"\n    if not isinstance(batches, list) or len(batches) == 0:\n        return \"INVALID\"\n    results = []\n    occupied = []\n    stopped_bid = None\n    for batch in batches:\n        working = {\"rows\": tray[\"rows\"], \"cols\": tray[\"cols\"], \"blocked\": tray[\"blocked\"] + occupied}\n        outcome = assign_slots({\"tray\": working, \"batch\": batch})\n        if outcome == \"BAD\":\n            return \"INVALID\"\n        if stop_on_shortfall and outcome[\"unplaced\"] > 0:\n            stopped_bid = outcome[\"bid\"]\n            break\n        results.append(outcome)\n        occupied = occupied + outcome[\"placed\"]\n    summary = summarize_occupancy({\"tray\": tray, \"placed\": occupied})\n    report = {\"ok\": True, \"results\": results, \"summary\": summary}\n    if stop_on_shortfall:\n        open_slots = []\n        for r in range(tray[\"rows\"]):\n            for c in range(tray[\"cols\"]):\n                cell = [r, c]\n                if cell in tray[\"blocked\"] or cell in occupied:\n                    continue\n                open_slots.append(cell)\n        report[\"stopped_bid\"] = stopped_bid\n        report[\"open_slots\"] = open_slots\n    return report",
+      "new": "def plan_report(payload):\n    if not isinstance(payload, dict):\n        return \"INVALID\"\n    tray = payload.get(\"tray\")\n    batches = payload.get(\"batches\")\n    stop_on_shortfall = payload.get(\"stop_on_shortfall\", False)\n    if not is_tray(tray):\n        return \"INVALID\"\n    if not isinstance(stop_on_shortfall, bool):\n        return \"INVALID\"\n    if not isinstance(batches, list) or len(batches) == 0:\n        return \"INVALID\"\n    outcomes = []\n    occupied_all = []\n    for batch in batches:\n        working = {\"rows\": tray[\"rows\"], \"cols\": tray[\"cols\"], \"blocked\": tray[\"blocked\"] + occupied_all}\n        outcome = assign_slots({\"tray\": working, \"batch\": batch})\n        if outcome == \"BAD\":\n            return \"INVALID\"\n        outcomes.append(outcome)\n        occupied_all = occupied_all + outcome[\"placed\"]\n    results = []\n    occupied = []\n    stopped_bid = None\n    for outcome in outcomes:\n        if stop_on_shortfall and outcome[\"unplaced\"] > 0:\n            stopped_bid = outcome[\"bid\"]\n            break\n        results.append(outcome)\n        occupied = occupied + outcome[\"placed\"]\n    summary = summarize_occupancy({\"tray\": tray, \"placed\": occupied})\n    report = {\"ok\": True, \"results\": results, \"summary\": summary}\n    if stop_on_shortfall:\n        open_slots = []\n        for r in range(tray[\"rows\"]):\n            for c in range(tray[\"cols\"]):\n                cell = [r, c]\n                if cell in tray[\"blocked\"] or cell in occupied:\n                    continue\n                open_slots.append(cell)\n        report[\"stopped_bid\"] = stopped_bid\n        report[\"open_slots\"] = open_slots\n    return report"
+    },
+    {
+      "path": "/episode/rounds/5/negative_controls/0/patch",
+      "old": "def plan_report(payload):\n    if not isinstance(payload, dict):\n        return \"INVALID\"\n    tray = payload.get(\"tray\")\n    batches = payload.get(\"batches\")\n    stop_on_shortfall = payload.get(\"stop_on_shortfall\", False)\n    if not is_tray(tray):\n        return \"INVALID\"\n    if not isinstance(stop_on_shortfall, bool):\n        return \"INVALID\"\n    if not isinstance(batches, list) or len(batches) == 0:\n        return \"INVALID\"\n    results = []\n    occupied = []\n    stopped_bid = None\n    for batch in batches:\n        working = {\"rows\": tray[\"rows\"], \"cols\": tray[\"cols\"], \"blocked\": tray[\"blocked\"] + occupied}\n        outcome = assign_slots({\"tray\": working, \"batch\": batch})\n        if outcome == \"BAD\":\n            return \"INVALID\"\n        if stop_on_shortfall and outcome[\"unplaced\"] > 0 and stopped_bid is None:\n            stopped_bid = outcome[\"bid\"]\n        results.append(outcome)\n        occupied = occupied + outcome[\"placed\"]\n    summary = summarize_occupancy({\"tray\": tray, \"placed\": occupied})\n    report = {\"ok\": True, \"results\": results, \"summary\": summary}\n    if stop_on_shortfall:\n        open_slots = []\n        for r in range(tray[\"rows\"]):\n            for c in range(tray[\"cols\"]):\n                cell = [r, c]\n                if cell in tray[\"blocked\"] or cell in occupied:\n                    continue\n                open_slots.append(cell)\n        report[\"stopped_bid\"] = stopped_bid\n        report[\"open_slots\"] = open_slots\n    return report",
+      "new": "def plan_report(payload):\n    if not isinstance(payload, dict):\n        return \"INVALID\"\n    tray = payload.get(\"tray\")\n    batches = payload.get(\"batches\")\n    stop_on_shortfall = payload.get(\"stop_on_shortfall\", False)\n    if not is_tray(tray):\n        return \"INVALID\"\n    if not isinstance(stop_on_shortfall, bool):\n        return \"INVALID\"\n    if not isinstance(batches, list) or len(batches) == 0:\n        return \"INVALID\"\n    outcomes = []\n    occupied_all = []\n    for batch in batches:\n        working = {\"rows\": tray[\"rows\"], \"cols\": tray[\"cols\"], \"blocked\": tray[\"blocked\"] + occupied_all}\n        outcome = assign_slots({\"tray\": working, \"batch\": batch})\n        if outcome == \"BAD\":\n            return \"INVALID\"\n        outcomes.append(outcome)\n        occupied_all = occupied_all + outcome[\"placed\"]\n    results = []\n    occupied = []\n    stopped_bid = None\n    for outcome in outcomes:\n        if stop_on_shortfall and outcome[\"unplaced\"] > 0 and stopped_bid is None:\n            stopped_bid = outcome[\"bid\"]\n        results.append(outcome)\n        occupied = occupied + outcome[\"placed\"]\n    summary = summarize_occupancy({\"tray\": tray, \"placed\": occupied})\n    report = {\"ok\": True, \"results\": results, \"summary\": summary}\n    if stop_on_shortfall:\n        open_slots = []\n        for r in range(tray[\"rows\"]):\n            for c in range(tray[\"cols\"]):\n                cell = [r, c]\n                if cell in tray[\"blocked\"] or cell in occupied:\n                    continue\n                open_slots.append(cell)\n        report[\"stopped_bid\"] = stopped_bid\n        report[\"open_slots\"] = open_slots\n    return report"
+    },
+    {
+      "path": "/episode/rounds/5/negative_controls/1/patch",
+      "old": "def plan_report(payload):\n    if not isinstance(payload, dict):\n        return \"INVALID\"\n    tray = payload.get(\"tray\")\n    batches = payload.get(\"batches\")\n    stop_on_shortfall = payload.get(\"stop_on_shortfall\", False)\n    if not is_tray(tray):\n        return \"INVALID\"\n    if not isinstance(stop_on_shortfall, bool):\n        return \"INVALID\"\n    if not isinstance(batches, list) or len(batches) == 0:\n        return \"INVALID\"\n    results = []\n    occupied = []\n    stopped_bid = None\n    for batch in batches:\n        working = {\"rows\": tray[\"rows\"], \"cols\": tray[\"cols\"], \"blocked\": tray[\"blocked\"] + occupied}\n        outcome = assign_slots({\"tray\": working, \"batch\": batch})\n        if outcome == \"BAD\":\n            return \"INVALID\"\n        if stop_on_shortfall and outcome[\"unplaced\"] > 0:\n            stopped_bid = outcome[\"bid\"]\n            break\n        results.append(outcome)\n        occupied = occupied + outcome[\"placed\"]\n    summary = summarize_occupancy({\"tray\": tray, \"placed\": occupied})\n    report = {\"ok\": True, \"results\": results, \"summary\": summary}\n    if stop_on_shortfall:\n        open_slots = []\n        for c in range(tray[\"cols\"]):\n            for r in range(tray[\"rows\"]):\n                cell = [r, c]\n                if cell in tray[\"blocked\"] or cell in occupied:\n                    continue\n                open_slots.append(cell)\n        report[\"stopped_bid\"] = stopped_bid\n        report[\"open_slots\"] = open_slots\n    return report",
+      "new": "def plan_report(payload):\n    if not isinstance(payload, dict):\n        return \"INVALID\"\n    tray = payload.get(\"tray\")\n    batches = payload.get(\"batches\")\n    stop_on_shortfall = payload.get(\"stop_on_shortfall\", False)\n    if not is_tray(tray):\n        return \"INVALID\"\n    if not isinstance(stop_on_shortfall, bool):\n        return \"INVALID\"\n    if not isinstance(batches, list) or len(batches) == 0:\n        return \"INVALID\"\n    outcomes = []\n    occupied_all = []\n    for batch in batches:\n        working = {\"rows\": tray[\"rows\"], \"cols\": tray[\"cols\"], \"blocked\": tray[\"blocked\"] + occupied_all}\n        outcome = assign_slots({\"tray\": working, \"batch\": batch})\n        if outcome == \"BAD\":\n            return \"INVALID\"\n        outcomes.append(outcome)\n        occupied_all = occupied_all + outcome[\"placed\"]\n    results = []\n    occupied = []\n    stopped_bid = None\n    for outcome in outcomes:\n        if stop_on_shortfall and outcome[\"unplaced\"] > 0:\n            stopped_bid = outcome[\"bid\"]\n            break\n        results.append(outcome)\n        occupied = occupied + outcome[\"placed\"]\n    summary = summarize_occupancy({\"tray\": tray, \"placed\": occupied})\n    report = {\"ok\": True, \"results\": results, \"summary\": summary}\n    if stop_on_shortfall:\n        open_slots = []\n        for c in range(tray[\"cols\"]):\n            for r in range(tray[\"rows\"]):\n                cell = [r, c]\n                if cell in tray[\"blocked\"] or cell in occupied:\n                    continue\n                open_slots.append(cell)\n        report[\"stopped_bid\"] = stopped_bid\n        report[\"open_slots\"] = open_slots\n    return report"
+    },
+    {
+      "path": "/episode/rounds/5/functional_checks",
+      "old": [
+        {
+          "check_id": "rf51",
+          "symbol": "plan_report",
+          "input": {
+            "tray": {
+              "rows": 1,
+              "cols": 2,
+              "blocked": []
+            },
+            "batches": [
+              {
+                "bid": "a",
+                "count": 1
+              }
+            ]
+          },
+          "expected_values": [
+            {
+              "ok": true,
+              "results": [
+                {
+                  "bid": "a",
+                  "placed": [
+                    [
+                      0,
+                      0
+                    ]
+                  ],
+                  "unplaced": 0
+                }
+              ],
+              "summary": {
+                "filled": 1,
+                "open": 1,
+                "first_open": [
+                  0,
+                  1
+                ]
+              }
+            }
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "rf52",
+          "symbol": "plan_report",
+          "input": {
+            "tray": {
+              "rows": 2,
+              "cols": 1,
+              "blocked": []
+            },
+            "batches": [
+              {
+                "bid": "a",
+                "count": 2
+              }
+            ],
+            "stop_on_shortfall": false
+          },
+          "expected_values": [
+            {
+              "ok": true,
+              "results": [
+                {
+                  "bid": "a",
+                  "placed": [
+                    [
+                      0,
+                      0
+                    ],
+                    [
+                      1,
+                      0
+                    ]
+                  ],
+                  "unplaced": 0
+                }
+              ],
+              "summary": {
+                "filled": 2,
+                "open": 0,
+                "first_open": null
+              }
+            }
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "rf53",
+          "symbol": "plan_report",
+          "input": {
+            "tray": {
+              "rows": 1,
+              "cols": 3,
+              "blocked": [
+                [
+                  0,
+                  2
+                ]
+              ]
+            },
+            "batches": [
+              {
+                "bid": "a",
+                "count": 1
+              },
+              {
+                "bid": "b",
+                "count": 2
+              }
+            ],
+            "stop_on_shortfall": true
+          },
+          "expected_values": [
+            {
+              "ok": true,
+              "results": [
+                {
+                  "bid": "a",
+                  "placed": [
+                    [
+                      0,
+                      0
+                    ]
+                  ],
+                  "unplaced": 0
+                }
+              ],
+              "summary": {
+                "filled": 1,
+                "open": 1,
+                "first_open": [
+                  0,
+                  1
+                ]
+              },
+              "stopped_bid": "b",
+              "open_slots": [
+                [
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "rf54",
+          "symbol": "plan_report",
+          "input": {
+            "tray": {
+              "rows": 2,
+              "cols": 2,
+              "blocked": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  0
+                ]
+              ]
+            },
+            "batches": [
+              {
+                "bid": "a",
+                "count": 1
+              },
+              {
+                "bid": "b",
+                "count": 1
+              }
+            ],
+            "stop_on_shortfall": true
+          },
+          "expected_values": [
+            {
+              "ok": true,
+              "results": [
+                {
+                  "bid": "a",
+                  "placed": [
+                    [
+                      0,
+                      0
+                    ]
+                  ],
+                  "unplaced": 0
+                },
+                {
+                  "bid": "b",
+                  "placed": [
+                    [
+                      1,
+                      1
+                    ]
+                  ],
+                  "unplaced": 0
+                }
+              ],
+              "summary": {
+                "filled": 2,
+                "open": 0,
+                "first_open": null
+              },
+              "stopped_bid": null,
+              "open_slots": []
+            }
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "rf55",
+          "symbol": "plan_report",
+          "input": {
+            "tray": {
+              "rows": 1,
+              "cols": 2,
+              "blocked": []
+            },
+            "batches": [
+              {
+                "bid": "a",
+                "count": 1
+              }
+            ],
+            "stop_on_shortfall": "yes"
+          },
+          "expected_values": [
+            "INVALID"
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "rf56",
+          "symbol": "plan_report",
+          "input": {
+            "tray": {
+              "rows": 2,
+              "cols": 2,
+              "blocked": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            },
+            "batches": [
+              {
+                "bid": "a",
+                "count": 1
+              }
+            ]
+          },
+          "expected_values": [
+            "INVALID"
+          ],
+          "rule_ids": []
+        }
+      ],
+      "new": [
+        {
+          "check_id": "rf51",
+          "symbol": "plan_report",
+          "input": {
+            "tray": {
+              "rows": 1,
+              "cols": 2,
+              "blocked": []
+            },
+            "batches": [
+              {
+                "bid": "a",
+                "count": 1
+              }
+            ]
+          },
+          "expected_values": [
+            {
+              "ok": true,
+              "results": [
+                {
+                  "bid": "a",
+                  "placed": [
+                    [
+                      0,
+                      0
+                    ]
+                  ],
+                  "unplaced": 0
+                }
+              ],
+              "summary": {
+                "filled": 1,
+                "open": 1,
+                "first_open": [
+                  0,
+                  1
+                ]
+              }
+            }
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "rf52",
+          "symbol": "plan_report",
+          "input": {
+            "tray": {
+              "rows": 2,
+              "cols": 1,
+              "blocked": []
+            },
+            "batches": [
+              {
+                "bid": "a",
+                "count": 2
+              }
+            ],
+            "stop_on_shortfall": false
+          },
+          "expected_values": [
+            {
+              "ok": true,
+              "results": [
+                {
+                  "bid": "a",
+                  "placed": [
+                    [
+                      0,
+                      0
+                    ],
+                    [
+                      1,
+                      0
+                    ]
+                  ],
+                  "unplaced": 0
+                }
+              ],
+              "summary": {
+                "filled": 2,
+                "open": 0,
+                "first_open": null
+              }
+            }
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "rf53",
+          "symbol": "plan_report",
+          "input": {
+            "tray": {
+              "rows": 1,
+              "cols": 3,
+              "blocked": [
+                [
+                  0,
+                  2
+                ]
+              ]
+            },
+            "batches": [
+              {
+                "bid": "a",
+                "count": 1
+              },
+              {
+                "bid": "b",
+                "count": 2
+              }
+            ],
+            "stop_on_shortfall": true
+          },
+          "expected_values": [
+            {
+              "ok": true,
+              "results": [
+                {
+                  "bid": "a",
+                  "placed": [
+                    [
+                      0,
+                      0
+                    ]
+                  ],
+                  "unplaced": 0
+                }
+              ],
+              "summary": {
+                "filled": 1,
+                "open": 1,
+                "first_open": [
+                  0,
+                  1
+                ]
+              },
+              "stopped_bid": "b",
+              "open_slots": [
+                [
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "rf54",
+          "symbol": "plan_report",
+          "input": {
+            "tray": {
+              "rows": 2,
+              "cols": 2,
+              "blocked": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  0
+                ]
+              ]
+            },
+            "batches": [
+              {
+                "bid": "a",
+                "count": 1
+              },
+              {
+                "bid": "b",
+                "count": 1
+              }
+            ],
+            "stop_on_shortfall": true
+          },
+          "expected_values": [
+            {
+              "ok": true,
+              "results": [
+                {
+                  "bid": "a",
+                  "placed": [
+                    [
+                      0,
+                      0
+                    ]
+                  ],
+                  "unplaced": 0
+                },
+                {
+                  "bid": "b",
+                  "placed": [
+                    [
+                      1,
+                      1
+                    ]
+                  ],
+                  "unplaced": 0
+                }
+              ],
+              "summary": {
+                "filled": 2,
+                "open": 0,
+                "first_open": null
+              },
+              "stopped_bid": null,
+              "open_slots": []
+            }
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "rf55",
+          "symbol": "plan_report",
+          "input": {
+            "tray": {
+              "rows": 1,
+              "cols": 2,
+              "blocked": []
+            },
+            "batches": [
+              {
+                "bid": "a",
+                "count": 1
+              }
+            ],
+            "stop_on_shortfall": "yes"
+          },
+          "expected_values": [
+            "INVALID"
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "rf56",
+          "symbol": "plan_report",
+          "input": {
+            "tray": {
+              "rows": 2,
+              "cols": 2,
+              "blocked": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            },
+            "batches": [
+              {
+                "bid": "a",
+                "count": 1
+              }
+            ]
+          },
+          "expected_values": [
+            "INVALID"
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "rf57",
+          "symbol": "plan_report",
+          "input": {
+            "tray": {
+              "rows": 1,
+              "cols": 1,
+              "blocked": []
+            },
+            "batches": [
+              {
+                "bid": "too-large",
+                "count": 2
+              },
+              {
+                "bid": "bad",
+                "count": 0
+              }
+            ],
+            "stop_on_shortfall": true
+          },
+          "expected_values": [
+            "INVALID"
+          ],
+          "rule_ids": []
+        }
+      ]
+    },
+    {
+      "path": "/episode/rounds/0/request/text",
+      "old": "Fill in assign_slots(payload) in module.py (allocation task). payload must be a dict with keys \"tray\" and \"batch\"; ignore any extra keys. A valid tray is whatever is_tray accepts. A valid batch is a dict with \"bid\" (a non-empty string) and \"count\" (an integer >= 1). Consider the tray's usable slots — every (row, col) not in its blocked list — and place the batch into the first \"count\" usable slots in reading order (lowest row, then lowest column); if fewer usable slots than \"count\" remain, fill all of them. Return a dict {\"bid\": the batch's bid, \"placed\": the list of [row, col] pairs in the order they were filled, \"unplaced\": count minus the number placed}. For any payload not meeting this contract, return the string \"INVALID\". Submit just the complete function.",
+      "new": "Fill in assign_slots(payload) in module.py (allocation task). payload must be a dict with keys \"tray\" and \"batch\"; ignore any extra keys. A valid tray is whatever is_tray accepts. A valid batch is a dict with \"bid\" (a non-empty string) and \"count\" (an integer >= 1; for this count field only, Python integer booleans are permitted with False meaning 0 and True meaning 1, still subject to count >= 1). Consider the tray's usable slots — every (row, col) not in its blocked list — and place the batch into the first \"count\" usable slots in reading order (lowest row, then lowest column); if fewer usable slots than \"count\" remain, fill all of them. Return a dict {\"bid\": the batch's bid, \"placed\": the list of [row, col] pairs in the order they were filled, \"unplaced\": count minus the number placed}. For any payload not meeting this contract, return the string \"INVALID\". Submit just the complete function."
+    },
+    {
+      "path": "/episode/rounds/1/request/text",
+      "old": "Implement summarize_occupancy(payload) in module.py (reporting task). payload must be a dict with \"tray\" (valid per is_tray) and \"placed\": a list of distinct [row, col] integer pairs, each in bounds and not one of the tray's blocked cells; ignore extra payload keys. Usable cells are all cells minus the blocked ones; occupied cells are the placed ones. Return a dict with exactly these keys: \"filled\" (number of placed cells), \"open\" (usable minus filled), and \"first_open\" (the first usable, unoccupied cell in reading order — lowest row, then lowest column — or null if none exists). Return the string \"INVALID\" for anything outside this contract: bad tray, malformed placed entries, wrong types, a placed cell that is blocked, out of bounds, or duplicated. Complete function only.",
+      "new": "Implement summarize_occupancy(payload) in module.py (reporting task). payload must be a dict with \"tray\" (valid per is_tray) and \"placed\": a list of distinct [row, col] integer pairs, each in bounds and not one of the tray's blocked cells; for these placed coordinates only, Python integer booleans are permitted with False meaning 0 and True meaning 1, subject to the same in-bounds and distinctness rules; ignore extra payload keys. Usable cells are all cells minus the blocked ones; occupied cells are the placed ones. Return a dict with exactly these keys: \"filled\" (number of placed cells), \"open\" (usable minus filled), and \"first_open\" (the first usable, unoccupied cell in reading order — lowest row, then lowest column — or null if none exists). Return the string \"INVALID\" for anything outside this contract: bad tray, malformed placed entries, wrong types, a placed cell that is blocked, out of bounds, or duplicated. Complete function only."
+    },
+    {
+      "path": "/episode/rounds/2/request/text",
+      "old": "Revise assign_slots(payload) in module.py (allocation task). Keep the existing behavior exactly for payloads whose batch has no \"skip\" key: same reading-order placement and the same result shape {\"bid\", \"placed\", \"unplaced\"}. New capability: a batch may optionally include \"skip\", a list of distinct in-bounds [row, col] integer pairs naming extra cells unavailable for this placement only; skip cells must not be blocked cells of the tray. Because the old standing invalid-marker rule was withdrawn, this request fixes the marker itself: from now on assign_slots returns the string \"BAD\" for any input outside this contract — wrong shapes or types, bad tray, non-string or empty bid, count below 1, or a skip list that is not a list, or has malformed, out-of-bounds, blocked, or duplicated entries. Reading-order slot choice still governs placement and the placed list. Complete function only.",
+      "new": "Revise assign_slots(payload) in module.py (allocation task). Keep the existing behavior exactly for payloads whose batch has no \"skip\" key: same reading-order placement and the same result shape {\"bid\", \"placed\", \"unplaced\"}. New capability: a batch may optionally include \"skip\", a list of distinct in-bounds [row, col] integer pairs naming extra cells unavailable for this placement only; for these skip coordinates only, Python integer booleans are permitted with False meaning 0 and True meaning 1, subject to the existing in-bounds, not-blocked, and distinctness rules; skip cells must not be blocked cells of the tray. Because the old standing invalid-marker rule was withdrawn, this request fixes the marker itself: from now on assign_slots returns the string \"BAD\" for any input outside this contract — wrong shapes or types, bad tray, non-string or empty bid, count below 1, or a skip list that is not a list, or has malformed, out-of-bounds, blocked, or duplicated entries. Reading-order slot choice still governs placement and the placed list. Complete function only."
+    },
+    {
+      "path": "/episode/rounds/0/functional_checks",
+      "old": [
+        {
+          "check_id": "f01",
+          "symbol": "assign_slots",
+          "input": {
+            "tray": {
+              "rows": 2,
+              "cols": 3,
+              "blocked": [
+                [
+                  0,
+                  1
+                ]
+              ]
+            },
+            "batch": {
+              "bid": "a",
+              "count": 1
+            }
+          },
+          "expected_values": [
+            {
+              "bid": "a",
+              "placed": [
+                [
+                  0,
+                  0
+                ]
+              ],
+              "unplaced": 0
+            }
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "f02",
+          "symbol": "assign_slots",
+          "input": {
+            "tray": {
+              "rows": 2,
+              "cols": 2,
+              "blocked": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  0
+                ]
+              ]
+            },
+            "batch": {
+              "bid": "b",
+              "count": 3
+            }
+          },
+          "expected_values": [
+            {
+              "bid": "b",
+              "placed": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ]
+              ],
+              "unplaced": 1
+            }
+          ],
+          "rule_ids": []
+        }
+      ],
+      "new": [
+        {
+          "check_id": "f01",
+          "symbol": "assign_slots",
+          "input": {
+            "tray": {
+              "rows": 2,
+              "cols": 3,
+              "blocked": [
+                [
+                  0,
+                  1
+                ]
+              ]
+            },
+            "batch": {
+              "bid": "a",
+              "count": 1
+            }
+          },
+          "expected_values": [
+            {
+              "bid": "a",
+              "placed": [
+                [
+                  0,
+                  0
+                ]
+              ],
+              "unplaced": 0
+            }
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "f02",
+          "symbol": "assign_slots",
+          "input": {
+            "tray": {
+              "rows": 2,
+              "cols": 2,
+              "blocked": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  0
+                ]
+              ]
+            },
+            "batch": {
+              "bid": "b",
+              "count": 3
+            }
+          },
+          "expected_values": [
+            {
+              "bid": "b",
+              "placed": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ]
+              ],
+              "unplaced": 1
+            }
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "f03",
+          "symbol": "assign_slots",
+          "input": {
+            "tray": {
+              "rows": 2,
+              "cols": 2,
+              "blocked": []
+            },
+            "batch": {
+              "bid": "bool",
+              "count": true
+            }
+          },
+          "expected_values": [
+            {
+              "bid": "bool",
+              "placed": [
+                [
+                  0,
+                  0
+                ]
+              ],
+              "unplaced": 0
+            }
+          ],
+          "rule_ids": []
+        }
+      ]
+    },
+    {
+      "path": "/episode/rounds/1/functional_checks",
+      "old": [
+        {
+          "check_id": "sf01",
+          "symbol": "summarize_occupancy",
+          "input": {
+            "tray": {
+              "rows": 2,
+              "cols": 3,
+              "blocked": [
+                [
+                  0,
+                  2
+                ]
+              ]
+            },
+            "placed": [
+              [
+                0,
+                0
+              ],
+              [
+                1,
+                0
+              ]
+            ]
+          },
+          "expected_values": [
+            {
+              "filled": 2,
+              "open": 3,
+              "first_open": [
+                0,
+                1
+              ]
+            }
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "sf02",
+          "symbol": "summarize_occupancy",
+          "input": {
+            "tray": {
+              "rows": 1,
+              "cols": 2,
+              "blocked": []
+            },
+            "placed": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                1
+              ]
+            ]
+          },
+          "expected_values": [
+            {
+              "filled": 2,
+              "open": 0,
+              "first_open": null
+            }
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "sf03",
+          "symbol": "summarize_occupancy",
+          "input": {
+            "tray": {
+              "rows": 1,
+              "cols": 1,
+              "blocked": [
+                [
+                  0,
+                  0
+                ]
+              ]
+            },
+            "placed": []
+          },
+          "expected_values": [
+            {
+              "filled": 0,
+              "open": 0,
+              "first_open": null
+            }
+          ],
+          "rule_ids": []
+        }
+      ],
+      "new": [
+        {
+          "check_id": "sf01",
+          "symbol": "summarize_occupancy",
+          "input": {
+            "tray": {
+              "rows": 2,
+              "cols": 3,
+              "blocked": [
+                [
+                  0,
+                  2
+                ]
+              ]
+            },
+            "placed": [
+              [
+                0,
+                0
+              ],
+              [
+                1,
+                0
+              ]
+            ]
+          },
+          "expected_values": [
+            {
+              "filled": 2,
+              "open": 3,
+              "first_open": [
+                0,
+                1
+              ]
+            }
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "sf02",
+          "symbol": "summarize_occupancy",
+          "input": {
+            "tray": {
+              "rows": 1,
+              "cols": 2,
+              "blocked": []
+            },
+            "placed": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                1
+              ]
+            ]
+          },
+          "expected_values": [
+            {
+              "filled": 2,
+              "open": 0,
+              "first_open": null
+            }
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "sf03",
+          "symbol": "summarize_occupancy",
+          "input": {
+            "tray": {
+              "rows": 1,
+              "cols": 1,
+              "blocked": [
+                [
+                  0,
+                  0
+                ]
+              ]
+            },
+            "placed": []
+          },
+          "expected_values": [
+            {
+              "filled": 0,
+              "open": 0,
+              "first_open": null
+            }
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "sf04",
+          "symbol": "summarize_occupancy",
+          "input": {
+            "tray": {
+              "rows": 1,
+              "cols": 2,
+              "blocked": []
+            },
+            "placed": [
+              [
+                false,
+                true
+              ]
+            ]
+          },
+          "expected_values": [
+            {
+              "filled": 1,
+              "open": 1,
+              "first_open": [
+                0,
+                0
+              ]
+            }
+          ],
+          "rule_ids": []
+        }
+      ]
+    },
+    {
+      "path": "/episode/rounds/2/functional_checks",
+      "old": [
+        {
+          "check_id": "af21",
+          "symbol": "assign_slots",
+          "input": {
+            "tray": {
+              "rows": 2,
+              "cols": 2,
+              "blocked": []
+            },
+            "batch": {
+              "bid": "a",
+              "count": 3,
+              "skip": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0
+                ]
+              ]
+            }
+          },
+          "expected_values": [
+            {
+              "bid": "a",
+              "placed": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ],
+              "unplaced": 1
+            }
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "af22",
+          "symbol": "assign_slots",
+          "input": {
+            "tray": {
+              "rows": 2,
+              "cols": 2,
+              "blocked": [
+                [
+                  1,
+                  0
+                ]
+              ]
+            },
+            "batch": {
+              "bid": "c",
+              "count": 1
+            }
+          },
+          "expected_values": [
+            {
+              "bid": "c",
+              "placed": [
+                [
+                  0,
+                  0
+                ]
+              ],
+              "unplaced": 0
+            }
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "af23",
+          "symbol": "assign_slots",
+          "input": {
+            "tray": {
+              "rows": 2,
+              "cols": 2,
+              "blocked": []
+            },
+            "batch": {
+              "bid": "d",
+              "count": 1,
+              "skip": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            }
+          },
+          "expected_values": [
+            "BAD"
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "af24",
+          "symbol": "assign_slots",
+          "input": {
+            "tray": {
+              "rows": 0,
+              "cols": 3,
+              "blocked": []
+            },
+            "batch": {
+              "bid": "e",
+              "count": 1
+            }
+          },
+          "expected_values": [
+            "BAD"
+          ],
+          "rule_ids": []
+        }
+      ],
+      "new": [
+        {
+          "check_id": "af21",
+          "symbol": "assign_slots",
+          "input": {
+            "tray": {
+              "rows": 2,
+              "cols": 2,
+              "blocked": []
+            },
+            "batch": {
+              "bid": "a",
+              "count": 3,
+              "skip": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0
+                ]
+              ]
+            }
+          },
+          "expected_values": [
+            {
+              "bid": "a",
+              "placed": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ],
+              "unplaced": 1
+            }
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "af22",
+          "symbol": "assign_slots",
+          "input": {
+            "tray": {
+              "rows": 2,
+              "cols": 2,
+              "blocked": [
+                [
+                  1,
+                  0
+                ]
+              ]
+            },
+            "batch": {
+              "bid": "c",
+              "count": 1
+            }
+          },
+          "expected_values": [
+            {
+              "bid": "c",
+              "placed": [
+                [
+                  0,
+                  0
+                ]
+              ],
+              "unplaced": 0
+            }
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "af23",
+          "symbol": "assign_slots",
+          "input": {
+            "tray": {
+              "rows": 2,
+              "cols": 2,
+              "blocked": []
+            },
+            "batch": {
+              "bid": "d",
+              "count": 1,
+              "skip": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            }
+          },
+          "expected_values": [
+            "BAD"
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "af24",
+          "symbol": "assign_slots",
+          "input": {
+            "tray": {
+              "rows": 0,
+              "cols": 3,
+              "blocked": []
+            },
+            "batch": {
+              "bid": "e",
+              "count": 1
+            }
+          },
+          "expected_values": [
+            "BAD"
+          ],
+          "rule_ids": []
+        },
+        {
+          "check_id": "af25",
+          "symbol": "assign_slots",
+          "input": {
+            "tray": {
+              "rows": 1,
+              "cols": 2,
+              "blocked": []
+            },
+            "batch": {
+              "bid": "bool",
+              "count": 1,
+              "skip": [
+                [
+                  false,
+                  true
+                ]
+              ]
+            }
+          },
+          "expected_values": [
+            {
+              "bid": "bool",
+              "placed": [
+                [
+                  0,
+                  0
+                ]
+              ],
+              "unplaced": 0
+            }
+          ],
+          "rule_ids": []
+        }
+      ]
+    },
+    {
+      "path": "/episode/rounds/1/source_messages/1/text",
+      "old": "No thanks on the checksum — no extra fields beyond what I specify, unless I explicitly ask later. Both standing conventions from kickoff still hold for any function you write or edit. Switching to the reporting task for this turn.",
+      "new": "No thanks on the checksum — for this summary request only, no extra fields beyond what I specify unless I explicitly ask later; this is not a new durable standing convention. Both standing conventions from kickoff still hold for any function you write or edit. Switching to the reporting task for this turn."
+    }
+  ]
+}
