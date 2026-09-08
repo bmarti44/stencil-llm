@@ -230,6 +230,49 @@ def test_optimizer_frozen_gradients_and_update_evidence():
         mechanics.validate_optimizer_step(model, wrong_optimizer, before)
 
 
+class TinyMissingGradient(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.original = torch.nn.Parameter(torch.tensor([2.0]), requires_grad=False)
+        self.lora_A = torch.nn.Parameter(torch.tensor([1.0]))
+        self.lora_B = torch.nn.Parameter(torch.tensor([1.0]))
+
+    def forward(self, value):
+        return self.original * value + self.lora_A * value
+
+
+def test_real_step_consumer_durably_confirms_update_before_validation_failure(
+    tmp_path,
+):
+    model = TinyMissingGradient()
+    optimizer = torch.optim.AdamW([model.lora_A, model.lora_B], lr=0.1, weight_decay=0)
+    before = model.lora_A.detach().clone()
+    with pytest.raises(RuntimeError, match="absent gradient"):
+        mechanics.perform_optimizer_step(
+            tmp_path,
+            ordinal=0,
+            model=model,
+            optimizer=optimizer,
+            loss_call=lambda: model(torch.tensor([1.0])).square().sum(),
+            sync=lambda: None,
+            resource=lambda _stage: {"cpu": True},
+            supervised_tokens=3,
+            label_positions=[2, 3, 4],
+            causal_logit_positions=[1, 2, 3],
+        )
+    assert not torch.equal(before, model.lora_A.detach())
+    receipt = json.loads((tmp_path / "step-00.json").read_text())
+    assert receipt["classification"] == "warm-up"
+    assert receipt["status"] == "UPDATE_CONFIRMED"
+    assert receipt["update_completed"] is True
+    assert receipt["update_completion_known"] is True
+    assert receipt["validation_completed"] is False
+    counts = mechanics._partial_update_counts(tmp_path)
+    assert counts["confirmed_updates"] == 1
+    assert counts["warm_up_updates_confirmed"] == 1
+    assert counts["update_count_is_exact"] is True
+
+
 def test_adapter_state_and_byte_archive_roundtrip(tmp_path):
     expected = {"lora_A.weight": torch.tensor([1.0], dtype=torch.float32)}
     mechanics.compare_adapter_states(expected, copy.deepcopy(expected))
@@ -384,8 +427,13 @@ def test_supervisor_timeout_stops_only_owned_child_and_preserves_foreign_flag(tm
     try:
         command = _child_script(
             tmp_path,
-            "import pathlib, sys, time\n"
-            "(pathlib.Path(sys.argv[1])/'partial.json').write_text('started')\n"
+            "import json, pathlib, sys, time\n"
+            "run=pathlib.Path(sys.argv[1])\n"
+            "(run/'partial.json').write_text('started')\n"
+            "(run/'step-00.json').write_text(json.dumps({"
+            "'ordinal':0,'classification':'warm-up','status':'UPDATE_PENDING',"
+            "'update_completed':None,'update_completion_known':False,"
+            "'validation_completed':False}))\n"
             "time.sleep(30)\n",
         ) + [str(run)]
         code, lifecycle = mechanics.supervise_child(
@@ -399,6 +447,10 @@ def test_supervisor_timeout_stops_only_owned_child_and_preserves_foreign_flag(tm
         assert code == 2
         assert lifecycle["status"] == "INCOMPLETE_TIMEOUT"
         assert lifecycle["child_exit_confirmed"] is True
+        assert lifecycle["updates"] is None
+        assert lifecycle["confirmed_updates"] == 0
+        assert lifecycle["pending_or_unknown_steps"] == [0]
+        assert lifecycle["update_count_is_exact"] is False
         assert foreign.poll() is None
         assert foreign_flag.read_text() == "foreign"
         assert not own_flag.exists()
@@ -448,6 +500,45 @@ def test_incomplete_result_cannot_pass(tmp_path):
     result["step_receipts"] = result["step_receipts"][1:]
     with pytest.raises(RuntimeError, match="four|warm-up"):
         mechanics.validate_completion(result)
+
+
+def test_delayed_finalization_is_measured_and_cannot_remain_complete(tmp_path):
+    run = tmp_path / "late-finalization"
+    run.mkdir()
+    (run / "result.json").write_text(json.dumps(_complete_result()))
+    flag = tmp_path / "RUNNING.flag"
+    flag.write_text("owned", encoding="utf-8")
+    times = iter([0.0, 0.1, 0.2, 2.1])
+
+    class Process:
+        pid = 12345
+        returncode = 0
+
+        def wait(self, timeout):
+            assert timeout == pytest.approx(1.4)
+            return 0
+
+        def poll(self):
+            return 0
+
+    code, lifecycle = mechanics.supervise_child(
+        run,
+        [sys.executable, "/absolute/fake-child.py"],
+        run_flag=flag,
+        pid_registry=tmp_path / "pids",
+        reservation_seconds=2,
+        termination_reserve_seconds=0.5,
+        clock=lambda: next(times),
+        wall_clock=lambda: 10.0,
+        popen=lambda *_args, **_kwargs: Process(),
+    )
+    assert code == 2
+    assert lifecycle["status"] == "INCOMPLETE_FINALIZATION_DEADLINE"
+    assert lifecycle["child_exit_monotonic"] == 0.2
+    assert lifecycle["ended_monotonic"] == 2.1
+    assert lifecycle["elapsed_seconds"] == 2.1
+    assert lifecycle["receipt_publication_tail"]["included_in_elapsed"] is False
+    assert not flag.exists()
     result = _complete_result()
     result["status"] = "INCOMPLETE"
     with pytest.raises(RuntimeError, match="COMPLETE"):
@@ -479,3 +570,24 @@ def test_import_and_dry_run_have_no_heavy_side_effects(tmp_path, capsys, monkeyp
     assert plan["working_seconds"] == 585
     assert not run.exists()
     assert not flag.exists()
+
+
+def test_direct_file_cpu_qualification_uses_installed_package(tmp_path):
+    environment = dict(os.environ)
+    environment.pop("PYTHONPATH", None)
+    result = subprocess.run(
+        [sys.executable, str(mechanics.__file__), "--_qualify-only"],
+        cwd=tmp_path,
+        env=environment,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    receipt = json.loads(result.stdout)
+    assert receipt == {
+        "kind": "source-interpreter-mechanics-qualification",
+        "model_loaded": False,
+        "selected_row_index": 14,
+        "status": "PASS",
+    }

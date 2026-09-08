@@ -164,7 +164,7 @@ def _append_json(path: Path, value: Any) -> None:
 
 
 def _source_module():
-    from src.stencil.focus import source_interpreter
+    from stencil.focus import source_interpreter
 
     return source_interpreter
 
@@ -444,6 +444,89 @@ def validate_optimizer_step(
             True if original_bytes_checked else None
         ),
     }
+
+
+def _publish_step(run: Path, receipt: dict[str, Any]) -> None:
+    _write_json(Path(run) / f"step-{receipt['ordinal']:02d}.json", receipt)
+    _append_json(Path(run) / "steps.jsonl", receipt)
+
+
+def perform_optimizer_step(
+    run: Path,
+    *,
+    ordinal: int,
+    model: Any,
+    optimizer: Any,
+    loss_call: Any,
+    sync: Any,
+    resource: Any,
+    supervised_tokens: int,
+    label_positions: list[int],
+    causal_logit_positions: list[int],
+) -> dict[str, Any]:
+    """Perform one update with durable intent and completion transitions."""
+    classification = "warm-up" if ordinal == 0 else "timed"
+    receipt = {
+        "ordinal": ordinal,
+        "classification": classification,
+        "status": "INTENT",
+        "update_completed": False,
+        "update_completion_known": True,
+        "validation_completed": False,
+        "resource_completed": False,
+        "supervised_tokens": supervised_tokens,
+        "label_positions": label_positions,
+        "causal_logit_positions": causal_logit_positions,
+        "labels_passed_unchanged": True,
+        "intent_unix": time.time(),
+    }
+    _publish_step(run, receipt)
+    optimizer.zero_grad(set_to_none=True)
+    step_before = capture_parameter_state(model, hash_originals=False)
+
+    sync()
+    began = time.monotonic()
+    loss = loss_call()
+    sync()
+    receipt["forward_seconds"] = time.monotonic() - began
+    loss_value = float(loss.detach().float().item())
+    if not math.isfinite(loss_value) or loss_value <= 0:
+        raise MechanicsError(f"update {ordinal} loss is not positive finite")
+    receipt["loss"] = loss_value
+
+    sync()
+    began = time.monotonic()
+    loss.backward()
+    sync()
+    receipt["backward_seconds"] = time.monotonic() - began
+    receipt["status"] = "UPDATE_PENDING"
+    receipt["update_completed"] = None
+    receipt["update_completion_known"] = False
+    _publish_step(run, receipt)
+
+    sync()
+    began = time.monotonic()
+    optimizer.step()
+    sync()
+    receipt["update_seconds"] = time.monotonic() - began
+    receipt["status"] = "UPDATE_CONFIRMED"
+    receipt["update_completed"] = True
+    receipt["update_completion_known"] = True
+    receipt["update_confirmed_unix"] = time.time()
+    _publish_step(run, receipt)
+
+    evidence = validate_optimizer_step(model, optimizer, step_before)
+    receipt["gradient_and_update"] = evidence
+    receipt["validation_completed"] = True
+    receipt["status"] = "VALIDATION_CONFIRMED"
+    _publish_step(run, receipt)
+
+    memory = resource(f"step-{ordinal}")
+    receipt["memory"] = memory
+    receipt["resource_completed"] = True
+    receipt["status"] = "VALIDATED"
+    _publish_step(run, receipt)
+    return receipt
 
 
 def validate_frozen_originals(model: Any, originals: dict[str, Any]) -> dict[str, Any]:
@@ -973,55 +1056,29 @@ def run_measurement(run: Path, *, deadline_monotonic: float) -> int:
         model.train()
         for ordinal in range(SETTINGS["updates"]):
             _guard_deadline(deadline_monotonic, f"update {ordinal}")
-            optimizer.zero_grad(set_to_none=True)
-            step_before = capture_parameter_state(model, hash_originals=False)
-            torch.cuda.synchronize()
-            began = time.monotonic()
-            output = model(
-                input_ids=input_ids,
-                attention_mask=attention_mask,
-                labels=labels,
-                use_cache=False,
-            )
-            torch.cuda.synchronize()
-            forward_seconds = time.monotonic() - began
-            loss = output.loss
-            loss_value = float(loss.detach().float().item())
-            if not math.isfinite(loss_value) or loss_value <= 0:
-                raise MechanicsError(f"update {ordinal} loss is not positive finite")
-            torch.cuda.synchronize()
-            began = time.monotonic()
-            loss.backward()
-            torch.cuda.synchronize()
-            backward_seconds = time.monotonic() - began
-            torch.cuda.synchronize()
-            began = time.monotonic()
-            optimizer.step()
-            torch.cuda.synchronize()
-            update_seconds = time.monotonic() - began
-            evidence = validate_optimizer_step(model, optimizer, step_before)
-            memory = _resource_receipt(f"step-{ordinal}", torch)
-            resource_receipts.append(memory)
-            receipt = {
-                "ordinal": ordinal,
-                "classification": "warm-up" if ordinal == 0 else "timed",
-                "loss": loss_value,
-                "supervised_tokens": len(row["loss_positions"]),
-                "label_positions": row["loss_positions"],
-                "causal_logit_positions": list(
+            receipt = perform_optimizer_step(
+                run,
+                ordinal=ordinal,
+                model=model,
+                optimizer=optimizer,
+                loss_call=lambda: (
+                    model(
+                        input_ids=input_ids,
+                        attention_mask=attention_mask,
+                        labels=labels,
+                        use_cache=False,
+                    ).loss
+                ),
+                sync=torch.cuda.synchronize,
+                resource=lambda stage: _resource_receipt(stage, torch),
+                supervised_tokens=len(row["loss_positions"]),
+                label_positions=row["loss_positions"],
+                causal_logit_positions=list(
                     range(row["prefix_length"] - 1, row["full_length"] - 1)
                 ),
-                "labels_passed_unchanged": True,
-                "forward_seconds": forward_seconds,
-                "backward_seconds": backward_seconds,
-                "update_seconds": update_seconds,
-                "gradient_and_update": evidence,
-                "memory": memory,
-                "update_completed": True,
-            }
+            )
             step_receipts.append(receipt)
-            _write_json(run / f"step-{ordinal:02d}.json", receipt)
-            _append_json(run / "steps.jsonl", receipt)
+            resource_receipts.append(receipt["memory"])
 
         _guard_deadline(deadline_monotonic, "adapter save")
         stage_started = time.monotonic()
@@ -1129,7 +1186,7 @@ def run_measurement(run: Path, *, deadline_monotonic: float) -> int:
 
         _guard_deadline(deadline_monotonic, "cleanup")
         stage_started = time.monotonic()
-        del post_loss, output, loss, input_ids, attention_mask, labels
+        post_loss = input_ids = attention_mask = labels = None
         del optimizer
         optimizer = None
         del model
@@ -1201,6 +1258,7 @@ def run_measurement(run: Path, *, deadline_monotonic: float) -> int:
             resource_receipts.append(_resource_receipt("incomplete-exit", torch))
         except Exception:
             pass
+        durable_steps = _current_step_receipts(run)
         result = {
             "schema_version": 1,
             "kind": "source-interpreter-mechanics-result",
@@ -1210,7 +1268,8 @@ def run_measurement(run: Path, *, deadline_monotonic: float) -> int:
             "bindings": bindings,
             "settings": SETTINGS,
             "stage_receipts": stage_receipts,
-            "step_receipts": step_receipts,
+            "step_receipts": durable_steps,
+            "update_accounting": _partial_update_counts(run),
             "resource_receipts": resource_receipts,
             "timings": {"total_seconds": time.monotonic() - child_started},
         }
@@ -1270,23 +1329,47 @@ def _partial_files(run: Path) -> list[str]:
     )
 
 
-def _partial_update_counts(run: Path) -> dict[str, int]:
+def _current_step_receipts(run: Path) -> list[dict[str, Any]]:
     receipts = []
+    for path in sorted(Path(run).glob("step-*.json")):
+        try:
+            receipts.append(_read_json(path, "partial step receipt"))
+        except MechanicsError:
+            continue
+    return receipts
+
+
+def _partial_update_counts(run: Path) -> dict[str, Any]:
+    confirmed = []
+    validated = []
+    pending_or_unknown = []
     for path in sorted(Path(run).glob("step-*.json")):
         try:
             value = _read_json(path, "partial step receipt")
         except MechanicsError:
+            pending_or_unknown.append(path.name)
             continue
-        if value.get("update_completed") is True:
-            receipts.append(value)
+        if (
+            value.get("update_completed") is True
+            and value.get("update_completion_known", True) is True
+        ):
+            confirmed.append(value)
+            if value.get("validation_completed") is True:
+                validated.append(value)
+        elif value.get("update_completion_known") is False:
+            pending_or_unknown.append(value.get("ordinal", path.name))
+    exact = not pending_or_unknown
     return {
-        "updates": len(receipts),
-        "warm_up_updates": sum(
-            value.get("classification") == "warm-up" for value in receipts
+        "confirmed_updates": len(confirmed),
+        "warm_up_updates_confirmed": sum(
+            value.get("classification") == "warm-up" for value in confirmed
         ),
-        "timed_updates": sum(
-            value.get("classification") == "timed" for value in receipts
+        "timed_updates_confirmed": sum(
+            value.get("classification") == "timed" for value in confirmed
         ),
+        "validated_updates": len(validated),
+        "pending_or_unknown_steps": pending_or_unknown,
+        "update_count_is_exact": exact,
     }
 
 
@@ -1387,7 +1470,7 @@ def supervise_child(
         elif child is not None:
             child_exit_confirmed = True
     finally:
-        ended = clock()
+        child_exit_monotonic = clock()
         child_exit_code = child.returncode if child_exit_confirmed else None
         status = "INCOMPLETE_CHILD"
         exit_code = 2
@@ -1401,7 +1484,7 @@ def supervise_child(
                 completion = validate_completion(
                     _read_json(run / "result.json", "child result")
                 )
-                if ended <= work_deadline:
+                if child_exit_monotonic <= work_deadline:
                     status = "COMPLETE"
                     exit_code = 0
                 else:
@@ -1409,13 +1492,32 @@ def supervise_child(
             except Exception as exc:
                 launch_error = f"{type(exc).__name__}: {exc}"
         partial_counts = _partial_update_counts(run)
+        confirmed_updates = (
+            completion["updates"] if completion else partial_counts["confirmed_updates"]
+        )
+        warm_up_confirmed = (
+            completion["warm_up_updates"]
+            if completion
+            else partial_counts["warm_up_updates_confirmed"]
+        )
+        timed_confirmed = (
+            completion["timed_updates"]
+            if completion
+            else partial_counts["timed_updates_confirmed"]
+        )
+        count_is_exact = (
+            completion is not None or partial_counts["update_count_is_exact"]
+        )
         lifecycle = {
             "schema_version": 1,
             "kind": "source-interpreter-mechanics-lifecycle",
-            "status": status,
+            "status": "FINALIZING",
+            "candidate_status": status,
             "started_monotonic": started,
-            "ended_monotonic": ended,
-            "ended_unix": wall_clock(),
+            "child_exit_monotonic": child_exit_monotonic,
+            "ended_monotonic": None,
+            "elapsed_seconds": None,
+            "ended_unix": None,
             "reservation_seconds": reservation_seconds,
             "working_seconds": reservation_seconds - termination_reserve_seconds,
             "termination_reserve_seconds": termination_reserve_seconds,
@@ -1428,25 +1530,46 @@ def supervise_child(
             "termination_reason": termination_reason,
             "error": launch_error,
             "partial_files": _partial_files(run),
-            "updates": (
-                completion["updates"] if completion else partial_counts["updates"]
-            ),
-            "warm_up_updates": (
-                completion["warm_up_updates"]
+            "updates": confirmed_updates if count_is_exact else None,
+            "warm_up_updates": warm_up_confirmed if count_is_exact else None,
+            "timed_updates": timed_confirmed if count_is_exact else None,
+            "confirmed_updates": confirmed_updates,
+            "warm_up_updates_confirmed": warm_up_confirmed,
+            "timed_updates_confirmed": timed_confirmed,
+            "validated_updates": (
+                completion["updates"]
                 if completion
-                else partial_counts["warm_up_updates"]
+                else partial_counts["validated_updates"]
             ),
-            "timed_updates": (
-                completion["timed_updates"]
-                if completion
-                else partial_counts["timed_updates"]
-            ),
+            "pending_or_unknown_steps": partial_counts["pending_or_unknown_steps"],
+            "update_count_is_exact": count_is_exact,
             "run_flag_cleared": False,
+            "finalization_within_total_deadline": None,
+            "receipt_publication_tail": None,
         }
         _write_json(run / "lifecycle.json", lifecycle)
         if child_exit_confirmed or child is None:
             Path(run_flag).unlink(missing_ok=True)
             lifecycle["run_flag_cleared"] = True
+        finalized_monotonic = clock()
+        within_total = finalized_monotonic <= total_deadline
+        if status == "COMPLETE" and not within_total:
+            status = "INCOMPLETE_FINALIZATION_DEADLINE"
+            exit_code = 2
+        lifecycle["status"] = status
+        lifecycle["ended_monotonic"] = finalized_monotonic
+        lifecycle["elapsed_seconds"] = finalized_monotonic - started
+        lifecycle["ended_unix"] = wall_clock()
+        lifecycle["finalization_within_total_deadline"] = within_total
+        lifecycle["receipt_publication_tail"] = {
+            "starts_monotonic": finalized_monotonic,
+            "included_in_elapsed": False,
+            "bounded_by_outer_process_observation": True,
+            "description": (
+                "The final lifecycle JSON fsync occurs after its last self-observed "
+                "monotonic sample."
+            ),
+        }
         _write_json(run / "lifecycle.json", lifecycle)
     return exit_code, lifecycle
 
@@ -1554,8 +1677,9 @@ def _reserve_flag(run: Path) -> None:
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--run-dir", type=Path, required=True)
+    parser.add_argument("--run-dir", type=Path)
     parser.add_argument("--execute", action="store_true")
+    parser.add_argument("--_qualify-only", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--_child", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--deadline-monotonic", type=float, help=argparse.SUPPRESS)
     return parser
@@ -1563,6 +1687,29 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
+    if args._qualify_only:
+        if (
+            args.run_dir is not None
+            or args.execute
+            or args._child
+            or args.deadline_monotonic is not None
+        ):
+            raise ValueError("qualification-only mode cannot be combined")
+        validate_artifacts(verify_base_files=False)
+        print(
+            json.dumps(
+                {
+                    "kind": "source-interpreter-mechanics-qualification",
+                    "model_loaded": False,
+                    "selected_row_index": 14,
+                    "status": "PASS",
+                },
+                sort_keys=True,
+            )
+        )
+        return 0
+    if args.run_dir is None:
+        raise ValueError("run-dir is required")
     run = args.run_dir.resolve()
     if run.parent != RESULTS_DIR or not run.name.startswith("run-"):
         raise ValueError(
