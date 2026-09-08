@@ -1,0 +1,28 @@
+{
+  "kind": "root-independent-publication-defect-reproduction",
+  "real_consumer": "run_inference_schedule + FIT run_generation_call + validate_complete_calls",
+  "fixtures": "existing CPU fake model/tokenizer; injected clock/final writer",
+  "real_model_calls": 0,
+  "cases": [
+    {
+      "delayed_ordinal": 0,
+      "final_publication_observed": [
+        1.01
+      ],
+      "status": "COMPLETE",
+      "returned": 36,
+      "validator_accepted": 36,
+      "deadline": 1.0
+    },
+    {
+      "delayed_ordinal": 35,
+      "final_publication_observed": [
+        1.01
+      ],
+      "status": "COMPLETE",
+      "returned": 36,
+      "validator_accepted": 36,
+      "deadline": 1.0
+    }
+  ]
+}

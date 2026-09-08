@@ -456,3 +456,168 @@ their existing scope. This review performed no tokenizer/model/GPU operation,
 code edit, test suite or scorer invocation and grants no inference launch by
 itself. Source/label acceptance is not evidence of helper performance or the
 broader project's success.
+
+## Round 5 — 2026-09-08 — stable implementation review
+
+Score: 86/100
+
+Decision: **changes required; two open high findings, zero critical.** New
+findings #7 and #8 block implementation acceptance. New #9 is medium. Findings
+#1–#5 remain resolved; #6 remains deferred with the Round 4 mixed-packet
+qualification. Source/label acceptance and the single completed correction
+batch are unchanged.
+
+Reviewed the stable Sol implementation through
+`50ed563e2457924239f0d52a8f718773addf2aba`, including initial `81dd4252`, with
+the accepted canonical copies committed separately at `284d53ca`. Exact bytes:
+
+| Artifact | SHA256 |
+| --- | --- |
+| `scripts/source_interpreter_semantic.py` | `2e34c7d78f2fec1bc256aaf5e07c432a7722f8c297556686156eb13829b0d154` |
+| `tests/test_source_interpreter_semantic.py` | `db53b6c9064ed793896ee45bb0c17f809a3495ccf4557235ef9c58baeebfaf7d` |
+| `SEMANTIC-CODE-BRIEF.md` | `2d80b13932434c053eaeb17169e0fdac4f126f47ed0525b6787c6e5a7a738222` |
+| Accepted `SEMANTIC.md` | `d892196fc32ed1e670152dc5904a50bac854d78dda82222f4da95e4c6b2826e5` |
+| This review through Round 4, before this appendix | `ab90cf6f282961b16521ce4a6f3648f9fd74ee713a1e394d92feec414996c859` |
+
+### Findings
+
+**7. High — The actual original base assets are not verified against their
+recorded bytes before model loading.**
+
+Evidence: `qualify_static` (lines 185–240) binds the `base-assets.json` receipt,
+but never checks the thirteen actual files described by that receipt.
+`run_child` verifies adapter files at line 1242 and loads `MODEL_PATH` at
+lines 1263–1271. Its later `capture_parameter_state` and
+`validate_frozen_originals` establish that whatever original tensors were loaded
+remain unchanged within the job. They do not connect those tensors to the
+previously verified original base files. The loaded tokenizer-state comparison
+also does not identify the model weight shards. The existing FIT consumer's
+`validate_artifacts(verify_base_files=True)` explicitly performs the missing
+file checks; the semantic consumer does not call that path or an equivalent.
+
+Consequently ordinary accidental replacement or corruption of a local base
+asset, including a same-size change, is not rejected by this identity check.
+The resulting comparison could still be marked complete while its claimed
+original-base lineage is unverified. This is a required scientific identity
+check, not a hostile filesystem-race requirement.
+
+Required correction: in the explicit execution path, verify the required
+original assets against the frozen receipt's exact sizes and SHA256 values
+before loading the model, retain the evidence, and satisfy the brief's
+before/after file-identity check alongside the existing in-memory invariance
+check. Account for this work within the existing startup/whole-job bounds.
+Keep static/dry qualification free of actual weight reads. A small reused or
+local helper is sufficient; do not load labels or unrelated FIT artifacts to
+obtain this check. Exercise the actual verification consumer with a synthetic
+same-size altered asset and confirm rejection before model loading.
+
+**8. High — Final per-call record publication can exceed the call deadline
+and still pass complete-execution validation.**
+
+Evidence: `run_inference_schedule` checks the root stage publication against
+the hard deadline at lines 925–940, then builds and durably writes
+`call-NN.json` at line 966. It does not check elapsed time after this final
+per-call write. `validate_complete_calls` (lines 774–810) checks the returned
+nested receipt and its earlier stop facts, but has no confirmation that the
+final semantic call record itself was published within the deadline.
+
+I reproduced this through the actual schedule, existing synthetic model/tokenizer
+fixtures, actual FIT single-call consumer, and actual complete-call validator.
+With a one-second injected call clock, delaying the final RETURNED write for
+`call-00.json` to time 1.01 produced:
+
+- first call hard deadline: 1.0;
+- first final call record published: 1.01;
+- schedule result: COMPLETE, 36 returned calls;
+- `validate_complete_calls`: accepted all 36 calls.
+
+Only the in-process clock/writer and synthetic fixtures were substituted;
+this created no real model calls or packet preparation. The existing root stage
+correctly remains COMPLETION_PENDING while that write occurs. That watchdog
+is useful, but its polling can miss a short deadline overrun followed by the
+next INTENT, so it does not repair the demonstrated acceptance path. A final
+call can similarly finish its publication late while still leaving time in the
+whole-job allowance.
+
+Required correction: include final semantic call-record publication in the
+actual per-call completion protocol and require its timely confirmation in the
+complete-result consumer. An overrun or unavailable final confirmation must
+stop further calls and block both eligibility flags, while retaining any known
+raw bytes, IDs, counts and timings. Use the existing pending-stage/watchdog and
+bounded publication machinery; no new timing framework or extra model call is
+needed. Add a negative regression through the real schedule and complete-result
+consumer for this publication delay, including the final scheduled call.
+
+**9. Medium — Loaded adapter payload identity is checked only against its own
+initial state, not against the frozen serialized payloads.**
+
+Evidence: `_verify_adapter_files` correctly checks both archived parts and the
+standard adapter file's exact hash, and `PeftModel.from_pretrained` loads the
+specified local adapter. These provide meaningful provenance. After loading,
+lines 1283–1294 check only 144 tensors, 2,949,120 elements and FP32 dtype. The
+later `compare_adapter_states(state, after_state)` verifies within-job equality
+with that initial loaded state. No comparison establishes that all loaded
+keys, shapes and tensor values equal the verified serialized adapter payloads.
+
+This is narrower than #7: the adapter source bytes are actually verified, and
+there is no evidence that the native PEFT loader loaded a wrong adapter. The
+remaining gap is in the brief's requested complete loaded-payload identity
+verification. A matching count/dtype plus self-comparison does not itself
+measure that identity.
+
+Correction: inside the already authorized model-loading path, compare the
+loaded adapter state against the exact verified serialized state, including
+keys, shapes, dtypes and tensor values or hashes, and retain that result before
+the first generation. A small mismatch regression at that actual comparison
+boundary is sufficient. Do not add another adapter candidate, run or generic
+serialization framework.
+
+### Verified behavior and limits
+
+Independent targeted verification: `tests/test_source_interpreter_semantic.py`
+passed **8 tests in 8.97 seconds**. Ruff check and format check passed, and
+`git diff --check` was clean for the reviewed implementation. The targeted suite
+covers direct absolute invocation from `/tmp` with PYTHONPATH unset, default
+dry mode and artifact-only qualification, import without heavy modules,
+synthetic preparation, fixed 36-call order, native FIT generation plumbing,
+ordinary returned cap/invalid continuation, technical-stop accounting,
+incomplete-result rejection, and owned-child timeout/cleanup behavior. No full
+suite was run.
+
+The target-free generation manifest is produced from an explicit row whitelist;
+reference text and target token IDs are written separately. The actual child
+reads the generation manifest and does not reopen source documents or the
+reference manifest. Unique row directories prevent the FIT consumer's fixed
+mode filenames from overwriting earlier pairs. The actual FIT call consumer
+uses the fixed native generation settings, checks active adapter state, clears
+cache, records complete IDs and decoded bytes, and uses one model trunk across
+the fixed alternating modes. Returning malformed or capped output remains an
+observed return; technical incompleteness leaves later calls unattempted and
+blocks the normal complete path, subject to the publication defect above.
+
+The two root-identified pre-handoff corrections are verified. If nested raw
+output exists but final call publication is unavailable, `partial_call_records`
+retains known output provenance, ID count, byte count and timing without
+promoting the call to RETURNED or confirming its deadline. The targeted
+regression passes through this actual recovery consumer. Preparation's canonical
+review binding is resolved only through the recorded `preparation_git_head`
+Git blob; other bindings retain current-byte validation. In an additional
+synthetic actual-consumer check, an appended live review was accepted with the
+correct historical bytes, incorrect historical review bytes were rejected, and
+changed current implementation bytes were rejected. The current launch review
+remains a separate required freeze binding.
+
+The observer contract exposes startup 660 seconds, per-generation 300 seconds,
+whole publication/exit 3600 seconds, and a final 15-second cleanup reserve.
+The owned-child supervisor monitors pending stage deadlines and records unknown
+partial results and cleanup failures honestly. The independent outer observer
+is still required to establish final supervisor publication, process exit and
+owned-group absence; this code audit is not the later frozen-launch audit.
+
+No source/target reauthoring, actual packet tokenization, original/adapter weight
+read, model/GPU call, scorer, old-bank access, network operation, code edit or
+commit was performed by this reviewer. Fix #7/#8 before implementation
+acceptance; preserve the accepted data and registered settings. The small
+identity correction for #9 can accompany them without changing the experiment.
+Actual CPU preparation, its preview audit and final launch freeze remain future
+steps. This review grants no model execution authority or performance claim.
