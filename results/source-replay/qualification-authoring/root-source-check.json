@@ -1,0 +1,52 @@
+{
+  "kind": "source-replay-qualification-root-source-check",
+  "scope": "Existing actual action/sandbox reference audit only; new qualification consumer not yet implemented",
+  "status": "PASS",
+  "authored_sha256": "ff167de40c52227c2a5eae1eda34194197d7d1c92337b1c37740aec9c6f8578c",
+  "source_checks": "m02 explicitly requests quarters first, then dimes, ignoring remainder; all three positive-input cases follow these instructions. Root independently recomputed 35 => 1+1=2, 7 => 0+0=0, 60 => 2+1=3. No negative-input or general behavior claim.",
+  "raw_parsed_receipt_hashes": "PASS",
+  "reference_action_sha256": "853e53c63702d9825b622cb00c6dda0910ed0e1063a9cdae1eff7060b07473b7",
+  "reference_module_sha256": "853e53c63702d9825b622cb00c6dda0910ed0e1063a9cdae1eff7060b07473b7",
+  "checks": [
+    {
+      "check_id": "chk-quarter-plus-dime",
+      "symbol": "coin_count",
+      "rule_ids": [],
+      "passed": true,
+      "actual": 2,
+      "expected_values": [
+        2
+      ],
+      "error": null,
+      "elapsed_seconds": 0.024475799989886582
+    },
+    {
+      "check_id": "chk-pennies-ignored",
+      "symbol": "coin_count",
+      "rule_ids": [],
+      "passed": true,
+      "actual": 0,
+      "expected_values": [
+        0
+      ],
+      "error": null,
+      "elapsed_seconds": 0.01319142000284046
+    },
+    {
+      "check_id": "chk-two-quarters-one-dime",
+      "symbol": "coin_count",
+      "rule_ids": [],
+      "passed": true,
+      "actual": 3,
+      "expected_values": [
+        3
+      ],
+      "error": null,
+      "elapsed_seconds": 0.013467865996062756
+    }
+  ],
+  "elapsed_seconds": 0.051326780987437814,
+  "new_consumer_preflight": false,
+  "model_calls": 0,
+  "reference_repaired": false
+}

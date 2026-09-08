@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "author": "kimi-k3:cloud",
+  "lineage": "Authored independently for this request; not drawn from any benchmark, prior project, conversation, or remembered example.",
+  "initial_file": {
+    "path": "module.py",
+    "text": "def coin_count(cents):\n    return cents // 25\n"
+  },
+  "source_messages": [
+    {
+      "message_id": "m01",
+      "role": "user",
+      "text": "The change helper must count only quarters (25 cents) and dimes (10 cents); leftover pennies never count."
+    }
+  ],
+  "request": {
+    "message_id": "m02",
+    "role": "user",
+    "text": "Update coin_count so it also counts dimes after taking as many quarters as possible, and return the total number of coins. For example, coin_count(35) should return 2 (one quarter plus one dime); leftover pennies are still ignored."
+  },
+  "target": {
+    "path": "module.py",
+    "symbol": "coin_count"
+  },
+  "reference_patch": "def coin_count(cents):\n    quarters = cents // 25\n    remainder = cents - quarters * 25\n    dimes = remainder // 10\n    return quarters + dimes",
+  "checks": [
+    {
+      "check_id": "chk-quarter-plus-dime",
+      "symbol": "coin_count",
+      "input": 35,
+      "expected_values": [
+        2
+      ]
+    },
+    {
+      "check_id": "chk-pennies-ignored",
+      "symbol": "coin_count",
+      "input": 7,
+      "expected_values": [
+        0
+      ]
+    },
+    {
+      "check_id": "chk-two-quarters-one-dime",
+      "symbol": "coin_count",
+      "input": 60,
+      "expected_values": [
+        3
+      ]
+    }
+  ]
+}
