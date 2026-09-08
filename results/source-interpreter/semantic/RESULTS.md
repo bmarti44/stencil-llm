@@ -110,3 +110,28 @@ still active and can provide only qualified descriptive findings.
 Actual execution and its structural/cost observations above remain valid. This
 fixed candidate does not advance on this screen. Adequate fresh executable
 coding utility and the overall project goal remain unproven.
+
+## 2026-09-08 — Assessment terminal; original judgments preserved
+
+All13 disputed records now have separate source-grounded Astra adjudications
+in assessment-astra-adjudication.json (SHA256
+d71b14dea823516ff2e26b8c139b164ab7e0c46e61db34fa455fd55ed556ce50).
+Both original independent vote sets remain unchanged. The adjudicator considered
+the full answer, allowing explicit replacement/supersession to qualify older
+quoted clauses. Three disputed answers originally marked FAIL by both judges
+receive separate PASS adjudications on that reading; this does not overwrite
+the originals or validate the bank. An answer's ambiguous firmware hysteresis
+wording remains disclosed and fails that answer. Kimi's invalid original field
+remains unknown; Astra's separate source judgment is not its normalization.
+
+Root verified all72 original structural judgments and source-ID visibility,
+all13 adjudication identities/category schemas/cited-source visibility, and the
+unchanged original Astra hash. These checks validate records, not source
+interpretation by themselves. The whole-screen INELIGIBLE decision remains;
+no primary test, practical-gate score, repaired-label evaluation or reduced-bank
+score was computed. Original records remain available for qualified descriptive
+inspection. No claim of training benefit, equivalence or useful coding follows.
+
+Next project work is a separately researched original-source reminder hypothesis.
+The present candidate and control are not being carried forward from these
+withheld results. No successor model run has launched.
