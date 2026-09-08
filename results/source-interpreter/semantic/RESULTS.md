@@ -1,3 +1,17 @@
+# Current status: INELIGIBLE; assessment complete
+
+The model run completed, but a confirmed expected-answer defect makes the whole
+screen ineligible. It cannot support a training-benefit claim or advancement to
+a larger trial. All original data, answers and independent judgments are
+preserved. Final source adjudication is complete; no repaired or reduced-bank
+score was computed. See the dated terminal addenda below.
+
+The following is the preserved historical execution report, followed by its
+append-only review and final-status addenda. Its initial pending-status wording
+records that earlier stage and is not the current status.
+
+---
+
 # Fresh semantic comparison: execution complete, judgments pending
 
 2026-09-08. The one-shot comparison returned all36 scheduled calls in
