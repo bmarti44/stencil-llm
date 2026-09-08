@@ -2395,3 +2395,47 @@ Independently20tests1.84s+Ruff, exactpreview reproduction, real-consumer synthet
 512reasoning-token boundary probe PASS with forcingcauseunproven;513rejected.
 No other consequential issue. Preserve round1 before narrowfixdelta. Final
 acceptance still waits launcher/testfix, refreshedpreview/resource andAstra closure.
+
+2026-09-08 — STATE: NARROW PRESERVATION FIX CONTINUING; EXTRA ANALYSIS STOPPED.
+Previous goal turn was progress: stable implementation20testhandoff, complete
+Astra review, verified medium preservation defect and archived originalpreview.
+Current turn revalidated same live native Sol handle; no external blocker.
+After about10minutes on the already reproduced four-line ownership correction
+without target-file changes, root interrupted extra analysis and resumed the
+same Sol task with exact run_created/test steps. This is bounded intervention
+on prolonged implementation planning, not restart of an inference/pytest job on
+an observation timeout. No model/server job exists; CPU process snapshot showed
+no identified active test process. Existing original runs remain untouched.
+No new research/framework needed. Wait exactsame agent for stablefix, thenrefresh
+preview and resume sameAstra delta. Goal remains active, noblocked designation.
+
+2026-09-08 — STATE: PRESERVATION FIX VERIFIED BY SOL; FINAL ASTRA DELTA NEXT.
+Sol same native xhigh task committed3c89fd111d6cdfc25789f457cc63f2527446c162.
+Actual-main preservation test red beforefix, greenafter;7launchertests0.70s,
+Ruff/help/dryrun PASS. Driver/test unchanged. Launcher SHA
+e91c6075782cf304bf4d25e24672ca646024d1311ac86d2cc4183c4ce09dd0a4;
+launcher tests c77efcdd8029eaa1ed034f356a005de7864cbe95fdeb134f398d925d3e810412.
+Root reverified hashes and refreshedcanonicalpreview, CPUexit0/0modelcalls:
+0cda62aaf01276ea694eff8ee6a9860590d49dd26b274c4cbcb3d98a391b91bc.
+Only two sourcebindings changed; fixture/request/resource objects identical to
+preview-r1. Resourceplan now binds fixedpreview and recordsnarrowfix. Resume same
+Astra reviewer for finding1 closure and finalscore/exactbindings; no full rediscovery
+or expandedtests needed. Model/server run still notstarted, goalactive.
+
+2026-09-08 — STATE: THINKING SMOKE READINESS ACCEPTED; FREEZE AND SINGLE RUN NEXT.
+Astra round2 ACCEPT96, zeroopenfindings; finding1medium resolved by actual-main
+regression. Independent7launchertests0.72s+Ruff; unchangeddriver retains prior
+review. Parent verified finalreview/source/brief/resource/preview exacthashes.
+Readiness SHA521ad91202b69389037f73a91c02b15775623b98df7f4405741aca0676fbdb19.
+Resourceplan SHA82064e6e32d1593f1cce361acc00a6e6d28ca3af31b0211b23b9cb80c3b43db7.
+Commit finalpreview/resource/review and this acceptance decision now. Nextcommand:
+/home/bmarti44/stencil-llm/.venv/bin/python
+/home/bmarti44/stencil-llm/tools/run_qwen_thinking_tool_smoke.py --run-dir
+/home/bmarti44/stencil-llm/results/coding-reasoning-smoke/run-01 --execute.
+Register launcher PID beforeexec and preserve launch-01.log; launcher repeats
+exclusivity/cleantracked/trunk/metadata qualification, freeze andownedlock/flag.
+One attempt, atmost2render+2generationcalls,2048total/512reasoning,1200sreservation
+including600startup/60cleanup. No extraattempt, prompt/cap orhistoryrescue.
+Poll exact returned session toterminal; no restart on observation timeout.
+Readiness report stays frozen, terminal audit separate. Fullgeneralizedfocus/
+adequatelargerpairedproof still unproven; compatibilityis only a prerequisite.

@@ -217,3 +217,56 @@ sequence is not described as TDD. Apart from #1, this review found no further
 consequential defect within the fixed compatibility scope. The correction,
 updated launcher/test hashes and refreshed preview/resource bindings remain
 required before final acceptance.
+
+## Round 2 — final readiness, 2026-09-08
+
+**Score: 96/100. Disposition: ACCEPTED for the specified bounded compatibility
+check.** Open findings: critical 0, high 0, medium 0, low 0. The 90/100 threshold
+and zero-open-high/critical condition are satisfied. The preliminary pending
+status and Round 1 score/finding above remain historical records.
+
+**#1 — Medium (resolved 2026-09-08).** Correction commit
+`3c89fd111d6cdfc25789f457cc63f2527446c162` sets `run_created` only after this
+invocation successfully creates the directory, and writes its pre-server
+failure receipt only when that condition holds. The actual `main` regression
+now rejects an existing run without changing the sentinel lifecycle bytes,
+without entering the lifecycle, and without leaving the newly reserved flag.
+This directly closes the reproduced failure. The diff changes only this narrow
+launcher path and its regression test; no driver changes or new scope.
+
+Independently ran the targeted launcher test file: **7 passed in 0.72 seconds**.
+Ruff passed for the changed launcher and test. The unchanged driver and driver
+tests retain the Round 1 verification. No model/server calls or generated-code
+execution occurred during this delta review.
+
+Final exact SHA-256 bindings:
+
+| Artifact | SHA-256 |
+|---|---|
+| `scripts/qwen_thinking_tool_smoke.py` | `aa40011d5459e7e19455fe5baf828473cf65e478c64cc86a068ea366c1056746` |
+| `tests/test_qwen_thinking_tool_smoke.py` | `e15a522d07043d8ecc4c820b3a8addb6a90ba1895c2ac1f4ebec573e990f6456` |
+| `tools/run_qwen_thinking_tool_smoke.py` | `e91c6075782cf304bf4d25e24672ca646024d1311ac86d2cc4183c4ce09dd0a4` |
+| `tests/test_run_qwen_thinking_tool_smoke.py` | `c77efcdd8029eaa1ed034f356a005de7864cbe95fdeb134f398d925d3e810412` |
+| `BRIEF.md` | `b825673131c68c2436b9c3cc91df2c7ce8beb8a6912eca04f52ac125086db8b5` |
+| `RESOURCE-PLAN.md` | `82064e6e32d1593f1cce361acc00a6e6d28ca3af31b0211b23b9cb80c3b43db7` |
+| `preview.json` | `0cda62aaf01276ea694eff8ee6a9860590d49dd26b274c4cbcb3d98a391b91bc` |
+
+The canonical preview again equals the independently recomputed CPU preview,
+and the launcher's actual preview consumer accepts it. Compared with archived
+`preview-r1.json`, only the two changed launcher/test hashes differ. Fixture,
+request, settings, token counts and resource fields are exactly unchanged.
+The revised resource plan binds this preview and correction commit without
+changing the prospective limits. The remaining helper/tokenizer bindings stay
+as recorded in the canonical preview and preceding review.
+
+This readiness disposition covers one attempt with at most two generations,
+2048 total output tokens and an observed 512-token reasoning bound per call,
+inside the owned 1200-second reservation. Root must commit and freeze this
+accepted snapshot and use the launcher's immediate exclusivity checks before
+execution. It grants no extra attempts, larger allowance or later semantic run.
+The live combination remains unmeasured until that attempt: native evidence,
+compile/apply continuity and complete owned cleanup determine its result.
+Even a PASS would establish neither semantic coding competence, adequate
+reasoning for semantic tasks, automatic-focus parity, nor that budget forcing
+caused termination. Preserve this accepted report unchanged during the run;
+any terminal audit belongs in a separate artifact.
