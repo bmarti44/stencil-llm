@@ -42,8 +42,9 @@ and [technical results](results/source-replay/QUALIFICATION-RESULTS.md).
 Focused research and a new staged preparation design have each passed independent
 Astra review at96/100. The new approach freezes each project's instructions first,
 then generates and validates reference code and tests one round at a time. Sol
-is implementing that preparation tool; no new bank has been generated and no
-coding-benefit result is available. The stopped bank stays closed. See the
+has completed that preparation tool with27passing targeted tests; independent
+Astra code review is next. No new bank has been generated and no coding-benefit
+result is available. The stopped bank stays closed. See the
 [prospective protocol](results/source-replay-staged/PREPARATION.md) and its
 [design review](results/source-replay-staged/review-astra.md).
 Resume from the latest STATE entry in [the project ledger](plan/LEDGER.md).
