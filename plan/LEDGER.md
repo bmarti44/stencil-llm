@@ -2874,3 +2874,33 @@ BRIEF.md and inventory; terminal audit and readiness frozen. Reassess supervised
 source-grounded interpretation versus source-preserving alternatives, one ranked
 materially different hypothesis and cheapest falsifiable measurement. No model
 call/training/newdata/newbudget, no cosmetic prompt/cap retry. Full goal active.
+
+2026-09-08 — STATE: RESEARCH LIVE; CPU BASE-ASSET QUALIFICATION.
+Previous goal turn completed terminal audit acceptance/archive865a1b31, Sol
+read-only inventory and activation of exact same Astra research handle; progress.
+Current Astra remains authoritatively running. Root metadata recheck confirms
+Qwen3-4Bconfig/index/three present shards and installed torch2.13.0,transformers
+5.16.1,peft0.20.0,accelerate1.14.0. Cached download metadata consistently names
+revision1cfa9a7208912126459214e8b04321603b3df60c, with all3LFS hash expectations
+matching historical base-only contract. Next CPU-only owned hash job reads the
+13original model/tokenizer/document files, compares exact recorded hashes, saves
+base-assets.json in research-next. No model load/inference/training/download,
+no old adapter or case reuse. This reduces a concrete feasibility uncertainty
+without selecting or launching a new mechanism.
+
+2026-09-08 — STATE: LOCAL 4B ORIGINAL BYTES VERIFIED; ASTRA RESEARCH ACTIVE.
+Owned CPU hash session67614 terminalexit0,13original files8,060,926,626bytes
+rehashed in10.502031s, all exact historical base contract matches and consistent
+cachedrevision1cfa9a7208912126459214e8b04321603b3df60c. No model/weights loaded
+into GPU and no inference/training. Base-assets final SHA
+4987d6eec20a7628d45d64799cb8b7fc7250870be2e868755880e70b7e2b5227.
+Qualification is local original-file identity, not remote attestation or a claim
+about original pretraining data. Old trained adapters remain excluded.
+
+Environment distinction found and recorded before freeze: hash job used
+/usr/bin/python3 (torch2.11.0+cu128/transformers5.2.0/peft0.18.1/accelerate1.13.0);
+prospective repo .venv/bin/python independently confirms torch2.13.0/transformers
+5.16.1/peft0.20.0/accelerate1.14.0. Artifact names both and does not confuse hash
+interpreter with training environment. No packages changed or model scripts
+imported. Astra notified of concrete artifact while bounded research continues.
+No new semantic data/model run or selected training recipe; full goal active.
