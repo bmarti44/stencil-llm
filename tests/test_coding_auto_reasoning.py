@@ -480,6 +480,53 @@ def test_loader_keeps_individual_receipts_and_rejects_duplicate_episode(tmp_path
         runner.load_projects(paths)
 
 
+def test_preview_reference_focus_projects_global_and_current_typed_scopes(tmp_path):
+    projects = _projects()
+    private_round = projects[0]["private"]["rounds"][0]
+    current = copy.deepcopy(private_round["oracle"]["effective_rules"][0])
+    current["text"] = "Current handle text with exact permission."
+    current["strength"] = "permitted"
+    global_rule = copy.deepcopy(current)
+    global_rule.update(
+        rule_id="global-reference",
+        scope="global",
+        strength="optional",
+        text="Global text with exact exception.",
+    )
+    other = copy.deepcopy(current)
+    other.update(
+        rule_id="future-secondary-reference",
+        scope="secondary",
+        text="OTHER-FUTURE-TASK-ONLY " + "inflate " * 200,
+    )
+    private_round["oracle"]["effective_rules"] = [other, current, global_rule]
+    paths = _write_projects(tmp_path, projects)
+
+    result = runner.preview(paths)
+
+    receipt = next(
+        item
+        for item in result["reference_actions"]
+        if item["episode_id"] == "automatic-project-0"
+        and item["round_index"] == 0
+        and item["kind"] == "record_focus"
+    )
+    expected = {
+        "obligations": [
+            {"text": current["text"], "source_ids": current["source_ids"]},
+            {
+                "text": global_rule["text"],
+                "source_ids": global_rule["source_ids"],
+            },
+        ]
+    }
+    assert json.loads(receipt["argument_body"]) == expected
+    assert "OTHER-FUTURE-TASK-ONLY" not in receipt["argument_body"]
+    assert receipt["argument_tokens"] == runner._default_token_counter(
+        receipt["argument_body"]
+    )
+
+
 def test_preview_and_absolute_cli_are_cpu_only_and_bind_references(tmp_path):
     projects = _projects()
     paths = _write_projects(tmp_path, projects)

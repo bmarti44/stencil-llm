@@ -970,10 +970,14 @@ def _default_token_counter(text):
 
 def _reference_arguments(document, round_index, source_events):
     private_round = document["private"]["rounds"][round_index]
+    task_handle = document["public"]["rounds"][round_index]["request"][
+        "task_handle"
+    ]
     focus = {
         "obligations": [
             {"text": rule["text"], "source_ids": list(rule["source_ids"])}
             for rule in private_round["oracle"]["effective_rules"]
+            if rule["scope"] in {"global", task_handle}
         ]
     }
     selector_spec = native.record_focus_spec(
