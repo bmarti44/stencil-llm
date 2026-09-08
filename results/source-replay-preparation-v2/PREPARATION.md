@@ -75,7 +75,9 @@ correction barrier. Structural ValueError and all other failures remain terminal
 
 StageValidationError alone is insufficient: the reused run_checks also records
 local failures as check errors. Examine every available public/private/mutant
-result before deciding correction eligibility. Error must be null or exactly
+result before accepting ANY validation outcome or deciding correction eligibility,
+including a normally returned success whose mutant failed its check. Error must
+be null or exactly
 "InvalidProgram: " followed by one of these fixed labels: AttributeError,
 TypeError, ValueError, KeyError, IndexError, NameError, UnboundLocalError,
 ZeroDivisionError, OverflowError, RecursionError, AssertionError, RuntimeError,

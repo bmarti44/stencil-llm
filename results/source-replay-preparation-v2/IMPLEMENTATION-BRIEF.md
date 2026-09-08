@@ -50,7 +50,8 @@ Collect per-project validation outcomes instead of overwriting one failure
 variable. Mixed eligible/noneligible failure always stops. Only the four
 registered StageValidationError categories with the exact eligible check-error
 projection permit a correction. Inspect all available result records first; any
-non-whitelisted error is INCOMPLETE with no correction, as the design specifies. Successful
+non-whitelisted error is INCOMPLETE with no correction, including errors in a
+mutant record returned as validation success, as the design specifies. Successful
 siblings' packet/reference states are accepted once; never reapply their actions
 or rerun their checks during the correction barrier. A failed project's correction
 starts from its unchanged pre-round reference and immutable accepted prior packets.
@@ -86,7 +87,8 @@ Write consuming tests first and report the initial red failures. Cover:
 - One and four failed siblings:17/20calls, one correction barrier only.
 - Mixed ineligible/eligible stage failures: no correction call. Include wrapped
   sandbox deadline/resource, memory, setup/process/JSON and unknown outer errors;
-  ordinary whitelisted sandbox computation errors remain eligible.
+  ordinary whitelisted sandbox computation errors remain eligible. Cover a
+  returned-success mutant with a forbidden error as well as raised failures.
 - A failed correction or later failure: terminal stop, no second correction.
 - Preserved check partition and every immutable metadata field.
 - Successful siblings applied only once; failed originals and corrected evidence
