@@ -387,3 +387,103 @@ hashes still match Round 1. Additional inspected dependency hashes are
 `3f3a9f04ee9bae3395c3fdf5d3011e2b8cca4b930332a72dd2edafce7de04b59`
 and `src/stencil/focus/slab_sandbox.py` =
 `3dad55e31b23fd859a9fcf805b3694acc99c8efdb48c35ed82ca78b16f9d7de8`.
+
+## Round 4
+
+Score: 96/100
+
+Disposition: ACCEPT the first-stage implementation at `1f8a69dd` for actual CPU
+preflight and subsequent frozen technical qualification under the accepted brief.
+Open findings: none. Zero open high/critical findings.
+
+2026-09-08. Same author-disjoint Astra xhigh reviewer. This round rechecks only
+fixes for #3/#4/#5 and resulting regressions. Rounds 1–3 are byte-preserved; their
+combined pre-append SHA-256 was
+`b5a02250788d64d016b95a6cf2a6a28fe3e37d30244a3c6de0b8b809090690b6`.
+This is implementation acceptance, not an actual preflight result, native-model
+delivery claim, source-selection benefit, or acceptance of a future scored run.
+
+### 3. [high] Historical acceptance text can authorize an unaccepted implementation (resolved 2026-09-08)
+
+The actual launcher now isolates the latest canonical Round section, requires
+exactly one machine block within that section, and checks the topic, heading
+round, visible score and visible disposition against the block. It requires
+ACCEPT, score 90–100 and zero high/critical findings. Exact specification,
+fixture and eight-file implementation subject hashes must equal the freeze's
+corresponding bindings. Acceptance entries point to the bound canonical review.
+Earlier accepted text or an older block no longer authorizes a later round.
+
+Independently ran actual `validate_freeze` regression cases covering a latest
+rejected round without a block, a rejected block, low score, open findings and
+wrong subject hashes, together with the accepted/bound-file-mismatch case. All
+passed. The machine block below expresses this reviewer's actual decision and
+exact reviewed bytes; the final review is additionally checked through the
+actual `_validate_review` consumer before handoff.
+
+### 4. [high] Docker launch delivery can consume the cleanup reservation (resolved 2026-09-08)
+
+The new plan now supplies an effective startup allowance of
+`min(600,600-60)=540` seconds to the unchanged lifecycle, covering the initial
+Docker command as well as health waiting. The registered 600-second whole limit
+and 60-second cleanup reserve are unchanged. Independently ran the regression
+through the actual reused lifecycle with fake process/clock objects: Docker
+delivery consuming its full allowance ends as INCOMPLETE_STARTUP, cleanup issues
+logs/stop/remove, `cleaned` is true, and the owned flag is removed. No real
+container or network operation was used.
+
+### 5. [medium] A live sandbox serialization dependency is absent from the bindings (resolved 2026-09-08)
+
+Both the CPU preflight code hash set and required launch bindings now include
+`src/stencil/focus/renderer.py`. Its unchanged reviewed SHA-256 remains
+`e1ec3da2f3cd1565746e2b11c24308330b1f8c4d76dfe15f70bf5fa2dc2996be`.
+Independently ran the actual qualification consumer with a temporary stand-in
+preflight whose renderer digest was changed; it rejects the stale receipt before
+model calls. This closes the live-dependency omission without broader machinery.
+
+### Validation and final bindings
+
+Reviewed the complete four-file delta from `8651ab66` to `1f8a69dd`, and verified
+current hashes. Only driver/launcher and their two tests changed; the other four
+implementation/test files, accepted specification documents and original fixture
+retain their prior hashes. Independently ran the nine relevant regression cases:
+**9 passed in 0.10 seconds**. Did not repeat the unchanged broader test set or
+actual accepted-fixture preflight. CPU stand-ins used injected counters; no
+tokenizer/model load, GPU/container/API operation, old-bank access, code edit or
+commit occurred. Earlier metadata-only model-identity qualifications remain.
+
+The following is the single machine-readable acceptance record for this round.
+Its subject dictionaries are exact, not examples or placeholders.
+
+<!-- SOURCE_REPLAY_REVIEW_MACHINE_V1
+{
+  "schema_version": 1,
+  "canonical_topic": "source-replay",
+  "round": 4,
+  "score": 96,
+  "disposition": "ACCEPT",
+  "open_findings": {
+    "high": 0,
+    "critical": 0
+  },
+  "subjects": {
+    "specification": {
+      "results/source-replay/SPEC.md": "01da819289d264926e8492a947b3bf8d6893b89c7559ff8142b9c4dabebda78c",
+      "results/source-replay/DATA-CONTRACT.md": "6ae44a7794701686cf06a0c32551d9d92b96fb582cd042dee73be95a917a7e4a",
+      "results/source-replay/QUALIFICATION-BRIEF.md": "ecc52bc7a046e084aa0a84cb68859ce45e4b757c38f129e8d61fc9ca88b4ea31"
+    },
+    "fixture": {
+      "results/source-replay/qualification-authoring/author-00/authored.json": "ff167de40c52227c2a5eae1eda34194197d7d1c92337b1c37740aec9c6f8578c"
+    },
+    "implementation": {
+      "src/stencil/source_replay.py": "19f3c7f1948fd74eb25767c007b4b9af567629c15656fed4c529542ffe485d55",
+      "src/stencil/focus/native_source_selector.py": "f08f1c14d6b8e3001fa3694edfcf7b59f2ed2c7869136686e8f27a03c639fda2",
+      "scripts/source_replay_qualification.py": "39eee1fffb32ffefb1ab3d6abdef14a80f6825dc928c32e83b8f8ed29fbc6782",
+      "tools/run_source_replay_qualification.py": "ccb863333e27cee7a4253b881987c7d47c42c87dcbeaf7e1f2b0e94cd711d7a3",
+      "tests/test_source_replay.py": "6872eecf6190ab9f75613b14606bcb8e742bb22a055d3a7ef43ef998afa6c48f",
+      "tests/test_native_source_selector.py": "71bc04742e747f1d5f76a5d265125523dad9ba243a8bd0392992700b060c6e41",
+      "tests/test_source_replay_qualification.py": "592a6fcdad6d9dfeff4bde36e3c99521f564030ed7c45bf21dffd7cad8266238",
+      "tests/test_run_source_replay_qualification.py": "e1b636dd0dc51a8054a54309575fbc731eb0bb879cd6cc64effac1b73259b87b"
+    }
+  }
+}
+-->
