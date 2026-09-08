@@ -100,3 +100,19 @@ failures. No perfect-FIT-format prerequisite is introduced, and no retry or
 output-based recipe repair is authorized by this result. Adequate larger fresh
 executable coding proof remains required for the full goal; automatic usefulness
 comparable to good manual prose remains a meaningful benefit.
+
+## Independent accuracy review addendum — 2026-09-08
+
+Astra xhigh round5 accepted the technical and cost evidence at96/100 with
+zero findings. Canonical review SHA256
+`33b41ae0534d364168fea80a47c13d9f9aa00cb836376c61668d059c05039cd9`. The reviewer independently reconciled
+frozen launch/input bindings, all54 updates/270 transitions, all144 saved
+adapter tensor payload hashes and exact archive bytes, and reconstructed both
+UTF-8 outputs directly from the original tokenizer vocabulary. Recorded original
+weight checks are endpoint measurements; no second live-weight measurement
+is claimed. Timings, cleanup evidence and85 tracked artifacts reconcile.
+
+The trained response remains a failure:2,048 generated tokens, no terminal
+EOS and incomplete JSON. Review acceptance establishes accurate records, not
+semantic transfer or coding usefulness. This addendum supersedes the earlier
+review-pending status only; the frozen run and its failed response are unchanged.

@@ -511,3 +511,169 @@ prospective manifest freeze and perform the one registered FIT job under the
 accepted monitor. Actual run evidence still requires independent audit, and
 neither prelaunch acceptance nor FIT-only cost evidence establishes fresh
 semantic transfer or adequate larger executable coding utility.
+
+## Round 5 — actual fixed-FIT result audit, 2026-09-08
+
+**Score: 96/100. ACCEPTED — recorded training/persistence and two-call cost
+measurement, with the trained FIT response explicitly FAILED. Zero new or
+open findings, including zero high or critical findings.**
+
+Same independent native **gpt-6-astra, xhigh** session and user-directed
+reviewer substitution. All earlier rounds and finding identities remain intact;
+findings #1–#3 retain their prior closures. This round audits actual evidence
+from the one frozen job. It accepts neither semantic generalization nor coding
+utility, and does not authorize retry, repair, cap changes or a new evaluation.
+
+Reviewed launch freeze `fe1d0112` and result archive `7721e52e`. Exact principal
+artifact bindings, under `results/source-interpreter/fit/`:
+
+| Artifact | SHA-256 |
+| --- | --- |
+| `launch-plan.json` | `396632617e32ea11c250b5d291dcf2030e88c1d75dae623a73d89ae3aff4b097` |
+| `observer-01.json` | `e1d8de7af3b8466646f9bbabf595ef578d62bf7f83ae574bafea0bb1fe2679ed` |
+| `run-01/result.json` | `ce2b1e435ce064f4e185011c7096fba6cb53c0efab41e4986b153aa0132ffd11` |
+| `run-01/lifecycle.json` | `d7d655363b891dbd1ee467f9f0c2079d31b5817e60e59bc1101a066af992f558` |
+| `run-01/steps.jsonl` | `d68c1346aa9e8b1c1b190946790be34ab1abcf97ec9d6ff3a828f1591454f36b` |
+| `run-01/generation-base.json` | `964e3373befcf9766fcecfb2d0e32b51a2dfe1b92f16e30306fa43f0ba602a19` |
+| `run-01/generation-adapter.json` | `08ffd4816857eb4a6feea10eccc49544883ce814afde9fb29e3327c6dc22ca53` |
+| `run-01/archive-manifest.json` | `836c2966ce253ad1b783a262faa4b0f2ef4f2379924f614999013ec6feaa0807` |
+| `root-reconciliation.json` | `49e46e3335481c7136d7b23ab4f7a321862f295b36d509796c6e3d6623e04587` |
+| `RESULTS.md` | `139d2be96bf9d4cdb95c7949630a4d7afea758054712d9b586a558a38accbe03` |
+| `adapter-description.md` | `57e07003b64e388c60bbd6a2a95f406e24d450e32789f50464e213528cb68c3d` |
+
+### Launch, lineage and fixed updates
+
+Independently matched all thirteen launch-bound artifacts to both current bytes
+and the frozen Git blobs. The manifest itself matches its freeze, is
+`FROZEN_READY`, specifies one attempt with no automatic retry, and binds the
+round-4 prelaunch review hash
+`7997820c7bb5aee2b4b6940a21041be51d1ac64e091517f8cf7799fd5b8e867e`.
+The runner and observer remain the accepted hashes from rounds 3–4.
+
+All seventeen runtime artifact bindings reconcile, including the historical
+round-1 review blob and the current-at-launch round-4 review. Start/result
+bindings agree, with the expected change from base-file verification pending
+to completed. The recorded original asset hash map matches the qualified base
+receipt. All six canonical FIT source files match their frozen bytes, manifest
+hashes, identities and runtime input receipts. The saved preview is unchanged.
+No DEV, withheld or benchmark material appears in this registered input chain.
+
+The saved schedule exactly matches the frozen runner's three eighteen-row
+orders. Independently reconciled every step's ordinal, epoch, position,
+conversation/query identity, full/prefix length and causal loss positions with
+its selected preview row. Totals are **54 updates, 89,343 sequence tokens and
+21,702 supervised target/EOS tokens**. Each of the 270 history records belongs
+to the correct step, with ordered `INTENT`, `UPDATE_PENDING`,
+`UPDATE_CONFIRMED`, `VALIDATION_CONFIRMED`, `VALIDATED` transitions; each final
+record equals its final step file and the result's hashed reference.
+
+All recorded losses and aggregate adapter gradient/update norms are finite and
+positive. Optimizer membership, absent original gradients and original identity
+checks pass; update completion is known and validation/resource records are
+complete. Each adapter after-hash map equals the next step's before-hash map.
+There is no unresolved update attempt, extra warm-up update or checkpoint
+selection in the accepted execution path or its recorded history.
+
+### Original trunk and final adapter bytes
+
+The complete recorded original before/after hash maps agree for **398 tensors,
+4,022,468,096 parameters**, with successful runtime identity and absent-gradient
+checks. This reconciles the accepted runner's recorded endpoint verification;
+it is not an independent second live-weight measurement or a per-step original
+byte check. No original weight shard was opened or rehashed during this audit.
+
+Independently concatenated the two tracked archive parts in memory and checked
+their individual sizes/hashes, reconstruction order and full identity with both
+local standard checkpoint files. The final adapter is **11,815,504 bytes**, SHA
+`1f9392f3fa99cb31a010176487a6f37999f02cdbc7be9b9cdb4a9b9380e592e3`.
+The 9,000,000- and 2,815,504-byte parts reproduce it exactly.
+
+Parsed the safetensors header and independently hashed every tensor's payload.
+All **144 FP32 payload hashes** match both the saved-state receipt and the
+canonicalized final optimizer-step hashes. Offsets are contiguous and cover
+the complete payload. Shapes are 72 A tensors `[8,2560]`, 36 q-projection B
+tensors `[4096,8]` and 36 v-projection B tensors `[1024,8]`, totaling
+**2,949,120 parameters**. Both adapter configurations are byte-identical, with
+hash `45f10d86fd18dc5d5f4c748b1b9c59f292f7fc92f6f6334e21dff9255f9a70b2`.
+The runtime standard reload records exact complete state equality and no
+missing/unexpected keys. The fresh full-FIT adapter is distinct from the earlier
+mechanics checkpoint; that old adapter was not read during this audit.
+
+### Raw generation evidence and failure interpretation
+
+Both saved calls use exactly the accepted **2,966-ID row-14 prefix**, followed
+only by the returned generated suffix. Complete/suffix/payload ID relationships
+reconcile, with no target/labels or supplied past cache. The original-trunk
+object identity matches between calls. All 72 recorded adapter layers are
+disabled for base generation; adapter generation explicitly records only
+`roundtrip` active on each enabled layer. Explicit settings and native resolved
+configurations agree across the calls, including the registered greedy/single
+EOS settings and resolved `max_length=5014`.
+
+Using only the hash-verified original tokenizer JSON and standard-library byte
+operations, independently inverted its recorded ByteLevel vocabulary and
+decoded each payload's token IDs. Both reconstructions exactly match the saved
+text, base64 UTF-8 bytes, lengths and hashes. No tokenizer/model object or
+scoring script was loaded. Independently checked complete JSON structure,
+duplicate-key/constants rejection and visible source citations; no target
+semantic comparison or obligation-correctness score was computed.
+
+| Fixed call order | Generated IDs | Recorded whole-call time | Independently checked outcome |
+| --- | ---: | ---: | --- |
+| Base, adapters disabled | 703 | 40.517819119 seconds | Terminal EOS; complete valid document and visible citations |
+| Reloaded trained adapter | 2,048 | 123.050696406 seconds | No EOS; token cap; incomplete JSON |
+
+The base payload is 2,867 UTF-8 bytes, SHA
+`efacbadb8fe1af1ed71a624cc4d29f6b61d0529af84e21451722c14470aadd0a`.
+The trained payload is 9,115 bytes, SHA
+`4723de47fbed7d877858adcdea23d9f15dca77d2431aff93559ed7046116a820`.
+Its strict parse fails on an unterminated string beginning at character 279,
+consistent with the retained error. All EOS/cap/deadline facts and result
+summaries agree with the raw receipts. **The trained response failed.**
+Technical completion and measured cost do not change that outcome. Base
+structural completion also does not establish correct instruction selection.
+No semantic repair, extraction, cap retry or new-conversation evaluation is
+part of this evidence.
+
+### Deadlines, resources, exit and archive
+
+Recomputed whole outer elapsed time as **351.821924262 seconds**. Its durable
+initial-training transition was observed by **161.890731962 seconds**, within
+1,220; the whole process is within 2,400. The inner lifecycle is
+351.619755533 seconds. Outer observation extends **0.065214376 seconds** beyond
+inner finalization, covering the final supervisor publication/exit tail. The
+350.190441937-second child field has the narrower scope correctly stated in
+RESULTS.md.
+
+All twenty stage-history entries reconcile with the five final stage receipts;
+ordered completion observations satisfy their registered deadlines. Both
+generation stages complete within 300 seconds. The adapter's failure is a token
+cap/format failure, not a time-reservation failure. The raw log retains the
+model-loading progress and inactive-`top_k` warning; it contains no recorded
+retry or corrective settings change. The observer's terminal log agrees with
+its receipt and the parent's report that exact session 67209 exited zero.
+
+Pre-cleanup Torch peaks are **16,003,383,808 allocated bytes**
+(14.904312611 GiB) and **27,353,153,536 reserved bytes** (25.474609375 GiB).
+These are recorded allocator peaks on GB10 unified memory, not total process
+memory or a separate NVML pool. Runtime records Python 3.12.13, Torch
+2.13.0+cu130, Transformers 5.16.1 and PEFT 0.20.0. Observer/supervisor/model-child
+PIDs 165749/165750/166299 are registered and currently absent; the run flag is
+absent. The receipts confirm both process exits and an absent owned group.
+The root's post-run GPU-empty observation is reported as its observation;
+this audit made no GPU query or context.
+
+All **85 tracked FIT artifacts** match result-archive Git blobs and are at most
+10,000,000 bytes. The two 11.8 MB standard checkpoint copies remain local and
+untracked; their exact archive parts/configurations are tracked. The prose
+reports and root reconciliation accurately characterize the checked evidence.
+Their review-pending wording is the preserved pre-audit state; this round
+supplies acceptance without revising those historical bytes.
+
+Only this canonical review was changed. No code/specification/ledger edit,
+commit, model rerun, original-weight read, GPU operation, ML runtime import,
+test-suite rerun, network, data authoring or excluded evaluation-bank access
+occurred. The useful result of this unit is a fixed trained adapter, measured
+costs and an unrepaired capped FIT failure. Fresh semantic comparison and
+adequate larger executable coding proof remain separate requirements; no
+perfect-FIT prerequisite or broader success claim is introduced.
