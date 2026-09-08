@@ -127,6 +127,12 @@ def test_strict_project_validation_and_public_projection():
     with pytest.raises(ValueError, match="annotation"):
         screen.validate_project(bad)
 
+    for malformed_behavior in ([], {}):
+        bad = copy.deepcopy(document)
+        bad["private"]["rounds"][0]["checks"][0]["behavior"] = malformed_behavior
+        with pytest.raises(ValueError, match="behavior"):
+            screen.validate_project(bad)
+
 
 def test_original_eligibility_active_intervals_and_conflicts():
     document = screen.validate_project(project())

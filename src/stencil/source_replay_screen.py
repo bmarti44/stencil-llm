@@ -174,7 +174,7 @@ def _check(value, label, symbols, introduction, visible_ids):
         or not set(sources) <= visible_ids
     ):
         raise ValueError(f"{label}.source_ids are not unique visible antecedents")
-    if value["behavior"] not in BEHAVIORS:
+    if type(value["behavior"]) is not str or value["behavior"] not in BEHAVIORS:
         raise ValueError(f"{label}.behavior is invalid")
     _text(value["rationale"], f"{label}.rationale")
     return identifier

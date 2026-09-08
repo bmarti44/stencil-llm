@@ -1,5 +1,10 @@
+import copy
 import hashlib
+import http.server
 import json
+import multiprocessing
+import threading
+import time
 from concurrent.futures import Future
 
 import pytest
@@ -128,6 +133,25 @@ class FakeTransport:
         }
 
 
+class LocalServer:
+    def __init__(self, handler):
+        self.server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+
+    @property
+    def url(self):
+        return f"http://127.0.0.1:{self.server.server_port}/api/generate"
+
+    def __enter__(self):
+        self.thread.start()
+        return self
+
+    def __exit__(self, *_args):
+        self.server.shutdown()
+        self.server.server_close()
+        self.thread.join(timeout=1)
+
+
 def test_default_dry_plan_has_all_slots_and_no_files_or_network(tmp_path, capsys):
     run = tmp_path / "does-not-exist"
     assert prepare.main(["--run-dir", str(run)]) == 0
@@ -192,6 +216,112 @@ def test_envelope_requires_known_remote_name_and_normal_stop():
     bad["done_reason"] = "length"
     with pytest.raises(prepare.PreparationFailure, match="incomplete"):
         prepare._response_envelope(bad)
+
+
+def test_actual_transport_preserves_http_error_body_and_metadata(tmp_path, monkeypatch):
+    response_body = b'{"error":"synthetic unavailable"}'
+
+    class ErrorHandler(http.server.BaseHTTPRequestHandler):
+        def do_POST(self):
+            self.rfile.read(int(self.headers["content-length"]))
+            self.send_response(503)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("X-Synthetic", "preserved")
+            self.end_headers()
+            self.wfile.write(response_body)
+
+        def log_message(self, *_args):
+            pass
+
+    run = tmp_path / "http-error"
+    (run / "raw").mkdir(parents=True)
+    with LocalServer(ErrorHandler) as server:
+        monkeypatch.setattr(prepare, "ENDPOINT", server.url)
+        with pytest.raises(prepare.PreparationFailure) as caught:
+            prepare._perform_http(
+                run,
+                {"slot_index": 0},
+                b"{}",
+                time.monotonic() + 5,
+                prepare._transport,
+                time.monotonic,
+            )
+    assert caught.value.kind == "transport"
+    receipt = caught.value.response
+    assert receipt["status"] == 503
+    assert receipt["headers"]["X-Synthetic"] == "preserved"
+    assert (run / receipt["raw_path"]).read_bytes() == response_body
+
+
+def test_actual_transport_has_absolute_deadline_and_cleans_owned_reader(
+    tmp_path, monkeypatch
+):
+    complete_body = b"x" * 30
+
+    class TrickleHandler(http.server.BaseHTTPRequestHandler):
+        def do_POST(self):
+            self.rfile.read(int(self.headers["content-length"]))
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(complete_body)))
+            self.end_headers()
+            try:
+                for byte in complete_body:
+                    self.wfile.write(bytes([byte]))
+                    self.wfile.flush()
+                    time.sleep(0.04)
+            except (BrokenPipeError, ConnectionResetError):
+                pass
+
+        def log_message(self, *_args):
+            pass
+
+    run = tmp_path / "trickle"
+    (run / "raw").mkdir(parents=True)
+    before = {child.pid for child in multiprocessing.active_children()}
+    with LocalServer(TrickleHandler) as server:
+        monkeypatch.setattr(prepare, "ENDPOINT", server.url)
+        started = time.monotonic()
+        with prepare.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(
+                prepare._perform_http,
+                run,
+                {"slot_index": 0},
+                b"{}",
+                started + 0.45,
+                prepare._transport,
+                time.monotonic,
+            )
+            with pytest.raises(prepare.PreparationFailure) as caught:
+                future.result()
+        elapsed = time.monotonic() - started
+    assert caught.value.kind == "deadline"
+    assert elapsed < 0.9
+    receipt = caught.value.response
+    partial = (run / receipt["raw_path"]).read_bytes()
+    assert 0 < len(partial) < len(complete_body)
+    assert receipt["response_complete"] is False
+    assert {child.pid for child in multiprocessing.active_children()} == before
+
+
+def test_spawn_start_failure_records_zero_transport_attempts(tmp_path, monkeypatch):
+    def fail_start(_process):
+        raise OSError("synthetic spawn failure")
+
+    monkeypatch.setattr(multiprocessing.context.SpawnProcess, "start", fail_start)
+    run = tmp_path / "run"
+    terminal = prepare.run_preparation(
+        run,
+        freeze(tmp_path),
+        root=tmp_path,
+        transport=prepare._transport,
+        executor_factory=InlineExecutor,
+        register_pid=lambda: None,
+    )
+    assert terminal["status"] == "INCOMPLETE"
+    job = json.loads((run / "job.json").read_text())
+    assert sum(slot["attempts"] for slot in job["planned_slots"]) == 0
+    assert all(slot["status"] == "ERROR" for slot in job["planned_slots"][:4])
+    assert all(slot["status"] == "UNATTEMPTED" for slot in job["planned_slots"][4:])
 
 
 def test_barrier_failure_has_no_retry_and_leaves_later_slots_unattempted(tmp_path):
@@ -297,6 +427,60 @@ def test_partial_case_evidence_is_incomplete_through_driver(tmp_path, monkeypatc
     interrupted_call = json.loads((run / "calls/call-0004.json").read_text())
     assert interrupted_call["validation"] == record
     assert interrupted_call["error"]["kind"] == "deadline"
+
+
+@pytest.mark.parametrize("behavior", [[], {}])
+def test_malformed_behavior_is_ineligible_through_driver(tmp_path, behavior):
+    class MalformedTransport(FakeTransport):
+        def __call__(self, url, body, timeout):
+            raw = super().__call__(url, body, timeout)
+            prompt = json.loads(body)["prompt"]
+            if "Current round (integer): 1" in prompt:
+                packet = copy.deepcopy(packets()[0])
+                packet["private_checks"][0]["behavior"] = behavior
+                raw["body"] = envelope(packet)
+            return raw
+
+    transport = MalformedTransport()
+    run = tmp_path / "run"
+    terminal = prepare.run_preparation(
+        run,
+        freeze(tmp_path),
+        root=tmp_path,
+        transport=transport,
+        executor_factory=InlineExecutor,
+        register_pid=lambda: None,
+    )
+    assert terminal["status"] == "INELIGIBLE"
+    assert len(transport.calls) == 8
+    job = json.loads((run / "job.json").read_text())
+    assert job["status"] == "INELIGIBLE"
+    assert sum(slot["attempts"] for slot in job["planned_slots"]) == 8
+    assert all(slot["status"] == "UNATTEMPTED" for slot in job["planned_slots"][8:])
+    assert (run / "terminal.json").is_file()
+
+
+def test_unexpected_local_validation_exception_is_incomplete(tmp_path, monkeypatch):
+    def broken_validator(*_args, **_kwargs):
+        raise RuntimeError("synthetic validator defect")
+
+    monkeypatch.setattr(
+        prepare.authoring, "validate_and_apply_packet", broken_validator
+    )
+    transport = FakeTransport()
+    run = tmp_path / "run"
+    terminal = prepare.run_preparation(
+        run,
+        freeze(tmp_path),
+        root=tmp_path,
+        transport=transport,
+        executor_factory=InlineExecutor,
+        register_pid=lambda: None,
+    )
+    assert terminal["status"] == "INCOMPLETE"
+    assert len(transport.calls) == 8
+    record = json.loads((run / "calls/call-0004.json").read_text())
+    assert record["error"]["kind"] == "local_validation"
 
 
 def test_shared_deadline_and_late_positive_publication_are_incomplete(tmp_path):

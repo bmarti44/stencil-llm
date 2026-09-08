@@ -6,10 +6,12 @@ import copy
 import hashlib
 import json
 import math
+import multiprocessing
 import os
 import sys
 import tempfile
 import time
+import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -42,6 +44,8 @@ REQUEST_DEADLINE_SECONDS = 450
 WHOLE_DEADLINE_SECONDS = 2400
 MAX_REQUESTS = 16
 MAX_FILE_BYTES = 10_000_000
+TRANSPORT_CLEANUP_SECONDS = 0.25
+TRANSPORT_CHUNK_BYTES = 65_536
 STATIC_SUBJECTS = {
     "results/source-replay-staged/PREPARATION.md",
     SCAFFOLD_PROMPT,
@@ -89,10 +93,19 @@ REVIEW_FIELDS = {
 
 
 class PreparationFailure(RuntimeError):
-    def __init__(self, kind, message, *, response=None):
+    def __init__(self, kind, message, *, response=None, attempted=False):
         super().__init__(message)
         self.kind = kind
         self.response = copy.deepcopy(response)
+        self.attempted = attempted
+
+
+class _SupervisedTransportError(RuntimeError):
+    def __init__(self, message, *, raw=None, attempted=False, deadline=False):
+        super().__init__(message)
+        self.raw = copy.deepcopy(raw)
+        self.attempted = attempted
+        self.deadline = deadline
 
 
 def _sha_bytes(value):
@@ -267,19 +280,164 @@ def _register_pid(path=ROOT / ".stencil-owned-pids"):
         os.fsync(handle.fileno())
 
 
-def _transport(url, body, timeout):
+def _transport_child(connection, url, body, socket_timeout):
+    """Stream one urllib response to its supervising parent process."""
     request = urllib.request.Request(
         url,
         data=body,
         headers={"Content-Type": "application/json"},
         method="POST",
     )
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        return {
-            "status": response.status,
-            "headers": dict(response.headers.items()),
-            "body": response.read(),
-        }
+    try:
+        try:
+            response = urllib.request.urlopen(request, timeout=socket_timeout)
+        except urllib.error.HTTPError as exc:
+            response = exc
+        with response:
+            status = getattr(response, "status", None)
+            if status is None:
+                status = response.code
+            connection.send(("metadata", int(status), dict(response.headers.items())))
+            reader = getattr(response, "read1", response.read)
+            while True:
+                chunk = reader(TRANSPORT_CHUNK_BYTES)
+                if not chunk:
+                    break
+                connection.send(("body", bytes(chunk)))
+            connection.send(("complete",))
+    except BaseException as exc:
+        try:
+            connection.send(("error", type(exc).__name__, str(exc)))
+        except (BrokenPipeError, EOFError, OSError):
+            pass
+    finally:
+        connection.close()
+
+
+def _stop_owned_process(process):
+    """Bound cleanup of exactly one child created by this transport."""
+    if process.is_alive():
+        process.terminate()
+    process.join(TRANSPORT_CLEANUP_SECONDS / 2)
+    if process.is_alive():
+        process.kill()
+        process.join(TRANSPORT_CLEANUP_SECONDS / 2)
+    alive = process.is_alive()
+    process.close()
+    if alive:
+        raise RuntimeError("owned transport process did not stop")
+
+
+def _partial_raw(metadata, chunks):
+    if metadata is None:
+        return None
+    return {
+        "status": metadata[0],
+        "headers": metadata[1],
+        "body": b"".join(chunks),
+    }
+
+
+def _transport(url, body, timeout, *, absolute_deadline=None):
+    """Run urllib in a spawn child under one absolute monotonic deadline."""
+    if absolute_deadline is None:
+        absolute_deadline = time.monotonic() + timeout
+    context = multiprocessing.get_context("spawn")
+    receiver, sender = context.Pipe(duplex=False)
+    process = context.Process(
+        target=_transport_child,
+        args=(sender, url, body, timeout),
+        name="source-replay-http",
+        daemon=True,
+    )
+    attempted = False
+    metadata = None
+    chunks = []
+    active_deadline = absolute_deadline - TRANSPORT_CLEANUP_SECONDS
+    try:
+        if time.monotonic() >= active_deadline:
+            raise _SupervisedTransportError(
+                "absolute author request deadline expired before transport",
+                deadline=True,
+            )
+        try:
+            process.start()
+            attempted = True
+        except Exception as exc:
+            raise _SupervisedTransportError(
+                f"could not start owned transport: {type(exc).__name__}: {exc}"
+            ) from exc
+        finally:
+            sender.close()
+        while True:
+            remaining = active_deadline - time.monotonic()
+            if remaining <= 0:
+                raise _SupervisedTransportError(
+                    "absolute author request deadline expired",
+                    raw=_partial_raw(metadata, chunks),
+                    attempted=attempted,
+                    deadline=True,
+                )
+            if not receiver.poll(min(remaining, 0.05)):
+                if process.is_alive():
+                    continue
+                if receiver.poll(0):
+                    continue
+                raise _SupervisedTransportError(
+                    "owned transport exited without a complete response",
+                    raw=_partial_raw(metadata, chunks),
+                    attempted=attempted,
+                )
+            try:
+                message = receiver.recv()
+            except EOFError as exc:
+                raise _SupervisedTransportError(
+                    "owned transport closed before a complete response",
+                    raw=_partial_raw(metadata, chunks),
+                    attempted=attempted,
+                ) from exc
+            if message[0] == "metadata":
+                if metadata is not None:
+                    raise _SupervisedTransportError(
+                        "owned transport returned duplicate metadata",
+                        raw=_partial_raw(metadata, chunks),
+                        attempted=attempted,
+                    )
+                metadata = (message[1], message[2])
+            elif message[0] == "body":
+                if metadata is None:
+                    raise _SupervisedTransportError(
+                        "owned transport returned body before metadata",
+                        attempted=attempted,
+                    )
+                chunks.append(message[1])
+            elif message[0] == "complete":
+                raw = _partial_raw(metadata, chunks)
+                if raw is None:
+                    raise _SupervisedTransportError(
+                        "owned transport completed without metadata",
+                        attempted=attempted,
+                    )
+                return raw
+            elif message[0] == "error":
+                raise _SupervisedTransportError(
+                    f"urllib child failed: {message[1]}: {message[2]}",
+                    raw=_partial_raw(metadata, chunks),
+                    attempted=attempted,
+                )
+            else:
+                raise _SupervisedTransportError(
+                    "owned transport returned an invalid event",
+                    raw=_partial_raw(metadata, chunks),
+                    attempted=attempted,
+                )
+    finally:
+        sender.close()
+        receiver.close()
+        if process.pid is not None:
+            _stop_owned_process(process)
+        else:
+            process.close()
 
 
 def _deadline(deadline, clock):
@@ -327,6 +485,45 @@ def _response_envelope(value):
     return response, thinking, counts
 
 
+def _save_response_receipt(
+    run,
+    slot,
+    raw,
+    started,
+    started_unix,
+    ended,
+    *,
+    response_complete,
+):
+    if type(raw) is not dict or set(raw) != {"status", "headers", "body"}:
+        raise PreparationFailure(
+            "transport", "transport returned an invalid receipt", attempted=True
+        )
+    response_body = raw["body"]
+    if not isinstance(response_body, bytes):
+        raise PreparationFailure(
+            "transport", "transport body is not exact bytes", attempted=True
+        )
+    response_path = Path("raw") / f"call-{slot['slot_index']:04d}-response.bin"
+    try:
+        _write_bytes(run / response_path, response_body, exclusive=True)
+    except PreparationFailure as exc:
+        raise PreparationFailure(exc.kind, str(exc), attempted=True) from exc
+    return {
+        "status": raw["status"],
+        "headers": copy.deepcopy(raw["headers"]),
+        "raw_path": str(response_path),
+        "body_bytes": len(response_body),
+        "body_sha256": _sha_bytes(response_body),
+        "response_complete": response_complete,
+        "started_monotonic": started,
+        "started_at_unix": started_unix,
+        "ended_monotonic": ended,
+        "ended_at_unix": time.time(),
+        "elapsed_seconds": ended - started,
+    }
+
+
 def _perform_http(run, slot, body, deadline, transport, clock):
     started = clock()
     if started >= deadline:
@@ -334,44 +531,70 @@ def _perform_http(run, slot, body, deadline, transport, clock):
     timeout = min(REQUEST_DEADLINE_SECONDS, deadline - started)
     started_unix = time.time()
     try:
-        raw = transport(ENDPOINT, body, timeout)
+        if transport is _transport:
+            raw = transport(
+                ENDPOINT,
+                body,
+                timeout,
+                absolute_deadline=min(deadline, started + REQUEST_DEADLINE_SECONDS),
+            )
+        else:
+            raw = transport(ENDPOINT, body, timeout)
+    except _SupervisedTransportError as exc:
+        ended = clock()
+        receipt = None
+        if exc.raw is not None:
+            receipt = _save_response_receipt(
+                run,
+                slot,
+                exc.raw,
+                started,
+                started_unix,
+                ended,
+                response_complete=False,
+            )
+        raise PreparationFailure(
+            "deadline" if exc.deadline else "transport",
+            str(exc),
+            response=receipt,
+            attempted=exc.attempted,
+        ) from exc
     except Exception as exc:
         raise PreparationFailure(
             "transport",
             f"author request failed: {type(exc).__name__}: {exc}",
+            attempted=True,
         ) from exc
-    if type(raw) is not dict or set(raw) != {"status", "headers", "body"}:
-        raise PreparationFailure("transport", "transport returned an invalid receipt")
-    response_body = raw["body"]
-    if not isinstance(response_body, bytes):
-        raise PreparationFailure("transport", "transport body is not exact bytes")
-    response_path = Path("raw") / f"call-{slot['slot_index']:04d}-response.bin"
-    _write_bytes(run / response_path, response_body, exclusive=True)
     ended = clock()
-    receipt = {
-        "status": raw["status"],
-        "headers": copy.deepcopy(raw["headers"]),
-        "raw_path": str(response_path),
-        "body_bytes": len(response_body),
-        "body_sha256": _sha_bytes(response_body),
-        "started_monotonic": started,
-        "started_at_unix": started_unix,
-        "ended_monotonic": ended,
-        "ended_at_unix": time.time(),
-        "elapsed_seconds": ended - started,
-    }
+    receipt = _save_response_receipt(
+        run,
+        slot,
+        raw,
+        started,
+        started_unix,
+        ended,
+        response_complete=True,
+    )
+    response_body = raw["body"]
     if raw["status"] != 200:
         raise PreparationFailure(
-            "transport", f"author HTTP status {raw['status']}", response=receipt
+            "transport",
+            f"author HTTP status {raw['status']}",
+            response=receipt,
+            attempted=True,
         )
     try:
         envelope = authoring.parse_author_json(response_body)
     except ValueError as exc:
-        raise PreparationFailure("envelope", str(exc), response=receipt) from exc
+        raise PreparationFailure(
+            "envelope", str(exc), response=receipt, attempted=True
+        ) from exc
     try:
         content, thinking, counts = _response_envelope(envelope)
     except PreparationFailure as exc:
-        raise PreparationFailure(exc.kind, str(exc), response=receipt) from exc
+        raise PreparationFailure(
+            exc.kind, str(exc), response=receipt, attempted=True
+        ) from exc
     receipt.update(
         envelope=envelope,
         response_bytes=len(content.encode("utf-8")),
@@ -386,6 +609,7 @@ def _perform_http(run, slot, body, deadline, transport, clock):
             "deadline",
             "author response returned after its request or whole deadline",
             response=receipt,
+            attempted=True,
         )
     return receipt, content, timeout
 
@@ -610,7 +834,7 @@ def run_preparation(
                     record["request"]["timeout_seconds"] = actual_timeout
                     delivered.append((project_index, slot, record, content))
                 except PreparationFailure as exc:
-                    if exc.kind != "deadline" or exc.response is not None:
+                    if exc.attempted or exc.response is not None:
                         slot["attempts"] = 1
                         record["attempts"] = 1
                     if exc.response is not None:
@@ -699,6 +923,14 @@ def run_preparation(
                     record["status"] = "INELIGIBLE"
                     record["error"] = {"kind": "validation", "message": str(exc)}
                     failure = ("INELIGIBLE", str(exc), stage)
+                except Exception as exc:
+                    slot["status"] = "ERROR"
+                    record["status"] = "ERROR"
+                    record["error"] = {
+                        "kind": "local_validation",
+                        "message": f"{type(exc).__name__}: {exc}",
+                    }
+                    failure = ("INCOMPLETE", record["error"]["message"], stage)
                 _write_json(
                     run / "calls" / f"call-{slot['slot_index']:04d}.json", record
                 )
@@ -757,6 +989,12 @@ def run_preparation(
             failure = ("INCOMPLETE", str(exc), 3)
         except ValueError as exc:
             failure = ("INELIGIBLE", str(exc), 3)
+        except Exception as exc:
+            failure = (
+                "INCOMPLETE",
+                f"final assembly failed: {type(exc).__name__}: {exc}",
+                3,
+            )
     if failure is not None:
         _failure_terminal(job, *failure, started, deadline, clock)
     _write_json(run / "job.json", job)
