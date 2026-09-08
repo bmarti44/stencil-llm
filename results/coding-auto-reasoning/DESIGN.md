@@ -29,6 +29,13 @@ The selector returns one named `record_focus` tool action with exactly
 source IDs to the actual visible prefix; structural checks cannot establish
 semantic completeness, authority, correct scope or entailment.
 
+Here `obligations` means all currently applicable standing constraints and
+conventions for the current task, preserving permissions, optional behavior, modality, scope and
+exceptions and respecting changes and retirement. It is not merely a list of
+commands the model chooses to emphasize. The authentic current request supplies
+the algorithmic task specification. Authentic user directions and explicit user
+adoption govern; assistant suggestions and quoted directions alone do not.
+
 Selection is disposable: retain all original source events, not an authoritative
 mutable summary. No source is deleted. Render every returned obligation verbatim
 in a current-request block supplied to both allowed coding attempts. Keep that
@@ -36,6 +43,11 @@ block out of persistent worker history, and never replace a missing or incorrect
 reminder with manual/oracle content. Select again from the fresh authentic prefix
 on the next request. Inspect selector completeness and authority independently
 against the source after the run, including retired and quoted instructions.
+Complete accurate focus has no omitted live constraint, unsupported addition,
+wrong authority/scope/modality, or stale rule under that same definition.
+The worker's fixed system instructions label this automatic focus block as
+fallible, advisory generated guidance. Authentic source directions govern over
+it, and the block never establishes new user adoption or changes user authority.
 
 The worker sees authentic conversation, its actual current module, actual prior
 tool calls/results, and this automatic reminder. It gets at most two candidate

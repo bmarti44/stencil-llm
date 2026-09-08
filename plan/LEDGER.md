@@ -2515,3 +2515,30 @@ main-guarded authoring helper with only its output BASE redirected in the caller
 call one(0),one(1) concurrently, preserving original raw bodies/receipts. No
 semantic edit or GPU worker launch. Register caller PID immediately; retain exact
 session through terminal. Data unreviewed until CPU checks and Astra source audit.
+
+Fresh Kimi authoring live in exact exec session70405 after promptfreeze7159609c.
+Authoring-launch receipt and owned PID registry written before HTTP; two parallel
+new-project requests, max1800s each, no worker GPU job. Re-poll same70405 toterminal;
+never restart on observation timeout. Sol shared-client code and Astra design
+review continue independently. All generated data remain unreviewed.
+
+2026-09-08 — STATE: DIRECT AUTOMATIC DESIGN ACCEPTED; FRESH DATA/CLIENT LIVE.
+Astra xhigh round1 score94, solemedium finding1 on explicitfocuscompleteness/
+authority. Root clarified allcurrentstandingconstraints/conventions including
+permissions/optional behavior, exactscope/modality/exceptions/retirement; source
+user/adoption authority governs; generatedfocus isfallible advisory, notadoption;
+semantic review rejects omissions, unsupportedadditions andstalerules. Round2
+ACCEPT96 zeroopen, designSHA6891d83ad2f6aac7d88bbec3d88a7c6337dd9337d011a1a95c9ccb3c3f9be1dc,
+reviewSHAd48acaa46d0a4b68335a979f90f503d1bf8b3b253e2d131a1b34b1bd9ab0231d.
+Root verifiedexacthashes. This accepts engineeringdirection, notlaunch. Same
+N2/6selector+12worker schedule andoneusablewholeproject continuation, complete
+batchrequired, no parity/causation/largerproofclaim. Untrainedreasoningbaseline
+isdistinctfromtheconditional supervisedinterpreter; parkedfailuresunchanged.
+
+Queued runtime brief and draftresourceplan prepared; no runtimeunitdispatchyet.
+Sol xhigh same client task has425lines oftargetedtests inprogress, no finished
+handoff; do not run movingtests. Kimi authoring same session70405 re-polled live,
+ownedPID76765, neitherresponsefinished asoflastcheck. No restart or inferencejob.
+Next: collect exactauthoringsession terminal, run perprojectCPUpreflight and
+Astra data/source review; settleclient anddispatchsmallautomaticruntime. Final
+client/driver/launcher/data/preview/resource readiness remainbeforefreeze/run.
