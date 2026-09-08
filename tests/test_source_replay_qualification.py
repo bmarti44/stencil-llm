@@ -144,6 +144,20 @@ def test_preflight_uses_exact_native_argument_serialization_and_actual_consumer(
     assert receipt["all_reference_checks_passed"] is True
 
 
+def test_preflight_binds_live_sandbox_renderer_and_rejects_mismatch(tmp_path):
+    path = _write_fixture(tmp_path)
+    preflight_path = tmp_path / qualification.PREFLIGHT_FILENAME
+    receipt = json.loads(preflight_path.read_text(encoding="utf-8"))
+    renderer = "src/stencil/focus/renderer.py"
+
+    assert renderer in qualification.PREFLIGHT_CODE_FILES
+    receipt["consumer_code_sha256"][renderer] = "0" * 64
+    preflight_path.write_text(json.dumps(receipt), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="current and passing"):
+        qualification.run_qualification(path, tmp_path / "out", _selector(), _worker())
+
+
 def test_two_call_qualification_keeps_private_fixture_data_out_of_prompts(tmp_path):
     path = _write_fixture(tmp_path)
     selector = _selector()

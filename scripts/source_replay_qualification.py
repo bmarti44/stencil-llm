@@ -36,6 +36,7 @@ PREFLIGHT_CODE_FILES = (
     "scripts/coding_worker_dev.py",
     "src/stencil/focus/slab.py",
     "src/stencil/focus/slab_sandbox.py",
+    "src/stencil/focus/renderer.py",
 )
 TOP_KEYS = {
     "schema_version",

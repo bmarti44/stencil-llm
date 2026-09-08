@@ -7,6 +7,7 @@ import hashlib
 import json
 import math
 import os
+import re
 import subprocess
 import sys
 import time
@@ -28,8 +29,25 @@ BASE_URL = owned.BASE_URL
 RESERVATION_SECONDS = 600
 STARTUP_SECONDS = 600
 CLEANUP_SECONDS = 60
+EFFECTIVE_STARTUP_SECONDS = min(STARTUP_SECONDS, RESERVATION_SECONDS - CLEANUP_SECONDS)
 RUN_FLAG = RESULTS_DIR / "RUNNING.flag"
 REQUIRED_ACCEPTANCES = {"specification", "fixture", "implementation"}
+CANONICAL_REVIEW_PATH = "results/source-replay/review-astra.md"
+SPECIFICATION_SUBJECT_FILES = {
+    "results/source-replay/SPEC.md",
+    "results/source-replay/DATA-CONTRACT.md",
+    "results/source-replay/QUALIFICATION-BRIEF.md",
+}
+IMPLEMENTATION_SUBJECT_FILES = {
+    "src/stencil/source_replay.py",
+    "src/stencil/focus/native_source_selector.py",
+    "scripts/source_replay_qualification.py",
+    "tools/run_source_replay_qualification.py",
+    "tests/test_source_replay.py",
+    "tests/test_native_source_selector.py",
+    "tests/test_source_replay_qualification.py",
+    "tests/test_run_source_replay_qualification.py",
+}
 CORE_BOUND_FILES = {
     "src/stencil/source_replay.py",
     "src/stencil/focus/native_source_selector.py",
@@ -41,10 +59,13 @@ CORE_BOUND_FILES = {
     "scripts/coding_worker_dev.py",
     "src/stencil/focus/slab.py",
     "src/stencil/focus/slab_sandbox.py",
+    "src/stencil/focus/renderer.py",
+    *IMPLEMENTATION_SUBJECT_FILES,
     "results/source-replay/SPEC.md",
     "results/source-replay/DATA-CONTRACT.md",
     "results/source-replay/QUALIFICATION-BRIEF.md",
     "results/factorial-prep/current-trunk-hashes.json",
+    CANONICAL_REVIEW_PATH,
 }
 FREEZE_KEYS = {
     "schema_version",
@@ -58,6 +79,12 @@ FREEZE_KEYS = {
     "bound_files",
     "acceptances",
 }
+ROUND_RE = re.compile(r"^## Round ([1-9][0-9]*)\s*$", re.MULTILINE)
+SCORE_RE = re.compile(r"^Score:\s*([0-9]{1,3})/100\s*$", re.MULTILINE)
+DISPOSITION_RE = re.compile(r"^Disposition:\s*(ACCEPT|REJECT)\b", re.MULTILINE)
+MACHINE_RE = re.compile(
+    r"<!-- SOURCE_REPLAY_REVIEW_MACHINE_V1\s*\n(.*?)\n-->", re.DOTALL
+)
 
 
 def _sha256(path):
@@ -89,12 +116,90 @@ def _valid_sha(value):
     )
 
 
+def _latest_review_state(text):
+    rounds = list(ROUND_RE.finditer(text))
+    if not rounds:
+        raise RuntimeError("canonical review has no round sections")
+    latest = rounds[-1]
+    section = text[latest.start() :]
+    blocks = MACHINE_RE.findall(section)
+    if len(blocks) != 1:
+        raise RuntimeError("latest canonical round lacks one machine block")
+    try:
+        state = json.loads(blocks[0])
+    except Exception as exc:
+        raise RuntimeError(
+            f"latest review machine block is invalid JSON: {exc}"
+        ) from exc
+    required = {
+        "schema_version",
+        "canonical_topic",
+        "round",
+        "score",
+        "disposition",
+        "open_findings",
+        "subjects",
+    }
+    if type(state) is not dict or set(state) != required:
+        raise RuntimeError("latest review machine block has the wrong fields")
+    heading_round = int(latest.group(1))
+    visible_scores = SCORE_RE.findall(section)
+    visible_dispositions = DISPOSITION_RE.findall(section)
+    if (
+        type(state["schema_version"]) is not int
+        or state["schema_version"] != 1
+        or state["canonical_topic"] != "source-replay"
+        or type(state["round"]) is not int
+        or state["round"] != heading_round
+        or len(visible_scores) != 1
+        or len(visible_dispositions) != 1
+        or type(state["score"]) is not int
+        or state["score"] != int(visible_scores[0])
+        or state["disposition"] != visible_dispositions[0]
+    ):
+        raise RuntimeError("latest review machine block contradicts its round")
+    return state
+
+
+def _validate_review(text, bound, required_subjects):
+    state = _latest_review_state(text)
+    if state["disposition"] != "ACCEPT":
+        raise RuntimeError("latest review disposition is not accepted")
+    if not 90 <= state["score"] <= 100:
+        raise RuntimeError("latest review score is below acceptance")
+    open_findings = state["open_findings"]
+    if (
+        type(open_findings) is not dict
+        or set(open_findings) != {"high", "critical"}
+        or any(type(value) is not int or value < 0 for value in open_findings.values())
+        or any(open_findings.values())
+    ):
+        raise RuntimeError("latest review has open high or critical findings")
+    if (
+        type(required_subjects) is not dict
+        or set(required_subjects) != REQUIRED_ACCEPTANCES
+    ):
+        raise RuntimeError("required review subject groups are incomplete")
+    expected = {}
+    for kind, paths in required_subjects.items():
+        if type(paths) not in {set, frozenset} or not paths:
+            raise RuntimeError("required review subject set is invalid")
+        if not set(paths) <= set(bound):
+            raise RuntimeError("required review subject is absent from the freeze")
+        expected[kind] = {path: bound[path] for path in sorted(paths)}
+    if state["subjects"] != expected:
+        raise RuntimeError("latest review subject hashes do not match frozen bytes")
+    return state
+
+
 def validate_freeze(
     freeze_path,
     *,
     root=ROOT,
     required_files=CORE_BOUND_FILES,
     required_acceptances=REQUIRED_ACCEPTANCES,
+    required_subjects=None,
+    canonical_review_path=CANONICAL_REVIEW_PATH,
 ):
     """Validate every declared byte binding and required acceptance receipt."""
     root = Path(root).resolve()
@@ -131,6 +236,12 @@ def validate_freeze(
     fixture_path = _bound_path(root, fixture["path"], "fixture")
     if fixture["path"] not in bound or fixture["sha256"] != bound[fixture["path"]]:
         raise RuntimeError("fixture is not identical to its bound-file receipt")
+    if required_subjects is None:
+        required_subjects = {
+            "specification": SPECIFICATION_SUBJECT_FILES,
+            "fixture": {fixture["path"]},
+            "implementation": IMPLEMENTATION_SUBJECT_FILES,
+        }
 
     preflight_binding = freeze["preflight"]
     if type(preflight_binding) is not dict or set(preflight_binding) != {
@@ -188,6 +299,8 @@ def validate_freeze(
     if type(acceptances) is not list:
         raise RuntimeError("freeze acceptances must be a list")
     observed = set()
+    canonical_review_path = str(canonical_review_path)
+    review_text = None
     for acceptance in acceptances:
         if type(acceptance) is not dict or set(acceptance) != {
             "kind",
@@ -202,29 +315,25 @@ def validate_freeze(
             not isinstance(kind, str)
             or kind in observed
             or acceptance["status"] != "ACCEPTED"
+            or relative != canonical_review_path
             or relative not in bound
             or acceptance["sha256"] != bound[relative]
         ):
             raise RuntimeError("acceptance receipt is not bound and accepted")
-        acceptance_text = _bound_path(root, relative, "acceptance").read_text(
-            encoding="utf-8"
-        )
-        normalized = acceptance_text.lower()
-        if "disposition: accept" not in normalized or not (
-            "zero open high/critical" in normalized
-            or "no open high/critical" in normalized
-        ):
-            raise RuntimeError(
-                "acceptance evidence lacks an accepted terminal disposition"
+        if review_text is None:
+            review_text = _bound_path(root, relative, "acceptance").read_text(
+                encoding="utf-8"
             )
         observed.add(kind)
     if observed != set(required_acceptances):
         raise RuntimeError("qualification freeze lacks required acceptance evidence")
+    review = _validate_review(review_text, bound, required_subjects)
     return {
         "freeze": freeze,
         "freeze_sha256": _sha256(freeze_path),
         "fixture_path": fixture_path,
         "preflight_path": preflight_path,
+        "review": review,
     }
 
 
@@ -246,7 +355,7 @@ def make_plan(run_dir, fixture_path, *, container_name=None):
         "base_url": BASE_URL,
         "model": "/model",
         "reservation_seconds": RESERVATION_SECONDS,
-        "startup_ceiling_seconds": STARTUP_SECONDS,
+        "startup_ceiling_seconds": EFFECTIVE_STARTUP_SECONDS,
         "cleanup_reserve_seconds": CLEANUP_SECONDS,
     }
 
