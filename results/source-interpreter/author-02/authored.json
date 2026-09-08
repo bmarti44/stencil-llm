@@ -1,0 +1,294 @@
+{
+  "schema_version": 1,
+  "conversation_id": "source-fit-cal-20260908-02",
+  "family_id": "source-fit-family-20260908-02",
+  "split": "fit",
+  "messages": [
+    {
+      "message_id": "m01",
+      "role": "user",
+      "task_handle": "task-validate-loan-request",
+      "text": "Hi — I'm Priya, registrar systems lead at the Aldergate Museum Trust. We're building a small internal utility called `loanrail` to track object loans between our three sites and outside borrowers. Some house conventions before you start, and these hold for everything in the project: the codebase is Python 3.11 and standard library only, with no third-party packages until our platform team signs off on a dependency process. Public functions get full docstrings — a summary line plus a Raises section whenever the function can raise — and names stay snake_case. All dates pass through the system as ISO 8601 strings in UTC; never work with naive datetime objects. Finally, validation problems must raise subclasses of our `LoanError` base, and `LoanError` subclasses Exception directly rather than ValueError, so callers can catch one type. First task: write `validate_loan_request(record)` for a single outgoing-loan request dict. Required keys are `object_id`, `borrower_institution`, `start_date`, `end_date`, and `insurance_value`, and `end_date` must be strictly after `start_date`."
+    },
+    {
+      "message_id": "m02",
+      "role": "assistant",
+      "text": "Thanks, Priya — clear setup. Plan: the error hierarchy goes in `errors.py` with `LoanError(Exception)` and subtypes `MissingFieldError`, `MalformedDateError`, and `InvalidValueError`; the validator lives in `validate.py`. `validate_loan_request(record)` checks presence of the five keys, parses both ISO 8601 UTC strings for the strict ordering comparison, and returns the checked record on success, raising the appropriate subtype otherwise. To stay within the standard library I'll cover it with `unittest` cases rather than anything external. One design thought as I go: I could model the validated record as a small dataclass for cleaner attribute access, but I'm equally happy to keep the plain-dict round trip if your tooling expects that — say the word."
+    },
+    {
+      "message_id": "m03",
+      "role": "user",
+      "text": "Keep the plain dicts, please — the registrar dashboard hands us these records from a JSON export and other tooling mutates them in place, so records stay plain dicts end to end. Skip the dataclass idea entirely. One more standing convention while you're in that function: the old export sometimes sends `insurance_value` as a float like 125000.0. Accept that at the boundary for now, but convert it immediately to integer cents — across the whole codebase, money is always integer cents in fields named with a `_cents` suffix (so `insurance_value_cents`), never floats, and round half-up when converting."
+    },
+    {
+      "message_id": "m04",
+      "role": "assistant",
+      "text": "Done. Records stay dicts in and out — no dataclass anywhere in the path. The validator now rewrites `insurance_value` to `insurance_value_cents` (integer, decimal-quantized half-up) before returning, and anything unparseable as an amount raises `InvalidValueError`, a `LoanError` subtype. Docstrings carry summary lines and Raises sections, and the date handling is all parsed-from-UTC-strings with no naive datetimes."
+    },
+    {
+      "message_id": "m05",
+      "role": "tool",
+      "text": "python -m unittest discover -s tests -v: 14 tests ran across test_validate.py and test_errors.py — 0 failures, 0 errors, 0 skipped."
+    },
+    {
+      "message_id": "m06",
+      "role": "user",
+      "text": "Two standing items while this is fresh. Configuration: decisions and thresholds live in a TOML file at `~/.loanrail.toml`; read it once at startup and pass the settings down, no re-reading per call. Audit: every approval or rejection decision anywhere in the tool must be logged at INFO level to the logger named `loanrail.audit`, and the log line has to include the object_id and the name of the rule that decided it. Our compliance officer replays these logs quarterly, so no silent decisions."
+    },
+    {
+      "message_id": "m07",
+      "role": "assistant",
+      "text": "Both noted as project-wide rules. I'll wire a settings object loaded once at startup from the TOML path and thread it through, and any module that approves or rejects will emit its INFO record to the `loanrail.audit` logger with object_id and deciding-rule name on the line."
+    },
+    {
+      "message_id": "m08",
+      "role": "user",
+      "task_handle": "task-conflict-scan",
+      "text": "Next piece: a conflict scanner, `find_conflicts(record, schedule)`. The candidate is the same dict shape as before; `schedule` is a list of existing commitment dicts for that object, each tagged with a `kind`. Semantics from the registrars: exhibition reservations always block. Conservation holds block only when they're 48 hours or longer — shorter holds come back as warnings, not conflicts. Transit windows from other loans block, except when the candidate is a back-to-back loan for the same borrower, meaning the candidate's end date equals the next loan's start date; that case is fully allowed, not even a warning. One behavior point that matters: do not raise LoanError for actual scheduling conflicts — return a report object sorted by start date with conflicts and warnings separated. LoanError stays correct for malformed input, like an unknown `kind` or a bad date string."
+    },
+    {
+      "message_id": "m09",
+      "role": "assistant",
+      "text": "Implemented in `schedule.py`: overlap math uses parsed UTC timestamps only, conflicts and warnings are separated in the report, and the report sorts by start date. Unknown `kind` values and unparsable dates raise the appropriate `LoanError` subtype while genuine overlaps never raise. One flag before I freeze it: I briefly considered pulling in `python-dateutil` for interval handling — want me to, or hold the line on standard library only?"
+    },
+    {
+      "message_id": "m10",
+      "role": "user",
+      "text": "Hold the line — no third-party anything, dateutil included, until the platform review lands. And a reversal on the configuration plan: scrap the TOML file approach entirely. Ops wants twelve-factor style, so from now on configuration comes only from environment variables prefixed `LOANRAIL_`. Remove the TOML loader rather than leaving it dormant in the tree."
+    },
+    {
+      "message_id": "m11",
+      "role": "assistant",
+      "text": "Done the reversal: `config_toml.py` and its tests are deleted outright, and the new `config.py` reads `LOANRAIL_`-prefixed environment variables, still loading once at startup into the same settings object so call sites don't change. Overlap logic stays hand-rolled against the standard library."
+    },
+    {
+      "message_id": "m12",
+      "role": "tool",
+      "text": "grep -RInE \"loanrail\\.toml|tomllib\" src/ tests/ → no matches. python -m unittest discover -s tests: 27 tests ran — 0 failures, 0 errors."
+    },
+    {
+      "message_id": "m13",
+      "role": "user",
+      "text": "Standing conventions for the CLI layer, since that's what we build next. Every subcommand takes `--json`. When `--json` is passed, print exactly one JSON document to stdout and nothing else — no banners, no log lines on stdout — and errors go to stderr with a non-zero exit code. Without the flag, print the human-readable table. Separately, and this is a hard boundary: network access is permitted only inside the courier-tracking module, `courier.py`. Any HTTP call there must use a 5-second timeout and retry with exponential backoff, max 3 attempts."
+    },
+    {
+      "message_id": "m14",
+      "role": "assistant",
+      "text": "Understood on both. The argument parser will add `--json` at the top level so every subcommand inherits it, the JSON mode suppresses all non-payload stdout, and exit codes distinguish failure. Quick check on the retry cap before I write `courier.py`: does \"max 3 attempts\" mean three retries after the first try, so four tries overall, or three tries in total?"
+    },
+    {
+      "message_id": "m15",
+      "role": "user",
+      "text": "Three tries overall — the first attempt plus two retries. Good catch; that's exactly the off-by-one that bites us."
+    },
+    {
+      "message_id": "m16",
+      "role": "assistant",
+      "text": "Confirmed: `courier.py` caps the backoff schedule at three total attempts with 1s then 2s sleeps, each try under a 5-second timeout, and it's the only module that touches the network. Nothing else in the tree will import an HTTP client."
+    },
+    {
+      "message_id": "m17",
+      "role": "tool",
+      "text": "Fixture refresh complete: tests/fixtures/queue_sample.json now holds 9 pending outgoing requests — 3 with insurer risk scores strictly above 80, 1 with the score field missing entirely."
+    },
+    {
+      "message_id": "m18",
+      "role": "user",
+      "text": "One rule from our insurer liaison that is now in force across the whole tool: any request whose insurer risk score is strictly above 80 requires explicit registrar sign-off before it can be approved. Those must never be auto-approved by anything — no batch job, no flag, no default. And if a score is missing entirely, treat the request as unscoreable and route it to manual review rather than guessing a value or defaulting it to zero."
+    },
+    {
+      "message_id": "m19",
+      "role": "assistant",
+      "text": "Locked in as a tool-wide rule: every approval path checks the score first — strictly above 80 forces the registrar sign-off route, a missing score forces manual review, and no code path bulk-approves either case. The audit log will name the deciding rule on each of those outcomes per the earlier convention."
+    },
+    {
+      "message_id": "m20",
+      "role": "user",
+      "task_handle": "task-review-queue",
+      "text": "Last piece of the sprint: implement the `review-queue` subcommand. It lists pending outgoing requests sorted by insurer risk score, highest first, showing object id, borrower, the requested window, and the insured amount; `--detailed` adds each request's conflict summary from the scanner. `--auto-approve` batch-approves the queue — but the sign-off rule stands even here: rows scoring above 80 get a `!` marker in the table and are excluded from the batch even when the flag is explicitly passed."
+    }
+  ],
+  "queries": [
+    {
+      "message_id": "m01",
+      "target": {
+        "obligations": [
+          {
+            "text": "The utility is written in Python 3.11 using only the standard library; no third-party packages may be introduced until the platform team signs off on a dependency process.",
+            "source_ids": [
+              "m01"
+            ]
+          },
+          {
+            "text": "Public functions use snake_case names and carry full docstrings with a summary line plus a Raises section whenever the function can raise.",
+            "source_ids": [
+              "m01"
+            ]
+          },
+          {
+            "text": "All dates pass through the system as ISO 8601 strings in UTC; naive datetime objects must never be used.",
+            "source_ids": [
+              "m01"
+            ]
+          },
+          {
+            "text": "Validation problems raise subclasses of the `LoanError` base, and `LoanError` subclasses Exception directly rather than ValueError, so callers can catch one type.",
+            "source_ids": [
+              "m01"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "message_id": "m08",
+      "target": {
+        "obligations": [
+          {
+            "text": "The utility is written in Python 3.11 using only the standard library; no third-party packages may be introduced until the platform team signs off on a dependency process.",
+            "source_ids": [
+              "m01"
+            ]
+          },
+          {
+            "text": "Public functions use snake_case names and carry full docstrings with a summary line plus a Raises section whenever the function can raise.",
+            "source_ids": [
+              "m01"
+            ]
+          },
+          {
+            "text": "All dates pass through the system as ISO 8601 strings in UTC; naive datetime objects must never be used.",
+            "source_ids": [
+              "m01"
+            ]
+          },
+          {
+            "text": "Validation problems raise subclasses of the `LoanError` base, and `LoanError` subclasses Exception directly rather than ValueError, so callers can catch one type.",
+            "source_ids": [
+              "m01"
+            ]
+          },
+          {
+            "text": "Loan records remain plain dicts end to end because the registrar dashboard supplies them from a JSON export and other tooling mutates them in place; the assistant's suggested dataclass representation was explicitly declined.",
+            "source_ids": [
+              "m03"
+            ]
+          },
+          {
+            "text": "Money is always handled as integer cents in fields named with a `_cents` suffix (for example `insurance_value_cents`), never floats; float amounts arriving from the old export may be accepted only at the input boundary and must be converted immediately, rounding half-up.",
+            "source_ids": [
+              "m03"
+            ]
+          },
+          {
+            "text": "Configuration — decisions and thresholds — is read once at startup from the TOML file at `~/.loanrail.toml` and passed down, never re-read per call.",
+            "source_ids": [
+              "m06"
+            ]
+          },
+          {
+            "text": "Every approval or rejection decision anywhere in the tool must be logged at INFO level to the logger named `loanrail.audit`, with the log line including the object_id and the name of the rule that decided it; no silent decisions.",
+            "source_ids": [
+              "m06"
+            ]
+          },
+          {
+            "text": "In the conflict scanner, genuine scheduling conflicts must not raise LoanError; they are returned in a report object, while LoanError remains the correct behavior for malformed input such as an unknown commitment `kind` or a bad date string.",
+            "source_ids": [
+              "m08"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "message_id": "m20",
+      "target": {
+        "obligations": [
+          {
+            "text": "The utility is written in Python 3.11 using only the standard library; no third-party packages (including `python-dateutil`, which was suggested and refused) may be introduced until the platform team signs off.",
+            "source_ids": [
+              "m01",
+              "m10"
+            ]
+          },
+          {
+            "text": "Public functions use snake_case names and carry full docstrings with a summary line plus a Raises section whenever the function can raise.",
+            "source_ids": [
+              "m01"
+            ]
+          },
+          {
+            "text": "All dates pass through the system as ISO 8601 strings in UTC; naive datetime objects must never be used.",
+            "source_ids": [
+              "m01"
+            ]
+          },
+          {
+            "text": "Validation problems raise subclasses of the `LoanError` base, and `LoanError` subclasses Exception directly rather than ValueError, so callers can catch one type.",
+            "source_ids": [
+              "m01"
+            ]
+          },
+          {
+            "text": "Loan records remain plain dicts end to end because the registrar dashboard supplies them from a JSON export and other tooling mutates them in place; the assistant's suggested dataclass representation was explicitly declined.",
+            "source_ids": [
+              "m03"
+            ]
+          },
+          {
+            "text": "Money is always handled as integer cents in fields named with a `_cents` suffix (for example `insurance_value_cents`), never floats; float amounts arriving from the old export may be accepted only at the input boundary and must be converted immediately, rounding half-up.",
+            "source_ids": [
+              "m03"
+            ]
+          },
+          {
+            "text": "Configuration comes only from environment variables prefixed `LOANRAIL_`, still loaded once at startup rather than per call; the earlier `~/.loanrail.toml` file plan was scrapped entirely, with the TOML loader removed rather than left dormant.",
+            "source_ids": [
+              "m06",
+              "m10"
+            ]
+          },
+          {
+            "text": "Every approval or rejection decision anywhere in the tool must be logged at INFO level to the logger named `loanrail.audit`, with the log line including the object_id and the name of the rule that decided it; no silent decisions.",
+            "source_ids": [
+              "m06"
+            ]
+          },
+          {
+            "text": "In the conflict scanner, genuine scheduling conflicts must not raise LoanError; they are returned in a report object, while LoanError remains the correct behavior for malformed input such as an unknown commitment `kind` or a bad date string.",
+            "source_ids": [
+              "m08"
+            ]
+          },
+          {
+            "text": "Every CLI subcommand must accept `--json`; with `--json` exactly one JSON document goes to stdout and nothing else (no banners, no log lines on stdout), errors go to stderr with a non-zero exit code, and without the flag output is a human-readable table.",
+            "source_ids": [
+              "m13"
+            ]
+          },
+          {
+            "text": "Network access is permitted only inside the courier-tracking module `courier.py`; HTTP calls there must use a 5-second timeout and retry with exponential backoff capped at three attempts total, meaning the first attempt plus two retries — not three retries.",
+            "source_ids": [
+              "m13",
+              "m15"
+            ]
+          },
+          {
+            "text": "Any request whose insurer risk score is strictly above 80 requires explicit registrar sign-off before approval and must never be auto-approved by anything — no batch job, no flag, and no default — which includes exclusion from the `review-queue --auto-approve` batch even when that flag is explicitly passed.",
+            "source_ids": [
+              "m18",
+              "m20"
+            ]
+          },
+          {
+            "text": "A request with a missing insurer risk score is treated as unscoreable and routed to manual review rather than having a value guessed or defaulted to zero.",
+            "source_ids": [
+              "m18"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
