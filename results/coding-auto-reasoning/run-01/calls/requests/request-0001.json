@@ -1,0 +1,1034 @@
+{
+  "episode_id": "auto-reasoning-dev-classroom-submissions-01",
+  "focus": {
+    "obligations": [
+      {
+        "source_ids": [
+          "m01",
+          "m03",
+          "m04",
+          "m05",
+          "m07",
+          "m08"
+        ],
+        "text": "Group submissions by assignment name exactly as normalized, preserving arrival order within each group. Carry over validation errors unchanged. Do not drop or merge attempts. Validate batch first, reuse the validator, and return groups with no sorting."
+      }
+    ]
+  },
+  "focus_raw_arguments": "{\"obligations\": [{\"source_ids\": [\"m01\", \"m03\", \"m04\", \"m05\", \"m07\", \"m08\"], \"text\": \"Group submissions by assignment name exactly as normalized, preserving arrival order within each group. Carry over validation errors unchanged. Do not drop or merge attempts. Validate batch first, reuse the validator, and return groups with no sorting.\"}]}",
+  "focus_rendering": "<current_generated_focus>\n\n<obligation index=\"0\">\n<text>\nGroup submissions by assignment name exactly as normalized, preserving arrival order within each group. Carry over validation errors unchanged. Do not drop or merge attempts. Validate batch first, reuse the validator, and return groups with no sorting.\n</text>\n<source_ids>\n[\"m01\",\"m03\",\"m04\",\"m05\",\"m07\",\"m08\"]\n</source_ids>\n</obligation>\n</current_generated_focus>",
+  "post_module_sha256": "d09b4bf4a4e61c52f4bf2f4b50e2622acc2e2f9805456b13005b8bc0ad7b74ef",
+  "pre_module_sha256": "309580af95586612a3317b6c005a8b401c7d305ab1f84c5ddd2b10b75ac45a23",
+  "public_solved": true,
+  "request_index": 1,
+  "request_message_id": "m08",
+  "request_passed": true,
+  "round_index": 1,
+  "schema_version": 1,
+  "selector_call_index": 2,
+  "selector_status": "COMPLETE",
+  "source_events": [
+    {
+      "message_id": "m01",
+      "role": "user",
+      "text": "I'm building a tiny classroom assignment submission utility in submission_util.py. It already has a working normalize_submission(payload) helper that validates one submission object: non-empty student and assignment strings which it returns trimmed, plus a numeric score from 0 to 100 inclusive, answering either {\"ok\": true, \"record\": ...} or {\"ok\": false, \"error\": ...}. One thing about our data before we start: students resubmit the same assignment all the time, and every attempt matters to us. Never drop an attempt, and keep everything in the exact order it arrived."
+    },
+    {
+      "message_id": "m02",
+      "role": "assistant",
+      "text": "Understood. Two style questions before I write anything: should the validated results be sorted alphabetically by student for readability, and if a later feature ever reports an average, should I round it to two decimal places?"
+    },
+    {
+      "message_id": "m03",
+      "role": "user",
+      "text": "No sorting anywhere \u2014 arrival order is the record, never reorder it. Averages: yes, whenever a feature reports an average, round it to two decimals. And one project-wide rule: each function takes a single JSON value in and must always return a plain JSON-safe object out; bad input must produce an error object, never an exception."
+    },
+    {
+      "message_id": "m04",
+      "role": "user",
+      "task_handle": "validate-batch",
+      "text": "Implement validate_batch(batch). batch must be a JSON list of submission payloads. If batch is not a list, return exactly {\"ok\": false, \"error\": \"batch must be a list\"}. Otherwise run normalize_submission on every element, in arrival order, and return {\"ok\": true, \"valid\": [...], \"errors\": [...], \"counts\": {\"total\": n, \"valid\": v, \"invalid\": e}} where: valid lists every successfully normalized record in arrival order \u2014 resubmissions are just more records, nothing is removed or merged; errors has one {\"index\": i, \"error\": message} per element that failed normalization, carrying the helper's message and that element's zero-based position, in arrival order; counts reports the total number of elements, how many normalized successfully, and how many failed. Even a batch whose elements all fail still returns \"ok\": true; only a non-list batch returns \"ok\": false."
+    },
+    {
+      "message_id": "m05",
+      "role": "user",
+      "text": "validate_batch works nicely, thanks. Next feature: grouping submissions per assignment so the teacher can see each pile. It should reuse the validator we just built, with the same list-shaped batch going in."
+    },
+    {
+      "message_id": "m06",
+      "role": "assistant",
+      "text": "Nice. Would you like per-group averages tucked into the groups as well? I assume two decimals, per your earlier note?"
+    },
+    {
+      "message_id": "m07",
+      "role": "user",
+      "text": "No averages in grouping \u2014 groups only, please. And while we're on the subject: scratch my two-decimal note. From now on, whenever a feature reports an average, round it to one decimal."
+    },
+    {
+      "message_id": "m08",
+      "role": "user",
+      "task_handle": "group-submissions",
+      "text": "Implement group_submissions(batch) on top of validate_batch. If batch is not a list, return the validator's error object unchanged. Otherwise return {\"ok\": true, \"groups\": {...}, \"errors\": [...]} where groups maps each assignment name, exactly as normalized, to the list of its normalized records; the records keep their original arrival order within each assignment \u2014 no sorting of any kind, and attempts are never dropped or merged, so a student who resubmitted the same assignment appears once per attempt; errors is the validator's errors list carried over unchanged so invalid entries are still reported with their index and message. Do not reimplement validation inside this function."
+    }
+  ],
+  "status": "COMPLETE",
+  "target": {
+    "path": "submission_util.py",
+    "symbol": "group_submissions"
+  },
+  "task_handle": "group-submissions",
+  "technical_error": null,
+  "terminal_private_checks": [
+    {
+      "actual": {
+        "ok": true,
+        "record": {
+          "assignment": "Essay",
+          "score": 88,
+          "student": "Ada"
+        }
+      },
+      "check_id": "chk-init-01",
+      "check_sha256": "65892a90207b6ed76b5f50d549962f449ab97e7182d250b71d55847a38852241",
+      "elapsed_seconds": 0.022248150984523818,
+      "episode_id": "auto-reasoning-dev-classroom-submissions-01",
+      "error": null,
+      "expected_values": [
+        {
+          "ok": true,
+          "record": {
+            "assignment": "Essay",
+            "score": 88,
+            "student": "Ada"
+          }
+        }
+      ],
+      "input": {
+        "assignment": " Essay ",
+        "score": 88,
+        "student": "  Ada  "
+      },
+      "module_sha256": "d09b4bf4a4e61c52f4bf2f4b50e2622acc2e2f9805456b13005b8bc0ad7b74ef",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "normalize_submission"
+    },
+    {
+      "actual": {
+        "error": "score must be a number",
+        "ok": false
+      },
+      "check_id": "chk-init-02",
+      "check_sha256": "b5ffc9b6caca70f29298a5866218d9f6aaeb6bdb33c8a86c0ebea01e24b5b3ea",
+      "elapsed_seconds": 0.01260555098997429,
+      "episode_id": "auto-reasoning-dev-classroom-submissions-01",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "score must be a number",
+          "ok": false
+        }
+      ],
+      "input": {
+        "assignment": "Quiz",
+        "score": true,
+        "student": "Bea"
+      },
+      "module_sha256": "d09b4bf4a4e61c52f4bf2f4b50e2622acc2e2f9805456b13005b8bc0ad7b74ef",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "normalize_submission"
+    },
+    {
+      "actual": {
+        "ok": true,
+        "record": {
+          "assignment": "Lab",
+          "score": 100,
+          "student": "Cal"
+        }
+      },
+      "check_id": "chk-init-03",
+      "check_sha256": "1a4398b620e0fab466b7b479546a13b09f0bdc8c46a723b510a63c2d0a0fa321",
+      "elapsed_seconds": 0.023427593027008697,
+      "episode_id": "auto-reasoning-dev-classroom-submissions-01",
+      "error": null,
+      "expected_values": [
+        {
+          "ok": true,
+          "record": {
+            "assignment": "Lab",
+            "score": 100,
+            "student": "Cal"
+          }
+        }
+      ],
+      "input": {
+        "assignment": "Lab",
+        "score": 100,
+        "student": "Cal"
+      },
+      "module_sha256": "d09b4bf4a4e61c52f4bf2f4b50e2622acc2e2f9805456b13005b8bc0ad7b74ef",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "normalize_submission"
+    },
+    {
+      "actual": {
+        "error": "payload must be an object",
+        "ok": false
+      },
+      "check_id": "chk-init-04",
+      "check_sha256": "acb33d368d1a63721ce9ae6a259ae5ca41da3ea53efe7aa24fe2d75665dd7949",
+      "elapsed_seconds": 0.013667010003700852,
+      "episode_id": "auto-reasoning-dev-classroom-submissions-01",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "payload must be an object",
+          "ok": false
+        }
+      ],
+      "input": [
+        "x"
+      ],
+      "module_sha256": "d09b4bf4a4e61c52f4bf2f4b50e2622acc2e2f9805456b13005b8bc0ad7b74ef",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "normalize_submission"
+    },
+    {
+      "actual": {
+        "ok": true,
+        "record": {
+          "assignment": "Quiz",
+          "score": 0,
+          "student": "Dot"
+        }
+      },
+      "check_id": "chk-init-05",
+      "check_sha256": "165a4f2626377fde883aa96754ffb7e7fab6d85223585bf23dc52b99a251a1ef",
+      "elapsed_seconds": 0.024093594984151423,
+      "episode_id": "auto-reasoning-dev-classroom-submissions-01",
+      "error": null,
+      "expected_values": [
+        {
+          "ok": true,
+          "record": {
+            "assignment": "Quiz",
+            "score": 0,
+            "student": "Dot"
+          }
+        }
+      ],
+      "input": {
+        "assignment": "Quiz",
+        "score": 0,
+        "student": "Dot"
+      },
+      "module_sha256": "d09b4bf4a4e61c52f4bf2f4b50e2622acc2e2f9805456b13005b8bc0ad7b74ef",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "normalize_submission"
+    },
+    {
+      "actual": {
+        "counts": {
+          "invalid": 2,
+          "total": 4,
+          "valid": 2
+        },
+        "errors": [
+          {
+            "error": "payload must be an object",
+            "index": 1
+          },
+          {
+            "error": "score must be between 0 and 100",
+            "index": 2
+          }
+        ],
+        "ok": true,
+        "valid": [
+          {
+            "assignment": "Essay",
+            "score": 88.5,
+            "student": "Dee"
+          },
+          {
+            "assignment": "Essay",
+            "score": 91,
+            "student": "Ada"
+          }
+        ]
+      },
+      "check_id": "chk-r0f-01",
+      "check_sha256": "ef05293ce826939ec06c3d7ccb79640b0dfd3a7db2fe27dcc65aad736ab0ff83",
+      "elapsed_seconds": 0.01346120101516135,
+      "episode_id": "auto-reasoning-dev-classroom-submissions-01",
+      "error": null,
+      "expected_values": [
+        {
+          "counts": {
+            "invalid": 2,
+            "total": 4,
+            "valid": 2
+          },
+          "errors": [
+            {
+              "error": "payload must be an object",
+              "index": 1
+            },
+            {
+              "error": "score must be between 0 and 100",
+              "index": 2
+            }
+          ],
+          "ok": true,
+          "valid": [
+            {
+              "assignment": "Essay",
+              "score": 88.5,
+              "student": "Dee"
+            },
+            {
+              "assignment": "Essay",
+              "score": 91,
+              "student": "Ada"
+            }
+          ]
+        }
+      ],
+      "input": [
+        {
+          "assignment": " Essay ",
+          "score": 88.5,
+          "student": "  Dee "
+        },
+        42,
+        {
+          "assignment": "Quiz",
+          "score": -1,
+          "student": "Eli"
+        },
+        {
+          "assignment": "Essay",
+          "score": 91,
+          "student": "Ada"
+        }
+      ],
+      "module_sha256": "d09b4bf4a4e61c52f4bf2f4b50e2622acc2e2f9805456b13005b8bc0ad7b74ef",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "validate_batch"
+    },
+    {
+      "actual": {
+        "counts": {
+          "invalid": 3,
+          "total": 3,
+          "valid": 0
+        },
+        "errors": [
+          {
+            "error": "payload must be an object",
+            "index": 0
+          },
+          {
+            "error": "student must be a non-empty string",
+            "index": 1
+          },
+          {
+            "error": "score must be a number",
+            "index": 2
+          }
+        ],
+        "ok": true,
+        "valid": []
+      },
+      "check_id": "chk-r0f-02",
+      "check_sha256": "43a6b5ebb3a32ca2dec1911335fb6f378a236ac1e6fe6f34631c4a2d993d19a7",
+      "elapsed_seconds": 0.022458550985902548,
+      "episode_id": "auto-reasoning-dev-classroom-submissions-01",
+      "error": null,
+      "expected_values": [
+        {
+          "counts": {
+            "invalid": 3,
+            "total": 3,
+            "valid": 0
+          },
+          "errors": [
+            {
+              "error": "payload must be an object",
+              "index": 0
+            },
+            {
+              "error": "student must be a non-empty string",
+              "index": 1
+            },
+            {
+              "error": "score must be a number",
+              "index": 2
+            }
+          ],
+          "ok": true,
+          "valid": []
+        }
+      ],
+      "input": [
+        "oops",
+        {
+          "assignment": "X",
+          "score": 10,
+          "student": ""
+        },
+        {
+          "assignment": "Y",
+          "score": true,
+          "student": "Kip"
+        }
+      ],
+      "module_sha256": "d09b4bf4a4e61c52f4bf2f4b50e2622acc2e2f9805456b13005b8bc0ad7b74ef",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "validate_batch"
+    },
+    {
+      "actual": {
+        "counts": {
+          "invalid": 0,
+          "total": 1,
+          "valid": 1
+        },
+        "errors": [],
+        "ok": true,
+        "valid": [
+          {
+            "assignment": "Quiz",
+            "score": 0,
+            "student": "Zed"
+          }
+        ]
+      },
+      "check_id": "chk-r0f-03",
+      "check_sha256": "18b2d46c88a8d394544236821dba5931d43fd1b4e5d3a0fc84dbcc1ada18ef5d",
+      "elapsed_seconds": 0.02267535199644044,
+      "episode_id": "auto-reasoning-dev-classroom-submissions-01",
+      "error": null,
+      "expected_values": [
+        {
+          "counts": {
+            "invalid": 0,
+            "total": 1,
+            "valid": 1
+          },
+          "errors": [],
+          "ok": true,
+          "valid": [
+            {
+              "assignment": "Quiz",
+              "score": 0,
+              "student": "Zed"
+            }
+          ]
+        }
+      ],
+      "input": [
+        {
+          "assignment": "Quiz",
+          "score": 0,
+          "student": "Zed"
+        }
+      ],
+      "module_sha256": "d09b4bf4a4e61c52f4bf2f4b50e2622acc2e2f9805456b13005b8bc0ad7b74ef",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "validate_batch"
+    },
+    {
+      "actual": {
+        "error": "batch must be a list",
+        "ok": false
+      },
+      "check_id": "chk-r0f-04",
+      "check_sha256": "79968d0f811aeeb512d080c6d69999da76bf4f7511d7d2ff6c4d39b96bde8747",
+      "elapsed_seconds": 0.013486498006386682,
+      "episode_id": "auto-reasoning-dev-classroom-submissions-01",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "batch must be a list",
+          "ok": false
+        }
+      ],
+      "input": "not a batch",
+      "module_sha256": "d09b4bf4a4e61c52f4bf2f4b50e2622acc2e2f9805456b13005b8bc0ad7b74ef",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "validate_batch"
+    },
+    {
+      "actual": {
+        "errors": [
+          {
+            "error": "student must be a non-empty string",
+            "index": 1
+          },
+          {
+            "error": "score must be a number",
+            "index": 4
+          }
+        ],
+        "groups": {
+          "Essay": [
+            {
+              "assignment": "Essay",
+              "score": 88,
+              "student": "Dee"
+            },
+            {
+              "assignment": "Essay",
+              "score": 74,
+              "student": "Fay"
+            }
+          ],
+          "Lab": [
+            {
+              "assignment": "Lab",
+              "score": 92,
+              "student": "Eli"
+            }
+          ]
+        },
+        "ok": true
+      },
+      "check_id": "chk-r1f-01",
+      "check_sha256": "aa1202cfff7c0406f447f5f9f4f4186d66956e437ed9f5bc6132c590138b508e",
+      "elapsed_seconds": 0.013201983994804323,
+      "episode_id": "auto-reasoning-dev-classroom-submissions-01",
+      "error": null,
+      "expected_values": [
+        {
+          "errors": [
+            {
+              "error": "student must be a non-empty string",
+              "index": 1
+            },
+            {
+              "error": "score must be a number",
+              "index": 4
+            }
+          ],
+          "groups": {
+            "Essay": [
+              {
+                "assignment": "Essay",
+                "score": 88,
+                "student": "Dee"
+              },
+              {
+                "assignment": "Essay",
+                "score": 74,
+                "student": "Fay"
+              }
+            ],
+            "Lab": [
+              {
+                "assignment": "Lab",
+                "score": 92,
+                "student": "Eli"
+              }
+            ]
+          },
+          "ok": true
+        }
+      ],
+      "input": [
+        {
+          "assignment": "Essay",
+          "score": 88,
+          "student": "Dee"
+        },
+        {
+          "opps": 1
+        },
+        {
+          "assignment": "Lab",
+          "score": 92,
+          "student": "Eli"
+        },
+        {
+          "assignment": "Essay",
+          "score": 74,
+          "student": "Fay"
+        },
+        {
+          "assignment": "Lab",
+          "score": true,
+          "student": "Gus"
+        }
+      ],
+      "module_sha256": "d09b4bf4a4e61c52f4bf2f4b50e2622acc2e2f9805456b13005b8bc0ad7b74ef",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "group_submissions"
+    },
+    {
+      "actual": {
+        "errors": [],
+        "groups": {
+          "Quiz": [
+            {
+              "assignment": "Quiz",
+              "score": 5,
+              "student": "Hana"
+            },
+            {
+              "assignment": "Quiz",
+              "score": 6,
+              "student": "Ian"
+            },
+            {
+              "assignment": "Quiz",
+              "score": 7,
+              "student": "Jon"
+            }
+          ]
+        },
+        "ok": true
+      },
+      "check_id": "chk-r1f-02",
+      "check_sha256": "92372cdc5b93a06f5f248be7f6d1546759edfa733146ffabb456303d4ff6181a",
+      "elapsed_seconds": 0.01405628997599706,
+      "episode_id": "auto-reasoning-dev-classroom-submissions-01",
+      "error": null,
+      "expected_values": [
+        {
+          "errors": [],
+          "groups": {
+            "Quiz": [
+              {
+                "assignment": "Quiz",
+                "score": 5,
+                "student": "Hana"
+              },
+              {
+                "assignment": "Quiz",
+                "score": 6,
+                "student": "Ian"
+              },
+              {
+                "assignment": "Quiz",
+                "score": 7,
+                "student": "Jon"
+              }
+            ]
+          },
+          "ok": true
+        }
+      ],
+      "input": [
+        {
+          "assignment": "Quiz",
+          "score": 5,
+          "student": "Hana"
+        },
+        {
+          "assignment": "Quiz",
+          "score": 6,
+          "student": "Ian"
+        },
+        {
+          "assignment": "Quiz",
+          "score": 7,
+          "student": "Jon"
+        }
+      ],
+      "module_sha256": "d09b4bf4a4e61c52f4bf2f4b50e2622acc2e2f9805456b13005b8bc0ad7b74ef",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "group_submissions"
+    },
+    {
+      "actual": {
+        "errors": [
+          {
+            "error": "student must be a non-empty string",
+            "index": 0
+          },
+          {
+            "error": "assignment must be a non-empty string",
+            "index": 1
+          }
+        ],
+        "groups": {},
+        "ok": true
+      },
+      "check_id": "chk-r1f-03",
+      "check_sha256": "9852c8df518f3f80f5912c6fe824728fe9aabd23386fbbdece72169bbe4fa4e0",
+      "elapsed_seconds": 0.02280704799341038,
+      "episode_id": "auto-reasoning-dev-classroom-submissions-01",
+      "error": null,
+      "expected_values": [
+        {
+          "errors": [
+            {
+              "error": "student must be a non-empty string",
+              "index": 0
+            },
+            {
+              "error": "assignment must be a non-empty string",
+              "index": 1
+            }
+          ],
+          "groups": {},
+          "ok": true
+        }
+      ],
+      "input": [
+        {
+          "assignment": "X",
+          "score": 5,
+          "student": " "
+        },
+        {
+          "assignment": "",
+          "score": 50,
+          "student": "Kip"
+        }
+      ],
+      "module_sha256": "d09b4bf4a4e61c52f4bf2f4b50e2622acc2e2f9805456b13005b8bc0ad7b74ef",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "group_submissions"
+    },
+    {
+      "actual": {
+        "error": "batch must be a list",
+        "ok": false
+      },
+      "check_id": "chk-r1f-04",
+      "check_sha256": "ad167b3d37f9db759b13cffbf8228e229ba8d4f5b93a4c7e91e95d4231422c93",
+      "elapsed_seconds": 0.02183742998749949,
+      "episode_id": "auto-reasoning-dev-classroom-submissions-01",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "batch must be a list",
+          "ok": false
+        }
+      ],
+      "input": {
+        "batch": []
+      },
+      "module_sha256": "d09b4bf4a4e61c52f4bf2f4b50e2622acc2e2f9805456b13005b8bc0ad7b74ef",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "group_submissions"
+    },
+    {
+      "actual": {
+        "errors": [],
+        "groups": {
+          "Essay": [
+            {
+              "assignment": "Essay",
+              "score": 70,
+              "student": "Ana"
+            },
+            {
+              "assignment": "Essay",
+              "score": 65,
+              "student": "Ben"
+            },
+            {
+              "assignment": "Essay",
+              "score": 85,
+              "student": "Ana"
+            }
+          ]
+        },
+        "ok": true
+      },
+      "check_id": "chk-r1o-01",
+      "check_sha256": "40c06625c2ab8ec132cf800542457f1ed90d356f5052e77a9fea3f6201f43c90",
+      "elapsed_seconds": 0.012580174981849268,
+      "episode_id": "auto-reasoning-dev-classroom-submissions-01",
+      "error": null,
+      "expected_values": [
+        {
+          "errors": [],
+          "groups": {
+            "Essay": [
+              {
+                "assignment": "Essay",
+                "score": 70,
+                "student": "Ana"
+              },
+              {
+                "assignment": "Essay",
+                "score": 65,
+                "student": "Ben"
+              },
+              {
+                "assignment": "Essay",
+                "score": 85,
+                "student": "Ana"
+              }
+            ]
+          },
+          "ok": true
+        }
+      ],
+      "input": [
+        {
+          "assignment": "Essay",
+          "score": 70,
+          "student": "Ana"
+        },
+        {
+          "assignment": "Essay",
+          "score": 65,
+          "student": "Ben"
+        },
+        {
+          "assignment": "Essay",
+          "score": 85,
+          "student": "Ana"
+        }
+      ],
+      "module_sha256": "d09b4bf4a4e61c52f4bf2f4b50e2622acc2e2f9805456b13005b8bc0ad7b74ef",
+      "passed": true,
+      "rule_ids": [
+        "rule-keep-duplicates",
+        "rule-no-sort"
+      ],
+      "symbol": "group_submissions"
+    },
+    {
+      "actual": {
+        "errors": [
+          {
+            "error": "payload must be an object",
+            "index": 1
+          }
+        ],
+        "groups": {
+          "Lab": [
+            {
+              "assignment": "Lab",
+              "score": 81,
+              "student": "Zoe"
+            },
+            {
+              "assignment": "Lab",
+              "score": 79,
+              "student": "Yan"
+            }
+          ]
+        },
+        "ok": true
+      },
+      "check_id": "chk-r1o-02",
+      "check_sha256": "357e8475c3a01518a139b665702fb0bb1d3309a64d2af5bc66b57fd59c25afc6",
+      "elapsed_seconds": 0.022815351985627785,
+      "episode_id": "auto-reasoning-dev-classroom-submissions-01",
+      "error": null,
+      "expected_values": [
+        {
+          "errors": [
+            {
+              "error": "payload must be an object",
+              "index": 1
+            }
+          ],
+          "groups": {
+            "Lab": [
+              {
+                "assignment": "Lab",
+                "score": 81,
+                "student": "Zoe"
+              },
+              {
+                "assignment": "Lab",
+                "score": 79,
+                "student": "Yan"
+              }
+            ]
+          },
+          "ok": true
+        }
+      ],
+      "input": [
+        {
+          "assignment": "Lab",
+          "score": 81,
+          "student": "Zoe"
+        },
+        null,
+        {
+          "assignment": "Lab",
+          "score": 79,
+          "student": "Yan"
+        }
+      ],
+      "module_sha256": "d09b4bf4a4e61c52f4bf2f4b50e2622acc2e2f9805456b13005b8bc0ad7b74ef",
+      "passed": true,
+      "rule_ids": [
+        "rule-report-errors-grouping",
+        "rule-no-sort"
+      ],
+      "symbol": "group_submissions"
+    }
+  ],
+  "terminal_private_passed": true,
+  "unfinished_private_check_ids": [],
+  "worker_attempts": [
+    {
+      "all_public_passed": true,
+      "apply_status": "APPLIED",
+      "attempt_index": 0,
+      "call_index": 3,
+      "post_module_sha256": "d09b4bf4a4e61c52f4bf2f4b50e2622acc2e2f9805456b13005b8bc0ad7b74ef",
+      "source_sha256": "2d503272f6bd46c01eba4dee5d86ec04c86820006b62e531414ce1b807c4b3af",
+      "status": "COMPLETE"
+    }
+  ],
+  "worker_history_after_request": [
+    {
+      "content": "Maintain the supplied pure-Python module across the conversation. Each request authenticates one target path and symbol. Respond with exactly one replace_function tool call whose source is one complete synchronous target function beginning with def at byte zero and using LF lines. It must take exactly one positional argument without defaults, varargs, or keyword-only arguments. Do not use decorators, imports, global, nonlocal, nested functions or classes, dunder names or attributes, Markdown, or calls to __import__, breakpoint, compile, eval, exec, exit, globals, help, input, locals, open, print, quit, or vars. Preserve authentic standing directions and actual earlier dependencies. A current generated-focus block is fallible advisory guidance, is not a new user adoption, and never overrides authentic sources. Do not replace any other function.",
+      "role": "system"
+    },
+    {
+      "content": "I'm building a tiny classroom assignment submission utility in submission_util.py. It already has a working normalize_submission(payload) helper that validates one submission object: non-empty student and assignment strings which it returns trimmed, plus a numeric score from 0 to 100 inclusive, answering either {\"ok\": true, \"record\": ...} or {\"ok\": false, \"error\": ...}. One thing about our data before we start: students resubmit the same assignment all the time, and every attempt matters to us. Never drop an attempt, and keep everything in the exact order it arrived.",
+      "role": "user"
+    },
+    {
+      "content": "Understood. Two style questions before I write anything: should the validated results be sorted alphabetically by student for readability, and if a later feature ever reports an average, should I round it to two decimal places?",
+      "role": "assistant"
+    },
+    {
+      "content": "No sorting anywhere \u2014 arrival order is the record, never reorder it. Averages: yes, whenever a feature reports an average, round it to two decimals. And one project-wide rule: each function takes a single JSON value in and must always return a plain JSON-safe object out; bad input must produce an error object, never an exception.",
+      "role": "user"
+    },
+    {
+      "content": "Implement validate_batch(batch). batch must be a JSON list of submission payloads. If batch is not a list, return exactly {\"ok\": false, \"error\": \"batch must be a list\"}. Otherwise run normalize_submission on every element, in arrival order, and return {\"ok\": true, \"valid\": [...], \"errors\": [...], \"counts\": {\"total\": n, \"valid\": v, \"invalid\": e}} where: valid lists every successfully normalized record in arrival order \u2014 resubmissions are just more records, nothing is removed or merged; errors has one {\"index\": i, \"error\": message} per element that failed normalization, carrying the helper's message and that element's zero-based position, in arrival order; counts reports the total number of elements, how many normalized successfully, and how many failed. Even a batch whose elements all fail still returns \"ok\": true; only a non-list batch returns \"ok\": false.",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"source\": \"def validate_batch(batch):\\n    if not isinstance(batch, list):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"batch must be a list\\\"}\\n    valid = []\\n    errors = []\\n    for i, payload in enumerate(batch):\\n        result = normalize_submission(payload)\\n        if result[\\\"ok\\\"]:\\n            valid.append(result[\\\"record\\\"])\\n        else:\\n            errors.append({\\\"index\\\": i, \\\"error\\\": result[\\\"error\\\"]})\\n    counts = {\\n        \\\"total\\\": len(batch),\\n        \\\"valid\\\": len(valid),\\n        \\\"invalid\\\": len(errors)\\n    }\\n    return {\\n        \\\"ok\\\": True,\\n        \\\"valid\\\": valid,\\n        \\\"errors\\\": errors,\\n        \\\"counts\\\": counts\\n    }\"}",
+            "name": "replace_function"
+          },
+          "id": "chatcmpl-tool-8c086515d3c9217e",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "content": "{\"all_public_passed\":true,\"apply_status\":\"applied\",\"current_module\":\"def normalize_submission(payload):\\n    if not isinstance(payload, dict):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"payload must be an object\\\"}\\n    student = payload.get(\\\"student\\\")\\n    assignment = payload.get(\\\"assignment\\\")\\n    score = payload.get(\\\"score\\\")\\n    if not isinstance(student, str) or student.strip() == \\\"\\\":\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"student must be a non-empty string\\\"}\\n    if not isinstance(assignment, str) or assignment.strip() == \\\"\\\":\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"assignment must be a non-empty string\\\"}\\n    if isinstance(score, bool) or not isinstance(score, (int, float)):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"score must be a number\\\"}\\n    if score < 0 or score > 100:\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"score must be between 0 and 100\\\"}\\n    return {\\\"ok\\\": True, \\\"record\\\": {\\\"student\\\": student.strip(), \\\"assignment\\\": assignment.strip(), \\\"score\\\": score}}\\n\\n\\ndef validate_batch(batch):\\n    if not isinstance(batch, list):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"batch must be a list\\\"}\\n    valid = []\\n    errors = []\\n    for i, payload in enumerate(batch):\\n        result = normalize_submission(payload)\\n        if result[\\\"ok\\\"]:\\n            valid.append(result[\\\"record\\\"])\\n        else:\\n            errors.append({\\\"index\\\": i, \\\"error\\\": result[\\\"error\\\"]})\\n    counts = {\\n        \\\"total\\\": len(batch),\\n        \\\"valid\\\": len(valid),\\n        \\\"invalid\\\": len(errors)\\n    }\\n    return {\\n        \\\"ok\\\": True,\\n        \\\"valid\\\": valid,\\n        \\\"errors\\\": errors,\\n        \\\"counts\\\": counts\\n    }\\n\\n\\ndef group_submissions(batch):\\n    return None\\n\\n\\ndef summarize_class(batch):\\n    return None\\n\",\"error\":null,\"public_checks\":[{\"actual\":{\"ok\":true,\"record\":{\"assignment\":\"Essay\",\"score\":88,\"student\":\"Ada\"}},\"check_id\":\"chk-init-01\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"score must be a number\",\"ok\":false},\"check_id\":\"chk-init-02\",\"error\":null,\"passed\":true},{\"actual\":{\"ok\":true,\"record\":{\"assignment\":\"Lab\",\"score\":100,\"student\":\"Cal\"}},\"check_id\":\"chk-init-03\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"payload must be an object\",\"ok\":false},\"check_id\":\"chk-init-04\",\"error\":null,\"passed\":true},{\"actual\":{\"ok\":true,\"record\":{\"assignment\":\"Quiz\",\"score\":0,\"student\":\"Dot\"}},\"check_id\":\"chk-init-05\",\"error\":null,\"passed\":true},{\"actual\":{\"counts\":{\"invalid\":0,\"total\":2,\"valid\":2},\"errors\":[],\"ok\":true,\"valid\":[{\"assignment\":\"Essay\",\"score\":92,\"student\":\"Ana\"},{\"assignment\":\"Lab\",\"score\":74,\"student\":\"Ben\"}]},\"check_id\":\"chk-r0p-01\",\"error\":null,\"passed\":true},{\"actual\":{\"counts\":{\"invalid\":0,\"total\":2,\"valid\":2},\"errors\":[],\"ok\":true,\"valid\":[{\"assignment\":\"Art\",\"score\":75,\"student\":\"Ada\"},{\"assignment\":\"Bio\",\"score\":88,\"student\":\"Bea\"}]},\"check_id\":\"chk-r0p-02\",\"error\":null,\"passed\":true},{\"actual\":{\"counts\":{\"invalid\":0,\"total\":0,\"valid\":0},\"errors\":[],\"ok\":true,\"valid\":[]},\"check_id\":\"chk-r0p-03\",\"error\":null,\"passed\":true},{\"actual\":{\"counts\":{\"invalid\":0,\"total\":3,\"valid\":3},\"errors\":[],\"ok\":true,\"valid\":[{\"assignment\":\"Art\",\"score\":0,\"student\":\"Cyd\"},{\"assignment\":\"Bio\",\"score\":50.5,\"student\":\"Dov\"},{\"assignment\":\"Civ\",\"score\":100,\"student\":\"Ela\"}]},\"check_id\":\"chk-r0p-04\",\"error\":null,\"passed\":true}]}",
+      "name": "replace_function",
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-8c086515d3c9217e"
+    },
+    {
+      "content": "validate_batch works nicely, thanks. Next feature: grouping submissions per assignment so the teacher can see each pile. It should reuse the validator we just built, with the same list-shaped batch going in.",
+      "role": "user"
+    },
+    {
+      "content": "Nice. Would you like per-group averages tucked into the groups as well? I assume two decimals, per your earlier note?",
+      "role": "assistant"
+    },
+    {
+      "content": "No averages in grouping \u2014 groups only, please. And while we're on the subject: scratch my two-decimal note. From now on, whenever a feature reports an average, round it to one decimal.",
+      "role": "user"
+    },
+    {
+      "content": "Implement group_submissions(batch) on top of validate_batch. If batch is not a list, return the validator's error object unchanged. Otherwise return {\"ok\": true, \"groups\": {...}, \"errors\": [...]} where groups maps each assignment name, exactly as normalized, to the list of its normalized records; the records keep their original arrival order within each assignment \u2014 no sorting of any kind, and attempts are never dropped or merged, so a student who resubmitted the same assignment appears once per attempt; errors is the validator's errors list carried over unchanged so invalid entries are still reported with their index and message. Do not reimplement validation inside this function.",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"source\": \"def group_submissions(batch):\\n    validation = validate_batch(batch)\\n    if not validation[\\\"ok\\\"]:\\n        return validation\\n    groups = {}\\n    for record in validation[\\\"valid\\\"]:\\n        assignment = record[\\\"assignment\\\"]\\n        if assignment not in groups:\\n            groups[assignment] = []\\n        groups[assignment].append(record)\\n    return {\\n        \\\"ok\\\": True,\\n        \\\"groups\\\": groups,\\n        \\\"errors\\\": validation[\\\"errors\\\"]\\n    }\"}",
+            "name": "replace_function"
+          },
+          "id": "chatcmpl-tool-af6bbadd9a94c4f9",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "content": "{\"all_public_passed\":true,\"apply_status\":\"applied\",\"current_module\":\"def normalize_submission(payload):\\n    if not isinstance(payload, dict):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"payload must be an object\\\"}\\n    student = payload.get(\\\"student\\\")\\n    assignment = payload.get(\\\"assignment\\\")\\n    score = payload.get(\\\"score\\\")\\n    if not isinstance(student, str) or student.strip() == \\\"\\\":\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"student must be a non-empty string\\\"}\\n    if not isinstance(assignment, str) or assignment.strip() == \\\"\\\":\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"assignment must be a non-empty string\\\"}\\n    if isinstance(score, bool) or not isinstance(score, (int, float)):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"score must be a number\\\"}\\n    if score < 0 or score > 100:\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"score must be between 0 and 100\\\"}\\n    return {\\\"ok\\\": True, \\\"record\\\": {\\\"student\\\": student.strip(), \\\"assignment\\\": assignment.strip(), \\\"score\\\": score}}\\n\\n\\ndef validate_batch(batch):\\n    if not isinstance(batch, list):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"batch must be a list\\\"}\\n    valid = []\\n    errors = []\\n    for i, payload in enumerate(batch):\\n        result = normalize_submission(payload)\\n        if result[\\\"ok\\\"]:\\n            valid.append(result[\\\"record\\\"])\\n        else:\\n            errors.append({\\\"index\\\": i, \\\"error\\\": result[\\\"error\\\"]})\\n    counts = {\\n        \\\"total\\\": len(batch),\\n        \\\"valid\\\": len(valid),\\n        \\\"invalid\\\": len(errors)\\n    }\\n    return {\\n        \\\"ok\\\": True,\\n        \\\"valid\\\": valid,\\n        \\\"errors\\\": errors,\\n        \\\"counts\\\": counts\\n    }\\n\\n\\ndef group_submissions(batch):\\n    validation = validate_batch(batch)\\n    if not validation[\\\"ok\\\"]:\\n        return validation\\n    groups = {}\\n    for record in validation[\\\"valid\\\"]:\\n        assignment = record[\\\"assignment\\\"]\\n        if assignment not in groups:\\n            groups[assignment] = []\\n        groups[assignment].append(record)\\n    return {\\n        \\\"ok\\\": True,\\n        \\\"groups\\\": groups,\\n        \\\"errors\\\": validation[\\\"errors\\\"]\\n    }\\n\\n\\ndef summarize_class(batch):\\n    return None\\n\",\"error\":null,\"public_checks\":[{\"actual\":{\"ok\":true,\"record\":{\"assignment\":\"Essay\",\"score\":88,\"student\":\"Ada\"}},\"check_id\":\"chk-init-01\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"score must be a number\",\"ok\":false},\"check_id\":\"chk-init-02\",\"error\":null,\"passed\":true},{\"actual\":{\"ok\":true,\"record\":{\"assignment\":\"Lab\",\"score\":100,\"student\":\"Cal\"}},\"check_id\":\"chk-init-03\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"payload must be an object\",\"ok\":false},\"check_id\":\"chk-init-04\",\"error\":null,\"passed\":true},{\"actual\":{\"ok\":true,\"record\":{\"assignment\":\"Quiz\",\"score\":0,\"student\":\"Dot\"}},\"check_id\":\"chk-init-05\",\"error\":null,\"passed\":true},{\"actual\":{\"counts\":{\"invalid\":0,\"total\":2,\"valid\":2},\"errors\":[],\"ok\":true,\"valid\":[{\"assignment\":\"Essay\",\"score\":92,\"student\":\"Ana\"},{\"assignment\":\"Lab\",\"score\":74,\"student\":\"Ben\"}]},\"check_id\":\"chk-r0p-01\",\"error\":null,\"passed\":true},{\"actual\":{\"counts\":{\"invalid\":0,\"total\":2,\"valid\":2},\"errors\":[],\"ok\":true,\"valid\":[{\"assignment\":\"Art\",\"score\":75,\"student\":\"Ada\"},{\"assignment\":\"Bio\",\"score\":88,\"student\":\"Bea\"}]},\"check_id\":\"chk-r0p-02\",\"error\":null,\"passed\":true},{\"actual\":{\"counts\":{\"invalid\":0,\"total\":0,\"valid\":0},\"errors\":[],\"ok\":true,\"valid\":[]},\"check_id\":\"chk-r0p-03\",\"error\":null,\"passed\":true},{\"actual\":{\"counts\":{\"invalid\":0,\"total\":3,\"valid\":3},\"errors\":[],\"ok\":true,\"valid\":[{\"assignment\":\"Art\",\"score\":0,\"student\":\"Cyd\"},{\"assignment\":\"Bio\",\"score\":50.5,\"student\":\"Dov\"},{\"assignment\":\"Civ\",\"score\":100,\"student\":\"Ela\"}]},\"check_id\":\"chk-r0p-04\",\"error\":null,\"passed\":true},{\"actual\":{\"errors\":[],\"groups\":{\"Essay\":[{\"assignment\":\"Essay\",\"score\":80,\"student\":\"Ana\"},{\"assignment\":\"Essay\",\"score\":90,\"student\":\"Cid\"}],\"Lab\":[{\"assignment\":\"Lab\",\"score\":70,\"student\":\"Ben\"}]},\"ok\":true},\"check_id\":\"chk-r1p-01\",\"error\":null,\"passed\":true},{\"actual\":{\"errors\":[],\"groups\":{\"Geo\":[{\"assignment\":\"Geo\",\"score\":83,\"student\":\"Fia\"}],\"His\":[{\"assignment\":\"His\",\"score\":91,\"student\":\"Gil\"},{\"assignment\":\"His\",\"score\":77,\"student\":\"Hye\"}]},\"ok\":true},\"check_id\":\"chk-r1p-02\",\"error\":null,\"passed\":true},{\"actual\":{\"errors\":[],\"groups\":{},\"ok\":true},\"check_id\":\"chk-r1p-03\",\"error\":null,\"passed\":true}]}",
+      "name": "replace_function",
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-af6bbadd9a94c4f9"
+    }
+  ],
+  "worker_history_before_request": [
+    {
+      "content": "Maintain the supplied pure-Python module across the conversation. Each request authenticates one target path and symbol. Respond with exactly one replace_function tool call whose source is one complete synchronous target function beginning with def at byte zero and using LF lines. It must take exactly one positional argument without defaults, varargs, or keyword-only arguments. Do not use decorators, imports, global, nonlocal, nested functions or classes, dunder names or attributes, Markdown, or calls to __import__, breakpoint, compile, eval, exec, exit, globals, help, input, locals, open, print, quit, or vars. Preserve authentic standing directions and actual earlier dependencies. A current generated-focus block is fallible advisory guidance, is not a new user adoption, and never overrides authentic sources. Do not replace any other function.",
+      "role": "system"
+    },
+    {
+      "content": "I'm building a tiny classroom assignment submission utility in submission_util.py. It already has a working normalize_submission(payload) helper that validates one submission object: non-empty student and assignment strings which it returns trimmed, plus a numeric score from 0 to 100 inclusive, answering either {\"ok\": true, \"record\": ...} or {\"ok\": false, \"error\": ...}. One thing about our data before we start: students resubmit the same assignment all the time, and every attempt matters to us. Never drop an attempt, and keep everything in the exact order it arrived.",
+      "role": "user"
+    },
+    {
+      "content": "Understood. Two style questions before I write anything: should the validated results be sorted alphabetically by student for readability, and if a later feature ever reports an average, should I round it to two decimal places?",
+      "role": "assistant"
+    },
+    {
+      "content": "No sorting anywhere \u2014 arrival order is the record, never reorder it. Averages: yes, whenever a feature reports an average, round it to two decimals. And one project-wide rule: each function takes a single JSON value in and must always return a plain JSON-safe object out; bad input must produce an error object, never an exception.",
+      "role": "user"
+    },
+    {
+      "content": "Implement validate_batch(batch). batch must be a JSON list of submission payloads. If batch is not a list, return exactly {\"ok\": false, \"error\": \"batch must be a list\"}. Otherwise run normalize_submission on every element, in arrival order, and return {\"ok\": true, \"valid\": [...], \"errors\": [...], \"counts\": {\"total\": n, \"valid\": v, \"invalid\": e}} where: valid lists every successfully normalized record in arrival order \u2014 resubmissions are just more records, nothing is removed or merged; errors has one {\"index\": i, \"error\": message} per element that failed normalization, carrying the helper's message and that element's zero-based position, in arrival order; counts reports the total number of elements, how many normalized successfully, and how many failed. Even a batch whose elements all fail still returns \"ok\": true; only a non-list batch returns \"ok\": false.",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"source\": \"def validate_batch(batch):\\n    if not isinstance(batch, list):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"batch must be a list\\\"}\\n    valid = []\\n    errors = []\\n    for i, payload in enumerate(batch):\\n        result = normalize_submission(payload)\\n        if result[\\\"ok\\\"]:\\n            valid.append(result[\\\"record\\\"])\\n        else:\\n            errors.append({\\\"index\\\": i, \\\"error\\\": result[\\\"error\\\"]})\\n    counts = {\\n        \\\"total\\\": len(batch),\\n        \\\"valid\\\": len(valid),\\n        \\\"invalid\\\": len(errors)\\n    }\\n    return {\\n        \\\"ok\\\": True,\\n        \\\"valid\\\": valid,\\n        \\\"errors\\\": errors,\\n        \\\"counts\\\": counts\\n    }\"}",
+            "name": "replace_function"
+          },
+          "id": "chatcmpl-tool-8c086515d3c9217e",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "content": "{\"all_public_passed\":true,\"apply_status\":\"applied\",\"current_module\":\"def normalize_submission(payload):\\n    if not isinstance(payload, dict):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"payload must be an object\\\"}\\n    student = payload.get(\\\"student\\\")\\n    assignment = payload.get(\\\"assignment\\\")\\n    score = payload.get(\\\"score\\\")\\n    if not isinstance(student, str) or student.strip() == \\\"\\\":\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"student must be a non-empty string\\\"}\\n    if not isinstance(assignment, str) or assignment.strip() == \\\"\\\":\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"assignment must be a non-empty string\\\"}\\n    if isinstance(score, bool) or not isinstance(score, (int, float)):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"score must be a number\\\"}\\n    if score < 0 or score > 100:\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"score must be between 0 and 100\\\"}\\n    return {\\\"ok\\\": True, \\\"record\\\": {\\\"student\\\": student.strip(), \\\"assignment\\\": assignment.strip(), \\\"score\\\": score}}\\n\\n\\ndef validate_batch(batch):\\n    if not isinstance(batch, list):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"batch must be a list\\\"}\\n    valid = []\\n    errors = []\\n    for i, payload in enumerate(batch):\\n        result = normalize_submission(payload)\\n        if result[\\\"ok\\\"]:\\n            valid.append(result[\\\"record\\\"])\\n        else:\\n            errors.append({\\\"index\\\": i, \\\"error\\\": result[\\\"error\\\"]})\\n    counts = {\\n        \\\"total\\\": len(batch),\\n        \\\"valid\\\": len(valid),\\n        \\\"invalid\\\": len(errors)\\n    }\\n    return {\\n        \\\"ok\\\": True,\\n        \\\"valid\\\": valid,\\n        \\\"errors\\\": errors,\\n        \\\"counts\\\": counts\\n    }\\n\\n\\ndef group_submissions(batch):\\n    return None\\n\\n\\ndef summarize_class(batch):\\n    return None\\n\",\"error\":null,\"public_checks\":[{\"actual\":{\"ok\":true,\"record\":{\"assignment\":\"Essay\",\"score\":88,\"student\":\"Ada\"}},\"check_id\":\"chk-init-01\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"score must be a number\",\"ok\":false},\"check_id\":\"chk-init-02\",\"error\":null,\"passed\":true},{\"actual\":{\"ok\":true,\"record\":{\"assignment\":\"Lab\",\"score\":100,\"student\":\"Cal\"}},\"check_id\":\"chk-init-03\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"payload must be an object\",\"ok\":false},\"check_id\":\"chk-init-04\",\"error\":null,\"passed\":true},{\"actual\":{\"ok\":true,\"record\":{\"assignment\":\"Quiz\",\"score\":0,\"student\":\"Dot\"}},\"check_id\":\"chk-init-05\",\"error\":null,\"passed\":true},{\"actual\":{\"counts\":{\"invalid\":0,\"total\":2,\"valid\":2},\"errors\":[],\"ok\":true,\"valid\":[{\"assignment\":\"Essay\",\"score\":92,\"student\":\"Ana\"},{\"assignment\":\"Lab\",\"score\":74,\"student\":\"Ben\"}]},\"check_id\":\"chk-r0p-01\",\"error\":null,\"passed\":true},{\"actual\":{\"counts\":{\"invalid\":0,\"total\":2,\"valid\":2},\"errors\":[],\"ok\":true,\"valid\":[{\"assignment\":\"Art\",\"score\":75,\"student\":\"Ada\"},{\"assignment\":\"Bio\",\"score\":88,\"student\":\"Bea\"}]},\"check_id\":\"chk-r0p-02\",\"error\":null,\"passed\":true},{\"actual\":{\"counts\":{\"invalid\":0,\"total\":0,\"valid\":0},\"errors\":[],\"ok\":true,\"valid\":[]},\"check_id\":\"chk-r0p-03\",\"error\":null,\"passed\":true},{\"actual\":{\"counts\":{\"invalid\":0,\"total\":3,\"valid\":3},\"errors\":[],\"ok\":true,\"valid\":[{\"assignment\":\"Art\",\"score\":0,\"student\":\"Cyd\"},{\"assignment\":\"Bio\",\"score\":50.5,\"student\":\"Dov\"},{\"assignment\":\"Civ\",\"score\":100,\"student\":\"Ela\"}]},\"check_id\":\"chk-r0p-04\",\"error\":null,\"passed\":true}]}",
+      "name": "replace_function",
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-8c086515d3c9217e"
+    },
+    {
+      "content": "validate_batch works nicely, thanks. Next feature: grouping submissions per assignment so the teacher can see each pile. It should reuse the validator we just built, with the same list-shaped batch going in.",
+      "role": "user"
+    },
+    {
+      "content": "Nice. Would you like per-group averages tucked into the groups as well? I assume two decimals, per your earlier note?",
+      "role": "assistant"
+    },
+    {
+      "content": "No averages in grouping \u2014 groups only, please. And while we're on the subject: scratch my two-decimal note. From now on, whenever a feature reports an average, round it to one decimal.",
+      "role": "user"
+    },
+    {
+      "content": "Implement group_submissions(batch) on top of validate_batch. If batch is not a list, return the validator's error object unchanged. Otherwise return {\"ok\": true, \"groups\": {...}, \"errors\": [...]} where groups maps each assignment name, exactly as normalized, to the list of its normalized records; the records keep their original arrival order within each assignment \u2014 no sorting of any kind, and attempts are never dropped or merged, so a student who resubmitted the same assignment appears once per attempt; errors is the validator's errors list carried over unchanged so invalid entries are still reported with their index and message. Do not reimplement validation inside this function.",
+      "role": "user"
+    }
+  ]
+}

@@ -2806,3 +2806,34 @@ audit gets a separate run-owned file. All six scheduled units remain the
 denominator, including unfinished/unattempted. Narrow pilot continuation requires
 actual complete whole-project code and source-faithful focus under independent
 review. Full goal and adequate fresh larger proof remain unproven regardless.
+
+2026-09-08 — STATE: AUTOMATIC PILOT RUN-01 LIVE; EXACT SESSION47090.
+Readiness freeze commit9d40e0d11fb0f8ec760096b1d3e051c10f10b42b accepted and
+verified34final review binding rows. Owned launcher PID107739 registered before
+exec, exact execution session47090. Frozen1788858923.2428303; lifecycle start
+1788858923.400075, reservation3000s; newly owned container
+stencil-coding-auto-reasoning-d9980e189360, ID
+f31cd4397dd6670d51e91d1bab21da88a7820dcdf1b6f1879053a73aca7c3464.
+Authoritative lifecycle WAITING_FOR_SERVER, no restart. Preserve run-owned
+freeze/commands/logs/calls and original readiness report. Poll exact session
+47090 until terminal; no code/data/frozen artifact edits or additional inference.
+This is the first automatic pilot, not proof of usefulness or the full goal.
+
+2026-09-08 — STATE: AUTOMATIC PILOT TERMINAL INCOMPLETE; ASTRA AUDIT ACTIVE.
+Exact session47090 terminalexit2; no restart. Final worker call11 request5 hit
+2048output cap. Lifecycle1195.4825121320027s, ended1788860118.882587, cleanup
+confirmed complete; root Docker/GPU queries empty. All28frozen tracked and4model
+metadata hashes still match. Original readiness stays frozen.
+All6selectors returned;6worker calls,5completed endpoints,4/6finite passes.
+Classroom3/3 finite, playlist false/true/incomplete. Live59public+86private checks;
+sole private failure duplicate permission, independently confirmed from actual
+code. Finite sequencer pass does not erase dependency bug or source-level misses.
+Parent raw usage39193prompt+14141completion=53334 includes cappedcall12822tokens
+omitted from validated aggregates; accounting supplement is not semantic salvage.
+Combined actual smoke+pilot1712.3972154039948s; no rerun/cap change inferred.
+Root wrote parent-observation.json and provisional RESULTS.md from terminal raw
+receipts. Same Astra audits all actual focus/code/lifecycle/accounting, sole
+writable run-01/audit-astra.md. Early source defects being adjudicated under
+accepted standing-focus scope, not a demand to repeat current algorithm.
+Registered incomplete batch cannot continue; this fixed recipe is not a pass.
+Full goal remains active; next direction awaits final independent audit.

@@ -1,0 +1,1130 @@
+{
+  "episode_id": "auto-reasoning-dev-playlist-prep-0001",
+  "focus": {
+    "obligations": [
+      {
+        "source_ids": [
+          "m-r1-u2",
+          "m-r1-a1"
+        ],
+        "text": "Implement sequence_playlist per exact specifications: reject unrecognized keys via house rule, delegate validation to normalize_tracklist, order by artist/duration case-insensitively, preserve original order for ties, return structured output with order, count, total_seconds, and ordered tracks"
+      }
+    ]
+  },
+  "focus_raw_arguments": "{\"obligations\": [{\"source_ids\": [\"m-r1-u2\", \"m-r1-a1\"], \"text\": \"Implement sequence_playlist per exact specifications: reject unrecognized keys via house rule, delegate validation to normalize_tracklist, order by artist/duration case-insensitively, preserve original order for ties, return structured output with order, count, total_seconds, and ordered tracks\"}]}",
+  "focus_rendering": "<current_generated_focus>\n\n<obligation index=\"0\">\n<text>\nImplement sequence_playlist per exact specifications: reject unrecognized keys via house rule, delegate validation to normalize_tracklist, order by artist/duration case-insensitively, preserve original order for ties, return structured output with order, count, total_seconds, and ordered tracks\n</text>\n<source_ids>\n[\"m-r1-u2\",\"m-r1-a1\"]\n</source_ids>\n</obligation>\n</current_generated_focus>",
+  "post_module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+  "pre_module_sha256": "f998cb67a78059fd52c9fa37d3a1d004636b3274c1ae07a71534cf54341e2cca",
+  "public_solved": true,
+  "request_index": 4,
+  "request_message_id": "m-r1-u2",
+  "request_passed": true,
+  "round_index": 1,
+  "schema_version": 1,
+  "selector_call_index": 8,
+  "selector_status": "COMPLETE",
+  "source_events": [
+    {
+      "message_id": "m-r0-u1",
+      "role": "user",
+      "text": "One standing house rule for our playlist tool, meant for every feature we add: whenever an input object carries a key that the current task does not recognize, reject it before any other check and name the unrecognized key that comes first in alphabetical order, formatted exactly as: unexpected key '<name>'. Everything else about a feature, including its recognized keys, validation order, identifier scheme, success shape, and exact rejection wording, is established by that feature's own task description rather than by any further shared convention."
+    },
+    {
+      "message_id": "m-r0-a1",
+      "role": "assistant",
+      "text": "Locked in: a single shared rule for every feature. Any unrecognized key is rejected before any other check, naming the alphabetically first unrecognized key as unexpected key '<name>'. Each task description fully specifies its own recognized keys, validation order, identifiers, outputs, and exact messages."
+    },
+    {
+      "message_id": "m-r0-u2",
+      "role": "user",
+      "task_handle": "normalize-tracklist",
+      "text": "Implement normalize_tracklist(payload) in playlist_prep.py on top of parse_track and format_clock. Exactly this behavior: if payload is not an object, return {\"ok\": false, \"error\": \"payload must be an object with a 'tracks' list\"}. Recognized top-level keys are only \"tracks\" and \"allow_duplicates\"; any other key follows the standing house rule before anything else. If \"tracks\" is absent or not a list, return the same payload error as above. If \"allow_duplicates\" is present and is not a boolean, return {\"ok\": false, \"error\": \"'allow_duplicates' must be a boolean when present\"}; when absent it counts as false. Next validate each entry in list order with parse_track and, at the first failure, return {\"ok\": false, \"error\": \"track <n>: <reason>\"} where <n> is the 1-based index and <reason> is parse_track's error. Only after every entry validates, apply duplicate handling: two tracks are duplicates when artist and title match ignoring letter case. Unless allow_duplicates is true, stop at the first repeat and return {\"ok\": false, \"error\": \"duplicate track <n>\"} naming the 1-based position of the LATER occurrence; if allow_duplicates is true, keep every validated track in input order. On success return ok true, count, total_seconds (sum of seconds of every kept track), total_clock from format_clock(total_seconds), and tracks: the kept tracks in input order, each as {\"id\", \"title\", \"artist\", \"seconds\", \"explicit\", \"clock\"} where id is assigned in processing order as T01, T02, and so on, zero-padded to at least two digits, and clock is format_clock(track seconds). An empty list is a valid success with count 0. Do not change parse_track, format_clock, or the remaining stubs."
+    },
+    {
+      "message_id": "m-r1-u1",
+      "role": "user",
+      "text": "Next: sequencing. Firm requirements up front: the sequencer never validates tracks itself, it reuses normalize_tracklist wholesale. It offers two orderings: artist (A to Z, ignoring letter case) and duration (shortest first). And one standing rule for this function only: tracks that come out EQUAL under the chosen ordering keep their original relative order; the sequencer applies no tie-breaking of its own. Separate note for the future: in the playback manifest we will build afterwards, same-artist groups should appear shortest-first. That preference belongs to the manifest step; do not encode it into the sequencer."
+    },
+    {
+      "message_id": "m-r1-a1",
+      "role": "assistant",
+      "text": "Understood: the sequencer delegates all validation to normalize_tracklist, orders by artist case-insensitively A to Z or by duration ascending, and leaves equal-key tracks in their original relative order with no secondary criterion. I have the manifest-only plan on file (same-artist groups shortest-first) and will keep it out of the sequencer. If ties ever feel too loose I could add title-alphabetical as a tie-break, but I will not unless you ask."
+    },
+    {
+      "message_id": "m-r1-u2",
+      "role": "user",
+      "task_handle": "sequence-playlist",
+      "text": "Implement sequence_playlist(payload) in playlist_prep.py, calling normalize_tracklist. Exact behavior: recognized top-level keys are only \"tracks\", \"order\", \"allow_duplicates\"; any other key follows the standing house rule before any other check. A non-object payload is handed to normalize_tracklist as-is and its result returned. \"order\" is optional and defaults to \"artist\"; a present value other than \"artist\" or \"duration\" returns {\"ok\": false, \"error\": \"'order' must be 'artist' or 'duration'\"}. Call normalize_tracklist with exactly the input's tracks and, when present, allow_duplicates; if it returns ok false, return that result unchanged. On success, take the normalized track objects (keep all fields, ids unchanged) and order them: \"artist\" sorts ascending by artist ignoring letter case; \"duration\" sorts ascending by seconds; per the standing rule tracks equal under the chosen key keep their original relative order. Return {\"ok\": true, \"order\": <effective order>, \"count\": <count from normalization>, \"total_seconds\": <total from normalization>, \"tracks\": <ordered tracks>}. Do not redefine or patch normalize_tracklist, parse_track, or format_clock."
+    }
+  ],
+  "status": "COMPLETE",
+  "target": {
+    "path": "playlist_prep.py",
+    "symbol": "sequence_playlist"
+  },
+  "task_handle": "sequence-playlist",
+  "technical_error": null,
+  "terminal_private_checks": [
+    {
+      "actual": {
+        "ok": true,
+        "track": {
+          "artist": "Aurora",
+          "explicit": false,
+          "seconds": 195,
+          "title": "Blue Sky"
+        }
+      },
+      "check_id": "chk-init-parse-1",
+      "check_sha256": "fbfdc471c9c3eba2cb74858758a4efd053e5adc4f1e8a17ad28185bdd6598ecd",
+      "elapsed_seconds": 0.013779490982415155,
+      "episode_id": "auto-reasoning-dev-playlist-prep-0001",
+      "error": null,
+      "expected_values": [
+        {
+          "ok": true,
+          "track": {
+            "artist": "Aurora",
+            "explicit": false,
+            "seconds": 195,
+            "title": "Blue Sky"
+          }
+        }
+      ],
+      "input": {
+        "artist": "Aurora",
+        "explicit": false,
+        "seconds": 195,
+        "title": "  Blue   Sky  "
+      },
+      "module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "parse_track"
+    },
+    {
+      "actual": {
+        "error": "'seconds' must be an integer",
+        "ok": false
+      },
+      "check_id": "chk-init-parse-2",
+      "check_sha256": "1c9274b363ae07b5d4cb2fbbd612bd586d1e18daddc7aae7f19f1c212c571927",
+      "elapsed_seconds": 0.024965199001599103,
+      "episode_id": "auto-reasoning-dev-playlist-prep-0001",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "'seconds' must be an integer",
+          "ok": false
+        }
+      ],
+      "input": {
+        "artist": "Y",
+        "explicit": false,
+        "seconds": true,
+        "title": "X"
+      },
+      "module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "parse_track"
+    },
+    {
+      "actual": {
+        "error": "'title' must not be blank",
+        "ok": false
+      },
+      "check_id": "chk-init-parse-3",
+      "check_sha256": "be7293b5d6f0a15541851488a755c74e0af1a27a0e7811763d7f923acb0f6b49",
+      "elapsed_seconds": 0.013386898004682735,
+      "episode_id": "auto-reasoning-dev-playlist-prep-0001",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "'title' must not be blank",
+          "ok": false
+        }
+      ],
+      "input": {
+        "artist": "Y",
+        "explicit": true,
+        "seconds": 10,
+        "title": "   "
+      },
+      "module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "parse_track"
+    },
+    {
+      "actual": {
+        "error": "missing key 'explicit'",
+        "ok": false
+      },
+      "check_id": "chk-init-parse-4",
+      "check_sha256": "2ffbd5376d23deffc19164a043ca55ec4f108f3fc8e7782fea230dda3bc8db29",
+      "elapsed_seconds": 0.0134099860151764,
+      "episode_id": "auto-reasoning-dev-playlist-prep-0001",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "missing key 'explicit'",
+          "ok": false
+        }
+      ],
+      "input": {
+        "artist": "Y",
+        "seconds": 10,
+        "title": "X"
+      },
+      "module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "parse_track"
+    },
+    {
+      "actual": "1:15",
+      "check_id": "chk-init-clock-1",
+      "check_sha256": "9490a1c0b053cbfe391f0acaece5e5c5504dd7ba92ffb4ee0e14768b9195cf0d",
+      "elapsed_seconds": 0.014030019985511899,
+      "episode_id": "auto-reasoning-dev-playlist-prep-0001",
+      "error": null,
+      "expected_values": [
+        "1:15"
+      ],
+      "input": 75,
+      "module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "format_clock"
+    },
+    {
+      "actual": "0:00",
+      "check_id": "chk-init-clock-2",
+      "check_sha256": "cfa8511c3171b4f6b1f039cc6f242b0ea55d234488ad09dd9a37baa50151f081",
+      "elapsed_seconds": 0.013563362997956574,
+      "episode_id": "auto-reasoning-dev-playlist-prep-0001",
+      "error": null,
+      "expected_values": [
+        "0:00"
+      ],
+      "input": 0,
+      "module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "format_clock"
+    },
+    {
+      "actual": null,
+      "check_id": "chk-init-clock-3",
+      "check_sha256": "fe851429d665ea99e46775b96353847116b7d83f1ace45ba96d1356ca523fadb",
+      "elapsed_seconds": 0.013474066014168784,
+      "episode_id": "auto-reasoning-dev-playlist-prep-0001",
+      "error": null,
+      "expected_values": [
+        null
+      ],
+      "input": true,
+      "module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "format_clock"
+    },
+    {
+      "actual": {
+        "count": 0,
+        "ok": true,
+        "total_clock": "0:00",
+        "total_seconds": 0,
+        "tracks": []
+      },
+      "check_id": "chk-r0-f1",
+      "check_sha256": "75959e44e4a5dbc9e5c08e4ac78bc151925e24aadd7802529de18b64d869abe2",
+      "elapsed_seconds": 0.014180739992298186,
+      "episode_id": "auto-reasoning-dev-playlist-prep-0001",
+      "error": null,
+      "expected_values": [
+        {
+          "count": 0,
+          "ok": true,
+          "total_clock": "0:00",
+          "total_seconds": 0,
+          "tracks": []
+        }
+      ],
+      "input": {
+        "tracks": []
+      },
+      "module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "normalize_tracklist"
+    },
+    {
+      "actual": {
+        "error": "duplicate track 2",
+        "ok": false
+      },
+      "check_id": "chk-r0-f2",
+      "check_sha256": "085870e1a979ded00791afc29bdf167007a824360106b583a9a04ba0ef838a35",
+      "elapsed_seconds": 0.013949763990240172,
+      "episode_id": "auto-reasoning-dev-playlist-prep-0001",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "duplicate track 2",
+          "ok": false
+        }
+      ],
+      "input": {
+        "tracks": [
+          {
+            "artist": "ana",
+            "explicit": false,
+            "seconds": 60,
+            "title": "Song"
+          },
+          {
+            "artist": "Ana",
+            "explicit": false,
+            "seconds": 61,
+            "title": "song"
+          }
+        ]
+      },
+      "module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "normalize_tracklist"
+    },
+    {
+      "actual": {
+        "error": "track 1: 'seconds' must be at least 1",
+        "ok": false
+      },
+      "check_id": "chk-r0-f3",
+      "check_sha256": "8f629f56a1a660173c9399da6a94d1497de8b4256c551852f6400d150a6c7cae",
+      "elapsed_seconds": 0.023953388998052105,
+      "episode_id": "auto-reasoning-dev-playlist-prep-0001",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "track 1: 'seconds' must be at least 1",
+          "ok": false
+        }
+      ],
+      "input": {
+        "tracks": [
+          {
+            "artist": "B Two",
+            "explicit": false,
+            "seconds": -3,
+            "title": "Low"
+          },
+          {
+            "artist": "C Three",
+            "explicit": false,
+            "seconds": 10,
+            "title": "High"
+          }
+        ]
+      },
+      "module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "normalize_tracklist"
+    },
+    {
+      "actual": {
+        "error": "unexpected key 'extra'",
+        "ok": false
+      },
+      "check_id": "chk-r0-f4",
+      "check_sha256": "c76a632c3487c8d8c3a28a5c31344b5f9d1c24929634f7696244df1cea9df873",
+      "elapsed_seconds": 0.012830080988351256,
+      "episode_id": "auto-reasoning-dev-playlist-prep-0001",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "unexpected key 'extra'",
+          "ok": false
+        }
+      ],
+      "input": {
+        "extra": 1,
+        "tracks": []
+      },
+      "module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "normalize_tracklist"
+    },
+    {
+      "actual": {
+        "error": "'allow_duplicates' must be a boolean when present",
+        "ok": false
+      },
+      "check_id": "chk-r0-f5",
+      "check_sha256": "f8ed5f417ffa7c4c160a90ba3a3e311e2c27c49ec72979d4582f8bf13dbc2861",
+      "elapsed_seconds": 0.023252874991158023,
+      "episode_id": "auto-reasoning-dev-playlist-prep-0001",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "'allow_duplicates' must be a boolean when present",
+          "ok": false
+        }
+      ],
+      "input": {
+        "allow_duplicates": 1,
+        "tracks": []
+      },
+      "module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "normalize_tracklist"
+    },
+    {
+      "actual": {
+        "count": 3,
+        "ok": true,
+        "total_clock": "3:10",
+        "total_seconds": 190,
+        "tracks": [
+          {
+            "artist": "Kilo",
+            "clock": "1:35",
+            "explicit": true,
+            "id": "T01",
+            "seconds": 95,
+            "title": "First Light"
+          },
+          {
+            "artist": "Mike",
+            "clock": "1:05",
+            "explicit": false,
+            "id": "T02",
+            "seconds": 65,
+            "title": "Second"
+          },
+          {
+            "artist": "Nov",
+            "clock": "0:30",
+            "explicit": true,
+            "id": "T03",
+            "seconds": 30,
+            "title": "Third"
+          }
+        ]
+      },
+      "check_id": "chk-r0-f6",
+      "check_sha256": "cf7317f3de67dc465a93b4329be9e4454ab7d246a74c1e0725bcc58c183300d4",
+      "elapsed_seconds": 0.014115347992628813,
+      "episode_id": "auto-reasoning-dev-playlist-prep-0001",
+      "error": null,
+      "expected_values": [
+        {
+          "count": 3,
+          "ok": true,
+          "total_clock": "3:10",
+          "total_seconds": 190,
+          "tracks": [
+            {
+              "artist": "Kilo",
+              "clock": "1:35",
+              "explicit": true,
+              "id": "T01",
+              "seconds": 95,
+              "title": "First Light"
+            },
+            {
+              "artist": "Mike",
+              "clock": "1:05",
+              "explicit": false,
+              "id": "T02",
+              "seconds": 65,
+              "title": "Second"
+            },
+            {
+              "artist": "Nov",
+              "clock": "0:30",
+              "explicit": true,
+              "id": "T03",
+              "seconds": 30,
+              "title": "Third"
+            }
+          ]
+        }
+      ],
+      "input": {
+        "tracks": [
+          {
+            "artist": "Kilo",
+            "explicit": true,
+            "seconds": 95,
+            "title": " First  Light "
+          },
+          {
+            "artist": "Mike",
+            "explicit": false,
+            "seconds": 65,
+            "title": "Second"
+          },
+          {
+            "artist": "Nov",
+            "explicit": true,
+            "seconds": 30,
+            "title": "Third"
+          }
+        ]
+      },
+      "module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "normalize_tracklist"
+    },
+    {
+      "actual": {
+        "error": "track 3: 'seconds' must be at least 1",
+        "ok": false
+      },
+      "check_id": "chk-r0-f7",
+      "check_sha256": "108eacde5b0f64a6441275c146253c9a8e32095ec99d4d785fb9985148bcec13",
+      "elapsed_seconds": 0.02341684399289079,
+      "episode_id": "auto-reasoning-dev-playlist-prep-0001",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "track 3: 'seconds' must be at least 1",
+          "ok": false
+        }
+      ],
+      "input": {
+        "tracks": [
+          {
+            "artist": "Ana",
+            "explicit": false,
+            "seconds": 60,
+            "title": "Song"
+          },
+          {
+            "artist": "ana",
+            "explicit": true,
+            "seconds": 61,
+            "title": "song"
+          },
+          {
+            "artist": "Bob",
+            "explicit": false,
+            "seconds": 0,
+            "title": "Broken"
+          }
+        ]
+      },
+      "module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "normalize_tracklist"
+    },
+    {
+      "actual": {
+        "count": 3,
+        "ok": true,
+        "order": "duration",
+        "total_seconds": 255,
+        "tracks": [
+          {
+            "artist": "ember",
+            "clock": "0:45",
+            "explicit": true,
+            "id": "T02",
+            "seconds": 45,
+            "title": "Ember Two"
+          },
+          {
+            "artist": "dawn",
+            "clock": "1:30",
+            "explicit": false,
+            "id": "T01",
+            "seconds": 90,
+            "title": "Dawn One"
+          },
+          {
+            "artist": "frost",
+            "clock": "2:00",
+            "explicit": false,
+            "id": "T03",
+            "seconds": 120,
+            "title": "Frost Three"
+          }
+        ]
+      },
+      "check_id": "chk-r1-f1",
+      "check_sha256": "cb65a52019cde5ddb445b926dee32cdd14f3af8594ed394b748b51c5f9fd8b14",
+      "elapsed_seconds": 0.013579730992205441,
+      "episode_id": "auto-reasoning-dev-playlist-prep-0001",
+      "error": null,
+      "expected_values": [
+        {
+          "count": 3,
+          "ok": true,
+          "order": "duration",
+          "total_seconds": 255,
+          "tracks": [
+            {
+              "artist": "ember",
+              "clock": "0:45",
+              "explicit": true,
+              "id": "T02",
+              "seconds": 45,
+              "title": "Ember Two"
+            },
+            {
+              "artist": "dawn",
+              "clock": "1:30",
+              "explicit": false,
+              "id": "T01",
+              "seconds": 90,
+              "title": "Dawn One"
+            },
+            {
+              "artist": "frost",
+              "clock": "2:00",
+              "explicit": false,
+              "id": "T03",
+              "seconds": 120,
+              "title": "Frost Three"
+            }
+          ]
+        }
+      ],
+      "input": {
+        "order": "duration",
+        "tracks": [
+          {
+            "artist": "dawn",
+            "explicit": false,
+            "seconds": 90,
+            "title": "Dawn One"
+          },
+          {
+            "artist": "ember",
+            "explicit": true,
+            "seconds": 45,
+            "title": "Ember Two"
+          },
+          {
+            "artist": "frost",
+            "explicit": false,
+            "seconds": 120,
+            "title": "Frost Three"
+          }
+        ]
+      },
+      "module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "sequence_playlist"
+    },
+    {
+      "actual": {
+        "count": 3,
+        "ok": true,
+        "order": "duration",
+        "total_seconds": 550,
+        "tracks": [
+          {
+            "artist": "cc",
+            "clock": "2:30",
+            "explicit": false,
+            "id": "T03",
+            "seconds": 150,
+            "title": "Solo Low"
+          },
+          {
+            "artist": "aa",
+            "clock": "3:20",
+            "explicit": false,
+            "id": "T01",
+            "seconds": 200,
+            "title": "First Twin"
+          },
+          {
+            "artist": "bb",
+            "clock": "3:20",
+            "explicit": true,
+            "id": "T02",
+            "seconds": 200,
+            "title": "Second Twin"
+          }
+        ]
+      },
+      "check_id": "chk-r1-f2",
+      "check_sha256": "0f8146b8ce1a34d9f4d7882eacbd4921ff3fada95c90ca2ace7c2e66f0b2fdd0",
+      "elapsed_seconds": 0.024454541999148205,
+      "episode_id": "auto-reasoning-dev-playlist-prep-0001",
+      "error": null,
+      "expected_values": [
+        {
+          "count": 3,
+          "ok": true,
+          "order": "duration",
+          "total_seconds": 550,
+          "tracks": [
+            {
+              "artist": "cc",
+              "clock": "2:30",
+              "explicit": false,
+              "id": "T03",
+              "seconds": 150,
+              "title": "Solo Low"
+            },
+            {
+              "artist": "aa",
+              "clock": "3:20",
+              "explicit": false,
+              "id": "T01",
+              "seconds": 200,
+              "title": "First Twin"
+            },
+            {
+              "artist": "bb",
+              "clock": "3:20",
+              "explicit": true,
+              "id": "T02",
+              "seconds": 200,
+              "title": "Second Twin"
+            }
+          ]
+        }
+      ],
+      "input": {
+        "order": "duration",
+        "tracks": [
+          {
+            "artist": "aa",
+            "explicit": false,
+            "seconds": 200,
+            "title": "First Twin"
+          },
+          {
+            "artist": "bb",
+            "explicit": true,
+            "seconds": 200,
+            "title": "Second Twin"
+          },
+          {
+            "artist": "cc",
+            "explicit": false,
+            "seconds": 150,
+            "title": "Solo Low"
+          }
+        ]
+      },
+      "module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "sequence_playlist"
+    },
+    {
+      "actual": {
+        "error": "track 1: 'seconds' must be an integer",
+        "ok": false
+      },
+      "check_id": "chk-r1-f3",
+      "check_sha256": "0ee1211ad2091977599758639774999b3b4ca055f7a0a63192fc57007b672128",
+      "elapsed_seconds": 0.024190124997403473,
+      "episode_id": "auto-reasoning-dev-playlist-prep-0001",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "track 1: 'seconds' must be an integer",
+          "ok": false
+        }
+      ],
+      "input": {
+        "order": "duration",
+        "tracks": [
+          {
+            "artist": "y",
+            "explicit": false,
+            "seconds": "90",
+            "title": "x"
+          }
+        ]
+      },
+      "module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "sequence_playlist"
+    },
+    {
+      "actual": {
+        "error": "unexpected key 'zap'",
+        "ok": false
+      },
+      "check_id": "chk-r1-f4",
+      "check_sha256": "e72b7be87628fee0902d53d050e14df3e856172a1010966ebc9088ec4392038c",
+      "elapsed_seconds": 0.01338405002024956,
+      "episode_id": "auto-reasoning-dev-playlist-prep-0001",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "unexpected key 'zap'",
+          "ok": false
+        }
+      ],
+      "input": {
+        "order": "bogus",
+        "tracks": [],
+        "zap": 1
+      },
+      "module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+      "passed": true,
+      "rule_ids": [],
+      "symbol": "sequence_playlist"
+    },
+    {
+      "actual": {
+        "count": 2,
+        "ok": true,
+        "order": "artist",
+        "total_seconds": 400,
+        "tracks": [
+          {
+            "artist": "Ana",
+            "clock": "5:00",
+            "explicit": false,
+            "id": "T01",
+            "seconds": 300,
+            "title": "Late Song"
+          },
+          {
+            "artist": "ana",
+            "clock": "1:40",
+            "explicit": true,
+            "id": "T02",
+            "seconds": 100,
+            "title": "Early Song"
+          }
+        ]
+      },
+      "check_id": "chk-r1-o1",
+      "check_sha256": "7ba7383a12b48c1cf9a67a01c20b42cd4acca6d0265d87c7cbed16ecf3e5d94e",
+      "elapsed_seconds": 0.01428165301331319,
+      "episode_id": "auto-reasoning-dev-playlist-prep-0001",
+      "error": null,
+      "expected_values": [
+        {
+          "count": 2,
+          "ok": true,
+          "order": "artist",
+          "total_seconds": 400,
+          "tracks": [
+            {
+              "artist": "Ana",
+              "clock": "5:00",
+              "explicit": false,
+              "id": "T01",
+              "seconds": 300,
+              "title": "Late Song"
+            },
+            {
+              "artist": "ana",
+              "clock": "1:40",
+              "explicit": true,
+              "id": "T02",
+              "seconds": 100,
+              "title": "Early Song"
+            }
+          ]
+        }
+      ],
+      "input": {
+        "tracks": [
+          {
+            "artist": "Ana",
+            "explicit": false,
+            "seconds": 300,
+            "title": "Late Song"
+          },
+          {
+            "artist": "ana",
+            "explicit": true,
+            "seconds": 100,
+            "title": "Early Song"
+          }
+        ]
+      },
+      "module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+      "passed": true,
+      "rule_ids": [
+        "r-seq-artist-stable"
+      ],
+      "symbol": "sequence_playlist"
+    },
+    {
+      "actual": {
+        "count": 3,
+        "ok": true,
+        "order": "artist",
+        "total_seconds": 500,
+        "tracks": [
+          {
+            "artist": "Kai",
+            "clock": "3:20",
+            "explicit": false,
+            "id": "T01",
+            "seconds": 200,
+            "title": "North One"
+          },
+          {
+            "artist": "KAI",
+            "clock": "1:40",
+            "explicit": false,
+            "id": "T02",
+            "seconds": 100,
+            "title": "North Two"
+          },
+          {
+            "artist": "kai",
+            "clock": "3:20",
+            "explicit": true,
+            "id": "T03",
+            "seconds": 200,
+            "title": "North Three"
+          }
+        ]
+      },
+      "check_id": "chk-r1-o2",
+      "check_sha256": "fd0d121e14ba9ee005c1d7273d8942e2fd32c927e54a916f80469559ecc31a1b",
+      "elapsed_seconds": 0.014087684015976265,
+      "episode_id": "auto-reasoning-dev-playlist-prep-0001",
+      "error": null,
+      "expected_values": [
+        {
+          "count": 3,
+          "ok": true,
+          "order": "artist",
+          "total_seconds": 500,
+          "tracks": [
+            {
+              "artist": "Kai",
+              "clock": "3:20",
+              "explicit": false,
+              "id": "T01",
+              "seconds": 200,
+              "title": "North One"
+            },
+            {
+              "artist": "KAI",
+              "clock": "1:40",
+              "explicit": false,
+              "id": "T02",
+              "seconds": 100,
+              "title": "North Two"
+            },
+            {
+              "artist": "kai",
+              "clock": "3:20",
+              "explicit": true,
+              "id": "T03",
+              "seconds": 200,
+              "title": "North Three"
+            }
+          ]
+        }
+      ],
+      "input": {
+        "tracks": [
+          {
+            "artist": "Kai",
+            "explicit": false,
+            "seconds": 200,
+            "title": "North One"
+          },
+          {
+            "artist": "KAI",
+            "explicit": false,
+            "seconds": 100,
+            "title": "North Two"
+          },
+          {
+            "artist": "kai",
+            "explicit": true,
+            "seconds": 200,
+            "title": "North Three"
+          }
+        ]
+      },
+      "module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+      "passed": true,
+      "rule_ids": [
+        "r-seq-artist-stable"
+      ],
+      "symbol": "sequence_playlist"
+    },
+    {
+      "actual": {
+        "error": "unexpected key 'beta'",
+        "ok": false
+      },
+      "check_id": "chk-r1-o3",
+      "check_sha256": "4386a5d41dfdeac346b2ae4d2682c2c11abf9ca28ede5cdfc7802ebae954c8ec",
+      "elapsed_seconds": 0.013595411001006141,
+      "episode_id": "auto-reasoning-dev-playlist-prep-0001",
+      "error": null,
+      "expected_values": [
+        {
+          "error": "unexpected key 'beta'",
+          "ok": false
+        }
+      ],
+      "input": {
+        "beta": 2,
+        "order": "artist",
+        "tracks": [],
+        "zeta": 1
+      },
+      "module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+      "passed": true,
+      "rule_ids": [
+        "r-unknown-key-alpha"
+      ],
+      "symbol": "sequence_playlist"
+    }
+  ],
+  "terminal_private_passed": true,
+  "unfinished_private_check_ids": [],
+  "worker_attempts": [
+    {
+      "all_public_passed": true,
+      "apply_status": "APPLIED",
+      "attempt_index": 0,
+      "call_index": 9,
+      "post_module_sha256": "9ac0c2c0209a8026b32608129699079940916f4e5e8763f50f0efce035c87eae",
+      "source_sha256": "14c8bb56d54f8849d549ace69592db412bf90bbb63756499cd50fb623a1aa369",
+      "status": "COMPLETE"
+    }
+  ],
+  "worker_history_after_request": [
+    {
+      "content": "Maintain the supplied pure-Python module across the conversation. Each request authenticates one target path and symbol. Respond with exactly one replace_function tool call whose source is one complete synchronous target function beginning with def at byte zero and using LF lines. It must take exactly one positional argument without defaults, varargs, or keyword-only arguments. Do not use decorators, imports, global, nonlocal, nested functions or classes, dunder names or attributes, Markdown, or calls to __import__, breakpoint, compile, eval, exec, exit, globals, help, input, locals, open, print, quit, or vars. Preserve authentic standing directions and actual earlier dependencies. A current generated-focus block is fallible advisory guidance, is not a new user adoption, and never overrides authentic sources. Do not replace any other function.",
+      "role": "system"
+    },
+    {
+      "content": "One standing house rule for our playlist tool, meant for every feature we add: whenever an input object carries a key that the current task does not recognize, reject it before any other check and name the unrecognized key that comes first in alphabetical order, formatted exactly as: unexpected key '<name>'. Everything else about a feature, including its recognized keys, validation order, identifier scheme, success shape, and exact rejection wording, is established by that feature's own task description rather than by any further shared convention.",
+      "role": "user"
+    },
+    {
+      "content": "Locked in: a single shared rule for every feature. Any unrecognized key is rejected before any other check, naming the alphabetically first unrecognized key as unexpected key '<name>'. Each task description fully specifies its own recognized keys, validation order, identifiers, outputs, and exact messages.",
+      "role": "assistant"
+    },
+    {
+      "content": "Implement normalize_tracklist(payload) in playlist_prep.py on top of parse_track and format_clock. Exactly this behavior: if payload is not an object, return {\"ok\": false, \"error\": \"payload must be an object with a 'tracks' list\"}. Recognized top-level keys are only \"tracks\" and \"allow_duplicates\"; any other key follows the standing house rule before anything else. If \"tracks\" is absent or not a list, return the same payload error as above. If \"allow_duplicates\" is present and is not a boolean, return {\"ok\": false, \"error\": \"'allow_duplicates' must be a boolean when present\"}; when absent it counts as false. Next validate each entry in list order with parse_track and, at the first failure, return {\"ok\": false, \"error\": \"track <n>: <reason>\"} where <n> is the 1-based index and <reason> is parse_track's error. Only after every entry validates, apply duplicate handling: two tracks are duplicates when artist and title match ignoring letter case. Unless allow_duplicates is true, stop at the first repeat and return {\"ok\": false, \"error\": \"duplicate track <n>\"} naming the 1-based position of the LATER occurrence; if allow_duplicates is true, keep every validated track in input order. On success return ok true, count, total_seconds (sum of seconds of every kept track), total_clock from format_clock(total_seconds), and tracks: the kept tracks in input order, each as {\"id\", \"title\", \"artist\", \"seconds\", \"explicit\", \"clock\"} where id is assigned in processing order as T01, T02, and so on, zero-padded to at least two digits, and clock is format_clock(track seconds). An empty list is a valid success with count 0. Do not change parse_track, format_clock, or the remaining stubs.",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"source\":\"def normalize_tracklist(payload):\\n    if not isinstance(payload, dict):\\n        return {\\n            \\\"ok\\\": False,\\n            \\\"error\\\": \\\"payload must be an object with a 'tracks' list\\\"\\n        }\\n    \\n    # Check for unrecognized keys\\n    recognized_keys = {\\\"tracks\\\", \\\"allow_duplicates\\\"}\\n    payload_keys = sorted(payload.keys())\\n    for key in payload_keys:\\n        if key not in recognized_keys:\\n            return {\\n                \\\"ok\\\": False,\\n                \\\"error\\\": f\\\"unexpected key '{key}'\\\"\\n            }\\n    \\n    # Check 'tracks' presence and type\\n    if \\\"tracks\\\" not in payload or not isinstance(payload[\\\"tracks\\\"], list):\\n        return {\\n            \\\"ok\\\": False,\\n            \\\"error\\\": \\\"payload must be an object with a 'tracks' list\\\"\\n        }\\n    \\n    # Check 'allow_duplicates' if present\\n    allow_duplicates = payload.get(\\\"allow_duplicates\\\", False)\\n    if \\\"allow_duplicates\\\" in payload:\\n        if not isinstance(allow_duplicates, bool):\\n            return {\\n                \\\"ok\\\": False,\\n                \\\"error\\\": \\\"'allow_duplicates' must be a boolean when present\\\"\\n            }\\n    \\n    tracks = payload[\\\"tracks\\\"]\\n    validated_tracks = []\\n    \\n    # Validate each track\\n    for i, entry in enumerate(tracks):\\n        result = parse_track(entry)\\n        if not result[\\\"ok\\\"]:\\n            return {\\n                \\\"ok\\\": False,\\n                \\\"error\\\": f\\\"track {i+1}: {result[\\\"error\\\"]}\\\"\\n            }\\n        validated_tracks.append(result[\\\"track\\\"])\\n    \\n    # Check for duplicates\\n    seen = {}\\n    for i, track in enumerate(validated_tracks):\\n        key = (track[\\\"artist\\\"].lower(), track[\\\"title\\\"].lower())\\n        if key in seen:\\n            return {\\n                \\\"ok\\\": False,\\n                \\\"error\\\": f\\\"duplicate track {i+1}\\\"\\n            }\\n        seen[key] = i+1\\n    \\n    # Prepare output\\n    total_seconds = sum(track[\\\"seconds\\\"] for track in validated_tracks)\\n    total_clock = format_clock(total_seconds)\\n    \\n    # Assign IDs and format clock for each track\\n    result_tracks = []\\n    for idx, track in enumerate(validated_tracks):\\n        track_id = f\\\"T{idx+1:02d}\\\"\\n        clock = format_clock(track[\\\"seconds\\\"])\\n        result_tracks.append({\\n            \\\"id\\\": track_id,\\n            \\\"title\\\": track[\\\"title\\\"],\\n            \\\"artist\\\": track[\\\"artist\\\"],\\n            \\\"seconds\\\": track[\\\"seconds\\\"],\\n            \\\"explicit\\\": track[\\\"explicit\\\"],\\n            \\\"clock\\\": clock\\n        })\\n    \\n    return {\\n        \\\"ok\\\": True,\\n        \\\"count\\\": len(result_tracks),\\n        \\\"total_seconds\\\": total_seconds,\\n        \\\"total_clock\\\": total_clock,\\n        \\\"tracks\\\": result_tracks\\n    }\"}",
+            "name": "replace_function"
+          },
+          "id": "chatcmpl-tool-8e44e4fc606ae3be",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "content": "{\"all_public_passed\":true,\"apply_status\":\"applied\",\"current_module\":\"\\\"\\\"\\\"Small audio playlist preparation utilities (JSON values in, JSON values out).\\\"\\\"\\\"\\n\\n\\ndef parse_track(entry):\\n    if not isinstance(entry, dict):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"entry must be an object\\\"}\\n    required = [\\\"title\\\", \\\"artist\\\", \\\"seconds\\\", \\\"explicit\\\"]\\n    for key in sorted(entry):\\n        if key not in required:\\n            return {\\\"ok\\\": False, \\\"error\\\": \\\"unexpected key '\\\" + str(key) + \\\"'\\\"}\\n    for key in required:\\n        if key not in entry:\\n            return {\\\"ok\\\": False, \\\"error\\\": \\\"missing key '\\\" + key + \\\"'\\\"}\\n    title = entry[\\\"title\\\"]\\n    if not isinstance(title, str):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"'title' must be a string\\\"}\\n    clean_title = \\\" \\\".join(title.split())\\n    if clean_title == \\\"\\\":\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"'title' must not be blank\\\"}\\n    artist = entry[\\\"artist\\\"]\\n    if not isinstance(artist, str):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"'artist' must be a string\\\"}\\n    clean_artist = \\\" \\\".join(artist.split())\\n    if clean_artist == \\\"\\\":\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"'artist' must not be blank\\\"}\\n    seconds = entry[\\\"seconds\\\"]\\n    if isinstance(seconds, bool) or not isinstance(seconds, int):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"'seconds' must be an integer\\\"}\\n    if seconds < 1:\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"'seconds' must be at least 1\\\"}\\n    explicit = entry[\\\"explicit\\\"]\\n    if not isinstance(explicit, bool):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"'explicit' must be a boolean\\\"}\\n    return {\\\"ok\\\": True, \\\"track\\\": {\\\"title\\\": clean_title, \\\"artist\\\": clean_artist, \\\"seconds\\\": seconds, \\\"explicit\\\": explicit}}\\n\\n\\ndef format_clock(total_seconds):\\n    if isinstance(total_seconds, bool) or not isinstance(total_seconds, int):\\n        return None\\n    if total_seconds < 0:\\n        return None\\n    minutes = total_seconds // 60\\n    seconds = total_seconds - minutes * 60\\n    if seconds < 10:\\n        sec_text = \\\"0\\\" + str(seconds)\\n    else:\\n        sec_text = str(seconds)\\n    return str(minutes) + \\\":\\\" + sec_text\\n\\n\\ndef normalize_tracklist(payload):\\n    if not isinstance(payload, dict):\\n        return {\\n            \\\"ok\\\": False,\\n            \\\"error\\\": \\\"payload must be an object with a 'tracks' list\\\"\\n        }\\n    \\n    # Check for unrecognized keys\\n    recognized_keys = {\\\"tracks\\\", \\\"allow_duplicates\\\"}\\n    payload_keys = sorted(payload.keys())\\n    for key in payload_keys:\\n        if key not in recognized_keys:\\n            return {\\n                \\\"ok\\\": False,\\n                \\\"error\\\": f\\\"unexpected key '{key}'\\\"\\n            }\\n    \\n    # Check 'tracks' presence and type\\n    if \\\"tracks\\\" not in payload or not isinstance(payload[\\\"tracks\\\"], list):\\n        return {\\n            \\\"ok\\\": False,\\n            \\\"error\\\": \\\"payload must be an object with a 'tracks' list\\\"\\n        }\\n    \\n    # Check 'allow_duplicates' if present\\n    allow_duplicates = payload.get(\\\"allow_duplicates\\\", False)\\n    if \\\"allow_duplicates\\\" in payload:\\n        if not isinstance(allow_duplicates, bool):\\n            return {\\n                \\\"ok\\\": False,\\n                \\\"error\\\": \\\"'allow_duplicates' must be a boolean when present\\\"\\n            }\\n    \\n    tracks = payload[\\\"tracks\\\"]\\n    validated_tracks = []\\n    \\n    # Validate each track\\n    for i, entry in enumerate(tracks):\\n        result = parse_track(entry)\\n        if not result[\\\"ok\\\"]:\\n            return {\\n                \\\"ok\\\": False,\\n                \\\"error\\\": f\\\"track {i+1}: {result[\\\"error\\\"]}\\\"\\n            }\\n        validated_tracks.append(result[\\\"track\\\"])\\n    \\n    # Check for duplicates\\n    seen = {}\\n    for i, track in enumerate(validated_tracks):\\n        key = (track[\\\"artist\\\"].lower(), track[\\\"title\\\"].lower())\\n        if key in seen:\\n            return {\\n                \\\"ok\\\": False,\\n                \\\"error\\\": f\\\"duplicate track {i+1}\\\"\\n            }\\n        seen[key] = i+1\\n    \\n    # Prepare output\\n    total_seconds = sum(track[\\\"seconds\\\"] for track in validated_tracks)\\n    total_clock = format_clock(total_seconds)\\n    \\n    # Assign IDs and format clock for each track\\n    result_tracks = []\\n    for idx, track in enumerate(validated_tracks):\\n        track_id = f\\\"T{idx+1:02d}\\\"\\n        clock = format_clock(track[\\\"seconds\\\"])\\n        result_tracks.append({\\n            \\\"id\\\": track_id,\\n            \\\"title\\\": track[\\\"title\\\"],\\n            \\\"artist\\\": track[\\\"artist\\\"],\\n            \\\"seconds\\\": track[\\\"seconds\\\"],\\n            \\\"explicit\\\": track[\\\"explicit\\\"],\\n            \\\"clock\\\": clock\\n        })\\n    \\n    return {\\n        \\\"ok\\\": True,\\n        \\\"count\\\": len(result_tracks),\\n        \\\"total_seconds\\\": total_seconds,\\n        \\\"total_clock\\\": total_clock,\\n        \\\"tracks\\\": result_tracks\\n    }\\n\\n\\ndef sequence_playlist(payload):\\n    return None\\n\\n\\ndef build_manifest(payload):\\n    return None\",\"error\":null,\"public_checks\":[{\"actual\":{\"ok\":true,\"track\":{\"artist\":\"Aurora\",\"explicit\":false,\"seconds\":195,\"title\":\"Blue Sky\"}},\"check_id\":\"chk-init-parse-1\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"'seconds' must be an integer\",\"ok\":false},\"check_id\":\"chk-init-parse-2\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"'title' must not be blank\",\"ok\":false},\"check_id\":\"chk-init-parse-3\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"missing key 'explicit'\",\"ok\":false},\"check_id\":\"chk-init-parse-4\",\"error\":null,\"passed\":true},{\"actual\":\"1:15\",\"check_id\":\"chk-init-clock-1\",\"error\":null,\"passed\":true},{\"actual\":\"0:00\",\"check_id\":\"chk-init-clock-2\",\"error\":null,\"passed\":true},{\"actual\":null,\"check_id\":\"chk-init-clock-3\",\"error\":null,\"passed\":true},{\"actual\":{\"count\":2,\"ok\":true,\"total_clock\":\"7:20\",\"total_seconds\":440,\"tracks\":[{\"artist\":\"Aurora\",\"clock\":\"3:15\",\"explicit\":false,\"id\":\"T01\",\"seconds\":195,\"title\":\"Blue Sky\"},{\"artist\":\"Lumen\",\"clock\":\"4:05\",\"explicit\":true,\"id\":\"T02\",\"seconds\":245,\"title\":\"Night Drive\"}]},\"check_id\":\"chk-r0-pub-1\",\"error\":null,\"passed\":true},{\"actual\":{\"count\":1,\"ok\":true,\"total_clock\":\"0:01\",\"total_seconds\":1,\"tracks\":[{\"artist\":\"Solo Act\",\"clock\":\"0:01\",\"explicit\":false,\"id\":\"T01\",\"seconds\":1,\"title\":\"Intro\"}]},\"check_id\":\"chk-r0-pub-2\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"track 2: 'seconds' must be at least 1\",\"ok\":false},\"check_id\":\"chk-r0-pub-3\",\"error\":null,\"passed\":true}]}",
+      "name": "replace_function",
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-8e44e4fc606ae3be"
+    },
+    {
+      "content": "Next: sequencing. Firm requirements up front: the sequencer never validates tracks itself, it reuses normalize_tracklist wholesale. It offers two orderings: artist (A to Z, ignoring letter case) and duration (shortest first). And one standing rule for this function only: tracks that come out EQUAL under the chosen ordering keep their original relative order; the sequencer applies no tie-breaking of its own. Separate note for the future: in the playback manifest we will build afterwards, same-artist groups should appear shortest-first. That preference belongs to the manifest step; do not encode it into the sequencer.",
+      "role": "user"
+    },
+    {
+      "content": "Understood: the sequencer delegates all validation to normalize_tracklist, orders by artist case-insensitively A to Z or by duration ascending, and leaves equal-key tracks in their original relative order with no secondary criterion. I have the manifest-only plan on file (same-artist groups shortest-first) and will keep it out of the sequencer. If ties ever feel too loose I could add title-alphabetical as a tie-break, but I will not unless you ask.",
+      "role": "assistant"
+    },
+    {
+      "content": "Implement sequence_playlist(payload) in playlist_prep.py, calling normalize_tracklist. Exact behavior: recognized top-level keys are only \"tracks\", \"order\", \"allow_duplicates\"; any other key follows the standing house rule before any other check. A non-object payload is handed to normalize_tracklist as-is and its result returned. \"order\" is optional and defaults to \"artist\"; a present value other than \"artist\" or \"duration\" returns {\"ok\": false, \"error\": \"'order' must be 'artist' or 'duration'\"}. Call normalize_tracklist with exactly the input's tracks and, when present, allow_duplicates; if it returns ok false, return that result unchanged. On success, take the normalized track objects (keep all fields, ids unchanged) and order them: \"artist\" sorts ascending by artist ignoring letter case; \"duration\" sorts ascending by seconds; per the standing rule tracks equal under the chosen key keep their original relative order. Return {\"ok\": true, \"order\": <effective order>, \"count\": <count from normalization>, \"total_seconds\": <total from normalization>, \"tracks\": <ordered tracks>}. Do not redefine or patch normalize_tracklist, parse_track, or format_clock.",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\n\n    \"source\": \"def sequence_playlist(payload):\\n    if not isinstance(payload, dict):\\n        return normalize_tracklist(payload)\\n    \\n    # Check for unrecognized keys\\n    recognized_keys = {\\\"tracks\\\", \\\"order\\\", \\\"allow_duplicates\\\"}\\n    payload_keys = sorted(payload.keys())\\n    for key in payload_keys:\\n        if key not in recognized_keys:\\n            return {\\n                \\\"ok\\\": False,\\n                \\\"error\\\": f\\\"unexpected key '{key}'\\\"\\n            }\\n    \\n    # Validate 'order' key\\n    order = payload.get(\\\"order\\\", \\\"artist\\\")\\n    if order not in {\\\"artist\\\", \\\"duration\\\"}:\\n        return {\\n            \\\"ok\\\": False,\\n            \\\"error\\\": \\\"'order' must be 'artist' or 'duration'\\\"\\n        }\\n    \\n    # Prepare payload for normalize_tracklist\\n    normalize_payload = {\\\"tracks\\\": payload[\\\"tracks\\\"]}\\n    if \\\"allow_duplicates\\\" in payload:\\n        normalize_payload[\\\"allow_duplicates\\\"] = payload[\\\"allow_duplicates\\\"]\\n    \\n    # Call normalize_tracklist\\n    normalize_result = normalize_tracklist(normalize_payload)\\n    if not normalize_result[\\\"ok\\\"]:\\n        return normalize_result\\n    \\n    # Sort tracks\\n    tracks = normalize_result[\\\"tracks\\\"]\\n    if order == \\\"artist\\\":\\n        # Sort by artist case-insensitively, preserving original order for ties\\n        tracks.sort(key=lambda x: x[\\\"artist\\\"].lower())\\n    else:  # order == \\\"duration\\\"\\n        # Sort by seconds, preserving original order for ties\\n        tracks.sort(key=lambda x: x[\\\"seconds\\\"])\\n    \\n    return {\\n        \\\"ok\\\": True,\\n        \\\"order\\\": order,\\n        \\\"count\\\": normalize_result[\\\"count\\\"],\\n        \\\"total_seconds\\\": normalize_result[\\\"total_seconds\\\"],\\n        \\\"tracks\\\": tracks\\n    }\"\n}",
+            "name": "replace_function"
+          },
+          "id": "chatcmpl-tool-8257c531160bf200",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "content": "{\"all_public_passed\":true,\"apply_status\":\"applied\",\"current_module\":\"\\\"\\\"\\\"Small audio playlist preparation utilities (JSON values in, JSON values out).\\\"\\\"\\\"\\n\\n\\ndef parse_track(entry):\\n    if not isinstance(entry, dict):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"entry must be an object\\\"}\\n    required = [\\\"title\\\", \\\"artist\\\", \\\"seconds\\\", \\\"explicit\\\"]\\n    for key in sorted(entry):\\n        if key not in required:\\n            return {\\\"ok\\\": False, \\\"error\\\": \\\"unexpected key '\\\" + str(key) + \\\"'\\\"}\\n    for key in required:\\n        if key not in entry:\\n            return {\\\"ok\\\": False, \\\"error\\\": \\\"missing key '\\\" + key + \\\"'\\\"}\\n    title = entry[\\\"title\\\"]\\n    if not isinstance(title, str):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"'title' must be a string\\\"}\\n    clean_title = \\\" \\\".join(title.split())\\n    if clean_title == \\\"\\\":\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"'title' must not be blank\\\"}\\n    artist = entry[\\\"artist\\\"]\\n    if not isinstance(artist, str):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"'artist' must be a string\\\"}\\n    clean_artist = \\\" \\\".join(artist.split())\\n    if clean_artist == \\\"\\\":\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"'artist' must not be blank\\\"}\\n    seconds = entry[\\\"seconds\\\"]\\n    if isinstance(seconds, bool) or not isinstance(seconds, int):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"'seconds' must be an integer\\\"}\\n    if seconds < 1:\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"'seconds' must be at least 1\\\"}\\n    explicit = entry[\\\"explicit\\\"]\\n    if not isinstance(explicit, bool):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"'explicit' must be a boolean\\\"}\\n    return {\\\"ok\\\": True, \\\"track\\\": {\\\"title\\\": clean_title, \\\"artist\\\": clean_artist, \\\"seconds\\\": seconds, \\\"explicit\\\": explicit}}\\n\\n\\ndef format_clock(total_seconds):\\n    if isinstance(total_seconds, bool) or not isinstance(total_seconds, int):\\n        return None\\n    if total_seconds < 0:\\n        return None\\n    minutes = total_seconds // 60\\n    seconds = total_seconds - minutes * 60\\n    if seconds < 10:\\n        sec_text = \\\"0\\\" + str(seconds)\\n    else:\\n        sec_text = str(seconds)\\n    return str(minutes) + \\\":\\\" + sec_text\\n\\n\\ndef normalize_tracklist(payload):\\n    if not isinstance(payload, dict):\\n        return {\\n            \\\"ok\\\": False,\\n            \\\"error\\\": \\\"payload must be an object with a 'tracks' list\\\"\\n        }\\n    \\n    # Check for unrecognized keys\\n    recognized_keys = {\\\"tracks\\\", \\\"allow_duplicates\\\"}\\n    payload_keys = sorted(payload.keys())\\n    for key in payload_keys:\\n        if key not in recognized_keys:\\n            return {\\n                \\\"ok\\\": False,\\n                \\\"error\\\": f\\\"unexpected key '{key}'\\\"\\n            }\\n    \\n    # Check 'tracks' presence and type\\n    if \\\"tracks\\\" not in payload or not isinstance(payload[\\\"tracks\\\"], list):\\n        return {\\n            \\\"ok\\\": False,\\n            \\\"error\\\": \\\"payload must be an object with a 'tracks' list\\\"\\n        }\\n    \\n    # Check 'allow_duplicates' if present\\n    allow_duplicates = payload.get(\\\"allow_duplicates\\\", False)\\n    if \\\"allow_duplicates\\\" in payload:\\n        if not isinstance(allow_duplicates, bool):\\n            return {\\n                \\\"ok\\\": False,\\n                \\\"error\\\": \\\"'allow_duplicates' must be a boolean when present\\\"\\n            }\\n    \\n    tracks = payload[\\\"tracks\\\"]\\n    validated_tracks = []\\n    \\n    # Validate each track\\n    for i, entry in enumerate(tracks):\\n        result = parse_track(entry)\\n        if not result[\\\"ok\\\"]:\\n            return {\\n                \\\"ok\\\": False,\\n                \\\"error\\\": f\\\"track {i+1}: {result[\\\"error\\\"]}\\\"\\n            }\\n        validated_tracks.append(result[\\\"track\\\"])\\n    \\n    # Check for duplicates\\n    seen = {}\\n    for i, track in enumerate(validated_tracks):\\n        key = (track[\\\"artist\\\"].lower(), track[\\\"title\\\"].lower())\\n        if key in seen:\\n            return {\\n                \\\"ok\\\": False,\\n                \\\"error\\\": f\\\"duplicate track {i+1}\\\"\\n            }\\n        seen[key] = i+1\\n    \\n    # Prepare output\\n    total_seconds = sum(track[\\\"seconds\\\"] for track in validated_tracks)\\n    total_clock = format_clock(total_seconds)\\n    \\n    # Assign IDs and format clock for each track\\n    result_tracks = []\\n    for idx, track in enumerate(validated_tracks):\\n        track_id = f\\\"T{idx+1:02d}\\\"\\n        clock = format_clock(track[\\\"seconds\\\"])\\n        result_tracks.append({\\n            \\\"id\\\": track_id,\\n            \\\"title\\\": track[\\\"title\\\"],\\n            \\\"artist\\\": track[\\\"artist\\\"],\\n            \\\"seconds\\\": track[\\\"seconds\\\"],\\n            \\\"explicit\\\": track[\\\"explicit\\\"],\\n            \\\"clock\\\": clock\\n        })\\n    \\n    return {\\n        \\\"ok\\\": True,\\n        \\\"count\\\": len(result_tracks),\\n        \\\"total_seconds\\\": total_seconds,\\n        \\\"total_clock\\\": total_clock,\\n        \\\"tracks\\\": result_tracks\\n    }\\n\\n\\ndef sequence_playlist(payload):\\n    if not isinstance(payload, dict):\\n        return normalize_tracklist(payload)\\n    \\n    # Check for unrecognized keys\\n    recognized_keys = {\\\"tracks\\\", \\\"order\\\", \\\"allow_duplicates\\\"}\\n    payload_keys = sorted(payload.keys())\\n    for key in payload_keys:\\n        if key not in recognized_keys:\\n            return {\\n                \\\"ok\\\": False,\\n                \\\"error\\\": f\\\"unexpected key '{key}'\\\"\\n            }\\n    \\n    # Validate 'order' key\\n    order = payload.get(\\\"order\\\", \\\"artist\\\")\\n    if order not in {\\\"artist\\\", \\\"duration\\\"}:\\n        return {\\n            \\\"ok\\\": False,\\n            \\\"error\\\": \\\"'order' must be 'artist' or 'duration'\\\"\\n        }\\n    \\n    # Prepare payload for normalize_tracklist\\n    normalize_payload = {\\\"tracks\\\": payload[\\\"tracks\\\"]}\\n    if \\\"allow_duplicates\\\" in payload:\\n        normalize_payload[\\\"allow_duplicates\\\"] = payload[\\\"allow_duplicates\\\"]\\n    \\n    # Call normalize_tracklist\\n    normalize_result = normalize_tracklist(normalize_payload)\\n    if not normalize_result[\\\"ok\\\"]:\\n        return normalize_result\\n    \\n    # Sort tracks\\n    tracks = normalize_result[\\\"tracks\\\"]\\n    if order == \\\"artist\\\":\\n        # Sort by artist case-insensitively, preserving original order for ties\\n        tracks.sort(key=lambda x: x[\\\"artist\\\"].lower())\\n    else:  # order == \\\"duration\\\"\\n        # Sort by seconds, preserving original order for ties\\n        tracks.sort(key=lambda x: x[\\\"seconds\\\"])\\n    \\n    return {\\n        \\\"ok\\\": True,\\n        \\\"order\\\": order,\\n        \\\"count\\\": normalize_result[\\\"count\\\"],\\n        \\\"total_seconds\\\": normalize_result[\\\"total_seconds\\\"],\\n        \\\"tracks\\\": tracks\\n    }\\n\\n\\ndef build_manifest(payload):\\n    return None\",\"error\":null,\"public_checks\":[{\"actual\":{\"ok\":true,\"track\":{\"artist\":\"Aurora\",\"explicit\":false,\"seconds\":195,\"title\":\"Blue Sky\"}},\"check_id\":\"chk-init-parse-1\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"'seconds' must be an integer\",\"ok\":false},\"check_id\":\"chk-init-parse-2\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"'title' must not be blank\",\"ok\":false},\"check_id\":\"chk-init-parse-3\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"missing key 'explicit'\",\"ok\":false},\"check_id\":\"chk-init-parse-4\",\"error\":null,\"passed\":true},{\"actual\":\"1:15\",\"check_id\":\"chk-init-clock-1\",\"error\":null,\"passed\":true},{\"actual\":\"0:00\",\"check_id\":\"chk-init-clock-2\",\"error\":null,\"passed\":true},{\"actual\":null,\"check_id\":\"chk-init-clock-3\",\"error\":null,\"passed\":true},{\"actual\":{\"count\":2,\"ok\":true,\"total_clock\":\"7:20\",\"total_seconds\":440,\"tracks\":[{\"artist\":\"Aurora\",\"clock\":\"3:15\",\"explicit\":false,\"id\":\"T01\",\"seconds\":195,\"title\":\"Blue Sky\"},{\"artist\":\"Lumen\",\"clock\":\"4:05\",\"explicit\":true,\"id\":\"T02\",\"seconds\":245,\"title\":\"Night Drive\"}]},\"check_id\":\"chk-r0-pub-1\",\"error\":null,\"passed\":true},{\"actual\":{\"count\":1,\"ok\":true,\"total_clock\":\"0:01\",\"total_seconds\":1,\"tracks\":[{\"artist\":\"Solo Act\",\"clock\":\"0:01\",\"explicit\":false,\"id\":\"T01\",\"seconds\":1,\"title\":\"Intro\"}]},\"check_id\":\"chk-r0-pub-2\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"track 2: 'seconds' must be at least 1\",\"ok\":false},\"check_id\":\"chk-r0-pub-3\",\"error\":null,\"passed\":true},{\"actual\":{\"count\":2,\"ok\":true,\"order\":\"artist\",\"total_seconds\":425,\"tracks\":[{\"artist\":\"Mira\",\"clock\":\"2:05\",\"explicit\":true,\"id\":\"T02\",\"seconds\":125,\"title\":\"Echoes\"},{\"artist\":\"Quay\",\"clock\":\"5:00\",\"explicit\":false,\"id\":\"T01\",\"seconds\":300,\"title\":\"Harbor\"}]},\"check_id\":\"chk-r1-pub-1\",\"error\":null,\"passed\":true},{\"actual\":{\"count\":3,\"ok\":true,\"order\":\"duration\",\"total_seconds\":660,\"tracks\":[{\"artist\":\"Dee\",\"clock\":\"2:00\",\"explicit\":false,\"id\":\"T02\",\"seconds\":120,\"title\":\"Basso\"},{\"artist\":\"Eff\",\"clock\":\"4:00\",\"explicit\":true,\"id\":\"T03\",\"seconds\":240,\"title\":\"Canto\"},{\"artist\":\"Cee\",\"clock\":\"5:00\",\"explicit\":false,\"id\":\"T01\",\"seconds\":300,\"title\":\"Alto\"}]},\"check_id\":\"chk-r1-pub-2\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"track 2: 'title' must not be blank\",\"ok\":false},\"check_id\":\"chk-r1-pub-3\",\"error\":null,\"passed\":true}]}",
+      "name": "replace_function",
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-8257c531160bf200"
+    }
+  ],
+  "worker_history_before_request": [
+    {
+      "content": "Maintain the supplied pure-Python module across the conversation. Each request authenticates one target path and symbol. Respond with exactly one replace_function tool call whose source is one complete synchronous target function beginning with def at byte zero and using LF lines. It must take exactly one positional argument without defaults, varargs, or keyword-only arguments. Do not use decorators, imports, global, nonlocal, nested functions or classes, dunder names or attributes, Markdown, or calls to __import__, breakpoint, compile, eval, exec, exit, globals, help, input, locals, open, print, quit, or vars. Preserve authentic standing directions and actual earlier dependencies. A current generated-focus block is fallible advisory guidance, is not a new user adoption, and never overrides authentic sources. Do not replace any other function.",
+      "role": "system"
+    },
+    {
+      "content": "One standing house rule for our playlist tool, meant for every feature we add: whenever an input object carries a key that the current task does not recognize, reject it before any other check and name the unrecognized key that comes first in alphabetical order, formatted exactly as: unexpected key '<name>'. Everything else about a feature, including its recognized keys, validation order, identifier scheme, success shape, and exact rejection wording, is established by that feature's own task description rather than by any further shared convention.",
+      "role": "user"
+    },
+    {
+      "content": "Locked in: a single shared rule for every feature. Any unrecognized key is rejected before any other check, naming the alphabetically first unrecognized key as unexpected key '<name>'. Each task description fully specifies its own recognized keys, validation order, identifiers, outputs, and exact messages.",
+      "role": "assistant"
+    },
+    {
+      "content": "Implement normalize_tracklist(payload) in playlist_prep.py on top of parse_track and format_clock. Exactly this behavior: if payload is not an object, return {\"ok\": false, \"error\": \"payload must be an object with a 'tracks' list\"}. Recognized top-level keys are only \"tracks\" and \"allow_duplicates\"; any other key follows the standing house rule before anything else. If \"tracks\" is absent or not a list, return the same payload error as above. If \"allow_duplicates\" is present and is not a boolean, return {\"ok\": false, \"error\": \"'allow_duplicates' must be a boolean when present\"}; when absent it counts as false. Next validate each entry in list order with parse_track and, at the first failure, return {\"ok\": false, \"error\": \"track <n>: <reason>\"} where <n> is the 1-based index and <reason> is parse_track's error. Only after every entry validates, apply duplicate handling: two tracks are duplicates when artist and title match ignoring letter case. Unless allow_duplicates is true, stop at the first repeat and return {\"ok\": false, \"error\": \"duplicate track <n>\"} naming the 1-based position of the LATER occurrence; if allow_duplicates is true, keep every validated track in input order. On success return ok true, count, total_seconds (sum of seconds of every kept track), total_clock from format_clock(total_seconds), and tracks: the kept tracks in input order, each as {\"id\", \"title\", \"artist\", \"seconds\", \"explicit\", \"clock\"} where id is assigned in processing order as T01, T02, and so on, zero-padded to at least two digits, and clock is format_clock(track seconds). An empty list is a valid success with count 0. Do not change parse_track, format_clock, or the remaining stubs.",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"source\":\"def normalize_tracklist(payload):\\n    if not isinstance(payload, dict):\\n        return {\\n            \\\"ok\\\": False,\\n            \\\"error\\\": \\\"payload must be an object with a 'tracks' list\\\"\\n        }\\n    \\n    # Check for unrecognized keys\\n    recognized_keys = {\\\"tracks\\\", \\\"allow_duplicates\\\"}\\n    payload_keys = sorted(payload.keys())\\n    for key in payload_keys:\\n        if key not in recognized_keys:\\n            return {\\n                \\\"ok\\\": False,\\n                \\\"error\\\": f\\\"unexpected key '{key}'\\\"\\n            }\\n    \\n    # Check 'tracks' presence and type\\n    if \\\"tracks\\\" not in payload or not isinstance(payload[\\\"tracks\\\"], list):\\n        return {\\n            \\\"ok\\\": False,\\n            \\\"error\\\": \\\"payload must be an object with a 'tracks' list\\\"\\n        }\\n    \\n    # Check 'allow_duplicates' if present\\n    allow_duplicates = payload.get(\\\"allow_duplicates\\\", False)\\n    if \\\"allow_duplicates\\\" in payload:\\n        if not isinstance(allow_duplicates, bool):\\n            return {\\n                \\\"ok\\\": False,\\n                \\\"error\\\": \\\"'allow_duplicates' must be a boolean when present\\\"\\n            }\\n    \\n    tracks = payload[\\\"tracks\\\"]\\n    validated_tracks = []\\n    \\n    # Validate each track\\n    for i, entry in enumerate(tracks):\\n        result = parse_track(entry)\\n        if not result[\\\"ok\\\"]:\\n            return {\\n                \\\"ok\\\": False,\\n                \\\"error\\\": f\\\"track {i+1}: {result[\\\"error\\\"]}\\\"\\n            }\\n        validated_tracks.append(result[\\\"track\\\"])\\n    \\n    # Check for duplicates\\n    seen = {}\\n    for i, track in enumerate(validated_tracks):\\n        key = (track[\\\"artist\\\"].lower(), track[\\\"title\\\"].lower())\\n        if key in seen:\\n            return {\\n                \\\"ok\\\": False,\\n                \\\"error\\\": f\\\"duplicate track {i+1}\\\"\\n            }\\n        seen[key] = i+1\\n    \\n    # Prepare output\\n    total_seconds = sum(track[\\\"seconds\\\"] for track in validated_tracks)\\n    total_clock = format_clock(total_seconds)\\n    \\n    # Assign IDs and format clock for each track\\n    result_tracks = []\\n    for idx, track in enumerate(validated_tracks):\\n        track_id = f\\\"T{idx+1:02d}\\\"\\n        clock = format_clock(track[\\\"seconds\\\"])\\n        result_tracks.append({\\n            \\\"id\\\": track_id,\\n            \\\"title\\\": track[\\\"title\\\"],\\n            \\\"artist\\\": track[\\\"artist\\\"],\\n            \\\"seconds\\\": track[\\\"seconds\\\"],\\n            \\\"explicit\\\": track[\\\"explicit\\\"],\\n            \\\"clock\\\": clock\\n        })\\n    \\n    return {\\n        \\\"ok\\\": True,\\n        \\\"count\\\": len(result_tracks),\\n        \\\"total_seconds\\\": total_seconds,\\n        \\\"total_clock\\\": total_clock,\\n        \\\"tracks\\\": result_tracks\\n    }\"}",
+            "name": "replace_function"
+          },
+          "id": "chatcmpl-tool-8e44e4fc606ae3be",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "content": "{\"all_public_passed\":true,\"apply_status\":\"applied\",\"current_module\":\"\\\"\\\"\\\"Small audio playlist preparation utilities (JSON values in, JSON values out).\\\"\\\"\\\"\\n\\n\\ndef parse_track(entry):\\n    if not isinstance(entry, dict):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"entry must be an object\\\"}\\n    required = [\\\"title\\\", \\\"artist\\\", \\\"seconds\\\", \\\"explicit\\\"]\\n    for key in sorted(entry):\\n        if key not in required:\\n            return {\\\"ok\\\": False, \\\"error\\\": \\\"unexpected key '\\\" + str(key) + \\\"'\\\"}\\n    for key in required:\\n        if key not in entry:\\n            return {\\\"ok\\\": False, \\\"error\\\": \\\"missing key '\\\" + key + \\\"'\\\"}\\n    title = entry[\\\"title\\\"]\\n    if not isinstance(title, str):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"'title' must be a string\\\"}\\n    clean_title = \\\" \\\".join(title.split())\\n    if clean_title == \\\"\\\":\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"'title' must not be blank\\\"}\\n    artist = entry[\\\"artist\\\"]\\n    if not isinstance(artist, str):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"'artist' must be a string\\\"}\\n    clean_artist = \\\" \\\".join(artist.split())\\n    if clean_artist == \\\"\\\":\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"'artist' must not be blank\\\"}\\n    seconds = entry[\\\"seconds\\\"]\\n    if isinstance(seconds, bool) or not isinstance(seconds, int):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"'seconds' must be an integer\\\"}\\n    if seconds < 1:\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"'seconds' must be at least 1\\\"}\\n    explicit = entry[\\\"explicit\\\"]\\n    if not isinstance(explicit, bool):\\n        return {\\\"ok\\\": False, \\\"error\\\": \\\"'explicit' must be a boolean\\\"}\\n    return {\\\"ok\\\": True, \\\"track\\\": {\\\"title\\\": clean_title, \\\"artist\\\": clean_artist, \\\"seconds\\\": seconds, \\\"explicit\\\": explicit}}\\n\\n\\ndef format_clock(total_seconds):\\n    if isinstance(total_seconds, bool) or not isinstance(total_seconds, int):\\n        return None\\n    if total_seconds < 0:\\n        return None\\n    minutes = total_seconds // 60\\n    seconds = total_seconds - minutes * 60\\n    if seconds < 10:\\n        sec_text = \\\"0\\\" + str(seconds)\\n    else:\\n        sec_text = str(seconds)\\n    return str(minutes) + \\\":\\\" + sec_text\\n\\n\\ndef normalize_tracklist(payload):\\n    if not isinstance(payload, dict):\\n        return {\\n            \\\"ok\\\": False,\\n            \\\"error\\\": \\\"payload must be an object with a 'tracks' list\\\"\\n        }\\n    \\n    # Check for unrecognized keys\\n    recognized_keys = {\\\"tracks\\\", \\\"allow_duplicates\\\"}\\n    payload_keys = sorted(payload.keys())\\n    for key in payload_keys:\\n        if key not in recognized_keys:\\n            return {\\n                \\\"ok\\\": False,\\n                \\\"error\\\": f\\\"unexpected key '{key}'\\\"\\n            }\\n    \\n    # Check 'tracks' presence and type\\n    if \\\"tracks\\\" not in payload or not isinstance(payload[\\\"tracks\\\"], list):\\n        return {\\n            \\\"ok\\\": False,\\n            \\\"error\\\": \\\"payload must be an object with a 'tracks' list\\\"\\n        }\\n    \\n    # Check 'allow_duplicates' if present\\n    allow_duplicates = payload.get(\\\"allow_duplicates\\\", False)\\n    if \\\"allow_duplicates\\\" in payload:\\n        if not isinstance(allow_duplicates, bool):\\n            return {\\n                \\\"ok\\\": False,\\n                \\\"error\\\": \\\"'allow_duplicates' must be a boolean when present\\\"\\n            }\\n    \\n    tracks = payload[\\\"tracks\\\"]\\n    validated_tracks = []\\n    \\n    # Validate each track\\n    for i, entry in enumerate(tracks):\\n        result = parse_track(entry)\\n        if not result[\\\"ok\\\"]:\\n            return {\\n                \\\"ok\\\": False,\\n                \\\"error\\\": f\\\"track {i+1}: {result[\\\"error\\\"]}\\\"\\n            }\\n        validated_tracks.append(result[\\\"track\\\"])\\n    \\n    # Check for duplicates\\n    seen = {}\\n    for i, track in enumerate(validated_tracks):\\n        key = (track[\\\"artist\\\"].lower(), track[\\\"title\\\"].lower())\\n        if key in seen:\\n            return {\\n                \\\"ok\\\": False,\\n                \\\"error\\\": f\\\"duplicate track {i+1}\\\"\\n            }\\n        seen[key] = i+1\\n    \\n    # Prepare output\\n    total_seconds = sum(track[\\\"seconds\\\"] for track in validated_tracks)\\n    total_clock = format_clock(total_seconds)\\n    \\n    # Assign IDs and format clock for each track\\n    result_tracks = []\\n    for idx, track in enumerate(validated_tracks):\\n        track_id = f\\\"T{idx+1:02d}\\\"\\n        clock = format_clock(track[\\\"seconds\\\"])\\n        result_tracks.append({\\n            \\\"id\\\": track_id,\\n            \\\"title\\\": track[\\\"title\\\"],\\n            \\\"artist\\\": track[\\\"artist\\\"],\\n            \\\"seconds\\\": track[\\\"seconds\\\"],\\n            \\\"explicit\\\": track[\\\"explicit\\\"],\\n            \\\"clock\\\": clock\\n        })\\n    \\n    return {\\n        \\\"ok\\\": True,\\n        \\\"count\\\": len(result_tracks),\\n        \\\"total_seconds\\\": total_seconds,\\n        \\\"total_clock\\\": total_clock,\\n        \\\"tracks\\\": result_tracks\\n    }\\n\\n\\ndef sequence_playlist(payload):\\n    return None\\n\\n\\ndef build_manifest(payload):\\n    return None\",\"error\":null,\"public_checks\":[{\"actual\":{\"ok\":true,\"track\":{\"artist\":\"Aurora\",\"explicit\":false,\"seconds\":195,\"title\":\"Blue Sky\"}},\"check_id\":\"chk-init-parse-1\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"'seconds' must be an integer\",\"ok\":false},\"check_id\":\"chk-init-parse-2\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"'title' must not be blank\",\"ok\":false},\"check_id\":\"chk-init-parse-3\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"missing key 'explicit'\",\"ok\":false},\"check_id\":\"chk-init-parse-4\",\"error\":null,\"passed\":true},{\"actual\":\"1:15\",\"check_id\":\"chk-init-clock-1\",\"error\":null,\"passed\":true},{\"actual\":\"0:00\",\"check_id\":\"chk-init-clock-2\",\"error\":null,\"passed\":true},{\"actual\":null,\"check_id\":\"chk-init-clock-3\",\"error\":null,\"passed\":true},{\"actual\":{\"count\":2,\"ok\":true,\"total_clock\":\"7:20\",\"total_seconds\":440,\"tracks\":[{\"artist\":\"Aurora\",\"clock\":\"3:15\",\"explicit\":false,\"id\":\"T01\",\"seconds\":195,\"title\":\"Blue Sky\"},{\"artist\":\"Lumen\",\"clock\":\"4:05\",\"explicit\":true,\"id\":\"T02\",\"seconds\":245,\"title\":\"Night Drive\"}]},\"check_id\":\"chk-r0-pub-1\",\"error\":null,\"passed\":true},{\"actual\":{\"count\":1,\"ok\":true,\"total_clock\":\"0:01\",\"total_seconds\":1,\"tracks\":[{\"artist\":\"Solo Act\",\"clock\":\"0:01\",\"explicit\":false,\"id\":\"T01\",\"seconds\":1,\"title\":\"Intro\"}]},\"check_id\":\"chk-r0-pub-2\",\"error\":null,\"passed\":true},{\"actual\":{\"error\":\"track 2: 'seconds' must be at least 1\",\"ok\":false},\"check_id\":\"chk-r0-pub-3\",\"error\":null,\"passed\":true}]}",
+      "name": "replace_function",
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-8e44e4fc606ae3be"
+    },
+    {
+      "content": "Next: sequencing. Firm requirements up front: the sequencer never validates tracks itself, it reuses normalize_tracklist wholesale. It offers two orderings: artist (A to Z, ignoring letter case) and duration (shortest first). And one standing rule for this function only: tracks that come out EQUAL under the chosen ordering keep their original relative order; the sequencer applies no tie-breaking of its own. Separate note for the future: in the playback manifest we will build afterwards, same-artist groups should appear shortest-first. That preference belongs to the manifest step; do not encode it into the sequencer.",
+      "role": "user"
+    },
+    {
+      "content": "Understood: the sequencer delegates all validation to normalize_tracklist, orders by artist case-insensitively A to Z or by duration ascending, and leaves equal-key tracks in their original relative order with no secondary criterion. I have the manifest-only plan on file (same-artist groups shortest-first) and will keep it out of the sequencer. If ties ever feel too loose I could add title-alphabetical as a tie-break, but I will not unless you ask.",
+      "role": "assistant"
+    },
+    {
+      "content": "Implement sequence_playlist(payload) in playlist_prep.py, calling normalize_tracklist. Exact behavior: recognized top-level keys are only \"tracks\", \"order\", \"allow_duplicates\"; any other key follows the standing house rule before any other check. A non-object payload is handed to normalize_tracklist as-is and its result returned. \"order\" is optional and defaults to \"artist\"; a present value other than \"artist\" or \"duration\" returns {\"ok\": false, \"error\": \"'order' must be 'artist' or 'duration'\"}. Call normalize_tracklist with exactly the input's tracks and, when present, allow_duplicates; if it returns ok false, return that result unchanged. On success, take the normalized track objects (keep all fields, ids unchanged) and order them: \"artist\" sorts ascending by artist ignoring letter case; \"duration\" sorts ascending by seconds; per the standing rule tracks equal under the chosen key keep their original relative order. Return {\"ok\": true, \"order\": <effective order>, \"count\": <count from normalization>, \"total_seconds\": <total from normalization>, \"tracks\": <ordered tracks>}. Do not redefine or patch normalize_tracklist, parse_track, or format_clock.",
+      "role": "user"
+    }
+  ]
+}
