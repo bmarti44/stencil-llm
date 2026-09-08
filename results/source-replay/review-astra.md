@@ -596,3 +596,200 @@ exact Round 4 hashes.
 | `qualification-run-01/qualification/calls/call-0001.json` | `8617f87caa07d3900f41382200bd0b6fd0dc0aa47c902d6e7b6fe65b63a292ba` |
 | `qualification-run-01/qualification/workspaces/before.py` | `54bdc654b57070983878684ddaaa5f2357e32e379fd9cfbf3339a389a61c7ba5` |
 | `qualification-run-01/qualification/workspaces/after.py` | `f10275e9cbe51fa746252dcc19f10a07900699b3186147f65ac2c864ed522276` |
+
+## Round 6 — original four-project source, test and schema audit
+
+Score: 68/100
+Disposition: REJECT the original four-project bank for preparation/launch
+eligibility. Collect the verified defects below for the single permitted
+pre-exposure Kimi correction batch; do not repair originals or substitute projects.
+Open findings: #6 high, #7 high, #8 high, #9 low, #10 low. Three open high and zero
+open critical findings. Findings #1–#5 remain resolved.
+
+2026-09-08. Same author-disjoint Astra xhigh reviewer. Rounds 1–5 are
+byte-preserved; their combined pre-append SHA-256 was
+`5fc706b05aaafa433676060a1fe0e40a57a5692eaf25d8081fff97b814b65a4e`.
+All four original authoring requests are terminal. This review reads their
+original public sources, checks, references and mutants, not evolving screen
+implementation or any scientific worker response. No reference/module execution,
+consumer preflight, tokenizer/model load, API/GPU operation or old-bank access
+occurred. Static JSON/AST inspection does not qualify actual consumer execution
+or native output-token headroom.
+
+### 6. [high] Two original responses do not form complete JSON documents (open 2026-09-08)
+
+`author-00/response.json` and `author-02/response.json` preserve complete outer
+service responses, but their `response` text fails JSON parsing at end of input:
+respectively character 20546 (line 1, column 20547) and character 27674 (line 1,
+column 27675), with `Expecting ',' delimiter`. Neither has an `authored.json`.
+Service `done: true` / `done_reason: stop` does not make these valid project
+objects. The recorded authoring errors are accurate.
+
+The existing `public` and `private` child values are complete and separately
+readable directly from each original string. This reviewer decoded those child
+values only in memory to audit their contents; no repaired root object was
+constructed, saved or passed to a consumer. Their content review below does not
+waive root JSON validity. The author must return complete valid documents for
+the same projects in the permitted correction batch, preserving already sound
+content except verified corrections. Root must not append missing syntax itself.
+
+### 7. [high] replay-02 is an unfinished project with no executable private validation (open 2026-09-08)
+
+`author-01/authored.json` parses but has `private.rounds: []`: all three
+references, hidden checks and required new/retained/retirement coverage are
+absent. Round 2's request is the placeholder `m06b` / `x`, instead of `m10` and a
+substantive request. Round 3 has no source messages and its `m15` request is also
+`x`. The final mutant is `x`, an expression rather than a replacement function;
+its designated `c-prv-08` check does not exist. Thus neither complete chronology
+nor the final retirement counterexample can be consumed or reviewed.
+
+The original grant-allocation module and available round 1/2 sources identify
+the same project to complete. Its three existing round 1 public checks are
+arithmetically/source-correct, but cannot supply the missing private checks or
+later rounds. The author must complete this project under the unchanged contract,
+including inclusive check versions, sequential references and a real obsolete
+mutant. Do not replace it with a different project or infer missing requirements
+from its description alone.
+
+### 8. [high] replay-04 wraps all three reference functions in the wrong field type (open 2026-09-08)
+
+Every `private.rounds[*].reference_patch` in `author-03/authored.json` is an object
+with `path`, `symbol`, `source`; the contract's reference field is the replacement
+function source text. The target already supplies the path and symbol. This is
+not the registered source-string representation, even though each object's
+`source` value describes the intended function. Ask the author to supply those
+same source strings directly, without wrapper objects; do not introduce an
+extra accepted schema or silently normalize the authored document.
+
+There is no escape defect: the three parsed sources contain 4/8/6 actual newline
+characters, and the mutant contains four; all have zero literal backslash-n
+sequences. Static AST parsing succeeds on each. The initial/ref1/ref3 sort-key
+lambdas do not trigger the unchanged action validator's prohibition on nested
+function/class definitions. Actual consumer execution remains pending.
+
+### 9. [low] replay-03 misdescribes its starting digit predicate (open 2026-09-08)
+
+The original `m01` says that today's `validate_code` accepts exactly four ASCII
+digits, but the supplied initial function uses `tail.isdigit()`, whose accepted
+digits extend beyond ASCII. This is a discrepancy between the description and
+starting code, not a verified wrong expected output: round 1 explicitly requires
+ASCII `0-9`, targets that function, and its reference uses explicit ASCII
+membership. Existing checks are compatible with that requirement. A narrow
+author correction can align the claimed starting behavior and initial code;
+no broad new negative-input guarantee or additional check gate is requested.
+
+### 10. [low] replay-04's p08 rationale overstates which threshold was retired (open 2026-09-08)
+
+The round 2 private `p08` rationale claims that preserving any trace of the
+`1000/5000` thresholds mislabels 1250. The authoritative `m07` scheme and correct
+reference preserve the 5000 standard/premium boundary. This case establishes
+retirement of the old 1000 budget boundary only. Expected `1250 → budget` is
+correct; narrow the rationale to that effect without changing its input/output
+or treating the still-applicable 5000 boundary as cancelled. This metadata never
+belongs in model prompts and is not evidence of a wrong grading label.
+
+### Complete available source and check audit
+
+Read all 106 extant checks: replay-01 has 11 public/15 private, replay-02 3/0,
+replay-03 25/28, replay-04 11/13. Independently reasoned their accepted values from
+the original visible sources, including interactions, scope and boundaries.
+Found no wrong expected value, source-permitted alternative incorrectly excluded,
+conflicting active output for the same symbol/input, or additional semantic
+coverage deficit in the three complete legible project contents. No gold selected
+IDs or perfect-selection/manual-prose-superiority criterion was imposed.
+
+- **replay-01:** total includes negative amounts, period sums use the fixed hour
+  boundaries, and classification changes propagate through the helper call.
+  The negative `refund` label is explicitly retired for `classify` in round 2;
+  this does not cancel signed summation or change `bucket`. Round 3 separately
+  replaces the flag threshold with inclusive 400 and adds absolute exposure for
+  large-labelled events only. Old whole-output checks expire before changed
+  labels/new keys would invalidate them. Private round 1 p02/p04 cover surviving
+  behavior; round 2 p02/p08/p09 do so while p05/p06 exercise retirement. Round 3
+  retains earlier classify/bucket cases and p14's period boundaries, with
+  retirement witnessed by p05/p06/p11/p15 and new functionality by p12/p13.
+  The final mutant incorrectly uses `amount > 500`; p11's amount 420 separates
+  it from the required flag result. Active public/private counts are 3/4, 6/7,
+  6/10 over the three rounds.
+- **replay-03:** ASCII/case/length restrictions and boolean-rank rejection
+  remain applicable. Sealing and invalid-data decisions precede the urgent
+  silver/gold lane; round 3 inserts numeric weight strictly above 500 before
+  that lane, ignoring the specified non-numeric/boolean weight types. The
+  platinum-to-review step alone is retired; `tier_of` still returns platinum.
+  The old private review outcome expires after round 1 and its new version
+  requires ok from round 2. Multiple retained cases survive every round;
+  private retirement cases prv203/prv204/prv210 remain active into round 3,
+  which adds prv303/prv306. New private functionality is present each round,
+  including unseen inputs and interaction/boundary cases. The mutant restores
+  the platinum review branch and would disagree with prv306's required ok.
+  Active public/private counts are 6/8, 15/17, 25/27.
+- **replay-04:** ascending price/name order from round 1 survives the tier edit,
+  then orders the in-stock and out-of-stock groups in round 3. Tier retirement
+  p07/p08 remains active; the later cancellation of rank filtering is explicitly
+  limited to `rank_items`, leaving `cheapest_in_stock` filtering intact. Old
+  c02/p02/p09 expectations expire through round 2 inclusive. Round 1 p03/p04
+  cover unchanged behavior; later rounds retain those and earlier valid cases.
+  New private functionality appears in each round. Round 3's active retirement
+  coverage includes p07/p08 and p12, so it does not need a second new tagged
+  retirement case merely to meet a count. The final mutant excludes stock-zero
+  items and would fail p12 by omitting `gone`. Active public/private counts are
+  5/4, 7/9, 9/11.
+
+Checked exact extant child-object/check keys, duplicate keys/IDs, finite JSON
+values, visible source references and inclusive intervals. Complete projects
+have m01–m15 in the required 4+1 order per round. All extant source/request texts
+are within 640 UTF-8 bytes; per-project maxima are 410, 369, 532 and 296 bytes.
+Initial modules and complete references/mutants are far below the 65536-byte
+limit and statically parse with the intended single-argument target names, no
+imports/decorators/annotations/nested definitions or top-level computation.
+Only replay-02's placeholder mutant fails that shape. AST inspection establishes
+no actual sandbox result or native token count. The complete references and
+mutants appear consistent with their source/check semantics by inspection;
+the registered actual consumer preflight remains necessary after correction and
+implementation acceptance.
+
+### Provenance, costs and exact reviewed hashes
+
+Each request contains the frozen common authoring prompt verbatim, followed only
+by its fixed project ID and distinct broad domain. All use `kimi-k3:cloud`,
+`stream: false`, `think: true`, with no earlier project/model answer included.
+The receipt request/response/raw-text hashes match original bytes. The two
+existing authored JSON files equal the parsed service text semantically; the
+other two are correctly absent. The four service receipts reconcile to
+**7529 prompt tokens and 89208 service-generated tokens**. Concurrent job elapsed
+time is **438.034577104 seconds**; it is not the sum of per-request times.
+Authoring is terminal with two parsing errors, no automatic retry and no
+scientific worker call. These costs are separate from native qualification or
+future screen costs. No full-bank affordability or utility claim follows.
+
+Paths below are relative to `results/source-replay/`; hashes are SHA-256.
+
+| File | SHA-256 |
+| --- | --- |
+| `SPEC.md` | `01da819289d264926e8492a947b3bf8d6893b89c7559ff8142b9c4dabebda78c` |
+| `DATA-CONTRACT.md` | `6ae44a7794701686cf06a0c32551d9d92b96fb582cd042dee73be95a917a7e4a` |
+| `PROJECT-AUTHORING-PROMPT.md` | `be1e373d63302ea68388e8d6b0afca444878f79017a937249e947cce6b7aaed1` |
+| `project-authoring/job.json` | `a2396678063b7fa93fde35ccb3a12874e237322059c452d785753b4aff81677d` |
+| `project-authoring/author-00/request.json` | `4e81febac26f6618a076542f24a56c72f42f29226a11fa7a16e3c2bd3e07d714` |
+| `project-authoring/author-00/response.json` | `79616e59dfd29dd7bac0582812cc2782789db84dda300440f903f20c31b35b6e` |
+| `project-authoring/author-00/receipt.json` | `644d82c7a6807ce784652e4064fe28d4f9e1a41fba2c033af4d6415ca9941e15` |
+| `project-authoring/author-01/request.json` | `1240c2c3d10fe4bf8ee35e392e3869a1906203267bcea793e1e0fb0cf36f64f8` |
+| `project-authoring/author-01/response.json` | `76c249fcb92261f1f804674d7f45c3d3d1be81612ab7ab177d8fdc0204aa2f3c` |
+| `project-authoring/author-01/receipt.json` | `6fa6f7008c9e7a1e90c58f5171820ce0e163146a5a1f09f07c231e3194298daf` |
+| `project-authoring/author-01/authored.json` | `dd208ea8eb058a912ed41b998a9ce1793d72902785b71d7f63db3ba9f3e0223f` |
+| `project-authoring/author-02/request.json` | `5215126f989be4b67cfcbc196bce529dd48046a2ae3e899b93996308845faf3d` |
+| `project-authoring/author-02/response.json` | `6f51d55e38bbf54d1c856a76c57ed21a7c82d0e4750d476380e00d49d5076e0a` |
+| `project-authoring/author-02/receipt.json` | `fa70ffe6ea1691f78e38e2866b1cdbc82f0c3a2df79abecc6b3f74bb72b5dde6` |
+| `project-authoring/author-03/request.json` | `916bf669c653e5bcd184324ba2e9ef0338d1e78a473b2a2b500ed2aa6cdb03fc` |
+| `project-authoring/author-03/response.json` | `080b37b9d291e0a1cb58a437575584065fe755a81ed98bf55f94b1bf16b35cf1` |
+| `project-authoring/author-03/receipt.json` | `b6b152c6d7dd8853c631d4cfa81e56bb723e1fd211cb30cedfb7d5801465169e` |
+| `project-authoring/author-03/authored.json` | `a535a8b65519ed0764b8327a345fc6565f7f3aa466561b0ddd4a46f168b05d18` |
+
+The unmodified response-text SHA-256 values are, in authored order:
+`4d1fadc21e2b90107d701207816f893b029689abc9f9b2d9dd4f5fec50fe781c`,
+`18c4a072373c09e8c9909d80a1bf1494f4f068aaaf618607dea66f218a357248`,
+`4eed8c87b38d052629d217e9dbed13b284db3cc4a59d1c1100e882169f8cb871`,
+`cd6cd412671763fcf1a1eb58d360fadfdc2eb1bedf3ed9d91c01688f419c09e2`.
+No original project/response was changed. Corrected outputs require independent
+review; if the sole correction batch cannot yield an accepted complete bank,
+stop this preparation under the existing specification.
