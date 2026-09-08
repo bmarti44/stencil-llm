@@ -1,0 +1,413 @@
+{
+  "schema_version": 1,
+  "conversation_id": "source-semantic-20260908-05",
+  "family_id": "source-semantic-family-20260908-05",
+  "split": "withheld",
+  "messages": [
+    {
+      "message_id": "m01",
+      "role": "user",
+      "text": "Time to start the rainwater tank project. The setup: one round poly tank, 5,000 L nominal with a 1.8 m internal diameter, sitting beside the shed here in Trentham. I've got a JSN-SR04T ultrasonic sensor fixed under the lid pointing straight down at the water, and an ESP32 in a junction box doing the reading. The goal is for the ESP32 to turn distance-to-water into a volume and publish it over MQTT to the little dashboard we run on the Pi in the shed. Can you sketch the overall shape of this before we write anything?"
+    },
+    {
+      "message_id": "m02",
+      "role": "assistant",
+      "text": "Sure. Suggested pipeline: the ESP32 pings the sensor, converts distance to water depth, then depth to volume from the tank geometry, and publishes a small JSON payload to your broker; the dashboard subscribes and shows the current level plus a trend. A few things I need from you first: how high is the sensor face above the tank floor (that's our zero-depth reference), how full can the tank physically get, what units do you want shown, how often should it sample, and do you want any alerts?"
+    },
+    {
+      "message_id": "m03",
+      "role": "user",
+      "text": "Sensor face is 2.05 m above the tank floor; the deepest we've ever seen the water is about 1.94 m. On units: report everything in liters and percent full, metric only — I don't want gallons sneaking into the firmware logs, the MQTT payloads or the dashboard. Sample every five minutes. Alerts: low-water at 15% full, and a near-full alert at 98%."
+    },
+    {
+      "message_id": "m04",
+      "role": "assistant",
+      "text": "Great, that pins it down. Depth is 2.05 m minus the measured distance, and volume is straightforward cylinder math from the 1.8 m diameter. Single pings are jittery, so I'd take a burst of 7 readings per sample and publish the median, plus a simple watchdog that flags the sensor if readings go wild or stop entirely. Want me to bake both in?"
+    },
+    {
+      "message_id": "m05",
+      "role": "user",
+      "text": "Yes — median-of-7 smoothing and the watchdog both go in. And a standing rule while we build: you're free to tune the filtering and timing details yourself as the project evolves, but don't change either alert threshold without asking me first."
+    },
+    {
+      "message_id": "m06",
+      "role": "assistant",
+      "text": "Locked in: low at 15%, near-full at 98%, and I come to you before touching either. For MQTT I'm thinking topics along the lines of trentham/tank/level, trentham/tank/status and trentham/tank/alert, with the level reading retained so the dashboard shows something immediately on load. Any preference before I finalize names?"
+    },
+    {
+      "message_id": "m07",
+      "role": "user",
+      "text": "Topic names are your call — pick whatever's clean. Just write them down in the README as you go so the dashboard side can match exactly."
+    },
+    {
+      "message_id": "m08",
+      "role": "assistant",
+      "text": "Will do. Payload draft on the level topic: {'ts': ..., 'liters': ..., 'pct': ..., 'raw_mm': ..., 'rssi': ...}, published retained; alerts go out as events on the alert topic. I'll keep the 15% and 98% thresholds in a single config block at the top of the firmware so there's never any doubt where they live."
+    },
+    {
+      "message_id": "m09",
+      "role": "user",
+      "text": "Payload looks right to me. One aside: the datasheet says, and I'm quoting, 'for best accuracy keep 25 cm clearance above maximum water level.' That's for reference only — our clearance works out to about 11 cm and my bench tests were clean, so please don't treat that sentence as a requirement for anything we build."
+    },
+    {
+      "message_id": "m10",
+      "role": "assistant",
+      "text": "Understood — the 25 cm clearance sentence stays a quote from a document, not a constraint on this build. We're going with your tested 11 cm mounting."
+    },
+    {
+      "message_id": "m11",
+      "role": "user",
+      "text": "OK, first work chunk: get the firmware reading-and-publishing loop built, from taking the burst of pings through to the retained payload landing on the broker.",
+      "task_handle": "build-sensor-publish-loop"
+    },
+    {
+      "message_id": "m12",
+      "role": "assistant",
+      "text": "Loop is in. Bench run against a barrel looks good, though I caught the occasional single wild ping that would have reported a phantom near-empty on its own. The median-of-7 eats those, so the published values stayed sane. Grabbing a real serial dump for the record now."
+    },
+    {
+      "message_id": "m13",
+      "role": "tool",
+      "text": "serial capture — tankbridge dev build: [09:41:02] burst_mm=[1049,1052,1050,298,1051,1048,1050] median_mm=1050 depth_mm=1000 liters=2545 pct=50.9 published=retained | banner note: '# sample-sketch default LOW_PCT=20' still compiled into boot header"
+    },
+    {
+      "message_id": "m14",
+      "role": "assistant",
+      "text": "Two notes from that capture. First, you can see one 298 mm outlier buried in the burst — the median discarded it, exactly as designed. Second, the 'LOW_PCT=20' string is leftover junk from the vendor sample sketch's boot banner, not a spec from anyone, and I'm ignoring it; our low alert stays at your 15%. Also, while it ran overnight, a rain band filled the barrel fast, which raises a question: do you want any indicator for unusually rapid inflow? It's easy to derive."
+    },
+    {
+      "message_id": "m15",
+      "role": "user",
+      "text": "Good instinct, and it leads to two changes. One: retire the 98% near-full alert — the tank has a physical overflow pipe to the storm drain, so a truly full tank is harmless and that alert would just be noise. Two: replace it with a rapid-inflow indicator — if the level climbs more than 8 percentage points within an hour, set heavy_inflow=true in the payload, and clear it once the rise settles."
+    },
+    {
+      "message_id": "m16",
+      "role": "assistant",
+      "text": "Done on both. The 98% near-full alert is out everywhere — firmware, payload logic, dashboard watchlist. heavy_inflow now computes over a rolling one-hour window: a rise greater than 8 points sets the flag, and it clears when the hourly rise drops back under that. The low-water alert is untouched at 15%."
+    },
+    {
+      "message_id": "m17",
+      "role": "user",
+      "text": "One seasonal rule to add, since Trentham frosts are real: I've wired a DS18B20 onto the tank wall to read water temperature. When that reads 3 °C or below, switch the loop into frost-watch — sample every 60 seconds instead of five minutes, and add frost_warning=true to the payload. Once it's back above 4 °C, return to normal."
+    },
+    {
+      "message_id": "m18",
+      "role": "assistant",
+      "text": "Frost-watch implemented with exactly that 3-down/4-up hysteresis so it can't flap around the boundary; the cadence override and the frost_warning field are both in. Do you want a dashboard badge for frost-watch as well, or payload-only for now?"
+    },
+    {
+      "message_id": "m19",
+      "role": "user",
+      "text": "A small payload indicator is enough for now, the badge can wait. And one refinement of the earlier rule: you're now allowed to adjust the smoothing window yourself when the noise warrants it — but never below 3 readings. Alert thresholds still need my sign-off, same as before."
+    },
+    {
+      "message_id": "m20",
+      "role": "assistant",
+      "text": "Noted: window floor of 3 readings, thresholds remain yours alone. All of the above is running in the dev build. While it bakes, an idea: a weekly usage report summarizing consumption, rain events and any alerts, so you can spot garden-watering patterns over time. Interested?"
+    },
+    {
+      "message_id": "m21",
+      "role": "user",
+      "text": "Yes, let's do that. One scoping note on units: in the weekly report only, express consumption in kiloliters with one decimal place — it reads better across a week. The live dashboard, the payloads and the logs all stay in liters exactly as before. Another permission while I'm here: if the broker is ever unreachable, you may buffer readings on the device for up to 24 hours and backfill them when it reconnects — no need to ask me about that."
+    },
+    {
+      "message_id": "m22",
+      "role": "assistant",
+      "text": "Got it: kiloliters with one decimal is a weekly-report-only convention for the consumption figure; everything live stays liters and percent. And store-and-forward for up to 24 hours is pre-approved. For the report itself — how do you want it delivered, and when?"
+    },
+    {
+      "message_id": "m23",
+      "role": "user",
+      "text": "Email it to me Sundays at 18:00. Plain-text body is fine, plus a CSV attachment of the week's samples. Also, a demo rule: whenever the dashboard's demo-mode switch is on — say when we've got visitors for the sustainable-house tour — suppress the buzzer and the dashboard banner for all alerts, but keep logging every alert exactly as usual."
+    },
+    {
+      "message_id": "m24",
+      "role": "assistant",
+      "text": "Locked: Sunday 18:00 email, plain text plus CSV; and demo-mode mutes buzzer and banner while alert logging continues untouched. I'll wire the suppression at the output layer so the alert logic itself never changes with mode."
+    },
+    {
+      "message_id": "m25",
+      "role": "user",
+      "text": "Second work chunk: build the weekly usage report generator end to end, and while you're on the dashboard side, put the demo-mode suppression in too.",
+      "task_handle": "build-weekly-usage-report"
+    },
+    {
+      "message_id": "m26",
+      "role": "assistant",
+      "text": "Both are underway. The generator aggregates in liters internally and renders the kiloliter view only for the consumption line. One question while I'm in there: when frost-watch triggered during a week, do you want that called out in the report, or does it stay a firmware/dashboard concern only?"
+    },
+    {
+      "message_id": "m27",
+      "role": "user",
+      "text": "Yes, call it out when it ran — which reminds me of a reversal I need to make. The council inspector now wants evidence that we monitor overflow risk after all, so reinstate the 98% near-full alert — but log-only this time: record it and show it in the weekly report, and never sound the buzzer or show the dashboard banner for it, whether or not demo mode is on."
+    },
+    {
+      "message_id": "m28",
+      "role": "assistant",
+      "text": "Reinstated exactly that way: the 98% near-full alert is back, but silent — recorded in the alert log and surfaced in the weekly report, with no buzzer and no banner in any mode. Demo-mode suppression stays as it was for the alerts that are audible. Does the inspector need any special export format, or is the weekly report mention enough?"
+    },
+    {
+      "message_id": "m29",
+      "role": "user",
+      "text": "Mention in the weekly report is enough, no special export. And a small correction on the frost line: it should only appear in weeks where frost-watch actually ran — don't print a zero-activity line."
+    },
+    {
+      "message_id": "m30",
+      "role": "assistant",
+      "text": "Understood — the frost-watch line is conditional on real activity that week. Let me run the generator against the sample window as a smoke test so we can check the formatting."
+    },
+    {
+      "message_id": "m31",
+      "role": "tool",
+      "text": "report generator dry-run output: Subject: Tank weekly report 2026-08-31 to 2026-09-06 | Body: Usage: 1.9 kL; Ending level: 3,412 L (68.2%); Alerts logged: low-water 0, near-full (log-only) 1, heavy-inflow 0 | Frost-watch: 47 min across 2 nights | Attachment: tank_2026-09-06.csv (2,034 rows)"
+    },
+    {
+      "message_id": "m32",
+      "role": "assistant",
+      "text": "Dry run reads correctly: consumption renders as 1.9 kL with one decimal per your weekly-report convention, while the ending level stays in liters and percent because the kiloliter rule was scoped to consumption only. The frost line printed because frost-watch genuinely ran inside the sample window; quiet weeks won't show it. And to be clear, every figure in that dry-run is dummy data for the smoke test, not a measurement from your tank."
+    },
+    {
+      "message_id": "m33",
+      "role": "user",
+      "text": "Exactly how I meant it. Two things before the final pass. One: you may upgrade the report email to HTML if the mail library cooperates — your call — but the CSV attachment stays either way. Two: I want threshold and cadence settings read from a single shared config that firmware, dashboard and report all consume, so we never get three components disagreeing about what 15% means."
+    },
+    {
+      "message_id": "m34",
+      "role": "assistant",
+      "text": "Both accepted: HTML is a permitted option contingent on the mail library, with the CSV unconditional; and a single shared config becomes the one source of truth for thresholds and cadence across all three components. Draft final checklist of what's live: 15% low-water alert (audible), 98% near-full as log-only, heavy_inflow flag at greater than 8 points per hour, frost-watch with 3-down/4-up hysteresis, demo-mode suppression of buzzer and banner, and the Sunday report with kiloliters for consumption plus a conditional frost line. Anything to add before the pass?"
+    },
+    {
+      "message_id": "m35",
+      "role": "user",
+      "text": "One addition for the checklist: heavy-inflow should also get a line in the weekly report for any week it fired — same conditional treatment as the frost line."
+    },
+    {
+      "message_id": "m36",
+      "role": "assistant",
+      "text": "Added: the weekly report now carries a heavy-inflow line for weeks where the flag fired, mirroring the frost line's conditional appearance. The checklist is otherwise exactly as stated. Ready when you are."
+    },
+    {
+      "message_id": "m37",
+      "role": "user",
+      "text": "Go ahead — final work chunk: do the integration pass across firmware, dashboard and weekly report, wire frost-watch end to end against the shared config, and close out with a summary of everything that's now live.",
+      "task_handle": "final-integration-pass"
+    }
+  ],
+  "queries": [
+    {
+      "message_id": "m11",
+      "target": {
+        "obligations": [
+          {
+            "text": "All reported values must be in liters and percent full, metric only — no gallons anywhere in the firmware logs, the MQTT payloads or the dashboard.",
+            "source_ids": [
+              "m03"
+            ]
+          },
+          {
+            "text": "Sample the sensor every five minutes.",
+            "source_ids": [
+              "m03"
+            ]
+          },
+          {
+            "text": "Maintain a low-water alert at 15% full and a near-full alert at 98% full; the assistant may tune filtering and timing details itself as the project evolves, but must ask the user before changing either alert threshold.",
+            "source_ids": [
+              "m03",
+              "m05"
+            ]
+          },
+          {
+            "text": "Volume conversion is based on the stated geometry: round tank of 1.8 m internal diameter (5,000 L nominal), sensor face 2.05 m above the tank floor as the zero-depth reference, maximum observed water depth about 1.94 m.",
+            "source_ids": [
+              "m01",
+              "m03"
+            ]
+          },
+          {
+            "text": "Each sample takes a burst of 7 pings and publishes the median, with a watchdog that flags wild or stalled readings (assistant proposal, adopted by the user).",
+            "source_ids": [
+              "m04",
+              "m05"
+            ]
+          },
+          {
+            "text": "The assistant may choose the MQTT topic names itself, but it must write them down in the README as it goes so the dashboard side can match exactly.",
+            "source_ids": [
+              "m07"
+            ]
+          },
+          {
+            "text": "The quoted datasheet sentence about keeping 25 cm clearance above maximum water level is reference-only quoted text and must not be adopted as a requirement; the existing roughly 11 cm clearance is accepted.",
+            "source_ids": [
+              "m09"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "message_id": "m25",
+      "target": {
+        "obligations": [
+          {
+            "text": "Everything stays metric in liters and percent full across firmware logs, MQTT payloads and the live dashboard — with one task-scoped exception: the weekly report expresses the consumption figure in kiloliters with one decimal place, while all other figures and all live surfaces remain liters/percent.",
+            "source_ids": [
+              "m03",
+              "m21"
+            ]
+          },
+          {
+            "text": "Normal sampling is every five minutes; as a conditional exception, when the DS18B20 water-temperature reading is 3 °C or below the loop enters frost-watch — sample every 60 seconds and add frost_warning=true to the payload — and it returns to normal only once the temperature is back above 4 °C.",
+            "source_ids": [
+              "m03",
+              "m17"
+            ]
+          },
+          {
+            "text": "The low-water alert remains at 15% full, and no alert threshold may be changed without the user's sign-off; the 'LOW_PCT=20' string seen in the boot header is leftover junk from the vendor sample sketch, not a spec, and must be ignored.",
+            "source_ids": [
+              "m03",
+              "m05",
+              "m19",
+              "m14"
+            ]
+          },
+          {
+            "text": "The 98% near-full alert is retired (physical overflow pipe makes it harmless noise); in its place, set heavy_inflow=true in the payload whenever the level climbs more than 8 percentage points within an hour, clearing the flag once the rise settles.",
+            "source_ids": [
+              "m15"
+            ]
+          },
+          {
+            "text": "Keep median smoothing and the watchdog; the assistant may now adjust the smoothing window itself when noise warrants, but never below 3 readings.",
+            "source_ids": [
+              "m04",
+              "m05",
+              "m19"
+            ]
+          },
+          {
+            "text": "MQTT topic names remain the assistant's choice but must be documented in the README so the dashboard side can match exactly.",
+            "source_ids": [
+              "m07"
+            ]
+          },
+          {
+            "text": "The quoted 25 cm datasheet clearance sentence remains reference-only and imposes no requirement; the roughly 11 cm mounting stays.",
+            "source_ids": [
+              "m09"
+            ]
+          },
+          {
+            "text": "If the MQTT broker is unreachable, readings may be buffered on the device for up to 24 hours and backfilled when it reconnects, without asking the user.",
+            "source_ids": [
+              "m21"
+            ]
+          },
+          {
+            "text": "Weekly report delivery: emailed to the user on Sundays at 18:00, with a plain-text body plus a CSV attachment of the week's samples.",
+            "source_ids": [
+              "m23"
+            ]
+          },
+          {
+            "text": "Whenever the dashboard's demo-mode switch is on, suppress the buzzer and the dashboard banner for all alerts, while continuing to log every alert exactly as usual.",
+            "source_ids": [
+              "m23"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "message_id": "m37",
+      "target": {
+        "obligations": [
+          {
+            "text": "Everything stays metric in liters and percent full across firmware logs, MQTT payloads and the live dashboard — with one task-scoped exception: the weekly report expresses the consumption figure in kiloliters with one decimal place, while all other figures and all live surfaces remain liters/percent.",
+            "source_ids": [
+              "m03",
+              "m21"
+            ]
+          },
+          {
+            "text": "Normal sampling is every five minutes; when the DS18B20 water-temperature reading is 3 °C or below the loop enters frost-watch — sample every 60 seconds and add frost_warning=true to the payload — returning to normal only once the temperature is back above 4 °C.",
+            "source_ids": [
+              "m03",
+              "m17"
+            ]
+          },
+          {
+            "text": "The low-water alert remains at 15% full, and no alert threshold may be changed without the user's sign-off; the 'LOW_PCT=20' boot-header string from the vendor sample sketch is junk, not a spec, and stays ignored.",
+            "source_ids": [
+              "m03",
+              "m05",
+              "m19",
+              "m14"
+            ]
+          },
+          {
+            "text": "Set heavy_inflow=true in the payload whenever the level climbs more than 8 percentage points within an hour, clearing when the rise settles, and add a heavy-inflow line to the weekly report for any week in which the flag fired.",
+            "source_ids": [
+              "m15",
+              "m35"
+            ]
+          },
+          {
+            "text": "The 98% near-full alert is reinstated but log-only: record it in the alert log and show it in the weekly report, and never sound the buzzer or show the dashboard banner for it, whether or not demo mode is on.",
+            "source_ids": [
+              "m27"
+            ]
+          },
+          {
+            "text": "Whenever the dashboard's demo-mode switch is on, suppress the buzzer and the dashboard banner for the audible alerts, while logging of every alert continues exactly as usual.",
+            "source_ids": [
+              "m23"
+            ]
+          },
+          {
+            "text": "Keep median smoothing and the watchdog; the assistant may adjust the smoothing window itself when noise warrants, but never below 3 readings.",
+            "source_ids": [
+              "m04",
+              "m05",
+              "m19"
+            ]
+          },
+          {
+            "text": "MQTT topic names remain the assistant's choice but must be documented in the README so the dashboard side can match exactly.",
+            "source_ids": [
+              "m07"
+            ]
+          },
+          {
+            "text": "The quoted 25 cm datasheet clearance sentence remains reference-only and imposes no requirement.",
+            "source_ids": [
+              "m09"
+            ]
+          },
+          {
+            "text": "If the MQTT broker is unreachable, readings may be buffered on the device for up to 24 hours and backfilled on reconnection without asking.",
+            "source_ids": [
+              "m21"
+            ]
+          },
+          {
+            "text": "The weekly report is emailed Sundays at 18:00 with a CSV attachment of the week's samples; the body is plain text, but may be upgraded to HTML at the assistant's discretion if the mail library cooperates — the CSV stays either way; the frost-watch line appears only in weeks where frost-watch actually ran.",
+            "source_ids": [
+              "m23",
+              "m29",
+              "m33"
+            ]
+          },
+          {
+            "text": "Threshold and cadence settings must be read from a single shared config consumed by firmware, dashboard and weekly report alike, so the three components can never disagree.",
+            "source_ids": [
+              "m33"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
