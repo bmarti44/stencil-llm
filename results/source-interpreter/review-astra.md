@@ -55,3 +55,123 @@ Read the specification and operational context, checked its alignment with the a
 **Finding 1 — medium, resolved 2026-09-08.** The specification now explicitly requires the final query to be the conversation's final source message and separately reports actual prefix token lengths from whole-conversation message bands. This closes the precise unqueried-tail gap without changing packet size, quotas or semantic difficulty. The claimed future consumer regression is not treated as tested implementation evidence in this round.
 
 **Specification disposition: accepted, 96/100; zero open findings, including zero open high or critical findings.** The concrete direction is ready for its planned preparation work. Final preparation acceptance remains **PENDING** stable implementation, independently reviewed authored data and complete actual-token CPU evidence in this same review topic. This score establishes neither a training result nor permission for a later training, inference or serving experiment.
+
+## Round 3 — original authored data 70/100; NOT ACCEPTED
+
+2026-09-08. This is one review round over six unchanged original documents, supplied in three completed pairs. Scope expanded only as each pair became terminal and its exact hashes were handed off. All six sources and all eighteen targets have now been read. There are **six open high findings (#2, #3, #6, #8, #9, #10), three open medium findings (#4, #5, #7), and zero critical findings**. Specification finding #1 remains resolved. The specification's earlier acceptance is unchanged; these gold labels are not accepted. Final preparation also remains pending stable implementation review and actual-token CPU evidence.
+
+### Exact input and provenance bindings
+
+Frozen specification/request commit: `79f08bc2`. PREP remains bound to `5a8536453e52a9427aae02e8a32d6671b9968bc667e483d80f09b2a3be01898e`. Paths below are under `results/source-interpreter/`.
+
+| Document | Authored SHA-256 | Adjacent receipt SHA-256 |
+| --- | --- | --- |
+| `author-00/authored.json` | `4db3442589b88765f29fc9393150a0f2a27fc310ffd8f9b11efa7bd432612fb1` | `116b245dd75ccc1e78038492d8535ec67ebaf0fd1a45f814bf3effac04468a01` |
+| `author-01/authored.json` | `b3975357ce54d5d40f4e50252b22b02318d647254c19dfef4447409fe84b877e` | `59e88ee13f34a20f0e34ce29e540bbe0805c65df548b8e3712f4d40ed594225d` |
+| `author-02/authored.json` | `e914f3f59bfa4ef9b460386ab1e4d080017c039d1f7444c83faf1abbb91b66e0` | `0d76336b7d1fe3cc02e75006dbaaf05797640c89f6bbc25595f914d3dd638ed8` |
+| `author-03/authored.json` | `cad40b35a3f8f8a80e48f0a486622969b655deeca4648c45d3bc8799115432f6` | `b2f7f7655edb8a9c9856532ff9aa95bbdbbff7f346b0f9d779b12cd4f4697c92` |
+| `author-04/authored.json` | `3603763508be712f44327d42ae7450fc27a5029d2e40869b698902d5c96e54c5` | `c148596b12d6ed01f135a4df0b5354b82391ad361740323cfdaf4319a5d93c34` |
+| `author-05/authored.json` | `285f4e2b4446f8f5455276a925083d726c1fcd1f35af47ae2504d9a5bf3b3514` | `97e6de2465440eb01ba57a69eb8bbd03fae5e31f953e9a6516bbca6d6345de8c` |
+
+Independently verified for each document: request bytes equal the request in the frozen commit; request, raw response, response-text and authored-document hashes match the receipt; the raw response is terminal `done=true`/`done_reason=stop`; parsing its response text produces exactly the saved authored document, with no semantic transformation. The FIT receipt purpose is explicit and the legacy helper's former DEV purpose is disclosed separately. These checks support this authoring lineage; they do not prove originality against all possible external material or establish that any fictional tool output actually occurred.
+
+Basic document checks also passed: exact top-level and message/query/obligation fields, fixed FIT identities, unique source IDs, three distinct ordered user queries with task handles, no extra handled checkpoint, final query at the final source message, and all nonempty citations inside their inclusive prefixes. This is an independent read/structure check, not a claim that the production helper has passed.
+
+| Author / family | Whole messages | Queried prefix message counts | Obligation counts |
+| --- | ---: | --- | --- |
+| 00 / observatory reservations | 12 | 1, 5, 12 | 3, 7, 0 |
+| 01 / city tree inspections | 11 | 3, 7, 11 | 7, 8, 8 |
+| 02 / museum object loans | 20 | 1, 8, 20 | 4, 9, 13 |
+| 03 / makerspace checkout | 21 | 6, 13, 21 | 7, 10, 14 |
+| 04 / bird-survey export | 40 | 12, 24, 40 | 6, 11, 14 |
+| 05 / ceramics kiln log | 38 | 5, 22, 38 | 3, 11, 15 |
+
+The two-per-band requirement is satisfied. Actual token lengths and loss boundaries have not yet been measured in this review.
+
+### Finding 2 — high, open: author-00 turns a domain-error restriction into a ban on every catch
+
+Path: `author-00/authored.json`, `/queries/1/target/obligations/3/text` (m05 checkpoint; all array paths are zero-based).
+
+The label says the sole permitted catch is the CLI catch and that “no catches may appear anywhere else.” Authentic m03 forbids broad `Exception` catches and says domain errors propagate. In m04 the assistant asks about catching `ReservationError` at the CLI boundary; m05 authorizes exactly that catch there and nowhere else. This does not prohibit every unrelated, specific exception catch everywhere in the project. The target broadens the user's prohibition and would teach false permission scope.
+
+Correction direction: have Kimi restore the exact class/domain and location scope, including the CLI exception, without weakening the actual broad-Exception ban or ordinary domain-error propagation. Preserve the sources and both substantive service tasks. The other m05 conventions are present: runtime/test dependency distinction, UTC, duration units and boundary rounding, logging identifiers, and doctest retirement with annotations and pytest replacement.
+
+### Finding 3 — high, open: author-01's final target distorts write and audit permissions
+
+Paths: `author-01/authored.json`, `/queries/2/target/obligations/1/text` and `/queries/2/target/obligations/6/text` (m-11).
+
+The first label makes shadow bookings and tentative holds the **only** permitted writes. Yet m-01 and m-11 require auditing the storm-emergency bypass, and m-09 requires `request_id` in audit entries. The target separately requires that audit too, leaving its supposedly exhaustive write permission inconsistent. The second path says the bypass **plus** the required audit entry must include `request_id`; the source establishes that field requirement for audit entries, not an additional input precondition for allowing the bypass. The actual bypass conditions are `incident_id` and supervisor approval, with mandatory auditing.
+
+Correction direction: preserve all required audit behavior and its field scope, the non-production storage restriction, role restrictions, and conflict-implies-no-write priority. Do not repair this by dropping auditing or by adding new request prerequisites. The source does not establish that every active wildlife hold is necessarily a validation conflict, so this review does not invent that equivalence. The existing target's separate conflict/no-write clause matters when reading its tentative-hold language; any corrected permission statement must preserve that conditional interaction rather than become an unconditional instruction to write holds for every wildlife-held tree.
+
+### Finding 4 — medium, open: unrelated command contracts enter current-task focus
+
+Affected paths:
+
+- `author-01/authored.json`, m-07 `/queries/1/target/obligations/1` (the schedule-validation/no-saving portion) and `/queries/1/target/obligations/3` (POST HTTP-200 contract).
+- `author-05/authored.json`, m22 `/queries/1/target/obligations/3`, `/4`, `/5` (importer-only handling).
+- `author-05/authored.json`, m38 `/queries/2/target/obligations/3`, `/4` (importer handling), `/6` (show atmosphere display), and `/12` (list filter/totals contract).
+
+These are generally accurate historical clauses and explicitly retain their original endpoint/command names. That limits the defect: they do not simply order GET to use POST semantics or report to behave as show. They nevertheless belong to other tasks, with no source-established call dependency that makes those detailed command contracts applicable to the current preview, add/list/show, or report work. The target domain is current standing focus, not an inventory of all still-existing command behavior.
+
+Correction direction: Kimi should project to the actual current task while retaining global conventions and applicable domain/dependency rules. In author-05, money units, nullable `loaded_by`, database conventions, gas/oos semantics relevant to report counts, the path/force rule, and the **show-only exception bounding the otherwise global timezone rule** should remain. This finding neither requires restating a whole algorithm nor licenses deleting constraints just because they originated during an earlier task.
+
+### Finding 5 — medium, open: author-02 narrows the naming convention without source authority
+
+Paths: `author-02/authored.json`, `/queries/0/target/obligations/1/text`, `/queries/1/target/obligations/1/text`, `/queries/2/target/obligations/1/text`.
+
+m01 introduces conventions holding throughout the project, separately says public functions need specified docstrings, and says “names stay snake_case.” Every target turns the naming convention into public-function names only. The source does not grant an exemption for other otherwise covered names. Explicitly prescribed identifiers such as `LoanError` must of course retain their given spelling; that is not permission to narrow the whole convention to public functions.
+
+Correction direction: preserve the original naming scope and explicit prescribed names, rather than silently choosing the narrower target or making the source requirement easier. The rest of this author's state transitions are substantially faithful: dicts over the rejected dataclass, cents/rounding, TOML replacement while retaining startup loading, audit requirements, malformed-input versus real-conflict behavior, JSON CLI output, network scope with three total attempts, and non-overridable high-risk/manual-review handling.
+
+### Finding 6 — high, open: author-03 drops the database-only state invariant
+
+Paths: `author-03/authored.json`, the obligation lists at `/queries/1/target/obligations` (m13) and `/queries/2/target/obligations` (m21); compare `/queries/0/target/obligations/2`.
+
+m03 explicitly requires holds **and every other bit of state** to live in the application database. This is correctly present at the first checkpoint and absent at both later checkpoints, where fee ledgers, holds and waivers make it directly relevant. A ban on external services does not prohibit local files or in-memory state and therefore does not replace this invariant. m11 approves staging Postgres; it does not retire the application-database requirement.
+
+Correction direction: restore the persistent invariant, with the actual SQLite dev/test and approved staging-Postgres scope. The later target already has an explicit Postgres-approval obligation, so this is **not** an additional finding that the entire target omits that approval. Any rewrite of the generic external-service wording must remain consistent with that specific approval and continue rejecting unapproved Redis/services.
+
+### Finding 7 — medium, open: author-03's adopted-layout citations omit the originating proposal
+
+Paths: `author-03/authored.json`, `/queries/0/target/obligations/4/source_ids`, `/queries/1/target/obligations/3/source_ids`, `/queries/2/target/obligations/3/source_ids`.
+
+These labels describe `app/` with `routers/`, `models/`, `schemas/`, `services/` as part of the adopted layout, but cite only m04 and m05. That directory proposal appears in m02; m04 supplies the refined model/router split and migration proposal, and m05 supplies user adoption with the table-name correction. The source/adoption chain for the full label is incomplete in its citations.
+
+Correction direction: Kimi must make the exact claimed layout and its provenance agree, preserving the authentic proposal/refinement/adoption chain rather than treating any assistant suggestion as authority by itself. m04's Alembic proposal and m05's adoption must be interpreted in that context; the generic ask-before-new-dependency policy must not silently revoke something actually adopted. This review does not require the target to repeat every one-off migration DDL operation or automatically promote every assistant implementation detail into a standing rule.
+
+### Finding 8 — high, open: author-03 loses an explicit pending user decision
+
+Path: `author-03/authored.json`, `/queries/1/target/obligations` (m13); authentic m12–m13.
+
+The assistant raises the treatment of pre-fee-era checkouts, and the current user request says to leave that edge flagged until the user rules on it. The gold focus omits that unresolved decision entirely. This is a current authority/deferral constraint, not an algorithm that the selector must reproduce. A complete target cannot silently treat the outstanding policy as settled. The later assistant's accrual-with-TODO statement is not a user ruling, and m16's grandfathering decision is future information at this checkpoint.
+
+Correction direction: retain the unresolved user-decision status at m13, without importing the later exemption or inventing a current legacy policy. At m21, the actual m16 grandfathering instruction is correctly present and should remain.
+
+### Finding 9 — high, open: author-04 converts qualified permissions and an assistant claim into established authorization/state
+
+Path: `author-04/authored.json`, `/queries/2/target/obligations/10/text` (m40), with citations to m16, m17, m29, m30.
+
+The label says optional `--dry-run` and `--summary` “are in place.” No source reports that dry-run was implemented; m16–m17 grant only an optional testing feature under an effort cap. For summary, m29 imposes both “if it costs you nothing” and no delay to GeoJSON. The target drops the former qualifier and declares the condition met based on the assistant's m30 no-delay implementation claim. That does not establish satisfaction of both user conditions, and a fallible assistant status statement is not new user authorization.
+
+Correction direction: retain exact optionality, effort/no-cost and no-delay conditions, distinguishing permission from reported implementation. The newer m39 stdout-only-written-paths convention must continue to govern the current batch; older optional display permissions cannot override it. Do not drop either optional feature merely to avoid representing its qualifications. The actual CSV-to-GeoJSON authorization, sensitive-species exception, Nightjar exclusion then retirement, zero-count preservation, deterministic output, and parked OAuth scope are otherwise represented meaningfully.
+
+### Finding 10 — high, open: author-05 weakens the adopted storage contract
+
+Paths: `author-05/authored.json`, missing layout convention in `/queries/1/target/obligations` and `/queries/2/target/obligations`; narrowed trigger ban at `/queries/1/target/obligations/8/text` and `/queries/2/target/obligations/9/text`.
+
+m14 proposes the `batches`/`entries` table split and m15 explicitly adopts it. Neither later target states that adopted split. Mentioning an `entries.loaded_by` property and a database filename is not a complete statement of the adopted storage layout. Also, m15 says “no triggers” and substitutes `bump_rev()` on every write path. Both targets narrow this to no triggers **for revision tracking**, allowing other trigger purposes that the user did not authorize. These are continuing storage conventions, directly relevant to the add/query/report code, rather than a demand to restate those commands' algorithms.
+
+Correction direction: retain the adopted split with the proposal/adoption provenance and the original unqualified trigger prohibition, alongside integer cents, nullable `loaded_by`, the explicit revision helper and WAL/no-custom-locking rules. Do not narrow the original source ban to match the defective target.
+
+### Packet assessment and bounded correction disposition
+
+The packet contains meaningful original scenario development rather than a repeated rule list: reservation planning and retirement, role-controlled tree scheduling, loan validation and approval policy, material checkout and fee decisions, export-format/embargo changes, and kiln storage/reporting. Some common coding conventions recur across families, which is expected in a small calibration packet; differing IDs alone are not my basis for assessing their distinct scenario structures. Within the inspected request/source evidence I found no supplied old example or obvious copied scenario. That is a bounded lineage/originality assessment, not proof about Kimi's pretraining or every external source.
+
+Coverage is substantively present for global versus task-scoped rules, permission conditions, exceptions, explicit adoption/rejection, replacement/retirement, and irrelevant future work. Examples include the museum retry-count clarification, makerspace postponed SSO, exporter OAuth deferral and embargo retirement, and kiln's unbuilt export delimiter. These are useful interpretation challenges and should not be simplified away during correction.
+
+Exactly one target is empty: author-00 m12. This is legitimate. User m10 retires **every** session convention; m12 explicitly starts a separate substantive analysis task with its own algorithm and no new standing convention. All seventeen other targets are nonempty. Neither the empty target nor the absence of full algorithm summaries is a defect. The authored tool-result narratives are source events in fictional conversations, not execution evidence for the described software.
+
+Proceed, within the parent's existing authoring authorization, to a single guarded Kimi semantic correction round addressing the exact findings while preserving the original conversations, families, query identities, substantive work and meaningful scope changes. Root must not author replacement gold semantics. Preserve originals, raw correction output and exact guarded patches; re-review the changed labels and their consequences. If a source ambiguity actually requires clarification, make it explicit for independent review rather than quietly narrowing the task or adding authority to justify a desired label.
+
+No implementation was inspected in this data round; no generated code, model, server or training was run. The only local execution was read-only JSON/hash/structure verification. Label correction is not a permission to tune on future evaluation, select a cap, simplify long examples, or claim useful transfer. **Original-data disposition: NOT ACCEPTED, 70/100. Final preparation remains PENDING corrected accepted labels, stable helper review and all eighteen actual-token CPU rows.**
