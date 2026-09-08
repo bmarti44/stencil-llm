@@ -2,14 +2,18 @@
   "accepted_code_review": {
     "open_findings": 0,
     "path": "results/source-interpreter/fit-review-astra.md",
-    "round": 3,
-    "scope": "FIT runner corrections accepted; outer monitor review pending",
+    "round": 4,
+    "scope": "runner accepted round3 and concrete outer monitor accepted round4",
     "score": 96,
-    "sha256": "fc2fada2f6463db7d4e8cb738c2086602c77dd69af303390f020f2dabafb5eac"
+    "sha256": "7997820c7bb5aee2b4b6940a21041be51d1ac64e091517f8cf7799fd5b8e867e"
   },
   "attempts": 1,
   "automatic_retry": false,
   "bindings": {
+    "results/coding-auto-reasoning/research-next/base-assets.json": {
+      "bytes": 6525,
+      "sha256": "4987d6eec20a7628d45d64799cb8b7fc7250870be2e868755880e70b7e2b5227"
+    },
     "results/source-interpreter/FIT-CODE-BRIEF.md": {
       "bytes": 7226,
       "sha256": "9a3836c0e08944052d98c86c21e7b09c952778f396af0ac8133c813293328e6f"
@@ -25,6 +29,10 @@
     "results/source-interpreter/accepted-inputs.json": {
       "bytes": 3415,
       "sha256": "6beea4bb534e0991fc0444d634f92882ff61191880c43cf4e68da730753c4bf8"
+    },
+    "results/source-interpreter/fit-review-astra.md": {
+      "bytes": 32203,
+      "sha256": "7997820c7bb5aee2b4b6940a21041be51d1ac64e091517f8cf7799fd5b8e867e"
     },
     "results/source-interpreter/fit/observer-qualification.json": {
       "bytes": 4189,
@@ -55,6 +63,7 @@
       "sha256": "e04b4cc839d3d906f9ff85513b495c6e0cebcdd63c45cd9413819675679790ee"
     }
   },
+  "code_commit": "6949d66a8f2544a14f2a5c6d7c4286ed717fe084",
   "command": [
     "/home/bmarti44/stencil-llm/.venv/bin/python",
     "/home/bmarti44/stencil-llm/scripts/source_interpreter_fit.py",
@@ -69,6 +78,14 @@
   "interpretation": "fixed FIT training and two FIT-only generation cost calls; no fresh semantic or coding-utility evidence",
   "kind": "source-interpreter-fit-root-launch-plan",
   "launch_freeze_required": true,
+  "observer_command": [
+    "/home/bmarti44/stencil-llm/.venv/bin/python",
+    "/home/bmarti44/stencil-llm/tools/observe_source_fit.py",
+    "--plan",
+    "/home/bmarti44/stencil-llm/results/source-interpreter/fit/launch-plan.json",
+    "--execute"
+  ],
+  "observer_commit": "2c65507d",
   "outer_observer": {
     "clock_start": "monotonic immediately before supervisor Popen; preserve UTC/unix start too",
     "implementation": "tools/observe_source_fit.py; main guard, standard library only, explicit --execute required",
@@ -86,5 +103,5 @@
   },
   "run_dir": "/home/bmarti44/stencil-llm/results/source-interpreter/fit/run-01",
   "schema_version": 1,
-  "status": "DRAFT_AWAITING_OUTER_MONITOR_REVIEW_NOT_EXECUTABLE"
+  "status": "FROZEN_READY"
 }

@@ -430,3 +430,84 @@ observer, followed by independent review of its actual evidence. Acceptance
 here establishes readiness of the reviewed runner under that launch contract;
 fresh semantic comparison and adequate larger executable coding proof remain
 separate, unestablished requirements.
+
+## Round 4 — concrete outer-observer review, 2026-09-08
+
+**Score: 96/100. ACCEPTED — prelaunch outer monitor. Zero new or open
+findings, including zero high or critical findings.** Findings #1–#3 retain
+their round-3 resolutions; all prior rounds are preserved. Same independent
+native **gpt-6-astra, xhigh** session and user-directed reviewer substitution.
+This narrow round verifies the actual orchestration tool and its existing
+dummy-process receipts under the division of responsibility accepted in round
+3. It does not reopen the frozen ML runner or accept an actual FIT result.
+
+Reviewed root process-tooling commit `2c65507d` and independently checked:
+
+| Artifact | SHA-256 |
+| --- | --- |
+| `tools/observe_source_fit.py` | `e04b4cc839d3d906f9ff85513b495c6e0cebcdd63c45cd9413819675679790ee` |
+| `results/source-interpreter/fit/observer-qualification.json` | `fb8f8297fb9b2ff9d6c153bfe2314777ed47248243a2d547cc5dbcb63527bbc6` |
+| Unchanged `scripts/source_interpreter_fit.py` | `fe526cc2fe61c183f2a2c4d5db801f8ac684c2f7ad8db7f01980994212c5ee36` |
+
+**Initial and whole-process bounds.** The observer takes its initial monotonic
+sample before launching the supervisor, so pre-child qualification is included.
+It retains the initial deadline until it observes `generation-base` or
+`generation-adapter` at `INTENT`/`COMPLETION_PENDING`, checking time again after
+reading the durable stage file and before accepting that transition. The
+accepted fixed child can reach either stage only after its training completion
+check. A per-training `COMPLETE` file alone does not release the outer bound.
+Confirmed whole supervisor exit within the initial interval also establishes
+that bound. The loop otherwise retains the whole deadline, with successful
+termination requiring actual elapsed time within 2,400 seconds. The interval
+ends after confirmed supervisor exit and any required owned-group cleanup,
+therefore includes the supervisor's final publication and exit tail.
+
+**Ownership, failure and launch behavior.** `Popen(start_new_session=True)`
+creates the observer's own private process group; the accepted supervisor's
+model child inherits it. The observer registers itself and its launched
+supervisor and signals only that known group. Timeout/error handling terminates
+the owned group and waits for its supervisor; receipt fields retain actual
+elapsed time and incomplete status. Success additionally requires zero
+supervisor exit, inner lifecycle `COMPLETE`, confirmed model-child exit and an
+absent owned group. Cleanup latency following timeout is measured and cannot
+turn an exceeded reservation into success. No retry path exists.
+
+The tool has a main guard and only standard-library imports. Its default mode
+checks the supplied artifact sizes/hashes and launches no process. Actual
+execution requires explicit `--execute`, `FROZEN_READY` and an accepted-review
+entry. The reviewed launch manifest is still a draft; root must bind the final
+canonical review hash, exact command, tool and inputs in the final frozen
+manifest before invoking execution. This review does not treat draft metadata
+as launch authority or claim that the tool independently grades review prose.
+
+**Qualification reconciliation.** Read the three recorded dummy commands and
+their actual consumer receipts, recomputing elapsed and reservation arithmetic:
+
+| Case | Initial / whole reservation | Actual elapsed | Recorded outcome |
+| --- | --- | --- | --- |
+| Initial timeout | 0.12 / 1.0 seconds | 0.121301820 seconds | `INCOMPLETE_INITIAL_TIMEOUT` |
+| Whole timeout after generation-stage observation | 0.5 / 0.8 seconds | 0.803450375 seconds | `INCOMPLETE_WHOLE_TIMEOUT` |
+| Ordinary completion | 0.5 / 1.0 seconds | 0.073729666 seconds | `COMPLETE_UNREVIEWED` |
+
+Both recorded transitions precede their initial deadlines; the first timeout
+has no transition. Timeout exit codes are -15; successful exit is zero with
+the required inner lifecycle. All receipts report confirmed exits and absent
+groups. Observer/supervisor IDs are present in the ownership registry, and the
+three exact supervisor PIDs are currently absent. This audit reconciles the
+existing recorded process qualification; it does not claim a second live group
+measurement during those historical runs.
+
+Independently invoked the actual observer CLI without `--execute` against the
+current draft manifest: **PASS, launch bindings checked; no process launched**.
+Parsed the stable tool as Python and inspected its full execution path. The
+recorded three consumer runs and direct dry qualification cover this small
+monitor's relevant behavior; no redundant dummy runs, ML tests or full suite
+were needed.
+
+Only this canonical review was changed. No code/specification/ledger edit,
+commit, process launch, model/weights/GPU operation, ML runtime import, network,
+new data or evaluation occurred in this round. The root may now complete the
+prospective manifest freeze and perform the one registered FIT job under the
+accepted monitor. Actual run evidence still requires independent audit, and
+neither prelaunch acceptance nor FIT-only cost evidence establishes fresh
+semantic transfer or adequate larger executable coding utility.
