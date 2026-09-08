@@ -877,3 +877,149 @@ access, private-map access, full suite, code edit or commit was performed in
 this audit. Only this canonical review is written. The accepted packet remains
 a qualified fresh instruction-reading screen; larger executable coding utility
 is still unproven.
+
+## Round 8 — 2026-09-08 — actual execution and evidence audit
+
+Score: 96/100
+
+Decision: **execution accepted; zero open high/critical findings and no new
+findings.** All 36 registered calls completed within the actual supervised
+bounds with the required evidence. This establishes execution eligibility for
+the separate semantic assessment; it does not establish semantic correctness,
+learning improvement, practical advancement or coding utility. Prior closures
+and deferred qualifications #6/#10 remain unchanged.
+
+The single model job is terminal: exact session 16331, exit 0, frozen launch
+commit `2d016c8d94d20559e943bb067a7c9d7b7f1f75b8`, archived at
+`123a7dea522fa5327d5ec8d29f942ae39ab89ecd`. No restart or additional model
+call was made for this audit. Reviewed exact artifact hashes:
+
+| Artifact | SHA256 |
+| --- | --- |
+| `semantic/RESULTS.md`, execution-only version | `a1f8d58122a212e151a936b41b6dfa4d2ba666370c62f886fdc8637353e821a7` |
+| `semantic/execution-root-check.json` | `35b94bf843d4fdf76edfcf7444255d87b2ed61958c3549e66851baa9212db01e` |
+| `semantic/execution-archive.json` | `10db1293155adf2c924cbbfd06a8bb1a1c907b3f34e316fce5c0fb79b8f44e77` |
+| `semantic/observer-run-01.json` | `f0e1605a3ceb8f16a93ab8375645debc27b052a76a65fe14977234ba3e019c45` |
+| `semantic/run-01/result.json` | `6ab37b6994497e5e0b4a73eaf961587c57370a17bfafd9f1196696b470a1a5e6` |
+| `semantic/run-01/lifecycle.json` | `7357fe3a2bfea2d2795a6f3146ba3ed7164a182746e49e52c2ed1ee58743b808` |
+
+### Actual invocation, lineage and byte evidence
+
+The actual generation-manifest and complete-call consumers pass. The derived
+36 call records agree exactly across the child result, supervisor lifecycle
+and outer observer's captured lifecycle. Fixed order, conversation/query
+identity and eighteen calls per mode match the frozen generation manifest.
+Every raw output preserves its exact prepared prefix followed by the recorded
+generated IDs. These are the source-only prefix IDs accepted in Round 7;
+their manifest and all accepted source/reference bindings remain unchanged.
+No target or label was supplied to generation, and the child command reads only
+the generation manifest. The frozen consumer runs native `model.generate`
+under inference mode using a causal model loaded once, with no training path.
+
+All 36 receipts record fresh cache and no supplied past-key-values. Each records
+the same original trunk object identity. Every call's 72 adapter-layer records
+show the required mode: disabled for base, enabled with only the named semantic
+adapter for the trained arm. Explicit generation/config/forward/control
+arguments match their frozen values. Native resolved configurations are equal
+across calls except for the prefix-dependent maximum total length, which is
+always prefix length plus 2048. The effective settings are greedy, one beam,
+one returned sequence, EOS 151645, PAD 151643 and the fixed cap. Inherited
+sampling defaults are recorded separately and do not override those settings.
+The child stderr's inactive `top_k` warning is consistent with the recorded
+greedy configuration; the remainder is weight-loading progress, with no error
+or traceback. Child stdout is empty and the outer job log agrees with the
+terminal observer status, PID, exit code and elapsed time.
+
+Using only the local CPU tokenizer, I independently decoded all 36 payload-ID
+sequences without special-token removal or cleanup. Every decoded string,
+UTF-8 byte count, base64 payload and SHA256 matches the raw receipt. Generated
+counts, terminal EOS, cap facts and complete-output concatenation reconcile.
+The actual structural validator reproduces each recorded structural result
+against its visible source IDs. No semantic judgment was made from an answer's
+content, and no invalid prefix was salvaged.
+
+The archive contains exactly 197 run files and three accompanying records,
+200 files totaling 3,347,585 bytes. Every archived file matches its inventory
+size/hash and its exact `123a7dea` Git blob, and every run file is represented.
+All are below the archive size limit. The launch plan matches SHA256
+`7fc43957aec44fa469eb2a7f679d19eb22d41c04a36f101ff5f916533b6a7767`.
+I independently reconciled all 26 nonprivate launch bindings against current
+bytes and the frozen launch commit. The private response-map binding was
+intentionally excluded from my reads; root's 27-binding check and the actual
+outer launch consumer cover it. The map itself remains unopened by this reviewer.
+
+### Original and trained state identity
+
+The 398 nonempty original-parameter endpoint hash entries agree exactly before
+and after generation, representing 4,022,468,096 original parameters. The
+recorded unchanged identity/bytes and absent-gradient checks pass through the
+bound actual consumer. Both 13-file original-asset receipts match the frozen
+inventory's exact names, sizes, hashes and total bytes, and agree with their
+separately retained before-load/after-generation files. This audit checked the
+recorded base-file evidence; it did not reread the original model weight shards.
+
+For the small final adapter I independently read the permitted serialized
+checkpoint and both archived parts on CPU. Their exact sizes and hashes match
+the frozen candidate. Parsing the safetensors header and raw payload offsets
+reconciles all 144 keys, shapes, FP32 dtypes and tensor byte hashes with the
+loaded-versus-serialized receipt. Payload ranges cover the serialized data
+exactly, totaling 2,949,120 parameters. That receipt is identical to the one
+embedded in the actual result; before/after file verification and exact
+in-memory adapter-state comparison are also recorded as passing. No model was
+loaded to perform these independent byte checks.
+
+### Deadlines, completion and costs
+
+All root call confirmations and nested generation completion stages are timely.
+For every call, I additionally checked a subsequent root generation INTENT, or
+the final post-generation-validation INTENT, occurring after its confirmation
+and before that call's 300-second deadline. The maximum interval from a call's
+start through this later transition is **120.630158095 seconds**. This provides
+positive execution-advancement evidence for every confirmation, so the deferred
+interrupted-publication defect #10 is not used to infer completion here. The
+stored call files remain their original COMPLETION_PENDING records; confirmed
+RETURNED status is derived from the complete normal execution evidence.
+
+Outer first-generation observation occurred at **75.898010935 seconds**, within
+the 660-second startup bound. The successful child exit and cleanup precede
+the supervisor's working deadline. The outer observer then establishes final
+supervisor publication/exit and owned-group absence within 3600 seconds.
+Independent endpoint subtraction reproduces **1651.235740360 seconds** for the
+inner supervisor and **1651.404385013 seconds** for the outer interval. No
+timeout, technical-error receipt, failure file or remaining run flag exists.
+Observer 191765, supervisor 191766 and child 192119 are absent, and independent
+`/proc` inspection finds no process remaining in owned group 191766.
+
+Recomputed structural and cost results match the execution report:
+
+| Measurement | Base | Adapter |
+| --- | ---: | ---: |
+| Returned calls | 18 | 18 |
+| Structurally complete | 14 | 12 |
+| Capped returns | 1 | 6 |
+| Terminal-EOS returns | 17 | 12 |
+| Generated tokens | 8851 | 18082 |
+| Sum of measured generation-call seconds | 499.459512878 | 1040.675853677 |
+| Longest measured generation-call seconds | 120.495669269 | 118.598697457 |
+
+The call-time sums describe the measured native generation intervals; outer
+elapsed time also includes loading, verification, publication and cleanup.
+Recorded peak Torch allocation is 9,013,965,824 bytes and peak reservation is
+9,741,271,040 bytes on GB10 unified memory, matching the report's qualified
+allocator accounting. These are not independent dedicated-device memory pools.
+Root's reconciliation cost remains a separate reported 0.048363473 seconds.
+This independent CPU byte/consumer/decode audit took 2.518727527 seconds after
+imports; it is additional verification cost, not model execution time.
+
+The report correctly leaves semantic votes, inference and the practical screen
+undetermined. The trained arm's twelve structurally complete outputs supply
+only an upper bound of twelve semantic successes; structural validity cannot
+establish the required source-grounded correctness. The packet remains five
+coding/firmware families plus one operational-documentation family. Separate
+blinded Astra/Kimi assessment and any source-grounded adjudication remain
+necessary; no reference repair, tuning, retry or reduced bank is implied.
+
+Only this canonical review was written. No model/GPU execution, training,
+generation, re-preparation, new data, network operation, old-bank/FIT-target
+access, private-map access, unchanged full suite, code edit or commit was
+performed. Execution acceptance supplies no broader coding-utility proof.

@@ -64,3 +64,24 @@ already frozen ASSESSMENT.md and response-map.json. Preserve both votes and
 source-grounded adjudications. Any discovered reference defect invalidates the
 whole screen; no target repair, exclusion or rescoring. Larger fresh executable
 coding utility remains required for the project goal.
+
+## 2026-09-08 — Execution audit accepted; semantic eligibility under review
+
+Astra round8 accepts actual execution at96/100, no new findings or open
+high/critical. Canonical review SHA256
+45c57aade29dcad83a0aa45be9a311ffb37864a151ce39a74131ddcaea98b3d5.
+All36 actual calls,200 archived files, native decodes/settings/identities,
+state/file hashes, deadlines and cleanup independently reconcile. The largest
+call-start through later-stage confirmation interval was120.630158095seconds,
+within300, providing advancement evidence rather than relying on the deferred
+interrupted-publication case. Independent CPU audit cost2.518727527seconds
+after imports. The original execution report and all receipts remain preserved.
+
+Independent blinded semantic judging is still active. Astra has flagged a
+possible reference defect in the final radio-audit checkpoint: whether the
+Midday-only comments permission survives when the prior queue is revisited.
+Root read the exact source and accepted reference and preserved the issue for
+source-grounded adjudication after both independent original vote sets are
+frozen. No reference is being changed, and no primary or advancement decision
+has been made. A confirmed post-look reference defect makes this whole screen
+INELIGIBLE under the frozen specification; complete execution cannot cure it.
