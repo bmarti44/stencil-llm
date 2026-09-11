@@ -56,8 +56,12 @@ clf = pipeline(
 )
 clf({"text": "(no context)", "text_pair": "[user] From now on reply in French."})
 # [{'label': 'rule', 'score': ...}]
-clf({"text": "assistant: Here is the helper in JavaScript.",
-     "text_pair": "[user] Convert this function to TypeScript for me."})
+clf(
+    {
+        "text": "assistant: Here is the helper in JavaScript.",
+        "text_pair": "[user] Convert this function to TypeScript for me.",
+    }
+)
 # [{'label': 'none', 'score': ...}]
 ```
 
