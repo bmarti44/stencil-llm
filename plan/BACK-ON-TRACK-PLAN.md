@@ -53,7 +53,10 @@ check (Exp 5). The wave line and KV pins are off the artifact's critical path.
   other roles are stored only); `session.build_prompt(request)` returns the exact prompt
   string; `session.generate(request, **kw)` = build + greedy/`generate`; `session.reset()`
   clears state. Session state is isolated per session object.
-- Frozen shipping configuration (decided now, not by later experiments):
+- Frozen shipping configuration (decided now, not by later experiments; the classifier
+  register is an explicitly UNPROVEN maintenance hypothesis for Exp 4: Exp 1 showed the
+  role-echo policy beating the classifier-echo policy on Multi-IF, which is a different
+  construction, and does not decide the long-session bundle either way):
   1. Register: admission by the published sentence classifier
      (`bmarti44/assistant-memory-sentence-classifier`, frozen) and lifecycle relations by
      the frozen relations-v2 seed0 head (`data/classifier/model/relations-v2/seed0`, sha

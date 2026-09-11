@@ -3600,3 +3600,11 @@ split_long, build_long_prompt with token-level matching, output_failures, role_e
 `--cohort long` phases, `memorycode-long` pilot family; 35 memorycode tests pass). BUDGET line pending the
 pilot. EXP 3b running on the GPU in 50-min reserved slices. Next GPU order: 3b → memorycode-long pilot →
 Exp 4 auto (CPU) → Exp 4 setup_long/screen_long → 3c.
+
+2026-09-11 — ASTRA EXP 1 RESULT AUDIT: numbers reproduce exactly (means, intervals, sign tests, 484 = 425 + 59
+sources, 128 distinct, manifest 131/131); interpretation REJECTED once: D2 is a policy comparison (role
+pins without echo vs role echo without pins), not "pins added to echo"; D3's echoes differ in length
+(role longer in 125/128, budget never bound) so no recency-selection claim; the "only policy" claim in
+G was false; timing pilot did not cover the longest new-arm prompt (1,414 > 1,322) and the 5-minute
+stop rule was not enforced in code. RESULTS.md rewritten (rev 2) with every minimum edit; G marks the
+classifier register as an unproven Exp 4 hypothesis. Verdict on numbers: ACCEPT.
