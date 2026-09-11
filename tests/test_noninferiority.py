@@ -3,6 +3,7 @@
 bound (checkpoint-ii FINDING-1, both reviewers): the killed
 Clopper-Pearson plug-in had type-I error ~0.50 at the margin and NaN
 at n01=0; these tests pin the exact failure scenarios."""
+
 import random
 
 from stencil.stats import non_inferior, tango_upper_bound, tango_z
@@ -84,8 +85,10 @@ def test_type1_error_at_margin_pure_degradation_mmlu():
 # LEDGER-PLAN amendment (2026-09-01): the primary bound is a conversation-
 # clustered one-sided 95% upper bound on the mean paired difference (points).
 
+
 def test_t_quantile_matches_tables():
     from stencil.stats import t_quantile
+
     assert abs(t_quantile(0.95, 9) - 1.8331129) < 1e-6
     assert abs(t_quantile(0.95, 1) - 6.3137515) < 1e-5
     assert abs(t_quantile(0.975, 30) - 2.0422725) < 1e-6
@@ -94,8 +97,9 @@ def test_t_quantile_matches_tables():
 
 def test_clustered_upper_bound_hand_computed():
     from stencil.stats import clustered_upper_bound
+
     diffs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]  # mean 5.5, sd 3.02765, se 0.957427
-    expect = 5.5 + 1.8331129 * 3.0276504 / 10 ** 0.5  # 7.255073
+    expect = 5.5 + 1.8331129 * 3.0276504 / 10**0.5  # 7.255073
     assert abs(clustered_upper_bound(diffs) - expect) < 1e-5
     assert abs(clustered_upper_bound(diffs) - 7.255073) < 1e-5
 
@@ -104,7 +108,19 @@ def test_clustered_upper_bound_is_asymmetric_in_sign():
     """Catches a sign inversion: a drop must give a bound ABOVE the margin,
     an improvement a bound BELOW it, never symmetric."""
     from stencil.stats import clustered_upper_bound
-    harm = [4.0, 5.0, 6.0, 4.0, 5.0, 6.0, 4.0, 5.0, 6.0, 5.0]        # neural worse (positive drop)
+
+    harm = [
+        4.0,
+        5.0,
+        6.0,
+        4.0,
+        5.0,
+        6.0,
+        4.0,
+        5.0,
+        6.0,
+        5.0,
+    ]  # neural worse (positive drop)
     gain = [-x for x in harm]
     assert clustered_upper_bound(harm) > 5.0 > 2.0
     assert clustered_upper_bound(gain) < -4.0 < 2.0
@@ -117,6 +133,7 @@ def test_clustered_upper_bound_needs_two_clusters_and_handles_zero_variance():
     import pytest
 
     from stencil.stats import clustered_upper_bound
+
     with pytest.raises(ValueError):
         clustered_upper_bound([1.0])
     assert clustered_upper_bound([3.0] * 12) == 3.0
@@ -124,10 +141,17 @@ def test_clustered_upper_bound_needs_two_clusters_and_handles_zero_variance():
 
 def test_cluster_bootstrap_is_seeded_and_sign_aware():
     from stencil.stats import cluster_bootstrap_upper_bound
+
     diffs = [0.0, 10.0, 0.0, 5.0, 20.0]
-    assert 7.0 < cluster_bootstrap_upper_bound(diffs) <= 20.0  # a bootstrap quantile lies within the resampled means
-    assert cluster_bootstrap_upper_bound(diffs) == cluster_bootstrap_upper_bound(diffs)  # seeded
-    assert cluster_bootstrap_upper_bound([-x for x in diffs]) < 0.0  # sign carried through
+    assert (
+        7.0 < cluster_bootstrap_upper_bound(diffs) <= 20.0
+    )  # a bootstrap quantile lies within the resampled means
+    assert cluster_bootstrap_upper_bound(diffs) == cluster_bootstrap_upper_bound(
+        diffs
+    )  # seeded
+    assert (
+        cluster_bootstrap_upper_bound([-x for x in diffs]) < 0.0
+    )  # sign carried through
 
 
 # ---------------------------------------------------- sol round 2 (HIGH): boundary false-pass
@@ -142,7 +166,8 @@ K_SOL, P_SOL, MARGIN_SOL = 909, 0.02, 2.0
 
 def _binom_pmf(n, p):
     from math import comb
-    return [comb(n, h) * p ** h * (1 - p) ** (n - h) for h in range(n + 1)]
+
+    return [comb(n, h) * p**h * (1 - p) ** (n - h) for h in range(n + 1)]
 
 
 def _harmed(h, k=K_SOL):
@@ -157,11 +182,14 @@ def _exact_false_pass(passes):
 def test_sol_reproduction_uncorrected_t_bound_false_pass_is_8_31_percent():
     """the BEFORE number: the plain t bound declares NI with 0-12 harmed clusters (sol: 8.31%)."""
     from stencil.stats import clustered_upper_bound
+
     pass_set = [h for h in range(40) if clustered_upper_bound(_harmed(h)) < MARGIN_SOL]
     assert pass_set == list(range(13))
     rate = _exact_false_pass(lambda h: h <= 12)
     assert abs(rate - 0.0831) < 5e-4, rate
-    assert clustered_upper_bound([0.0] * K_SOL) == 0.0  # sol: zero-width bound on all-zero data
+    assert (
+        clustered_upper_bound([0.0] * K_SOL) == 0.0
+    )  # sol: zero-width bound on all-zero data
 
 
 def test_candidate_a_percentile_cluster_bootstrap_is_rejected_by_simulation():
@@ -174,12 +202,17 @@ def test_candidate_a_percentile_cluster_bootstrap_is_rejected_by_simulation():
     def binom_quantile(n, q, prob):
         c = 0.0
         for x in range(n + 1):
-            c += comb(n, x) * prob ** x * (1 - prob) ** (n - x)
+            c += comb(n, x) * prob**x * (1 - prob) ** (n - x)
             if c >= q:
                 return x
         return n
+
     def passes(h):
-        return h == 0 or 100.0 / K_SOL * binom_quantile(K_SOL, 0.95, h / K_SOL) < MARGIN_SOL
+        return (
+            h == 0
+            or 100.0 / K_SOL * binom_quantile(K_SOL, 0.95, h / K_SOL) < MARGIN_SOL
+        )
+
     assert [h for h in range(40) if passes(h)] == list(range(13))
     rate = _exact_false_pass(passes)
     assert rate > 0.05 and abs(rate - 0.0831) < 5e-4, rate
@@ -194,23 +227,40 @@ def test_registered_continuity_corrected_t_bound_false_pass_le_5_percent():
         clustered_upper_bound,
         clustered_upper_bound_corrected,
     )
+
     assert CONTINUITY_POINTS == 100.0
-    pass_set = [h for h in range(40) if clustered_upper_bound_corrected(_harmed(h)) < MARGIN_SOL]
+    pass_set = [
+        h for h in range(40) if clustered_upper_bound_corrected(_harmed(h)) < MARGIN_SOL
+    ]
     assert pass_set == list(range(12))
     rate = _exact_false_pass(lambda h: h <= 11)
     assert rate <= 0.05 and abs(rate - 0.0490) < 5e-4, rate
-    half = [h for h in range(40) if clustered_upper_bound(_harmed(h)) + 50.0 / K_SOL < MARGIN_SOL]
+    half = [
+        h
+        for h in range(40)
+        if clustered_upper_bound(_harmed(h)) + 50.0 / K_SOL < MARGIN_SOL
+    ]
     assert half == list(range(13))
     # all-zero data: strictly positive width (one flip), never a zero-width bound
     assert clustered_upper_bound_corrected([0.0] * K_SOL) == 100.0 / K_SOL > 0.0
     # the registered dispatch applies the corrected bound ALWAYS (no cluster-count switch)
     for diffs in (_harmed(5), [0.0, 10.0, 0.0, 5.0, 20.0], list(range(1, 11))):
         b = clustered_bound(diffs)
-        assert b["method"] == "t_continuity" and b["upper_bound"] == clustered_upper_bound_corrected(diffs)
+        assert b["method"] == "t_continuity" and b[
+            "upper_bound"
+        ] == clustered_upper_bound_corrected(diffs)
         assert b["continuity_points"] == 100.0 / len(diffs)
-        assert abs(b["t_upper_bound_descriptive"] - clustered_upper_bound(diffs)) < 1e-12
-    assert abs(clustered_bound(list(range(1, 11)))["t_upper_bound_descriptive"] - 7.255073) < 1e-5
-    assert clustered_bound([1.0])["upper_bound"] is None and clustered_bound([1.0])["error"]
+        assert (
+            abs(b["t_upper_bound_descriptive"] - clustered_upper_bound(diffs)) < 1e-12
+        )
+    assert (
+        abs(clustered_bound(list(range(1, 11)))["t_upper_bound_descriptive"] - 7.255073)
+        < 1e-5
+    )
+    assert (
+        clustered_bound([1.0])["upper_bound"] is None
+        and clustered_bound([1.0])["error"]
+    )
 
 
 def test_corrected_bound_false_pass_under_mixed_discordance_by_simulation():
@@ -219,6 +269,7 @@ def test_corrected_bound_false_pass_under_mixed_discordance_by_simulation():
     import random
 
     from stencil.stats import clustered_upper_bound_corrected
+
     rng = random.Random(0)
     trials, fp = 400, 0
     for _ in range(trials):
@@ -240,15 +291,28 @@ def test_clustered_lower_bound_hand_computed_and_sign_relation():
 
     diffs = list(range(1, 11))
     lb = clustered_lower_bound(diffs)
-    assert lb["method"] == "t_continuity" and lb["clusters"] == 10 and lb["alpha"] == 0.05
+    assert (
+        lb["method"] == "t_continuity" and lb["clusters"] == 10 and lb["alpha"] == 0.05
+    )
     assert abs(lb["mean"] - 5.5) < 1e-12
     assert abs(lb["t_lower_bound_descriptive"] - 3.744927) < 1e-5
     assert abs(lb["lower_bound"] - (-6.255073)) < 1e-5
     assert lb["continuity_points"] == 10.0
     # exact sign relation against the registered upper bound, on several shapes
-    for d in (diffs, [0.0] * 20, [100.0] * 5 + [0.0] * 4, [-3.0, 2.5, 0.0, 7.0], [1e-3] * 3):
-        assert clustered_lower_bound(d)["lower_bound"] == -clustered_bound([-x for x in d])["upper_bound"]
-        assert clustered_lower_bound(d)["lower_bound"] < clustered_bound(d)["upper_bound"]
+    for d in (
+        diffs,
+        [0.0] * 20,
+        [100.0] * 5 + [0.0] * 4,
+        [-3.0, 2.5, 0.0, 7.0],
+        [1e-3] * 3,
+    ):
+        assert (
+            clustered_lower_bound(d)["lower_bound"]
+            == -clustered_bound([-x for x in d])["upper_bound"]
+        )
+        assert (
+            clustered_lower_bound(d)["lower_bound"] < clustered_bound(d)["upper_bound"]
+        )
     # zero between-cluster variance: the flip alone sets the width
     assert clustered_lower_bound([100.0] * 25)["lower_bound"] == 100.0 - 4.0
     # fewer than two clusters fails closed like the upper bound

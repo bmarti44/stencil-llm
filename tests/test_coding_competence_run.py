@@ -181,15 +181,10 @@ def test_full_native_run_uses_real_consumer_history_and_hidden_isolation(tmp_pat
     documents = _bank()
     references = _reference_sources(documents)
     invalid = "def alpha(value):\n    break\n"
-    wrong = (
-        "def alpha(value):\n"
-        '    return {"label": "normal", "value": 999}\n'
-    )
+    wrong = 'def alpha(value):\n    return {"label": "normal", "value": 999}\n'
     sources = [invalid, wrong, references[0], *references[1:]]
     output = tmp_path / "run"
-    server = FakeNativeServer(
-        sources, pending_path=output / "calls/call-0000.json"
-    )
+    server = FakeNativeServer(sources, pending_path=output / "calls/call-0000.json")
     client = runner.NativeToolClient("127.0.0.1:9", "/model", opener=server)
 
     result = runner.run(
@@ -245,7 +240,7 @@ def test_full_native_run_uses_real_consumer_history_and_hidden_isolation(tmp_pat
     wrong_call = json.loads((output / "calls/call-0001.json").read_text())
     assert wrong_call["apply_status"] == "APPLIED"
     assert wrong_call["all_public_passed"] is False
-    assert "value\":999" in server.completion_payloads[2]["messages"][-1][
+    assert 'value":999' in server.completion_payloads[2]["messages"][-1][
         "content"
     ].replace(" ", "")
 
@@ -322,9 +317,10 @@ def test_native_technical_failure_aborts_batch_and_preserves_raw_receipt(
     response = call["native_exchange"]["completion"]["response"]
     assert response["body_base64"]
     assert response["body_sha256"]
-    assert json.loads((output / "requests/request-0001.json").read_text())[
-        "status"
-    ] == "UNATTEMPTED"
+    assert (
+        json.loads((output / "requests/request-0001.json").read_text())["status"]
+        == "UNATTEMPTED"
+    )
     assert server.requests[0][1] == server.requests[1][1]
     current = json.loads((output / "requests/request-0000.json").read_text())
     assert current["unfinished_private_check_ids"]
@@ -406,17 +402,16 @@ def test_deadline_persists_finished_public_check_and_unfinished_work(tmp_path):
     assert result["status"] == "INCOMPLETE"
     assert result["technical_failure"]["kind"] == "deadline"
     call = json.loads((output / "calls/call-0000.json").read_text())
-    assert [item["check_id"] for item in call["public_checks"]] == [
-        "initial-double"
-    ]
+    assert [item["check_id"] for item in call["public_checks"]] == ["initial-double"]
     assert call["unfinished_public_check_ids"] == [
         "initial-plus-one",
         "public-alpha-0",
         "public-alpha-1",
     ]
-    assert json.loads((output / "requests/request-0001.json").read_text())[
-        "status"
-    ] == "UNATTEMPTED"
+    assert (
+        json.loads((output / "requests/request-0001.json").read_text())["status"]
+        == "UNATTEMPTED"
+    )
 
 
 def test_check_does_not_start_without_sandbox_and_receipt_reserve(tmp_path):
@@ -466,8 +461,7 @@ def test_preview_and_absolute_cli_bind_cpu_chain_without_network(tmp_path):
     assert len(result["reference_actions"]) == 12
     assert result["all_reference_actions_headroom"] is True
     assert all(
-        item["eos_allowance_tokens"] == 1
-        for item in result["reference_actions"]
+        item["eos_allowance_tokens"] == 1 for item in result["reference_actions"]
     )
     assert result["context_preflight"]["actual_cold_request_count"] == 4
     assert result["context_preflight"]["later_actual_requests_known"] is False
@@ -475,9 +469,10 @@ def test_preview_and_absolute_cli_bind_cpu_chain_without_network(tmp_path):
     assert len(bounds) == 36
     assert all(item["future_actual_prompt_claim"] is False for item in bounds)
     assert result["resource_bounds"]["maximum_generation_requests"] == 36
-    assert result["resource_bounds"][
-        "maximum_repeated_module_observations_per_prompt"
-    ] == 9
+    assert (
+        result["resource_bounds"]["maximum_repeated_module_observations_per_prompt"]
+        == 9
+    )
     assert all(item["source_sha256"] for item in result["reference_actions"])
     assert set(result["code_sha256"]) == {
         "scripts/coding_competence_run.py",

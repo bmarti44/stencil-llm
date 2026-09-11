@@ -3,6 +3,7 @@ single-use) may be referenced ONLY by the registered sealed runner and the
 vendor/parity tests. A salience builder trained on it on 2026-09-01 (caught
 by the orchestrator, refit ordered); this test makes the invariant
 mechanical."""
+
 import hashlib
 import json
 import stat
@@ -10,11 +11,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 ALLOWED = {
-    "scripts/b4_ifeval.py",           # the registered sealed runner
-    "scripts/b0_score_parity.py",     # scorer parity (no model)
+    "scripts/b4_ifeval.py",  # the registered sealed runner
+    "scripts/b0_score_parity.py",  # scorer parity (no model)
     "tests/test_b3_gen.py",
     "tests/test_ifeval_vendor.py",
-    "tests/test_pretool_guard.py",    # guard decision-table fixture only
+    "tests/test_pretool_guard.py",  # guard decision-table fixture only
     "tests/test_sealed_guard.py",
 }
 

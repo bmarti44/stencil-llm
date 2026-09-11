@@ -3489,3 +3489,93 @@ Done: source-replay-prep-v2 change parked on branch source-replay-prep-v2 (55a6d
 pre-cleanup-2026-09-11 on main. Brian 2026-09-11: commits and pushes authorized; classifier to be
 published publicly as bmarti44/assistant-memory-sentence-classifier; all code to be cleaned up.
 Next: force-add untracked evidence, gitignore weights, testpaths, cleanup Phase 1, README rewrite, Release 0.
+
+2026-09-11 — STATE: RELEASE 0 PUBLISHED; CLEANUP PHASE 1 + README + GUARD SHARED MODE STAGED (UNCOMMITTED, AWAITING FULL TEST RUN).
+Release 0: https://huggingface.co/bmarti44/assistant-memory-sentence-classifier (public, MIT).
+Export scripts/export_classifier_hf.py: argmax identical on 1,093 held-out sentences, max-abs
+logit drift 0.0, held-out accuracy 0.8911 = metrics.json; modeling file
+src/stencil/hf_sentence_classifier.py (trust_remote_code); card data/classifier/MODEL_CARD.md.
+Cleanup: ruff check + format clean repo-wide (vendor/models/archive excluded; check49 and the
+kimi_gen prompt scripts carry file-level noqa); scripts/check_cleanup_invariants.py --check
+holds (909 Multi-IF records re-scored identically, 8 T2 sessions unchanged) against the
+digest written from tag pre-cleanup-2026-09-11. GPU: shared mode in tools/hooks/pretool_guard.py
+and src/stencil/determinism.py (flag .stencil-gpu-share / STENCIL_GPU_SHARE=1; reservations
+~/.gb10-gpu.reservations), tools/gpu_reserve.sh; peer looped-transformer is using the file.
+Next: full pytest on main, commit + push step 1, then Exp 0.
+
+2026-09-11 — STATE: EXP 3a MODULE + SCRIPT + TESTS WRITTEN (UNCOMMITTED); FULL TEST SUITES STILL RUNNING; AUTO-ADAPTER CPU PHASE RUNNING.
+- `src/stencil/memorycode.py`, `scripts/memorycode_screen.py` (phases items/auto/run/summarize),
+  `tests/test_memorycode.py` (29 pass: rendering, label isolation, packing, 19 checker families,
+  auto determinism). `items.json`: 320 candidate items, 108 within 3,584 tokens, one per dialogue;
+  16 SETUP + 64 SCREEN. Checker limitation recorded in CONTRACT.md (a `#` inside a string literal
+  counts for the `comment` family; official checker used unmodified).
+- `scripts/timing_pilot.py --family memorycode` added (4 longest SETUP history prompts).
+- Guards: session-id matching added to shared mode (peer pid 358813 was reparented to pid 1 after
+  its reservation wrapper 349550 exited; its session id still equals the reserved pid). 85 guard
+  tests pass. Own background pytest pids 19302/19328 registered in `.stencil-owned-pids`.
+- Conservative reading recorded: the `auto` adapter so far applies 0 relations on the first items
+  (admissions 11-15 per item). If the SETUP non-vacuous check fails, the adapter is INACTIVE per
+  CONTRACT.md and that is the Exp 3 result (no policy revision without a new registration).
+- Next: suites finish -> apply t2_runner comment patch -> invariants -> commit + push -> Exp 0 pilot
+  (`tools/gpu_reserve.sh`) for multiif and memorycode families -> Exp 1/2a/3b.
+
+2026-09-11 — STATE: EXP 0 MULTI-IF PILOT DONE (27.7 s/item max, 5.2 GB peak; BUDGET line in the Exp 1 registration); EXP 1 REPLAY 8/8 IDENTICAL; EXP 1 RUN CHUNK 1 (sources 0-35) LAUNCHING.
+- Exp 1 run chunks: `scripts/multiif_echo_only.py --phase run --start S --limit 36`, each under a
+  ≤ 55-min reservation (worst case 36 × 2 × 41.5 s = 50 min). Chunks 2-4 follow (36-71, 72-107, 108-127).
+- Auto-adapter CPU phase for Exp 3 still running; full test suites still running.
+
+2026-09-11 — EXP 3a AUTO ADAPTER: NON-VACUOUS CHECK PASSED (ACTIVE). 16 SETUP items: 232 admissions,
+6 supersedes/cancels applied. All 80 items: 1,027 rows admitted, 14 relations, 215 overflow events
+(register > 16 rows), false admissions 693/1,027 (157 from filler sessions, rest no-topic-in-line
+under CONTRACT amendment 1), missed instruction sessions 14, missed updates 0 (detector finds none
+because the older text is usually not live when the update is). The adapter over-admits
+conversational sentences heavily; this is the error table the contract publishes, not a gate.
+3b launches after the memorycode timing pilot, queued behind Exp 1 chunk 1 (one Stencil GPU
+process at a time).
+
+2026-09-11 — BRIAN REFRAMED THE GOAL (supersedes rev 6 section C's three-release endpoint): build and
+publish ONE HuggingFace model artifact that focuses on the relevant instructions for a task over a
+long-horizon agentic coding session, proven to outperform the same artifact without the modifications.
+Order: finish the repo cleanup first, then the artifact track. Exp 1 / 2a / 3 keep running as the
+evidence that decides which modifications the artifact carries. A rev 7 plan section will define the
+artifact, its control, and the long-horizon evaluation before any artifact GPU spend.
+
+2026-09-11 — STATE: REV 7 WRITTEN (plan "## Rev 7": G artifact `bmarti44/stencil-focus-qwen3-1.7b` with a
+`stencil_focus` flag as the control, H Exp 4 long-horizon head-to-head on the 212 MemoryCode items over
+3,584 tokens (16 setup + 128 screen, arms base/focus/oracle, matched prompt length, strict compliance,
+McNemar + union-bound interval, PROVEN/NOT PROVEN/HARM readings, one registered revision), I execution
+order + stop rule). ASTRA ROUND 3 REVIEW OF REV 7 LAUNCHED (results/reviews/2026-09-11-plan-rev7-review-astra.md).
+Exp 1 chunk 1 running; full test suites still running.
+
+2026-09-11 — ASTRA ROUND 3 ON REV 7: 54/100 (goal fit 7, proof 4, long-horizon/agentic 5, success 5,
+over-engineering 6); Exp 4 clear-answer 35%, PROVEN 15%. Seven minimum edits, ALL applied in rev 7.1:
+(1) one frozen shipping configuration + package session interface, bundle claim, pins/wave off the
+critical path; (2) token-level prompt matching, W as imposed budget, corrected quantiles (LONG median
+15,623); (3) applicability frozen from the query before generation, omitted required parent = failure,
+fixed denominator (CONTRACT amendment 3, implemented + tested); (4) window identity defect fixed
+(amendment 2, auto phase rerunning), live-set discrepancy recorded; (5) fallback frozen = restate-all
+policy with the two-attempt .025/.05 interpretation; (6) budget formula with the retry priced, measured
+t_max from a `memorycode-long` pilot; (7) Exp 5 = BFCL multi_turn_long_context in free mode as the
+agentic check, card wording gated on it. Adopted edit 7 although it adds a workload: rule D10 allows it
+because the plan cannot answer Brian's "agentic" question without it and the workload + runner already
+exist in the repo (no new benchmark data).
+
+2026-09-11 — ASTRA ROUND 4 (confirmation) ON REV 7.1: 84/100 (goal 9, proof 7, long-horizon 9, success 8,
+over-engineering 9). Three remaining edits applied: budget sum corrected (432 + pilot 4 + parity 32 = 468
+generations, 19.5 GPU-h worst at t_max 100 s); whole-word structure matching ("classifies" ≠ class);
+required structure (class/function from the query) enforced before strict scoring (CONTRACT amendment
+3b, `memorycode.required_structure`, tested). Plan = rev 7.1 final; no further review round before Exp 4's
+registration, which gets its own implementation review per rule D1.
+
+2026-09-11 — EXP 3a AUTO ADAPTER RERUN (amendment 2, per-window turns): 1,028 rows (was 1,027), 216 overflow
+events on 34/80 items, false admissions 692 (156 filler), missed instruction sessions 14, non-vacuous
+check still ACTIVE (SETUP 232 admissions, 6 relations). Exp 3b queued behind Exp 1 chunks 3-4: repeated
+`run --split setup --budget-minutes 50` invocations under 55-min reservations until all 16 items exist.
+
+2026-09-11 — FULL SUITES DONE. Baseline (pre-cleanup tag, worktree): 2,083 passed / 37 failed (2:02 h).
+Main (cleaned tree): 2,103 passed / 22 failed (1:45 h). The 22 main failures are a strict subset of the
+baseline's 37: ZERO cleanup-caused failures. Comment-checker fix applied (`t2_runner.py`; 19 tests pass);
+invariants digest rewritten with disclosure: only the `scores_sha` of the four `final` T2 sessions changed
+(comment rule scored for the first time); Multi-IF 909 re-scores and all prompts/ledgers unchanged.
+Qualification paragraph appended to results/internal-wave-report.md. The 22 pre-existing failures are
+triaged next (fix or mark) before `make gate-0` can pass bare.

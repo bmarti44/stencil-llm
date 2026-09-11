@@ -24,6 +24,7 @@ Conservative readings (recorded in the fixture JSON + ledger):
 - Task M miniature is the in-window placement (gap = 0).
 - All randints are single scalar draws: torch.randint(0, high, (1,), generator=g).
 """
+
 import hashlib
 import json
 
@@ -67,13 +68,27 @@ def task_a_fixture(k: int = 2, N: int = 8, n_seq: int = 4) -> dict:
         tokens = [1 + cue] + [50 + d for d in ds] + [QRY, 34 + x, 34 + rules[cue][x]]
         mask = [False] * len(tokens)
         mask[len(tokens) - 2] = True  # p whose next token is the answer
-        seqs.append({"tokens": tokens, "loss_mask": mask,
-                     "metadata": {"cue_index": cue, "operand_index": x,
-                                  "distractor_draws": ds,
-                                  "answer_index": rules[cue][x]}})
-    return {"task": "A", "k": k, "N": N, "seed_rules": SEED_RULES,
-            "seed_data": SEED_DATA, "rule_table_first_k_rows": rules,
-            "sequences": seqs}
+        seqs.append(
+            {
+                "tokens": tokens,
+                "loss_mask": mask,
+                "metadata": {
+                    "cue_index": cue,
+                    "operand_index": x,
+                    "distractor_draws": ds,
+                    "answer_index": rules[cue][x],
+                },
+            }
+        )
+    return {
+        "task": "A",
+        "k": k,
+        "N": N,
+        "seed_rules": SEED_RULES,
+        "seed_data": SEED_DATA,
+        "rule_table_first_k_rows": rules,
+        "sequences": seqs,
+    }
 
 
 def task_m_fixture(P: int = 4, n_queries: int = 2, n_seq: int = 4) -> dict:
@@ -98,15 +113,31 @@ def task_m_fixture(P: int = 4, n_queries: int = 2, n_seq: int = 4) -> dict:
         for _ in queries:
             mask[pos] = True  # key position predicts its answer value
             pos += 2
-        seqs.append({"tokens": tokens, "loss_mask": mask,
-                     "metadata": {"key_indices": keys, "value_indices": vals,
-                                  "query_pair_positions": queries}})
-    return {"task": "M", "P": P, "n_queries": n_queries, "gap": 0,
-            "seed_rules": SEED_RULES, "seed_data": SEED_DATA, "sequences": seqs}
+        seqs.append(
+            {
+                "tokens": tokens,
+                "loss_mask": mask,
+                "metadata": {
+                    "key_indices": keys,
+                    "value_indices": vals,
+                    "query_pair_positions": queries,
+                },
+            }
+        )
+    return {
+        "task": "M",
+        "P": P,
+        "n_queries": n_queries,
+        "gap": 0,
+        "seed_rules": SEED_RULES,
+        "seed_data": SEED_DATA,
+        "sequences": seqs,
+    }
 
 
 if __name__ == "__main__":
     import sys
+
     out_dir = sys.argv[1]
     a = task_a_fixture()
     m = task_m_fixture()

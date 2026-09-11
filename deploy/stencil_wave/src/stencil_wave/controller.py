@@ -5,6 +5,7 @@ gain head; loaded for completeness, unused by the ledger's selection).
 Weights are the research checkpoint results/qwen/b3-ce-s0.pt converted
 bitwise to ``weights/controller.safetensors``.
 """
+
 from __future__ import annotations
 
 from pathlib import Path

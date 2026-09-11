@@ -56,9 +56,7 @@ CURRENT_PROMPT = (
     "{public_checks}"
 )
 
-ARGUMENT_SCHEMA = copy.deepcopy(
-    cpu.REPLACE_FUNCTION_TOOL["function"]["parameters"]
-)
+ARGUMENT_SCHEMA = copy.deepcopy(cpu.REPLACE_FUNCTION_TOOL["function"]["parameters"])
 
 
 class TechnicalError(RuntimeError):
@@ -406,9 +404,7 @@ class NativeToolClient:
                 "malformed_response", f"{label} is invalid JSON: {exc}"
             ) from exc
         if type(value) is not dict:
-            raise TechnicalError(
-                "malformed_response", f"{label} must be a JSON object"
-            )
+            raise TechnicalError("malformed_response", f"{label} must be a JSON object")
         receipt["response"]["json"] = value
         return value
 
@@ -474,9 +470,7 @@ class NativeToolClient:
                 "error": None,
             }
             persist(exchange)
-            exchange["completion"] = self._post(
-                self.completion_endpoint, request_body
-            )
+            exchange["completion"] = self._post(self.completion_endpoint, request_body)
             persist(exchange)
             completed = self._parsed_response(
                 exchange["completion"], "completion response"
@@ -774,8 +768,7 @@ def _refresh_manifest(manifest, records, calls, started, clock):
     manifest["unattempted_requests"] = PLANNED_REQUESTS - len(attempted)
     manifest["recorded_calls"] = len(calls)
     manifest["render_requests"] = sum(
-        call.get("native_exchange", {}).get("render", {}).get("status")
-        != "PENDING"
+        call.get("native_exchange", {}).get("render", {}).get("status") != "PENDING"
         for call in calls
         if call.get("native_exchange")
     )
@@ -808,8 +801,7 @@ def _finish_manifest(manifest, records, calls, documents, started, clock, failur
             if call.get("native_exchange")
         )
         completion_seconds = sum(
-            call["native_exchange"].get("completion", {}).get("elapsed_seconds")
-            or 0
+            call["native_exchange"].get("completion", {}).get("elapsed_seconds") or 0
             for call in project_calls
             if call.get("native_exchange")
         )
@@ -912,15 +904,11 @@ def run(
     manifest_path = root / "manifest.json"
     _write_json(manifest_path, manifest, exclusive=True)
     histories = {
-        document["public"]["episode_id"]: [
-            {"role": "system", "content": SYSTEM_PROMPT}
-        ]
+        document["public"]["episode_id"]: [{"role": "system", "content": SYSTEM_PROMPT}]
         for document in documents
     }
     states = {
-        document["public"]["episode_id"]: document["public"]["initial_file"][
-            "text"
-        ]
+        document["public"]["episode_id"]: document["public"]["initial_file"]["text"]
         for document in documents
     }
     used_call_ids = {document["public"]["episode_id"]: set() for document in documents}
@@ -942,8 +930,7 @@ def run(
             record["status"] = "IN_PROGRESS"
             record["pre_module_sha256"] = _sha_text(states[episode_id])
             record["unfinished_private_check_ids"] = [
-                check["check_id"]
-                for check in _private_checks(document, round_index)
+                check["check_id"] for check in _private_checks(document, round_index)
             ]
             _append_natural(history, public_round)
             record["history_before_attempts"] = copy.deepcopy(history)
@@ -1192,9 +1179,7 @@ def run(
                 break
             record["terminal_private_passed"] = bool(
                 record["terminal_private_checks"]
-            ) and all(
-                result["passed"] for result in record["terminal_private_checks"]
-            )
+            ) and all(result["passed"] for result in record["terminal_private_checks"])
             record["request_passed"] = (
                 public_solved and record["terminal_private_passed"]
             )
@@ -1230,9 +1215,7 @@ def _conservative_context_bounds(document):
         natural_texts.append(public_round["request"]["text"])
         visible_checks = _public_checks(document, round_index)
         current_without_module = CURRENT_PROMPT.format(
-            manual_recap=document["private"]["rounds"][round_index][
-                "manual_recap"
-            ],
+            manual_recap=document["private"]["rounds"][round_index]["manual_recap"],
             task_handle=public_round["request"]["task_handle"],
             symbol=public_round["target"]["symbol"],
             path=public_round["target"]["path"],
@@ -1270,13 +1253,8 @@ def _conservative_context_bounds(document):
                 fixed_content_bytes
                 + cpu.cpu.MAX_MODULE_BYTES
                 + prior_actions
-                * (
-                    6 * cpu.cpu.MAX_MODULE_BYTES
-                    + 6 * cpu.MAX_SOURCE_BYTES
-                    + 2048
-                )
-                + public_outcome_slots
-                * (6 * cpu.cpu.MAX_RESPONSE_BYTES + 1024)
+                * (6 * cpu.cpu.MAX_MODULE_BYTES + 6 * cpu.MAX_SOURCE_BYTES + 2048)
+                + public_outcome_slots * (6 * cpu.cpu.MAX_RESPONSE_BYTES + 1024)
             )
             context_bound = content_byte_bound + wrapper_token_reserve
             rows.append(
@@ -1401,8 +1379,7 @@ def preview(input_paths, *, model="/model", token_counter=_default_token_counter
             "later_actual_requests_known": False,
             "local_counts_are_provisional": True,
             "all_local_cold_serializations_below_context": all(
-                item["local_serialized_request_below_context"]
-                for item in cold_requests
+                item["local_serialized_request_below_context"] for item in cold_requests
             ),
             "authoritative_render_required_before_every_model_call": True,
             "conservative_bounds": context_bounds,
@@ -1423,8 +1400,7 @@ def preview(input_paths, *, model="/model", token_counter=_default_token_counter
                 item["prior_action_pairs"] for item in context_bounds
             ),
             "maximum_repeated_module_observations_per_prompt": max(
-                item["repeated_current_module_observations"]
-                for item in context_bounds
+                item["repeated_current_module_observations"] for item in context_bounds
             ),
         },
     }

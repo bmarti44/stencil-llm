@@ -1,5 +1,6 @@
 # ruff: noqa: E501
 """The vendored salience classifier must be the research classifier, bitwise."""
+
 from __future__ import annotations
 
 import json
@@ -20,7 +21,7 @@ SENTENCES = [
     "Now write a second note about winter.",
     "i.e. <<title>> must appear once. Then continue.",
     "* Bullet 1",
-    "Please, be sure to end your reply with the phrase \"Any other questions?\".",
+    'Please, be sure to end your reply with the phrase "Any other questions?".',
 ]
 
 
@@ -28,7 +29,9 @@ def test_weights_are_trained_and_pass_sanity_probe():
     m = S.DEFAULT_MODEL
     assert m.feature_names == S.FEATURE_NAMES
     assert S.is_instruction("Do not use any commas in your response.")
-    assert not S.is_instruction("It fell all night on the tin roof and the gutters overflowed.")
+    assert not S.is_instruction(
+        "It fell all night on the tin roof and the gutters overflowed."
+    )
 
 
 def test_scores_bounded_and_consistent():
@@ -42,7 +45,9 @@ def test_extract_instructions_returns_exact_spans():
     text = "Write about autumn. Do not use any commas in your response.\nInclude the keyword 'harvest' twice."
     spans = S.extract_instructions(text)
     assert [text[a:b] for a, b in spans] == [
-        "Do not use any commas in your response.", "Include the keyword 'harvest' twice."]
+        "Do not use any commas in your response.",
+        "Include the keyword 'harvest' twice.",
+    ]
 
 
 def test_split_sentences_quotes_abbreviations_newlines():
@@ -54,9 +59,12 @@ def test_split_sentences_quotes_abbreviations_newlines():
 @pytest.mark.repo
 def test_port_matches_research_module_bitwise(repo):
     import importlib
+
     research = importlib.import_module("stencil.salience")
     ours = json.loads(S.WEIGHTS_PATH.read_text())
-    theirs = json.loads((repo / "src" / "stencil" / "salience_weights.json").read_text())
+    theirs = json.loads(
+        (repo / "src" / "stencil" / "salience_weights.json").read_text()
+    )
     assert ours == theirs, "vendored salience weights differ from the research weights"
     for s in SENTENCES:
         assert S.featurize(s).tolist() == research.featurize(s).tolist(), s

@@ -1,6 +1,14 @@
+# ruff: noqa: E501
+# Data-generation prompt script: the prompt text is provenance for the labelled data
+# (data/classifier/LABELS.md) and is kept exactly as sent.
 """kimi-k3 writes classifier training data by hand (no templating): sentences from conversations, labelled
 rule / fact / none. Usage: kimi_gen_data.py <domain> <n_examples> <seed> <out.jsonl>"""
-import json, re, sys, time, urllib.request
+
+import json
+import re
+import sys
+import time
+import urllib.request
 
 domain, n, seed, out = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4]
 SPEC = f"""You are writing training data for a small classifier that decides, for ONE sentence taken from a conversation
@@ -39,15 +47,28 @@ tool output lines that contain identifiers — label "fact" with role tool; ques
 keep it under 200 words each time?" is a rule). Cover many situations inside the domain, several speakers, and both
 formal and sloppy writing. Do NOT copy or paraphrase items from any public benchmark (IFEval, Multi-IF, BFCL,
 tau-bench, etc.); invent everything. Variation seed: {seed}."""
-body = json.dumps({"model": "kimi-k3:cloud", "prompt": SPEC, "stream": False, "think": False,
-                   "options": {"num_predict": 16000, "temperature": 0.9, "seed": seed}}).encode()
-req = urllib.request.Request("http://127.0.0.1:11434/api/generate", data=body, headers={"Content-Type": "application/json"})
+body = json.dumps(
+    {
+        "model": "kimi-k3:cloud",
+        "prompt": SPEC,
+        "stream": False,
+        "think": False,
+        "options": {"num_predict": 16000, "temperature": 0.9, "seed": seed},
+    }
+).encode()
+req = urllib.request.Request(
+    "http://127.0.0.1:11434/api/generate",
+    data=body,
+    headers={"Content-Type": "application/json"},
+)
 t0 = time.time()
 for attempt in range(3):
     try:
-        r = json.load(urllib.request.urlopen(req, timeout=3600)); break
+        r = json.load(urllib.request.urlopen(req, timeout=3600))
+        break
     except Exception as e:  # noqa: BLE001
-        print("retry", attempt, e, file=sys.stderr); time.sleep(20)
+        print("retry", attempt, e, file=sys.stderr)
+        time.sleep(20)
 else:
     sys.exit(2)
 text = r.get("response", "")
@@ -64,11 +85,20 @@ for ln in text.splitlines():
             o = json.loads(m.group(0)) if m else None
         except json.JSONDecodeError:
             o = None
-    if not o or o.get("label") not in ("rule", "fact", "none") or not isinstance(o.get("text"), str) or o.get("role") not in ("user", "assistant", "tool", "system"):
-        bad += 1; continue
-    o["domain"] = domain; o["source"] = f"kimi-k3:{domain}:{seed}"
+    if (
+        not o
+        or o.get("label") not in ("rule", "fact", "none")
+        or not isinstance(o.get("text"), str)
+        or o.get("role") not in ("user", "assistant", "tool", "system")
+    ):
+        bad += 1
+        continue
+    o["domain"] = domain
+    o["source"] = f"kimi-k3:{domain}:{seed}"
     rows.append(o)
 with open(out, "w") as f:
     for o in rows:
         f.write(json.dumps(o, ensure_ascii=False) + "\n")
-print(f"{domain} seed={seed}: {len(rows)} rows ({bad} rejected) in {time.time()-t0:.0f}s")
+print(
+    f"{domain} seed={seed}: {len(rows)} rows ({bad} rejected) in {time.time() - t0:.0f}s"
+)

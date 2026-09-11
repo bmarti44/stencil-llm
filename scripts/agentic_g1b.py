@@ -3,6 +3,7 @@
 sentence ONLY at its decision moments during generation (function-name
 moment, docstring-opener moment, annotation moment). Per-moment governance
 is the program's thesis; always-on was the wrong oracle."""
+
 import json
 import re
 import sys
@@ -23,7 +24,9 @@ BETAS = [2.0, 4.0]
 
 tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
 m = Qwen3()
-m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+m.load_state_dict(
+    torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+)
 m = m.to(torch.bfloat16).cuda().eval()
 
 
@@ -34,7 +37,11 @@ def build(seed):
     block = s.text[lo:hi]
     # per-obligation sentence spans (chars)
     sent_spans = {}
-    for key, marker in (("prefix", "function names"), ("doc", "docstring"), ("hint", "type-hinted")):
+    for key, marker in (
+        ("prefix", "function names"),
+        ("doc", "docstring"),
+        ("hint", "type-hinted"),
+    ):
         i = block.find(next(sn for sn in block.split(".") if marker in sn))
         sent = next(sn for sn in block.split(".") if marker in sn) + "."
         a = lo + block.find(sent)
@@ -113,10 +120,12 @@ def run(timed=False, beta=None):
                 conf[k] += conflicts[k]
             valid += v
     n = len(SEEDS)
-    return {"compliance": {k: round(v / n, 3) for k, v in comp.items()},
-            "mean": round(sum(comp.values()) / (3 * n), 3),
-            "conflict": {k: round(v / n, 3) for k, v in conf.items()},
-            "valid": round(valid / n, 3)}
+    return {
+        "compliance": {k: round(v / n, 3) for k, v in comp.items()},
+        "mean": round(sum(comp.values()) / (3 * n), 3),
+        "conflict": {k: round(v / n, 3) for k, v in conf.items()},
+        "valid": round(valid / n, 3),
+    }
 
 
 base = run()

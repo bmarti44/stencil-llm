@@ -5,6 +5,7 @@ FULL sha256 against w3a.json's recorded full hashes (full-hash equality
 is establishable this time); emit the registered per-work paired
 parse/exec records. Does NOT overwrite w3a.json.
 """
+
 import hashlib
 import json
 import sys
@@ -26,12 +27,22 @@ def main():
     sealed = json.loads((ROOT / "results" / "qwen" / "w3a.json").read_text())
     tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
     m = Qwen3()
-    m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+    m.load_state_dict(
+        torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+    )
     m = m.to(torch.bfloat16).cuda().eval()
     ctrls = {}
     for name in ("wave", "proxy"):
         c = WaveController().cuda()
-        c.load_state_dict(torch.load(ROOT / "results" / "qwen" / f"w0-{'ce' if name == 'wave' else 'proxy'}.pt", map_location="cpu"))
+        c.load_state_dict(
+            torch.load(
+                ROOT
+                / "results"
+                / "qwen"
+                / f"w0-{'ce' if name == 'wave' else 'proxy'}.pt",
+                map_location="cpu",
+            )
+        )
         ctrls[name] = c.eval()
     arms = ["base", "wave", "proxy", "oracle", "reinsertion"]
     mismatches = 0
@@ -54,14 +65,23 @@ def main():
     base = out["paired"]["base"]
     check = {}
     for arm in arms[1:]:
-        broken = sum(1 for kk in out["paired"][arm] if
-                     (base[kk]["parse"] and not out["paired"][arm][kk]["parse"]) or
-                     (base[kk]["exec"] and not out["paired"][arm][kk]["exec"]))
-        check[arm] = {"recomputed_broken": broken, "sealed_broken": sealed[arm]["paired_broken"],
-                      "match": broken == sealed[arm]["paired_broken"]}
+        broken = sum(
+            1
+            for kk in out["paired"][arm]
+            if (base[kk]["parse"] and not out["paired"][arm][kk]["parse"])
+            or (base[kk]["exec"] and not out["paired"][arm][kk]["exec"])
+        )
+        check[arm] = {
+            "recomputed_broken": broken,
+            "sealed_broken": sealed[arm]["paired_broken"],
+            "match": broken == sealed[arm]["paired_broken"],
+        }
     out["broken_check"] = check
     (ROOT / "results" / "qwen" / "w3a-audit.json").write_text(json.dumps(out))
-    print(f"FULL-HASH {'EXACT' if mismatches == 0 else f'MISMATCH x{mismatches}'}", flush=True)
+    print(
+        f"FULL-HASH {'EXACT' if mismatches == 0 else f'MISMATCH x{mismatches}'}",
+        flush=True,
+    )
     print(json.dumps(check, indent=1), flush=True)
     print("saved results/qwen/w3a-audit.json", flush=True)
 

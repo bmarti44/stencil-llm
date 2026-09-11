@@ -45,12 +45,19 @@ def main():
     data_path = ROOT / "data" / "bench" / "multiif_en.jsonl"
     base_dir = ROOT / "results" / "qwen" / "b4-multiif-base"
     rows = [json.loads(line) for line in data_path.read_text().splitlines()]
-    records = [json.loads((base_dir / f"conv-{i:03d}.json").read_text()) for i in range(len(rows))]
+    records = [
+        json.loads((base_dir / f"conv-{i:03d}.json").read_text())
+        for i in range(len(rows))
+    ]
     if len(rows) != 909 or any(record["ci"] != i for i, record in enumerate(records)):
         raise RuntimeError("registered base cohort incomplete or reordered")
     length_thresholds = {
         turn: quantile_thresholds(
-            [record["gen"][str(turn)]["n"] for record in records if str(turn) in record["gen"]]
+            [
+                record["gen"][str(turn)]["n"]
+                for record in records
+                if str(turn) in record["gen"]
+            ]
         )
         for turn in (2, 3)
     }

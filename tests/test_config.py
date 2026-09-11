@@ -164,9 +164,7 @@ def test_load_config_period_max_covers_twice_longest_delay(tmp_path: Path) -> No
 
 
 def test_load_config_rejects_invalid_task_placement(tmp_path: Path) -> None:
-    raw = _task_config(
-        "m", task_P=32, task_queries=8, task_placement="somewhere"
-    )
+    raw = _task_config("m", task_P=32, task_queries=8, task_placement="somewhere")
     with pytest.raises(ValueError, match="invalid task_placement"):
         load_config(_write_config(tmp_path, raw))
 

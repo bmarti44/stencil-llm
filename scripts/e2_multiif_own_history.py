@@ -51,7 +51,9 @@ def main():
     from stencil.qwen3 import Qwen3
     from stencil.wave import WaveController
 
-    replay_summary_path = ROOT / "results" / "qwen" / "e2-multiif-replay" / "summary.json"
+    replay_summary_path = (
+        ROOT / "results" / "qwen" / "e2-multiif-replay" / "summary.json"
+    )
     replay_summary = json.loads(replay_summary_path.read_text())
     if not replay_summary["primary"]["gate_pass"]:
         raise RuntimeError("own-history run requires a passing replayed-history gate")
@@ -119,13 +121,24 @@ def main():
                 context = history_now + OPENER
                 spans = user_turn_span_records(tok, context)
                 result = generate_e2_policy(
-                    model, tok, context, ctrl, spans,
-                    mode="ctrb", gate=gate, threshold=float(freeze["threshold"]),
-                    dose=float(freeze["dose"]), max_new=MAX_NEW,
-                    deadline_s=args.deadline, raw_context=True)
+                    model,
+                    tok,
+                    context,
+                    ctrl,
+                    spans,
+                    mode="ctrb",
+                    gate=gate,
+                    threshold=float(freeze["threshold"]),
+                    dose=float(freeze["dose"]),
+                    max_new=MAX_NEW,
+                    deadline_s=args.deadline,
+                    raw_context=True,
+                )
                 branch = policy_branch(result, score_turn(row, turn, result.text))
             turns[str(turn)] = {"base": base, "ctrb": branch}
-            history = history_now + f"<|im_start|>assistant\n{branch['response']}<|im_end|>\n"
+            history = (
+                history_now + f"<|im_start|>assistant\n{branch['response']}<|im_end|>\n"
+            )
         atomic_json(
             record_path,
             {
@@ -146,18 +159,33 @@ def main():
         inst = {str(turn): [] for turn in (1, 2, 3)}
         prompt = {str(turn): [] for turn in (1, 2, 3)}
         inst["pooled"], prompt["pooled"] = [], []
-        controls = {"base_truncations": 0, "arm_truncations": 0,
-                    "base_timeouts": 0, "arm_timeouts": 0,
-                    "base_tokens": 0, "arm_tokens": 0, "turns": 0}
+        controls = {
+            "base_truncations": 0,
+            "arm_truncations": 0,
+            "base_timeouts": 0,
+            "arm_timeouts": 0,
+            "base_tokens": 0,
+            "arm_tokens": 0,
+            "turns": 0,
+        }
         for record in selected:
             for turn, bundle in record["turns"].items():
                 base, arm = bundle["base"], bundle["ctrb"]
-                pairs = list(zip(base["scores"]["inst_level_strict_acc"],
-                                 arm["scores"]["inst_level_strict_acc"], strict=True))
-                inst[turn].extend(pairs); inst["pooled"].extend(pairs)
-                pp = (base["scores"]["prompt_level_strict_acc"],
-                      arm["scores"]["prompt_level_strict_acc"])
-                prompt[turn].append(pp); prompt["pooled"].append(pp)
+                pairs = list(
+                    zip(
+                        base["scores"]["inst_level_strict_acc"],
+                        arm["scores"]["inst_level_strict_acc"],
+                        strict=True,
+                    )
+                )
+                inst[turn].extend(pairs)
+                inst["pooled"].extend(pairs)
+                pp = (
+                    base["scores"]["prompt_level_strict_acc"],
+                    arm["scores"]["prompt_level_strict_acc"],
+                )
+                prompt[turn].append(pp)
+                prompt["pooled"].append(pp)
                 controls["base_truncations"] += int(base["truncated"])
                 controls["arm_truncations"] += int(arm["truncated"])
                 controls["base_timeouts"] += int(base["timed_out"])
@@ -167,8 +195,12 @@ def main():
                 controls["turns"] += 1
         partitions["diagnostic" if diagnostic else "primary"] = {
             "conversations": len(selected),
-            "inst_level": {key: paired_endpoint(value) for key, value in inst.items() if value},
-            "strict_prompt": {key: paired_endpoint(value) for key, value in prompt.items() if value},
+            "inst_level": {
+                key: paired_endpoint(value) for key, value in inst.items() if value
+            },
+            "strict_prompt": {
+                key: paired_endpoint(value) for key, value in prompt.items() if value
+            },
             "controls": controls,
         }
     summary = {**meta, "partitions": partitions}

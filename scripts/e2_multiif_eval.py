@@ -162,26 +162,49 @@ def main():
                 raise RuntimeError("cumulative instruction order changed")
 
             ctrb = generate_e2_policy(
-                model, tok, context, ctrl, span_records,
-                mode="ctrb", gate=gate, threshold=float(freeze["threshold"]),
-                dose=float(freeze["dose"]), max_new=MAX_NEW,
-                deadline_s=args.deadline, raw_context=True)
+                model,
+                tok,
+                context,
+                ctrl,
+                span_records,
+                mode="ctrb",
+                gate=gate,
+                threshold=float(freeze["threshold"]),
+                dose=float(freeze["dose"]),
+                max_new=MAX_NEW,
+                deadline_s=args.deadline,
+                raw_context=True,
+            )
             ctrb_branch = policy_branch(ctrb, score_turn(row, turn, ctrb.text))
             if not ctrb.interventions and ctrb.text != base["response"]:
-                raise RuntimeError(f"conv {ci} turn {turn}: silent CTRB differs from base")
+                raise RuntimeError(
+                    f"conv {ci} turn {turn}: silent CTRB differs from base"
+                )
 
             fixed = generate_e2_policy(
-                model, tok, context, ctrl, span_records,
-                mode="fixed_oldest", gate=gate,
-                threshold=float(freeze["threshold"]), dose=float(freeze["dose"]),
-                max_new=MAX_NEW, deadline_s=args.deadline, raw_context=True)
+                model,
+                tok,
+                context,
+                ctrl,
+                span_records,
+                mode="fixed_oldest",
+                gate=gate,
+                threshold=float(freeze["threshold"]),
+                dose=float(freeze["dose"]),
+                max_new=MAX_NEW,
+                deadline_s=args.deadline,
+                raw_context=True,
+            )
             fixed_branch = policy_branch(fixed, score_turn(row, turn, fixed.text))
             if not fixed.interventions and fixed.text != base["response"]:
-                raise RuntimeError(f"conv {ci} turn {turn}: silent fixed differs from base")
+                raise RuntimeError(
+                    f"conv {ci} turn {turn}: silent fixed differs from base"
+                )
 
             periodic_spec = freeze["periodic_schedule"][str(turn)]
             periodic_onset = periodic_assignment(
-                row["key"], turn,
+                row["key"],
+                turn,
                 rate=float(periodic_spec["rate"]),
                 onset=int(periodic_spec["onset"]),
             )
@@ -189,10 +212,18 @@ def main():
                 periodic_branch = dict(base)
             else:
                 periodic = generate_e2_policy(
-                    model, tok, context, ctrl, span_records,
-                    mode="periodic", periodic_onset=periodic_onset,
-                    dose=float(freeze["dose"]), max_new=MAX_NEW,
-                    deadline_s=args.deadline, raw_context=True)
+                    model,
+                    tok,
+                    context,
+                    ctrl,
+                    span_records,
+                    mode="periodic",
+                    periodic_onset=periodic_onset,
+                    dose=float(freeze["dose"]),
+                    max_new=MAX_NEW,
+                    deadline_s=args.deadline,
+                    raw_context=True,
+                )
                 periodic_branch = policy_branch(
                     periodic, score_turn(row, turn, periodic.text)
                 )
@@ -202,9 +233,16 @@ def main():
             )
             positive_spans = user_turn_span_records(tok, positive_context)
             positive = generate_e2_policy(
-                model, tok, positive_context, ctrl, positive_spans,
-                mode="native", max_new=MAX_NEW,
-                deadline_s=args.deadline, raw_context=True)
+                model,
+                tok,
+                positive_context,
+                ctrl,
+                positive_spans,
+                mode="native",
+                max_new=MAX_NEW,
+                deadline_s=args.deadline,
+                raw_context=True,
+            )
             positive_branch = policy_branch(
                 positive, score_turn(row, turn, positive.text)
             )

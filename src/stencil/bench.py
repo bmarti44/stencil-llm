@@ -8,6 +8,7 @@ langdetect's internal randomness is pinned at import. The single-use
 invariant lives with the CALLERS: nothing here touches the 541 with a
 model; sealed jobs do that once.
 """
+
 import json
 import sys
 import time
@@ -42,6 +43,7 @@ def score_response(row, response):
     random-state-sensitive. We seed per-row by key so scoring is a pure
     function of (row, response), order-independent."""
     import random
+
     random.seed(row["key"])
     return ifeval_utils.process_results(row, [response])
 
@@ -50,12 +52,16 @@ def aggregate(per_prompt):
     """the four registered IFEval metrics from per-prompt score dicts."""
     n = len(per_prompt)
     return {
-        "prompt_level_strict_acc": sum(p["prompt_level_strict_acc"] for p in per_prompt) / n,
+        "prompt_level_strict_acc": sum(p["prompt_level_strict_acc"] for p in per_prompt)
+        / n,
         "inst_level_strict_acc": ifeval_utils.agg_inst_level_acc(
-            [p["inst_level_strict_acc"] for p in per_prompt]),
-        "prompt_level_loose_acc": sum(p["prompt_level_loose_acc"] for p in per_prompt) / n,
+            [p["inst_level_strict_acc"] for p in per_prompt]
+        ),
+        "prompt_level_loose_acc": sum(p["prompt_level_loose_acc"] for p in per_prompt)
+        / n,
         "inst_level_loose_acc": ifeval_utils.agg_inst_level_acc(
-            [p["inst_level_loose_acc"] for p in per_prompt]),
+            [p["inst_level_loose_acc"] for p in per_prompt]
+        ),
     }
 
 
@@ -82,6 +88,7 @@ def generate_cached(m, tok, prompt, bias_fn=None, max_new=MAX_NEW, deadline_s=No
             if row is None:
                 return None
             return {layer: row for layer in WAVE_LAYERS}
+
         return (20, hook)
 
     t0 = time.monotonic()
@@ -114,7 +121,7 @@ def make_wave_bias_fn(ctrl, state):
     def bias_fn(h20, P, past):
         if past == 0:
             state["K"] = h20[0, :P].float()
-            row_p = ctrl(h20[0, P - 1:P].float(), state["K"])
+            row_p = ctrl(h20[0, P - 1 : P].float(), state["K"])
             b = torch.zeros(P, P, device="cuda")
             b[-1, :P] = row_p[0]
             state["prefill_field"] = row_p.detach()
@@ -123,6 +130,7 @@ def make_wave_bias_fn(ctrl, state):
         row = torch.zeros(1, past + 1, device="cuda")
         row[0, :P] = row_p[0]
         return row
+
     return bias_fn
 
 
@@ -133,10 +141,11 @@ def wave_hook_for_prefill(ctrl, P):
 
     def hook(h20):
         K = h20[0, :P].float()
-        row_p = ctrl(h20[0, P - 1:P].float(), K)
+        row_p = ctrl(h20[0, P - 1 : P].float(), K)
         b = torch.zeros(P, P, device="cuda")
         b[-1, :P] = row_p[0]
         return {layer: b for layer in WAVE_LAYERS}
+
     return (20, hook)
 
 
@@ -146,6 +155,7 @@ def provenance_pins(root, extra_files=()):
     any extra files (controllers, datasets, the sealed runner)."""
     import hashlib
     from pathlib import Path as _P
+
     root = _P(root)
     files = [
         "models/qwen3-1.7b.pt",
@@ -195,11 +205,13 @@ def make_deficit_hook(ctrl, state, prompt_spans, tau, b_max):
         mask[a:b] = True
         state["log"].append({"span": best, "score": round(span_scores[best], 4)})
         return {layer: (mask, tau, b_max) for layer in WAVE_LAYERS}
+
     return (20, fn)
 
 
-def generate_deficit(m, tok, prompt, ctrl, prompt_spans, tau, b_max,
-                     max_new=MAX_NEW, deadline_s=None):
+def generate_deficit(
+    m, tok, prompt, ctrl, prompt_spans, tau, b_max, max_new=MAX_NEW, deadline_s=None
+):
     """cached greedy generation with the deficit-triggered wave."""
     import torch
 
@@ -222,6 +234,14 @@ def generate_deficit(m, tok, prompt, ctrl, prompt_spans, tau, b_max,
                 break
             out.append(nxt)
             state["cache_len"] = cache.length
-            logits = m(torch.tensor([[nxt]], device="cuda"), cache=cache, deficit_hook=hook)
+            logits = m(
+                torch.tensor([[nxt]], device="cuda"), cache=cache, deficit_hook=hook
+            )
             nxt = int(logits[0, -1].argmax())
-    return tok.decode(out), len(out), len(out) >= max_new, timed_out, state.get("log", [])
+    return (
+        tok.decode(out),
+        len(out),
+        len(out) >= max_new,
+        timed_out,
+        state.get("log", []),
+    )

@@ -14,6 +14,7 @@ Updates:        `Update: reply to "cat" with "bird" now.`
 Queries:        `cat ->`  (target = the single token ` bird`; input next
                 token is the newline — the answer is never written).
 """
+
 from __future__ import annotations
 
 import json
@@ -48,7 +49,10 @@ class BPE:
     def _bpe(self, token: str) -> list[str]:
         parts = list(token)
         while len(parts) > 1:
-            pairs = [(self.ranks.get((a, b), 1 << 30), i) for i, (a, b) in enumerate(zip(parts, parts[1:], strict=False))]
+            pairs = [
+                (self.ranks.get((a, b), 1 << 30), i)
+                for i, (a, b) in enumerate(zip(parts, parts[1:], strict=False))
+            ]
             rank, i = min(pairs)
             if rank == 1 << 30:
                 break
@@ -58,7 +62,9 @@ class BPE:
     def encode(self, text: str) -> list[int]:
         import re
 
-        pat = re.compile(r"'s|'t|'re|'ve|'m|'ll|'d| ?[A-Za-z]+| ?[0-9]+| ?[^\sA-Za-z0-9]+|\s+(?!\S)|\s+")
+        pat = re.compile(
+            r"'s|'t|'re|'ve|'m|'ll|'d| ?[A-Za-z]+| ?[0-9]+| ?[^\sA-Za-z0-9]+|\s+(?!\S)|\s+"
+        )
         ids: list[int] = []
         for piece in pat.findall(text):
             mapped = "".join(self.byte_enc[b] for b in piece.encode("utf-8"))
@@ -71,8 +77,22 @@ class BPE:
 # possible mappings (k=8 per slot, drawn per sequence).
 SLOT_WORDS = ["cat", "sun", "red", "king"]
 ANSWER_WORDS = [
-    "dog", "moon", "blue", "queen", "bird", "star", "green", "prince",
-    "fish", "rain", "gold", "lord", "horse", "snow", "black", "wolf",
+    "dog",
+    "moon",
+    "blue",
+    "queen",
+    "bird",
+    "star",
+    "green",
+    "prince",
+    "fish",
+    "rain",
+    "gold",
+    "lord",
+    "horse",
+    "snow",
+    "black",
+    "wolf",
 ]
 DEMO_PAIRS = [("pen", "ink"), ("day", "night")]
 # Experiment C: clue phrasings whose referent GPT-2 knows; the answer word
@@ -110,11 +130,11 @@ FILLER = [
 @dataclass
 class NLSequence:
     tokens: list[int]
-    targets: list[int]          # -1 except at answer positions
+    targets: list[int]  # -1 except at answer positions
     query_positions: list[int]  # position of the '->' token per query
     query_slots: list[int]
     active_answer: list[str]
-    rule_statement_pos: list[int]   # last statement token-position per slot
+    rule_statement_pos: list[int]  # last statement token-position per slot
     updates_absorbed: list[int]
     rule_spans: list[tuple[int, int]]  # (start, end) of every statement (v5)
     rule_events: list[tuple[int, int, str]]  # (last_pos, slot, answer) (v6)
@@ -173,7 +193,14 @@ def generate(
             rule_events.append((len(toks) - 1, s, active[s]))
             events.append((stmt_pos[s], s))
 
-    gap_bounds = {"train": (2, 6), "drought": (8, 14), "burst": (1, 2), "near": (2, 6), "derived": (2, 6), "near_derived": (2, 6)}[family]
+    gap_bounds = {
+        "train": (2, 6),
+        "drought": (8, 14),
+        "burst": (1, 2),
+        "near": (2, 6),
+        "derived": (2, 6),
+        "near_derived": (2, 6),
+    }[family]
 
     def filler_until(target_len: int) -> None:
         while len(toks) < target_len:
@@ -188,7 +215,9 @@ def generate(
         filler_until(middle_end - 80)
         for s, w in enumerate(SLOT_WORDS):
             stmt_pos[s] = len(toks)
-            toks += bpe.encode(_rule_text(w, active[s], update=False, derived=derived) + " ")
+            toks += bpe.encode(
+                _rule_text(w, active[s], update=False, derived=derived) + " "
+            )
             rule_spans.append((stmt_pos[s], len(toks)))
             rule_events.append((len(toks) - 1, s, active[s]))
             events.append((stmt_pos[s], s))
@@ -203,7 +232,9 @@ def generate(
         a = choice(16, g_c)
         active[s] = ANSWER_WORDS[a]
         stmt_pos[s] = len(toks)
-        toks += bpe.encode(_rule_text(SLOT_WORDS[s], active[s], update=True, derived=derived) + " ")
+        toks += bpe.encode(
+            _rule_text(SLOT_WORDS[s], active[s], update=True, derived=derived) + " "
+        )
         rule_spans.append((stmt_pos[s], len(toks)))
         rule_events.append((len(toks) - 1, s, active[s]))
         events.append((stmt_pos[s], s))
@@ -261,12 +292,19 @@ def generate(
 
 
 def batch(
-    seeds: list[int], *, family: str | list[str] = "train", n_updates: int = 3, bpe: BPE | None = None
+    seeds: list[int],
+    *,
+    family: str | list[str] = "train",
+    n_updates: int = 3,
+    bpe: BPE | None = None,
 ) -> tuple[torch.Tensor, torch.Tensor, list[NLSequence]]:
     bpe = bpe or BPE()
     fams = [family] * len(seeds) if isinstance(family, str) else family
     assert len(fams) == len(seeds)
-    seqs = [generate(s, family=f, n_updates=n_updates, bpe=bpe) for s, f in zip(seeds, fams, strict=True)]
+    seqs = [
+        generate(s, family=f, n_updates=n_updates, bpe=bpe)
+        for s, f in zip(seeds, fams, strict=True)
+    ]
     toks = torch.tensor([s.tokens for s in seqs], dtype=torch.long)
     tgts = torch.tensor([s.targets for s in seqs], dtype=torch.long)
     return toks, tgts, seqs

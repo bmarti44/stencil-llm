@@ -9,6 +9,7 @@ training and are genuinely multi-token. Deletion (not windowing) provides
 provable unreachability at this rung: a query chunk that no longer contains
 the obligation text has zero causal path to it except the wire.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -16,14 +17,40 @@ from dataclasses import dataclass
 import torch
 
 FIELDS = [
-    "deploy target", "log directory", "review branch", "alert channel",
-    "test command", "backup host", "config file", "release tag",
+    "deploy target",
+    "log directory",
+    "review branch",
+    "alert channel",
+    "test command",
+    "backup host",
+    "config file",
+    "release tag",
 ]
 # S3 scale: 32 composed field names (Amendment 2)
-FIELDS32 = [f"{p} {b}" for p in ("primary", "staging", "backup", "edge") for b in FIELDS]
-ADJ = ["primary", "staging", "legacy", "fallback", "canary", "shadow", "pinned", "sandbox"]
+FIELDS32 = [
+    f"{p} {b}" for p in ("primary", "staging", "backup", "edge") for b in FIELDS
+]
+ADJ = [
+    "primary",
+    "staging",
+    "legacy",
+    "fallback",
+    "canary",
+    "shadow",
+    "pinned",
+    "sandbox",
+]
 NOUN = ["cluster", "bucket", "node", "gateway", "registry", "queue", "volume", "shard"]
-SUFFIX = ["eu-west-2", "us-east-1", "zone-c", "rack-14", "tier-3", "ring-0", "cell-9", "pod-x7"]
+SUFFIX = [
+    "eu-west-2",
+    "us-east-1",
+    "zone-c",
+    "rack-14",
+    "tier-3",
+    "ring-0",
+    "cell-9",
+    "pod-x7",
+]
 FILLER = [
     "The team discussed unrelated scheduling questions for a while.",
     "Several log lines scrolled past without anything notable.",
@@ -36,22 +63,25 @@ FILLER = [
 
 @dataclass
 class QwenSession:
-    text: str                       # full stream (obligations + filler + query)
-    query_text: str                 # the query-only tail (post-deletion form)
+    text: str  # full stream (obligations + filler + query)
+    query_text: str  # the query-only tail (post-deletion form)
     field: str
-    value: str                      # exact expected answer string
+    value: str  # exact expected answer string
     obligations: list[tuple[str, str]]
 
 
 def _value(g: torch.Generator) -> str:
     def pick(pool: list[str]) -> str:
         return pool[int(torch.randint(0, len(pool), (1,), generator=g))]
+
     return f"{pick(ADJ)}-{pick(NOUN)}-{int(torch.randint(10, 99, (1,), generator=g))}.{pick(SUFFIX)}"
 
 
 def generate(seed: int, n_obligations: int = 4, n_filler: int = 6) -> QwenSession:
     g = torch.Generator().manual_seed(seed)
-    fields = [FIELDS[int(i)] for i in torch.randperm(len(FIELDS), generator=g)[:n_obligations]]
+    fields = [
+        FIELDS[int(i)] for i in torch.randperm(len(FIELDS), generator=g)[:n_obligations]
+    ]
     obligations = [(f, _value(g)) for f in fields]
     lines = ["Note: the demo field is sample-item-00.zone-a."]
     lines += [f"Note: the {f} is {v}." for f, v in obligations]
@@ -82,9 +112,13 @@ class DriftSession:
     {"set", "update", "clear", "filler"}."""
 
     chunks: list[list[tuple[str, int | None, str]]]  # line, slot, kind
-    queries: list[tuple[str, str, str | None]]  # (field, current_value, stale_value_or_None)
+    queries: list[
+        tuple[str, str, str | None]
+    ]  # (field, current_value, stale_value_or_None)
     query_parts: list[str] = None
-    values_by_line: dict[tuple[int, int], str] = None  # (chunk_idx, line_idx) -> value substring
+    values_by_line: dict[tuple[int, int], str] = (
+        None  # (chunk_idx, line_idx) -> value substring
+    )
 
 
 def generate_drift(seed: int, n_obligations: int = 4) -> DriftSession:
@@ -93,7 +127,9 @@ def generate_drift(seed: int, n_obligations: int = 4) -> DriftSession:
     def pick(pool: list[str]) -> str:
         return pool[int(torch.randint(0, len(pool), (1,), generator=g))]
 
-    fields = [FIELDS[int(i)] for i in torch.randperm(len(FIELDS), generator=g)[:n_obligations]]
+    fields = [
+        FIELDS[int(i)] for i in torch.randperm(len(FIELDS), generator=g)[:n_obligations]
+    ]
     current = {f: _value(g) for f in fields}
     stale: dict[str, str] = {}
     vals: dict[tuple[int, int], str] = {}
@@ -113,7 +149,13 @@ def generate_drift(seed: int, n_obligations: int = 4) -> DriftSession:
         vals[(1, len(c1))] = current[f]
         c1.append((f"Update: the {f} is now {current[f]}.", FIELDS.index(f), "update"))
         c1.append((pick(FILLER), None, "filler"))
-    c1.append((f"The {clear_f} note is obsolete; disregard it.", FIELDS.index(clear_f), "clear"))
+    c1.append(
+        (
+            f"The {clear_f} note is obsolete; disregard it.",
+            FIELDS.index(clear_f),
+            "clear",
+        )
+    )
     # queries: one updated field (stale trap) + one untouched field
     untouched = [f for f in fields if f not in upd and f != clear_f]
     q_fields = [upd[0], untouched[0] if untouched else upd[1]]
@@ -123,9 +165,13 @@ def generate_drift(seed: int, n_obligations: int = 4) -> DriftSession:
     ]
     queries = []
     for f in q_fields:
-        parts.append(f"Q: What is the {f}? Answer with the exact value only.\nA: The {f} is")
+        parts.append(
+            f"Q: What is the {f}? Answer with the exact value only.\nA: The {f} is"
+        )
         queries.append((f, current[f], stale.get(f)))
-    return DriftSession(chunks=[c0, c1], queries=queries, query_parts=parts, values_by_line=vals)
+    return DriftSession(
+        chunks=[c0, c1], queries=queries, query_parts=parts, values_by_line=vals
+    )
 
 
 @dataclass
@@ -134,20 +180,34 @@ class GovernanceSession:
     chatter + query. All text visible; failures are selection errors."""
 
     text: str
-    ledger_spans: dict[int, tuple[int, int]]  # slot -> (char_lo, char_hi) of the ledger line
+    ledger_spans: dict[
+        int, tuple[int, int]
+    ]  # slot -> (char_lo, char_hi) of the ledger line
     field: str
     value: str
     stale_values: list[str]  # interference values for the queried field
 
 
-def generate_governance(seed: int, n_obligations: int = 8, n_stale: int = 3, field_pool: list[str] | None = None) -> GovernanceSession:
+def generate_governance(
+    seed: int,
+    n_obligations: int = 8,
+    n_stale: int = 3,
+    field_pool: list[str] | None = None,
+) -> GovernanceSession:
     g = torch.Generator().manual_seed(seed)
-    pool_fields = field_pool if field_pool is not None else (FIELDS if n_obligations <= 8 else FIELDS32)
+    pool_fields = (
+        field_pool
+        if field_pool is not None
+        else (FIELDS if n_obligations <= 8 else FIELDS32)
+    )
 
     def pick(pool: list[str]) -> str:
         return pool[int(torch.randint(0, len(pool), (1,), generator=g))]
 
-    fields = [pool_fields[int(i)] for i in torch.randperm(len(pool_fields), generator=g)[:n_obligations]]
+    fields = [
+        pool_fields[int(i)]
+        for i in torch.randperm(len(pool_fields), generator=g)[:n_obligations]
+    ]
     current = {f: _value(g) for f in fields}
     qi = int(torch.randint(0, n_obligations, (1,), generator=g))
     field = fields[qi]
@@ -165,7 +225,10 @@ def generate_governance(seed: int, n_obligations: int = 8, n_stale: int = 3, fie
     # (the instruction says only the ledger is authoritative), not surface
     # wording. Measured failure mode (fable, p=6.6e-8): PRIMACY — the first
     # post-ledger lookalike wins; a ledger-boundary/authority confusion.
-    parts.insert(0, "Only the 'Current settings ledger' below is authoritative; ignore later notes.\n")
+    parts.insert(
+        0,
+        "Only the 'Current settings ledger' below is authoritative; ignore later notes.\n",
+    )
     off = len(parts[0])
     spans = {k: (lo + off, hi + off) for k, (lo, hi) in spans.items()}
     others = [f for f in fields if f != field]
@@ -197,7 +260,16 @@ def generate_governance(seed: int, n_obligations: int = 8, n_stale: int = 3, fie
 
 
 CODE_PREFIXES = ["qz", "vx", "mk", "tp", "rw", "js", "hn", "bl"]
-DOC_OPENERS = ["Computes", "Returns", "Performs", "Handles", "Evaluates", "Produces", "Derives", "Yields"]
+DOC_OPENERS = [
+    "Computes",
+    "Returns",
+    "Performs",
+    "Handles",
+    "Evaluates",
+    "Produces",
+    "Derives",
+    "Yields",
+]
 HINT_TYPES = ["int", "float", "str", "bool"]
 CODE_REQUESTS = [
     ("Write a Python function that returns the sum of two numbers.", "sum"),
@@ -257,7 +329,12 @@ def generate_codegov(seed: int) -> CodeGovSession:
         f" Note: arguments must be type-hinted as {c_hint}."
     )
     req, op = pick(CODE_REQUESTS)
-    text = head + obligations + chatter + f"\n\nTask: {req}\nAnswer with only the code.\n```python\n"
+    text = (
+        head
+        + obligations
+        + chatter
+        + f"\n\nTask: {req}\nAnswer with only the code.\n```python\n"
+    )
     return CodeGovSession(
         text=text,
         obligations_span=(lo, hi),

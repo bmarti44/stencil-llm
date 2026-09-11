@@ -553,9 +553,7 @@ def _resource_match(
     for target_index in range(len(targets)):
         if not take_nearest(target_index, required_visit=not allow_role_fallback):
             return [], True, shortfall, match_rows
-        if not any(
-            row.get("_match_target_index") == target_index for row in matches
-        ):
+        if not any(row.get("_match_target_index") == target_index for row in matches):
             shortfall = True
 
     # Supplement each narrower target group in target order, without reuse.
@@ -632,8 +630,10 @@ def build_matched_control(
     actual = clamped["role_counts"]
     exact_total = sum(actual.values()) == sum(needed.values())
     exact_roles = actual == needed
-    clamp_failed = bool(clamped["match_impossible"]) or not exact_total or (
-        not shortfall and not exact_roles
+    clamp_failed = (
+        bool(clamped["match_impossible"])
+        or not exact_total
+        or (not shortfall and not exact_roles)
     )
     deltas = {role: actual[role] - needed[role] for role in needed}
     return {
@@ -1254,9 +1254,7 @@ def assert_case_record_schema(
             violation = turn["eviction"].get("invariant_violation")
             if violation not in {None, "columns", "echo_delta"}:
                 raise ValueError(f"arm {name} turn has unknown invariant violation")
-            if violation is not None and bool(
-                turn["eviction"].get("match_impossible")
-            ):
+            if violation is not None and bool(turn["eviction"].get("match_impossible")):
                 raise ValueError(
                     f"arm {name} turn invariant violation is not match_impossible"
                 )
@@ -1293,9 +1291,11 @@ def assert_case_record_schema(
                 continue
             for turn in record["arms"][name]["turns"]:
                 eviction = turn["eviction"]
-                if not bool(eviction.get("pressure_triggered")) or bool(
-                    eviction.get("match_impossible")
-                ) or eviction.get("invariant_violation") == "columns":
+                if (
+                    not bool(eviction.get("pressure_triggered"))
+                    or bool(eviction.get("match_impossible"))
+                    or eviction.get("invariant_violation") == "columns"
+                ):
                     continue
                 treatment = treatment_turns[int(turn["turn"])]["eviction"]
                 actual = eviction.get("pinned_columns_by_role", {})
@@ -1663,9 +1663,7 @@ def summarize_records(
                         bool(_turn_by_index(record, arm, turn_index)["pass"])
                         for record in primary_records
                         for turn_index in primary_indices[str(record["case_id"])]
-                        if not bool(
-                            _turn_by_index(record, arm, turn_index).get("na")
-                        )
+                        if not bool(_turn_by_index(record, arm, turn_index).get("na"))
                     ]
                 )
             }
@@ -1695,23 +1693,18 @@ def summarize_records(
                     )
                 ):
                     continue
-                if (
-                    a3
-                    and (
-                        _turn_by_index(record, "full", turn_index).get(
-                            "overflow_phase"
-                        )
-                        == "initial_prompt"
-                        or (
-                            "overflow_phase"
-                            not in _turn_by_index(record, "full", turn_index)
-                            and int(
-                                _turn_by_index(record, "full", turn_index).get(
-                                    "prompt_positions", 0
-                                )
+                if a3 and (
+                    _turn_by_index(record, "full", turn_index).get("overflow_phase")
+                    == "initial_prompt"
+                    or (
+                        "overflow_phase"
+                        not in _turn_by_index(record, "full", turn_index)
+                        and int(
+                            _turn_by_index(record, "full", turn_index).get(
+                                "prompt_positions", 0
                             )
-                            > 40960
                         )
+                        > 40960
                     )
                 ):
                     excluded += 1
@@ -1828,9 +1821,7 @@ def summarize_records(
     a3_safety_intact = not a3_integrity_failures
     a3_claim_eligible = a3_eligible and a3_safety_intact
     a3_uninformative_reason = (
-        "post_exclusion_k"
-        if len(a3) < 6
-        else "no_measurable_full_context_headroom"
+        "post_exclusion_k" if len(a3) < 6 else "no_measurable_full_context_headroom"
     )
     primary_claim = primary_claim_status(
         global_k=primary["clusters"],

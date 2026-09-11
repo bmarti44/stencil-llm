@@ -123,9 +123,7 @@ def load_config(path: str | Path) -> Config:
 
 
 def _validate(config: Config) -> None:
-    variants = {
-        "b0_full", "b0_local", "b1", "b2", "m1", "m1b", "b3", "b3k", "b4"
-    }
+    variants = {"b0_full", "b0_local", "b1", "b2", "m1", "m1b", "b3", "b3k", "b4"}
     tasks = {"a", "b", "d", "m", "copy"}
     if config.variant not in variants:
         raise ValueError(f"invalid variant: {config.variant}")
@@ -217,9 +215,7 @@ def _validate(config: Config) -> None:
     required = required_by_task[config.task]
     missing = sorted(name for name in required if getattr(config, name) is None)
     inactive = sorted(
-        name
-        for name in task_fields - required
-        if getattr(config, name) is not None
+        name for name in task_fields - required if getattr(config, name) is not None
     )
     if missing:
         raise ValueError(f"required task fields are null: {missing}")
@@ -327,12 +323,7 @@ def git_identity(repo: str | Path = ".") -> GitIdentity:
         mode = file_path.lstat().st_mode
         if stat.S_ISLNK(mode):
             target = os.readlink(file_path).encode("utf-8", "surrogateescape")
-            content = (
-                b"L\0"
-                + str(len(target)).encode("ascii")
-                + b"\0"
-                + target
-            )
+            content = b"L\0" + str(len(target)).encode("ascii") + b"\0" + target
         else:
             content = file_path.read_bytes()
         records.extend(encoded_path)

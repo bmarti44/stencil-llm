@@ -14,6 +14,7 @@ Design per results/gpt2-goal-review.md (sol) with the fable-review fixes:
 - the cache state is an explicit input/output so it can be carried across
   context chunks (compaction verification).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -65,8 +66,12 @@ class FocusCache(nn.Module):
         self.d_key = d_key
         self.d_val = d_val
         self.writer = nn.Linear(d_model, 256)
-        self.key_mlp = nn.Sequential(nn.Linear(256, 64), nn.GELU(), nn.Linear(64, d_key))
-        self.val_mlp = nn.Sequential(nn.Linear(256, 256), nn.GELU(), nn.Linear(256, d_val))
+        self.key_mlp = nn.Sequential(
+            nn.Linear(256, 64), nn.GELU(), nn.Linear(64, d_key)
+        )
+        self.val_mlp = nn.Sequential(
+            nn.Linear(256, 256), nn.GELU(), nn.Linear(256, d_val)
+        )
         self.query = nn.Linear(d_model, d_key)
         self.salience = nn.Linear(d_model, 1)
         self.commit = nn.Linear(d_model, 1)
@@ -88,9 +93,9 @@ class FocusCache(nn.Module):
         h: torch.Tensor,  # (b, t, d_model) contextual states from blocks 0-7
         *,
         states: list[CacheState] | None = None,
-        sal_override: torch.Tensor | None = None,     # (b, t) bool, teacher/tests
+        sal_override: torch.Tensor | None = None,  # (b, t) bool, teacher/tests
         commit_override: torch.Tensor | None = None,  # (b, t) bool, teacher/tests
-        slot_override: torch.Tensor | None = None,    # (b, t) long, -1 = learned
+        slot_override: torch.Tensor | None = None,  # (b, t) long, -1 = learned
     ) -> tuple[torch.Tensor, list[CacheState], dict]:
         b, t, _ = h.shape
         sal_logits = self.salience(h).squeeze(-1)
@@ -110,7 +115,9 @@ class FocusCache(nn.Module):
         w = self.writer(h)  # (b, t, 256)
         states = [CacheState() for _ in range(b)] if states is None else states
         code = h.new_zeros(b, t, self.d_val)
-        commit_records: list[tuple[int, int, torch.Tensor, torch.Tensor, int]] = []  # (batch, pos, val, key, slot_id)
+        commit_records: list[
+            tuple[int, int, torch.Tensor, torch.Tensor, int]
+        ] = []  # (batch, pos, val, key, slot_id)
         for i in range(b):
             st = states[i]
             # Writes: replay commits left to right, snapshotting the state at
@@ -143,16 +150,20 @@ class FocusCache(nn.Module):
                 snap = snapshots[seg_idx]
                 if not snap.slots:
                     continue
-                K = torch.stack(snap.keys)          # (n, d_key)
-                V = torch.stack(snap.vals)          # (n, d_val)
-                q = self.query(h[i, s0:s1])         # (s, d_key)
-                att = F.softmax(q @ K.T / (self.d_key ** 0.5), dim=-1)
+                K = torch.stack(snap.keys)  # (n, d_key)
+                V = torch.stack(snap.vals)  # (n, d_val)
+                q = self.query(h[i, s0:s1])  # (s, d_key)
+                att = F.softmax(q @ K.T / (self.d_key**0.5), dim=-1)
                 code[i, s0:s1] = att @ V
-        return code, states, {
-            "sal_logits": sal_logits,
-            "commit_logits": commit_logits,
-            "commits": commit_records,
-        }
+        return (
+            code,
+            states,
+            {
+                "sal_logits": sal_logits,
+                "commit_logits": commit_logits,
+                "commits": commit_records,
+            },
+        )
 
     def _address(self, st: CacheState, key: torch.Tensor) -> int:
         """Same-key overwrite above MATCH_THRESHOLD cosine, else allocate

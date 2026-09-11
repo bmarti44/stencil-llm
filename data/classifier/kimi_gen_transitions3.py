@@ -1,3 +1,6 @@
+# ruff: noqa: E501
+# Data-generation prompt script: the prompt text is provenance for the labelled data
+# (data/classifier/LABELS.md) and is kept exactly as sent.
 """kimi-k3 relation pass 2 (FOCUS-3): TRANSITION-PHRASING enrichment for the pairwise relation classifier.
 
 Usage: kimi_gen_transitions.py <domain> <n> <seed> <out.jsonl>
@@ -9,6 +12,7 @@ introduced inside a switched task ("for the new task, keep ...", "on this one al
 kimi_gen_relations.py; label spec read from LABELS-RELATIONS.md at run time. Data lineage: fit-on (after review);
 never any benchmark content; never copy the FOCUS-3 gate bank.
 """
+
 import json
 import pathlib
 import re
@@ -44,10 +48,20 @@ reinstates ("bring back ..."/"go back to ..."/"reinstate ..."). Standing rules m
 / always / for this task keep ... / until I say otherwise), never one-off imperatives. Vary register (terse, chatty,
 polite, annoyed) and vary the idioms — never repeat a template. Invent everything; do NOT copy or paraphrase any
 public benchmark or dataset. Variation seed: {seed}."""
-body = json.dumps({"model": "kimi-k3:cloud", "prompt": PROMPT, "stream": False, "think": False,
-                   "options": {"num_predict": 16000, "temperature": 0.9, "seed": seed}}).encode()
-req = urllib.request.Request("http://127.0.0.1:11434/api/generate", data=body,
-                             headers={"Content-Type": "application/json"})
+body = json.dumps(
+    {
+        "model": "kimi-k3:cloud",
+        "prompt": PROMPT,
+        "stream": False,
+        "think": False,
+        "options": {"num_predict": 16000, "temperature": 0.9, "seed": seed},
+    }
+).encode()
+req = urllib.request.Request(
+    "http://127.0.0.1:11434/api/generate",
+    data=body,
+    headers={"Content-Type": "application/json"},
+)
 t0 = time.time()
 for attempt in range(3):
     try:
@@ -71,8 +85,13 @@ for ln in r.get("response", "").splitlines():
             o = json.loads(m.group(0)) if m else None
         except json.JSONDecodeError:
             o = None
-    ok = (o and o.get("label") in LABELS and isinstance(o.get("old_rule"), str)
-          and isinstance(o.get("message"), str) and isinstance(o.get("scope"), str))
+    ok = (
+        o
+        and o.get("label") in LABELS
+        and isinstance(o.get("old_rule"), str)
+        and isinstance(o.get("message"), str)
+        and isinstance(o.get("scope"), str)
+    )
     if not ok:
         bad += 1
         continue

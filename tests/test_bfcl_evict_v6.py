@@ -64,9 +64,7 @@ def test_f1_impossible_depends_on_total_available_columns_not_exact_rows():
         "pinned_columns": list(range(6)),
     }
     available = _candidate("user", "different width and age", 10, 8, 1)
-    possible = build_matched_control(
-        [selected, available], [selected], (0, 20)
-    )
+    possible = build_matched_control([selected, available], [selected], (0, 20))
     assert possible["match_impossible"] is False
     assert sum(len(row["pinned_columns"]) for row in possible["entries"]) == 6
     impossible = build_matched_control(
@@ -202,9 +200,7 @@ def test_f6_tool_swap_echo_order_and_match_deltas_follow_treatment_order():
     tool = {**_candidate("tool", "selected tool", 0, 3, 4), "pinned_columns": [0, 1, 2]}
     user = {**_candidate("user", "selected user", 10, 2, 3), "pinned_columns": [10, 11]}
     replacement = _candidate("tool", "replacement", 20, 4, 2)
-    result = tool_swap_plan(
-        [tool, user, replacement], [tool, user], (0, 30)
-    )
+    result = tool_swap_plan([tool, user, replacement], [tool, user], (0, 30))
     assert result["entries"][0]["text"].startswith("replace")
     assert result["entries"][1]["text"] == "selected user"
     assert result["matches"] == [

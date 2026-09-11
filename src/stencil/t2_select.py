@@ -6,10 +6,14 @@ that importing the training script for this one helper EXECUTED the training
 script's top-level code, retraining and overwriting the recalibrated selector
 checkpoint before every shakeout evaluated it (CRITICAL, 2026-08-30).
 """
+
 import re
 
 CAND_PATTERNS = {
-    "prefix": [r"All function names must start with '(\w+)_'\.", r"Use the naming scheme (\w+)_\* for every function you define\."],
+    "prefix": [
+        r"All function names must start with '(\w+)_'\.",
+        r"Use the naming scheme (\w+)_\* for every function you define\.",
+    ],
     "doc": [r"Every docstring must begin with the word '(\w+)'\."],
     "hint": [r"All function arguments must be type-hinted as (\w+)\."],
 }

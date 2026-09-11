@@ -32,6 +32,7 @@ no-bias case would be exact. Why not a registered custom interface name:
 with a non-"sdpa" name HF builds an explicit 4D mask for every layer and
 the no-bias path would no longer be the plain sdpa call.
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -46,7 +47,9 @@ WAVE_LAYERS: tuple[int, ...] = tuple(range(20, 28))
 
 
 class ColumnBias(Protocol):
-    def rows(self, layer: int, q_len: int, n_keys: int, device) -> torch.Tensor | None: ...
+    def rows(
+        self, layer: int, q_len: int, n_keys: int, device
+    ) -> torch.Tensor | None: ...
 
 
 class StepBias:
@@ -77,13 +80,36 @@ class StepBias:
 _STATE: dict = {"bias": None, "forward_token": 0}
 
 
-def _wave_sdpa(module, query, key, value, attention_mask, dropout=0.0, scaling=None, is_causal=None, **kwargs):
+def _wave_sdpa(
+    module,
+    query,
+    key,
+    value,
+    attention_mask,
+    dropout=0.0,
+    scaling=None,
+    is_causal=None,
+    **kwargs,
+):
     bias: ColumnBias | None = _STATE["bias"]
     q_len, n_keys = query.shape[2], key.shape[2]
-    rows = None if bias is None else bias.rows(getattr(module, "layer_idx", -1), q_len, n_keys, query.device)
+    rows = (
+        None
+        if bias is None
+        else bias.rows(getattr(module, "layer_idx", -1), q_len, n_keys, query.device)
+    )
     if rows is None:
-        return sdpa_attention_forward(module, query, key, value, attention_mask, dropout=dropout,
-                                      scaling=scaling, is_causal=is_causal, **kwargs)
+        return sdpa_attention_forward(
+            module,
+            query,
+            key,
+            value,
+            attention_mask,
+            dropout=dropout,
+            scaling=scaling,
+            is_causal=is_causal,
+            **kwargs,
+        )
     if query.shape[0] != 1:
         raise ValueError("stencil_wave bias supports batch size 1")
     k = repeat_kv(key, module.num_key_value_groups)
@@ -94,7 +120,10 @@ def _wave_sdpa(module, query, key, value, attention_mask, dropout=0.0, scaling=N
         att = att + attention_mask[:, :, :, :n_keys].float()
     elif q_len > 1:
         past = n_keys - q_len
-        att = att + torch.triu(torch.full((q_len, n_keys), float("-inf"), device=query.device), diagonal=1 + past)
+        att = att + torch.triu(
+            torch.full((q_len, n_keys), float("-inf"), device=query.device),
+            diagonal=1 + past,
+        )
     att = att + rows[None, None]
     out = (torch.softmax(att, dim=-1) @ v.float()).to(query.dtype)
     if isinstance(bias, StepBias):
@@ -110,7 +139,9 @@ def wave_attention(model, bias: ColumnBias | None):
     """Scope inside which the model's sdpa attention consults ``bias``."""
     impl = model.config._attn_implementation
     if impl != "sdpa":
-        raise RuntimeError(f"stencil_wave needs attn_implementation='sdpa' (got {impl!r})")
+        raise RuntimeError(
+            f"stencil_wave needs attn_implementation='sdpa' (got {impl!r})"
+        )
     prev = _STATE["bias"]
     prev_local = ALL_ATTENTION_FUNCTIONS._local_mapping.get("sdpa")
     _STATE["bias"] = bias
@@ -120,7 +151,9 @@ def wave_attention(model, bias: ColumnBias | None):
     finally:
         _STATE["bias"] = prev
         if prev_local is None:
-            del ALL_ATTENTION_FUNCTIONS["sdpa"]  # drops the local override; the stock function is back
+            del ALL_ATTENTION_FUNCTIONS[
+                "sdpa"
+            ]  # drops the local override; the stock function is back
         else:
             ALL_ATTENTION_FUNCTIONS["sdpa"] = prev_local
 

@@ -128,9 +128,7 @@ def _load_verified_json(path: Path, expected_sha256: str) -> object:
     return json.loads(_read_verified_bytes(path, expected_sha256))
 
 
-def _read_indexed_row(
-    root: Path, entry: dict, case_id: str
-) -> tuple[dict, str, str]:
+def _read_indexed_row(root: Path, entry: dict, case_id: str) -> tuple[dict, str, str]:
     """Bounded-read, hash, identify, and decode one authorized BFCL record."""
     path = root / entry["file"]
     with path.open("rb") as handle:
@@ -449,11 +447,10 @@ def validate_preflight_certificate(path: Path, meta: dict) -> str:
             if sha256(record_path) != expected_digest:
                 raise RuntimeError("preflight certificate record digest mismatch")
             record = json.loads(record_path.read_text())
-            if (
-                record.get("run_identity_sha256")
-                != evidence.get("run_identity_sha256")
-                or list(record.get("arms", {}))
-                != list(evidence.get("preflight_arms", []))
+            if record.get("run_identity_sha256") != evidence.get(
+                "run_identity_sha256"
+            ) or list(record.get("arms", {})) != list(
+                evidence.get("preflight_arms", [])
             ):
                 raise RuntimeError("preflight certificate record identity mismatch")
     manifest = payload.get("frozen_hashes", {}).get("bfcl_manifest")
@@ -477,9 +474,7 @@ def _load_cases_verified(
     pins_path = ROOT / "data/bench/pins-manifest.json"
     with pins_path.open("rb") as handle:
         pins_raw = handle.read()
-    pins = json.loads(pins_raw)["pins"][
-        "ShishirPatil/gorilla BFCL V3 multi-turn"
-    ]
+    pins = json.loads(pins_raw)["pins"]["ShishirPatil/gorilla BFCL V3 multi-turn"]
     with index_path.open("rb") as handle:
         index_raw = handle.read()
     index_digest = hashlib.sha256(index_raw).hexdigest()
@@ -546,9 +541,7 @@ def _load_verified_runtime_inputs(pins: dict) -> tuple[dict, dict]:
         ]
     checker_files = {}
     for relative, expected in pins["files_sha256"].items():
-        if not (
-            relative.startswith("vendor/bfcl_eval/") and relative.endswith(".py")
-        ):
+        if not (relative.startswith("vendor/bfcl_eval/") and relative.endswith(".py")):
             continue
         actual = sha256(ROOT / relative)
         if actual != expected:
@@ -887,8 +880,10 @@ def _echo_clamp(
     """Clamp comparator echo at a source Qwen-token boundary."""
     if target_tokens <= 0 or not entries:
         return [], 0, max(0, target_tokens)
-    context_ids = list(context_ids) if context_ids is not None else list(
-        tokenizer.encode(context).ids
+    context_ids = (
+        list(context_ids)
+        if context_ids is not None
+        else list(tokenizer.encode(context).ids)
     )
     marker = context.rfind("<|im_start|>user\n", 0, close + 1)
     if marker < 0:
@@ -1192,9 +1187,11 @@ def _turn_plan(tokenizer, messages, tools, arm: str, scorer, seed: int) -> dict:
     ):
         exact_roles = arm_role_counts == treatment_roles
         exact_total = sum(arm_role_counts.values()) == sum(treatment_roles.values())
-        usable_columns = exact_total if arm == "clf_control" and control.get(
-            "control_role_shortfall", False
-        ) else exact_roles
+        usable_columns = (
+            exact_total
+            if arm == "clf_control" and control.get("control_role_shortfall", False)
+            else exact_roles
+        )
         if not usable_columns:
             invariant_violation = "columns"
     return {
@@ -1459,9 +1456,7 @@ def run_case_arm(
                     role_column_deltas=plan["selector"].get(
                         "role_column_deltas", {"user": 0, "tool": 0}
                     ),
-                    pressure_triggered=(
-                        turn_index >= 1 and plan["evict_range"][1] > K
-                    ),
+                    pressure_triggered=(turn_index >= 1 and plan["evict_range"][1] > K),
                 )
                 first_eviction = {
                     "evicted": result["evicted"],
@@ -1472,12 +1467,8 @@ def run_case_arm(
                     "budget_used": plan["selector"]["used"],
                     "echo_tokens": plan["selector"].get("echo_tokens", 0),
                     "match_impossible": plan["selector"].get("match_impossible", False),
-                    "invariant_violation": plan["selector"].get(
-                        "invariant_violation"
-                    ),
-                    "echo_unreachable": plan["selector"].get(
-                        "echo_unreachable", False
-                    ),
+                    "invariant_violation": plan["selector"].get("invariant_violation"),
+                    "echo_unreachable": plan["selector"].get("echo_unreachable", False),
                     "echo_token_delta": plan["selector"].get("echo_token_delta", 0),
                     "echo_clamp_residual": plan["selector"].get(
                         "echo_clamp_residual", 0
@@ -1757,9 +1748,7 @@ def artifact_meta(
     pins_manifest = ROOT / "data/bench/pins-manifest.json"
     with pins_manifest.open("rb") as handle:
         pins_raw = handle.read()
-    pins = json.loads(pins_raw)["pins"][
-        "ShishirPatil/gorilla BFCL V3 multi-turn"
-    ]
+    pins = json.loads(pins_raw)["pins"]["ShishirPatil/gorilla BFCL V3 multi-turn"]
     offsets_raw = (DATA / "offsets.json").read_bytes()
     offsets_digest = hashlib.sha256(offsets_raw).hexdigest()
     if offsets_digest != pins["offsets_sha256"]:
@@ -1928,9 +1917,7 @@ def run(
     else:
         verified_inputs = None
     if meta is None:
-        meta = bind_run_identity(
-            artifact_meta(args, verified_inputs=verified_inputs)
-        )
+        meta = bind_run_identity(artifact_meta(args, verified_inputs=verified_inputs))
     _check_or_write_meta(output / "meta.json", meta)
     run_identity = str(meta["run_identity_sha256"])
     records = []
@@ -2165,9 +2152,9 @@ def assert_dev_invariants(records: list[dict]) -> dict:
                         eviction.get("control_role_shortfall")
                     )
                     delta_counts[arm] += int(eviction.get("echo_token_delta", 0)) != 0
-                    echo_clamp_residual_counts[arm] += int(
-                        eviction.get("echo_clamp_residual", 0)
-                    ) != 0
+                    echo_clamp_residual_counts[arm] += (
+                        int(eviction.get("echo_clamp_residual", 0)) != 0
+                    )
                     echo_entry_count_deltas[arm].append(
                         int(eviction.get("echo_entry_count_delta", 0))
                     )
@@ -2234,8 +2221,7 @@ def preflight_competence(records: list[dict], *, trunk: str) -> dict:
         "full_long_cases": {
             "passed": full_long_passed,
             "n": len(eligible_full_long),
-            "excluded_initial_prompt_na": len(full_long_rows)
-            - len(eligible_full_long),
+            "excluded_initial_prompt_na": len(full_long_rows) - len(eligible_full_long),
             "floor": "at least 2 eligible long-context cases",
         },
         "full_long_turns": {
@@ -2400,8 +2386,7 @@ def preflight(
                 competence["base_long_turns"]["passed"]
                 / competence["base_long_turns"]["n"]
             ),
-            "long_context_floor_pass": competence["base_long_turns"]["passed"]
-            >= 6,
+            "long_context_floor_pass": competence["base_long_turns"]["passed"] >= 6,
             "passed_both": competence_ok,
             "trunk": args.trunk,
             "use_4b_fallback": not competence_ok and args.trunk == "1.7b",

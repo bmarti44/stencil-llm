@@ -12,6 +12,7 @@ Derived INDEPENDENTLY of src/stencil/data.py (not read for this script) from:
 - Section 3 streams; Appendix B tokens; alignment contract for the mask.
 Pins the schedule at R=2, seed_rules=0, seed_data=0, 2 sequences.
 """
+
 import hashlib
 import json
 
@@ -64,18 +65,34 @@ def task_b_fixture(
             seg = [1 + cue] + [50 + d for d in ds] + [QRY, 34 + x, 34 + rules[cue][x]]
             mask_pos.append(len(tokens) + len(seg) - 2)
             tokens += seg
-            meta.append({"cue_index": cue, "operand_index": x, "delay": delay,
-                         "cue_redraws": redraws, "answer_index": rules[cue][x]})
+            meta.append(
+                {
+                    "cue_index": cue,
+                    "operand_index": x,
+                    "delay": delay,
+                    "cue_redraws": redraws,
+                    "answer_index": rules[cue][x],
+                }
+            )
         mask = [False] * len(tokens)
         for p in mask_pos:
             mask[p] = True
         seqs.append({"tokens": tokens, "loss_mask": mask, "segments": meta})
-    return {"task": "B", "R": R, "k": k, "delay_min": delay_min, "delay_max": delay_max,
-            "seed_rules": 0, "seed_data": 0, "sequences": seqs}
+    return {
+        "task": "B",
+        "R": R,
+        "k": k,
+        "delay_min": delay_min,
+        "delay_max": delay_max,
+        "seed_rules": 0,
+        "seed_data": 0,
+        "sequences": seqs,
+    }
 
 
 if __name__ == "__main__":
     import sys
+
     fx = task_b_fixture()
     with open(f"{sys.argv[1]}/task_b_r2_k8_seed0.json", "w") as f:
         json.dump(fx, f, indent=1)

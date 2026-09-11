@@ -362,8 +362,7 @@ def run(
     if allocation.split != "dev":
         raise ValueError("DEV-only driver refuses non-DEV input")
     if request_kind != "code_answer" or any(
-        episode.task.request_kinds != (request_kind,)
-        for episode in allocation.episodes
+        episode.task.request_kinds != (request_kind,) for episode in allocation.episodes
     ):
         raise ValueError("DEV driver requires the registered code_answer kind")
 
@@ -541,8 +540,7 @@ def run(
                     "error": error,
                     "token_usage": (
                         receipt["http"].get("usage")
-                        if receipt is not None
-                        and isinstance(receipt.get("http"), dict)
+                        if receipt is not None and isinstance(receipt.get("http"), dict)
                         else None
                     ),
                     "elapsed_seconds": (

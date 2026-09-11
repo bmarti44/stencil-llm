@@ -227,7 +227,9 @@ class CTRBResult:
     trace: tuple[dict, ...]
 
 
-def constraint_spans_in_context(tokenizer, context: str, only_last_turn: bool = False) -> list[tuple[int, int]]:
+def constraint_spans_in_context(
+    tokenizer, context: str, only_last_turn: bool = False
+) -> list[tuple[int, int]]:
     """Token spans of every 'Constraint:' sentence in a PRE-RENDERED
     context (multi-turn conversations included).  Coordinates are those
     of ``context`` itself — the multi-turn analogue of

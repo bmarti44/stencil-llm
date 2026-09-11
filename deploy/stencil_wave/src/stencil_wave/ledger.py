@@ -11,6 +11,7 @@ ledger version that pins entries as KV-cache slots surviving context
 eviction only has to hand out different column indices. Nothing below
 the ledger (see ``attention.py``) knows about prompt strings.
 """
+
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
@@ -26,32 +27,43 @@ TURN_CLOSE = "<|im_end|>"
 @dataclass
 class Entry:
     text: str
-    span: tuple[int, int]            # token span in the rendered context (a, b)
-    turn_introduced: int             # 1-based user turn that stated it
-    columns: tuple[int, ...]         # key columns this entry's emphasis targets
-    key: object | None = None        # pooled layer-20 residual over the columns (torch tensor)
-    held: bool = False               # eligible for selection this call
-    selected: bool = False           # chosen by the controller this call
-    score: float | None = None       # controller cos score at selection time
+    span: tuple[int, int]  # token span in the rendered context (a, b)
+    turn_introduced: int  # 1-based user turn that stated it
+    columns: tuple[int, ...]  # key columns this entry's emphasis targets
+    key: object | None = (
+        None  # pooled layer-20 residual over the columns (torch tensor)
+    )
+    held: bool = False  # eligible for selection this call
+    selected: bool = False  # chosen by the controller this call
+    score: float | None = None  # controller cos score at selection time
     status: str = "unknown"
     provenance: str = "salience"
 
     def to_record(self) -> dict:
-        return {"text": self.text, "span": list(self.span), "turn_introduced": self.turn_introduced,
-                "n_columns": len(self.columns), "held": self.held, "selected": self.selected,
-                "score": self.score, "status": self.status, "provenance": self.provenance}
+        return {
+            "text": self.text,
+            "span": list(self.span),
+            "turn_introduced": self.turn_introduced,
+            "n_columns": len(self.columns),
+            "held": self.held,
+            "selected": self.selected,
+            "score": self.score,
+            "status": self.status,
+            "provenance": self.provenance,
+        }
 
 
 @dataclass
 class Ledger:
     """What ``WaveModel.generate`` did with the ledger on the last call."""
+
     entries: list[Entry] = field(default_factory=list)
     current_turn: int = 0
     hold: str = "aged"
     top_k: int = 2
     dose: float = 0.0
     layers: tuple[int, ...] = ()
-    active: bool = False             # was any bias applied at all
+    active: bool = False  # was any bias applied at all
     biased_tokens: int = 0
 
     @property
@@ -62,7 +74,10 @@ class Ledger:
     def selected(self) -> list[Entry]:
         """Selected entries in RANK order (controller score desc, ledger order on ties)."""
         idx = [i for i, e in enumerate(self.entries) if e.selected]
-        return [self.entries[i] for i in sorted(idx, key=lambda i: (-(self.entries[i].score or 0.0), i))]
+        return [
+            self.entries[i]
+            for i in sorted(idx, key=lambda i: (-(self.entries[i].score or 0.0), i))
+        ]
 
     @property
     def columns(self) -> list[tuple[int, ...]]:
@@ -70,19 +85,31 @@ class Ledger:
         return [e.columns for e in self.selected]
 
     def to_dict(self) -> dict:
-        return {"current_turn": self.current_turn, "hold": self.hold, "top_k": self.top_k, "dose": self.dose,
-                "layers": list(self.layers), "active": self.active, "biased_tokens": self.biased_tokens,
-                "entries": [e.to_record() for e in self.entries]}
+        return {
+            "current_turn": self.current_turn,
+            "hold": self.hold,
+            "top_k": self.top_k,
+            "dose": self.dose,
+            "layers": list(self.layers),
+            "active": self.active,
+            "biased_tokens": self.biased_tokens,
+            "entries": [e.to_record() for e in self.entries],
+        }
 
     def render(self) -> str:
-        lines = [f"ledger: {len(self.entries)} entries, {len(self.held)} held, {len(self.selected)} selected"
-                 f" (turn {self.current_turn}, hold={self.hold}, top_k={self.top_k}, dose={self.dose},"
-                 f" layers={self.layers[0]}-{self.layers[-1]}, active={self.active}, biased_tokens={self.biased_tokens})"
-                 if self.layers else f"ledger: {len(self.entries)} entries (no bias layers)"]
+        lines = [
+            f"ledger: {len(self.entries)} entries, {len(self.held)} held, {len(self.selected)} selected"
+            f" (turn {self.current_turn}, hold={self.hold}, top_k={self.top_k}, dose={self.dose},"
+            f" layers={self.layers[0]}-{self.layers[-1]}, active={self.active}, biased_tokens={self.biased_tokens})"
+            if self.layers
+            else f"ledger: {len(self.entries)} entries (no bias layers)"
+        ]
         for i, e in enumerate(self.entries):
             flag = "*" if e.selected else ("+" if e.held else " ")
             sc = "" if e.score is None else f" score={e.score:+.3f}"
-            lines.append(f"  {flag} [{i}] turn {e.turn_introduced} cols {e.span[0]}:{e.span[1]}{sc}  {e.text!r}")
+            lines.append(
+                f"  {flag} [{i}] turn {e.turn_introduced} cols {e.span[0]}:{e.span[1]}{sc}  {e.text!r}"
+            )
         return "\n".join(lines)
 
     __str__ = render
@@ -103,9 +130,12 @@ def user_turns(context: str) -> list[tuple[int, int]]:
         cursor = content_end + 1
 
 
-def build_ledger(offsets: Sequence[tuple[int, int]], context: str,
-                 classify: Callable[[str], bool] | None = None,
-                 segment: Callable[[str], list[tuple[int, int]]] | None = None) -> list[Entry]:
+def build_ledger(
+    offsets: Sequence[tuple[int, int]],
+    context: str,
+    classify: Callable[[str], bool] | None = None,
+    segment: Callable[[str], list[tuple[int, int]]] | None = None,
+) -> list[Entry]:
     """Segment every USER turn into sentences, keep the instructions, map each
     to its token span (clamped to the enclosing user message) in the
     context's own coordinates. ``offsets`` are the tokenizer's char offsets
@@ -121,7 +151,11 @@ def build_ledger(offsets: Sequence[tuple[int, int]], context: str,
             if not sentence.strip() or not classify(sentence):
                 continue
             s_abs, e_abs = cs + at, min(cs + end, ce)
-            toks = [i for i, (a, b) in enumerate(offsets) if a < e_abs and b > s_abs and a >= cs and b <= ce]
+            toks = [
+                i
+                for i, (a, b) in enumerate(offsets)
+                if a < e_abs and b > s_abs and a >= cs and b <= ce
+            ]
             if not toks:
                 continue
             span = (toks[0], toks[-1] + 1)

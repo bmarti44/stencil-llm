@@ -8,6 +8,7 @@ b = g * softmax(e)/max(softmax(e)) (peak-normalized: per-token cap g);
 g = beta_max * sigmoid(w_g h20), w_g weight zero / bias -2 init
 (g0 = 0.238 * beta_max). Bounded per token, differentiable.
 """
+
 import torch
 
 from stencil.wave import WaveController
@@ -20,7 +21,7 @@ def test_bias_row_shape_and_bounds():
     b = w(h, K)
     assert b.shape == (37,)
     assert float(b.min()) >= 0.0
-    assert float(b.max()) <= 2.0 + 1e-5   # peak-normalized: per-token cap g
+    assert float(b.max()) <= 2.0 + 1e-5  # peak-normalized: per-token cap g
     assert abs(float(b.max()) - float(w.gain(h))) < 1e-5  # the peak IS g
 
 
@@ -51,7 +52,7 @@ def test_registered_low_gain_init():
 def test_field_mode_rows():
     """Teacher-forced training uses a whole field: T generation rows at once."""
     w = WaveController(beta_max=2.0)
-    H = torch.randn(11, 2048)   # 11 generation positions
+    H = torch.randn(11, 2048)  # 11 generation positions
     K = torch.randn(37, 2048)
     B = w.field(H, K)
     assert B.shape == (11, 37)

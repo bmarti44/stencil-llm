@@ -90,15 +90,11 @@ def render_document() -> str:
         ),
         (
             "Task M — in-window (P=4, queries=2 miniature)",
-            task_config(
-                "m", task_P=4, task_queries=2, task_placement="in_window"
-            ),
+            task_config("m", task_P=4, task_queries=2, task_placement="in_window"),
         ),
         (
             "Task M — beyond-window (P=4, queries=2 miniature)",
-            task_config(
-                "m", task_P=4, task_queries=2, task_placement="beyond_window"
-            ),
+            task_config("m", task_P=4, task_queries=2, task_placement="beyond_window"),
         ),
     ]
     lines = [
@@ -146,9 +142,7 @@ def main() -> None:
     validate_document(rendered)
     if args.check:
         current = (
-            output_path.read_text(encoding="utf-8")
-            if output_path.exists()
-            else None
+            output_path.read_text(encoding="utf-8") if output_path.exists() else None
         )
         if current != rendered:
             raise SystemExit(f"{output_path.relative_to(ROOT)} is stale; regenerate it")

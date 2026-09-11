@@ -19,10 +19,10 @@ No critical findings. Several highs are inexpensive to fix before S1/S2.
 Make the deployed/evaluated wire categorical:
 
 ```python
-selector_logits = score(query_h20, span_h20)       # [B, N]
+selector_logits = score(query_h20, span_h20)  # [B, N]
 address_loss = F.cross_entropy(selector_logits, target_span)
 
-selected = selector_logits.argmax(dim=-1).detach() # [B]
+selected = selector_logits.argmax(dim=-1).detach()  # [B]
 selected_mask = F.one_hot(selected, N).float()
 attention_bias = FIXED_BETA * span_token_mask(selected_mask)
 ```

@@ -5,6 +5,7 @@ s0 scheduling + CLEAN prefix rendering: every prefix sentence anywhere
 (user_set/update, distractors, s0 notes, ledger, stale matching) uses
 SENT_UNSEEN_FMT; the trained prefix template appears NOWHERE for ANY
 pool value. Scope: prefix only."""
+
 from stencil.qwen_task import CODE_PREFIXES
 from stencil.t2_sessions import SENT, SENT_UNSEEN_FMT, generate_t2, prompt_at
 
@@ -29,7 +30,10 @@ def test_unseen_format_present_when_prefix_active():
             led = s.ledger_at[wt]
             if "prefix" in led:
                 p = prompt_at(s, wt, "dev")
-                assert SENT_UNSEEN_FMT["prefix"].format(v=led["prefix"]) in p, (seed, wt)
+                assert SENT_UNSEEN_FMT["prefix"].format(v=led["prefix"]) in p, (
+                    seed,
+                    wt,
+                )
                 found = True
     assert found
 
@@ -37,7 +41,9 @@ def test_unseen_format_present_when_prefix_active():
 def test_s0_notes_still_scheduled():
     s = generate_t2(13_750_003, 20, "dev", interference="s0c")
     note_turns = [t for t in s.turns if t.text.startswith("Note: ")]
-    assert len(note_turns) >= 2 * len(s.work_turns) - 2  # two per work (minus early-ledger-empty fallbacks)
+    assert (
+        len(note_turns) >= 2 * len(s.work_turns) - 2
+    )  # two per work (minus early-ledger-empty fallbacks)
 
 
 def test_doc_hint_unchanged():
@@ -60,7 +66,9 @@ def test_stale_classification_consistent():
                 continue
             covered += 1
             p = prompt_at(s, o.turn, "dev")
-            assert any(SENT_UNSEEN_FMT["prefix"].format(v=v) in p for v in o.superseded), (seed, o.turn)
+            assert any(
+                SENT_UNSEEN_FMT["prefix"].format(v=v) in p for v in o.superseded
+            ), (seed, o.turn)
     assert covered >= 3  # the assertion actually ran
 
 
@@ -70,6 +78,7 @@ def test_s0_pinned_digest_regression():
     detects any future renderer drift — sol round 2: self-comparison was
     vacuous)."""
     import hashlib
+
     h = hashlib.sha256()
     for seed in range(13_750_000, 13_750_010):
         s = generate_t2(seed, 20, "dev", interference="s0")
@@ -82,6 +91,7 @@ def test_reinsertion_final_prompt_clean():
     path (build_arm_prompt), not a duplicate of its logic — the old
     test would have passed against the buggy runner."""
     from stencil.t2_runner import build_arm_prompt
+
     for seed in range(13_750_000, 13_750_008):
         s = generate_t2(seed, 20, "dev", interference="s0c")
         for wt in s.work_turns:

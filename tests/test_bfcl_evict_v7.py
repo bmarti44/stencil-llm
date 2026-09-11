@@ -84,9 +84,7 @@ def test_v6_1_failed_clamp_is_never_reported_usable(monkeypatch):
         return result
 
     monkeypatch.setattr(bfcl, "clamp_candidate_rows", incomplete)
-    result = bfcl.build_matched_control(
-        [selected, available], [selected], (0, 20)
-    )
+    result = bfcl.build_matched_control([selected, available], [selected], (0, 20))
     assert result["match_impossible"] is True
 
 
@@ -138,9 +136,10 @@ def test_v6_2_certificate_lists_actual_verified_case_answer_and_runtime_bytes():
     verified = artifact_meta(args)["frozen_hashes"]["verified_bytes"]
     assert len(verified["records"]) == 2
     assert all(len(value) == 64 for value in verified["records"].values())
-    assert verified["offsets"] == hashlib.sha256(
-        (DATA / "offsets.json").read_bytes()
-    ).hexdigest()
+    assert (
+        verified["offsets"]
+        == hashlib.sha256((DATA / "offsets.json").read_bytes()).hexdigest()
+    )
     assert len(verified["function_docs"]) == 8
     assert verified["checker"]
     assert len(verified["template"]) == 64
@@ -169,9 +168,7 @@ def test_v6_4_repeated_call_uses_execution_normalization():
         [],
     )
     assert canonical_call({"name": "API.lookup", "arguments": {"q": "x"}}) in prior
-    current = {
-        canonical_call({"name": "lookup", "arguments": {"q": "x"}})
-    }
+    current = {canonical_call({"name": "lookup", "arguments": {"q": "x"}})}
     generated = canonical_call({"name": "API.lookup", "arguments": {"q": "x"}})
     assert generated in prior
     assert repeated_call_event(
@@ -192,10 +189,14 @@ def test_v6_5_manifest_covers_dry_runtime_import_closure():
         if not raw:
             continue
         path = Path(raw).resolve()
-        if path.suffix == ".py" and path.is_relative_to(ROOT) and (
-            name == "scripts.bfcl_mt"
-            or name.startswith("stencil")
-            or name.startswith("bfcl_eval")
+        if (
+            path.suffix == ".py"
+            and path.is_relative_to(ROOT)
+            and (
+                name == "scripts.bfcl_mt"
+                or name.startswith("stencil")
+                or name.startswith("bfcl_eval")
+            )
         ):
             repo_modules[name] = str(path.relative_to(ROOT))
     assert "src/stencil/bench.py" not in manifest

@@ -9,6 +9,7 @@ prefix/doc/hint by seed; intended cell alternates cleared/stale_only.
 Truly-absent-with-note is not constructible under the base plan (every
 type gets set) — disclosed in the plan; cells here are cleared/stale.
 """
+
 from stencil.t2_sessions import SENT, generate_t2, prompt_at
 
 
@@ -21,7 +22,10 @@ def test_s0x_deterministic_and_targets_balanced():
     b = generate_t2(5, 20, "dev", interference="s0x")
     assert a.held_out["s0x"] == b.held_out["s0x"]
     assert [t.text for t in a.turns] == [t.text for t in b.turns]
-    types = {generate_t2(s, 20, "dev", interference="s0x").held_out["s0x"]["type"] for s in range(3)}
+    types = {
+        generate_t2(s, 20, "dev", interference="s0x").held_out["s0x"]["type"]
+        for s in range(3)
+    }
     assert types == {"prefix", "doc", "hint"}
 
 
@@ -48,7 +52,9 @@ def test_s0x_cell_is_cleared_or_stale():
         s = generate_t2(seed, 20, "dev", interference="s0x")
         ty = s.held_out["s0x"]["type"]
         wt = _last_work(s)
-        cell = next(o.cell for o in s.opportunities if o.turn == wt and o.obligation_id == ty)
+        cell = next(
+            o.cell for o in s.opportunities if o.turn == wt and o.obligation_id == ty
+        )
         assert cell in ("cleared", "stale_only"), (seed, ty, cell)
         cells.add(cell)
     assert cells == {"cleared", "stale_only"}  # both intents realized across 12 seeds

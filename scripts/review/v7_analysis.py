@@ -37,10 +37,12 @@ def detok(tid: int) -> str:
 
 RULE_SPAN = 16  # cue_mask_diag's mask width
 
+
 def analyze(family: str, n: int, seed0: int):
     print(f"\n===== family={family} n={n} =====")
     open_out, tot_out, closed_in, tot_in = 0, 0, 0, 0
     from collections import Counter
+
     leak = Counter()
     # forcing-mass ratio ahead of last statement end
     mass_rule, mass_leak = 0.0, 0.0
@@ -83,37 +85,62 @@ def analyze(family: str, n: int, seed0: int):
             keep[p0 : p0 + RULE_SPAN] = 1.0
         emb_m = m.wte(toks) * keep[None, :, None]
         code_mask = m._norm(m._norm(m.controller(emb_m)))[0]
-        for p, s, ans in zip(seq.query_positions, seq.query_slots, seq.active_answer, strict=True):
+        for p, s, ans in zip(
+            seq.query_positions, seq.query_slots, seq.active_answer, strict=True
+        ):
             y = ANSWER_WORDS.index(ans)
-            Xq["gate"][s].append(code_gate[p].float()); Yq["gate"][s].append(y)
-            Xq["mask"][s].append(code_mask[p].float()); Yq["mask"][s].append(y)
+            Xq["gate"][s].append(code_gate[p].float())
+            Yq["gate"][s].append(y)
+            Xq["mask"][s].append(code_mask[p].float())
+            Yq["mask"][s].append(y)
         for p, s, ans in seq.rule_events:
             y = ANSWER_WORDS.index(ans)
-            Xe["gate"][s].append(code_gate[p].float()); Ye["gate"][s].append(y)
-            Xe["mask"][s].append(code_mask[p].float()); Ye["mask"][s].append(y)
+            Xe["gate"][s].append(code_gate[p].float())
+            Ye["gate"][s].append(y)
+            Xe["mask"][s].append(code_mask[p].float())
+            Ye["mask"][s].append(y)
             lg = aux(code_gate[p]).view(4, 16)[s]
             ce_sum[s] += float(F.cross_entropy(lg[None], torch.tensor([y])))
             hit[s] += int(lg.argmax() == y)
             cnt[s] += 1
-    print(f"gate OPEN outside rule_spans: {open_out}/{tot_out} = {open_out/tot_out:.4f}")
-    print(f"gate CLOSED inside rule_spans: {closed_in}/{tot_in} = {closed_in/tot_in:.4f}")
+    print(
+        f"gate OPEN outside rule_spans: {open_out}/{tot_out} = {open_out / tot_out:.4f}"
+    )
+    print(
+        f"gate CLOSED inside rule_spans: {closed_in}/{tot_in} = {closed_in / tot_in:.4f}"
+    )
     print("top leaked tokens:", leak.most_common(15))
-    print(f"forcing-mass up to last stmt end: rule {mass_rule:.0f} leak {mass_leak:.0f} ratio leak/rule {mass_leak/max(mass_rule,1e-9):.3f}")
-    print(f"per-slot r-ce (aux head @ stmt ends, trained gate): "
-          + " ".join(f"s{s}:{ce_sum[s]/max(cnt[s],1):.3f}(acc {hit[s]/max(cnt[s],1):.2f},n={cnt[s]})" for s in range(4)))
+    print(
+        f"forcing-mass up to last stmt end: rule {mass_rule:.0f} leak {mass_leak:.0f} ratio leak/rule {mass_leak / max(mass_rule, 1e-9):.3f}"
+    )
+    print(
+        f"per-slot r-ce (aux head @ stmt ends, trained gate): "
+        + " ".join(
+            f"s{s}:{ce_sum[s] / max(cnt[s], 1):.3f}(acc {hit[s] / max(cnt[s], 1):.2f},n={cnt[s]})"
+            for s in range(4)
+        )
+    )
 
     def ridge(xs, ys):
         if len(ys) < 40:
             return None
-        X = torch.stack(xs); y = torch.tensor(ys)
+        X = torch.stack(xs)
+        y = torch.tensor(ys)
         k = len(ys) * 3 // 4
-        Y = torch.zeros(k, 16); Y[torch.arange(k), y[:k]] = 1
-        W = torch.linalg.solve(X[:k].T @ X[:k] + 1e-3 * torch.eye(X.shape[1]), X[:k].T @ Y)
+        Y = torch.zeros(k, 16)
+        Y[torch.arange(k), y[:k]] = 1
+        W = torch.linalg.solve(
+            X[:k].T @ X[:k] + 1e-3 * torch.eye(X.shape[1]), X[:k].T @ Y
+        )
         return round(float((torch.argmax(X[k:] @ W, 1) == y[k:]).float().mean()), 3)
 
     for cond in ("gate", "mask"):
-        print(f"ridge probe [{cond}] @ query pos: ", [ridge(Xq[cond][s], Yq[cond][s]) for s in range(4)],
-              " @ stmt end: ", [ridge(Xe[cond][s], Ye[cond][s]) for s in range(4)])
+        print(
+            f"ridge probe [{cond}] @ query pos: ",
+            [ridge(Xq[cond][s], Yq[cond][s]) for s in range(4)],
+            " @ stmt end: ",
+            [ridge(Xe[cond][s], Ye[cond][s]) for s in range(4)],
+        )
 
 
 analyze("near", 400, 6_000_000)

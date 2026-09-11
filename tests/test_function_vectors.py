@@ -209,9 +209,7 @@ def test_generation_injects_current_prompt_then_clears_at_position_one():
         def __init__(self):
             super().__init__()
             self.anchor = nn.Parameter(torch.zeros(()))
-            self.cfg = Qwen3Config(
-                1, 1, 1, 2, 2, 2, 151_646, 10_000.0, 1e-6, 16, True
-            )
+            self.cfg = Qwen3Config(1, 1, 1, 2, 2, 2, 151_646, 10_000.0, 1e-6, 16, True)
 
         def forward(self, tokens, *, cache, residual_hook=None):
             values = tokens[0].tolist()

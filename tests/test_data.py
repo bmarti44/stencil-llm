@@ -39,9 +39,7 @@ def _config(task: str, **overrides):
 
 
 def test_task_a_exact_output() -> None:
-    fixture = json.loads(
-        (ROOT / "tests/fixtures/task_a_k2_n8_seed0.json").read_text()
-    )
+    fixture = json.loads((ROOT / "tests/fixtures/task_a_k2_n8_seed0.json").read_text())
     config = _config("a", task_N=fixture["N"], task_k=fixture["k"])
     stream = generate(config)
     actual = []
@@ -147,9 +145,7 @@ def test_rules_latin_rectangle() -> None:
     cases = 0
     for seed_rules in (0, 1, 2):
         for k in (2, 8, 16, 32):
-            config = replace(
-                _config("a", task_N=8, task_k=k), seed_rules=seed_rules
-            )
+            config = replace(_config("a", task_N=8, task_k=k), seed_rules=seed_rules)
             rules = rule_table(config)
             for row in rules:
                 assert sorted(row) == list(range(16))
@@ -229,9 +225,7 @@ def test_task_b_active_rule_tracking() -> None:
 
 
 def test_task_b_exact_output() -> None:
-    fixture = json.loads(
-        (ROOT / "tests/fixtures/task_b_r2_k8_seed0.json").read_text()
-    )
+    fixture = json.loads((ROOT / "tests/fixtures/task_b_r2_k8_seed0.json").read_text())
     config = _config(
         "b",
         task_k=fixture["k"],
@@ -286,9 +280,7 @@ def test_task_b_exact_output() -> None:
 
 
 def test_task_m_bindings() -> None:
-    fixture = json.loads(
-        (ROOT / "tests/fixtures/task_m_p4_q2_seed0.json").read_text()
-    )
+    fixture = json.loads((ROOT / "tests/fixtures/task_m_p4_q2_seed0.json").read_text())
     config = _config(
         "m",
         task_P=fixture["P"],
@@ -324,9 +316,7 @@ def test_task_m_bindings() -> None:
 
 
 def test_task_m_gap_exceeds_receptive_field() -> None:
-    config = _config(
-        "m", task_P=32, task_queries=8, task_placement="beyond_window"
-    )
+    config = _config("m", task_P=32, task_queries=8, task_placement="beyond_window")
     tokens, loss_mask, metadata = next(generate(config))
     field = receptive_field(config)
     assert field == config.n_layers * (config.window - 1)
@@ -340,9 +330,7 @@ def test_task_m_gap_exceeds_receptive_field() -> None:
     value_positions = list(range(1, 2 * config.task_P, 2))
     decision_positions = torch.nonzero(loss_mask).flatten().tolist()
     distances = [
-        decision - value
-        for decision in decision_positions
-        for value in value_positions
+        decision - value for decision in decision_positions for value in value_positions
     ]
     assert len(decision_positions) == config.task_queries
     assert len(distances) == config.task_P * config.task_queries

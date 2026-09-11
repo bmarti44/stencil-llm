@@ -68,7 +68,10 @@ def main():
         for moment in json.loads(path.read_text())["moments"]
     ]
     labels = Counter(record["label"] for record in records)
-    if len(records) != int(summary["moments"]) or dict(sorted(labels.items())) != summary["labels"]:
+    if (
+        len(records) != int(summary["moments"])
+        or dict(sorted(labels.items())) != summary["labels"]
+    ):
         raise RuntimeError("harvest summary does not reproduce from per-moment records")
 
     provenance = {
@@ -80,7 +83,9 @@ def main():
         "gate_module_sha256": sha256(ROOT / "src" / "stencil" / "e2_gate.py"),
         "ctrb_sha256": sha256(ROOT / "src" / "stencil" / "ctrb.py"),
     }
-    label_counts = {name: labels.get(name, 0) for name in ("helpful", "harmful", "neutral")}
+    label_counts = {
+        name: labels.get(name, 0) for name in ("helpful", "harmful", "neutral")
+    }
     report = {
         "status": "PENDING",
         "provenance": provenance,
@@ -90,7 +95,9 @@ def main():
     }
     count_reasons = certification_reasons(label_counts, {"schemes": {}})
     if count_reasons:
-        report.update({"status": "FAIL", "gate_pass": False, "failure_reasons": count_reasons})
+        report.update(
+            {"status": "FAIL", "gate_pass": False, "failure_reasons": count_reasons}
+        )
         atomic_json(ROOT / "results" / "qwen" / args.out, report)
         print(json.dumps(report, indent=1))
         raise SystemExit(2)

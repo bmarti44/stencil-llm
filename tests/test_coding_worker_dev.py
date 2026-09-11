@@ -10,22 +10,12 @@ from scripts import coding_worker_dev as c
 
 def patch(symbol, *, functional_bad=False, obligation_bad=False, final=False):
     if final:
-        return (
-            "def gamma(x):\n"
-            "    value = alpha(x)\n"
-            "    return value\n"
-        )
+        return "def gamma(x):\n    value = alpha(x)\n    return value\n"
     bad_functional = "    if x == 1:\n        return 999\n" if functional_bad else ""
     bad_obligation = (
-        "    if x == 2 or x == 4:\n        return 888\n"
-        if obligation_bad
-        else ""
+        "    if x == 2 or x == 4:\n        return 888\n" if obligation_bad else ""
     )
-    return (
-        f"def {symbol}(x):\n"
-        f"{bad_functional}{bad_obligation}"
-        "    return helper(x)\n"
-    )
+    return f"def {symbol}(x):\n{bad_functional}{bad_obligation}    return helper(x)\n"
 
 
 def check(check_id, symbol, value, *, rule=False):
@@ -158,9 +148,7 @@ def document():
         "author": {"name": "kimi", "model": "kimi-k3:cloud"},
         "lineage": {
             "fit_on": "none",
-            "development_on": (
-                "new original specification-authored coding episode"
-            ),
+            "development_on": ("new original specification-authored coding episode"),
             "evaluated_on": "none",
         },
         "episode": {
@@ -177,9 +165,7 @@ def document():
 def test_exact_fence_parser_and_splice_preserve_submitted_indentation():
     source = document()["episode"]["initial_file"]["text"]
     code = "def alpha(x):\n  value = helper(x)\n  return value"
-    response = "Applicable rules:\nidentity\n" + c.fenced_response(
-        "module.py", code
-    )
+    response = "Applicable rules:\nidentity\n" + c.fenced_response("module.py", code)
     parsed = c.parse_response(response, "module.py", "alpha")
     assert parsed.prefix == "Applicable rules:\nidentity\n"
     assert parsed.code == code
@@ -270,12 +256,7 @@ def test_type_sensitive_json_and_fresh_seccomp_processes():
     assert not c.json_equal(True, 1)
     assert not c.json_equal(1, 1.0)
     assert c.json_equal({"x": [True, 1]}, {"x": [True, 1]})
-    stateful = (
-        "seen = []\n"
-        "def sample(x):\n"
-        "    seen.append(x)\n"
-        "    return len(seen)\n"
-    )
+    stateful = "seen = []\ndef sample(x):\n    seen.append(x)\n    return len(seen)\n"
     assert c._fresh_execute(stateful, "sample", 0) == 1
     assert c._fresh_execute(stateful, "sample", 0) == 1
     typed = {
@@ -328,9 +309,9 @@ def test_strict_schema_and_bank_identity_guards():
         round_["oracle"]["effective_rules"][0]["strength"] = "permitted"
     assert c.validate_document(permitted) is permitted
     contextual_restatement = copy.deepcopy(original)
-    contextual_restatement["episode"]["rounds"][1]["oracle"][
-        "effective_rules"
-    ][0]["text"] += " A current exception is described here."
+    contextual_restatement["episode"]["rounds"][1]["oracle"]["effective_rules"][0][
+        "text"
+    ] += " A current exception is described here."
     assert c.validate_document(contextual_restatement) is contextual_restatement
 
 
@@ -357,13 +338,10 @@ def test_functional_control_can_name_prior_and_current_obligation_checks():
             prior["target"]["symbol"],
             prior["reference_patch"],
         )
-    _, mutant = c.consume_patch(
-        state, "module.py", "alpha", control["patch"]
-    )
+    _, mutant = c.consume_patch(state, "module.py", "alpha", control["patch"])
     stable, obligations = c._active_checks(item["episode"], 2)
     results = {
-        row["check_id"]: row
-        for row in c.run_checks(mutant, stable + obligations)
+        row["check_id"]: row for row in c.run_checks(mutant, stable + obligations)
     }
     assert not results["functional-0-a"]["passed"]
     assert not results["obligation-2-a"]["passed"]

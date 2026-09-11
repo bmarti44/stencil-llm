@@ -375,9 +375,7 @@ def run_arm(
                 timed_out = True
                 break
             generated.append(next_token)
-            logits = model(
-                torch.tensor([[next_token]], device=device), cache=cache
-            )
+            logits = model(torch.tensor([[next_token]], device=device), cache=cache)
             next_token = int(logits[0, -1].argmax())
     text = tokenizer.decode(generated, skip_special_tokens=False)
     truncated = len(generated) >= max_new
@@ -610,9 +608,7 @@ def summarize_records(records: Sequence[Mapping]) -> dict:
     }
     contrasts = {name: _contrast(rows) for name, rows in values.items()}
     registered = {
-        name: contrasts[name]
-        for name in values
-        if not name.startswith("descriptive")
+        name: contrasts[name] for name in values if not name.startswith("descriptive")
     }
     holm = _holm(registered)
     safety_arms = {}
@@ -946,7 +942,7 @@ def main(argv: Sequence[str] | None = None) -> None:
             f"Multi-IF cohort is {len(rows)}, expected {REGISTERED_COHORT}"
         )
     stop = len(rows) if args.limit is None else min(len(rows), args.start + args.limit)
-    selected_rows = list(enumerate(rows[args.start:stop], start=args.start))
+    selected_rows = list(enumerate(rows[args.start : stop], start=args.start))
     outdir = ROOT / "results/qwen" / args.out
     outdir.mkdir(parents=True, exist_ok=True)
     _check_or_write_meta(outdir / "meta.json", build_meta(args, data_path, model_path))

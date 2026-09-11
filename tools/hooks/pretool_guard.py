@@ -22,9 +22,14 @@ ROOT = Path(__file__).resolve().parents[2]
 SEALED_NAME = "data/bench/ifeval_input_data.jsonl"
 OWNED_PIDS_ENV = "STENCIL_OWNED_PIDS"
 OWNED_REGISTRY = ROOT / ".stencil-owned-pids"  # gitignored; one pid per line
-EVAL_DATA = re.compile(
-    r"(?:data/bench(?:/|\b)|results/qwen/b4-multiif-base(?:/|\b))"
-)
+# Shared-GPU mode (plan/BACK-ON-TRACK-PLAN.md section E, 2026-09-11): when the flag
+# file exists (or STENCIL_GPU_SHARE=1), foreign compute pids are tolerated if every
+# one of them is registered in the reservations file, STENCIL_GPU_FOREIGN_PIDS, or
+# the owned registry. Unlisted pids still deny.
+SHARE_FLAG = ROOT / ".stencil-gpu-share"  # gitignored
+RESERVATIONS = Path.home() / ".gb10-gpu.reservations"
+FOREIGN_PIDS_ENV = "STENCIL_GPU_FOREIGN_PIDS"
+EVAL_DATA = re.compile(r"(?:data/bench(?:/|\b)|results/qwen/b4-multiif-base(?:/|\b))")
 FIT_TOKEN = re.compile(
     r"(?<![a-z0-9])(?:fit(?:ting)?|train(?:ing)?|refit(?:ting)?)(?![a-z0-9])|"
     r"(?:^|\s)-m\s+stencil\.salience(?:2)?(?:\s|$)",
@@ -127,6 +132,20 @@ def _parent_of(pid):
     # comm may contain spaces/parens; the fields after the last ')' are stable.
     try:
         return int(stat.rsplit(")", 1)[1].split()[1])
+    except (IndexError, ValueError):
+        return None
+
+
+def _session_of(pid):
+    """Session id from /proc/<pid>/stat, or ``None`` when unavailable. A reserved
+    wrapper that exits early leaves its children reparented to pid 1 but still in
+    its session, so the session id is the durable link to the reservation."""
+    try:
+        stat = Path(f"/proc/{pid}/stat").read_text()
+    except OSError:
+        return None
+    try:
+        return int(stat.rsplit(")", 1)[1].split()[3])
     except (IndexError, ValueError):
         return None
 
@@ -315,17 +334,35 @@ def _gpu_launch(command):
     scripted_model = bool(
         re.search(r"uv\s+run\s+python(?:3)?\s+scripts/\S+", lower)
     ) and bool(
-        re.search(
-            r"(?:^|[\s=])(?:models?/|\S+\.(?:pt|safetensors))(?:\s|$)", lower
-        )
+        re.search(r"(?:^|[\s=])(?:models?/|\S+\.(?:pt|safetensors))(?:\s|$)", lower)
     )
     return pythonish and (explicit_cuda or scripted_model)
+
+
+def _reserved_pids(reservations):
+    """PIDs listed in the shared reservations file (one JSON object per line)."""
+    try:
+        text = Path(reservations).read_text()
+    except OSError:
+        return set()
+    return {int(value) for value in re.findall(r'"pid"\s*:\s*(\d+)', text)}
+
+
+def _share_mode(env, share_flag):
+    if env.get("STENCIL_GPU_SHARE") == "1":
+        return True
+    try:
+        return Path(share_flag).read_text().strip() == "1"
+    except OSError:
+        return False
 
 
 def _query_gpu_pids():
     result = subprocess.run(
         ["nvidia-smi", "--query-compute-apps=pid", "--format=csv,noheader"],
-        capture_output=True, text=True, check=False,
+        capture_output=True,
+        text=True,
+        check=False,
     )
     if result.returncode:
         raise RuntimeError(f"nvidia-smi query failed ({result.returncode})")
@@ -333,16 +370,30 @@ def _query_gpu_pids():
 
 
 def _background_launch(command):
-    return (bool(re.search(r"(?:^|\s)(?:nohup|setsid|disown)(?:\s|$)", command))
-            or bool(re.search(r"(?<!&)&(?!&)", command)))
+    return bool(re.search(r"(?:^|\s)(?:nohup|setsid|disown)(?:\s|$)", command)) or bool(
+        re.search(r"(?<!&)&(?!&)", command)
+    )
 
 
-def decision(command, *, env=None, gpu_pids=None, owned_pids=None,
-             registry=None, parent_of=None):
+def decision(
+    command,
+    *,
+    env=None,
+    gpu_pids=None,
+    owned_pids=None,
+    registry=None,
+    parent_of=None,
+    reservations=None,
+    share_flag=None,
+    session_of=None,
+):
     """Return a deny reason, or ``None``. Injected state keeps CPU tests hermetic."""
     env = os.environ if env is None else env
     registry = OWNED_REGISTRY if registry is None else registry
+    reservations = RESERVATIONS if reservations is None else reservations
+    share_flag = SHARE_FLAG if share_flag is None else share_flag
     parent_of = _parent_of if parent_of is None else parent_of
+    session_of = _session_of if session_of is None else session_of
     eval_fit_reason = _eval_fit_reason(command)
     if eval_fit_reason:
         return eval_fit_reason
@@ -363,24 +414,47 @@ def decision(command, *, env=None, gpu_pids=None, owned_pids=None,
     if env.get("STENCIL_SUBAGENT") == "1" and _background_launch(command):
         return "background launch denied for STENCIL_SUBAGENT=1"
 
+    lower = command.lower()
     if _gpu_launch(command):
         try:
             active = _query_gpu_pids() if gpu_pids is None else list(gpu_pids)
         except (OSError, RuntimeError) as exc:
             return f"GPU busy guard failed closed: {exc}"
+        if active and _share_mode(env, share_flag) and "--gpu-reset" not in lower:
+            allowed = owned | _reserved_pids(reservations)
+            allowed |= {
+                int(v) for v in re.findall(r"\d+", env.get(FOREIGN_PIDS_ENV, ""))
+            }
+            unlisted = sorted(
+                pid
+                for pid in set(active)
+                if pid not in allowed
+                and not _descends_from(pid, allowed, parent_of)
+                and session_of(pid) not in allowed
+            )
+            if not unlisted:
+                return None
+            return (
+                "GPU busy (shared mode): unreserved compute pid(s) "
+                + ",".join(map(str, unlisted))
+                + "; add a reservation line or STENCIL_GPU_FOREIGN_PIDS"
+            )
         if active:
             return f"GPU busy: active compute pid(s) {','.join(map(str, active))}"
     return None
 
 
 def deny_payload(reason):
-    return json.dumps({
-        "hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
-            "permissionDecision": "deny",
-            "permissionDecisionReason": reason,
-        }
-    }, separators=(",", ":"))
+    return json.dumps(
+        {
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": reason,
+            }
+        },
+        separators=(",", ":"),
+    )
 
 
 def main():

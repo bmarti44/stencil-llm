@@ -1,3 +1,6 @@
+# ruff: noqa: E501
+# Data-generation prompt script: the prompt text is provenance for the labelled data
+# (data/classifier/LABELS.md) and is kept exactly as sent.
 """kimi-k3 ADMISSION pass (FOCUS-3): message-level standing-rule extraction data.
 
 Usage: kimi_gen_admission.py <domain> <n> <seed> <out.jsonl>
@@ -6,6 +9,7 @@ data/classifier/heldout/fable-admission-heldout.jsonl (author-disjoint held-out;
 kimi-k3 in a fresh session per call. Never any benchmark content; never the FOCUS-3 gate bank sentences.
 Data lineage: fit-on (after review) for the admission detector; evaluated-on = fable-admission-heldout (untouched).
 """
+
 import json
 import pathlib
 import re
@@ -38,10 +42,20 @@ chit-chat or after a data payload), ~10% two standing rules, ~30% one-off reques
 rule), ~15% quoted/reported/inert rule-like text that is NOT an instruction, ~10% a standing rule AND a payload
 request in the same message (span must be exactly the rule sentence). Vary register (terse, chatty, polite,
 annoyed). Invent everything; do NOT copy or paraphrase any public benchmark or dataset. Variation seed: {seed}."""
-body = json.dumps({"model": "kimi-k3:cloud", "prompt": PROMPT, "stream": False, "think": False,
-                   "options": {"num_predict": 16000, "temperature": 0.9, "seed": seed}}).encode()
-req = urllib.request.Request("http://127.0.0.1:11434/api/generate", data=body,
-                             headers={"Content-Type": "application/json"})
+body = json.dumps(
+    {
+        "model": "kimi-k3:cloud",
+        "prompt": PROMPT,
+        "stream": False,
+        "think": False,
+        "options": {"num_predict": 16000, "temperature": 0.9, "seed": seed},
+    }
+).encode()
+req = urllib.request.Request(
+    "http://127.0.0.1:11434/api/generate",
+    data=body,
+    headers={"Content-Type": "application/json"},
+)
 t0 = time.time()
 for attempt in range(3):
     try:
@@ -65,8 +79,12 @@ for ln in r.get("response", "").splitlines():
             o = json.loads(m.group(0)) if m else None
         except json.JSONDecodeError:
             o = None
-    ok = (o and isinstance(o.get("message"), str) and isinstance(o.get("standing_rules"), list)
-          and o.get("role") in ("user", "tool", "assistant"))
+    ok = (
+        o
+        and isinstance(o.get("message"), str)
+        and isinstance(o.get("standing_rules"), list)
+        and o.get("role") in ("user", "tool", "assistant")
+    )
     if not ok:
         bad += 1
         continue

@@ -79,13 +79,18 @@ def main() -> None:
 
     hf_post_attn: list[torch.Tensor | None] = [None] * cfg.n_layer
     hf_post_mlp: list[torch.Tensor | None] = [None] * cfg.n_layer
-    hf = AutoModelForCausalLM.from_pretrained(
-        hf_dir,
-        torch_dtype=dtype,
-        attn_implementation=args.attn_implementation,
-    ).to(device).eval()
+    hf = (
+        AutoModelForCausalLM.from_pretrained(
+            hf_dir,
+            torch_dtype=dtype,
+            attn_implementation=args.attn_implementation,
+        )
+        .to(device)
+        .eval()
+    )
     handles = []
     for layer_index, layer in enumerate(hf.model.layers):
+
         def capture_hf_post_attn(module, inputs, index=layer_index):
             del module
             hf_post_attn[index] = _cpu_float(inputs[0])
@@ -95,6 +100,7 @@ def main() -> None:
                 capture_hf_post_attn
             )
         )
+
         def capture_hf_post_mlp(module, inputs, output, index=layer_index):
             del module, inputs
             hf_post_mlp[index] = _cpu_float(output[0])
@@ -122,6 +128,7 @@ def main() -> None:
     ours = ours.to(dtype).to(device).eval()
     handles = []
     for layer_index, layer in enumerate(ours.layers):
+
         def capture_our_post_attn(module, inputs, index=layer_index):
             del module
             our_post_attn[index] = _cpu_float(inputs[0])
@@ -147,9 +154,7 @@ def main() -> None:
     print(f"prompt: {args.prompt!r}")
     print(f"tokens: {ids.shape[1]}")
     print(f"HF tied lm_head equals embeddings: {tied_equal}")
-    embedding_delta = _max_delta(
-        hf_hidden[0], _cpu_float(ours.embed_tokens(ids))
-    )
+    embedding_delta = _max_delta(hf_hidden[0], _cpu_float(ours.embed_tokens(ids)))
     print(f"embedding max|delta|: {embedding_delta:.6g}")
     first = None
     for layer_index in range(cfg.n_layer):

@@ -197,9 +197,7 @@ def function_vector_summary(
         and echo_paired["wins"] > echo_paired["losses"]
         and not killed["fv_inject_echo"]
     )
-    harmful = bool(
-        killed["fv_inject"] or totals["fv_inject"] < totals["evicted"] + 5
-    )
+    harmful = bool(killed["fv_inject"] or totals["fv_inject"] < totals["evicted"] + 5)
     return {
         "preregistered_reading": PREREGISTERED_READING,
         "unknown_vector_constraints": sum(

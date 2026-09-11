@@ -48,8 +48,7 @@ class LogisticProbe:
         n = len(features)
         mean = tuple(sum(float(x[j]) for x in features) / n for j in range(width))
         scale = tuple(
-            math.sqrt(sum((float(x[j]) - mean[j]) ** 2 for x in features) / n)
-            or 1.0
+            math.sqrt(sum((float(x[j]) - mean[j]) ** 2 for x in features) / n) or 1.0
             for j in range(width)
         )
         standardized = [
@@ -151,9 +150,7 @@ def decision_metrics(records: Sequence[Mapping], decisions: Sequence[bool]) -> d
     labels = _binary_labels(records)
     utilities = _utility(records)
     n_fired = sum(bool(x) for x in decisions)
-    true_positive = sum(
-        bool(f) and y for f, y in zip(decisions, labels, strict=True)
-    )
+    true_positive = sum(bool(f) and y for f, y in zip(decisions, labels, strict=True))
     n_helpful = sum(labels)
     ppv = true_positive / n_fired if n_fired else 0.0
     recall = true_positive / n_helpful if n_helpful else 0.0

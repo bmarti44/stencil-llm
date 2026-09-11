@@ -24,6 +24,7 @@ Per-session atomic records from the first session.
 the context only after literal ``Constraint:`` labels are removed. A marked
 copy exists solely to compute reported automatic-selection coverage.
 """
+
 import argparse
 import hashlib
 import json
@@ -42,7 +43,9 @@ BASE_ARMS = ("full", "evicted", "pinned", "pinned_control")
 ECHO_ARMS = ("echo_only", "pinned_echo")
 AUTO_ECHO_ARMS = (*ECHO_ARMS, "full_echo")
 DEFAULT_DOSES = (0.5, 1.0, 3.0)
-DEGENERATE_REP4 = 0.5  # registered degeneracy definition: repeated-4gram frac > 0.5 OR truncated
+DEGENERATE_REP4 = (
+    0.5  # registered degeneracy definition: repeated-4gram frac > 0.5 OR truncated
+)
 WAVE_KILL_RULE = "degenerate sessions > 2/20 at best dose"
 CHAT_CONTROL_TOKENS = ("<|im_start|>", "<|im_end|>", "<|endoftext|>")
 QUOTING_RUN = 8
@@ -54,7 +57,9 @@ def dose_label(dose):
 
 def arm_names(doses, *, focus="oracle"):
     echoes = AUTO_ECHO_ARMS if focus == "auto" else ECHO_ARMS
-    return BASE_ARMS + echoes + tuple(f"pinned_wave_d{dose_label(dose)}" for dose in doses)
+    return (
+        BASE_ARMS + echoes + tuple(f"pinned_wave_d{dose_label(dose)}" for dose in doses)
+    )
 
 
 def parse_args(argv=None):
@@ -74,8 +79,11 @@ def parse_args(argv=None):
     args = ap.parse_args(argv)
     if args.focus == "auto" and args.dose is not None:
         ap.error("--dose is unavailable with --focus auto (H1 prime has no wave arms)")
-    args.dose = list(DEFAULT_DOSES) if args.dose is None and args.focus == "oracle" else []
+    args.dose = (
+        list(DEFAULT_DOSES) if args.dose is None and args.focus == "oracle" else []
+    )
     return args
+
 
 def sha(p):
     return hashlib.sha256(Path(p).read_bytes()).hexdigest()
@@ -83,11 +91,17 @@ def sha(p):
 
 def tree_sha(root):
     root = Path(root)
-    files = sorted(p for p in root.rglob("*") if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".pyc")
+    files = sorted(
+        p
+        for p in root.rglob("*")
+        if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".pyc"
+    )
     digest = hashlib.sha256()
     for path in files:
-        digest.update(str(path.relative_to(root)).encode()); digest.update(b"\0")
-        digest.update(path.read_bytes()); digest.update(b"\0")
+        digest.update(str(path.relative_to(root)).encode())
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
     return digest.hexdigest()
 
 
@@ -110,7 +124,12 @@ def provenance_manifest():
 
 
 def build_meta(
-    *, doses, max_new, deadline, artifact_hashes=None, focus="oracle",
+    *,
+    doses,
+    max_new,
+    deadline,
+    artifact_hashes=None,
+    focus="oracle",
     eviction_timing="pre-query",
 ):
     meta = {
@@ -128,25 +147,29 @@ def build_meta(
         **(artifact_hashes or {}),
     }
     if focus == "auto":
-        meta.update({
-            "focus": "auto",
-            "salience_backend": salience_backend(),
-            "mark_isolation": (
-                "all arm contexts and salience inputs have literal Constraint: markers removed; "
-                "marked context is retained only for reported oracle coverage"
-            ),
-        })
+        meta.update(
+            {
+                "focus": "auto",
+                "salience_backend": salience_backend(),
+                "mark_isolation": (
+                    "all arm contexts and salience inputs have literal Constraint: markers removed; "
+                    "marked context is retained only for reported oracle coverage"
+                ),
+            }
+        )
     return meta
+
 
 def atomic_json(path, value):
     tmp = path.with_suffix(path.suffix + ".tmp")
     tmp.write_text(json.dumps(value, ensure_ascii=False, indent=1))
     tmp.rename(path)
 
+
 def repeated_4gram_frac(ids):
     if len(ids) < 8:
         return 0.0
-    grams = [tuple(ids[i:i + 4]) for i in range(len(ids) - 3)]
+    grams = [tuple(ids[i : i + 4]) for i in range(len(ids) - 3)]
     return 1.0 - len(set(grams)) / len(grams)
 
 
@@ -203,7 +226,11 @@ def _token_span(enc, start, end, *, contained=False):
     if contained:
         # Include the tokenizer's leading-space token at the clause start, but
         # never the token that crosses the clause end (the H1 bleed bug).
-        tokens = [i for i, (a, b) in enumerate(enc.offsets) if a < end and b > start and b <= end]
+        tokens = [
+            i
+            for i, (a, b) in enumerate(enc.offsets)
+            if a < end and b > start and b <= end
+        ]
     else:
         tokens = [i for i, (a, b) in enumerate(enc.offsets) if a < end and b > start]
     return (tokens[0], tokens[-1] + 1) if tokens else None
@@ -229,8 +256,13 @@ def _oracle_char_records(context, last_turn):
                 start += 1
             while end > start and context[end - 1].isspace():
                 end -= 1
-            records.append({"char_span": (start, end), "origin_turn": turn,
-                            "is_aged": turn < last_turn})
+            records.append(
+                {
+                    "char_span": (start, end),
+                    "origin_turn": turn,
+                    "is_aged": turn < last_turn,
+                }
+            )
             cursor = mark + 1
     return records
 
@@ -245,8 +277,9 @@ def oracle_focus_records(tokenizer, context, *, last_turn):
     return records
 
 
-def focus_span_records(tokenizer, context, *, last_turn, focus, finder=None,
-                       marked_span_reader=None):
+def focus_span_records(
+    tokenizer, context, *, last_turn, focus, finder=None, marked_span_reader=None
+):
     """Select aged focus spans; auto never invokes the oracle-mark reader."""
     if focus == "oracle":
         if marked_span_reader is None:
@@ -267,13 +300,17 @@ def focus_span_records(tokenizer, context, *, last_turn, focus, finder=None,
     for turn, (start, end) in enumerate(_user_turns(context), start=1):
         content = context[start:end]
         for found in finder(content, backend=salience_backend()):
-            span = _token_span(enc, start + found.start, start + found.end, contained=True)
+            span = _token_span(
+                enc, start + found.start, start + found.end, contained=True
+            )
             if span is not None and turn < last_turn:
                 records.append({"span": span, "origin_turn": turn, "is_aged": True})
     return records
 
 
-def auto_selection_metrics(tokenizer, marked_context, unmarked_context, selected, *, last_turn):
+def auto_selection_metrics(
+    tokenizer, marked_context, unmarked_context, selected, *, last_turn
+):
     """Coverage of oracle clauses in unmarked token coordinates, plus false extras."""
     if strip_constraint_marks(marked_context) != unmarked_context:
         raise AssertionError("unmarked context is not the mark-stripped oracle context")
@@ -289,7 +326,9 @@ def auto_selection_metrics(tokenizer, marked_context, unmarked_context, selected
         if span is not None:
             oracle.append(set(range(*span)))
     picked = [set(range(*record["span"])) for record in selected]
-    covered = sum(any(len(gold & pred) / len(gold) >= 0.5 for pred in picked) for gold in oracle)
+    covered = sum(
+        any(len(gold & pred) / len(gold) >= 0.5 for pred in picked) for gold in oracle
+    )
     extra = sum(not any(pred & gold for gold in oracle) for pred in picked)
     return {
         "auto_coverage": covered / len(oracle) if oracle else 0.0,
@@ -312,15 +351,21 @@ def echo_context(tokenizer, context, aged_records):
         char_end = enc.offsets[end - 1][1]
         window = context[char_start:char_end]
         cuts = [
-            pos for pos in (
+            pos
+            for pos in (
                 window.find(" Constraint:", 1),
-                window.find("Every earlier constraint from this conversation still applies", 1),
-            ) if pos >= 0
+                window.find(
+                    "Every earlier constraint from this conversation still applies", 1
+                ),
+            )
+            if pos >= 0
         ]
         if window.rstrip().endswith(" Constraint"):
             cuts.append(window.rfind(" Constraint"))
         if cuts:
-            bounded = _token_span(enc, char_start, char_start + min(cuts), contained=True)
+            bounded = _token_span(
+                enc, char_start, char_start + min(cuts), contained=True
+            )
             if bounded is None:
                 raise ValueError("constraint span is empty at its clause boundary")
             start, end = bounded
@@ -338,8 +383,11 @@ def echo_context(tokenizer, context, aged_records):
 
 def invalid_output(text):
     """Registered empty/non-text/chat-token generation check."""
-    return (not text or not any(ch.isalnum() for ch in text)
-            or any(token in text for token in CHAT_CONTROL_TOKENS))
+    return (
+        not text
+        or not any(ch.isalnum() for ch in text)
+        or any(token in text for token in CHAT_CONTROL_TOKENS)
+    )
 
 
 def detect_quoting(response_ids, echo_ids, *, echo_arm):
@@ -347,24 +395,31 @@ def detect_quoting(response_ids, echo_ids, *, echo_arm):
     if not echo_arm or len(response_ids) < QUOTING_RUN or len(echo_ids) < QUOTING_RUN:
         return False
     echo_windows = {
-        tuple(echo_ids[i:i + QUOTING_RUN])
+        tuple(echo_ids[i : i + QUOTING_RUN])
         for i in range(len(echo_ids) - QUOTING_RUN + 1)
     }
     return any(
-        tuple(response_ids[i:i + QUOTING_RUN]) in echo_windows
+        tuple(response_ids[i : i + QUOTING_RUN]) in echo_windows
         for i in range(len(response_ids) - QUOTING_RUN + 1)
     )
+
 
 def matched_control_spans(keep, evict_range):
     """Position-match exactly the deduplicated surviving-column mass."""
     lo, hi = evict_range
-    pinned = {column for start, end in keep for column in range(max(lo, start), min(hi, end))}
+    pinned = {
+        column for start, end in keep for column in range(max(lo, start), min(hi, end))
+    }
     available = set(range(lo, hi)) - pinned
     if len(available) < len(pinned):
-        raise RuntimeError(f"cannot match {len(pinned)} pinned columns with only {len(available)} controls")
+        raise RuntimeError(
+            f"cannot match {len(pinned)} pinned columns with only {len(available)} controls"
+        )
     chosen = set()
     for target in sorted(pinned):
-        candidate = min(available, key=lambda col: (abs(col - target), col < target, col))
+        candidate = min(
+            available, key=lambda col: (abs(col - target), col < target, col)
+        )
         chosen.add(candidate)
         available.remove(candidate)
     ordered = sorted(chosen)
@@ -382,13 +437,26 @@ def is_degenerate(g):
     return bool(g["truncated"] or g["rep4"] > DEGENERATE_REP4)
 
 
-def run_arm(m, tok, ids, arm, keep, evict_range, dose, max_new, deadline_s,
-            control_keep=(), eviction_timing="pre-query", deficit_spans=(),
-            deficit_tau=None):
+def run_arm(
+    m,
+    tok,
+    ids,
+    arm,
+    keep,
+    evict_range,
+    dose,
+    max_new,
+    deadline_s,
+    control_keep=(),
+    eviction_timing="pre-query",
+    deficit_spans=(),
+    deficit_tau=None,
+):
     import torch
 
     from stencil.bench import EOS, WAVE_LAYERS
     from stencil.qwen3 import KVCache, prefill_with_eviction
+
     device = next(m.parameters()).device
     cache = KVCache(m.cfg)
     out = []
@@ -399,8 +467,10 @@ def run_arm(m, tok, ids, arm, keep, evict_range, dose, max_new, deadline_s,
         pins = ()
         if arm not in ("full", "full_echo"):
             pins = (
-                () if arm in ("evicted", "echo_only")
-                else control_keep if arm == "pinned_control"
+                ()
+                if arm in ("evicted", "echo_only")
+                else control_keep
+                if arm == "pinned_control"
                 else keep
             )
         logits, imap, _, _ = prefill_with_eviction(
@@ -422,7 +492,9 @@ def run_arm(m, tok, ids, arm, keep, evict_range, dose, max_new, deadline_s,
             (sorted({imap[o] for o in range(*span) if o in imap}), cap)
             for span, cap in deficit_spans
         ]
-        mapped_deficits = [item for item in mapped_deficits if item[0] and item[1] > 0.0]
+        mapped_deficits = [
+            item for item in mapped_deficits if item[0] and item[1] > 0.0
+        ]
         nxt = int(logits[0, -1].argmax())
         while nxt not in EOS and len(out) < max_new:
             if time.monotonic() - t0 > deadline_s:
@@ -460,19 +532,37 @@ def run_arm(m, tok, ids, arm, keep, evict_range, dose, max_new, deadline_s,
             nxt = int(logits[0, -1].argmax())
     text = tok.decode(out, skip_special_tokens=False)
     return {
-        "text": text, "n": len(out),
+        "text": text,
+        "n": len(out),
         "truncated": len(out) >= max_new,
-        "timed_out": timed_out, "rep4": repeated_4gram_frac(out),
+        "timed_out": timed_out,
+        "rep4": repeated_4gram_frac(out),
         "invalid_output": invalid_output(text),
         "generated_token_ids": list(out),
-        "pinned_cols": len(cols), "cache_cols": int(cache.k[0].shape[2]),
+        "pinned_cols": len(cols),
+        "cache_cols": int(cache.k[0].shape[2]),
     }
 
 
-def session_record(*, session, key, topic, n_turns, evict_range, keep, control_keep,
-                   n_aged, history_token_ids, context_token_ids, arms,
-                   echo_context_token_ids=(), echo_tokens_added=0, echo_text_sha256="",
-                   auto_coverage=None, auto_extra=None):
+def session_record(
+    *,
+    session,
+    key,
+    topic,
+    n_turns,
+    evict_range,
+    keep,
+    control_keep,
+    n_aged,
+    history_token_ids,
+    context_token_ids,
+    arms,
+    echo_context_token_ids=(),
+    echo_tokens_added=0,
+    echo_text_sha256="",
+    auto_coverage=None,
+    auto_extra=None,
+):
     pinned_columns = {i for start, end in keep for i in range(start, end)}
     control_columns = {i for start, end in control_keep for i in range(start, end)}
     if len(control_columns) != len(pinned_columns):
@@ -526,13 +616,25 @@ def paired_bootstrap_pinned_minus_control(records, *, n_resamples=2000, seed=0):
         control = record["arms"]["pinned_control"]["scores"][:n]
         if len(pinned) != len(control) or not pinned:
             raise ValueError("paired non-empty aged score vectors required")
-        diffs.append(sum(float(a) - float(b) for a, b in zip(pinned, control, strict=True)) / len(pinned))
+        diffs.append(
+            sum(float(a) - float(b) for a, b in zip(pinned, control, strict=True))
+            / len(pinned)
+        )
     if not diffs:
-        return {"mean": None, "lower": None, "upper": None, "n_sessions": 0,
-                "confidence": 0.95, "resamples": n_resamples, "seed": seed}
+        return {
+            "mean": None,
+            "lower": None,
+            "upper": None,
+            "n_sessions": 0,
+            "confidence": 0.95,
+            "resamples": n_resamples,
+            "seed": seed,
+        }
     rng = random.Random(seed)
-    draws = sorted(sum(diffs[rng.randrange(len(diffs))] for _ in diffs) / len(diffs)
-                   for _ in range(n_resamples))
+    draws = sorted(
+        sum(diffs[rng.randrange(len(diffs))] for _ in diffs) / len(diffs)
+        for _ in range(n_resamples)
+    )
     return {
         "mean": sum(diffs) / len(diffs),
         "lower": _percentile(draws, 0.025),
@@ -560,14 +662,20 @@ def summarize_records(records, arms_registered, meta=None):
             "rate": passed / max(1, total),
             "trunc": sum(r["arms"][arm]["truncated"] for r in records),
             "timeout": sum(r["arms"][arm]["timed_out"] for r in records),
-            "mean_rep4": sum(r["arms"][arm]["rep4"] for r in records) / max(1, len(records)),
+            "mean_rep4": sum(r["arms"][arm]["rep4"] for r in records)
+            / max(1, len(records)),
             "degenerate": sum(is_degenerate(r["arms"][arm]) for r in records),
             "invalid_output": sum(
-                r["arms"][arm].get("invalid_output", invalid_output(r["arms"][arm].get("text", "ok")))
+                r["arms"][arm].get(
+                    "invalid_output", invalid_output(r["arms"][arm].get("text", "ok"))
+                )
                 for r in records
             ),
-            "quoting_rate": sum(r["arms"][arm]["quoting"] for r in records) / max(1, len(records)),
-            "pass_rate_quoting_excluded": nonquoting_passed / nonquoting_total if nonquoting_total else None,
+            "quoting_rate": sum(r["arms"][arm]["quoting"] for r in records)
+            / max(1, len(records)),
+            "pass_rate_quoting_excluded": nonquoting_passed / nonquoting_total
+            if nonquoting_total
+            else None,
         }
 
     gap_passes = summ["full"]["aged_pass"] - summ["evicted"]["aged_pass"]
@@ -585,20 +693,32 @@ def summarize_records(records, arms_registered, meta=None):
         difference = summ[treatment]["aged_pass"] - summ[reference]["aged_pass"]
         summ["contrasts"][label] = {
             "pass_count_difference": difference,
-            "recovered_fraction_of_gap": difference / gap_passes if gap_passes > 0 else None,
+            "recovered_fraction_of_gap": difference / gap_passes
+            if gap_passes > 0
+            else None,
         }
     full = summ["full"]
     summ["safety_table"] = {}
     for arm in arms_registered:
         values = {
-            "timeouts": (summ[arm]["timeout"], full["timeout"], summ[arm]["timeout"] == 0),
-            "truncations": (summ[arm]["trunc"], full["trunc"], summ[arm]["trunc"] <= full["trunc"] + 1),
+            "timeouts": (
+                summ[arm]["timeout"],
+                full["timeout"],
+                summ[arm]["timeout"] == 0,
+            ),
+            "truncations": (
+                summ[arm]["trunc"],
+                full["trunc"],
+                summ[arm]["trunc"] <= full["trunc"] + 1,
+            ),
             "degenerate_sessions": (
-                summ[arm]["degenerate"], full["degenerate"],
+                summ[arm]["degenerate"],
+                full["degenerate"],
                 summ[arm]["degenerate"] <= full["degenerate"],
             ),
             "invalid_output": (
-                summ[arm]["invalid_output"], full["invalid_output"],
+                summ[arm]["invalid_output"],
+                full["invalid_output"],
                 summ[arm]["invalid_output"] <= full["invalid_output"],
             ),
         }
@@ -613,12 +733,16 @@ def summarize_records(records, arms_registered, meta=None):
             "mean_coverage": sum(r["auto_coverage"] for r in records) / len(records),
             "total_extra": sum(r["auto_extra"] for r in records),
             "per_session": [
-                {"session": r["session"], "auto_coverage": r["auto_coverage"],
-                 "auto_extra": r["auto_extra"]}
+                {
+                    "session": r["session"],
+                    "auto_coverage": r["auto_coverage"],
+                    "auto_extra": r["auto_extra"],
+                }
                 for r in records
             ],
         }
     return summ
+
 
 def main():
     determinism.assert_gpu_free_or_owned()
@@ -631,7 +755,9 @@ def main():
 
     data_path = ROOT / "data" / "b3" / "mt-train-300.jsonl"
     model_path = ROOT / "models" / "qwen3-1.7b.pt"
-    sessions = [json.loads(l) for l in data_path.read_text().splitlines()][args.start:args.start + args.sessions]
+    sessions = [json.loads(l) for l in data_path.read_text().splitlines()][
+        args.start : args.start + args.sessions
+    ]
     outdir = ROOT / "results" / "qwen" / args.out
     outdir.mkdir(parents=True, exist_ok=True)
     doses = tuple(args.dose)
@@ -669,11 +795,25 @@ def main():
         history = ""
         marked_history = ""
         for turn in turns[:-1]:
-            prompt = strip_constraint_marks(turn["prompt"]) if args.focus == "auto" else turn["prompt"]
+            prompt = (
+                strip_constraint_marks(turn["prompt"])
+                if args.focus == "auto"
+                else turn["prompt"]
+            )
             ctx = history + f"<|im_start|>user\n{prompt}<|im_end|>\n" + OPENER
             # verifier (2026-09-01): generate_cached wraps in TMPL -> double
             # scaffold; decode the raw context instead
-            g = run_arm(m, tok, tok.encode(ctx).ids, "full", [], None, 0.0, args.max_new, args.deadline)
+            g = run_arm(
+                m,
+                tok,
+                tok.encode(ctx).ids,
+                "full",
+                [],
+                None,
+                0.0,
+                args.max_new,
+                args.deadline,
+            )
             text = g["text"]
             history += f"<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n{text}<|im_end|>\n"
             marked_history += (
@@ -682,50 +822,86 @@ def main():
             )
         last = turns[-1]
         history_ids = tok.encode(history).ids
-        last_prompt = strip_constraint_marks(last["prompt"]) if args.focus == "auto" else last["prompt"]
+        last_prompt = (
+            strip_constraint_marks(last["prompt"])
+            if args.focus == "auto"
+            else last["prompt"]
+        )
         context = history + f"<|im_start|>user\n{last_prompt}<|im_end|>\n" + OPENER
         marked_context = (
             marked_history + f"<|im_start|>user\n{last['prompt']}<|im_end|>\n" + OPENER
-            if args.focus == "auto" else context
+            if args.focus == "auto"
+            else context
         )
-        if args.focus == "auto" and ("Constraint:" in context or strip_constraint_marks(marked_context) != context):
-            raise AssertionError("automatic arm context is not exactly the mark-stripped context")
+        if args.focus == "auto" and (
+            "Constraint:" in context
+            or strip_constraint_marks(marked_context) != context
+        ):
+            raise AssertionError(
+                "automatic arm context is not exactly the mark-stripped context"
+            )
         ids, evict_range = tokenized_eviction_range(tok, context)
         T_last = len(turns)
         aged_recs = focus_span_records(tok, context, last_turn=T_last, focus=args.focus)
         keep = [tuple(r["span"]) for r in aged_recs]
         echoed_context, _, echo_text = echo_context(tok, context, aged_recs)
         echo_ids, echo_evict_range = tokenized_eviction_range(tok, echoed_context)
-        if tok.decode(ids[slice(*evict_range)]) != tok.decode(echo_ids[slice(*echo_evict_range)]):
-            raise AssertionError("echo tokenization changed the prior-history eviction text")
+        if tok.decode(ids[slice(*evict_range)]) != tok.decode(
+            echo_ids[slice(*echo_evict_range)]
+        ):
+            raise AssertionError(
+                "echo tokenization changed the prior-history eviction text"
+            )
         echo_keep = keep
         echo_token_ids = tok.encode(echo_text).ids
         echo_tokens_added = len(echo_ids) - len(ids)
         echo_text_sha256 = hashlib.sha256(echo_text.encode()).hexdigest()
         control_keep = matched_control_spans(keep, evict_range)
         pinned_count = len({i for start, end in keep for i in range(start, end)})
-        control_count = len({i for start, end in control_keep for i in range(start, end)})
-        assert control_count == pinned_count, f"session {si}: control {control_count} != pinned {pinned_count}"
-        row = {"key": int(sess["key"]) * 10 + T_last,
-               "instruction_id_list": last["instruction_id_list"], "kwargs": last["kwargs"]}
+        control_count = len(
+            {i for start, end in control_keep for i in range(start, end)}
+        )
+        assert control_count == pinned_count, (
+            f"session {si}: control {control_count} != pinned {pinned_count}"
+        )
+        row = {
+            "key": int(sess["key"]) * 10 + T_last,
+            "instruction_id_list": last["instruction_id_list"],
+            "kwargs": last["kwargs"],
+        }
         # aged constraints = those whose clause originates in an earlier turn;
         # map by order: the corpus lists are cumulative in introduction order
         oracle_recs = oracle_focus_records(tok, marked_context, last_turn=T_last)
         n_aged = sum(r["is_aged"] for r in oracle_recs)
         selection_metrics = (
-            auto_selection_metrics(tok, marked_context, context, aged_recs, last_turn=T_last)
-            if args.focus == "auto" else {}
+            auto_selection_metrics(
+                tok, marked_context, context, aged_recs, last_turn=T_last
+            )
+            if args.focus == "auto"
+            else {}
         )
         arms = {}
         for arm in arms_registered:
-            dose = float(arm.rsplit("_d", 1)[1]) if arm.startswith("pinned_wave_d") else 0.0
+            dose = (
+                float(arm.rsplit("_d", 1)[1])
+                if arm.startswith("pinned_wave_d")
+                else 0.0
+            )
             is_echo = arm in AUTO_ECHO_ARMS
             arm_ids = echo_ids if is_echo else ids
             arm_keep = echo_keep if is_echo else keep
             arm_evict_range = echo_evict_range if is_echo else evict_range
             g = run_arm(
-                m, tok, arm_ids, arm, arm_keep, arm_evict_range, dose,
-                args.max_new, args.deadline, control_keep=control_keep,
+                m,
+                tok,
+                arm_ids,
+                arm,
+                arm_keep,
+                arm_evict_range,
+                dose,
+                args.max_new,
+                args.deadline,
+                control_keep=control_keep,
                 eviction_timing=args.eviction_timing,
             )
             g["degenerate"] = is_degenerate(g)
@@ -740,31 +916,68 @@ def main():
             arms[arm] = g
         assert arms["pinned"]["pinned_cols"] == arms["pinned_control"]["pinned_cols"]
         rec = session_record(
-            session=si, key=sess["key"], topic=sess["topic"], n_turns=T_last,
-            evict_range=evict_range, keep=keep, control_keep=control_keep, n_aged=n_aged,
-            history_token_ids=history_ids, context_token_ids=ids, arms=arms,
-            echo_context_token_ids=echo_ids, echo_tokens_added=echo_tokens_added,
+            session=si,
+            key=sess["key"],
+            topic=sess["topic"],
+            n_turns=T_last,
+            evict_range=evict_range,
+            keep=keep,
+            control_keep=control_keep,
+            n_aged=n_aged,
+            history_token_ids=history_ids,
+            context_token_ids=ids,
+            arms=arms,
+            echo_context_token_ids=echo_ids,
+            echo_tokens_added=echo_tokens_added,
             echo_text_sha256=echo_text_sha256,
             **selection_metrics,
         )
         rec["context_tokens"] = len(ids)
         atomic_json(rp, rec)
-        print(f"session {si} aged={n_aged} " + " ".join(f"{a}={arms[a]['aged_pass']}/{n_aged}(rep4={arms[a]['rep4']:.2f},n={arms[a]['n']})" for a in arms_registered), flush=True)
+        print(
+            f"session {si} aged={n_aged} "
+            + " ".join(
+                f"{a}={arms[a]['aged_pass']}/{n_aged}(rep4={arms[a]['rep4']:.2f},n={arms[a]['n']})"
+                for a in arms_registered
+            ),
+            flush=True,
+        )
 
     records = [json.loads(p.read_text()) for p in sorted(outdir.glob("session-*.json"))]
     summ = summarize_records(records, arms_registered, meta)
     gap = summ["full"]["rate"] - summ["evicted"]["rate"]
     summ["gap_full_minus_evicted"] = gap
-    summ["recovered_frac_pinned"] = (summ["pinned"]["rate"] - summ["evicted"]["rate"]) / gap if gap > 0 else None
+    summ["recovered_frac_pinned"] = (
+        (summ["pinned"]["rate"] - summ["evicted"]["rate"]) / gap if gap > 0 else None
+    )
     wave_arms = [a for a in arms_registered if a.startswith("pinned_wave_d")]
     if wave_arms:
-        best_wave = max(wave_arms, key=lambda a: (summ[a]["rate"], -summ[a]["degenerate"]))
+        best_wave = max(
+            wave_arms, key=lambda a: (summ[a]["rate"], -summ[a]["degenerate"])
+        )
         summ["wave_best_dose_arm"] = best_wave
         summ["wave_killed"] = summ[best_wave]["degenerate"] > 2
-        summ["recovered_frac_pinned_wave_best_dose"] = (summ[best_wave]["rate"] - summ["evicted"]["rate"]) / gap if gap > 0 else None
-    summ["paired_bootstrap_pinned_minus_control"] = paired_bootstrap_pinned_minus_control(records)
+        summ["recovered_frac_pinned_wave_best_dose"] = (
+            (summ[best_wave]["rate"] - summ["evicted"]["rate"]) / gap
+            if gap > 0
+            else None
+        )
+    summ["paired_bootstrap_pinned_minus_control"] = (
+        paired_bootstrap_pinned_minus_control(records)
+    )
     atomic_json(outdir / "summary.json", summ)
-    print(json.dumps({k: v for k, v in summ.items() if k in arms_registered or k.startswith(("gap", "recovered", "paired", "wave_"))}, indent=1))
+    print(
+        json.dumps(
+            {
+                k: v
+                for k, v in summ.items()
+                if k in arms_registered
+                or k.startswith(("gap", "recovered", "paired", "wave_"))
+            },
+            indent=1,
+        )
+    )
+
 
 if __name__ == "__main__":
     main()

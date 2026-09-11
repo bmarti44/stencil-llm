@@ -12,6 +12,7 @@ false-selection sessions across ALL inactive candidate-bearing events
 (off-target leaks reported). Screens: address >= 0.90, recall >=
 0.41640866873065013, margins 90/90. CPU-only (cached features).
 """
+
 import json
 import sys
 from pathlib import Path
@@ -35,26 +36,46 @@ def sessions_from(paths):
     for p in paths:
         tr = load_trace(p)
         for e in tr["events"]:
-            typed = [i for i, c in enumerate(e["candidates"]) if c["type"] == e["pred_type"]]
+            typed = [
+                i for i, c in enumerate(e["candidates"]) if c["type"] == e["pred_type"]
+            ]
             if not typed:
                 continue
             label = None
             if e["type_active"]:
-                auth = [k for k, i in enumerate(typed) if e["candidates"][i]["authoritative"]]
+                auth = [
+                    k
+                    for k, i in enumerate(typed)
+                    if e["candidates"][i]["authoritative"]
+                ]
                 if auth:
                     label = auth[0]
             tgt = e["s0x_target"]
-            hazard = (tgt.get("type") is not None and e["work_turn"] == tgt["work_turn"]
-                      and e["pred_type"] == tgt["type"]
-                      and not any(e["candidates"][i]["authoritative"] for i in typed))
-            rows.append({"seed": e["seed"], "wt": e["work_turn"], "step": e["step"],
-                         "h20": e["h20"].float(), "cand": e["cand_feats"].float()[typed],
-                         "label": label, "hazard": hazard, "inactive": not e["type_active"],
-                         "type_idx": TYPES.index(e["pred_type"])})
+            hazard = (
+                tgt.get("type") is not None
+                and e["work_turn"] == tgt["work_turn"]
+                and e["pred_type"] == tgt["type"]
+                and not any(e["candidates"][i]["authoritative"] for i in typed)
+            )
+            rows.append(
+                {
+                    "seed": e["seed"],
+                    "wt": e["work_turn"],
+                    "step": e["step"],
+                    "h20": e["h20"].float(),
+                    "cand": e["cand_feats"].float()[typed],
+                    "label": label,
+                    "hazard": hazard,
+                    "inactive": not e["type_active"],
+                    "type_idx": TYPES.index(e["pred_type"]),
+                }
+            )
     by = {}
     for r in rows:
         by.setdefault(r["seed"], []).append(r)
-    return [sorted(v, key=lambda r: (r["wt"], r["step"])) for _, v in sorted(by.items())]
+    return [
+        sorted(v, key=lambda r: (r["wt"], r["step"])) for _, v in sorted(by.items())
+    ]
 
 
 def run_session_seq(head, ctrl, seq, collect=None):
@@ -68,7 +89,11 @@ def run_session_seq(head, ctrl, seq, collect=None):
         null_add, q_add = ctrl.score_aug(z_pre)
         logits = head(r["h20"], r["cand"], null_add=null_add, q_add=q_add)
         target = 0 if r["label"] is None else r["label"] + 1
-        loss = loss + F.cross_entropy(logits[None], torch.tensor([target])) + margin_loss(logits, r["label"])
+        loss = (
+            loss
+            + F.cross_entropy(logits[None], torch.tensor([target]))
+            + margin_loss(logits, r["label"])
+        )
         if collect is not None:
             collect.append((r, logits.detach()))
         z = ctrl.write(z_pre, r["h20"], r["type_idx"])
@@ -106,16 +131,28 @@ def evaluate(head, ctrl, sessions):
         "all_inactive_clean": not leak_hazard_sessions and not offtarget_sessions,
         "recall": round(rec_ok / max(1, n_active), 4),
         "address": round(addr_ok / max(1, n_active), 4),
-        "margins": [round(act_m / max(1, n_active), 4), round(inact_m / max(1, n_inact), 4)],
+        "margins": [
+            round(act_m / max(1, n_active), 4),
+            round(inact_m / max(1, n_inact), 4),
+        ],
     }
 
 
 def main():
-    train_sessions = sessions_from([ROOT / "results" / "qwen" / "t1-train-features.pt",
-                                    ROOT / "results" / "qwen" / "t1-trace0-features.pt"])
+    train_sessions = sessions_from(
+        [
+            ROOT / "results" / "qwen" / "t1-train-features.pt",
+            ROOT / "results" / "qwen" / "t1-trace0-features.pt",
+        ]
+    )
     calib_sessions = sessions_from([ROOT / "results" / "qwen" / "t1-calib-features.pt"])
-    print(f"{len(train_sessions)} train sessions, {len(calib_sessions)} calib sessions", flush=True)
-    legacy = torch.load(ROOT / "results" / "qwen" / "t2b-selector.pt", map_location="cpu")
+    print(
+        f"{len(train_sessions)} train sessions, {len(calib_sessions)} calib sessions",
+        flush=True,
+    )
+    legacy = torch.load(
+        ROOT / "results" / "qwen" / "t2b-selector.pt", map_location="cpu"
+    )
     t1_state = torch.load(ROOT / "results" / "qwen" / "t1-head.pt", map_location="cpu")
     report = {}
     for name in CONTROLLERS:
@@ -130,16 +167,22 @@ def main():
             perm = torch.randperm(len(train_sessions), generator=g)
             for i in range(0, len(train_sessions), 8):
                 loss = torch.tensor(0.0)
-                for j in perm[i:i + 8].tolist():
+                for j in perm[i : i + 8].tolist():
                     loss = loss + run_session_seq(head, ctrl, train_sessions[j])
-                opt.zero_grad(); loss.backward(); opt.step()
+                opt.zero_grad()
+                loss.backward()
+                opt.step()
         rep = evaluate(head, ctrl, calib_sessions)
         rep["controller_params"] = sum(p.numel() for p in ctrl.parameters())
         report[name] = rep
-        torch.save({"head": head.state_dict(), "ctrl": ctrl.state_dict()},
-                   ROOT / "results" / "qwen" / f"t2-ctrl-{name}.pt")
+        torch.save(
+            {"head": head.state_dict(), "ctrl": ctrl.state_dict()},
+            ROOT / "results" / "qwen" / f"t2-ctrl-{name}.pt",
+        )
         print(name, json.dumps(rep), flush=True)
-    (ROOT / "results" / "qwen" / "t2-bakeoff.json").write_text(json.dumps(report, indent=1))
+    (ROOT / "results" / "qwen" / "t2-bakeoff.json").write_text(
+        json.dumps(report, indent=1)
+    )
     print("saved results/qwen/t2-bakeoff.json", flush=True)
 
 

@@ -1,5 +1,6 @@
 # ruff: noqa: E501
 """Verification 5: the doorless room on GPT-2 (exact-zero Jacobian)."""
+
 from pathlib import Path
 
 import pytest
@@ -48,7 +49,7 @@ def test_unreachable_zero_grad_gpt2() -> None:
     the osc arm's are nonzero (the wire is the only path).
     Also pin the boundary: within reach, vanilla is nonzero."""
     t, dst = 1000, 999
-    beyond, within = dst - 800, dst - 700   # 800 > 756 >= 700
+    beyond, within = dst - 800, dst - 700  # 800 > 756 >= 700
     vanilla = _load("vanilla")
     g_beyond = _grad_norm(vanilla, t, beyond, dst)
     g_within = _grad_norm(vanilla, t, within, dst)

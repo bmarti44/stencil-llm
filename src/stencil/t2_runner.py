@@ -15,6 +15,7 @@ Registered policies implemented here:
 - spotlight: attn_bias beta=2 layers 20-27, current prediction row, on the
   governing ledger-sentence token span.
 """
+
 from __future__ import annotations
 
 import ast
@@ -56,6 +57,64 @@ def _ann(a):
     return getattr(a.annotation, "id", None) if a.annotation else None
 
 
+def function_source(code: str, fn) -> list[str]:
+    """Source lines of ``fn`` INCLUDING trailing comment/blank lines up to the next
+    top-level statement.
+
+    ``ast.get_source_segment`` ends at the function's last statement, so a trailing
+    ``# reviewed`` comment (exactly what ``wave_ref.canonical_code`` emits) was
+    invisible to the checker before 2026-09-11; every historical comment-type row
+    scored 0 for that reason (plan/BACK-ON-TRACK-PLAN.md, Exp 0).
+    """
+    lines = code.split("\n")
+    start = fn.lineno - 1
+    end = fn.end_lineno  # exclusive index of the line after the last statement
+    while end < len(lines):
+        stripped = lines[end].strip()
+        if stripped == "" or stripped.startswith("#"):
+            end += 1
+            continue
+        break
+    return lines[start:end]
+
+
+OP_TESTS3 = {
+    "sum": ((3, 5, 8), (0, 0, 0), (-2, 7, 5)),
+    "max": ((3, 5, 5), (9, 4, 9), (-1, -1, -1)),
+    "mul": ((3, 5, 15), (0, 7, 0), (-2, 3, -6)),
+    "sub": ((9, 4, 5), (0, 0, 0), (-3, 2, -5)),
+}
+
+
+def exec_ok_multi(code: str, fn_name: str, op: str) -> bool:
+    """Reference tests on the three frozen input pairs (Exp 2a registration)."""
+    checks = " and ".join(
+        f"{fn_name}({x}, {y}) == {want}" for x, y, want in OP_TESTS3[op]
+    )
+    with tempfile.NamedTemporaryFile("w", suffix=".py", delete=False) as f:
+        f.write(code + f"\nimport sys\nsys.exit(0 if ({checks}) else 3)\n")
+        path = f.name
+    try:
+        r = subprocess.run([sys.executable, path], timeout=5, capture_output=True)
+        return r.returncode == 0
+    except Exception:
+        return False
+
+
+def score_work_multi(code: str, sess: T2Session, turn: int) -> WorkResult:
+    """``score_work`` with ``exec_ok`` judged on the three frozen input pairs."""
+    result = score_work(code, sess, turn)
+    _, fn = _first_fn(code)
+    exec_ok = exec_ok_multi(code, fn.name, sess.ops[turn]) if fn is not None else False
+    return WorkResult(
+        turn=result.turn,
+        code=result.code,
+        parse=result.parse,
+        exec_ok=exec_ok,
+        per_opportunity=result.per_opportunity,
+    )
+
+
 def score_work(code: str, sess: T2Session, turn: int) -> WorkResult:
     tree, fn = _first_fn(code)
     parse = tree is not None
@@ -64,7 +123,10 @@ def score_work(code: str, sess: T2Session, turn: int) -> WorkResult:
     if fn is not None:
         x, y, want = OP_TESTS[sess.ops[turn]]
         with tempfile.NamedTemporaryFile("w", suffix=".py", delete=False) as f:
-            f.write(code + f"\nimport sys\nsys.exit(0 if {fn.name}({x}, {y}) == {want} else 3)\n")
+            f.write(
+                code
+                + f"\nimport sys\nsys.exit(0 if {fn.name}({x}, {y}) == {want} else 3)\n"
+            )
             path = f.name
         try:
             r = subprocess.run([sys.executable, path], timeout=5, capture_output=True)
@@ -89,30 +151,46 @@ def score_work(code: str, sess: T2Session, turn: int) -> WorkResult:
             args = fn.args.args
             entry["value_used"] = _ann(args[idx]) if len(args) > idx else None
         elif o.moment_class == "comment":
-            seg = ast.get_source_segment(code, fn) or ""
-            lines = [ln.strip() for ln in seg.split("\n") if ln.strip()]
-            entry["value_used"] = "# reviewed" if lines and lines[-1] == "# reviewed" else None
+            lines = [ln.strip() for ln in function_source(code, fn) if ln.strip()]
+            entry["value_used"] = (
+                "# reviewed" if lines and lines[-1] == "# reviewed" else None
+            )
         if o.cell == "active":
             entry["adherent"] = entry["value_used"] == o.expected
         if o.superseded:
-            entry["stale_action"] = entry["value_used"] in o.superseded and entry["value_used"] != o.expected
+            entry["stale_action"] = (
+                entry["value_used"] in o.superseded
+                and entry["value_used"] != o.expected
+            )
         res[o.opportunity_id] = entry
-    return WorkResult(turn=turn, code=code, parse=parse, exec_ok=exec_ok, per_opportunity=res)
+    return WorkResult(
+        turn=turn, code=code, parse=parse, exec_ok=exec_ok, per_opportunity=res
+    )
 
 
 def feedback_text(wr: WorkResult, sess: T2Session) -> str:
     if not wr.parse:
         return "[checker] previous submission: syntax error."
-    bad = sorted({
-        o.moment_class for o in sess.opportunities
-        if o.turn == wr.turn and wr.per_opportunity.get(o.opportunity_id, {}).get("adherent") is False
-    })
+    bad = sorted(
+        {
+            o.moment_class
+            for o in sess.opportunities
+            if o.turn == wr.turn
+            and wr.per_opportunity.get(o.opportunity_id, {}).get("adherent") is False
+        }
+    )
     if not bad:
         return "[checker] previous submission: all checks passed."
-    return "[checker] previous submission violates the current standard(s): " + ", ".join(bad) + "."
+    return (
+        "[checker] previous submission violates the current standard(s): "
+        + ", ".join(bad)
+        + "."
+    )
 
 
-def ledger_sentence_spans(prompt_text: str, sess: T2Session, turn: int, split: str, tok) -> dict:
+def ledger_sentence_spans(
+    prompt_text: str, sess: T2Session, turn: int, split: str, tok
+) -> dict:
     """Char->token spans of each ledger sentence in THIS prompt."""
     led = sess.ledger_at[turn]
     spans = {}
@@ -122,36 +200,58 @@ def ledger_sentence_spans(prompt_text: str, sess: T2Session, turn: int, split: s
             sent = " Every function body must end with the comment '# reviewed'."
         else:
             clean = split in ("val", "final") or bool(sess.held_out.get("clean_prefix"))
-            tmpl = SENT_UNSEEN_FMT.get(ty) if clean and ty in SENT_UNSEEN_FMT else SENT[ty]
+            tmpl = (
+                SENT_UNSEEN_FMT.get(ty) if clean and ty in SENT_UNSEEN_FMT else SENT[ty]
+            )
             sent = " " + tmpl.format(v=v)
         c = prompt_text.find(sent)
         if c < 0:
             continue
-        cols = [i for i, (a, b) in enumerate(enc.offsets) if a < c + len(sent) and b > c]
+        cols = [
+            i for i, (a, b) in enumerate(enc.offsets) if a < c + len(sent) and b > c
+        ]
         if cols:
             spans[ty] = (cols[0], cols[-1] + 1)
     return spans
 
 
-def build_arm_prompt(sess: T2Session, wt: int, split: str, arm: str,
-                     feedback: dict | None = None) -> str:
+def build_arm_prompt(
+    sess: T2Session, wt: int, split: str, arm: str, feedback: dict | None = None
+) -> str:
     """THE final prompt construction for every arm (single path; sol W3
     round 4: tests and sealed jobs must exercise this, not duplicate
     its logic)."""
     ptxt = prompt_at(sess, wt, split)
     for et, ftxt in (feedback or {}).items():
         if et < wt:
-            ptxt = ptxt.replace("[checker] (deterministic feedback on the previous submission is inserted here at run time)", ftxt, 1)
+            ptxt = ptxt.replace(
+                "[checker] (deterministic feedback on the previous submission is inserted here at run time)",
+                ftxt,
+                1,
+            )
     if arm == "reinsertion":
-        led = ledger_text(sess.ledger_at[wt], unseen_fmt=(split in ("val", "final") or bool(sess.held_out.get("clean_prefix"))))
+        led = ledger_text(
+            sess.ledger_at[wt],
+            unseen_fmt=(
+                split in ("val", "final") or bool(sess.held_out.get("clean_prefix"))
+            ),
+        )
         marker = sess.turns[wt].text
         ptxt = ptxt.replace(marker, "(Reminder) " + led + "\n" + marker, 1)
     return ptxt
 
 
-def run_session(model, tok, sess: T2Session, split: str, arm: str,
-                timing=None, address=None, max_new: int = 120,
-                press_log: list | None = None) -> list[WorkResult]:
+def run_session(
+    model,
+    tok,
+    sess: T2Session,
+    split: str,
+    arm: str,
+    timing=None,
+    address=None,
+    max_new: int = 120,
+    press_log: list | None = None,
+) -> list[WorkResult]:
     """arm in {base, reinsertion, oracle, structured, selector};
     timing/address callables for selector arms. "structured" is the
     PRESS-PLAN deployment baseline and is IDENTICAL to "oracle" here by
@@ -165,7 +265,11 @@ def run_session(model, tok, sess: T2Session, split: str, arm: str,
     for wt in sess.work_turns:
         ptxt = build_arm_prompt(sess, wt, split, arm, feedback)
         ids = tok.encode(ptxt).ids
-        spans = ledger_sentence_spans(ptxt, sess, wt, split, tok) if arm in ("oracle", "structured", "selector") else {}
+        spans = (
+            ledger_sentence_spans(ptxt, sess, wt, split, tok)
+            if arm in ("oracle", "structured", "selector")
+            else {}
+        )
         toks = torch.tensor([ids], device="cuda")
         outs = []
         text = ""
@@ -176,21 +280,39 @@ def run_session(model, tok, sess: T2Session, split: str, arm: str,
                 if key is not None and key in spans:
                     t = toks.shape[1]
                     bias = torch.zeros(t, t, device="cuda")
-                    bias[-1:, spans[key][0]:spans[key][1]] = BETA
+                    bias[-1:, spans[key][0] : spans[key][1]] = BETA
                     ab = {L: bias for L in LAYERS}
                     if press_log is not None:
-                        press_log.append({"work_turn": wt, "step": step, "type": key, "span": spans[key]})
+                        press_log.append(
+                            {
+                                "work_turn": wt,
+                                "step": step,
+                                "type": key,
+                                "span": spans[key],
+                            }
+                        )
             elif arm == "selector" and spans and timing is not None:
                 key = timing(model, toks, text)
                 if key is not None:
-                    key = address(model, toks, ptxt, spans, key) if address is not None else key
+                    key = (
+                        address(model, toks, ptxt, spans, key)
+                        if address is not None
+                        else key
+                    )
                     if key is not None and key in spans:
                         t = toks.shape[1]
                         bias = torch.zeros(t, t, device="cuda")
-                        bias[-1:, spans[key][0]:spans[key][1]] = BETA
+                        bias[-1:, spans[key][0] : spans[key][1]] = BETA
                         ab = {L: bias for L in LAYERS}
                         if press_log is not None:
-                            press_log.append({"work_turn": wt, "step": step, "type": key, "span": spans[key]})
+                            press_log.append(
+                                {
+                                    "work_turn": wt,
+                                    "step": step,
+                                    "type": key,
+                                    "span": spans[key],
+                                }
+                            )
             nxt = int(model(toks, attn_bias=ab)[0, -1].argmax())
             outs.append(nxt)
             toks = torch.cat([toks, torch.tensor([[nxt]], device="cuda")], dim=1)
@@ -215,9 +337,18 @@ def span_in_ledger(span, ledger_spans) -> bool:
     return any(s <= span[0] and span[1] <= e for s, e in ledger_spans.values())
 
 
-def run_policy_session(model, tok, prompt_text, ledger_spans, policy,
-                       threshold, press_log=None, max_new=120,
-                       beta=BETA, layers=LAYERS):
+def run_policy_session(
+    model,
+    tok,
+    prompt_text,
+    ledger_spans,
+    policy,
+    threshold,
+    press_log=None,
+    max_new=120,
+    beta=BETA,
+    layers=LAYERS,
+):
     """PRESS-PLAN H1/H2 primitive: generate one work with an autonomous
     span-level policy. The policy callable returns
     (candidate_span | None, diagnostics) with diagnostics["score"]; the
@@ -248,7 +379,7 @@ def run_policy_session(model, tok, prompt_text, ledger_spans, policy,
                 entry["applied"] = span
                 t = toks.shape[1]
                 bias = torch.zeros(t, t, device=toks.device)
-                bias[-1:, span[0]:span[1]] = beta
+                bias[-1:, span[0] : span[1]] = beta
                 ab = {L: bias for L in layers}
         if press_log is not None:
             press_log.append(entry)
@@ -264,6 +395,8 @@ def run_policy_session(model, tok, prompt_text, ledger_spans, policy,
 def _oracle_moment(tail_text):
     if re.search(r"\bdef\s*$", tail_text):
         return "prefix"
+    if re.search(r"\n\s*return[^\n]*\n\s*$", tail_text):
+        return "comment"
     if re.search(r'"""\s*$', tail_text) and tail_text.count('"""') % 2 == 1:
         return "doc"
     if re.search(r"def\s+\w+\s*\([^)]*:\s*$", tail_text):

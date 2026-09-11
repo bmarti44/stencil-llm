@@ -6,6 +6,7 @@ The builder freezes only at ZERO failures. feedback_mode=none prompts
 (the registered neutral env text) are used for the length/alignment
 records, matching training exactly. CPU + tokenizer only.
 """
+
 import json
 import sys
 from pathlib import Path
@@ -45,20 +46,36 @@ def main():
                 if o.superseded and e.get("stale_action"):
                     bad.append(f"stale:{o.moment_class}")
             ptxt = prompt_at(sess, wt, "dev").replace(
-                "[checker] (deterministic feedback on the previous submission is inserted here at run time)", NEUTRAL)
+                "[checker] (deterministic feedback on the previous submission is inserted here at run time)",
+                NEUTRAL,
+            )
             p_ids = tok.encode(ptxt).ids
             t_ids = tok.encode(code).ids
             if bad:
                 failures.append({"seed": seed, "wt": wt, "bad": bad})
-            records.append({"seed": seed, "wt": wt, "prompt_len": len(p_ids),
-                            "target_ids": t_ids, "n_target": len(t_ids),
-                            "row_of_first_target": len(p_ids) - 1})
-    out = {"n_works": len(records), "n_failures": len(failures), "failures": failures,
-           "max_prompt_len": max(r["prompt_len"] for r in records),
-           "max_total_len": max(r["prompt_len"] + r["n_target"] for r in records),
-           "records": records}
+            records.append(
+                {
+                    "seed": seed,
+                    "wt": wt,
+                    "prompt_len": len(p_ids),
+                    "target_ids": t_ids,
+                    "n_target": len(t_ids),
+                    "row_of_first_target": len(p_ids) - 1,
+                }
+            )
+    out = {
+        "n_works": len(records),
+        "n_failures": len(failures),
+        "failures": failures,
+        "max_prompt_len": max(r["prompt_len"] for r in records),
+        "max_total_len": max(r["prompt_len"] + r["n_target"] for r in records),
+        "records": records,
+    }
     (ROOT / "results" / "qwen" / "w0-refs.json").write_text(json.dumps(out))
-    print(f"{len(records)} works, {len(failures)} failures; max prompt {out['max_prompt_len']}, max total {out['max_total_len']}", flush=True)
+    print(
+        f"{len(records)} works, {len(failures)} failures; max prompt {out['max_prompt_len']}, max total {out['max_total_len']}",
+        flush=True,
+    )
     print("FROZEN" if not failures else f"NOT FROZEN: {failures[:5]}", flush=True)
 
 

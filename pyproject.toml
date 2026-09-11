@@ -14,6 +14,8 @@ dependencies = [
     "immutabledict",
     "nltk>=3.9",
     "transformers>=5.16.1",
+    "scipy",
+    "huggingface_hub",
 ]
 
 [build-system]
@@ -27,9 +29,12 @@ markers = ["determinism: bitwise determinism checks"]
 pythonpath = ["src", "."]
 
 [tool.ruff]
-extend-exclude = ["tools"]
+# third-party code and model directories are not ours to lint
+extend-exclude = ["vendor", "models", "archive"]
 line-length = 88
 target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+# B905: zip(strict=) would change behaviour in sealed generators; kept as-is.
+ignore = ["B905"]

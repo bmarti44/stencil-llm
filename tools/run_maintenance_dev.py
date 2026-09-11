@@ -25,10 +25,14 @@ PROSE_INPUT = ROOT / "results/prose-maintenance/kimi-dev-reviewed.json"
 CODING_INPUT = ROOT / "results/coding-self-cue/kimi-dev-reviewed.json"
 CODING_PREVIEW = ROOT / "results/coding-self-cue/preview.json"
 BOUND_FILES = (
-    "tools/run_maintenance_dev.py", "scripts/maintenance_dev_check.py",
-    "src/stencil/focus/maintenance_updater.py", "src/stencil/focus/maintenance_bank.py",
-    "src/stencil/focus/register.py", "src/stencil/focus/loop.py",
-    "src/stencil/focus/renderer.py", "src/stencil/focus/journal.py",
+    "tools/run_maintenance_dev.py",
+    "scripts/maintenance_dev_check.py",
+    "src/stencil/focus/maintenance_updater.py",
+    "src/stencil/focus/maintenance_bank.py",
+    "src/stencil/focus/register.py",
+    "src/stencil/focus/loop.py",
+    "src/stencil/focus/renderer.py",
+    "src/stencil/focus/journal.py",
     "results/factorial-prep/DEV-UPDATER-CHECK.md",
     "results/factorial-prep/kimi-dev-reviewed.json",
     "results/factorial-prep/current-trunk-hashes.json",
@@ -106,9 +110,7 @@ def validate_coding_artifacts(input_path=CODING_INPUT, preview_path=CODING_PREVI
     if type(cold) is not list or len(cold) != 12:
         raise RuntimeError("coding preview must contain exactly 12 cold prompts")
     expected_cold = {
-        (episode_id, 0, arm)
-        for episode_id in episode_ids
-        for arm in ("H", "C", "M")
+        (episode_id, 0, arm) for episode_id in episode_ids for arm in ("H", "C", "M")
     }
     observed_cold = {
         (item.get("episode_id"), item.get("round_index"), item.get("arm"))
@@ -218,16 +220,43 @@ def main(argv=None):
     name = "stencil-maintenance-" + name_prefix
     name += uuid.uuid4().hex[:12]
     container_command = [
-        "docker", "run", "--pull=never", "-d", "--name", name,
-        "--device", "nvidia.com/gpu=0", "--ipc=host",
-        "-p", "127.0.0.1:18088:8000", "-e", "VLLM_BATCH_INVARIANT=1",
-        "-v", f"{ROOT}/models/qwen3-30b-a3b-hf:/model:ro", IMAGE,
-        "--attention-backend", "TRITON_ATTN", "--model", "/model",
-        "--dtype", "bfloat16", "--kv-cache-dtype", "auto",
-        "--tensor-parallel-size", "1", "--max-model-len", "32768",
-        "--max-num-seqs", "4", "--max-num-batched-tokens", "2048",
-        "--gpu-memory-utilization", "0.70", "--enable-prefix-caching",
-        "--generation-config", "vllm",
+        "docker",
+        "run",
+        "--pull=never",
+        "-d",
+        "--name",
+        name,
+        "--device",
+        "nvidia.com/gpu=0",
+        "--ipc=host",
+        "-p",
+        "127.0.0.1:18088:8000",
+        "-e",
+        "VLLM_BATCH_INVARIANT=1",
+        "-v",
+        f"{ROOT}/models/qwen3-30b-a3b-hf:/model:ro",
+        IMAGE,
+        "--attention-backend",
+        "TRITON_ATTN",
+        "--model",
+        "/model",
+        "--dtype",
+        "bfloat16",
+        "--kv-cache-dtype",
+        "auto",
+        "--tensor-parallel-size",
+        "1",
+        "--max-model-len",
+        "32768",
+        "--max-num-seqs",
+        "4",
+        "--max-num-batched-tokens",
+        "2048",
+        "--gpu-memory-utilization",
+        "0.70",
+        "--enable-prefix-caching",
+        "--generation-config",
+        "vllm",
     ]
     if args.mode == "coding":
         gpu_held_ceiling_seconds = 3600
@@ -238,13 +267,20 @@ def main(argv=None):
     else:
         gpu_held_ceiling_seconds = 900
         max_tokens = 1024
-    plan = dict(container_command=container_command,
-                gpu_held_ceiling_seconds=gpu_held_ceiling_seconds,
-                input=str(input_path), output_dir=str(run / "calls"), model="/model",
-                base_url="http://127.0.0.1:18088", max_tokens=max_tokens,
-                startup_ceiling_seconds=600, cleanup_reserve_seconds=60,
-                mode=args.mode, driver=str(ROOT / driver_script),
-                bound_files=list(bound_files))
+    plan = dict(
+        container_command=container_command,
+        gpu_held_ceiling_seconds=gpu_held_ceiling_seconds,
+        input=str(input_path),
+        output_dir=str(run / "calls"),
+        model="/model",
+        base_url="http://127.0.0.1:18088",
+        max_tokens=max_tokens,
+        startup_ceiling_seconds=600,
+        cleanup_reserve_seconds=60,
+        mode=args.mode,
+        driver=str(ROOT / driver_script),
+        bound_files=list(bound_files),
+    )
     if not args.execute:
         print(json.dumps(plan, indent=2))
         return 0
@@ -291,30 +327,43 @@ def main(argv=None):
         write_json(run / "lifecycle.json", lifecycle)
         attempted = True
         lifecycle["container_id"] = command(container_command).stdout.strip()
-        print(json.dumps({"phase": "waiting_for_server", "container": name}),
-              flush=True)
-        wait_for_server(started, ceiling_seconds=plan["startup_ceiling_seconds"])
-        remaining = int(
-            gpu_held_ceiling_seconds - (time.monotonic() - started) - 60
+        print(
+            json.dumps({"phase": "waiting_for_server", "container": name}), flush=True
         )
+        wait_for_server(started, ceiling_seconds=plan["startup_ceiling_seconds"])
+        remaining = int(gpu_held_ceiling_seconds - (time.monotonic() - started) - 60)
         if remaining <= 0:
             raise TimeoutError("no remaining inference budget")
         driver = [
-            str(ROOT / ".venv/bin/python"), str(ROOT / driver_script),
-            "--input", str(input_path), "--output-dir", str(run / "calls"),
-            "--base-url", plan["base_url"], "--model", "/model",
-            "--max-tokens", str(plan["max_tokens"]),
-            "--deadline-seconds", str(remaining),
+            str(ROOT / ".venv/bin/python"),
+            str(ROOT / driver_script),
+            "--input",
+            str(input_path),
+            "--output-dir",
+            str(run / "calls"),
+            "--base-url",
+            plan["base_url"],
+            "--model",
+            "/model",
+            "--max-tokens",
+            str(plan["max_tokens"]),
+            "--deadline-seconds",
+            str(remaining),
         ]
         write_json(run / "driver-command.json", driver)
-        print(json.dumps({"phase": "driver", "deadline_seconds": remaining}),
-              flush=True)
+        print(
+            json.dumps({"phase": "driver", "deadline_seconds": remaining}), flush=True
+        )
         with (run / "driver.log").open("w") as log:
             # The ordinary stop is the driver's cooperative deadline. This
             # backstop can terminate only this direct child we just launched.
-            result = subprocess.run(driver, cwd=ROOT, stdout=log,
-                                    stderr=subprocess.STDOUT,
-                                    timeout=remaining + 5)
+            result = subprocess.run(
+                driver,
+                cwd=ROOT,
+                stdout=log,
+                stderr=subprocess.STDOUT,
+                timeout=remaining + 5,
+            )
         lifecycle.update(status="DRIVER_EXITED", driver_exit_code=result.returncode)
         return result.returncode
     except subprocess.TimeoutExpired as exc:
@@ -341,17 +390,20 @@ def main(argv=None):
                     lifecycle[phase + "_error"] = f"{type(exc).__name__}: {exc}"
             if not cleaned:
                 try:
-                    forced = subprocess.run(["docker", "rm", "-f", name],
-                                            capture_output=True, timeout=10)
+                    forced = subprocess.run(
+                        ["docker", "rm", "-f", name], capture_output=True, timeout=10
+                    )
                     lifecycle["force_remove_exit_code"] = forced.returncode
                     cleaned = forced.returncode == 0
                 except Exception as exc:
                     lifecycle["force_remove_error"] = f"{type(exc).__name__}: {exc}"
         else:
             cleaned = True
-        lifecycle.update(ended_unix=time.time(),
-                         gpu_held_seconds=time.monotonic() - started,
-                         cleaned=cleaned)
+        lifecycle.update(
+            ended_unix=time.time(),
+            gpu_held_seconds=time.monotonic() - started,
+            cleaned=cleaned,
+        )
         if not cleaned:
             lifecycle["prior_status"] = lifecycle["status"]
             lifecycle["status"] = "CLEANUP_FAILED"

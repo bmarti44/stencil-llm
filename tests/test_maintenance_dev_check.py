@@ -365,6 +365,7 @@ def test_dev_gate_output_gate_and_explicit_deadline(tmp_path):
     raw["split"] = "eval"
     evaluation = tmp_path / "not-dev.json"
     evaluation.write_text(json.dumps(raw))
+
     def decoder(prompt):
         pytest.fail("decoder must not be called")
 

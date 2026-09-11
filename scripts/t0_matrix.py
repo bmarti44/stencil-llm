@@ -21,6 +21,7 @@ Definitions (registered):
   No guarantee is claimed from trace data; certification happens once,
   sealed, on a fixture block.
 """
+
 import json
 import math
 import sys
@@ -54,39 +55,101 @@ def main():
     events = tr["events"]
     n_active = sum(1 for e in events if e["cell"] == "active")
     sessions = sorted({e["seed"] for e in events})
-    report = {"n_events": len(events), "n_active": n_active, "n_sessions": len(sessions)}
-    print(f"{len(events)} events ({n_active} active) across {len(sessions)} sessions", flush=True)
+    report = {
+        "n_events": len(events),
+        "n_active": n_active,
+        "n_sessions": len(sessions),
+    }
+    print(
+        f"{len(events)} events ({n_active} active) across {len(sessions)} sessions",
+        flush=True,
+    )
 
-    counterfeits = [hn for hn in (counterfeit_hard_negative(e) for e in events if e["cell"] == "active") if hn is not None]
+    counterfeits = [
+        hn
+        for hn in (
+            counterfeit_hard_negative(e) for e in events if e["cell"] == "active"
+        )
+        if hn is not None
+    ]
     print(f"{len(counterfeits)} counterfeit hard negatives constructed", flush=True)
 
     for fam in FAMILIES:
         evald = []
         for e in events:
             s, j = evaluate_event(fam, e)
-            correct = j is not None and e["candidates"][j]["source"] == "live" and e["candidates"][j]["type"] == e["pred_type"]
-            evald.append({"seed": e["seed"], "score": s, "chosen_ok": correct, "active": e["cell"] == "active", "hard": False})
+            correct = (
+                j is not None
+                and e["candidates"][j]["source"] == "live"
+                and e["candidates"][j]["type"] == e["pred_type"]
+            )
+            evald.append(
+                {
+                    "seed": e["seed"],
+                    "score": s,
+                    "chosen_ok": correct,
+                    "active": e["cell"] == "active",
+                    "hard": False,
+                }
+            )
         for hn in counterfeits:
             s, j = evaluate_event(fam, hn)
-            evald.append({"seed": hn["seed"], "score": s, "chosen_ok": False, "active": False, "hard": True})
+            evald.append(
+                {
+                    "seed": hn["seed"],
+                    "score": s,
+                    "chosen_ok": False,
+                    "active": False,
+                    "hard": True,
+                }
+            )
         uniq = sorted({x["score"] for x in evald if x["score"] != float("-inf")})
-        cands_t = sorted(set(uniq) | {math.nextafter(s, -math.inf) for s in uniq}) if uniq else [0.0]
+        cands_t = (
+            sorted(set(uniq) | {math.nextafter(s, -math.inf) for s in uniq})
+            if uniq
+            else [0.0]
+        )
         best = None
         for t in cands_t:
-            rec_n = sum(1 for x in evald if x["active"] and x["score"] > t and x["chosen_ok"])
-            false_sessions = len({x["seed"] for x in evald if x["score"] > t and not (x["active"] and x["chosen_ok"])})
+            rec_n = sum(
+                1 for x in evald if x["active"] and x["score"] > t and x["chosen_ok"]
+            )
+            false_sessions = len(
+                {
+                    x["seed"]
+                    for x in evald
+                    if x["score"] > t and not (x["active"] and x["chosen_ok"])
+                }
+            )
             rec = rec_n / max(1, n_active)
-            if false_sessions <= 2 and (best is None or rec > best["recall"] or (rec == best["recall"] and t > best["threshold"])):
+            if false_sessions <= 2 and (
+                best is None
+                or rec > best["recall"]
+                or (rec == best["recall"] and t > best["threshold"])
+            ):
                 best = {"threshold": t, "recall": rec, "false_sessions": false_sessions}
         if best is None:
             best = {"threshold": None, "recall": 0.0, "false_sessions": None}
-        best["auprc_all"] = auprc([(x["score"], x["active"] and x["chosen_ok"]) for x in evald if not x["hard"]])
-        best["auprc_hard"] = auprc([(x["score"], x["active"] and x["chosen_ok"]) for x in evald])
+        best["auprc_all"] = auprc(
+            [
+                (x["score"], x["active"] and x["chosen_ok"])
+                for x in evald
+                if not x["hard"]
+            ]
+        )
+        best["auprc_hard"] = auprc(
+            [(x["score"], x["active"] and x["chosen_ok"]) for x in evald]
+        )
         report[fam] = best
-        print(f"{fam:>16}: recall {best['recall']:.3f} @ thr {best['threshold']} "
-              f"(false sessions {best['false_sessions']}/48, AUPRC all {best['auprc_all']:.3f}, hard {best['auprc_hard']:.4f})", flush=True)
+        print(
+            f"{fam:>16}: recall {best['recall']:.3f} @ thr {best['threshold']} "
+            f"(false sessions {best['false_sessions']}/48, AUPRC all {best['auprc_all']:.3f}, hard {best['auprc_hard']:.4f})",
+            flush=True,
+        )
 
-    (ROOT / "results" / "qwen" / "t0-matrix.json").write_text(json.dumps(report, indent=1))
+    (ROOT / "results" / "qwen" / "t0-matrix.json").write_text(
+        json.dumps(report, indent=1)
+    )
     print("saved results/qwen/t0-matrix.json", flush=True)
 
 

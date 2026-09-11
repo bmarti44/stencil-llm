@@ -24,16 +24,17 @@ Env overrides:
     KIMI_TIMEOUT_SEC  default 1800
     KIMI_CONTEXT_MAX  default 400000 (bytes of repo context)
 """
+
 from __future__ import annotations
 
 import fcntl
 import json
-import re
 import os
+import re
 import subprocess
 import sys
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 SLUG_RE = re.compile(r"^[a-z0-9-]+$")
@@ -42,10 +43,24 @@ SLUG_RE = re.compile(r"^[a-z0-9-]+$")
 # governing docs, code, and gate artifacts come first and bulky review
 # history last (v1.14).
 CONTEXT_GLOBS = [
-    "PLAN.md", "plan/PROTOCOL.md", "plan/LEDGER.md", "plan/AMENDMENTS.md", "README.md", "AGENTS.md", ".gitignore", "Makefile", "pyproject.toml",
-    "results/*.md", "plan/retros/*.md",
-    "src/**/*.py", "tests/**/*.py", "scripts/*.py", "configs/*.json",
-    "tools/*.sh", "tools/*.py", "tools/codex-prompts/*.md",
+    "PLAN.md",
+    "plan/PROTOCOL.md",
+    "plan/LEDGER.md",
+    "plan/AMENDMENTS.md",
+    "README.md",
+    "AGENTS.md",
+    ".gitignore",
+    "Makefile",
+    "pyproject.toml",
+    "results/*.md",
+    "plan/retros/*.md",
+    "src/**/*.py",
+    "tests/**/*.py",
+    "scripts/*.py",
+    "configs/*.json",
+    "tools/*.sh",
+    "tools/*.py",
+    "tools/codex-prompts/*.md",
     "plan/reviews/**/*.md",
 ]
 
@@ -63,7 +78,12 @@ def build_context(root: Path, review_file: Path, max_bytes: int) -> str:
     seen = set()
     for pattern in CONTEXT_GLOBS:
         for p in sorted(root.glob(pattern)):
-            if not p.is_file() or p in seen or p == review_file or p.name.endswith(".rejected.md"):
+            if (
+                not p.is_file()
+                or p in seen
+                or p == review_file
+                or p.name.endswith(".rejected.md")
+            ):
                 continue
             seen.add(p)
             try:
@@ -73,7 +93,9 @@ def build_context(root: Path, review_file: Path, max_bytes: int) -> str:
             rel = p.relative_to(root)
             block = f"\n\n===== FILE: {rel} =====\n{text}"
             if total + len(block) > max_bytes:
-                parts.append(f"\n\n===== SKIPPED (cap): {rel} ({len(text)} bytes) =====")
+                parts.append(
+                    f"\n\n===== SKIPPED (cap): {rel} ({len(text)} bytes) ====="
+                )
                 skipped.append(str(rel))
                 continue
             parts.append(block)
@@ -89,15 +111,24 @@ def build_context(root: Path, review_file: Path, max_bytes: int) -> str:
                 fp = root / a
                 if fp.exists():
                     import hashlib as _hl
+
                     d = fp.read_bytes()
-                    rows.append(f"{a}: PRESENT ({len(d)} bytes, sha256 {_hl.sha256(d).hexdigest()[:16]})")
+                    rows.append(
+                        f"{a}: PRESENT ({len(d)} bytes, "
+                        f"sha256 {_hl.sha256(d).hexdigest()[:16]})"
+                    )
                 else:
                     rows.append(f"{a}: ABSENT")
         art_lines = "required gate artifacts: " + "; ".join(rows) + "\n"
-    manifest = ("\n===== CONTEXT MANIFEST =====\n" + art_lines +
-                f"included ({len(included)}): " + ", ".join(included) + "\n"
-                f"skipped-by-cap ({len(skipped)}): " + (", ".join(skipped) or "none") + "\n"
-                "not-representable: binary artifacts (figures, npz) — reviewed by sol only\n")
+    manifest = (
+        "\n===== CONTEXT MANIFEST =====\n"
+        + art_lines
+        + f"included ({len(included)}): "
+        + ", ".join(included)
+        + "\n"
+        f"skipped-by-cap ({len(skipped)}): " + (", ".join(skipped) or "none") + "\n"
+        "not-representable: binary artifacts (figures, npz) — reviewed by sol only\n"
+    )
     return manifest + "".join(parts)
 
 
@@ -129,7 +160,11 @@ def main() -> int:
     threshold = int(threshold_s)
     floor = 75 if "retro" in topic else 90
     if threshold < floor:
-        print(f"ERROR: threshold {threshold} below registered floor {floor} for topic {topic}", file=sys.stderr)
+        print(
+            f"ERROR: threshold {threshold} below registered floor {floor} "
+            f"for topic {topic}",
+            file=sys.stderr,
+        )
         return 2
     if not 0 <= threshold <= 100:
         print("ERROR: threshold must be 0-100", file=sys.stderr)
@@ -148,7 +183,9 @@ def main() -> int:
     review_file = root / "plan" / "reviews" / phase / f"{topic}-kimi.md"
     manifest = root / "plan" / "reviews" / phase / "topics.txt"
     if manifest.exists():
-        listed = {ln.split()[0] for ln in manifest.read_text().splitlines() if ln.strip()}
+        listed = {
+            ln.split()[0] for ln in manifest.read_text().splitlines() if ln.strip()
+        }
         if topic not in listed:
             print(f"ERROR: topic '{topic}' not in {manifest}", file=sys.stderr)
             return 2
@@ -172,13 +209,16 @@ def main() -> int:
     prior = review_file.read_text(encoding="utf-8") if review_file.exists() else ""
     rounds = [int(m) for m in re.findall(r"^### Round (\d+)", prior, re.MULTILINE)]
     round_n = (max(rounds) + 1) if rounds else 1
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    today = datetime.now(UTC).strftime("%Y-%m-%d")
 
-    churn = ("" if round_n == 1 else
-        "0. ANTI-CHURN (binding, PLAN 2b): this is round %d of YOUR review — re-verify "
-        "your existing findings against the current files first; add new findings ONLY "
-        "for regressions introduced by fixes or clear in-scope misses from your round 1. "
-        "Do not expand scope.\n" % round_n)
+    churn = (
+        ""
+        if round_n == 1
+        else f"0. ANTI-CHURN (binding, PLAN 2b): this is round {round_n} of YOUR "
+        "review — re-verify your existing findings against the current files first; "
+        "add new findings ONLY for regressions introduced by fixes or clear in-scope "
+        "misses from your round 1. Do not expand scope.\n"
+    )
     parts = [
         churn,
         "# KIMI CROSS-MODEL REVIEWER — IMPORTANT (overrides conflicting text below)\n\n"
@@ -208,12 +248,20 @@ def main() -> int:
         build_context(root, review_file, ctx_max),
     ]
     if prior:
-        parts.append("\n\n---\n\n## PRIOR ROUND CONTENT (preserve every prior round verbatim)\n\n" + prior)
-    parts.append("\n\n---\n\n# YOUR RESPONSE STARTS NOW\nBegin with the markdown header line.\n")
+        parts.append(
+            "\n\n---\n\n## PRIOR ROUND CONTENT "
+            "(preserve every prior round verbatim)\n\n" + prior
+        )
+    parts.append(
+        "\n\n---\n\n# YOUR RESPONSE STARTS NOW\nBegin with the markdown header line.\n"
+    )
     prompt = "".join(parts)
 
-    print(f"[{datetime.now(timezone.utc):%H:%M:%S}] kimi review starting: "
-          f"{phase}/{topic} -> {review_file} ({len(prompt)} prompt bytes)", file=sys.stderr)
+    print(
+        f"[{datetime.now(UTC):%H:%M:%S}] kimi review starting: "
+        f"{phase}/{topic} -> {review_file} ({len(prompt)} prompt bytes)",
+        file=sys.stderr,
+    )
     candidate = call_ollama(host, model, prompt, timeout_sec)
     # Strip a single wrapping code fence if the model added one anyway.
     m = re.fullmatch(r"```(?:markdown)?\n(.*)\n```", candidate, re.DOTALL)
@@ -224,14 +272,21 @@ def main() -> int:
     if not rep["passed"]:
         rej = review_file.with_suffix(".rejected.md")
         rej.write_text(candidate, encoding="utf-8")
-        print(f"ERROR: kimi candidate violates round-tracking contract "
-              f"(saved to {rej}):", file=sys.stderr)
+        print(
+            f"ERROR: kimi candidate violates round-tracking contract (saved to {rej}):",
+            file=sys.stderr,
+        )
         for f in rep["findings"]:
             print(f"  - {f}", file=sys.stderr)
         return 4
     review_file.write_text(candidate, encoding="utf-8")
-    print(f"[{datetime.now(timezone.utc):%H:%M:%S}] kimi review finished: {phase}/{topic}", file=sys.stderr)
-    return check_review_scores.main(["--file", str(review_file), "--min", str(threshold)])
+    print(
+        f"[{datetime.now(UTC):%H:%M:%S}] kimi review finished: {phase}/{topic}",
+        file=sys.stderr,
+    )
+    return check_review_scores.main(
+        ["--file", str(review_file), "--min", str(threshold)]
+    )
 
 
 if __name__ == "__main__":

@@ -47,9 +47,7 @@ def _joined_path(node: ast.AST) -> str:
         return node.value.strip("/")
     if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
         sides = (_joined_path(node.left), _joined_path(node.right))
-        return "/".join(
-            piece for piece in sides if piece
-        )
+        return "/".join(piece for piece in sides if piece)
     return ""
 
 

@@ -14,6 +14,7 @@ Scenario: compaction at C = first query - 40. Everything before C is deleted.
 Reported: accuracy vs K; split by whether the queried slot's current rule
 was pinnable; token/bytes cost of each channel.
 """
+
 import sys
 
 import torch
@@ -30,7 +31,9 @@ bpe = BPE()
 
 # wire model (cache-v8)
 wire = R.build("cache", 0)
-ck = torch.load("/home/bmarti44/stencil-llm/results/gpt2/cache-v8-s0-ckpt.pt", map_location="cpu")
+ck = torch.load(
+    "/home/bmarti44/stencil-llm/results/gpt2/cache-v8-s0-ckpt.pt", map_location="cpu"
+)
 wire.load_state_dict(ck["pathway"], strict=False)
 wire.logit_bias = torch.nn.Parameter(ck["logit_bias"].to(DEV))
 wire = wire.to(DEV).eval()
@@ -39,7 +42,9 @@ wire = wire.to(DEV).eval()
 base = GatedGPT2("base", window=64, seed_init=0, lora_rank=8)
 sd = torch.load("/home/bmarti44/stencil-llm/models/gpt2-small.pt", map_location="cpu")
 base.load_state_dict(sd, strict=False)
-bs = torch.load("/home/bmarti44/stencil-llm/results/gpt2/base-v3-s0.pt", map_location="cpu")
+bs = torch.load(
+    "/home/bmarti44/stencil-llm/results/gpt2/base-v3-s0.pt", map_location="cpu"
+)
 base.load_state_dict(bs["pathway"], strict=False)
 base.logit_bias = torch.nn.Parameter(bs["logit_bias"].to(DEV))
 base = base.to(DEV).eval()
@@ -49,7 +54,17 @@ BUDGETS = [0, 32, 64, 96, 128, 160]
 REACH = 756
 
 wire_hits = wire_tot = 0
-base_stats = {k: {"hit": 0, "tot": 0, "hit_pinnable": 0, "tot_pinnable": 0, "hit_lost": 0, "tot_lost": 0} for k in BUDGETS}
+base_stats = {
+    k: {
+        "hit": 0,
+        "tot": 0,
+        "hit_pinnable": 0,
+        "tot_pinnable": 0,
+        "hit_lost": 0,
+        "tot_lost": 0,
+    }
+    for k in BUDGETS
+}
 
 with torch.no_grad():
     for i in range(N):
@@ -60,8 +75,13 @@ with torch.no_grad():
         # --- WIRE: carry state across the compaction
         wire(toks[:, :C])
         carried = [st.detached() for st in wire.cache_states]
-        out = wire(torch.tensor([tail], device=DEV), cache_states=carried) + wire.logit_bias
-        for p, slot, ans in zip(s.query_positions, s.query_slots, s.active_answer, strict=True):
+        out = (
+            wire(torch.tensor([tail], device=DEV), cache_states=carried)
+            + wire.logit_bias
+        )
+        for p, slot, ans in zip(
+            s.query_positions, s.query_slots, s.active_answer, strict=True
+        ):
             want = bpe.encode(" " + ans)[0]
             wire_hits += int(int(out[0, p - C].argmax()) == want)
             wire_tot += 1
@@ -75,7 +95,11 @@ with torch.no_grad():
                     span_slot[(lo, hi)] = slot
         for (lo, hi), slot in sorted(span_slot.items()):
             latest[slot] = (lo, min(hi, C))
-        pinnable = {slot: (lo, hi) for slot, (lo, hi) in latest.items() if lo >= C - REACH and hi <= C}
+        pinnable = {
+            slot: (lo, hi)
+            for slot, (lo, hi) in latest.items()
+            if lo >= C - REACH and hi <= C
+        }
         # recency-first packing per budget
         order = sorted(pinnable.items(), key=lambda kv: -kv[1][0])
         for K in BUDGETS:
@@ -90,7 +114,9 @@ with torch.no_grad():
             inp = pinned + tail
             out_b = base(torch.tensor([inp], device=DEV)) + base.logit_bias
             off = len(pinned) - C
-            for p, slot, ans in zip(s.query_positions, s.query_slots, s.active_answer, strict=True):
+            for p, slot, ans in zip(
+                s.query_positions, s.query_slots, s.active_answer, strict=True
+            ):
                 want = bpe.encode(" " + ans)[0]
                 ok = int(int(out_b[0, p + off].argmax()) == want)
                 st = base_stats[K]
@@ -103,12 +129,16 @@ with torch.no_grad():
                     st["hit_lost"] += ok
                     st["tot_lost"] += 1
 
-print(f"WIRE (0 carried tokens, ~5KB state): {wire_hits}/{wire_tot} = {wire_hits/wire_tot:.3f}")
+print(
+    f"WIRE (0 carried tokens, ~5KB state): {wire_hits}/{wire_tot} = {wire_hits / wire_tot:.3f}"
+)
 for K in BUDGETS:
     st = base_stats[K]
-    pin = st["hit_pinnable"] / st["tot_pinnable"] if st["tot_pinnable"] else float("nan")
+    pin = (
+        st["hit_pinnable"] / st["tot_pinnable"] if st["tot_pinnable"] else float("nan")
+    )
     lost = st["hit_lost"] / st["tot_lost"] if st["tot_lost"] else float("nan")
     print(
-        f"BASELINE K={K:>3} tokens: total {st['hit']}/{st['tot']} = {st['hit']/st['tot']:.3f} "
+        f"BASELINE K={K:>3} tokens: total {st['hit']}/{st['tot']} = {st['hit'] / st['tot']:.3f} "
         f"| pinned-slot acc {pin:.3f} (n={st['tot_pinnable']}) | lost-slot acc {lost:.3f} (n={st['tot_lost']})"
     )

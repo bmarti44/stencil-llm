@@ -430,9 +430,7 @@ def _reasoning_receipt(output_ids, reasoning, raw_arguments, spec):
         raise TechnicalError(
             "capacity", "observed reasoning exceeds thinking_token_budget"
         )
-    decoded_reasoning = local_tokenizer().decode(
-        interior, skip_special_tokens=False
-    )
+    decoded_reasoning = local_tokenizer().decode(interior, skip_special_tokens=False)
     if type(reasoning) is not str or not reasoning or decoded_reasoning != reasoning:
         raise TechnicalError(
             "reasoning_boundaries", "raw reasoning disagrees with output token IDs"
@@ -545,9 +543,7 @@ class NativeReasoningToolClient(native.NativeToolClient):
                 self.completion_endpoint, request_body, self._timeout()
             )
             persist(exchange)
-            exchange["completion"] = self._post(
-                self.completion_endpoint, request_body
-            )
+            exchange["completion"] = self._post(self.completion_endpoint, request_body)
             persist(exchange)
             completed = self._parsed_response(
                 exchange["completion"], "completion response"
@@ -580,8 +576,8 @@ class NativeReasoningToolClient(native.NativeToolClient):
                 "content": message.get("content"),
                 "tool_calls": copy.deepcopy(message.get("tool_calls")),
             }
-            call_id, arguments, raw_arguments, history_message = (
-                _validate_tool_message(response_message, self.spec)
+            call_id, arguments, raw_arguments, history_message = _validate_tool_message(
+                response_message, self.spec
             )
             completion_prompt_ids = native._token_ids(
                 completed.get("prompt_token_ids"), "completion prompt_token_ids"

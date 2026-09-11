@@ -17,6 +17,7 @@ paths — the gradient reaches the controller THROUGH THE BIAS, v3).
 Loss: CE over canonical tokens + lambda*L1(gain), lambda 0.01 (sum).
 Adam(1e-3), 20 epochs, 40 seeds, accum 8, shuffle seed 0, final ckpt.
 """
+
 import json
 import os
 import sys
@@ -45,7 +46,9 @@ LAM = 0.01
 
 tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
 m = Qwen3()
-m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+m.load_state_dict(
+    torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+)
 m = m.to(torch.bfloat16).cuda().eval()
 for p in m.parameters():
     p.requires_grad_(False)
@@ -53,7 +56,9 @@ for p in m.parameters():
 
 def work_batch(sess, wt):
     ptxt = prompt_at(sess, wt, "dev").replace(
-        "[checker] (deterministic feedback on the previous submission is inserted here at run time)", NEUTRAL)
+        "[checker] (deterministic feedback on the previous submission is inserted here at run time)",
+        NEUTRAL,
+    )
     enc = tok.encode(ptxt)
     P = len(enc.ids)
     code_ids = tok.encode(canonical_code(sess, wt)).ids
@@ -75,8 +80,8 @@ def forward_loss(wave, full, P, rows):
     with torch.no_grad():
         h = m(full, return_hidden=20)[0].float()
     K = h[:P].detach()
-    H = h[P - 1:T - 1].detach()          # rows generating tokens P..T-1
-    field = wave.field(H, K)             # [G, P]
+    H = h[P - 1 : T - 1].detach()  # rows generating tokens P..T-1
+    field = wave.field(H, K)  # [G, P]
     if OBJ == "proxy":
         # matched control: timing BCE on gain logits + span CE on e-logits
         q = F.normalize(wave.W_q(H), dim=-1)
@@ -90,17 +95,17 @@ def forward_loss(wave, full, P, rows):
             g_row = r - (P - 1)
             pos[g_row] = 1.0
             tgt = torch.zeros(P, device="cuda")
-            tgt[span[0]:span[1]] = 1.0 / (span[1] - span[0])
+            tgt[span[0] : span[1]] = 1.0 / (span[1] - span[0])
             span_loss = span_loss + torch.sum(-tgt * F.log_softmax(e[g_row], dim=-1))
             n_pos += 1
         bce = F.binary_cross_entropy_with_logits(gain_logit, pos, reduction="mean")
         return bce + (span_loss / max(1, n_pos))
     # wave: CE through the trunk
     bias = torch.zeros(T, T, device="cuda")
-    bias[P - 1:T - 1, :P] = field
+    bias[P - 1 : T - 1, :P] = field
     logits = m(full, attn_bias={L: bias for L in LAYERS})[0].float()
     targets = full[0, P:]
-    ce = F.cross_entropy(logits[P - 1:T - 1], targets)
+    ce = F.cross_entropy(logits[P - 1 : T - 1], targets)
     l1 = LAM * wave.gain(H).sum()
     return ce + l1
 
@@ -115,12 +120,19 @@ def battery():
     out = {}
     # (1) per-param finite nonzero grads with the REAL CE loss (no L1)
     lam_save, globals_l = None, None
-    loss = forward_loss(wave, full, P, rows) - LAM * wave.gain(
-        m(full, return_hidden=20)[0].float()[P - 1:full.shape[1] - 1].detach()).sum()
+    loss = (
+        forward_loss(wave, full, P, rows)
+        - LAM
+        * wave.gain(
+            m(full, return_hidden=20)[0].float()[P - 1 : full.shape[1] - 1].detach()
+        ).sum()
+    )
     loss.backward()
     for n, p in wave.named_parameters():
         g = p.grad
-        out[f"grad_{n}"] = bool(g is not None and torch.isfinite(g).all() and float(g.abs().sum()) > 0)
+        out[f"grad_{n}"] = bool(
+            g is not None and torch.isfinite(g).all() and float(g.abs().sum()) > 0
+        )
     wave.zero_grad()
     # (2) nonzero dCE/dbias
     T = full.shape[1]
@@ -128,23 +140,25 @@ def battery():
         h = m(full, return_hidden=20)[0].float()
     bias = torch.zeros(T, T, device="cuda", requires_grad=True)
     logits = m(full, attn_bias={L: bias for L in LAYERS})[0].float()
-    ce = F.cross_entropy(logits[P - 1:T - 1], full[0, P:])
+    ce = F.cross_entropy(logits[P - 1 : T - 1], full[0, P:])
     ce.backward()
     out["dCE_dbias_nonzero"] = bool(float(bias.grad.abs().sum()) > 0)
     # (3) detached bias FAILS (self-test)
     wave.zero_grad()
-    K = h[:P].detach(); H = h[P - 1:T - 1].detach()
-    field = wave.field(H, K).detach()          # deliberately severed
+    K = h[:P].detach()
+    H = h[P - 1 : T - 1].detach()
+    field = wave.field(H, K).detach()  # deliberately severed
     bias2 = torch.zeros(T, T, device="cuda")
-    bias2[P - 1:T - 1, :P] = field
+    bias2[P - 1 : T - 1, :P] = field
     logits2 = m(full, attn_bias={L: bias2 for L in LAYERS})[0].float()
-    ce2 = F.cross_entropy(logits2[P - 1:T - 1], full[0, P:])
+    ce2 = F.cross_entropy(logits2[P - 1 : T - 1], full[0, P:])
     try:
         ce2.backward()
     except RuntimeError:
         pass
     out["detached_bias_fails"] = all(
-        p.grad is None or float(p.grad.abs().sum()) == 0 for p in wave.parameters())
+        p.grad is None or float(p.grad.abs().sum()) == 0 for p in wave.parameters()
+    )
     # (4) zero field bitwise base-equivalent
     with torch.no_grad():
         zb = torch.zeros(T, T, device="cuda")
@@ -154,18 +168,26 @@ def battery():
     # (5) wrong vs correct hand fields distinguishable
     with torch.no_grad():
         r0, span0 = rows[0]
-        e = torch.full((P,), -6.0); e[span0[0]:span0[1]] = 6.0
-        sm = torch.softmax(e, dim=-1); row_c = 2.0 * sm / sm.max()
-        c_bias = torch.zeros(T, T, device="cuda"); c_bias[r0, :P] = row_c.cuda()
-        e2 = torch.full((P,), -6.0); e2[span0[0] - 30:span0[0] - 30 + (span0[1] - span0[0])] = 6.0
-        sm2 = torch.softmax(e2, dim=-1); row_w = 2.0 * sm2 / sm2.max()
-        w_bias = torch.zeros(T, T, device="cuda"); w_bias[r0, :P] = row_w.cuda()
+        e = torch.full((P,), -6.0)
+        e[span0[0] : span0[1]] = 6.0
+        sm = torch.softmax(e, dim=-1)
+        row_c = 2.0 * sm / sm.max()
+        c_bias = torch.zeros(T, T, device="cuda")
+        c_bias[r0, :P] = row_c.cuda()
+        e2 = torch.full((P,), -6.0)
+        e2[span0[0] - 30 : span0[0] - 30 + (span0[1] - span0[0])] = 6.0
+        sm2 = torch.softmax(e2, dim=-1)
+        row_w = 2.0 * sm2 / sm2.max()
+        w_bias = torch.zeros(T, T, device="cuda")
+        w_bias[r0, :P] = row_w.cuda()
         lc = m(full, attn_bias={L: c_bias for L in LAYERS})[0, r0]
         lw = m(full, attn_bias={L: w_bias for L in LAYERS})[0, r0]
     out["positions_distinguishable"] = bool(float((lc - lw).abs().max()) > 1e-3)
     out["PASS"] = all(v for k, v in out.items() if k != "PASS")
     print(json.dumps(out, indent=1), flush=True)
-    (ROOT / "results" / "qwen" / "w0-battery.json").write_text(json.dumps(out, indent=1))
+    (ROOT / "results" / "qwen" / "w0-battery.json").write_text(
+        json.dumps(out, indent=1)
+    )
 
 
 def smoke():
@@ -178,7 +200,10 @@ def smoke():
     loss.backward()
     torch.cuda.synchronize()
     peak = torch.cuda.max_memory_allocated() / 2**20
-    print(json.dumps({"wall_s": round(time.time() - t0, 2), "peak_MiB": round(peak, 1)}), flush=True)
+    print(
+        json.dumps({"wall_s": round(time.time() - t0, 2), "peak_MiB": round(peak, 1)}),
+        flush=True,
+    )
 
 
 def main():
@@ -203,8 +228,10 @@ def main():
             loss = forward_loss(wave, full, P, rows) / 8.0
             loss.backward()
             if (step + 1) % 8 == 0:
-                opt.step(); opt.zero_grad()
-        opt.step(); opt.zero_grad()
+                opt.step()
+                opt.zero_grad()
+        opt.step()
+        opt.zero_grad()
         print(f"epoch {ep} done", flush=True)
     name = f"w0-{OBJ}.pt"
     torch.save(wave.state_dict(), ROOT / "results" / "qwen" / name)

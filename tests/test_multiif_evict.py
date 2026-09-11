@@ -124,8 +124,7 @@ def _record(ci=0, bits=None):
         "control_pinned_cols": 1,
         "control_available_cols": 1,
         "pinned_cols": {
-            arm: (1 if "pinned" in arm or arm == "clf_control" else 0)
-            for arm in ARMS
+            arm: (1 if "pinned" in arm or arm == "clf_control" else 0) for arm in ARMS
         },
         "control_spans": [[2, 3]],
         "arms": {arm: _arm(list(bits)) for arm in ARMS},
@@ -253,9 +252,7 @@ def test_control_shortfall_skips_only_control_and_c1(monkeypatch):
     assert record["pinned_cols"]["clf_control"] is None
     assert record["arms"]["clf_control"] is None
     assert all(
-        record["arms"][arm] is not None
-        for arm in harness.ARMS
-        if arm != "clf_control"
+        record["arms"][arm] is not None for arm in harness.ARMS if arm != "clf_control"
     )
 
     records = [_record(i) for i in range(4)] + [record]

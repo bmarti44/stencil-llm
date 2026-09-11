@@ -1,8 +1,10 @@
 # ruff: noqa
 """Commit-threshold calibration sweep on the noisy-teacher checkpoint (Exp B).
 Artifact for the report's precision-recovery claim."""
+
 import sys
 import torch
+
 sys.path.insert(0, "/home/bmarti44/stencil-llm/src")
 sys.path.insert(0, "/home/bmarti44/stencil-llm/scripts")
 import run_gpt2_arms as R

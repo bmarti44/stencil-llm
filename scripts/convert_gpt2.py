@@ -16,6 +16,7 @@ Steps (network required):
 Outputs: models/gpt2-small.pt, models/tokenizer/{vocab.json,merges.txt},
 tests/fixtures/gpt2_parity.pt, models/CONVERSION.json (hashes, versions).
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -43,7 +44,7 @@ BATTERY = [
     "In 1969, humans first landed on the",
     "Water is made of hydrogen and",
     "cat -> dog\nsun -> moon\nhot ->",
-    "New rule: reply to \"cat\" with \"dog\". cat ->",
+    'New rule: reply to "cat" with "dog". cat ->',
 ] * 4  # 32 prompts (repetition is fine; positions differ per batch slot)
 
 
@@ -136,9 +137,19 @@ def main() -> None:
         # HF loads from the hub in the throwaway env (network available here).
         subprocess.run(
             [
-                "uv", "run", "--isolated", "--with", "transformers==4.46.3",
-                "--with", "torch", "python", str(worker),
-                "gpt2", "gpt2", str(prompts), str(ref_path),
+                "uv",
+                "run",
+                "--isolated",
+                "--with",
+                "transformers==4.46.3",
+                "--with",
+                "torch",
+                "python",
+                str(worker),
+                "gpt2",
+                "gpt2",
+                str(prompts),
+                str(ref_path),
             ],
             check=True,
         )
@@ -150,7 +161,10 @@ def main() -> None:
     model = GatedGPT2("vanilla", window=None)
     missing, unexpected = model.load_state_dict(sd, strict=False)
     assert not unexpected, unexpected
-    assert all(m.startswith(("controller", "gate_source")) or False for m in missing) or not missing, missing
+    assert (
+        all(m.startswith(("controller", "gate_source")) or False for m in missing)
+        or not missing
+    ), missing
     model.eval()
     captured = {}
     max_err = 0.0
@@ -163,14 +177,23 @@ def main() -> None:
             max_err = max(max_err, err)
             captured[str(i)] = {"ids": ids[0].tolist(), "last_logits": ours.clone()}
     print(f"max |ours - HF| over battery: {max_err:.5f}")
-    scale = max(t.abs().max().item() for t in (torch.tensor(ref[str(i)]["last_logits"]) for i in range(len(BATTERY))))
-    assert max_err < 2e-3 * max(scale, 1.0), f"parity failed: {max_err} vs scale {scale}"
+    scale = max(
+        t.abs().max().item()
+        for t in (torch.tensor(ref[str(i)]["last_logits"]) for i in range(len(BATTERY)))
+    )
+    assert max_err < 2e-3 * max(scale, 1.0), (
+        f"parity failed: {max_err} vs scale {scale}"
+    )
 
     fixture = ROOT / "tests" / "fixtures" / "gpt2_parity.pt"
     torch.save(captured, fixture)
     meta = {
-        "safetensors_sha256": hashlib.sha256((tok_dir / "model.safetensors").read_bytes()).hexdigest(),
-        "state_dict_sha256": hashlib.sha256((models / "gpt2-small.pt").read_bytes()).hexdigest(),
+        "safetensors_sha256": hashlib.sha256(
+            (tok_dir / "model.safetensors").read_bytes()
+        ).hexdigest(),
+        "state_dict_sha256": hashlib.sha256(
+            (models / "gpt2-small.pt").read_bytes()
+        ).hexdigest(),
         "parity_fixture_sha256": hashlib.sha256(fixture.read_bytes()).hexdigest(),
         "max_abs_err_vs_hf": max_err,
         "transformers": "4.46.3",

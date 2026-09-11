@@ -3,8 +3,10 @@
 (H1): quoted slot words + instruction-adjacent phrasing, LEARNED gates,
 trained cache-v8 checkpoint. Reports writes per 10k tokens (honest number,
 not an assertion)."""
+
 import sys
 import torch
+
 sys.path.insert(0, "/home/bmarti44/stencil-llm/src")
 sys.path.insert(0, "/home/bmarti44/stencil-llm/scripts")
 import run_gpt2_arms as R
@@ -27,7 +29,7 @@ total = writes = 0
 state = None
 with torch.no_grad():
     for i in range(0, len(stream), 1000):
-        chunk = stream[i:i + 1000]
+        chunk = stream[i : i + 1000]
         if len(chunk) < 10:
             break
         toks = torch.tensor([chunk], device=DEV)
@@ -41,4 +43,6 @@ with torch.no_grad():
         total += len(chunk)
         if total >= 10_000:
             break
-print(f"ADVERSARIAL 10K NO-WRITE: {writes} writes over {total} tokens (learned gates, chunk-carried state)")
+print(
+    f"ADVERSARIAL 10K NO-WRITE: {writes} writes over {total} tokens (learned gates, chunk-carried state)"
+)

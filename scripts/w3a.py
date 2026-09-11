@@ -10,6 +10,7 @@ INCONCLUSIVE close) AND wave closure >= 0.50 AND T0.3 validity;
 causal re-test wave > proxy raw gain, both valid. Full per-work
 records + full-length sha256 from the start.
 """
+
 import hashlib
 import json
 import os
@@ -24,7 +25,13 @@ from tokenizers import Tokenizer
 
 from stencil.qwen_task import CODE_PREFIXES
 from stencil.qwen3 import Qwen3
-from stencil.t2_runner import LAYERS, _oracle_moment, build_arm_prompt, ledger_sentence_spans, score_work
+from stencil.t2_runner import (
+    LAYERS,
+    _oracle_moment,
+    build_arm_prompt,
+    ledger_sentence_spans,
+    score_work,
+)
 from stencil.t2_sessions import SENT, generate_t2
 from stencil.wave import WaveController
 
@@ -46,12 +53,16 @@ def run_arm(m, tok, ctrl, sess, arm):
     results, hashes, dirty = [], {}, 0
     for wt in sess.work_turns:
         ptxt = build_arm_prompt(sess, wt, "dev", arm).replace(
-            "[checker] (deterministic feedback on the previous submission is inserted here at run time)", NEUTRAL)
+            "[checker] (deterministic feedback on the previous submission is inserted here at run time)",
+            NEUTRAL,
+        )
         if contaminated(ptxt):
             dirty += 1
         enc = tok.encode(ptxt)
         P = len(enc.ids)
-        spans = ledger_sentence_spans(ptxt, sess, wt, "dev", tok) if arm == "oracle" else {}
+        spans = (
+            ledger_sentence_spans(ptxt, sess, wt, "dev", tok) if arm == "oracle" else {}
+        )
         toks = torch.tensor([enc.ids], device="cuda")
         K = None
         gen, text = [], ""
@@ -64,7 +75,7 @@ def run_arm(m, tok, ctrl, sess, arm):
                     key = _oracle_moment(text[-80:])
                     if key is not None and key in spans:
                         e = torch.full((P,), -6.0)
-                        e[spans[key][0]:spans[key][1]] = 6.0
+                        e[spans[key][0] : spans[key][1]] = 6.0
                         sm = torch.softmax(e, dim=-1)
                         t = toks.shape[1]
                         bias = torch.zeros(t, t)
@@ -101,16 +112,37 @@ def main():
 
     tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
     m = Qwen3()
-    m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+    m.load_state_dict(
+        torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+    )
     m = m.to(torch.bfloat16).cuda().eval()
     ctrls = {}
     for name in ("wave", "proxy"):
         c = WaveController().cuda()
-        c.load_state_dict(torch.load(ROOT / "results" / "qwen" / f"w0-{'ce' if name == 'wave' else 'proxy'}.pt", map_location="cpu"))
+        c.load_state_dict(
+            torch.load(
+                ROOT
+                / "results"
+                / "qwen"
+                / f"w0-{'ce' if name == 'wave' else 'proxy'}.pt",
+                map_location="cpu",
+            )
+        )
         ctrls[name] = c.eval()
 
     arms = ["base", "wave", "proxy", "oracle", "reinsertion"]
-    agg = {a: {"adh": 0, "n": 0, "parse": 0, "works": 0, "paired": {}, "hashes": {}, "dirty": 0} for a in arms}
+    agg = {
+        a: {
+            "adh": 0,
+            "n": 0,
+            "parse": 0,
+            "works": 0,
+            "paired": {},
+            "hashes": {},
+            "dirty": 0,
+        }
+        for a in arms
+    }
     for k, seed in enumerate(SEEDS):
         sess = generate_t2(seed, 20, "dev", interference="s0c")
         for arm in arms:
@@ -125,31 +157,51 @@ def main():
                 for o in sess.opportunities:
                     if o.turn == r.turn and o.cell == "active":
                         a["n"] += 1
-                        a["adh"] += bool(r.per_opportunity.get(o.opportunity_id, {}).get("adherent"))
+                        a["adh"] += bool(
+                            r.per_opportunity.get(o.opportunity_id, {}).get("adherent")
+                        )
         if k % 12 == 0:
             print(f"  {k}/{len(SEEDS)}", flush=True)
 
     base = agg["base"]
-    out = {"mode": "s0c", "n_sessions": len(SEEDS), "pinned": PINNED,
-           "contaminated_prompts": {a: agg[a]["dirty"] for a in arms}}
+    out = {
+        "mode": "s0c",
+        "n_sessions": len(SEEDS),
+        "pinned": PINNED,
+        "contaminated_prompts": {a: agg[a]["dirty"] for a in arms},
+    }
     for arm in arms:
         a = agg[arm]
-        rec = {"adh_raw": a["adh"], "n_active": a["n"],
-               "adherence": round(a["adh"] / max(1, a["n"]), 4),
-               "parse_rate": round(a["parse"] / max(1, a["works"]), 4)}
+        rec = {
+            "adh_raw": a["adh"],
+            "n_active": a["n"],
+            "adherence": round(a["adh"] / max(1, a["n"]), 4),
+            "parse_rate": round(a["parse"] / max(1, a["works"]), 4),
+        }
         if arm != "base":
-            broken = sum(1 for kk in a["paired"] if
-                         (base["paired"][kk]["parse"] and not a["paired"][kk]["parse"]) or
-                         (base["paired"][kk]["exec"] and not a["paired"][kk]["exec"]))
+            broken = sum(
+                1
+                for kk in a["paired"]
+                if (base["paired"][kk]["parse"] and not a["paired"][kk]["parse"])
+                or (base["paired"][kk]["exec"] and not a["paired"][kk]["exec"])
+            )
             gain = a["adh"] - base["adh"]
-            rec |= {"paired_broken": broken, "adh_gain_raw": gain, "dU_total": gain - 2 * broken,
-                    "valid": bool(gain - 2 * broken > 0 and gain - 2 * broken >= 0.8 * gain)}
+            rec |= {
+                "paired_broken": broken,
+                "adh_gain_raw": gain,
+                "dU_total": gain - 2 * broken,
+                "valid": bool(
+                    gain - 2 * broken > 0 and gain - 2 * broken >= 0.8 * gain
+                ),
+            }
         out[arm] = rec
     hr = agg["oracle"]["adh"] - base["adh"]
     out["headroom"] = round(hr / max(1, base["n"]), 4)
     out["precondition_binds"] = out["headroom"] >= 0.10
     for arm in ("wave", "proxy"):
-        out[arm]["closure"] = round((agg[arm]["adh"] - base["adh"]) / hr, 4) if hr else None
+        out[arm]["closure"] = (
+            round((agg[arm]["adh"] - base["adh"]) / hr, 4) if hr else None
+        )
     if any(out["contaminated_prompts"].values()):
         out["VERDICT"] = "VOID — contamination assertion tripped"
     elif not out["precondition_binds"]:
@@ -157,15 +209,26 @@ def main():
     else:
         w = out["wave"]
         passed = w["closure"] >= 0.50 and w["valid"]
-        causal = w["adh_gain_raw"] > out["proxy"]["adh_gain_raw"] and w["valid"] and out["proxy"]["valid"]
-        out["VERDICT"] = ("CLEAN-FORMAT WIN" if passed else "CLEAN-FORMAT MISS") + \
-            ("; causal HOLDS" if causal else "; causal NOT supported")
+        causal = (
+            w["adh_gain_raw"] > out["proxy"]["adh_gain_raw"]
+            and w["valid"]
+            and out["proxy"]["valid"]
+        )
+        out["VERDICT"] = ("CLEAN-FORMAT WIN" if passed else "CLEAN-FORMAT MISS") + (
+            "; causal HOLDS" if causal else "; causal NOT supported"
+        )
     out["work_hashes"] = {a: agg[a]["hashes"] for a in arms}
     tmp = str(out_path) + ".partial"
     Path(tmp).write_text(json.dumps(out, indent=1))
     os.replace(tmp, out_path)
     print("VERDICT:", out["VERDICT"], flush=True)
-    print(json.dumps({k: v for k, v in out.items() if k not in ("work_hashes", "pinned")}, indent=1), flush=True)
+    print(
+        json.dumps(
+            {k: v for k, v in out.items() if k not in ("work_hashes", "pinned")},
+            indent=1,
+        ),
+        flush=True,
+    )
 
 
 if __name__ == "__main__":

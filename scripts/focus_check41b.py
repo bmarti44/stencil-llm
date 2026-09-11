@@ -210,7 +210,9 @@ class Engine:
             .eval()
         )
         self.model.requires_grad_(False)
-        self.hooks = Hooks([layer_idx.mlp.down_proj for layer_idx in self.model.model.layers])
+        self.hooks = Hooks(
+            [layer_idx.mlp.down_proj for layer_idx in self.model.model.layers]
+        )
         self.shape = (len(self.model.model.layers), self.model.config.intermediate_size)
         self.ids = {}
         for lang, literals in TOKENS.items():

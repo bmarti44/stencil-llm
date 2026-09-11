@@ -211,9 +211,7 @@ def parse_args(argv=None):
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command", required=True)
     extract_parser = subparsers.add_parser("extract")
-    extract_parser.add_argument(
-        "--out", default=str(ROOT / "results/qwen/fv-vectors")
-    )
+    extract_parser.add_argument("--out", default=str(ROOT / "results/qwen/fv-vectors"))
     extract_parser.add_argument("--n-per-type", type=int, default=N_PER_TYPE)
     extract_parser.add_argument("--layers", type=int, nargs="+", default=LAYERS)
     extract_parser.set_defaults(run=extract)

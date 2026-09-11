@@ -21,8 +21,16 @@ class _Trunk(torch.nn.Module):
         super().__init__()
         self.anchor = torch.nn.Parameter(torch.zeros(()), requires_grad=False)
 
-    def forward(self, tokens, *, cache=None, capture_hidden=None,
-                bias_hook=None, attn_probe=None, **_kwargs):
+    def forward(
+        self,
+        tokens,
+        *,
+        cache=None,
+        capture_hidden=None,
+        bias_hook=None,
+        attn_probe=None,
+        **_kwargs,
+    ):
         t = tokens.shape[1]
         past = cache.length if cache is not None else 0
         pos = torch.arange(past, past + t, device=tokens.device).float()
@@ -64,11 +72,21 @@ def test_e2_silent_policy_is_native_and_has_no_events():
     from stencil.e2_policy import generate_e2_policy
 
     model, tok, ctrl, context, spans = _setup()
-    native = generate_e2_policy(model, tok, context, ctrl, spans,
-                                mode="native", max_new=18, raw_context=True)
-    silent = generate_e2_policy(model, tok, context, ctrl, spans,
-                                mode="ctrb", gate=HazardGate.constant(0),
-                                threshold=0.5, max_new=18, raw_context=True)
+    native = generate_e2_policy(
+        model, tok, context, ctrl, spans, mode="native", max_new=18, raw_context=True
+    )
+    silent = generate_e2_policy(
+        model,
+        tok,
+        context,
+        ctrl,
+        spans,
+        mode="ctrb",
+        gate=HazardGate.constant(0),
+        threshold=0.5,
+        max_new=18,
+        raw_context=True,
+    )
     assert silent.token_ids == native.token_ids
     assert silent.text == native.text
     assert not silent.interventions
@@ -79,9 +97,18 @@ def test_e2_ctrb_has_one_sustained_onset_and_all_live_spans():
     from stencil.e2_policy import generate_e2_policy
 
     model, tok, ctrl, context, spans = _setup()
-    result = generate_e2_policy(model, tok, context, ctrl, spans,
-                                mode="ctrb", gate=HazardGate.constant(1),
-                                threshold=0.5, max_new=20, raw_context=True)
+    result = generate_e2_policy(
+        model,
+        tok,
+        context,
+        ctrl,
+        spans,
+        mode="ctrb",
+        gate=HazardGate.constant(1),
+        threshold=0.5,
+        max_new=20,
+        raw_context=True,
+    )
     onsets = [x for x in result.interventions if x["kind"] == "onset"]
     assert len(onsets) == 1
     assert onsets[0]["start"] == 6  # five-step delta history, then t+1
@@ -96,14 +123,31 @@ def test_e2_fixed_oldest_and_periodic_ablations_bind():
     from stencil.e2_policy import generate_e2_policy
 
     model, tok, ctrl, context, spans = _setup()
-    fixed = generate_e2_policy(model, tok, context, ctrl, spans,
-                               mode="fixed_oldest", gate=HazardGate.constant(1),
-                               threshold=0.5, max_new=15, raw_context=True)
+    fixed = generate_e2_policy(
+        model,
+        tok,
+        context,
+        ctrl,
+        spans,
+        mode="fixed_oldest",
+        gate=HazardGate.constant(1),
+        threshold=0.5,
+        max_new=15,
+        raw_context=True,
+    )
     onset = next(x for x in fixed.interventions if x["kind"] == "onset")
     assert onset["target_origins"] == [1]
-    periodic = generate_e2_policy(model, tok, context, ctrl, spans,
-                                  mode="periodic", periodic_onset=3,
-                                  max_new=15, raw_context=True)
+    periodic = generate_e2_policy(
+        model,
+        tok,
+        context,
+        ctrl,
+        spans,
+        mode="periodic",
+        periodic_onset=3,
+        max_new=15,
+        raw_context=True,
+    )
     ponset = next(x for x in periodic.interventions if x["kind"] == "onset")
     assert ponset["start"] == 3
     assert periodic.token_ids[:3] == (1, 1, 1)

@@ -3,6 +3,7 @@
 N in {8,16,32}, paired, with token costs. Gate: exists N* with reinsertion
 acc < 0.80 (selection fails despite re-supplied text) OR cost > 300 tok/query
 while base < 0.60."""
+
 import json
 import sys
 from pathlib import Path
@@ -18,7 +19,9 @@ from stencil.qwen_task import generate_governance
 
 tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
 m = Qwen3()
-m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+m.load_state_dict(
+    torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+)
 m = m.to(torch.bfloat16).cuda().eval()
 
 SEED = 11_800_000
@@ -50,14 +53,21 @@ with torch.no_grad():
             rem = "(Reminder — authoritative ledger:" + lines + ")\n"
             cost += len(tok.encode(rem).ids)
             re_h += gen_from(s.text[:qpos] + rem + s.text[qpos:]) == s.value
-        report[N] = {"base": base_h / N_SESS, "reinsertion": re_h / N_SESS,
-                     "reinsertion_tokens_per_query": round(cost / N_SESS)}
-        print(f"N={N}: base {base_h}/{N_SESS} = {base_h/N_SESS:.2f} | "
-              f"reinsertion {re_h}/{N_SESS} = {re_h/N_SESS:.2f} @ ~{cost//N_SESS} tok/query", flush=True)
+        report[N] = {
+            "base": base_h / N_SESS,
+            "reinsertion": re_h / N_SESS,
+            "reinsertion_tokens_per_query": round(cost / N_SESS),
+        }
+        print(
+            f"N={N}: base {base_h}/{N_SESS} = {base_h / N_SESS:.2f} | "
+            f"reinsertion {re_h}/{N_SESS} = {re_h / N_SESS:.2f} @ ~{cost // N_SESS} tok/query",
+            flush=True,
+        )
 out = ROOT / "results" / "qwen" / "s3-a0.json"
 out.write_text(json.dumps({"seed": SEED, "n_sess": N_SESS, "report": report}, indent=1))
 gate = any(
-    (r["reinsertion"] < 0.80) or (r["reinsertion_tokens_per_query"] > 300 and r["base"] < 0.60)
+    (r["reinsertion"] < 0.80)
+    or (r["reinsertion_tokens_per_query"] > 300 and r["base"] < 0.60)
     for r in report.values()
 )
 print(f"S3-A0 GATE: {'PASS' if gate else 'MISS'} -> {out}")

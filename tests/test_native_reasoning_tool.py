@@ -64,9 +64,7 @@ class NativeExchange:
                     "top_k": self.spec.top_k,
                     "seed": self.spec.seed,
                     "thinking_token_budget": self.spec.reasoning_token_budget,
-                    "structured_outputs": {
-                        "json": self.spec.argument_schema
-                    },
+                    "structured_outputs": {"json": self.spec.argument_schema},
                 },
             }
             if self.mutate_render:
@@ -189,9 +187,7 @@ def test_both_named_schemas_use_same_bytes_and_return_final_only(tool, arguments
 
     assert len(opener.requests) == 2
     assert opener.requests[0][1] == opener.requests[1][1]
-    assert json.loads(opener.requests[0][1])["tool_choice"]["function"][
-        "name"
-    ] == tool
+    assert json.loads(opener.requests[0][1])["tool_choice"]["function"]["name"] == tool
     assert result["arguments"] == arguments
     assert set(result["assistant_message"]) == {"role", "content", "tool_calls"}
     assert "reasoning" not in result["assistant_message"]
@@ -203,9 +199,9 @@ def test_both_named_schemas_use_same_bytes_and_return_final_only(tool, arguments
 def test_record_focus_schema_pins_current_visible_source_enum():
     spec = make_spec("record_focus")
     schema = spec.argument_schema
-    enum = schema["properties"]["obligations"]["items"]["properties"][
-        "source_ids"
-    ]["items"]["enum"]
+    enum = schema["properties"]["obligations"]["items"]["properties"]["source_ids"][
+        "items"
+    ]["enum"]
 
     assert enum == ["m-user", "m-request"]
     with pytest.raises(ValueError, match="unique visible source"):
@@ -278,11 +274,11 @@ def test_exact_final_whitespace_and_terminal_eos_are_accounted():
     mismatch = NativeExchange(spec, arguments, raw_prefix="\n\n")
 
     def change_raw(value):
-        value["choices"][0]["message"]["tool_calls"][0]["function"][
-            "arguments"
-        ] = value["choices"][0]["message"]["tool_calls"][0]["function"][
-            "arguments"
-        ].strip()
+        value["choices"][0]["message"]["tool_calls"][0]["function"]["arguments"] = (
+            value["choices"][0]["message"]["tool_calls"][0]["function"][
+                "arguments"
+            ].strip()
+        )
 
     mismatch.mutate_completion = change_raw
     with pytest.raises(client_module.TechnicalError, match="tool arguments"):
@@ -307,9 +303,7 @@ def test_schema_name_id_usage_and_cap_fail_through_native_consumer(
 
     def mutate_render(value):
         if defect == "schema":
-            value["sampling_params"]["structured_outputs"]["json"] = {
-                "type": "array"
-            }
+            value["sampling_params"]["structured_outputs"]["json"] = {"type": "array"}
 
     def mutate_completion(value):
         choice = value["choices"][0]
@@ -324,8 +318,8 @@ def test_schema_name_id_usage_and_cap_fail_through_native_consumer(
             overflow = spec.max_output_tokens + 1 - len(choice["token_ids"])
             choice["token_ids"].extend([42] * max(1, overflow))
             value["usage"]["completion_tokens"] = len(choice["token_ids"])
-            value["usage"]["total_tokens"] = (
-                value["usage"]["prompt_tokens"] + len(choice["token_ids"])
+            value["usage"]["total_tokens"] = value["usage"]["prompt_tokens"] + len(
+                choice["token_ids"]
             )
 
     opener = NativeExchange(
@@ -359,11 +353,7 @@ def test_generic_history_validates_matching_final_tool_without_reasoning():
     spec = make_spec("record_focus")
     arguments = {"obligations": []}
     prior_arguments = json.dumps(
-        {
-            "obligations": [
-                {"text": "Keep the key.", "source_ids": ["m-user"]}
-            ]
-        }
+        {"obligations": [{"text": "Keep the key.", "source_ids": ["m-user"]}]}
     )
     messages = [
         {"role": "user", "content": "First request"},

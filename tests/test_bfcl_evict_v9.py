@@ -89,9 +89,12 @@ def test_v8_1_dev_certificate_validates_for_split_invariant_sealed_contract(tmp_
     assert payload["preflight_evidence"]["dev_verified_bytes"]["records"] == {
         "dev-1:case": "e" * 64
     }
-    assert validate_preflight_certificate(path, sealed_meta) == hashlib.sha256(
-        json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
-    ).hexdigest()
+    assert (
+        validate_preflight_certificate(path, sealed_meta)
+        == hashlib.sha256(
+            json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+    )
 
 
 def test_v8_1_common_manifest_change_rejects_certificate(tmp_path):
@@ -108,9 +111,7 @@ def test_v8_1_common_manifest_change_rejects_certificate(tmp_path):
         validate_preflight_certificate(path, changed)
 
 
-def test_v8_1_real_dev_certificate_validates_before_sealed_rows(
-    monkeypatch, tmp_path
-):
+def test_v8_1_real_dev_certificate_validates_before_sealed_rows(monkeypatch, tmp_path):
     from scripts import bfcl_mt
 
     def args(split: str):

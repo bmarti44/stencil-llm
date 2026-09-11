@@ -16,6 +16,7 @@ logits, all-response-rows positive) + mean uniform-within-span CE of
 e-logits toward constraint_spans(), weight 1:1, identical rows/data/
 schedule. SMOKE=1: 4 rows, 1 epoch, no artifacts sealed.
 """
+
 import json
 import hashlib
 import os
@@ -38,7 +39,9 @@ from stencil.wave import WaveController
 OBJ = os.environ.get("OBJ", "ce")
 SEED = int(os.environ.get("SEED", "0"))
 SMOKE = bool(os.environ.get("SMOKE"))
-LAM = 0.0  # v3.3: L1 gain penalty REMOVED for B3 (collapse evidence, WORKLOG 2026-08-31)
+LAM = (
+    0.0  # v3.3: L1 gain penalty REMOVED for B3 (collapse evidence, WORKLOG 2026-08-31)
+)
 EPOCHS = 1 if SMOKE else 5
 ACCUM = 8
 
@@ -46,7 +49,9 @@ assert OBJ in ("ce", "proxy")
 
 tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
 m = Qwen3()
-m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+m.load_state_dict(
+    torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+)
 m = m.to(torch.bfloat16).cuda().eval()
 for p in m.parameters():
     p.requires_grad_(False)
@@ -74,6 +79,7 @@ def encode_row_v43(row):
         if any(a < e and b > s0 for s0, e in spans):
             w[ti] = OBLIGATION_W
     import torch as _t
+
     return (_t.tensor([ids], device="cuda"), P, _t.tensor(w, device="cuda"))
 
 
@@ -93,7 +99,9 @@ def prompt_constraint_spans(row, enc):
             spans.append((toks[0], toks[-1] + 1))
         start = i + 1
     if len(spans) != len(row["combo"]):
-        raise ValueError(f"constraint span count mismatch: {len(spans)} vs {len(row['combo'])}")
+        raise ValueError(
+            f"constraint span count mismatch: {len(spans)} vs {len(row['combo'])}"
+        )
     return spans
 
 
@@ -112,7 +120,7 @@ def forward_loss(wave, full, P, spans, tw=None):
     with torch.no_grad():
         h = m(full, return_hidden=20)[0].float()
     K = h[:P].detach()
-    H = h[P - 1:T - 1].detach()
+    H = h[P - 1 : T - 1].detach()
     if OBJ == "proxy":
         q = F.normalize(wave.W_q(H), dim=-1)
         k = F.normalize(wave.W_k(K), dim=-1)
@@ -125,18 +133,20 @@ def forward_loss(wave, full, P, spans, tw=None):
             b = min(b, P)
             tgt = torch.zeros(P, device="cuda")
             tgt[a:b] = 1.0 / (b - a)
-            span_loss = span_loss + torch.mean(torch.sum(-tgt * F.log_softmax(e, dim=-1), dim=-1))
+            span_loss = span_loss + torch.mean(
+                torch.sum(-tgt * F.log_softmax(e, dim=-1), dim=-1)
+            )
         return bce + span_loss / max(1, len(spans))
     field = wave.field(H, K)
     bias = torch.zeros(T, T, device="cuda")
-    bias[P - 1:T - 1, :P] = field
+    bias[P - 1 : T - 1, :P] = field
     logits = m(full, attn_bias={L: bias for L in WAVE_LAYERS})[0].float()
     targets = full[0, P:]
     if tw is not None:  # v4.3 obligation-weighted CE (incl. EOS)
-        per = F.cross_entropy(logits[P - 1:T - 1], targets, reduction="none")
+        per = F.cross_entropy(logits[P - 1 : T - 1], targets, reduction="none")
         ce = (per * tw).sum() / tw.sum()
     else:
-        ce = F.cross_entropy(logits[P - 1:T - 1], targets)
+        ce = F.cross_entropy(logits[P - 1 : T - 1], targets)
     return ce if LAM == 0 else ce + LAM * wave.gain(H).sum()
 
 
@@ -145,11 +155,11 @@ def task_ce(wave, full, P):
     through the frozen trunk, plain CE on the canonical tokens."""
     T = full.shape[1]
     h = m(full, return_hidden=20)[0].float()
-    field = wave.field(h[P - 1:T - 1], h[:P])
+    field = wave.field(h[P - 1 : T - 1], h[:P])
     bias = torch.zeros(T, T, device="cuda")
-    bias[P - 1:T - 1, :P] = field
+    bias[P - 1 : T - 1, :P] = field
     logits = m(full, attn_bias={L: bias for L in WAVE_LAYERS})[0].float()
-    return float(F.cross_entropy(logits[P - 1:T - 1], full[0, P:]))
+    return float(F.cross_entropy(logits[P - 1 : T - 1], full[0, P:]))
 
 
 def dev_task_ce(wave, dev_rows):
@@ -170,10 +180,16 @@ def main():
     wave = WaveController(beta_max=1.0).cuda()  # v4.3: capped gain (fable)
     opt = torch.optim.Adam(wave.parameters(), lr=1e-3, betas=(0.9, 0.999), eps=1e-8)
     g = torch.Generator().manual_seed(0)  # frozen shuffle seed
-    rec = {"obj": OBJ, "seed": SEED, "epochs": [],
-           "data_sha256": {n: hashlib.sha256((ROOT / "data" / "b3" / n).read_bytes()).hexdigest()
-                           for n in ("train-v43.jsonl", "dev-v43.jsonl")},
-           "trainer_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
+    rec = {
+        "obj": OBJ,
+        "seed": SEED,
+        "epochs": [],
+        "data_sha256": {
+            n: hashlib.sha256((ROOT / "data" / "b3" / n).read_bytes()).hexdigest()
+            for n in ("train-v43.jsonl", "dev-v43.jsonl")
+        },
+        "trainer_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+    }
     t0 = time.time()
     for ep in range(EPOCHS):
         perm = torch.randperm(len(train), generator=g).tolist()
@@ -193,25 +209,33 @@ def main():
                 opt.step()
                 opt.zero_grad()
             if j % 200 == 0:
-                print(f"ep{ep} {j}/{len(perm)} loss {run / max(1, nstep):.4f} "
-                      f"({time.time() - t0:.0f}s)", flush=True)
+                print(
+                    f"ep{ep} {j}/{len(perm)} loss {run / max(1, nstep):.4f} "
+                    f"({time.time() - t0:.0f}s)",
+                    flush=True,
+                )
         opt.step()
         opt.zero_grad()
         d = dev_task_ce(wave, dev)
         ck = ROOT / "results" / "qwen" / f"b3-{OBJ}-s{SEED}-ep{ep}.pt"
         if not SMOKE:
             torch.save(wave.state_dict(), ck)
-        rec["epochs"].append({"epoch": ep, "train_loss": round(run / nstep, 4),
-                              "dev_task_ce": d})  # UNROUNDED (selection metric)
+        rec["epochs"].append(
+            {"epoch": ep, "train_loss": round(run / nstep, 4), "dev_task_ce": d}
+        )  # UNROUNDED (selection metric)
         print(f"epoch {ep}: train {run / nstep:.4f} dev_task_ce {d:.6f}", flush=True)
     # frozen selection: lowest unrounded dev task CE; tie-break lowest epoch
     best = min(rec["epochs"], key=lambda e: (e["dev_task_ce"], e["epoch"]))["epoch"]
     rec["selected_epoch"] = best
     if not SMOKE:
         sel = ROOT / "results" / "qwen" / f"b3-{OBJ}-s{SEED}.pt"
-        sel.write_bytes((ROOT / "results" / "qwen" / f"b3-{OBJ}-s{SEED}-ep{best}.pt").read_bytes())
+        sel.write_bytes(
+            (ROOT / "results" / "qwen" / f"b3-{OBJ}-s{SEED}-ep{best}.pt").read_bytes()
+        )
         rec["selected_sha256"] = hashlib.sha256(sel.read_bytes()).hexdigest()
-        (ROOT / "results" / "qwen" / f"b3-{OBJ}-s{SEED}.json").write_text(json.dumps(rec, indent=1))
+        (ROOT / "results" / "qwen" / f"b3-{OBJ}-s{SEED}.json").write_text(
+            json.dumps(rec, indent=1)
+        )
     print(json.dumps(rec["epochs"], indent=1))
     print("selected epoch", best)
 

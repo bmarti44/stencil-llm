@@ -109,8 +109,9 @@ SYSTEM_PROMPT = (
     'and delivery (a short current obligation value string, e.g. "staged", only '
     "when the workshop letter equals the delivery-scoped task letter; never "
     "file content or an object). test takes no path. Literal verbose example "
-    'for workshop B with delivery scoped to B and value staged: '
-    '{"calls":[{"op":"test"}],"report":{"status":"ok","task":"B","delivery":"staged"}}. '
+    "for workshop B with delivery scoped to B and value staged: "
+    '{"calls":[{"op":"test"}],"report":{"status":"ok","task":"B",'
+    '"delivery":"staged"}}. '
     "Literal compact envelope "
     'example: {"calls":[{"op":"test"}],"report":{"status":"ok"}}. '
     + EXECUTION_POLICY
@@ -820,12 +821,17 @@ class Executor:
                         pass
                     self.receipt = None
                     try:
-                        functions = [node.name for node in ast.parse(path.read_text()).body
-                                     if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))]
+                        functions = [
+                            node.name
+                            for node in ast.parse(path.read_text()).body
+                            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                        ]
                     except (SyntaxError, RecursionError):
                         functions = None
                     result = dict(
-                        op=op, path=call["path"], sha256=self.hashes()[call["path"]],
+                        op=op,
+                        path=call["path"],
+                        sha256=self.hashes()[call["path"]],
                         functions=functions,
                     )
                 else:
@@ -865,8 +871,9 @@ class Executor:
                 self.executed.append(call)
                 self.results.append(result)
         except EnvelopeError as exc:
-            self.results.append(dict(error="envelope", reason=str(exc),
-                                     expected=ENVELOPE_EXPECTED))
+            self.results.append(
+                dict(error="envelope", reason=str(exc), expected=ENVELOPE_EXPECTED)
+            )
         except (ValueError, TypeError, AttributeError, OSError) as exc:
             self.results.append(dict(error=str(exc)))
         codes = [c["code"] for c in self.executed if c["op"] in {"edit", "replace"}]
@@ -991,9 +998,11 @@ def check(episode, turn, output, executor, executed=True, truncated=False):
             expected_report["task"] = t.task
         if "delivery" in rules:
             expected_report["delivery"] = rules["delivery"]
-        violations["format"] = ("delivery" in report and not isinstance(report["delivery"], str)) or {
-            k: v for k, v in report.items() if k != "delivery"
-        } != {k: v for k, v in expected_report.items() if k != "delivery"}
+        violations["format"] = (
+            "delivery" in report and not isinstance(report["delivery"], str)
+        ) or {k: v for k, v in report.items() if k != "delivery"} != {
+            k: v for k, v in expected_report.items() if k != "delivery"
+        }
         relapse["format"] = (
             stale.get("format") is not None
             and isinstance(report, dict)

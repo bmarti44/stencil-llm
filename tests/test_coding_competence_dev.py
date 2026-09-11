@@ -177,9 +177,7 @@ def _document():
                         {"label": labels[index], "value": expected},
                         [rule_id],
                     )
-                    for offset, (value, expected) in enumerate(
-                        obligation_values[index]
-                    )
+                    for offset, (value, expected) in enumerate(obligation_values[index])
                 ],
                 "negative_controls": [
                     {

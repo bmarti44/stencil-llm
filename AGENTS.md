@@ -2,21 +2,21 @@
 
 Operational lessons for every agent working in this repo (codex coders and
 reviewers auto-load this file; the Claude orchestrator loads it via CLAUDE.md).
-PLAN.md governs — this file never overrides it; it accumulates the "how to work
-well here" lessons from phase retrospectives (PLAN.md Section 2b). Keep entries
+plan/BACK-ON-TRACK-PLAN.md governs (2026-09-11) — this file never overrides it; it
+accumulates the "how to work well here" lessons from phase retrospectives. Keep entries
 short, imperative, and evidence-linked; prune entries that stop paying rent.
 
 ## Working rules distilled so far
 
 - North star (Brian, 2026-08-22): agents work efficiently, quickly, accurately,
-  and autonomously on PLAN.md. Burden test for any new rule/file/process step:
+  and autonomously on the governing plan. Burden test for any new rule/file/process step:
   does it change what an agent would do in a concrete situation, and does it
   make execution faster or more accurate? If not, cut it.
-- Layout: PLAN.md (root) = governing science spec. plan/ = working directory:
-  PROTOCOL.md (process rules), LEDGER.md (resume from its STATE line),
-  AMENDMENTS.md, reviews/, retros/, tiebreaks/.
+- Layout: plan/BACK-ON-TRACK-PLAN.md = governing plan (science + process).
+  plan/PROTOCOL.md = process rules (copy of its sections D-E), plan/LEDGER.md =
+  state (resume from its STATE line), results/reviews/ = reviews.
 
-- PLAN.md (science) and plan/PROTOCOL.md (process) govern together; plan/LEDGER.md
+- The governing plan and plan/PROTOCOL.md (process) govern together; plan/LEDGER.md
   is operational state. Read PROTOCOL.md and the LEDGER STATE line before doing
   anything; append ledger entries (write-ahead for long-running work) as you go.
 - Never edit repo files while a review/coder wrapper is running — the wrapper

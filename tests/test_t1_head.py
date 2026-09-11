@@ -4,6 +4,7 @@
 Logit layout: index 0 = NULL, 1..n = typed candidates.
 Hand-computed expectations use T=1 (t init softplus_inverse(1)).
 """
+
 import math
 
 import torch
@@ -24,8 +25,10 @@ def test_temperature_starts_at_one():
 def test_warm_start_matches_legacy_cosine():
     h = make_head()
     legacy = torch.load("results/qwen/t2b-selector.pt", map_location="cpu")
-    Wq = torch.nn.Linear(2048, 64); Wq.load_state_dict(legacy["Wq"])
-    Wk = torch.nn.Linear(2048, 64); Wk.load_state_dict(legacy["Wk"])
+    Wq = torch.nn.Linear(2048, 64)
+    Wq.load_state_dict(legacy["Wq"])
+    Wk = torch.nn.Linear(2048, 64)
+    Wk.load_state_dict(legacy["Wk"])
     h.warm_start(legacy)
     x = torch.randn(2048)
     C = torch.randn(3, 2048)
@@ -49,16 +52,18 @@ def test_state_augmentation_hooks():
     assert torch.allclose(aug[1:], base[1:], atol=1e-6)  # zero q_add changes nothing
     aug2 = h(x, C, null_add=torch.tensor(0.0), q_add=torch.randn(64))
     assert float(aug2[0]) == float(base[0])
-    assert not torch.allclose(aug2[1:], base[1:])  # nonzero q_add moves candidate logits
+    assert not torch.allclose(
+        aug2[1:], base[1:]
+    )  # nonzero q_add moves candidate logits
 
 
 def test_decide_rule():
     # decision_score = best candidate logit - NULL logit; > 0 -> candidate
-    assert decide(torch.tensor([0.0, 0.5, 0.2])) == 0   # cand index 0 (logit 0.5)
+    assert decide(torch.tensor([0.0, 0.5, 0.2])) == 0  # cand index 0 (logit 0.5)
     assert decide(torch.tensor([0.6, 0.5, 0.2])) is None  # NULL wins
-    assert decide(torch.tensor([0.5, 0.5])) is None       # exact tie -> NULL
-    assert decide(torch.tensor([0.0, 0.7, 0.7])) == 0     # cand tie -> first index
-    assert decide(torch.tensor([0.0])) is None            # no candidates
+    assert decide(torch.tensor([0.5, 0.5])) is None  # exact tie -> NULL
+    assert decide(torch.tensor([0.0, 0.7, 0.7])) == 0  # cand tie -> first index
+    assert decide(torch.tensor([0.0])) is None  # no candidates
 
 
 def test_margin_loss_active():

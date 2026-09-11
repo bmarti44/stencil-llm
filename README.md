@@ -1,177 +1,153 @@
-# Stencil: teaching a frozen AI model where to focus
+# Stencil: keeping a frozen language model on the current instructions
 
-A theory of how the brain works, proposed by Earl Miller and colleagues at
-MIT ([Picower article](https://picower.mit.edu/news/cognition-and-consciousness-arise-analog-computations-says-new-theory),
-[Neuron paper](https://www.cell.com/neuron/fulltext/S0896-6273(23)00506-8)),
-says knowledge and focus live in different mechanisms. Knowledge is stored
-in the wiring (synapses). Focus — *what am I doing right now* — is carried
-by electrical waves that sweep across that wiring and decide which circuits
-are on at any moment: **"Synapses store representations, while wave dynamics
-help determine which representations are active at any given time."** They
-call the control waves "mobile stencils." This project is named after that
-phrase, and it builds the split into real AI models.
+Stencil studies how a frozen chat model can keep following the instructions a
+user gave earlier in a long conversation: which sentences must be remembered,
+how they are re-supplied at request time, and whether steering the model's
+attention toward them adds anything beyond restating them in prose. The name
+comes from Earl Miller's "mobile stencil" account of cortical waves
+([Picower article](https://picower.mit.edu/news/cognition-and-consciousness-arise-analog-computations-says-new-theory),
+[Neuron paper](https://www.cell.com/neuron/fulltext/S0896-6273(23)00506-8)).
+That theory motivated the split between stored knowledge and current focus; the
+experiments here neither test the biology nor demonstrate a wave.
 
-Miller's work motivates an engineering distinction between storing
-information and selecting what to use now. Stencil studies explicit retention
-and retrieval around a frozen language model. These experiments do not test
-the biological theory or demonstrate a wave mechanism.
+## Status (2026-09-11)
 
-## Project status (2026-09-08)
+The program is executing the back-on-track plan in
+[plan/BACK-ON-TRACK-PLAN.md](plan/BACK-ON-TRACK-PLAN.md): one narrow method
+question (does a learned attention controller beat prose restatement and fixed
+steering when the correct rules are supplied?), one product question (can the
+live set of instructions be maintained automatically and rendered as a reminder
+on a MemoryCode-derived workload?), and an honest artifact release. Results land
+under `results/<name>/RESULTS.md` with a registered test and an interval each.
+Resume from the latest STATE entry in [plan/LEDGER.md](plan/LEDGER.md).
 
-Stencil remains a research prototype. Timely reminders have helped instruction
-following in bounded tests, but useful automatic focus on larger coding projects
-is still unproven. Automating useful manual reminders is a meaningful benefit;
-beating manual prose is not required. See the superseding clarification in
-[the current goal](results/CURRENT-GOAL.md).
+The one trained model with a public-benchmark number, the sentence classifier
+(rule / fact / none, bge-small-en-v1.5 fine-tune), is being published as
+`bmarti44/assistant-memory-sentence-classifier` on the Hugging Face Hub.
 
-The latest trained instruction helper completed its fresh 36-response comparison,
-but independent source review found an error in an expected answer. The whole
-screen is **INELIGIBLE**, so it cannot justify advancement or a training-benefit
-claim. Original answers, references and reviews are preserved; no trial repair
-or rerun is being used. [Results](results/source-interpreter/semantic/RESULTS.md).
+## Headline result: selective retention under cache eviction (Qwen3-1.7B, Multi-IF)
 
-Automatically recalling original instruction messages passed a separate local
-technical trial: both model calls worked, the patch passed three fixture checks,
-and shutdown finished within the ten-minute limit. Independent review accepted
-that limited result at96/100. The planned four-project coding comparison then
-stopped during data preparation: after the sole allowed correction batch, one
-project's current request still restated its complete target formula, violating
-the registered workload rule. No coding comparison ran, so this does not measure
-whether automatic reminders help. See [preparation results](results/source-replay/PREPARATION-RESULTS.md)
-and [technical results](results/source-replay/QUALIFICATION-RESULTS.md).
-Focused research and a new staged preparation design have each passed independent
-Astra review at96/100. The new approach freezes each project's instructions first,
-then generates and validates reference code and tests one round at a time. Sol
-has completed that preparation tool. Astra found three failure-handling gaps;
-Sol corrected them, all 33 targeted tests pass, and Astra accepted the code at
-96/100 with no open findings. The staged run then stopped at its first reference-code checkpoint: one
-project packaged all eight test inputs incorrectly, so its reference failed
-all eight checks. Later stages and the coding comparison did not run. The bank
-is ineligible and stays closed; see the [stopped-run report](results/source-replay-staged/PREPARATION-RESULTS.md). No coding-benefit result is available.
-A separate final preparation protocol now has independent design acceptance. It
-allows one bounded Kimi correction pass for construction failures before any
-coding-agent evaluation, with source instructions and test coverage fixed. Sol
-is implementing that change; no new bank has been generated. See the
-[new protocol](results/source-replay-preparation-v2/PREPARATION.md). The stopped bank stays closed. See the
-[prospective protocol](results/source-replay-staged/PREPARATION.md) and its
-[design review](results/source-replay-staged/review-astra.md).
-Resume from the latest STATE entry in [the project ledger](plan/LEDGER.md).
+On 909 Multi-IF conversations (484 distinct source prompts), earlier user
+instructions were evicted from the KV cache before the final query, then partly
+restored by pinning selected historical columns and echoing their text.
 
-## Earlier result (2026-09-04): selective retention under cache eviction
+| Arm | Aged-instruction compliance (pooled) |
+|---|---|
+| full context | 65.2% |
+| evicted | 16.7% |
+| classifier-selected pins only | 57.2% |
+| classifier-selected pins + echo | 59.2% |
+| role/recency rule pins (no training) | 60.5% |
 
-On frozen Qwen3-1.7B, selected historical KV pins plus text reinjection
-substantially recovered aged-instruction compliance lost under pre-query
-eviction. On 909 Multi-IF conversations, the combined arm scored 59.2%,
-versus 16.7% after eviction and 65.2% with full context. Its C1/C3
-statistical components were positive, but Leg B was NOT SUPPORTED under the
-registered safety rule: one invalid output per relevant pinned arm versus
-zero for full context. A parameter-free role rule matched or beat the learned
-classifier at equal pinned columns (C2 failed), so learned selection has no
-demonstrated advantage on this dialogue style. Every amplification / "wave"
-variant tried on this trunk (attention bias on cache columns: always-on,
-dosed, deficit-gated, classifier-gated; and residual-stream function-vector
-steering) degenerated or under-delivered and is closed with data. The BFCL
-agentic leg is registered and its preflight is running; no sealed result
-exists yet. Records: `LEDGER-PLAN.md` (LEG B OUTCOME, LEG A), `WORKLOG.md`,
-`results/quick-checks/README.md`, `results/astra-program-review.md`.
+Registered components C1 and C3 passed (conversation-clustered t, Holm). C2
+failed: the parameter-free role/recency rule beat the trained 133M-parameter
+selector by about 3.5 points at matched pinned columns, so learned selection has
+no demonstrated advantage on this dialogue style. The registered safety rule
+recorded one invalid output in a pinned arm versus zero for full context, so the
+leg is reported NOT SUPPORTED under that rule. No echo-only arm was run, so the
+value of the pins given the echo is not yet identified; that is experiment 1 of
+the current plan. Records: `results/qwen/multiif-evict-909-prequery-v2/`
+(911 files, all tracked), `LEDGER-PLAN.md` (LEG B OUTCOME). Reproduce:
+`uv run python scripts/multiif_evict.py` (about 21 GPU-hours on the GB10; use
+`--limit` for a smoke run).
 
-FOCUS-3 v4 stopped **INELIGIBLE-ADMISSION** on CPU after runtime input parity
-and DEV calibration: transitions applied to the correct source rows were 8/12
-(required 11/12), and admissions were 32/36. The registered stop prevented GPU
-evaluation; the 64-episode v4 gate remains unrun.
-[Results and diagnostics](results/quick-checks/focus3-gate/v4/RESULTS.md).
+## The baseline to beat: restating the current rules in prose
 
-FOCUS-3 v5 step A is complete and **INELIGIBLE**: frozen-v4 CPU replay gives
-33/36 admissions, 8/12 transitions, and 2 unauthorized applications across 96
-records; reinstatements are zero. Global-tag pair scores still block three
-admissions, and quoted inert text causes both unauthorized actions. No refit or
-GPU gate ran. [v5 registration and results](results/quick-checks/focus3-gate/v5/RESULTS.md).
+Across every harness tried, restating the correct current rules in prose at
+request time is the strongest simple mechanism. No structured or internal
+mechanism has beaten it by more than about two points, and several lost to it:
 
-FOCUS-3 v6 step B completed the three-seed enriched refit but remains
-**INELIGIBLE**: CPU setup reached 35/36 admissions and 11/12 transitions, with
-2 unauthorized applications. The required stop prevented the 64-episode gate.
-Held-out-2 accuracy was 96.1% on a disclosed diagnostic second look.
-[v6 registration, counts and results](results/quick-checks/focus3-gate/v6/RESULTS.md).
+- larger-test-v2 (Qwen3-30B-A3B, 64 authored 16-round coding episodes): a rule
+  register beat no reminder on delivery (35 wins / 0 losses / 28 ties,
+  p = 3e-11), but a plain prose reminder tied or beat the register on every
+  family, and the register lost semantic integration 45 vs 52 (p = .0078).
+- FOCUS-2d (256 episodes): placement plus eviction 143/256 vs prose restatement
+  176/256.
+- FOCUS-3 v8 diagnostic (Qwen3-4B, 64 reused-template episodes, no verdict
+  assigned): automatic register 57/64, oracle register 63/64, no reminder
+  29/64, with 25 false admissions in 21 episodes. Earlier FOCUS-3 versions
+  (v1 to v8) stopped INELIGIBLE on CPU admission counters and never ran their
+  GPU gate; see `results/quick-checks/focus3-gate/`.
 
-FOCUS-3 v7 step C remains **INELIGIBLE**: key identity recovers the final
-admission (36/36; transitions11/12), but admission v2 produces19 unauthorized
-actions. Ten cross-key proposals are dropped. Fable accuracy improves86.78%→87.60%
-on a disclosed diagnostic comparison; this does not repair runtime safety.
-No GPU gate ran. [v7 results and audit](results/quick-checks/focus3-gate/v7/RESULTS.md).
+The program's practical objective is therefore automatic maintenance of
+correct reminders at acceptable cost, not beating a hand-written reminder
+([results/CURRENT-GOAL.md](results/CURRENT-GOAL.md)).
 
-FOCUS-3 v8 step D is **INELIGIBLE; the final-iteration stop-loss is exhausted**.
-The 300-example admission enrichment and lifecycle guards retain36/36 admissions
-and11/12 transitions, but12 unauthorized actions remain (v7:19). False
-reinstatements fall to zero; payload/quote admissions still pollute the register.
-Its registered GPU gate was not launched. [v8 results](results/quick-checks/focus3-gate/v8/RESULTS.md)
-and [Brian escalation summary](results/quick-checks/focus3-gate/v8/ESCALATION.md).
+## The internal wave: a learned attention-allocation result, narrowly stated
 
-FOCUS-3 v8 **diagnostic** completed all 64 episodes × five arms in 68.32 GPU
-minutes; no PASS/FAIL label is assigned. Final success: C 57/64, C′ 58/64,
-O 63/64, N 29/64, T 31/64. C made 25 false admissions in 21 episodes. In each
-candidate arm, removing one false row from the current recap changed 11/110
-answers (five success repairs, three losses), conditional on original history.
-[Full readings and per-admission effects](results/quick-checks/focus3-gate/diag/RESULTS.md).
+A 264k-parameter controller (`src/stencil/wave.py`) reads layer-20 hidden states
+of frozen Qwen3-1.7B and emits, at every generated token, a pre-softmax bias over
+prompt positions, trained by completion loss through the frozen attention path.
+On a sealed synthetic coding harness (96 sessions, correct live ledger supplied
+every request), adherence rose from 25.2% (base) to 44.8% (wave), against 38.3%
+for a hand oracle, 37.4% for a proxy field and 43.0% for prose reinsertion
+(which also broke 30 works versus 21). One seed, no p-value.
 
-## Earlier headline: the internal wave (superseded, kept for the record)
+Qualifications that travel with this result: the harness supplies the correct
+ledger, so it tests attention allocation given the rules, not discovering them;
+the W3b readout could not decode the governing rule from the field; the
+controller reduced MMLU from 48.05 to 45.83 and failed GSM8K noninferiority; the
+comment-rule rows (0/120 in every arm) were unmeasurable under a checker bug
+(`src/stencil/t2_runner.py`, fixed in the current plan) and carry no evidence.
+The W3 override experiment failed both of its registered gates; the qualified
+positive is W3a (wave 55.1 vs reinsertion 53.1 vs base 36.6 on one registered
+unseen rendering). Reports: `results/internal-wave-report.md`,
+`results/w3-results-sol.md`. Reproduce: `uv run python scripts/w_seal.py`
+(checkpoint `results/qwen/w0-ce.pt`, tracked).
 
-A tiny trained controller (264k parameters) riding on the frozen trunk
-lifted rule-following 25% -> 45% on a sealed synthetic coding harness
-(`results/internal-wave-report.md`). That result stands on its harness, but
-later amplification experiments did not establish a general remedy, and it
-is no longer the program's current claim.
+## Earlier constructions (parked, not closed)
 
-## The road there (each step has a rerunnable, seed-pinned record)
+- GPT-2 focus cache: a frozen GPT-2 with instructions kept out of attention's
+  reach followed them at 100% versus 4.3% with the state zeroed; transplanting
+  the state switched rules 28/32. The gap is guaranteed by the construction.
+  `results/gpt2-report.md`, `scripts/run_gpt2_arms.py`.
+- SELECTOR: a learned 5-bit span address plus attention spotlight lifted a
+  32-obligation named-query task from 3.9% to 88.3% (n = 128). The task is
+  solvable by dictionary lookup and no retrieval or LoRA baseline was run.
+  `results/selector-report.md`, `scripts/selector_s3_final.py`.
 
-1. **The split works causally (GPT-2 era).** A frozen GPT-2 with
-   instructions provably out of attention's reach: a separate ~5KB state
-   carried them — 100% vs ~4% when zeroed; transplanting the state made the
-   same wiring follow different rules. `results/gpt2-report.md`.
-2. **The contentless selector (SELECTOR era).** Working memory stays plain
-   text; a learned 5-bit address presses attention toward the governing
-   rule. Under 32 simultaneous obligations, base 3.9% → selector 88.3%
-   (sealed), at ~1/100th the cost of re-pasting the rulebook.
-   `results/selector-report.md`.
-3. **Four honest negatives that mapped the boundary (TIMED-SELECTOR and
-   PRESS-PLAN eras).** Every attempt to make a *discrete, certified* "press
-   now?" decision failed its registered gates — threshold scoring, trained
-   discrimination, learned state, blind rhythm — each closed with a full
-   autopsy. The autopsies revealed the two real culprits: a brittle
-   hard-threshold actuator, and label-based training. The internal-wave
-   experiment improved this synthetic task; later amplification experiments
-   did not establish a general remedy.
-   `results/timed-selector-report.md`, `results/press-plan-report.md`.
-4. **Focus is steerable; its audit trail is sparse but never wrong (W3).**
-   Overriding the wave's focus makes the model adopt the pointed-at rule
-   (+42 points, p ≈ 4×10⁻¹²) though with some collateral effects (gate
-   failed, honestly recorded). Decoding "what is it focusing on?" speaks
-   rarely — but when it speaks it was correct 73/73 times.
+## Negative results (each with its record)
 
-## Honest boundaries (stated, not hidden)
+| Recipe | Evidence | Reading |
+|---|---|---|
+| Static always-on attention bias on cache columns | n = 196, monotone -4.6 | solid negative |
+| Deficit-gated bias, synthetic conf-v45 bank | n = 1024, +0.39, p = .389 | solid negative on that bank |
+| Mean-difference skill vectors | 18 cells, 0 induction | solid negative |
+| MoE router bias (30B-A3B) | competence 16/32 to 7/32, p = .022 | harms competence |
+| Trained selector vs role rule (C2) | -3.5 points at matched columns | role rule wins |
+| Classifier-gated bias on cache columns (check 28) | n = 20, 4 wins / 1 loss, killed on degeneracy | narrow; not ruled out |
+| Function-vector residual steering | operating point chosen on 4 examples | narrow; not ruled out |
+| Discrete "press now?" decisions (TIMED-SELECTOR, PRESS-PLAN) | four registered gates failed | closed with autopsies |
 
-- Results span several trunks and task families; each report states its own model, data lineage and claim limits.
-- "Reads meaning, not wording" is proven for one unseen phrasing — not for
-  arbitrary paraphrases.
-- The wave has no memory: recurrence added nothing measurable under the
-  tested architecture; the Miller wave's *temporal* claims (rhythms,
-  state transplant) remain open, honestly scoped.
-- Instructions with no checker and no clean syntax (pure human steering)
-  are outside every test so far — flagged as the hardest next frontier.
+Details and per-check records: `results/quick-checks/README.md`,
+`results/timed-selector-report.md`, `results/press-plan-report.md`,
+`results/CLAIMS-CORRECTIONS.md`.
 
-## Why you can trust the numbers
+## Boundaries
 
-Each experiment reports its parity checks, decoding conditions and provenance; quick screens and formally registered runs have different evidential strength.
+- Results span several trunks and task families; each report states its own
+  model, data lineage and claim limits. No number is attributed to any runtime
+  package until a matching qualification exists.
+- Nothing here has been evaluated on real multi-session coding work; the
+  MemoryCode-derived screen in the current plan is the first such attempt.
+- Evaluation benchmarks are never used to fit, select or tune anything; every
+  registration carries a data-lineage line (AGENTS.md).
 
 ## Repo map
 
-- `WORKLOG.md` — the full decision record. `AGENTS.md` — the operating
-  lessons that keep this honest.
-- `LEDGER-PLAN.md` + `WORKLOG.md` — the current retention/selector evaluation.
-  `BENCH-WAVE-PLAN.md` — the benchmark-wave program (closed).
-  `INTERNAL-WAVE-PLAN.md`, `PRESS-PLAN.md`, `TIMED-SELECTOR-PLAN.md`,
-  `SELECTOR-PLAN.md`, `GPT2-PLAN.md` — closed programs, oldest last.
-- `src/stencil/` — parity-proven GPT-2 and Qwen3-1.7B trunks with
-  spotlight hooks; the wave controller (`wave.py`); task generators;
-  scorers.
-- `results/` — reports, per-example JSON evidence, review records,
-  research surveys. `archive/` — the toy-scale era.
+- `plan/BACK-ON-TRACK-PLAN.md` — the governing plan; `plan/LEDGER.md` — state;
+  `plan/PROTOCOL.md` — process rules; `results/reviews/` — adversarial reviews.
+- `src/stencil/` — bitwise-deterministic Qwen3 and GPT-2 trunks with attention
+  hooks (`qwen3.py`), the wave controller (`wave.py`), session generators
+  (`t2_sessions.py`), scorers (`t2_runner.py`), the instruction lifecycle
+  runtime (`focus3.py`), statistics (`stats.py`).
+- `scripts/` — one entry point per result (see each report); `archive/scripts/`
+  — closed programs with `archive/scripts/MAP.md`.
+- `results/` — reports, per-example JSON evidence and reviews; `data/classifier/`
+  — the labelled sentence data and its provenance (`LABELS.md`).
+- `WORKLOG.md`, `LEDGER-PLAN.md`, `AGENTS.md` — decision record and operating
+  lessons. Older program plans (`*-PLAN.md`) are closed.
+
+Verification: `make gate-0` runs the test suite, `ruff check` and
+`ruff format --check`; `uv run python scripts/check_cleanup_invariants.py --check`
+proves the scorers and generators still reproduce the recorded numbers.

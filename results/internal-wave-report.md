@@ -112,3 +112,19 @@ prefix match: 0 recorded-prefix mismatches across 408 works per arm
 (2,040 outputs); full-length hashes are preserved for the reproduction
 run itself (the sealed run recorded prefixes only, so full-hash
 equality with the originals cannot be established beyond the prefix).
+
+## Comment-checker qualification (Exp 0, 2026-09-11)
+
+Before 2026-09-11 `score_work` (src/stencil/t2_runner.py) extracted each function with
+`ast.get_source_segment`, whose segment ends at the function's last statement and therefore
+never contains the trailing `# reviewed` line that `wave_ref.canonical_code` emits after the
+return. Every comment-type opportunity in every arm of the sealed run scored non-adherent.
+The fix extracts the function by line range including trailing comment lines up to the next
+top-level statement, tests three frozen input pairs per operation (`score_work_multi`), and
+adds a comment branch to `_oracle_moment`; `tests/test_t2_runner_comment.py` covers compliant,
+non-compliant, and misplaced-comment programs. Comment compliance was unmeasurable under the
+old checker and cannot be recovered from the sealed artifacts (`w-seal.json` and the audit
+store code hashes and aggregates, not generated code), so the 0/120 comment rows of the sealed
+report carry no evidence either way. The cleanup-invariant digest was rewritten after the fix:
+only the `scores_sha` of the four `final` T2 sessions (the split that schedules the comment
+rule) changed; prompts, ledgers and the 909 Multi-IF re-scores are unchanged.

@@ -13,6 +13,7 @@ config.json, README.md model card). The Qwen3-1.7B trunk itself is not
 re-uploaded; the package always loads it from Qwen/Qwen3-1.7B at the pinned
 revision.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -49,13 +50,29 @@ def build_staging(staging: Path) -> list[Path]:
     assert sum(p.numel() for p in ctrl.parameters()) == N_PARAMS
     load_model(staging / "salience_weights.json")  # raises if untrained / mismatched
     config = {
-        "package": "stencil-wave", "version": __version__,
-        "base_model": MODEL_ID, "base_model_revision": REVISION, "transformers": TRANSFORMERS_PIN,
-        "controller": {"file": "controller.safetensors", "params": N_PARAMS, "arch": "W_q/W_k 2048->64, w_g 2048->1",
-                       "sha256": sha256(staging / "controller.safetensors")},
-        "salience": {"file": "salience_weights.json", "sha256": sha256(staging / "salience_weights.json")},
-        "actuation": {"capture_layer": 20, "bias_layers": list(WAVE_LAYERS), "dose": 3.0, "top_k": 2, "hold": "aged",
-                      "bias": "additive pre-softmax, fp32, last query row, over selected entries' key columns"},
+        "package": "stencil-wave",
+        "version": __version__,
+        "base_model": MODEL_ID,
+        "base_model_revision": REVISION,
+        "transformers": TRANSFORMERS_PIN,
+        "controller": {
+            "file": "controller.safetensors",
+            "params": N_PARAMS,
+            "arch": "W_q/W_k 2048->64, w_g 2048->1",
+            "sha256": sha256(staging / "controller.safetensors"),
+        },
+        "salience": {
+            "file": "salience_weights.json",
+            "sha256": sha256(staging / "salience_weights.json"),
+        },
+        "actuation": {
+            "capture_layer": 20,
+            "bias_layers": list(WAVE_LAYERS),
+            "dose": 3.0,
+            "top_k": 2,
+            "hold": "aged",
+            "bias": "additive pre-softmax, fp32, last query row, over selected entries' key columns",
+        },
     }
     (staging / "config.json").write_text(json.dumps(config, indent=1) + "\n")
     files.append(staging / "config.json")
@@ -66,8 +83,12 @@ def build_staging(staging: Path) -> list[Path]:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--repo", required=True, help="Hub repo id, e.g. <org>/stencil-wave-qwen3-1.7b")
-    ap.add_argument("--push", action="store_true", help="actually upload (default: dry run)")
+    ap.add_argument(
+        "--repo", required=True, help="Hub repo id, e.g. <org>/stencil-wave-qwen3-1.7b"
+    )
+    ap.add_argument(
+        "--push", action="store_true", help="actually upload (default: dry run)"
+    )
     ap.add_argument("--staging", default=str(HERE.parent / "build" / "hub"))
     ap.add_argument("--private", action="store_true")
     args = ap.parse_args()
@@ -83,14 +104,21 @@ def main() -> int:
     try:
         from huggingface_hub import HfApi
     except ImportError:
-        print("huggingface_hub is not installed: pip install 'stencil-wave[hub]'", file=sys.stderr)
+        print(
+            "huggingface_hub is not installed: pip install 'stencil-wave[hub]'",
+            file=sys.stderr,
+        )
         return 2
     api = HfApi()
     who = api.whoami()
     print(f"authenticated as {who.get('name')}")
     api.create_repo(args.repo, repo_type="model", exist_ok=True, private=args.private)
-    info = api.upload_folder(folder_path=args.staging, repo_id=args.repo, repo_type="model",
-                             commit_message="stencil_wave add-on weights + model card")
+    info = api.upload_folder(
+        folder_path=args.staging,
+        repo_id=args.repo,
+        repo_type="model",
+        commit_message="stencil_wave add-on weights + model card",
+    )
     print("uploaded:", info)
     return 0
 

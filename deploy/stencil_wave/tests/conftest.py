@@ -5,6 +5,7 @@ STENCIL_REPO       path to the research repo (src/stencil + models/qwen3-1.7b.pt
 STENCIL_WAVE_MODEL HF id or local snapshot path for the HF side
                    (default Qwen/Qwen3-1.7B at the pinned revision).
 """
+
 from __future__ import annotations
 
 import os
@@ -40,6 +41,7 @@ def repo():
 def hf_tokenizer():
     from stencil_wave.model import MODEL_ID, REVISION
     from transformers import AutoTokenizer
+
     kw = {"revision": REVISION} if HF_MODEL == MODEL_ID else {}
     try:
         return AutoTokenizer.from_pretrained(HF_MODEL, **kw)

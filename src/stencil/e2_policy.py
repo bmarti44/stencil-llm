@@ -138,9 +138,7 @@ def generate_e2_policy(
                     bias_hook=(20, hook),
                     attn_probe=(masks, sink),
                 )
-                best, scores = _select_span(
-                    ctrl, h20[0, -1:], prompt_keys, spans
-                )
+                best, scores = _select_span(ctrl, h20[0, -1:], prompt_keys, spans)
                 masses = _mean_span_attention(sink, len(spans))
                 observation = distribution_observation(
                     logits[0, -1], masses[best], best
@@ -160,11 +158,15 @@ def generate_e2_policy(
                 )
                 if onset is None and hazard is not None and hazard >= threshold:
                     onset = step + 1
-                    targets = records if mode == "ctrb" else [
-                        record
-                        for record in records
-                        if int(record["origin_turn"]) == oldest
-                    ]
+                    targets = (
+                        records
+                        if mode == "ctrb"
+                        else [
+                            record
+                            for record in records
+                            if int(record["origin_turn"]) == oldest
+                        ]
+                    )
                     events.append(
                         {
                             "kind": "onset",

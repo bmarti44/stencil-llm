@@ -18,8 +18,7 @@ def mcnemar_one_sided(improvements: int, regressions: int) -> float:
         return 1.0
     return min(
         1.0,
-        sum(math.comb(total, k) for k in range(improvements, total + 1))
-        / (2**total),
+        sum(math.comb(total, k) for k in range(improvements, total + 1)) / (2**total),
     )
 
 

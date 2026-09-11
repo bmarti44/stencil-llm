@@ -4,6 +4,7 @@ response passes ALL its constraints via the VENDORED checkers, every
 mutation fails its target, the generator is deterministic, all train
 families are covered and no held-out family appears, and the v3.1
 leak firewall (a)(b)(c) holds mechanically against the 541."""
+
 import json
 import re
 from pathlib import Path
@@ -18,7 +19,9 @@ from stencil.b3_gen import (
 )
 
 ROOT = Path(__file__).resolve().parent.parent
-N_SAMPLE = 300  # review-scale sample; the full 2000 freeze run reuses the same code path
+N_SAMPLE = (
+    300  # review-scale sample; the full 2000 freeze run reuses the same code path
+)
 
 
 def _sample():
@@ -40,8 +43,14 @@ def test_all_canonicals_pass_and_mutations_fail():
 def test_family_coverage():
     rows = _sample()
     fams = {CONSTRAINTS[k]["family"] for r in rows for k in r["combo"]}
-    assert fams == {"change_case", "keywords", "length", "detectable_format",
-                    "detectable_content", "combination"}
+    assert fams == {
+        "change_case",
+        "keywords",
+        "length",
+        "detectable_format",
+        "detectable_content",
+        "combination",
+    }
     held = {"punctuation", "startend", "language"}
     iids = {i for r in rows for i in r["instruction_id_list"]}
     assert not any(i.split(":")[0] in held for i in iids)
@@ -60,7 +69,10 @@ def _norm(s):
 
 
 def test_leak_firewall():
-    rows541 = [json.loads(line) for line in open(ROOT / "data" / "bench" / "ifeval_input_data.jsonl")]
+    rows541 = [
+        json.loads(line)
+        for line in open(ROOT / "data" / "bench" / "ifeval_input_data.jsonl")
+    ]
     gen = _sample()
     # (a) per-instruction-id kwargs tuples disjoint
     # (a) applies to PARAMETERIZED constraints; parameterless ones (caps,
@@ -79,6 +91,7 @@ def test_leak_firewall():
     norm541 = [_norm(r["prompt"]) for r in rows541]
     for key, c in CONSTRAINTS.items():
         import random as _r
+
         phrase = _norm(c["phrase"](c["sample"](_r.Random(0))))
         head = " ".join(phrase.split()[:6])
         assert not any(head in p for p in norm541), key
@@ -105,7 +118,10 @@ def test_every_declared_pair_is_reachable():
 
 
 def test_dev_stream_disjoint_from_train():
-    train = {json.loads(line)["prompt"] for line in open(ROOT / "data" / "b3" / "train-2000.jsonl")}
+    train = {
+        json.loads(line)["prompt"]
+        for line in open(ROOT / "data" / "b3" / "train-2000.jsonl")
+    }
     dev = [json.loads(line) for line in open(ROOT / "data" / "b3" / "dev-200.jsonl")]
     assert len(dev) == 200
     assert not any(r["prompt"] in train for r in dev)
@@ -115,8 +131,11 @@ def test_constraint_spans():
     from tokenizers import Tokenizer
 
     from stencil.b3_gen import constraint_spans
+
     tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
-    rows = [json.loads(line) for line in open(ROOT / "data" / "b3" / "train-2000.jsonl")][:100]
+    rows = [
+        json.loads(line) for line in open(ROOT / "data" / "b3" / "train-2000.jsonl")
+    ][:100]
     for r in rows:
         spans = constraint_spans(r, tok)
         enc = tok.encode(r["prompt"])

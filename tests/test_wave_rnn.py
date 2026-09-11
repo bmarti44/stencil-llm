@@ -5,6 +5,7 @@ s_t = GRU(h20_t, s_{t-1}) FIRST, then q_t/g_t from [h20_t; s_t]
 (score-after-write, registered). State 64-d, reset per session, carried
 across work turns with detach at turn boundaries (trainer's job).
 Field equation unchanged (A2 peak-normalized via the same math)."""
+
 import torch
 
 from stencil.wave import WaveRNN

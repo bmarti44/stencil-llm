@@ -8,6 +8,7 @@ decision above threshold is a false selection unless the chosen span
 lies inside an authoritative ledger sentence span, mirroring
 t2_runner.span_in_ledger exactly.
 """
+
 from .t2_runner import span_in_ledger
 
 

@@ -19,24 +19,27 @@ Three conditions, each with a measured justification:
     breaks concentrate early (10/5/2/0 by response quartile), so
     firing late avoids whole-response rewrites.
 """
+
 from __future__ import annotations
 
 import random
 from dataclasses import dataclass
 
 # families the actuator demonstrably repairs (fix rate >= ~10%)
-FIXABLE_FAMILIES = frozenset({
-    "detectable_content:postscript",
-    "detectable_content:number_placeholders",
-    "keywords:existence",
-    "keywords:frequency",
-    "detectable_format:number_bullet_lists",
-})
+FIXABLE_FAMILIES = frozenset(
+    {
+        "detectable_content:postscript",
+        "detectable_content:number_placeholders",
+        "keywords:existence",
+        "keywords:frequency",
+        "detectable_format:number_bullet_lists",
+    }
+)
 
 # instruction ids that VETO firing when live (harm engine)
 VETO_INSTRUCTION_IDS = frozenset({"length_constraints:number_words"})
 
-POSITION_FLOOR = 0.5          # registered: fire only past half the expected response
+POSITION_FLOOR = 0.5  # registered: fire only past half the expected response
 DEFAULT_EXPECTED_TOKENS = 320  # fallback when no prior-turn length is known
 
 
@@ -66,10 +69,12 @@ def outstanding_constraints(row: dict, partial_text: str) -> list[tuple[str, dic
     Deterministic: the per-row seed pin is applied, as in scoring."""
     import sys
     from pathlib import Path
+
     root = Path(__file__).resolve().parent.parent.parent
     if str(root / "vendor") not in sys.path:
         sys.path.insert(0, str(root / "vendor"))
     import langdetect
+
     langdetect.DetectorFactory.seed = 0
     from ifeval import instructions_registry
 
@@ -90,8 +95,9 @@ class GateDecision:
     reason: str
 
 
-def should_fire(*, outstanding, live, position: float,
-                position_floor: float = POSITION_FLOOR) -> GateDecision:
+def should_fire(
+    *, outstanding, live, position: float, position_floor: float = POSITION_FLOOR
+) -> GateDecision:
     """The frozen R3b policy. `outstanding` and `live` are lists of
     (instruction_id, kwargs); `position` is the oracle-free proxy.
     position_floor is explicit so callers cannot silently diverge from
@@ -116,12 +122,21 @@ class GatedResult:
     decisions: list
 
 
-def generate_gated(model, tokenizer, prompt: str, row: dict, *,
-                   expected_total: int | None = None,
-                   position_floor: float = POSITION_FLOOR,
-                   check_every: int = 8, dose: float = 3.0,
-                   max_new: int = 1024, deadline_s: float | None = None,
-                   raw_context: bool = False, spans=None):
+def generate_gated(
+    model,
+    tokenizer,
+    prompt: str,
+    row: dict,
+    *,
+    expected_total: int | None = None,
+    position_floor: float = POSITION_FLOOR,
+    check_every: int = 8,
+    dose: float = 3.0,
+    max_new: int = 1024,
+    deadline_s: float | None = None,
+    raw_context: bool = False,
+    spans=None,
+):
     """Cached greedy generation with the obligation gate.
 
     Every `check_every` tokens the vendored checkers are run on the text
@@ -153,12 +168,14 @@ def generate_gated(model, tokenizer, prompt: str, row: dict, *,
             total = past + h20.shape[1]
             row_bias = None
             for sp in spans:
-                b = uniform_span_bias(h20.shape[1], total, tuple(sp),
-                                      amount=dose, device=h20.device)
+                b = uniform_span_bias(
+                    h20.shape[1], total, tuple(sp), amount=dose, device=h20.device
+                )
                 row_bias = b if row_bias is None else row_bias + b
             if row_bias is None:
                 return None
             return {layer: row_bias for layer in WAVE_LAYERS}
+
         return (20, hook)
 
     with torch.no_grad():
@@ -173,16 +190,33 @@ def generate_gated(model, tokenizer, prompt: str, row: dict, *,
                 partial = tokenizer.decode(out)
                 outstanding = outstanding_constraints(row, partial)
                 pos = position_proxy(len(out), expected_total)
-                d = should_fire(outstanding=outstanding, live=live, position=pos,
-                                position_floor=position_floor)
-                decisions.append({"step": len(out), "reason": d.reason,
-                                  "position": round(pos, 4),
-                                  "n_outstanding": len(outstanding)})
+                d = should_fire(
+                    outstanding=outstanding,
+                    live=live,
+                    position=pos,
+                    position_floor=position_floor,
+                )
+                decisions.append(
+                    {
+                        "step": len(out),
+                        "reason": d.reason,
+                        "position": round(pos, 4),
+                        "n_outstanding": len(outstanding),
+                    }
+                )
                 if d.fire:
                     fired, fire_step = True, len(out)
             hook = hook_factory(cache.length) if fired else None
-            logits = model(torch.tensor([[nxt]], device="cuda"), cache=cache,
-                           bias_hook=hook)
+            logits = model(
+                torch.tensor([[nxt]], device="cuda"), cache=cache, bias_hook=hook
+            )
             nxt = int(logits[0, -1].argmax())
-    return GatedResult(tokenizer.decode(out), len(out), len(out) >= max_new,
-                       timed_out, fired, fire_step, decisions)
+    return GatedResult(
+        tokenizer.decode(out),
+        len(out),
+        len(out) >= max_new,
+        timed_out,
+        fired,
+        fire_step,
+        decisions,
+    )

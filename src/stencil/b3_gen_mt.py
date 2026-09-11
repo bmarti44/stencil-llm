@@ -9,6 +9,7 @@ kwargs/phrase checks (tests/test_b3_gen_mt.py). Sessions carry no
 canonicals: the causal-moment harvest rolls the model's own
 generations and branches them.
 """
+
 import random
 
 from stencil.b3_gen43 import (
@@ -25,8 +26,10 @@ FOLLOWUP_TASKS = [
     "Now revise and continue the piece with one more short passage.",
 ]
 
-STILL_BINDING = ("Every earlier constraint from this conversation still applies "
-                 "to this reply as well.")
+STILL_BINDING = (
+    "Every earlier constraint from this conversation still applies "
+    "to this reply as well."
+)
 
 
 def _draw_turn_combo(rng, existing, keys):
@@ -42,7 +45,9 @@ def _draw_turn_combo(rng, existing, keys):
 def generate_sessions(seed, n_sessions, split):
     rng = random.Random(seed)
     topics = TRAIN_TOPICS if split == "train" else DEV_TOPICS
-    keys = sorted(k for k in V43 if k not in ("json_fmt", "two_resp"))  # singletons cannot accumulate
+    keys = sorted(
+        k for k in V43 if k not in ("json_fmt", "two_resp")
+    )  # singletons cannot accumulate
     sessions = []
     attempts = 0
     while len(sessions) < n_sessions:
@@ -61,7 +66,9 @@ def generate_sessions(seed, n_sessions, split):
                 ok = False
                 break
             try:
-                kw, values, phrases = _draw(rng, sorted(combo_all + new), topic, base_sents_stub)
+                kw, values, phrases = _draw(
+                    rng, sorted(combo_all + new), topic, base_sents_stub
+                )
             except IndexError:
                 ok = False
                 break
@@ -74,13 +81,15 @@ def generate_sessions(seed, n_sessions, split):
             task = task1 if ti == 0 else rng.choice(FOLLOWUP_TASKS)
             phrase_txt = " ".join(phrases_all[k] for k in new)
             prompt = task + " " + phrase_txt + ("" if ti == 0 else " " + STILL_BINDING)
-            turns.append({
-                "prompt": prompt,
-                "new_combo": new,
-                "combo": list(combo_all),
-                "instruction_id_list": [V43[k]["iid"] for k in combo_all],
-                "kwargs": [kwargs_all[k] for k in combo_all],
-            })
+            turns.append(
+                {
+                    "prompt": prompt,
+                    "new_combo": new,
+                    "combo": list(combo_all),
+                    "instruction_id_list": [V43[k]["iid"] for k in combo_all],
+                    "kwargs": [kwargs_all[k] for k in combo_all],
+                }
+            )
         if not ok:
             continue
         # constrained words must not collide with the topic (v4.3 rule)
@@ -92,6 +101,7 @@ def generate_sessions(seed, n_sessions, split):
                 cw.add(kwv["keyword"])
         if any(w in topic.lower() for w in cw):
             continue
-        sessions.append({"key": len(sessions), "split": split, "topic": topic,
-                         "turns": turns})
+        sessions.append(
+            {"key": len(sessions), "split": split, "topic": topic, "turns": turns}
+        )
     return sessions

@@ -11,6 +11,7 @@ Causal re-test: wave adh_gain_raw > proxy adh_gain_raw, both valid.
 Saves raw numerators, paired records, per-work output sha256, gain
 histograms. Hashes pinned; .started marker refuses reruns.
 """
+
 import hashlib
 import json
 import os
@@ -24,7 +25,13 @@ import torch
 from tokenizers import Tokenizer
 
 from stencil.qwen3 import Qwen3
-from stencil.t2_runner import LAYERS, _oracle_moment, ledger_sentence_spans, prompt_at, score_work
+from stencil.t2_runner import (
+    LAYERS,
+    _oracle_moment,
+    ledger_sentence_spans,
+    prompt_at,
+    score_work,
+)
 from stencil.t2_sessions import generate_t2, ledger_text
 from stencil.wave import WaveController
 
@@ -43,14 +50,18 @@ def run_arm(m, tok, ctrl, sess, arm):
     results, gains, hashes = [], [], {}
     for wt in sess.work_turns:
         ptxt = prompt_at(sess, wt, SPLIT).replace(
-            "[checker] (deterministic feedback on the previous submission is inserted here at run time)", NEUTRAL)
+            "[checker] (deterministic feedback on the previous submission is inserted here at run time)",
+            NEUTRAL,
+        )
         if arm == "reinsertion":
             led = ledger_text(sess.ledger_at[wt], unseen_fmt=True)
             marker = sess.turns[wt].text
             ptxt = ptxt.replace(marker, "(Reminder) " + led + "\n" + marker, 1)
         enc = tok.encode(ptxt)
         P = len(enc.ids)
-        spans = ledger_sentence_spans(ptxt, sess, wt, SPLIT, tok) if arm == "oracle" else {}
+        spans = (
+            ledger_sentence_spans(ptxt, sess, wt, SPLIT, tok) if arm == "oracle" else {}
+        )
         toks = torch.tensor([enc.ids], device="cuda")
         K = None
         gen, text = [], ""
@@ -63,7 +74,7 @@ def run_arm(m, tok, ctrl, sess, arm):
                     key = _oracle_moment(text[-80:])
                     if key is not None and key in spans:
                         e = torch.full((P,), -6.0)
-                        e[spans[key][0]:spans[key][1]] = 6.0
+                        e[spans[key][0] : spans[key][1]] = 6.0
                         sm = torch.softmax(e, dim=-1)
                         t = toks.shape[1]
                         bias = torch.zeros(t, t)
@@ -102,16 +113,29 @@ def main():
 
     tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
     m = Qwen3()
-    m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+    m.load_state_dict(
+        torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+    )
     m = m.to(torch.bfloat16).cuda().eval()
     ctrls = {}
     for name in ("wave", "proxy"):
         c = WaveController().cuda()
-        c.load_state_dict(torch.load(ROOT / "results" / "qwen" / f"w0-{'ce' if name == 'wave' else 'proxy'}.pt", map_location="cpu"))
+        c.load_state_dict(
+            torch.load(
+                ROOT
+                / "results"
+                / "qwen"
+                / f"w0-{'ce' if name == 'wave' else 'proxy'}.pt",
+                map_location="cpu",
+            )
+        )
         ctrls[name] = c.eval()
 
     arms = ["base", "wave", "proxy", "oracle", "reinsertion"]
-    agg = {a: {"adh": 0, "n": 0, "parse": 0, "works": 0, "paired": {}, "hashes": {}} for a in arms}
+    agg = {
+        a: {"adh": 0, "n": 0, "parse": 0, "works": 0, "paired": {}, "hashes": {}}
+        for a in arms
+    }
     hists = {"wave": [], "proxy": []}
     for k, seed in enumerate(SEEDS):
         sess = generate_t2(seed, 20, SPLIT, interference="s0")
@@ -128,7 +152,9 @@ def main():
                 for o in sess.opportunities:
                     if o.turn == r.turn and o.cell == "active":
                         a["n"] += 1
-                        a["adh"] += bool(r.per_opportunity.get(o.opportunity_id, {}).get("adherent"))
+                        a["adh"] += bool(
+                            r.per_opportunity.get(o.opportunity_id, {}).get("adherent")
+                        )
         if k % 12 == 0:
             print(f"  {k}/{len(SEEDS)} sessions", flush=True)
 
@@ -136,38 +162,67 @@ def main():
     out = {"split": SPLIT, "n_sessions": len(SEEDS), "pinned": PINNED}
     for arm in arms:
         a = agg[arm]
-        rec = {"adh_raw": a["adh"], "n_active": a["n"],
-               "adherence": round(a["adh"] / max(1, a["n"]), 4),
-               "parse_rate": round(a["parse"] / max(1, a["works"]), 4)}
+        rec = {
+            "adh_raw": a["adh"],
+            "n_active": a["n"],
+            "adherence": round(a["adh"] / max(1, a["n"]), 4),
+            "parse_rate": round(a["parse"] / max(1, a["works"]), 4),
+        }
         if arm != "base":
-            broken = sum(1 for kk in a["paired"] if
-                         (base["paired"][kk]["parse"] and not a["paired"][kk]["parse"]) or
-                         (base["paired"][kk]["exec"] and not a["paired"][kk]["exec"]))
+            broken = sum(
+                1
+                for kk in a["paired"]
+                if (base["paired"][kk]["parse"] and not a["paired"][kk]["parse"])
+                or (base["paired"][kk]["exec"] and not a["paired"][kk]["exec"])
+            )
             gain = a["adh"] - base["adh"]
             du = gain - 2 * broken
-            rec |= {"paired_broken": broken, "adh_gain_raw": gain, "dU_total": du,
-                    "valid": bool(du > 0 and du >= 0.8 * gain)}
+            rec |= {
+                "paired_broken": broken,
+                "adh_gain_raw": gain,
+                "dU_total": du,
+                "valid": bool(du > 0 and du >= 0.8 * gain),
+            }
         out[arm] = rec
     headroom_raw = agg["oracle"]["adh"] - base["adh"]
     out["headroom"] = round(headroom_raw / max(1, base["n"]), 4)
     out["precondition_binds"] = out["headroom"] >= 0.10
     for arm in ("wave", "proxy"):
-        out[arm]["closure"] = round((agg[arm]["adh"] - base["adh"]) / headroom_raw, 4) if headroom_raw else None
-        out[arm]["gain_hist_0_2"] = torch.histc(torch.tensor(hists[arm] or [0.0]), bins=10, min=0.0, max=2.0).tolist()
+        out[arm]["closure"] = (
+            round((agg[arm]["adh"] - base["adh"]) / headroom_raw, 4)
+            if headroom_raw
+            else None
+        )
+        out[arm]["gain_hist_0_2"] = torch.histc(
+            torch.tensor(hists[arm] or [0.0]), bins=10, min=0.0, max=2.0
+        ).tolist()
     if not out["precondition_binds"]:
         out["VERDICT"] = "INCONCLUSIVE — headroom does not bind; program closes"
     else:
         w = out["wave"]
         passed = w["closure"] >= 0.50 and w["valid"]
-        causal = w["adh_gain_raw"] > out["proxy"]["adh_gain_raw"] and w["valid"] and out["proxy"]["valid"]
-        out["VERDICT"] = ("SEALED WIN" if passed else "SEALED MISS") + \
-            ("; causal attribution HOLDS" if causal else "; causal attribution NOT supported")
+        causal = (
+            w["adh_gain_raw"] > out["proxy"]["adh_gain_raw"]
+            and w["valid"]
+            and out["proxy"]["valid"]
+        )
+        out["VERDICT"] = ("SEALED WIN" if passed else "SEALED MISS") + (
+            "; causal attribution HOLDS"
+            if causal
+            else "; causal attribution NOT supported"
+        )
     out["work_hashes"] = {a: agg[a]["hashes"] for a in arms}
     tmp = str(out_path) + ".partial"
     Path(tmp).write_text(json.dumps(out, indent=1))
     os.replace(tmp, out_path)
     print("VERDICT:", out["VERDICT"], flush=True)
-    print(json.dumps({k: v for k, v in out.items() if k not in ("work_hashes", "pinned")}, indent=1), flush=True)
+    print(
+        json.dumps(
+            {k: v for k, v in out.items() if k not in ("work_hashes", "pinned")},
+            indent=1,
+        ),
+        flush=True,
+    )
     print("saved results/qwen/w-seal.json", flush=True)
 
 

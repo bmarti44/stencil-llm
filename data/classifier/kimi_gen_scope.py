@@ -1,5 +1,13 @@
+# ruff: noqa: E501
+# Data-generation prompt script: the prompt text is provenance for the labelled data
+# (data/classifier/LABELS.md) and is kept exactly as sent.
 """kimi-k3 third pass: the SCOPE distinction (LABELS.md v2). Usage: kimi_gen_scope.py <domain> <n> <seed> <out.jsonl>"""
-import json, re, sys, time, urllib.request
+
+import json
+import re
+import sys
+import time
+import urllib.request
 
 domain, n, seed, out = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4]
 SPEC = f"""You are writing training data for a small classifier that decides, for ONE sentence from a conversation with an AI
@@ -30,15 +38,28 @@ Requirements: domain = {domain}; exactly {n} objects; roughly 45% rule (at least
 with NO scope words), 15% fact, 40% none (at least half of the none rows are one-off work requests or explicitly
 single-reply constraints that look like rules). Include continuations ("now extend...", "revise...") as none. Do NOT
 copy or paraphrase any public benchmark (IFEval, Multi-IF, BFCL, tau-bench); invent everything. Variation seed: {seed}."""
-body = json.dumps({"model": "kimi-k3:cloud", "prompt": SPEC, "stream": False, "think": False,
-                   "options": {"num_predict": 16000, "temperature": 0.9, "seed": seed}}).encode()
-req = urllib.request.Request("http://127.0.0.1:11434/api/generate", data=body, headers={"Content-Type": "application/json"})
+body = json.dumps(
+    {
+        "model": "kimi-k3:cloud",
+        "prompt": SPEC,
+        "stream": False,
+        "think": False,
+        "options": {"num_predict": 16000, "temperature": 0.9, "seed": seed},
+    }
+).encode()
+req = urllib.request.Request(
+    "http://127.0.0.1:11434/api/generate",
+    data=body,
+    headers={"Content-Type": "application/json"},
+)
 t0 = time.time()
 for attempt in range(3):
     try:
-        r = json.load(urllib.request.urlopen(req, timeout=3600)); break
+        r = json.load(urllib.request.urlopen(req, timeout=3600))
+        break
     except Exception as e:  # noqa: BLE001
-        print("retry", attempt, e, file=sys.stderr); time.sleep(20)
+        print("retry", attempt, e, file=sys.stderr)
+        time.sleep(20)
 else:
     sys.exit(2)
 rows, bad = [], 0
@@ -54,11 +75,20 @@ for ln in r.get("response", "").splitlines():
             o = json.loads(m.group(0)) if m else None
         except json.JSONDecodeError:
             o = None
-    if not o or o.get("label") not in ("rule", "fact", "none") or not isinstance(o.get("text"), str) or o.get("role") not in ("user", "assistant", "tool", "system"):
-        bad += 1; continue
-    o["domain"] = domain; o["source"] = f"kimi-k3-scope:{domain}:{seed}"
+    if (
+        not o
+        or o.get("label") not in ("rule", "fact", "none")
+        or not isinstance(o.get("text"), str)
+        or o.get("role") not in ("user", "assistant", "tool", "system")
+    ):
+        bad += 1
+        continue
+    o["domain"] = domain
+    o["source"] = f"kimi-k3-scope:{domain}:{seed}"
     rows.append(o)
 with open(out, "w") as f:
     for o in rows:
         f.write(json.dumps(o, ensure_ascii=False) + "\n")
-print(f"[scope] {domain} seed={seed}: {len(rows)} rows ({bad} rejected) in {time.time()-t0:.0f}s")
+print(
+    f"[scope] {domain} seed={seed}: {len(rows)} rows ({bad} rejected) in {time.time() - t0:.0f}s"
+)

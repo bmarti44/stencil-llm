@@ -6,6 +6,7 @@
 2. Full 24-session proxy/oracle identity: per-work sha256 of generated
    code for both arms; equality counts.
 """
+
 import hashlib
 import json
 import sys
@@ -39,13 +40,17 @@ def per_cell():
         sess = generate_t2(seed, 20, "dev", interference="s0")
         for wt in sess.work_turns:
             ptxt = prompt_at(sess, wt, "dev").replace(
-                "[checker] (deterministic feedback on the previous submission is inserted here at run time)", NEUTRAL)
+                "[checker] (deterministic feedback on the previous submission is inserted here at run time)",
+                NEUTRAL,
+            )
             enc = tok.encode(ptxt)
             P = len(enc.ids)
             code_ids = tok.encode(canonical_code(sess, wt)).ids
             full = torch.tensor([enc.ids + code_ids], device="cuda")
             T = full.shape[1]
-            cell_of = {o.moment_class: o.cell for o in sess.opportunities if o.turn == wt}
+            cell_of = {
+                o.moment_class: o.cell for o in sess.opportunities if o.turn == wt
+            }
             rows, text = [], ""
             for i, tid in enumerate(code_ids):
                 key = _oracle_moment(text[-80:])
@@ -56,9 +61,9 @@ def per_cell():
                 continue
             with torch.no_grad():
                 h = m(full, return_hidden=20)[0].float()
-                field = wave.field(h[P - 1:T - 1], h[:P])
+                field = wave.field(h[P - 1 : T - 1], h[:P])
                 bias = torch.zeros(T, T, device="cuda")
-                bias[P - 1:T - 1, :P] = field
+                bias[P - 1 : T - 1, :P] = field
                 lz = m(full)[0].float()
                 lw = m(full, attn_bias={L: bias for L in LAYERS})[0].float()
             tg = full[0]
@@ -69,8 +74,12 @@ def per_cell():
     out = {}
     for cell, d in cells.items():
         z, w = sum(d["zero"]) / len(d["zero"]), sum(d["wave"]) / len(d["wave"])
-        out[cell] = {"n_rows": len(d["zero"]), "zero_ce": round(z, 4), "wave_ce": round(w, 4),
-                     "improve": round((z - w) / z, 4)}
+        out[cell] = {
+            "n_rows": len(d["zero"]),
+            "zero_ce": round(z, 4),
+            "wave_ce": round(w, 4),
+            "improve": round((z - w) / z, 4),
+        }
     return out
 
 
@@ -88,7 +97,9 @@ def identity():
             hb = hashlib.sha256(b.code.encode()).hexdigest()[:16]
             tot += 1
             eq += ha == hb
-            pairs.append({"seed": seed, "wt": a.turn, "proxy": ha, "oracle": hb, "eq": ha == hb})
+            pairs.append(
+                {"seed": seed, "wt": a.turn, "proxy": ha, "oracle": hb, "eq": ha == hb}
+            )
     return {"identical_works": eq, "total_works": tot, "pairs": pairs}
 
 
@@ -97,8 +108,13 @@ def main():
     print(json.dumps(out["per_cell_G_W0c"], indent=1), flush=True)
     ident = identity()
     out["proxy_oracle_identity"] = ident
-    print(f"identity: {ident['identical_works']}/{ident['total_works']} works token-identical", flush=True)
-    (ROOT / "results" / "qwen" / "w0-addenda.json").write_text(json.dumps(out, indent=1))
+    print(
+        f"identity: {ident['identical_works']}/{ident['total_works']} works token-identical",
+        flush=True,
+    )
+    (ROOT / "results" / "qwen" / "w0-addenda.json").write_text(
+        json.dumps(out, indent=1)
+    )
     print("saved results/qwen/w0-addenda.json", flush=True)
 
 

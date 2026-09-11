@@ -8,6 +8,7 @@ Inference (wave/proxy): at each step, h20 via return_hidden=20 on the
 current sequence; field row over prompt columns; second forward with
 the bias. Deterministic greedy.
 """
+
 import json
 import sys
 from pathlib import Path
@@ -19,7 +20,13 @@ import torch
 from tokenizers import Tokenizer
 
 from stencil.qwen3 import Qwen3
-from stencil.t2_runner import LAYERS, _oracle_moment, ledger_sentence_spans, prompt_at, score_work
+from stencil.t2_runner import (
+    LAYERS,
+    _oracle_moment,
+    ledger_sentence_spans,
+    prompt_at,
+    score_work,
+)
 from stencil.t2_sessions import generate_t2, ledger_text
 from stencil.wave import WaveController
 
@@ -28,7 +35,9 @@ SEEDS = [13_450_000 + i for i in range(24)]
 
 tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
 m = Qwen3()
-m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+m.load_state_dict(
+    torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+)
 m = m.to(torch.bfloat16).cuda().eval()
 
 
@@ -40,7 +49,7 @@ def load_ctrl(name):
 
 def hand_row(P, span, beta=2.0):
     e = torch.full((P,), -6.0)
-    e[span[0]:span[1]] = 6.0
+    e[span[0] : span[1]] = 6.0
     sm = torch.softmax(e, dim=-1)
     return beta * sm / sm.max()
 
@@ -49,14 +58,18 @@ def run_arm(sess, arm, ctrl=None):
     results, gains = [], []
     for wt in sess.work_turns:
         ptxt = prompt_at(sess, wt, "dev").replace(
-            "[checker] (deterministic feedback on the previous submission is inserted here at run time)", NEUTRAL)
+            "[checker] (deterministic feedback on the previous submission is inserted here at run time)",
+            NEUTRAL,
+        )
         if arm == "reinsertion":
             led = ledger_text(sess.ledger_at[wt])
             marker = sess.turns[wt].text
             ptxt = ptxt.replace(marker, "(Reminder) " + led + "\n" + marker, 1)
         enc = tok.encode(ptxt)
         P = len(enc.ids)
-        spans = ledger_sentence_spans(ptxt, sess, wt, "dev", tok) if arm == "oracle" else {}
+        spans = (
+            ledger_sentence_spans(ptxt, sess, wt, "dev", tok) if arm == "oracle" else {}
+        )
         toks = torch.tensor([enc.ids], device="cuda")
         K = None
         gen, text = [], ""
@@ -105,25 +118,41 @@ def main():
                 a = agg[arm]
                 a["works"] += 1
                 a["parse"] += r.parse
-                a["paired"][(seed, r.turn)] = {"parse": r.parse, "exec": r.exec_ok,
-                                               "adh": {o.opportunity_id: bool(r.per_opportunity.get(o.opportunity_id, {}).get("adherent"))
-                                                       for o in sess.opportunities if o.turn == r.turn and o.cell == "active"}}
+                a["paired"][(seed, r.turn)] = {
+                    "parse": r.parse,
+                    "exec": r.exec_ok,
+                    "adh": {
+                        o.opportunity_id: bool(
+                            r.per_opportunity.get(o.opportunity_id, {}).get("adherent")
+                        )
+                        for o in sess.opportunities
+                        if o.turn == r.turn and o.cell == "active"
+                    },
+                }
                 for o in sess.opportunities:
                     if o.turn == r.turn and o.cell == "active":
                         a["n"] += 1
-                        a["adh"] += bool(r.per_opportunity.get(o.opportunity_id, {}).get("adherent"))
+                        a["adh"] += bool(
+                            r.per_opportunity.get(o.opportunity_id, {}).get("adherent")
+                        )
         print(f"  {k}/{len(SEEDS)} sessions", flush=True)
 
     out = {}
     base = agg["base"]
     for arm in arms:
         a = agg[arm]
-        out[arm] = {"adherence": round(a["adh"] / max(1, a["n"]), 4), "n_active": a["n"],
-                    "parse_rate": round(a["parse"] / max(1, a["works"]), 4)}
+        out[arm] = {
+            "adherence": round(a["adh"] / max(1, a["n"]), 4),
+            "n_active": a["n"],
+            "parse_rate": round(a["parse"] / max(1, a["works"]), 4),
+        }
         if arm != "base":
-            broken = sum(1 for kk in a["paired"] if
-                         (base["paired"][kk]["parse"] and not a["paired"][kk]["parse"]) or
-                         (base["paired"][kk]["exec"] and not a["paired"][kk]["exec"]))
+            broken = sum(
+                1
+                for kk in a["paired"]
+                if (base["paired"][kk]["parse"] and not a["paired"][kk]["parse"])
+                or (base["paired"][kk]["exec"] and not a["paired"][kk]["exec"])
+            )
             gain = a["adh"] - base["adh"]
             du = gain - 2 * broken
             out[arm]["paired_broken"] = broken
@@ -135,10 +164,17 @@ def main():
     out["precondition_binds"] = headroom >= 0.10
     for arm in ("wave", "proxy"):
         denom = agg["oracle"]["adh"] - base["adh"]
-        out[arm]["closure"] = round((agg[arm]["adh"] - base["adh"]) / denom, 4) if denom else None
-        h = torch.histc(torch.tensor(hists[arm] or [0.0]), bins=10, min=0.0, max=2.0).tolist()
+        out[arm]["closure"] = (
+            round((agg[arm]["adh"] - base["adh"]) / denom, 4) if denom else None
+        )
+        h = torch.histc(
+            torch.tensor(hists[arm] or [0.0]), bins=10, min=0.0, max=2.0
+        ).tolist()
         out[arm]["gain_hist_0_2"] = h
-    print(json.dumps({k: v for k, v in out.items() if k != "records"}, indent=1), flush=True)
+    print(
+        json.dumps({k: v for k, v in out.items() if k != "records"}, indent=1),
+        flush=True,
+    )
     (ROOT / "results" / "qwen" / "w0-replay.json").write_text(json.dumps(out, indent=1))
     print("saved results/qwen/w0-replay.json", flush=True)
 

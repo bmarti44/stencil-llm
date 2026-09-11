@@ -7,6 +7,7 @@ extraction is a teacher-forced pass through the frozen trunk plus one
 weak-focus counterfactual forward — deterministic, proven bitwise by
 tests/test_evf_pilot.py.
 """
+
 import json
 import math
 import random
@@ -38,7 +39,9 @@ def _load_records(root, arm):
     for p in d.glob(f"{arm}-*.json"):
         r = json.loads(p.read_text())
         wave[r["i"]] = r
-    rows = [json.loads(line) for line in open(Path(root) / "data" / "b3" / "cal-v45.jsonl")]
+    rows = [
+        json.loads(line) for line in open(Path(root) / "data" / "b3" / "cal-v45.jsonl")
+    ]
     return base, wave, rows
 
 
@@ -50,10 +53,17 @@ def load_anatomy(root, arm="t30-b3"):
         b, w = base[i], wave[i]
         if b["adherent"] == w["adherent"]:
             continue
-        out.append({"row": rows[i], "i": i,
-                    "base_response": b["response"], "wave_response": w["response"],
-                    "base_adherent": b["adherent"], "wave_adherent": w["adherent"],
-                    "label": int(w["adherent"])})
+        out.append(
+            {
+                "row": rows[i],
+                "i": i,
+                "base_response": b["response"],
+                "wave_response": w["response"],
+                "base_adherent": b["adherent"],
+                "wave_adherent": w["adherent"],
+                "label": int(w["adherent"]),
+            }
+        )
     return out
 
 
@@ -63,10 +73,17 @@ def load_controls(root, arm="t30-b3", n=30, seed=11):
     conc = [i for i in sorted(base) if base[i]["adherent"] == wave[i]["adherent"]]
     rng = random.Random(seed)
     pick = sorted(rng.sample(conc, n))
-    return [{"row": rows[i], "i": i,
-             "base_response": base[i]["response"], "wave_response": wave[i]["response"],
-             "base_adherent": base[i]["adherent"], "wave_adherent": wave[i]["adherent"]}
-            for i in pick]
+    return [
+        {
+            "row": rows[i],
+            "i": i,
+            "base_response": base[i]["response"],
+            "wave_response": wave[i]["response"],
+            "base_adherent": base[i]["adherent"],
+            "wave_adherent": wave[i]["adherent"],
+        }
+        for i in pick
+    ]
 
 
 def load_model(root):
@@ -76,13 +93,18 @@ def load_model(root):
     from stencil import determinism  # noqa: F401
     from stencil.qwen3 import Qwen3
     from stencil.wave import WaveController
+
     root = Path(root)
     tok = Tokenizer.from_file(str(root / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
     m = Qwen3()
-    m.load_state_dict(torch.load(root / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+    m.load_state_dict(
+        torch.load(root / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+    )
     m = m.to(torch.bfloat16).cuda().eval()
     ctrl = WaveController(beta_max=1.0).cuda()
-    ctrl.load_state_dict(torch.load(root / "results" / "qwen" / "b3-ce-s0.pt", map_location="cpu"))
+    ctrl.load_state_dict(
+        torch.load(root / "results" / "qwen" / "b3-ce-s0.pt", map_location="cpu")
+    )
     return m, tok, ctrl.eval()
 
 
@@ -107,6 +129,7 @@ def extract_features(m, tok, ctrl, item, probe_pos=None):
     """registered E0 feature set at the divergence point (or probe_pos)."""
     import torch
     import torch.nn.functional as F
+
     row = item["row"]
     k = first_divergence(tok, item["base_response"], item["wave_response"])
     shared = tok.encode(item["base_response"]).ids[: (k if k is not None else 0)]
@@ -128,45 +151,67 @@ def extract_features(m, tok, ctrl, item, probe_pos=None):
         q = F.normalize(ctrl.W_q(h20[0, -1:].float()), dim=-1)
         kk = F.normalize(ctrl.W_k(h20[0, :P].float()), dim=-1)
         scores = (q @ kk.T)[0]
-        span_scores = sorted((float(scores[a:b].mean()) for a, b in spans), reverse=True) or [0.0]
-        best_span = max(spans, key=lambda ab: float(scores[ab[0]:ab[1]].mean())) if spans else (0, 1)
+        span_scores = sorted(
+            (float(scores[a:b].mean()) for a, b in spans), reverse=True
+        ) or [0.0]
+        best_span = (
+            max(spans, key=lambda ab: float(scores[ab[0] : ab[1]].mean()))
+            if spans
+            else (0, 1)
+        )
         # natural attention mass on the governing span (layers 20-27, last row)
         pm = torch.zeros(len(ids), dtype=torch.bool, device="cuda")
-        pm[best_span[0]:best_span[1]] = True
+        pm[best_span[0] : best_span[1]] = True
         sink = {}
         m(toks, attn_probe=(pm, sink))
         attn_mass = sum(sink.values()) / len(sink)
         # weak-focus counterfactual: b=1.0 on the governing span, last row
         T = len(ids)
         bias = torch.zeros(T, T, device="cuda")
-        bias[-1, best_span[0]:best_span[1]] = 1.0
+        bias[-1, best_span[0] : best_span[1]] = 1.0
         l1 = m(toks, attn_bias={L: bias for L in WAVE_LAYERS})[0, -1].float()
         p0 = F.log_softmax(logits[0, -1].float(), dim=-1)
         p1 = F.log_softmax(l1, dim=-1)
         kl = float((p1.exp() * (p1 - p0)).sum())
         mix = torch.logsumexp(torch.stack([p0, p1]), dim=0) - math.log(2)
-        js = 0.5 * float((p0.exp() * (p0 - mix)).sum()) + 0.5 * float((p1.exp() * (p1 - mix)).sum())
-        ob_ids = sorted({tid for kkey, sps in row["obligation_spans"].items()
-                         for a, b in sps
-                         for tid in tok.encode(row["canonical"][a:b]).ids})
+        js = 0.5 * float((p0.exp() * (p0 - mix)).sum()) + 0.5 * float(
+            (p1.exp() * (p1 - mix)).sum()
+        )
+        ob_ids = sorted(
+            {
+                tid
+                for kkey, sps in row["obligation_spans"].items()
+                for a, b in sps
+                for tid in tok.encode(row["canonical"][a:b]).ids
+            }
+        )
         ob_shift = float((p1[ob_ids] - p0[ob_ids]).mean()) if ob_ids else 0.0
     return {
-        "entropy": float(ents[-1]), "margin": float(margins[-1]),
-        "entropy_delta5": float(ents[-1] - ents[0]), "margin_delta5": float(margins[-1] - margins[0]),
+        "entropy": float(ents[-1]),
+        "margin": float(margins[-1]),
+        "entropy_delta5": float(ents[-1] - ents[0]),
+        "margin_delta5": float(margins[-1] - margins[0]),
         "readout_top": span_scores[0],
-        "readout_margin": span_scores[0] - (span_scores[1] if len(span_scores) > 1 else 0.0),
+        "readout_margin": span_scores[0]
+        - (span_scores[1] if len(span_scores) > 1 else 0.0),
         "attn_mass_span": float(attn_mass),
-        "kl_focus": kl, "js_focus": js, "obligation_shift": ob_shift,
+        "kl_focus": kl,
+        "js_focus": js,
+        "obligation_shift": ob_shift,
         "rel_pos": len(shared) / max(1, len(shared) + 32),
     }
 
 
 # --- deterministic probe ----------------------------------------------------
 
+
 def _standardize(feats):
     keys = sorted(feats[0])
     mu = {k: sum(f[k] for f in feats) / len(feats) for k in keys}
-    sd = {k: (sum((f[k] - mu[k]) ** 2 for f in feats) / len(feats)) ** 0.5 or 1.0 for k in keys}
+    sd = {
+        k: (sum((f[k] - mu[k]) ** 2 for f in feats) / len(feats)) ** 0.5 or 1.0
+        for k in keys
+    }
     return keys, mu, sd
 
 
@@ -193,8 +238,13 @@ def fit_probe(feats, labels, seed=0, l2=1.0, iters=500, lr=0.1):
 
 
 def predict(model, f):
-    z = sum(wi * (f[k] - model["mu"][k]) / model["sd"][k]
-            for wi, k in zip(model["w"], model["keys"])) + model["b"]
+    z = (
+        sum(
+            wi * (f[k] - model["mu"][k]) / model["sd"][k]
+            for wi, k in zip(model["w"], model["keys"])
+        )
+        + model["b"]
+    )
     return 1.0 / (1.0 + math.exp(-max(-30, min(30, z))))
 
 

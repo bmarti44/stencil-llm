@@ -7,6 +7,7 @@ carried state. Gates: loss falling by step 16; >=95% train exact-match and
 >=50-pt learned-minus-zero differential by step 64. Held-out generalization
 logged (not gated at P1).
 """
+
 import sys
 from pathlib import Path
 
@@ -23,7 +24,9 @@ from stencil.qwen_task import FIELDS, generate  # noqa: E402
 
 tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
 trunk = Qwen3()
-trunk.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=False)
+trunk.load_state_dict(
+    torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=False
+)
 trunk = trunk.to(torch.bfloat16).cuda().eval()
 for p in trunk.parameters():
     p.requires_grad_(False)
@@ -39,16 +42,21 @@ def build(seed: int):
     lines = [f"Note: the {f} is {v}." for f, v in s.obligations]
     for j, line in enumerate(lines):
         piece = tok.encode((" " if ids else "") + line).ids
-        events.append((len(ids), len(ids) + len(piece), FIELDS.index(s.obligations[j][0])))
+        events.append(
+            (len(ids), len(ids) + len(piece), FIELDS.index(s.obligations[j][0]))
+        )
         ids += piece
     from stencil.qwen_task import FILLER
+
     g = torch.Generator().manual_seed(seed + 777)
     for _ in range(6):
-        ids += tok.encode(" " + FILLER[int(torch.randint(0, len(FILLER), (1,), generator=g))]).ids
+        ids += tok.encode(
+            " " + FILLER[int(torch.randint(0, len(FILLER), (1,), generator=g))]
+        ).ids
     q_ids = tok.encode(s.query_text).ids
     full = tok.encode(s.query_text + " " + s.value + ".").ids
     assert full[: len(q_ids)] == q_ids
-    want = full[len(q_ids):]
+    want = full[len(q_ids) :]
     return s, torch.tensor([ids]), torch.tensor([full]), len(q_ids), want
 
 
@@ -89,17 +97,27 @@ for step in range(STEPS):
         s, ev_toks, q_toks, qlen, want = TRAIN[(step * 4 + k) % 32]
         st = model.write_chunk(ev_toks.cuda(), events_of(s))
         logits = model.read_logits(q_toks.cuda(), st)
-        loss = F.cross_entropy(logits[0, qlen - 1 : q_toks.shape[1] - 1], torch.tensor(want, device="cuda")) / 4
+        loss = (
+            F.cross_entropy(
+                logits[0, qlen - 1 : q_toks.shape[1] - 1],
+                torch.tensor(want, device="cuda"),
+            )
+            / 4
+        )
         loss.backward()
         tot += float(loss.detach()) * 4
     opt.step()
     sched.step()
     if step % 150 == 0 or step == STEPS - 1:
-        print(f"step {step} loss {tot/4:.4f}", flush=True)
+        print(f"step {step} loss {tot / 4:.4f}", flush=True)
 
 train_acc = evaluate(TRAIN)
 train_zero = evaluate(TRAIN, zero_code=True)
 held_acc = evaluate(HELD)
 held_zero = evaluate(HELD, zero_code=True)
-print(f"TRAIN exact {train_acc:.2f} vs zero-code {train_zero:.2f} (gates: >=0.95, diff >=0.50)")
-print(f"HELD-OUT exact {held_acc:.2f} vs zero-code {held_zero:.2f} (logged, ungated at P1)")
+print(
+    f"TRAIN exact {train_acc:.2f} vs zero-code {train_zero:.2f} (gates: >=0.95, diff >=0.50)"
+)
+print(
+    f"HELD-OUT exact {held_acc:.2f} vs zero-code {held_zero:.2f} (logged, ungated at P1)"
+)

@@ -224,9 +224,7 @@ def validate_artifacts(
         or not _input_is_bound(preview.get("inputs"), data_path, 4)
     ):
         raise RuntimeError("preview is not a passing receipt for the frozen schedule")
-    _require_source_snapshot(
-        preview.get("code_sha256"), RUNTIME_CODE_FILES, Path(root)
-    )
+    _require_source_snapshot(preview.get("code_sha256"), RUNTIME_CODE_FILES, Path(root))
     settings = preview.get("settings")
     if type(settings) is not dict:
         raise RuntimeError("preview settings are absent")
@@ -274,9 +272,9 @@ def validate_artifacts(
         identity = (action.get("episode_id"), action.get("round_index"))
         action_schedule.add(identity)
         try:
-            reference = documents_by_id[identity[0]]["private"]["rounds"][
-                identity[1]
-            ]["reference_patch"]
+            reference = documents_by_id[identity[0]]["private"]["rounds"][identity[1]][
+                "reference_patch"
+            ]
         except (KeyError, IndexError, TypeError) as exc:
             raise RuntimeError("preview reference action identity is invalid") from exc
         expected_body = json.dumps(
@@ -371,8 +369,7 @@ def validate_artifacts(
             or type(item.get("public_outcome_slots")) is not int
             or item["public_outcome_slots"] < 0
             or type(output_bound) is not int
-            or item.get("fits_context")
-            is not (output_bound <= CONTEXT_TOKENS)
+            or item.get("fits_context") is not (output_bound <= CONTEXT_TOKENS)
             or item.get("future_actual_prompt_claim") is not False
         ):
             raise RuntimeError("preview conservative context row is unqualified")
@@ -519,8 +516,14 @@ def _tracked_clean(relative, *, root=ROOT, command=run_owned):
     )
     status = command(
         [
-            "git", "-C", str(root), "status", "--porcelain=v1",
-            "--untracked-files=all", "--", relative,
+            "git",
+            "-C",
+            str(root),
+            "status",
+            "--porcelain=v1",
+            "--untracked-files=all",
+            "--",
+            relative,
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -593,8 +596,14 @@ def recheck_resource_exclusivity(*, expected_head, command=run_owned):
         raise RuntimeError("a GPU process appeared after resource qualification")
     status = command(
         [
-            "git", "-C", str(ROOT), "status", "--porcelain=v1",
-            "--untracked-files=all", "--", *BOUND_FILES,
+            "git",
+            "-C",
+            str(ROOT),
+            "status",
+            "--porcelain=v1",
+            "--untracked-files=all",
+            "--",
+            *BOUND_FILES,
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -624,18 +633,48 @@ def acquire_review_lock(path=REVIEW_LOCK):
 
 def _container_command(name):
     return [
-        "docker", "run", "--pull=never", "-d", "--name", name,
-        "--label", f"stencil.owner=coding-competence:{name}",
-        "--device", "nvidia.com/gpu=0", "--ipc=host",
-        "-p", "127.0.0.1:18088:8000", "-e", "VLLM_BATCH_INVARIANT=1",
-        "-v", f"{ROOT}/models/qwen3-30b-a3b-hf:/model:ro", IMAGE,
-        "--attention-backend", "TRITON_ATTN", "--model", "/model",
-        "--dtype", "bfloat16", "--kv-cache-dtype", "auto",
-        "--tensor-parallel-size", "1", "--max-model-len", "32768",
-        "--max-num-seqs", "4", "--max-num-batched-tokens", "2048",
-        "--gpu-memory-utilization", "0.70", "--enable-prefix-caching",
-        "--generation-config", "vllm", "--enable-auto-tool-choice",
-        "--tool-call-parser", "hermes",
+        "docker",
+        "run",
+        "--pull=never",
+        "-d",
+        "--name",
+        name,
+        "--label",
+        f"stencil.owner=coding-competence:{name}",
+        "--device",
+        "nvidia.com/gpu=0",
+        "--ipc=host",
+        "-p",
+        "127.0.0.1:18088:8000",
+        "-e",
+        "VLLM_BATCH_INVARIANT=1",
+        "-v",
+        f"{ROOT}/models/qwen3-30b-a3b-hf:/model:ro",
+        IMAGE,
+        "--attention-backend",
+        "TRITON_ATTN",
+        "--model",
+        "/model",
+        "--dtype",
+        "bfloat16",
+        "--kv-cache-dtype",
+        "auto",
+        "--tensor-parallel-size",
+        "1",
+        "--max-model-len",
+        "32768",
+        "--max-num-seqs",
+        "4",
+        "--max-num-batched-tokens",
+        "2048",
+        "--gpu-memory-utilization",
+        "0.70",
+        "--enable-prefix-caching",
+        "--generation-config",
+        "vllm",
+        "--enable-auto-tool-choice",
+        "--tool-call-parser",
+        "hermes",
     ]
 
 
@@ -794,9 +833,7 @@ def run_lifecycle(
             result, receipt = _start_receipt(
                 process,
                 plan["container_command"],
-                timeout=_remaining(
-                    deadline, clock, plan["startup_ceiling_seconds"]
-                ),
+                timeout=_remaining(deadline, clock, plan["startup_ceiling_seconds"]),
             )
         except subprocess.TimeoutExpired as exc:
             partial_stdout = exc.stdout or b""
@@ -816,17 +853,14 @@ def run_lifecycle(
                     "error": "TimeoutExpired: server container command",
                 },
             )
-            _write_bytes(
-                run / "server-launch.log", partial_stdout + partial_stderr
-            )
+            _write_bytes(run / "server-launch.log", partial_stdout + partial_stderr)
             raise TimeoutError(
                 "server container command exceeded startup ceiling"
             ) from exc
         receipt.update(started_unix=launch_started, ended_unix=wall_clock())
         _write_json(run / "server-launch.json", receipt)
         _write_bytes(
-            run / "server-launch.log",
-            (result.stdout or b"") + (result.stderr or b"")
+            run / "server-launch.log", (result.stdout or b"") + (result.stderr or b"")
         )
         if result.returncode != 0:
             raise RuntimeError(f"server container command exited {result.returncode}")
@@ -849,11 +883,16 @@ def run_lifecycle(
         driver = [
             str(ROOT / ".venv/bin/python"),
             plan["driver"],
-            "--input", plan["input"],
-            "--output-dir", plan["output_dir"],
-            "--base-url", plan["base_url"],
-            "--model", plan["model"],
-            "--deadline-seconds", str(remaining),
+            "--input",
+            plan["input"],
+            "--output-dir",
+            plan["output_dir"],
+            "--base-url",
+            plan["base_url"],
+            "--model",
+            plan["model"],
+            "--deadline-seconds",
+            str(remaining),
         ]
         _write_json(run / "driver-command.json", driver)
         lifecycle.update(
@@ -895,8 +934,7 @@ def run_lifecycle(
         receipt.update(started_unix=driver_started, ended_unix=wall_clock())
         _write_json(run / "driver-exit.json", receipt)
         _write_bytes(
-            run / "driver.log",
-            (result.stdout or b"") + (result.stderr or b"")
+            run / "driver.log", (result.stdout or b"") + (result.stderr or b"")
         )
         lifecycle["driver_exit_code"] = result.returncode
         if result.returncode in {0, 1, 2}:
@@ -921,7 +959,10 @@ def run_lifecycle(
         cleanup_owned = container_id is not None
         if container_attempted and not cleanup_owned:
             ownership_command = [
-                "docker", "container", "inspect", "--format",
+                "docker",
+                "container",
+                "inspect",
+                "--format",
                 '{{ index .Config.Labels "stencil.owner" }}',
                 plan["container_name"],
             ]
@@ -942,12 +983,10 @@ def run_lifecycle(
                         timeout=_remaining(deadline, clock, 5),
                     )
                     receipt.update(process_receipt)
-                    label = (result.stdout or b"").decode(
-                        "utf-8", errors="replace"
-                    ).strip()
-                    expected_label = (
-                        "coding-competence:" + plan["container_name"]
+                    label = (
+                        (result.stdout or b"").decode("utf-8", errors="replace").strip()
                     )
+                    expected_label = "coding-competence:" + plan["container_name"]
                     if result.returncode == 0 and label == expected_label:
                         cleanup_owned = True
                     elif result.returncode == 0:
@@ -986,7 +1025,7 @@ def run_lifecycle(
                     if phase == "logs":
                         _write_bytes(
                             run / "server.log",
-                            (result.stdout or b"") + (result.stderr or b"")
+                            (result.stdout or b"") + (result.stderr or b""),
                         )
                     if phase == "remove" and result.returncode == 0:
                         removed = True
@@ -1044,10 +1083,13 @@ def run_lifecycle(
 
 
 def _reserve_flag(run, name):
-    payload = json.dumps(
-        {"pid": os.getpid(), "run_dir": str(run), "container": name},
-        sort_keys=True,
-    ) + "\n"
+    payload = (
+        json.dumps(
+            {"pid": os.getpid(), "run_dir": str(run), "container": name},
+            sort_keys=True,
+        )
+        + "\n"
+    )
     descriptor = os.open(RUN_FLAG, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
     with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
         handle.write(payload)

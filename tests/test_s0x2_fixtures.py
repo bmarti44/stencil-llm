@@ -6,6 +6,7 @@ s0x plus a task-structural moment suffix on EVERY work turn's task text:
 suffix must not create pressable candidate spans (matches no
 CAND_PATTERN) and everything s0x guarantees still holds.
 """
+
 from stencil.t2_select import candidate_spans
 from stencil.t2_sessions import SENT, generate_t2, prompt_at
 
@@ -26,6 +27,7 @@ def test_s0x2_suffix_creates_no_candidates():
     class Enc:
         def __init__(self, t):
             self.offsets = [(i, i + 1) for i in range(len(t))]
+
     assert candidate_spans(SUFFIX, Enc(SUFFIX)) == []
 
 

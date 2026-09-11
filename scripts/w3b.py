@@ -20,6 +20,7 @@ paired rollout. Gates: paired alternate-value adoption rises >= 20
 points, one-sided McNemar p < 0.05, n >= 60; non-target adherence
 drop <= 2 counts total; parse/exec cost reported.
 """
+
 import json
 import sys
 from math import comb
@@ -32,7 +33,13 @@ import torch
 from tokenizers import Tokenizer
 
 from stencil.qwen3 import Qwen3
-from stencil.t2_runner import LAYERS, _oracle_moment, build_arm_prompt, ledger_sentence_spans, score_work
+from stencil.t2_runner import (
+    LAYERS,
+    _oracle_moment,
+    build_arm_prompt,
+    ledger_sentence_spans,
+    score_work,
+)
 from stencil.t2_sessions import SENT, generate_t2
 from stencil.wave import WaveController
 
@@ -42,15 +49,22 @@ THETA = 1.9
 
 tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
 m = Qwen3()
-m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+m.load_state_dict(
+    torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+)
 m = m.to(torch.bfloat16).cuda().eval()
 wave = WaveController().cuda()
-wave.load_state_dict(torch.load(ROOT / "results" / "qwen" / "w0-ce.pt", map_location="cpu"))
+wave.load_state_dict(
+    torch.load(ROOT / "results" / "qwen" / "w0-ce.pt", map_location="cpu")
+)
 wave.eval()
 
 
 def neutral(ptxt):
-    return ptxt.replace("[checker] (deterministic feedback on the previous submission is inserted here at run time)", NEUTRAL)
+    return ptxt.replace(
+        "[checker] (deterministic feedback on the previous submission is inserted here at run time)",
+        NEUTRAL,
+    )
 
 
 def note_spans(ptxt, enc, sess, wt):
@@ -59,6 +73,7 @@ def note_spans(ptxt, enc, sess, wt):
     out = []
     led = sess.ledger_at[wt]
     import re
+
     for ty in ("prefix", "doc", "hint"):
         if ty not in led:
             continue
@@ -91,7 +106,7 @@ def rollout(sess, wt, override=None, trace=None):
             row = wave(h_t, K)
             if override is not None and step == override[0]:
                 e = torch.full((P,), -6.0)
-                e[override[1][0]:override[1][1]] = 6.0
+                e[override[1][0] : override[1][1]] = 6.0
                 sm = torch.softmax(e, dim=-1)
                 row = (2.0 * sm / sm.max()).cuda()
             g = float(row.max())
@@ -103,8 +118,14 @@ def rollout(sess, wt, override=None, trace=None):
                         focus = (ty, led[ty])
                         break
             moment = _oracle_moment(text[-80:])
-            decisions.append({"step": step, "gain": round(g, 3), "focus": focus,
-                              "moment": moment if (moment in led) else None})
+            decisions.append(
+                {
+                    "step": step,
+                    "gain": round(g, 3),
+                    "focus": focus,
+                    "moment": moment if (moment in led) else None,
+                }
+            )
             if trace is not None:
                 trace.append({"wt": wt, **decisions[-1]})
             t = toks.shape[1]
@@ -137,7 +158,15 @@ def main():
             for d in dec:
                 is_moment = d["moment"] is not None
                 pressed = d["focus"] is not None
-                conf["tp" if (is_moment and pressed) else "fn" if is_moment else "fp" if pressed else "tn"] += 1
+                conf[
+                    "tp"
+                    if (is_moment and pressed)
+                    else "fn"
+                    if is_moment
+                    else "fp"
+                    if pressed
+                    else "tn"
+                ] += 1
                 if is_moment:
                     where_n += 1
                     if d["focus"] == (d["moment"], led[d["moment"]]):
@@ -146,8 +175,12 @@ def main():
                     if not chosen_for_work:
                         cands = [n for n in notes if n[0] == d["moment"]]
                         if cands:
-                            best = max(cands, key=lambda n: n[3])  # nearest preceding = max char < moment; notes all in prompt (precede generation)
-                            interventions.append((seed, wt, d["step"], best[0], best[1], best[2]))
+                            best = max(
+                                cands, key=lambda n: n[3]
+                            )  # nearest preceding = max char < moment; notes all in prompt (precede generation)
+                            interventions.append(
+                                (seed, wt, d["step"], best[0], best[1], best[2])
+                            )
                             chosen_for_work = True
         print(f"  intact {si}/{len(SEEDS)}", flush=True)
 
@@ -156,16 +189,21 @@ def main():
     discordant_01 = discordant_10 = 0
     nontarget_drop = 0
     parse_cost = 0
-    used = interventions[:max(60, len(interventions))]
+    used = interventions[: max(60, len(interventions))]
     for n, (seed, wt, step, ty, v, span) in enumerate(used):
         sess = generate_t2(seed, 20, "dev", interference="s0")
         wr_i = intact_results[(seed, wt)]
         wr_o, _, _, _ = rollout(sess, wt, override=(step, span))
+
         def adopted(wr):
             for o in sess.opportunities:
                 if o.turn == wt and o.moment_class == ty:
-                    return wr.per_opportunity.get(o.opportunity_id, {}).get("value_used") == v
+                    return (
+                        wr.per_opportunity.get(o.opportunity_id, {}).get("value_used")
+                        == v
+                    )
             return False
+
         ai, ao = adopted(wr_i), adopted(wr_o)
         adopt_intact += ai
         adopt_over += ao
@@ -175,8 +213,12 @@ def main():
             discordant_10 += 1
         for o in sess.opportunities:
             if o.turn == wt and o.cell == "active" and o.moment_class != ty:
-                ii = bool(wr_i.per_opportunity.get(o.opportunity_id, {}).get("adherent"))
-                oo = bool(wr_o.per_opportunity.get(o.opportunity_id, {}).get("adherent"))
+                ii = bool(
+                    wr_i.per_opportunity.get(o.opportunity_id, {}).get("adherent")
+                )
+                oo = bool(
+                    wr_o.per_opportunity.get(o.opportunity_id, {}).get("adherent")
+                )
                 nontarget_drop += int(ii and not oo)
         parse_cost += int(wr_i.parse and not wr_o.parse)
         if n % 20 == 0:
@@ -185,22 +227,35 @@ def main():
     nI = len(used)
     # one-sided exact McNemar: P(X >= discordant_01 | n=discordant pairs, p=0.5)
     nd = discordant_01 + discordant_10
-    p_val = sum(comb(nd, k) for k in range(discordant_01, nd + 1)) / (2 ** nd) if nd else 1.0
+    p_val = (
+        sum(comb(nd, k) for k in range(discordant_01, nd + 1)) / (2**nd) if nd else 1.0
+    )
     out = {
         "readout": {
-            "where_acc": round(where_ok / max(1, where_n), 4), "where_n": where_n,
-            "confusion": conf, "theta": THETA,
+            "where_acc": round(where_ok / max(1, where_n), 4),
+            "where_n": where_n,
+            "confusion": conf,
+            "theta": THETA,
         },
         "override": {
-            "n": nI, "adopt_intact": adopt_intact, "adopt_override": adopt_over,
-            "adopt_rise_points": round(100 * (adopt_over - adopt_intact) / max(1, nI), 1),
+            "n": nI,
+            "adopt_intact": adopt_intact,
+            "adopt_override": adopt_over,
+            "adopt_rise_points": round(
+                100 * (adopt_over - adopt_intact) / max(1, nI), 1
+            ),
             "mcnemar_one_sided_p": round(p_val, 6),
             "discordant": [discordant_01, discordant_10],
-            "nontarget_adherence_drop": nontarget_drop, "parse_cost": parse_cost,
+            "nontarget_adherence_drop": nontarget_drop,
+            "parse_cost": parse_cost,
         },
     }
-    out["override"]["PASS"] = (out["override"]["adopt_rise_points"] >= 20
-                               and p_val < 0.05 and nI >= 60 and nontarget_drop <= 2)
+    out["override"]["PASS"] = (
+        out["override"]["adopt_rise_points"] >= 20
+        and p_val < 0.05
+        and nI >= 60
+        and nontarget_drop <= 2
+    )
     out["readout"]["PASS_where"] = out["readout"]["where_acc"] >= 0.80
     print(json.dumps(out, indent=1), flush=True)
     (ROOT / "results" / "qwen" / "w3b.json").write_text(json.dumps(out, indent=1))

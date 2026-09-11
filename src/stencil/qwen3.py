@@ -8,6 +8,7 @@ The default config comes from the pinned Qwen3-1.7B revision. Norms and softmax
 run in fp32 and matmuls in bf16, mirroring the reference implementation closely
 enough for the registered parity tolerance; our own outputs are frozen bitwise.
 """
+
 from __future__ import annotations
 
 import json
@@ -133,9 +134,7 @@ def prefill_with_eviction(
         if cache.length != length_before:
             raise AssertionError("KVCache.evict reduced absolute position length")
     columns_after_eviction = int(cache.k[0].shape[2])
-    logits = model(
-        tokens[:, history_end:], cache=cache, **current_forward_kwargs
-    )
+    logits = model(tokens[:, history_end:], cache=cache, **current_forward_kwargs)
     return logits, index_map, columns_before, columns_after_eviction
 
 
@@ -169,7 +168,10 @@ def _rope(
     dtype: torch.dtype | None = None,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     c = cfg
-    inv = 1.0 / (c.rope_theta ** (torch.arange(0, c.head_dim, 2, device=device).float() / c.head_dim))
+    inv = 1.0 / (
+        c.rope_theta
+        ** (torch.arange(0, c.head_dim, 2, device=device).float() / c.head_dim)
+    )
     pos = torch.arange(offset, offset + t, device=device).float()
     freqs = torch.outer(pos, inv)
     emb = torch.cat((freqs, freqs), dim=-1)
@@ -232,8 +234,7 @@ def _apply_deficit_gate(
         b_amt = (logit_t - torch.log(psi / (1 - psi))).clamp(max=b_max)
         b_amt = torch.where(need, b_amt, torch.zeros_like(b_amt))
         total_bias = (
-            total_bias
-            + b_amt[..., None] * span_mask.to(att.dtype)[None, None, None, :]
+            total_bias + b_amt[..., None] * span_mask.to(att.dtype)[None, None, None, :]
         )
         changed = True
     return att + total_bias if changed else att
@@ -254,12 +255,8 @@ class _Block(nn.Module):
         self.k_proj = nn.Linear(c.d_model, kd, bias=False)
         self.v_proj = nn.Linear(c.d_model, kd, bias=False)
         self.o_proj = nn.Linear(qd, c.d_model, bias=False)
-        self.q_norm = RMSNorm(
-            c.head_dim, c.rms_eps, hf_compatible=self.hf_compatible
-        )
-        self.k_norm = RMSNorm(
-            c.head_dim, c.rms_eps, hf_compatible=self.hf_compatible
-        )
+        self.q_norm = RMSNorm(c.head_dim, c.rms_eps, hf_compatible=self.hf_compatible)
+        self.k_norm = RMSNorm(c.head_dim, c.rms_eps, hf_compatible=self.hf_compatible)
         self.post_attention_layernorm = RMSNorm(
             c.d_model, c.rms_eps, hf_compatible=self.hf_compatible
         )
@@ -277,7 +274,8 @@ class _Block(nn.Module):
         cache: KVCache | None = None,
         layer_idx: int = -1,
         deficit_gate: tuple | list[tuple] | None = None,
-        attn_probe: tuple | None = None,  # (span_mask[T_total] bool, sink dict) -> sink[layer] = last-row mean span mass
+        attn_probe: tuple
+        | None = None,  # (span_mask[T_total] bool, sink dict) -> sink[layer] = last-row mean span mass
     ) -> torch.Tensor:
         c = self.cfg
         b, t, _ = x.shape
@@ -300,7 +298,9 @@ class _Block(nn.Module):
         k = k.repeat_interleave(rep, dim=1)
         v = v.repeat_interleave(rep, dim=1)
         T_total = past + t
-        mask = torch.triu(torch.full((t, T_total), float("-inf"), device=x.device), diagonal=1 + past)
+        mask = torch.triu(
+            torch.full((t, T_total), float("-inf"), device=x.device), diagonal=1 + past
+        )
         if (
             self.hf_compatible
             and attn_bias is None
@@ -324,7 +324,7 @@ class _Block(nn.Module):
             h = self.post_attention_layernorm(x)
             return x + self.down_proj(F.silu(self.gate_proj(h)) * self.up_proj(h))
 
-        att = (q.float() @ k.float().transpose(-2, -1)) / (c.head_dim ** 0.5)
+        att = (q.float() @ k.float().transpose(-2, -1)) / (c.head_dim**0.5)
         att = att + mask
         if attn_bias is not None:
             att = att + attn_bias.float()
@@ -349,9 +349,7 @@ class _Block(nn.Module):
                 # second-forward semantic mismatch.  The legacy 1-D contract
                 # above remains bit-for-bit unchanged.
                 last = probs[0, :, -1, :]
-                sink[layer_idx] = [
-                    float(last[:, row].sum(-1).mean()) for row in pm
-                ]
+                sink[layer_idx] = [float(last[:, row].sum(-1).mean()) for row in pm]
             else:
                 raise ValueError("attn_probe mask must be [T] or [S,T]")
         out = (F.softmax(att, dim=-1) @ v.float()).to(x.dtype)
@@ -375,13 +373,9 @@ class Qwen3(nn.Module):
         self.embed_tokens = nn.Embedding(c.vocab, c.d_model)
         self.layers = nn.ModuleList(_Block(c) for _ in range(c.n_layer))
         self.hf_compatible = c.n_head * c.head_dim != c.d_model
-        self.norm = RMSNorm(
-            c.d_model, c.rms_eps, hf_compatible=self.hf_compatible
-        )
+        self.norm = RMSNorm(c.d_model, c.rms_eps, hf_compatible=self.hf_compatible)
         self.lm_head = (
-            None
-            if c.tie_word_embeddings
-            else nn.Linear(c.d_model, c.vocab, bias=False)
+            None if c.tie_word_embeddings else nn.Linear(c.d_model, c.vocab, bias=False)
         )
 
     def forward(
@@ -414,7 +408,8 @@ class Qwen3(nn.Module):
             raise ValueError(
                 "return_hidden early-returns before cache.length updates and "
                 "before layers >= i append k/v — it would corrupt the cache; "
-                "use capture_hidden with cache instead")
+                "use capture_hidden with cache instead"
+            )
         for i, block in enumerate(self.layers):
             if return_hidden is not None and i == return_hidden:
                 return x
@@ -429,11 +424,20 @@ class Qwen3(nn.Module):
             if deficit_hook is not None and i == deficit_hook[0]:
                 deficit_gates = deficit_hook[1](x)
             x = block(
-                x, cos, sin,
+                x,
+                cos,
+                sin,
                 None if inj is None else inj.get(i),
                 None if attn_bias is None else attn_bias.get(i),
-                cache=cache, layer_idx=i,
-                deficit_gate=(deficit_gates.get(i) if deficit_hook is not None and i >= deficit_hook[0] and deficit_gates else None),
+                cache=cache,
+                layer_idx=i,
+                deficit_gate=(
+                    deficit_gates.get(i)
+                    if deficit_hook is not None
+                    and i >= deficit_hook[0]
+                    and deficit_gates
+                    else None
+                ),
                 attn_probe=(attn_probe if attn_probe is not None and i >= 20 else None),
             )
         if cache is not None:

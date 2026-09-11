@@ -5,6 +5,7 @@ Events and work records accumulate in memory and are written atomically
 on close() (write to .partial, fsync-rename), with a content digest over
 a canonical serialization — an unclosed writer leaves no loadable file,
 so a crashed trace pass cannot masquerade as evidence."""
+
 import hashlib
 import io
 import os
@@ -46,9 +47,13 @@ class TraceWriter:
 def load_trace(path):
     p = str(path)
     if not os.path.exists(p):
-        raise FileNotFoundError(f"no closed trace at {p} (a .partial file means the pass died mid-write)")
+        raise FileNotFoundError(
+            f"no closed trace at {p} (a .partial file means the pass died mid-write)"
+        )
     tr = torch.load(p, map_location="cpu", weights_only=False)
     want = _digest({"events": tr["events"], "works": tr["works"]})
     if tr["digest"] != want:
-        raise ValueError(f"trace digest mismatch at {p}: stored {tr['digest'][:12]} != recomputed {want[:12]}")
+        raise ValueError(
+            f"trace digest mismatch at {p}: stored {tr['digest'][:12]} != recomputed {want[:12]}"
+        )
     return tr

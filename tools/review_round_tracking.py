@@ -20,6 +20,7 @@ contract:
 
 CLI: exit 0 when the candidate satisfies the contract, 1 otherwise.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -50,7 +51,9 @@ def _round_records_progress(block: str, *, has_prior: bool) -> tuple[bool, list[
         findings.append("new round block missing `- Score: N / 100` line")
     if has_prior:
         delta_line = re.search(
-            r"delta\s+vs\s+prior\s+round\s*:\s*[+\-]?\d", block, re.IGNORECASE,
+            r"delta\s+vs\s+prior\s+round\s*:\s*[+\-]?\d",
+            block,
+            re.IGNORECASE,
         )
         first_review_line = re.search(r"first\s+review", block, re.IGNORECASE)
         if not (delta_line or first_review_line):
@@ -59,7 +62,9 @@ def _round_records_progress(block: str, *, has_prior: bool) -> tuple[bool, list[
                 "qualifier; required when prior rounds exist"
             )
         addressed = re.search(
-            r"^\s*-\s*Addressed since prior round\s*:", block, re.MULTILINE,
+            r"^\s*-\s*Addressed since prior round\s*:",
+            block,
+            re.MULTILINE,
         )
         initial_marker = re.search(r"\(initial review\)", block, re.IGNORECASE)
         if not (addressed or initial_marker):
@@ -97,7 +102,8 @@ def validate(prior_text: str, candidate_text: str, *, round_number: int) -> dict
     missing = sorted(prior_rounds - cand_rounds, key=int)
     if missing:
         findings.append(
-            f"candidate deleted prior round block(s) {missing}; round history is append-only"
+            f"candidate deleted prior round block(s) {missing}; "
+            "round history is append-only"
         )
     # Prior rounds' recorded scores are immutable: each prior round block's
     # `- Score: N / 100` line must appear unchanged in the candidate's block
@@ -108,36 +114,57 @@ def validate(prior_text: str, candidate_text: str, *, round_number: int) -> dict
         pscore = re.search(r"-\s*Score:\s*\d+\s*/\s*100", pblock)
         if pscore and pscore.group(0) not in cblock:
             findings.append(
-                f"prior round {rn} score line was altered or removed; round history is immutable"
+                f"prior round {rn} score line was altered or removed; "
+                "round history is immutable"
             )
+
     # Prior high/critical findings may be closed but never vanish: every
     # numbered Critical/High entry in the prior ## Findings must appear with
     # the same number (open or resolved/refuted) in the candidate.
     def _hc_titles(text: str) -> dict[str, str]:
-        m = re.search(r"^## Findings\s*$(.*?)(?=^## |\Z)", text, re.MULTILINE | re.DOTALL)
+        m = re.search(
+            r"^## Findings\s*$(.*?)(?=^## |\Z)", text, re.MULTILINE | re.DOTALL
+        )
         if not m:
             return {}
         out = {}
-        for num, rest in re.findall(r"^(\d+)\.\s+\*\*(?:Critical|High)\b[^\n]*?—\s*([^.\n]{10,80})", m.group(1), re.MULTILINE | re.IGNORECASE):
+        for num, rest in re.findall(
+            r"^(\d+)\.\s+\*\*(?:Critical|High)\b[^\n]*?—\s*([^.\n]{10,80})",
+            m.group(1),
+            re.MULTILINE | re.IGNORECASE,
+        ):
             out[num] = rest.strip()
         return out
+
     prior_titles = _hc_titles(prior_text)
     cand_body = candidate_text
     for num, title in prior_titles.items():
         if title[:40] not in cand_body:
             findings.append(
-                f"prior high/critical finding {num}'s title text was replaced ('{title[:40]}...'); "
+                f"prior high/critical finding {num}'s title text was replaced "
+                f"('{title[:40]}...'); "
                 "titles are immutable — close findings with markers, never rewrite them"
             )
+
     def _hc_numbers(text: str) -> set[str]:
-        m = re.search(r"^## Findings\s*$(.*?)(?=^## |\Z)", text, re.MULTILINE | re.DOTALL)
+        m = re.search(
+            r"^## Findings\s*$(.*?)(?=^## |\Z)", text, re.MULTILINE | re.DOTALL
+        )
         if not m:
             return set()
-        return set(re.findall(r"^(\d+)\.\s+\*\*(?:Critical|High)\b", m.group(1), re.MULTILINE | re.IGNORECASE))
+        return set(
+            re.findall(
+                r"^(\d+)\.\s+\*\*(?:Critical|High)\b",
+                m.group(1),
+                re.MULTILINE | re.IGNORECASE,
+            )
+        )
+
     missing_hc = sorted(_hc_numbers(prior_text) - _hc_numbers(candidate_text), key=int)
     if missing_hc:
         findings.append(
-            f"prior high/critical finding number(s) {missing_hc} vanished from ## Findings; "
+            f"prior high/critical finding number(s) {missing_hc} vanished from "
+            "## Findings; "
             "close them with (resolved/refuted) markers instead of deleting"
         )
     has_prior = bool(prior_rounds)
@@ -154,7 +181,9 @@ def main(argv: list[str] | None = None) -> int:
     args = p.parse_args(argv)
 
     try:
-        prior_text = args.prior.read_text(encoding="utf-8") if args.prior.exists() else ""
+        prior_text = (
+            args.prior.read_text(encoding="utf-8") if args.prior.exists() else ""
+        )
         candidate_text = args.candidate.read_text(encoding="utf-8")
     except OSError as exc:
         print(f"ERROR: cannot read input: {exc}", file=sys.stderr)

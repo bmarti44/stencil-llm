@@ -179,10 +179,9 @@ class Attention(nn.Module):
             if global_positions is not None:
                 assert global_k is not None and global_v is not None
                 global_valid = (
-                    (global_positions[:, None]
-                    <= query_positions[None, :, None] - self.window)
-                    & cue_valid[:, None]
-                )
+                    global_positions[:, None]
+                    <= query_positions[None, :, None] - self.window
+                ) & cue_valid[:, None]
                 valid = torch.cat(
                     (
                         global_valid,
@@ -233,9 +232,7 @@ class Attention(nn.Module):
         if use_banded is None:
             use_banded = self._use_banded
         if use_banded and self.window is not None:
-            heads = self._forward_banded(
-                q, k, v, cue_mask, cue_positions, cue_valid
-            )
+            heads = self._forward_banded(q, k, v, cue_mask, cue_positions, cue_valid)
         else:
             positions = torch.arange(length, device=x.device)
             lag = positions[:, None] - positions[None, :]

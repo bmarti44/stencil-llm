@@ -187,9 +187,9 @@ def test_exact_whitespace_after_reasoning_boundary_is_valid():
             "capacity",
         ),
         (
-            lambda value, _index: value["sampling_params"][
-                "structured_outputs"
-            ].update(json={"type": "array"}),
+            lambda value, _index: value["sampling_params"]["structured_outputs"].update(
+                json={"type": "array"}
+            ),
             "render_schema",
         ),
     ],
@@ -203,9 +203,10 @@ def test_render_gate_prevents_decode_and_preserves_failure(tmp_path, mutation, k
     assert len(opener.requests) == 1
     record = json.loads((tmp_path / "out/calls/call-00.json").read_text())
     assert record["native_exchange"]["completion"]["status"] == "NOT_STARTED"
-    assert json.loads(record["native_exchange"]["render"]["request"]["body"])[
-        "max_tokens"
-    ] == smoke.MAX_OUTPUT_TOKENS
+    assert (
+        json.loads(record["native_exchange"]["render"]["request"]["body"])["max_tokens"]
+        == smoke.MAX_OUTPUT_TOKENS
+    )
 
 
 @pytest.mark.parametrize("defect", ["missing_end", "usage", "prompt_ids"])
@@ -234,9 +235,7 @@ def test_completion_accounting_and_boundaries_end_schedule(tmp_path, defect):
 
 
 @pytest.mark.parametrize("defect", ["duplicate_start", "over_budget", "prefix"])
-def test_ambiguous_over_budget_or_misplaced_reasoning_is_incomplete(
-    tmp_path, defect
-):
+def test_ambiguous_over_budget_or_misplaced_reasoning_is_incomplete(tmp_path, defect):
     def mutate(value, _index):
         choice = value["choices"][0]
         start, end = smoke._boundary_ids()

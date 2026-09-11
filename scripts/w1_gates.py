@@ -7,6 +7,7 @@ step. Each must degrade held CE >= 10% RELATIVE to the wave's gain...
 registered: ">= 10% relative" CE degradation (vs the intact wave's CE).
 CKPT env (w1-ce.pt default).
 """
+
 import json
 import os
 import sys
@@ -40,7 +41,7 @@ def session_ces(wave, sess, mode="intact", donor_states=None):
         with torch.no_grad():
             h = m(full, return_hidden=20)[0].float()
             K = h[:P]
-            H = h[P - 1:T - 1]
+            H = h[P - 1 : T - 1]
             rows = []
             for i in range(H.shape[0]):
                 s_in = s
@@ -53,9 +54,9 @@ def session_ces(wave, sess, mode="intact", donor_states=None):
                 b, s = wave.step(H[i], s_in, K)
                 rows.append(b)
             bias = torch.zeros(T, T, device="cuda")
-            bias[P - 1:T - 1, :P] = torch.stack(rows)
+            bias[P - 1 : T - 1, :P] = torch.stack(rows)
             logits = m(full, attn_bias={L: bias for L in W.LAYERS})[0].float()
-            ces.append(float(F.cross_entropy(logits[P - 1:T - 1], full[0, P:])))
+            ces.append(float(F.cross_entropy(logits[P - 1 : T - 1], full[0, P:])))
         s = s.detach()
     return ces, s_trace
 
@@ -70,31 +71,38 @@ def battery():
     T = full.shape[1]
     with torch.no_grad():
         h = m(full, return_hidden=20)[0].float()
-    K = h[:P].detach(); H = h[P - 1:T - 1].detach()
+    K = h[:P].detach()
+    H = h[P - 1 : T - 1].detach()
     s_st = wave.init_state().cuda()
     rows = []
     for i in range(H.shape[0]):
         b, s_st = wave.step(H[i], s_st, K)
         rows.append(b)
     bias = torch.zeros(T, T, device="cuda")
-    bias[P - 1:T - 1, :P] = torch.stack(rows)
+    bias[P - 1 : T - 1, :P] = torch.stack(rows)
     logits = m(full, attn_bias={L: bias for L in W.LAYERS})[0].float()
-    ce = F.cross_entropy(logits[P - 1:T - 1], full[0, P:])
+    ce = F.cross_entropy(logits[P - 1 : T - 1], full[0, P:])
     ce.backward()
     out = {}
     for n, prm in wave.named_parameters():
         g = prm.grad
-        out[f"grad_{n}"] = bool(g is not None and torch.isfinite(g).all() and float(g.abs().sum()) > 0)
+        out[f"grad_{n}"] = bool(
+            g is not None and torch.isfinite(g).all() and float(g.abs().sum()) > 0
+        )
     out["PASS"] = all(out.values())
     print(json.dumps(out, indent=1), flush=True)
-    (ROOT / "results" / "qwen" / "w1-battery.json").write_text(json.dumps(out, indent=1))
+    (ROOT / "results" / "qwen" / "w1-battery.json").write_text(
+        json.dumps(out, indent=1)
+    )
 
 
 def main():
     if os.environ.get("BATTERY"):
         return battery()
     wave = WaveRNN().cuda()
-    wave.load_state_dict(torch.load(ROOT / "results" / "qwen" / CKPT, map_location="cpu"))
+    wave.load_state_dict(
+        torch.load(ROOT / "results" / "qwen" / CKPT, map_location="cpu")
+    )
     wave.eval()
     zero_ces, intact, reset, perm = [], [], [], []
     traces = {}
@@ -105,7 +113,9 @@ def main():
             full, P, _ = W.work_pack(sess, wt)
             with torch.no_grad():
                 lz = m(full)[0].float()
-            zero_ces.append(float(F.cross_entropy(lz[P - 1:full.shape[1] - 1], full[0, P:])))
+            zero_ces.append(
+                float(F.cross_entropy(lz[P - 1 : full.shape[1] - 1], full[0, P:]))
+            )
         ces, tr = session_ces(wave, sess, "intact")
         intact += ces
         traces[sess.seed] = tr
@@ -120,16 +130,23 @@ def main():
     it = sum(intact) / len(intact)
     pe = sum(perm) / len(perm)
     re = sum(reset) / len(reset)
-    rep = {"ckpt": CKPT, "zero_ce": round(z, 4), "intact_ce": round(it, 4),
-           "permute_ce": round(pe, 4), "reset_ce": round(re, 4),
-           "held_improve": round((z - it) / z, 4),
-           "permute_degrade_rel": round((pe - it) / it, 4),
-           "reset_degrade_rel": round((re - it) / it, 4)}
+    rep = {
+        "ckpt": CKPT,
+        "zero_ce": round(z, 4),
+        "intact_ce": round(it, 4),
+        "permute_ce": round(pe, 4),
+        "reset_ce": round(re, 4),
+        "held_improve": round((z - it) / z, 4),
+        "permute_degrade_rel": round((pe - it) / it, 4),
+        "reset_degrade_rel": round((re - it) / it, 4),
+    }
     rep["G_W1c_ce"] = rep["held_improve"] >= 0.10
     rep["temporal_ce_permute"] = rep["permute_degrade_rel"] >= 0.10
     rep["temporal_ce_reset"] = rep["reset_degrade_rel"] >= 0.10
     print(json.dumps(rep, indent=1), flush=True)
-    (ROOT / "results" / "qwen" / f"w1-gates-{CKPT.replace('.pt','')}.json").write_text(json.dumps(rep, indent=1))
+    (ROOT / "results" / "qwen" / f"w1-gates-{CKPT.replace('.pt', '')}.json").write_text(
+        json.dumps(rep, indent=1)
+    )
 
 
 if __name__ == "__main__":

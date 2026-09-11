@@ -12,6 +12,7 @@ Hand-computed expectations:
   score > t. tpr = pressed positives / positives, fpr = pressed
   negatives / negatives.
 """
+
 import math
 
 from stencil.press_stats import bayes_press_threshold, roc_point, zero_event_upper_bound
@@ -29,7 +30,9 @@ def test_zero_event_upper_bound_alpha():
     # rule-of-three approximation holds at alpha=0.05 for large n
     assert math.isclose(zero_event_upper_bound(1000), 3 / 1000, rel_tol=0.01)
     # tighter alpha -> larger bound
-    assert zero_event_upper_bound(100, alpha=0.01) > zero_event_upper_bound(100, alpha=0.05)
+    assert zero_event_upper_bound(100, alpha=0.01) > zero_event_upper_bound(
+        100, alpha=0.05
+    )
 
 
 def test_bayes_press_threshold():
@@ -42,6 +45,7 @@ def test_bayes_press_threshold():
     assert bayes_press_threshold(B=6.0, H=1e12) > 0.999
     # no defaults exist
     import pytest
+
     with pytest.raises(TypeError):
         bayes_press_threshold(14.5)  # missing H
 
@@ -49,12 +53,17 @@ def test_bayes_press_threshold():
 def test_clopper_pearson_upper():
     # values pinned in PRESS-PLAN.md Frozen rules (verified numerically)
     from stencil.press_stats import clopper_pearson_upper
+
     assert math.isclose(clopper_pearson_upper(0, 160), 0.0185, abs_tol=5e-4)
     assert math.isclose(clopper_pearson_upper(3, 160), 0.0477, abs_tol=5e-4)
     assert math.isclose(clopper_pearson_upper(4, 160), 0.0563, abs_tol=5e-4)
     # k=0 case must agree with the closed form 1 - alpha^(1/n)
-    assert math.isclose(clopper_pearson_upper(0, 18), zero_event_upper_bound(18), rel_tol=1e-6)
-    assert math.isclose(clopper_pearson_upper(0, 300), zero_event_upper_bound(300), rel_tol=1e-6)
+    assert math.isclose(
+        clopper_pearson_upper(0, 18), zero_event_upper_bound(18), rel_tol=1e-6
+    )
+    assert math.isclose(
+        clopper_pearson_upper(0, 300), zero_event_upper_bound(300), rel_tol=1e-6
+    )
     # monotone in k
     assert clopper_pearson_upper(2, 160) < clopper_pearson_upper(3, 160)
 

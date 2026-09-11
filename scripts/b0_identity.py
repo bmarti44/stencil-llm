@@ -8,6 +8,7 @@ equal on every fixture; top-1 equal on every fixture; finite logits;
 max_abs_error <= 0.5. v2 (checkpoint-ii FINDING-2/4): drift is now
 measured over the FULL vocabulary (was a 2000-logit slice).
 """
+
 import hashlib
 import json
 import subprocess
@@ -57,28 +58,56 @@ print(json.dumps(out))
 def main():
     hf = ROOT / "models" / "qwen3-1.7b-hf"
     rec = {"revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e", "hashes": {}}
-    for f in ["config.json", "tokenizer.json", "tokenizer_config.json",
-              "model.safetensors.index.json", "model-00001-of-00002.safetensors",
-              "model-00002-of-00002.safetensors"]:
+    for f in [
+        "config.json",
+        "tokenizer.json",
+        "tokenizer_config.json",
+        "model.safetensors.index.json",
+        "model-00001-of-00002.safetensors",
+        "model-00002-of-00002.safetensors",
+    ]:
         fp = hf / f
         if fp.exists():
             rec["hashes"][f] = hashlib.sha256(fp.read_bytes()).hexdigest()
-    rec["hashes"]["qwen3-1.7b.pt"] = hashlib.sha256((ROOT / "models" / "qwen3-1.7b.pt").read_bytes()).hexdigest()
+    rec["hashes"]["qwen3-1.7b.pt"] = hashlib.sha256(
+        (ROOT / "models" / "qwen3-1.7b.pt").read_bytes()
+    ).hexdigest()
 
-    scratch = Path("/tmp/claude-1000/-home-bmarti44-stencil-llm/a88136df-3902-46b9-a661-86e0dc1bb53f/scratchpad")
+    scratch = Path(
+        "/tmp/claude-1000/-home-bmarti44-stencil-llm/a88136df-3902-46b9-a661-86e0dc1bb53f/scratchpad"
+    )
     (scratch / "b0_oracle.py").write_text(ORACLE)
-    r = subprocess.run(["uv", "run", "--isolated", "--no-project", "--with", "transformers==4.51.0",
-                        "--with", "accelerate", "--with", "numpy",
-                        "python", str(scratch / "b0_oracle.py"),
-                        str(hf), json.dumps(FIXTURES), str(scratch)],
-                       capture_output=True, text=True, timeout=1200)
+    r = subprocess.run(
+        [
+            "uv",
+            "run",
+            "--isolated",
+            "--no-project",
+            "--with",
+            "transformers==4.51.0",
+            "--with",
+            "accelerate",
+            "--with",
+            "numpy",
+            "python",
+            str(scratch / "b0_oracle.py"),
+            str(hf),
+            json.dumps(FIXTURES),
+            str(scratch),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=1200,
+    )
     if r.returncode != 0:
         sys.exit(f"oracle failed: {r.stderr[-800:]}")
     oracle = json.loads(r.stdout.strip().split("\n")[-1])
 
     tok = Tokenizer.from_file(str(hf / "tokenizer.json"))
     m = Qwen3()
-    m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+    m.load_state_dict(
+        torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+    )
     m = m.to(torch.bfloat16).cuda().eval()
     checks = []
     worst = 0.0
@@ -91,22 +120,45 @@ def main():
             logits = m(torch.tensor([ids], device="cuda"))[0, -1].float().cpu()
         top1_ok = int(logits.argmax()) == o["top1"]
         import numpy as np
+
         oracle_logits = torch.from_numpy(np.load(scratch / f"oracle_logits_{fi}.npy"))
         err = float((logits - oracle_logits).abs().max())
         worst = max(worst, err)
         finite = bool(torch.isfinite(logits).all())
-        checks.append({"template_ok": template_ok, "ids_ok": ids_ok,
-                       "top1_ok": top1_ok, "max_abs_err_full_vocab": round(err, 4), "finite": finite})
+        checks.append(
+            {
+                "template_ok": template_ok,
+                "ids_ok": ids_ok,
+                "top1_ok": top1_ok,
+                "max_abs_err_full_vocab": round(err, 4),
+                "finite": finite,
+            }
+        )
     rec["checks"] = checks
     rec["worst_err_full_vocab"] = round(worst, 4)
-    rec["scope_note"] = ("identity by hashes; template/ids bitwise; top-1 full-vocab equal on all "
-                         "fixtures; the registered 0.5 magnitude gate is graded separately and its "
-                         "outcome recorded honestly (a threshold grades magnitude, not existence)")
+    rec["scope_note"] = (
+        "identity by hashes; template/ids bitwise; top-1 full-vocab equal on all "
+        "fixtures; the registered 0.5 magnitude gate is graded separately and its "
+        "outcome recorded honestly (a threshold grades magnitude, not existence)"
+    )
     rec["magnitude_gate_0p5"] = bool(worst <= 0.5)
-    rec["PASS_behavioral"] = all(c["template_ok"] and c["ids_ok"] and c["top1_ok"] and c["finite"] for c in checks)
+    rec["PASS_behavioral"] = all(
+        c["template_ok"] and c["ids_ok"] and c["top1_ok"] and c["finite"]
+        for c in checks
+    )
     print(json.dumps(rec["checks"], indent=1), flush=True)
-    print("worst_err_full_vocab", rec["worst_err_full_vocab"], "behavioral", rec["PASS_behavioral"], "magnitude_gate", rec["magnitude_gate_0p5"], flush=True)
-    (ROOT / "results" / "qwen" / "b0-identity.json").write_text(json.dumps(rec, indent=1))
+    print(
+        "worst_err_full_vocab",
+        rec["worst_err_full_vocab"],
+        "behavioral",
+        rec["PASS_behavioral"],
+        "magnitude_gate",
+        rec["magnitude_gate_0p5"],
+        flush=True,
+    )
+    (ROOT / "results" / "qwen" / "b0-identity.json").write_text(
+        json.dumps(rec, indent=1)
+    )
 
 
 if __name__ == "__main__":

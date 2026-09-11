@@ -3,6 +3,7 @@
 to encode at all? Feed the trained controller full vs rule-only embeddings and
 ridge-probe answer identity per slot at query positions. Near family (no
 updates, short distances) so encoding, not memory span, is what's tested."""
+
 import sys
 
 import torch
@@ -17,7 +18,9 @@ RULE_SPAN = 16  # rule statements are ~14 tokens; mask a fixed window
 m = GatedGPT2("osc", window=64, seed_init=0, lora_rank=8)
 sd = torch.load("/home/bmarti44/stencil-llm/models/gpt2-small.pt", map_location="cpu")
 m.load_state_dict(sd, strict=False)
-ck = torch.load("/home/bmarti44/stencil-llm/results/gpt2/osc-v3-s0-ckpt.pt", map_location="cpu")
+ck = torch.load(
+    "/home/bmarti44/stencil-llm/results/gpt2/osc-v3-s0-ckpt.pt", map_location="cpu"
+)
 m.load_state_dict(ck["pathway"], strict=False)
 m = m.to(DEV).eval()
 print("controller from osc-v3 ckpt step", ck["step"])
@@ -41,7 +44,9 @@ def collect(masked: bool) -> tuple[dict, dict]:
                     keep[p0 : p0 + RULE_SPAN] = 1.0
                 emb = emb * keep[None, :, None]
             code = m._norm(m.controller(emb))
-            for p, s, ans in zip(seq.query_positions, seq.query_slots, seq.active_answer, strict=True):
+            for p, s, ans in zip(
+                seq.query_positions, seq.query_slots, seq.active_answer, strict=True
+            ):
                 xs[s].append(code[0, p].float().cpu())
                 ys[s].append(ANSWER_WORDS.index(ans))
     return xs, ys

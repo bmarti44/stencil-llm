@@ -43,9 +43,7 @@ def _projects():
                 f"SECRET_MANUAL_RECAP_{project_index}_{round_index}"
             )
             for rule in private_round["oracle"]["effective_rules"]:
-                rule["text"] += (
-                    f" SECRET_PRIVATE_ORACLE_{project_index}_{round_index}"
-                )
+                rule["text"] += f" SECRET_PRIVATE_ORACLE_{project_index}_{round_index}"
         cpu.validate_document(document)
         projects.append(document)
     return projects
@@ -217,10 +215,7 @@ def _run(tmp_path, projects, worker_actions, *, selector_actions=None, **kwargs)
 
 
 def _wrong_source(symbol):
-    return (
-        f"def {symbol}(value):\n"
-        '    return {"label": "wrong", "value": 999}\n'
-    )
+    return f'def {symbol}(value):\n    return {{"label": "wrong", "value": 999}}\n'
 
 
 def test_actual_loop_keeps_selector_source_only_and_focus_ephemeral(tmp_path):
@@ -277,10 +272,13 @@ def test_actual_loop_keeps_selector_source_only_and_focus_ephemeral(tmp_path):
     assert retry[-1]["content"].count("<current_generated_focus>") == 1
     assert all("reasoning" not in message for message in retry)
     round_two = worker_payloads[2]["messages"]
-    assert sum(
-        "<current_generated_focus>" in (message.get("content") or "")
-        for message in round_two
-    ) == 1
+    assert (
+        sum(
+            "<current_generated_focus>" in (message.get("content") or "")
+            for message in round_two
+        )
+        == 1
+    )
     rendered = round_two[-1]["content"]
     assert "Keep  two spaces\nand a newline." in rendered
     assert "Preserve the current convention." in rendered
@@ -288,8 +286,7 @@ def test_actual_loop_keeps_selector_source_only_and_focus_ephemeral(tmp_path):
         "Preserve the current convention."
     )
     assert any(
-        json.loads(message["tool_calls"][0]["function"]["arguments"])["source"]
-        == wrong
+        json.loads(message["tool_calls"][0]["function"]["arguments"])["source"] == wrong
         for message in round_two
         if message.get("tool_calls")
     )
@@ -299,9 +296,7 @@ def test_actual_loop_keeps_selector_source_only_and_focus_ephemeral(tmp_path):
         assert "SECRET_PRIVATE_ORACLE" not in body
         assert "private-obligation" not in body
 
-    first_record = json.loads(
-        (tmp_path / "run/requests/request-0000.json").read_text()
-    )
+    first_record = json.loads((tmp_path / "run/requests/request-0000.json").read_text())
     assert len(first_record["worker_attempts"]) == 2
     assert first_record["worker_attempts"][0]["all_public_passed"] is False
     assert first_record["worker_attempts"][1]["all_public_passed"] is True
@@ -316,11 +311,7 @@ def test_two_attempt_limit_keeps_failure_and_continues_later_requests(tmp_path):
     worker_actions = [
         {"source": _wrong_source("alpha")},
         {"source": _wrong_source("alpha")},
-        *(
-            {"source": source}
-            for source in references[1:]
-            for _attempt in range(2)
-        ),
+        *({"source": source} for source in references[1:] for _attempt in range(2)),
     ]
 
     result, _factory = _run(tmp_path, projects, worker_actions)
@@ -336,9 +327,7 @@ def test_two_attempt_limit_keeps_failure_and_continues_later_requests(tmp_path):
 
 
 @pytest.mark.parametrize("failure_kind", ["selector", "worker"])
-def test_technical_failure_aborts_with_full_planned_denominator(
-    tmp_path, failure_kind
-):
+def test_technical_failure_aborts_with_full_planned_denominator(tmp_path, failure_kind):
     projects = _projects()
     selectors = _focus_actions(projects)
     workers = [{"source": source} for source in _reference_sources(projects)]
@@ -536,9 +525,7 @@ def test_preview_and_absolute_cli_are_cpu_only_and_bind_references(tmp_path):
     assert result["documents"] == 2
     assert result["preflight"]["status"] == "PASS"
     assert len(result["preflight"]["projects"]) == 2
-    assert all(
-        item["status"] == "PASS" for item in result["preflight"]["projects"]
-    )
+    assert all(item["status"] == "PASS" for item in result["preflight"]["projects"])
     assert len(result["selector_cold_requests"]) == 6
     assert len(result["reference_actions"]) == 12
     assert {item["kind"] for item in result["reference_actions"]} == {

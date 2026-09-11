@@ -69,9 +69,7 @@ REPLACE_FUNCTION_TOOL = {
         "description": "Replace the authenticated current target function.",
         "parameters": {
             "type": "object",
-            "properties": {
-                "source": {"type": "string"}
-            },
+            "properties": {"source": {"type": "string"}},
             "required": ["source"],
             "additionalProperties": False,
         },
@@ -315,9 +313,7 @@ def validate_document(document):
         zip(public_rounds, private_rounds, strict=True)
     ):
         cpu._require_keys(public_round, PUBLIC_ROUND_KEYS, f"public.rounds[{index}]")
-        cpu._require_keys(
-            private_round, PRIVATE_ROUND_KEYS, f"private.rounds[{index}]"
-        )
+        cpu._require_keys(private_round, PRIVATE_ROUND_KEYS, f"private.rounds[{index}]")
         if public_round["index"] != index or type(public_round["index"]) is not int:
             raise ValidationError(f"public.rounds[{index}].index must equal {index}")
         if private_round["index"] != index or type(private_round["index"]) is not int:
@@ -518,9 +514,7 @@ def validate_document(document):
                 active_functional_ids if kind == "functional" else obligation_ids
             )
             if not failing_ids & discriminator_ids:
-                raise ValidationError(
-                    f"{clabel} lacks a {kind} private discriminator"
-                )
+                raise ValidationError(f"{clabel} lacks a {kind} private discriminator")
         if set(by_kind) != {"functional", "obligation"}:
             raise ValidationError(
                 f"private.{label} needs functional and obligation controls"
@@ -630,15 +624,11 @@ def _audit_control(document, before, round_index, control):
     )
     groups = active_check_sets(document, round_index)
     results = {
-        name: _run_check_group(
-            applied.module, public["episode_id"], checks
-        )
+        name: _run_check_group(applied.module, public["episode_id"], checks)
         for name, checks in groups.items()
     }
     by_id = {
-        result["check_id"]: result
-        for group in results.values()
-        for result in group
+        result["check_id"]: result for group in results.values() for result in group
     }
     named_failed = all(
         check_id in by_id and not by_id[check_id]["passed"]

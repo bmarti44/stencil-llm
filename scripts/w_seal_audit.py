@@ -6,6 +6,7 @@ hash prefixes before any new statistic is emitted. Emits: full-length
 sha256 per work, per-work paired parse/exec records, and per-type
 (incl. comment-class) adherence per arm.
 """
+
 import hashlib
 import json
 import sys
@@ -27,18 +28,31 @@ def main():
     sealed = json.loads((ROOT / "results" / "qwen" / "w-seal.json").read_text())
     tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
     m = Qwen3()
-    m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+    m.load_state_dict(
+        torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+    )
     m = m.to(torch.bfloat16).cuda().eval()
     ctrls = {}
     for name in ("wave", "proxy"):
         c = WaveController().cuda()
-        c.load_state_dict(torch.load(ROOT / "results" / "qwen" / f"w0-{'ce' if name == 'wave' else 'proxy'}.pt", map_location="cpu"))
+        c.load_state_dict(
+            torch.load(
+                ROOT
+                / "results"
+                / "qwen"
+                / f"w0-{'ce' if name == 'wave' else 'proxy'}.pt",
+                map_location="cpu",
+            )
+        )
         ctrls[name] = c.eval()
 
     arms = ["base", "wave", "proxy", "oracle", "reinsertion"]
     mismatches = 0
-    out = {"paired": {a: {} for a in arms}, "hashes_full": {a: {} for a in arms},
-           "per_type": {a: {} for a in arms}}
+    out = {
+        "paired": {a: {} for a in arms},
+        "hashes_full": {a: {} for a in arms},
+        "per_type": {a: {} for a in arms},
+    }
     for k, seed in enumerate(S.SEEDS):
         sess = generate_t2(seed, 20, S.SPLIT, interference="s0")
         for arm in arms:
@@ -56,9 +70,13 @@ def main():
                 out["paired"][arm][key] = {"parse": r.parse, "exec": r.exec_ok}
                 for o in sess.opportunities:
                     if o.turn == r.turn and o.cell == "active":
-                        d = out["per_type"][arm].setdefault(o.moment_class, {"adh": 0, "n": 0})
+                        d = out["per_type"][arm].setdefault(
+                            o.moment_class, {"adh": 0, "n": 0}
+                        )
                         d["n"] += 1
-                        d["adh"] += bool(r.per_opportunity.get(o.opportunity_id, {}).get("adherent"))
+                        d["adh"] += bool(
+                            r.per_opportunity.get(o.opportunity_id, {}).get("adherent")
+                        )
         if k % 12 == 0:
             print(f"  {k}/96 sessions, mismatches {mismatches}", flush=True)
     out["hash_mismatches"] = mismatches
@@ -67,7 +85,10 @@ def main():
         for ty, d in out["per_type"][a].items():
             d["adherence"] = round(d["adh"] / max(1, d["n"]), 4)
     (ROOT / "results" / "qwen" / "w-seal-audit.json").write_text(json.dumps(out))
-    print(f"REPRODUCTION {'EXACT' if mismatches == 0 else f'MISMATCH x{mismatches}'}", flush=True)
+    print(
+        f"REPRODUCTION {'EXACT' if mismatches == 0 else f'MISMATCH x{mismatches}'}",
+        flush=True,
+    )
     print("per-type (wave):", json.dumps(out["per_type"]["wave"]), flush=True)
     print("saved results/qwen/w-seal-audit.json", flush=True)
 

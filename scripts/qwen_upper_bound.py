@@ -1,6 +1,7 @@
 # ruff: noqa: E501
 """P0 admission: with the task state fully VISIBLE, frozen Qwen3-1.7B must
 answer >=80% exact-match (greedy). Else the benchmark tests model incapacity."""
+
 import sys
 from pathlib import Path
 
@@ -17,13 +18,16 @@ def load_tok():
     sys.path.insert(0, str(ROOT / "src"))
     # minimal: reuse HF tokenizer via tokenizers package if present, else worker
     from tokenizers import Tokenizer
+
     return Tokenizer.from_file(str(tok_cfg / "tokenizer.json"))
 
 
 def main() -> None:
     tok = load_tok()
     m = Qwen3()
-    m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=False)
+    m.load_state_dict(
+        torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=False
+    )
     m = m.to(torch.bfloat16).cuda().eval()
     hits = 0
     n = 32
@@ -41,8 +45,11 @@ def main() -> None:
             first_line = text.strip().split("\n")[0].strip().rstrip(".")
             ok = first_line == s.value
             hits += ok
-            print(f"ex {i}: {'HIT' if ok else 'miss'} ({s.field} -> {s.value})", flush=True)
-    print(f"VISIBLE-TASK UPPER BOUND: {hits}/{n} = {hits/n:.2f} (gate >= 0.80)")
+            print(
+                f"ex {i}: {'HIT' if ok else 'miss'} ({s.field} -> {s.value})",
+                flush=True,
+            )
+    print(f"VISIBLE-TASK UPPER BOUND: {hits}/{n} = {hits / n:.2f} (gate >= 0.80)")
 
 
 if __name__ == "__main__":

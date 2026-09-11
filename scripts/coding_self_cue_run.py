@@ -554,9 +554,7 @@ def run(
     documents, input_receipts = cpu.load_inputs(input_paths)
     if len(documents) != EXPECTED_EPISODES:
         raise ValueError("worker runner requires exactly four DEV episodes")
-    if not (
-        callable(decoder) and callable(token_counter) and callable(check_runner)
-    ):
+    if not (callable(decoder) and callable(token_counter) and callable(check_runner)):
         raise TypeError("decoder, token counter, and check runner must be callable")
     if hasattr(decoder, "max_tokens") and decoder.max_tokens != MAX_OUTPUT_TOKENS:
         raise ValueError("coding screen requires decoder max_tokens=768")
@@ -770,7 +768,8 @@ def run(
                     row = {
                         key: value
                         for key, value in turn_record.items()
-                        if key not in {
+                        if key
+                        not in {
                             "pre_module",
                             "post_module",
                             "canonical_history_before",

@@ -261,9 +261,7 @@ def test_dirty_or_untracked_bound_file_is_rejected():
         return result
 
     with pytest.raises(RuntimeError, match="dirty or untracked"):
-        launcher._tracked_clean(
-            "scripts/coding_competence_run.py", command=command
-        )
+        launcher._tracked_clean("scripts/coding_competence_run.py", command=command)
 
 
 def test_changed_current_trunk_receipt_is_rejected(tmp_path):
@@ -352,6 +350,7 @@ def test_remaining_deadline_and_driver_status_are_preserved(tmp_path):
     def clock():
         last_time[0] = next(times, last_time[0])
         return last_time[0]
+
     starts = []
 
     def start(command, **kwargs):

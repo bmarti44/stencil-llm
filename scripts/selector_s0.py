@@ -1,6 +1,7 @@
 # ruff: noqa
 """S0 admission: base Qwen on the governance/interference task.
 Gate: accuracy in 40-80% with selection-shaped errors (stale echoes)."""
+
 import sys
 from pathlib import Path
 
@@ -15,7 +16,9 @@ from stencil.qwen_task import generate_governance
 
 tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
 m = Qwen3()
-m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+m.load_state_dict(
+    torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+)
 m = m.to(torch.bfloat16).cuda().eval()
 
 n = 64
@@ -38,5 +41,7 @@ with torch.no_grad():
             other += 1
             if other <= 3:
                 print(f"  other-error ex{i}: want {s.value!r} got {gen!r}")
-print(f"S0 BASE: correct {hits}/{n} = {hits/n:.2f} | stale-echo {stale_echo} | other {other}")
-print(f"gate: 0.40 <= acc <= 0.80 -> {'PASS' if 0.40 <= hits/n <= 0.80 else 'MISS'}")
+print(
+    f"S0 BASE: correct {hits}/{n} = {hits / n:.2f} | stale-echo {stale_echo} | other {other}"
+)
+print(f"gate: 0.40 <= acc <= 0.80 -> {'PASS' if 0.40 <= hits / n <= 0.80 else 'MISS'}")

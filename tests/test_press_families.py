@@ -6,6 +6,7 @@ Synthetic event: qk = [5.0, 3.0, 1.0], cos = [0.9, 0.8, 0.1],
 candidates: 0 = live prefix 'calc', 1 = distractor prefix 'util',
 2 = live hint 'int'. pred_type = 'prefix'.
 """
+
 import math
 
 from stencil.press_families import FAMILIES, evaluate_event
@@ -25,7 +26,14 @@ EVENT = {
 
 
 def test_family_names_registered():
-    assert set(FAMILIES) == {"raw_max", "top1_top2", "top1_logsumexp", "cos_max", "live_minus_best", "structured"}
+    assert set(FAMILIES) == {
+        "raw_max",
+        "top1_top2",
+        "top1_logsumexp",
+        "cos_max",
+        "live_minus_best",
+        "structured",
+    }
 
 
 def test_raw_max():
@@ -81,7 +89,9 @@ def test_margin_families_abstain_on_singleton():
     guaranteed a false press on single-lookalike inactive fixtures. The
     registered semantic is conservative abstention: no comparison
     candidate -> -inf (never press)."""
-    ev = dict(EVENT, candidates=[EVENT["candidates"][0]], qk_scores=[5.0], cos_scores=[0.9])
+    ev = dict(
+        EVENT, candidates=[EVENT["candidates"][0]], qk_scores=[5.0], cos_scores=[0.9]
+    )
     for fam in ("top1_top2", "top1_logsumexp"):
         s, j = evaluate_event(fam, ev)
         assert s == float("-inf") and j is None
@@ -97,14 +107,21 @@ def test_counterfeit_hard_negative():
     """G0 registered construction: strip live same-type candidates from an
     active event -> what a conflicting-note-at-inactive-moment looks like."""
     from stencil.press_families import counterfeit_hard_negative
+
     hn = counterfeit_hard_negative(EVENT)
     assert hn is not None
-    assert all(not (c["source"] == "live" and c["type"] == "prefix") for c in hn["candidates"])
+    assert all(
+        not (c["source"] == "live" and c["type"] == "prefix") for c in hn["candidates"]
+    )
     assert hn["cell"] == "counterfeit"
     assert len(hn["candidates"]) == 2 and len(hn["qk_scores"]) == 2
     # event with no same-type lookalike yields no counterfeit
-    ev = dict(EVENT, candidates=[EVENT["candidates"][0], EVENT["candidates"][2]],
-              qk_scores=[5.0, 1.0], cos_scores=[0.9, 0.1])
+    ev = dict(
+        EVENT,
+        candidates=[EVENT["candidates"][0], EVENT["candidates"][2]],
+        qk_scores=[5.0, 1.0],
+        cos_scores=[0.9, 0.1],
+    )
     assert counterfeit_hard_negative(ev) is None
 
 

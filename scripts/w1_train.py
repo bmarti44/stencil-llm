@@ -8,6 +8,7 @@ field. Loss per v3: CE over canonical tokens through the trunk + L1
 gain (ce) | timing BCE + span CE on the same rows (proxy). Adam(1e-3),
 20 epochs, 40 train seeds, shuffle seed 0, final checkpoint.
 """
+
 import os
 import sys
 from pathlib import Path
@@ -32,7 +33,9 @@ LAM = 0.01
 
 tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
 m = Qwen3()
-m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+m.load_state_dict(
+    torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+)
 m = m.to(torch.bfloat16).cuda().eval()
 for p in m.parameters():
     p.requires_grad_(False)
@@ -40,7 +43,9 @@ for p in m.parameters():
 
 def work_pack(sess, wt):
     ptxt = prompt_at(sess, wt, "dev").replace(
-        "[checker] (deterministic feedback on the previous submission is inserted here at run time)", NEUTRAL)
+        "[checker] (deterministic feedback on the previous submission is inserted here at run time)",
+        NEUTRAL,
+    )
     enc = tok.encode(ptxt)
     P = len(enc.ids)
     code_ids = tok.encode(canonical_code(sess, wt)).ids
@@ -65,7 +70,7 @@ def session_loss(wave, sess, s0=None):
         with torch.no_grad():
             h = m(full, return_hidden=20)[0].float()
         K = h[:P].detach()
-        H = h[P - 1:T - 1].detach()
+        H = h[P - 1 : T - 1].detach()
         G = H.shape[0]
         field_rows, gains, gain_logits, e_rows = [], [], [], []
         for i in range(G):
@@ -86,16 +91,27 @@ def session_loss(wave, sess, s0=None):
             for i, span in rows:
                 pos[i] = 1.0
                 tgt = torch.zeros(P, device="cuda")
-                tgt[span[0]:span[1]] = 1.0 / (span[1] - span[0])
-                span_loss = span_loss + torch.sum(-tgt * F.log_softmax(e_rows[i], dim=-1))
+                tgt[span[0] : span[1]] = 1.0 / (span[1] - span[0])
+                span_loss = span_loss + torch.sum(
+                    -tgt * F.log_softmax(e_rows[i], dim=-1)
+                )
                 n_pos += 1
-            total = total + F.binary_cross_entropy_with_logits(
-                torch.stack(gain_logits), pos, reduction="mean") + span_loss / max(1, n_pos)
+            total = (
+                total
+                + F.binary_cross_entropy_with_logits(
+                    torch.stack(gain_logits), pos, reduction="mean"
+                )
+                + span_loss / max(1, n_pos)
+            )
         else:
             bias = torch.zeros(T, T, device="cuda")
-            bias[P - 1:T - 1, :P] = field
+            bias[P - 1 : T - 1, :P] = field
             logits = m(full, attn_bias={L: bias for L in LAYERS})[0].float()
-            total = total + F.cross_entropy(logits[P - 1:T - 1], full[0, P:]) + LAM * torch.stack(gains).sum()
+            total = (
+                total
+                + F.cross_entropy(logits[P - 1 : T - 1], full[0, P:])
+                + LAM * torch.stack(gains).sum()
+            )
         s = s.detach()  # registered: detach across work turns
     return total
 
@@ -110,7 +126,9 @@ def main():
         for j in perm.tolist():
             sess = generate_t2(TRAIN[j], 20, "dev", interference="s0")
             loss = session_loss(wave, sess)
-            opt.zero_grad(); loss.backward(); opt.step()
+            opt.zero_grad()
+            loss.backward()
+            opt.step()
         print(f"epoch {ep} done", flush=True)
     name = f"w1-{OBJ}.pt"
     torch.save(wave.state_dict(), ROOT / "results" / "qwen" / name)

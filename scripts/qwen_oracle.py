@@ -6,6 +6,7 @@ additive residual injections at blocks 24-27; can ANY code make frozen Qwen
 generate the held-out multi-token value? Gate: >=6/8 rank-1 first token and
 >=50% exact teacher-forced continuation.
 """
+
 import sys
 from pathlib import Path
 
@@ -23,7 +24,9 @@ INJ_LAYERS = (24, 25, 26, 27)
 
 tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
 m = Qwen3()
-m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=False)
+m.load_state_dict(
+    torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=False
+)
 m = m.to(torch.bfloat16).cuda().eval()
 for p in m.parameters():
     p.requires_grad_(False)
@@ -34,10 +37,13 @@ for i in range(8):
     ids_q = tok.encode(s.query_text).ids
     ids_full = tok.encode(s.query_text + " " + s.value + ".").ids
     assert ids_full[: len(ids_q)] == ids_q, "tokenization prefix mismatch"
-    want = ids_full[len(ids_q):]
+    want = ids_full[len(ids_q) :]
     toks = torch.tensor([ids_full], device="cuda")
     T = toks.shape[1]
-    inj = {L: torch.zeros(1, T, 2048, device="cuda", requires_grad=True) for L in INJ_LAYERS}
+    inj = {
+        L: torch.zeros(1, T, 2048, device="cuda", requires_grad=True)
+        for L in INJ_LAYERS
+    }
     opt = torch.optim.Adam(list(inj.values()), lr=0.05)
     tgt = torch.tensor(want, device="cuda")
     span = slice(len(ids_q) - 1, len(ids_full) - 1)
@@ -55,7 +61,12 @@ for i in range(8):
     tried += 1
     first_hits += first_ok
     cont_hits += cont_ok
-    print(f"ex {i}: first {'OK' if first_ok else 'X'} cont {'OK' if cont_ok else 'X'} "
-          f"final ce {float(loss):.3f} value {s.value!r}", flush=True)
-print(f"OPEN-CONTENT ORACLE: first-token {first_hits}/{tried} (gate >=6/8), "
-      f"exact continuation {cont_hits}/{tried} (gate >=4/8)")
+    print(
+        f"ex {i}: first {'OK' if first_ok else 'X'} cont {'OK' if cont_ok else 'X'} "
+        f"final ce {float(loss):.3f} value {s.value!r}",
+        flush=True,
+    )
+print(
+    f"OPEN-CONTENT ORACLE: first-token {first_hits}/{tried} (gate >=6/8), "
+    f"exact continuation {cont_hits}/{tried} (gate >=4/8)"
+)

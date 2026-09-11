@@ -3,6 +3,7 @@
 the bakeoff per v3.1). Checks the frozen step contract
 (z_pre = transition(z_prev, D); score from z_pre; write after), state
 dims, score-before-write separation, and the oscillator's D-dependence."""
+
 import torch
 
 from stencil.t2_state import CONTROLLERS, make_controller
@@ -35,9 +36,13 @@ def test_score_uses_pre_update_state():
     aug1 = c.score_aug(z_pre)
     z_next = c.write(z_pre, h20, type_idx=1)
     aug2 = c.score_aug(z_pre)
-    assert torch.equal(aug1[0], aug2[0]) and torch.equal(aug1[1], aug2[1])  # write mutated nothing scored
+    assert torch.equal(aug1[0], aug2[0]) and torch.equal(
+        aug1[1], aug2[1]
+    )  # write mutated nothing scored
     assert not torch.equal(z_next, z_pre)  # write actually writes (fired type)
-    assert torch.equal(z_next[0], z_pre[0]) and torch.equal(z_next[2], z_pre[2])  # only type 1 written
+    assert torch.equal(z_next[0], z_pre[0]) and torch.equal(
+        z_next[2], z_pre[2]
+    )  # only type 1 written
 
 
 def test_oscillator_phase_depends_on_D():

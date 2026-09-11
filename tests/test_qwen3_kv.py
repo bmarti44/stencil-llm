@@ -24,6 +24,7 @@ Amended acceptance (conservative reading, flagged for review):
 
 GPU required (bf16 trunk).
 """
+
 import pytest
 import torch
 
@@ -37,10 +38,13 @@ def setup():
     from tokenizers import Tokenizer
 
     from stencil.qwen3 import Qwen3
+
     root = Path(__file__).resolve().parent.parent
     tok = Tokenizer.from_file(str(root / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
     m = Qwen3()
-    m.load_state_dict(torch.load(root / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+    m.load_state_dict(
+        torch.load(root / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+    )
     return m.to(torch.bfloat16).cuda().eval(), tok
 
 
@@ -57,6 +61,7 @@ def cached_greedy(m, ids, bias_rows=None, capture=None):
     """the deployment path: prefill once (bias_rows[0] on the prompt's
     last row), then one cached step per token."""
     from stencil.qwen3 import KVCache
+
     P = len(ids)
     cache = KVCache()
     out, hs = [], []
@@ -66,8 +71,13 @@ def cached_greedy(m, ids, bias_rows=None, capture=None):
             b = torch.zeros(P, P, device="cuda")
             b[-1, :P] = bias_rows[0]
             ab = {L: b for L in range(20, 28)}
-        r = m(torch.tensor([ids], device="cuda"), cache=cache, attn_bias=ab, capture_hidden=capture)
-        logits, h = (r if capture is not None else (r, None))
+        r = m(
+            torch.tensor([ids], device="cuda"),
+            cache=cache,
+            attn_bias=ab,
+            capture_hidden=capture,
+        )
+        logits, h = r if capture is not None else (r, None)
         if capture is not None:
             hs.append(h[0, -1].float())
         out.append(int(logits[0, -1].argmax()))
@@ -77,9 +87,13 @@ def cached_greedy(m, ids, bias_rows=None, capture=None):
                 row = torch.zeros(1, cache.length + 1, device="cuda")
                 row[0, :P] = bias_rows[s]
                 ab = {L: row for L in range(20, 28)}
-            r = m(torch.tensor([[out[-1]]], device="cuda"), cache=cache,
-                  attn_bias=ab, capture_hidden=capture)
-            logits, h = (r if capture is not None else (r, None))
+            r = m(
+                torch.tensor([[out[-1]]], device="cuda"),
+                cache=cache,
+                attn_bias=ab,
+                capture_hidden=capture,
+            )
+            logits, h = r if capture is not None else (r, None)
             if capture is not None:
                 hs.append(h[0, -1].float())
             out.append(int(logits[0, -1].argmax()))
@@ -92,6 +106,7 @@ def full_path_drift(m, ids, bias_rows=None):
     (per-step max abs logit diff, per-step full-path top1-top2 margin,
     per-step top-1 agreement)."""
     from stencil.qwen3 import KVCache
+
     P = len(ids)
     toks = torch.tensor([ids], device="cuda")
     cache = KVCache()
@@ -123,7 +138,9 @@ def full_path_drift(m, ids, bias_rows=None):
                 row[0, :P] = bias_rows[s + 1]
                 abc = {L: row for L in range(20, 28)}
             lf = m(toks, attn_bias=ab)[0, -1].float()
-            lc = m(torch.tensor([[nxt]], device="cuda"), cache=cache, attn_bias=abc)[0, -1].float()
+            lc = m(torch.tensor([[nxt]], device="cuda"), cache=cache, attn_bias=abc)[
+                0, -1
+            ].float()
     return diffs, margins, agree
 
 

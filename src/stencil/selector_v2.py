@@ -117,9 +117,10 @@ class ClassifierScorer:
                 chunk = list(texts[start : start + 64])
                 chunk_contexts = list(contexts[start : start + 64])
                 for context, value in zip(chunk_contexts, chunk, strict=True):
-                    if scoring_pair_token_count(
-                        self.tokenizer, context, value, role
-                    ) > 192:
+                    if (
+                        scoring_pair_token_count(self.tokenizer, context, value, role)
+                        > 192
+                    ):
                         self.scorer_truncated_candidates += 1
                 batch = self.tokenizer(
                     [value if value else "(no context)" for value in chunk_contexts],

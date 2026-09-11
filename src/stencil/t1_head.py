@@ -8,6 +8,7 @@ from the pinned legacy selector. Decision rule: best candidate logit
 minus NULL logit, strictly positive presses; NULL wins exact ties;
 candidate ties resolve to the first index.
 """
+
 import math
 
 import torch
@@ -67,7 +68,7 @@ def margin_loss(logits, live_idx, margin: float = 0.1):
     null_l = logits[0]
     cands = logits[1:]
     if live_idx is not None:
-        others = torch.cat([cands[:live_idx], cands[live_idx + 1:]])
+        others = torch.cat([cands[:live_idx], cands[live_idx + 1 :]])
         rival = torch.max(null_l, others.max()) if others.shape[0] else null_l
         return F.relu(rival + margin - cands[live_idx])
     return F.relu(cands.max() + margin - null_l)

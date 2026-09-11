@@ -17,6 +17,7 @@ Selection reuses the existing WaveController's W_q/W_k; emphasis is the
 sustained uniform attention bias (ctrb.uniform_span_bias over layers
 20-27) that the E2/obligation-gate actuator validated.
 """
+
 from __future__ import annotations
 
 import re
@@ -27,13 +28,47 @@ from dataclasses import dataclass, field
 TEXT_LEDGER_HEADER = "Earlier user instructions restated verbatim:"
 # Documented fallback cues (used ONLY when stencil.salience is unavailable).
 HEURISTIC_CUES = (
-    "constraint:", "your response", "your answer", "your entire response",
-    "should ", "must ", "do not ", "don't ", "avoid ", "include ", "make sure",
-    "at least ", "at most ", "no more than", "less than ", "fewer than ", "exactly ",
-    "wrap ", "end with", "end your", "start with", "begin with", "finish with",
-    "highlight", "in all lowercase", "in all capital", "in english", "in markdown",
-    "use ", "answer with", "respond with", "written in", "the letter ", "the word ",
-    "paragraph", "bullet", "postscript", "p.s.", "title", "placeholder", "section",
+    "constraint:",
+    "your response",
+    "your answer",
+    "your entire response",
+    "should ",
+    "must ",
+    "do not ",
+    "don't ",
+    "avoid ",
+    "include ",
+    "make sure",
+    "at least ",
+    "at most ",
+    "no more than",
+    "less than ",
+    "fewer than ",
+    "exactly ",
+    "wrap ",
+    "end with",
+    "end your",
+    "start with",
+    "begin with",
+    "finish with",
+    "highlight",
+    "in all lowercase",
+    "in all capital",
+    "in english",
+    "in markdown",
+    "use ",
+    "answer with",
+    "respond with",
+    "written in",
+    "the letter ",
+    "the word ",
+    "paragraph",
+    "bullet",
+    "postscript",
+    "p.s.",
+    "title",
+    "placeholder",
+    "section",
 )
 
 
@@ -45,12 +80,20 @@ class Entry:
     turn_introduced: int
     status: str = "unknown"
     provenance: str = "salience"
-    instruction_ids: list[str] = field(default_factory=list)  # linkage (LEDGER-PLAN amendment)
+    instruction_ids: list[str] = field(
+        default_factory=list
+    )  # linkage (LEDGER-PLAN amendment)
 
     def to_record(self) -> dict:
-        return {"text": self.text, "span": list(self.span), "turn_introduced": self.turn_introduced,
-                "status": self.status, "provenance": self.provenance, "has_key": self.key is not None,
-                "instruction_ids": list(self.instruction_ids)}
+        return {
+            "text": self.text,
+            "span": list(self.span),
+            "turn_introduced": self.turn_introduced,
+            "status": self.status,
+            "provenance": self.provenance,
+            "has_key": self.key is not None,
+            "instruction_ids": list(self.instruction_ids),
+        }
 
 
 _SPLIT = re.compile(r"(?<=[.!?])\s+(?=\S)|(?<=[.!?][\"')\]])\s+(?=\S)")
@@ -104,7 +147,7 @@ SANITY_PROBE = (  # a classifier that cannot separate these is untrained/over-in
 class Salience:
     classify: Callable[[str], bool]
     segment: Callable[[str], list[tuple[int, int]]]  # char spans within a turn
-    provenance: str                                  # "salience" | "heuristic"
+    provenance: str  # "salience" | "heuristic"
     note: str = ""
 
 
@@ -116,22 +159,37 @@ def resolve_salience(salience: Callable[[str], bool] | None = None) -> Salience:
         return Salience(salience, segment_char_spans, "salience")
     try:
         import importlib
-        module = importlib.import_module("stencil.salience")  # lazy: component A may not exist yet
+
+        module = importlib.import_module(
+            "stencil.salience"
+        )  # lazy: component A may not exist yet
         fn = module.is_instruction
     except (ImportError, AttributeError) as exc:
-        return Salience(heuristic_is_instruction, segment_char_spans, "heuristic",
-                        f"stencil.salience unavailable ({exc.__class__.__name__})")
+        return Salience(
+            heuristic_is_instruction,
+            segment_char_spans,
+            "heuristic",
+            f"stencil.salience unavailable ({exc.__class__.__name__})",
+        )
     is_trained = getattr(module, "is_trained", None)
     if is_trained is not None and not is_trained():
-        return Salience(heuristic_is_instruction, segment_char_spans, "heuristic",
-                        "stencil.salience reports an untrained model")
+        return Salience(
+            heuristic_is_instruction,
+            segment_char_spans,
+            "heuristic",
+            "stencil.salience reports an untrained model",
+        )
     try:
         probe_ok = all(bool(fn(sentence)) == want for sentence, want in SANITY_PROBE)
     except RuntimeError:  # the module refuses to score with an untrained model
         probe_ok = False
     if not probe_ok:
-        return Salience(heuristic_is_instruction, segment_char_spans, "heuristic",
-                        "stencil.salience failed the sanity probe (untrained or over-inclusive)")
+        return Salience(
+            heuristic_is_instruction,
+            segment_char_spans,
+            "heuristic",
+            "stencil.salience failed the sanity probe (untrained or over-inclusive)",
+        )
     segment = getattr(module, "split_sentences", None) or segment_char_spans
     return Salience(fn, segment, "salience")
 
@@ -174,12 +232,25 @@ def build_ledger(tokenizer, context: str, model=None, salience=None) -> list[Ent
             if not sentence.strip() or not sal.classify(sentence):
                 continue
             s_abs, e_abs = cs + at, min(cs + end, ce)
-            toks = [i for i, (a, b) in enumerate(enc.offsets) if a < e_abs and b > s_abs and a >= cs and b <= ce]
+            toks = [
+                i
+                for i, (a, b) in enumerate(enc.offsets)
+                if a < e_abs and b > s_abs and a >= cs and b <= ce
+            ]
             if not toks:
                 continue
-            entries.append(Entry(sentence, (toks[0], toks[-1] + 1), None, turn, provenance=sal.provenance))
+            entries.append(
+                Entry(
+                    sentence,
+                    (toks[0], toks[-1] + 1),
+                    None,
+                    turn,
+                    provenance=sal.provenance,
+                )
+            )
     if model is not None and entries:
         import torch
+
         device = next(model.parameters()).device
         with torch.no_grad():
             _, h20 = model(torch.tensor([enc.ids], device=device), capture_hidden=20)
@@ -189,7 +260,9 @@ def build_ledger(tokenizer, context: str, model=None, salience=None) -> list[Ent
     return entries
 
 
-def instruction_origins(id_lists_by_turn: dict[int, Sequence[str]], current_turn: int) -> list[dict]:
+def instruction_origins(
+    id_lists_by_turn: dict[int, Sequence[str]], current_turn: int
+) -> list[dict]:
     """Multi-IF instruction_id_list is CUMULATIVE per turn (turn t = turn t-1's
     list + the ids introduced at t), so the origin turn of the constraint at
     position j is the first turn whose list reaches j.  Positional, so a
@@ -205,12 +278,21 @@ def instruction_origins(id_lists_by_turn: dict[int, Sequence[str]], current_turn
             raise ValueError(f"instruction lists are not cumulative at turn {t}")
         origin_of.extend([t] * (len(ids) - len(prev)))
         prev = ids
-    return [{"index": j, "id": iid, "origin_turn": origin_of[j], "aged": origin_of[j] < current_turn,
-             "entry_indices": []}
-            for j, iid in enumerate(prev)]
+    return [
+        {
+            "index": j,
+            "id": iid,
+            "origin_turn": origin_of[j],
+            "aged": origin_of[j] < current_turn,
+            "entry_indices": [],
+        }
+        for j, iid in enumerate(prev)
+    ]
 
 
-def link_entries(entries: Sequence[Entry], tokenizer, context: str, origins: Sequence[dict]) -> str:
+def link_entries(
+    entries: Sequence[Entry], tokenizer, context: str, origins: Sequence[dict]
+) -> str:
     """Record on each entry the instruction ids whose constraint it covers and
     on each origin the entry indices that cover it.  Uses
     ``e2.constraint_span_records`` (token-span overlap; the k-th marked
@@ -254,9 +336,13 @@ def link_entries(entries: Sequence[Entry], tokenizer, context: str, origins: Seq
     return "origin_turn"
 
 
-def matched_nonledger_control(*, total_len: int, selected: Sequence[tuple[int, int]],
-                              ledger_spans: Sequence[tuple[int, int]],
-                              user_turns: Sequence[tuple[int, int]]) -> tuple[list[tuple[int, int] | None], list[str]]:
+def matched_nonledger_control(
+    *,
+    total_len: int,
+    selected: Sequence[tuple[int, int]],
+    ledger_spans: Sequence[tuple[int, int]],
+    user_turns: Sequence[tuple[int, int]],
+) -> tuple[list[tuple[int, int] | None], list[str]]:
     """The specificity control (LEDGER-PLAN amendment): for each SELECTED span
     a window of the SAME width, disjoint from EVERY ledger entry (selected or
     not, aged or fresh) and from the other control windows, at the nearest
@@ -283,7 +369,7 @@ def matched_nonledger_control(*, total_len: int, selected: Sequence[tuple[int, i
     def free(a, b):
         return 0 <= a and b <= total_len and not any(blocked[a:b])
 
-    for (sa, sb) in selected:
+    for sa, sb in selected:
         w = sb - sa
         if w <= 0:
             raise ValueError("empty selected span")
@@ -295,8 +381,10 @@ def matched_nonledger_control(*, total_len: int, selected: Sequence[tuple[int, i
         )
         found = None
         for tier, regions in candidates:
-            starts = sorted({s for (ra, rb) in regions for s in range(ra, rb - w + 1)},
-                            key=lambda s: (abs(s - sa), s))
+            starts = sorted(
+                {s for (ra, rb) in regions for s in range(ra, rb - w + 1)},
+                key=lambda s: (abs(s - sa), s),
+            )
             for s in starts:
                 if free(s, s + w):
                     found = (tier, (s, s + w))
@@ -360,7 +448,9 @@ def text_ledger_context(context: str, entries: Sequence[Entry]) -> str:
 
 
 def context_tokens_added(tokenizer, base_context: str, arm_context: str) -> int:
-    return len(tokenizer.encode(arm_context).ids) - len(tokenizer.encode(base_context).ids)
+    return len(tokenizer.encode(arm_context).ids) - len(
+        tokenizer.encode(base_context).ids
+    )
 
 
 @dataclass(frozen=True)
@@ -372,12 +462,23 @@ class SustainedResult:
     spans: tuple[tuple[int, int], ...]
     biased_tokens: int
     select_scores: tuple = field(default=())
-    prompt_tokens: int = 0            # MEASURED length of the context actually sent
-    ids: tuple[int, ...] = field(default=())  # generated token ids (bitwise comparisons)
+    prompt_tokens: int = 0  # MEASURED length of the context actually sent
+    ids: tuple[int, ...] = field(
+        default=()
+    )  # generated token ids (bitwise comparisons)
 
 
-def generate_sustained(model, tokenizer, context: str, *, spans=None, select_fn=None,
-                       dose: float = 3.0, max_new: int = 1024, deadline_s: float | None = None) -> SustainedResult:
+def generate_sustained(
+    model,
+    tokenizer,
+    context: str,
+    *,
+    spans=None,
+    select_fn=None,
+    dose: float = 3.0,
+    max_new: int = 1024,
+    deadline_s: float | None = None,
+) -> SustainedResult:
     """KV-cached greedy generation over a RAW context with a sustained
     uniform bias (dose, layers 20-27) over ``spans`` — fixed, or chosen
     ONCE by ``select_fn(query_h20)`` from the prefill's final-row h20
@@ -396,7 +497,9 @@ def generate_sustained(model, tokenizer, context: str, *, spans=None, select_fn=
     device = next(model.parameters()).device
     cache = KVCache()
     out: list[int] = []
-    chosen: list[tuple[int, int]] = [tuple(s) for s in spans] if spans is not None else []
+    chosen: list[tuple[int, int]] = (
+        [tuple(s) for s in spans] if spans is not None else []
+    )
     for a, b in chosen:
         if not 0 <= a < b <= P:
             raise ValueError("span outside the prompt")
@@ -410,9 +513,12 @@ def generate_sustained(model, tokenizer, context: str, *, spans=None, select_fn=
             total = past + h20.shape[1]
             row = None
             for sp in chosen:
-                b = uniform_span_bias(h20.shape[1], total, sp, amount=dose, device=h20.device)
+                b = uniform_span_bias(
+                    h20.shape[1], total, sp, amount=dose, device=h20.device
+                )
                 row = b if row is None else row + b
             return {layer: row for layer in WAVE_LAYERS}
+
         return (20, hook)
 
     active = select_fn is not None or (bool(chosen) and dose != 0.0)
@@ -420,8 +526,11 @@ def generate_sustained(model, tokenizer, context: str, *, spans=None, select_fn=
     timed_out = False
     biased = 0
     with torch.no_grad():
-        logits = model(torch.tensor([ids], device=device), cache=cache,
-                       bias_hook=hook_factory(0) if active else None)
+        logits = model(
+            torch.tensor([ids], device=device),
+            cache=cache,
+            bias_hook=hook_factory(0) if active else None,
+        )
         active = bool(chosen) and dose != 0.0
         nxt = int(logits[0, -1].argmax())
         while nxt not in EOS and len(out) < max_new:
@@ -430,11 +539,22 @@ def generate_sustained(model, tokenizer, context: str, *, spans=None, select_fn=
                 break
             out.append(nxt)
             biased += int(active)
-            logits = model(torch.tensor([[nxt]], device=device), cache=cache,
-                           bias_hook=hook_factory(cache.length) if active else None)
+            logits = model(
+                torch.tensor([[nxt]], device=device),
+                cache=cache,
+                bias_hook=hook_factory(cache.length) if active else None,
+            )
             nxt = int(logits[0, -1].argmax())
-    return SustainedResult(tokenizer.decode(out), len(out), len(out) >= max_new, timed_out,
-                           tuple(chosen), biased, prompt_tokens=P, ids=tuple(out))
+    return SustainedResult(
+        tokenizer.decode(out),
+        len(out),
+        len(out) >= max_new,
+        timed_out,
+        tuple(chosen),
+        biased,
+        prompt_tokens=P,
+        ids=tuple(out),
+    )
 
 
 def paired_drop_table(reference: Sequence[bool], candidate: Sequence[bool]) -> dict:
@@ -446,7 +566,9 @@ def paired_drop_table(reference: Sequence[bool], candidate: Sequence[bool]) -> d
     return {"n10": n10, "n01": n01, "n": len(reference)}
 
 
-def non_inferiority_summary(reference: Sequence[bool], candidate: Sequence[bool], *, margin_points: float = 2.0) -> dict:
+def non_inferiority_summary(
+    reference: Sequence[bool], candidate: Sequence[bool], *, margin_points: float = 2.0
+) -> dict:
     """Registered primary: Tango one-sided 95% upper bound on the candidate's
     per-constraint accuracy DROP vs the reference, in points; non-inferior
     iff bound < margin (strict). Raw counts included so a reviewer can
@@ -455,9 +577,14 @@ def non_inferiority_summary(reference: Sequence[bool], candidate: Sequence[bool]
 
     table = paired_drop_table(reference, candidate)
     n = table["n"]
-    out = {**table, "margin_points": margin_points,
-           "drop_points": (100.0 * (table["n10"] - table["n01"]) / n) if n else None,
-           "upper_bound_points": None, "non_inferior": None, "error": None}
+    out = {
+        **table,
+        "margin_points": margin_points,
+        "drop_points": (100.0 * (table["n10"] - table["n01"]) / n) if n else None,
+        "upper_bound_points": None,
+        "non_inferior": None,
+        "error": None,
+    }
     if n == 0:
         out["error"] = "no paired cells"
         return out

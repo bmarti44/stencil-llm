@@ -328,7 +328,9 @@ def test_forced_span_bias_changes_logits_and_generator_repeats(gpu_setup):
         else:
             runs[-1].append(step)
     assert all(len(run) <= 4 for run in runs)
-    assert all(b[0] - a[-1] >= 9 for a, b in zip(runs, runs[1:]))  # offset pairs; strict zip breaks on a single run
+    assert all(
+        b[0] - a[-1] >= 9 for a, b in zip(runs, runs[1:])
+    )  # offset pairs; strict zip breaks on a single run
 
 
 def test_causal_moment_branches_repeat_bitwise(gpu_setup):
@@ -365,12 +367,21 @@ def test_raw_context_matches_template_when_equivalent(gpu_setup):
     reproduce the templated path bitwise."""
     from stencil.bench import TMPL
     from stencil.ctrb import HazardGate, constraint_spans_of, generate_ctrb
+
     m, tok, ctrl = gpu_setup
     spans = constraint_spans_of(tok, PROMPT)
     kw = dict(max_new=16, threshold=0.5, draft_tokens=0)
     a = generate_ctrb(m, tok, PROMPT, ctrl, spans, HazardGate.constant(0.0), **kw)
-    b = generate_ctrb(m, tok, TMPL.format(p=PROMPT), ctrl, spans,
-                      HazardGate.constant(0.0), raw_context=True, **kw)
+    b = generate_ctrb(
+        m,
+        tok,
+        TMPL.format(p=PROMPT),
+        ctrl,
+        spans,
+        HazardGate.constant(0.0),
+        raw_context=True,
+        **kw,
+    )
     assert a.text == b.text and a.n_generated == b.n_generated
 
 
@@ -378,12 +389,19 @@ def test_causal_moment_accepts_raw_context(gpu_setup):
     from stencil.bench import TMPL
     from stencil.causal_moments import label_causal_moment
     from stencil.ctrb import constraint_spans_of
+
     m, tok, _ = gpu_setup
     spans = constraint_spans_of(tok, PROMPT)
     lab = label_causal_moment(
-        model=m, tokenizer=tok, prompt=TMPL.format(p=PROMPT), prefix_ids=[],
-        selected_span=spans[0], score_fn=lambda t: (("cedar" in t.lower()),),
-        max_new=12, raw_context=True)
+        model=m,
+        tokenizer=tok,
+        prompt=TMPL.format(p=PROMPT),
+        prefix_ids=[],
+        selected_span=spans[0],
+        score_fn=lambda t: (("cedar" in t.lower()),),
+        max_new=12,
+        raw_context=True,
+    )
     assert lab.label in {"helpful", "harmful", "neutral"}
 
 
@@ -391,11 +409,16 @@ def test_context_spans_are_full_context_coordinates(gpu_setup):
     """E2 retraction fix: spans must index the PRE-RENDERED conversation,
     and the decoded span text must be the constraint sentence itself."""
     from stencil.ctrb import constraint_spans_in_context
+
     _, tok, _ = gpu_setup
-    hist = ("<|im_start|>user\nWrite about rain. Constraint: mention cedar.<|im_end|>\n"
-            "<|im_start|>assistant\nA reply about rain.<|im_end|>\n")
-    ctx = hist + ("<|im_start|>user\nContinue. Constraint: end with 'Done.'<|im_end|>\n"
-                  "<|im_start|>assistant\n<think>\n\n</think>\n\n")
+    hist = (
+        "<|im_start|>user\nWrite about rain. Constraint: mention cedar.<|im_end|>\n"
+        "<|im_start|>assistant\nA reply about rain.<|im_end|>\n"
+    )
+    ctx = hist + (
+        "<|im_start|>user\nContinue. Constraint: end with 'Done.'<|im_end|>\n"
+        "<|im_start|>assistant\n<think>\n\n</think>\n\n"
+    )
     ids = tok.encode(ctx).ids
     all_spans = constraint_spans_in_context(tok, ctx)
     assert len(all_spans) == 2
@@ -410,7 +433,7 @@ def test_context_spans_are_full_context_coordinates(gpu_setup):
         assert len(txt.split()) < 25, txt
     assert "Done." not in texts[0], texts[0]
     last = constraint_spans_in_context(tok, ctx, only_last_turn=True)
-    assert len(last) == 1 and "Done." in tok.decode(ids[last[0][0]:last[0][1]])
+    assert len(last) == 1 and "Done." in tok.decode(ids[last[0][0] : last[0][1]])
     for a, b in all_spans:
         assert 0 <= a < b <= len(ids)
 
@@ -421,11 +444,21 @@ def test_extra_spans_add_bias_and_change_outcome(gpu_setup):
     from stencil.bench import TMPL
     from stencil.causal_moments import rollout_from_prefix
     from stencil.ctrb import constraint_spans_of
+
     m, tok, _ = gpu_setup
     spans = constraint_spans_of(tok, PROMPT)
-    common = dict(model=m, tokenizer=tok, prompt=TMPL.format(p=PROMPT), prefix_ids=[],
-                  selected_span=spans[0], burst=True, dose=3.0, burst_tokens=10**6,
-                  max_new=24, raw_context=True)
+    common = dict(
+        model=m,
+        tokenizer=tok,
+        prompt=TMPL.format(p=PROMPT),
+        prefix_ids=[],
+        selected_span=spans[0],
+        burst=True,
+        dose=3.0,
+        burst_tokens=10**6,
+        max_new=24,
+        raw_context=True,
+    )
     one = rollout_from_prefix(**common)
     many = rollout_from_prefix(**common, extra_spans=tuple(spans[1:]))
     assert one.response != many.response  # the extra span reaches the logits
@@ -468,7 +501,7 @@ def test_e2_user_turn_span_records_are_marker_free_and_deployable(gpu_setup):
     records = user_turn_span_records(tok, ctx)
     assert [r["origin_turn"] for r in records] == [1, 2]
     assert [r["is_aged"] for r in records] == [True, False]
-    text = [tok.decode(ids[r["span"][0]:r["span"][1]]) for r in records]
+    text = [tok.decode(ids[r["span"][0] : r["span"][1]]) for r in records]
     assert "natural instructions" in text[0] and "three keywords" in text[1]
     assert all("im_start" not in value and "im_end" not in value for value in text)
     assert all("assistant" not in value for value in text)
@@ -551,7 +584,10 @@ def test_e2_moment_record_schema_and_label_nonvacuity():
     assert rec["label"] == "helpful"
     assert rec["utility_delta"] == 1
     assert len(rec["features"]) == 6
-    assert rec["native"]["response_sha256"] != rec["arms"]["sustained_all"]["response_sha256"]
+    assert (
+        rec["native"]["response_sha256"]
+        != rec["arms"]["sustained_all"]["response_sha256"]
+    )
     assert rec["arms"]["control"]["label_vs_native"] == "harmful"
     assert "response" in rec["native"] and "response" in rec["arms"]["sustained_all"]
 
@@ -645,12 +681,19 @@ def test_e2_sustained_policy_silent_is_bitwise_native_on_gpu(gpu_setup):
         for span in constraint_spans_of(tok, PROMPT)
     ]
     native = generate_e2_policy(
-        model, tok, PROMPT, ctrl, span_records,
-        mode="native", max_new=20)
+        model, tok, PROMPT, ctrl, span_records, mode="native", max_new=20
+    )
     silent = generate_e2_policy(
-        model, tok, PROMPT, ctrl, span_records,
-        mode="ctrb", gate=HazardGate.constant(0), threshold=0.5,
-        max_new=20)
+        model,
+        tok,
+        PROMPT,
+        ctrl,
+        span_records,
+        mode="ctrb",
+        gate=HazardGate.constant(0),
+        threshold=0.5,
+        max_new=20,
+    )
     assert silent.text == native.text
     assert silent.token_ids == native.token_ids
     assert not silent.interventions and silent.biased_tokens == 0

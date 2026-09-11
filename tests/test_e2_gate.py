@@ -58,9 +58,14 @@ def test_grouped_cv_never_trains_on_held_out_group_and_repeats():
     records = []
     for i in range(60):
         positive = i % 2 == 0
-        records.append(_record(i, 2 if positive else -2,
-                               "helpful" if positive else "harmful",
-                               1 if positive else -1))
+        records.append(
+            _record(
+                i,
+                2 if positive else -2,
+                "helpful" if positive else "harmful",
+                1 if positive else -1,
+            )
+        )
     a = cross_validate(records, "session", "full")
     b = cross_validate(records, "session", "full")
     assert a == b
@@ -76,9 +81,14 @@ def test_matched_rate_controls_fire_exactly_full_gate_count():
     records = []
     for i in range(120):
         positive = i % 3 == 0
-        records.append(_record(i, 3 if positive else -1,
-                               "helpful" if positive else "neutral",
-                               1 if positive else 0))
+        records.append(
+            _record(
+                i,
+                3 if positive else -1,
+                "helpful" if positive else "neutral",
+                1 if positive else 0,
+            )
+        )
     got = evaluate_discrimination(records)
     for scheme in ("session", "topic", "family"):
         full_n = got["schemes"][scheme]["full"]["metrics"]["n_fired"]

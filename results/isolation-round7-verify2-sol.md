@@ -40,6 +40,7 @@ The third trial was:
 from os import kill
 from signal import SIGTERM
 
+
 def watchdog(pid):
     while alive(pid):
         kill(pid, SIGTERM)

@@ -39,10 +39,9 @@ Replace threshold enumeration with the representable boundaries:
 import math
 
 uniq = sorted({x["score"] for x in evald if x["score"] != float("-inf")})
-cands_t = sorted(
-    set(uniq)
-    | {math.nextafter(s, -math.inf) for s in uniq}
-) if uniq else [0.0]
+cands_t = (
+    sorted(set(uniq) | {math.nextafter(s, -math.inf) for s in uniq}) if uniq else [0.0]
+)
 ```
 
 With the registered higher-threshold tie-break, cosine should then freeze just below `0.640774`, not at `-0.359`.

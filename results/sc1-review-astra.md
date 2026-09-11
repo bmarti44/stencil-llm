@@ -121,20 +121,25 @@ for m in range(N + 1):
         if 20 * tail <= 2**m:
             critical[m] = b
 
+
 def power(q, delta):
     theta = (q + delta) / (2 * q)
     test_terms, adopt_terms = [], []
     for m in range(N + 1):
-        pm = comb(N, m) * q**m * (1-q)**(N-m)
+        pm = comb(N, m) * q**m * (1 - q) ** (N - m)
+
         def upper(k):
-            return fsum(comb(m, b) * theta**b * (1-theta)**(m-b)
-                        for b in range(k, m + 1))
+            return fsum(
+                comb(m, b) * theta**b * (1 - theta) ** (m - b) for b in range(k, m + 1)
+            )
+
         test_terms.append(pm * upper(critical[m]))
         # 2*b-m >= 13; ceil((m+13)/2) = (m+14)//2.
-        adopt_terms.append(pm * upper(max(critical[m], (m+14)//2)))
+        adopt_terms.append(pm * upper(max(critical[m], (m + 14) // 2)))
     return fsum(test_terms), fsum(adopt_terms)
 
-print(power(.20, .05))
+
+print(power(0.20, 0.05))
 # (approximately 0.508574554797, 0.497249202424)
 ~~~
 

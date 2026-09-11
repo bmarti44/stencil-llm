@@ -8,6 +8,7 @@ beta 2). Report address accuracy first, then the paired behavioral eval
 Gates: address accuracy reported; behavioral net closure
 (sel_gained - sel_broken) / (orc_gained - orc_broken) >= 0.5.
 """
+
 import json
 import sys
 from pathlib import Path
@@ -29,7 +30,9 @@ BETA = 4.0
 
 tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
 m = Qwen3()
-m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+m.load_state_dict(
+    torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+)
 m = m.to(torch.bfloat16).cuda().eval()
 
 
@@ -52,7 +55,9 @@ def features(item):
     with torch.no_grad():
         h = m(torch.tensor([ids], device="cuda"), return_hidden=20)[0].float()
     q_feat = h[-1]  # final prompt token ("... is")
-    keys = torch.stack([h[lo:hi].mean(dim=0) for slot, (lo, hi) in sorted(spans_tok.items())])
+    keys = torch.stack(
+        [h[lo:hi].mean(dim=0) for slot, (lo, hi) in sorted(spans_tok.items())]
+    )
     slot_order = sorted(spans_tok)
     return q_feat.cpu(), keys.cpu(), slot_order.index(target)
 
@@ -74,18 +79,23 @@ opt = torch.optim.Adam(list(Wq.parameters()) + list(Wk.parameters()), lr=1e-3)
 for epoch in range(200):
     tot = 0.0
     for qf, ks, tgt in train_feats:
-        logits = (Wq(qf) @ Wk(ks).T) / (D_SEL ** 0.5)
+        logits = (Wq(qf) @ Wk(ks).T) / (D_SEL**0.5)
         loss = F.cross_entropy(logits[None], torch.tensor([tgt]))
-        opt.zero_grad(); loss.backward(); opt.step()
+        opt.zero_grad()
+        loss.backward()
+        opt.step()
         tot += float(loss.detach())
     if epoch % 50 == 0:
-        print(f"epoch {epoch} loss {tot/len(train_feats):.4f}", flush=True)
+        print(f"epoch {epoch} loss {tot / len(train_feats):.4f}", flush=True)
 
 with torch.no_grad():
     addr_hits = sum(
         int((Wq(qf) @ Wk(ks).T).argmax()) == tgt for qf, ks, tgt in val_feats
     )
-print(f"ADDRESS ACCURACY (val n={len(val_feats)}): {addr_hits}/{len(val_feats)} = {addr_hits/len(val_feats):.3f}", flush=True)
+print(
+    f"ADDRESS ACCURACY (val n={len(val_feats)}): {addr_hits}/{len(val_feats)} = {addr_hits / len(val_feats):.3f}",
+    flush=True,
+)
 
 
 def gen(ids, bias_cfg=None, max_new=20):
@@ -117,9 +127,18 @@ with torch.no_grad():
         o_out = gen(ids, (spans_tok[target], row_start)) == s.value
         pred_slot = slot_order[int((Wq(qf) @ Wk(ks).T).argmax())]
         s_out = gen(ids, (spans_tok[pred_slot], row_start)) == s.value
-        base += b_out; orc += o_out; sel += s_out
-        recs.append({"seed": TRAIN_SEEDS and None, "base": b_out, "oracle": o_out, "selector": s_out,
-                     "addr_correct": pred_slot == target})
+        base += b_out
+        orc += o_out
+        sel += s_out
+        recs.append(
+            {
+                "seed": TRAIN_SEEDS and None,
+                "base": b_out,
+                "oracle": o_out,
+                "selector": s_out,
+                "addr_correct": pred_slot == target,
+            }
+        )
 n = len(val_items)
 orc_net = orc - base
 sel_net = sel - base
@@ -127,9 +146,24 @@ closure = sel_net / orc_net if orc_net else float("nan")
 print(f"PAIRED (n={n}): base {base}/{n} oracle {orc}/{n} selector {sel}/{n}")
 print(f"net closure (sel-base)/(orc-base) = {closure:.2f} (gate >= 0.5)")
 out = ROOT / "results" / "qwen" / "s3-final-sealed.json"
-out.write_text(json.dumps({"train_n": len(TRAIN_SEEDS), "val_n": n,
-                           "address_acc": addr_hits / n, "base": base, "oracle": orc,
-                           "selector": sel, "closure": closure, "records": recs}, indent=1))
+out.write_text(
+    json.dumps(
+        {
+            "train_n": len(TRAIN_SEEDS),
+            "val_n": n,
+            "address_acc": addr_hits / n,
+            "base": base,
+            "oracle": orc,
+            "selector": sel,
+            "closure": closure,
+            "records": recs,
+        },
+        indent=1,
+    )
+)
 print(f"evidence -> {out}")
-torch.save({"Wq": Wq.state_dict(), "Wk": Wk.state_dict()}, ROOT / "results" / "qwen" / "s3-selector-weights.pt")
+torch.save(
+    {"Wq": Wq.state_dict(), "Wk": Wk.state_dict()},
+    ROOT / "results" / "qwen" / "s3-selector-weights.pt",
+)
 print("scorer weights saved")

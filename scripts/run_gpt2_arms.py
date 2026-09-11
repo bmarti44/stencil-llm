@@ -10,6 +10,7 @@ Both arms train the identical budget: pathway (controller+gates where present)
 plus a shared lm-head bias adapter (the Step-0 contingency, arm-symmetric).
 Trunk frozen; results/gpt2/<arm>-s<seed>.json + .pt written.
 """
+
 from __future__ import annotations
 
 import json
@@ -44,12 +45,16 @@ REPLAY_EVERY = 4  # iteration 3: 1 in 4 phase-2 items replays the near family
 
 
 def tag(arm: str, seed: int) -> str:
-    suffix = os.environ.get('TAG_SUFFIX', '') or ('derived' if os.environ.get('DERIVED') else '')
+    suffix = os.environ.get("TAG_SUFFIX", "") or (
+        "derived" if os.environ.get("DERIVED") else ""
+    )
     return f"{arm}-v8{suffix}-s{seed}"
 
 
 def build(arm: str, seed: int) -> GatedGPT2:
-    model = GatedGPT2(arm, window=64, seed_init=seed, lora_rank=LORA_RANK, hard_salience=HARD_SALIENCE)
+    model = GatedGPT2(
+        arm, window=64, seed_init=seed, lora_rank=LORA_RANK, hard_salience=HARD_SALIENCE
+    )
     sd = torch.load(ROOT / "models" / "gpt2-small.pt", map_location="cpu")
     missing, unexpected = model.load_state_dict(sd, strict=False)
     assert not unexpected
@@ -69,14 +74,24 @@ def loss_fn(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
 
 
 def evaluate(
-    model: GatedGPT2, bpe: BPE, space: int, seed: int, n: int = 64,
+    model: GatedGPT2,
+    bpe: BPE,
+    space: int,
+    seed: int,
+    n: int = 64,
     families: tuple[str, ...] = ("train", "drought", "burst"),
     zero_code: bool = False,
 ) -> dict:
     model.eval()
     out: dict = {}
-    offs = {"train": 0, "drought": 30_000, "burst": 60_000, "near": 90_000,
-            "near_derived": 120_000, "derived": 150_000}
+    offs = {
+        "train": 0,
+        "drought": 30_000,
+        "burst": 60_000,
+        "near": 90_000,
+        "near_derived": 120_000,
+        "derived": 150_000,
+    }
     with torch.no_grad():
         for family in families:
             hits = {"within": [0, 0], "beyond": [0, 0]}
@@ -86,7 +101,9 @@ def evaluate(
                 toks, tgts, seqs = batch(seeds, family=family, bpe=bpe)
                 kw = {}
                 if zero_code:
-                    kw["code_override"] = torch.zeros(toks.shape[0], toks.shape[1], 128, device=DEV)
+                    kw["code_override"] = torch.zeros(
+                        toks.shape[0], toks.shape[1], 128, device=DEV
+                    )
                 lg = logits_of(model, toks.to(DEV), **kw)
                 for b, s in enumerate(seqs):
                     for p, slot in zip(s.query_positions, s.query_slots, strict=True):
@@ -110,9 +127,7 @@ def ridge_acc(X: torch.Tensor, y: torch.Tensor, classes: int = 16) -> float:
     k = n * 3 // 4
     Y = torch.zeros(k, classes)
     Y[torch.arange(k), y[:k]] = 1
-    W = torch.linalg.solve(
-        X[:k].T @ X[:k] + 1e-3 * torch.eye(X.shape[1]), X[:k].T @ Y
-    )
+    W = torch.linalg.solve(X[:k].T @ X[:k] + 1e-3 * torch.eye(X.shape[1]), X[:k].T @ Y)
     return float((torch.argmax(X[k:] @ W, 1) == y[k:]).float().mean())
 
 
@@ -127,7 +142,9 @@ def instrument_precheck() -> None:
     print(f"instrument precheck: ridge {acc:.2%} on separable synthetic codes")
 
 
-def cache_masks(seqs: list, t_len: int, dev: str) -> tuple[torch.Tensor, torch.Tensor, list, torch.Tensor]:
+def cache_masks(
+    seqs: list, t_len: int, dev: str
+) -> tuple[torch.Tensor, torch.Tensor, list, torch.Tensor]:
     """Teacher masks from ground truth: salience over statement spans, commit
     at statement ends, teacher slot ids (rules 0-3, demo statements 4+);
     labels (batch, pos, slot, answer) per rule commit."""
@@ -165,7 +182,9 @@ def train_cache(arm: str, seed: int) -> None:
     for p in model.trunk_parameters():
         p.requires_grad_(False)
     trainable = [p for p in model.parameters() if p.requires_grad]
-    gate_params = list(model.cache.salience.parameters()) + list(model.cache.commit.parameters())
+    gate_params = list(model.cache.salience.parameters()) + list(
+        model.cache.commit.parameters()
+    )
     gate_ids = {id(p) for p in gate_params}
     other = [p for p in trainable if id(p) not in gate_ids]
     aux_q = torch.nn.Linear(128, 4 * len(ANSWER_WORDS)).to(DEV)
@@ -173,7 +192,11 @@ def train_cache(arm: str, seed: int) -> None:
     opt = torch.optim.AdamW(
         [
             {"params": other, "lr": 3e-4},
-            {"params": list(aux_q.parameters()) + list(aux_v.parameters()), "lr": 3e-4, "weight_decay": 0.0},
+            {
+                "params": list(aux_q.parameters()) + list(aux_v.parameters()),
+                "lr": 3e-4,
+                "weight_decay": 0.0,
+            },
             {"params": gate_params, "lr": 3e-3, "weight_decay": 0.0},
         ],
         weight_decay=0.01,
@@ -186,11 +209,17 @@ def train_cache(arm: str, seed: int) -> None:
     model.train()
     for step in range(STEPS):
         seeds = [TRAIN_SPACE + seed * 100_000 + step * BATCH + i for i in range(BATCH)]
-        fam_near, fam_long = ("near_derived", "derived") if os.environ.get("DERIVED") else ("near", "train")
+        fam_near, fam_long = (
+            ("near_derived", "derived")
+            if os.environ.get("DERIVED")
+            else ("near", "train")
+        )
         if step < CURRICULUM_STEPS:
             fam: str | list[str] = fam_near
         else:
-            fam = [fam_near if i % REPLAY_EVERY == 0 else fam_long for i in range(BATCH)]
+            fam = [
+                fam_near if i % REPLAY_EVERY == 0 else fam_long for i in range(BATCH)
+            ]
         toks, tgts, seqs = batch(seeds, family=fam, bpe=bpe)
         toks_d, tgts_d = toks.to(DEV), tgts.to(DEV)
         sal_m, com_m, labels, slot_ov = cache_masks(seqs, toks.shape[1], DEV)
@@ -209,11 +238,12 @@ def train_cache(arm: str, seed: int) -> None:
                         slot_ov[bi, hi - 1] = -1
                 if spur_p and float(torch.rand((), generator=gn)) < spur_p:
                     fp = int(torch.randint(200, toks.shape[1] - 1, (1,), generator=gn))
-                    sal_m[bi, max(0, fp - 5):fp + 1] = True
+                    sal_m[bi, max(0, fp - 5) : fp + 1] = True
                     com_m[bi, fp] = True
                     slot_ov[bi, fp] = int(torch.randint(0, 8, (1,), generator=gn))
             labels = [
-                (bi, pos, slot, ans) for (bi, pos, slot, ans) in labels
+                (bi, pos, slot, ans)
+                for (bi, pos, slot, ans) in labels
                 if bool(com_m[bi, pos])
             ]
         # teacher-forced forward (training only)
@@ -259,21 +289,29 @@ def train_cache(arm: str, seed: int) -> None:
                 v_slots.append(slot)
                 v_tgts.append(ans)
         v_logits = aux_v(torch.stack(v_states)).view(-1, 4, len(ANSWER_WORDS))
-        v_sel = v_logits[torch.arange(len(v_slots), device=DEV), torch.tensor(v_slots, device=DEV)]
+        v_sel = v_logits[
+            torch.arange(len(v_slots), device=DEV), torch.tensor(v_slots, device=DEV)
+        ]
         v_tgt_t = torch.tensor(v_tgts, device=DEV)
         aux_v_ce = F.cross_entropy(v_sel, v_tgt_t)
         # retention aux: per-slot heads on the READ code at query positions
         q_states, q_slots, q_tgts = [], [], []
         for i, s in enumerate(seqs):
-            for pq, slot, ans in zip(s.query_positions, s.query_slots, s.active_answer, strict=True):
+            for pq, slot, ans in zip(
+                s.query_positions, s.query_slots, s.active_answer, strict=True
+            ):
                 q_states.append(code[i, pq])
                 q_slots.append(slot)
                 q_tgts.append(ANSWER_WORDS.index(ans))
         q_logits = aux_q(torch.stack(q_states)).view(-1, 4, len(ANSWER_WORDS))
-        q_sel = q_logits[torch.arange(len(q_slots), device=DEV), torch.tensor(q_slots, device=DEV)]
+        q_sel = q_logits[
+            torch.arange(len(q_slots), device=DEV), torch.tensor(q_slots, device=DEV)
+        ]
         q_tgt_t = torch.tensor(q_tgts, device=DEV)
         aux_q_ce = F.cross_entropy(q_sel, q_tgt_t)
-        loss = loss + sal_loss + com_loss + key_loss + AUX_WEIGHT * (aux_v_ce + aux_q_ce)
+        loss = (
+            loss + sal_loss + com_loss + key_loss + AUX_WEIGHT * (aux_v_ce + aux_q_ce)
+        )
         if step % 100 == 0 or step == STEPS - 1:
             with torch.no_grad():
                 qmask = torch.zeros_like(tgts_d, dtype=torch.bool)
@@ -281,18 +319,26 @@ def train_cache(arm: str, seed: int) -> None:
                     for pq in s.query_positions:
                         qmask[bqi, pq] = True
                 det = logits.detach()
-                split_history.append({
-                    "step": step,
-                    "query_ce": float(F.cross_entropy(det[qmask], tgts_d[qmask])),
-                    "query_acc": float((det[qmask].argmax(-1) == tgts_d[qmask]).float().mean()),
-                    "capture_ce": float(aux_v_ce.detach()),
-                    "capture_acc": float((v_sel.detach().argmax(-1) == v_tgt_t).float().mean()),
-                    "read_ce": float(aux_q_ce.detach()),
-                    "read_acc": float((q_sel.detach().argmax(-1) == q_tgt_t).float().mean()),
-                    "sal_loss": float(sal_loss.detach()),
-                    "com_loss": float(com_loss.detach()),
-                    "key_loss": float(key_loss.detach()),
-                })
+                split_history.append(
+                    {
+                        "step": step,
+                        "query_ce": float(F.cross_entropy(det[qmask], tgts_d[qmask])),
+                        "query_acc": float(
+                            (det[qmask].argmax(-1) == tgts_d[qmask]).float().mean()
+                        ),
+                        "capture_ce": float(aux_v_ce.detach()),
+                        "capture_acc": float(
+                            (v_sel.detach().argmax(-1) == v_tgt_t).float().mean()
+                        ),
+                        "read_ce": float(aux_q_ce.detach()),
+                        "read_acc": float(
+                            (q_sel.detach().argmax(-1) == q_tgt_t).float().mean()
+                        ),
+                        "sal_loss": float(sal_loss.detach()),
+                        "com_loss": float(com_loss.detach()),
+                        "key_loss": float(key_loss.detach()),
+                    }
+                )
         loss.backward()
         opt.step()
         opt.zero_grad()
@@ -308,18 +354,44 @@ def train_cache(arm: str, seed: int) -> None:
                 flush=True,
             )
         if step > 0 and (step % 500 == 0 or step == CURRICULUM_STEPS - 1):
-            fam_near_e, fam_long_e = ("near_derived", "derived") if os.environ.get("DERIVED") else ("near", "train")
-            mid = evaluate(model, bpe, VAL_SPACE, seed, n=32, families=(fam_near_e, fam_long_e))
-            mid_zero = evaluate(model, bpe, VAL_SPACE, seed, n=32, families=(fam_long_e,), zero_code=True)
+            fam_near_e, fam_long_e = (
+                ("near_derived", "derived")
+                if os.environ.get("DERIVED")
+                else ("near", "train")
+            )
+            mid = evaluate(
+                model, bpe, VAL_SPACE, seed, n=32, families=(fam_near_e, fam_long_e)
+            )
+            mid_zero = evaluate(
+                model,
+                bpe,
+                VAL_SPACE,
+                seed,
+                n=32,
+                families=(fam_long_e,),
+                zero_code=True,
+            )
             ridge = ridge_capture(model, bpe, seed)
-            evals.append({
-                "step": step, "eval": mid, "zero_code_long": mid_zero[fam_long_e],
-                "ridge": ridge,
-            })
+            evals.append(
+                {
+                    "step": step,
+                    "eval": mid,
+                    "zero_code_long": mid_zero[fam_long_e],
+                    "ridge": ridge,
+                }
+            )
             torch.save(
-                {"pathway": {n_: p_ for n_, p_ in model.state_dict().items() if not n_.startswith(("wte", "wpe", "blocks", "ln_f"))},
-                 "logit_bias": model.logit_bias.detach().cpu(), "step": step,
-                 "aux_q": aux_q.state_dict(), "aux_v": aux_v.state_dict()},
+                {
+                    "pathway": {
+                        n_: p_
+                        for n_, p_ in model.state_dict().items()
+                        if not n_.startswith(("wte", "wpe", "blocks", "ln_f"))
+                    },
+                    "logit_bias": model.logit_bias.detach().cpu(),
+                    "step": step,
+                    "aux_q": aux_q.state_dict(),
+                    "aux_v": aux_v.state_dict(),
+                },
                 OUT / f"{tag(arm, seed)}-ckpt.pt",
             )
             bz = mid_zero[fam_long_e]["beyond"]["acc"]
@@ -333,26 +405,54 @@ def train_cache(arm: str, seed: int) -> None:
             )
         if step % 200 == 0 or step == STEPS - 1:
             OUT.mkdir(parents=True, exist_ok=True)
-            (OUT / f"{tag(arm, seed)}-progress.json").write_text(json.dumps({
-                "arm": arm, "seed": seed, "step": step, "of": STEPS,
-                "elapsed_sec": time.time() - t0, "history": history,
-                "split_history": split_history, "evals": evals,
-            }, indent=1))
+            (OUT / f"{tag(arm, seed)}-progress.json").write_text(
+                json.dumps(
+                    {
+                        "arm": arm,
+                        "seed": seed,
+                        "step": step,
+                        "of": STEPS,
+                        "elapsed_sec": time.time() - t0,
+                        "history": history,
+                        "split_history": split_history,
+                        "evals": evals,
+                    },
+                    indent=1,
+                )
+            )
     wall = time.time() - t0
     val = evaluate(model, bpe, VAL_SPACE, seed, n=64)
     OUT.mkdir(parents=True, exist_ok=True)
     torch.save(
-        {"pathway": {n_: p_ for n_, p_ in model.state_dict().items() if not n_.startswith(("wte", "wpe", "blocks", "ln_f"))},
-         "logit_bias": model.logit_bias.detach().cpu(),
-         "aux_q": aux_q.state_dict(), "aux_v": aux_v.state_dict()},
+        {
+            "pathway": {
+                n_: p_
+                for n_, p_ in model.state_dict().items()
+                if not n_.startswith(("wte", "wpe", "blocks", "ln_f"))
+            },
+            "logit_bias": model.logit_bias.detach().cpu(),
+            "aux_q": aux_q.state_dict(),
+            "aux_v": aux_v.state_dict(),
+        },
         OUT / f"{tag(arm, seed)}.pt",
     )
-    (OUT / f"{tag(arm, seed)}.json").write_text(json.dumps({
-        "arm": arm, "seed": seed, "steps": STEPS, "batch": BATCH,
-        "trainable_params": n_train, "wall_sec": wall,
-        "history": history, "split_history": split_history, "evals": evals,
-        "validation": val,
-    }, indent=1))
+    (OUT / f"{tag(arm, seed)}.json").write_text(
+        json.dumps(
+            {
+                "arm": arm,
+                "seed": seed,
+                "steps": STEPS,
+                "batch": BATCH,
+                "trainable_params": n_train,
+                "wall_sec": wall,
+                "history": history,
+                "split_history": split_history,
+                "evals": evals,
+                "validation": val,
+            },
+            indent=1,
+        )
+    )
     print(json.dumps(val, indent=1))
 
 
@@ -371,7 +471,9 @@ def ridge_capture(model: GatedGPT2, bpe: BPE, seed: int, n: int = 48) -> dict:
     with torch.no_grad():
         for i in range(n):
             rc_fam = "derived" if os.environ.get("DERIVED") else "train"
-            toks, _, seqs = batch([VAL_SPACE + 700_000 + seed * 10_000 + i], family=rc_fam, bpe=bpe)
+            toks, _, seqs = batch(
+                [VAL_SPACE + 700_000 + seed * 10_000 + i], family=rc_fam, bpe=bpe
+            )
             s = seqs[0]
             toks_d = toks.to(DEV)
             sal_m, com_m, labels, slot_ov = cache_masks(seqs, toks.shape[1], DEV)
@@ -390,12 +492,14 @@ def ridge_capture(model: GatedGPT2, bpe: BPE, seed: int, n: int = 48) -> dict:
                 if v is not None:
                     cap[slot][0].append(v.float().cpu())
                     cap[slot][1].append(ans)
-            for pq, slot, ans in zip(s.query_positions, s.query_slots, s.active_answer, strict=True):
+            for pq, slot, ans in zip(
+                s.query_positions, s.query_slots, s.active_answer, strict=True
+            ):
                 red[slot][0].append(code[0, pq].float().cpu())
                 red[slot][1].append(ANSWER_WORDS.index(ans))
             # learned-gate PR on the same hidden states
-            sal_l = (torch.sigmoid(internals["sal_logits"]) > 0.5)
-            com_l = (torch.sigmoid(internals["commit_logits"]) > 0.5)
+            sal_l = torch.sigmoid(internals["sal_logits"]) > 0.5
+            com_l = torch.sigmoid(internals["commit_logits"]) > 0.5
             pr["sal_tp"] += int((sal_l & sal_m).sum())
             pr["sal_fp"] += int((sal_l & ~sal_m).sum())
             pr["sal_fn"] += int((~sal_l & sal_m).sum())
@@ -404,7 +508,7 @@ def ridge_capture(model: GatedGPT2, bpe: BPE, seed: int, n: int = 48) -> dict:
             pr["com_fn"] += int((~com_l & com_m).sum())
     # R6: adversarial filler with quoted slot words, LEARNED gates: count writes
     adv = 'The word "cat" was mentioned near the "king" and the "sun" today. '
-    adv_toks = torch.tensor([ (bpe.encode(adv * 12))[:512] ], device=DEV)
+    adv_toks = torch.tensor([(bpe.encode(adv * 12))[:512]], device=DEV)
     with torch.no_grad():
         pos_emb = torch.arange(adv_toks.shape[1], device=DEV)
         x = model.wte(adv_toks) + model.wpe(pos_emb)
@@ -447,7 +551,12 @@ def gate_stats(model: GatedGPT2, bpe: BPE) -> dict:
         control = model.control_states(toks.to(DEV))
         control = control * torch.rsqrt(control.pow(2).mean(-1, keepdim=True) + 1e-8)
         g = model.gate_source(control).flatten().float().cpu()
-        sal = torch.sigmoid(model.salience(model.wte(toks.to(DEV)))).flatten().float().cpu()
+        sal = (
+            torch.sigmoid(model.salience(model.wte(toks.to(DEV))))
+            .flatten()
+            .float()
+            .cpu()
+        )
     return {
         "gates": [round(float(v), 4) for v in torch.quantile(g, qs)],
         "salience": [round(float(v), 4) for v in torch.quantile(sal, qs)],
@@ -465,7 +574,9 @@ def train(arm: str, seed: int) -> None:
     # Aux head reads the active answer straight off the injection code at
     # query positions (train-time only; lives OUTSIDE the model so the eval
     # path cannot see it).
-    aux_head = torch.nn.Linear(128, 4 * len(ANSWER_WORDS)).to(DEV)  # per-slot heads (sol audit finding 6)
+    aux_head = torch.nn.Linear(128, 4 * len(ANSWER_WORDS)).to(
+        DEV
+    )  # per-slot heads (sol audit finding 6)
     salience_params = list(model.salience.parameters())
     salience_ids = {id(p) for p in salience_params}
     other_params = [p for p in trainable if id(p) not in salience_ids]
@@ -495,7 +606,9 @@ def train(arm: str, seed: int) -> None:
         aux_states, aux_targets, aux_slots = [], [], []
         n_query_aux = 0
         for b, s in enumerate(seqs):
-            for p, slot, ans in zip(s.query_positions, s.query_slots, s.active_answer, strict=True):
+            for p, slot, ans in zip(
+                s.query_positions, s.query_slots, s.active_answer, strict=True
+            ):
                 aux_states.append(code[b, p])
                 aux_targets.append(ANSWER_WORDS.index(ans))
                 aux_slots.append(slot)
@@ -508,7 +621,10 @@ def train(arm: str, seed: int) -> None:
                 aux_targets.append(ANSWER_WORDS.index(ans))
                 aux_slots.append(slot)
         aux_logits = aux_head(torch.stack(aux_states)).view(-1, 4, len(ANSWER_WORDS))
-        aux_sel = aux_logits[torch.arange(len(aux_slots), device=DEV), torch.tensor(aux_slots, device=DEV)]
+        aux_sel = aux_logits[
+            torch.arange(len(aux_slots), device=DEV),
+            torch.tensor(aux_slots, device=DEV),
+        ]
         aux_tgt = torch.tensor(aux_targets, device=DEV)
         aux_ce = F.cross_entropy(aux_sel, aux_tgt)
         # v5: direct balanced supervision on the salience logits — rule/update
@@ -534,18 +650,39 @@ def train(arm: str, seed: int) -> None:
                 dmask = (tgts_d >= 0) & ~qmask
                 det = logits.detach()
                 m = {
-                    "step": step, "family": fam,
+                    "step": step,
+                    "family": fam,
                     "query_ce": float(F.cross_entropy(det[qmask], tgts_d[qmask])),
-                    "query_acc": float((det[qmask].argmax(-1) == tgts_d[qmask]).float().mean()),
+                    "query_acc": float(
+                        (det[qmask].argmax(-1) == tgts_d[qmask]).float().mean()
+                    ),
                     "demo_ce": float(F.cross_entropy(det[dmask], tgts_d[dmask])),
-                    "demo_acc": float((det[dmask].argmax(-1) == tgts_d[dmask]).float().mean()),
+                    "demo_acc": float(
+                        (det[dmask].argmax(-1) == tgts_d[dmask]).float().mean()
+                    ),
                     "aux_ce": float(aux_ce.detach()),
-                    "aux_q_ce": float(F.cross_entropy(aux_sel.detach()[:n_query_aux], aux_tgt[:n_query_aux])),
-                    "aux_r_ce": float(F.cross_entropy(aux_sel.detach()[n_query_aux:], aux_tgt[n_query_aux:])),
-                    "aux_acc": float((aux_sel.detach().argmax(-1) == aux_tgt).float().mean()),
+                    "aux_q_ce": float(
+                        F.cross_entropy(
+                            aux_sel.detach()[:n_query_aux], aux_tgt[:n_query_aux]
+                        )
+                    ),
+                    "aux_r_ce": float(
+                        F.cross_entropy(
+                            aux_sel.detach()[n_query_aux:], aux_tgt[n_query_aux:]
+                        )
+                    ),
+                    "aux_acc": float(
+                        (aux_sel.detach().argmax(-1) == aux_tgt).float().mean()
+                    ),
                     "sal_loss": float(sal_loss.detach()),
-                    "sal_rule_med": float(torch.sigmoid(sal_logits.detach()[rule_mask]).median()),
-                    "sal_filler_p90": float(torch.quantile(torch.sigmoid(sal_logits.detach()[~rule_mask]), 0.9)),
+                    "sal_rule_med": float(
+                        torch.sigmoid(sal_logits.detach()[rule_mask]).median()
+                    ),
+                    "sal_filler_p90": float(
+                        torch.quantile(
+                            torch.sigmoid(sal_logits.detach()[~rule_mask]), 0.9
+                        )
+                    ),
                 }
             split_history.append(m)
         loss.backward()
@@ -563,13 +700,22 @@ def train(arm: str, seed: int) -> None:
                 flush=True,
             )
         if step > 0 and (step % 500 == 0 or step == CURRICULUM_STEPS - 1):
-            mid = evaluate(model, bpe, VAL_SPACE, seed, n=32, families=("near", "train"))
+            mid = evaluate(
+                model, bpe, VAL_SPACE, seed, n=32, families=("near", "train")
+            )
             gq = gate_stats(model, bpe)
             evals.append({"step": step, "eval": mid, "gate_quantiles": gq})
             torch.save(
-                {"pathway": {n_: p_ for n_, p_ in model.state_dict().items() if not n_.startswith(("wte", "wpe", "blocks", "ln_f"))},
-                 "logit_bias": model.logit_bias.detach().cpu(), "step": step,
-                 "aux_head": aux_head.state_dict()},
+                {
+                    "pathway": {
+                        n_: p_
+                        for n_, p_ in model.state_dict().items()
+                        if not n_.startswith(("wte", "wpe", "blocks", "ln_f"))
+                    },
+                    "logit_bias": model.logit_bias.detach().cpu(),
+                    "step": step,
+                    "aux_head": aux_head.state_dict(),
+                },
                 OUT / f"{tag(arm, seed)}-ckpt.pt",
             )
             near_w = mid["near"]["within"]["acc"]
@@ -582,26 +728,53 @@ def train(arm: str, seed: int) -> None:
             )
         if step % 200 == 0 or step == STEPS - 1:
             OUT.mkdir(parents=True, exist_ok=True)
-            (OUT / f"{tag(arm, seed)}-progress.json").write_text(json.dumps({
-                "arm": arm, "seed": seed, "step": step, "of": STEPS,
-                "elapsed_sec": time.time() - t0, "history": history,
-                "split_history": split_history, "evals": evals,
-            }, indent=1))
+            (OUT / f"{tag(arm, seed)}-progress.json").write_text(
+                json.dumps(
+                    {
+                        "arm": arm,
+                        "seed": seed,
+                        "step": step,
+                        "of": STEPS,
+                        "elapsed_sec": time.time() - t0,
+                        "history": history,
+                        "split_history": split_history,
+                        "evals": evals,
+                    },
+                    indent=1,
+                )
+            )
     wall = time.time() - t0
     val = evaluate(model, bpe, VAL_SPACE, seed, n=64)
     OUT.mkdir(parents=True, exist_ok=True)
     torch.save(
-        {"pathway": {n: p for n, p in model.state_dict().items() if not n.startswith(("wte", "wpe", "blocks", "ln_f"))},
-         "logit_bias": model.logit_bias.detach().cpu(),
-         "aux_head": aux_head.state_dict()},
+        {
+            "pathway": {
+                n: p
+                for n, p in model.state_dict().items()
+                if not n.startswith(("wte", "wpe", "blocks", "ln_f"))
+            },
+            "logit_bias": model.logit_bias.detach().cpu(),
+            "aux_head": aux_head.state_dict(),
+        },
         OUT / f"{tag(arm, seed)}.pt",
     )
-    (OUT / f"{tag(arm, seed)}.json").write_text(json.dumps({
-        "arm": arm, "seed": seed, "steps": STEPS, "batch": BATCH,
-        "trainable_params": n_train, "wall_sec": wall,
-        "history": history, "split_history": split_history, "evals": evals,
-        "validation": val,
-    }, indent=1))
+    (OUT / f"{tag(arm, seed)}.json").write_text(
+        json.dumps(
+            {
+                "arm": arm,
+                "seed": seed,
+                "steps": STEPS,
+                "batch": BATCH,
+                "trainable_params": n_train,
+                "wall_sec": wall,
+                "history": history,
+                "split_history": split_history,
+                "evals": evals,
+                "validation": val,
+            },
+            indent=1,
+        )
+    )
     print(json.dumps(val, indent=1))
 
 
@@ -615,7 +788,9 @@ def load_trained(arm: str, seed: int) -> GatedGPT2:
 
 def final(arm: str, seed: int) -> None:
     if not (ROOT / "results" / "GPT2-FLEET-FROZEN").exists():
-        raise SystemExit("REFUSED: sealed final eval requires results/GPT2-FLEET-FROZEN")
+        raise SystemExit(
+            "REFUSED: sealed final eval requires results/GPT2-FLEET-FROZEN"
+        )
     model = load_trained(arm, seed)
     res = evaluate(model, BPE(), FINAL_SPACE, seed, n=256)
     path = OUT / f"{tag(arm, seed)}-final.json"
@@ -638,12 +813,15 @@ def dial(arm: str, seed: int) -> None:
             toks, _, seqs = batch([VAL_SPACE + 500_000 + i], bpe=bpe)
             s = seqs[0]
             ctl = model.control_states(toks.to(DEV))
-            for p, slot, ans in zip(s.query_positions, s.query_slots, s.active_answer, strict=True):
+            for p, slot, ans in zip(
+                s.query_positions, s.query_slots, s.active_answer, strict=True
+            ):
                 states.append(ctl[0, p].float().cpu())
                 labels.append((slot, ans))
             metas.append((toks, s, ctl))
     # READ: ridge probe slot-0 answer identity at slot-0 queries
     from stencil.nl_task import ANSWER_WORDS
+
     xs, ys = [], []
     for st, (slot, ans) in zip(states, labels, strict=True):
         if slot == 0:
@@ -656,7 +834,9 @@ def dial(arm: str, seed: int) -> None:
     Y[torch.arange(k), y[:k]] = 1
     W = torch.linalg.solve(X[:k].T @ X[:k] + 1e-3 * torch.eye(X.shape[1]), X[:k].T @ Y)
     acc = float((torch.argmax(X[k:] @ W, 1) == y[k:]).float().mean())
-    print(f"READ: slot-0 answer decoded from wire at {acc:.1%} (chance 6.2%), n_test={len(y)-k}")
+    print(
+        f"READ: slot-0 answer decoded from wire at {acc:.1%} (chance 6.2%), n_test={len(y) - k}"
+    )
 
     # TURN: transplant donor wire trajectory; expect donor's slot-0 answer
     flips = tried = shuffle_flips = 0
@@ -674,10 +854,14 @@ def dial(arm: str, seed: int) -> None:
             want = bpe.encode(" " + ansB)[0]
             tried += 1
             flips += int(pred == want)
-            perm = torch.randperm(cB.shape[1], generator=torch.Generator().manual_seed(tried))
+            perm = torch.randperm(
+                cB.shape[1], generator=torch.Generator().manual_seed(tried)
+            )
             out_s = model(tA.to(DEV), control_override=cB[:, perm]) + model.logit_bias
             shuffle_flips += int(int(out_s[0, pa].argmax()) == want)
-    print(f"TURN: {flips}/{tried} transplants produced the DONOR's answer; shuffle control {shuffle_flips}/{tried}")
+    print(
+        f"TURN: {flips}/{tried} transplants produced the DONOR's answer; shuffle control {shuffle_flips}/{tried}"
+    )
 
 
 if __name__ == "__main__":

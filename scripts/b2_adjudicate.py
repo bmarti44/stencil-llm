@@ -13,6 +13,7 @@ non-convergence = FAIL. This script only reads records; the arms are
 produced by scripts/b2_mmlu.py / b2_gsm8k.py with CTRL set to the
 registered checkpoint paths (same runners as the recorded base arms).
 """
+
 import json
 import sys
 from pathlib import Path
@@ -26,8 +27,18 @@ CTRL_SHA = {
     "b3-ce-s1": "e028b63f95623fe9d35b4f89eed07ab51effdcde6cc380370d4ac95dc4bcd631",
 }
 SUITES = {
-    "mmlu": {"n": 5330, "margin": 0.005, "base_dir": "b2-mmlu-base", "wave_dir": "b2-mmlu-{seed}"},
-    "gsm8k": {"n": 1319, "margin": 0.01, "base_dir": "b2-gsm8k-base", "wave_dir": "b2-gsm8k-{seed}"},
+    "mmlu": {
+        "n": 5330,
+        "margin": 0.005,
+        "base_dir": "b2-mmlu-base",
+        "wave_dir": "b2-mmlu-{seed}",
+    },
+    "gsm8k": {
+        "n": 1319,
+        "margin": 0.01,
+        "base_dir": "b2-gsm8k-base",
+        "wave_dir": "b2-gsm8k-{seed}",
+    },
 }
 
 
@@ -54,7 +65,9 @@ def main():
                 raise SystemExit(f"FAIL (fail-closed): missing meta for {wdir}")
             meta = json.loads(meta_p.read_text())
             if meta["ctrl_sha256"] != want_sha:
-                raise SystemExit(f"FAIL (fail-closed): {wdir} ctrl hash {meta['ctrl_sha256'][:12]} != registered")
+                raise SystemExit(
+                    f"FAIL (fail-closed): {wdir} ctrl hash {meta['ctrl_sha256'][:12]} != registered"
+                )
             base = load_items(cfg["base_dir"], cfg["n"])
             wave = load_items(wdir, cfg["n"])
             if set(base) != set(wave):
@@ -63,16 +76,21 @@ def main():
             n01 = sum(1 for i in base if not base[i] and wave[i])
             u = tango_upper_bound(n10, n01, cfg["n"])  # raises on non-convergence
             verdicts[f"{seed}/{suite}"] = {
-                "n10": n10, "n01": n01, "N": cfg["n"],
+                "n10": n10,
+                "n01": n01,
+                "N": cfg["n"],
                 "acc_base": round(sum(base.values()) / cfg["n"], 6),
                 "acc_wave": round(sum(wave.values()) / cfg["n"], 6),
-                "tango_upper_95": round(u, 6), "margin": cfg["margin"],
+                "tango_upper_95": round(u, 6),
+                "margin": cfg["margin"],
                 "pass": bool(u < cfg["margin"]),
             }
     binding = all(v["pass"] for v in verdicts.values())
     out = {"verdicts": verdicts, "BINDING_DO_NO_HARM_PASS": binding}
     print(json.dumps(out, indent=1))
-    (ROOT / "results" / "qwen" / "b2-binding-adjudication.json").write_text(json.dumps(out, indent=1))
+    (ROOT / "results" / "qwen" / "b2-binding-adjudication.json").write_text(
+        json.dumps(out, indent=1)
+    )
     if not binding:
         sys.exit(1)
 

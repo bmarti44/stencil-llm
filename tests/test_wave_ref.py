@@ -7,6 +7,7 @@ value when active else the neutral opener "Compute." (not in POOLS);
 args typed with the hint value when active, untyped otherwise; body
 implements sess.ops[wt]. Must parse, execute (OP_TESTS), satisfy every
 active obligation via score_work, and trip NO stale obligation."""
+
 import ast
 
 from stencil.qwen_task import DOC_OPENERS
@@ -71,7 +72,9 @@ def test_canonical_executes_all_ops():
         x, y, want = OP_TESTS[op]
         ns = {}
         exec(code, ns)
-        fn_name = next(k for k, v in ns.items() if callable(v) and not k.startswith("__"))
+        fn_name = next(
+            k for k, v in ns.items() if callable(v) and not k.startswith("__")
+        )
         assert ns[fn_name](x, y) == want
 
 

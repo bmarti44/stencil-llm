@@ -295,20 +295,20 @@ def main(argv=None):
                 "pinned_cols": generated["pinned_cols"],
                 "truncated": generated["truncated"],
                 "timed_out": generated["timed_out"],
-                "degenerate": (
-                    not generated["truncated"] and generated["rep4"] > 0.5
-                ),
+                "degenerate": (not generated["truncated"] and generated["rep4"] > 0.5),
                 "invalid": generated["invalid_output"],
                 "scores": scores_for_arm,
             }
-        rows.append({
-            "session": record["session"],
-            "n_aged": n_aged,
-            "aged_constraint_types": aged_types,
-            "unknown_vector_constraints": len(unknown_types),
-            "unknown_vector_types": unknown_types,
-            "arms": arm_rows,
-        })
+        rows.append(
+            {
+                "session": record["session"],
+                "n_aged": n_aged,
+                "aged_constraint_types": aged_types,
+                "unknown_vector_constraints": len(unknown_types),
+                "unknown_vector_types": unknown_types,
+                "arms": arm_rows,
+            }
+        )
         print(
             f"session {record['session']:02d}: "
             + " ".join(
@@ -338,8 +338,7 @@ def main(argv=None):
         "safety": safety,
         "wave_kill_rule": "degenerate > 2/20 kills the arm",
         "wave_killed": {
-            name: safety[name]["degenerate"] > 2
-            for name in KILL_RULE_ARMS
+            name: safety[name]["degenerate"] > 2 for name in KILL_RULE_ARMS
         },
         "pre_query_baseline_totals": PRE_QUERY_BASELINE_TOTALS,
         "function_vectors": {

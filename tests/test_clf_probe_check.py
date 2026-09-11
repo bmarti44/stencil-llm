@@ -134,9 +134,7 @@ def test_echo_wave_run_evicts_before_current_turn_prefill_on_cpu():
         def __init__(self):
             super().__init__()
             self.anchor = nn.Parameter(torch.zeros(()))
-            self.cfg = Qwen3Config(
-                1, 1, 1, 2, 2, 2, 151_646, 10_000.0, 1e-6, 16, True
-            )
+            self.cfg = Qwen3Config(1, 1, 1, 2, 2, 2, 151_646, 10_000.0, 1e-6, 16, True)
 
         def forward(
             self,
@@ -187,6 +185,5 @@ def test_confidence_formula_stays_finite_at_registered_bounds():
     from scripts.clf_probe_check import confidence_cap
 
     assert all(
-        math.isfinite(confidence_cap(probability, 3.0))
-        for probability in (0.5, 1.0)
+        math.isfinite(confidence_cap(probability, 3.0)) for probability in (0.5, 1.0)
     )

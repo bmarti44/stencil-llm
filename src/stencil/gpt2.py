@@ -6,6 +6,7 @@ attention and per-head gates driven by either a stateless (current-token) path
 or the oscillator controller. Trunk parameters are frozen by the arms runner;
 gates initialize to an exact no-op (bypass verified bitwise by tests).
 """
+
 from __future__ import annotations
 
 import math
@@ -36,11 +37,19 @@ class ExternalOscillatorController(nn.Module):
         self.cells = nn.ModuleList(
             [
                 OscillatorCell(
-                    input_dim, pairs, period_min, period_max, False,
+                    input_dim,
+                    pairs,
+                    period_min,
+                    period_max,
+                    False,
                     generator=generator,
                 ),
                 OscillatorCell(
-                    pairs, pairs, period_min, period_max, False,
+                    pairs,
+                    pairs,
+                    period_min,
+                    period_max,
+                    False,
                     generator=generator,
                 ),
             ]
@@ -70,7 +79,9 @@ class GPT2Config:
 class _LoRA(nn.Module):
     """Rank-r adapter for one weight matrix; up starts at zero => inert."""
 
-    def __init__(self, d_in: int, d_out: int, rank: int, generator: torch.Generator) -> None:
+    def __init__(
+        self, d_in: int, d_out: int, rank: int, generator: torch.Generator
+    ) -> None:
         super().__init__()
         self.down = nn.Linear(d_in, rank, bias=False)
         self.up = nn.Linear(rank, d_out, bias=False)
@@ -201,12 +212,14 @@ class GatedGPT2(nn.Module):
 
             lg = named_generator(seed_init, "train")
             self.lora = nn.ModuleList(
-                nn.ModuleDict({
-                    "attn_qkv": _LoRA(c.d_model, 3 * c.d_model, lora_rank, lg),
-                    "attn_proj": _LoRA(c.d_model, c.d_model, lora_rank, lg),
-                    "mlp_fc": _LoRA(c.d_model, c.d_ff, lora_rank, lg),
-                    "mlp_proj": _LoRA(c.d_ff, c.d_model, lora_rank, lg),
-                })
+                nn.ModuleDict(
+                    {
+                        "attn_qkv": _LoRA(c.d_model, 3 * c.d_model, lora_rank, lg),
+                        "attn_proj": _LoRA(c.d_model, c.d_model, lora_rank, lg),
+                        "mlp_fc": _LoRA(c.d_model, c.d_ff, lora_rank, lg),
+                        "mlp_proj": _LoRA(c.d_ff, c.d_model, lora_rank, lg),
+                    }
+                )
                 for _ in range(c.n_layer)
             )
         if arm == "cache":
@@ -247,9 +260,7 @@ class GatedGPT2(nn.Module):
             # keeps the graft bitwise inert until trained. Base arm gets the
             # identical stack fed by a stateless 768->128 projector, so the
             # doorless-room proof is preserved.
-            self.control_proj = (
-                None if arm == "osc" else nn.Linear(c.d_model, 128)
-            )
+            self.control_proj = None if arm == "osc" else nn.Linear(c.d_model, 128)
             if self.control_proj is not None:
                 nn.init.normal_(self.control_proj.weight, std=0.02, generator=pathway)
                 nn.init.zeros_(self.control_proj.bias)
@@ -261,11 +272,7 @@ class GatedGPT2(nn.Module):
 
     def trunk_parameters(self) -> list[nn.Parameter]:
         names = ("wte", "wpe", "blocks", "ln_f")
-        return [
-            p
-            for n, p in self.named_parameters()
-            if n.split(".")[0] in names
-        ]
+        return [p for n, p in self.named_parameters() if n.split(".")[0] in names]
 
     def pathway_parameters(self) -> list[nn.Parameter]:
         trunk = {id(p) for p in self.trunk_parameters()}
@@ -345,11 +352,7 @@ class GatedGPT2(nn.Module):
         self.cache_internals: dict | None = None
         self.cache_states = None
         for index, block in enumerate(self.blocks):
-            if (
-                self.arm == "cache"
-                and index == self.INJ_LAYERS[0]
-                and not gate_bypass
-            ):
+            if self.arm == "cache" and index == self.INJ_LAYERS[0] and not gate_bypass:
                 # Contextual writer: blocks 0-7 states feed the cache; the
                 # read code drives the additive injection below.
                 code, self.cache_states, self.cache_internals = self.cache(

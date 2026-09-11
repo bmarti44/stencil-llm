@@ -29,8 +29,11 @@ def parse_args(argv=None):
     p.add_argument("--branch-max-new", type=int, default=220)
     p.add_argument("--deadline", type=float, default=300.0)
     p.add_argument("--failing-only", action="store_true")
-    p.add_argument("--conflict-top", action="store_true",
-                   help="pick the highest conflict-score eligible moments per row (importance sampling for label collection; labels remain causal)")
+    p.add_argument(
+        "--conflict-top",
+        action="store_true",
+        help="pick the highest conflict-score eligible moments per row (importance sampling for label collection; labels remain causal)",
+    )
     return p.parse_args(argv)
 
 
@@ -70,8 +73,11 @@ def main(argv=None):
         # sample moments where labels can be informative: rows whose BASE
         # calibration generation was non-adherent (recorded, read-only)
         rec = ROOT / "results" / "qwen" / "b3-deficit-cal"
-        fail_idx = [i for i in range(len(rows))
-                    if not json.loads((rec / f"base-{i:03d}.json").read_text())["adherent"]]
+        fail_idx = [
+            i
+            for i in range(len(rows))
+            if not json.loads((rec / f"base-{i:03d}.json").read_text())["adherent"]
+        ]
         rows = [rows[i] for i in fail_idx]
     rows = rows[: args.rows]
     if len(rows) != args.rows:
@@ -125,7 +131,9 @@ def main(argv=None):
     for position, (row_i, row, spans, eligible) in enumerate(by_row):
         allocation = base_n + int(position < remainder)
         if args.conflict_top:
-            picked = sorted(eligible, key=lambda r: (-conflict_score(r), r["step"]))[:allocation]
+            picked = sorted(eligible, key=lambda r: (-conflict_score(r), r["step"]))[
+                :allocation
+            ]
             picked = sorted(picked, key=lambda r: r["step"])
         else:
             picked = _evenly_pick(eligible, allocation)

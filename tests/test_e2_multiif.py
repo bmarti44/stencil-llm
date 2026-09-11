@@ -85,6 +85,7 @@ def test_replay_analysis_applies_effect_floor_and_beats_ablations():
             "fixed_oldest": i < 3,
             "positive_control": i < 20,
         }
+
         def branch(value):
             return {
                 "scores": {
@@ -97,6 +98,7 @@ def test_replay_analysis_applies_effect_floor_and_beats_ablations():
                 "interventions": [],
                 "biased_tokens": 0,
             }
+
         records.append(
             {
                 "ci": i,

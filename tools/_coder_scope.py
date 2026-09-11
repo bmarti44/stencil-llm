@@ -6,15 +6,30 @@ post <manifest>            : print NUL-separated coder-changed paths (union of
                              currently-dirty and baseline paths; a path is
                              baseline only if status line AND record both match)
 """
-import hashlib, json, os, stat, subprocess, sys
+
+import hashlib
+import json
+import os
+import stat
+import subprocess
+import sys
+
 
 def root():
-    return subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True,
-                          text=True, check=True).stdout.strip()
+    return subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+
 
 def status_map(r):
-    raw = subprocess.run(["git", "-C", r, "status", "--porcelain=v2", "-z",
-                          "--untracked-files=all"], capture_output=True, check=True).stdout
+    raw = subprocess.run(
+        ["git", "-C", r, "status", "--porcelain=v2", "-z", "--untracked-files=all"],
+        capture_output=True,
+        check=True,
+    ).stdout
     out = {}
     fields = [f for f in raw.split(b"\x00")]
     i = 0
@@ -43,6 +58,7 @@ def status_map(r):
             out[path] = t[: len(t) - len(path)].strip()
     return out
 
+
 def record(r, p):
     fp = os.path.join(r, p)
     try:
@@ -50,19 +66,27 @@ def record(r, p):
     except OSError:
         return "GONE"
     if stat.S_ISLNK(st.st_mode):
-        return "L:" + hashlib.sha256(os.readlink(fp).encode("utf-8", "surrogateescape")).hexdigest()
+        return (
+            "L:"
+            + hashlib.sha256(
+                os.readlink(fp).encode("utf-8", "surrogateescape")
+            ).hexdigest()
+        )
     if stat.S_ISREG(st.st_mode):
         x = "x" if st.st_mode & stat.S_IXUSR else "-"
         return f"F{x}:" + hashlib.sha256(open(fp, "rb").read()).hexdigest()
     return "OTHER:" + oct(st.st_mode)
+
 
 def main():
     mode, manifest = sys.argv[1], sys.argv[2]
     r = root()
     if mode == "pre":
         sm = status_map(r)
-        json.dump({p: {"stat": s, "rec": record(r, p)} for p, s in sm.items()},
-                  open(manifest, "w"))
+        json.dump(
+            {p: {"stat": s, "rec": record(r, p)} for p, s in sm.items()},
+            open(manifest, "w"),
+        )
         return 0
     base = json.load(open(manifest))
     cur = status_map(r)
@@ -77,6 +101,7 @@ def main():
         # the consumer requires the terminator or it drops the final path.
         sys.stdout.buffer.write(c.encode("utf-8", "surrogateescape") + b"\x00")
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

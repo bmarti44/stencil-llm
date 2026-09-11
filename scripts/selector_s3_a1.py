@@ -6,6 +6,7 @@ rows = final-query rows onward; cols = governing ledger-line token span.
 Gates per config: rescue_rate >= 0.50 AND broken == 0; wrong-span control
 <= 10% flips. Selection rule: pass gate, then fewest layers, lowest beta,
 highest net gain. Fresh seed block; per-example JSON evidence."""
+
 import json
 import sys
 from pathlib import Path
@@ -25,7 +26,9 @@ GRID = [(tuple(range(20, 28)), 2.0), (tuple(range(20, 28)), 4.0)]
 
 tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
 m = Qwen3()
-m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+m.load_state_dict(
+    torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+)
 m = m.to(torch.bfloat16).cuda().eval()
 
 
@@ -36,7 +39,11 @@ def build(seed):
     # governing span chars -> token columns via offsets (overlap mapping)
     lo_c, hi_c = s.ledger_spans[FIELDS32.index(s.field)]
     cols = [i for i, (a, b) in enumerate(enc.offsets) if a < hi_c and b > lo_c]
-    assert cols and s.field.split()[0] in s.text[enc.offsets[cols[0]][0]:enc.offsets[cols[-1]][1]], "span mapping failed"
+    assert (
+        cols
+        and s.field.split()[0]
+        in s.text[enc.offsets[cols[0]][0] : enc.offsets[cols[-1]][1]]
+    ), "span mapping failed"
     row_start_char = s.text.rfind("Q: What is the " + s.field)
     row_start = next(i for i, (a, b) in enumerate(enc.offsets) if b > row_start_char)
     return s, ids, (cols[0], cols[-1] + 1), row_start
@@ -78,12 +85,24 @@ with torch.no_grad():
                 gained += 1
             if not out and base[j]:
                 broken += 1
-            records.append({"config": [list(layers), beta], "seed": SEED_BASE + j,
-                            "base": base[j], "spot": out})
+            records.append(
+                {
+                    "config": [list(layers), beta],
+                    "seed": SEED_BASE + j,
+                    "base": base[j],
+                    "spot": out,
+                }
+            )
         rescue = gained / max(1, N - base_correct)
-        res = {"layers": list(layers), "beta": beta, "gained": gained, "broken": broken,
-               "rescue_rate": round(rescue, 3), "net": gained - broken,
-               "gate": rescue >= 0.5 and broken == 0}
+        res = {
+            "layers": list(layers),
+            "beta": beta,
+            "gained": gained,
+            "broken": broken,
+            "rescue_rate": round(rescue, 3),
+            "net": gained - broken,
+            "gate": rescue >= 0.5 and broken == 0,
+        }
         results.append(res)
         print(res, flush=True)
 
@@ -101,12 +120,24 @@ if passing:
             if gen(ids, (layers, beta, wrong_span, row)) == s.value:
                 wrong_fix += 1
     n_err = N - base_correct
-    print(f"SELECTED {best} | wrong-span control fixes {wrong_fix}/{n_err} (gate <=10%)")
+    print(
+        f"SELECTED {best} | wrong-span control fixes {wrong_fix}/{n_err} (gate <=10%)"
+    )
     best["wrong_span_fixes"] = wrong_fix
     best["wrong_span_gate"] = wrong_fix <= 0.10 * n_err
 else:
     print("NO CONFIG PASSED THE GATE")
 out = ROOT / "results" / "qwen" / "s3-a1-oracle.json"
-out.write_text(json.dumps({"seed_base": SEED_BASE, "n": N, "base_correct": base_correct,
-                           "grid": results, "records": records}, indent=1))
+out.write_text(
+    json.dumps(
+        {
+            "seed_base": SEED_BASE,
+            "n": N,
+            "base_correct": base_correct,
+            "grid": results,
+            "records": records,
+        },
+        indent=1,
+    )
+)
 print(f"evidence -> {out}")

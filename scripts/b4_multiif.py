@@ -13,6 +13,7 @@ v4.1 hardening: CLOSED three-arm table (base, wave-s0, proxy-s0)
 with registered controller hashes; full provenance pin set; real 300s
 deadline with timeout recorded. SMOKE=<n conversations> only.
 """
+
 import json
 import hashlib
 import os
@@ -42,7 +43,9 @@ TIMEOUT_S = 300
 
 
 def _registered_sha(record):
-    return json.loads((ROOT / "results" / "qwen" / record).read_text())["selected_sha256"]
+    return json.loads((ROOT / "results" / "qwen" / record).read_text())[
+        "selected_sha256"
+    ]
 
 
 def arms_table():
@@ -51,9 +54,11 @@ def arms_table():
     controller; descriptive). Controller hash bound to the committed
     training record (equivalent to a literal: the record is tracked)."""
     sha = _registered_sha("b3-ce-s0.json")
-    return [("base", None, None),
-            ("deficit-wave-s0", "results/qwen/b3-ce-s0.pt", sha),
-            ("static25-wave-s0", "results/qwen/b3-ce-s0.pt", sha)]
+    return [
+        ("base", None, None),
+        ("deficit-wave-s0", "results/qwen/b3-ce-s0.pt", sha),
+        ("static25-wave-s0", "results/qwen/b3-ce-s0.pt", sha),
+    ]
 
 
 def seed_of(key, turn):
@@ -70,6 +75,7 @@ def turn_doc(row, t):
 
 def score_turn(row, t, response):
     import random
+
     p, ids, kws = turn_doc(row, t)
     random.seed(seed_of(row["key"], t))
     doc = {"key": 0, "prompt": p, "instruction_id_list": ids, "kwargs": kws}
@@ -103,6 +109,7 @@ def gen(m, tok, ctrl, history_text, mode, tau=None, b_max=None):
     import time as _t
 
     from stencil.bench import WAVE_LAYERS, make_deficit_hook, make_wave_bias_fn
+
     ids = tok.encode(history_text).ids
     enc = tok.encode(history_text)
     cache = KVCache()
@@ -116,6 +123,7 @@ def gen(m, tok, ctrl, history_text, mode, tau=None, b_max=None):
         hook = make_deficit_hook(ctrl, state, spans, tau, b_max)
     elif mode == "static25":
         inner = make_wave_bias_fn(ctrl, state)
+
         def bias_fn(h20, Pp, past):
             row = inner(h20, Pp, past)
             return None if row is None else row * 0.25
@@ -124,13 +132,18 @@ def gen(m, tok, ctrl, history_text, mode, tau=None, b_max=None):
     timed_out = False
     with torch.no_grad():
         if mode == "deficit":
-            logits = m(torch.tensor([ids], device="cuda"), cache=cache, deficit_hook=hook)
+            logits = m(
+                torch.tensor([ids], device="cuda"), cache=cache, deficit_hook=hook
+            )
         elif mode == "static25":
+
             def bh(past):
                 def h(h20):
                     row = bias_fn(h20, P, past)
                     return None if row is None else {L: row for L in WAVE_LAYERS}
+
                 return (20, h)
+
             logits = m(torch.tensor([ids], device="cuda"), cache=cache, bias_hook=bh(0))
         else:
             logits = m(torch.tensor([ids], device="cuda"), cache=cache)
@@ -142,9 +155,15 @@ def gen(m, tok, ctrl, history_text, mode, tau=None, b_max=None):
             out.append(nxt)
             if mode == "deficit":
                 state["cache_len"] = cache.length
-                logits = m(torch.tensor([[nxt]], device="cuda"), cache=cache, deficit_hook=hook)
+                logits = m(
+                    torch.tensor([[nxt]], device="cuda"), cache=cache, deficit_hook=hook
+                )
             elif mode == "static25":
-                logits = m(torch.tensor([[nxt]], device="cuda"), cache=cache, bias_hook=bh(cache.length))
+                logits = m(
+                    torch.tensor([[nxt]], device="cuda"),
+                    cache=cache,
+                    bias_hook=bh(cache.length),
+                )
             else:
                 logits = m(torch.tensor([[nxt]], device="cuda"), cache=cache)
             nxt = int(logits[0, -1].argmax())
@@ -178,10 +197,15 @@ def run_arm(m, tok, rows, arm_name, ctrl, meta, mode):
         for t in turns_present:
             p, _, _ = turn_doc(row, t)
             history += f"<|im_start|>user\n{p}<|im_end|>\n"
-            text, n, trunc, timeout = gen(m, tok, ctrl, history + OPENER, mode,
-                                          tau=TAU, b_max=BMAX)
+            text, n, trunc, timeout = gen(
+                m, tok, ctrl, history + OPENER, mode, tau=TAU, b_max=BMAX
+            )
             rec["responses"][str(t)] = text
-            rec["gen"][str(t)] = {"n": n, "truncated": bool(trunc), "timeout": bool(timeout)}
+            rec["gen"][str(t)] = {
+                "n": n,
+                "truncated": bool(trunc),
+                "timeout": bool(timeout),
+            }
             rec["scores"][str(t)] = score_turn(row, t, text)
             per_turn[t].append(rec["scores"][str(t)])
             history += f"<|im_start|>assistant\n{text}<|im_end|>\n"
@@ -195,7 +219,12 @@ def run_arm(m, tok, rows, arm_name, ctrl, meta, mode):
         summary[f"turn{t}"] = {**aggregate(per_turn[t]), "n": len(per_turn[t])}
     summary["pooled"] = aggregate(per_turn[1] + per_turn[2] + per_turn[3])
     (outdir / "summary.json").write_text(json.dumps(summary, indent=1))
-    print(f"[{arm_name}] " + json.dumps({k: v for k, v in summary.items() if k.startswith(("turn", "pooled"))}))
+    print(
+        f"[{arm_name}] "
+        + json.dumps(
+            {k: v for k, v in summary.items() if k.startswith(("turn", "pooled"))}
+        )
+    )
 
 
 def main():
@@ -209,15 +238,20 @@ def main():
     data_p = ROOT / "data" / "bench" / "multiif_en.jsonl"
     data_sha = hashlib.sha256(data_p.read_bytes()).hexdigest()
     assert data_sha == man["converted_sha256"]["multiif_en.jsonl"]
-    pins = provenance_pins(ROOT, extra_files=[p for _, p, _ in ARMS if p]
-                           + ["data/bench/multiif_en.jsonl", "scripts/b4_multiif.py"])
+    pins = provenance_pins(
+        ROOT,
+        extra_files=[p for _, p, _ in ARMS if p]
+        + ["data/bench/multiif_en.jsonl", "scripts/b4_multiif.py"],
+    )
     for name, path, want in ARMS:
         if path is not None:
             assert pins[path] == want, f"controller hash mismatch: {name}"
 
     tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
     m = Qwen3()
-    m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+    m.load_state_dict(
+        torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+    )
     m = m.to(torch.bfloat16).cuda().eval()
     rows = [json.loads(line) for line in open(data_p)]
     assert len(rows) == 909
@@ -229,10 +263,21 @@ def main():
             ctrl = WaveController(beta_max=1.0).cuda()
             ctrl.load_state_dict(torch.load(ROOT / path, map_location="cpu"))
             ctrl = ctrl.eval()
-        mode = "base" if path is None else ("deficit" if name.startswith("deficit") else "static25")
-        meta = {"arm": name, "ctrl": path or "none", "ctrl_sha256": (want or "none"),
-                "mode": mode, "tau": TAU, "b_max": BMAX,
-                "pins": pins, "timeout_s": TIMEOUT_S}
+        mode = (
+            "base"
+            if path is None
+            else ("deficit" if name.startswith("deficit") else "static25")
+        )
+        meta = {
+            "arm": name,
+            "ctrl": path or "none",
+            "ctrl_sha256": (want or "none"),
+            "mode": mode,
+            "tau": TAU,
+            "b_max": BMAX,
+            "pins": pins,
+            "timeout_s": TIMEOUT_S,
+        }
         run_arm(m, tok, rows, name, ctrl, meta, mode)
 
 

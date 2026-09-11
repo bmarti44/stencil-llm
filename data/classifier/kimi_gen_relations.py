@@ -1,3 +1,6 @@
+# ruff: noqa: E501
+# Data-generation prompt script: the prompt text is provenance for the labelled data
+# (data/classifier/LABELS.md) and is kept exactly as sent.
 """kimi-k3 relation pass (FOCUS-3, data/classifier/LABELS-RELATIONS.md).
 
 Usage: kimi_gen_relations.py <domain> <n> <seed> <out.jsonl>
@@ -5,6 +8,7 @@ Hand-written by kimi-k3 in a fresh session per call; the label spec is read from
 the prompt always follows the committed spec. Never any benchmark content. Data lineage: fit-on = these rows (after
 review patches); evaluated-on = author-disjoint held-out (separate pass); disjoint from every benchmark.
 """
+
 import json
 import pathlib
 import re
@@ -48,10 +52,20 @@ and the live same-key target receives none; shadowing is derived. At least a thi
 and a third global, within valid label cells; reply-scoped targets supply negatives only. About a quarter of messages
 carry message_new_rule=true, only with a separate admitted span. Vary the register (terse, chatty,
 polite, annoyed). Invent everything; do NOT copy or paraphrase any public benchmark or dataset. Variation seed: {seed}."""
-body = json.dumps({"model": "kimi-k3:cloud", "prompt": PROMPT, "stream": False, "think": False,
-                   "options": {"num_predict": 16000, "temperature": 0.9, "seed": seed}}).encode()
-req = urllib.request.Request("http://127.0.0.1:11434/api/generate", data=body,
-                             headers={"Content-Type": "application/json"})
+body = json.dumps(
+    {
+        "model": "kimi-k3:cloud",
+        "prompt": PROMPT,
+        "stream": False,
+        "think": False,
+        "options": {"num_predict": 16000, "temperature": 0.9, "seed": seed},
+    }
+).encode()
+req = urllib.request.Request(
+    "http://127.0.0.1:11434/api/generate",
+    data=body,
+    headers={"Content-Type": "application/json"},
+)
 t0 = time.time()
 for attempt in range(3):
     try:
@@ -75,8 +89,13 @@ for ln in r.get("response", "").splitlines():
             o = json.loads(m.group(0)) if m else None
         except json.JSONDecodeError:
             o = None
-    ok = (o and o.get("label") in LABELS and isinstance(o.get("old_rule"), str)
-          and isinstance(o.get("message"), str) and isinstance(o.get("scope"), str))
+    ok = (
+        o
+        and o.get("label") in LABELS
+        and isinstance(o.get("old_rule"), str)
+        and isinstance(o.get("message"), str)
+        and isinstance(o.get("scope"), str)
+    )
     if not ok:
         bad += 1
         continue

@@ -34,6 +34,7 @@ Thus the verify2 zero-hit example now returns `['earlier_zero_hit.py:6:watchdog'
 from os import kill
 from signal import SIGTERM
 
+
 def watchdog(pid):
     while alive(pid):
         kill(pid, SIGTERM)
@@ -54,6 +55,7 @@ All three returned `[]`.
    ```python
    def watchdog(pid):
        from os import kill as k
+
        k(pid, 15)
    ```
 

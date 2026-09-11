@@ -24,6 +24,7 @@ what is mechanically parseable.
 
 Usage: python3 tools/agent_metrics.py [--threshold 90]
 """
+
 from __future__ import annotations
 
 import argparse
@@ -46,17 +47,25 @@ def parse_review(path: Path) -> dict:
     rounds = []
     matches = list(ROUND_RE.finditer(text))
     for i, m in enumerate(matches):
-        end = matches[i + 1].start() if i + 1 < len(matches) else text.find("\n## ", m.end())
-        block = text[m.start(): end if end != -1 else len(text)]
+        end = (
+            matches[i + 1].start()
+            if i + 1 < len(matches)
+            else text.find("\n## ", m.end())
+        )
+        block = text[m.start() : end if end != -1 else len(text)]
         sm = ROUND_SCORE_RE.search(block)
-        rounds.append({
-            "round": int(m.group(1)),
-            "date": m.group(2),
-            "score": int(sm.group(1)) if sm else None,
-        })
+        rounds.append(
+            {
+                "round": int(m.group(1)),
+                "date": m.group(2),
+                "score": int(sm.group(1)) if sm else None,
+            }
+        )
     rounds.sort(key=lambda r: r["round"])
 
-    fsec = re.search(r"^## Findings\s*$(.*?)(?=^## |\Z)", text, re.MULTILINE | re.DOTALL)
+    fsec = re.search(
+        r"^## Findings\s*$(.*?)(?=^## |\Z)", text, re.MULTILINE | re.DOTALL
+    )
     counts = {s: 0 for s in SEVERITIES}
     open_hc = 0
     if fsec:
@@ -72,7 +81,8 @@ def parse_review(path: Path) -> dict:
 def gate_commits(root: Path) -> list[str]:
     try:
         out = subprocess.check_output(
-            ["git", "-C", str(root), "log", "--pretty=%h %s"], text=True, timeout=10)
+            ["git", "-C", str(root), "log", "--pretty=%h %s"], text=True, timeout=10
+        )
     except subprocess.SubprocessError:
         return []
     return [ln for ln in out.splitlines() if re.search(r"\bgate\(G\d\w*\):", ln)]
@@ -83,11 +93,21 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--threshold", type=int, default=90)
     args = ap.parse_args(argv)
 
-    root = Path(subprocess.check_output(
-        ["git", "rev-parse", "--show-toplevel"], text=True, timeout=10).strip())
-    reviews = [p for p in sorted((root / "plan" / "reviews").rglob("*.md"))
-               if not p.name.endswith(".rejected.md") and p.name != "tiebreaks.md"]
-    report = {"threshold": args.threshold, "topics": {}, "gate_commits": gate_commits(root)}
+    root = Path(
+        subprocess.check_output(
+            ["git", "rev-parse", "--show-toplevel"], text=True, timeout=10
+        ).strip()
+    )
+    reviews = [
+        p
+        for p in sorted((root / "plan" / "reviews").rglob("*.md"))
+        if not p.name.endswith(".rejected.md") and p.name != "tiebreaks.md"
+    ]
+    report = {
+        "threshold": args.threshold,
+        "topics": {},
+        "gate_commits": gate_commits(root),
+    }
 
     for path in reviews:
         rel = str(path.relative_to(root / "plan" / "reviews"))
@@ -97,9 +117,12 @@ def main(argv: list[str] | None = None) -> int:
             # acceptance = score at threshold in that round AND, if it is the
             # latest round, zero open high/critical now (history rounds can't
             # retro-check openness, so only the latest round can accept).
-            if (r["score"] is not None and r["score"] >= args.threshold
-                    and r["round"] == info["rounds"][-1]["round"]
-                    and info["open_high_critical"] == 0):
+            if (
+                r["score"] is not None
+                and r["score"] >= args.threshold
+                and r["round"] == info["rounds"][-1]["round"]
+                and info["open_high_critical"] == 0
+            ):
                 accepted_round = r["round"]
         report["topics"][rel] = {
             "first_round_score": info["rounds"][0]["score"] if info["rounds"] else None,
@@ -119,12 +142,17 @@ def main(argv: list[str] | None = None) -> int:
     print("|---|---|---|---|---|---|")
     for rel, t in report["topics"].items():
         c = t["current_findings"]
-        print(f"| {rel} | {t['first_round_score']} | {t['latest_score']} "
-              f"(r{t['latest_round']}) | "
-              f"{'r' + str(t['rounds_to_accept']) if t['rounds_to_accept'] else 'no'} | "
-              f"{t['open_high_critical']} | "
-              f"{c['critical']}/{c['high']}/{c['medium']}/{c['low']} |")
-    print(f"\ngate commits: {len(report['gate_commits'])}; written {out.relative_to(root)}")
+        print(
+            f"| {rel} | {t['first_round_score']} | {t['latest_score']} "
+            f"(r{t['latest_round']}) | "
+            f"{'r' + str(t['rounds_to_accept']) if t['rounds_to_accept'] else 'no'} | "
+            f"{t['open_high_critical']} | "
+            f"{c['critical']}/{c['high']}/{c['medium']}/{c['low']} |"
+        )
+    print(
+        f"\ngate commits: {len(report['gate_commits'])}; "
+        f"written {out.relative_to(root)}"
+    )
     return 0
 
 

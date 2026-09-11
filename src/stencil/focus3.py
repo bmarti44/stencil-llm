@@ -395,7 +395,8 @@ class Runtime:
                 # Filter only transition eligibility: raw positives still bound
                 # admission, including a rejected reinstatement/completion.
                 positive = [
-                    p for p in positive
+                    p
+                    for p in positive
                     if p["proposed"] != "completes"
                     or (
                         scope not in (None, "*")
@@ -403,7 +404,8 @@ class Runtime:
                     )
                 ]
                 positive = [
-                    p for p in positive
+                    p
+                    for p in positive
                     if p["proposed"] != "reinstates"
                     or strict_reinstatement(
                         span,
@@ -411,7 +413,9 @@ class Runtime:
                         self.register.get(p["input"]["target_id"]),
                         self.key_slugs.get(
                             p["input"]["target_id"],
-                            relation_key(self.register.get(p["input"]["target_id"]).text),
+                            relation_key(
+                                self.register.get(p["input"]["target_id"]).text
+                            ),
                         ),
                         cancellation_message(text, trace["pairs"]),
                     )

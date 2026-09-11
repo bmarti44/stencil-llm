@@ -7,6 +7,7 @@ bayes_press_threshold is a REPORTING quantity only (PRESS-PLAN v3 T0.3):
 operating thresholds are chosen by maximizing Delta-U on selection data,
 never from p*.
 """
+
 import math
 
 
@@ -44,10 +45,17 @@ def clopper_pearson_upper(k: int, n: int, alpha: float = 0.05) -> float:
         # sum_{i<=k} C(n,i) p^i (1-p)^(n-i), computed in log space
         total = 0.0
         for i in range(k + 1):
-            total += math.exp(
-                math.lgamma(n + 1) - math.lgamma(i + 1) - math.lgamma(n - i + 1)
-                + i * math.log(p) + (n - i) * math.log1p(-p)
-            ) if 0.0 < p < 1.0 else (1.0 if (p == 0.0 and i == 0) else 0.0)
+            total += (
+                math.exp(
+                    math.lgamma(n + 1)
+                    - math.lgamma(i + 1)
+                    - math.lgamma(n - i + 1)
+                    + i * math.log(p)
+                    + (n - i) * math.log1p(-p)
+                )
+                if 0.0 < p < 1.0
+                else (1.0 if (p == 0.0 and i == 0) else 0.0)
+            )
         return total
 
     lo, hi = 0.0, 1.0 - 1e-15
@@ -60,7 +68,9 @@ def clopper_pearson_upper(k: int, n: int, alpha: float = 0.05) -> float:
     return (lo + hi) / 2
 
 
-def roc_point(scored: list[tuple[float, bool]], threshold: float) -> tuple[float, float]:
+def roc_point(
+    scored: list[tuple[float, bool]], threshold: float
+) -> tuple[float, float]:
     """(tpr, fpr) for the policy 'press iff score > threshold' over
     (score, is_positive) pairs. An empty class yields rate 0.0 — callers
     asserting on these must check class counts (vacuity fails loudly at

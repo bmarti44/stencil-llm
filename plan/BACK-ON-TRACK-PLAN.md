@@ -1,4 +1,4 @@
-# Stencil: back-on-track research plan (rev 6, 2026-09-11)
+# Stencil: back-on-track research plan (rev 7.1, 2026-09-11)
 
 Rev 6 = Brian's four directions after rev 5: (1) publish the classifier now, publicly, under
 the `bmarti44` HF namespace with a descriptive name (section C, Release 0); (2) clean up ALL of
@@ -20,6 +20,180 @@ check in the Exp 3a contract plus frozen two-request/three-input selection in Ex
 Astra's success probabilities: Exp 1 75%, Exp 2a 35%, Exp 3 55% (of a clear answer, not of a
 positive result). Review files: scratchpad astra-repo-review.md, astra-plan-review.md,
 astra-plan-review2.md (to be copied under results/reviews/ once execution starts).
+
+## Rev 7 (2026-09-11, Brian's reframe): one published model artifact, proven against itself
+
+Brian, mid-execution of rev 6: "your goal is to build and publish a model artifact to
+huggingface that is able to focus on the relevant instructions for a task over a long horizon
+agentic coding session. first you would clean up the repo, and then you would work towards
+that. you would need to prove that your artifact outperforms the same artifact without the
+modifications." This section supersedes section C's three-release endpoint (Release 0 stays
+published; Releases 1 and 2 are replaced by the artifact below). Sections A-B, D-F stay in
+force as evidence machinery and process; nothing already registered changes.
+
+Rev 7.1 applies Astra's round-3 review (results/reviews/2026-09-11-plan-rev7-review-astra.md,
+54/100, seven minimum edits): one frozen shipping configuration with an explicit session
+interface; token-level prompt matching; applicability frozen before generation with a fixed
+denominator; the sentence-window identity defect fixed (CONTRACT.md amendment 2); the
+fallback frozen with its two-attempt interpretation; a measured, arithmetically correct
+budget; and the existing BFCL multi-turn long-context workload registered as the agentic
+check (Exp 5). The wave line and KV pins are off the artifact's critical path.
+
+### G. The artifact: one frozen shipping configuration
+
+- Name (descriptive, Brian may rename): `bmarti44/stencil-focus-qwen3-1.7b`. One HuggingFace
+  model repo: the frozen Qwen3-1.7B trunk (weights copied; base attribution and revision on
+  the card), a `stencil/` package loaded with `trust_remote_code`, and a config flag
+  `stencil_focus` (default `true`). The modification is to inference-time session-memory
+  handling, not to the trunk's learned weights; the card says so in its first paragraph.
+- Session interface (package-owned, the thing Exp 4 evaluates and the thing users call):
+  `StencilFocusModel.from_pretrained(repo, stencil_focus=True)` wraps
+  `AutoModelForCausalLM`; `session = model.new_session()`; `session.add_message(role, text)`
+  for every message of the conversation in order (user/mentor lines feed the register;
+  other roles are stored only); `session.build_prompt(request)` returns the exact prompt
+  string; `session.generate(request, **kw)` = build + greedy/`generate`; `session.reset()`
+  clears state. Session state is isolated per session object.
+- Frozen shipping configuration (decided now, not by later experiments):
+  1. Register: admission by the published sentence classifier
+     (`bmarti44/assistant-memory-sentence-classifier`, frozen) and lifecycle relations by
+     the frozen relations-v2 seed0 head (`data/classifier/model/relations-v2/seed0`, sha
+     recorded on the card), i.e. the FOCUS-3 runtime `src/stencil/focus3.py` as mapped in
+     `results/memorycode-derived/CONTRACT.md` (task scope `MAIN`, 4-sentence windows with
+     their own turn index per amendment 2, overflow at 16 rows counted and reported).
+  2. Rendering: live rows (status live, scope `MAIN` or global, chronological) rendered as
+     `Earlier instructions still in force:` + `- <sentence>` lines, newest-first packing,
+     budget E = 256 tokens including the header, inserted immediately before the current
+     request. The conversation window is truncated at token boundaries so that the COMPLETE
+     prompt (window + reminder + request) has the same token count as the unmodified prompt.
+  3. Backend: `transformers` only. No KV pins, no attention controller, no hand-rolled
+     runtime in the artifact. The research runtime is used only to run the evaluations
+     bitwise-deterministically; the parity gate below ties the two together.
+  4. Off switch: `stencil_focus=false` → no register is built, no reminder is rendered, the
+     window is the plain recency window at the same token budget, decoding identical.
+     Nothing else differs. `tests/test_stencil_focus.py` asserts that with the flag off the
+     prompt equals the plain window and the outputs equal `AutoModelForCausalLM`.
+- Claim shape: the ARTIFACT AS A BUNDLE beats the same artifact with `stencil_focus=false`
+  (Brian's criterion). Component-wise ablations are not claimed; Exp 1 and Exp 3c are
+  reported as secondary evidence about the register and the echo machinery.
+- Registered fallback (frozen now, before any LONG outcome is seen): if Exp 4 reads NOT
+  PROVEN, the register policy is swapped ONCE to the zero-parameter restate-all policy
+  (every prior mentor/user sentence, newest-first packing, same renderer and budget; this is
+  Exp 3c's `restate_all` arm and the Multi-IF role rule) and Exp 4 is rerun on the same
+  items with base outputs reused. Two fixed policies, each tested at one-sided .025, bound
+  the family-wise false-positive rate at .05; both attempts are always reported and the
+  selected policy's interval is not presented as a simultaneous 95% interval.
+- Parity gate before publication (mirrors Release 0's export verification): on the 16
+  SETUP-LONG items the published wrapper must render byte-identical prompts to the research
+  runtime and produce identical greedy outputs; with `stencil_focus=false` its outputs must
+  equal plain `AutoModelForCausalLM`. A clean-environment example (`pip install`, load, one
+  long session) is the release gate. No research number is attributed to the artifact until
+  parity holds.
+- Off the critical path (parked, not cancelled): KV pins (Exp 1 decides whether a later
+  Qwen-only backend is worth registering); the attention controller (Exp 2a/2b remain the
+  rev 6 method-claim line, run only when the GPU is otherwise idle and never a component
+  of this artifact); `deploy/stencil_wave/` is archived.
+
+### H. Exp 4: the proof, a long-horizon coding-session head-to-head (registered before its GPU spend)
+
+- Workload: MemoryCode-derived LONG items. Enumeration on 2026-09-11: 320 candidate
+  (dialogue, session) items with history-regex checks and a prior instruction; 108 fit in
+  3,584 tokens (Exp 3 uses them) and 212 do not. Verified quantiles (Astra round 3): all
+  candidates min 705 / median 8,364 / P90 30,283 / max 61,046 tokens; the LONG set min 3,693
+  / median 15,623 / P90 51,734 / max 61,046. W = 3,584 tokens is the IMPOSED evaluation
+  budget (the local base config supports 40,960 positions); under that budget the base sees
+  only the newest part of the session, which is the condition the artifact exists for.
+  Split by dialogue with `random.Random(1)`: 16 SETUP-LONG (pilot + parity), 128 SCREEN-LONG
+  (primary), 68 reserve, never opened in this program. One generation per item (the first
+  `history_eval_query`), 512-token cap, deadline 300 s.
+- Prompt construction (both arms; native single-message format, CONTRACT.md): the thread is
+  the conversation text truncated at a token boundary to keep the NEWEST tokens; the
+  modified arm's thread is truncated by exactly the reminder's rendered token count so the
+  complete prompts have equal token counts (asserted per item and stored in the record).
+  Whole-session packing is NOT used (it makes prompts unequal, Astra round 3).
+- Arms:
+  | arm | prompt |
+  |---|---|
+  | `base` | `stencil_focus=false`: recency window at W |
+  | `focus` | `stencil_focus=true`: register built by the frozen runtime over ALL mentor lines of sessions 0..s−1 (including the truncated-away ones), reminder rendered, window shortened to match |
+  | `oracle` | descriptive ceiling on SETUP-LONG only (and on SCREEN-LONG only if the measured budget allows): the label-derived live set through the same renderer and window |
+  Label rule, stated precisely: only `oracle` may use gold labels to construct its
+  intervention; selection, scoring and the error table read labels. `tests/test_memorycode.py`
+  extends its isolation check through the package's own prompt-building path.
+- Outcome and checker: STRICT compliance under the vendored official checker with
+  applicability FROZEN from the query before generation (CONTRACT.md amendments 3/3b: a
+  required parent object that is omitted scores 0.0; the required structure, class or
+  function by whole-word match on the query, must be present or the item is strict-FALSE;
+  the primary cohort is fixed before generation; no arm's output changes the denominator). Fractional score reported
+  alongside. Convention compliance is the outcome; functional correctness is neither
+  measured nor claimed.
+- Primary estimand: `focus` − `base` on strict compliance, paired by item, N = 128. Exact
+  McNemar on discordant items, two-sided p, and the conservative paired interval (separate
+  97.5% Clopper-Pearson bounds on b/N and c/N, union bound). Power, stated: the interval is
+  wholly positive first at 10 wins / 0 losses; with 10 losses it needs 29 wins; at
+  win/loss probabilities .15/.05 the positive-result probability is about 26%, at .25/.05
+  about 91%. N = 128 establishes a large benefit, not a modest one.
+- Output-failure guard: invalid (no code fence / unparsable), truncated at the cap, and
+  degenerate (4-gram repetition) generations counted per arm as EXCESS over `base`.
+- Readings (exhaustive):
+  - PROVEN: interval entirely above 0 AND `focus` excess output failures ≤ 5% of items →
+    publish the artifact with the table.
+  - POSITIVE-WITH-OUTPUT-FAILURE-EXCESS: interval above 0 but excess failures > 5% → not
+    PROVEN; published as descriptive with the failure table; the fallback is NOT triggered
+    (it is a policy revision, not an output-failure fix).
+  - NOT PROVEN: interval covers 0 → the frozen fallback (G) runs once; the second reading is
+    final.
+  - HARM: interval entirely below 0 → published as demonstrated harm; program ends.
+  - `oracle` − `focus` on SETUP-LONG is the reported headroom; it gates nothing.
+  - The error table (false admissions, missed instruction sessions, overflow events,
+    reminder tokens, empty reminders) is published with every reading and is never read as
+    evidence of accurate maintenance: activity is not accuracy.
+- Budget, measured: Exp 0 pilot family `memorycode-long` = the 4 longest SETUP-LONG windows
+  at W = 3,584 with a 512-token generation (the ≤ 3,584 pilot measured 42-86 s/generation at
+  2,446-3,002 tokens, 11.7-12 tok/s, 6.5 GB allocated / 8.0 GB reserved). Ceiling =
+  1.5 × t_max × (2 × 144 + 16 [oracle on SETUP-LONG] + 128 [the permitted fallback rerun of
+  `focus`]) = 1.5 × t_max × 432 generations, plus the 4-generation pilot and the 32-generation
+  parity check (16 items × 2 flag states) = 468 generations; at t_max = 100 s that is 19.5
+  GPU-h worst case and roughly 7 GPU-h expected (median generations are far below the cap). `oracle` on
+  SCREEN-LONG (+128) is added only if t_max ≤ 60 s. The registration records the measured
+  t_max, the ceiling, and the expected value from the pilot's mean; chunks ≤ 50 min; atomic
+  per-item records; INCOMPLETE is never rescued.
+
+### H2. Exp 5: the agentic check on the existing BFCL multi-turn long-context workload
+
+Brian's goal names an agentic coding session; MemoryCode supplies conversation history with
+mentee replies given, one final generation, no tool feedback. The repo already vendors BFCL
+v3 multi-turn (`data/bench/bfcl_v3_mt`, 200 items per category incl. `long_context`) with a
+runner (`scripts/bfcl_mt.py`, `--mode free` = the model's own tool calls and real tool
+feedback drive the episode, `src/stencil/bfcl.py`). Exp 5 = the same `stencil_focus` toggle
+on `multi_turn_long_context` in free-running mode: `base` vs `focus`, per-item pass under the
+upstream checker, paired exact test and the same interval, N from the pilot budget (target
+the full 200 if ≤ 4 GPU-h, else a `random.Random(2)` subset registered before launch).
+Registered in `results/bfcl-long-context/REGISTRATION.md` after Exp 4 reads, with its own
+pilot and data-lineage line (nothing in the register or classifier was fit on BFCL:
+LEDGER-PLAN.md:634 records the lineage). The card says "coding-session instruction
+retention" after Exp 4; it may say "agentic coding session" only if Exp 5 is also positive.
+
+### I. Execution order, rev 7.1, and the program stop rule
+
+1. Cleanup first (in progress): full suites on the pre-cleanup tag and on main agree →
+   comment-checker fix → invariants → commit → push → archive the closed scripts with
+   `archive/scripts/MAP.md`.
+2. Secondary evidence already registered and partly running: Exp 1 (chunks 1-2 done/running),
+   Exp 3b/3c (register vs restate-all on the ≤ 3,584 items). Their RESULTS.md files go on
+   the card as secondary evidence; they do not change G's frozen configuration.
+3. Exp 4: registration (`results/memorycode-long/REGISTRATION.md`, items.json with the seed-1
+   split, pilot budget) → run → RESULTS.md → Astra result audit → fallback once if NOT PROVEN.
+4. Packaging: `deploy/stencil_focus/` (replaces the archived `deploy/stencil_wave/`), parity
+   gate on SETUP-LONG, card with the Exp 4 table, the error table and the secondary
+   evidence; push under `bmarti44/`. Release 0's card gains a pointer.
+5. Exp 5 registration → pilot → run → RESULTS.md → card upgraded to "agentic" only on a
+   positive reading.
+6. Only then, if GPU time is idle: Exp 2a (+2b) as the rev 6 method-claim line, research
+   artifact only.
+Stop rule: PROVEN publishes; NOT PROVEN allows exactly the one frozen fallback and then
+publishes whatever the second run says (a second null is a published negative with the
+artifact withheld as a claim); HARM publishes the negative. No new arms, workloads, or
+components enter without a new registration.
 
 ## Context
 

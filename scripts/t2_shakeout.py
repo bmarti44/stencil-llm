@@ -1,5 +1,6 @@
 # ruff: noqa
 """T2 dev shakeout: all arms on dev sessions; headroom check + full metrics."""
+
 import json
 import sys
 from pathlib import Path
@@ -18,22 +19,37 @@ from stencil.t2_select import candidate_spans
 from stencil.t2_sessions import generate_t2
 
 import os
+
 T2B = bool(os.environ.get("T2B"))
 VAL = bool(os.environ.get("VAL"))
 N_DEV = 96 if VAL else 24
 INTERF = "s0" if T2B else "v3"
 SPLIT = "val" if VAL else "dev"
-DEV = [(12_960_000 if VAL else (12_950_000 if T2B else 12_600_000)) + i for i in range(N_DEV)]
+DEV = [
+    (12_960_000 if VAL else (12_950_000 if T2B else 12_600_000)) + i
+    for i in range(N_DEV)
+]
 CLASSES = ["none", "prefix", "doc", "hint"]
 
 tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
 m = Qwen3()
-m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+m.load_state_dict(
+    torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+)
 m = m.to(torch.bfloat16).cuda().eval()
-sel = torch.load(ROOT / "results" / "qwen" / ("t2b-selector.pt" if T2B else "t2-selector.pt"), map_location="cpu")
-head = torch.nn.Linear(2048, 4); head.load_state_dict(sel["head"]); head = head.cuda()
-Wq = torch.nn.Linear(2048, 64); Wq.load_state_dict(sel["Wq"]); Wq = Wq.cuda()
-Wk = torch.nn.Linear(2048, 64); Wk.load_state_dict(sel["Wk"]); Wk = Wk.cuda()
+sel = torch.load(
+    ROOT / "results" / "qwen" / ("t2b-selector.pt" if T2B else "t2-selector.pt"),
+    map_location="cpu",
+)
+head = torch.nn.Linear(2048, 4)
+head.load_state_dict(sel["head"])
+head = head.cuda()
+Wq = torch.nn.Linear(2048, 64)
+Wq.load_state_dict(sel["Wq"])
+Wq = Wq.cuda()
+Wk = torch.nn.Linear(2048, 64)
+Wk.load_state_dict(sel["Wk"])
+Wk = Wk.cuda()
 TAU, THETA = sel["tau"], sel["theta"]
 
 
@@ -51,8 +67,10 @@ def address(model, toks, ptxt, spans, key):
     if not cands:
         return None
     with torch.no_grad():
-        h_prompt = model(torch.tensor([enc.ids], device="cuda"), return_hidden=20)[0].float()
-        cf = torch.stack([h_prompt[c[2][0]:c[2][1]].mean(dim=0) for c in cands])
+        h_prompt = model(torch.tensor([enc.ids], device="cuda"), return_hidden=20)[
+            0
+        ].float()
+        cf = torch.stack([h_prompt[c[2][0] : c[2][1]].mean(dim=0) for c in cands])
         s = model(toks, return_hidden=20)[0, -1].float()
         scores = (Wq(s) @ Wk(cf.cuda()).T) / 8.0
         j = int(scores.argmax())
@@ -70,9 +88,15 @@ with torch.no_grad():
         adh_n = adh_d = stale_n = stale_d = parse_n = exec_n = works = 0
         for seed in DEV:
             sess = generate_t2(seed, 20, SPLIT, interference=INTERF)
-            rs = run_session(m, tok, sess, SPLIT, arm,
-                             timing=timing if arm == "selector" else None,
-                             address=address if arm == "selector" else None)
+            rs = run_session(
+                m,
+                tok,
+                sess,
+                SPLIT,
+                arm,
+                timing=timing if arm == "selector" else None,
+                address=address if arm == "selector" else None,
+            )
             for r in rs:
                 works += 1
                 parse_n += r.parse
@@ -88,21 +112,41 @@ with torch.no_grad():
                     if o.superseded:
                         stale_d += 1
                         stale_n += bool(e.get("stale_action"))
-        report[arm] = {"adherence": round(adh_n / max(1, adh_d), 3), "n_active": adh_d,
-                       "stale_rate": round(stale_n / max(1, stale_d), 3), "n_stale_opp": stale_d,
-                       "parse_rate": round(parse_n / max(1, works), 3),
-                       "exec_rate": round(exec_n / max(1, works), 3), "works": works}
+        report[arm] = {
+            "adherence": round(adh_n / max(1, adh_d), 3),
+            "n_active": adh_d,
+            "stale_rate": round(stale_n / max(1, stale_d), 3),
+            "n_stale_opp": stale_d,
+            "parse_rate": round(parse_n / max(1, works), 3),
+            "exec_rate": round(exec_n / max(1, works), 3),
+            "works": works,
+        }
         print(arm, report[arm], flush=True)
 # paired validity losses vs base (Gate 3 evidence: works where base succeeded and the arm did not)
 report["paired_vs_base"] = {}
 for arm in ARMS[1:]:
     keys = sorted(paired["base"].keys() & paired[arm].keys())
-    pv = {f"{metric}_lost": sum(1 for k in keys if paired["base"][k][metric] and not paired[arm][k][metric]) for metric in ("parse", "exec")}
-    pv |= {f"{metric}_gained": sum(1 for k in keys if not paired["base"][k][metric] and paired[arm][k][metric]) for metric in ("parse", "exec")}
+    pv = {
+        f"{metric}_lost": sum(
+            1 for k in keys if paired["base"][k][metric] and not paired[arm][k][metric]
+        )
+        for metric in ("parse", "exec")
+    }
+    pv |= {
+        f"{metric}_gained": sum(
+            1 for k in keys if not paired["base"][k][metric] and paired[arm][k][metric]
+        )
+        for metric in ("parse", "exec")
+    }
     pv["n"] = len(keys)
     report["paired_vs_base"][arm] = pv
     print(f"paired vs base [{arm}]:", pv, flush=True)
 headroom = report["oracle"]["adherence"] - report["base"]["adherence"]
 print(f"HEADROOM (oracle-base): {headroom:+.3f} (binding precondition >= 0.10)")
-(ROOT / "results" / "qwen" / ("t2b-val.json" if VAL else ("t2b-shakeout.json" if T2B else "t2-shakeout.json"))).write_text(json.dumps(report, indent=1))
+(
+    ROOT
+    / "results"
+    / "qwen"
+    / ("t2b-val.json" if VAL else ("t2b-shakeout.json" if T2B else "t2-shakeout.json"))
+).write_text(json.dumps(report, indent=1))
 print("saved results/qwen/t2-shakeout.json")

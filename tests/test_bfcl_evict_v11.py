@@ -20,8 +20,13 @@ def test_fv8_2_total_columns_not_resource_count_controls_impossibility():
         for i in range(18)
     ]
     candidates = [
-        {"role": "tool", "text": f"t{i}", "span": [200 + i * 128, 328 + i * 128],
-         "turn": i, "message_index": 30 + i}
+        {
+            "role": "tool",
+            "text": f"t{i}",
+            "span": [200 + i * 128, 328 + i * 128],
+            "turn": i,
+            "message_index": 30 + i,
+        }
         for i in range(16)
     ] + kept
     result = build_matched_control(candidates, kept, (0, 3000))
@@ -65,7 +70,11 @@ def test_fv8_4_echo_clamp_measurement_is_local_and_exact():
     close = context.index("<|im_end|>")
     row = {"role": "user", "text": "old", "span": [0, 3], "pinned_columns": [0, 1, 2]}
     chosen, tokens, residual = _echo_clamp(
-        Tok(), [row], context, close, target_tokens=200,
+        Tok(),
+        [row],
+        context,
+        close,
+        target_tokens=200,
         context_ids=list(context.encode()),
     )
     local_base = context[context.rfind("<|im_start|>user\n", 0, close + 1) :]
@@ -90,7 +99,12 @@ def test_fv8_6_manifest_includes_scripts_package_and_rejects_bench(monkeypatch):
 def test_fv8_7_tool_swap_user_rows_keep_echo_source_columns():
     from stencil.bfcl import tool_swap_plan
 
-    user = {"role": "user", "text": "u", "span": [0, 2], "turn": 0,
-            "pinned_columns": [0, 1]}
+    user = {
+        "role": "user",
+        "text": "u",
+        "span": [0, 2],
+        "turn": 0,
+        "pinned_columns": [0, 1],
+    }
     result = tool_swap_plan([user], [user], (0, 2))
     assert result["entries"][0]["_echo_source_columns"] == [0, 1]

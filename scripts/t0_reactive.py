@@ -15,6 +15,7 @@ later work turns; all arms scored on the union;
 recovery_closure = (A_reactive - A_base) / (A_oracle - A_base);
 precondition (A_oracle - A_base)/|set| >= 0.10.
 """
+
 import json
 import sys
 from pathlib import Path
@@ -26,15 +27,25 @@ import torch
 from tokenizers import Tokenizer
 
 from stencil.qwen3 import Qwen3
-from stencil.t2_runner import (BETA, LAYERS, _oracle_moment, feedback_text,
-                               ledger_sentence_spans, prompt_at, run_session, score_work)
+from stencil.t2_runner import (
+    BETA,
+    LAYERS,
+    _oracle_moment,
+    feedback_text,
+    ledger_sentence_spans,
+    prompt_at,
+    run_session,
+    score_work,
+)
 from stencil.t2_sessions import generate_t2
 
 SEEDS = [13_100_000 + i for i in range(24)]
 
 tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
 m = Qwen3()
-m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+m.load_state_dict(
+    torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+)
 m = m.to(torch.bfloat16).cuda().eval()
 
 
@@ -51,7 +62,11 @@ def run_reactive(sess):
         ptxt = prompt_at(sess, wt, "dev")
         for et, ftxt in feedback.items():
             if et < wt:
-                ptxt = ptxt.replace("[checker] (deterministic feedback on the previous submission is inserted here at run time)", ftxt, 1)
+                ptxt = ptxt.replace(
+                    "[checker] (deterministic feedback on the previous submission is inserted here at run time)",
+                    ftxt,
+                    1,
+                )
         spans = ledger_sentence_spans(ptxt, sess, wt, "dev", tok)
         toks = torch.tensor([tok.encode(ptxt).ids], device="cuda")
         outs, text = [], ""
@@ -62,7 +77,7 @@ def run_reactive(sess):
                 if key is not None and key in triggered and key in spans:
                     t = toks.shape[1]
                     bias = torch.zeros(t, t, device="cuda")
-                    bias[-1:, spans[key][0]:spans[key][1]] = BETA
+                    bias[-1:, spans[key][0] : spans[key][1]] = BETA
                     ab = {L: bias for L in LAYERS}
                 nxt = int(m(toks, attn_bias=ab)[0, -1].argmax())
                 outs.append(nxt)
@@ -95,11 +110,17 @@ def main():
     for k, seed in enumerate(SEEDS):
         sess = generate_t2(seed, 20, "dev", interference="s0")
         for arm in per_arm:
-            rs = run_reactive(sess) if arm == "reactive" else run_session(m, tok, sess, "dev", arm)
+            rs = (
+                run_reactive(sess)
+                if arm == "reactive"
+                else run_session(m, tok, sess, "dev", arm)
+            )
             for r in rs:
                 for o in sess.opportunities:
                     if o.turn == r.turn:
-                        per_arm[arm][o.opportunity_id] = r.per_opportunity.get(o.opportunity_id, {})
+                        per_arm[arm][o.opportunity_id] = r.per_opportunity.get(
+                            o.opportunity_id, {}
+                        )
         # downstream sets from the BASE arm
         ids = set()
         for wt in sess.work_turns:
@@ -107,20 +128,41 @@ def main():
                 if o.turn != wt or o.cell != "active":
                     continue
                 if per_arm["base"][o.opportunity_id].get("adherent") is False:
-                    later_env = next((i for i in range(wt + 1, len(sess.turns)) if sess.turns[i].kind == "env"), None)
+                    later_env = next(
+                        (
+                            i
+                            for i in range(wt + 1, len(sess.turns))
+                            if sess.turns[i].kind == "env"
+                        ),
+                        None,
+                    )
                     if later_env is None:
                         continue
                     for o2 in sess.opportunities:
-                        if o2.cell == "active" and o2.moment_class == o.moment_class and o2.turn > later_env:
+                        if (
+                            o2.cell == "active"
+                            and o2.moment_class == o.moment_class
+                            and o2.turn > later_env
+                        ):
                             ids.add(o2.opportunity_id)
         downstream[seed] = ids
-        print(f"  {k}/{len(SEEDS)} sessions, eligible so far {sum(len(v) for v in downstream.values())}", flush=True)
+        print(
+            f"  {k}/{len(SEEDS)} sessions, eligible so far {sum(len(v) for v in downstream.values())}",
+            flush=True,
+        )
 
     elig = set().union(*downstream.values()) if downstream else set()
-    A = {arm: sum(1 for oid in elig if per_arm[arm].get(oid, {}).get("adherent")) for arm in per_arm}
+    A = {
+        arm: sum(1 for oid in elig if per_arm[arm].get(oid, {}).get("adherent"))
+        for arm in per_arm
+    }
     n = len(elig)
     headroom = (A["oracle"] - A["base"]) / max(1, n)
-    rc = (A["reactive"] - A["base"]) / max(1, (A["oracle"] - A["base"])) if A["oracle"] != A["base"] else 0.0
+    rc = (
+        (A["reactive"] - A["base"]) / max(1, (A["oracle"] - A["base"]))
+        if A["oracle"] != A["base"]
+        else 0.0
+    )
     # whole-session adherence per arm (all active opportunities), for the record
     allact = {arm: 0 for arm in per_arm}
     tot = 0
@@ -130,14 +172,22 @@ def main():
             if o.cell == "active":
                 tot += 1
                 for arm in per_arm:
-                    allact[arm] += bool(per_arm[arm].get(o.opportunity_id, {}).get("adherent"))
-    out = {"n_eligible": n, "A": A, "headroom_on_eligible": round(headroom, 4),
-           "recovery_closure": round(rc, 4),
-           "precondition_binds": headroom >= 0.10,
-           "session_adherence": {a: round(allact[a] / max(1, tot), 4) for a in per_arm},
-           "n_active_total": tot}
+                    allact[arm] += bool(
+                        per_arm[arm].get(o.opportunity_id, {}).get("adherent")
+                    )
+    out = {
+        "n_eligible": n,
+        "A": A,
+        "headroom_on_eligible": round(headroom, 4),
+        "recovery_closure": round(rc, 4),
+        "precondition_binds": headroom >= 0.10,
+        "session_adherence": {a: round(allact[a] / max(1, tot), 4) for a in per_arm},
+        "n_active_total": tot,
+    }
     print(json.dumps(out, indent=1), flush=True)
-    (ROOT / "results" / "qwen" / "t0-reactive.json").write_text(json.dumps(out, indent=1))
+    (ROOT / "results" / "qwen" / "t0-reactive.json").write_text(
+        json.dumps(out, indent=1)
+    )
     print("saved results/qwen/t0-reactive.json", flush=True)
 
 

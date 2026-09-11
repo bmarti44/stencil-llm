@@ -83,9 +83,7 @@ def _json_bytes(value):
 
 
 def _json_text(value):
-    return json.dumps(
-        value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
-    )
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
 def _sha_bytes(value):
@@ -119,9 +117,9 @@ def _worker_spec():
         tool_description=(
             "Replace the authenticated target with one complete Python function."
         ),
-        argument_schema=copy.deepcopy(cpu.REPLACE_FUNCTION_TOOL["function"][
-            "parameters"
-        ]),
+        argument_schema=copy.deepcopy(
+            cpu.REPLACE_FUNCTION_TOOL["function"]["parameters"]
+        ),
         **_native_settings(),
     )
 
@@ -438,9 +436,7 @@ def _finish_manifest(manifest, documents, records, calls, started, clock, failur
                 ),
                 "worker_calls": sum(call["kind"] == "worker" for call in project_calls),
                 "prompt_tokens": sum(item["prompt_tokens"] for item in usages),
-                "completion_tokens": sum(
-                    item["completion_tokens"] for item in usages
-                ),
+                "completion_tokens": sum(item["completion_tokens"] for item in usages),
                 "total_tokens": sum(item["total_tokens"] for item in usages),
             }
         )
@@ -584,9 +580,7 @@ def run(
         for document in documents
     }
     states = {
-        document["public"]["episode_id"]: document["public"]["initial_file"][
-            "text"
-        ]
+        document["public"]["episode_id"]: document["public"]["initial_file"]["text"]
         for document in documents
     }
     used_call_ids = {document["public"]["episode_id"]: set() for document in documents}
@@ -755,9 +749,7 @@ def run(
                             "attempt_index": attempt_index,
                             "status": "PENDING",
                             "source_sha256": None,
-                            "post_module_sha256": worker_call[
-                                "post_module_sha256"
-                            ],
+                            "post_module_sha256": worker_call["post_module_sha256"],
                             "apply_status": None,
                             "all_public_passed": False,
                         }
@@ -940,9 +932,7 @@ def run(
                 break
             record["terminal_private_passed"] = bool(
                 record["terminal_private_checks"]
-            ) and all(
-                result["passed"] for result in record["terminal_private_checks"]
-            )
+            ) and all(result["passed"] for result in record["terminal_private_checks"])
             record["request_passed"] = (
                 public_solved and record["terminal_private_passed"]
             )
@@ -957,9 +947,7 @@ def run(
             _refresh_manifest(manifest, records, calls, started, clock)
             base._write_json(manifest_path, manifest)
 
-    _finish_manifest(
-        manifest, documents, records, calls, started, clock, failure
-    )
+    _finish_manifest(manifest, documents, records, calls, started, clock, failure)
     base._write_json(manifest_path, manifest)
     return manifest
 
@@ -970,9 +958,7 @@ def _default_token_counter(text):
 
 def _reference_arguments(document, round_index, source_events):
     private_round = document["private"]["rounds"][round_index]
-    task_handle = document["public"]["rounds"][round_index]["request"][
-        "task_handle"
-    ]
+    task_handle = document["public"]["rounds"][round_index]["request"]["task_handle"]
     focus = {
         "obligations": [
             {"text": rule["text"], "source_ids": list(rule["source_ids"])}
@@ -987,9 +973,7 @@ def _reference_arguments(document, round_index, source_events):
     return focus, {"source": private_round["reference_patch"]}
 
 
-def _argument_receipt(
-    episode_id, round_index, kind, arguments, token_counter
-):
+def _argument_receipt(episode_id, round_index, kind, arguments, token_counter):
     body = _json_text(arguments).encode("utf-8")
     tokens = int(token_counter(body.decode("utf-8")))
     headroom = FINAL_OUTPUT_ALLOWANCE - tokens
@@ -1045,9 +1029,7 @@ def preflight_projects(input_paths):
         "schema_version": 1,
         "kind": "coding-auto-reasoning-cpu-preflight",
         "status": (
-            "PASS"
-            if all(item["status"] == "PASS" for item in projects)
-            else "FAIL"
+            "PASS" if all(item["status"] == "PASS" for item in projects) else "FAIL"
         ),
         "model_calls": 0,
         "documents": len(projects),
@@ -1089,9 +1071,7 @@ def preview(input_paths, *, model="/model", token_counter=_default_token_counter
                 {
                     "episode_id": episode_id,
                     "round_index": round_index,
-                    "visible_source_ids": [
-                        event["message_id"] for event in events
-                    ],
+                    "visible_source_ids": [event["message_id"] for event in events],
                     "messages_sha256": _sha_bytes(_json_bytes(messages)),
                     "request_body_sha256": _sha_bytes(body),
                     "request_body_bytes": len(body),
@@ -1105,9 +1085,7 @@ def preview(input_paths, *, model="/model", token_counter=_default_token_counter
                     "local_count_is_native_prompt_tokens": False,
                 }
             )
-            focus, edit = _reference_arguments(
-                document, round_index, events
-            )
+            focus, edit = _reference_arguments(document, round_index, events)
             reference_actions.append(
                 _argument_receipt(
                     episode_id, round_index, "record_focus", focus, token_counter

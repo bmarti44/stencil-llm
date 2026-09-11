@@ -40,6 +40,7 @@ cues/delays/operands/
   distractors from seed_data
   one continuing generator per stream.
 """
+
 import hashlib
 import json
 
@@ -68,8 +69,9 @@ SLOTS, K, L_CORE, N_UP, Q, GAP_LO, GAP_HI = 2, 8, 256, 3, 4, 16, 48
 
 
 def build_core(seed_data: int):
-    g_c, g_de, g_op, g_di = (gen(seed_data, n) for n in ("cues", "delays",
-        "operands", "distractors"))
+    g_c, g_de, g_op, g_di = (
+        gen(seed_data, n) for n in ("cues", "delays", "operands", "distractors")
+    )
     events = []  # (start, 'U', slot, rule) 2-token update events
     active = {}
     # (1) initial block: SLOTS rules from cues, slots 1.. in order, from pos 0
@@ -81,8 +83,10 @@ def build_core(seed_data: int):
         pos += 2
     init_end = pos
     # (2) gap vector  (3) slots  (4) rules — draw order per the law
-    gaps = [int(torch.randint(GAP_LO, GAP_HI + 1, (1,),
-        generator=g_de)) for _ in range(N_UP)]
+    gaps = [
+        int(torch.randint(GAP_LO, GAP_HI + 1, (1,), generator=g_de))
+        for _ in range(N_UP)
+    ]
     slots = [int(torch.randint(1, SLOTS + 1, (1,), generator=g_c)) for _ in range(N_UP)]
     rls = [int(torch.randint(1, K + 1, (1,), generator=g_c)) for _ in range(N_UP)]
     upd, prev_end, noop_at = [], init_end, []
@@ -100,12 +104,16 @@ def build_core(seed_data: int):
     # (5) query starts: sequential draws, recomputed valid set
     blocked = set()
     for s, _, _ in all_updates:
-        blocked.update(range(s - 2,
-            s + 4))  # event 2 tokens + 2-token clearance both sides
+        blocked.update(
+            range(s - 2, s + 4)
+        )  # event 2 tokens + 2-token clearance both sides
     qstarts = []
     for _ in range(Q):
-        valid = [s for s in range(init_end, L_CORE - 4)
-                 if all((s + j) not in blocked for j in range(4))]
+        valid = [
+            s
+            for s in range(init_end, L_CORE - 4)
+            if all((s + j) not in blocked for j in range(4))
+        ]
         idx = int(torch.randint(0, len(valid), (1,), generator=g_op))
         s = valid[idx]
         qstarts.append(s)
@@ -121,22 +129,28 @@ def build_core(seed_data: int):
     # active-rule resolution per query (most recent update to slot strictly before QRY
     # pos)
     q_meta = []
-    for (s, d, x) in zip(qstarts, qslots, xs, strict=True):
+    for s, d, x in zip(qstarts, qslots, xs, strict=True):
         rule = None
-        for (us, ud, ur) in sorted(all_updates):
+        for us, ud, ur in sorted(all_updates):
             if us < s and ud == d:
                 rule = ur
         ans = 34 + rule_table(K)[rule - 1][x]
         toks[s], toks[s + 1], toks[s + 2], toks[s + 3] = QRY, 59 + d, 34 + x, PAD
         targets[s + 2] = ans
-        q_meta.append({"start": s, "slot": d, "x": x, "active_rule": rule,
-            "answer": ans})
+        q_meta.append(
+            {"start": s, "slot": d, "x": x, "active_rule": rule, "answer": ans}
+        )
     for i in range(L_CORE):
         if toks[i] is None:
             toks[i] = 50 + int(torch.randint(0, 10, (1,), generator=g_di))
-    return {"tokens": toks, "targets": targets,
+    return {
+        "tokens": toks,
+        "targets": targets,
         "updates": [list(u) for u in all_updates],
-            "queries": q_meta, "noop_update_indices": noop_at, "gaps": gaps}
+        "queries": q_meta,
+        "noop_update_indices": noop_at,
+        "gaps": gaps,
+    }
 
 
 def reinsert64(core):
@@ -144,12 +158,14 @@ def reinsert64(core):
     ple of 64."""
     toks, out, final_i, core_i = core["tokens"], [], 0, 0
     upds = sorted(core["updates"])
+
     def active_at(cp):
         st = {}
         for us, ud, ur in upds:
             if us < cp:
                 st[ud] = ur
         return st
+
     while core_i < len(toks):
         if final_i and final_i % 64 == 0:
             for d, r in sorted(active_at(core_i).items()):
@@ -163,6 +179,7 @@ def reinsert64(core):
 
 if __name__ == "__main__":
     import sys
+
     seed = 0
     while True:
         c = build_core(seed)
@@ -173,7 +190,15 @@ if __name__ == "__main__":
     c["reinsert64_tokens"] = reinsert64(c)
     with open(sys.argv[1], "w") as f:
         json.dump(c, f, indent=1)
-    print("seed_data:", seed, "| no-op at update idx:", c["noop_update_indices"],
-          "| updates:", c["updates"], "| queries:", [(q['start'], q['slot'],
-              q['active_rule']) for q in c["queries"]],
-          "| reinsert len:", len(c["reinsert64_tokens"]))
+    print(
+        "seed_data:",
+        seed,
+        "| no-op at update idx:",
+        c["noop_update_indices"],
+        "| updates:",
+        c["updates"],
+        "| queries:",
+        [(q["start"], q["slot"], q["active_rule"]) for q in c["queries"]],
+        "| reinsert len:",
+        len(c["reinsert64_tokens"]),
+    )

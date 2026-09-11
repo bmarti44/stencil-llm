@@ -12,6 +12,7 @@ Uses a fake model/tokenizer so guard logic and logging are exercised
 deterministically on CPU; H3 (wrong-span non-vacuity on the real model)
 lives in test_press_harness_gpu.py.
 """
+
 import torch
 
 from stencil.t2_runner import run_policy_session
@@ -25,6 +26,7 @@ class FakeTok:
             def __init__(self, t):
                 self.ids = [ord(c) for c in t]
                 self.offsets = [(i, i + 1) for i in range(len(t))]
+
         return Enc(text)
 
     def decode(self, ids):
@@ -55,14 +57,24 @@ LEDGER_SPANS = {"prefix": (7, 22)}  # token span of the "ledger sentence" region
 def run(policy, threshold=0.5):
     model, tok = FakeModel(), FakeTok()
     log = []
-    run_policy_session(model, tok, PROMPT, LEDGER_SPANS, policy,
-                       threshold=threshold, press_log=log, max_new=6)
+    run_policy_session(
+        model,
+        tok,
+        PROMPT,
+        LEDGER_SPANS,
+        policy,
+        threshold=threshold,
+        press_log=log,
+        max_new=6,
+    )
     return model, log
 
 
 def test_policy_span_applied_verbatim():
     # candidate inside the ledger region, score above threshold -> applied
-    policy = lambda model, toks, ptxt, text: ((8, 12), {"score": 0.9})
+    def policy(model, toks, ptxt, text):
+        return ((8, 12), {"score": 0.9})
+
     model, log = run(policy)
     applied = [e for e in log if e["applied"] is not None]
     assert applied and applied[0]["applied"] == (8, 12)
@@ -75,7 +87,9 @@ def test_policy_span_applied_verbatim():
 
 
 def test_guard_below_threshold():
-    policy = lambda model, toks, ptxt, text: ((8, 12), {"score": 0.4})
+    def policy(model, toks, ptxt, text):
+        return ((8, 12), {"score": 0.4})
+
     model, log = run(policy, threshold=0.5)
     assert all(e["applied"] is None for e in log)
     rej = [e for e in log if e["pre_guard"] is not None]
@@ -85,7 +99,9 @@ def test_guard_below_threshold():
 
 def test_guard_out_of_ledger():
     # span outside every ledger sentence span -> rejected AFTER threshold
-    policy = lambda model, toks, ptxt, text: ((0, 3), {"score": 0.9})
+    def policy(model, toks, ptxt, text):
+        return ((0, 3), {"score": 0.9})
+
     model, log = run(policy)
     rej = [e for e in log if e["pre_guard"] is not None]
     assert rej and all(e["rejected"] == "out-of-ledger" for e in rej)
@@ -93,17 +109,29 @@ def test_guard_out_of_ledger():
 
 
 def test_null_decision_logged():
-    policy = lambda model, toks, ptxt, text: (None, {"score": float("-inf")})
+    def policy(model, toks, ptxt, text):
+        return (None, {"score": float("-inf")})
+
     model, log = run(policy)
     assert len(log) > 0
-    assert all(e["pre_guard"] is None and e["applied"] is None and e["rejected"] is None for e in log)
+    assert all(
+        e["pre_guard"] is None and e["applied"] is None and e["rejected"] is None
+        for e in log
+    )
 
 
 def test_certification_failure_event_is_pre_structural_guard():
     """PRESS-PLAN: the certification failure event is a non-NULL decision
     surviving the numeric threshold BEFORE the ledger-membership guard —
     derivable from the log as pre_guard != None and rejected != 'below-threshold'."""
-    policy = lambda model, toks, ptxt, text: ((0, 3), {"score": 0.9})
+
+    def policy(model, toks, ptxt, text):
+        return ((0, 3), {"score": 0.9})
+
     _, log = run(policy)
-    failures = [e for e in log if e["pre_guard"] is not None and e["rejected"] != "below-threshold"]
+    failures = [
+        e
+        for e in log
+        if e["pre_guard"] is not None and e["rejected"] != "below-threshold"
+    ]
     assert failures  # out-of-ledger events DO count as certification failures

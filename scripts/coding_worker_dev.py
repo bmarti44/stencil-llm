@@ -296,9 +296,7 @@ def parse_response(output, expected_path, expected_symbol):
     code = match.group("code")
     if not code.strip():
         raise PatchError("response code must be nonempty")
-    node = _parse_single_function(
-        code, expected_symbol, "response patch", PatchError
-    )
+    node = _parse_single_function(code, expected_symbol, "response patch", PatchError)
     return ParsedPatch(
         prefix=output[: match.start()],
         fence=match.group(0),
@@ -364,9 +362,12 @@ def consume_patch(module_text, path, symbol, patch, *, prefix=""):
 
 def _is_none_stub(node):
     body = list(node.body)
-    if body and isinstance(body[0], ast.Expr) and isinstance(
-        body[0].value, ast.Constant
-    ) and isinstance(body[0].value.value, str):
+    if (
+        body
+        and isinstance(body[0], ast.Expr)
+        and isinstance(body[0].value, ast.Constant)
+        and isinstance(body[0].value.value, str)
+    ):
         body.pop(0)
     return (
         len(body) == 1
@@ -507,9 +508,12 @@ def validate_document(document):
     except (SyntaxError, ValueError, OverflowError) as exc:
         raise ValidationError(f"initial module does not compile: {exc}") from exc
     top = list(initial_tree.body)
-    if top and isinstance(top[0], ast.Expr) and isinstance(
-        top[0].value, ast.Constant
-    ) and isinstance(top[0].value.value, str):
+    if (
+        top
+        and isinstance(top[0], ast.Expr)
+        and isinstance(top[0].value, ast.Constant)
+        and isinstance(top[0].value.value, str)
+    ):
         top.pop(0)
     if len(top) != 4 or not all(isinstance(node, ast.FunctionDef) for node in top):
         raise ValidationError("initial module needs one helper and three target stubs")
@@ -666,8 +670,7 @@ def validate_document(document):
             "functional",
             path,
             symbol,
-            active_functional_ids
-            | {check["check_id"] for check in obligations},
+            active_functional_ids | {check["check_id"] for check in obligations},
             active_functional_ids,
         )
         _validate_control(
@@ -798,9 +801,7 @@ def preflight_document(document, *, encode=None):
     for index, round_ in enumerate(episode["rounds"]):
         symbol = round_["target"]["symbol"]
         before = state
-        parsed, state = consume_patch(
-            before, path, symbol, round_["reference_patch"]
-        )
+        parsed, state = consume_patch(before, path, symbol, round_["reference_patch"])
         stable, obligations = _active_checks(episode, index)
         reference_checks = run_checks(state, stable + obligations)
         reference_failures = [
@@ -823,9 +824,7 @@ def preflight_document(document, *, encode=None):
                 for item in control["expected_failing_check_ids"]
             )
             stable_passed = all(by_id[item]["passed"] for item in stable_ids)
-            obligation_passed = all(
-                by_id[item]["passed"] for item in obligation_ids
-            )
+            obligation_passed = all(by_id[item]["passed"] for item in obligation_ids)
             valid = named_failed
             if control["kind"] == "obligation":
                 valid = valid and stable_passed
@@ -838,9 +837,7 @@ def preflight_document(document, *, encode=None):
                     "control_id": control["control_id"],
                     "kind": control["kind"],
                     "patch_sha256": sha256_text(mutant_parsed.code),
-                    "expected_failing_check_ids": control[
-                        "expected_failing_check_ids"
-                    ],
+                    "expected_failing_check_ids": control["expected_failing_check_ids"],
                     "named_checks_failed": named_failed,
                     "stable_functionality_passed": stable_passed,
                     "current_obligations_passed": obligation_passed,
@@ -860,9 +857,7 @@ def preflight_document(document, *, encode=None):
             token_error = f"{type(exc).__name__}: {exc}"
             errors.append(f"round {index} tokenizer failed: {token_error}")
         headroom = (
-            GENERATION_CAP - reference_tokens
-            if reference_tokens is not None
-            else None
+            GENERATION_CAP - reference_tokens if reference_tokens is not None else None
         )
         sizing_eligible = headroom is not None and headroom >= MIN_GENERATION_HEADROOM
         if not sizing_eligible and token_error is None:

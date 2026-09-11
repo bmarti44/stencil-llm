@@ -68,6 +68,7 @@ def test_task_d_matrix_has_4_decisive_cells() -> None:
     assert {c.key for c in cells} == expected
     assert len(cells) == 4
 
+
 def test_run_matrix_rejects_nonpositive_timeout(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="timeout"):
         execute_pending([], tmp_path, lambda *_: None, timeout=0.0)

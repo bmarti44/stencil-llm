@@ -81,9 +81,7 @@ def test_run_enforces_artifact_and_git_state_policy(git_repo: Path) -> None:
         "DONE",
     }
     metrics = (
-        clean_run.joinpath("metrics.jsonl")
-        .read_text(encoding="utf-8")
-        .splitlines()
+        clean_run.joinpath("metrics.jsonl").read_text(encoding="utf-8").splitlines()
     )
     assert len(metrics) == 200
     assert [json.loads(row)["step"] for row in metrics] == list(range(200))
@@ -112,9 +110,7 @@ def test_run_enforces_artifact_and_git_state_policy(git_repo: Path) -> None:
     new_identity = git_identity(git_repo)
     conflicting = git_repo / "results" / run_id(config, new_identity)
     conflicting.mkdir()
-    conflicting.joinpath("env.json").write_text(
-        json.dumps(dirty_env), encoding="utf-8"
-    )
+    conflicting.joinpath("env.json").write_text(json.dumps(dirty_env), encoding="utf-8")
     with pytest.raises(RuntimeError, match="different git state"):
         run(config, repo=git_repo, force=True, allow_dirty=True)
 

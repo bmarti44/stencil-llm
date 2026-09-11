@@ -64,9 +64,7 @@ def _read_json(path, label):
 
 
 def _snapshot(relative_paths, *, root=ROOT):
-    return {
-        relative: _sha256(Path(root) / relative) for relative in relative_paths
-    }
+    return {relative: _sha256(Path(root) / relative) for relative in relative_paths}
 
 
 def _container_command(name):
@@ -368,10 +366,13 @@ def recheck_resource_exclusivity(
 
 
 def _reserve_flag(run, name):
-    payload = json.dumps(
-        {"pid": os.getpid(), "run_dir": str(run), "container": name},
-        sort_keys=True,
-    ) + "\n"
+    payload = (
+        json.dumps(
+            {"pid": os.getpid(), "run_dir": str(run), "container": name},
+            sort_keys=True,
+        )
+        + "\n"
+    )
     descriptor = os.open(RUN_FLAG, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
     with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
         handle.write(payload)
@@ -408,9 +409,7 @@ def main(argv=None):
         return 0
 
     owned.register_pid(os.getpid())
-    qualification = prepare_execution(
-        run, container_name=plan["container_name"]
-    )
+    qualification = prepare_execution(run, container_name=plan["container_name"])
     review_handle = owned.acquire_review_lock(REVIEW_LOCK)
     try:
         _reserve_flag(run, plan["container_name"])

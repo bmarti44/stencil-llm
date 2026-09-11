@@ -6,6 +6,7 @@ registered grid b in {2,4}, wrong-sentence and random-moment controls.
 Gates: parse-gated mean compliance lift >= +15; paired parse-rate
 degradation == 0 at the selected config; controls at their signatures.
 """
+
 import ast
 import json
 import re
@@ -29,7 +30,9 @@ BETAS = [2.0, 4.0]
 
 tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
 m = Qwen3()
-m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+m.load_state_dict(
+    torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+)
 m = m.to(torch.bfloat16).cuda().eval()
 
 
@@ -93,8 +96,14 @@ OP_TESTS = {"sum": (3, 5, 8), "max": (3, 5, 5), "mul": (3, 5, 15), "sub": (9, 4,
 
 
 def score(code, s):
-    rec = {"parse": False, "prefix": False, "doc": False, "hint": False,
-           "exec_ok": False, "conflict": {"prefix": False, "doc": False, "hint": False}}
+    rec = {
+        "parse": False,
+        "prefix": False,
+        "doc": False,
+        "hint": False,
+        "exec_ok": False,
+        "conflict": {"prefix": False, "doc": False, "hint": False},
+    }
     try:
         tree = ast.parse(code)
     except SyntaxError:
@@ -111,13 +120,20 @@ def score(code, s):
     rec["doc"] = first == s.doc_opener
     rec["conflict"]["doc"] = first == s.conflict["doc_opener"]
     args = fn.args.args
+
     def annname(a):
         return getattr(a.annotation, "id", None) if a.annotation else None
+
     rec["hint"] = bool(args) and all(annname(a) == s.hint_type for a in args)
-    rec["conflict"]["hint"] = bool(args) and all(annname(a) == s.conflict["hint_type"] for a in args)
+    rec["conflict"]["hint"] = bool(args) and all(
+        annname(a) == s.conflict["hint_type"] for a in args
+    )
     x, y, want = OP_TESTS[s.op]
     with tempfile.NamedTemporaryFile("w", suffix=".py", delete=False) as f:
-        f.write(code + f"\nimport sys\nsys.exit(0 if {fn.name}({x}, {y}) == {want} else 3)\n")
+        f.write(
+            code
+            + f"\nimport sys\nsys.exit(0 if {fn.name}({x}, {y}) == {want} else 3)\n"
+        )
         path = f.name
     try:
         r = subprocess.run([sys.executable, path], timeout=5, capture_output=True)
@@ -129,6 +145,7 @@ def score(code, s):
 
 def run(mode=None, beta=None):
     import random
+
     rng = random.Random(0)
     agg = {"parse": 0, "prefix": 0, "doc": 0, "hint": 0, "exec_ok": 0}
     conf = {"prefix": 0, "doc": 0, "hint": 0}
@@ -136,35 +153,59 @@ def run(mode=None, beta=None):
     with torch.no_grad():
         for seed in SEEDS:
             s, ids, tok_spans = build(seed)
-            code, nb = gen_code(ids, tok_spans if mode else None, beta, mode or "timed", rng)
+            code, nb = gen_code(
+                ids, tok_spans if mode else None, beta, mode or "timed", rng
+            )
             r = score(code, s)
             for k in agg:
                 agg[k] += r[k]
             for k in conf:
                 conf[k] += r["conflict"][k]
-            recs.append({"seed": seed, **{k: r[k] for k in agg}, "conflict": r["conflict"],
-                         "biased_steps": nb, "code": code})
+            recs.append(
+                {
+                    "seed": seed,
+                    **{k: r[k] for k in agg},
+                    "conflict": r["conflict"],
+                    "biased_steps": nb,
+                    "code": code,
+                }
+            )
     n = len(SEEDS)
-    comp_parse_gated = sum(rec["prefix"] + rec["doc"] + rec["hint"] for rec in recs if rec["parse"])
-    return {"parse": agg["parse"] / n, "exec_ok": agg["exec_ok"] / n,
-            "compliance": {k: agg[k] / n for k in ("prefix", "doc", "hint")},
-            "mean_parse_gated": comp_parse_gated / (3 * n),
-            "conflict": {k: v / n for k, v in conf.items()}, "records": recs}
+    comp_parse_gated = sum(
+        rec["prefix"] + rec["doc"] + rec["hint"] for rec in recs if rec["parse"]
+    )
+    return {
+        "parse": agg["parse"] / n,
+        "exec_ok": agg["exec_ok"] / n,
+        "compliance": {k: agg[k] / n for k in ("prefix", "doc", "hint")},
+        "mean_parse_gated": comp_parse_gated / (3 * n),
+        "conflict": {k: v / n for k, v in conf.items()},
+        "records": recs,
+    }
 
 
 report = {}
 base = run()
 report["base"] = base
-print(f"BASE: parse {base['parse']:.3f} exec {base['exec_ok']:.3f} "
-      f"parse-gated mean {base['mean_parse_gated']:.3f} comp {base['compliance']} conflict {base['conflict']}", flush=True)
+print(
+    f"BASE: parse {base['parse']:.3f} exec {base['exec_ok']:.3f} "
+    f"parse-gated mean {base['mean_parse_gated']:.3f} comp {base['compliance']} conflict {base['conflict']}",
+    flush=True,
+)
 for beta in BETAS:
     r = run("timed", beta)
     report[f"timed_b{beta}"] = r
-    print(f"TIMED b={beta}: parse {r['parse']:.3f} exec {r['exec_ok']:.3f} "
-          f"parse-gated mean {r['mean_parse_gated']:.3f} comp {r['compliance']} conflict {r['conflict']}", flush=True)
+    print(
+        f"TIMED b={beta}: parse {r['parse']:.3f} exec {r['exec_ok']:.3f} "
+        f"parse-gated mean {r['mean_parse_gated']:.3f} comp {r['compliance']} conflict {r['conflict']}",
+        flush=True,
+    )
 r = run("wrong", 4.0)
 report["wrong_b4"] = r
-print(f"WRONG-SENTENCE b=4: parse-gated mean {r['mean_parse_gated']:.3f} conflict {r['conflict']}", flush=True)
+print(
+    f"WRONG-SENTENCE b=4: parse-gated mean {r['mean_parse_gated']:.3f} conflict {r['conflict']}",
+    flush=True,
+)
 r = run("random", 4.0)
 report["random_b4"] = r
 print(f"RANDOM-MOMENT b=4: parse-gated mean {r['mean_parse_gated']:.3f}", flush=True)
@@ -173,8 +214,14 @@ out.write_text(json.dumps(report, indent=1))
 # gate evaluation (paired parse degradation at selected config)
 for beta in BETAS:
     tr = report[f"timed_b{beta}"]
-    lost = sum(1 for b_, t_ in zip(report["base"]["records"], tr["records"]) if b_["parse"] and not t_["parse"])
+    lost = sum(
+        1
+        for b_, t_ in zip(report["base"]["records"], tr["records"])
+        if b_["parse"] and not t_["parse"]
+    )
     lift = tr["mean_parse_gated"] - base["mean_parse_gated"]
-    print(f"GATE b={beta}: lift {100*lift:+.1f}pts (>= +15) | paired parse lost {lost} (== 0) -> "
-          f"{'PASS' if lift >= 0.15 and lost == 0 else 'MISS'}")
+    print(
+        f"GATE b={beta}: lift {100 * lift:+.1f}pts (>= +15) | paired parse lost {lost} (== 0) -> "
+        f"{'PASS' if lift >= 0.15 and lost == 0 else 'MISS'}"
+    )
 print(f"evidence -> {out}")

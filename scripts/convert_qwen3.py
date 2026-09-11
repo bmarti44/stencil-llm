@@ -63,7 +63,10 @@ torch.save(out, sys.argv[3])
 
 def parse_safetensors(path: Path) -> dict[str, torch.Tensor]:
     out = {}
-    with path.open("rb") as fh, mmap.mmap(fh.fileno(), 0, access=mmap.ACCESS_COPY) as raw:
+    with (
+        path.open("rb") as fh,
+        mmap.mmap(fh.fileno(), 0, access=mmap.ACCESS_COPY) as raw,
+    ):
         (hlen,) = struct.unpack("<Q", raw[:8])
         header = json.loads(raw[8 : 8 + hlen])
         for name, meta in header.items():
@@ -107,7 +110,9 @@ def convert(hf_dir: Path, out: Path) -> Qwen3Config:
     if not ours:
         raise FileNotFoundError(f"no safetensors shards found in {hf_dir}")
     if tied_head is not None:
-        assert torch.equal(tied_head, ours["embed_tokens.weight"]), "tied lm_head differs from embeddings"
+        assert torch.equal(tied_head, ours["embed_tokens.weight"]), (
+            "tied lm_head differs from embeddings"
+        )
 
     # Meta construction validates exact key coverage without allocating a
     # second full checkpoint-sized parameter set on CPU.
@@ -143,9 +148,18 @@ def capture_parity(
     (scratch / "worker.py").write_text(ORACLE_WORKER)
     subprocess.run(
         [
-            "uv", "run", "--isolated", "--with", "transformers==4.51.0",
-            "--with", "accelerate", "python", str(scratch / "worker.py"),
-            str(hf_dir), str(scratch / "prompts.json"), str(scratch / "oracle.pt"),
+            "uv",
+            "run",
+            "--isolated",
+            "--with",
+            "transformers==4.51.0",
+            "--with",
+            "accelerate",
+            "python",
+            str(scratch / "worker.py"),
+            str(hf_dir),
+            str(scratch / "prompts.json"),
+            str(scratch / "oracle.pt"),
         ],
         check=True,
     )
@@ -162,7 +176,9 @@ def capture_parity(
             got = model(ids)[0, -1].float().cpu()
             err = float((got - ref).abs().max())
             worst = max(worst, err)
-            assert int(got.argmax()) == int(ref.argmax()), f"top-1 disagreement for {entry['prompt']!r}"
+            assert int(got.argmax()) == int(ref.argmax()), (
+                f"top-1 disagreement for {entry['prompt']!r}"
+            )
             fixture[key] = {
                 "prompt": entry["prompt"],
                 "ids": entry["ids"],
@@ -178,7 +194,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--model", choices=MODEL_PATHS, default="1.7b")
     parser.add_argument("--hf-dir", type=Path, help="HF checkpoint directory")
     parser.add_argument("--out", type=Path, help="converted state-dict path")
-    parser.add_argument("--skip-parity", action="store_true", help="convert without using the GPU")
+    parser.add_argument(
+        "--skip-parity", action="store_true", help="convert without using the GPU"
+    )
     return parser.parse_args()
 
 

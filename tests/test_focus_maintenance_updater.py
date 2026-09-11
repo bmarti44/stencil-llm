@@ -100,9 +100,7 @@ def test_prompt_has_full_unicode_source_state_and_no_gold_interface():
         updater.build_prompt(
             state,
             _message("Different current content.", message_id="other-current"),
-            past_messages=(
-                _message("Different history.", message_id="other-past"),
-            ),
+            past_messages=(_message("Different history.", message_id="other-past"),),
             task_handles=("A", "B"),
         ).text
     )

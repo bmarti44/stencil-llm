@@ -1,12 +1,15 @@
 # ruff: noqa: E501
 """CONTRACT v3 generator unit tests."""
+
 from stencil.t2_sessions import generate_t2, prompt_at
 
 
 def test_deterministic():
     a, b = generate_t2(1, 20), generate_t2(1, 20)
     assert [t.text for t in a.turns] == [t.text for t in b.turns]
-    assert [o.opportunity_id for o in a.opportunities] == [o.opportunity_id for o in b.opportunities]
+    assert [o.opportunity_id for o in a.opportunities] == [
+        o.opportunity_id for o in b.opportunities
+    ]
 
 
 def test_opportunity_cells_match_history():

@@ -4,6 +4,7 @@ reproduce a directly-passed attn_bias bitwise), generator determinism
 on a NON-IFEval smoke prompt (single-use invariant: the 541 is never
 touched by a model outside the sealed job), and scoring determinism
 (langdetect pin effective through the runner's own import path)."""
+
 import pytest
 import torch
 
@@ -17,10 +18,13 @@ def setup():
     from tokenizers import Tokenizer
 
     from stencil.qwen3 import Qwen3
+
     root = Path(__file__).resolve().parent.parent
     tok = Tokenizer.from_file(str(root / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
     m = Qwen3()
-    m.load_state_dict(torch.load(root / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+    m.load_state_dict(
+        torch.load(root / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+    )
     return m.to(torch.bfloat16).cuda().eval(), tok
 
 
@@ -30,6 +34,7 @@ SMOKE = "List three animals that live in forests."
 def test_bias_hook_matches_direct_attn_bias(setup):
     m, tok = setup
     from stencil.bench import TMPL, WAVE_LAYERS
+
     ids = tok.encode(TMPL.format(p=SMOKE)).ids
     toks = torch.tensor([ids], device="cuda")
     t = len(ids)
@@ -44,6 +49,7 @@ def test_bias_hook_matches_direct_attn_bias(setup):
 def test_bias_hook_sees_layer20_input(setup):
     m, tok = setup
     from stencil.bench import TMPL
+
     ids = tok.encode(TMPL.format(p=SMOKE)).ids
     toks = torch.tensor([ids], device="cuda")
     seen = {}
@@ -51,6 +57,7 @@ def test_bias_hook_sees_layer20_input(setup):
     def grab(h):
         seen["h"] = h
         return None
+
     with torch.no_grad():
         ref = m(toks, return_hidden=20)
         m(toks, bias_hook=(20, grab))
@@ -60,6 +67,7 @@ def test_bias_hook_sees_layer20_input(setup):
 def test_generate_cached_deterministic_base(setup):
     m, tok = setup
     from stencil.bench import generate_cached
+
     a = generate_cached(m, tok, SMOKE, max_new=48)
     b = generate_cached(m, tok, SMOKE, max_new=48)
     assert a == b
@@ -76,6 +84,7 @@ def test_generate_cached_wave_deterministic_and_differs(setup):
         row = torch.zeros(t, past + t, device="cuda")
         row[:, :P] = 2.0 * torch.sigmoid(h20[0, :, :1] - 1.0)
         return row
+
     a = generate_cached(m, tok, SMOKE, bias_fn=bias_fn, max_new=48)
     b = generate_cached(m, tok, SMOKE, bias_fn=bias_fn, max_new=48)
     base = generate_cached(m, tok, SMOKE, max_new=48)
@@ -85,11 +94,20 @@ def test_generate_cached_wave_deterministic_and_differs(setup):
 
 def test_scoring_deterministic():
     from stencil.bench import score_response
-    row = {"key": 1, "prompt": "Write about rain in all lowercase.",
-           "instruction_id_list": ["change_case:english_lowercase", "language:response_language"],
-           "kwargs": [{}, {"language": "en"}]}
-    resp = ("the rain settled over the valley this morning and the paths "
-            "were quiet while the river carried small branches away.")
+
+    row = {
+        "key": 1,
+        "prompt": "Write about rain in all lowercase.",
+        "instruction_id_list": [
+            "change_case:english_lowercase",
+            "language:response_language",
+        ],
+        "kwargs": [{}, {"language": "en"}],
+    }
+    resp = (
+        "the rain settled over the valley this morning and the paths "
+        "were quiet while the river carried small branches away."
+    )
     a = score_response(row, resp)
     b = score_response(row, resp)
     assert a == b
@@ -98,11 +116,20 @@ def test_scoring_deterministic():
 
 def test_aggregate_math():
     from stencil.bench import aggregate
+
     pp = [
-        {"prompt_level_strict_acc": True, "inst_level_strict_acc": [True, True],
-         "prompt_level_loose_acc": True, "inst_level_loose_acc": [True, True]},
-        {"prompt_level_strict_acc": False, "inst_level_strict_acc": [True, False],
-         "prompt_level_loose_acc": True, "inst_level_loose_acc": [True, True]},
+        {
+            "prompt_level_strict_acc": True,
+            "inst_level_strict_acc": [True, True],
+            "prompt_level_loose_acc": True,
+            "inst_level_loose_acc": [True, True],
+        },
+        {
+            "prompt_level_strict_acc": False,
+            "inst_level_strict_acc": [True, False],
+            "prompt_level_loose_acc": True,
+            "inst_level_loose_acc": [True, True],
+        },
     ]
     agg = aggregate(pp)
     assert agg["prompt_level_strict_acc"] == 0.5
@@ -124,10 +151,13 @@ def test_consumer_path_trained_wave_through_cache(setup):
 
     from stencil.bench import TMPL, WAVE_LAYERS, generate_cached
     from stencil.wave import WaveController
+
     root = Path(__file__).resolve().parent.parent
     m, tok = setup
     ctrl = WaveController().cuda()
-    ctrl.load_state_dict(torch.load(root / "results" / "qwen" / "w0-ce.pt", map_location="cpu"))
+    ctrl.load_state_dict(
+        torch.load(root / "results" / "qwen" / "w0-ce.pt", map_location="cpu")
+    )
     ctrl = ctrl.eval()
 
     # (a)+(b): first-token logits differ between wave field and zero field
@@ -136,7 +166,7 @@ def test_consumer_path_trained_wave_through_cache(setup):
     toks = torch.tensor([ids], device="cuda")
     with torch.no_grad():
         h20 = m(toks, return_hidden=20)
-        field = ctrl(h20[0, P - 1:P].float(), h20[0, :P].float())
+        field = ctrl(h20[0, P - 1 : P].float(), h20[0, :P].float())
         assert torch.isfinite(field).all()
         assert float(field.abs().max()) > 0, "trained controller emits a zero field"
         b = torch.zeros(P, P, device="cuda")
@@ -147,9 +177,13 @@ def test_consumer_path_trained_wave_through_cache(setup):
 
     # (c): full cached generation with the registered adapter, twice
     state = {}
-    a = generate_cached(m, tok, SMOKE, bias_fn=make_wave_bias_fn(ctrl, state), max_new=48)
+    a = generate_cached(
+        m, tok, SMOKE, bias_fn=make_wave_bias_fn(ctrl, state), max_new=48
+    )
     state2 = {}
-    b2 = generate_cached(m, tok, SMOKE, bias_fn=make_wave_bias_fn(ctrl, state2), max_new=48)
+    b2 = generate_cached(
+        m, tok, SMOKE, bias_fn=make_wave_bias_fn(ctrl, state2), max_new=48
+    )
     assert a == b2
     assert a[1] > 0
     assert float(state["prefill_field"].abs().max()) > 0
@@ -158,5 +192,6 @@ def test_consumer_path_trained_wave_through_cache(setup):
 def test_return_hidden_with_cache_raises(setup):
     m, tok = setup
     from stencil.qwen3 import KVCache
+
     with pytest.raises(ValueError, match="corrupt"):
         m(torch.tensor([[1, 2, 3]], device="cuda"), cache=KVCache(), return_hidden=20)

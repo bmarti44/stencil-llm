@@ -8,6 +8,7 @@ Step contract: z_pre = transition(z_prev, D); score from z_pre via
 score_aug (null-logit scalar add, query 64-d add); z_next =
 write(z_pre, h20, fired_type). State is per-TYPE (3, 8).
 """
+
 import math
 
 import torch
@@ -49,14 +50,18 @@ class Osc(_Base):
     def __init__(self):
         super().__init__()
         self.r = torch.nn.Parameter(torch.full((NTYPES, SDIM // 2), 2.0))
-        self.omega = torch.nn.Parameter(torch.linspace(0.1, 1.0, SDIM // 2).repeat(NTYPES, 1).clone())
+        self.omega = torch.nn.Parameter(
+            torch.linspace(0.1, 1.0, SDIM // 2).repeat(NTYPES, 1).clone()
+        )
 
     def transition(self, z, D):
         rho = torch.sigmoid(self.r) ** D
         theta = self.omega * D
         re, im = z[:, 0::2], z[:, 1::2]
         c, s = torch.cos(theta), torch.sin(theta)
-        return torch.stack((rho * (re * c - im * s), rho * (re * s + im * c)), dim=-1).reshape(NTYPES, SDIM)
+        return torch.stack(
+            (rho * (re * c - im * s), rho * (re * s + im * c)), dim=-1
+        ).reshape(NTYPES, SDIM)
 
 
 class Static(_Base):
@@ -88,7 +93,9 @@ class Gru(_Base):
         self.cell = torch.nn.GRUCell(SDIM, SDIM)
 
     def write(self, z, h20, type_idx):
-        return self._replace_row(z, type_idx, self.cell(self.W_u(h20)[None], z[type_idx][None])[0])
+        return self._replace_row(
+            z, type_idx, self.cell(self.W_u(h20)[None], z[type_idx][None])[0]
+        )
 
 
 class NullOsc(_Base):
@@ -96,7 +103,9 @@ class NullOsc(_Base):
 
     def __init__(self):
         super().__init__()
-        self.register_buffer("omega_fixed", torch.linspace(0.1, 1.0, SDIM // 2).repeat(NTYPES, 1).clone())
+        self.register_buffer(
+            "omega_fixed", torch.linspace(0.1, 1.0, SDIM // 2).repeat(NTYPES, 1).clone()
+        )
 
     def init_state(self):
         z = torch.zeros(NTYPES, SDIM)
@@ -107,8 +116,12 @@ class NullOsc(_Base):
         theta = self.omega_fixed * D
         re, im = z[:, 0::2], z[:, 1::2]
         c, s = torch.cos(theta), torch.sin(theta)
-        return torch.stack((re * c - im * s, re * s + im * c), dim=-1).reshape(NTYPES, SDIM)
+        return torch.stack((re * c - im * s, re * s + im * c), dim=-1).reshape(
+            NTYPES, SDIM
+        )
 
 
 def make_controller(name: str) -> _Base:
-    return {"osc": Osc, "static": Static, "ema": Ema, "gru": Gru, "nullosc": NullOsc}[name]()
+    return {"osc": Osc, "static": Static, "ema": Ema, "gru": Gru, "nullosc": NullOsc}[
+        name
+    ]()

@@ -3,6 +3,7 @@
 zero deficit -> BITWISE base logits; forced deficit -> finite nonzero
 change; uncapped post-bias mass == tau; bias touches only the selected
 span/layers; interventions logged. GPU required."""
+
 import math
 
 import pytest
@@ -19,10 +20,13 @@ def setup():
     from tokenizers import Tokenizer
 
     from stencil.qwen3 import Qwen3
+
     root = Path(__file__).resolve().parent.parent
     tok = Tokenizer.from_file(str(root / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
     m = Qwen3()
-    m.load_state_dict(torch.load(root / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+    m.load_state_dict(
+        torch.load(root / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+    )
     return m.to(torch.bfloat16).cuda().eval(), tok
 
 
@@ -38,7 +42,13 @@ def test_zero_deficit_bitwise_base(setup):
     with torch.no_grad():
         base = m(toks)
         # tau=0 -> psi >= tau always -> zero intervention everywhere
-        gated = m(toks, deficit_hook=(20, lambda h: {L: (span, 0.0 + 1e-9, 5.0) for L in range(20, 28)}))
+        gated = m(
+            toks,
+            deficit_hook=(
+                20,
+                lambda h: {L: (span, 0.0 + 1e-9, 5.0) for L in range(20, 28)},
+            ),
+        )
     assert torch.equal(base, gated)
 
 
@@ -50,7 +60,13 @@ def test_forced_deficit_changes_logits(setup):
     span[3:10] = True
     with torch.no_grad():
         base = m(toks)
-        gated = m(toks, deficit_hook=(20, lambda h: {L: (span, 0.999, 10.0) for L in range(20, 28)}))
+        gated = m(
+            toks,
+            deficit_hook=(
+                20,
+                lambda h: {L: (span, 0.999, 10.0) for L in range(20, 28)},
+            ),
+        )
     d = float((base - gated).abs().max())
     assert 0 < d < float("inf")
 
@@ -67,7 +83,7 @@ def test_uncapped_postbias_mass_equals_tau(setup):
     tau = 0.6
     p0 = F.softmax(att, dim=-1)
     psi = p0[..., span].sum(-1).clamp(1e-6, 1 - 1e-6)
-    b = (math.log(tau / (1 - tau)) - torch.log(psi / (1 - psi)))
+    b = math.log(tau / (1 - tau)) - torch.log(psi / (1 - psi))
     att2 = att + b[..., None] * span.float()
     psi2 = F.softmax(att2, dim=-1)[..., span].sum(-1)
     assert abs(float(psi2) - tau) < 1e-4, float(psi2)
@@ -78,15 +94,34 @@ def test_generate_deficit_deterministic_and_logged(setup):
 
     from stencil.bench import generate_deficit
     from stencil.wave import WaveController
+
     m, tok = setup
     root = Path(__file__).resolve().parent.parent
     ctrl = WaveController(beta_max=1.0).cuda()
-    ctrl.load_state_dict(torch.load(root / "results" / "qwen" / "b3-ce-s0.pt", map_location="cpu"))
+    ctrl.load_state_dict(
+        torch.load(root / "results" / "qwen" / "b3-ce-s0.pt", map_location="cpu")
+    )
     ctrl = ctrl.eval()
     spans = [(8, 16)]
-    a = generate_deficit(m, tok, "List three rivers. Constraint: reply in lowercase only.",
-                         ctrl, spans, tau=0.3, b_max=5.0, max_new=32)
-    b = generate_deficit(m, tok, "List three rivers. Constraint: reply in lowercase only.",
-                         ctrl, spans, tau=0.3, b_max=5.0, max_new=32)
+    a = generate_deficit(
+        m,
+        tok,
+        "List three rivers. Constraint: reply in lowercase only.",
+        ctrl,
+        spans,
+        tau=0.3,
+        b_max=5.0,
+        max_new=32,
+    )
+    b = generate_deficit(
+        m,
+        tok,
+        "List three rivers. Constraint: reply in lowercase only.",
+        ctrl,
+        spans,
+        tau=0.3,
+        b_max=5.0,
+        max_new=32,
+    )
     assert a[:4] == b[:4]
     assert len(a[4]) == a[1]  # one log entry per generated token

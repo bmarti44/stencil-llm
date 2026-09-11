@@ -8,6 +8,7 @@ gates: held-out exact >=50% and differential >=15 pts by step ~500; final
 adherence >=70%, differential >=20, stale-first-token rate <10%; cleared slot
 absent (mechanism); transplant redirects / shuffled sub-values break.
 """
+
 import json
 import os
 import sys
@@ -27,7 +28,9 @@ from stencil.qwen_task import generate_drift  # noqa: E402
 
 tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
 trunk = Qwen3()
-trunk.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+trunk.load_state_dict(
+    torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+)
 trunk = trunk.to(torch.bfloat16).cuda().eval()
 for p in trunk.parameters():
     p.requires_grad_(False)
@@ -54,7 +57,9 @@ def build(seed: int):
                     idx = line.index(" " + value)
                     pre = tok.encode(lead + line[:idx]).ids
                     prev = tok.encode(lead + line[:idx] + " " + value).ids
-                    assert piece[: len(prev)] == prev and prev[: len(pre)] == pre, "value span tokenization mismatch"
+                    assert piece[: len(prev)] == prev and prev[: len(pre)] == pre, (
+                        "value span tokenization mismatch"
+                    )
                     vlo = len(ids) + len(pre)
                     vhi = len(ids) + len(prev)
                 events.append((len(ids), len(ids) + len(piece), slot, kind, vlo, vhi))
@@ -153,12 +158,20 @@ for step in range(STEPS):
     opt.step()
     sched.step()
     if step % 100 == 0 or step == STEPS - 1:
-        print(f"step {step} loss {tot/4:.4f} ({(time.time()-t0)/60:.0f} min)", flush=True)
+        print(
+            f"step {step} loss {tot / 4:.4f} ({(time.time() - t0) / 60:.0f} min)",
+            flush=True,
+        )
     if step > 0 and step % 250 == 0 or step == STEPS - 1:
         acc, stale = evaluate(HELD)
         acc0, _ = evaluate(HELD, zero_code=True)
-        history.append({"step": step, "held_acc": acc, "zero_code": acc0, "stale_rate": stale})
-        print(f"step {step} EVAL held {acc:.2f} zero-code {acc0:.2f} diff {100*(acc-acc0):.0f}pts stale {stale:.2f}", flush=True)
+        history.append(
+            {"step": step, "held_acc": acc, "zero_code": acc0, "stale_rate": stale}
+        )
+        print(
+            f"step {step} EVAL held {acc:.2f} zero-code {acc0:.2f} diff {100 * (acc - acc0):.0f}pts stale {stale:.2f}",
+            flush=True,
+        )
         torch.save(cache.state_dict(), OUT / f"cache-p2-{VARIANT}-ckpt.pt")
         (OUT / f"p2-{VARIANT}-progress.json").write_text(json.dumps(history, indent=1))
 print("done")

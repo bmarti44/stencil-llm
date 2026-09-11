@@ -8,6 +8,7 @@ verify:
 gate-0:
 	uv run pytest -q
 	uv run ruff check .
+	uv run ruff format --check .
 
 gate-1:
 	uv run pytest -q tests/test_data.py

@@ -145,11 +145,16 @@ does not draw the inference: M 12/11/**0**/11, T 12/11/**0**/11, X 0/0/**10**/0.
 Yes — and that is exactly the problem. `scripts/focus_check49.py:413-420`:
 
 ```python
-floors={m:sum(r['success'] for r in baseline if r['id'].startswith(f'baseline/{m}/')) for m in MODES}
-floors['default_python']=sum(r['language']=='python' for r in baseline if r['id'].startswith('baseline/None/'))
+floors = {
+    m: sum(r["success"] for r in baseline if r["id"].startswith(f"baseline/{m}/"))
+    for m in MODES
+}
+floors["default_python"] = sum(
+    r["language"] == "python" for r in baseline if r["id"].startswith("baseline/None/")
+)
 ...
-if min(floors.values())<7:
-    raise Stop('INELIGIBLE','unmodified setup language/competence floor failed')
+if min(floors.values()) < 7:
+    raise Stop("INELIGIBLE", "unmodified setup language/competence floor failed")
 ```
 
 I recomputed: `{'python': 8, 'js': 8, 'default_python': 8}` — all three floors are **8/8, perfect**.

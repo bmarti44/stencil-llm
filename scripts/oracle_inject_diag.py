@@ -3,6 +3,7 @@
 checkpoint frozen, can ANY 128-d injection code push the correct answer to
 top-1 at a beyond-window query? 0/8 => the injection actuator cannot carry
 content and the focus cache is dead before it is built."""
+
 import sys
 
 import torch
@@ -16,7 +17,9 @@ DEV = "cuda"
 m = GatedGPT2("osc", window=64, seed_init=0, lora_rank=8)
 sd = torch.load("/home/bmarti44/stencil-llm/models/gpt2-small.pt", map_location="cpu")
 m.load_state_dict(sd, strict=False)
-ck = torch.load("/home/bmarti44/stencil-llm/results/gpt2/osc-v6-s0-ckpt.pt", map_location="cpu")
+ck = torch.load(
+    "/home/bmarti44/stencil-llm/results/gpt2/osc-v6-s0-ckpt.pt", map_location="cpu"
+)
 print("ckpt step", ck["step"])
 m.load_state_dict(ck["pathway"], strict=False)
 m.logit_bias = torch.nn.Parameter(ck["logit_bias"])
@@ -57,5 +60,10 @@ while tried < 8 and i < 40:
         rank = int((out[0, qp] > out[0, qp, tgt[0]]).sum()) + 1
     tried += 1
     hits += ok
-    print(f"ex {tried}: {'HIT' if ok else 'miss'} final ce {float(loss):.3f} target rank {rank}", flush=True)
-print(f"ORACLE-INJECT: {hits}/{tried} beyond-window answers reachable through the injection channel")
+    print(
+        f"ex {tried}: {'HIT' if ok else 'miss'} final ce {float(loss):.3f} target rank {rank}",
+        flush=True,
+    )
+print(
+    f"ORACLE-INJECT: {hits}/{tried} beyond-window answers reachable through the injection channel"
+)

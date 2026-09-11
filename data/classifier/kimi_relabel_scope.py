@@ -1,23 +1,41 @@
+# ruff: noqa: E501
+# Data-generation prompt script: the prompt text is provenance for the labelled data
+# (data/classifier/LABELS.md) and is kept exactly as sent.
 """kimi-k3 relabel pass under LABELS.md v2: every existing training row labelled "none" is re-judged in batches of
 80; rows that are TASK-scoped constraints on the work in progress become "rule". Writes a patch file
 data/classifier/review/scope-v2-patch.jsonl ({"source","text","new_label":"rule","reason"}) — applied by the
 trainer like the reviewer patches. Idempotent per batch (skips batches already in the patch)."""
-import glob, json, sys, time, urllib.request
+
+import glob
+import json
+import sys
+import time
+import urllib.request
 
 R = "/home/bmarti44/stencil-llm/data/classifier"
 OUT = R + "/review/scope-v2-patch.jsonl"
 rows = []
-for p in sorted(glob.glob(R + "/kimi/*.jsonl") + glob.glob(R + "/kimi-ctx/*.jsonl") + glob.glob(R + "/*-enrich.jsonl") + glob.glob(R + "/heldout/*.jsonl")):
+for p in sorted(
+    glob.glob(R + "/kimi/*.jsonl")
+    + glob.glob(R + "/kimi-ctx/*.jsonl")
+    + glob.glob(R + "/*-enrich.jsonl")
+    + glob.glob(R + "/heldout/*.jsonl")
+):
     for ln in open(p):
         if ln.strip():
             o = json.loads(ln)
-            if o.get("label") == "none" and o.get("role") in ("user", "system", "assistant"):
+            if o.get("label") == "none" and o.get("role") in (
+                "user",
+                "system",
+                "assistant",
+            ):
                 rows.append({"source": o.get("source"), "text": o["text"]})
 done = set()
 try:
     for ln in open(OUT):
         if ln.strip():
-            o = json.loads(ln); done.add(o.get("batch"))
+            o = json.loads(ln)
+            done.add(o.get("batch"))
 except FileNotFoundError:
     pass
 print("none-rows to re-judge:", len(rows), "batches done:", len(done), flush=True)
@@ -37,16 +55,32 @@ with open(OUT, "a") as f:
     for bi in range(0, len(rows), 80):
         if bi in done:
             continue
-        batch = rows[bi:bi + 80]
+        batch = rows[bi : bi + 80]
         listing = "\n".join(f"{i}\t{o['text']}" for i, o in enumerate(batch))
-        body = json.dumps({"model": "kimi-k3:cloud", "prompt": SPEC + "\n\n" + listing, "stream": False, "think": False,
-                           "options": {"num_predict": 2000, "temperature": 0.0}}).encode()
-        req = urllib.request.Request("http://127.0.0.1:11434/api/generate", data=body, headers={"Content-Type": "application/json"})
+        body = json.dumps(
+            {
+                "model": "kimi-k3:cloud",
+                "prompt": SPEC + "\n\n" + listing,
+                "stream": False,
+                "think": False,
+                "options": {"num_predict": 2000, "temperature": 0.0},
+            }
+        ).encode()
+        req = urllib.request.Request(
+            "http://127.0.0.1:11434/api/generate",
+            data=body,
+            headers={"Content-Type": "application/json"},
+        )
         for attempt in range(3):
             try:
-                resp = json.load(urllib.request.urlopen(req, timeout=1200)).get("response", ""); break
+                resp = json.load(urllib.request.urlopen(req, timeout=1200)).get(
+                    "response", ""
+                )
+                break
             except Exception as e:  # noqa: BLE001
-                print("retry", bi, attempt, e, file=sys.stderr); time.sleep(15); resp = ""
+                print("retry", bi, attempt, e, file=sys.stderr)
+                time.sleep(15)
+                resp = ""
         ids = set()
         for ln in resp.splitlines():
             ln = ln.strip().split("\t")[0].strip(" .-*")
@@ -55,7 +89,19 @@ with open(OUT, "a") as f:
         n = 0
         for i in sorted(ids):
             if 0 <= i < len(batch):
-                f.write(json.dumps({"source": batch[i]["source"], "text": batch[i]["text"], "new_label": "rule", "reason": "spec v2: task-scoped constraint", "batch": bi}) + "\n"); n += 1
+                f.write(
+                    json.dumps(
+                        {
+                            "source": batch[i]["source"],
+                            "text": batch[i]["text"],
+                            "new_label": "rule",
+                            "reason": "spec v2: task-scoped constraint",
+                            "batch": bi,
+                        }
+                    )
+                    + "\n"
+                )
+                n += 1
         if not ids:
             f.write(json.dumps({"batch": bi, "note": "no flips"}) + "\n")
         f.flush()

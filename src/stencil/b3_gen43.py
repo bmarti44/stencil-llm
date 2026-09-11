@@ -15,12 +15,12 @@ Core changes vs v4.2:
 - Topic split: TOPICS[:30] train / TOPICS[30:] dev-only (a true
   generalization holdout — Opus).
 """
+
 import json
 import random
 import re
 from pathlib import Path
 
-from stencil.b3_gen import CONSTRAINTS as _V1
 from stencil.b3_gen import FORBIDDEN_POOL, KEYWORD_POOL, TOPICS
 
 ROOT = Path(__file__).resolve().parent.parent.parent
@@ -28,16 +28,50 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 TRAIN_TOPICS = TOPICS[:30]
 DEV_TOPICS = TOPICS[30:]
 
-PLACEHOLDER_POOL = ["tool name", "street name", "helper name", "meeting time",
-                    "paint color", "shop name", "day of week", "contact person",
-                    "room number", "plant variety", "boat name", "bell tone",
-                    "map sheet", "jar label", "route number", "song title",
-                    "wood type", "net size", "brush width", "shelf letter"]
-TITLE_PATTERNS = ["Notes on {T}", "{T}, Briefly", "A Word About {T}", "On {T} This Season"]
-PS_NOUNS = ["the shared tools", "next week's plan", "the volunteers", "the weather",
-            "the storage shed", "the notice board", "the spring schedule", "the repair fund"]
-JSON_KEYS = [["summary", "details", "closing"], ["intro", "body", "note"],
-             ["overview", "steps", "remark"], ["opening", "account", "footer"]]
+PLACEHOLDER_POOL = [
+    "tool name",
+    "street name",
+    "helper name",
+    "meeting time",
+    "paint color",
+    "shop name",
+    "day of week",
+    "contact person",
+    "room number",
+    "plant variety",
+    "boat name",
+    "bell tone",
+    "map sheet",
+    "jar label",
+    "route number",
+    "song title",
+    "wood type",
+    "net size",
+    "brush width",
+    "shelf letter",
+]
+TITLE_PATTERNS = [
+    "Notes on {T}",
+    "{T}, Briefly",
+    "A Word About {T}",
+    "On {T} This Season",
+]
+PS_NOUNS = [
+    "the shared tools",
+    "next week's plan",
+    "the volunteers",
+    "the weather",
+    "the storage shed",
+    "the notice board",
+    "the spring schedule",
+    "the repair fund",
+]
+JSON_KEYS = [
+    ["summary", "details", "closing"],
+    ["intro", "body", "note"],
+    ["overview", "steps", "remark"],
+    ["opening", "account", "footer"],
+]
 CARRIERS = [
     "One neighbor mentioned that a spare {w} would have made the job easier.",
     "Halfway through, someone fetched a {w} from the shed next door.",
@@ -60,9 +94,9 @@ def _title_of(topic):
 
 
 def _sanitize(text):
-    text = re.sub(r"\*\*?", "", text)          # markdown emphasis/headers
-    text = re.sub(r"\[[^\]]*\]", "", text)      # base text's own bracketed bits
-    text = re.sub(r"\s+", " ", text)             # newlines -> single spaces
+    text = re.sub(r"\*\*?", "", text)  # markdown emphasis/headers
+    text = re.sub(r"\[[^\]]*\]", "", text)  # base text's own bracketed bits
+    text = re.sub(r"\s+", " ", text)  # newlines -> single spaces
     return text.strip()
 
 
@@ -79,8 +113,8 @@ def _sentences_of(text):
 # key -> dict(iid, sample(rng, base_sents) -> (kwargs, values, phrase))
 # canonical assembly + mutations live in build_row below.
 
+
 def sample_title(rng, sents):
-    T = None  # topic injected later
     pat = rng.choice(TITLE_PATTERNS)
     return {}, {"pattern": pat}, None
 
@@ -108,17 +142,23 @@ INCOMPATIBLE = {
     frozenset(("n_words_min", "n_words_max")),
     frozenset(("n_sent", "n_words_max")),
     frozenset(("bullets", "n_words_max")),
-    frozenset(("bullets", "n_words_min")),  # words-only violation cannot avoid bullet collateral
+    frozenset(
+        ("bullets", "n_words_min")
+    ),  # words-only violation cannot avoid bullet collateral
     frozenset(("bullets", "n_sent")),
     frozenset(("bullets", "postscript")),
     frozenset(("bullets", "title")),
     frozenset(("caps", "postscript")),
     frozenset(("lower", "postscript")),
     frozenset(("lower", "title")),
-    frozenset(("caps", "n_words_min")),  # short all-caps mutation trips langdetect (recorded landmine)
-    frozenset(("caps", "kw_exist")), frozenset(("caps", "kw_freq")),
+    frozenset(
+        ("caps", "n_words_min")
+    ),  # short all-caps mutation trips langdetect (recorded landmine)
+    frozenset(("caps", "kw_exist")),
+    frozenset(("caps", "kw_freq")),
     frozenset(("caps", "kw_forbid")),
-    frozenset(("lower", "kw_exist")), frozenset(("lower", "kw_freq")),
+    frozenset(("lower", "kw_exist")),
+    frozenset(("lower", "kw_freq")),
     # n_words_min forces extension; keep it off the trim-family
     frozenset(("n_words_min", "n_sent")),
 }
@@ -130,7 +170,7 @@ def combo_ok(combo):
     if any(c in SINGLETONS for c in combo):
         return False
     for i, a in enumerate(combo):
-        for b in combo[i + 1:]:
+        for b in combo[i + 1 :]:
             if frozenset((a, b)) in INCOMPATIBLE:
                 return False
     return True
@@ -140,7 +180,7 @@ def compat_matrix43():
     keys = sorted(V43)
     allowed = []
     for i, a in enumerate(keys):
-        for b in keys[i + 1:]:
+        for b in keys[i + 1 :]:
             if a in SINGLETONS or b in SINGLETONS:
                 continue
             if frozenset((a, b)) in INCOMPATIBLE:
@@ -160,11 +200,15 @@ def _draw(rng, combo, topic, base_sents):
             phrases[key] = "Constraint: respond using only capital letters throughout."
         elif key == "lower":
             kwargs[key] = {}
-            phrases[key] = "Constraint: write the whole reply in lowercase letters only."
+            phrases[key] = (
+                "Constraint: write the whole reply in lowercase letters only."
+            )
         elif key == "kw_exist":
             ws = sorted(rng.sample(KEYWORD_POOL, 2))
             kwargs[key] = {"keywords": ws}
-            phrases[key] = f"Constraint: make sure both of the words '{ws[0]}' and '{ws[1]}' appear somewhere in your reply."
+            phrases[key] = (
+                f"Constraint: make sure both of the words '{ws[0]}' and '{ws[1]}' appear somewhere in your reply."
+            )
         elif key == "kw_freq":
             taken = set(kwargs.get("kw_exist", {}).get("keywords", []))
             w = rng.choice([x for x in KEYWORD_POOL if x not in taken])
@@ -174,7 +218,9 @@ def _draw(rng, combo, topic, base_sents):
         elif key == "kw_forbid":
             ws = sorted(rng.sample(FORBIDDEN_POOL, 2))
             kwargs[key] = {"forbidden_words": ws}
-            phrases[key] = f"Constraint: never use the words '{ws[0]}' or '{ws[1]}' anywhere in the reply."
+            phrases[key] = (
+                f"Constraint: never use the words '{ws[0]}' or '{ws[1]}' anywhere in the reply."
+            )
         elif key == "n_words_min":
             # relative to base: base + one carrier-ish extension stays above
             lo = rng.choice([w for w in (45, 55, 65) if w <= wc_base + 15])
@@ -191,7 +237,9 @@ def _draw(rng, combo, topic, base_sents):
         elif key == "bullets":
             n = rng.choice([b for b in (5, 7) if b <= n_base])
             kwargs[key] = {"num_bullets": n}
-            phrases[key] = f"Constraint: format the reply as exactly {n} bullet points, one per line, each starting with '* '."
+            phrases[key] = (
+                f"Constraint: format the reply as exactly {n} bullet points, one per line, each starting with '* '."
+            )
         elif key == "title":
             t = rng.choice(TITLE_PATTERNS).format(T=_title_of(topic))
             values[key] = t
@@ -201,14 +249,20 @@ def _draw(rng, combo, topic, base_sents):
             ks = rng.choice(JSON_KEYS)
             values[key] = ks
             kwargs[key] = {}
-            phrases[key] = ("Constraint: reply with a single valid JSON object whose keys are exactly "
-                            + ", ".join(f'"{k}"' for k in ks) + ".")
+            phrases[key] = (
+                "Constraint: reply with a single valid JSON object whose keys are exactly "
+                + ", ".join(f'"{k}"' for k in ks)
+                + "."
+            )
         elif key == "placeholders":
             names = rng.sample(PLACEHOLDER_POOL, 4)
             values[key] = names
             kwargs[key] = {"num_placeholders": 4}
-            phrases[key] = ("Constraint: include exactly these four bracketed placeholders: "
-                            + ", ".join(f"[{n}]" for n in names) + ".")
+            phrases[key] = (
+                "Constraint: include exactly these four bracketed placeholders: "
+                + ", ".join(f"[{n}]" for n in names)
+                + "."
+            )
         elif key == "postscript":
             noun = rng.choice(PS_NOUNS)
             line = f"P.P.S. Do not forget {noun}."
@@ -218,10 +272,14 @@ def _draw(rng, combo, topic, base_sents):
             # Firewall (a) exemption disclosed: the marker is binary upstream;
             # the VALUE (line content) varies per row and comes from the prompt.
             kwargs[key] = {"postscript_marker": "P.P.S"}
-            phrases[key] = f"Constraint: finish with this exact postscript line: '{line}'"
+            phrases[key] = (
+                f"Constraint: finish with this exact postscript line: '{line}'"
+            )
         elif key == "two_resp":
             kwargs[key] = {}
-            phrases[key] = "Constraint: give two different complete replies, separated by a line containing exactly ******."
+            phrases[key] = (
+                "Constraint: give two different complete replies, separated by a line containing exactly ******."
+            )
     return kwargs, values, phrases
 
 
@@ -239,14 +297,22 @@ def _assemble(rng, combo, kwargs, values, base_sents):
                 out.append((rng.choice(CARRIERS).format(w=w), "kw_exist"))
         if "kw_freq" in combo:
             for _ in range(kwargs["kw_freq"]["frequency"]):
-                out.append((rng.choice(CARRIERS).format(w=kwargs["kw_freq"]["keyword"]), "kw_freq"))
+                out.append(
+                    (
+                        rng.choice(CARRIERS).format(w=kwargs["kw_freq"]["keyword"]),
+                        "kw_freq",
+                    )
+                )
         return out
 
     if "json_fmt" in combo:
         ks = values["json_fmt"]
         thirds = max(1, len(sents) // 3)
-        obj = {ks[0]: " ".join(sents[:thirds]), ks[1]: " ".join(sents[thirds:2 * thirds]),
-               ks[2]: " ".join(sents[2 * thirds:])}
+        obj = {
+            ks[0]: " ".join(sents[:thirds]),
+            ks[1]: " ".join(sents[thirds : 2 * thirds]),
+            ks[2]: " ".join(sents[2 * thirds :]),
+        }
         text = json.dumps(obj, ensure_ascii=False)
         spans = {"json_fmt": [(0, 1)]}
         for k in ks:
@@ -267,7 +333,11 @@ def _assemble(rng, combo, kwargs, values, base_sents):
             raise ValueError("not enough sentences for bullets")
         keys = [k for _, k in extra] + [None] * len(sents)
         for j in range(n):
-            take = lines[j] if j < n - 1 else " ".join(lines[n - 1:len(sents) + len(extra)])
+            take = (
+                lines[j]
+                if j < n - 1
+                else " ".join(lines[n - 1 : len(sents) + len(extra)])
+            )
             segs.append(("* ", "bullets"))
             segs.append((take, keys[j] if j < len(keys) else None))
             if j < n - 1:
@@ -291,6 +361,7 @@ def _assemble(rng, combo, kwargs, values, base_sents):
     # word-count shaping on the segment list (drop trailing non-obligation
     # sentences); counted with the CHECKER's own nltk counter
     import sys as _s
+
     if str(ROOT / "vendor") not in _s.path:
         _s.path.insert(0, str(ROOT / "vendor"))
     from ifeval import instructions_util as iu
@@ -324,17 +395,21 @@ def _assemble(rng, combo, kwargs, values, base_sents):
         pool = [s for s in sents if all(s != t for t, _ in segs)]
         while word_count() < need:
             if pool:
-                segs.append((" ", None)); segs.append((pool.pop(0), None))
+                segs.append((" ", None))
+                segs.append((pool.pop(0), None))
             else:
                 segs.append((" ", None))
                 segs.append((rng.choice(CARRIERS).format(w="ladder"), None))
     if "n_sent" in combo:
+
         def sent_count():
             return len(_sentences_of("".join(t for t, _ in segs)))
+
         pool = [s for s in sents if all(s != t for t, _ in segs)]
         while sent_count() < kwargs["n_sent"]["num_sentences"] + 1:
             filler = pool.pop(0) if pool else rng.choice(CARRIERS).format(w="ladder")
-            segs.append((" ", None)); segs.append((filler, None))
+            segs.append((" ", None))
+            segs.append((filler, None))
 
     if "title" in combo:
         segs.insert(0, ("\n", None))
@@ -373,33 +448,44 @@ def _mutate(key, text, kwargs, values, spans):
     if key == "kw_forbid":
         w = kwargs["kw_forbid"]["forbidden_words"][0]
         protected = [text[a:b] for sp in spans.values() for a, b in sp]
-        for m in re.finditer(r"\b(morning|community|residents|neighbors|water|surface|process|schedule)\b", text):
-            inside = any(text.find(pr) <= m.start() < text.find(pr) + len(pr) for pr in protected if pr in text)
+        for m in re.finditer(
+            r"\b(morning|community|residents|neighbors|water|surface|process|schedule)\b",
+            text,
+        ):
+            inside = any(
+                text.find(pr) <= m.start() < text.find(pr) + len(pr)
+                for pr in protected
+                if pr in text
+            )
             if not inside:
                 ww = w.upper() if text == text.upper() else w
-                return text[:m.start()] + ww + text[m.end():]
+                return text[: m.start()] + ww + text[m.end() :]
         return text + " " + w + "."
     if key == "caps":
         m = re.search(r"[A-Z]", text[20:])
         if m is None:
             m = re.search(r"[A-Z]", text)
-            return text[:m.start()] + text[m.start()].lower() + text[m.start() + 1:]
+            return text[: m.start()] + text[m.start()].lower() + text[m.start() + 1 :]
         j = 20 + m.start()
-        return text[:j] + text[j].lower() + text[j + 1:]
+        return text[:j] + text[j].lower() + text[j + 1 :]
     if key == "lower":
         m = re.search(r"[a-z]", text[20:])
         j = (20 + m.start()) if m else re.search(r"[a-z]", text).start()
-        return text[:j] + text[j].upper() + text[j + 1:]
+        return text[:j] + text[j].upper() + text[j + 1 :]
     if key == "n_words_min":
         # delete NON-OBLIGATION sentences from the middle until the nltk
         # word count crosses the floor (end-truncation clipped obligations)
         import sys as _s
+
         if str(ROOT / "vendor") not in _s.path:
             _s.path.insert(0, str(ROOT / "vendor"))
         from ifeval import instructions_util as iu
+
         need = kwargs["n_words_min"]["num_words"]
+
         def norm(x):
             return " ".join(x.split()).lower()
+
         protected = [norm(text[a:b]) for sp in spans.values() for a, b in sp]
         t = text
         floor = max(10, need // 2)
@@ -410,8 +496,11 @@ def _mutate(key, text, kwargs, values, spans):
                     raise ValueError("n_words_min mutation degenerate")
                 return t
             sents = _sentences_of(t)
-            victims = [x for x in sents
-                       if not any(norm(x) in pr or pr in norm(x) for pr in protected)]
+            victims = [
+                x
+                for x in sents
+                if not any(norm(x) in pr or pr in norm(x) for pr in protected)
+            ]
             if not victims:
                 break
             victim = victims[len(victims) // 2]
@@ -422,9 +511,12 @@ def _mutate(key, text, kwargs, values, spans):
             if iu.count_words(t) < need:
                 return t
             sents = _sentences_of(t)
-            victims = [x for x in sents
-                       if not any(norm(x) in pr or pr in norm(x) for pr in protected)
-                       and len(x.split()) > 4]
+            victims = [
+                x
+                for x in sents
+                if not any(norm(x) in pr or pr in norm(x) for pr in protected)
+                and len(x.split()) > 4
+            ]
             if not victims:
                 raise ValueError("n_words_min mutation impossible")
             v = victims[0]
@@ -444,18 +536,25 @@ def _mutate(key, text, kwargs, values, spans):
     if key == "n_sent":
         # merge sentences until the CHECKER's count crosses the floor
         import sys as _s
+
         if str(ROOT / "vendor") not in _s.path:
             _s.path.insert(0, str(ROOT / "vendor"))
         from ifeval import instructions_util as iu
+
         need = kwargs["n_sent"]["num_sentences"]
         t = text
         for _ in range(40):
             if iu.count_sentences(t) < need:
                 return t
             keep_upper = t == t.upper()
-            t2 = re.sub(r"\.\s+([A-Za-z])",
-                        lambda m: ", " + (m.group(1) if keep_upper else m.group(1).lower()),
-                        t, count=1)
+            t2 = re.sub(
+                r"\.\s+([A-Za-z])",
+                lambda m, keep_upper=keep_upper: (
+                    ", " + (m.group(1) if keep_upper else m.group(1).lower())
+                ),
+                t,
+                count=1,
+            )
             if t2 == t:
                 break
             t = t2
@@ -539,15 +638,22 @@ def generate43(seed, n_prompts, split, exclude_prompts=frozenset()):
             mutations = {k: _mutate(k, canonical, kwargs, values, spans) for k in combo}
         except ValueError:
             continue  # reject rows where a MINIMAL targeted mutation is impossible
-        rows.append({
-            "key": len(rows), "split": split, "topic": topic, "style": style,
-            "prompt": prompt,
-            "instruction_id_list": [V43[k]["iid"] for k in combo],
-            "kwargs": [kwargs[k] for k in combo],
-            "combo": combo, "values": values, "canonical": canonical,
-            "obligation_spans": {k: [list(x) for x in v] for k, v in spans.items()},
-            "mutations": mutations,
-        })
+        rows.append(
+            {
+                "key": len(rows),
+                "split": split,
+                "topic": topic,
+                "style": style,
+                "prompt": prompt,
+                "instruction_id_list": [V43[k]["iid"] for k in combo],
+                "kwargs": [kwargs[k] for k in combo],
+                "combo": combo,
+                "values": values,
+                "canonical": canonical,
+                "obligation_spans": {k: [list(x) for x in v] for k, v in spans.items()},
+                "mutations": mutations,
+            }
+        )
     return rows
 
 
@@ -556,9 +662,11 @@ def verify43(rows):
     fails its TARGET and passes EVERY OTHER constraint (minimality —
     Opus curation finding 1); (3) obligation spans are in-bounds."""
     import sys
+
     if str(ROOT / "vendor") not in sys.path:
         sys.path.insert(0, str(ROOT / "vendor"))
     import langdetect
+
     langdetect.DetectorFactory.seed = 0
     from ifeval import instructions_registry
 

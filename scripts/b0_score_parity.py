@@ -6,6 +6,7 @@ over the 541 — built without any per-prompt inspection (single-use
 invariant): response cycles by key among (prompt echo, uppercased echo,
 fixed JSON) purely mechanically. PASS: all four aggregates exactly
 equal AND all 541 per-prompt dicts equal."""
+
 import json
 import os
 import subprocess
@@ -67,16 +68,33 @@ agg = {
 print(json.dumps({"agg": agg, "pp": pp}))
 """
 
-scratch = Path("/tmp/claude-1000/-home-bmarti44-stencil-llm/a88136df-3902-46b9-a661-86e0dc1bb53f/scratchpad")
+scratch = Path(
+    "/tmp/claude-1000/-home-bmarti44-stencil-llm/a88136df-3902-46b9-a661-86e0dc1bb53f/scratchpad"
+)
 (scratch / "score_worker.py").write_text(WORKER)
 (scratch / "responses.json").write_text(json.dumps(responses))
 r = subprocess.run(
-    ["uv", "run", "--isolated", "--no-project", "--with", "lm_eval==0.4.8",
-     "--with", "langdetect", "--with", "immutabledict", "--with", "nltk>=3.9",
-     "python", str(scratch / "score_worker.py"),
-     str(ROOT / "data" / "bench" / "ifeval_input_data.jsonl"),
-     str(scratch / "responses.json")],
-    capture_output=True, text=True, timeout=3600,
+    [
+        "uv",
+        "run",
+        "--isolated",
+        "--no-project",
+        "--with",
+        "lm_eval==0.4.8",
+        "--with",
+        "langdetect",
+        "--with",
+        "immutabledict",
+        "--with",
+        "nltk>=3.9",
+        "python",
+        str(scratch / "score_worker.py"),
+        str(ROOT / "data" / "bench" / "ifeval_input_data.jsonl"),
+        str(scratch / "responses.json"),
+    ],
+    capture_output=True,
+    text=True,
+    timeout=3600,
     env={**os.environ, "NLTK_DATA": str(ROOT / "vendor" / "nltk_data")},
 )
 if r.returncode != 0:
@@ -85,8 +103,15 @@ up = json.loads(r.stdout.strip().split("\n")[-1])
 
 pp_equal = ours_pp == up["pp"]
 agg_equal = ours == up["agg"]
-rec = {"ours": ours, "upstream": up["agg"], "upstream_pin": "lm_eval==0.4.8",
-       "per_prompt_all_equal": pp_equal, "n": len(rows),
-       "PASS": bool(pp_equal and agg_equal)}
+rec = {
+    "ours": ours,
+    "upstream": up["agg"],
+    "upstream_pin": "lm_eval==0.4.8",
+    "per_prompt_all_equal": pp_equal,
+    "n": len(rows),
+    "PASS": bool(pp_equal and agg_equal),
+}
 print(json.dumps(rec, indent=1))
-(ROOT / "results" / "qwen" / "b0-score-parity.json").write_text(json.dumps(rec, indent=1))
+(ROOT / "results" / "qwen" / "b0-score-parity.json").write_text(
+    json.dumps(rec, indent=1)
+)

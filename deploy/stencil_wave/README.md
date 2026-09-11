@@ -8,10 +8,17 @@ get bitwise-plain `transformers`.
 
 ```python
 from stencil_wave import WaveModel
-wm = WaveModel.from_pretrained("Qwen/Qwen3-1.7B")   # trunk at the pinned revision + controller + salience
-out = wm.generate(messages, max_new_tokens=512)      # ledger ON: detect, hold, select, amplify
-print(wm.ledger)                                     # what was held, what was selected, with scores
-out = wm.generate(messages, ledger=False)            # plain HF greedy generation, bitwise identical
+
+wm = WaveModel.from_pretrained(
+    "Qwen/Qwen3-1.7B"
+)  # trunk at the pinned revision + controller + salience
+out = wm.generate(
+    messages, max_new_tokens=512
+)  # ledger ON: detect, hold, select, amplify
+print(wm.ledger)  # what was held, what was selected, with scores
+out = wm.generate(
+    messages, ledger=False
+)  # plain HF greedy generation, bitwise identical
 ```
 
 `messages` is a normal chat list (`[{"role": "user", "content": ...}, ...]`)

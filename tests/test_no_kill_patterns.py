@@ -1,4 +1,5 @@
 """Static backstop: experiment code must never terminate another process."""
+
 from pathlib import Path
 
 from kill_pattern_scanner import scan_python_path, scan_shell_path
@@ -70,9 +71,9 @@ def test_shell_watchdog_and_python_shell_heredoc_are_caught_but_own_pid_passes()
         shell_hits
     )
     for scope in ("cleanup_own_child", "cleanup_derived_child"):
-        assert not any(
-            _exception_key(hit)[1] == scope for hit in shell_hits
-        ), shell_hits
+        assert not any(_exception_key(hit)[1] == scope for hit in shell_hits), (
+            shell_hits
+        )
 
     python_fixture = ROOT / "tests" / "fixtures" / "watchdog_shell_heredoc.py"
     python_hits = scan_python_path(

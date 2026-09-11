@@ -12,6 +12,7 @@ resume skips completed items after hash verification (fail-closed).
 CTRL=<path to controller .pt>|none  ARM=<name>  (base: CTRL=none)
 Gate (vs an existing base run): Tango upper bound < 0.5pt margin.
 """
+
 import json
 import hashlib
 import os
@@ -42,13 +43,15 @@ PINNED = {
 
 def item_prompt(r):
     c = r["choices"]
-    return (f"Question: {r['question']}\nA. {c[0]}\nB. {c[1]}\nC. {c[2]}\nD. {c[3]}\nAnswer:")
+    return f"Question: {r['question']}\nA. {c[0]}\nB. {c[1]}\nC. {c[2]}\nD. {c[3]}\nAnswer:"
 
 
 def main():
     man = json.loads((ROOT / "data" / "bench" / "pins-manifest.json").read_text())
     data_sha = man["converted_sha256"]["mmlu_redux_2.jsonl"]
-    actual = hashlib.sha256((ROOT / "data" / "bench" / "mmlu_redux_2.jsonl").read_bytes()).hexdigest()
+    actual = hashlib.sha256(
+        (ROOT / "data" / "bench" / "mmlu_redux_2.jsonl").read_bytes()
+    ).hexdigest()
     assert actual == data_sha, "dataset hash mismatch"
     mt = hashlib.sha256((ROOT / "models" / "qwen3-1.7b.pt").read_bytes()).hexdigest()
     assert mt == PINNED["models/qwen3-1.7b.pt"], "trunk hash mismatch"
@@ -62,7 +65,9 @@ def main():
         assert ids == [tid], f"choice token drifted: {s} -> {ids}"
 
     m = Qwen3()
-    m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+    m.load_state_dict(
+        torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+    )
     m = m.to(torch.bfloat16).cuda().eval()
     ctrl = None
     if CTRL != "none":
@@ -70,7 +75,10 @@ def main():
         ctrl.load_state_dict(torch.load(CTRL, map_location="cpu"))
         ctrl = ctrl.eval()
 
-    rows = [json.loads(line) for line in open(ROOT / "data" / "bench" / "mmlu_redux_2.jsonl")]
+    rows = [
+        json.loads(line)
+        for line in open(ROOT / "data" / "bench" / "mmlu_redux_2.jsonl")
+    ]
     rows = [r for r in rows if r["error_type"] == "ok"]
     assert len(rows) == 5330
     if SMOKE:
@@ -78,8 +86,14 @@ def main():
 
     outdir = ROOT / "results" / "qwen" / f"b2-mmlu-{ARM}"
     outdir.mkdir(parents=True, exist_ok=True)
-    meta = {"arm": ARM, "ctrl": CTRL, "ctrl_sha256": ctrl_sha, "data_sha256": data_sha,
-            "trunk_sha256": mt, "runner_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
+    meta = {
+        "arm": ARM,
+        "ctrl": CTRL,
+        "ctrl_sha256": ctrl_sha,
+        "data_sha256": data_sha,
+        "trunk_sha256": mt,
+        "runner_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+    }
     meta_p = outdir / "meta.json"
     if meta_p.exists():  # resume: verify identical provenance (fail-closed)
         assert json.loads(meta_p.read_text()) == meta, "resume provenance mismatch"
@@ -98,7 +112,9 @@ def main():
         P = len(ids)
         hook = wave_hook_for_prefill(ctrl, P) if ctrl is not None else None
         with torch.no_grad():
-            logits = m(torch.tensor([ids], device="cuda"), cache=KVCache(), bias_hook=hook)[0, -1].float()
+            logits = m(
+                torch.tensor([ids], device="cuda"), cache=KVCache(), bias_hook=hook
+            )[0, -1].float()
         lp = F.log_softmax(logits, dim=-1)[CHOICE_TOKENS]
         vals = lp.tolist()
         top = max(vals)
@@ -106,14 +122,27 @@ def main():
         tie = vals.count(top) > 1
         right = (not tie) and (pred == r["answer"])
         n_right += right
-        rec = {"i": i, "subject": r["subject"], "gold": r["answer"], "pred": pred,
-               "tie": tie, "right": bool(right), "logprobs": [round(v, 6) for v in vals]}
+        rec = {
+            "i": i,
+            "subject": r["subject"],
+            "gold": r["answer"],
+            "pred": pred,
+            "tie": tie,
+            "right": bool(right),
+            "logprobs": [round(v, 6) for v in vals],
+        }
         tmp = rec_p.with_suffix(".tmp")
         tmp.write_text(json.dumps(rec))
         tmp.rename(rec_p)
         if i % 500 == 0:
             print(f"{i}/{len(rows)} acc {n_right / (i + 1):.4f}", flush=True)
-    summary = {"arm": ARM, "n": len(rows), "right": n_right, "acc": round(n_right / len(rows), 6), **meta}
+    summary = {
+        "arm": ARM,
+        "n": len(rows),
+        "right": n_right,
+        "acc": round(n_right / len(rows), 6),
+        **meta,
+    }
     (outdir / "summary.json").write_text(json.dumps(summary, indent=1))
     print(json.dumps(summary, indent=1))
 

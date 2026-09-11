@@ -9,6 +9,7 @@ default, w_g weight ZERO bias -2.0 (g_0 = 0.1192 * beta_max).
 264,321 parameters. Differentiable through the trunk's pre-softmax
 attn_bias path.
 """
+
 import torch
 import torch.nn.functional as F
 

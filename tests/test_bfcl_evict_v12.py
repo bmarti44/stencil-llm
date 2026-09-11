@@ -84,9 +84,7 @@ def test_fv10_1_preflight_refuses_certificate_on_recorded_invariant(
     assert "comparator_columns" in report["error"]
 
 
-def test_fv10_2_git_drift_is_evidence_but_harness_drift_refuses(
-    monkeypatch, tmp_path
-):
+def test_fv10_2_git_drift_is_evidence_but_harness_drift_refuses(monkeypatch, tmp_path):
     from scripts import bfcl_mt
     from tests.test_bfcl_evict_v9 import _gates
     from tests.test_bfcl_evict_v10 import _meta_and_records

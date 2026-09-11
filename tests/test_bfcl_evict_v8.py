@@ -175,9 +175,7 @@ def test_fv6_4_preflight_invariants_report_comparator_event_counts():
     record = _v8_record()
     control = record["arms"]["clf_control"]["turns"][0]["eviction"]
     control.update(match_impossible=True, control_role_shortfall=True)
-    record["arms"]["recency_pinned"]["turns"][0]["eviction"][
-        "echo_token_delta"
-    ] = -2
+    record["arms"]["recency_pinned"]["turns"][0]["eviction"]["echo_token_delta"] = -2
     events = assert_dev_invariants([record])
     assert events["match_impossible"] == {
         "clf_control": 1,
@@ -205,14 +203,17 @@ def test_fv6_5_git_provenance_and_fv6_6_stable_tie_break(monkeypatch):
     ).stdout.strip()
     assert provenance["commit"] == expected_head
     assert isinstance(provenance["dirty"], bool)
-    assert "control_seed" not in bfcl_mt.certificate_payload(
-        {
-            "trunk": "1.7b",
-            "arms": [],
-            "control_tie_break": "nearest-width, nearest-turn, stable-source",
-        },
-        {},
-    )["constants"]
+    assert (
+        "control_seed"
+        not in bfcl_mt.certificate_payload(
+            {
+                "trunk": "1.7b",
+                "arms": [],
+                "control_tie_break": "nearest-width, nearest-turn, stable-source",
+            },
+            {},
+        )["constants"]
+    )
     assert bfcl_mt.CONTROL_TIE_BREAK == "nearest-width, nearest-turn, stable-source"
 
     monkeypatch.setattr(
@@ -282,9 +283,10 @@ def test_fv6_1_real_dev_census_selects_users_on_every_evicting_turn(qwen_tok):
                 )["selector"]
                 assert comparator["match_impossible"] is False
                 assert comparator["control_role_shortfall_event"] is False
-                assert comparator["pinned_columns_by_role"] == treatment[
-                    "pinned_columns_by_role"
-                ]
+                assert (
+                    comparator["pinned_columns_by_role"]
+                    == treatment["pinned_columns_by_role"]
+                )
                 assert abs(comparator["echo_token_delta"]) <= 16
                 census.append(
                     {

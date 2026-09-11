@@ -115,16 +115,12 @@ def _scan_affine_scalar(
 
     even_multiplier = multiplier[:, 2::2]
     even_drive = drive[:, 2::2]
-    prefix_multiplier = (
-        odd_multiplier if length % 2 else odd_multiplier[:, :-1]
-    )
+    prefix_multiplier = odd_multiplier if length % 2 else odd_multiplier[:, :-1]
     prefix_drive = odd_drive if length % 2 else odd_drive[:, :-1]
     paired_multiplier = even_multiplier * prefix_multiplier
     paired_drive = even_multiplier * prefix_drive + even_drive
     return (
-        _interleave_scan_parts(
-            multiplier, odd_multiplier, paired_multiplier, length
-        ),
+        _interleave_scan_parts(multiplier, odd_multiplier, paired_multiplier, length),
         _interleave_scan_parts(drive, odd_drive, paired_drive, length),
     )
 
@@ -273,15 +269,11 @@ class OscillatorCell(nn.Module):
             m00 = m00 + self.dt * next_m10
             m01 = m01 + self.dt * next_m11
             m10, m11 = next_m10, next_m11
-            next_d1 = (
-                d1 + self.dt * (-a * d0 + forcing[:, :, position])
-            ) / denominator
+            next_d1 = (d1 + self.dt * (-a * d0 + forcing[:, :, position])) / denominator
             d0 = d0 + self.dt * next_d1
             d1 = next_d1
 
-        p00, p01, p10, p11, pd0, pd1 = _scan_affine_2x2(
-            (m00, m01, m10, m11, d0, d1)
-        )
+        p00, p01, p10, p11, pd0, pd1 = _scan_affine_2x2((m00, m01, m10, m11, d0, d1))
         end_y = p00 * y[:, None] + p01 * z[:, None] + pd0
         end_z = p10 * y[:, None] + p11 * z[:, None] + pd1
         block_y = torch.cat((y[:, None], end_y[:, :-1]), dim=1)
@@ -291,8 +283,7 @@ class OscillatorCell(nn.Module):
         zs: list[torch.Tensor] = []
         for position in range(block_size):
             block_z = (
-                block_z
-                + self.dt * (-a * block_y + forcing[:, :, position])
+                block_z + self.dt * (-a * block_y + forcing[:, :, position])
             ) / denominator
             block_y = block_y + self.dt * block_z
             ys.append(block_y)
@@ -327,9 +318,7 @@ class OscillatorCell(nn.Module):
             implementation = self._compiled_scan
         else:
             implementation = self._forward_scan
-        return implementation(
-            inputs, initial=initial, zero_damping=zero_damping
-        )
+        return implementation(inputs, initial=initial, zero_damping=zero_damping)
 
 
 class DecayCell(nn.Module):
@@ -411,9 +400,7 @@ class DecayCell(nn.Module):
 
         states: list[torch.Tensor] = []
         for position in range(block_size):
-            block_state = (
-                self.decay * block_state + forcing[:, :, position]
-            )
+            block_state = self.decay * block_state + forcing[:, :, position]
             states.append(block_state)
         return torch.stack(states, dim=2).flatten(1, 2)[:, :length]
 
@@ -462,9 +449,7 @@ class CueLatch(nn.Module):
         self.W_e = nn.Parameter(torch.empty(state_dim, input_dim, dtype=dtype))
         nn.init.normal_(self.W_e, mean=0.0, std=0.02, generator=generator)
 
-    def forward(
-        self, embeddings: torch.Tensor, cue_mask: torch.Tensor
-    ) -> torch.Tensor:
+    def forward(self, embeddings: torch.Tensor, cue_mask: torch.Tensor) -> torch.Tensor:
         if embeddings.ndim != 3 or embeddings.shape[-1] != self.input_dim:
             raise ValueError("embeddings must have shape (batch, length, input_dim)")
         if cue_mask.shape != embeddings.shape[:2] or cue_mask.dtype != torch.bool:
@@ -473,9 +458,7 @@ class CueLatch(nn.Module):
         positions = torch.arange(embeddings.shape[1], device=embeddings.device)
         cue_indices = torch.where(cue_mask, positions[None], -1)
         latest_cue = torch.cummax(cue_indices, dim=1).values
-        gather_index = latest_cue.clamp_min(0)[..., None].expand(
-            -1, -1, self.state_dim
-        )
+        gather_index = latest_cue.clamp_min(0)[..., None].expand(-1, -1, self.state_dim)
         latched = torch.gather(candidates, dim=1, index=gather_index)
         return torch.where(latest_cue[..., None] >= 0, latched, 0.0)
 

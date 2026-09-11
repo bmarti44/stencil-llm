@@ -64,10 +64,7 @@ def _snapshot(repo: Path) -> dict:
     changed = sorted(_changed_paths(repo))
     return {
         "changed_paths": changed,
-        "blob_sha256": {
-            path: _sha256_path(repo / path)
-            for path in changed
-        },
+        "blob_sha256": {path: _sha256_path(repo / path) for path in changed},
     }
 
 
@@ -87,7 +84,9 @@ def _read_baseline(path: Path | None) -> dict:
         raise ValueError(f"baseline JSON must be an object: {path}")
     changed_paths = data.get("changed_paths", [])
     blob_sha256 = data.get("blob_sha256", {})
-    if not isinstance(changed_paths, list) or not all(isinstance(p, str) for p in changed_paths):
+    if not isinstance(changed_paths, list) or not all(
+        isinstance(p, str) for p in changed_paths
+    ):
         raise ValueError("baseline changed_paths must be a list of strings")
     if not isinstance(blob_sha256, dict) or not all(
         isinstance(k, str) and (isinstance(v, str) or v is None)
@@ -135,9 +134,15 @@ def validate(repo: Path, allowed: str, baseline: Path | None = None) -> list[str
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo", help="Repository root (default: git rev-parse)")
-    parser.add_argument("--snapshot", action="store_true", help="Print current changed path set")
-    parser.add_argument("--baseline", type=Path, help="Path set captured before the review run")
-    parser.add_argument("--allowed", help="Only allowed changed path after the baseline")
+    parser.add_argument(
+        "--snapshot", action="store_true", help="Print current changed path set"
+    )
+    parser.add_argument(
+        "--baseline", type=Path, help="Path set captured before the review run"
+    )
+    parser.add_argument(
+        "--allowed", help="Only allowed changed path after the baseline"
+    )
     args = parser.parse_args(argv)
 
     repo = _repo_root(args.repo)
@@ -155,7 +160,10 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     if unexpected:
-        print("ERROR: review wrapper changed paths outside the canonical review file:", file=sys.stderr)
+        print(
+            "ERROR: review wrapper changed paths outside the canonical review file:",
+            file=sys.stderr,
+        )
         for finding in unexpected:
             print(f"  {finding}", file=sys.stderr)
         return 1

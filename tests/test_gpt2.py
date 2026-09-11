@@ -1,5 +1,6 @@
 # ruff: noqa: E501
 """Deterministic verifications 1-4 for the GPT-2 retrofit (GPT2-PLAN.md)."""
+
 from pathlib import Path
 
 import pytest
@@ -23,7 +24,16 @@ def _load(arm: str, window: int | None = None) -> GatedGPT2:
     missing, unexpected = model.load_state_dict(sd, strict=False)
     assert not unexpected
     assert all(
-        m.startswith(("controller.", "gate_source.", "salience.", "control_proj.", "inject.", "lora."))
+        m.startswith(
+            (
+                "controller.",
+                "gate_source.",
+                "salience.",
+                "control_proj.",
+                "inject.",
+                "lora.",
+            )
+        )
         for m in missing
     )
     return model.eval()
@@ -52,7 +62,9 @@ def test_graft_inert_bitwise() -> None:
     osc = _load("osc", window=64)
     base = _load("base", window=64)
     toks = torch.randint(
-        0, 50257, (2, 256),
+        0,
+        50257,
+        (2, 256),
         generator=torch.Generator().manual_seed(7),
     )
     with torch.no_grad():
@@ -95,17 +107,26 @@ def test_trunk_frozen_bitwise() -> None:
 @needs_weights
 def test_training_determinism_bitwise() -> None:
     """V2: two identical short fine-tunes are bitwise identical."""
+
     def one() -> tuple[list[float], list[torch.Tensor]]:
         model = _load("osc", window=64)
         for p in model.trunk_parameters():
             p.requires_grad_(False)
         opt = torch.optim.AdamW(model.pathway_parameters(), lr=1e-3)
-        toks = torch.randint(0, 50257, (2, 128), generator=torch.Generator().manual_seed(11))
+        toks = torch.randint(
+            0, 50257, (2, 128), generator=torch.Generator().manual_seed(11)
+        )
         losses = []
         model.train()
         for _ in range(3):
             logits = model(toks)
-            loss = logits[:, :-1].log_softmax(-1).gather(-1, toks[:, 1:, None]).mean().neg()
+            loss = (
+                logits[:, :-1]
+                .log_softmax(-1)
+                .gather(-1, toks[:, 1:, None])
+                .mean()
+                .neg()
+            )
             loss.backward()
             opt.step()
             opt.zero_grad()
@@ -180,14 +201,18 @@ def test_salience_gate_wired() -> None:
         assert m.salience is not None
         trunk_ids = {id(p) for p in m.trunk_parameters()}
         assert all(id(p) not in trunk_ids for p in m.salience.parameters())
-        toks = torch.randint(0, 50257, (1, 64), generator=torch.Generator().manual_seed(21))
+        toks = torch.randint(
+            0, 50257, (1, 64), generator=torch.Generator().manual_seed(21)
+        )
         with torch.no_grad():
             open_state = m.control_states(toks)
             m.salience.bias.fill_(-30.0)  # gate ~0: forcing silenced
             closed_state = m.control_states(toks)
         assert not torch.equal(open_state, closed_state), f"{arm}: salience not in path"
         if arm == "osc":
-            assert closed_state.abs().max() < 1e-3, "closed gate should silence the wire"
+            assert closed_state.abs().max() < 1e-3, (
+                "closed gate should silence the wire"
+            )
     v = GatedGPT2("vanilla", window=64)
     assert v.salience is None
 
@@ -210,7 +235,9 @@ def test_injection_and_controller_connectivity() -> None:
     loss.backward()
     for n, p in m.named_parameters():
         if n.startswith("controller."):
-            assert p.grad is not None and float(p.grad.abs().sum()) > 0, f"dead grad: {n}"
+            assert p.grad is not None and float(p.grad.abs().sum()) > 0, (
+                f"dead grad: {n}"
+            )
 
 
 @needs_weights
@@ -244,6 +271,7 @@ def test_focus_cache_deterministic_properties() -> None:
     zero state and zero code on adversarial filler (quoted slot words);
     write isolation; same-key overwrite; chunk carry-over equals continuous."""
     import sys
+
     sys.path.insert(0, str(ROOT / "src"))
     from stencil.focus_cache import CacheState  # noqa: F401
 
@@ -252,7 +280,9 @@ def test_focus_cache_deterministic_properties() -> None:
     sd = torch.load(WEIGHTS, map_location="cpu")
     m.load_state_dict(sd, strict=False)
     m.eval()
-    toks = torch.randint(0, 50257, (1, 128), generator=torch.Generator().manual_seed(41))
+    toks = torch.randint(
+        0, 50257, (1, 128), generator=torch.Generator().manual_seed(41)
+    )
     with torch.no_grad():
         # 1. bypass is bitwise vanilla even with live injection weights
         for lin in m.inject:
@@ -291,10 +321,14 @@ def test_focus_cache_deterministic_properties() -> None:
         # 5. chunk carry-over: state after full pass == state after chunked
         code_a, st_a, _ = m.cache(h, sal_override=sal, commit_override=com)
         st_b1 = None
-        _, st_b1, _ = m.cache(h[:, :8], sal_override=sal[:, :8], commit_override=com[:, :8])
+        _, st_b1, _ = m.cache(
+            h[:, :8], sal_override=sal[:, :8], commit_override=com[:, :8]
+        )
         _, st_b2, _ = m.cache(
-            h[:, 8:], states=[s.detached() for s in st_b1],
-            sal_override=sal[:, 8:], commit_override=com[:, 8:],
+            h[:, 8:],
+            states=[s.detached() for s in st_b1],
+            sal_override=sal[:, 8:],
+            commit_override=com[:, 8:],
         )
         assert len(st_a[0].keys) == len(st_b2[0].keys)
         for ka, kb in zip(st_a[0].keys, st_b2[0].keys, strict=True):

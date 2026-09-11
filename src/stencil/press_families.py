@@ -9,9 +9,17 @@ provenance CEILING (it reads source labels); structured presses iff
 pred_type has a live ledger entry. Neither ceiling nor structured is an
 autonomous family.
 """
+
 import math
 
-FAMILIES = ("raw_max", "top1_top2", "top1_logsumexp", "cos_max", "live_minus_best", "structured")
+FAMILIES = (
+    "raw_max",
+    "top1_top2",
+    "top1_logsumexp",
+    "cos_max",
+    "live_minus_best",
+    "structured",
+)
 
 
 def _typed(event):
@@ -66,12 +74,17 @@ def counterfeit_hard_negative(event: dict):
     inactive-moment. Returns None when no same-type non-live lookalike
     remains (nothing to press). cell is marked "counterfeit"."""
     ty = event["pred_type"]
-    keep = [i for i, c in enumerate(event["candidates"])
-            if not (c["type"] == ty and c["source"] == "live")]
+    keep = [
+        i
+        for i, c in enumerate(event["candidates"])
+        if not (c["type"] == ty and c["source"] == "live")
+    ]
     if not any(event["candidates"][i]["type"] == ty for i in keep):
         return None
-    return dict(event,
-                candidates=[event["candidates"][i] for i in keep],
-                qk_scores=[event["qk_scores"][i] for i in keep],
-                cos_scores=[event["cos_scores"][i] for i in keep],
-                cell="counterfeit")
+    return dict(
+        event,
+        candidates=[event["candidates"][i] for i in keep],
+        qk_scores=[event["qk_scores"][i] for i in keep],
+        cos_scores=[event["cos_scores"][i] for i in keep],
+        cell="counterfeit",
+    )

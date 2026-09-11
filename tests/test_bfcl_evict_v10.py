@@ -12,9 +12,7 @@ def _meta_and_records(tmp_path):
     from scripts import bfcl_mt
     from tests.test_bfcl_evict_v9 import _certificate_meta
 
-    meta = bfcl_mt.bind_run_identity(
-        _certificate_meta("dev", {"dev-1:case": "e" * 64})
-    )
+    meta = bfcl_mt.bind_run_identity(_certificate_meta("dev", {"dev-1:case": "e" * 64}))
     record = {
         "case_id": "dev-1",
         "run_identity_sha256": meta["run_identity_sha256"],
@@ -58,9 +56,7 @@ def test_v9_1_certificate_binds_frozen_meta_verified_bytes_records_and_gates(
 
 
 @pytest.mark.parametrize("drift", ["dev_record", "harness"])
-def test_v9_1_producer_rejects_post_run_artifact_drift(
-    monkeypatch, tmp_path, drift
-):
+def test_v9_1_producer_rejects_post_run_artifact_drift(monkeypatch, tmp_path, drift):
     from scripts import bfcl_mt
     from tests.test_bfcl_evict_v9 import _gates
 
@@ -71,9 +67,7 @@ def test_v9_1_producer_rejects_post_run_artifact_drift(
         if key not in {"preflight_certificate_sha256", "run_identity_sha256"}
     }
     if drift == "dev_record":
-        fresh["frozen_hashes"]["verified_bytes"]["records"]["dev-1:case"] = (
-            "0" * 64
-        )
+        fresh["frozen_hashes"]["verified_bytes"]["records"]["dev-1:case"] = "0" * 64
     else:
         fresh["frozen_hashes"]["harness_files"]["scripts/bfcl_mt.py"] = "0" * 64
     monkeypatch.setattr(bfcl_mt, "artifact_meta", lambda _args: fresh)
@@ -120,9 +114,7 @@ def test_v9_1_consumer_rejects_altered_or_failed_preflight(
     else:
         report = json.loads((output / "preflight.json").read_text())
         report["certificate"]["gates"]["cost"] = False
-        report["certificate_sha256"] = bfcl_mt._canonical_sha256(
-            report["certificate"]
-        )
+        report["certificate_sha256"] = bfcl_mt._canonical_sha256(report["certificate"])
         bfcl_mt.atomic_json(output / "preflight.json", report)
 
     sealed = _certificate_meta("sealed", {"sealed-1:case": "f" * 64})

@@ -342,9 +342,7 @@ def test_compiled_scan_equals_oracle() -> None:
     decay = DecayCell(64, 64, generator=named_generator(0, "fixtures:b"))
     compiled_states = decay(inputs, use_compiled_scan=True)
     sequential_states = decay(inputs, use_scan=False)
-    torch.testing.assert_close(
-        compiled_states, sequential_states, rtol=1e-5, atol=1e-8
-    )
+    torch.testing.assert_close(compiled_states, sequential_states, rtol=1e-5, atol=1e-8)
 
 
 def test_compiled_scan_deterministic() -> None:
@@ -572,9 +570,7 @@ def test_truncated_equals_full() -> None:
         full_model = StencilTransformer(config).cuda()
         truncated_model = deepcopy(full_model)
 
-        full = full_model(
-            tokens, decision_positions=decisions, use_truncation=False
-        )
+        full = full_model(tokens, decision_positions=decisions, use_truncation=False)
         truncated = truncated_model(
             tokens,
             decision_positions=decisions,
@@ -622,12 +618,8 @@ def test_truncated_equals_full() -> None:
     ).cuda()
     model = StencilTransformer(config).cuda()
     with torch.no_grad():
-        original = model(
-            tokens, decision_positions=decisions, use_truncation=False
-        )
-        randomized = model(
-            changed, decision_positions=decisions, use_truncation=False
-        )
+        original = model(tokens, decision_positions=decisions, use_truncation=False)
+        randomized = model(changed, decision_positions=decisions, use_truncation=False)
     assert torch.equal(original, randomized)
 
 

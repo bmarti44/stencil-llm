@@ -213,8 +213,8 @@ Equality gate:
 [_optimizer](/home/bmarti44/stencil-llm/src/stencil/train.py:127) explicitly forces the slowest AdamW implementation:
 
 ```python
-foreach=False,
-fused=False,
+foreach = (False,)
+fused = (False,)
 ```
 
 M1 has roughly 52 parameter tensors, many tiny. The single-tensor AdamW path issues multiple kernels for each tensor. Try, in order:

@@ -128,9 +128,16 @@ def main():
             context = history_now + OPENER
             span_records = user_turn_span_records(tok, context)
             native = generate_e2_policy(
-                model, tok, context, ctrl, span_records,
-                mode="native", max_new=args.turn_max_new,
-                deadline_s=args.deadline, raw_context=True)
+                model,
+                tok,
+                context,
+                ctrl,
+                span_records,
+                mode="native",
+                max_new=args.turn_max_new,
+                deadline_s=args.deadline,
+                raw_context=True,
+            )
             history = history_now + f"<|im_start|>assistant\n{native.text}<|im_end|>\n"
             if turn_i == 1:
                 continue
@@ -141,11 +148,22 @@ def main():
             }
             native_scores = score_row_constraints(row, native.text)
             gated = generate_e2_policy(
-                model, tok, context, ctrl, span_records,
-                mode="ctrb", gate=gate, threshold=float(frozen["threshold"]),
-                dose=3.0, max_new=args.turn_max_new,
-                deadline_s=args.deadline, raw_context=True)
-            events = [event for event in gated.interventions if event["kind"] == "onset"]
+                model,
+                tok,
+                context,
+                ctrl,
+                span_records,
+                mode="ctrb",
+                gate=gate,
+                threshold=float(frozen["threshold"]),
+                dose=3.0,
+                max_new=args.turn_max_new,
+                deadline_s=args.deadline,
+                raw_context=True,
+            )
+            events = [
+                event for event in gated.interventions if event["kind"] == "onset"
+            ]
             fired = bool(events)
             if len(events) > 1:
                 raise RuntimeError("sustained gate emitted multiple onsets")
@@ -157,14 +175,27 @@ def main():
                 onset = int(events[0]["start"])
                 for dose in DOSES:
                     result = generate_e2_policy(
-                        model, tok, context, ctrl, span_records,
-                        mode="periodic", periodic_onset=onset, dose=dose,
-                        max_new=args.turn_max_new, deadline_s=args.deadline,
-                        raw_context=True)
+                        model,
+                        tok,
+                        context,
+                        ctrl,
+                        span_records,
+                        mode="periodic",
+                        periodic_onset=onset,
+                        dose=dose,
+                        max_new=args.turn_max_new,
+                        deadline_s=args.deadline,
+                        raw_context=True,
+                    )
                     scores = score_row_constraints(row, result.text)
                     doses[str(dose)] = branch_record(result, scores)
-                if doses["3.0"]["response_sha256"] != hashlib.sha256(gated.text.encode()).hexdigest():
-                    raise RuntimeError("forced nominal-dose replay differs from gated action")
+                if (
+                    doses["3.0"]["response_sha256"]
+                    != hashlib.sha256(gated.text.encode()).hexdigest()
+                ):
+                    raise RuntimeError(
+                        "forced nominal-dose replay differs from gated action"
+                    )
             audit_rows.append(
                 {
                     "session": session_i,
@@ -207,7 +238,13 @@ def main():
     ]
     firing = summarize_policy_audit(audit_input)
     decision_payload = [
-        (row["session"], row["turn"], row["fired"], row["onset"], row["selected_origin"])
+        (
+            row["session"],
+            row["turn"],
+            row["fired"],
+            row["onset"],
+            row["selected_origin"],
+        )
         for row in rows
     ]
     decision_hash = hashlib.sha256(json.dumps(decision_payload).encode()).hexdigest()
@@ -240,7 +277,9 @@ def main():
         }
     reasons = audit_reasons(firing) + safe_dose_reasons(safe)
     starts = {
-        turn: [int(row["onset"]) for row in rows if row["turn"] == turn and row["fired"]]
+        turn: [
+            int(row["onset"]) for row in rows if row["turn"] == turn and row["fired"]
+        ]
         for turn in (2, 3)
     }
     periodic = {

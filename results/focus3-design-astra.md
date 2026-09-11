@@ -70,9 +70,17 @@ Pin the tested software build (local lock: Transformers 5.16.1, PyTorch 2.13) an
 Five-line user example, one call per turn; repository ID is illustrative:
 ```python
 from transformers import AutoModelForCausalLM
-m = AutoModelForCausalLM.from_pretrained("stencil/focus3-qwen3-4b", trust_remote_code=True)
-r = m.generate(messages=[{"role": "user", "content": "For this conversation, use metric units."}])
-r = m.generate(messages=[{"role": "user", "content": "Plan a short walking route."}], past_key_values=r.past_key_values)
+
+m = AutoModelForCausalLM.from_pretrained(
+    "stencil/focus3-qwen3-4b", trust_remote_code=True
+)
+r = m.generate(
+    messages=[{"role": "user", "content": "For this conversation, use metric units."}]
+)
+r = m.generate(
+    messages=[{"role": "user", "content": "Plan a short walking route."}],
+    past_key_values=r.past_key_values,
+)
 print(r.text)
 ```
 With a cache, `messages` means only newly arrived messages; the wrapper appends its own prior reply automatically. Without one, start a new session. Do not resubmit already cached messages. `past_key_values` round-trips the complete register/tags/event log and pending token, not a legacy KV tuple. [HF cache interface](https://huggingface.co/docs/transformers/main/en/cache_explanation)

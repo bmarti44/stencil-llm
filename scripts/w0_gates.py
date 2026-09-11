@@ -14,6 +14,7 @@ for the matched control's descriptive gates). Computes:
   uniform field at matched gain (selectivity).
 Also emits the gain histogram artifact.
 """
+
 import json
 import os
 import sys
@@ -38,13 +39,17 @@ HELD = [13_400_040 + i for i in range(8)]
 
 tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
 m = Qwen3()
-m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+m.load_state_dict(
+    torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+)
 m = m.to(torch.bfloat16).cuda().eval()
 
 
 def work_tensors(sess, wt):
     ptxt = prompt_at(sess, wt, "dev").replace(
-        "[checker] (deterministic feedback on the previous submission is inserted here at run time)", NEUTRAL)
+        "[checker] (deterministic feedback on the previous submission is inserted here at run time)",
+        NEUTRAL,
+    )
     enc = tok.encode(ptxt)
     P = len(enc.ids)
     code_ids = tok.encode(canonical_code(sess, wt)).ids
@@ -58,9 +63,9 @@ def ce_with_field(full, P, field):
             logits = m(full)[0].float()
         else:
             bias = torch.zeros(T, T, device="cuda")
-            bias[P - 1:T - 1, :P] = field
+            bias[P - 1 : T - 1, :P] = field
             logits = m(full, attn_bias={L: bias for L in LAYERS})[0].float()
-        return float(F.cross_entropy(logits[P - 1:T - 1], full[0, P:]))
+        return float(F.cross_entropy(logits[P - 1 : T - 1], full[0, P:]))
 
 
 def eval_seeds(wave, seeds, g_perm=None):
@@ -77,7 +82,7 @@ def eval_seeds(wave, seeds, g_perm=None):
             with torch.no_grad():
                 h = m(full, return_hidden=20)[0].float()
                 K = h[:P]
-                H = h[P - 1:T - 1]
+                H = h[P - 1 : T - 1]
                 field = wave.field(H, K)
                 g = wave.gain(H)
                 gains += g.tolist()
@@ -100,7 +105,9 @@ def eval_seeds(wave, seeds, g_perm=None):
 
 def main():
     wave = WaveController().cuda()
-    wave.load_state_dict(torch.load(ROOT / "results" / "qwen" / CKPT, map_location="cpu"))
+    wave.load_state_dict(
+        torch.load(ROOT / "results" / "qwen" / CKPT, map_location="cpu")
+    )
     wave.eval()
     rep = {"ckpt": CKPT}
     # G-W0b overfit-1
@@ -111,11 +118,13 @@ def main():
         T = full.shape[1]
         with torch.no_grad():
             h = m(full, return_hidden=20)[0].float()
-            field = wave.field(h[P - 1:T - 1], h[:P])
+            field = wave.field(h[P - 1 : T - 1], h[:P])
         b_zero.append(ce_with_field(full, P, None))
         b_wave.append(ce_with_field(full, P, field))
-    rep["overfit1"] = {"zero": round(sum(b_zero) / len(b_zero), 4),
-                       "wave": round(sum(b_wave) / len(b_wave), 4)}
+    rep["overfit1"] = {
+        "zero": round(sum(b_zero) / len(b_zero), 4),
+        "wave": round(sum(b_wave) / len(b_wave), 4),
+    }
     rep["G_W0b"] = rep["overfit1"]["wave"] <= 0.5 * rep["overfit1"]["zero"]
     # G-W0c held + ablations
     means, hist = eval_seeds(wave, HELD)
@@ -133,7 +142,9 @@ def main():
     rep["gain_histogram_0_2"] = hist
     rep["ALL"] = bool(rep["G_W0b"] and rep["G_W0c_ce"] and not rep["uniform_closes_W0"])
     print(json.dumps(rep, indent=1), flush=True)
-    (ROOT / "results" / "qwen" / f"w0-gates-{CKPT.replace('.pt','')}.json").write_text(json.dumps(rep, indent=1))
+    (ROOT / "results" / "qwen" / f"w0-gates-{CKPT.replace('.pt', '')}.json").write_text(
+        json.dumps(rep, indent=1)
+    )
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 # ruff: noqa: E501
 """QWEN-PLAN P0 verifications: bitwise parity fixture + determinism."""
+
 from pathlib import Path
 
 import pytest
@@ -41,7 +42,9 @@ def test_qwen3_parity_bitwise() -> None:
 @needs_weights
 def test_qwen3_forward_deterministic() -> None:
     model = _load()
-    toks = torch.randint(0, 151936, (1, 256), generator=torch.Generator().manual_seed(3)).cuda()
+    toks = torch.randint(
+        0, 151936, (1, 256), generator=torch.Generator().manual_seed(3)
+    ).cuda()
     with torch.no_grad():
         a = model(toks)
         b = model(toks)
@@ -54,7 +57,9 @@ def test_attn_bias_paths_bitwise_and_live() -> None:
     base bitwise (exercised path, not a short-circuit); nonzero bias changes
     logits (non-vacuity)."""
     model = _load()
-    toks = torch.randint(0, 151936, (1, 128), generator=torch.Generator().manual_seed(7)).cuda()
+    toks = torch.randint(
+        0, 151936, (1, 128), generator=torch.Generator().manual_seed(7)
+    ).cuda()
     t = toks.shape[1]
     zero = {L: torch.zeros(t, t, device="cuda") for L in range(20, 28)}
     spot = {L: torch.zeros(t, t, device="cuda") for L in range(20, 28)}
@@ -63,4 +68,6 @@ def test_attn_bias_paths_bitwise_and_live() -> None:
     with torch.no_grad():
         base = model(toks)
         assert torch.equal(model(toks, attn_bias=zero), base), "zero bias not identity"
-        assert not torch.equal(model(toks, attn_bias=spot), base), "bias ignored (vacuous)"
+        assert not torch.equal(model(toks, attn_bias=spot), base), (
+            "bias ignored (vacuous)"
+        )

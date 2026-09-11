@@ -17,6 +17,7 @@ oracle/learned, learned/learned. Gates: precision >= 0.95, recall >= 0.8,
 conditional address accuracy >= 0.9, learned/learned closure >= 0.5 with
 paired parse loss == 0.
 """
+
 import ast
 import json
 import sys
@@ -43,7 +44,9 @@ CLASSES = ["none", "prefix", "doc", "hint"]
 
 tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
 m = Qwen3()
-m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+m.load_state_dict(
+    torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+)
 m = m.to(torch.bfloat16).cuda().eval()
 
 
@@ -96,7 +99,7 @@ def gen_rollout(ids, timing=None, address=None, tok_spans=None, s=None, max_new=
                 span = tok_spans[sent_keys[int(scores.argmax())]]
             t = toks.shape[1]
             bias = torch.zeros(t, t, device="cuda")
-            bias[-1:, span[0]:span[1]] = BETA
+            bias[-1:, span[0] : span[1]] = BETA
             ab = {L: bias for L in LAYERS}
             log.append((len(outs), key))
         nxt = int(m(toks, attn_bias=ab)[0, -1].argmax())
@@ -121,8 +124,10 @@ def ast_moments(code, prompt_len, gen_ids, full_ids):
         return {}
     fn = fns[0]
     lines = code.split("\n")
+
     def char_of(lineno, col):
         return sum(len(ln) + 1 for ln in lines[: lineno - 1]) + col
+
     targets = []
     name_col = code.find("def " + fn.name)
     if name_col >= 0:
@@ -137,7 +142,9 @@ def ast_moments(code, prompt_len, gen_ids, full_ids):
                 targets.append((w, "doc"))
     for a in fn.args.args:
         if a.annotation is not None:
-            targets.append((char_of(a.annotation.lineno, a.annotation.col_offset), "hint"))
+            targets.append(
+                (char_of(a.annotation.lineno, a.annotation.col_offset), "hint")
+            )
     # map gen char offsets to gen step indices via token decode lengths
     offs = []
     pos = 0
@@ -163,10 +170,17 @@ def collect(seeds):
             code, gen_ids, _ = gen_rollout(ids)
             labels = ast_moments(code, len(ids), gen_ids, ids)
             full = ids + gen_ids
-            h = m(torch.tensor([full], device="cuda"), return_hidden=20)[0].float().cpu()
-            sent_feats = torch.stack([
-                h[tok_spans[k][0]:tok_spans[k][1]].mean(dim=0) for k in ("prefix", "doc", "hint")
-            ])
+            h = (
+                m(torch.tensor([full], device="cuda"), return_hidden=20)[0]
+                .float()
+                .cpu()
+            )
+            sent_feats = torch.stack(
+                [
+                    h[tok_spans[k][0] : tok_spans[k][1]].mean(dim=0)
+                    for k in ("prefix", "doc", "hint")
+                ]
+            )
             for i in range(len(gen_ids)):
                 state = h[len(ids) + i - 1]
                 cls = labels.get(i, "none")
@@ -176,33 +190,47 @@ def collect(seeds):
                     addrX.append(state)
                     addrS.append(sent_feats)
                     addrY.append(["prefix", "doc", "hint"].index(cls))
-    return torch.stack(X), torch.tensor(Y), (torch.stack(addrX), torch.stack(addrS), torch.tensor(addrY))
+    return (
+        torch.stack(X),
+        torch.tensor(Y),
+        (torch.stack(addrX), torch.stack(addrS), torch.tensor(addrY)),
+    )
 
 
 print("collecting training rollouts...", flush=True)
 Xtr, Ytr, (AXtr, AStr, AYtr) = collect(TRAIN)
-print(f"timing examples {len(Ytr)} (moments {(Ytr>0).sum().item()}), address examples {len(AYtr)}", flush=True)
+print(
+    f"timing examples {len(Ytr)} (moments {(Ytr > 0).sum().item()}), address examples {len(AYtr)}",
+    flush=True,
+)
 
 g = torch.Generator().manual_seed(0)
 head = torch.nn.Linear(2048, 4)
-torch.nn.init.normal_(head.weight, std=0.02, generator=g); torch.nn.init.zeros_(head.bias)
+torch.nn.init.normal_(head.weight, std=0.02, generator=g)
+torch.nn.init.zeros_(head.bias)
 w = torch.tensor([1.0, 20.0, 20.0, 20.0])
 opt = torch.optim.Adam(head.parameters(), lr=1e-3)
 for ep in range(30):
     perm = torch.randperm(len(Ytr), generator=g)
     for i in range(0, len(Ytr), 512):
-        idx = perm[i:i+512]
+        idx = perm[i : i + 512]
         loss = F.cross_entropy(head(Xtr[idx]), Ytr[idx], weight=w)
-        opt.zero_grad(); loss.backward(); opt.step()
+        opt.zero_grad()
+        loss.backward()
+        opt.step()
 
-Wq = torch.nn.Linear(2048, 64); Wk = torch.nn.Linear(2048, 64)
+Wq = torch.nn.Linear(2048, 64)
+Wk = torch.nn.Linear(2048, 64)
 for lin in (Wq, Wk):
-    torch.nn.init.normal_(lin.weight, std=0.02, generator=g); torch.nn.init.zeros_(lin.bias)
+    torch.nn.init.normal_(lin.weight, std=0.02, generator=g)
+    torch.nn.init.zeros_(lin.bias)
 aopt = torch.optim.Adam(list(Wq.parameters()) + list(Wk.parameters()), lr=1e-3)
 for ep in range(60):
     logits = torch.einsum("nd,nkd->nk", Wq(AXtr), Wk(AStr)) / 8.0
     loss = F.cross_entropy(logits, AYtr)
-    aopt.zero_grad(); loss.backward(); aopt.step()
+    aopt.zero_grad()
+    loss.backward()
+    aopt.step()
 
 print("calibrating tau...", flush=True)
 Xc, Yc, (AXc, ASc, AYc) = collect(CALIB)
@@ -225,11 +253,15 @@ with torch.no_grad():
     addr_acc = float((addr_logits.argmax(-1) == AYc).float().mean())
 assert best, "no tau reaches precision 0.95"
 TAU = best[0]
-print(f"FROZEN tau={TAU} (precision {best[1]:.3f} recall {best[2]:.3f}) | calib address acc {addr_acc:.3f}", flush=True)
+print(
+    f"FROZEN tau={TAU} (precision {best[1]:.3f} recall {best[2]:.3f}) | calib address acc {addr_acc:.3f}",
+    flush=True,
+)
 
 head = head.cuda()
 Wq = Wq.cuda()
 Wk = Wk.cuda()
+
 
 # behavioral factorial on validation
 def score_min(code, s):
@@ -243,12 +275,15 @@ def score_min(code, s):
     fn = fns[0]
     doc = ast.get_docstring(fn)
     first = doc.split()[0] if doc and doc.split() else ""
+
     def annname(a):
         return getattr(a.annotation, "id", None) if a.annotation else None
+
     return {
         "prefix": fn.name.startswith(s.prefix + "_"),
         "doc": first == s.doc_opener,
-        "hint": bool(fn.args.args) and all(annname(a) == s.hint_type for a in fn.args.args),
+        "hint": bool(fn.args.args)
+        and all(annname(a) == s.hint_type for a in fn.args.args),
     }
 
 
@@ -270,27 +305,68 @@ with torch.no_grad():
             s, ids, tok_spans = build(seed)
             addr = addr_kind
             if addr_kind == "learned":
-                full_h = m(torch.tensor([ids], device="cuda"), return_hidden=20)[0].float()
+                full_h = m(torch.tensor([ids], device="cuda"), return_hidden=20)[
+                    0
+                ].float()
                 sent_keys = ("prefix", "doc", "hint")
-                sent_feats = torch.stack([full_h[tok_spans[k][0]:tok_spans[k][1]].mean(dim=0) for k in sent_keys])
+                sent_feats = torch.stack(
+                    [
+                        full_h[tok_spans[k][0] : tok_spans[k][1]].mean(dim=0)
+                        for k in sent_keys
+                    ]
+                )
                 addr = (Wq, Wk, sent_feats, sent_keys)
             code, _, log = gen_rollout(ids, timing, addr, tok_spans, s)
             sc = score_min(code, s)
             parses.append(sc is not None)
             if sc is not None:
                 comp += sum(sc.values())
-            recs.append({"seed": seed, "parse": sc is not None, "score": sc, "moments": len(log)})
-        results[arm] = {"parse_rate": sum(parses)/len(VAL), "mean_parse_gated": comp/(3*len(VAL))}
+            recs.append(
+                {
+                    "seed": seed,
+                    "parse": sc is not None,
+                    "score": sc,
+                    "moments": len(log),
+                }
+            )
+        results[arm] = {
+            "parse_rate": sum(parses) / len(VAL),
+            "mean_parse_gated": comp / (3 * len(VAL)),
+        }
         records[arm] = recs
-        print(f"{arm}: parse {results[arm]['parse_rate']:.3f} parse-gated mean {results[arm]['mean_parse_gated']:.3f}", flush=True)
+        print(
+            f"{arm}: parse {results[arm]['parse_rate']:.3f} parse-gated mean {results[arm]['mean_parse_gated']:.3f}",
+            flush=True,
+        )
 
-b_, o_, ll = results["base"]["mean_parse_gated"], results["oracle_oracle"]["mean_parse_gated"], results["learned_learned"]["mean_parse_gated"]
+b_, o_, ll = (
+    results["base"]["mean_parse_gated"],
+    results["oracle_oracle"]["mean_parse_gated"],
+    results["learned_learned"]["mean_parse_gated"],
+)
 closure = (ll - b_) / (o_ - b_) if o_ > b_ else float("nan")
-lost = sum(1 for rb, rl in zip(records["base"], records["learned_learned"]) if rb["parse"] and not rl["parse"])
-print(f"GATES: closure {closure:.2f} (>=0.5) | paired parse lost {lost} (==0) | tau precision {best[1]:.3f} recall {best[2]:.3f} | addr acc {addr_acc:.3f}")
+lost = sum(
+    1
+    for rb, rl in zip(records["base"], records["learned_learned"])
+    if rb["parse"] and not rl["parse"]
+)
+print(
+    f"GATES: closure {closure:.2f} (>=0.5) | paired parse lost {lost} (==0) | tau precision {best[1]:.3f} recall {best[2]:.3f} | addr acc {addr_acc:.3f}"
+)
 out = ROOT / "results" / "qwen" / "timed-t1.json"
-out.write_text(json.dumps({"tau": TAU, "precision": best[1], "recall": best[2],
-                           "calib_addr_acc": addr_acc, "arms": results,
-                           "closure": closure, "paired_parse_lost": lost,
-                           "records": records}, indent=1))
+out.write_text(
+    json.dumps(
+        {
+            "tau": TAU,
+            "precision": best[1],
+            "recall": best[2],
+            "calib_addr_acc": addr_acc,
+            "arms": results,
+            "closure": closure,
+            "paired_parse_lost": lost,
+            "records": records,
+        },
+        indent=1,
+    )
+)
 print(f"evidence -> {out}")

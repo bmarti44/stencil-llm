@@ -15,6 +15,7 @@ direct bounded maximization of the trinomial log-likelihood (no
 closed-form sign-convention risk). Fail-closed: any non-convergence
 raises. NON-INFERIOR iff tango_upper_bound(...) < margin (STRICT,
 as registered in v2.2)."""
+
 import math
 
 Z95 = 1.6448536269514722  # one-sided 95%
@@ -33,8 +34,9 @@ def _constrained_loglik(n10, n01, n, delta0):
         rest = 1.0 - p10 - p01
         if p10 <= 0 or p01 <= 0 or rest <= 0:
             return -math.inf
-        return (n10 * math.log(p10) + n01 * math.log(p01)
-                + (n - n10 - n01) * math.log(rest))
+        return (
+            n10 * math.log(p10) + n01 * math.log(p01) + (n - n10 - n01) * math.log(rest)
+        )
 
     # golden-section maximize (concave in p01 on the feasible interval)
     invphi = (math.sqrt(5.0) - 1.0) / 2.0
@@ -72,11 +74,10 @@ def tango_upper_bound(n10, n01, n, alpha=0.05):
     if not (0 <= n10 and 0 <= n01 and n10 + n01 <= n and n > 0):
         raise ValueError("bad table")
     z_target = -Z95 if alpha == 0.05 else -_z_of(1 - alpha)
-    lo = (n10 - n01) / n          # z(lo) ~ >= 0
-    hi = 1.0 - 1e-9               # z -> -inf as delta0 -> 1
+    lo = (n10 - n01) / n  # z(lo) ~ >= 0
+    hi = 1.0 - 1e-9  # z -> -inf as delta0 -> 1
     if tango_z(n10, n01, n, max(lo, -1 + 1e-9) + 1e-12) < z_target:
         raise ValueError("score statistic below target at point estimate")
-    f_lo = None
     a, b = max(lo, -1.0 + 1e-9) + 1e-12, hi
     for _ in range(500):
         mid = (a + b) / 2.0
@@ -94,24 +95,53 @@ def _z_of(p):
     (deterministic, dependency-free; |err| < 1.15e-9)."""
     if not 0 < p < 1:
         raise ValueError
-    a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02,
-         1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00]
-    b = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02,
-         6.680131188771972e+01, -1.328068155288572e+01]
-    c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00,
-         -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00]
-    d = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00,
-         3.754408661907416e+00]
+    a = [
+        -3.969683028665376e01,
+        2.209460984245205e02,
+        -2.759285104469687e02,
+        1.383577518672690e02,
+        -3.066479806614716e01,
+        2.506628277459239e00,
+    ]
+    b = [
+        -5.447609879822406e01,
+        1.615858368580409e02,
+        -1.556989798598866e02,
+        6.680131188771972e01,
+        -1.328068155288572e01,
+    ]
+    c = [
+        -7.784894002430293e-03,
+        -3.223964580411365e-01,
+        -2.400758277161838e00,
+        -2.549732539343734e00,
+        4.374664141464968e00,
+        2.938163982698783e00,
+    ]
+    d = [
+        7.784695709041462e-03,
+        3.224671290700398e-01,
+        2.445134137142996e00,
+        3.754408661907416e00,
+    ]
     plow, phigh = 0.02425, 1 - 0.02425
     if p < plow:
         q = math.sqrt(-2 * math.log(p))
-        return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) / ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1)
+        return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / (
+            (((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1
+        )
     if p > phigh:
         q = math.sqrt(-2 * math.log(1 - p))
-        return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) / ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1)
+        return -(
+            ((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]
+        ) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1)
     q = p - 0.5
     r = q * q
-    return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q / (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1)
+    return (
+        (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5])
+        * q
+        / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1)
+    )
 
 
 def non_inferior(n10, n01, n, margin, alpha=0.05):
@@ -126,7 +156,8 @@ def mcnemar_exact_one_sided(n_improve, n_degrade):
     if n == 0:
         return 1.0
     from math import comb
-    return sum(comb(n, k) for k in range(n_improve, n + 1)) / (2 ** n)
+
+    return sum(comb(n, k) for k in range(n_improve, n + 1)) / (2**n)
 
 
 # ------------------------------------------------------------ clustered NI
@@ -152,6 +183,7 @@ def mcnemar_exact_one_sided(n_improve, n_degrade):
 # recomputes both numbers).  Applied ALWAYS (no cluster-count switch); the
 # uncorrected t bound is reported as descriptive only.
 CONTINUITY_POINTS = 100.0
+
 
 def _betacf(a, b, x):
     """continued fraction for the regularized incomplete beta (NR 6.4)."""
@@ -186,8 +218,13 @@ def _betainc(a, b, x):
         raise ValueError("x outside [0, 1]")
     if x == 0.0 or x == 1.0:
         return x
-    front = math.exp(math.lgamma(a + b) - math.lgamma(a) - math.lgamma(b)
-                     + a * math.log(x) + b * math.log(1.0 - x))
+    front = math.exp(
+        math.lgamma(a + b)
+        - math.lgamma(a)
+        - math.lgamma(b)
+        + a * math.log(x)
+        + b * math.log(1.0 - x)
+    )
     if x < (a + 1.0) / (a + b + 2.0):
         return front * _betacf(a, b, x) / a
     return 1.0 - front * _betacf(b, a, 1.0 - x) / b
@@ -237,7 +274,9 @@ def clustered_upper_bound(per_cluster_mean_diffs, alpha=0.05):
     return m + t_quantile(1.0 - alpha, k - 1) * math.sqrt(var / k)
 
 
-def cluster_bootstrap_upper_bound(per_cluster_mean_diffs, alpha=0.05, n_resamples=2000, seed=0):
+def cluster_bootstrap_upper_bound(
+    per_cluster_mean_diffs, alpha=0.05, n_resamples=2000, seed=0
+):
     """percentile cluster bootstrap: resample clusters with replacement,
     take the (1-alpha) quantile of the resampled means (deterministic seed)."""
     import random
@@ -247,12 +286,16 @@ def cluster_bootstrap_upper_bound(per_cluster_mean_diffs, alpha=0.05, n_resample
     if k < 2:
         raise ValueError("clustered bound needs at least two clusters")
     rng = random.Random(seed)
-    means = sorted(_mean([diffs[rng.randrange(k)] for _ in range(k)]) for _ in range(n_resamples))
+    means = sorted(
+        _mean([diffs[rng.randrange(k)] for _ in range(k)]) for _ in range(n_resamples)
+    )
     idx = min(n_resamples - 1, max(0, math.ceil((1.0 - alpha) * n_resamples) - 1))
     return means[idx]
 
 
-def clustered_upper_bound_corrected(per_cluster_mean_diffs, alpha=0.05, continuity_points=CONTINUITY_POINTS):
+def clustered_upper_bound_corrected(
+    per_cluster_mean_diffs, alpha=0.05, continuity_points=CONTINUITY_POINTS
+):
     """REGISTERED: the t bound plus one whole-cluster flip (continuity_points / k).
     Strictly positive width even at zero between-cluster variance."""
     diffs = [float(x) for x in per_cluster_mean_diffs]
@@ -267,10 +310,19 @@ def clustered_bound(per_cluster_mean_diffs, alpha=0.05):
     k = len(diffs)
     out = {"clusters": k, "alpha": alpha, "mean": (_mean(diffs) if k else None)}
     if k < 2:
-        return {**out, "method": None, "upper_bound": None, "error": "fewer than two clusters"}
-    return {**out, "method": "t_continuity", "continuity_points": CONTINUITY_POINTS / k,
-            "upper_bound": clustered_upper_bound_corrected(diffs, alpha),
-            "t_upper_bound_descriptive": clustered_upper_bound(diffs, alpha)}
+        return {
+            **out,
+            "method": None,
+            "upper_bound": None,
+            "error": "fewer than two clusters",
+        }
+    return {
+        **out,
+        "method": "t_continuity",
+        "continuity_points": CONTINUITY_POINTS / k,
+        "upper_bound": clustered_upper_bound_corrected(diffs, alpha),
+        "t_upper_bound_descriptive": clustered_upper_bound(diffs, alpha),
+    }
 
 
 def clustered_lower_bound(per_cluster_mean_diffs, alpha=0.05):
@@ -283,10 +335,17 @@ def clustered_lower_bound(per_cluster_mean_diffs, alpha=0.05):
     fields with the sign restored (mean is the mean of ``per_cluster_mean_diffs``)."""
     diffs = [float(x) for x in per_cluster_mean_diffs]
     flipped = clustered_bound([-x for x in diffs], alpha)
-    out = {"clusters": flipped["clusters"], "alpha": alpha,
-           "mean": (-flipped["mean"] if flipped["mean"] is not None else None), "method": flipped["method"]}
+    out = {
+        "clusters": flipped["clusters"],
+        "alpha": alpha,
+        "mean": (-flipped["mean"] if flipped["mean"] is not None else None),
+        "method": flipped["method"],
+    }
     if flipped["upper_bound"] is None:
         return {**out, "lower_bound": None, "error": flipped["error"]}
-    return {**out, "continuity_points": flipped["continuity_points"],
-            "lower_bound": -flipped["upper_bound"],
-            "t_lower_bound_descriptive": -flipped["t_upper_bound_descriptive"]}
+    return {
+        **out,
+        "continuity_points": flipped["continuity_points"],
+        "lower_bound": -flipped["upper_bound"],
+        "t_lower_bound_descriptive": -flipped["t_upper_bound_descriptive"],
+    }

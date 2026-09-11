@@ -186,9 +186,7 @@ def _analyze_arm(records, arm_name, bootstrap_draws):
     base_timeouts = arm_timeouts = 0
     fired = biased_tokens = evaluated_turns = 0
     for record in records:
-        ordered_turns = sorted(
-            record["turns"].items(), key=lambda item: int(item[0])
-        )
+        ordered_turns = sorted(record["turns"].items(), key=lambda item: int(item[0]))
         for turn, turn_record in ordered_turns:
             base = turn_record["base"]
             arm = turn_record["arms"][arm_name]
@@ -271,9 +269,7 @@ def analyze_replay_records(
     if not selected:
         raise ValueError("requested Multi-IF partition is empty")
     arm_names = ("ctrb", "periodic", "fixed_oldest", "positive_control")
-    arms = {
-        arm: _analyze_arm(selected, arm, bootstrap_draws) for arm in arm_names
-    }
+    arms = {arm: _analyze_arm(selected, arm, bootstrap_draws) for arm in arm_names}
     reasons = []
     if not diagnostic:
         primary = arms["ctrb"]["aged_constraints"]

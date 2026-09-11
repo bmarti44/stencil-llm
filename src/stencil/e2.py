@@ -32,9 +32,7 @@ def user_turn_span_records(tokenizer, context: str) -> list[dict]:
     current_turn = len(turns)
     records = []
     for index, (start, end) in enumerate(turns, start=1):
-        tokens = [
-            i for i, (a, b) in enumerate(enc.offsets) if a < end and b > start
-        ]
+        tokens = [i for i, (a, b) in enumerate(enc.offsets) if a < end and b > start]
         if not tokens:
             raise ValueError(f"user turn {index} has no tokens")
         records.append(
@@ -293,9 +291,7 @@ def summarize_oracle_records(records: Sequence[Mapping], arms: Sequence[str]) ->
         total = 0
         for rec in records:
             trials = [
-                int(t["n_pass"])
-                for t in rec.get("trials", ())
-                if t.get("arm") == arm
+                int(t["n_pass"]) for t in rec.get("trials", ()) if t.get("arm") == arm
             ]
             total += max(trials, default=int(rec["native_pass"]))
         by_arm[str(arm)] = total / constraints

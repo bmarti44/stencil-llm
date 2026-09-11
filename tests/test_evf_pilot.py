@@ -5,7 +5,7 @@ Fixture tests are hand-executed first (playbook): the divergence finder
 fixtures below were computed by hand before src/stencil/evf.py existed.
 GPU tests prove deterministic feature extraction (bitwise across runs).
 """
-import json
+
 from pathlib import Path
 
 import pytest
@@ -16,10 +16,12 @@ ROOT = Path(__file__).resolve().parent.parent
 
 # --- divergence finder (pure, CPU) -----------------------------------------
 
+
 def test_first_divergence_token_fixtures():
     from tokenizers import Tokenizer
 
     from stencil.evf import first_divergence
+
     tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
     # hand-executed: identical texts -> None
     assert first_divergence(tok, "The lake was calm.", "The lake was calm.") is None
@@ -39,6 +41,7 @@ def test_first_divergence_token_fixtures():
 
 def test_discordant_anatomy_counts():
     from stencil.evf import load_anatomy
+
     anat = load_anatomy(ROOT, arm="t30-b3")
     repairs = [r for r in anat if r["label"] == 1]
     regressions = [r for r in anat if r["label"] == 0]
@@ -52,6 +55,7 @@ def test_discordant_anatomy_counts():
 
 def test_concordant_controls():
     from stencil.evf import load_controls
+
     ctl = load_controls(ROOT, arm="t30-b3", n=30, seed=11)
     assert len(ctl) == 30
     assert all(c["base_adherent"] == c["wave_adherent"] for c in ctl)
@@ -62,9 +66,11 @@ def test_concordant_controls():
 
 # --- feature extraction (GPU) ----------------------------------------------
 
+
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="needs GPU")
 def test_feature_extraction_bitwise_deterministic():
     from stencil.evf import extract_features, load_anatomy, load_model
+
     m, tok, ctrl = load_model(ROOT)
     anat = load_anatomy(ROOT, arm="t30-b3")
     item = anat[0]
@@ -74,16 +80,27 @@ def test_feature_extraction_bitwise_deterministic():
     for k in f1:
         assert f1[k] == f2[k], k  # bitwise-equal floats (deterministic proof)
     # registered feature set present
-    for k in ("entropy", "margin", "entropy_delta5", "margin_delta5",
-              "readout_top", "readout_margin", "attn_mass_span",
-              "kl_focus", "js_focus", "obligation_shift"):
+    for k in (
+        "entropy",
+        "margin",
+        "entropy_delta5",
+        "margin_delta5",
+        "readout_top",
+        "readout_margin",
+        "attn_mass_span",
+        "kl_focus",
+        "js_focus",
+        "obligation_shift",
+    ):
         assert k in f1, k
 
 
 # --- probe fit + gate (CPU, deterministic) ---------------------------------
 
+
 def test_probe_fit_deterministic_and_gate_math():
     from stencil.evf import fit_probe, gate_eval
+
     # synthetic separable fixture (hand-built): feature x separates labels
     feats = [{"x": float(i >= 10), "y": 0.5} for i in range(20)]
     labels = [int(i >= 10) for i in range(20)]
@@ -95,6 +112,7 @@ def test_probe_fit_deterministic_and_gate_math():
     assert res["r_plus"] == 1.0 and res["r_minus"] == 0.0
     # anti-separable fixture: shuffled labels cannot pass the gate
     import random
+
     rng = random.Random(3)
     bad = labels[:]
     rng.shuffle(bad)

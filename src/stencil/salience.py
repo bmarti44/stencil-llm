@@ -28,6 +28,7 @@ structural unit ("Now add a brief closing section ...").  It cannot tell the
 addressee: run it on USER turns only — instruction echoes inside model
 responses are imperatives too and are classified as such.
 """
+
 from __future__ import annotations
 
 import json
@@ -39,7 +40,9 @@ from pathlib import Path
 import numpy as np
 
 # ----------------------------------------------------------------- sentences
-_ABBREV = re.compile(r"(?:\b(?:i\.e|e\.g|etc|vs|mr|mrs|ms|dr|st|no|p\.s|p\.p\.s)|\b[a-z])\.$", re.I)
+_ABBREV = re.compile(
+    r"(?:\b(?:i\.e|e\.g|etc|vs|mr|mrs|ms|dr|st|no|p\.s|p\.p\.s)|\b[a-z])\.$", re.I
+)
 # an abbreviation is still an abbreviation when the next token is not a letter
 # ("i.e. <<title>>" must not split — it produced a 4-token ledger fragment)
 _BOUNDARY = re.compile(r"[.!?]+[\"'”’)\]]*(?=\s+(?:[A-Z0-9\"'“(*<\[]|[a-z]))|\n+")
@@ -74,89 +77,129 @@ def _push(spans, text, a, b):
 
 # ------------------------------------------------------------------ features
 _WB = r"(?<![a-z'])"  # word-boundary that also refuses contractions on the left
-_NUMWORD = (r"one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|"
-            r"fifteen|twenty|thirty|forty|fifty|hundred|thousand|once|twice|thrice|dozen|half")
-_DISCOURSE = re.compile(r"^(?:(?:please|kindly|also|and|then|first|firstly|just|now|next|finally|additionally|basically|"
-                        r"moreover|furthermore|however|but|so|in this task|for this task|in your (?:response|reply|answer|writing)|"
-                        r"remember to|be sure to|make sure to|try to|you (?:must|should|need to|have to|are required to|are to|will)|"
-                        r"you are not allowed to|you cannot|you can't|you may not|i want you to|i need you to|i'd like you to|"
-                        r"i would like you to)[,:]?\s+)+")
-_TASK_VERBS = (r"write|describe|compose|draft|create|explain|tell|generate|produce|summarize|summarise|"
-               r"rewrite|outline|discuss|develop|craft|imagine|pretend|act|come|help|can|could|would|"
-               r"plan|suggest|recommend|design|build|prepare|make me|give me|"
-               r"send|share|translate|elaborate|expand|continue|critique|review|analyze|analyse|"
-               r"what|why|how|who|when|where|which|is|are|do you|does|i|my|we|our|hi|hello|hey|thanks|thank")
-_DIRECTIVE_VERBS = (r"use|include|avoid|wrap|end|start|begin|finish|keep|make sure|ensure|respond|reply|"
-                     r"answer|highlight|repeat|refrain|mention|limit|format|separate|put|add|give|provide|"
-                     r"do not|don't|never|always|capitalize|capitalise|express|refer|organize|organise|place|"
-                     r"make (?:it|the|your|this|them|every|all|each)|"
-                     r"italicize|bold|indent|number|restrict|exclude|omit|conclude|close|open|contain|"
-                     r"structure|divide|split|present|label|mark|surround|enclose|preface|introduce|"
-                     r"choose|pick|stick|stay|remain|be|have|must|should|only|no|not|there|in your|"
-                     r"your|the (?:response|reply|answer|output|result|text|essay|whole|entire)|all|every|each|"
-                     r"it|words|letters|sentences|paragraphs|at least|at most|exactly")
+_NUMWORD = (
+    r"one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|"
+    r"fifteen|twenty|thirty|forty|fifty|hundred|thousand|once|twice|thrice|dozen|half"
+)
+_DISCOURSE = re.compile(
+    r"^(?:(?:please|kindly|also|and|then|first|firstly|just|now|next|finally|additionally|basically|"
+    r"moreover|furthermore|however|but|so|in this task|for this task|in your (?:response|reply|answer|writing)|"
+    r"remember to|be sure to|make sure to|try to|you (?:must|should|need to|have to|are required to|are to|will)|"
+    r"you are not allowed to|you cannot|you can't|you may not|i want you to|i need you to|i'd like you to|"
+    r"i would like you to)[,:]?\s+)+"
+)
+_TASK_VERBS = (
+    r"write|describe|compose|draft|create|explain|tell|generate|produce|summarize|summarise|"
+    r"rewrite|outline|discuss|develop|craft|imagine|pretend|act|come|help|can|could|would|"
+    r"plan|suggest|recommend|design|build|prepare|make me|give me|"
+    r"send|share|translate|elaborate|expand|continue|critique|review|analyze|analyse|"
+    r"what|why|how|who|when|where|which|is|are|do you|does|i|my|we|our|hi|hello|hey|thanks|thank"
+)
+_DIRECTIVE_VERBS = (
+    r"use|include|avoid|wrap|end|start|begin|finish|keep|make sure|ensure|respond|reply|"
+    r"answer|highlight|repeat|refrain|mention|limit|format|separate|put|add|give|provide|"
+    r"do not|don't|never|always|capitalize|capitalise|express|refer|organize|organise|place|"
+    r"make (?:it|the|your|this|them|every|all|each)|"
+    r"italicize|bold|indent|number|restrict|exclude|omit|conclude|close|open|contain|"
+    r"structure|divide|split|present|label|mark|surround|enclose|preface|introduce|"
+    r"choose|pick|stick|stay|remain|be|have|must|should|only|no|not|there|in your|"
+    r"your|the (?:response|reply|answer|output|result|text|essay|whole|entire)|all|every|each|"
+    r"it|words|letters|sentences|paragraphs|at least|at most|exactly"
+)
 
 _PATTERNS: dict[str, str] = {
-    "modal_obligation": _WB + r"(?:must|should|shall|ought to|needs? to|has to|have to|required|require|be sure|make sure|ensure|"
-                              r"it is important|mandatory|is expected|are expected|is to be|are to be|has to be)\b",
-    "prohibition": _WB + r"(?:do not|don't|never|not allowed|avoid|refrain|no other|without using|cannot|can't|must not|"
-                         r"should not|shouldn't|mustn't|forbidden|exclude|omit|not permitted|no \w+ should|nothing else|"
-                         r"not (?:include|contain|use|mention|add|exceed|have))\b",
-    "quantifier": _WB + r"(?:at least|at most|no more than|no fewer than|no less than|fewer than|less than|more than|exactly|"
-                        r"minimum|maximum|between|up to|or more|or fewer|or less|in total|a total of|under \d|over \d|"
-                        r"\d+\+|\d+-th|times\b|per line|one per|only once|the same|different)\b",
+    "modal_obligation": _WB
+    + r"(?:must|should|shall|ought to|needs? to|has to|have to|required|require|be sure|make sure|ensure|"
+    r"it is important|mandatory|is expected|are expected|is to be|are to be|has to be)\b",
+    "prohibition": _WB
+    + r"(?:do not|don't|never|not allowed|avoid|refrain|no other|without using|cannot|can't|must not|"
+    r"should not|shouldn't|mustn't|forbidden|exclude|omit|not permitted|no \w+ should|nothing else|"
+    r"not (?:include|contain|use|mention|add|exceed|have))\b",
+    "quantifier": _WB
+    + r"(?:at least|at most|no more than|no fewer than|no less than|fewer than|less than|more than|exactly|"
+    r"minimum|maximum|between|up to|or more|or fewer|or less|in total|a total of|under \d|over \d|"
+    r"\d+\+|\d+-th|times\b|per line|one per|only once|the same|different)\b",
     "numeral": r"(?:\b\d+\b|" + _WB + r"(?:" + _NUMWORD + r")\b)",
     "quoted_literal": r"(?:\"[^\"]{1,200}\"|“[^”]{1,200}”|(?<![a-z])'[^']{1,120}'(?![a-z])|<<[^>]{1,120}>>|\[[^\]]{1,60}\]|\*{3,}|\*[^*\n]{1,80}\*)",
     "colon_literal": r":\s*\S",
-    "restrictor": _WB + r"(?:only|solely|entirely|exclusively|strictly|whatsoever|throughout|at all|nothing (?:else|but)|"
-                        r"anywhere|everywhere|always|never|at the (?:very )?(?:beginning|end|start)|first|last|before|after)\b",
-    "universal": _WB + r"(?:all|every|each|entire|whole|any|none|no|both|everything|nothing)\b",
-    "exactness": _WB + r"(?:exact|exactly|verbatim|word for word|word by word|precisely|specifically|literally|as is|itself)\b",
-    "output_ref": _WB + r"(?:(?:your|the|this|entire|whole|final|my) (?:entire |whole |final |own )?"
-                        r"(?:response|reply|answer|output|result|text|responses|replies|answers)|"
-                        r"in your (?:response|reply|answer|output|writing|text)|"
-                        r"your (?:entire |whole )?(?:response|reply|answer|output|result|text|writing)|"
-                        r"the (?:response|reply|answer|output|result|text)|"
-                        r"the (?:request|prompt|question|text|instruction|sentence|passage|message)s? (?:above|below)|the above|"
-                        r"repeat (?:the|this|it|all|every)|"
-                        r"the (?:essay|letter|email|poem|story|summary|article|blog post|description|itinerary|resume|speech|song|riddle|joke|limerick|haiku|rap|dialogue|script|proposal|report|pitch|review|note)"
-                        r" (?:should|must|needs|has|is to|cannot|can't|shouldn't))\b",
-    "form_noun": _WB + r"(?:words?|sentences?|paragraphs?|bullet(?: points?)?|letters?|commas?|title|phrase|sections?|"
-                       r"placeholders?|capital(?:s|ized|ised)?|capitals|lowercase|uppercase|lower case|upper case|postscript|"
-                       r"p\.s\.?|p\.p\.s\.?|markdown|json|xml|html|quotation marks?|quotes?|language|english|french|german|"
-                       r"spanish|italian|hindi|arabic|chinese|japanese|korean|russian|portuguese|highlight(?:ed|s)?|"
-                       r"keywords?|characters?|lines?|asterisks?|dividers?|format|punctuation|syllables?|stanzas?|"
-                       r"headings?|headers?|bold|italics?|emoji|hashtags?|footnotes?|references?|appendix|"
-                       r"double (?:angular )?brackets|square brackets|parentheses|caps|case|tone|style)\b",
+    "restrictor": _WB
+    + r"(?:only|solely|entirely|exclusively|strictly|whatsoever|throughout|at all|nothing (?:else|but)|"
+    r"anywhere|everywhere|always|never|at the (?:very )?(?:beginning|end|start)|first|last|before|after)\b",
+    "universal": _WB
+    + r"(?:all|every|each|entire|whole|any|none|no|both|everything|nothing)\b",
+    "exactness": _WB
+    + r"(?:exact|exactly|verbatim|word for word|word by word|precisely|specifically|literally|as is|itself)\b",
+    "output_ref": _WB
+    + r"(?:(?:your|the|this|entire|whole|final|my) (?:entire |whole |final |own )?"
+    r"(?:response|reply|answer|output|result|text|responses|replies|answers)|"
+    r"in your (?:response|reply|answer|output|writing|text)|"
+    r"your (?:entire |whole )?(?:response|reply|answer|output|result|text|writing)|"
+    r"the (?:response|reply|answer|output|result|text)|"
+    r"the (?:request|prompt|question|text|instruction|sentence|passage|message)s? (?:above|below)|the above|"
+    r"repeat (?:the|this|it|all|every)|"
+    r"the (?:essay|letter|email|poem|story|summary|article|blog post|description|itinerary|resume|speech|song|riddle|joke|limerick|haiku|rap|dialogue|script|proposal|report|pitch|review|note)"
+    r" (?:should|must|needs|has|is to|cannot|can't|shouldn't))\b",
+    "form_noun": _WB
+    + r"(?:words?|sentences?|paragraphs?|bullet(?: points?)?|letters?|commas?|title|phrase|sections?|"
+    r"placeholders?|capital(?:s|ized|ised)?|capitals|lowercase|uppercase|lower case|upper case|postscript|"
+    r"p\.s\.?|p\.p\.s\.?|markdown|json|xml|html|quotation marks?|quotes?|language|english|french|german|"
+    r"spanish|italian|hindi|arabic|chinese|japanese|korean|russian|portuguese|highlight(?:ed|s)?|"
+    r"keywords?|characters?|lines?|asterisks?|dividers?|format|punctuation|syllables?|stanzas?|"
+    r"headings?|headers?|bold|italics?|emoji|hashtags?|footnotes?|references?|appendix|"
+    r"double (?:angular )?brackets|square brackets|parentheses|caps|case|tone|style)\b",
     "second_person": _WB + r"(?:you|your|yours|yourself)\b",
     "first_person": _WB + r"(?:i|me|my|mine|we|our|us|i'm|i've|i'd|i'll|we're)\b",
-    "third_person": _WB + r"(?:he|she|they|him|her|his|hers|their|them|its|it was|it is|it's)\b",
+    "third_person": _WB
+    + r"(?:he|she|they|him|her|his|hers|their|them|its|it was|it is|it's)\b",
     "past_tense_be": _WB + r"(?:was|were|had|did|became|been)\b",
     "copula_present": _WB + r"(?:is|are|has|have)\b",
-    "task_frame": _WB + r"(?:for (?:a|an|my|our|the|local|your)\b|about\b|on the topic|regarding|to my|in the style of|as if|"
-                        r"as a\b|for me\b|i want|i need|i would like|i'd like|can you|could you|would you|please|"
-                        r"write (?:a|an|me|the|two|some)\b|tell me|help me|let's|imagine|pretend|you are a)",
-    "genre_noun": _WB + r"(?:essay|poem|story|letter|email|e-mail|summary|note|account|article|blog post|blog|itinerary|"
-                        r"resume|résumé|cover letter|review|speech|song|rap|riddle|joke|limerick|haiku|dialogue|script|"
-                        r"proposal|report|pitch|advertisement|ad|description|explanation|tweet|post|lyrics|"
-                        r"biography|profile|plan|guide|tutorial|list|table|outline|abstract|paragraph about|piece|passage|section for)\b",
+    "task_frame": _WB
+    + r"(?:for (?:a|an|my|our|the|local|your)\b|about\b|on the topic|regarding|to my|in the style of|as if|"
+    r"as a\b|for me\b|i want|i need|i would like|i'd like|can you|could you|would you|please|"
+    r"write (?:a|an|me|the|two|some)\b|tell me|help me|let's|imagine|pretend|you are a)",
+    "genre_noun": _WB
+    + r"(?:essay|poem|story|letter|email|e-mail|summary|note|account|article|blog post|blog|itinerary|"
+    r"resume|résumé|cover letter|review|speech|song|rap|riddle|joke|limerick|haiku|dialogue|script|"
+    r"proposal|report|pitch|advertisement|ad|description|explanation|tweet|post|lyrics|"
+    r"biography|profile|plan|guide|tutorial|list|table|outline|abstract|paragraph about|piece|passage|section for)\b",
     "continuation": r"^(?:now|then|next|also|finally|additionally|and|but|so|after that)\b",
     "interrogative": r"\?\s*$|^(?:what|why|how|who|when|where|which|is|are|do|does|can|could|would|should) ",
     "lead_task_verb": r"^(?:" + _TASK_VERBS + r")\b",
     "lead_directive_verb": r"^(?:" + _DIRECTIVE_VERBS + r")\b",
     "lead_subject_modal": r"^(?:the|your|this|each|every|all|there|no|none|words|letters|sentences|paragraphs|it|in your|"
-                          r"my|any|everything|nothing|both|you|i want|i need)\b.{0,80}?\b(?:should|must|shall|need|needs|has to|have to|cannot|can't|may not|is to|are to|ought)\b",
+    r"my|any|everything|nothing|both|you|i want|i need)\b.{0,80}?\b(?:should|must|shall|need|needs|has to|have to|cannot|can't|may not|is to|are to|ought)\b",
 }
 _ORDER = [
-    "modal_obligation", "prohibition", "quantifier", "numeral", "quoted_literal", "colon_literal",
-    "restrictor", "universal", "exactness", "output_ref", "form_noun", "second_person", "first_person",
-    "third_person", "past_tense_be", "copula_present", "task_frame", "genre_noun", "continuation",
-    "interrogative", "lead_task_verb", "lead_directive_verb", "lead_subject_modal",
+    "modal_obligation",
+    "prohibition",
+    "quantifier",
+    "numeral",
+    "quoted_literal",
+    "colon_literal",
+    "restrictor",
+    "universal",
+    "exactness",
+    "output_ref",
+    "form_noun",
+    "second_person",
+    "first_person",
+    "third_person",
+    "past_tense_be",
+    "copula_present",
+    "task_frame",
+    "genre_noun",
+    "continuation",
+    "interrogative",
+    "lead_task_verb",
+    "lead_directive_verb",
+    "lead_subject_modal",
 ]
 _COMPILED = {k: re.compile(_PATTERNS[k], re.I) for k in _ORDER}
 # Deontic / passive-directive constructions whose "are/is/has" is not a narrative copula.
-_DEONTIC_BE = re.compile(r"\b(?:you are|you're|are not allowed|are required|are expected|is to be|are to be|has to|"
-                         r"have to|is expected|is required|is allowed|are allowed|is not allowed)\b")
+_DEONTIC_BE = re.compile(
+    r"\b(?:you are|you're|are not allowed|are required|are expected|is to be|are to be|has to|"
+    r"have to|is expected|is required|is allowed|are allowed|is not allowed)\b"
+)
 
 # The learned model sees three coarse LINGUISTIC dimensions (each an OR over the
 # fine cues above), their pairwise interactions, and the narrative/task-framing
@@ -164,13 +207,39 @@ _DEONTIC_BE = re.compile(r"\b(?:you are|you're|are not allowed|are required|are 
 # training positives co-present every fine cue, and a linear model over the
 # fine cues spreads weight across them, leaving a natural imperative with a
 # different subset of cues below threshold.
-DEONTIC_CUES = ["lead_directive_verb", "modal_obligation", "prohibition", "lead_subject_modal"]
+DEONTIC_CUES = [
+    "lead_directive_verb",
+    "modal_obligation",
+    "prohibition",
+    "lead_subject_modal",
+]
 FORM_CUES = ["output_ref", "form_noun"]
-BINDING_CUES = ["numeral", "quoted_literal", "quantifier", "exactness", "restrictor", "universal", "colon_literal"]
-NEGATIVE_SIDE = ["second_person", "first_person", "third_person", "past_tense_be", "copula_present", "task_frame",
-                 "genre_noun", "continuation", "interrogative", "lead_task_verb"]
-FEATURE_NAMES: list[str] = (["deontic", "output_form", "binding", "deontic_x_form", "form_x_binding"] + NEGATIVE_SIDE
-                            + ["past_tense_verbs", "log_len", "narrative_declarative", "task_only"])
+BINDING_CUES = [
+    "numeral",
+    "quoted_literal",
+    "quantifier",
+    "exactness",
+    "restrictor",
+    "universal",
+    "colon_literal",
+]
+NEGATIVE_SIDE = [
+    "second_person",
+    "first_person",
+    "third_person",
+    "past_tense_be",
+    "copula_present",
+    "task_frame",
+    "genre_noun",
+    "continuation",
+    "interrogative",
+    "lead_task_verb",
+]
+FEATURE_NAMES: list[str] = (
+    ["deontic", "output_form", "binding", "deontic_x_form", "form_x_binding"]
+    + NEGATIVE_SIDE
+    + ["past_tense_verbs", "log_len", "narrative_declarative", "task_only"]
+)
 
 
 def feature_patterns() -> dict[str, re.Pattern]:
@@ -188,8 +257,15 @@ def cues(sentence: str) -> dict[str, float]:
     """Fine-grained binary cues (inspectable; the model consumes ``featurize``)."""
     s = _norm(sentence)
     lead = _DISCOURSE.sub("", s)
-    f = {name: float(bool(_COMPILED[name].search(lead if name.startswith("lead_") else s))) for name in _ORDER}
-    f["copula_present"] = float(bool(_COMPILED["copula_present"].search(_DEONTIC_BE.sub(" ", s))))
+    f = {
+        name: float(
+            bool(_COMPILED[name].search(lead if name.startswith("lead_") else s))
+        )
+        for name in _ORDER
+    }
+    f["copula_present"] = float(
+        bool(_COMPILED["copula_present"].search(_DEONTIC_BE.sub(" ", s)))
+    )
     return f
 
 
@@ -200,13 +276,29 @@ def featurize(sentence: str) -> np.ndarray:
     deontic = float(any(f[n] for n in DEONTIC_CUES))
     form = float(any(f[n] for n in FORM_CUES))
     binding = float(any(f[n] for n in BINDING_CUES))
-    past = sum(1 for t in toks if len(t) > 4 and t.endswith("ed") and t not in ("need", "indeed", "exceed", "proceed"))
-    x = [deontic, form, binding, deontic * form, form * binding] + [f[n] for n in NEGATIVE_SIDE] + [
-        math.log1p(past),
-        math.log1p(len(toks)) - 2.5,
-        float((f["past_tense_be"] or f["third_person"]) and not f["modal_obligation"] and not f["prohibition"]),
-        float(f["lead_task_verb"] and f["genre_noun"] and not deontic and not binding),
-    ]
+    past = sum(
+        1
+        for t in toks
+        if len(t) > 4
+        and t.endswith("ed")
+        and t not in ("need", "indeed", "exceed", "proceed")
+    )
+    x = (
+        [deontic, form, binding, deontic * form, form * binding]
+        + [f[n] for n in NEGATIVE_SIDE]
+        + [
+            math.log1p(past),
+            math.log1p(len(toks)) - 2.5,
+            float(
+                (f["past_tense_be"] or f["third_person"])
+                and not f["modal_obligation"]
+                and not f["prohibition"]
+            ),
+            float(
+                f["lead_task_verb"] and f["genre_noun"] and not deontic and not binding
+            ),
+        ]
+    )
     return np.asarray(x, dtype=np.float64)
 
 
@@ -230,10 +322,21 @@ class Model:
 
     @classmethod
     def from_json(cls, d: dict) -> Model:
-        return cls(np.asarray(d["w"], dtype=np.float64), float(d["b"]), list(d["feature_names"]))
+        return cls(
+            np.asarray(d["w"], dtype=np.float64),
+            float(d["b"]),
+            list(d["feature_names"]),
+        )
 
 
-def fit(examples, labels, seed: int = 0, l2: float = 1e-3, lr: float = 0.3, iters: int = 3000) -> Model:
+def fit(
+    examples,
+    labels,
+    seed: int = 0,
+    l2: float = 1e-3,
+    lr: float = 0.3,
+    iters: int = 3000,
+) -> Model:
     """Class-balanced L2 logistic regression, full-batch GD from zero init.
     Deterministic and independent of ``seed`` (kept for API parity)."""
     X = np.stack([featurize(s) for s in examples]).astype(np.float64)
@@ -279,7 +382,8 @@ def score_instruction(sentence: str, model: Model | None = None) -> float:
         raise RuntimeError(
             "salience model is untrained (all-zero weights): every sentence "
             "would score 0.5 and be admitted. Refit with "
-            "`python -m stencil.salience` or pass a fitted model explicitly.")
+            "`python -m stencil.salience` or pass a fitted model explicitly."
+        )
     return m.score(sentence)
 
 
@@ -287,8 +391,12 @@ def is_instruction(sentence: str, model: Model | None = None) -> bool:
     return score_instruction(sentence, model) >= 0.5
 
 
-def extract_instructions(text: str, model: Model | None = None) -> list[tuple[int, int]]:
-    return [(a, b) for a, b in split_sentences(text) if is_instruction(text[a:b], model)]
+def extract_instructions(
+    text: str, model: Model | None = None
+) -> list[tuple[int, int]]:
+    return [
+        (a, b) for a, b in split_sentences(text) if is_instruction(text[a:b], model)
+    ]
 
 
 # ------------------------------------------------------------------- corpora
@@ -308,7 +416,11 @@ def _prose_sentences(text: str, min_words: int = 6) -> list[str]:
     out = []
     for a, b in split_sentences(text):
         s = text[a:b]
-        if len(s.split()) < min_words or not _PROSE.match(s) or re.search(r"[*#<>\[\]|{}]|P\.S|P\.P\.S|^\w+:", s):
+        if (
+            len(s.split()) < min_words
+            or not _PROSE.match(s)
+            or re.search(r"[*#<>\[\]|{}]|P\.S|P\.P\.S|^\w+:", s)
+        ):
             continue
         out.append(s)
     return out
@@ -343,8 +455,16 @@ def load_b3_corpus(root: Path) -> list[Example]:
     sentences (-), and prose from the canonical responses (-)."""
     exs: list[Example] = []
     rows = []
-    for rel in ("data/b3/train-v43.jsonl", "data/b3/cal-v45.jsonl", "data/b3/mt-train-300.jsonl"):
-        rows += [json.loads(line) for line in (root / rel).read_text().splitlines() if line.strip()]
+    for rel in (
+        "data/b3/train-v43.jsonl",
+        "data/b3/cal-v45.jsonl",
+        "data/b3/mt-train-300.jsonl",
+    ):
+        rows += [
+            json.loads(line)
+            for line in (root / rel).read_text().splitlines()
+            if line.strip()
+        ]
     for r in rows:
         prompts = [t["prompt"] for t in r["turns"]] if "turns" in r else [r["prompt"]]
         for p in prompts:
@@ -370,7 +490,9 @@ def eval_multiif_turns(root: Path) -> list[tuple[str, int, str]]:
     return out
 
 
-def eval_sample_multiif_sentences(root: Path, n: int = 100, seed: int = 0, turns=(1,)) -> list[str]:
+def eval_sample_multiif_sentences(
+    root: Path, n: int = 100, seed: int = 0, turns=(1,)
+) -> list[str]:
     """Deterministic sample of unique Multi-IF sentences for hand labeling.
     Default: turn-1 only — the raw IFEval prompts that mix task framing with
     constraints (the hard case) and that never enter any training set."""
@@ -387,7 +509,9 @@ def eval_sample_multiif_sentences(root: Path, n: int = 100, seed: int = 0, turns
     return [pool[i] for i in sorted(rng.choice(len(pool), size=n, replace=False))]
 
 
-def eval_load_bench_corpus(root: Path, hand_labels=(), max_convs: int | None = None) -> list[Example]:
+def eval_load_bench_corpus(
+    root: Path, hand_labels=(), max_convs: int | None = None
+) -> list[Example]:
     """Real corpus: Multi-IF turn-2/3 sentences (+, instruction-only turns by
     construction), prose from recorded Qwen responses (-), and the hand-labeled
     sample (either)."""
@@ -400,7 +524,9 @@ def eval_load_bench_corpus(root: Path, hand_labels=(), max_convs: int | None = N
             s = content[a:b]
             if s.strip().lower() not in hand:
                 exs.append(Example(s, 1, "mif-turn23"))
-    files = sorted((root / "results/qwen/b4-multiif-base").glob("conv-*.json"))[:max_convs]
+    files = sorted((root / "results/qwen/b4-multiif-base").glob("conv-*.json"))[
+        :max_convs
+    ]
     for f in files:
         j = json.loads(Path(f).read_text())
         for resp in j.get("responses", {}).values():
@@ -418,9 +544,11 @@ def default_training_set(root: Path, hand_labels=()) -> tuple[list[str], list[in
 
 def main() -> None:
     import sys
+
     root = Path(__file__).resolve().parents[2]
     sys.path.insert(0, str(root / "tests"))
     from test_salience import HAND_LABELS  # the held-out sample lives with the tests
+
     xs, ys = default_training_set(root, hand_labels=HAND_LABELS)
     m = fit(xs, ys)
     out = Path(__file__).with_name("salience_weights.json")

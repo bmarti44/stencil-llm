@@ -7,6 +7,7 @@ Usage:
     python3 tools/check_review_scores.py --file plan/reviews/plan/science.md --min 90
     python3 tools/check_review_scores.py --files "plan/reviews/plan/*.md" --min 90
 """
+
 from __future__ import annotations
 
 import argparse
@@ -19,10 +20,16 @@ SCORE_RE = re.compile(r"^\*\*Score:\*\*\s*(\d{1,3})\s*/\s*100\s*$", re.MULTILINE
 # An open high/critical finding: numbered entry in ## Findings whose first line
 # declares severity Critical or High and carries no (resolved ...) / (refuted ...)
 # closure marker authored by a reviewer round.
-OPEN_HC_RE = re.compile(r"^\d+\.\s+\*\*(?:Critical|High)\b(?![^\n]*\((?:resolved|refuted)\s+20\d\d-\d\d-\d\d:)", re.MULTILINE | re.IGNORECASE)
+OPEN_HC_RE = re.compile(
+    r"^\d+\.\s+\*\*(?:Critical|High)\b(?![^\n]*\((?:resolved|refuted)\s+20\d\d-\d\d-\d\d:)",
+    re.MULTILINE | re.IGNORECASE,
+)
 
 
-VERDICT_RE = re.compile(r"^\*\*Verdict:\*\*\s*(PASS|CONDITIONAL PASS|CONDITIONAL|FAIL)\b", re.MULTILINE | re.IGNORECASE)
+VERDICT_RE = re.compile(
+    r"^\*\*Verdict:\*\*\s*(PASS|CONDITIONAL PASS|CONDITIONAL|FAIL)\b",
+    re.MULTILINE | re.IGNORECASE,
+)
 
 
 def verdict_mismatch(path: Path, score: int) -> str | None:
@@ -48,7 +55,11 @@ def open_high_critical(path: Path) -> list[str]:
         # A review with no Findings section is malformed, not clean: treat as
         # one synthetic blocker so deleting the section cannot yield a PASS.
         return ["<missing '## Findings' section — malformed review>"]
-    return [ln.strip()[:120] for ln in m.group(1).splitlines() if OPEN_HC_RE.match(ln.strip())]
+    return [
+        ln.strip()[:120]
+        for ln in m.group(1).splitlines()
+        if OPEN_HC_RE.match(ln.strip())
+    ]
 
 
 def parse_score(path: Path) -> int | None:
@@ -68,7 +79,13 @@ def main(argv: list[str] | None = None) -> int:
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument("--file", type=Path, help="Single review file path")
     g.add_argument("--files", type=str, help="Glob pattern for multiple review files")
-    p.add_argument("--min", dest="threshold", type=int, default=90, help="Minimum score required (inclusive)")
+    p.add_argument(
+        "--min",
+        dest="threshold",
+        type=int,
+        default=90,
+        help="Minimum score required (inclusive)",
+    )
     p.add_argument("--quiet", action="store_true", help="Only print failing files")
     args = p.parse_args(argv)
 
@@ -78,7 +95,7 @@ def main(argv: list[str] | None = None) -> int:
         paths = [Path(s) for s in sorted(glob.glob(args.files))]
 
     if not paths:
-        print(f"No files matched", file=sys.stderr)
+        print("No files matched", file=sys.stderr)
         return 2
 
     failed = 0
@@ -97,7 +114,10 @@ def main(argv: list[str] | None = None) -> int:
             print(f"FAIL  {path}: {score}/100 (need >={args.threshold})")
             failed += 1
         elif open_hc:
-            print(f"FAIL  {path}: {score}/100 but {len(open_hc)} open high/critical finding(s):")
+            print(
+                f"FAIL  {path}: {score}/100 but {len(open_hc)} open "
+                "high/critical finding(s):"
+            )
             for ln in open_hc:
                 print(f"        {ln}")
             failed += 1

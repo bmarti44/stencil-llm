@@ -1,5 +1,6 @@
 # ruff: noqa: E501
 """Verifications 6-8 for the NL task (GPT2-PLAN.md), TDD-first."""
+
 from pathlib import Path
 
 import pytest
@@ -15,7 +16,9 @@ from stencil.nl_task import (
 )
 
 TOK = Path(__file__).resolve().parent.parent / "models" / "tokenizer"
-needs_tok = pytest.mark.skipif(not (TOK / "vocab.json").exists(), reason="run convert_gpt2.py")
+needs_tok = pytest.mark.skipif(
+    not (TOK / "vocab.json").exists(), reason="run convert_gpt2.py"
+)
 
 
 @needs_tok
@@ -36,7 +39,10 @@ def test_known_encoding_parity() -> None:
     """Our BPE matches the reference encoding captured at conversion time."""
     bpe = BPE()
     assert bpe.encode("The capital of France is") == [464, 3139, 286, 4881, 318]
-    assert bpe.encode('New rule: reply to "cat" with "dog".')[:3] == bpe.encode("New rule:")[:3]
+    assert (
+        bpe.encode('New rule: reply to "cat" with "dog".')[:3]
+        == bpe.encode("New rule:")[:3]
+    )
 
 
 @needs_tok
@@ -107,8 +113,7 @@ def test_demo_answers_supervised() -> None:
     for seed in range(4):
         s = generate(seed, bpe=bpe)
         extra = [
-            p for p, t in enumerate(s.targets)
-            if t >= 0 and p not in s.query_positions
+            p for p, t in enumerate(s.targets) if t >= 0 and p not in s.query_positions
         ]
         assert len(extra) == 2, f"expected 2 demo targets, got {len(extra)}"
         for p in extra:
@@ -134,7 +139,10 @@ def test_near_family_in_window() -> None:
 def test_batch_mixed_families() -> None:
     """Iteration 3 replay: batch() accepts per-item families."""
     from stencil.nl_task import batch
-    toks, tgts, seqs = batch([11, 12, 13, 14], family=["near", "train", "near", "train"])
+
+    toks, tgts, seqs = batch(
+        [11, 12, 13, 14], family=["near", "train", "near", "train"]
+    )
     assert toks.shape[0] == 4
     for idx in (0, 2):
         s = seqs[idx]
@@ -166,18 +174,23 @@ def test_derived_family() -> None:
     """Experiment C: derived rules state a CLUE, never the answer word. The
     wire must store a conclusion, not a copy."""
     from stencil.nl_task import generate
+
     bpe = BPE()
     for seed in (0, 5):
         for fam in ("derived", "near_derived"):
             s = generate(seed, family=fam, bpe=bpe)
             assert len(s.tokens) == 1024
             assert 1 <= len(s.query_positions) <= 4
-            for p, _slot, ans in zip(s.query_positions, s.query_slots, s.active_answer, strict=True):
+            for p, _slot, ans in zip(
+                s.query_positions, s.query_slots, s.active_answer, strict=True
+            ):
                 ans_id = bpe.encode(" " + ans)[0]
                 assert s.targets[p] == ans_id
                 # the answer token must appear NOWHERE in any statement span
                 for lo, hi in s.rule_spans:
-                    assert ans_id not in s.tokens[lo:hi], f"answer '{ans}' leaked into statement"
+                    assert ans_id not in s.tokens[lo:hi], (
+                        f"answer '{ans}' leaked into statement"
+                    )
             if fam == "near_derived":
                 for p, slot in zip(s.query_positions, s.query_slots, strict=True):
                     assert 0 < p - s.rule_statement_pos[slot] <= 250

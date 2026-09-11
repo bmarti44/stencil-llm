@@ -13,6 +13,7 @@ skips completed items after provenance verification.
 
 CTRL=<path>|none  ARM=<name>  SMOKE=<n items>
 """
+
 import json
 import hashlib
 import os
@@ -60,7 +61,9 @@ def gold_value(answer_text):
 def main():
     man = json.loads((ROOT / "data" / "bench" / "pins-manifest.json").read_text())
     for name in ("gsm8k_test.jsonl", "gsm8k_demos.jsonl"):
-        actual = hashlib.sha256((ROOT / "data" / "bench" / name).read_bytes()).hexdigest()
+        actual = hashlib.sha256(
+            (ROOT / "data" / "bench" / name).read_bytes()
+        ).hexdigest()
         assert actual == man["converted_sha256"][name], f"hash mismatch: {name}"
     mt = hashlib.sha256((ROOT / "models" / "qwen3-1.7b.pt").read_bytes()).hexdigest()
     assert mt == PINNED_TRUNK
@@ -70,7 +73,9 @@ def main():
 
     tok = Tokenizer.from_file(str(ROOT / "models" / "qwen3-1.7b-hf" / "tokenizer.json"))
     m = Qwen3()
-    m.load_state_dict(torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True)
+    m.load_state_dict(
+        torch.load(ROOT / "models" / "qwen3-1.7b.pt", map_location="cpu"), strict=True
+    )
     m = m.to(torch.bfloat16).cuda().eval()
     ctrl = None
     if CTRL != "none":
@@ -78,19 +83,30 @@ def main():
         ctrl.load_state_dict(torch.load(CTRL, map_location="cpu"))
         ctrl = ctrl.eval()
 
-    demos = [json.loads(line) for line in open(ROOT / "data" / "bench" / "gsm8k_demos.jsonl")]
-    prefix = "".join(f"Question: {d['question']}\nAnswer: {d['answer']}\n\n" for d in demos)
-    rows = [json.loads(line) for line in open(ROOT / "data" / "bench" / "gsm8k_test.jsonl")]
+    demos = [
+        json.loads(line) for line in open(ROOT / "data" / "bench" / "gsm8k_demos.jsonl")
+    ]
+    prefix = "".join(
+        f"Question: {d['question']}\nAnswer: {d['answer']}\n\n" for d in demos
+    )
+    rows = [
+        json.loads(line) for line in open(ROOT / "data" / "bench" / "gsm8k_test.jsonl")
+    ]
     assert len(rows) == 1319
     if SMOKE:
         rows = rows[:SMOKE]
 
     outdir = ROOT / "results" / "qwen" / f"b2-gsm8k-{ARM}"
     outdir.mkdir(parents=True, exist_ok=True)
-    meta = {"arm": ARM, "ctrl": CTRL, "ctrl_sha256": ctrl_sha, "trunk_sha256": mt,
-            "data_sha256": man["converted_sha256"]["gsm8k_test.jsonl"],
-            "demos_sha256": man["converted_sha256"]["gsm8k_demos.jsonl"],
-            "runner_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
+    meta = {
+        "arm": ARM,
+        "ctrl": CTRL,
+        "ctrl_sha256": ctrl_sha,
+        "trunk_sha256": mt,
+        "data_sha256": man["converted_sha256"]["gsm8k_test.jsonl"],
+        "demos_sha256": man["converted_sha256"]["gsm8k_demos.jsonl"],
+        "runner_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+    }
     meta_p = outdir / "meta.json"
     if meta_p.exists():
         assert json.loads(meta_p.read_text()) == meta, "resume provenance mismatch"
@@ -110,22 +126,37 @@ def main():
         bias_fn = make_wave_bias_fn(ctrl, state) if ctrl is not None else None
         t0 = time.time()
         text, n_gen, truncated, timeout = generate_cached(
-            m, tok, user_msg, bias_fn=bias_fn, deadline_s=TIMEOUT_S)
+            m, tok, user_msg, bias_fn=bias_fn, deadline_s=TIMEOUT_S
+        )
         wall = time.time() - t0
         pred = extract(text)
         gold = gold_value(r["answer"])
         assert gold is not None, f"gold unparseable at {i}"
         right = pred is not None and pred == gold
         n_right += right
-        rec = {"i": i, "right": bool(right), "pred": (str(pred) if pred is not None else None),
-               "gold": str(gold), "n_gen": n_gen, "truncated": bool(truncated),
-               "timeout": bool(timeout), "wall_s": round(wall, 1), "response": text}
+        rec = {
+            "i": i,
+            "right": bool(right),
+            "pred": (str(pred) if pred is not None else None),
+            "gold": str(gold),
+            "n_gen": n_gen,
+            "truncated": bool(truncated),
+            "timeout": bool(timeout),
+            "wall_s": round(wall, 1),
+            "response": text,
+        }
         tmp = rec_p.with_suffix(".tmp")
         tmp.write_text(json.dumps(rec, ensure_ascii=False))
         tmp.rename(rec_p)
         if i % 50 == 0:
             print(f"{i}/{len(rows)} acc {n_right / (i + 1):.4f}", flush=True)
-    summary = {"arm": ARM, "n": len(rows), "right": n_right, "acc": round(n_right / len(rows), 6), **meta}
+    summary = {
+        "arm": ARM,
+        "n": len(rows),
+        "right": n_right,
+        "acc": round(n_right / len(rows), 6),
+        **meta,
+    }
     (outdir / "summary.json").write_text(json.dumps(summary, indent=1))
     print(json.dumps(summary, indent=1))
 
