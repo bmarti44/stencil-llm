@@ -3579,3 +3579,10 @@ invariants digest rewritten with disclosure: only the `scores_sha` of the four `
 (comment rule scored for the first time); Multi-IF 909 re-scores and all prompts/ledgers unchanged.
 Qualification paragraph appended to results/internal-wave-report.md. The 22 pre-existing failures are
 triaged next (fix or mark) before `make gate-0` can pass bare.
+
+2026-09-11 — STATE: CLEANUP COMMITTED AND PUSHED (main = origin/main). Phase 2 archive: 32 unreferenced
+closed-program scripts moved to archive/scripts/ with MAP.md (5 wave scripts kept: w0_addenda, w0_ceiling,
+w0_verify_refs, w3a_audit, w3_calibrate; README cites W3a). 22 pre-existing test failures attributed as
+xfails (9 BFCL manifest tests are order-dependent: pass alone, fail in the full run; non-strict). Remaining
+Phase 2 items: LIVE-script `--help` pass and README repo map (CPU, during GPU runs). Exp 1 chunk 4 at
+122/128; 3b queued behind it.
