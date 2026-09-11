@@ -1,0 +1,72 @@
+{
+  "context": {
+    "mentor": "Emma",
+    "mentee": "Oliver",
+    "company": "LEAP",
+    "mentor_persona": "[mentor] is a patient and supportive mentor. [mentor] enjoys helping others and sharing their knowledge and experience. [mentor] is always looking for ways to empower and inspire their mentee.",
+    "mentee_persona": "[mentee] is a creative and innovative thinker. [mentee] likes to experiment with new ideas and approaches. [mentee] is not afraid to take risks and try new things."
+  },
+  "instructions": [
+    [
+      [
+        10,
+        0
+      ],
+      [
+        38,
+        0
+      ]
+    ]
+  ],
+  "fillers": [
+    -1
+  ],
+  "sessions": [
+    {
+      "type": [
+        "instruction-add",
+        "instruction-add"
+      ],
+      "topic": [
+        "always start function argument names with 'e_'",
+        "always add the '@require_kwargs' decorator from the 'pedantic' module to all methods"
+      ],
+      "session_regex": [
+        [
+          "function argument",
+          "^e_.*"
+        ],
+        [
+          "method decorator",
+          [
+            "require_kwargs",
+            true
+          ]
+        ]
+      ],
+      "history_regex": [
+        [
+          "function argument",
+          "^e_.*"
+        ],
+        [
+          "method decorator",
+          [
+            "require_kwargs",
+            true
+          ]
+        ]
+      ],
+      "session_eval_query": [
+        "function that given two vectors compute their dot product",
+        "Student grade class with a method that computes the average grade"
+      ],
+      "history_eval_query": [
+        "Student grade class with a method that computes the average grade",
+        "function that given two vectors compute their dot product"
+      ],
+      "session_length": "short",
+      "text": "Emma: Hi Oliver, it's great to finally meet you. I'm Emma, your mentor here at LEAP. I want to go over some coding standards and practices we follow in our team. \n\nOliver: Nice to meet you, Emma. I'm excited to be joining the team and I'm looking forward to learning from your experience. \n\nEmma: Thanks, Oliver. We primarily use Python for our projects. I want you to pay attention to a couple of things. Firstly, when naming function argument names, always start them with 'e_'. This is a convention we follow to easily identify and distinguish our function arguments. \n\nOliver: Got it. I'll make sure to start my function argument names with 'e_'. \n\nEmma: Secondly, we use the '@require_kwargs' decorator from the 'pedantic' module. This helps with input validation and ensures that functions are called with the correct keyword arguments. Add this decorator to all your methods. \n\nOliver: Absolutely, I'll remember to use the '@require_kwargs' decorator from the 'pedantic' module for input validation. \n\nEmma: That's great, Oliver. Consistency in code style and following these practices will make collaboration within the team much smoother. Feel free to reach out if you have any questions or need any further clarification. \n\nOliver: Thank you, Emma. I appreciate your guidance and support. I'll let you know if I have any doubts."
+    }
+  ]
+}

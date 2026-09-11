@@ -1,0 +1,72 @@
+{
+  "context": {
+    "mentor": "Emma",
+    "mentee": "Oliver",
+    "company": "LEAP",
+    "mentor_persona": "[mentor] is a strict and demanding mentor. [mentor] has high expectations for their mentee. [mentor] goes straight to the point and is very clear.",
+    "mentee_persona": "[mentee] is a quiet and introverted individual. [mentee] prefers to work alone and is not very comfortable in social situations. [mentee] struggles to communicate their ideas and thoughts to others."
+  },
+  "instructions": [
+    [
+      [
+        25,
+        0
+      ],
+      [
+        10,
+        5
+      ]
+    ]
+  ],
+  "fillers": [
+    -1
+  ],
+  "sessions": [
+    {
+      "type": [
+        "instruction-add",
+        "instruction-add"
+      ],
+      "topic": [
+        "always import the 'secrets' module even if it is not used",
+        "always start function argument names with 'j_'"
+      ],
+      "session_regex": [
+        [
+          "import",
+          [
+            "secrets",
+            true
+          ]
+        ],
+        [
+          "function argument",
+          "^j_.*"
+        ]
+      ],
+      "history_regex": [
+        [
+          "import",
+          [
+            "secrets",
+            true
+          ]
+        ],
+        [
+          "function argument",
+          "^j_.*"
+        ]
+      ],
+      "session_eval_query": [
+        "function that returns the edit distance between two strings",
+        "function that given two vectors compute their dot product"
+      ],
+      "history_eval_query": [
+        "function that given two vectors compute their dot product",
+        "function that returns the edit distance between two strings"
+      ],
+      "session_length": "medium",
+      "text": "Emma: Hi, you must be Oliver, our new intern. It's great to finally meet you. I'm Emma, your mentor for the duration of your internship.\n\nOliver: Nice to meet you, Emma. I'm looking forward to learning from you and contributing to the team.\n\nEmma: Great attitude. Let's get you started on some tasks right away. I want you to keep in mind a few coding standards I expect you to follow during your time here.\n\nOliver: Of course.\n\nEmma: Always import the 'secrets' module, even if you don't think you'll need it for a particular project. It's a security measure we take seriously at LEAP.\n\nOliver: Understood. I'll make sure to include it in all my code.\n\nEmma: Good. Also, when naming function argument variables, I want you to start the names with 'j_' as a prefix. This is a team convention we follow for internal reasons.\n\nOliver: Noted. I'll adhere to that naming convention.\n\nEmma: Excellent. I'll provide you with some initial tasks and we can go over any questions you have later. For now, get familiar with our code base and ask questions if something is unclear.\n\nOliver: Alright. I'll get started and let you know if I need any clarification.\n\nEmma: That's what I like to hear. Don't hesitate to reach out. The team is here to support you.\n\nOliver: Thank you, Emma. I appreciate the guidance.\n\nEmma: You're welcome. Now, let's get to work. I'll introduce you to the rest of the team."
+    }
+  ]
+}
