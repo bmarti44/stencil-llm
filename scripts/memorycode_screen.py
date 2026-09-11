@@ -22,9 +22,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 OUT = ROOT / "results" / "memorycode-derived"
+OUT_LONG = ROOT / "results" / "memorycode-long"
 MAX_NEW = 512
 DEADLINE = 300.0
 ARMS = ["history", "restate_all", "auto", "oracle"]
+ARMS_LONG = ["base", "focus", "oracle"]
+
+
+def out_root(args) -> Path:
+    return OUT_LONG if getattr(args, "cohort", "short") == "long" else OUT
 
 
 def _write_atomic(path: Path, payload) -> None:
@@ -54,7 +60,7 @@ def phase_items(args) -> dict:
 
     tokenizer = _tokenizer()
     items = mc.enumerate_items(tokenizer)
-    split = mc.split_items(items, n_setup=args.n_setup, n_screen=args.n_screen)
+    split = mc.split_items(items, n_setup=args.n_setup, n_screen=args.n_screen or 64)
     for name in ("setup", "screen"):
         for item in split[name]:
             item["id"] = f"{item['dialogue']}-{item['session']}"
@@ -76,9 +82,36 @@ def phase_items(args) -> dict:
     return payload
 
 
-def load_items(split: str | None = None) -> list[dict]:
-    items = json.loads((OUT / "items.json").read_text())["items"]
+def load_items(split: str | None = None, root: Path = OUT) -> list[dict]:
+    items = json.loads((root / "items.json").read_text())["items"]
     return [it for it in items if split is None or it["split"] == split]
+
+
+def phase_long_items(args) -> dict:
+    from stencil import memorycode as mc
+
+    tokenizer = _tokenizer()
+    items = mc.long_items(tokenizer)
+    split = mc.split_long(items, n_setup=args.n_setup, n_screen=args.n_screen or 128)
+    for name in ("setup_long", "screen_long"):
+        for item in split[name]:
+            item["id"] = f"{item['dialogue']}-{item['session']}"
+            item["split"] = name
+    payload = {
+        "registration": "results/memorycode-long/REGISTRATION.md",
+        "vendor_sha": "1ab87e119b2f9a498de8075219e1c07f6041b394",
+        "window_tokens": mc.WINDOW,
+        "reminder_budget_tokens": mc.BUDGET,
+        "n_long_items": split["n_long_items"],
+        "n_reserve": split["reserve"],
+        "items": split["setup_long"] + split["screen_long"],
+    }
+    _write_atomic(OUT_LONG / "items.json", payload)
+    print(
+        f"long items {split['n_long_items']}; setup_long {len(split['setup_long'])}, "
+        f"screen_long {len(split['screen_long'])}, reserve {split['reserve']}"
+    )
+    return payload
 
 
 # ------------------------------------------------------------------------------- auto
@@ -182,12 +215,13 @@ def phase_auto(args) -> dict:
 
     topics = mc.load_topics()
     classifier = mc.frozen_classifier()
-    items = load_items()
+    root = out_root(args)
+    items = load_items(root=root)
     if args.limit:
         items = items[: args.limit]
     totals = {"admitted": 0, "relations_applied": 0, "overflow": 0, "items": 0}
     for item in items:
-        path = OUT / "auto" / f"item-{item['id']}.json"
+        path = root / "auto" / f"item-{item['id']}.json"
         if path.exists() and not args.force:
             saved = json.loads(path.read_text())
             # The error table is label-derived and cheap: recompute it from the
@@ -221,7 +255,11 @@ def phase_auto(args) -> dict:
             f"overflow {saved['overflow']}",
             flush=True,
         )
-    setup_paths = [OUT / "auto" / f"item-{it['id']}.json" for it in load_items("setup")]
+    setup_split = "setup_long" if root == OUT_LONG else "setup"
+    setup_paths = [
+        root / "auto" / f"item-{it['id']}.json"
+        for it in load_items(setup_split, root=root)
+    ]
     setup = [json.loads(p.read_text()) for p in setup_paths if p.exists()]
     non_vacuous = {
         "setup_items": len(setup),
@@ -234,7 +272,7 @@ def phase_auto(args) -> dict:
         and non_vacuous["setup_relations_applied"] >= 1
     )
     summary = {"totals": totals, "non_vacuous_check": non_vacuous}
-    _write_atomic(OUT / "auto" / "summary.json", summary)
+    _write_atomic(root / "auto" / "summary.json", summary)
     print(json.dumps(summary, indent=1))
     return summary
 
@@ -293,14 +331,29 @@ def generate(model, tokenizer, prompt: str, max_new: int, deadline: float) -> di
     }
 
 
-def arm_sentences(item: dict, arm: str, dialogue: dict, topics: dict, mc) -> list[str]:
+def arm_sentences(
+    item: dict,
+    arm: str,
+    dialogue: dict,
+    topics: dict,
+    mc,
+    root: Path = OUT,
+    policy: str = "register",
+    thread_kept: str | None = None,
+) -> list[str]:
     s = item["session"]
-    if arm == "history":
+    if arm in ("history", "base"):
         return []
+    if arm == "focus":
+        if policy == "role_evicted":
+            assert thread_kept is not None
+            return mc.evicted_mentor_sentences(dialogue, s, thread_kept)
+        path = root / "auto" / f"item-{item['id']}.json"
+        return json.loads(path.read_text())["sentences"]
     if arm == "restate_all":
         return [c["text"] for c in mc.mentor_sentences(dialogue, s)]
     if arm == "auto":
-        path = OUT / "auto" / f"item-{item['id']}.json"
+        path = root / "auto" / f"item-{item['id']}.json"
         return json.loads(path.read_text())["sentences"]
     if arm == "oracle":
         return mc.oracle_sentences(dialogue, s, topics)
@@ -308,7 +361,11 @@ def arm_sentences(item: dict, arm: str, dialogue: dict, topics: dict, mc) -> lis
 
 
 def _out_dir(args) -> Path:
-    return OUT / (args.split if args.model == "1.7b" else f"{args.split}-{args.model}")
+    root = out_root(args)
+    name = args.split if args.model == "1.7b" else f"{args.split}-{args.model}"
+    if getattr(args, "policy", "register") != "register":
+        name = f"{name}-{args.policy}"
+    return root / name
 
 
 def phase_run(args) -> None:
@@ -317,7 +374,9 @@ def phase_run(args) -> None:
     topics = mc.load_topics()
     compute_score = mc.vendored_checker()
     tokenizer = _tokenizer()
-    items = load_items(args.split)[args.start :]
+    root = out_root(args)
+    long = args.cohort == "long"
+    items = load_items(args.split, root=root)[args.start :]
     if args.limit:
         items = items[: args.limit]
     out_dir = _out_dir(args)
@@ -343,17 +402,51 @@ def phase_run(args) -> None:
             "history_regex": item["history_regex"],
             "arms": {},
         }
+        thread_kept = None
+        if long and args.policy == "role_evicted":
+            base_built = mc.build_long_prompt(
+                dialogue, item["session"], item["queries"][0], tokenizer, ""
+            )
+            head = base_built["prompt"].index(":\n") + 2
+            thread_kept = base_built["prompt"][
+                head : base_built["prompt"].index(" \nBased on")
+            ]
         for arm in args.arms:
-            selected = arm_sentences(item, arm, dialogue, topics, mc)
-            kept, reminder_tokens = mc.pack_newest_first(selected, tokenizer)
-            reminder = mc.render_reminder(kept)
+            selected = arm_sentences(
+                item,
+                arm,
+                dialogue,
+                topics,
+                mc,
+                root=root,
+                policy=args.policy,
+                thread_kept=thread_kept,
+            )
+            if long:
+                kept, reminder_tokens = mc.pack_long(selected, tokenizer)
+                reminder = mc.render_long_reminder(kept)
+            else:
+                kept, reminder_tokens = mc.pack_newest_first(selected, tokenizer)
+                reminder = mc.render_reminder(kept)
             generations = []
             for query in item["queries"]:
-                prompt = mc.chat_prompt(
-                    mc.user_message(dialogue, item["session"], query, arm, reminder)
-                )
+                if long:
+                    built = mc.build_long_prompt(
+                        dialogue, item["session"], query, tokenizer, reminder
+                    )
+                    prompt = built["prompt"]
+                else:
+                    built = None
+                    prompt = mc.chat_prompt(
+                        mc.user_message(dialogue, item["session"], query, arm, reminder)
+                    )
                 gen = generate(model, tokenizer, prompt, args.max_new, args.deadline)
                 gen["query"] = query
+                if built is not None:
+                    gen["window"] = {k: v for k, v in built.items() if k != "prompt"}
+                gen["failures"] = mc.output_failures(
+                    gen["text"], gen["generated_token_ids"], gen["truncated"]
+                )
                 gen["scores"] = mc.score_generation(
                     gen["text"],
                     item["history_regex"],
@@ -367,6 +460,7 @@ def phase_run(args) -> None:
             fractions = [g["scores"]["fraction"] for g in generations]
             fractions = [x for x in fractions if x is not None]
             record["arms"][arm] = {
+                "policy": args.policy if arm == "focus" else None,
                 "selected_sentences": len(selected),
                 "kept_sentences": len(kept),
                 "reminder_tokens": reminder_tokens,
@@ -429,14 +523,61 @@ def _paired_interval(pairs: list[tuple[bool, bool]]) -> dict:
     }
 
 
+def _failure_excess(records: list[dict], arms: list[str], reference: str) -> dict:
+    """Per-arm output failures as EXCESS over the reference arm, per item."""
+
+    def failed(rec, a):
+        f = rec["arms"][a]["generations"][0]["failures"]
+        return f["invalid"] or f["truncated"] or f["degenerate"]
+
+    out = {}
+    for arm in arms:
+        excess = sum(
+            int(failed(rec, arm) and not failed(rec, reference)) for rec in records
+        )
+        out[arm] = {
+            "excess_items": excess,
+            "excess_fraction": excess / len(records) if records else 0.0,
+        }
+    return out
+
+
+def long_reading(summary: dict) -> dict:
+    """Exhaustive readings of plan rev 7.1 section H."""
+    ci = summary["contrasts"]["focus_vs_base"]["paired_interval"]
+    lower, upper = ci["lower_points"], ci["upper_points"]
+    excess = summary["output_failure_excess_over_base"]["focus"]["excess_fraction"]
+    if lower > 0 and excess <= 0.05:
+        verdict = "PROVEN"
+    elif lower > 0:
+        verdict = "POSITIVE-WITH-OUTPUT-FAILURE-EXCESS"
+    elif upper < 0:
+        verdict = "HARM"
+    else:
+        verdict = "NOT PROVEN"
+    return {
+        "verdict": verdict,
+        "lower_points": lower,
+        "upper_points": upper,
+        "focus_excess_failure_fraction": excess,
+        "note": (
+            "N=128 screen; union-bound paired interval; a NOT PROVEN reading allows "
+            "the one frozen fallback (restate-all policy) of section G."
+        ),
+    }
+
+
 def phase_summarize(args) -> dict:
     out_dir = _out_dir(args)
+    root = out_root(args)
+    arms = ARMS_LONG if args.cohort == "long" else ARMS
     records = [json.loads(p.read_text()) for p in sorted(out_dir.glob("item-*.json"))]
-    expected = len(load_items(args.split))
-    strict = {arm: {} for arm in ARMS}
-    fraction = {arm: {} for arm in ARMS}
+    records = [r for r in records if all(a in r["arms"] for a in arms)]
+    expected = len(load_items(args.split, root=root))
+    strict = {arm: {} for arm in arms}
+    fraction = {arm: {} for arm in arms}
     inapplicable = 0
-    items_by_id = {it["id"]: it for it in load_items(args.split)}
+    items_by_id = {it["id"]: it for it in load_items(args.split, root=root)}
     for rec in records:
         # Primary cohort frozen BEFORE generation (CONTRACT.md amendment 3): an item
         # is inapplicable only when no query requires any of its families.
@@ -444,7 +585,7 @@ def phase_summarize(args) -> dict:
         if not any(item["required"].get(q) for q in item["queries"]):
             inapplicable += 1
             continue
-        for arm in ARMS:
+        for arm in arms:
             value = rec["arms"][arm]["strict"]
             strict[arm][rec["id"]] = bool(value) if value is not None else False
             fraction[arm][rec["id"]] = rec["arms"][arm]["fraction"] or 0.0
@@ -458,9 +599,9 @@ def phase_summarize(args) -> dict:
         "items_scored": n,
         "items_inapplicable": inapplicable,
         "complete": len(records) == expected,
-        "strict_compliance": {arm: sum(strict[arm].values()) for arm in ARMS},
+        "strict_compliance": {arm: sum(strict[arm].values()) for arm in arms},
         "mean_fraction": {
-            arm: (sum(fraction[arm].values()) / n if n else None) for arm in ARMS
+            arm: (sum(fraction[arm].values()) / n if n else None) for arm in arms
         },
         "reminder": {
             arm: {
@@ -472,7 +613,7 @@ def phase_summarize(args) -> dict:
                     else None
                 ),
             }
-            for arm in ARMS
+            for arm in arms
         },
     }
 
@@ -480,19 +621,42 @@ def phase_summarize(args) -> dict:
         return [(strict[a][i], strict[b][i]) for i in ids]
 
     contrasts = {}
-    for a, b in [
-        ("auto", "restate_all"),
-        ("auto", "oracle"),
-        ("oracle", "history"),
-        ("restate_all", "history"),
-        ("auto", "history"),
-    ]:
+    contrast_list = (
+        [("focus", "base"), ("oracle", "focus"), ("oracle", "base")]
+        if args.cohort == "long"
+        else [
+            ("auto", "restate_all"),
+            ("auto", "oracle"),
+            ("oracle", "history"),
+            ("restate_all", "history"),
+            ("auto", "history"),
+        ]
+    )
+    for a, b in contrast_list:
         contrasts[f"{a}_vs_{b}"] = {
             "mcnemar": _mcnemar(pairs(a, b)),
             "paired_interval": _paired_interval(pairs(a, b)),
         }
     summary["contrasts"] = contrasts
-    if args.split == "setup":
+    if args.cohort == "long":
+        lengths = [
+            (
+                r["arms"]["focus"]["generations"][0]["window"]["prompt_tokens"],
+                r["arms"]["base"]["generations"][0]["window"]["prompt_tokens"],
+            )
+            for r in records
+        ]
+        summary["prompt_length_match"] = {
+            "max_abs_difference_tokens": max(
+                (abs(a - b) for a, b in lengths), default=0
+            ),
+            "items_with_difference": sum(1 for a, b in lengths if a != b),
+        }
+        summary["output_failure_excess_over_base"] = _failure_excess(
+            records, arms, "base"
+        )
+        summary["reading"] = long_reading(summary)
+    elif args.split == "setup":
         h = summary["strict_compliance"]["history"]
         summary["eligibility"] = {
             "history_strict": h,
@@ -513,7 +677,7 @@ def phase_summarize(args) -> dict:
                 "a null is 'not demonstrated at N=64'."
             ),
         }
-    auto_summary = OUT / "auto" / "summary.json"
+    auto_summary = root / "auto" / "summary.json"
     if auto_summary.exists():
         summary["auto_non_vacuous_check"] = json.loads(auto_summary.read_text())[
             "non_vacuous_check"
@@ -525,7 +689,7 @@ def phase_summarize(args) -> dict:
             "overflow_events": 0,
         }
         for rec in records:
-            e = json.loads((OUT / "auto" / f"item-{rec['id']}.json").read_text())[
+            e = json.loads((root / "auto" / f"item-{rec['id']}.json").read_text())[
                 "errors"
             ]
             errors["false_admissions"] += len(e["false_admissions"])
@@ -541,12 +705,25 @@ def phase_summarize(args) -> dict:
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("phase", choices=["items", "auto", "run", "summarize"])
-    parser.add_argument("--split", choices=["setup", "screen"], default="setup")
+    parser.add_argument(
+        "phase", choices=["items", "long-items", "auto", "run", "summarize"]
+    )
+    parser.add_argument("--cohort", choices=["short", "long"], default="short")
+    parser.add_argument(
+        "--split",
+        choices=["setup", "screen", "setup_long", "screen_long"],
+        default="setup",
+    )
     parser.add_argument("--model", choices=["1.7b", "4b"], default="1.7b")
-    parser.add_argument("--arms", nargs="+", default=ARMS)
+    parser.add_argument("--arms", nargs="+", default=None)
+    parser.add_argument(
+        "--policy",
+        choices=["register", "role_evicted"],
+        default="register",
+        help="focus-arm reminder policy; role_evicted is the frozen Exp 4 fallback",
+    )
     parser.add_argument("--n-setup", type=int, default=16)
-    parser.add_argument("--n-screen", type=int, default=64)
+    parser.add_argument("--n-screen", type=int, default=None)
     parser.add_argument("--start", type=int, default=0)
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--max-new", type=int, default=MAX_NEW)
@@ -554,8 +731,13 @@ def main(argv=None) -> int:
     parser.add_argument("--budget-minutes", type=float, default=0.0)
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args(argv)
+    if args.arms is None:
+        args.arms = ARMS_LONG if args.cohort == "long" else ARMS
+    if args.cohort == "long" and not args.split.endswith("_long"):
+        args.split = args.split + "_long"
     {
         "items": phase_items,
+        "long-items": phase_long_items,
         "auto": phase_auto,
         "run": phase_run,
         "summarize": phase_summarize,

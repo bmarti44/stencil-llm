@@ -1,0 +1,115 @@
+# Exp 4 registration: long-horizon coding-session head-to-head (artifact vs itself, modifications off)
+
+Registered 2026-09-11 before any GPU spend on the LONG cohort (plan/BACK-ON-TRACK-PLAN.md
+rev 7.1, section H; Astra rounds 3-4 applied). Script: `scripts/memorycode_screen.py
+--cohort long`; helpers in `src/stencil/memorycode.py` (`long_items`, `split_long`,
+`build_long_prompt`, `pack_long`, `render_long_reminder`, `output_failures`); tests in
+`tests/test_memorycode.py`. Every scientific choice is fixed here; the implementation may
+not add one. The evaluation is labelled MEMORYCODE-DERIVED, LONG COHORT: nothing here is
+comparable to the MemoryCode paper's native protocol.
+
+## Claim under test
+
+The artifact `bmarti44/stencil-focus-qwen3-1.7b` with `stencil_focus=true` (frozen Qwen3-1.7B
+trunk + the frozen instruction register rendered as a reminder, section G) complies with
+the coding conventions in force more often than the identical artifact with
+`stencil_focus=false`, on coding sessions whose history exceeds the imposed prompt budget.
+
+## Data lineage
+
+- Workload: `vendor/memorycode` (sha `1ab87e11…`, Apache-2.0; pinned in
+  `data/bench/pins-manifest.json`). LONG items = the 212 (dialogue, session) pairs whose
+  full native history prompt exceeds 3,584 Qwen3 tokens (min 3,693 / median 15,623 /
+  P90 51,734 / max 61,046) and whose session has history-regex checks and at least one
+  earlier instruction session. `items.json` (written 2026-09-11): seed-1 shuffle of the
+  dialogue ids, one item per dialogue → 16 SETUP-LONG, 128 SCREEN-LONG, 68 reserve
+  (never opened in this program).
+- Nothing in the artifact was fit on MemoryCode: the sentence classifier and the
+  relations head were trained on authored data (data/classifier/, MODEL_CARD.md); the
+  role rule has no parameters. Only the `oracle` arm reads `dialogue["instructions"]`.
+
+## Prompt construction (both arms; native single-message format)
+
+W = 3,584 tokens is the IMPOSED prompt budget (the local config supports 40,960; the
+budget is the experimental condition). `build_long_prompt`: the thread is the whole
+session text (sessions 0..s, native `\n\n Session i \n\n` separators) truncated at a
+TOKEN boundary keeping the NEWEST tokens so that the complete prompt (frame + thread +
+reminder + request + chat template) is ≤ W; the modified arm pays for its reminder with a
+shorter thread. Both arms' actual prompt lengths are stored per item; the summary reports
+the maximum absolute difference (expected ≤ 2 tokens from retokenisation at the cut) and
+the count of items with any difference. One generation per item (the first
+`history_eval_query`), greedy, 512-token cap, deadline 300 s, hand-rolled deterministic
+runtime (`stencil.qwen3.Qwen3`, Qwen3-1.7B only; no 4B retry in Exp 4).
+
+## Arms
+
+| arm | reminder | window |
+|---|---|---|
+| `base` | none (`stencil_focus=false`) | newest W tokens |
+| `focus` | live rows of the frozen FOCUS-3 register (`memorycode.auto_live`, task scope `MAIN`, per-window turns, overflow counted) built over ALL mentor lines of sessions 0..s−1, chronological, packed newest-first to E = 256 tokens including the header `Earlier instructions still in force:` | newest W − E_actual tokens |
+| `oracle` | label-derived live set (`topics.json` texts of `dialogue["instructions"][s]`), same renderer, budget and packing | same rule |
+
+`oracle` runs on SETUP-LONG always and on SCREEN-LONG only if the pilot's t_max ≤ 60 s
+(budget section). It is a descriptive ceiling, never a shipping candidate.
+
+Frozen fallback (section G, decided before any LONG generation): if the primary reads
+NOT PROVEN, `focus` is rerun ONCE with the zero-parameter role rule over the
+TRUNCATED-AWAY region (every mentor sentence outside the base window, newest-first, same
+renderer/budget), base outputs reused; both attempts reported; two fixed policies at
+one-sided .025 each bound the family-wise false-positive rate at .05; the selected
+policy's interval is not a simultaneous 95% interval. The fallback code path
+(`--policy role_evicted`) is added before it is needed, not after the primary reads.
+
+## Outcome and checker
+
+Vendored official `compute_score` (unmodified; the `comment` family counts a `#` inside
+a string literal, recorded in CONTRACT.md). STRICT compliance per item with applicability
+FROZEN from the query before generation (CONTRACT.md amendments 3/3b, stored per item in
+`items.json`: `required` families and `structure`): an omitted required parent object
+scores 0.0; a generation without the required class/function is strict-FALSE. The primary
+cohort is fixed before generation (an item is INAPPLICABLE only when no family is
+required; 0 of 144). Fractional score reported alongside. Convention compliance is the
+outcome; functional correctness is neither measured nor claimed.
+
+## Estimand, test, N, power
+
+Primary: `focus` − `base` on strict compliance, paired by item, N = 128 SCREEN-LONG.
+Exact McNemar on discordant items (two-sided p), and the conservative paired interval
+(separate 97.5% Clopper-Pearson bounds on b/N and c/N, difference by union bound).
+Power: wholly positive first at 10 wins / 0 losses; with 10 losses it needs 29 wins;
+about 26% positive-result probability at win/loss .15/.05, about 91% at .25/.05.
+N = 128 establishes a large benefit, not a modest one. Descriptive: `oracle` − `focus`
+(headroom), `oracle` − `base`, mean fractional scores, reminder tokens and empty
+reminders, the error table of the register (false admissions, missed instruction
+sessions, overflow events), prompt-length match.
+
+Output-failure guard: invalid (no parsable code), truncated (hit the cap), degenerate
+(4-gram repetition > 0.5) per arm, as EXCESS over `base` per item.
+
+## Readings (exhaustive)
+
+- PROVEN: interval entirely above 0 AND `focus` excess output failures ≤ 5% of items.
+- POSITIVE-WITH-OUTPUT-FAILURE-EXCESS: interval above 0, excess > 5%: not PROVEN;
+  descriptive publication with the failure table; the fallback is NOT triggered.
+- NOT PROVEN: interval covers 0 → the frozen fallback runs once; the second reading is
+  final (a second null is a published negative; the artifact is withheld as a claim).
+- HARM: interval entirely below 0 → published as demonstrated harm; program ends.
+- `oracle` − `focus` gates nothing. The error table is published with every reading and
+  is never read as evidence of accurate maintenance.
+
+## Budget (BUDGET line added from the `memorycode-long` pilot before launch)
+
+Pilot: `scripts/timing_pilot.py --family memorycode-long` = the 4 longest SETUP-LONG
+windows at W = 3,584, 512-token generation, peak memory and co-resident pids recorded.
+Ceiling = 1.5 × t_max × (2 × 144 + 16 oracle-on-SETUP + 128 fallback rerun) = 1.5 ×
+t_max × 432 generations, plus the 4-generation pilot and the 32-generation parity check;
+`oracle` on SCREEN-LONG (+128) only if t_max ≤ 60 s. Chunks ≤ 50 min under
+`tools/gpu_reserve.sh`; atomic per-item records `setup_long/item-<id>.json`,
+`screen_long/item-<id>.json`; INCOMPLETE on exhaustion, never rescued.
+
+## Artifacts
+
+`results/memorycode-long/`: `items.json`, `auto/` (register live sets + error tables),
+`setup_long/summary.json` (parity/pilot cohort), `screen_long/summary.json` (primary),
+`RESULTS.md`, `manifest.json` (sha256 of every record). One Astra result audit after
+RESULTS.md (rule D1).

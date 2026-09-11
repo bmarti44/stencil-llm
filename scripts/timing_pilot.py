@@ -7,6 +7,8 @@ pilot, never from an estimate. Families:
   memorycode  the 4 longest SETUP history prompts of results/memorycode-derived/
               items.json, one 512-token greedy generation each through
               scripts/memorycode_screen.generate (the history arm, no reminder).
+  memorycode-long  the 4 longest SETUP-LONG items of results/memorycode-long/items.json
+              at the imposed window W = 3,584 tokens (base arm), 512-token generation.
 Writes results/timing-pilot/<family>.json with per-item rows, the co-resident GPU
 pids at start, and the aggregate used by the registration (max seconds/item ×1.5).
 """
@@ -134,9 +136,53 @@ def family_memorycode(args) -> dict:
     return {"rows": rows}
 
 
+def family_memorycode_long(args) -> dict:
+    import torch
+
+    from stencil import memorycode as mc
+
+    screen = _load("memorycode_screen")
+    items = sorted(
+        screen.load_items("setup_long", root=screen.OUT_LONG),
+        key=lambda it: it["history_prompt_tokens"],
+        reverse=True,
+    )[: args.items]
+    tokenizer = screen._tokenizer()
+    model = screen.load_model("1.7b")
+    rows = []
+    for item in items:
+        dialogue = mc.load_dialogue(item["dialogue"])
+        built = mc.build_long_prompt(
+            dialogue, item["session"], item["queries"][0], tokenizer, ""
+        )
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
+        started = time.monotonic()
+        generated = screen.generate(
+            model, tokenizer, built["prompt"], args.max_new, args.deadline
+        )
+        torch.cuda.synchronize()
+        seconds = time.monotonic() - started
+        rows.append(
+            {
+                "id": item["id"],
+                "context_tokens": generated["prompt_tokens"],
+                "generated_tokens": generated["n_generated"],
+                "seconds": seconds,
+                "tok_per_s": generated["n_generated"] / seconds if seconds else None,
+                "peak_allocated_gb": torch.cuda.max_memory_allocated() / 2**30,
+                "peak_reserved_gb": torch.cuda.max_memory_reserved() / 2**30,
+            }
+        )
+        print(json.dumps(rows[-1]), flush=True)
+    return {"rows": rows}
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--family", required=True, choices=["multiif", "memorycode"])
+    parser.add_argument(
+        "--family", required=True, choices=["multiif", "memorycode", "memorycode-long"]
+    )
     parser.add_argument("--items", type=int, default=4)
     parser.add_argument("--max-new", type=int, default=512)
     parser.add_argument("--deadline", type=float, default=300.0)
@@ -148,7 +194,11 @@ def main(argv=None) -> int:
         "started": started,
         "coresident_gpu_apps": coresident,
     }
-    families = {"multiif": family_multiif, "memorycode": family_memorycode}
+    families = {
+        "multiif": family_multiif,
+        "memorycode": family_memorycode,
+        "memorycode-long": family_memorycode_long,
+    }
     report.update(families[args.family](args))
     rows = report["rows"]
     worst = max(r["seconds"] for r in rows)

@@ -455,3 +455,82 @@ def test_enumerate_items_respects_eligibility():
         assert it["history_prompt_tokens"] <= mc.MAX_PROMPT_TOKENS
         d = mc.load_dialogue(it["dialogue"])
         assert any(mc.has_instruction(d["sessions"][i]) for i in range(it["session"]))
+
+
+# ------------------------------------------------------------- Exp 4 LONG cohort
+
+
+def test_split_long_is_deterministic_and_disjoint():
+    items = [{"dialogue": i, "session": 2} for i in range(212)]
+    split = mc.split_long(items)
+    setup = {it["dialogue"] for it in split["setup_long"]}
+    screen = {it["dialogue"] for it in split["screen_long"]}
+    assert len(setup) == 16 and len(screen) == 128 and not setup & screen
+    assert split["reserve"] == 68
+    assert split == mc.split_long(items)
+
+
+def test_output_failures_columns():
+    ok = "```python\ndef f():\n    return 1\n```"
+    bad = "```python\ndef f(:\n```"
+    assert mc.output_failures(ok, list(range(20)), False) == {
+        "invalid": False,
+        "truncated": False,
+        "degenerate": False,
+        "repetition_4gram": 0.0,
+    }
+    assert mc.output_failures(bad, [1, 2, 3, 4] * 10, True)["invalid"] is True
+    assert mc.output_failures(ok, [1, 2, 3, 4] * 10, True)["degenerate"] is True
+    assert mc.output_failures("", [], False)["invalid"] is True
+
+
+@pytest.mark.skipif(not TOKENIZER.exists(), reason="local Qwen3 tokenizer")
+@needs_dataset
+def test_long_prompt_lengths_match_between_arms():
+    from tokenizers import Tokenizer
+
+    tok = Tokenizer.from_file(str(TOKENIZER))
+    listing = ROOT / "results/memorycode-long/items.json"
+    if listing.exists():
+        item = json.loads(listing.read_text())["items"][0]
+    else:
+        items = mc.long_items(tok)
+        assert items, "no long item in the dataset"
+        item = items[0]
+    d = mc.load_dialogue(item["dialogue"])
+    query = item["queries"][0]
+    base = mc.build_long_prompt(d, item["session"], query, tok, "")
+    sentences = mc.oracle_sentences(d, item["session"], mc.load_topics()) or [
+        "always end variable names with '_m'."
+    ]
+    reminder = mc.render_long_reminder(mc.pack_long(sentences, tok)[0])
+    focus = mc.build_long_prompt(d, item["session"], query, tok, reminder)
+    assert base["prompt_tokens"] <= mc.WINDOW and focus["prompt_tokens"] <= mc.WINDOW
+    assert abs(base["prompt_tokens"] - focus["prompt_tokens"]) <= 2
+    assert focus["thread_tokens_kept"] < base["thread_tokens_kept"]
+    assert mc.LONG_HEADER in focus["prompt"] and mc.LONG_HEADER not in base["prompt"]
+    assert focus["prompt"].endswith(mc.OPENER)
+    # the window keeps the NEWEST text: the current session's request is present
+    assert d["sessions"][item["session"]]["text"][-60:] in base["prompt"]
+
+
+@pytest.mark.skipif(not TOKENIZER.exists(), reason="local Qwen3 tokenizer")
+@needs_dataset
+def test_evicted_mentor_sentences_are_outside_the_window():
+    from tokenizers import Tokenizer
+
+    tok = Tokenizer.from_file(str(TOKENIZER))
+    item = json.loads((ROOT / "results/memorycode-long/items.json").read_text())[
+        "items"
+    ][0]
+    d = mc.load_dialogue(item["dialogue"])
+    base = mc.build_long_prompt(d, item["session"], item["queries"][0], tok, "")
+    head = base["prompt"].index(":\n") + 2
+    kept = base["prompt"][head : base["prompt"].index(" \nBased on")]
+    evicted = mc.evicted_mentor_sentences(d, item["session"], kept)
+    assert evicted, "a LONG item must have mentor sentences outside the window"
+    everything = [c["text"] for c in mc.mentor_sentences(d, item["session"])]
+    assert set(evicted) <= set(everything) and len(evicted) < len(everything)
+    # session 0 lies entirely outside the window of a LONG item
+    first = [c["text"] for c in mc.mentor_sentences(d, 1)]
+    assert first and first[0] == evicted[0]

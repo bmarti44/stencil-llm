@@ -75,11 +75,13 @@ check (Exp 5). The wave line and KV pins are off the artifact's critical path.
 - Claim shape: the ARTIFACT AS A BUNDLE beats the same artifact with `stencil_focus=false`
   (Brian's criterion). Component-wise ablations are not claimed; Exp 1 and Exp 3c are
   reported as secondary evidence about the register and the echo machinery.
-- Registered fallback (frozen now, before any LONG outcome is seen): if Exp 4 reads NOT
-  PROVEN, the register policy is swapped ONCE to the zero-parameter restate-all policy
-  (every prior mentor/user sentence, newest-first packing, same renderer and budget; this is
-  Exp 3c's `restate_all` arm and the Multi-IF role rule) and Exp 4 is rerun on the same
-  items with base outputs reused. Two fixed policies, each tested at one-sided .025, bound
+- Registered fallback (frozen now, before any LONG outcome is seen; clarified after Exp 1
+  read, still before any Exp 4 generation): if Exp 4 reads NOT PROVEN, the register policy
+  is swapped ONCE to the zero-parameter role rule over the TRUNCATED-AWAY region: every
+  mentor sentence that lies outside the recency window, newest-first packing, same renderer
+  and budget (the analogue of Exp 1's winning `role_echo_only` arm, which restates the
+  evicted region; restating the newest sentences of the whole session would duplicate what
+  the window already shows) and Exp 4 is rerun on the same items with base outputs reused. Two fixed policies, each tested at one-sided .025, bound
   the family-wise false-positive rate at .05; both attempts are always reported and the
   selected policy's interval is not presented as a simultaneous 95% interval.
 - Parity gate before publication (mirrors Release 0's export verification): on the 16

@@ -10,6 +10,7 @@ official checker. Imports perform no work; the vendored evaluator is loaded lazi
 
 from __future__ import annotations
 
+import ast
 import importlib.util
 import json
 import random
@@ -25,6 +26,9 @@ HEADER = "Earlier mentor instructions restated verbatim:"
 BUDGET = 256
 MAX_PROMPT_TOKENS = 3584
 OPENER = "<|im_start|>assistant\n<think>\n\n</think>\n\n"
+WINDOW = 3584  # Exp 4 imposed prompt budget W (plan rev 7.1 section H)
+LONG_HEADER = "Earlier instructions still in force:"
+DEGENERATE_REP4 = 0.5
 DEFAULT_TASK = "MAIN"
 ARMS = ("history", "restate_all", "auto", "oracle")
 
@@ -392,3 +396,173 @@ def split_items(items: list[dict], n_setup: int = 16, n_screen: int = 64) -> dic
         "n_eligible_items": len(items),
         "n_eligible_dialogues": len(dialogues),
     }
+
+
+# ------------------------------------------------------------- Exp 4: LONG cohort
+
+
+def long_items(tokenizer, ids: list[int] | None = None) -> list[dict]:
+    """The 212 items whose full history prompt exceeds MAX_PROMPT_TOKENS; one
+    generation each (the first ``history_eval_query``)."""
+    items = []
+    for did in ids if ids is not None else dialogue_ids():
+        dialogue = load_dialogue(did)
+        for s, session in enumerate(dialogue["sessions"]):
+            if s == 0 or not session["history_regex"]:
+                continue
+            if not any(has_instruction(dialogue["sessions"][i]) for i in range(s)):
+                continue
+            query = session["history_eval_query"][0]
+            prompt = chat_prompt(user_message(dialogue, s, query, "history", ""))
+            tokens = len(tokenizer.encode(prompt).ids)
+            if tokens <= MAX_PROMPT_TOKENS:
+                continue
+            families = sorted({str(obj) for obj, _ in session["history_regex"]})
+            items.append(
+                {
+                    "dialogue": did,
+                    "session": s,
+                    "queries": [query],
+                    "required": {query: required_families(query, families)},
+                    "structure": {query: required_structure(query)},
+                    "history_regex": session["history_regex"],
+                    "history_prompt_tokens": tokens,
+                    "families": families,
+                }
+            )
+    return items
+
+
+def split_long(items: list[dict], n_setup: int = 16, n_screen: int = 128) -> dict:
+    """Seed-1 split by dialogue: SETUP-LONG, SCREEN-LONG, reserve (never opened)."""
+    by_dialogue: dict[int, list[dict]] = {}
+    for item in items:
+        by_dialogue.setdefault(item["dialogue"], []).append(item)
+    dialogues = sorted(by_dialogue)
+    random.Random(1).shuffle(dialogues)
+    chosen = [by_dialogue[d][0] for d in dialogues]
+    return {
+        "setup_long": chosen[:n_setup],
+        "screen_long": chosen[n_setup : n_setup + n_screen],
+        "reserve": len(chosen) - n_setup - n_screen,
+        "n_long_items": len(items),
+    }
+
+
+def render_long_reminder(sentences: list[str]) -> str:
+    if not sentences:
+        return ""
+    return LONG_HEADER + "\n" + "\n".join(f"- {s}" for s in sentences)
+
+
+def pack_long(
+    ordered: list[str], tokenizer, budget: int = BUDGET
+) -> tuple[list[str], int]:
+    kept: list[str] = []
+    for sentence in reversed(ordered):
+        trial = [sentence] + kept
+        if len(tokenizer.encode(render_long_reminder(trial)).ids) > budget:
+            break
+        kept = trial
+    used = len(tokenizer.encode(render_long_reminder(kept)).ids) if kept else 0
+    return kept, used
+
+
+def build_long_prompt(
+    dialogue: dict, s: int, query: str, tokenizer, reminder: str, window: int = WINDOW
+) -> dict:
+    """Native-format prompt whose thread is the NEWEST tokens of the whole session
+    text, truncated at a token boundary so the complete prompt has at most
+    ``window`` tokens; the reminder (if any) is paid for by a shorter thread.
+    Retokenisation at the cut can move the count by a token or two; the loop
+    trims until the prompt fits and the actual length is returned."""
+    mentor = dialogue["context"]["mentor"]
+    block = reminder + "\n\n" if reminder else ""
+    head = f"This is a thread of dialogues between you and your mentor {mentor}:\n"
+    tail = (
+        f" \n{block}Based on information provided, write a {query}. Do not provide "
+        "example usage. You must follow all the latest coding guidelines provided by "
+        "your mentor, including any possible updates."
+    )
+    frame_tokens = len(tokenizer.encode(chat_prompt(head + tail)).ids)
+    thread_ids = tokenizer.encode(thread_text(dialogue, list(range(s + 1)))).ids
+    budget = max(window - frame_tokens, 0)
+    dropped = 0
+    for _ in range(8):
+        keep = thread_ids[len(thread_ids) - budget :] if budget else []
+        thread = tokenizer.decode(keep, skip_special_tokens=False)
+        prompt = chat_prompt(head + thread + tail)
+        actual = len(tokenizer.encode(prompt).ids)
+        if actual <= window:
+            break
+        budget -= actual - window
+        dropped += 1
+    return {
+        "prompt": prompt,
+        "prompt_tokens": actual,
+        "thread_tokens_kept": len(keep),
+        "thread_tokens_total": len(thread_ids),
+        "frame_tokens": frame_tokens,
+        "retrim_rounds": dropped,
+    }
+
+
+def repeated_4gram_fraction(ids: list[int]) -> float:
+    if len(ids) < 8:
+        return 0.0
+    grams = [tuple(ids[i : i + 4]) for i in range(len(ids) - 3)]
+    return 1.0 - len(set(grams)) / len(grams)
+
+
+def extract_code(text: str) -> str:
+    """The official checker's extraction (``evaluate_model_output.extract_code``)."""
+    match = re.findall(r"```python\n(.*?)```", text, re.DOTALL)
+    if not match:
+        match = re.findall(r"```(.*?)```", text, re.DOTALL)
+    return match[0] if match else text
+
+
+def output_failures(text: str, ids: list[int], truncated: bool) -> dict:
+    """Output-failure guard columns (plan rev 7.1 H): invalid = no parsable code,
+    truncated = hit the cap, degenerate = 4-gram repetition above 0.5."""
+    code = extract_code(text)
+    try:
+        ast.parse(code)
+        invalid = not code.strip()
+    except (SyntaxError, ValueError):
+        invalid = True
+    return {
+        "invalid": invalid,
+        "truncated": truncated,
+        "degenerate": repeated_4gram_fraction(ids) > DEGENERATE_REP4,
+        "repetition_4gram": repeated_4gram_fraction(ids),
+    }
+
+
+def evicted_mentor_sentences(dialogue: dict, s: int, thread_kept: str) -> list[str]:
+    """Frozen fallback policy (plan G / Exp 4 registration): every mentor sentence of
+    sessions 0..s-1 whose text lies entirely BEFORE the base window's cut, i.e. the
+    truncated-away region, chronological (the caller packs newest-first). Label-free,
+    zero-parameter; the analogue of Exp 1's ``role_echo_only`` over the evicted
+    region."""
+    from stencil.focus3 import sentences
+
+    full = thread_text(dialogue, list(range(s + 1)))
+    cut = max(len(full) - len(thread_kept), 0)
+    out = []
+    for i in range(s):
+        session_start = full.index(f"\n\n Session {i} \n\n")
+        body_start = session_start + len(f"\n\n Session {i} \n\n")
+        text = dialogue["sessions"][i]["text"]
+        offset = 0
+        for speaker, line in speaker_lines(dialogue, i):
+            position = text.find(line, offset)
+            if position < 0:
+                continue
+            offset = position + len(line)
+            if speaker != "mentor":
+                continue
+            for start, sentence in sentences(line):
+                if body_start + position + start + len(sentence) <= cut:
+                    out.append(sentence)
+    return out

@@ -3586,3 +3586,17 @@ w0_verify_refs, w3a_audit, w3_calibrate; README cites W3a). 22 pre-existing test
 xfails (9 BFCL manifest tests are order-dependent: pass alone, fail in the full run; non-strict). Remaining
 Phase 2 items: LIVE-script `--help` pass and README repo map (CPU, during GPU runs). Exp 1 chunk 4 at
 122/128; 3b queued behind it.
+
+2026-09-11 — EXP 1 COMPLETE (128/128; results/qwen/multiif-echo-only-128/RESULTS.md). D1 = +2.67 [−1.76, +7.29]
+INSUFFICIENT EVIDENCE (straddles +2); D2 = −7.62 [−13.09, −2.08] DEMONSTRATED HARM of pins given role echo;
+D3 = +11.98 [+6.18, +17.71], p = .0002, ROLE RULE DEFAULT. role_echo_only 66.7 vs full 62.5 (descriptive).
+Decision for the artifact: text-only (no pins). G's primary policy for Exp 4 stays the classifier register
+(only it can carry instructions from outside the window); the frozen fallback is clarified as the role rule
+over the truncated-away region (Exp 1's winning construction). Astra result audit of Exp 1 launched.
+
+2026-09-11 — STATE: EXP 1 DONE (RESULTS.md; Astra audit running). EXP 4 REGISTERED (results/memorycode-long/
+REGISTRATION.md; items.json 212 LONG = 16 setup_long + 128 screen_long + 68 reserve; code: long_items,
+split_long, build_long_prompt with token-level matching, output_failures, role_evicted fallback policy,
+`--cohort long` phases, `memorycode-long` pilot family; 35 memorycode tests pass). BUDGET line pending the
+pilot. EXP 3b running on the GPU in 50-min reserved slices. Next GPU order: 3b → memorycode-long pilot →
+Exp 4 auto (CPU) → Exp 4 setup_long/screen_long → 3c.
