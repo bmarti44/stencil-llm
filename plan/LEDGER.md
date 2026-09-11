@@ -3608,3 +3608,9 @@ pins without echo vs role echo without pins), not "pins added to echo"; D3's ech
 G was false; timing pilot did not cover the longest new-arm prompt (1,414 > 1,322) and the 5-minute
 stop rule was not enforced in code. RESULTS.md rewritten (rev 2) with every minimum edit; G marks the
 classifier register as an unproven Exp 4 hypothesis. Verdict on numbers: ACCEPT.
+
+2026-09-11 — CLEANUP PHASE 2 `--help` SWEEP: 97 scripts pass, 58 do not (17 need `python -m scripts.<name>`,
+sealed one-shot jobs refuse by design, some check the GPU or resume provenance before argparse, the rest
+have no argparse). Closed-program scripts are NOT retrofitted (sealed audits store their code hashes);
+`scripts/README.md` maps LIVE vs closed with reasons. Deferred until scheduled: `w0_train.py` (Exp 2b),
+`b2_gsm8k.py`/`b2_mmlu.py` (competence checks). Cleanup track is otherwise complete.
