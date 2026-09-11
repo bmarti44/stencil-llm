@@ -1628,7 +1628,11 @@ def test_hand_sample_seed3_first_blind_now_design_informed_linguistic():
 
 @pytest.mark.xfail(
     strict=True,
-    reason="REGISTERED GATE 1 NOT MET: blind clause recall 0.854 (seed 3, first fit) and 0.884 (seed 4, IFEval-free refit; 0.860 under the withdrawn fit) < 0.90; precision 0.950 / 0.938 passes",
+    reason=(
+        "REGISTERED GATE 1 NOT MET: blind clause recall 0.854 (seed 3, first fit) "
+        "and 0.884 (seed 4, IFEval-free refit; 0.860 under the withdrawn fit) < "
+        "0.90; precision 0.950 / 0.938 passes"
+    ),
 )
 def test_gate1_blind_hand_sample_linguistic():
     _check_labels(HAND_CLAUSES_BLIND2, HAND_CLAUSES, HAND_CLAUSES_BLIND)

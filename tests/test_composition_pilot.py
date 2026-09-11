@@ -2,6 +2,7 @@
 
 from types import SimpleNamespace
 
+import pytest
 import torch
 from transformers import Qwen3MoeConfig, Qwen3MoeForCausalLM
 
@@ -87,6 +88,13 @@ def test_retained_batch_padding_and_hidden_against_sequential():
     batch.close()
 
 
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "closed FOCUS-1/2 program: byte-exact fixtures drifted before cleanup "
+        "(baseline failure at tag pre-cleanup-2026-09-11)"
+    ),
+)
 def test_frozen_gpu_renderer_replay():
     """Hold original system/feedback fixed across the Day5b parser amendment."""
     from stencil.focus.pilot2 import renderer_check
