@@ -96,9 +96,17 @@ selected columns and echoing their text), this classifier's selections recovered
 aged-instruction compliance to 59.2% (pins + echo; 57.2% pins only) versus 16.7%
 evicted and 65.2% with full context. A parameter-free rule that simply keeps the
 most recent prior user sentences scored 60.5% at the same number of pinned
-columns. Use this model when you need a per-sentence decision (for example to
-build a compact reminder or a memory store); do not expect it to outperform
-recency on benchmarks where recency already works.
+columns. A follow-up on 128 distinct source prompts of the same cohort (2026-09-11,
+`results/qwen/multiif-echo-only-128/RESULTS.md`, source means, n = 128) compared
+text-only echoes with no pins: the classifier's selected text echoed back scored
+54.7%, while echoing the most recent prior user sentences (a zero-parameter rule,
+256-token budget, longer echoes in 125/128 conversations) scored 66.7%, above the
+62.5% full-context reference on that cohort; paired difference +12.0 points, 95%
+bootstrap interval [+6.2, +17.7], sign test p = 0.0002. Adding KV pins to the
+classifier echo changed +2.7 points with an interval [−1.8, +7.3] (inconclusive).
+Use this model when you need a per-sentence decision (for example to build a
+compact reminder or a memory store); do not expect it to outperform recency on
+benchmarks where recency already works.
 
 ## Training data and lineage
 
