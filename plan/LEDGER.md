@@ -3766,3 +3766,17 @@ time 1,788 s vs the three-arm 3,430 s ceiling, base/focus subtotal 1,187 s; McNe
 manifest-4b.json and parity disclosed as not done). Code: summarize now counts the run's arms against the ceiling
 (audit finding 3); the SCREEN launch guard is committed as tools/exp4b_screen_launch.sh (never invoked). Tests 44
 pass. Next-path consult running (2026-09-12-next-path-consult-astra.md) per Brian's request.
+
+2026-09-12 12:50Z — Astra next-path consult (results/reviews/2026-09-12-next-path-consult-astra.md), requested by
+Brian. Recommendation: ONE final owner-authorized confirmation of the UNCHANGED 4B artifact on the frozen 128-item
+SCREEN-LONG (same role_evicted / W / E / decoding / items / per-constraint estimand), with the output-failure
+guard moved from a SETUP launch gate to a final-sample paired NET-excess interval with an affirmative ≤ 5-point
+noninferiority requirement, and the primary decision moved to a paired-mean t interval (bootstrap + sign test
+reported as companions). Judged 20-35% chance of a scoped PROVEN (coding-session retention claim only; agentic
+claim still needs Exp 5); cost 3.2 GPU-h expected / 5.7 allowance. Limiting factor: the noninferiority guard has
+≈34% chance of certifying at N = 128 even with zero true net harm (s_H = .365). Requires Brian's explicit override
+of rule D2 and a fully disclosed outcome-informed new registration (draft disclosure paragraph in the consult).
+Alternatives ranked below it: sparse authored workload 15-30%, +linter repair 10-25%, relevance ranking 10-20%,
+output-contract change 5-15%, attention bias 5-15%, pass@8 (no proof value), gate reinterpretation 0%, RLVR < 5%.
+Astra: publishing the negative and ending the line is an honest complete outcome and remains the default. GPU
+idle; nothing launches until Brian decides.
