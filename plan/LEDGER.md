@@ -3856,3 +3856,12 @@ every future registration: interim results are inspected freely during a run; a 
 a positive, never extend). Interim look at 75/139 pairs: off 0.086 → on 0.108, +2.2 pts [−0.1, +4.5], p=.056, 12 wins /
 6 losses / 57 ties, failures 32 vs 32 (4 on-only, 4 off-only), strict 0/0. Not futile; run continues to N = 139.
 (Clock correction: the entries above marked 16:40Z and 17:00Z happened at ~13:55Z and ~14:54Z.)
+
+2026-09-12 17:45Z — Exp 4C TERMINAL: NOT PROVEN, FINAL (results/memorycode-long/RESULTS-4C.md, summary-4c.json). N = 139,
+off 0.0845 → on 0.1049, +2.05 pts, paired-t 95% [−0.07, +4.16], p = .058; wins/losses/ties 25/17/97; bootstrap companion
+[+0.14, +4.30] (cannot replace the primary); strict 0 vs 1; failure guard +0.72 pts [−5.17, +6.60] (U_H > 5, not met).
+139/139 valid, budget 9,101 s of 28,643 generation, overhead 372 s, qualification 2,749 s. Instrument bug disclosed: the
+first summary read INCOMPLETE (validator expected prompt fields inside the generation; they live in the raw file);
+validator fixed, test added, summary recomputed once from unchanged outputs. Per the registration this is the program's
+final outcome: NO HF release, no further revision. Next: registered Astra result audit, card updated with the table
+(repo-only), memory updated. STATE: Exp 4C NOT PROVEN, FINAL; audit pending; program closing.

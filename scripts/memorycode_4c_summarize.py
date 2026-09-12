@@ -188,8 +188,39 @@ def _gen_reason(g: dict, arm: str, expect: dict, max_new: int) -> str | None:
     return None
 
 
+def _with_raw(g: dict, data: dict, arm: str, rec: dict, raw_loader) -> dict | str:
+    """Prompt text/hashes/count and the window live in the linked raw-output file
+    (the runner persists them there before scoring); merge them into a copy of the
+    generation after cross-checking the link (attempt id, arm, item, raw ids)."""
+    g = dict(g)
+    if "prompt" in g and "window" in g:
+        return g
+    if raw_loader is None:
+        return f"{arm}: prompt text missing"
+    raw = raw_loader(data.get("raw_file"))
+    if not isinstance(raw, dict):
+        return f"{arm}: raw output file missing"
+    if raw.get("attempt_id") != data.get("attempt_id") or raw.get("arm") != arm:
+        return f"{arm}: raw file does not match the arm's attempt"
+    if raw.get("id") != rec.get("id"):
+        return f"{arm}: raw file belongs to another item"
+    rg = raw.get("generation") or {}
+    if rg.get("generated_token_ids_raw") != g.get("generated_token_ids_raw"):
+        return f"{arm}: raw ids differ between record and raw file"
+    if raw.get("manifest") != data.get("manifest"):
+        return f"{arm}: raw file manifest differs from the arm manifest"
+    for k in ("prompt", "prompt_sha256", "prompt_ids_count", "window"):
+        g[k] = raw.get(k)
+    return g
+
+
 def _valid_reason(
-    rec: dict, expect: dict, item: dict | None, rescore=None, decode=None
+    rec: dict,
+    expect: dict,
+    item: dict | None,
+    rescore=None,
+    decode=None,
+    raw_loader=None,
 ) -> str | None:
     if not isinstance(rec, dict):
         return "malformed record"
@@ -215,7 +246,9 @@ def _valid_reason(
         gens = data.get("generations") or []
         if len(gens) != 1:
             return f"{arm}: {len(gens)} generations"
-        g = gens[0]
+        g = _with_raw(gens[0], data, arm, rec, raw_loader)
+        if isinstance(g, str):
+            return g
         why = _gen_reason(g, arm, expect, max_new)
         if why:
             return why
@@ -254,6 +287,7 @@ def analyze(
     marker_exists: bool = False,
     rescore=None,
     decode=None,
+    raw_loader=None,
 ) -> dict:
     """The registered analysis on in-memory records (pure; used by the tests).
     ``records`` may contain (name, record) pairs or bare records; ``accounting``
@@ -275,7 +309,9 @@ def analyze(
         if rid in by_id or rid in duplicates:
             duplicates.append(rid)
             continue
-        why = _valid_reason(rec, expect_manifest, items.get(rid), rescore, decode)
+        why = _valid_reason(
+            rec, expect_manifest, items.get(rid), rescore, decode, raw_loader
+        )
         if why:
             invalid[label] = why
             continue
@@ -537,6 +573,13 @@ def main(argv=None) -> int:
     def decode(ids):
         return tok.decode(ids, skip_special_tokens=True)
 
+    def raw_loader(name):
+        p = records_dir / "raw" / str(name)
+        try:
+            return json.loads(p.read_text()) if p.exists() else None
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return None
+
     out = analyze(
         load_records(records_dir),
         frozen["items"],
@@ -546,6 +589,7 @@ def main(argv=None) -> int:
         screen._ceiling_marker(records_dir).exists(),
         rescore=rescore,
         decode=decode,
+        raw_loader=raw_loader,
     )
     if problems:
         out["status"]["chain_problems"] = problems

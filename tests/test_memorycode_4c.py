@@ -804,3 +804,44 @@ def test_release_refuses_unverified_or_changed_bytes(tmp_path):
     assert (tmp_path / "staged" / "README.md").read_text() == "card"
     with pytest.raises(SystemExit):
         release.stage(hub, tmp_path / "staged", card, fp)  # immutable
+
+
+def test_prompt_fields_come_from_the_linked_raw_file_when_absent_from_the_record():
+    rec = _rec(0, on=0.5, off=0.3)
+    raws = {}
+    for arm in ("base", "focus"):
+        g = rec["arms"][arm]["generations"][0]
+        rec["arms"][arm]["attempt_id"] = f"d0-1:{arm}:abc"
+        rec["arms"][arm]["raw_file"] = f"d0-1_{arm}_abc.json"
+        raws[rec["arms"][arm]["raw_file"]] = {
+            "attempt_id": f"d0-1:{arm}:abc",
+            "arm": arm,
+            "id": "d0-1",
+            "prompt": g["prompt"],
+            "prompt_sha256": g["prompt_sha256"],
+            "prompt_ids_count": g["prompt_ids_count"],
+            "window": g["window"],
+            "generation": {"generated_token_ids_raw": g["generated_token_ids_raw"]},
+            "manifest": MANIFEST,
+        }
+        for k in ("prompt", "prompt_sha256", "prompt_ids_count", "window"):
+            del g[k]
+    assert "prompt text missing" in _run([rec])["status"]["invalid_records"]["d0-1"]
+    out = _run([rec], raw_loader=raws.get)
+    assert out["status"]["complete"], out["status"]
+    wrong = dict(raws)
+    wrong[rec["arms"]["base"]["raw_file"]] = dict(
+        raws[rec["arms"]["base"]["raw_file"]], attempt_id="other"
+    )
+    assert (
+        "attempt"
+        in _run([rec], raw_loader=wrong.get)["status"]["invalid_records"]["d0-1"]
+    )
+    wrong[rec["arms"]["base"]["raw_file"]] = dict(
+        raws[rec["arms"]["base"]["raw_file"]],
+        generation={"generated_token_ids_raw": [9]},
+    )
+    assert (
+        "raw ids differ"
+        in _run([rec], raw_loader=wrong.get)["status"]["invalid_records"]["d0-1"]
+    )
