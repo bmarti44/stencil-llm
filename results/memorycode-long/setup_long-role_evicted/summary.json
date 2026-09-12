@@ -1,0 +1,161 @@
+{
+ "split": "setup_long",
+ "model": "1.7b",
+ "policy": "role_evicted",
+ "items_expected": 16,
+ "items_complete": 16,
+ "items_scored": 16,
+ "items_inapplicable": 0,
+ "complete": true,
+ "primary_complete": true,
+ "primary_arms": [
+  "base",
+  "focus"
+ ],
+ "missing_primary_ids": [],
+ "items_with_arm": {
+  "base": 16,
+  "focus": 16,
+  "oracle": 16
+ },
+ "strict_compliance": {
+  "base": 0,
+  "focus": 0,
+  "oracle": 0
+ },
+ "mean_fraction": {
+  "base": 0.12028592295862033,
+  "focus": 0.06861606708476037,
+  "oracle": 0.06293706293706294
+ },
+ "reminder": {
+  "base": {
+   "empty": 16,
+   "mean_tokens": 0.0
+  },
+  "focus": {
+   "empty": 0,
+   "mean_tokens": 248.125
+  },
+  "oracle": {
+   "empty": 0,
+   "mean_tokens": 168.6875
+  }
+ },
+ "contrasts": {
+  "focus_vs_base": {
+   "mcnemar": {
+    "first_only": 0,
+    "second_only": 0,
+    "discordant": 0,
+    "p_two_sided": 1.0
+   },
+   "paired_interval": {
+    "n": 16,
+    "difference_points": 0.0,
+    "lower_points": -23.95741431463415,
+    "upper_points": 23.95741431463415
+   }
+  },
+  "oracle_vs_focus": {
+   "mcnemar": {
+    "first_only": 0,
+    "second_only": 0,
+    "discordant": 0,
+    "p_two_sided": 1.0
+   },
+   "paired_interval": {
+    "n": 16,
+    "difference_points": 0.0,
+    "lower_points": -23.95741431463415,
+    "upper_points": 23.95741431463415
+   }
+  },
+  "oracle_vs_base": {
+   "mcnemar": {
+    "first_only": 0,
+    "second_only": 0,
+    "discordant": 0,
+    "p_two_sided": 1.0
+   },
+   "paired_interval": {
+    "n": 16,
+    "difference_points": 0.0,
+    "lower_points": -23.95741431463415,
+    "upper_points": 23.95741431463415
+   }
+  }
+ },
+ "timeouts": {
+  "base": 0,
+  "focus": 0,
+  "oracle": 0
+ },
+ "prompt_length_match": {
+  "max_abs_difference_tokens": 0,
+  "items_with_difference": 0
+ },
+ "output_failure_excess_over_base": {
+  "base": {
+   "n": 16,
+   "excess_items": 0,
+   "excess_fraction": 0.0,
+   "reference_only_items": 0,
+   "net_rate_difference": 0.0,
+   "categories": {
+    "invalid": 4,
+    "truncated": 11,
+    "degenerate": 0,
+    "timed_out": 0
+   }
+  },
+  "focus": {
+   "n": 16,
+   "excess_items": 0,
+   "excess_fraction": 0.0,
+   "reference_only_items": 2,
+   "net_rate_difference": -0.125,
+   "categories": {
+    "invalid": 6,
+    "truncated": 9,
+    "degenerate": 0,
+    "timed_out": 0
+   }
+  },
+  "oracle": {
+   "n": 16,
+   "excess_items": 5,
+   "excess_fraction": 0.3125,
+   "reference_only_items": 0,
+   "net_rate_difference": 0.3125,
+   "categories": {
+    "invalid": 13,
+    "truncated": 13,
+    "degenerate": 3,
+    "timed_out": 0
+   }
+  }
+ },
+ "reading": {
+  "verdict": "DESCRIPTIVE",
+  "confirmatory": false,
+  "n_primary": 16,
+  "lower_points": -23.95741431463415,
+  "upper_points": 23.95741431463415,
+  "focus_excess_failure_fraction": 0.0,
+  "note": "N=16 of 16 frozen items; union-bound paired interval; one primary policy (role_evicted, Exp 4 registration amendment 1); NOT PROVEN is final; oracle is descriptive."
+ },
+ "auto_non_vacuous_check": {
+  "setup_items": 16,
+  "setup_admitted": 277,
+  "setup_relations_applied": 0,
+  "active": false
+ },
+ "auto_error_table": {
+  "false_admissions": 195,
+  "missed_instructions": 332,
+  "missed_updates": 0,
+  "overflow_events": 4298
+ },
+ "git_sha": "ec67d70aa6ebb8ea58a6b268db25767060243a48"
+}
