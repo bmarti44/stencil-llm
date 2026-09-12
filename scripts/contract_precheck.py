@@ -26,6 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from stencil.contract_projects import all_tasks  # noqa: E402
+from stencil.contract_projects_reg import registered_tasks  # noqa: E402
 from stencil.contracts import extract_file, render_request, score  # noqa: E402
 
 print = functools.partial(print, flush=True)  # noqa: A001
@@ -39,6 +40,7 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--no-contracts", action="store_true")
     ap.add_argument("--mode", default="plain", choices=["plain", "explicit"])
+    ap.add_argument("--set", default="dev", choices=["dev", "registered"])
     args = ap.parse_args()
 
     import torch
@@ -61,7 +63,7 @@ def main() -> None:
             if line.strip():
                 done.add(json.loads(line)["id"])
 
-    tasks = all_tasks()
+    tasks = registered_tasks() if args.set == "registered" else all_tasks()
     if args.limit:
         tasks = tasks[: args.limit]
     n_j = n_f = n = 0
