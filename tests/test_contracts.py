@@ -27,13 +27,15 @@ def test_unmodified_target_fails_functionally(task):
 def test_each_contract_test_discriminates(task):
     # every other task of the same project has some state flipped: its gold must pass
     # the functional tests and fail at least one of this task's contract tests
+    # every other task of the same project has some state flipped: its gold must not
+    # reach joint success here (project files may differ by state, so a cross-state
+    # gold is allowed to fail functionally instead of on the contract tests)
     others = [t for t in TASKS if t.project == task.project and t.id != task.id]
     for other in others:
         files = {**task.files, task.target: other.gold}
         f_ok, _ = run_tests(files, task.functional_tests)
-        assert f_ok, (task.id, other.id)
-        c_ok, msg = run_tests(files, task.contract_tests)
-        assert not c_ok, (task.id, other.id, msg)
+        c_ok, msg = run_tests(files, task.contract_tests) if f_ok else (False, "")
+        assert not (f_ok and c_ok), (task.id, other.id, msg)
 
 
 def test_extract_and_render():

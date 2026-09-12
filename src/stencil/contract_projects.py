@@ -393,5 +393,500 @@ def fileio_tasks() -> list[Task]:
     return tasks
 
 
+# ------------------------------------------------------------------------------- users
+# families: validation entry (api | storage), naming contract (verb_noun | noun_verb)
+
+_US_STORAGE = '''"""User storage."""
+
+
+class UserStore:
+    def __init__(self) -> None:
+        self._users: dict[str, dict] = {}
+        self.saves = 0
+
+    def save(self, user: dict) -> None:
+        if "@" not in user.get("email", ""):
+            raise ValueError("invalid email")
+        self.saves += 1
+        self._users[user["name"]] = dict(user)
+
+    def load(self, name: str) -> dict | None:
+        u = self._users.get(name)
+        return dict(u) if u else None
+'''
+
+_US_API = '''"""Public user API."""
+
+from svc.storage import UserStore
+
+
+def create_user(store: UserStore, name: str, email: str) -> dict:
+    if "@" not in email:
+        raise ValueError("invalid email")
+    user = {"name": name, "email": email}
+    store.save(user)
+    return user
+'''
+
+_US_INIT = '"""svc package."""\n'
+
+_US_FUNCTIONAL = """import pytest
+
+from svc import api
+from svc.storage import UserStore
+
+
+def _update():
+    fn = getattr(api, "update_email", None) or getattr(api, "email_update", None)
+    assert fn is not None, "no update function found"
+    return fn
+
+
+def test_update_changes_stored_email():
+    store = UserStore()
+    api.create_user(store, "ann", "ann@x.io")
+    _update()(store, "ann", "ann@y.io")
+    assert store.load("ann")["email"] == "ann@y.io"
+
+
+def test_update_unknown_user_raises_keyerror():
+    store = UserStore()
+    with pytest.raises(KeyError):
+        _update()(store, "nobody", "a@b.c")
+
+
+def test_create_unchanged():
+    store = UserStore()
+    assert api.create_user(store, "bo", "bo@x.io")["email"] == "bo@x.io"
+"""
+
+_US_CONTRACT_VALID = {
+    "api": """import pytest
+
+from svc import api
+from svc.storage import UserStore
+
+
+def test_bad_email_rejected_before_storage():
+    fn = getattr(api, "update_email", None) or getattr(api, "email_update", None)
+
+    class Spy(UserStore):
+        def __init__(self):
+            super().__init__()
+            self.calls = []
+
+        def save(self, user):
+            self.calls.append(dict(user))
+            return super().save(user)
+
+    spy = Spy()
+    api.create_user(spy, "ann", "ann@x.io")
+    spy.calls.clear()
+    with pytest.raises(ValueError):
+        fn(spy, "ann", "not-an-email")
+    assert not spy.calls, "storage must not be reached with invalid input"
+""",
+    "storage": """import pytest
+
+from svc import api
+from svc.storage import UserStore
+
+
+def test_bad_email_rejected_by_storage_not_api():
+    fn = getattr(api, "update_email", None) or getattr(api, "email_update", None)
+    store = UserStore()
+    api.create_user(store, "ann", "ann@x.io")
+
+    class Spy(UserStore):
+        def __init__(self):
+            super().__init__()
+            self.calls = []
+
+        def save(self, user):
+            self.calls.append(dict(user))
+            return super().save(user)
+
+    spy = Spy()
+    api.create_user(spy, "ann", "ann@x.io")
+    with pytest.raises(ValueError):
+        fn(spy, "ann", "not-an-email")
+    assert spy.calls and spy.calls[-1]["email"] == "not-an-email", (
+        "the API must pass the value through; validation belongs to storage"
+    )
+""",
+}
+
+_US_CONTRACT_NAME = {
+    "verb_noun": """from svc import api
+
+
+def test_public_name_is_verb_noun():
+    assert hasattr(api, "update_email") and not hasattr(api, "email_update")
+""",
+    "noun_verb": """from svc import api
+
+
+def test_public_name_is_noun_verb():
+    assert hasattr(api, "email_update") and not hasattr(api, "update_email")
+""",
+}
+
+_US_TEXT = {
+    (
+        "validation entry",
+        "api",
+    ): "Input validation happens at the public API boundary: public functions raise ValueError on invalid input before touching storage.",
+    (
+        "validation entry",
+        "storage",
+    ): "Input validation happens in the storage layer only: public API functions pass values through unchanged and never validate themselves.",
+    (
+        "naming contract",
+        "verb_noun",
+    ): "Public API function names are verb_noun (e.g. create_user, delete_user).",
+    (
+        "naming contract",
+        "noun_verb",
+    ): "Public API function names are noun_verb (e.g. user_create, user_delete); create_user is grandfathered.",
+}
+
+
+def _us_gold(valid: str, name: str) -> str:
+    fn = "update_email" if name == "verb_noun" else "email_update"
+    check = (
+        '    if "@" not in email:\n        raise ValueError("invalid email")\n'
+        if valid == "api"
+        else ""
+    )
+    return (
+        _US_API.rstrip("\n")
+        + f"""
+
+
+def {fn}(store: UserStore, name: str, email: str) -> dict:
+{check}    user = store.load(name)
+    if user is None:
+        raise KeyError(name)
+    user["email"] = email
+    store.save(user)
+    return user
+"""
+    )
+
+
+def users_tasks() -> list[Task]:
+    tasks = []
+    for valid, name in product(("api", "storage"), ("verb_noun", "noun_verb")):
+        contracts = [
+            ContractState(
+                "validation entry", valid, _US_TEXT[("validation entry", valid)]
+            ),
+            ContractState("naming contract", name, _US_TEXT[("naming contract", name)]),
+        ]
+        tasks.append(
+            Task(
+                id=f"users-{valid}-{name}",
+                project="users",
+                files={
+                    "svc/__init__.py": _US_INIT,
+                    "svc/storage.py": _US_STORAGE,
+                    "svc/api.py": _US_API,
+                },
+                target="svc/api.py",
+                request=(
+                    "Add a public function to svc/api.py that changes an existing user's "
+                    "email: it takes (store, name, email), raises KeyError if the user does "
+                    "not exist, saves the updated user and returns it."
+                ),
+                contracts=contracts,
+                functional_tests={"tests/test_update.py": _US_FUNCTIONAL},
+                contract_tests={
+                    "tests/test_contract_validation.py": _US_CONTRACT_VALID[valid],
+                    "tests/test_contract_naming.py": _US_CONTRACT_NAME[name],
+                },
+                gold=_us_gold(valid, name),
+            )
+        )
+    return tasks
+
+
+# ------------------------------------------------------------------------------ config
+# families: dependency choice (json | orjson), immutability (frozen | inplace)
+
+_CF_MODEL = {
+    "frozen": '''"""Configuration model."""
+
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class Config:
+    name: str
+    debug: bool = False
+    retries: int = 3
+''',
+    "inplace": '''"""Configuration model."""
+
+from dataclasses import dataclass
+
+
+@dataclass
+class Config:
+    name: str
+    debug: bool = False
+    retries: int = 3
+''',
+}
+
+_CF_LOADER = {
+    "json": '''"""Configuration loading."""
+
+import json
+from dataclasses import asdict
+
+from cfg.model import Config
+
+
+def load_config(path: str) -> Config:
+    with open(path, encoding="utf-8") as fh:
+        return Config(**json.load(fh))
+
+
+def dump_config(config: Config, path: str) -> None:
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(asdict(config), fh)
+''',
+    "orjson": '''"""Configuration loading."""
+
+from dataclasses import asdict
+
+from cfg.model import Config
+
+try:
+    import orjson as _fastjson
+except ImportError:  # pragma: no cover
+    _fastjson = None
+import json
+
+
+def _loads(data: bytes):
+    if _fastjson is not None:
+        return _fastjson.loads(data)
+    return json.loads(data.decode("utf-8"))
+
+
+def _dumps(obj) -> bytes:
+    if _fastjson is not None:
+        return _fastjson.dumps(obj)
+    return json.dumps(obj).encode("utf-8")
+
+
+def load_config(path: str) -> Config:
+    with open(path, "rb") as fh:
+        return Config(**_loads(fh.read()))
+
+
+def dump_config(config: Config, path: str) -> None:
+    with open(path, "wb") as fh:
+        fh.write(_dumps(asdict(config)))
+''',
+}
+
+_CF_INIT = '"""cfg package."""\n'
+
+_CF_FUNCTIONAL = """from cfg.loader import dump_config, load_config, with_value
+from cfg.model import Config
+
+
+def test_with_value_sets_field():
+    c = Config("svc")
+    c2 = with_value(c, "retries", 9)
+    assert c2.retries == 9 and c2.name == "svc"
+
+
+def test_with_value_unknown_field_raises():
+    import pytest
+
+    with pytest.raises((AttributeError, KeyError, ValueError, TypeError)):
+        with_value(Config("svc"), "nope", 1)
+
+
+def test_roundtrip_unchanged(tmp_path):
+    p = tmp_path / "c.json"
+    dump_config(Config("svc", True, 5), str(p))
+    assert load_config(str(p)) == Config("svc", True, 5)
+"""
+
+_CF_CONTRACT_DEP = {
+    "json": """import sys
+import types
+
+import pytest
+
+
+def test_orjson_never_used(tmp_path, monkeypatch):
+    fake = types.ModuleType("orjson")
+
+    def boom(*a, **k):
+        raise AssertionError("orjson must not be used")
+
+    fake.dumps = boom
+    fake.loads = boom
+    monkeypatch.setitem(sys.modules, "orjson", fake)
+    for m in [m for m in sys.modules if m.startswith("cfg")]:
+        monkeypatch.delitem(sys.modules, m)
+    from cfg.loader import dump_config, load_config, with_value
+    from cfg.model import Config
+
+    p = tmp_path / "c.json"
+    c = with_value(Config("svc"), "debug", True)
+    dump_config(c, str(p))
+    assert load_config(str(p)).debug is True
+""",
+    "orjson": """import json
+import sys
+import types
+
+
+def test_orjson_used_when_available(tmp_path, monkeypatch):
+    fake = types.ModuleType("orjson")
+    calls = []
+
+    def dumps(obj, *a, **k):
+        calls.append("dumps")
+        return json.dumps(obj).encode()
+
+    def loads(data, *a, **k):
+        calls.append("loads")
+        return json.loads(data)
+
+    fake.dumps = dumps
+    fake.loads = loads
+    monkeypatch.setitem(sys.modules, "orjson", fake)
+    for m in [m for m in sys.modules if m.startswith("cfg")]:
+        monkeypatch.delitem(sys.modules, m)
+    from cfg.loader import dump_config, load_config, with_value
+    from cfg.model import Config
+
+    p = tmp_path / "c.json"
+    dump_config(with_value(Config("svc"), "debug", True), str(p))
+    assert load_config(str(p)).debug is True
+    assert "dumps" in calls and "loads" in calls
+
+
+def test_falls_back_to_json_without_orjson(tmp_path, monkeypatch):
+    monkeypatch.setitem(sys.modules, "orjson", None)
+    for m in [m for m in sys.modules if m.startswith("cfg")]:
+        monkeypatch.delitem(sys.modules, m)
+    from cfg.loader import dump_config, load_config
+    from cfg.model import Config
+
+    p = tmp_path / "c.json"
+    dump_config(Config("svc", retries=1), str(p))
+    assert load_config(str(p)).retries == 1
+""",
+}
+
+_CF_CONTRACT_IMM = {
+    "frozen": """from cfg.loader import with_value
+from cfg.model import Config
+
+
+def test_with_value_returns_new_object_and_leaves_original():
+    c = Config("svc")
+    c2 = with_value(c, "debug", True)
+    assert c2 is not c and c.debug is False and c2.debug is True
+""",
+    "inplace": """from cfg.loader import with_value
+from cfg.model import Config
+
+
+def test_with_value_mutates_in_place_and_returns_same_object():
+    c = Config("svc")
+    c2 = with_value(c, "debug", True)
+    assert c2 is c and c.debug is True
+""",
+}
+
+_CF_TEXT = {
+    (
+        "dependency choice",
+        "json",
+    ): "JSON handling uses the standard library json module only; never import or use orjson.",
+    (
+        "dependency choice",
+        "orjson",
+    ): "JSON handling goes through the module's orjson-backed helpers (_loads/_dumps, which fall back to json); never call json directly from public functions.",
+    (
+        "immutability",
+        "frozen",
+    ): "Config objects are immutable: functions that change a setting return a new Config and never mutate their argument.",
+    (
+        "immutability",
+        "inplace",
+    ): "Config objects are mutable: functions that change a setting update the given Config in place and return that same object.",
+}
+
+
+def _cf_gold(dep: str, imm: str) -> str:
+    if imm == "frozen":
+        body = """    if not hasattr(config, key):
+        raise AttributeError(key)
+    return replace(config, **{key: value})"""
+        imp = "from dataclasses import replace\n"
+    else:
+        body = """    if not hasattr(config, key):
+        raise AttributeError(key)
+    setattr(config, key, value)
+    return config"""
+        imp = ""
+    return (
+        imp
+        + _CF_LOADER[dep].rstrip("\n")
+        + f"""
+
+
+def with_value(config: Config, key: str, value) -> Config:
+{body}
+"""
+    )
+
+
+def config_tasks() -> list[Task]:
+    tasks = []
+    for dep, imm in product(("json", "orjson"), ("frozen", "inplace")):
+        contracts = [
+            ContractState(
+                "dependency choice", dep, _CF_TEXT[("dependency choice", dep)]
+            ),
+            ContractState("immutability", imm, _CF_TEXT[("immutability", imm)]),
+        ]
+        tasks.append(
+            Task(
+                id=f"config-{dep}-{imm}",
+                project="config",
+                files={
+                    "cfg/__init__.py": _CF_INIT,
+                    "cfg/model.py": _CF_MODEL[imm],
+                    "cfg/loader.py": _CF_LOADER[dep],
+                },
+                target="cfg/loader.py",
+                request=(
+                    "Add a function `with_value(config: Config, key: str, value) -> Config` "
+                    "to cfg/loader.py that sets the named setting to the value and returns "
+                    "the resulting Config; an unknown key raises AttributeError."
+                ),
+                contracts=contracts,
+                functional_tests={"tests/test_with_value.py": _CF_FUNCTIONAL},
+                contract_tests={
+                    "tests/test_contract_dependency.py": _CF_CONTRACT_DEP[dep],
+                    "tests/test_contract_immutability.py": _CF_CONTRACT_IMM[imm],
+                },
+                gold=_cf_gold(dep, imm),
+            )
+        )
+    return tasks
+
+
 def all_tasks() -> list[Task]:
-    return kvstore_tasks() + fileio_tasks()
+    return kvstore_tasks() + fileio_tasks() + users_tasks() + config_tasks()
