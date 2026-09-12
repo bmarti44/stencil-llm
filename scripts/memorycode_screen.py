@@ -561,8 +561,8 @@ def long_reading(summary: dict) -> dict:
         "upper_points": upper,
         "focus_excess_failure_fraction": excess,
         "note": (
-            "N=128 screen; union-bound paired interval; a NOT PROVEN reading allows "
-            "the one frozen fallback (restate-all policy) of section G."
+            "N=128 screen; union-bound paired interval; one primary policy "
+            "(role_evicted, Exp 4 registration amendment 1); NOT PROVEN is final."
         ),
     }
 
@@ -720,7 +720,7 @@ def main(argv=None) -> int:
         "--policy",
         choices=["register", "role_evicted"],
         default="register",
-        help="focus-arm reminder policy; role_evicted is the frozen Exp 4 fallback",
+        help="focus-arm reminder policy; role_evicted = Exp 4 primary (amendment 1)",
     )
     parser.add_argument("--n-setup", type=int, default=16)
     parser.add_argument("--n-screen", type=int, default=None)
