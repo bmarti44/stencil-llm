@@ -22,7 +22,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 
-from stencil.focal import unit_starts
+from stencil.focal import code_line_count, unit_starts
 
 CUE_PREFIX = "# Convention: "
 
@@ -52,6 +52,12 @@ class FocalGenerator:
     variable / import / any.  ``any`` rules are delivered once, at the first unit of
     any kind.  ``max_insertions`` bounds the number of insertions per generation.
     With ``rules=[]`` the loop is plain greedy decoding.
+
+    ``policy="periodic"`` is the repetition-matched control: the complete rule list
+    (every kind, one block) is inserted at the start of the next code line every
+    ``period_lines`` complete non-blank code lines, at a line boundary (no rollback)
+    and regardless of what the next line turns out to be.  Whether a periodic
+    insertion happened to land directly above a unit start is recorded per event.
     """
 
     def __init__(
@@ -63,7 +69,13 @@ class FocalGenerator:
         eos_ids: tuple[int, ...] = (),
         deadline_seconds: float | None = None,
         max_insertions: int = 40,
+        policy: str = "aligned",
+        period_lines: int = 8,
     ) -> None:
+        if policy not in ("aligned", "periodic"):
+            raise ValueError(policy)
+        self.policy = policy
+        self.period_lines = period_lines
         self.backend = backend
         self.tok = tokenizer
         self.rules = list(rules)
@@ -85,6 +97,7 @@ class FocalGenerator:
         # reaches into an inserted piece (``floor``).
         pieces: list[tuple[str, list[int]]] = []
         delivered: set[tuple[int, str]] = set()
+        delivered_lines: set[int] = set()
         any_done = False
         events: list[dict] = []
         n_gen = 0
@@ -128,6 +141,32 @@ class FocalGenerator:
                 continue
             ids = flat()
             text = decode(ids)
+            if self.policy == "periodic":
+                if not text.endswith("\n"):
+                    continue
+                in_code, n_lines, indent = code_line_count(text)
+                if not in_code or n_lines == 0 or n_lines % self.period_lines:
+                    continue
+                if n_lines in delivered_lines:
+                    continue
+                delivered_lines.add(n_lines)
+                block = cue_block([t for _, t in self.rules], indent)
+                insert_ids = self.tok.encode(block, add_special_tokens=False)
+                pieces.append(("ins", list(insert_ids)))
+                pending = pending + list(insert_ids)
+                n_ins_tokens += len(insert_ids)
+                n_insertions += 1
+                events.append(
+                    {
+                        "kind": "periodic",
+                        "line": text.count("\n"),
+                        "offset": len(text),
+                        "rolled_back_tokens": 0,
+                        "inserted_tokens": len(insert_ids),
+                        "rules": [t for _, t in self.rules],
+                    }
+                )
+                continue
             fired = None
             rules: list[str] = []
             used_any = False
@@ -184,6 +223,10 @@ class FocalGenerator:
             )
         ids = flat()
         text = decode(ids)
+        if self.policy == "periodic":
+            starts = {u.offset for u in unit_starts(text)}
+            for e, sp in zip(events, _ins_spans(pieces, decode)):
+                e["adjacent_to_unit"] = sp[1] in starts
         spans = []
         acc: list[int] = []
         for k, p in pieces:
@@ -204,6 +247,18 @@ class FocalGenerator:
             truncated=(not ended and not timed_out and n_gen >= self.max_new_tokens),
             seconds=time.time() - t0,
         )
+
+
+def _ins_spans(pieces, decode) -> list[tuple[int, int]]:
+    spans = []
+    acc: list[int] = []
+    for k, p in pieces:
+        a = len(decode(acc))
+        acc = acc + p
+        b = len(decode(acc))
+        if k == "ins":
+            spans.append((a, b))
+    return spans
 
 
 class HFBackend:
@@ -246,7 +301,9 @@ class HFBackend:
         # keep n post-prompt tokens; drop one more so the logits at the new end can
         # be recomputed by re-feeding that token on the next step
         keep = len(self.prompt) + n
-        self.cache.crop(keep - 1)
+        remove = len(self.prompt) + len(self.seq) - (keep - 1)
+        if remove > 0:
+            self.cache.crop(-remove)
         last = (self.prompt + self.seq)[keep - 1]
         self.seq = self.seq[:n]
         self._refeed = [last]

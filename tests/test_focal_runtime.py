@@ -106,3 +106,24 @@ def test_focal_inserts_typed_cues_and_strips_back_to_target(tok):
         r.generated_ids == tok.encode(TARGET, add_special_tokens=False)
         or len(r.generated_ids) >= len(tok.encode(TARGET, add_special_tokens=False)) - 2
     )
+
+
+def test_periodic_control_inserts_at_line_boundaries_without_rollback(tok):
+    rules = [("function", "function names contain 'chx'"), ("class", "UPPERCASE")]
+    be = Scripted(tok, TARGET, eos=151645)
+    g = FocalGenerator(
+        be,
+        tok,
+        rules=rules,
+        eos_ids=(151645,),
+        max_new_tokens=600,
+        policy="periodic",
+        period_lines=3,
+    )
+    r = g.generate([1, 2, 3])
+    assert r.ended_by_eos
+    assert r.events and all(e["kind"] == "periodic" for e in r.events)
+    assert all(e["rolled_back_tokens"] == 0 for e in r.events)
+    assert all("adjacent_to_unit" in e for e in r.events)
+    assert strip_spans(r.text, r.inserted_spans) == TARGET
+    assert not be.crops

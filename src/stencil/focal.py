@@ -185,3 +185,24 @@ def strip_spans(text: str, spans: list[tuple[int, int]]) -> str:
         pos = max(pos, b)
     keep.append(text[pos:])
     return "".join(keep)
+
+
+def code_line_count(text: str, fenced: bool | None = None) -> tuple[bool, int, int]:
+    """``(in_code, n_code_lines, last_indent)`` for a partial output: whether the
+    text currently ends inside a code region, how many complete non-blank code
+    lines precede the current position, and the indentation of the last complete
+    code line (0 when none)."""
+    if fenced is None:
+        fenced = "```" in text
+    in_code = not fenced
+    n = 0
+    last_indent = 0
+    lines = text.split("\n")
+    for line in lines[:-1]:  # only complete lines
+        if fenced and _FENCE.match(line):
+            in_code = not in_code
+            continue
+        if in_code and line.strip():
+            n += 1
+            last_indent = len(line) - len(line.lstrip())
+    return in_code, n, last_indent
