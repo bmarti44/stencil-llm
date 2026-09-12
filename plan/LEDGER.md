@@ -3793,3 +3793,10 @@ number is attributable to the artifact; any publication must either reproduce th
 package's transformers path (new GPU spend, a registration matter) or carry the card's explicit disclaimer. GPU
 idle; peer informed. STATE unchanged: awaiting Brian's decision (accept stop / override D2 for one final SCREEN
 confirmation / publish descriptively).
+
+2026-09-12 12:50Z — REGISTRATION-4C-DRAFT.md written (NOT in force): Astra's recommended final confirmation of the
+unchanged 4B artifact on the 128 frozen SCREEN-LONG items, generated THROUGH THE PACKAGE (transformers path) so
+parity holds by construction; paired-mean t primary on fraction_required, net output-failure interval with an
+affirmative ≤ +5-point noninferiority requirement; disclosure paragraph adopted verbatim. Becomes a registration
+only on Brian's explicit D2 override (rename + quote the override in its header) and after an Astra implementation
+review. STATE unchanged: blocked on Brian's decision (accept stop / override D2 → Exp 4C / publish descriptively).
