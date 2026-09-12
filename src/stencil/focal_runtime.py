@@ -22,7 +22,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 
-from stencil.focal import code_line_count, unit_starts
+from stencil.focal import code_line_count, header_keyword, unit_starts
 
 CUE_PREFIX = "# Convention: "
 
@@ -33,6 +33,7 @@ class FocalResult:
     generated_ids: list[int]  # model tokens only (inserted tokens excluded)
     inserted_spans: list[tuple[int, int]]  # [a, b) char spans in ``text``
     inserted_tokens: int
+    refed_tokens: int = 0  # header keywords re-fed after a cue (model-originated)
     events: list[dict] = field(default_factory=list)
     ended_by_eos: bool = False
     timed_out: bool = False
@@ -111,8 +112,11 @@ class FocalGenerator:
     def generate(self, prompt_ids: list[int]) -> FocalResult:
         t0 = time.time()
         self.backend.prefill(list(prompt_ids))
-        # pieces: ordered ("gen"|"ins", ids); the sequence after the prompt is their
-        # concatenation.  Rollback removes trailing generated tokens only and never
+        # pieces: ordered ("gen"|"ins"|"keep", ids); the sequence after the prompt is
+        # their concatenation.  "ins" = cue text (stripped before scoring); "keep" =
+        # the unit's header keyword re-fed after the cue so the model completes the
+        # unit instead of continuing the comment block (kept in the output, counted
+        # separately).  Rollback removes trailing generated tokens only and never
         # reaches into an inserted piece (``floor``).
         pieces: list[tuple[str, list[int]]] = []
         delivered: set[tuple[int, str]] = set()
@@ -124,6 +128,7 @@ class FocalGenerator:
         events: list[dict] = []
         n_gen = 0
         n_ins_tokens = 0
+        n_refed = 0
         n_insertions = 0
         ended = False
         timed_out = False
@@ -140,7 +145,7 @@ class FocalGenerator:
             f = 0
             for k, p in pieces:
                 acc += len(p)
-                if k == "ins":
+                if k != "gen":
                     f = acc
             return f
 
@@ -222,6 +227,13 @@ class FocalGenerator:
             remainder = text[len(kept_text) : fired.offset]
             block = cue_block(rules, fired.indent)
             insert_ids = self.tok.encode(remainder + block, add_special_tokens=False)
+            keyword = header_keyword(text[fired.offset :].split("\n")[0])
+            keep_text = " " * fired.indent + keyword if keyword else ""
+            keep_ids = (
+                self.tok.encode(keep_text, add_special_tokens=False)
+                if keep_text
+                else []
+            )
             removed = len(ids) - cut
             n_gen_before = n_gen
             while removed > 0:
@@ -236,8 +248,11 @@ class FocalGenerator:
             n_gen = sum(len(p) for k, p in pieces if k == "gen")
             self.backend.crop(cut)
             pieces.append(("ins", list(insert_ids)))
-            pending = list(insert_ids)
+            if keep_ids:
+                pieces.append(("keep", list(keep_ids)))
+            pending = list(insert_ids) + list(keep_ids)
             n_ins_tokens += len(insert_ids)
+            n_refed += len(keep_ids)
             n_insertions += 1
             any_done = any_done or used_any
             kinds_done.add(fired.kind)
@@ -252,6 +267,7 @@ class FocalGenerator:
                     "offset": fired.offset,
                     "rolled_back_tokens": n_gen_before - n_gen,
                     "inserted_tokens": len(insert_ids),
+                    "refed_keyword": keyword,
                     "rules": rules,
                 }
             )
@@ -275,6 +291,7 @@ class FocalGenerator:
             generated_ids=gen_ids,
             inserted_spans=spans,
             inserted_tokens=n_ins_tokens,
+            refed_tokens=n_refed,
             events=events,
             ended_by_eos=ended,
             timed_out=timed_out,

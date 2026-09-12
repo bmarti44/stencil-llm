@@ -106,14 +106,15 @@ def test_focal_inserts_typed_cues_and_strips_back_to_target(tok):
     assert sum("comment every assignment" in e["rules"] for e in r.events) == 1
     assert strip_spans(r.text, r.inserted_spans) == TARGET
     assert r.inserted_tokens == sum(e["inserted_tokens"] for e in r.events)
-    # cues sit directly above their unit, at the unit's indentation
+    # cues sit directly above their unit, at the unit's indentation, and the header
+    # keyword is re-fed (kept in the output, counted separately)
     lines = r.text.split("\n")
     i = lines.index("    def m(self, a):")
     assert lines[i - 1] == f"    {CUE_PREFIX}method names contain 'chx'"
-    assert (
-        r.generated_ids == tok.encode(TARGET, add_special_tokens=False)
-        or len(r.generated_ids) >= len(tok.encode(TARGET, add_special_tokens=False)) - 2
-    )
+    assert r.refed_tokens > 0
+    assert [e["refed_keyword"] for e in r.events][:3] == ["import ", "class ", "def "]
+    target_len = len(tok.encode(TARGET, add_special_tokens=False))
+    assert len(r.generated_ids) + r.refed_tokens >= target_len - 2
 
 
 def test_periodic_control_inserts_at_line_boundaries_without_rollback(tok):
@@ -152,3 +153,12 @@ def test_strip_echoes_removes_copied_cue_lines():
     cue = {f"{CUE_PREFIX}x"}
     text = f"a\n{CUE_PREFIX}x\n  {CUE_PREFIX}x\nb"
     assert strip_echoes(text, cue) == ("a\nb", 2)
+
+
+def test_header_keyword():
+    from stencil.focal import header_keyword
+
+    assert header_keyword("    async  def  f(") == "async def "
+    assert header_keyword("@dataclass") == "@"
+    assert header_keyword("from typing import X") == "from "
+    assert header_keyword("x = 1") == ""

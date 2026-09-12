@@ -202,7 +202,7 @@ def code_line_count(text: str, fenced: bool | None = None) -> tuple[bool, int, i
         if fenced and _FENCE.match(line):
             in_code = not in_code
             continue
-        if in_code and line.strip():
+        if in_code and line.strip() and not line.strip().startswith("#"):
             n += 1
             last_indent = len(line) - len(line.lstrip())
     return in_code, n, last_indent
@@ -220,3 +220,16 @@ def strip_echoes(text: str, cue_lines: set[str]) -> tuple[str, int]:
             continue
         out.append(line)
     return "\n".join(out), n
+
+
+_HEADER = re.compile(r"^\s*(async\s+def\s+|def\s+|class\s+|import\s+|from\s+|@)")
+
+
+def header_keyword(line: str) -> str:
+    """The unit keyword the model had started on ``line`` (``"def "``, ``"class "``,
+    ``"import "``, ``"from "``, ``"@"``, ``"async def "``), normalised to single
+    spaces; empty for assignments (the name itself is what a variable rule governs)."""
+    m = _HEADER.match(line)
+    if not m:
+        return ""
+    return re.sub(r"\s+", " ", m.group(1))
