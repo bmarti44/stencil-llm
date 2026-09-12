@@ -3621,3 +3621,13 @@ structurally inert on long sessions (fills in session 0-1, then skips everything
 (before any LONG generation, disclosed): primary focus policy = role_evicted; register = descriptive on
 SETUP-LONG only, opt-in in the package; no fallback rerun; ceiling 320 generations. Plan G amended. Next:
 Astra implementation review of the Exp 4 registration; memorycode-long pilot queued behind 3b.
+
+2026-09-11 — PACKAGING (CPU, during 3b GPU chunks): deploy/stencil_focus/ written: focus_session.py
+(Session: add_message/build_prompt/reset, role_evicted rule, 256-token budget incl. header, token-matched
+window), configuration/modeling (StencilFocusForCausalLM extends Qwen3ForCausalLM; config flag stencil_focus,
+focus_window 3584, focus_budget 256; new_session/generate), push_to_hub.py assembler (trunk copy + auto_map),
+parity_generate.py (GPU half, runs after setup_long-role_evicted records exist). Prompt half of the parity gate
+PASSES on CPU: 144/144 LONG items, both flag states, byte-identical to build_long_prompt (adapter
+memorycode.focus_session_messages/long_request). Conservative decision: the classifier register is NOT bundled
+in v0.1 of the package (amendment 1: structurally inert on long sessions); the card points at the research repo
+and the SETUP-LONG register arm's error table. Astra Exp 4 implementation review running (pid 2509756).
