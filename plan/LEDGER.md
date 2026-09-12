@@ -3730,3 +3730,17 @@ SETUP-LONG 4B (48 gens) and the gate.
 mean 38.5 s, 10.7 tok/s, peak 9.14/9.66 GB. BUDGET line appended to REGISTRATION-4B.md: 71.5 s/gen, ceiling 6.0 GPU-h
 (304 gens), SCREEN INCOMPLETE above 18,294 s. Astra implementation review running
 (results/reviews/2026-09-12-exp4b-impl-review-astra.md); SETUP-LONG 4B launches only after its required edits.
+
+2026-09-12 11:45Z — Astra Exp 4B implementation review: BLOCK, 9 findings
+(results/reviews/2026-09-12-exp4b-impl-review-astra.md). All applied as REGISTRATION-4B.md AMENDMENT 1 + code:
+fraction_required validates input and is documented as equal weight per regex check; empty/unequal bootstrap handled;
+fraction reading confirmatory only for model 4b and never with lower=None; record validity (manifest model/window/
+budget + terminal scored generations) → invalid_record_ids → INCOMPLETE; registered N enforced (items_scored ==
+frozen); timeouts score 0.0 on the primary in run and recompute; `run --ceiling-seconds` cumulative across chunks +
+BUDGET_EXHAUSTED.json + summarize reads INCOMPLETE; qualification object (PASSED/FAILED/INCOMPLETE) on setup_long;
+_record_matches compares window + budget_tokens; pilot units labelled GiB; reservation 32 GB (fp32 construction
+peak ≈ 24 GB on unified memory). Disclosures added (first-query restriction, oracle threshold chosen after the
+descriptive 4B short numbers, 314-49 focus regeneration, precise label-use wording — this corrects the shorthand
+"only oracle reads labels" in the 05:10Z entry). Tests 44 pass; the 1.7B SETUP-LONG records re-summarize
+identically (16/16 valid, −5.17 [−10.56, −0.43]). Launching SETUP-LONG 4B: 48 generations, ceiling
+3,430.1946394080296 s, reservation stencil-exp4b-setup-N 55 min / 32 GB, --budget-minutes 50.

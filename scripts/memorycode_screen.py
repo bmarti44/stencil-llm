@@ -429,8 +429,29 @@ def _record_matches(record: dict, manifest: dict) -> bool:
         "model",
         "policy",
         "decoding",
+        "window",
+        "budget_tokens",
     )
     return all(m.get(k) == manifest.get(k) for k in keys)
+
+
+def _generation_seconds(out_dir: Path, arms=None) -> float:
+    """Cumulative generation seconds over every terminal generation saved under
+    ``out_dir`` (all chunks), restricted to ``arms`` when given (Exp 4B review
+    finding 6: the registered ceiling is enforced across resumptions)."""
+    total = 0.0
+    for p in out_dir.glob("item-*.json"):
+        rec = json.loads(p.read_text())
+        for arm, data in rec["arms"].items():
+            if arms and arm not in arms:
+                continue
+            for gen in data.get("generations", []):
+                total += float(gen.get("seconds", 0.0))
+    return total
+
+
+def _ceiling_marker(out_dir: Path) -> Path:
+    return out_dir / "BUDGET_EXHAUSTED.json"
 
 
 def phase_run(args) -> None:
@@ -471,6 +492,26 @@ def phase_run(args) -> None:
         ]
         if not missing:
             continue
+        # Registered cumulative ceiling across chunks (Exp 4B): reconstruct the spend
+        # from every saved terminal generation; exhaustion is INCOMPLETE, never rescued.
+        if args.ceiling_seconds:
+            spent = _generation_seconds(out_dir, args.arms)
+            if spent >= args.ceiling_seconds or _ceiling_marker(out_dir).exists():
+                _write_atomic(
+                    _ceiling_marker(out_dir),
+                    {
+                        "cumulative_generation_seconds": spent,
+                        "ceiling_seconds": args.ceiling_seconds,
+                        "arms": list(args.arms),
+                        "stopped_before_item": item["id"],
+                        "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                    },
+                )
+                print(
+                    f"stopping: ceiling {args.ceiling_seconds:.1f} s "
+                    f"reached ({spent:.1f} s)"
+                )
+                break
         # Stop STARTING items when the remaining required arms cannot finish inside
         # the budget (each arm may spend the full deadline), amendment 2.
         elapsed_min = (time.monotonic() - started) / 60
@@ -561,8 +602,12 @@ def phase_run(args) -> None:
                     structure=item["structure"][query],
                 )
                 if gen["timed_out"]:
-                    # Registered timeout rule: a terminal strict failure, never rerun.
+                    # Registered timeout rule: a terminal strict failure, never rerun;
+                    # 0.0 on the Exp 4B per-constraint primary when anything is
+                    # required.
                     gen["scores"]["strict"] = False
+                    if gen["scores"].get("fraction_required") is not None:
+                        gen["scores"]["fraction_required"] = 0.0
                 generations.append(gen)
             stricts = [g["scores"]["strict"] for g in generations]
             stricts = [x for x in stricts if x is not None]
@@ -645,8 +690,23 @@ def _paired_mean_bootstrap(
 
     from scipy.stats import binomtest
 
+    if len(a) != len(b):
+        raise ValueError(f"paired inputs of unequal length: {len(a)} vs {len(b)}")
     diffs = [100 * (x - y) for x, y in zip(a, b)]
     n = len(diffs)
+    if n == 0:
+        return {
+            "n": 0,
+            "mean_points": None,
+            "lower_points": None,
+            "upper_points": None,
+            "wins": 0,
+            "losses": 0,
+            "ties": 0,
+            "sign_p_two_sided": 1.0,
+            "draws": draws,
+            "seed": seed,
+        }
     rng = random.Random(seed)
     means = []
     for _ in range(draws):
@@ -657,9 +717,11 @@ def _paired_mean_bootstrap(
     losses = sum(1 for d in diffs if d < 0)
     return {
         "n": n,
-        "mean_points": sum(diffs) / n if n else None,
-        "lower_points": means[int(0.025 * draws)] if n else None,
-        "upper_points": means[int(0.975 * draws) - 1] if n else None,
+        "mean_points": sum(diffs) / n,
+        # order statistics 251 and 9750 of 10,000 sorted bootstrap means (registered
+        # central-order-statistic convention; 250 draws trimmed from either end)
+        "lower_points": means[int(0.025 * draws)],
+        "upper_points": means[int(0.975 * draws) - 1],
         "wins": wins,
         "losses": losses,
         "ties": n - wins - losses,
@@ -676,10 +738,13 @@ def fraction_reading(summary: dict) -> dict:
     ci = summary["contrasts"]["focus_vs_base"]["fraction_required_bootstrap"]
     lower, upper = ci["lower_points"], ci["upper_points"]
     excess = summary["output_failure_excess_over_base"]["focus"]["excess_fraction"]
+    # Exp 4B confirmatory reading: SCREEN-LONG, role_evicted, Qwen3-4B only.
     confirmatory = (
-        summary["split"] == "screen_long" and summary["policy"] == "role_evicted"
+        summary["split"] == "screen_long"
+        and summary["policy"] == "role_evicted"
+        and summary["model"] == "4b"
     )
-    if not summary["primary_complete"]:
+    if not summary["primary_complete"] or lower is None:
         verdict = "INCOMPLETE"
     elif not confirmatory:
         verdict = "DESCRIPTIVE"
@@ -700,18 +765,99 @@ def fraction_reading(summary: dict) -> dict:
         "lower_points": lower,
         "upper_points": upper,
         "focus_excess_failure_fraction": excess,
+        "budget_exhausted": summary.get("budget", {}).get("exhausted", False),
+        "invalid_records": summary.get("invalid_record_ids", []),
         "note": (
             f"N={ci['n']} of {summary['items_expected']} frozen items; 95% percentile "
-            "bootstrap over items; strict reported alongside; NOT PROVEN is final."
+            "bootstrap over items (order statistics 251/9750 of 10,000); the sign test "
+            "is a descriptive directional companion; strict reported alongside; "
+            "NOT PROVEN is final."
+        ),
+    }
+
+
+def _record_invalid_reason(rec: dict, arms, manifest_expect: dict) -> str | None:
+    """Why a record cannot enter a confirmatory summary (Exp 4B review finding 4):
+    missing or mismatching manifest (model / window / reminder budget), or a primary
+    arm whose first generation is not a terminal, scored generation."""
+    m = rec.get("manifest")
+    if not m:
+        return "no manifest"
+    for key, want in manifest_expect.items():
+        if m.get(key) != want:
+            return f"manifest {key}={m.get(key)!r} != {want!r}"
+    for arm in arms:
+        if arm not in rec["arms"]:
+            continue
+        gens = rec["arms"][arm].get("generations") or []
+        if not gens:
+            return f"{arm}: no generation"
+        gen = gens[0]
+        if gen.get("termination") not in ("eos", "cap", "timeout"):
+            return f"{arm}: non-terminal generation"
+        scores = gen.get("scores")
+        if not scores or "per_family" not in scores:
+            return f"{arm}: unscored generation"
+    return None
+
+
+def qualification_reading(summary: dict, records: list[dict], frozen_ids) -> dict:
+    """Exp 4B registration item 3: the SCREEN launches only when every frozen
+    SETUP-LONG item has valid terminal base/focus/oracle records AND (a) oracle mean
+    fraction_required ≥ 0.20, (b) focus-only output-failure discordance ≤ 5%,
+    (c) the focus − base bootstrap upper bound > 0. Missing records = INCOMPLETE,
+    never a pass or a fail. upper == 0 fails (c) without demonstrating harm."""
+    three = {r["id"] for r in records if all(a in r["arms"] for a in ARMS_LONG)}
+    complete = (
+        three == set(frozen_ids)
+        and summary["primary_complete"]
+        and summary["items_scored"] == len(frozen_ids)
+    )
+    oracle_mean = summary["mean_fraction_required"].get("oracle")
+    excess = summary["output_failure_excess_over_base"]["focus"]["excess_fraction"]
+    upper = summary["contrasts"]["focus_vs_base"]["fraction_required_bootstrap"][
+        "upper_points"
+    ]
+    conditions = {
+        "oracle_mean_fraction_required_ge_0.20": (
+            oracle_mean is not None and oracle_mean >= 0.20
+        ),
+        "focus_only_failure_excess_le_0.05": excess <= 0.05,
+        "focus_minus_base_upper_gt_0": upper is not None and upper > 0,
+    }
+    if not complete:
+        status = "INCOMPLETE"
+    elif all(conditions.values()):
+        status = "PASSED"
+    else:
+        status = "FAILED"
+    return {
+        "status": status,
+        "complete": complete,
+        "passed": all(conditions.values()) if complete else None,
+        "conditions": conditions,
+        "values": {
+            "oracle_mean_fraction_required": oracle_mean,
+            "focus_excess_failure_fraction": excess,
+            "focus_minus_base_upper_points": upper,
+        },
+        "items_with_three_arms": len(three),
+        "missing_three_arm_ids": sorted(set(frozen_ids) - three),
+        "note": (
+            "SCREEN-LONG launches only on PASSED; FAILED publishes SETUP-LONG as the "
+            "negative and the program stops; INCOMPLETE is neither."
         ),
     }
 
 
 def _required_fraction_of(rec: dict, arm: str, item: dict) -> float:
     """fraction_required of the first generation, recomputed from the saved
-    per-family scores when the record predates the field."""
+    per-family scores when the record predates the field. A terminal timeout scores
+    0.0 on the primary (Exp 4B BUDGET line), also on recomputation."""
     gen = rec["arms"][arm]["generations"][0]
-    if "scores" not in gen:  # synthetic/legacy record without per-family scores
+    if gen.get("timed_out"):
+        return 0.0
+    if "scores" not in gen:  # record without per-family scores (never confirmatory)
         return rec["arms"][arm].get("fraction") or 0.0
     value = gen["scores"].get("fraction_required")
     if value is None and "fraction_required" not in gen["scores"]:
@@ -816,8 +962,21 @@ def phase_summarize(args) -> dict:
         for r in records
         if r["id"] in items_by_id and all(a in r["arms"] for a in primary_arms)
     ]
+    # Record validity (Exp 4B review finding 4): the summary trusts no CLI label; a
+    # record enters only when its manifest names this model, the registered window
+    # and reminder budget, and every arm's first generation is terminal and scored.
+    invalid = {}
+    if long:
+        from stencil import memorycode as mc
+
+        expect = {"model": args.model, "window": mc.WINDOW, "budget_tokens": mc.BUDGET}
+        for r in records:
+            why = _record_invalid_reason(r, arms, expect)
+            if why:
+                invalid[r["id"]] = why
+        records = [r for r in records if r["id"] not in invalid]
     primary_ids = {r["id"] for r in records}
-    primary_complete = primary_ids == set(items_by_id)
+    primary_complete = primary_ids == set(items_by_id) and not invalid
     strict = {arm: {} for arm in arms}
     fraction = {arm: {} for arm in arms}
     required_fraction = {arm: {} for arm in arms}
@@ -838,6 +997,21 @@ def phase_summarize(args) -> dict:
             required_fraction[arm][rec["id"]] = _required_fraction_of(rec, arm, item)
     ids = sorted(strict[reference])
     n = len(ids)
+    # The registered N is the whole frozen cohort: an inapplicable item breaks
+    # completeness instead of silently shrinking the primary (finding 4).
+    primary_complete = primary_complete and n == expected
+    # Cumulative budget (finding 6): exhaustion is INCOMPLETE even when the last
+    # generation that crossed the ceiling completed.
+    spent = _generation_seconds(out_dir, primary_arms)
+    ceiling = float(getattr(args, "ceiling_seconds", 0.0) or 0.0)
+    marker = _ceiling_marker(out_dir)
+    budget = {
+        "cumulative_generation_seconds_primary_arms": spent,
+        "ceiling_seconds": ceiling or None,
+        "marker": json.loads(marker.read_text()) if marker.exists() else None,
+        "exhausted": marker.exists() or bool(ceiling and spent > ceiling),
+    }
+    primary_complete = primary_complete and not budget["exhausted"]
 
     def with_arm(arm):
         return [r for r in records if arm in r["arms"]]
@@ -854,6 +1028,8 @@ def phase_summarize(args) -> dict:
         "primary_complete": primary_complete,
         "primary_arms": list(primary_arms),
         "missing_primary_ids": sorted(set(items_by_id) - primary_ids),
+        "invalid_record_ids": invalid,
+        "budget": budget,
         "items_with_arm": {arm: len(with_arm(arm)) for arm in arms},
         "strict_compliance": {arm: sum(strict[arm].values()) for arm in arms},
         "mean_fraction": {
@@ -945,6 +1121,10 @@ def phase_summarize(args) -> dict:
             else long_reading(summary)
         )
         summary["primary"] = getattr(args, "primary", "strict")
+        if args.split == "setup_long" and summary["primary"] == "fraction":
+            summary["qualification"] = qualification_reading(
+                summary, records, sorted(items_by_id)
+            )
     elif args.split == "setup":
         h = summary["strict_compliance"]["history"]
         summary["eligibility"] = {
@@ -1027,6 +1207,13 @@ def main(argv=None) -> int:
     parser.add_argument("--max-new", type=int, default=MAX_NEW)
     parser.add_argument("--deadline", type=float, default=DEADLINE)
     parser.add_argument("--budget-minutes", type=float, default=0.0)
+    parser.add_argument(
+        "--ceiling-seconds",
+        type=float,
+        default=0.0,
+        help="registered cumulative generation-seconds ceiling over the run's arms "
+        "(all chunks); reaching it stops the run and marks it INCOMPLETE",
+    )
     parser.add_argument("--force", action="store_true")
     parser.add_argument(
         "--primary",

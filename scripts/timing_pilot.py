@@ -203,6 +203,9 @@ def main(argv=None) -> int:
     report.update(families[args.family](args))
     rows = report["rows"]
     worst = max(r["seconds"] for r in rows)
+    report["units"] = (
+        "peak_*_gb are GiB (bytes / 2**30), CUDA allocator peaks after loading"
+    )
     report["aggregate"] = {
         "max_seconds_per_item": worst,
         "budget_seconds_per_item_x1.5": 1.5 * worst,

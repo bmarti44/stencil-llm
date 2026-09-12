@@ -59,9 +59,12 @@ reservation rule, manifests, label rule, no SCREEN oracle.
 On the 1.7B SETUP-LONG items the paired per-constraint differences had a standard deviation
 of about 11 points (mean −5.2, interval [−10.6, −0.4] at n = 16). At N = 128 the bootstrap
 standard error of the mean is about 1 point if the 4B spread is similar and about 2 points
-if it doubles, so the design resolves mean gains of roughly 3-5 points; it cannot resolve a
-1-point gain. A positive reading needs most items to move in the same direction, not a few
-large outliers.
+if it doubles. Approximate 80%-power detectable gains (normal approximation) are 2.6 points
+at the observed SETUP spread and 5.3 points at twice that spread; these are planning
+approximations, not guarantees. The bootstrap interval determines the primary efficacy
+reading. The sign test is a descriptive directional companion and may disagree with it (four
+gains of 1.0 and 124 ties give +3.1 points [0.8, 6.3] with sign p = .125 and still satisfy
+the efficacy gate). Strict compliance is descriptive and cannot establish or rescue the claim.
 
 ## Budget (filled from the 4B pilot before launch)
 
@@ -110,7 +113,8 @@ W = 3,584 tokens, 512-token cap, Qwen3-4B, GPU otherwise idle (no co-resident pr
 t_max = 47.6 s/generation (two items at the cap at 10.7-10.8 tok/s; one stopped at 481
 tokens in 45.1 s, one at 144 tokens in 13.8 s), mean 38.5 s, peak 9.14 GB allocated /
 9.66 GB reserved. The 4B trunk ran faster than the 1.7B pilot (5.2 tok/s) because that pilot
-was measured under the peer's co-resident run; the registered 1.5× factor absorbs contention.
+was measured under the peer's co-resident run. The fixed spending allowance is 1.5 times the
+measured pilot rate; exhaustion remains INCOMPLETE whatever its cause.
 Registered per-generation budget 1.5 × t_max = 71.5 s; the generation deadline stays the
 inherited 300 s (a timeout is a terminal strict failure and scores 0.0 on the primary).
 Ceiling for 304 generations = 21,725 s = 6.0 GPU-h worst case; expected at the pilot mean
@@ -118,4 +122,78 @@ Ceiling for 304 generations = 21,725 s = 6.0 GPU-h worst case; expected at the p
 (≤ 38 min). Reservations: 55-min slices with `--budget-minutes 50`, peak declared 14 GB.
 SETUP-LONG (48 generations) is expected to finish in one slice (worst case two). The
 SCREEN-LONG run is INCOMPLETE, never rescued, if its cumulative generation time exceeds
-1.5 × 47.6 × 256 = 18,294 s (5.1 GPU-h).
+1.5 × 47.64159221400041 × 256 = 18,294.37 s (5.08 GPU-h); the full-precision pilot value is
+authoritative (see the amendment below for the enforced ceilings).
+
+## AMENDMENT 1 (Astra implementation review, 2026-09-12 11:40Z, before any 4B LONG generation)
+
+Review: `results/reviews/2026-09-12-exp4b-impl-review-astra.md` (BLOCK, nine findings). All
+required edits are applied below and in code before the SETUP-LONG 4B launch; none changes an
+arm, an estimand or a threshold. Numbers here are recomputed from the committed files.
+
+1. **Weighting unit, stated precisely (finding 1).** For item *i*, freeze the list of
+   `history_regex` entries whose family belongs to `required_i`. Each retained regex CHECK
+   receives equal weight, including multiple checks belonging to the same family (98 of 144
+   items have more checks than distinct required families; item 352-99 has 12 required
+   families and 32 checks). The item score is their arithmetic mean, with absent required
+   parents scored zero; missing required structure sets the entire item score to zero (it
+   gates the item and adds no denominator term, so it does not double-count). Items receive
+   equal weight in the cohort mean. `fraction_required` now raises on malformed input (score /
+   check length mismatch, a required family without a check) instead of truncating.
+2. **Bootstrap convention (finding 7).** The interval endpoints are order statistics 251 and
+   9,750 of the 10,000 sorted bootstrap means (250 draws trimmed from either end); coverage is
+   approximate. Empty or unequal-length inputs return an explicit empty result or raise; a
+   complete SCREEN with zero oracle records summarizes without error (tested).
+3. **Qualification is a mechanical object (finding 3).** `summary.json["qualification"]` on
+   `setup_long-4b-role_evicted/` (written by `summarize --primary fraction`) has `status`
+   PASSED / FAILED / INCOMPLETE. It is INCOMPLETE unless all 16 frozen items carry valid
+   terminal base, focus AND oracle records; PASSED only if (a) `mean_fraction_required.oracle`
+   ≥ 0.20, (b) `output_failure_excess_over_base.focus.excess_fraction` ≤ 0.05 (zero focus-only
+   failures at n = 16), (c) `focus_vs_base.fraction_required_bootstrap.upper_points` > 0.
+   `upper == 0` fails (c) without demonstrating harm. The SCREEN launch script reads this
+   field and refuses to start on anything but PASSED. A stopped SETUP run is published; no
+   tuning or pooling of SETUP records into the SCREEN.
+4. **Record validity and the registered N (finding 4).** The summary trusts no CLI label: a
+   record enters only when its manifest names the summarized model, the registered window
+   (3,584) and reminder budget (256) and every arm's first generation is terminal (eos / cap /
+   timeout) and scored; offending ids are listed under `invalid_record_ids` and make the
+   primary INCOMPLETE. `primary_complete` additionally requires `items_scored` == the frozen
+   cohort size (an inapplicable item cannot shrink N silently). The Exp 4B confirmatory
+   reading requires model `4b`; the fraction reading on any 1.7B directory is DESCRIPTIVE.
+   `_record_matches` now also compares `window` and `budget_tokens` on resume. The old
+   output-dependent `fraction` fallback is reached only by records without per-family scores,
+   which the validity check excludes from any confirmatory summary.
+5. **Timeouts (finding 5).** A terminal timeout scores 0.0 on `fraction_required` in the
+   generation record and on legacy recomputation (tested with an otherwise compliant output).
+6. **Cumulative ceilings, enforced (finding 6).** `run --ceiling-seconds X` reconstructs the
+   cumulative generation seconds of the run's arms from every saved record across chunks
+   before each item, stops when X is reached and writes `BUDGET_EXHAUSTED.json`; `summarize`
+   recomputes the spend and reads INCOMPLETE when the marker exists or the spend exceeds the
+   ceiling, even if the crossing generation completed. Registered values (1.5 × t_max with
+   t_max = 47.64159221400041 s, full precision): per generation 71.46238832100062 s;
+   SETUP-LONG 48 generations → 3,430.1946394080296 s; SCREEN-LONG 256 generations →
+   18,294.371410176158 s; total 304 → 21,724.566049584188 s (6.03 GPU-h). Expected at the
+   pilot mean: SETUP 30.8 min, all 304 generations 3.25 GPU-h. With the 300-s deadline the
+   chunk rule stops starting items at minute 35 of a 50-minute budget for SETUP (three arms)
+   and minute 40 for SCREEN (two arms).
+7. **Disclosures (finding 8).** The post-hoc 4B short-cohort fractional analysis uses only
+   the first query of each of the 16 items, matching the LONG protocol (.031 / .099 / .203 /
+   .255 for history / restate_all / register / oracle; averaging all queries per item would
+   give .094 / .133 / .224 / .278). The oracle qualification threshold 0.20 was chosen after
+   these descriptive outcomes were available. Instrument repairs before this registration
+   (plan/LEDGER.md, 2026-09-12 entries): the oracle live set is now the cumulative event
+   replay (verified against `history_regex` on all 224 items), the speaker split is
+   name-based and Unicode-safe, and the LONG SETUP focus output of item 314-49 was regenerated
+   because the ASCII-only split had left it without candidates; the oracle arm of all 16
+   SETUP-LONG items and the Exp 3b oracle were regenerated for the same reason. Label use,
+   precisely: only `oracle` uses gold labels to construct its intervention; item selection,
+   scoring and the error table read labels; the focus policy reads none.
+8. **Memory reservation (finding 9).** The runner constructs the 4B model in float32
+   (4,022,468,096 parameters ≈ 16.1 GB) before loading the bf16 checkpoint (≈ 8.0 GB) and
+   casting, so the loading peak on unified memory is ≈ 24 GB plus process overhead, not the
+   9.66 GiB CUDA allocator peak the pilot recorded after loading. The reservation for every
+   Exp 4B slice is 32 GB. The pilot's `peak_*_gb` fields are GiB (bytes / 2³⁰) measured by
+   the CUDA allocator after loading; the report now says so.
+9. **Sanity check of the consumer on the committed 1.7B SETUP-LONG records** (same code
+   path, descriptive): 16/16 valid, per-constraint base .120 / focus .069 / oracle .063,
+   focus − base −5.17 points [−10.56, −0.43], cumulative primary-arm generation time 2,708 s.

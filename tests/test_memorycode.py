@@ -660,8 +660,27 @@ def test_long_prompts_equal_on_every_frozen_item():
     assert unequal == []
 
 
-def _fake_long_record(item, base_ok, focus_ok, oracle_ok=None, timed_out=False):
+def _fake_long_record(
+    item,
+    base_ok,
+    focus_ok,
+    oracle_ok=None,
+    timed_out=False,
+    model="1.7b",
+    seconds=10.0,
+    manifest=True,
+):
+    """Synthetic LONG record with the manifest and terminal scored generation the
+    summary consumer validates (Exp 4B review finding 4). ``ok`` = every required
+    check passes (fraction_required 1.0), else none (0.0)."""
+    query = item.get("queries", [None])[0]
+    required = set(item.get("required", {}).get(query, []))
+
     def arm(ok):
+        per_family = [
+            (1.0 if ok else 0.0) if str(obj) in required else None
+            for obj, _r in item.get("history_regex", [])
+        ]
         return {
             "policy": None,
             "selected_sentences": 0,
@@ -671,24 +690,44 @@ def _fake_long_record(item, base_ok, focus_ok, oracle_ok=None, timed_out=False):
             "reminder_empty": True,
             "generations": [
                 {
+                    "query": query,
                     "window": {"prompt_tokens": 3584},
                     "timed_out": timed_out,
+                    "termination": "timeout" if timed_out else "eos",
+                    "seconds": seconds,
                     "failures": {
                         "invalid": False,
                         "truncated": False,
                         "degenerate": False,
                         "timed_out": timed_out,
                     },
+                    "scores": {
+                        "per_family": per_family,
+                        "structure_present": True,
+                        "strict": ok and not timed_out,
+                        "fraction": 1.0 if ok else 0.0,
+                        "fraction_required": (
+                            0.0 if timed_out else (1.0 if ok else 0.0)
+                        ),
+                    },
                 }
             ],
-            "strict": ok,
+            "strict": ok and not timed_out,
             "fraction": 1.0 if ok else 0.0,
         }
 
     arms = {"base": arm(base_ok), "focus": arm(focus_ok)}
     if oracle_ok is not None:
         arms["oracle"] = arm(oracle_ok)
-    return {"id": item["id"], "split": item["split"], "arms": arms}
+    rec = {"id": item["id"], "split": item["split"], "model": model, "arms": arms}
+    if manifest:
+        rec["manifest"] = {
+            "model": model,
+            "window": mc.WINDOW,
+            "budget_tokens": mc.BUDGET,
+            "policy": "role_evicted",
+        }
+    return rec
 
 
 def test_long_summary_consumer(tmp_path, monkeypatch):
@@ -740,6 +779,67 @@ def test_long_summary_consumer(tmp_path, monkeypatch):
     assert summary["reading"]["n_primary"] == 128
     assert summary["contrasts"]["oracle_vs_focus"]["paired_interval"]["n"] == 5
 
+    # ---- Exp 4B review cases ------------------------------------------------
+    class Args4B(Args):
+        model = "4b"
+        primary = "fraction"
+
+    out4 = root / "screen_long-4b-role_evicted"
+    out4.mkdir()
+    # (finding 2) complete SCREEN with ZERO oracle records must not crash and reads
+    # PROVEN on the fraction primary for the 4B trunk
+    for it in items:
+        (out4 / f"item-{it['id']}.json").write_text(
+            json.dumps(_fake_long_record(it, False, True, model="4b"))
+        )
+    summary = screen.phase_summarize(Args4B())
+    assert summary["items_with_arm"]["oracle"] == 0
+    assert (
+        summary["contrasts"]["oracle_vs_base"]["fraction_required_bootstrap"]["n"] == 0
+    )
+    assert summary["reading"]["verdict"] == "PROVEN"
+    assert summary["reading"]["n_primary"] == 128
+    assert summary["reading"]["lower_points"] > 0
+    # (finding 4) the same records labelled 1.7B are invalid for a 4B summary
+    bad = _fake_long_record(items[0], False, True, model="1.7b")
+    (out4 / f"item-{items[0]['id']}.json").write_text(json.dumps(bad))
+    summary = screen.phase_summarize(Args4B())
+    assert items[0]["id"] in summary["invalid_record_ids"]
+    assert not summary["primary_complete"]
+    assert summary["reading"]["verdict"] == "INCOMPLETE"
+    # a 1.7B SCREEN on the fraction primary is never confirmatory (DESCRIPTIVE)
+    (out4 / f"item-{items[0]['id']}.json").write_text(
+        json.dumps(_fake_long_record(items[0], False, True, model="4b"))
+    )
+
+    class Args17(Args4B):
+        model = "1.7b"
+
+    out17 = root / "screen_long-role_evicted"
+    for it in items:
+        (out17 / f"item-{it['id']}.json").write_text(
+            json.dumps(_fake_long_record(it, False, True))
+        )
+    assert screen.phase_summarize(Args17())["reading"]["verdict"] == "DESCRIPTIVE"
+    # (finding 5) a compliant generation that timed out scores 0.0 on the primary
+    rec = _fake_long_record(items[1], True, True, model="4b", timed_out=True)
+    rec["arms"]["focus"]["generations"][0]["scores"]["fraction_required"] = 1.0
+    assert screen._required_fraction_of(rec, "focus", items[1]) == 0.0
+
+    # (finding 6) budget exhaustion across chunks -> INCOMPLETE even when complete
+    class Ceiling(Args4B):
+        ceiling_seconds = 128 * 2 * 10.0 - 1  # records carry 10 s each
+
+    summary = screen.phase_summarize(Ceiling())
+    assert summary["budget"]["exhausted"] and not summary["primary_complete"]
+    assert summary["reading"]["verdict"] == "INCOMPLETE"
+    (out4 / "BUDGET_EXHAUSTED.json").write_text(json.dumps({"marker": True}))
+    summary = screen.phase_summarize(Args4B())
+    assert summary["budget"]["exhausted"]
+    assert summary["reading"]["verdict"] == "INCOMPLETE"
+    (out4 / "BUDGET_EXHAUSTED.json").unlink()
+    assert screen.phase_summarize(Args4B())["reading"]["verdict"] == "PROVEN"
+
     class Setup(Args):
         split = "setup_long"
         policy = "register"
@@ -761,6 +861,43 @@ def test_long_summary_consumer(tmp_path, monkeypatch):
     summary = screen.phase_summarize(Setup())
     assert summary["primary_complete"]
     assert summary["reading"]["verdict"] == "DESCRIPTIVE"
+
+    # (finding 3) qualification object on SETUP-LONG 4B, fraction primary
+    class Qual(Setup):
+        model = "4b"
+        policy = "role_evicted"
+        primary = "fraction"
+
+    qdir = root / "setup_long-4b-role_evicted"
+    qdir.mkdir()
+    # 16 base/focus pairs but only ONE oracle record: INCOMPLETE, never a pass
+    for i, it in enumerate(setup_items):
+        (qdir / f"item-{it['id']}.json").write_text(
+            json.dumps(
+                _fake_long_record(
+                    it, False, True, oracle_ok=True if i == 0 else None, model="4b"
+                )
+            )
+        )
+    q = screen.phase_summarize(Qual())["qualification"]
+    assert q["status"] == "INCOMPLETE" and q["passed"] is None
+    assert len(q["missing_three_arm_ids"]) == 15
+    # complete with oracle applying everything and focus winning: PASSED
+    for it in setup_items:
+        (qdir / f"item-{it['id']}.json").write_text(
+            json.dumps(_fake_long_record(it, False, True, oracle_ok=True, model="4b"))
+        )
+    q = screen.phase_summarize(Qual())["qualification"]
+    assert q["status"] == "PASSED" and all(q["conditions"].values())
+    # oracle floor (all zero) fails condition (a); focus harm fails (c)
+    for it in setup_items:
+        (qdir / f"item-{it['id']}.json").write_text(
+            json.dumps(_fake_long_record(it, True, False, oracle_ok=False, model="4b"))
+        )
+    q = screen.phase_summarize(Qual())["qualification"]
+    assert q["status"] == "FAILED"
+    assert not q["conditions"]["oracle_mean_fraction_required_ge_0.20"]
+    assert not q["conditions"]["focus_minus_base_upper_gt_0"]
 
 
 def test_failure_excess_reports_both_directions():
@@ -807,8 +944,16 @@ def test_fraction_required_has_a_frozen_denominator():
     # missing required structure -> 0.0 whatever the conventions score
     assert mc.fraction_required([1.0, 1.0, 1.0], regexes, ["variable"], False) == 0.0
     # nothing required -> inapplicable
-    assert mc.fraction_required([1.0], regexes, [], True) is None
-    assert mc.fraction_required([1.0], regexes, None, True) is None
+    assert mc.fraction_required([1.0, 1.0, 1.0], regexes, [], True) is None
+    assert mc.fraction_required([1.0, 1.0, 1.0], regexes, None, True) is None
+    # a family with several checks contributes each check (equal weight per check)
+    twice = [["variable", ".*_m$"], ["variable", "^[a-z]"], ["class", True]]
+    assert mc.fraction_required([1.0, 0.0, 1.0], twice, ["variable"], True) == 0.5
+    # malformed input raises instead of silently truncating (review finding 1)
+    with pytest.raises(ValueError):
+        mc.fraction_required([1.0], regexes, ["variable"], True)
+    with pytest.raises(ValueError):
+        mc.fraction_required([1.0, 1.0, 1.0], regexes, ["function"], True)
     # score_generation carries the field
     out = mc.score_generation(
         "```python\nx_m = 1\n```",
@@ -842,9 +987,15 @@ def test_paired_mean_bootstrap_is_deterministic_and_reads_direction():
     assert flipped["upper_points"] < 0 and flipped["losses"] == 5
 
     # fraction_reading verdict ladder on a synthetic summary
-    def summary(lower, upper, excess, complete=True, split="screen_long"):
+    empty = screen._paired_mean_bootstrap([], [], draws=100)
+    assert empty["n"] == 0 and empty["lower_points"] is None
+    with pytest.raises(ValueError):
+        screen._paired_mean_bootstrap([1.0], [], draws=100)
+
+    def summary(lower, upper, excess, complete=True, split="screen_long", model="4b"):
         return {
             "split": split,
+            "model": model,
             "policy": "role_evicted",
             "primary_complete": complete,
             "items_expected": 128,
@@ -874,5 +1025,9 @@ def test_paired_mean_bootstrap_is_deterministic_and_reads_direction():
     )
     assert (
         screen.fraction_reading(summary(1.0, 5.0, 0.0, split="setup_long"))["verdict"]
+        == "DESCRIPTIVE"
+    )
+    assert (
+        screen.fraction_reading(summary(1.0, 5.0, 0.0, model="1.7b"))["verdict"]
         == "DESCRIPTIVE"
     )

@@ -381,12 +381,21 @@ def fraction_required(
     scores: list, regexes: list, required: list[str] | None, structure_present: bool
 ) -> float | None:
     """Per-constraint compliance with a denominator FROZEN before generation
-    (Exp 4B registration): the mean score over the REQUIRED families of the query
-    (an absent required parent counts 0.0; optional families an output happens to
-    introduce are ignored), and 0.0 when the required structure is missing.
-    ``None`` only when the query requires nothing (item inapplicable)."""
+    (Exp 4B registration): the arithmetic mean over the ``history_regex`` CHECKS whose
+    family is REQUIRED by the query, each check weighted equally (a family with several
+    checks contributes each of them); an absent required parent counts 0.0; optional
+    families an output happens to introduce are ignored; 0.0 when the required
+    structure is missing. ``None`` only when the query requires nothing (item
+    inapplicable). Raises on malformed input (length mismatch, a required family
+    without any check) instead of silently truncating."""
+    if len(scores) != len(regexes):
+        raise ValueError(f"{len(scores)} scores for {len(regexes)} regex checks")
     if not required:
         return None
+    families = {str(obj) for obj, _regex in regexes}
+    uncovered = [f for f in required if f not in families]
+    if uncovered:
+        raise ValueError(f"required families without a check: {uncovered}")
     if not structure_present:
         return 0.0
     values = [

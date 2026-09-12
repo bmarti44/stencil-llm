@@ -13,6 +13,13 @@
   "focus"
  ],
  "missing_primary_ids": [],
+ "invalid_record_ids": {},
+ "budget": {
+  "cumulative_generation_seconds_primary_arms": 2708.2145630301675,
+  "ceiling_seconds": null,
+  "marker": null,
+  "exhausted": false
+ },
  "items_with_arm": {
   "base": 16,
   "focus": 16,
@@ -186,9 +193,29 @@
   "lower_points": -10.556584314808,
   "upper_points": -0.42841686444227284,
   "focus_excess_failure_fraction": 0.0,
-  "note": "N=16 of 16 frozen items; 95% percentile bootstrap over items; strict reported alongside; NOT PROVEN is final."
+  "budget_exhausted": false,
+  "invalid_records": {},
+  "note": "N=16 of 16 frozen items; 95% percentile bootstrap over items (order statistics 251/9750 of 10,000); the sign test is a descriptive directional companion; strict reported alongside; NOT PROVEN is final."
  },
  "primary": "fraction",
+ "qualification": {
+  "status": "FAILED",
+  "complete": true,
+  "passed": false,
+  "conditions": {
+   "oracle_mean_fraction_required_ge_0.20": false,
+   "focus_only_failure_excess_le_0.05": true,
+   "focus_minus_base_upper_gt_0": false
+  },
+  "values": {
+   "oracle_mean_fraction_required": 0.06293706293706294,
+   "focus_excess_failure_fraction": 0.0,
+   "focus_minus_base_upper_points": -0.42841686444227284
+  },
+  "items_with_three_arms": 16,
+  "missing_three_arm_ids": [],
+  "note": "SCREEN-LONG launches only on PASSED; FAILED publishes SETUP-LONG as the negative and the program stops; INCOMPLETE is neither."
+ },
  "auto_non_vacuous_check": {
   "setup_items": 16,
   "setup_admitted": 277,
@@ -201,5 +228,5 @@
   "missed_updates": 0,
   "overflow_events": 4298
  },
- "git_sha": "18704bb18b4a42cdb91af75fe407559e6954bb1d"
+ "git_sha": "24ba54445fb878fcebfe868f6af46ab2ab4e21d5"
 }
