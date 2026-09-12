@@ -34,6 +34,16 @@ coding session, proven against the identical artifact with the modification off.
   97% with knows-but-violates rates up to 99%; thinking traces that talk about the rule are
   anti-correlated with obeying it for exact-form constraints.
 
+### Update after the instrument repair (02:31Z)
+
+With the corrected oracle regenerated on both cohorts the floor holds. SETUP-LONG, 16 items,
+1.7B: strict 0/16 on base, focus and oracle; mean fraction base .120, focus .069, oracle .063;
+prompt lengths equal on every item; the dense oracle reminder (17-21 rules, 250 tokens)
+produced 13 unparsable and 13 capped outputs against base's 4 and 11. Exp 3b, 16 short
+items: strict 0/16 on all four arms; oracle fraction rose from .051 to .112 once it carried
+the full live set (37.5 tokens on average). The contracted Qwen3-4B retry of Exp 3b is
+running; the 128-item SCREEN remains unlaunched.
+
 ## 2. What the evidence says will NOT work (do not spend GPU on these)
 
 | Idea | Why not | Evidence |
