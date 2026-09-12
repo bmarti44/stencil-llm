@@ -64,6 +64,9 @@ check (Exp 5). The wave line and KV pins are off the artifact's critical path.
      register below stays in the package as the OPT-IN maintainer with its error table
      and is evaluated descriptively on SETUP-LONG only. There is one primary policy and
      no fallback rerun.
+     Amendment 2 (Astra implementation review, same day) fixes the execution matrix
+     (48 + 256 + 16 = 320 generations, no SCREEN oracle), the timeout rule, the excess
+     formula, completeness and the enforced prompt equality; see REGISTRATION.md.
   1. Register (opt-in): admission by the published sentence classifier
      (`bmarti44/assistant-memory-sentence-classifier`, frozen) and lifecycle relations by
      the frozen relations-v2 seed0 head (`data/classifier/model/relations-v2/seed0`, sha

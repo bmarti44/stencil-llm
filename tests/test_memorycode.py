@@ -477,6 +477,7 @@ def test_output_failures_columns():
         "invalid": False,
         "truncated": False,
         "degenerate": False,
+        "timed_out": False,
         "repetition_4gram": 0.0,
     }
     assert mc.output_failures(bad, [1, 2, 3, 4] * 10, True)["invalid"] is True
@@ -528,9 +529,207 @@ def test_evicted_mentor_sentences_are_outside_the_window():
     head = base["prompt"].index(":\n") + 2
     kept = base["prompt"][head : base["prompt"].index(" \nBased on")]
     evicted = mc.evicted_mentor_sentences(d, item["session"], kept)
+    # the metadata path (cut_chars) gives the same answer as the legacy text path
+    assert kept == base["thread_text_kept"]
+    assert evicted == mc.evicted_mentor_sentences(
+        d, item["session"], cut=base["cut_chars"]
+    )
     assert evicted, "a LONG item must have mentor sentences outside the window"
     everything = [c["text"] for c in mc.mentor_sentences(d, item["session"])]
     assert set(evicted) <= set(everything) and len(evicted) < len(everything)
     # session 0 lies entirely outside the window of a LONG item
     first = [c["text"] for c in mc.mentor_sentences(d, 1)]
     assert first and first[0] == evicted[0]
+
+
+def test_timeout_is_a_failure_column():
+    f = mc.output_failures("```python\nx = 1\n```", [1, 2, 3], False, timed_out=True)
+    assert f["timed_out"] and mc.any_failure(f)
+    assert not mc.any_failure(
+        {"invalid": False, "truncated": False, "degenerate": False}
+    )
+
+
+def test_evicted_rule_ignores_embedded_request_marker():
+    """The cut comes from build_long_prompt metadata, not from rediscovering the
+    ' \nBased on' marker, so a conversation containing that marker is sliced
+    correctly (Astra Exp 4 implementation review, finding 8)."""
+    from tokenizers import Tokenizer
+
+    tok = Tokenizer.from_file(str(TOKENIZER))
+    item = json.loads((ROOT / "results/memorycode-long/items.json").read_text())[
+        "items"
+    ][0]
+    d = copy.deepcopy(mc.load_dialogue(item["dialogue"]))
+    s = item["session"]
+    mentor = d["context"]["mentor"]
+    # plant the marker inside the NEWEST session (retained by the window)
+    d["sessions"][s]["text"] += f"\n{mentor}: Remember this. \nBased on nothing."
+    base = mc.build_long_prompt(d, s, item["queries"][0], tok, "")
+    assert base["prompt"].count(" \nBased on") == 2
+    evicted = mc.evicted_mentor_sentences(d, s, cut=base["cut_chars"])
+    assert "Remember this." not in evicted
+    # legacy marker slicing would have shortened the kept text and shifted the cut
+    head = base["prompt"].index(":\n") + 2
+    sliced = base["prompt"][head : base["prompt"].index(" \nBased on")]
+    assert len(sliced) < len(base["thread_text_kept"])
+
+
+def test_long_prompts_equal_on_every_frozen_item():
+    """Paired equality over the whole frozen cohort, both primary arms, and the
+    window fit (finding 9); CPU only."""
+    from tokenizers import Tokenizer
+
+    tok = Tokenizer.from_file(str(TOKENIZER))
+    items = [
+        it
+        for it in json.loads((ROOT / "results/memorycode-long/items.json").read_text())[
+            "items"
+        ]
+        if it["split"] != "reserve"
+    ]
+    assert len(items) == 144
+    unequal = []
+    for it in items:
+        d = mc.load_dialogue(it["dialogue"])
+        base = mc.build_long_prompt(d, it["session"], it["queries"][0], tok, "")
+        evicted = mc.evicted_mentor_sentences(d, it["session"], cut=base["cut_chars"])
+        kept, used = mc.pack_long(evicted, tok)
+        assert used <= mc.BUDGET
+        focus = mc.build_long_prompt(
+            d, it["session"], it["queries"][0], tok, mc.render_long_reminder(kept)
+        )
+        assert base["prompt_tokens"] <= mc.WINDOW >= focus["prompt_tokens"]
+        if base["prompt_tokens"] != focus["prompt_tokens"]:
+            unequal.append(it["id"])
+    assert unequal == []
+
+
+def _fake_long_record(item, base_ok, focus_ok, oracle_ok=None, timed_out=False):
+    def arm(ok):
+        return {
+            "policy": None,
+            "selected_sentences": 0,
+            "kept_sentences": 0,
+            "reminder": "",
+            "reminder_tokens": 0,
+            "reminder_empty": True,
+            "generations": [
+                {
+                    "window": {"prompt_tokens": 3584},
+                    "timed_out": timed_out,
+                    "failures": {
+                        "invalid": False,
+                        "truncated": False,
+                        "degenerate": False,
+                        "timed_out": timed_out,
+                    },
+                }
+            ],
+            "strict": ok,
+            "fraction": 1.0 if ok else 0.0,
+        }
+
+    arms = {"base": arm(base_ok), "focus": arm(focus_ok)}
+    if oracle_ok is not None:
+        arms["oracle"] = arm(oracle_ok)
+    return {"id": item["id"], "split": item["split"], "arms": arms}
+
+
+def test_long_summary_consumer(tmp_path, monkeypatch):
+    """The actual LONG summary consumer on synthetic records: no crash, INCOMPLETE
+    when a frozen primary item is missing, records without oracle kept, and the
+    confirmatory reading only for screen_long/role_evicted (findings 2-3)."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "memorycode_screen", ROOT / "scripts/memorycode_screen.py"
+    )
+    screen = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(screen)
+    items = [
+        it
+        for it in json.loads((ROOT / "results/memorycode-long/items.json").read_text())[
+            "items"
+        ]
+        if it["split"] == "screen_long"
+    ]
+    root = tmp_path / "long"
+    root.mkdir()
+    (root / "items.json").write_text(json.dumps({"items": items}))
+    out = root / "screen_long-role_evicted"
+    out.mkdir()
+    monkeypatch.setattr(screen, "OUT_LONG", root)
+
+    class Args:
+        cohort = "long"
+        split = "screen_long"
+        model = "1.7b"
+        policy = "role_evicted"
+
+    # incomplete: 10 of 128 items, focus wins every time, some without oracle
+    for i, it in enumerate(items[:10]):
+        rec = _fake_long_record(it, False, True, oracle_ok=True if i % 2 else None)
+        (out / f"item-{it['id']}.json").write_text(json.dumps(rec))
+    summary = screen.phase_summarize(Args())
+    assert summary["items_complete"] == 10 and not summary["primary_complete"]
+    assert summary["reading"]["verdict"] == "INCOMPLETE"
+    assert summary["items_with_arm"]["oracle"] == 5
+    assert len(summary["missing_primary_ids"]) == 118
+    # complete, all focus wins -> PROVEN only on the registered split/policy
+    for it in items[10:]:
+        rec = _fake_long_record(it, False, True)
+        (out / f"item-{it['id']}.json").write_text(json.dumps(rec))
+    summary = screen.phase_summarize(Args())
+    assert summary["primary_complete"] and summary["reading"]["verdict"] == "PROVEN"
+    assert summary["reading"]["n_primary"] == 128
+    assert summary["contrasts"]["oracle_vs_focus"]["paired_interval"]["n"] == 5
+
+    class Setup(Args):
+        split = "setup_long"
+        policy = "register"
+
+    setup_items = [
+        it
+        for it in json.loads((ROOT / "results/memorycode-long/items.json").read_text())[
+            "items"
+        ]
+        if it["split"] == "setup_long"
+    ]
+    (root / "items.json").write_text(json.dumps({"items": items + setup_items}))
+    sdir = root / "setup_long"
+    sdir.mkdir()
+    for it in setup_items:
+        (sdir / f"item-{it['id']}.json").write_text(
+            json.dumps(_fake_long_record(it, False, True, oracle_ok=True))
+        )
+    summary = screen.phase_summarize(Setup())
+    assert summary["primary_complete"]
+    assert summary["reading"]["verdict"] == "DESCRIPTIVE"
+
+
+def test_failure_excess_reports_both_directions():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "memorycode_screen", ROOT / "scripts/memorycode_screen.py"
+    )
+    screen = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(screen)
+    items = [{"id": f"x-{i}", "split": "screen_long"} for i in range(10)]
+    recs = []
+    for i, it in enumerate(items):
+        rec = _fake_long_record(it, True, True)
+        # 3 focus-only failures, 2 base-only failures
+        if i < 3:
+            rec["arms"]["focus"]["generations"][0]["failures"]["invalid"] = True
+        elif i < 5:
+            rec["arms"]["base"]["generations"][0]["failures"]["truncated"] = True
+        recs.append(rec)
+    out = screen._failure_excess(recs, ["base", "focus"], "base")
+    assert (
+        out["focus"]["excess_items"] == 3 and out["focus"]["reference_only_items"] == 2
+    )
+    assert out["focus"]["net_rate_difference"] == pytest.approx(0.1)
+    assert out["focus"]["categories"]["invalid"] == 3
+    assert out["base"]["excess_items"] == 0  # reference vs itself

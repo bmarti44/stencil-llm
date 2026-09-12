@@ -497,6 +497,9 @@ def build_long_prompt(
             break
         budget -= actual - window
         dropped += 1
+    if actual > window:
+        raise ValueError(f"prompt does not fit W={window} after retrims: {actual}")
+    full = thread_text(dialogue, list(range(s + 1)))
     return {
         "prompt": prompt,
         "prompt_tokens": actual,
@@ -504,6 +507,8 @@ def build_long_prompt(
         "thread_tokens_total": len(thread_ids),
         "frame_tokens": frame_tokens,
         "retrim_rounds": dropped,
+        "thread_text_kept": thread,
+        "cut_chars": max(len(full) - len(thread), 0),
     }
 
 
@@ -522,9 +527,12 @@ def extract_code(text: str) -> str:
     return match[0] if match else text
 
 
-def output_failures(text: str, ids: list[int], truncated: bool) -> dict:
-    """Output-failure guard columns (plan rev 7.1 H): invalid = no parsable code,
-    truncated = hit the cap, degenerate = 4-gram repetition above 0.5."""
+def output_failures(
+    text: str, ids: list[int], truncated: bool, timed_out: bool = False
+) -> dict:
+    """Output-failure guard columns (plan rev 7.1 H; Exp 4 amendment 2): invalid =
+    no parsable code, truncated = hit the cap, degenerate = 4-gram repetition above
+    0.5, timed_out = the generation deadline was exceeded (a terminal failure)."""
     code = extract_code(text)
     try:
         ast.parse(code)
@@ -535,20 +543,34 @@ def output_failures(text: str, ids: list[int], truncated: bool) -> dict:
         "invalid": invalid,
         "truncated": truncated,
         "degenerate": repeated_4gram_fraction(ids) > DEGENERATE_REP4,
+        "timed_out": timed_out,
         "repetition_4gram": repeated_4gram_fraction(ids),
     }
 
 
-def evicted_mentor_sentences(dialogue: dict, s: int, thread_kept: str) -> list[str]:
-    """Frozen fallback policy (plan G / Exp 4 registration): every mentor sentence of
+FAILURE_COLUMNS = ("invalid", "truncated", "degenerate", "timed_out")
+
+
+def any_failure(failures: dict) -> bool:
+    return any(failures.get(k, False) for k in FAILURE_COLUMNS)
+
+
+def evicted_mentor_sentences(
+    dialogue: dict, s: int, thread_kept: str | None = None, cut: int | None = None
+) -> list[str]:
+    """Exp 4 primary policy (registration amendment 1): every mentor sentence of
     sessions 0..s-1 whose text lies entirely BEFORE the base window's cut, i.e. the
     truncated-away region, chronological (the caller packs newest-first). Label-free,
     zero-parameter; the analogue of Exp 1's ``role_echo_only`` over the evicted
-    region."""
+    region. ``cut`` is the character offset of the window start in the full thread
+    (``build_long_prompt(...)["cut_chars"]``); ``thread_kept`` is the legacy way to
+    derive it from the retained text's length."""
     from stencil.focus3 import sentences
 
     full = thread_text(dialogue, list(range(s + 1)))
-    cut = max(len(full) - len(thread_kept), 0)
+    if cut is None:
+        assert thread_kept is not None
+        cut = max(len(full) - len(thread_kept), 0)
     out = []
     for i in range(s):
         session_start = full.index(f"\n\n Session {i} \n\n")

@@ -1,0 +1,55 @@
+1. **High — Amendment 1 needs explicit supersession and exposure wording.** [REGISTRATION.md:117](/home/bmarti44/stencil-llm/results/memorycode-long/REGISTRATION.md:117), [plan G:88](/home/bmarti44/stencil-llm/plan/BACK-ON-TRACK-PLAN.md:88), [plan H:155](/home/bmarti44/stencil-llm/plan/BACK-ON-TRACK-PLAN.md:155). The evidence supports a pre-generation amendment without generation-outcome peeking. However, it is **item-informed policy selection**: the CPU phase processed SCREEN-LONG and computed label-derived diagnostics. Record it as a disclosed policy revision under D2. The old register-primary, fallback, and two-attempt passages remain operative-looking.
+
+   **Minimum edit:** Explicitly supersede those passages: “The sole confirmatory contrast is `role_evicted focus − base` on the frozen 128 SCREEN-LONG items. SETUP-LONG and register/oracle comparisons are descriptive. No result triggers another policy attempt. The primary interval remains the conservative union-bound interval with coverage at least 95%.” State exactly which diagnostics informed the amendment and that no generated compliance outcomes informed it. Correct “2,401 rows admitted”: I recomputed **2,370 admissions and 2,401 stored rows**; the reported overflow and missed-session totals reproduce.
+
+   The statistical formula itself matches: separate central 97.5% Clopper–Pearson intervals, differenced as `[L_b−U_c, U_b−L_c]`. Recomputed thresholds are **10 wins/0 losses** and **29 wins/10 losses**; the two stated positive-result probabilities are **25.817%** and **90.780%**. No additional multiplicity adjustment is needed for one frozen primary contrast.
+
+2. **High — Every LONG summary crashes.** [memorycode_screen.py:592](/home/bmarti44/stencil-llm/scripts/memorycode_screen.py:592). `strict` contains `base`, `focus`, and `oracle`, but the code executes `sorted(strict["history"])`. I reproduced `KeyError: 'history'` through `phase_summarize`.
+
+   **Minimum edit:** Choose the reference arm by cohort, and exercise the actual LONG summary consumer with synthetic records.
+
+3. **High — Primary completeness depends on the optional oracle, and incomplete runs can receive PROVEN.** [memorycode_screen.py:573](/home/bmarti44/stencil-llm/scripts/memorycode_screen.py:573), [memorycode_screen.py:545](/home/bmarti44/stencil-llm/scripts/memorycode_screen.py:545). The summary discards records lacking any of the three LONG arms. Consequently, a complete registered base/focus pair without oracle disappears. Separately, `long_reading` ignores completeness, split, and policy: a synthetic incomplete ten-item run received **PROVEN**, accompanied by the hard-coded “N=128” note. SETUP and register summaries can receive the same confirmatory reading.
+
+   Frozen applicability is implemented correctly: I recomputed the stored requirements and structures for all **144** items; none was inapplicable.
+
+   **Minimum edit:** Determine primary completeness from the exact frozen SCREEN-LONG IDs and base/focus terminal records only. Keep ancillary availability separate. Return **INCOMPLETE** whenever the required primary outcomes are missing; restrict confirmatory readings to the registered SCREEN-LONG policy.
+
+4. **High — LONG defaults and arm execution do not implement the amended budget.** [memorycode_screen.py:717](/home/bmarti44/stencil-llm/scripts/memorycode_screen.py:717), [REGISTRATION.md:52](/home/bmarti44/stencil-llm/results/memorycode-long/REGISTRATION.md:52), [REGISTRATION.md:135](/home/bmarti44/stencil-llm/results/memorycode-long/REGISTRATION.md:135). The CLI still defaults to `register` and three arms. The retained conditional SCREEN oracle adds generations absent from the amended ceiling.
+
+   **Minimum edit:** Freeze and validate this execution matrix: SETUP base/focus/oracle = **48** generations; SCREEN base/focus = **256**; SETUP register-only = **16**. Total **320**, or **356** including pilot and parity. Remove SCREEN oracle under that ceiling and default LONG to `role_evicted`. Populate the measured LONG pilot budget before the main run.
+
+   Run and summarize both use `_out_dir` correctly **when supplied identical policy arguments**. Update the documented artifact paths to include `-role_evicted` and record the policy in summaries.
+
+5. **High — Timeout outcomes are not registered or enforced.** [memorycode_screen.py:300](/home/bmarti44/stencil-llm/scripts/memorycode_screen.py:300), [memorycode_screen.py:447](/home/bmarti44/stencil-llm/scripts/memorycode_screen.py:447), [memorycode.py:525](/home/bmarti44/stencil-llm/src/stencil/memorycode.py:525). `timed_out` is saved but ignored by strict scoring, failure classification, and completeness. A timed-out prefix containing compliant parsable code can therefore count as successful with no output failure. Deadline overruns ending directly in EOS or the token cap can also escape the current timeout flag.
+
+   **Minimum edit:** Register timeout treatment before generation and implement it consistently. A conservative rule is a terminal strict failure with an explicit timeout failure column, retained in the fixed denominator and never rerun for a better completion. Record an unambiguous termination reason and check elapsed time after generation exits.
+
+6. **Medium — The reservation stopping rule is only partially enforced.** [memorycode_screen.py:383](/home/bmarti44/stencil-llm/scripts/memorycode_screen.py:383), [memorycode_screen.py:731](/home/bmarti44/stencil-llm/scripts/memorycode_screen.py:731). With a positive budget, the loop stops starting items after `budget − 5` minutes. However, zero disables it, the timer starts after initialization work, and the comparison uses `>` rather than `>=`. A final two-arm item has **600 seconds** of registered generation deadlines, exceeding the five-minute buffer.
+
+   **Minimum edit:** Require a positive LONG budget tied to reservation start, use `>=`, and start an item only when its remaining required arms fit the reservation. Persist budget exhaustion and cumulative expenditure across chunks; connect exhaustion to the INCOMPLETE handling in finding 3.
+
+7. **Medium — “Excess output failures” lacks the implemented mathematical definition.** [memorycode_screen.py:526](/home/bmarti44/stencil-llm/scripts/memorycode_screen.py:526), [REGISTRATION.md:86](/home/bmarti44/stencil-llm/results/memorycode-long/REGISTRATION.md:86). The implementation counts `focus fails AND base succeeds`, using the union of invalid/truncated/degenerate. It does not calculate the net failure-rate difference. With seven focus-only failures and seven base-only failures, it reports **7/128 = 5.46875%**, although net excess is zero.
+
+   **Minimum edit:** Freeze the intended formula explicitly. Keeping the implemented conservative guard requires wording that names the focus-only discordance rate. Publish both discordance directions and the individual failure-category counts.
+
+8. **Medium — Thread extraction can mis-slice valid conversation text.** [memorycode_screen.py:410](/home/bmarti44/stencil-llm/scripts/memorycode_screen.py:410), [memorycode.py:550](/home/bmarti44/stencil-llm/src/stencil/memorycode.py:550), [test_memorycode.py:529](/home/bmarti44/stencil-llm/tests/test_memorycode.py:529). The first `" \nBased on"` occurrence can belong to the retained conversation. A synthetic fixture reproduced the shortened extraction and shifted eviction boundary. The helper then infers the cut solely from string lengths.
+
+   On the **144 frozen items**, extraction matched the actual retained token suffix, and selected sentence occurrences matched an independent source-offset calculation. Returning candidates chronologically is correct here: `pack_long` traverses them newest-first.
+
+   **Minimum edit:** Return the retained thread and source boundary directly from `build_long_prompt`; use those metadata instead of rediscovering boundaries through content markers. Test embedded markers and cuts through sentences.
+
+9. **Medium — Equal prompt length is observed but not enforced.** [memorycode.py:471](/home/bmarti44/stencil-llm/src/stencil/memorycode.py:471), [memorycode_screen.py:434](/home/bmarti44/stencil-llm/scripts/memorycode_screen.py:434), [test_memorycode.py:489](/home/bmarti44/stencil-llm/tests/test_memorycode.py:489). Construction independently accepts any prompt at or below W; it never asserts equality between arms, and the bounded retrim loop lacks a final fit assertion. The existing test covers one item and permits a two-token difference despite the governing plan requiring equality.
+
+   I recomputed **3,584 tokens for both primary prompts on every frozen item**, with no retrim rounds. SETUP register prompts also matched. `pack_long` correctly includes the header within E; the observed maximum primary reminder was **256 tokens**.
+
+   **Minimum edit:** Assert final window fit and paired equality before generation, and extend CPU coverage to the frozen cohort and retrim cases.
+
+10. **Medium — Atomic writes are sound, but resume validation and provenance are insufficient.** [memorycode_screen.py:36](/home/bmarti44/stencil-llm/scripts/memorycode_screen.py:36), [memorycode_screen.py:387](/home/bmarti44/stencil-llm/scripts/memorycode_screen.py:387), [memorycode_screen.py:478](/home/bmarti44/stencil-llm/scripts/memorycode_screen.py:478). Atomic replacement works, and completed files are skipped. However, existence alone is treated as completion: a file produced with only `--arms focus` prevents later requested arms from running. A crash before the final item write loses already completed arms. Records lack generation-time code/input identities; the summary’s Git SHA describes summary time.
+
+   **Minimum edit:** Atomically checkpoint terminal arms and validate their registered configuration before skipping them. Link records to a frozen manifest containing code, items, tokenizer/weights identities, and decoding parameters; preserve prompt/reminder identity and the eviction boundary.
+
+   **Gold-flow conclusion:** No gold-to-focus intervention path was found. `phase_run` loads topics unconditionally, but `arm_sentences → evicted_mentor_sentences → speaker_lines/sentences` uses context and text; the register branch reads saved `sentences` from the text-driven adapter. The helper imports perform no benchmark reads. Removing label fields left selection and rendering unchanged across all frozen items. Replace “only oracle reads labels” with the plan’s precise wording: only oracle **uses labels to construct its intervention**; selection, scoring, and error diagnostics also access labels.
+
+**LAUNCH AFTER EDITS:** Resolve the registration wording, summary crash and completeness rules, amended arm matrix, timeout/failure definitions, reservation handling, boundary metadata, prompt assertions, and resume provenance above; then insert the measured pilot budget before the main run. The interval arithmetic, frozen applicability, token budgets, and primary label isolation checked out. The scoped CPU suite passed **33 tests**, with two broader enumeration tests excluded.
+
+No files written, models/GPU/network used, or data/bench/ contents read.

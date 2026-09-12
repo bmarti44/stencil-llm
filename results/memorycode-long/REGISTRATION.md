@@ -118,7 +118,7 @@ RESULTS.md (rule D1).
 
 The CPU register phase (`auto --cohort long`, `auto/summary.json`) ran the frozen FOCUS-3
 runtime over the 144 SETUP-LONG + SCREEN-LONG items before any GPU spend. Observed:
-2,401 rows admitted, 32,058 overflow events on 138/144 items (the runtime skips every
+2,370 admissions (2,401 stored rows), 32,058 overflow events on 138/144 items (the runtime skips every
 message once the register holds more than 16 rows, `focus3.py:303`, and MemoryCode
 sessions admit ~17 conversational sentences within the first one or two sessions),
 2,776 missed instruction sessions, 0 lifecycle relations applied on SETUP-LONG, 6 empty
@@ -137,3 +137,66 @@ budget ceiling drops to 1.5 × t_max × (2 × 144 + 16 oracle + 16 register) = 1
 The register-based automatic maintainer is therefore NOT the artifact's primary mechanism
 on long sessions; the artifact's frozen configuration (plan G) is amended to match, and
 the register ships, if at all, as the opt-in maintainer with its error table.
+
+## AMENDMENT 2 (2026-09-11, before any LONG generation; Astra implementation review,
+`results/reviews/2026-09-11-exp4-impl-review-astra.md`, "LAUNCH AFTER EDITS")
+
+Supersession. Amendment 1 is a disclosed POLICY REVISION under rule D2 (one of the two
+permitted per program), not an instrument fix: the CPU register phase processed the
+SCREEN-LONG items and computed label-derived diagnostics (false admissions, missed
+instruction sessions, overflow events, relations applied, empty live sets), so the policy
+choice is item-informed; NO generated output and NO compliance outcome of any arm informed
+it. With this amendment the following passages above are SUPERSEDED wherever they conflict:
+the `focus` row of the Arms table (register as primary), the "Frozen fallback" paragraph,
+the NOT PROVEN reading's fallback clause, the `oracle`-on-SCREEN-LONG clause, and the
+budget formula with 432 generations.
+
+The sole confirmatory contrast is `focus` (policy `role_evicted`) − `base` on strict
+compliance over the frozen 128 SCREEN-LONG items of `items.json`. SETUP-LONG and every
+register/oracle comparison are descriptive. No result triggers another policy attempt.
+The primary interval is the conservative union-bound paired interval (separate central
+97.5% Clopper-Pearson bounds, difference `[L_b − U_c, U_b − L_c]`), coverage at least
+95%; no multiplicity adjustment is needed for one frozen primary contrast. Recomputed
+thresholds: wholly positive first at 10 wins / 0 losses; 29 wins needed with 10 losses;
+positive-result probabilities 25.8% (win/loss .15/.05) and 90.8% (.25/.05).
+
+Execution matrix (frozen; the CLI defaults implement it): SETUP-LONG `base`/`focus`/
+`oracle` = 48 generations; SCREEN-LONG `base`/`focus` = 256; SETUP-LONG register arm
+(`--arms focus --policy register`, descriptive, written to `setup_long/`) = 16. Total 320,
+or 356 with the 4-generation pilot and the 32-generation parity check. No `oracle` on
+SCREEN-LONG. Artifact paths: `setup_long-role_evicted/`, `screen_long-role_evicted/`,
+`setup_long/` (register arm); every summary records its policy.
+
+Timeouts (registered before generation): a generation whose wall time exceeds the 300 s
+deadline, however it ended (break, EOS or cap on the same step), is a TERMINAL STRICT
+FAILURE, counted in the `timed_out` output-failure column, kept in the fixed denominator
+and never rerun; the record stores the termination reason (`eos` / `cap` / `timeout`).
+
+Output-failure guard, exact formula: `focus` excess = the focus-only discordance rate,
+(# items where `focus` has any failure among invalid / truncated / degenerate / timed_out
+AND `base` has none) / N. PROVEN requires it ≤ 0.05. Both discordance directions, the net
+rate difference and the per-category counts are published alongside.
+
+Completeness: the primary is COMPLETE only when every frozen SCREEN-LONG id has a terminal
+`base` and `focus` record under the registered configuration; otherwise the summary
+reads INCOMPLETE and no confirmatory reading is issued. Ancillary arms (oracle) are
+summarised on the subset that has them. Confirmatory readings are issued only for
+`screen_long` under `role_evicted`; SETUP-LONG and register summaries read DESCRIPTIVE.
+
+Reservation rule: `--budget-minutes` is required (positive) for the LONG cohort; an item
+starts only if its remaining arms, each at the full deadline, fit before the budget ends
+(`elapsed ≥ budget − n_arms × deadline` stops the run); the timer starts at phase entry
+(before the model load). Records checkpoint atomically after every terminal arm; a rerun
+skips only arms that exist and refuses to mix configurations (items, tokenizer, weights,
+model, policy and decoding identities are stored in every record as `manifest`).
+
+Prompt equality is ENFORCED, not observed: `build_long_prompt` raises if the prompt does
+not fit W after retrims, and the runner refuses to generate any arm whose complete prompt
+length differs from `base` for the same item (CPU test over all 144 frozen items: equal on
+every item, 3,584 tokens, no retrims). The eviction boundary is taken from the builder's
+metadata (`cut_chars`), never rediscovered from content markers.
+
+Label rule, precise wording: only `oracle` USES labels to construct its intervention;
+item selection, scoring and the register's error diagnostics also read labels. The review
+traced no label-to-`focus` path (removing the label fields left selection and rendering
+unchanged on all frozen items).

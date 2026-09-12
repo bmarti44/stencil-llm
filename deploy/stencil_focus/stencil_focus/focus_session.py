@@ -138,6 +138,8 @@ class Session:
                 break
             budget -= actual - self.window
             rounds += 1
+        if actual > self.window:
+            raise ValueError(f"prompt does not fit the window after retrims: {actual}")
         return {
             "prompt": prompt,
             "prompt_tokens": actual,
