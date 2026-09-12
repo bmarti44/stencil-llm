@@ -3838,3 +3838,13 @@ clean-environment verification, checker hashes + reminder source offsets (regist
 tests/test_memorycode_4c.py: 16 pass. Conservative readings recorded: a call may start only if cumulative
 generation spending + deadline ≤ 3 t_max N; verification resident time is the clean-venv process (the venv build
 is not GPU-resident). Next: qualification launch (44 generations, receipts), freeze, evaluation.
+
+2026-09-12 17:00Z — Exp 4C qualification COMPLETE and ELIGIBLE (results/memorycode-long/qualification-4c.json, 44 receipts
+under qualification-4c/): plain-model matches 16/16 (prompt ids + raw), package replays 8/8 (prompt bytes + ids + raw),
+fingerprints equal, effective EOS [151645], resident 2,749 s of 3,600 (two processes: the first stopped cleanly at its
+slice limit after 42 calls, the second resumed the last two replays). t_max = 68.689 s (351-99 focus, cap; measured with
+the peer's 1.7B training co-resident, as the registration allows). Timing rule: N = floor(28800 / (3 × 68.689)) = 139.
+FROZEN: items-4c.json, N = 139, frozen-ids sha eb37a6a1bdccbe3c1e752baf8ddf31a53d0f1268d59a9f633d539107cbe51546,
+qualification sha ea38a9178dac8322…, ceiling 3 t_max N = 28,643 s, chain verified. WRITE-AHEAD: launching the single
+evaluation via tools/exp4c_eval_launch.sh (55-min reservations, 3,000 s per-process limit, no interim efficacy look).
+STATE: Exp 4C evaluation running; on completion run memorycode_4c_summarize.py --terminal ONCE, then the Astra audit.
