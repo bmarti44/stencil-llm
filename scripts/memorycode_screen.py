@@ -380,6 +380,10 @@ def arm_sentences(
 def _out_dir(args) -> Path:
     root = out_root(args)
     name = args.split if args.model == "1.7b" else f"{args.split}-{args.model}"
+    if getattr(args, "runtime", "research") == "package":
+        # records generated through the published package (transformers path,
+        # scripts/memorycode_package_run.py; Exp 4C draft)
+        name = f"{name}-package"
     if getattr(args, "policy", "register") != "register":
         name = f"{name}-{args.policy}"
     return root / name
@@ -1224,6 +1228,13 @@ def main(argv=None) -> int:
         "(all chunks); reaching it stops the run and marks it INCOMPLETE",
     )
     parser.add_argument("--force", action="store_true")
+    parser.add_argument(
+        "--runtime",
+        choices=["research", "package"],
+        default="research",
+        help="summarize: which record set to read (package = generated through the "
+        "published artifact by memorycode_package_run.py)",
+    )
     parser.add_argument(
         "--primary",
         choices=["strict", "fraction"],
