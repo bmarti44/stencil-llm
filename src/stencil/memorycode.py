@@ -566,3 +566,39 @@ def evicted_mentor_sentences(dialogue: dict, s: int, thread_kept: str) -> list[s
                 if body_start + position + start + len(sentence) <= cut:
                     out.append(sentence)
     return out
+
+
+# ------------------------------------------------------------ artifact parity
+
+
+def focus_session_messages(dialogue: dict, s: int) -> list[tuple[str, str, str]]:
+    """(role, text, rendered) messages that rebuild ``thread_text(dialogue, 0..s)``
+    byte for byte inside the published package's ``Session``: mentor lines are
+    ``user`` (instruction role, text = the line's content), every other line and
+    the session separators are stored only."""
+    mentor = dialogue["context"]["mentor"]
+    out = []
+    for i in range(s + 1):
+        out.append(("separator", "", f"\n\n Session {i} \n\n"))
+        lines = dialogue["sessions"][i]["text"].split("\n")
+        for j, raw in enumerate(lines):
+            rendered = raw + ("\n" if j < len(lines) - 1 else "")
+            line = raw.strip()
+            m = re.match(r"^([A-Za-z][A-Za-z .'-]*?):\s*(.*)$", line)
+            if m and m[1].strip() == mentor and m[2].strip():
+                out.append(("user", m[2].strip(), rendered))
+            else:
+                out.append(("other", "", rendered))
+    return out
+
+
+def long_request(dialogue: dict, query: str) -> tuple[str, str, str]:
+    """(head, separator, request) of the native LONG frame for the package."""
+    mentor = dialogue["context"]["mentor"]
+    head = f"This is a thread of dialogues between you and your mentor {mentor}:\n"
+    request = (
+        f"Based on information provided, write a {query}. Do not provide example "
+        "usage. You must follow all the latest coding guidelines provided by your "
+        "mentor, including any possible updates."
+    )
+    return head, " \n", request
