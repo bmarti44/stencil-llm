@@ -206,3 +206,17 @@ def code_line_count(text: str, fenced: bool | None = None) -> tuple[bool, int, i
             n += 1
             last_indent = len(line) - len(line.lstrip())
     return in_code, n, last_indent
+
+
+def strip_echoes(text: str, cue_lines: set[str]) -> tuple[str, int]:
+    """Remove model-authored lines whose stripped content equals an inserted cue line
+    (the model copying the cue block).  Returns the text and the number of removed
+    lines.  Apply AFTER :func:`strip_spans`."""
+    out = []
+    n = 0
+    for line in text.split("\n"):
+        if line.strip() in cue_lines:
+            n += 1
+            continue
+        out.append(line)
+    return "\n".join(out), n

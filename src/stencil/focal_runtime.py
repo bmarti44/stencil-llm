@@ -53,6 +53,11 @@ class FocalGenerator:
     any kind.  ``max_insertions`` bounds the number of insertions per generation.
     With ``rules=[]`` the loop is plain greedy decoding.
 
+    ``deliver="first"`` (dose-matched with a once-before reminder) delivers each
+    kind's rules once, at the first governed unit of that kind; ``deliver="every"``
+    delivers at every governed unit, subject to ``cooldown_lines`` complete code
+    lines since the previous insertion and ``max_per_rule`` deliveries per rule.
+
     ``policy="periodic"`` is the repetition-matched control: the complete rule list
     (every kind, one block) is inserted at the start of the next code line every
     ``period_lines`` complete non-blank code lines, at a line boundary (no rollback)
@@ -71,7 +76,15 @@ class FocalGenerator:
         max_insertions: int = 40,
         policy: str = "aligned",
         period_lines: int = 8,
+        deliver: str = "first",
+        cooldown_lines: int = 3,
+        max_per_rule: int = 3,
     ) -> None:
+        if deliver not in ("first", "every"):
+            raise ValueError(deliver)
+        self.deliver = deliver
+        self.cooldown_lines = cooldown_lines
+        self.max_per_rule = max_per_rule
         if policy not in ("aligned", "periodic"):
             raise ValueError(policy)
         self.policy = policy
@@ -84,8 +97,14 @@ class FocalGenerator:
         self.deadline = deadline_seconds
         self.max_insertions = max_insertions
 
-    def _rules_for(self, kind: str, any_done: bool) -> tuple[list[str], bool]:
-        out = [t for k, t in self.rules if k == kind]
+    def _rules_for(
+        self, kind: str, any_done: bool, counts: dict
+    ) -> tuple[list[str], bool]:
+        out = [
+            t
+            for k, t in self.rules
+            if k == kind and counts.get(t, 0) < self.max_per_rule
+        ]
         extra = [] if any_done else [t for k, t in self.rules if k == "any"]
         return out + extra, bool(extra)
 
@@ -98,6 +117,9 @@ class FocalGenerator:
         pieces: list[tuple[str, list[int]]] = []
         delivered: set[tuple[int, str]] = set()
         delivered_lines: set[int] = set()
+        kinds_done: set[str] = set()
+        counts: dict[str, int] = {}
+        last_ins_lines = -(10**9)
         any_done = False
         events: list[dict] = []
         n_gen = 0
@@ -173,7 +195,10 @@ class FocalGenerator:
             for u in unit_starts(text):
                 if u.kind == "decorated" or (u.offset, u.kind) in delivered:
                     continue
-                rules, used_any = self._rules_for(u.kind, any_done)
+                if u.kind in kinds_done and self.deliver == "first":
+                    delivered.add((u.offset, u.kind))
+                    continue
+                rules, used_any = self._rules_for(u.kind, any_done, counts)
                 if not rules:
                     delivered.add((u.offset, u.kind))
                     continue
@@ -181,6 +206,11 @@ class FocalGenerator:
                 break
             if fired is None:
                 continue
+            if self.deliver == "every":
+                _, n_lines, _ = code_line_count(text)
+                if n_lines - last_ins_lines < self.cooldown_lines:
+                    delivered.add((fired.offset, fired.kind))
+                    continue
             # largest token prefix whose decode ends at or before the line start
             cut = len(ids)
             while cut > 0 and len(decode(ids[:cut])) > fired.offset:
@@ -210,6 +240,10 @@ class FocalGenerator:
             n_ins_tokens += len(insert_ids)
             n_insertions += 1
             any_done = any_done or used_any
+            kinds_done.add(fired.kind)
+            for t in rules:
+                counts[t] = counts.get(t, 0) + 1
+            last_ins_lines = code_line_count(kept_text + remainder)[1]
             delivered.add((len(kept_text) + len(remainder) + len(block), fired.kind))
             events.append(
                 {

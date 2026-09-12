@@ -87,7 +87,15 @@ def test_focal_inserts_typed_cues_and_strips_back_to_target(tok):
         ("variable", "variable names start with vr_"),
     ]
     be = Scripted(tok, TARGET, eos=151645)
-    g = FocalGenerator(be, tok, rules=rules, eos_ids=(151645,), max_new_tokens=600)
+    g = FocalGenerator(
+        be,
+        tok,
+        rules=rules,
+        eos_ids=(151645,),
+        max_new_tokens=600,
+        deliver="every",
+        cooldown_lines=0,
+    )
     r = g.generate([1, 2, 3])
     assert r.ended_by_eos
     kinds = [e["kind"] for e in r.events]
@@ -127,3 +135,20 @@ def test_periodic_control_inserts_at_line_boundaries_without_rollback(tok):
     assert all("adjacent_to_unit" in e for e in r.events)
     assert strip_spans(r.text, r.inserted_spans) == TARGET
     assert not be.crops
+
+
+def test_deliver_first_cues_each_kind_once(tok):
+    rules = [("variable", "variable names start with vr_"), ("method", "m rule")]
+    be = Scripted(tok, TARGET, eos=151645)
+    g = FocalGenerator(be, tok, rules=rules, eos_ids=(151645,), max_new_tokens=600)
+    r = g.generate([1, 2, 3])
+    assert [e["kind"] for e in r.events] == ["method", "variable"]
+    assert strip_spans(r.text, r.inserted_spans) == TARGET
+
+
+def test_strip_echoes_removes_copied_cue_lines():
+    from stencil.focal import strip_echoes
+
+    cue = {f"{CUE_PREFIX}x"}
+    text = f"a\n{CUE_PREFIX}x\n  {CUE_PREFIX}x\nb"
+    assert strip_echoes(text, cue) == ("a\nb", 2)

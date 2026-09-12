@@ -28,8 +28,12 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from stencil import memorycode as mc  # noqa: E402
-from stencil.focal import rule_family, strip_spans  # noqa: E402
-from stencil.focal_runtime import FocalGenerator, HFBackend  # noqa: E402
+from stencil.focal import rule_family, strip_echoes, strip_spans  # noqa: E402
+from stencil.focal_runtime import (  # noqa: E402
+    CUE_PREFIX,  # noqa: E402
+    FocalGenerator,
+    HFBackend,
+)
 
 print = functools.partial(print, flush=True)  # noqa: A001
 
@@ -59,6 +63,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--hub", default=str(ROOT / "deploy/stencil_focus/build/hub-4b"))
     ap.add_argument("--items", type=int, default=2)
+    ap.add_argument("--skip", type=int, default=0)
     ap.add_argument("--max-new", type=int, default=800)
     ap.add_argument("--out", default=str(ROOT / "results/focal/quicklook.json"))
     args = ap.parse_args()
@@ -90,7 +95,7 @@ def main() -> None:
         ]
         if i["split"] == "setup_long"
     ]
-    items = items[: args.items]
+    items = items[args.skip : args.skip + args.items]
     records = []
     for item in items:
         did, s = (int(x) for x in item["id"].split("-"))
@@ -167,26 +172,37 @@ def main() -> None:
             "text": rb.text,
         }
 
-        # oracle focal
-        rf = FocalGenerator(
-            HFBackend(model),
-            tokenizer,
-            rules=rules,
-            max_new_tokens=args.max_new,
-            eos_ids=eos,
-        ).generate(ids)
-        stripped = strip_spans(rf.text, rf.inserted_spans)
-        rec["arms"]["oracle_focal"] = {
-            "score": score(stripped, checks, compute_score),
-            "score_unstripped": score(rf.text, checks, compute_score),
-            "n_tokens": len(rf.generated_ids),
-            "inserted_tokens": rf.inserted_tokens,
-            "insertions": len(rf.events),
-            "events": rf.events,
-            "seconds": rf.seconds,
-            "text": rf.text,
-            "stripped": stripped,
+        # focal variants and the periodic control, all on the base prompt
+        variants = {
+            "oracle_focal_first": dict(policy="aligned", deliver="first"),
+            "oracle_focal_every": dict(policy="aligned", deliver="every"),
+            "oracle_periodic": dict(policy="periodic", period_lines=8),
         }
+        cue_lines = {f"{CUE_PREFIX}{t.strip()}" for _, t in rules}
+        for name, kw in variants.items():
+            rf = FocalGenerator(
+                HFBackend(model),
+                tokenizer,
+                rules=rules,
+                max_new_tokens=args.max_new,
+                eos_ids=eos,
+                **kw,
+            ).generate(ids)
+            stripped = strip_spans(rf.text, rf.inserted_spans)
+            stripped, n_echo = strip_echoes(stripped, cue_lines)
+            rec["arms"][name] = {
+                "score": score(stripped, checks, compute_score),
+                "score_unstripped": score(rf.text, checks, compute_score),
+                "n_tokens": len(rf.generated_ids),
+                "inserted_tokens": rf.inserted_tokens,
+                "insertions": len(rf.events),
+                "echoed_lines": n_echo,
+                "events": rf.events,
+                "seconds": rf.seconds,
+                "ended_by_eos": rf.ended_by_eos,
+                "text": rf.text,
+                "stripped": stripped,
+            }
         for arm, a in rec["arms"].items():
             sc = a["score"]
             print(
@@ -197,6 +213,7 @@ def main() -> None:
                 + f" tokens={a['n_tokens']} s={a['seconds']:.0f}"
                 + (
                     f" ins={a['insertions']}/{a['inserted_tokens']}tok"
+                    f" echo={a['echoed_lines']} eos={a['ended_by_eos']}"
                     if "insertions" in a
                     else ""
                 )
