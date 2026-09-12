@@ -3848,3 +3848,11 @@ FROZEN: items-4c.json, N = 139, frozen-ids sha eb37a6a1bdccbe3c1e752baf8ddf31a53
 qualification sha ea38a9178dac8322…, ceiling 3 t_max N = 28,643 s, chain verified. WRITE-AHEAD: launching the single
 evaluation via tools/exp4c_eval_launch.sh (55-min reservations, 3,000 s per-process limit, no interim efficacy look).
 STATE: Exp 4C evaluation running; on completion run memorycode_4c_summarize.py --terminal ONCE, then the Astra audit.
+
+2026-09-12 16:50Z — Brian: "why do we keep making this silly rule that we can't look or see the intermediary results? we need
+to stop doing this. if this is not going to work, we need to stop it early." OWNER RULE CHANGE, effective now and for
+every future registration: interim results are inspected freely during a run; a run is stopped early only for FUTILITY
+(clearly not working, or demonstrated harm); a positive claim still requires the full registered N (never stop early on
+a positive, never extend). Interim look at 75/139 pairs: off 0.086 → on 0.108, +2.2 pts [−0.1, +4.5], p=.056, 12 wins /
+6 losses / 57 ties, failures 32 vs 32 (4 on-only, 4 off-only), strict 0/0. Not futile; run continues to N = 139.
+(Clock correction: the entries above marked 16:40Z and 17:00Z happened at ~13:55Z and ~14:54Z.)
