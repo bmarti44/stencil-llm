@@ -3911,3 +3911,11 @@ that restates guidelines, then a docstring-heavy class); the cap is a process de
 is still ~0.15, so the cap is not the whole story. Next: literature pass (rule-file compliance studies 2604.11088, 2605.10039,
 ZORO 2604.15625, TriggerBench/PM-Bench, 2608.02639), then a rev 2 direction framed as a demonstrated interaction or guarantee,
 then a second adversarial Astra round.
+
+2026-09-12 20:20Z — DIRECTION REV 2 (results/reviews/2026-09-12-direction-proposal-rev2.md): focal delivery D = live-convention
+register (T1) ∘ in-generation insertion at the governed syntactic unit (T2); contribution framed as theory-predicted, unmeasured
+interactions H1 (decay × delivery, from 2605.10039's within-session OR 0.944/function and the multiprocess PM framework), H2 (rule
+type × delivery; 2603.23530 vs 2604.20911 disagree on polarity), H3 (load × delivery; 2608.02639 stacking collapse). Fallback X =
+lifecycle-verified exemplars instead of prose. Process fixes carried: 1,536-token cap, 2,560 window, unexposed candidates for
+confirmation, CPU kill criteria K1 (rule typing ≥ 0.9 vs checker family) and K2 (trigger replay on the 278 stored outputs).
+Adversarial Astra round 2 launched (2026-09-12-direction-adversarial-rev2-astra.md, sentinel .done, pid registered).
