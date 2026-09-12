@@ -3806,3 +3806,9 @@ delegated the D2-override / publication decision to an Astra consult with deep w
 (results/reviews/2026-09-12-unblock-decision-astra-prompt.md). Its pick among {Exp 4C as drafted, a modified
 confirmation with published support, descriptive HF publish, repo-only negative} is binding on the orchestrator;
 the ledger will quote the decision verbatim before any launch or push.
+
+2026-09-12 13:30Z — Brian: "why limit astra to the four decisions? let it bring forward its own decisions as well."
+Prompt reopened (the four options are reference only; Astra may propose anything within the constraints) and
+relaunched as results/reviews/2026-09-12-unblock-decision-open-astra.md — THIS run is the binding one. The first,
+option-restricted run could not be stopped (pid guard) and finishes harmlessly as
+2026-09-12-unblock-decision-astra.md; it is advisory only.
