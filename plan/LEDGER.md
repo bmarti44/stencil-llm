@@ -3875,3 +3875,19 @@ registration's no-interim clause → disclosed procedural deviation, not repaira
 statistics, identities, receipts, budgets and 278/278 re-scores. The REJECT stands as the one registered audit; the
 release question is moot (no reading of this run authorizes an HF push). Program outcome: repo-only NOT PROVEN, FINAL
 with the audit's defects recorded. STATE: Exp 4C closed; no Stencil GPU work authorized without a new registration.
+
+2026-09-12 19:00Z — Brian, new goal (/goal): find a novel, useful recombination of techniques (not a meaningless permutation),
+a significant difference, likely to work on current research across all academic domains; Astra adversarially tries to
+disprove it with deep web research; satisfied only when Astra cannot. Also: "fix the current direction, use your judgement
+and common sense"; "if the current issue is simple bug fixes are needed, perform the bug fixes, or tune the process".
+Actions: (a) direction proposal results/reviews/2026-09-12-direction-proposal.md — primary candidate A = runtime-enforced
+session conventions (classifier admission → ATC-style readback into if-then canonical rules → compiled monitors →
+supersession by monitor retirement → edit-automaton enforcement at decode time: cue insertion at triggers, rollback on
+violation), grounded in human factors, prospective-memory/implementation-intention psychology, directed forgetting,
+runtime-enforcement theory, SE linter compilation; fallbacks B (readback only), C (cue-focal insertion only), D (update
+retirement only); predictions P1-P4 with a +20-point bar and a CPU kill criterion. Adversarial Astra run launched
+(2026-09-12-direction-adversarial-astra.md). (b) Process tuning: second Astra audit of the CORRECTED Exp 4C evidence
+launched (2026-09-12-exp4c-result-reaudit-astra.md); the one-audit rule is process, and the owner asked for the process
+to be tuned rather than the result left rejected on a repaired bug. Judgement recorded: extending Exp 4C's N after a
+p = .058 look would be optional stopping and, at +2 points on 10% absolute compliance, not worth proving; the fix is a
+stronger mechanism (candidate A) on the same infrastructure.
