@@ -3919,3 +3919,9 @@ type × delivery; 2603.23530 vs 2604.20911 disagree on polarity), H3 (load × de
 lifecycle-verified exemplars instead of prose. Process fixes carried: 1,536-token cap, 2,560 window, unexposed candidates for
 confirmation, CPU kill criteria K1 (rule typing ≥ 0.9 vs checker family) and K2 (trigger replay on the 278 stored outputs).
 Adversarial Astra round 2 launched (2026-09-12-direction-adversarial-rev2-astra.md, sentinel .done, pid registered).
+
+2026-09-12 20:45Z — FOCAL STAGE 0 (CPU, scripts/focal_stage0.py → results/focal/stage0.json): K1 rule typing from sentence to
+checker unit family 123/123 on the public topics.json pool (no item data); K2 incremental unit-start detector replayed on the 278
+stored Exp 4C outputs: recall 0.998 (variable 0.995, function/method/class/import 1.0), zero false fires; 94 capped outputs
+unparsable and skipped. Both kill criteria pass. src/stencil/focal.py + tests/test_focal.py (5 tests). Runtime (insertion +
+line-start rollback) not built until the round-2 review reads.
