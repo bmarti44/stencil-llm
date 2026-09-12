@@ -6,7 +6,9 @@ complete, unchanged run (scipy 1.18.1). Artifact history, verbatim: a first summ
 17:33Z read INCOMPLETE on a validator defect (kept as `summary-4c-INVALID-validator-bug.json`);
 a second at 17:34Z read NOT PROVEN but admitted defective provenance metadata (kept as
 `summary-4c-SUPERSEDED-provenance-bug.json`); the current summary follows the provenance
-recompute described under Disclosures. No output, score or statistic changed between them.
+recompute described under Disclosures. No output or score changed at any point; the
+statistics are identical between the second and the current summary (the first summary
+reported n = 0 because its validator rejected every record).
 Records, raw outputs, attempt log and process receipts live in the same directory;
 qualification receipts under `qualification-4c/`.
 
@@ -148,5 +150,9 @@ confirms completion at the original N without regeneration). The audit independe
 reproduced every primary, companion, strict, failure, subset, identity, receipt and budget
 number, re-scored 278/278 generations, and stated that with technical validity satisfied the
 prescribed reading is NOT PROVEN, FINAL. Under the registration only one result audit exists;
-its REJECT stands as the recorded audit outcome, and no HF release is authorized under any
-reading of this run. Practical outcome either way: repo-only report, no claim.
+a second audit of the corrected evidence, commissioned on the owner's instruction to fix
+bugs and tune the process (`results/reviews/2026-09-12-exp4c-result-reaudit-astra.md`),
+returned ACCEPT: NOT PROVEN, FINAL on technically valid and complete evidence, with the
+interim-look deviation disclosed; 139/139 provenance reconstructions verified, all 278 raw
+outputs byte-identical to the pre-repair commit, every statistic reproduced. No HF release
+is authorized. Outcome: repo-only report, no claim.

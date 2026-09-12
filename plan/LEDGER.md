@@ -3891,3 +3891,10 @@ launched (2026-09-12-exp4c-result-reaudit-astra.md); the one-audit rule is proce
 to be tuned rather than the result left rejected on a repaired bug. Judgement recorded: extending Exp 4C's N after a
 p = .058 look would be optional stopping and, at +2 points on 10% absolute compliance, not worth proving; the fix is a
 stronger mechanism (candidate A) on the same infrastructure.
+
+2026-09-12 19:40Z — Exp 4C RE-AUDIT (results/reviews/2026-09-12-exp4c-result-reaudit-astra.md): ACCEPT, READING NOT PROVEN,
+FINAL. Provenance repair verified 139/139 (boundaries equal the package's base-window cut; spans reproduce reminders);
+278 raw outputs byte-identical to commit 8edaf894; only reminder_sources changed; all statistics, identities, receipts and
+budgets reproduced; interim-look deviation disclosed and nonblocking. RESULTS-4C.md wording (finding 8) corrected.
+Exp 4C is closed with an accepted audit: NOT PROVEN, FINAL; no HF release. Pending: adversarial Astra review of the
+direction proposal.
