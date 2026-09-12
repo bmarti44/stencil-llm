@@ -53,8 +53,15 @@ confirmatory result, and it is not comparable to the MemoryCode paper's native p
 The same mechanism on Qwen3-1.7B read −5.2 points [−10.6, −0.4] on the same 16 items; that
 1.7B build is not published as a claim either.
 
-Package parity: <!-- PARITY-4B: filled from results/memorycode-long/parity-4b.json -->
-pending.
+Package parity (`results/memorycode-long/parity-4b.json`, the 16 qualification items, both
+flag states): the package renders byte-identical prompts to the research runtime on 32/32
+prompts, and with `stencil_focus=false` its greedy outputs equal plain
+`AutoModelForCausalLM` on 16/16 items (the off switch is exact). Its greedy outputs do NOT
+match the research runtime's token-for-token on any of the 32 generations (identical text
+after whitespace on 7/32): the research numbers above were produced by a hand-rolled
+bitwise-deterministic runtime, and `transformers` bf16 kernels take different greedy paths
+on 3.6k-token prompts. Until the evaluation is reproduced through this package's own
+generation path, no research number on this card is attributable to this artifact.
 
 Secondary evidence (Multi-IF, Qwen3-1.7B, a different construction and trunk,
 `results/qwen/multiif-echo-only-128/RESULTS.md`): restating truncated-away prior user

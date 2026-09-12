@@ -3780,3 +3780,16 @@ Alternatives ranked below it: sparse authored workload 15-30%, +linter repair 10
 output-contract change 5-15%, attention bias 5-15%, pass@8 (no proof value), gate reinterpretation 0%, RLVR < 5%.
 Astra: publishing the negative and ending the line is an honest complete outcome and remains the default. GPU
 idle; nothing launches until Brian decides.
+
+2026-09-12 12:35Z — Publication plumbing for the 4B artifact (no HF push; nothing decided): hub build assembled
+(deploy/stencil_focus/build/hub-4b, 7.6 GB, dry-run; assembler now globs shards and takes --card), MODEL_CARD-4b.md
+(NOT PROVEN, descriptive tables only), manifest-4b.json (16 record sha256s). Parity run (parity_generate.py
+--records setup_long-4b-role_evicted, reservation stencil-exp4b-parity, 20 min): prompts byte-identical 32/32;
+off switch exact 16/16 (package flag-off == plain AutoModelForCausalLM); greedy generation parity vs the research
+runtime 0/32 token-identical (7/32 text-identical). The research (hand-rolled, bitwise-deterministic) runtime and
+transformers bf16 diverge in greedy paths on 3.6k-token prompts; this is the first generation-parity measurement
+in the program (the 1.7B parity ran only its CPU prompt half). Consequence under G's parity gate: no research
+number is attributable to the artifact; any publication must either reproduce the evaluation through the
+package's transformers path (new GPU spend, a registration matter) or carry the card's explicit disclaimer. GPU
+idle; peer informed. STATE unchanged: awaiting Brian's decision (accept stop / override D2 for one final SCREEN
+confirmation / publish descriptively).
