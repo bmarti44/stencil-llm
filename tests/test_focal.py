@@ -1,16 +1,19 @@
 """Focal delivery pieces: rule typing, incremental unit-start detection, stripping."""
 
-from stencil.focal import FAMILY_KIND, rule_family, strip_spans, unit_starts
+from stencil.focal import FAMILY_KIND, rule_family, rule_phase, strip_spans, unit_starts
 
 
 def test_rule_family_uses_the_named_unit():
     assert rule_family("always use all UPPERCASE for class names") == "class"
     assert rule_family("include 'chx' in function argument names") == "function"
     assert rule_family("include 'chx' in method names") == "method"
-    assert rule_family("start attribute names with 'n_'") == "method"
+    assert rule_family("start attribute names with 'n_'") == "init"
+    assert rule_phase("start attribute names with 'n_'") == "body"
+    assert rule_phase("always include try statements in methods") == "body"
+    assert rule_phase("include 'chx' in method names") == "header"
     assert rule_family("always add a comment above assignments") == "any"
     assert rule_family("reply in French") == "any"
-    kinds = {"function", "method", "class", "variable", "import", "any"}
+    kinds = {"function", "method", "init", "class", "variable", "import", "any"}
     assert set(FAMILY_KIND.values()) == kinds
 
 
@@ -36,17 +39,26 @@ def f(a, b):
 
 
 def test_unit_starts_bare_python():
-    kinds = [(u.line, u.kind) for u in unit_starts(CODE)]
+    starts = unit_starts(CODE)
+    kinds = [(u.line, u.kind) for u in starts]
     assert kinds == [
         (0, "import"),
         (1, "import"),
         (3, "class"),  # the decorator line fires the decorated class
+        (5, "body"),  # first body line of the class (the docstring)
         (8, "variable"),
         (10, "method"),  # decorator line fires the method
+        (12, "body"),
         (12, "variable"),
         (15, "function"),
+        (16, "body"),
         (16, "variable"),
     ]
+    names = {(u.line, u.kind): (u.name, u.parent, u.parent_name) for u in starts}
+    assert names[(3, "class")] == ("Foo", "", "")
+    assert names[(10, "method")] == ("m", "", "")
+    assert names[(12, "body")] == ("", "method", "m")
+    assert names[(16, "body")] == ("", "function", "f")
 
 
 def test_unit_starts_fenced_only_scans_code():
@@ -55,6 +67,33 @@ def test_unit_starts_fenced_only_scans_code():
     fired = unit_starts(text)
     assert all(u.line >= 4 for u in fired)
     assert [u.kind for u in fired][:3] == ["import", "import", "class"]
+
+
+LEXER_CODE = "\n".join(
+    [
+        "x = \"'''\"",  # single-line string holding a triple quote: no toggle
+        'y = 1  # """ in a comment',
+        "z = f(a,",
+        "    b=1)",  # inside brackets: not an assignment start
+        "w = 1 + \\",
+        "    def_not = 2",  # backslash continuation: not a unit
+        "def g():",
+        "    pass",
+        "",
+    ]
+)
+
+
+def test_unit_starts_lexer_edge_cases():
+    kinds = [(u.line, u.kind) for u in unit_starts(LEXER_CODE)]
+    assert kinds == [
+        (0, "variable"),
+        (1, "variable"),
+        (2, "variable"),
+        (4, "variable"),
+        (6, "function"),
+        (7, "body"),
+    ]
 
 
 def test_unit_starts_is_incremental_prefix_stable():

@@ -1,34 +1,35 @@
 """Focal delivery of session conventions (direction rev 2, 2026-09-12).
 
-Pure-Python, model-free pieces used by the CPU kill criteria and, later, by the
-in-generation runtime:
+Pure-Python, model-free pieces used by the CPU kill criteria and by the
+in-generation runtime (:mod:`stencil.focal_runtime`):
 
-* :func:`rule_family` types a convention sentence by the syntactic unit it governs,
-  using only the unit vocabulary of the MemoryCode checker
-  (``vendor/memorycode/code/extract_objects.py``: functions, methods, classes,
-  variables, attributes, arguments, decorators, annotations, imports, docstrings,
-  comments, try/assert).  It never looks at item data.
-* :func:`unit_starts` is an incremental detector: given the text generated so far
-  (markdown with fenced Python blocks, or bare Python), it returns the character
-  offset of the start of every line that opens a governed unit, with the unit's
-  trigger kind.  It is deliberately line based (a partial output is rarely
-  parsable) and ignores lines inside triple-quoted strings and outside code fences.
-* :func:`strip_spans` removes inserted spans (recorded by offset) so that scoring
-  never sees delivered text.
+* :func:`rule_family` / :func:`rule_phase` type a convention sentence by the
+  syntactic unit it governs and by the *decision point* inside that unit (header
+  vs body), using only the unit vocabulary of the MemoryCode checker
+  (``vendor/memorycode/code/extract_objects.py``).  They never look at item data.
+* :func:`unit_starts` is an incremental detector over a partial output (markdown
+  with fenced Python blocks, or bare Python): the character offset of every line
+  that opens a governed unit, its kind, and the identifier once it is visible.
+  It also reports ``body`` starts: the first line of a ``def``/``class`` body.
+* :func:`strip_spans` removes inserted spans so that scoring never sees delivered
+  text.  :func:`count_echoes` counts model-authored lines that copy a cue (reported,
+  never removed from the scored output).
 
 Trigger kinds and the families they serve:
 
 ==========  ======================================================================
-kind        families
+kind        families (header phase unless noted)
 ==========  ======================================================================
-function    function, function argument, function decorator, function annotation,
-            function try, function assert, function docstring
-method      method, attribute, method decorator, method annotation, method try,
+function    function, function argument, function decorator, function annotation;
+            body phase: function try, function assert, function docstring
+method      method, method decorator, method annotation; body phase: method try,
             method assert, method docstring
+init        attribute (delivered at the body of ``__init__``; other dunder methods
+            receive no method rules, matching the checker's scope)
 class       class, class decorator
 variable    variable
 import      import
-any         comment (delivered once, at the first unit of any kind)
+any         comment (delivered once, with the first cue of any kind)
 ==========  ======================================================================
 """
 
@@ -46,7 +47,7 @@ FAMILY_KIND: dict[str, str] = {
     "function assert": "function",
     "function docstring": "function",
     "method": "method",
-    "attribute": "method",
+    "attribute": "init",
     "method decorator": "method",
     "method annotation": "method",
     "method try": "method",
@@ -59,18 +60,28 @@ FAMILY_KIND: dict[str, str] = {
     "comment": "any",
 }
 
-# Ordered keyword tests: the first match wins.  "function argument" must precede
-# "function"; "method"/"attribute" must precede "function" because method rules
-# say "method names"; decorators/annotations/docstrings are typed by their carrier.
+BODY_FAMILIES = {
+    "function try",
+    "function assert",
+    "function docstring",
+    "method try",
+    "method assert",
+    "method docstring",
+    "attribute",
+}
+
+# Ordered keyword tests: the first match wins.
 _TYPING: list[tuple[re.Pattern[str], str]] = [
+    (re.compile(r"\battribute", re.I), "init"),
     (re.compile(r"\bclass(es)?\b", re.I), "class"),
-    (re.compile(r"\b(method|attribute)s?\b", re.I), "method"),
+    (re.compile(r"\bmethods?\b", re.I), "method"),
     (re.compile(r"\b(argument|parameter)s?\b", re.I), "function"),
     (re.compile(r"\bfunction", re.I), "function"),
     (re.compile(r"\bvariable", re.I), "variable"),
     (re.compile(r"\bimport", re.I), "import"),
     (re.compile(r"\bcomment", re.I), "any"),
 ]
+_BODY_WORDS = re.compile(r"\b(docstring|try\b|assert|attribute)", re.I)
 
 
 def rule_family(text: str) -> str:
@@ -81,21 +92,62 @@ def rule_family(text: str) -> str:
     return "any"
 
 
+def rule_phase(text: str) -> str:
+    """``"body"`` for docstring / try / assert / attribute rules, else ``"header"``."""
+    return "body" if _BODY_WORDS.search(text) else "header"
+
+
 @dataclass(frozen=True)
 class UnitStart:
     offset: int  # character offset of the line start in the full text
     line: int  # 0-based line index in the full text
-    kind: str  # function | method | class | variable | import
+    kind: str  # function | method | class | variable | import | body | decorated
     indent: int
+    name: str = ""  # identifier when visible ("" while still being written)
+    parent: str = ""  # body: kind of the unit whose body starts here
+    parent_name: str = ""
 
 
 _FENCE = re.compile(r"^\s*```")
-_DEF = re.compile(r"^(\s*)(async\s+)?def\s+\w")
-_CLASS = re.compile(r"^(\s*)class\s+\w")
+_DEF = re.compile(r"^(\s*)(async\s+)?def\s+(\w*)")
+_CLASS = re.compile(r"^(\s*)class\s+(\w*)")
 _DECO = re.compile(r"^(\s*)@\w")
 _IMPORT = re.compile(r"^(\s*)(import\s+\w|from\s+[\w.]+\s+import\b)")
 _ASSIGN = re.compile(r"^(\s*)([A-Za-z_][\w]*)\s*(:\s*[^=]+)?=(?!=)")
-_TRIPLE = re.compile(r'"""|\'\'\'')
+_HEADER_END = re.compile(r":\s*(#.*)?$")
+
+
+def triple_toggle(line: str) -> bool:
+    """True if ``line`` (scanned outside a multi-line string) toggles triple-quoted
+    string state: counts triple quotes outside single-line strings and comments."""
+    i = 0
+    n = 0
+    quote: str | None = None
+    while i < len(line):
+        c = line[i]
+        if quote is None:
+            if c == "#":
+                break
+            if line.startswith('"""', i) or line.startswith("'''", i):
+                n += 1
+                i += 3
+                continue
+            if c in "\"'":
+                quote = c
+        else:
+            if c == "\\":
+                i += 2
+                continue
+            if c == quote:
+                quote = None
+        i += 1
+    return n % 2 == 1
+
+
+def _bracket_delta(stripped: str) -> int:
+    opens = stripped.count("(") + stripped.count("[") + stripped.count("{")
+    closes = stripped.count(")") + stripped.count("]") + stripped.count("}")
+    return opens - closes
 
 
 def _in_class(stack: list[tuple[int, str]], indent: int) -> bool:
@@ -110,16 +162,23 @@ def unit_starts(text: str, fenced: bool | None = None) -> list[UnitStart]:
 
     ``fenced=None`` auto-detects: if the text contains a code fence, only fenced
     regions are scanned; otherwise the whole text is treated as Python.  Decorator
-    lines fire the unit they decorate (the first decorator line fires; the ``def``
-    or ``class`` that follows a decorator does not fire again).
+    lines fire the unit they decorate (the first decorator line fires; the header
+    that follows does not fire again; its name is filled in when visible).  A
+    ``body`` start is reported for the first non-blank, non-comment line after a
+    ``def``/``class`` header line ending with ``:``, with ``parent``/``parent_name``.
+    Lines inside triple-quoted strings, after a backslash continuation or inside
+    open brackets never open a unit.
     """
     if fenced is None:
         fenced = "```" in text
     out: list[UnitStart] = []
     in_code = not fenced
     in_string = False
-    pending_deco: int | None = None  # indent of an open decorator group
-    stack: list[tuple[int, str]] = []  # (indent, kind) of enclosing def/class
+    pending_deco: int | None = None
+    stack: list[tuple[int, str]] = []
+    awaiting_body: tuple[str, str, int] | None = None
+    continuation = False
+    depth = 0
     offset = 0
     for i, raw in enumerate(text.split("\n")):
         line = raw.rstrip("\r")
@@ -129,51 +188,112 @@ def unit_starts(text: str, fenced: bool | None = None) -> list[UnitStart]:
             in_code = not in_code
             in_string = False
             pending_deco = None
+            awaiting_body = None
+            continuation = False
+            depth = 0
             stack.clear()
             continue
         if not in_code:
             continue
         if in_string:
-            if len(_TRIPLE.findall(line)) % 2 == 1:
+            if triple_toggle(line):
                 in_string = False
             continue
         stripped = line.strip()
         if not stripped or stripped.startswith("#"):
             continue
+        if continuation or depth > 0:
+            continuation = stripped.endswith("\\")
+            depth = max(depth + _bracket_delta(stripped), 0)
+            if triple_toggle(line):
+                in_string = True
+            continue
         indent = len(line) - len(line.lstrip())
+        if awaiting_body is not None:
+            pk, pn, pi = awaiting_body
+            awaiting_body = None
+            if indent > pi:
+                out.append(UnitStart(start, i, "body", indent, "", pk, pn))
         while stack and stack[-1][0] >= indent:
             stack.pop()
         kind = None
+        name = ""
         if _DECO.match(line):
             if pending_deco is None:
                 pending_deco = indent
-                # the decorated unit's kind is unknown until its header; fire as
-                # "decorated" resolved below when the header arrives
                 out.append(UnitStart(start, i, "decorated", indent))
             kind = "decorated"
-        elif _CLASS.match(line):
+        elif m := _CLASS.match(line):
             kind = "class"
-        elif _DEF.match(line):
+            name = m.group(2)
+        elif m := _DEF.match(line):
             kind = "method" if _in_class(stack, indent) else "function"
+            name = m.group(3)
         elif _IMPORT.match(line):
             kind = "import"
         elif _ASSIGN.match(line):
             kind = "variable"
         if kind in ("class", "function", "method"):
             if pending_deco is not None and out and out[-1].kind == "decorated":
-                out[-1] = UnitStart(out[-1].offset, out[-1].line, kind, out[-1].indent)
+                prev = out[-1]
+                out[-1] = UnitStart(prev.offset, prev.line, kind, prev.indent, name)
             else:
-                out.append(UnitStart(start, i, kind, indent))
+                out.append(UnitStart(start, i, kind, indent, name))
             pending_deco = None
             stack.append((indent, "class" if kind == "class" else "def"))
+            if _HEADER_END.search(stripped):
+                awaiting_body = (kind, name, indent)
         elif kind in ("import", "variable"):
             pending_deco = None
             out.append(UnitStart(start, i, kind, indent))
         elif kind is None:
             pending_deco = None
-        if len(_TRIPLE.findall(line)) % 2 == 1:
+        if triple_toggle(line):
             in_string = True
+        continuation = stripped.endswith("\\")
+        depth = max(_bracket_delta(stripped), 0)
     return out
+
+
+def code_line_count(text: str, fenced: bool | None = None) -> tuple[bool, int, int]:
+    """``(insertable, n_code_lines, last_indent)`` for a partial output ending at a
+    line boundary: whether a comment line may be inserted here (inside code, not
+    inside a string, not after a backslash continuation, not inside open brackets),
+    how many complete non-blank, non-comment code lines precede the position, and
+    the indentation of the last such line."""
+    if fenced is None:
+        fenced = "```" in text
+    in_code = not fenced
+    in_string = False
+    n = 0
+    last_indent = 0
+    continuation = False
+    depth = 0
+    for line in text.split("\n")[:-1]:
+        if fenced and _FENCE.match(line):
+            in_code = not in_code
+            in_string = False
+            continuation = False
+            depth = 0
+            continue
+        if not in_code:
+            continue
+        if in_string:
+            if triple_toggle(line):
+                in_string = False
+            continue
+        st = line.strip()
+        if not st or st.startswith("#"):
+            continue
+        if not st.startswith(('"""', "'''")):
+            n += 1
+            last_indent = len(line) - len(line.lstrip())
+        if triple_toggle(line):
+            in_string = True
+        continuation = st.endswith("\\")
+        depth = max(depth + _bracket_delta(st), 0)
+    ok = in_code and not in_string and not continuation and depth == 0
+    return ok, n, last_indent
 
 
 def strip_spans(text: str, spans: list[tuple[int, int]]) -> str:
@@ -187,59 +307,16 @@ def strip_spans(text: str, spans: list[tuple[int, int]]) -> str:
     return "".join(keep)
 
 
-def code_line_count(text: str, fenced: bool | None = None) -> tuple[bool, int, int]:
-    """``(in_code, n_code_lines, last_indent)`` for a partial output: whether the
-    text currently ends inside a code region, how many complete non-blank code
-    lines precede the current position, and the indentation of the last complete
-    code line (0 when none)."""
-    if fenced is None:
-        fenced = "```" in text
-    in_code = not fenced
-    in_string = False
-    n = 0
-    last_indent = 0
-    lines = text.split("\n")
-    for line in lines[:-1]:  # only complete lines
-        if fenced and _FENCE.match(line):
-            in_code = not in_code
-            in_string = False
-            continue
-        if not in_code:
-            continue
-        odd = len(_TRIPLE.findall(line)) % 2 == 1
-        if in_string:
-            if odd:
-                in_string = False
-            continue
-        st = line.strip()
-        if st and not st.startswith("#") and not st.startswith(('"""', "'''")):
-            n += 1
-            last_indent = len(line) - len(line.lstrip())
-        if odd:
-            in_string = True
-    # a position inside an open triple-quoted string is reported as not in code
-    return (in_code and not in_string), n, last_indent
-
-
-def strip_echoes(text: str, cue_lines: set[str]) -> tuple[str, int]:
-    """Remove model-authored lines whose stripped content equals an inserted cue line
-    (the model copying the cue block).  Returns the text and the number of removed
-    lines.  Apply AFTER :func:`strip_spans`."""
-    out = []
-    n = 0
-    for line in text.split("\n"):
-        if line.strip() in cue_lines:
-            n += 1
-            continue
-        out.append(line)
-    return "\n".join(out), n
+def count_echoes(text: str, cue_prefixes: tuple[str, ...]) -> int:
+    """Model-authored lines starting with a cue prefix (imitation); reported only."""
+    return sum(1 for line in text.split("\n") if line.strip().startswith(cue_prefixes))
 
 
 _HEADER = re.compile(r"^\s*(async\s+def\s+|def\s+|class\s+|import\s+|from\s+|@)")
 
 
 def header_keyword(line: str) -> str:
-    """The unit keyword the model had started on ``line`` (``"def "``, ``"class "``,
+    """The unit keyword the model had started on ``line`` (``"def"``, ``"class"``,
     ``"import"``, ``"from"``, ``"@"``, ``"async def"``) without trailing space (the
     model's next token carries its own leading space); empty for assignments (the
     name itself is what a variable rule governs)."""

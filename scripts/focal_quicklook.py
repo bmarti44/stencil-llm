@@ -1,22 +1,24 @@
-"""Quick look (NOT a registered result): focal delivery on a few SETUP-LONG items.
+"""Bounded delivery-format pilot (NOT a registered result; Astra root-cause §12).
 
-Three generations per item through the shipping 4B package weights:
+Arms per item, all with a frozen common retained history (base window
+``--window``, default 1,792 tokens) and the same compact rule packets built from
+the label-derived live rules (oracle; exposed SETUP-LONG pilot split):
 
-* ``base``: plain window prompt, greedy (identity-checked against the plain
-  ``FocalGenerator`` loop with no rules, which must reproduce ``model.generate``);
-* ``oracle_before``: the label-derived live rules rendered once before the request
-  (same renderer as the long reminder), plain greedy;
-* ``oracle_focal``: the same rules typed by :func:`stencil.focal.rule_family` and
-  delivered at the governed units inside the generation.
+* ``base``: plain greedy (identity-checked against the plain loop);
+* ``before_compact``: the packets once, before the request, in the user turn;
+* ``focal_header_compact``: comment cues at unit headers (body rules at the header);
+* ``focal_phased_compact``: header rules at the header, body rules at the body;
+* ``user_phased``: the same phased packets through a rebuilt user turn.
 
-Prints per-arm scores on the item's ``history_regex`` checks after stripping the
-inserted spans.  Exposed SETUP items, oracle rules: a mechanism smoke test only.
-Writes ``results/focal/quicklook.json``.
+Records per arm: text, generated ids, inserted spans, events, token accounting,
+parse/cap/loop status, scores on the item's checks with only the cue spans removed
+(model echoes are counted, never removed).  Writes ``results/focal/quicklook.json``.
 """
 
 from __future__ import annotations
 
 import argparse
+import ast
 import functools
 import json
 import sys
@@ -25,21 +27,26 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-sys.path.insert(0, str(ROOT / "scripts"))
 
 from stencil import memorycode as mc  # noqa: E402
-from stencil.focal import rule_family, strip_echoes, strip_spans  # noqa: E402
+from stencil.focal import (  # noqa: E402
+    count_echoes,
+    rule_family,
+    rule_phase,
+    strip_spans,
+)
 from stencil.focal_runtime import (  # noqa: E402
-    CUE_PREFIX,  # noqa: E402
+    CUE_PREFIXES,
     FocalGenerator,
     HFBackend,
+    cue_packet,
 )
 
 print = functools.partial(print, flush=True)  # noqa: A001
 
 
 def score(text: str, checks: list, compute_score) -> dict:
-    out = {}
+    out: dict[str, list[float]] = {}
     for fam, regex in checks:
         kind = (
             "regex"
@@ -59,12 +66,49 @@ def score(text: str, checks: list, compute_score) -> dict:
     }
 
 
+def parse_status(text: str) -> dict:
+    code = mc.extract_code(text)
+    try:
+        ast.parse(code)
+        ok = True
+    except SyntaxError:
+        ok = False
+    lines = [ln.strip() for ln in code.split("\n") if ln.strip()]
+    loop = 0
+    for i in range(len(lines) - 5):
+        if len({lines[i + j] for j in range(6)}) == 1:
+            loop += 1
+    return {"parses": ok, "fenced": "```" in text, "repeated_line_runs": loop}
+
+
+def compact_reminder(rules) -> str:
+    """Once-before rendering of the same packets (kind/phase groups) as prose."""
+    groups: dict[tuple[str, str], list[str]] = {}
+    for kind, phase, text in rules:
+        groups.setdefault((kind, phase), []).append(text)
+    labels = {
+        ("function", "header"): "function",
+        ("function", "body"): "function body",
+        ("method", "header"): "method",
+        ("method", "body"): "method body",
+        ("init", "body"): "__init__ body",
+        ("class", "header"): "class",
+        ("import", "header"): "import",
+        ("variable", "header"): "assignment",
+        ("any", "header"): "code",
+    }
+    parts = [cue_packet(labels.get(k, k[0]), v) for k, v in groups.items()]
+    return "Conventions still in force. " + " ".join(parts)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--hub", default=str(ROOT / "deploy/stencil_focus/build/hub-4b"))
-    ap.add_argument("--items", type=int, default=2)
-    ap.add_argument("--skip", type=int, default=0)
-    ap.add_argument("--max-new", type=int, default=800)
+    ap.add_argument("--items", type=int, default=3)
+    ap.add_argument("--skip", type=int, default=1)
+    ap.add_argument("--max-new", type=int, default=1536)
+    ap.add_argument("--window", type=int, default=1792)
+    ap.add_argument("--max-context", type=int, default=4096)
     ap.add_argument("--out", default=str(ROOT / "results/focal/quicklook.json"))
     args = ap.parse_args()
 
@@ -77,25 +121,20 @@ def main() -> None:
         args.hub, trust_remote_code=True, dtype=torch.bfloat16, device_map="cuda"
     )
     model.eval()
-    eos = tuple(
-        model.config.eos_token_id
-        if isinstance(model.config.eos_token_id, list)
-        else [model.config.eos_token_id]
-    )
+    eos_cfg = model.config.eos_token_id
+    eos = tuple(eos_cfg if isinstance(eos_cfg, list) else [eos_cfg])
     topics = mc.load_topics()
     checker = mc.vendored_checker()
     compute_score = (
         checker.compute_score if hasattr(checker, "compute_score") else checker
     )
 
-    items = [
-        i
-        for i in json.loads((ROOT / "results/memorycode-long/items.json").read_text())[
-            "items"
-        ]
-        if i["split"] == "setup_long"
+    all_items = json.loads((ROOT / "results/memorycode-long/items.json").read_text())[
+        "items"
     ]
-    items = items[args.skip : args.skip + args.items]
+    items = [i for i in all_items if i["split"] == "setup_long"][
+        args.skip : args.skip + args.items
+    ]
     records = []
     for item in items:
         did, s = (int(x) for x in item["id"].split("-"))
@@ -104,19 +143,80 @@ def main() -> None:
         head, sep, request = mc.long_request(dialogue, query)
         checks = item["history_regex"]
         oracle = mc.oracle_sentences(dialogue, s, topics)
-        rules = [(rule_family(t), t) for t in oracle]
+        rules = [(rule_family(t), rule_phase(t), t) for t in oracle]
 
-        def prompt_ids(request_text: str, dialogue=dialogue, s=s, head=head, sep=sep):
-            session = model.new_session(tokenizer, stencil_focus=False)
-            for role, text, rendered in mc.focus_session_messages(dialogue, s):
-                session.add_message(role, text, rendered=rendered)
-            prompt = session.build_prompt(request_text, head=head, separator=sep)
-            return session.encode(prompt)
+        # frozen common history: the base prompt at the pilot window; the before
+        # arm and user-channel rebuilds append text to the request in that prompt
+        session = model.new_session(tokenizer, stencil_focus=False, window=args.window)
+        for role, text, rendered in mc.focus_session_messages(dialogue, s):
+            session.add_message(role, text, rendered=rendered)
+        base_prompt = session.build_prompt(request, head=head, separator=sep)
+        assert base_prompt.count(request) >= 1
+        req_at = base_prompt.rfind(request)
 
-        rec = {"id": item["id"], "n_rules": len(rules), "rules": rules, "arms": {}}
+        def with_request_suffix(
+            suffix: str, base_prompt=base_prompt, req_at=req_at, request=request
+        ):
+            return (
+                base_prompt[: req_at + len(request)]
+                + suffix
+                + base_prompt[req_at + len(request) :]
+            )
 
-        # base + identity check
-        ids = prompt_ids(request)
+        ids = session.encode(base_prompt)
+        rec = {
+            "id": item["id"],
+            "n_rules": len(rules),
+            "rules": rules,
+            "prompt_tokens": len(ids),
+            "window": args.window,
+            "max_new": args.max_new,
+            "arms": {},
+        }
+
+        def record(
+            name, r, text_for_score, extra=None, rec=rec, checks=checks, item=item
+        ):
+            stripped = (
+                strip_spans(r.text, r.inserted_spans) if r.inserted_spans else r.text
+            )
+            rec["arms"][name] = {
+                "score": score(stripped, checks, compute_score),
+                "parse": parse_status(stripped),
+                "echoed_lines": count_echoes(stripped, CUE_PREFIXES),
+                "n_generated": len(r.generated_ids),
+                "steps": r.steps,
+                "discarded_tokens": r.discarded_tokens,
+                "inserted_tokens": r.inserted_tokens,
+                "refed_tokens": r.refed_tokens,
+                "prompt_tokens": r.prompt_tokens,
+                "insertions": len(r.events),
+                "events": r.events,
+                "reminders": r.reminders,
+                "seconds": r.seconds,
+                "ended_by_eos": r.ended_by_eos,
+                "truncated": r.truncated,
+                "context_exceeded": r.context_exceeded,
+                "text": r.text,
+                "generated_ids": r.generated_ids,
+                "inserted_spans": r.inserted_spans,
+                **(extra or {}),
+            }
+            a = rec["arms"][name]
+            sc = a["score"]
+            print(
+                f"[{item['id']}] {name:22s} fraction={sc['fraction']:.3f} "
+                + " ".join(
+                    f"{k}={sc[k]:.2f}" for k in ("regex", "pair", "bool") if k in sc
+                )
+                + f" gen={a['n_generated']} steps={a['steps']}"
+                + f" ins={a['insertions']}/{a['inserted_tokens']}tok"
+                + f" echo={a['echoed_lines']} eos={a['ended_by_eos']}"
+                + f" parses={a['parse']['parses']}"
+                + f" loops={a['parse']['repeated_line_runs']} s={a['seconds']:.0f}"
+            )
+
+        # base + identity check against model.generate
         t0 = time.time()
         with torch.no_grad():
             out = model.generate(
@@ -128,96 +228,70 @@ def main() -> None:
                 do_sample=False,
                 eos_token_id=list(eos),
             )
-        pkg_ids = out[0, len(ids) :].tolist()
-        pkg_text = tokenizer.decode(pkg_ids, skip_special_tokens=True)
+        pkg_ids = [t for t in out[0, len(ids) :].tolist() if t not in eos]
         t_pkg = time.time() - t0
-        plain = FocalGenerator(
+        r0 = FocalGenerator(
             HFBackend(model),
             tokenizer,
             rules=[],
             max_new_tokens=args.max_new,
+            max_context=args.max_context,
             eos_ids=eos,
+        ).generate(ids)
+        record(
+            "base",
+            r0,
+            r0.text,
+            {"loop_identity": r0.generated_ids == pkg_ids, "pkg_seconds": t_pkg},
         )
-        r0 = plain.generate(ids)
-        pkg_stripped = [t for t in pkg_ids if t not in eos]
-        identity = r0.generated_ids == pkg_stripped
-        rec["arms"]["base"] = {
-            "score": score(pkg_text, checks, compute_score),
-            "n_tokens": len(pkg_ids),
-            "seconds": t_pkg,
-            "loop_identity": identity,
-            "loop_seconds": r0.seconds,
-            "text": pkg_text,
-        }
-        print(
-            f"[{item['id']}] base identity={identity} tokens={len(pkg_ids)} "
-            f"pkg {t_pkg:.1f}s loop {r0.seconds:.1f}s"
-        )
+        print(f"[{item['id']}] identity={r0.generated_ids == pkg_ids}")
 
-        # oracle before the request
-        reminder = mc.render_long_reminder(oracle)
-        ids_b = prompt_ids(reminder + "\n\n" + request)
+        # before_compact: same packets once, in the user turn
+        ids_b = session.encode(with_request_suffix("\n\n" + compact_reminder(rules)))
         rb = FocalGenerator(
             HFBackend(model),
             tokenizer,
             rules=[],
             max_new_tokens=args.max_new,
+            max_context=args.max_context,
             eos_ids=eos,
         ).generate(ids_b)
-        rec["arms"]["oracle_before"] = {
-            "score": score(rb.text, checks, compute_score),
-            "n_tokens": len(rb.generated_ids),
-            "seconds": rb.seconds,
-            "prompt_tokens": len(ids_b),
-            "text": rb.text,
-        }
+        record(
+            "before_compact", rb, rb.text, {"reminder_tokens": len(ids_b) - len(ids)}
+        )
 
-        # focal variants and the periodic control, all on the base prompt
-        variants = {
-            "oracle_focal_first": dict(policy="aligned", deliver="first"),
-            "oracle_focal_every": dict(policy="aligned", deliver="every"),
-            "oracle_periodic": dict(policy="periodic", period_lines=8),
-        }
-        cue_lines = {f"{CUE_PREFIX}{t.strip()}" for _, t in rules}
-        for name, kw in variants.items():
+        # focal comment channel, unphased and phased
+        for name, kw in (
+            ("focal_header_compact", dict(phased=False)),
+            ("focal_phased_compact", dict(phased=True)),
+        ):
             rf = FocalGenerator(
                 HFBackend(model),
                 tokenizer,
                 rules=rules,
                 max_new_tokens=args.max_new,
+                max_context=args.max_context,
                 eos_ids=eos,
                 **kw,
             ).generate(ids)
-            stripped = strip_spans(rf.text, rf.inserted_spans)
-            stripped, n_echo = strip_echoes(stripped, cue_lines)
-            rec["arms"][name] = {
-                "score": score(stripped, checks, compute_score),
-                "score_unstripped": score(rf.text, checks, compute_score),
-                "n_tokens": len(rf.generated_ids),
-                "inserted_tokens": rf.inserted_tokens,
-                "insertions": len(rf.events),
-                "echoed_lines": n_echo,
-                "events": rf.events,
-                "seconds": rf.seconds,
-                "ended_by_eos": rf.ended_by_eos,
-                "text": rf.text,
-                "stripped": stripped,
-            }
-        for arm, a in rec["arms"].items():
-            sc = a["score"]
-            print(
-                f"[{item['id']}] {arm:14s} fraction={sc['fraction']:.3f} "
-                + " ".join(
-                    f"{k}={sc[k]:.2f}" for k in ("regex", "pair", "bool") if k in sc
-                )
-                + f" tokens={a['n_tokens']} s={a['seconds']:.0f}"
-                + (
-                    f" ins={a['insertions']}/{a['inserted_tokens']}tok"
-                    f" echo={a['echoed_lines']} eos={a['ended_by_eos']}"
-                    if "insertions" in a
-                    else ""
-                )
-            )
+            record(name, rf, rf.text)
+
+        # user channel, phased
+        def rebuild(packets, session=session, with_request_suffix=with_request_suffix):
+            return session.encode(with_request_suffix("\n\n" + " ".join(packets)))
+
+        ru = FocalGenerator(
+            HFBackend(model),
+            tokenizer,
+            rules=rules,
+            max_new_tokens=args.max_new,
+            max_context=args.max_context,
+            eos_ids=eos,
+            channel="user",
+            rebuild_prompt=rebuild,
+        ).generate(ids)
+        record("user_phased", ru, ru.text)
+
         records.append(rec)
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)
         Path(args.out).write_text(json.dumps(records, indent=1))
