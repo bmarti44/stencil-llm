@@ -3925,3 +3925,10 @@ checker unit family 123/123 on the public topics.json pool (no item data); K2 in
 stored Exp 4C outputs: recall 0.998 (variable 0.995, function/method/class/import 1.0), zero false fires; 94 capped outputs
 unparsable and skipped. Both kill criteria pass. src/stencil/focal.py + tests/test_focal.py (5 tests). Runtime (insertion +
 line-start rollback) not built until the round-2 review reads.
+
+2026-09-12 21:00Z — DESCRIPTIVE DIAGNOSIS on stored outputs (no claim; exposed items): on uncapped Exp 4C outputs the naming
+(regex) checks are almost never satisfied (base 0.009, focus 0.017 per check; per-object match 2-4% at every object rank), while
+bool checks (docstring/comment presence, largely default behaviour) carry the score (0.20). On the 16 SETUP-LONG items with the
+label-derived oracle reminder before the request: regex 0.139, pair (decorator/import) 0.382, bool 0.267, fraction 0.315
+(8/16 capped at 512). So with the correct rules present once before the request, Qwen3-4B applies naming rules on ~14% of checks;
+the focal-delivery question is whether the same text at the governed unit lifts that. This is the H1 premise, not evidence for it.
