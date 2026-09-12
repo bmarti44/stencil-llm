@@ -1,0 +1,232 @@
+{
+ "split": "setup_long",
+ "model": "4b",
+ "policy": "role_evicted",
+ "items_expected": 16,
+ "items_complete": 16,
+ "items_scored": 16,
+ "items_inapplicable": 0,
+ "complete": true,
+ "primary_complete": true,
+ "primary_arms": [
+  "base",
+  "focus"
+ ],
+ "missing_primary_ids": [],
+ "invalid_record_ids": {},
+ "budget": {
+  "cumulative_generation_seconds_primary_arms": 1187.0674580218038,
+  "ceiling_seconds": 3430.1946394080296,
+  "marker": null,
+  "exhausted": false
+ },
+ "items_with_arm": {
+  "base": 16,
+  "focus": 16,
+  "oracle": 16
+ },
+ "strict_compliance": {
+  "base": 0,
+  "focus": 0,
+  "oracle": 0
+ },
+ "mean_fraction": {
+  "base": 0.07191240422652061,
+  "focus": 0.11348399814186452,
+  "oracle": 0.31453505882980703
+ },
+ "mean_fraction_required": {
+  "base": 0.0656624042265206,
+  "focus": 0.10885436851223489,
+  "oracle": 0.2625211699409181
+ },
+ "reminder": {
+  "base": {
+   "empty": 16,
+   "mean_tokens": 0.0
+  },
+  "focus": {
+   "empty": 0,
+   "mean_tokens": 248.125
+  },
+  "oracle": {
+   "empty": 0,
+   "mean_tokens": 168.6875
+  }
+ },
+ "contrasts": {
+  "focus_vs_base": {
+   "mcnemar": {
+    "first_only": 0,
+    "second_only": 0,
+    "discordant": 0,
+    "p_two_sided": 1.0
+   },
+   "paired_interval": {
+    "n": 16,
+    "difference_points": 0.0,
+    "lower_points": -23.95741431463415,
+    "upper_points": 23.95741431463415
+   },
+   "fraction_required_bootstrap": {
+    "n": 16,
+    "mean_points": 4.319196428571428,
+    "lower_points": 0.09300595238095233,
+    "upper_points": 9.53125,
+    "wins": 4,
+    "losses": 1,
+    "ties": 11,
+    "sign_p_two_sided": 0.375,
+    "draws": 10000,
+    "seed": 0
+   }
+  },
+  "oracle_vs_focus": {
+   "mcnemar": {
+    "first_only": 0,
+    "second_only": 0,
+    "discordant": 0,
+    "p_two_sided": 1.0
+   },
+   "paired_interval": {
+    "n": 16,
+    "difference_points": 0.0,
+    "lower_points": -23.95741431463415,
+    "upper_points": 23.95741431463415
+   },
+   "fraction_required_bootstrap": {
+    "n": 16,
+    "mean_points": 15.366680142868324,
+    "lower_points": 4.027478448275863,
+    "upper_points": 27.26040064650262,
+    "wins": 8,
+    "losses": 3,
+    "ties": 5,
+    "sign_p_two_sided": 0.2265625,
+    "draws": 10000,
+    "seed": 0
+   }
+  },
+  "oracle_vs_base": {
+   "mcnemar": {
+    "first_only": 0,
+    "second_only": 0,
+    "discordant": 0,
+    "p_two_sided": 1.0
+   },
+   "paired_interval": {
+    "n": 16,
+    "difference_points": 0.0,
+    "lower_points": -23.95741431463415,
+    "upper_points": 23.95741431463415
+   },
+   "fraction_required_bootstrap": {
+    "n": 16,
+    "mean_points": 19.685876571439753,
+    "lower_points": 7.767230524504232,
+    "upper_points": 33.14309388528139,
+    "wins": 9,
+    "losses": 1,
+    "ties": 6,
+    "sign_p_two_sided": 0.021484375,
+    "draws": 10000,
+    "seed": 0
+   }
+  }
+ },
+ "timeouts": {
+  "base": 0,
+  "focus": 0,
+  "oracle": 0
+ },
+ "prompt_length_match": {
+  "max_abs_difference_tokens": 0,
+  "items_with_difference": 0
+ },
+ "output_failure_excess_over_base": {
+  "base": {
+   "n": 16,
+   "excess_items": 0,
+   "excess_fraction": 0.0,
+   "reference_only_items": 0,
+   "net_rate_difference": 0.0,
+   "categories": {
+    "invalid": 5,
+    "truncated": 7,
+    "degenerate": 0,
+    "timed_out": 0
+   }
+  },
+  "focus": {
+   "n": 16,
+   "excess_items": 1,
+   "excess_fraction": 0.0625,
+   "reference_only_items": 1,
+   "net_rate_difference": 0.0,
+   "categories": {
+    "invalid": 3,
+    "truncated": 6,
+    "degenerate": 0,
+    "timed_out": 0
+   }
+  },
+  "oracle": {
+   "n": 16,
+   "excess_items": 4,
+   "excess_fraction": 0.25,
+   "reference_only_items": 3,
+   "net_rate_difference": 0.0625,
+   "categories": {
+    "invalid": 4,
+    "truncated": 8,
+    "degenerate": 1,
+    "timed_out": 0
+   }
+  }
+ },
+ "reading": {
+  "verdict": "DESCRIPTIVE",
+  "primary": "fraction_required (frozen denominator), focus \u2212 base",
+  "confirmatory": false,
+  "n_primary": 16,
+  "mean_points": 4.319196428571428,
+  "lower_points": 0.09300595238095233,
+  "upper_points": 9.53125,
+  "focus_excess_failure_fraction": 0.0625,
+  "budget_exhausted": false,
+  "invalid_records": {},
+  "note": "N=16 of 16 frozen items; 95% percentile bootstrap over items (order statistics 251/9750 of 10,000); the sign test is a descriptive directional companion; strict reported alongside; NOT PROVEN is final."
+ },
+ "primary": "fraction",
+ "qualification": {
+  "status": "FAILED",
+  "complete": true,
+  "passed": false,
+  "conditions": {
+   "oracle_mean_fraction_required_ge_0.20": true,
+   "focus_only_failure_excess_le_0.05": false,
+   "focus_minus_base_upper_gt_0": true
+  },
+  "values": {
+   "oracle_mean_fraction_required": 0.2625211699409181,
+   "focus_excess_failure_fraction": 0.0625,
+   "focus_minus_base_upper_points": 9.53125
+  },
+  "items_with_three_arms": 16,
+  "missing_three_arm_ids": [],
+  "note": "SCREEN-LONG launches only on PASSED; FAILED publishes SETUP-LONG as the negative and the program stops; INCOMPLETE is neither."
+ },
+ "auto_non_vacuous_check": {
+  "setup_items": 16,
+  "setup_admitted": 277,
+  "setup_relations_applied": 0,
+  "active": false
+ },
+ "auto_error_table": {
+  "false_admissions": 195,
+  "missed_instructions": 332,
+  "missed_updates": 0,
+  "overflow_events": 4298
+ },
+ "git_sha": "b462785a1330dbaa3223d40fab89b7195e95a313"
+}

@@ -3744,3 +3744,16 @@ descriptive 4B short numbers, 314-49 focus regeneration, precise label-use wordi
 "only oracle reads labels" in the 05:10Z entry). Tests 44 pass; the 1.7B SETUP-LONG records re-summarize
 identically (16/16 valid, −5.17 [−10.56, −0.43]). Launching SETUP-LONG 4B: 48 generations, ceiling
 3,430.1946394080296 s, reservation stencil-exp4b-setup-N 55 min / 32 GB, --budget-minutes 50.
+
+2026-09-12 11:55Z — STATE: EXP 4B QUALIFICATION FAILED; PROGRAM AT ITS REGISTERED STOP (Brian decision needed).
+SETUP-LONG 4B (setup_long-4b-role_evicted/, 48 gens, one slice, 1,187 s of 3,430 s ceiling, 16/16 valid, 0
+timeouts, prompts equal): fraction_required base .066 / focus .109 / oracle .263; focus − base +4.3 [+0.1, +9.5]
+4W/1L/11T; oracle − base +19.7 [+7.8, +33.1]; strict 0/16 all arms. Qualification: (a) oracle ≥ .20 PASS, (b)
+focus-only failure excess 1/16 = .0625 > .05 FAIL (item 184-14 unparsable; base-only failure on 186-14; net 0),
+(c) upper > 0 PASS → status FAILED. By REGISTRATION-4B.md item 3 the SCREEN-LONG run is NOT opened and the
+program stops; this was the second and last policy revision (rule D2). RESULTS-4B.md written (descriptive).
+Artifact bmarti44/stencil-focus-qwen3-4b is NOT PROVEN, withheld as a claim, not pushed. Astra result audit
+launched (rule D1). GPU idle; peer informed. Open for Brian: (1) accept the stop and publish the negative (default,
+nothing further runs); (2) authorize a THIRD revision as a new registration (e.g. net-excess or interval-based
+failure gate at n = 16) — outside the orchestrator's authority under D2; (3) publish the package descriptively
+with no claim.
