@@ -195,3 +195,12 @@ def test_block_style_cue_and_deliver_every_first_kind_has_no_cooldown(tok):
     assert [e["kind"] for e in r.events] == ["method", "function"]
     assert f"{CUE_PREFIX}m rule" in r.text
     assert strip_spans(r.text, r.inserted_spans) == TARGET
+
+
+def test_auto_refeed_leaves_room_for_a_decorator(tok):
+    rules = [("function", "add the '@retry' decorator to all functions")]
+    be = Scripted(tok, TARGET, eos=151645)
+    g = FocalGenerator(be, tok, rules=rules, eos_ids=(151645,), max_new_tokens=600)
+    r = g.generate([1, 2, 3])
+    assert [e["refed_keyword"] for e in r.events] == [""]
+    assert strip_spans(r.text, r.inserted_spans) == TARGET

@@ -71,6 +71,11 @@ class FocalGenerator:
     delivers at every governed unit, subject to ``cooldown_lines`` complete code
     lines since the previous insertion and ``max_per_rule`` deliveries per rule.
 
+    ``refeed`` controls what is re-fed after the cue: ``"keyword"`` = the unit header
+    the model had started (``def``, ``class``, ``import``, ``@``); ``"indent"`` = only
+    the indentation; ``"auto"`` = keyword unless a delivered rule asks for a decorator
+    and the model had not started one (then indent only, leaving room for ``@``).
+
     ``policy="periodic"`` is the repetition-matched control: the complete rule list
     (every kind, one block) is inserted at the start of the next code line every
     ``period_lines`` complete non-blank code lines, at a line boundary (no rollback)
@@ -93,7 +98,11 @@ class FocalGenerator:
         cooldown_lines: int = 3,
         max_per_rule: int = 3,
         cue_style: str = "line",
+        refeed: str = "auto",
     ) -> None:
+        if refeed not in ("auto", "keyword", "indent"):
+            raise ValueError(refeed)
+        self.refeed = refeed
         self.cue_style = cue_style
         if deliver not in ("first", "every"):
             raise ValueError(deliver)
@@ -243,7 +252,16 @@ class FocalGenerator:
             block = cue_block(rules, fired.indent, self.cue_style)
             insert_ids = self.tok.encode(remainder + block, add_special_tokens=False)
             keyword = header_keyword(text[fired.offset :].split("\n")[0])
-            keep_text = " " * fired.indent + keyword if keyword else ""
+            if self.refeed == "indent" or (
+                self.refeed == "auto"
+                and keyword != "@"
+                and any("decorator" in t for t in rules)
+            ):
+                # a decorator rule needs room ABOVE the header: re-feed the indent only
+                keyword = ""
+            keep_text = (
+                " " * fired.indent + keyword if (keyword or fired.indent) else ""
+            )
             keep_ids = (
                 self.tok.encode(keep_text, add_special_tokens=False)
                 if keep_text
