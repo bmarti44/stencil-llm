@@ -210,6 +210,24 @@ publishes whatever the second run says (a second null is a published negative wi
 artifact withheld as a claim); HARM publishes the negative. No new arms, workloads, or
 components enter without a new registration.
 
+### J. Rev 7.2 (2026-09-12): Exp 4B, the same head-to-head on the Qwen3-4B trunk
+
+Exp 4's SETUP-LONG at 1.7B read a strict floor under a corrected oracle (0/16 on every arm;
+per-constraint focus − base −5.2 points [−10.6, −0.4], descriptive, n = 16), so the 128-item
+SCREEN at 1.7B was deliberately not run and is reported as "primary not run". Brian chose
+the most likely direction from `results/reviews/2026-09-12-options-memo.md`: the SAME
+mechanism and control on the Qwen3-4B trunk with a per-constraint primary. Registered as a
+NEW registration, `results/memorycode-long/REGISTRATION-4B.md` (rule D9), consuming the
+program's second and last policy revision (rule D2): artifact `bmarti44/stencil-focus-
+qwen3-4b`; primary = `fraction_required` (denominator frozen from the query's required
+families, structure gate), paired focus − base, 95% percentile bootstrap (seed 0, 10,000
+draws) + exact sign test, N = 128 SCREEN-LONG; strict alongside; qualification gate on
+SETUP-LONG 4B (oracle mean ≥ 0.20, focus-only failure excess ≤ 5%, focus − base upper
+bound > 0) before any SCREEN spend; exhaustive readings PROVEN / POSITIVE-WITH-OUTPUT-
+FAILURE-EXCESS / NOT PROVEN (final) / HARM / INCOMPLETE. Everything else in G-H is inherited
+unchanged. Section I step 3 continues with Exp 4B; step 4's parity gate and card move to
+the 4B artifact; the 1.7B SETUP-LONG result is published as a descriptive negative.
+
 ## Context
 
 Brian asked for an audit of the Stencil repo: what has actually been proven, whether the

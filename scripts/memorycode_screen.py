@@ -635,6 +635,97 @@ def _paired_interval(pairs: list[tuple[bool, bool]]) -> dict:
     }
 
 
+def _paired_mean_bootstrap(
+    a: list[float], b: list[float], draws: int = 10_000, seed: int = 0
+) -> dict:
+    """Paired mean difference a − b (points of 100) with a 95% percentile bootstrap
+    over items (rng seed 0, 10,000 draws) and an exact sign test on discordant items
+    (Exp 4B registration)."""
+    import random
+
+    from scipy.stats import binomtest
+
+    diffs = [100 * (x - y) for x, y in zip(a, b)]
+    n = len(diffs)
+    rng = random.Random(seed)
+    means = []
+    for _ in range(draws):
+        sample = [diffs[rng.randrange(n)] for _ in range(n)]
+        means.append(sum(sample) / n)
+    means.sort()
+    wins = sum(1 for d in diffs if d > 0)
+    losses = sum(1 for d in diffs if d < 0)
+    return {
+        "n": n,
+        "mean_points": sum(diffs) / n if n else None,
+        "lower_points": means[int(0.025 * draws)] if n else None,
+        "upper_points": means[int(0.975 * draws) - 1] if n else None,
+        "wins": wins,
+        "losses": losses,
+        "ties": n - wins - losses,
+        "sign_p_two_sided": (
+            float(binomtest(wins, wins + losses, 0.5).pvalue) if wins + losses else 1.0
+        ),
+        "draws": draws,
+        "seed": seed,
+    }
+
+
+def fraction_reading(summary: dict) -> dict:
+    """Exhaustive readings of the Exp 4B registration (per-constraint primary)."""
+    ci = summary["contrasts"]["focus_vs_base"]["fraction_required_bootstrap"]
+    lower, upper = ci["lower_points"], ci["upper_points"]
+    excess = summary["output_failure_excess_over_base"]["focus"]["excess_fraction"]
+    confirmatory = (
+        summary["split"] == "screen_long" and summary["policy"] == "role_evicted"
+    )
+    if not summary["primary_complete"]:
+        verdict = "INCOMPLETE"
+    elif not confirmatory:
+        verdict = "DESCRIPTIVE"
+    elif lower > 0 and excess <= 0.05:
+        verdict = "PROVEN"
+    elif lower > 0:
+        verdict = "POSITIVE-WITH-OUTPUT-FAILURE-EXCESS"
+    elif upper < 0:
+        verdict = "HARM"
+    else:
+        verdict = "NOT PROVEN"
+    return {
+        "verdict": verdict,
+        "primary": "fraction_required (frozen denominator), focus − base",
+        "confirmatory": confirmatory and summary["primary_complete"],
+        "n_primary": ci["n"],
+        "mean_points": ci["mean_points"],
+        "lower_points": lower,
+        "upper_points": upper,
+        "focus_excess_failure_fraction": excess,
+        "note": (
+            f"N={ci['n']} of {summary['items_expected']} frozen items; 95% percentile "
+            "bootstrap over items; strict reported alongside; NOT PROVEN is final."
+        ),
+    }
+
+
+def _required_fraction_of(rec: dict, arm: str, item: dict) -> float:
+    """fraction_required of the first generation, recomputed from the saved
+    per-family scores when the record predates the field."""
+    gen = rec["arms"][arm]["generations"][0]
+    if "scores" not in gen:  # synthetic/legacy record without per-family scores
+        return rec["arms"][arm].get("fraction") or 0.0
+    value = gen["scores"].get("fraction_required")
+    if value is None and "fraction_required" not in gen["scores"]:
+        from stencil.memorycode import fraction_required
+
+        value = fraction_required(
+            gen["scores"]["per_family"],
+            item["history_regex"],
+            item["required"][gen["query"]],
+            gen["scores"]["structure_present"],
+        )
+    return value if value is not None else 0.0
+
+
 def _failure_excess(records: list[dict], arms: list[str], reference: str) -> dict:
     """Per-arm output failures relative to the reference arm (Exp 4 amendment 2).
     The registered guard is the ARM-ONLY DISCORDANCE RATE: items where the arm fails
@@ -729,6 +820,7 @@ def phase_summarize(args) -> dict:
     primary_complete = primary_ids == set(items_by_id)
     strict = {arm: {} for arm in arms}
     fraction = {arm: {} for arm in arms}
+    required_fraction = {arm: {} for arm in arms}
     inapplicable = 0
     for rec in records:
         # Primary cohort frozen BEFORE generation (CONTRACT.md amendment 3): an item
@@ -743,6 +835,7 @@ def phase_summarize(args) -> dict:
             value = rec["arms"][arm]["strict"]
             strict[arm][rec["id"]] = bool(value) if value is not None else False
             fraction[arm][rec["id"]] = rec["arms"][arm]["fraction"] or 0.0
+            required_fraction[arm][rec["id"]] = _required_fraction_of(rec, arm, item)
     ids = sorted(strict[reference])
     n = len(ids)
 
@@ -767,6 +860,14 @@ def phase_summarize(args) -> dict:
             arm: (
                 sum(fraction[arm].values()) / len(fraction[arm])
                 if fraction[arm]
+                else None
+            )
+            for arm in arms
+        },
+        "mean_fraction_required": {
+            arm: (
+                sum(required_fraction[arm].values()) / len(required_fraction[arm])
+                if required_fraction[arm]
                 else None
             )
             for arm in arms
@@ -804,9 +905,14 @@ def phase_summarize(args) -> dict:
         ]
     )
     for a, b in contrast_list:
+        common = [i for i in ids if i in strict[a] and i in strict[b]]
         contrasts[f"{a}_vs_{b}"] = {
             "mcnemar": _mcnemar(pairs(a, b)),
             "paired_interval": _paired_interval(pairs(a, b)),
+            "fraction_required_bootstrap": _paired_mean_bootstrap(
+                [required_fraction[a][i] for i in common],
+                [required_fraction[b][i] for i in common],
+            ),
         }
     summary["contrasts"] = contrasts
     if args.cohort == "long":
@@ -833,7 +939,12 @@ def phase_summarize(args) -> dict:
         summary["output_failure_excess_over_base"] = _failure_excess(
             records, arms, "base"
         )
-        summary["reading"] = long_reading(summary)
+        summary["reading"] = (
+            fraction_reading(summary)
+            if getattr(args, "primary", "strict") == "fraction"
+            else long_reading(summary)
+        )
+        summary["primary"] = getattr(args, "primary", "strict")
     elif args.split == "setup":
         h = summary["strict_compliance"]["history"]
         summary["eligibility"] = {
@@ -917,6 +1028,12 @@ def main(argv=None) -> int:
     parser.add_argument("--deadline", type=float, default=DEADLINE)
     parser.add_argument("--budget-minutes", type=float, default=0.0)
     parser.add_argument("--force", action="store_true")
+    parser.add_argument(
+        "--primary",
+        choices=["strict", "fraction"],
+        default="strict",
+        help="summarize: registered primary (Exp 4 = strict; Exp 4B = fraction)",
+    )
     parser.add_argument(
         "--redo-arms",
         nargs="+",

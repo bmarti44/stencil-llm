@@ -788,3 +788,91 @@ def test_failure_excess_reports_both_directions():
     assert out["focus"]["net_rate_difference"] == pytest.approx(0.1)
     assert out["focus"]["categories"]["invalid"] == 3
     assert out["base"]["excess_items"] == 0  # reference vs itself
+
+
+def test_fraction_required_has_a_frozen_denominator():
+    """Exp 4B primary: the denominator is the query's REQUIRED families; optional
+    families an output introduces are ignored; missing structure scores 0.0;
+    a query that requires nothing is inapplicable (None)."""
+    regexes = [["variable", ".*_m$"], ["method annotation", True], ["class", True]]
+    # required = variable + method annotation; class is optional and ignored
+    scores = [1.0, 0.0, 1.0]
+    assert mc.fraction_required(
+        scores, regexes, ["variable", "method annotation"], True
+    ) == pytest.approx(0.5)
+    # an optional family failing does not move the score
+    assert mc.fraction_required([1.0, 1.0, 0.0], regexes, ["variable"], True) == 1.0
+    # an absent required parent (None) counts 0.0
+    assert mc.fraction_required([None, 1.0, None], regexes, ["variable"], True) == 0.0
+    # missing required structure -> 0.0 whatever the conventions score
+    assert mc.fraction_required([1.0, 1.0, 1.0], regexes, ["variable"], False) == 0.0
+    # nothing required -> inapplicable
+    assert mc.fraction_required([1.0], regexes, [], True) is None
+    assert mc.fraction_required([1.0], regexes, None, True) is None
+    # score_generation carries the field
+    out = mc.score_generation(
+        "```python\nx_m = 1\n```",
+        [["variable", ".*_m$"], ["method annotation", True]],
+        mc.vendored_checker(),
+        required=["variable", "method annotation"],
+    )
+    assert out["fraction_required"] == pytest.approx(0.5)
+
+
+def test_paired_mean_bootstrap_is_deterministic_and_reads_direction():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "memorycode_screen", ROOT / "scripts/memorycode_screen.py"
+    )
+    screen = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(screen)
+    a = [0.5, 0.75, 1.0, 0.25, 0.5, 0.5, 1.0, 0.0]
+    b = [0.25, 0.5, 0.5, 0.25, 0.0, 0.5, 0.5, 0.0]
+    one = screen._paired_mean_bootstrap(a, b, draws=2000)
+    two = screen._paired_mean_bootstrap(a, b, draws=2000)
+    assert one == two  # seed 0 fixed
+    assert (
+        one["n"] == 8 and one["wins"] == 5 and one["losses"] == 0 and one["ties"] == 3
+    )
+    assert one["mean_points"] == pytest.approx(100 * (sum(a) - sum(b)) / 8)
+    assert one["lower_points"] > 0 and one["upper_points"] >= one["mean_points"]
+    assert one["sign_p_two_sided"] == pytest.approx(2 * 0.5**5)
+    flipped = screen._paired_mean_bootstrap(b, a, draws=2000)
+    assert flipped["upper_points"] < 0 and flipped["losses"] == 5
+
+    # fraction_reading verdict ladder on a synthetic summary
+    def summary(lower, upper, excess, complete=True, split="screen_long"):
+        return {
+            "split": split,
+            "policy": "role_evicted",
+            "primary_complete": complete,
+            "items_expected": 128,
+            "contrasts": {
+                "focus_vs_base": {
+                    "fraction_required_bootstrap": {
+                        "n": 128,
+                        "mean_points": (lower + upper) / 2,
+                        "lower_points": lower,
+                        "upper_points": upper,
+                    }
+                }
+            },
+            "output_failure_excess_over_base": {"focus": {"excess_fraction": excess}},
+        }
+
+    assert screen.fraction_reading(summary(1.0, 5.0, 0.02))["verdict"] == "PROVEN"
+    assert (
+        screen.fraction_reading(summary(1.0, 5.0, 0.08))["verdict"]
+        == "POSITIVE-WITH-OUTPUT-FAILURE-EXCESS"
+    )
+    assert screen.fraction_reading(summary(-1.0, 5.0, 0.0))["verdict"] == "NOT PROVEN"
+    assert screen.fraction_reading(summary(-6.0, -1.0, 0.0))["verdict"] == "HARM"
+    assert (
+        screen.fraction_reading(summary(1.0, 5.0, 0.0, complete=False))["verdict"]
+        == "INCOMPLETE"
+    )
+    assert (
+        screen.fraction_reading(summary(1.0, 5.0, 0.0, split="setup_long"))["verdict"]
+        == "DESCRIPTIVE"
+    )

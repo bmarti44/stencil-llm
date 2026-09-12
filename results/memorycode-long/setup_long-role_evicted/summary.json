@@ -28,6 +28,11 @@
   "focus": 0.06861606708476037,
   "oracle": 0.06293706293706294
  },
+ "mean_fraction_required": {
+  "base": 0.12028592295862033,
+  "focus": 0.06861606708476037,
+  "oracle": 0.06293706293706294
+ },
  "reminder": {
   "base": {
    "empty": 16,
@@ -55,6 +60,18 @@
     "difference_points": 0.0,
     "lower_points": -23.95741431463415,
     "upper_points": 23.95741431463415
+   },
+   "fraction_required_bootstrap": {
+    "n": 16,
+    "mean_points": -5.166985587385995,
+    "lower_points": -10.556584314808,
+    "upper_points": -0.42841686444227284,
+    "wins": 1,
+    "losses": 7,
+    "ties": 8,
+    "sign_p_two_sided": 0.0703125,
+    "draws": 10000,
+    "seed": 0
    }
   },
   "oracle_vs_focus": {
@@ -69,6 +86,18 @@
     "difference_points": 0.0,
     "lower_points": -23.95741431463415,
     "upper_points": 23.95741431463415
+   },
+   "fraction_required_bootstrap": {
+    "n": 16,
+    "mean_points": -0.5679004147697427,
+    "lower_points": -6.887161537796746,
+    "upper_points": 7.130369630369631,
+    "wins": 2,
+    "losses": 5,
+    "ties": 9,
+    "sign_p_two_sided": 0.453125,
+    "draws": 10000,
+    "seed": 0
    }
   },
   "oracle_vs_base": {
@@ -83,6 +112,18 @@
     "difference_points": 0.0,
     "lower_points": -23.95741431463415,
     "upper_points": 23.95741431463415
+   },
+   "fraction_required_bootstrap": {
+    "n": 16,
+    "mean_points": -5.734886002155738,
+    "lower_points": -12.649663932558669,
+    "upper_points": 1.3455294705294705,
+    "wins": 2,
+    "losses": 7,
+    "ties": 7,
+    "sign_p_two_sided": 0.1796875,
+    "draws": 10000,
+    "seed": 0
    }
   }
  },
@@ -138,13 +179,16 @@
  },
  "reading": {
   "verdict": "DESCRIPTIVE",
+  "primary": "fraction_required (frozen denominator), focus \u2212 base",
   "confirmatory": false,
   "n_primary": 16,
-  "lower_points": -23.95741431463415,
-  "upper_points": 23.95741431463415,
+  "mean_points": -5.166985587385995,
+  "lower_points": -10.556584314808,
+  "upper_points": -0.42841686444227284,
   "focus_excess_failure_fraction": 0.0,
-  "note": "N=16 of 16 frozen items; union-bound paired interval; one primary policy (role_evicted, Exp 4 registration amendment 1); NOT PROVEN is final; oracle is descriptive."
+  "note": "N=16 of 16 frozen items; 95% percentile bootstrap over items; strict reported alongside; NOT PROVEN is final."
  },
+ "primary": "fraction",
  "auto_non_vacuous_check": {
   "setup_items": 16,
   "setup_admitted": 277,
@@ -157,5 +201,5 @@
   "missed_updates": 0,
   "overflow_events": 4298
  },
- "git_sha": "ec67d70aa6ebb8ea58a6b268db25767060243a48"
+ "git_sha": "18704bb18b4a42cdb91af75fe407559e6954bb1d"
 }

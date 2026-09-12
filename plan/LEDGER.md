@@ -3709,3 +3709,19 @@ history .094 / restate_all .136 / auto .231 / oracle .285 (1.7B: .057/.082/.120/
 the first strict passes of the program (2 auto, 1 oracle). GPU idle. Nothing else launches before Brian picks a
 path from results/reviews/2026-09-12-options-memo.md (4B trunk + per-constraint primary is the path these numbers
 support; the pass@8 diagnostic remains the recommended first step).
+
+2026-09-12 05:10Z — EXP 4B REGISTERED (results/memorycode-long/REGISTRATION-4B.md; plan rev 7.2 section J). Brian:
+"pick the most likely direction for attaining the goal" → Qwen3-4B trunk, same role_evicted mechanism and control,
+PRIMARY = fraction_required (denominator frozen from the query's required families; structure gate; optional
+families ignored) paired focus − base, percentile bootstrap seed 0 × 10,000 + exact sign test, N = 128 SCREEN-LONG;
+strict alongside; qualification gate on SETUP-LONG 4B (oracle ≥ .20, focus-only failure excess ≤ 5%, upper > 0)
+before any SCREEN spend. This is the program's second and LAST policy revision (rule D2); NOT PROVEN is final.
+Implementation: memorycode.fraction_required + score_generation field; memorycode_screen
+_paired_mean_bootstrap / fraction_reading / _required_fraction_of (recomputes for legacy records) /
+mean_fraction_required / --primary {strict,fraction}; timing_pilot --model 4b writes memorycode-long-4b.json;
+tests 44 pass. Post-hoc looks that informed the pick (disclosed in the registration): 1.7B SETUP-LONG
+fraction_required base .120 / focus .069 / oracle .063, focus − base −5.2 [−10.6, −0.4] 1W/7L/8T; 4B short cohort
+history .031 / restate .099 / auto .203 / oracle .255, oracle − history +22.4 [3.1, 43.8]. No SCREEN item generated at
+either trunk. Data lineage unchanged (nothing fit on MemoryCode; only oracle reads labels). Next: Astra
+implementation review (rule D1) of REGISTRATION-4B.md + code, 4B timing pilot under gpu_reserve, BUDGET line, then
+SETUP-LONG 4B (48 gens) and the gate.

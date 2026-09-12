@@ -371,7 +371,30 @@ def score_generation(
         "structure_present": structure_present,
         "strict": strict,
         "fraction": (sum(applicable) / len(applicable)) if applicable else None,
+        "fraction_required": fraction_required(
+            scores, regexes, required, structure_present
+        ),
     }
+
+
+def fraction_required(
+    scores: list, regexes: list, required: list[str] | None, structure_present: bool
+) -> float | None:
+    """Per-constraint compliance with a denominator FROZEN before generation
+    (Exp 4B registration): the mean score over the REQUIRED families of the query
+    (an absent required parent counts 0.0; optional families an output happens to
+    introduce are ignored), and 0.0 when the required structure is missing.
+    ``None`` only when the query requires nothing (item inapplicable)."""
+    if not required:
+        return None
+    if not structure_present:
+        return 0.0
+    values = [
+        (s if s is not None else 0.0)
+        for s, (obj, _regex) in zip(scores, regexes)
+        if str(obj) in required
+    ]
+    return (sum(values) / len(values)) if values else None
 
 
 # ---------------------------------------------------------------------------- items

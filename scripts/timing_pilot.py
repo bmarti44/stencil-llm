@@ -148,7 +148,7 @@ def family_memorycode_long(args) -> dict:
         reverse=True,
     )[: args.items]
     tokenizer = screen._tokenizer()
-    model = screen.load_model("1.7b")
+    model = screen.load_model(args.model)
     rows = []
     for item in items:
         dialogue = mc.load_dialogue(item["dialogue"])
@@ -184,6 +184,7 @@ def main(argv=None) -> int:
         "--family", required=True, choices=["multiif", "memorycode", "memorycode-long"]
     )
     parser.add_argument("--items", type=int, default=4)
+    parser.add_argument("--model", choices=["1.7b", "4b"], default="1.7b")
     parser.add_argument("--max-new", type=int, default=512)
     parser.add_argument("--deadline", type=float, default=300.0)
     args = parser.parse_args(argv)
@@ -210,7 +211,9 @@ def main(argv=None) -> int:
         "max_context_tokens": max(r["context_tokens"] for r in rows),
     }
     OUT.mkdir(parents=True, exist_ok=True)
-    (OUT / f"{args.family}.json").write_text(json.dumps(report, indent=1))
+    suffix = "" if args.model == "1.7b" else f"-{args.model}"
+    report["model"] = args.model
+    (OUT / f"{args.family}{suffix}.json").write_text(json.dumps(report, indent=1))
     print(json.dumps(report["aggregate"], indent=1))
     return 0
 
