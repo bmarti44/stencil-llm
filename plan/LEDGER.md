@@ -3694,3 +3694,9 @@ and 12/16 oracle generations hit the 512-token cap. Register phase rerun on the 
 tables recomputed (auto_rerun finished, exit 0 ×4). Remaining in the redo queue: focus on 314-49, then the Exp 3b
 oracle arm ×16. Reading: the floor holds under a correct oracle; the registered SCREEN is NOT launched pending
 Brian's choice among the options memo's paths.
+
+2026-09-12 02:31Z — EXP 3B corrected oracle regenerated (16 items): strict still 0/16 on all four arms; oracle mean
+fraction .112 (was .051 with the event-only oracle; reminder now 37.5 tokens mean, never empty); history .057,
+restate_all .082, auto .120. Eligibility unchanged: INELIGIBLE at 1.7B. Launching the contracted retry on
+Qwen3-4B (CONTRACT.md 3b: same four arms, 16 items) — an existing registration, not a new one; it is also
+gate 1 of the options memo's path 1. Output: results/memorycode-derived/setup-4b/.
