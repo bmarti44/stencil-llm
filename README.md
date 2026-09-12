@@ -68,6 +68,13 @@ mechanism has beaten it by more than about two points, and several lost to it:
   29/64, with 25 false admissions in 21 episodes. Earlier FOCUS-3 versions
   (v1 to v8) stopped INELIGIBLE on CPU admission counters and never ran their
   GPU gate; see `results/quick-checks/focus3-gate/`.
+- stencil-focus artifact, final head-to-head (Exp 4C, Qwen3-4B, generated
+  through the shipping package, `results/memorycode-long/RESULTS-4C.md`): restating
+  evicted user sentences in a 256-token reminder changed mean required-convention
+  compliance from 0.084 to 0.105 on 139 paired MemoryCode-derived long sessions,
+  +2.05 points, 95% interval [−0.07, +4.16], p = .058 (paired t), output failures
+  60 vs 61. NOT PROVEN, FINAL; the package is not published as a claim. Exp 4
+  (1.7B) and Exp 4B (4B qualification) were negative or failed earlier.
 
 The program's practical objective is therefore automatic maintenance of
 correct reminders at acceptable cost, not beating a hand-written reminder

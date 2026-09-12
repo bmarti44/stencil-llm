@@ -228,6 +228,24 @@ FAILURE-EXCESS / NOT PROVEN (final) / HARM / INCOMPLETE. Everything else in G-H 
 unchanged. Section I step 3 continues with Exp 4B; step 4's parity gate and card move to
 the 4B artifact; the 1.7B SETUP-LONG result is published as a descriptive negative.
 
+### K. Rev 7.3 (2026-09-12): Exp 4C, the Astra-authorized final confirmation, and program close
+
+Exp 4B's qualification FAILED its output-failure gate (one focus-only unparsable output among
+16). Brian delegated the D2-override decision to an open-brief Astra consult; its binding
+decision (`results/reviews/2026-09-12-unblock-decision-open-astra.md`) authorized ONE final
+confirmation, `results/memorycode-long/REGISTRATION-4C.md`: generation through the shipping
+package (research-runtime parity had failed), the 128 SCREEN dialogues plus reserve up to
+196 under a timing-only N rule, paired-t primary on `fraction_required`, +5-point failure
+noninferiority, HF push only on PROVEN-SCOPED after an Astra audit and a clean-environment
+reproduction. Astra's implementation review blocked ten findings; all were closed before
+launch. Qualification passed (16/16 plain matches, 8/8 replays, t_max 68.7 s → N = 139).
+Terminal reading (`RESULTS-4C.md`): **NOT PROVEN, FINAL**, off 0.0845 → on 0.1049, +2.05
+points, 95% [−0.07, +4.16], p = .058, 25/17/97, failures 60 vs 61 (guard also not met).
+Program outcome: the artifact `bmarti44/stencil-focus-qwen3-4b` stays repo-only with the
+table on its card; nothing is pushed to HuggingFace; no further revision is permitted. Owner
+rule from 16:50Z, binding on future registrations: interim results may be inspected; early
+stop only for futility; a positive claim still needs the full registered N.
+
 ## Context
 
 Brian asked for an audit of the Stencil repo: what has actually been proven, whether the
