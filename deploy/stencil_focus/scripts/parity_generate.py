@@ -31,7 +31,14 @@ def main(argv=None) -> int:
         "--out", default=str(REPO / "results/memorycode-long/parity.json")
     )
     parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument(
+        "--records",
+        default=str(RECORDS),
+        help="research record directory to compare against "
+        "(Exp 4B: results/memorycode-long/setup_long-4b-role_evicted)",
+    )
     args = parser.parse_args(argv)
+    records_dir = Path(args.records)
 
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -59,7 +66,7 @@ def main(argv=None) -> int:
         items = items[: args.limit]
     rows = []
     for item in items:
-        record = json.loads((RECORDS / f"item-{item['id']}.json").read_text())
+        record = json.loads((records_dir / f"item-{item['id']}.json").read_text())
         dialogue = mc.load_dialogue(item["dialogue"])
         head, sep, request = mc.long_request(dialogue, item["queries"][0])
         row = {"id": item["id"]}

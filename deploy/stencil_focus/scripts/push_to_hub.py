@@ -21,9 +21,6 @@ MODULES = [
     "focus_session.py",
 ]
 TRUNK_FILES = [
-    "model-00001-of-00002.safetensors",
-    "model-00002-of-00002.safetensors",
-    "model.safetensors.index.json",
     "generation_config.json",
     "tokenizer.json",
     "tokenizer_config.json",
@@ -32,10 +29,18 @@ TRUNK_FILES = [
 ]
 
 
-def assemble(trunk: Path, out: Path, stencil_focus: bool = True) -> list[Path]:
+def assemble(
+    trunk: Path, out: Path, stencil_focus: bool = True, card: Path | None = None
+) -> list[Path]:
     out.mkdir(parents=True, exist_ok=True)
     written = []
-    for name in TRUNK_FILES:
+    # weight shards are globbed (1.7B ships two shards, 4B three) plus the index
+    shards = sorted(p.name for p in trunk.glob("model*.safetensors"))
+    if not shards:
+        raise SystemExit(f"no safetensors shards under {trunk}")
+    index = trunk / "model.safetensors.index.json"
+    names = shards + ([index.name] if index.exists() else []) + TRUNK_FILES
+    for name in names:
         target = out / name
         if not target.exists():
             shutil.copy2(trunk / name, target)
@@ -55,7 +60,7 @@ def assemble(trunk: Path, out: Path, stencil_focus: bool = True) -> list[Path]:
     for name in MODULES:
         shutil.copy2(PACKAGE / name, out / name)
         written.append(out / name)
-    card = HERE / "MODEL_CARD.md"
+    card = card or HERE / "MODEL_CARD.md"
     if card.exists():
         shutil.copy2(card, out / "README.md")
         written.append(out / "README.md")
@@ -70,8 +75,16 @@ def main(argv=None) -> int:
     parser.add_argument("--out", default=str(HERE / "build" / "hub"))
     parser.add_argument("--repo", default="bmarti44/stencil-focus-qwen3-1.7b")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--card",
+        default=None,
+        help="model card to publish as README.md (default MODEL_CARD.md; "
+        "MODEL_CARD-4b.md for the Qwen3-4B build)",
+    )
     args = parser.parse_args(argv)
-    files = assemble(Path(args.trunk), Path(args.out))
+    files = assemble(
+        Path(args.trunk), Path(args.out), card=Path(args.card) if args.card else None
+    )
     for f in files:
         print(f"{f.stat().st_size:>12} {f.relative_to(args.out)}")
     if args.dry_run:
