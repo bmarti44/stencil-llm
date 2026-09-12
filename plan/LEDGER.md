@@ -3656,3 +3656,11 @@ SETUP-LONG (oracle 0/16) would make the SCREEN unpowered at strict; the SETUP-LO
 registered anyway and reads first; if the floor appears, the trunk/estimand question is a registration choice
 the plan does not cover → Astra consult (rule D10) BEFORE any SCREEN-LONG generation. Amendment budget note:
 a trunk change would be a NEW registration (new artifact name), not an amendment.
+
+2026-09-12 00:55Z — STATE: Exp 4 SETUP-LONG run launched (reservation stencil-exp4-setup-1, pid 2519359, 16 items ×
+base/focus/oracle, role_evicted, 55-min slices, budget 50; a second slice follows automatically via the stage-1
+queue, then the Exp 3b Qwen3-4B retry into results/memorycode-derived/setup-4b/). BUDGET line written (t_max 98 s,
+ceiling 13.1 GPU-h). SCREEN-LONG is NOT launched: it waits for the SETUP-LONG reading (floor check: if oracle and
+both arms are 0/16 strict, Astra consult under D10 before any SCREEN generation). Resume: read
+results/memorycode-long/setup_long-role_evicted/, run `memorycode_screen.py summarize --cohort long --split
+setup_long`, then decide; queue script for SCREEN: scratchpad exp4_run_queue.sh (not launched).
