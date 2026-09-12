@@ -337,12 +337,16 @@ def build_arm(model, tokenizer, mc, dialogue, item, arm, research_base, max_new)
     return session, prompt, built, (head, sep, request)
 
 
-def reminder_sources(session, built: dict) -> dict:
-    """Provenance of the rendered reminder (finding 10): absolute character spans of
-    the kept sentences in the thread, their message index, the eviction boundary
-    and a digest of the thread text."""
+def reminder_sources(session, built: dict, head: str, sep: str, request: str) -> dict:
+    """Provenance of the rendered reminder (finding 10; result-audit finding 1): the
+    package selects evicted sentences against the BASE-window boundary (the plain
+    window's cut, ``focus_session.build_prompt``), so the boundary is recomputed from
+    the base fit, not from the shortened focus window. Records absolute character
+    spans of the kept sentences in the thread, their message index, the boundary and a
+    digest of the thread text; the kept spans must reproduce the reminder lines."""
     thread = session.thread()
-    cut = max(len(thread) - len(built.get("thread_text_kept", "")), 0)
+    base = session._fit(head, thread, sep, "", request)
+    cut = max(len(thread) - len(base["thread_text_kept"]), 0)
     # message index of every instruction span (same offset arithmetic as the package)
     bounds = []
     offset = 0
@@ -357,6 +361,10 @@ def reminder_sources(session, built: dict) -> dict:
     evicted = [s for s in spans if s[1] <= cut]
     k = built.get("kept_sentences", 0) or 0
     kept = evicted[-k:] if k else []
+    reminder = built.get("reminder", "")
+    lines = reminder.split("\n")[1:] if reminder else []
+    if [f"- {txt}" for _, _, _, txt in kept] != lines:
+        raise SystemExit("reminder provenance does not reproduce the reminder")
     return {
         "thread_chars": len(thread),
         "thread_sha256": hashlib.sha256(thread.encode()).hexdigest(),
@@ -842,9 +850,11 @@ def run(args) -> int:
                         for k, v in built.items()
                         if k not in ("prompt", "thread_text_kept")
                     },
-                    "reminder_sources": reminder_sources(session, built)
-                    if arm == "focus"
-                    else None,
+                    "reminder_sources": (
+                        reminder_sources(session, built, head, sep, request)
+                        if arm == "focus"
+                        else None
+                    ),
                     "generation": gen,
                     "manifest": manifest,
                     "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),

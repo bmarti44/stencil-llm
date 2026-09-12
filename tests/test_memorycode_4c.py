@@ -125,7 +125,19 @@ def _rec(i, on, off, fail_on=False, fail_off=False, timed_out_on=False, manifest
                 "generations": [gon],
                 "strict": gon["scores"]["strict"],
                 "manifest": m,
-                "reminder_sources": {"kept_spans": []},
+                "reminder": "Earlier instructions still in force:\n- Use tabs.",
+                "kept_sentences": 1,
+                "reminder_sources": {
+                    "eviction_boundary_char": 100,
+                    "kept_spans": [
+                        {
+                            "start": 10,
+                            "end": 19,
+                            "message_index": 0,
+                            "sentence": "Use tabs.",
+                        }
+                    ],
+                },
             },
             "base": {
                 "generations": [goff],
@@ -845,3 +857,22 @@ def test_prompt_fields_come_from_the_linked_raw_file_when_absent_from_the_record
         "raw ids differ"
         in _run([rec], raw_loader=wrong.get)["status"]["invalid_records"]["d0-1"]
     )
+
+
+def test_reminder_provenance_must_reproduce_the_reminder():
+    def broken(mutate):
+        rec = _rec(0, on=0.5, off=0.3)
+        mutate(rec["arms"]["focus"])
+        return _run([rec])["status"]["invalid_records"].get("d0-1")
+
+    assert broken(lambda a: None) is None
+    assert "reproduce" in broken(
+        lambda a: a["reminder_sources"]["kept_spans"][0].__setitem__(
+            "sentence", "Other."
+        )
+    )
+    assert "count" in broken(lambda a: a.__setitem__("kept_sentences", 2))
+    assert "evicted region" in broken(
+        lambda a: a["reminder_sources"].__setitem__("eviction_boundary_char", 5)
+    )
+    assert "missing" in broken(lambda a: a.pop("reminder_sources"))

@@ -3865,3 +3865,13 @@ first summary read INCOMPLETE (validator expected prompt fields inside the gener
 validator fixed, test added, summary recomputed once from unchanged outputs. Per the registration this is the program's
 final outcome: NO HF release, no further revision. Next: registered Astra result audit, card updated with the table
 (repo-only), memory updated. STATE: Exp 4C NOT PROVEN, FINAL; audit pending; program closing.
+
+2026-09-12 18:20Z — Astra result audit (results/reviews/2026-09-12-exp4c-result-audit-astra.md): REJECT, reading
+INCOMPLETE. Grounds: (1) provenance metadata bug (recorder used the focus-window boundary; package uses the base-window
+boundary; spans did not reproduce reminders on 139/139) → instrument bug, repaired from unchanged outputs by
+scripts/memorycode_4c_reprovenance.py (byte-identical prompts/reminders asserted), validator hardened, summary recomputed:
+139/139 valid, NOT PROVEN, FINAL, every number identical; (2) owner-directed interim looks (16:50Z) contradict the
+registration's no-interim clause → disclosed procedural deviation, not repairable. Audit independently reproduced all
+statistics, identities, receipts, budgets and 278/278 re-scores. The REJECT stands as the one registered audit; the
+release question is moot (no reading of this run authorizes an HF push). Program outcome: repo-only NOT PROVEN, FINAL
+with the audit's defects recorded. STATE: Exp 4C closed; no Stencil GPU work authorized without a new registration.

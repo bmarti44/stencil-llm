@@ -1,8 +1,12 @@
 # Exp 4C results: final package-path confirmation of `stencil_focus` (Qwen3-4B)
 
 Registration: `REGISTRATION-4C.md` (Astra binding decision, owner-delegated single D2
-exception). Summary: `screen_long_4c-4b-package-role_evicted/summary-4c.json`, computed once
-at 2026-09-12 17:40Z on the complete run (git `678bf41e` analysis code; scipy 1.18.1).
+exception). Summary: `screen_long_4c-4b-package-role_evicted/summary-4c.json`, computed on the
+complete, unchanged run (scipy 1.18.1). Artifact history, verbatim: a first summary at
+17:33Z read INCOMPLETE on a validator defect (kept as `summary-4c-INVALID-validator-bug.json`);
+a second at 17:34Z read NOT PROVEN but admitted defective provenance metadata (kept as
+`summary-4c-SUPERSEDED-provenance-bug.json`); the current summary follows the provenance
+recompute described under Disclosures. No output, score or statistic changed between them.
 Records, raw outputs, attempt log and process receipts live in the same directory;
 qualification receipts under `qualification-4c/`.
 
@@ -60,7 +64,9 @@ effect of about two points that this sample cannot distinguish from zero.
 
 Discordant: 9 on-only, 8 off-only. Mean H = +0.72 points, 95% interval [−5.17, +6.60],
 p = 0.81, McNemar p = 1.0. U_H = +6.60 > 5, so the registered noninferiority gate is NOT met
-either; no increase is demonstrated (L_H < 0) and equivalence is not established.
+either; no increase is demonstrated (L_H < 0) and equivalence is not established. The
+failure-rate question is UNRESOLVED at this N: the interval is compatible with a 5-point
+decrease and a 6.6-point increase alike.
 
 ### Descriptive subsets (never a decision input)
 
@@ -73,8 +79,9 @@ either; no increase is demonstrated (L_H < 0) and equivalence is not established
 
 Every pair has equal prompt token counts (3,584 in both arms, package == research
 builder), 512-token generation, 300 s deadline, prompt + output ≤ 4,096. The reminder was
-non-empty on every focus item, using on average about 247 of its 256 tokens; kept-sentence
-source spans, the eviction boundary and a thread digest are recorded per focus arm.
+non-empty on every focus item, using on average 246.1 of its 256 tokens; kept-sentence
+source spans, the eviction boundary and a thread digest are recorded per focus arm and
+verified to reproduce the reminder text.
 
 ### Completeness, validity and cost
 
@@ -88,6 +95,17 @@ interrupted attempts: none); evaluation resident overhead 372 s of 2,700; qualif
 limit. Total additional GPU allocation about 3.4 h of the 10 h authorized.
 
 ## Disclosures
+
+- Provenance metadata bug (result-audit finding 1), disclosed and repaired without touching
+  any output: the runner computed each focus arm's `reminder_sources` against the shortened
+  focus-window boundary, while the package selects evicted sentences against the base-window
+  boundary, so the recorded spans did not reproduce the reminders on 139/139 items. The
+  prompts, reminders, outputs, scores and statistics were unaffected (the audit reproduced
+  278/278 prompts and every number). `scripts/memorycode_4c_reprovenance.py` rebuilt every
+  focus session through the package's own `Session`, asserted byte-identical prompts and
+  reminders, recomputed the spans with the corrected boundary (now self-checked to reproduce
+  the reminder) and wrote them into the records with the previous values kept
+  (`reprovenance-4c.json`); the validator now requires the spans to reproduce the reminder.
 
 - Instrument bug, disclosed: the first terminal summary read INCOMPLETE because the
   validator looked for the prompt text/hash/count and window inside each generation while
@@ -111,8 +129,24 @@ limit. Total additional GPU allocation about 3.4 h of the 10 h authorized.
 
 The modification (restating evicted user sentences in a 256-token reminder under a
 3,584-token prompt budget) produced a small positive average effect on required-convention
-compliance that is not statistically distinguishable from zero at N = 139, with output
-failures unchanged. Absolute compliance is low in both arms (about one required check in
+compliance that is not statistically distinguishable from zero at N = 139; the
+output-failure difference is small in point estimate and unresolved in interval. Absolute compliance is low in both arms (about one required check in
 ten) and strict compliance is essentially never reached. The package stays in the
 repository with this table on its card as a documented negative; it is not published as a
 model with a claim.
+
+## Result audit (Astra, `results/reviews/2026-09-12-exp4c-result-audit-astra.md`)
+
+Verdict as written: REJECT, reading INCOMPLETE, on two grounds. (1) The provenance metadata
+defect above, which made every required record technically invalid; repaired post-audit from
+unchanged outputs as disclosed, after which the validator accepts 139/139 and the mechanical
+reading is NOT PROVEN, FINAL. (2) Interim efficacy inspections at 75 and 100 pairs on the
+owner's instruction, contradicting the registration's no-interim-look clause; disclosed, not
+repairable after the fact, and recorded as an owner-directed procedural deviation (the run was
+neither stopped nor extended, N was frozen before the first generation, and the audit
+confirms completion at the original N without regeneration). The audit independently
+reproduced every primary, companion, strict, failure, subset, identity, receipt and budget
+number, re-scored 278/278 generations, and stated that with technical validity satisfied the
+prescribed reading is NOT PROVEN, FINAL. Under the registration only one result audit exists;
+its REJECT stands as the recorded audit outcome, and no HF release is authorized under any
+reading of this run. Practical outcome either way: repo-only report, no claim.

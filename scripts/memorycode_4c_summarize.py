@@ -260,11 +260,41 @@ def _valid_reason(
             scores, failures = rescore(item, g)
             if scores != g["scores"] or failures != g["failures"]:
                 return f"{arm}: stored scores/failures differ from the frozen checker"
-        if arm == "focus" and not isinstance(data.get("reminder_sources"), dict):
-            return "focus: reminder provenance missing"
+        if arm == "focus":
+            why = _provenance_reason(data)
+            if why:
+                return why
         tokens.append(g["window"]["prompt_tokens"])
     if tokens[0] != tokens[1]:
         return "prompt token counts differ"
+    return None
+
+
+def _provenance_reason(data: dict) -> str | None:
+    """The focus arm's kept source spans must reproduce its rendered reminder
+    (result-audit finding 1): same count as ``kept_sentences`` and the same
+    sentences, in order, as the reminder's bullet lines."""
+    src = data.get("reminder_sources")
+    if not isinstance(src, dict) or not isinstance(src.get("kept_spans"), list):
+        return "focus: reminder provenance missing"
+    reminder = data.get("reminder") or ""
+    lines = reminder.split("\n")[1:] if reminder else []
+    kept = src["kept_spans"]
+    if len(kept) != (data.get("kept_sentences") or 0):
+        return "focus: provenance span count differs from kept_sentences"
+    if [f"- {k.get('sentence')}" for k in kept] != lines:
+        return "focus: provenance spans do not reproduce the reminder"
+    if not isinstance(src.get("eviction_boundary_char"), int):
+        return "focus: eviction boundary missing"
+    if any(
+        not (
+            isinstance(k.get("start"), int)
+            and isinstance(k.get("end"), int)
+            and k["start"] < k["end"] <= src["eviction_boundary_char"]
+        )
+        for k in kept
+    ):
+        return "focus: provenance span outside the evicted region"
     return None
 
 
