@@ -3898,3 +3898,16 @@ FINAL. Provenance repair verified 139/139 (boundaries equal the package's base-w
 budgets reproduced; interim-look deviation disclosed and nonblocking. RESULTS-4C.md wording (finding 8) corrected.
 Exp 4C is closed with an accepted audit: NOT PROVEN, FINAL; no HF release. Pending: adversarial Astra review of the
 direction proposal.
+
+2026-09-12 19:55Z — DIRECTION ADVERSARIAL REVIEW (results/reviews/2026-09-12-direction-adversarial-astra.md): A, B, C, D all
+DISPROVED on novelty (TRACE 2606.13174 = conversational rule acquisition/compilation/retirement; Answer Engineering 2606.21121 =
+compiled in-generation monitoring/rollback/insertion; Kiro = user-confirmed canonical requirements; Thinking Intervention /
+SafeRemind = trigger insertion; Zep/MemStrata = supersession) and on attribution (no matched enforcement comparator). Astra's own
+replacement E (counterexample-validated policy compilation) also DISPROVED (ARTEMIS ICSE 2026, 2607.15854). Astra states the
+owner's goal remains unmet and that useful implementations remain plausible. Astra's stated novelty bar: an identified new
+algorithm, guarantee, or demonstrated interaction. Interim diagnosis from the 4C records (not a claim): 119/278 outputs hit the
+512-token cap (compliance 0.014/0.028 when capped vs 0.146/0.168 uncapped; the model spends the budget on a prose preamble
+that restates guidelines, then a docstring-heavy class); the cap is a process defect for any future run, but uncapped compliance
+is still ~0.15, so the cap is not the whole story. Next: literature pass (rule-file compliance studies 2604.11088, 2605.10039,
+ZORO 2604.15625, TriggerBench/PM-Bench, 2608.02639), then a rev 2 direction framed as a demonstrated interaction or guarantee,
+then a second adversarial Astra round.
