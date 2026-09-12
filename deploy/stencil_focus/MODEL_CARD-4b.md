@@ -15,7 +15,8 @@ tags:
 # stencil-focus-qwen3-4b
 
 **Qwen3-4B with inference-time session memory under a fixed prompt budget. Efficacy NOT
-PROVEN: the registered head-to-head was not completed (see Evidence).** The learned weights
+PROVEN: the final registered head-to-head through this package (N = 139) read +2.0 points,
+95% interval [−0.1, +4.2], p = .058 (see Evidence).** The learned weights
 are the unmodified `Qwen/Qwen3-4B` trunk (revision
 `1cfa9a7208912126459214e8b04321603b3df60c`); nothing was fine-tuned. The modification is
 how a long conversation is turned into a prompt when the history no longer fits: with
@@ -29,9 +30,37 @@ ordinary greedy `transformers` generation. Everything else is identical.
 
 Built by the [Stencil](https://github.com/bmarti44/stencil-llm) research project.
 
-## Evidence (descriptive only; no efficacy claim)
+## Evidence (no efficacy claim)
 
-The pre-registered proof (`results/memorycode-long/REGISTRATION-4B.md` in the research repo)
+### Final confirmation through this package (Exp 4C, NOT PROVEN, FINAL)
+
+The final pre-registered test (`results/memorycode-long/REGISTRATION-4C.md`, results in
+`RESULTS-4C.md`) generated every output THROUGH THIS PACKAGE: the same bytes with
+`stencil_focus=true` versus `stencil_focus=false`, on N = 139 MemoryCode-derived long coding
+sessions (history truncated to a 3,584-token window, 512-token greedy generation, 300 s
+deadline; outcome = the share of required conventions satisfied under the vendored
+MemoryCode regex checker; functional correctness not measured). Sample size came from a
+timing-only rule; the package was qualified first (16/16 flag-off outputs identical to plain
+`AutoModelForCausalLM`, 8/8 replays byte-identical).
+
+| quantity | `stencil_focus=false` | `stencil_focus=true` |
+|---|---|---|
+| mean required-check compliance | 0.084 | 0.105 |
+| strict (all required checks) | 0/139 | 1/139 |
+| output failures (invalid / capped / degenerate / timeout) | 60/139 | 61/139 |
+
+Paired difference +2.05 points of 100, registered paired-t 95% interval [−0.07, +4.16],
+two-sided p = 0.058; 25 wins / 17 losses / 97 ties; companion bootstrap [+0.14, +4.30]
+(not the decision statistic). Output-failure difference +0.7 points [−5.2, +6.6]. The
+registered primary interval includes zero, so the result is **NOT PROVEN, FINAL**: a small
+positive average effect that this sample cannot distinguish from zero, with absolute
+compliance low in both arms. This artifact is therefore published in the research
+repository only, with no efficacy claim. Interim results were inspected at 75 and 100 pairs
+on the owner's instruction; the run was neither stopped nor extended on that basis.
+
+### Earlier stage (Exp 4B, qualification FAILED; descriptive only)
+
+The earlier pre-registered proof (`results/memorycode-long/REGISTRATION-4B.md` in the research repo)
 compared this artifact with `stencil_focus=true` against the identical artifact with the
 flag off on MemoryCode-derived long coding sessions (history truncated to a 3,584-token
 window; outcome = compliance with the conventions the mentor stated earlier, scored by the
