@@ -3644,3 +3644,15 @@ record, failure table both directions + categories. Tests: 43 pass (new: summary
 cohort equality, timeout, failure excess). D2 budget: amendment 1 is policy revision 1 of 2 for the program.
 GPU order after 3b: Exp 4 pilot → BUDGET line → setup_long-role_evicted → screen_long-role_evicted chunks →
 setup_long register arm → parity_generate → 3c only if budget remains.
+
+2026-09-12 — EXP 3B RESULT (16 setup items, Qwen3-1.7B, 4 arms, 188 generations, max 72 s, 0 timeouts):
+strict compliance 0/16 on EVERY arm (history, restate_all, auto, oracle); mean fraction history .057 /
+restate_all .082 / auto .120 / oracle .051; eligibility history_strict 0 < 6 → INELIGIBLE at 1.7B (summary.json).
+Spot check of records: the checker is right (e.g. gn_ prefix / digit-in-class-name conventions ignored even when
+the oracle reminder states them): the 1.7B trunk does not follow stated conventions; this is a floor, not an
+instrument defect. Contract 3b: ONE retry on Qwen3-4B, same four arms, queued (stage-1 queue) after the Exp 4
+SETUP-LONG run. Implication flagged for Exp 4 (1.7B only by registration): a strict-compliance floor on
+SETUP-LONG (oracle 0/16) would make the SCREEN unpowered at strict; the SETUP-LONG run (48 generations) is
+registered anyway and reads first; if the floor appears, the trunk/estimand question is a registration choice
+the plan does not cover → Astra consult (rule D10) BEFORE any SCREEN-LONG generation. Amendment budget note:
+a trunk change would be a NEW registration (new artifact name), not an amendment.
