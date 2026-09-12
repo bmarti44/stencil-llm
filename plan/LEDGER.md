@@ -3947,3 +3947,15 @@ infeasible; (9) separate lifecycle claims from delivery claims; (10) distinct sc
 Key new prior art to cite: Selective Prompt Anchoring (ICML 2025), Thinking Intervention follow-up (Findings EMNLP 2025),
 FLARE/DRAGIN, contiguity meta-analysis (Ginns 2006, d=0.85). Practical bar suggested: ≥10 points over `before` or parity with
 checker+repair at ≥25% lower latency. Next: quick look (running) → REGISTRATION-FOCAL.md as a screen on the 57 candidates.
+
+2026-09-12 23:30Z — FOCAL PILOTS (results/focal/quicklook-v{1,2,3}.json; 4 SETUP-LONG items, oracle rules, exposed pilot split;
+NOT results). v2 (block cue, no re-feed): focal_first 0.11 / focal_every 0.22 vs before 0.29 (base 0.09); periodic control 0.00.
+Root causes found by reading outputs: (a) the `# Convention:` list is imitated (hallucinated rules, block copies, in-body
+repetition → greedy degeneration); (b) re-fed header keyword carried a trailing space; (c) per-unit cooldown marked the FIRST
+unit of a kind as delivered → function rules never delivered; (d) periodic line counter not string-aware (inserted inside a
+docstring); (e) re-feeding `def`/`class` after the cue forecloses a decorator the rule demands (186-14: x_ names, annotations,
+try all followed at every method after the fix; only @retry missed). Owner (23:00Z): "fix the obvious issues and bugs before we
+write this off … find the root cause and resolve it. ask astra as well." Fixes committed (f409bc4a, c5637508): single-line cue
+`# Apply here: …`, keyword without trailing space, cooldown only for repeat deliveries, string-aware counter, auto re-feed
+(indent only when a decorator rule is delivered). Astra root-cause brief launched (2026-09-12-focal-rootcause-astra.md).
+Pilot v4 (6 items, fixed runtime) queued behind v3. Peer looped-transformer notified of our footprint (their 10 h job, 30 GB).
