@@ -44,6 +44,15 @@ items: strict 0/16 on all four arms; oracle fraction rose from .051 to .112 once
 the full live set (37.5 tokens on average). The contracted Qwen3-4B retry of Exp 3b is
 running; the 128-item SCREEN remains unlaunched.
 
+**Qwen3-4B retry of Exp 3b (03:42Z, 16 items, 4 arms):** strict history 0/16, restate_all
+0/16, register 2/16, oracle 1/16; the contract's eligibility gate (history ≥ 6) fails at 4B
+as well, so Exp 3 is INELIGIBLE at both trunks and its 64 screen items stay unopened. Mean
+fraction history .094 / restate_all .136 / register .231 / oracle .285, against
+.057 / .082 / .120 / .112 at 1.7B: the 4B trunk moves on per-constraint compliance where
+1.7B does not, and produced the program's first strict passes. These are the numbers path 1
+(4B trunk) and path 3 (per-constraint primary) need; the pass@8 diagnostic is still the
+recommended first step before registering either.
+
 ## 2. What the evidence says will NOT work (do not spend GPU on these)
 
 | Idea | Why not | Evidence |
