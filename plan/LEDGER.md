@@ -3686,3 +3686,11 @@ whole-output constrained decoding, bias escalation, register repair); ranked opt
 authored long workload with per-constraint primary; fractional primary; attention bias as secondary; RLVR as the
 long-shot program); one diagnostic first (pass@8 on the corrected oracle at 1.7B and 4B). Awaiting Brian's pick;
 meanwhile the instrument-repair regenerations run (GPU) and the register phase reruns (CPU).
+
+2026-09-12 02:14Z — SETUP-LONG complete (16/16 base/focus) and the CORRECTED oracle regenerated on all 16: oracle
+still strict 0/16; per-family fraction 0.0 on 14 items, .545 (314-49) and .462 (326-49); the corrected oracle
+now carries 4-51 live rules (17-21 kept under the 256-token budget on the dense items; budget binding on 8/16),
+and 12/16 oracle generations hit the 512-token cap. Register phase rerun on the 11 affected items and all error
+tables recomputed (auto_rerun finished, exit 0 ×4). Remaining in the redo queue: focus on 314-49, then the Exp 3b
+oracle arm ×16. Reading: the floor holds under a correct oracle; the registered SCREEN is NOT launched pending
+Brian's choice among the options memo's paths.
