@@ -418,7 +418,10 @@ def run_manifest(args, root: Path) -> dict:
 def _record_matches(record: dict, manifest: dict) -> bool:
     m = record.get("manifest")
     if not m:
-        return False
+        # Legacy record (written before amendment 2 added manifests): the only
+        # configuration it carries is the model; accept it when that matches and the
+        # caller adds the current manifest on the next write (disclosed in the ledger).
+        return record.get("model") == manifest.get("model")
     keys = (
         "items_sha256",
         "tokenizer_sha256",
@@ -460,6 +463,7 @@ def phase_run(args) -> None:
                 raise SystemExit(
                     f"{path}: existing record was made under another configuration"
                 )
+            record.setdefault("manifest", manifest)
         missing = [
             a
             for a in args.arms
