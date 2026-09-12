@@ -200,3 +200,16 @@ Label rule, precise wording: only `oracle` USES labels to construct its interven
 item selection, scoring and the register's error diagnostics also read labels. The review
 traced no label-to-`focus` path (removing the label fields left selection and rendering
 unchanged on all frozen items).
+
+## BUDGET line (measured, 2026-09-12 00:48Z, before any LONG generation)
+
+Pilot `results/timing-pilot/memorycode-long.json`: 4 longest SETUP-LONG items at W = 3,584
+tokens, 512-token cap, co-resident peer process (7.1 GiB, looped-transformer Huginn run):
+t_max = 98.0 s/generation (three items hit the cap at 5.2-5.3 tok/s; one stopped at 317
+tokens in 60.2 s), peak 6.86 GB allocated / 9.04 GB reserved. Registered per-generation
+budget 1.5 × t_max = 147 s. Ceiling for the amended matrix of 320 generations = 47,040 s =
+13.1 GPU-h worst case (every generation at the cap under contention); expected at the
+pilot mean of 87.8 s ≈ 7.8 GPU-h; plus the 4-generation pilot (5.9 min, done) and the
+32-generation parity check (≤ 1.3 h). Reservations: 55-min slices with `--budget-minutes
+50`, peak declared 12 GB. The SCREEN-LONG run is INCOMPLETE, never rescued, if its
+cumulative generation time exceeds 1.5 × 98 × 256 = 37,632 s (10.5 GPU-h).
