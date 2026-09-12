@@ -3812,3 +3812,18 @@ Prompt reopened (the four options are reference only; Astra may propose anything
 relaunched as results/reviews/2026-09-12-unblock-decision-open-astra.md — THIS run is the binding one. The first,
 option-restricted run could not be stopped (pid guard) and finishes harmlessly as
 2026-09-12-unblock-decision-astra.md; it is advisory only.
+
+2026-09-12 14:05Z — BINDING ASTRA DECISION (results/reviews/2026-09-12-unblock-decision-open-astra.md, open brief, owner-
+delegated), quoted verbatim: "DECISION: Authorize one final confirmation of the unchanged Qwen3-4B package, expanding
+the frozen 128-item SCREEN with reserve dialogues up to 196 pairs under a timing-only sample-size rule, retaining
+affirmative +5-point output-failure noninferiority, and publishing the HF model only if every registered gate
+passes." It exercises Brian's delegated D2 override ONCE, opens the reserve prospectively (candidate order = seed-1
+dialogue shuffle minus the 16 SETUP dialogues; first 128 must reproduce SCREEN), replaces research-runtime parity
+with direct shipping-package evaluation + qualification (44 generations: 8 timing calls, 12 more off outputs, 16
+plain-model matches, 8 package replays), N = min(196, floor(28800 / (3 t_max))) with INELIGIBLE below 128, paired-t
+primary on fraction_required, failure guard U_H ≤ 0.05, exhaustive readings table (§5), budget ≤ 10 GPU-h and 3
+working days, one focused Astra implementation review of the NEW runner/analysis/sample-size/publication paths,
+one result audit, HF push only on PROVEN-SCOPED. Exp 4B remains FAILED / NOT PROVEN. The option-restricted
+advisory run (2026-09-12-unblock-decision-astra.md) reached the same shape with a +10 guard on 128 items; the open
+run governs. Executing: registration (REGISTRATION-4C.md) → CPU implementation + tests → Astra review →
+qualification → freeze N → evaluation → summarize once → audit → publication gate.
