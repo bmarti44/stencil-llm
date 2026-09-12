@@ -113,3 +113,27 @@ t_max × 432 generations, plus the 4-generation pilot and the 32-generation pari
 `setup_long/summary.json` (parity/pilot cohort), `screen_long/summary.json` (primary),
 `RESULTS.md`, `manifest.json` (sha256 of every record). One Astra result audit after
 RESULTS.md (rule D1).
+
+## AMENDMENT 1 (2026-09-11, before any LONG generation; instrument observation, disclosed)
+
+The CPU register phase (`auto --cohort long`, `auto/summary.json`) ran the frozen FOCUS-3
+runtime over the 144 SETUP-LONG + SCREEN-LONG items before any GPU spend. Observed:
+2,401 rows admitted, 32,058 overflow events on 138/144 items (the runtime skips every
+message once the register holds more than 16 rows, `focus3.py:303`, and MemoryCode
+sessions admit ~17 conversational sentences within the first one or two sessions),
+2,776 missed instruction sessions, 0 lifecycle relations applied on SETUP-LONG, 6 empty
+live sets. On this cohort the classifier register is structurally inert after the first
+sessions: its reminder would be ~17 early sentences regardless of what follows.
+
+Change, made with this disclosure and before any generation: the PRIMARY `focus` policy
+for SCREEN-LONG is the zero-parameter role rule over the truncated-away region
+(`--policy role_evicted`, the construction Exp 1's registered reading selected as the
+default text selector). The classifier register (`--policy register`) runs on the 16
+SETUP-LONG items only, as a descriptive arm with its error table, documenting the
+inertness. There is now ONE primary policy and no fallback rerun: the interval of the
+single primary contrast is a plain 95% interval; a NOT PROVEN reading is final. The
+budget ceiling drops to 1.5 × t_max × (2 × 144 + 16 oracle + 16 register) = 1.5 × t_max ×
+320 generations (+4 pilot, +32 parity). Everything else in this registration is unchanged.
+The register-based automatic maintainer is therefore NOT the artifact's primary mechanism
+on long sessions; the artifact's frozen configuration (plan G) is amended to match, and
+the register ships, if at all, as the opt-in maintainer with its error table.

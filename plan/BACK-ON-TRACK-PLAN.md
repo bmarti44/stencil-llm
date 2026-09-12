@@ -57,7 +57,14 @@ check (Exp 5). The wave line and KV pins are off the artifact's critical path.
   register is an explicitly UNPROVEN maintenance hypothesis for Exp 4: Exp 1 showed the
   role-echo policy beating the classifier-echo policy on Multi-IF, which is a different
   construction, and does not decide the long-session bundle either way):
-  1. Register: admission by the published sentence classifier
+  0. AMENDED 2026-09-11 before any LONG generation (Exp 4 registration amendment 1): the
+     frozen FOCUS-3 register overflows on 138/144 LONG items in the CPU phase and applies
+     no relation on SETUP-LONG, so the PRIMARY policy is the zero-parameter role rule over
+     the truncated-away region (newest-first mentor sentences outside the window). The
+     register below stays in the package as the OPT-IN maintainer with its error table
+     and is evaluated descriptively on SETUP-LONG only. There is one primary policy and
+     no fallback rerun.
+  1. Register (opt-in): admission by the published sentence classifier
      (`bmarti44/assistant-memory-sentence-classifier`, frozen) and lifecycle relations by
      the frozen relations-v2 seed0 head (`data/classifier/model/relations-v2/seed0`, sha
      recorded on the card), i.e. the FOCUS-3 runtime `src/stencil/focus3.py` as mapped in

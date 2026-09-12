@@ -3614,3 +3614,10 @@ sealed one-shot jobs refuse by design, some check the GPU or resume provenance b
 have no argparse). Closed-program scripts are NOT retrofitted (sealed audits store their code hashes);
 `scripts/README.md` maps LIVE vs closed with reasons. Deferred until scheduled: `w0_train.py` (Exp 2b),
 `b2_gsm8k.py`/`b2_mmlu.py` (competence checks). Cleanup track is otherwise complete.
+
+2026-09-11 — EXP 4 CPU REGISTER PHASE: 144 items, 2,401 rows, overflow on 138/144 items (32,058 events),
+2,776 missed instruction sessions, 0 relations on SETUP-LONG, 6 empty live sets → the frozen register is
+structurally inert on long sessions (fills in session 0-1, then skips everything). REGISTRATION AMENDMENT 1
+(before any LONG generation, disclosed): primary focus policy = role_evicted; register = descriptive on
+SETUP-LONG only, opt-in in the package; no fallback rerun; ceiling 320 generations. Plan G amended. Next:
+Astra implementation review of the Exp 4 registration; memorycode-long pilot queued behind 3b.
