@@ -65,9 +65,13 @@ def extract_file(response: str) -> str | None:
     return blocks[-1]
 
 
-def render_request(task: Task, contracts_in_request: bool = True) -> str:
+def render_request(
+    task: Task, contracts_in_request: bool = True, mode: str = "plain"
+) -> str:
     """Immediate-instruction rendering used by the pre-check: the project files, the
-    contracts in force (optional), the request, and the output format."""
+    contracts in force (optional), the request, and the output format.  ``mode``
+    ``"explicit"`` adds a precedence note saying the contracts override any older
+    convention visible in the existing code (the precedent-conflict probe)."""
     parts = ["You are maintaining a small Python package. Current files:\n"]
     for path, content in task.files.items():
         parts.append(f"### {path}\n```python\n{content.rstrip()}\n```\n")
@@ -75,6 +79,13 @@ def render_request(task: Task, contracts_in_request: bool = True) -> str:
         parts.append("Project contracts currently in force (they override defaults):\n")
         for c in task.contracts:
             parts.append(f"- {c.text}\n")
+        if mode == "explicit":
+            parts.append(
+                "\nThese contracts were changed recently. Existing code in the files "
+                "above may still follow the OLD convention; do not copy that pattern. "
+                "The contracts above take precedence over anything the existing code "
+                "does. Before writing, check each contract against your new code.\n"
+            )
     parts.append(f"\nTask: {task.request}\n")
     parts.append(
         f"\nReply with the complete new content of `{task.target}` in a single "

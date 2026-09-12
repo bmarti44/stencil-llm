@@ -38,6 +38,7 @@ def main() -> None:
     ap.add_argument("--max-new", type=int, default=1536)
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--no-contracts", action="store_true")
+    ap.add_argument("--mode", default="plain", choices=["plain", "explicit"])
     args = ap.parse_args()
 
     import torch
@@ -67,7 +68,9 @@ def main() -> None:
     for task in tasks:
         if task.id in done:
             continue
-        user = render_request(task, contracts_in_request=not args.no_contracts)
+        user = render_request(
+            task, contracts_in_request=not args.no_contracts, mode=args.mode
+        )
         msgs = [{"role": "user", "content": user}]
         prompt = tok.apply_chat_template(
             msgs, tokenize=False, add_generation_prompt=True, enable_thinking=False
@@ -93,6 +96,7 @@ def main() -> None:
             "families": list(task.families),
             "states": [c.state for c in task.contracts],
             "contracts_in_request": not args.no_contracts,
+            "mode": args.mode,
             "prompt_tokens": int(ids.shape[1]),
             "generated_tokens": len(new),
             "truncated": truncated,
