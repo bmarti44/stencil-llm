@@ -3679,3 +3679,10 @@ Consequences (affected arms regenerated, outputs otherwise preserved, all disclo
 affected items and error tables recomputed everywhere; the 3b Qwen3-4B retry was NOT started (stage-1
 queue stopped before it launched). Added --redo-arms and --ids to memorycode_screen.py. Web research reports:
 results/reviews/2026-09-12-web-research-steering-and-compliance.md and -small-model-compliance.md.
+
+2026-09-12 02:40Z — OPTIONS MEMO written (results/reviews/2026-09-12-options-memo.md) from the Astra floor consult +
+two web-research reports: do-not-spend list (prompt rewording, restating, self-critique, synopsis/memory, thinking,
+whole-output constrained decoding, bias escalation, register repair); ranked options (4B trunk; fresh sparse
+authored long workload with per-constraint primary; fractional primary; attention bias as secondary; RLVR as the
+long-shot program); one diagnostic first (pass@8 on the corrected oracle at 1.7B and 4B). Awaiting Brian's pick;
+meanwhile the instrument-repair regenerations run (GPU) and the register phase reruns (CPU).
