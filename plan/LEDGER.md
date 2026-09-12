@@ -3800,3 +3800,9 @@ parity holds by construction; paired-mean t primary on fraction_required, net ou
 affirmative ≤ +5-point noninferiority requirement; disclosure paragraph adopted verbatim. Becomes a registration
 only on Brian's explicit D2 override (rename + quote the override in its header) and after an Astra implementation
 review. STATE unchanged: blocked on Brian's decision (accept stop / override D2 → Exp 4C / publish descriptively).
+
+2026-09-12 13:20Z — Brian: "use astra to unblock you, go with its deep web research result decision." The owner has
+delegated the D2-override / publication decision to an Astra consult with deep web research
+(results/reviews/2026-09-12-unblock-decision-astra-prompt.md). Its pick among {Exp 4C as drafted, a modified
+confirmation with published support, descriptive HF publish, repo-only negative} is binding on the orchestrator;
+the ledger will quote the decision verbatim before any launch or push.
