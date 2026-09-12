@@ -5,9 +5,10 @@ contract outcomes."""
 import pytest
 
 from stencil.contract_projects import all_tasks
+from stencil.contract_projects_reg import registered_tasks
 from stencil.contracts import extract_file, render_request, run_tests, score
 
-TASKS = all_tasks()
+TASKS = all_tasks() + registered_tasks()
 BY_ID = {t.id: t for t in TASKS}
 
 
