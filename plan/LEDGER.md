@@ -3725,3 +3725,8 @@ history .031 / restate .099 / auto .203 / oracle .255, oracle − history +22.4 
 either trunk. Data lineage unchanged (nothing fit on MemoryCode; only oracle reads labels). Next: Astra
 implementation review (rule D1) of REGISTRATION-4B.md + code, 4B timing pilot under gpu_reserve, BUDGET line, then
 SETUP-LONG 4B (48 gens) and the gate.
+
+2026-09-12 11:00Z — Exp 4B pilot done (results/timing-pilot/memorycode-long-4b.json, GPU idle, 2.6 min): t_max 47.6 s,
+mean 38.5 s, 10.7 tok/s, peak 9.14/9.66 GB. BUDGET line appended to REGISTRATION-4B.md: 71.5 s/gen, ceiling 6.0 GPU-h
+(304 gens), SCREEN INCOMPLETE above 18,294 s. Astra implementation review running
+(results/reviews/2026-09-12-exp4b-impl-review-astra.md); SETUP-LONG 4B launches only after its required edits.

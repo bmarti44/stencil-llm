@@ -102,3 +102,20 @@ intervention; item selection, scoring and error diagnostics read labels.
 `screen_long-4b-role_evicted/summary.json` (primary, `--primary fraction`),
 `RESULTS-4B.md`, `manifest-4b.json` (sha256 of every record), `parity-4b.json` (package
 parity on the 16 SETUP-LONG items, both flag states, before publication).
+
+## BUDGET line (measured, 2026-09-12 10:55Z, before any 4B LONG generation)
+
+Pilot `results/timing-pilot/memorycode-long-4b.json`: the same 4 longest SETUP-LONG items at
+W = 3,584 tokens, 512-token cap, Qwen3-4B, GPU otherwise idle (no co-resident process):
+t_max = 47.6 s/generation (two items at the cap at 10.7-10.8 tok/s; one stopped at 481
+tokens in 45.1 s, one at 144 tokens in 13.8 s), mean 38.5 s, peak 9.14 GB allocated /
+9.66 GB reserved. The 4B trunk ran faster than the 1.7B pilot (5.2 tok/s) because that pilot
+was measured under the peer's co-resident run; the registered 1.5× factor absorbs contention.
+Registered per-generation budget 1.5 × t_max = 71.5 s; the generation deadline stays the
+inherited 300 s (a timeout is a terminal strict failure and scores 0.0 on the primary).
+Ceiling for 304 generations = 21,725 s = 6.0 GPU-h worst case; expected at the pilot mean
+≈ 3.3 GPU-h; plus the 4-generation pilot (2.6 min, done) and the 32-generation parity check
+(≤ 38 min). Reservations: 55-min slices with `--budget-minutes 50`, peak declared 14 GB.
+SETUP-LONG (48 generations) is expected to finish in one slice (worst case two). The
+SCREEN-LONG run is INCOMPLETE, never rescued, if its cumulative generation time exceeds
+1.5 × 47.6 × 256 = 18,294 s (5.1 GPU-h).
