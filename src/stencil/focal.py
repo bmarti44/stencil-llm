@@ -195,17 +195,30 @@ def code_line_count(text: str, fenced: bool | None = None) -> tuple[bool, int, i
     if fenced is None:
         fenced = "```" in text
     in_code = not fenced
+    in_string = False
     n = 0
     last_indent = 0
     lines = text.split("\n")
     for line in lines[:-1]:  # only complete lines
         if fenced and _FENCE.match(line):
             in_code = not in_code
+            in_string = False
             continue
-        if in_code and line.strip() and not line.strip().startswith("#"):
+        if not in_code:
+            continue
+        odd = len(_TRIPLE.findall(line)) % 2 == 1
+        if in_string:
+            if odd:
+                in_string = False
+            continue
+        st = line.strip()
+        if st and not st.startswith("#") and not st.startswith(('"""', "'''")):
             n += 1
             last_indent = len(line) - len(line.lstrip())
-    return in_code, n, last_indent
+        if odd:
+            in_string = True
+    # a position inside an open triple-quoted string is reported as not in code
+    return (in_code and not in_string), n, last_indent
 
 
 def strip_echoes(text: str, cue_lines: set[str]) -> tuple[str, int]:
@@ -227,9 +240,10 @@ _HEADER = re.compile(r"^\s*(async\s+def\s+|def\s+|class\s+|import\s+|from\s+|@)"
 
 def header_keyword(line: str) -> str:
     """The unit keyword the model had started on ``line`` (``"def "``, ``"class "``,
-    ``"import "``, ``"from "``, ``"@"``, ``"async def "``), normalised to single
-    spaces; empty for assignments (the name itself is what a variable rule governs)."""
+    ``"import"``, ``"from"``, ``"@"``, ``"async def"``) without trailing space (the
+    model's next token carries its own leading space); empty for assignments (the
+    name itself is what a variable rule governs)."""
     m = _HEADER.match(line)
     if not m:
         return ""
-    return re.sub(r"\s+", " ", m.group(1))
+    return re.sub(r"\s+", " ", m.group(1)).rstrip()

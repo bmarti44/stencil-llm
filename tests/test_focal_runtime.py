@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from stencil.focal import strip_spans
-from stencil.focal_runtime import CUE_PREFIX, FocalGenerator
+from stencil.focal_runtime import CUE_LINE_PREFIX, CUE_PREFIX, FocalGenerator
 
 HUB = Path(__file__).resolve().parents[1] / "deploy/stencil_focus/build/hub-4b"
 
@@ -38,7 +38,11 @@ class Scripted:
 
     def _visible(self) -> str:
         text = self.tok.decode(self.seq, skip_special_tokens=True)
-        lines = [ln for ln in text.split("\n") if CUE_PREFIX not in ln]
+        lines = [
+            ln
+            for ln in text.split("\n")
+            if CUE_PREFIX not in ln and CUE_LINE_PREFIX not in ln
+        ]
         return "\n".join(lines)
 
     def step(self, feed):
@@ -110,9 +114,9 @@ def test_focal_inserts_typed_cues_and_strips_back_to_target(tok):
     # keyword is re-fed (kept in the output, counted separately)
     lines = r.text.split("\n")
     i = lines.index("    def m(self, a):")
-    assert lines[i - 1] == f"    {CUE_PREFIX}method names contain 'chx'"
+    assert lines[i - 1] == f"    {CUE_LINE_PREFIX}method names contain 'chx'"
     assert r.refed_tokens > 0
-    assert [e["refed_keyword"] for e in r.events][:3] == ["import ", "class ", "def "]
+    assert [e["refed_keyword"] for e in r.events][:3] == ["import", "class", "def"]
     target_len = len(tok.encode(TARGET, add_special_tokens=False))
     assert len(r.generated_ids) + r.refed_tokens >= target_len - 2
 
@@ -158,7 +162,36 @@ def test_strip_echoes_removes_copied_cue_lines():
 def test_header_keyword():
     from stencil.focal import header_keyword
 
-    assert header_keyword("    async  def  f(") == "async def "
+    assert header_keyword("    async  def  f(") == "async def"
     assert header_keyword("@dataclass") == "@"
-    assert header_keyword("from typing import X") == "from "
+    assert header_keyword("from typing import X") == "from"
     assert header_keyword("x = 1") == ""
+
+
+def test_code_line_count_ignores_docstrings_and_comments():
+    from stencil.focal import code_line_count
+
+    text = 'x = 1\n"""doc\n# not code\nstill doc\n"""\n# comment\ny = 2\n'
+    assert code_line_count(text) == (True, 2, 0)
+    assert code_line_count('x = 1\n"""open\n')[0] is False
+
+
+def test_block_style_cue_and_deliver_every_first_kind_has_no_cooldown(tok):
+    rules = [("function", "f rule"), ("method", "m rule")]
+    be = Scripted(tok, TARGET, eos=151645)
+    g = FocalGenerator(
+        be,
+        tok,
+        rules=rules,
+        eos_ids=(151645,),
+        max_new_tokens=600,
+        deliver="every",
+        cooldown_lines=50,
+        cue_style="block",
+    )
+    r = g.generate([1, 2, 3])
+    # first delivery of each kind ignores the cooldown; the ``def f`` after ``m``
+    # is a different kind so it is still delivered
+    assert [e["kind"] for e in r.events] == ["method", "function"]
+    assert f"{CUE_PREFIX}m rule" in r.text
+    assert strip_spans(r.text, r.inserted_spans) == TARGET

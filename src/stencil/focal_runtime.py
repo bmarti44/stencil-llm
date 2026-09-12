@@ -41,9 +41,21 @@ class FocalResult:
     seconds: float = 0.0
 
 
-def cue_block(rules: list[str], indent: int) -> str:
+CUE_LINE_PREFIX = "# Apply here: "
+
+
+def cue_block(rules: list[str], indent: int, style: str = "line") -> str:
+    """``style="block"``: one ``# Convention: ...`` line per rule (imitated by small
+    models as a pattern to continue).  ``style="line"``: one compact comment line
+    ``# Apply here: r1; r2; ...``."""
     pad = " " * indent
-    return "".join(f"{pad}{CUE_PREFIX}{r.strip()}\n" for r in rules)
+    if style == "block":
+        return "".join(f"{pad}{CUE_PREFIX}{r.strip()}\n" for r in rules)
+    return (
+        f"{pad}{CUE_LINE_PREFIX}"
+        + "; ".join(r.strip().rstrip(".") for r in rules)
+        + "\n"
+    )
 
 
 class FocalGenerator:
@@ -80,7 +92,9 @@ class FocalGenerator:
         deliver: str = "first",
         cooldown_lines: int = 3,
         max_per_rule: int = 3,
+        cue_style: str = "line",
     ) -> None:
+        self.cue_style = cue_style
         if deliver not in ("first", "every"):
             raise ValueError(deliver)
         self.deliver = deliver
@@ -177,7 +191,7 @@ class FocalGenerator:
                 if n_lines in delivered_lines:
                     continue
                 delivered_lines.add(n_lines)
-                block = cue_block([t for _, t in self.rules], indent)
+                block = cue_block([t for _, t in self.rules], indent, self.cue_style)
                 insert_ids = self.tok.encode(block, add_special_tokens=False)
                 pieces.append(("ins", list(insert_ids)))
                 pending = pending + list(insert_ids)
@@ -211,7 +225,8 @@ class FocalGenerator:
                 break
             if fired is None:
                 continue
-            if self.deliver == "every":
+            if self.deliver == "every" and fired.kind in kinds_done:
+                # cooldown applies to repeat deliveries of a kind only
                 _, n_lines, _ = code_line_count(text)
                 if n_lines - last_ins_lines < self.cooldown_lines:
                     delivered.add((fired.offset, fired.kind))
@@ -225,7 +240,7 @@ class FocalGenerator:
                 continue
             kept_text = decode(ids[:cut])
             remainder = text[len(kept_text) : fired.offset]
-            block = cue_block(rules, fired.indent)
+            block = cue_block(rules, fired.indent, self.cue_style)
             insert_ids = self.tok.encode(remainder + block, add_special_tokens=False)
             keyword = header_keyword(text[fired.offset :].split("\n")[0])
             keep_text = " " * fired.indent + keyword if keyword else ""
