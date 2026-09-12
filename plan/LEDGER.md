@@ -3757,3 +3757,12 @@ launched (rule D1). GPU idle; peer informed. Open for Brian: (1) accept the stop
 nothing further runs); (2) authorize a THIRD revision as a new registration (e.g. net-excess or interval-based
 failure gate at n = 16) — outside the orchestrator's authority under D2; (3) publish the package descriptively
 with no claim.
+
+2026-09-12 12:20Z — Astra result audit of Exp 4B (results/reviews/2026-09-12-exp4b-result-audit-astra.md): all 48
+generations and every statistic REPRODUCE; FAILED on (b) confirmed; 8 corrections applied to RESULTS-4B.md (check
+denominators 3..32 per item with equal weight per check; oracle packing 8 complete / 8 clipped; total generation
+time 1,788 s vs the three-arm 3,430 s ceiling, base/focus subtotal 1,187 s; McNemar p = 1 and strict interval
+±24.0 instead of "undefined"; D3 distinction stated; cross-model sentence made descriptive; D2 override wording;
+manifest-4b.json and parity disclosed as not done). Code: summarize now counts the run's arms against the ceiling
+(audit finding 3); the SCREEN launch guard is committed as tools/exp4b_screen_launch.sh (never invoked). Tests 44
+pass. Next-path consult running (2026-09-12-next-path-consult-astra.md) per Brian's request.

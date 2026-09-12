@@ -1002,11 +1002,20 @@ def phase_summarize(args) -> dict:
     primary_complete = primary_complete and n == expected
     # Cumulative budget (finding 6): exhaustion is INCOMPLETE even when the last
     # generation that crossed the ceiling completed.
-    spent = _generation_seconds(out_dir, primary_arms)
+    # The ceiling covers every arm the run generates (SETUP: base/focus/oracle;
+    # SCREEN: base/focus), so the spend is summed over the arms present (audit 3).
+    run_arms = [a for a in arms if any(a in r["arms"] for r in records)] or list(
+        primary_arms
+    )
+    spent = _generation_seconds(out_dir, run_arms)
     ceiling = float(getattr(args, "ceiling_seconds", 0.0) or 0.0)
     marker = _ceiling_marker(out_dir)
     budget = {
-        "cumulative_generation_seconds_primary_arms": spent,
+        "arms_counted": run_arms,
+        "cumulative_generation_seconds": spent,
+        "cumulative_generation_seconds_primary_arms": _generation_seconds(
+            out_dir, primary_arms
+        ),
         "ceiling_seconds": ceiling or None,
         "marker": json.loads(marker.read_text()) if marker.exists() else None,
         "exhausted": marker.exists() or bool(ceiling and spent > ceiling),
