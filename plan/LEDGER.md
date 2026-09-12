@@ -3932,3 +3932,18 @@ bool checks (docstring/comment presence, largely default behaviour) carry the sc
 label-derived oracle reminder before the request: regex 0.139, pair (decorator/import) 0.382, bool 0.267, fraction 0.315
 (8/16 capped at 512). So with the correct rules present once before the request, Qwen3-4B applies naming rules on ~14% of checks;
 the focal-delivery question is whether the same text at the governed unit lifts that. This is the H1 premise, not evidence for it.
+
+2026-09-12 21:50Z — ADVERSARIAL ROUND 2 (results/reviews/2026-09-12-direction-adversarial-rev2-astra.md): D NOT DISPROVED,
+X NOT DISPROVED. Astra accepts the owner's reading (a theory-predicted, undemonstrated interaction is a non-meaningless
+recombination). Owner's goal criterion ("satisfied when astra can not prove it") is met for direction D = focal delivery, with
+ten minimum registration changes: (1) the selected interaction (H1, "less adverse slope") is the success condition; (2) add a
+repetition/format-matched control (reminders repeated at predeclared non-aligned locations); (3) predeclared units for H1,
+manipulated load for H3; (4) drop H2 from confirmation (unit family ≠ polarity); (5) resource contract P+I+G ≤ 4,096 with frozen
+history and separate token accounting, qualify the active cache path; (6) qualify the full current-rule pipeline (admission,
+recall, false-active, resurrection, overflow) and restrict coverage claims to a tested syntax domain; (7) unit-level scoring,
+strip verification after rollback, a functional check on a subset, checker+repair comparator for practical claims; (8) cohort =
+57 generation-unseen candidates (no further reserve); guard needs N ≥ 86 even at zero discordance → register a SCREEN if N is
+infeasible; (9) separate lifecycle claims from delivery claims; (10) distinct scientific / practical / stopping decisions.
+Key new prior art to cite: Selective Prompt Anchoring (ICML 2025), Thinking Intervention follow-up (Findings EMNLP 2025),
+FLARE/DRAGIN, contiguity meta-analysis (Ginns 2006, d=0.85). Practical bar suggested: ≥10 points over `before` or parity with
+checker+repair at ≥25% lower latency. Next: quick look (running) → REGISTRATION-FOCAL.md as a screen on the 57 candidates.
