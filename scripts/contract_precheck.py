@@ -1,12 +1,14 @@
 """Competence pre-check for the contract domain (proposal rev 5 §3).
 
-Runs the UNMODIFIED shipping package (``stencil_focus=false``, plain greedy ``generate``)
+Runs the UNMODIFIED shipping package (``stencil_focus=false``, plain greedy
+``generate``)
 on the authored contract tasks with the contracts stated immediately in the request,
 scores joint success J (functional AND contract tests) in a sandbox, and writes one
 record per task as it completes (atomic, resumable).  Eligibility rule, frozen in the
 proposal: J >= 50% and function-only >= 60% on the registered task set.
 
-Usage: ``uv run python scripts/contract_precheck.py --out results/contracts/precheck.jsonl``
+Usage: ``uv run python scripts/contract_precheck.py --out
+results/contracts/precheck.jsonl``
 (``--no-contracts`` runs the same tasks without the contract lines, the descriptive
 baseline; ``--limit`` for a smoke run).  No benchmark data is involved.
 """
@@ -106,7 +108,8 @@ def main() -> None:
         print(
             f"[{task.id}] J={sc['J']} functional={sc['functional']} "
             f"contract={sc['contract']} parsed={sc['parsed']} gen={len(new)} "
-            f"trunc={truncated} s={rec['seconds']:.0f} | running J {n_j}/{n} F {n_f}/{n}"
+            f"trunc={truncated} s={rec['seconds']:.0f}"
+            f" | running J {n_j}/{n} F {n_f}/{n}"
         )
     print(f"DONE new={n} J={n_j} functional={n_f}")
 
