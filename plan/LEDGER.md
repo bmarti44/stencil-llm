@@ -3700,3 +3700,12 @@ fraction .112 (was .051 with the event-only oracle; reminder now 37.5 tokens mea
 restate_all .082, auto .120. Eligibility unchanged: INELIGIBLE at 1.7B. Launching the contracted retry on
 Qwen3-4B (CONTRACT.md 3b: same four arms, 16 items) — an existing registration, not a new one; it is also
 gate 1 of the options memo's path 1. Output: results/memorycode-derived/setup-4b/.
+
+2026-09-12 03:42Z — EXP 3B QWEN3-4B RETRY complete (16 items, 4 arms, 64 generations, 3 slices; mean 16-28 s/gen):
+strict history 0/16, restate_all 0/16, auto 2/16, oracle 1/16 → eligibility gate (history ≥ 6/16) FAILS at 4B too
+→ Exp 3 is INELIGIBLE at both trunks; the 64 screen items are never opened (contract). Descriptive: mean fraction
+history .094 / restate_all .136 / auto .231 / oracle .285 (1.7B: .057/.082/.120/.112); auto vs history 2 wins /
+0 losses on strict, interval [-22.9, +42.0]. The 4B trunk shows per-constraint movement that 1.7B does not, and
+the first strict passes of the program (2 auto, 1 oracle). GPU idle. Nothing else launches before Brian picks a
+path from results/reviews/2026-09-12-options-memo.md (4B trunk + per-constraint primary is the path these numbers
+support; the pass@8 diagnostic remains the recommended first step).
