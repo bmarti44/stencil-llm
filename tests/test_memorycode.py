@@ -89,7 +89,9 @@ def _dialogue():
                 "history_eval_query": ["binary tree class"],
             },
         ],
-        "instructions": [[[12, 5]], [[12, 5]], [[12, 5], [17, 0]]],
+        # per-session EVENTS (vendored generator semantics): session 0 introduces
+        # 12/5 and 17/0, session 1 updates 12 -> 6, session 2 is filler ([-1]).
+        "instructions": [[[12, 5], [17, 0]], [[12, 6]], [-1]],
     }
 
 
@@ -146,11 +148,64 @@ def test_auto_adapter_admits_and_supersedes():
 def test_oracle_sentences_ordered_by_introduction():
     topics = {
         "instructions": [
-            {"id": 12, "text": ["a", "b", "c", "d", "e", "with _n"]},
+            {"id": 12, "text": ["a", "b", "c", "d", "e", "with _m", "with _n"]},
             {"id": 17, "text": ["annotations"]},
         ]
     }
-    assert mc.oracle_sentences(_dialogue(), 2, topics) == ["with _n", "annotations"]
+    d = _dialogue()
+    # filler session after an update: the live set is the REPLAY (latest update per
+    # pivot, ordered by first introduction), not the current session's events
+    assert mc.live_instructions(d, 2) == [(12, 6), (17, 0)]
+    assert mc.live_instructions(d, 0) == [(12, 5), (17, 0)]
+    assert mc.instruction_events(d, 2) == []
+    assert mc.oracle_sentences(d, 2, topics) == ["with _n", "annotations"]
+    assert mc.oracle_sentences(d, 1, topics) == ["with _n", "annotations"]
+    assert mc.oracle_sentences(d, 0, topics) == ["with _m", "annotations"]
+
+
+@needs_dataset
+def test_live_set_reproduces_history_regex_on_every_item():
+    """The replayed live set implies exactly the dataset's history_regex checks
+    (instrument repair 2026-09-12; 224 items over both cohorts)."""
+    topics = mc.load_topics()
+    for path in (
+        ROOT / "results/memorycode-long/items.json",
+        ROOT / "results/memorycode-derived/items.json",
+    ):
+        for it in json.loads(path.read_text())["items"]:
+            d = mc.load_dialogue(it["dialogue"])
+            got = sorted(
+                json.dumps(r) for r in mc.live_regexes(d, it["session"], topics)
+            )
+            exp = sorted(
+                json.dumps(r) for r in d["sessions"][it["session"]]["history_regex"]
+            )
+            assert got == exp, it["id"]
+
+
+def test_speaker_split_handles_non_ascii_names():
+    assert mc.split_speaker("Jean-Aimé: Use tabs.", "Jean-Aimé", "Lucas") == (
+        "mentor",
+        "Use tabs.",
+    )
+    assert mc.split_speaker("Lucas: Ok.", "Jean-Aimé", "Lucas") == ("mentee", "Ok.")
+    assert mc.split_speaker("Narrator: x", "Jean-Aimé", "Lucas") == (
+        "other",
+        "Narrator: x",
+    )
+    d = {
+        "context": {"mentor": "Jean-Aimé", "mentee": "Lucas"},
+        "sessions": [{"text": "Jean-Aimé: Always use tabs. Thanks.\nLucas: Sure."}],
+    }
+    assert mc.speaker_lines(d, 0) == [
+        ("mentor", "Always use tabs. Thanks."),
+        ("mentee", "Sure."),
+    ]
+    assert [m[:2] for m in mc.focus_session_messages(d, 0)] == [
+        ("separator", ""),
+        ("user", "Always use tabs. Thanks."),
+        ("other", ""),
+    ]
 
 
 def test_pack_newest_first_stops_at_first_overflow():

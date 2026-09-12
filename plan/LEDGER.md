@@ -3664,3 +3664,18 @@ ceiling 13.1 GPU-h). SCREEN-LONG is NOT launched: it waits for the SETUP-LONG re
 both arms are 0/16 strict, Astra consult under D10 before any SCREEN generation). Resume: read
 results/memorycode-long/setup_long-role_evicted/, run `memorycode_screen.py summarize --cohort long --split
 setup_long`, then decide; queue script for SCREEN: scratchpad exp4_run_queue.sh (not launched).
+
+2026-09-12 02:05Z — INSTRUMENT REPAIR (rule D2; disclosed, no development budget): Astra floor consult
+(results/reviews/2026-09-12-exp4-floor-consult-astra.md) found (1) the oracle arm rendered the CURRENT session's
+instruction EVENTS (dialogue["instructions"][s]; [-1] on filler sessions) instead of the cumulative live set →
+empty/partial oracle reminders; fixed by replaying events through s (memorycode.live_instructions), verified:
+the implied regex set equals the dataset's history_regex on all 224 items (test); (2) traced by me from
+Astra's 314-49 observation: the ASCII speaker regex missed the mentor name "Jean-Aimé" → zero mentor
+candidates on 6 LONG items (314-49 setup; 303-49, 320-49, 337-99, 338-99, 286-39 screen) and 5 SHORT screen
+items (none in the 3b setup); fixed by name-based split_speaker (research + package adapter). Error-table
+bookkeeping (_introduced = per-session events; missed_updates via the replayed prior live set) fixed.
+Consequences (affected arms regenerated, outputs otherwise preserved, all disclosed): SETUP-LONG oracle on
+16 items + focus on 314-49; Exp 3b oracle on 16 items (1.7B); register phase (auto) rerun on the 11
+affected items and error tables recomputed everywhere; the 3b Qwen3-4B retry was NOT started (stage-1
+queue stopped before it launched). Added --redo-arms and --ids to memorycode_screen.py. Web research reports:
+results/reviews/2026-09-12-web-research-steering-and-compliance.md and -small-model-compliance.md.

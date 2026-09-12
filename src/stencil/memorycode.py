@@ -55,13 +55,42 @@ def load_dialogue(did: int) -> dict:
     return json.loads((DATASET / f"dialogue_{did}.json").read_text())
 
 
-def instruction_ids(dialogue: dict, s: int) -> list[tuple[int, int]]:
-    """Live (pivot, update) pairs at session ``s``; ``[-1]`` means none."""
+def instruction_events(dialogue: dict, s: int) -> list[tuple[int, int]]:
+    """(pivot, update) pairs INTRODUCED OR UPDATED in session ``s`` (the vendored
+    generator's ``instruction_template``: per-session events, ``[-1]`` on filler
+    sessions; vendor/memorycode/code/generate_template.py)."""
     out = []
     for entry in dialogue["instructions"][s]:
         if isinstance(entry, list) and len(entry) == 2:
             out.append((int(entry[0]), int(entry[1])))
     return out
+
+
+def live_instructions(dialogue: dict, s: int) -> list[tuple[int, int]]:
+    """Live (pivot, update) pairs AT session ``s``: replay the events of sessions
+    0..s keeping the latest update per pivot, ordered by the session in which the
+    pivot was first introduced (instrument repair 2026-09-12: the previous reading
+    took the current session's events as the live set, which emptied the oracle on
+    filler sessions and dropped every earlier convention)."""
+    latest: dict[int, int] = {}
+    first: dict[int, int] = {}
+    for i in range(s + 1):
+        for p, u in instruction_events(dialogue, i):
+            latest[p] = u
+            first.setdefault(p, i)
+    return sorted(latest.items(), key=lambda pu: (first[pu[0]], pu[0]))
+
+
+def instruction_ids(dialogue: dict, s: int) -> list[tuple[int, int]]:
+    """Backwards-compatible alias of :func:`live_instructions`."""
+    return live_instructions(dialogue, s)
+
+
+def live_regexes(dialogue: dict, s: int, topics: dict) -> list[list]:
+    """The [object, regex] checks implied by the live set; must equal the dataset's
+    ``history_regex`` of session ``s`` as a multiset (verified in tests)."""
+    by_id = {int(t["id"]): t for t in topics["instructions"]}
+    return [by_id[p]["regex"][u] for p, u in live_instructions(dialogue, s)]
 
 
 def has_instruction(session: dict) -> bool:
@@ -125,14 +154,20 @@ def speaker_lines(dialogue: dict, s: int) -> list[tuple[str, str]]:
         line = raw.strip()
         if not line:
             continue
-        m = re.match(r"^([A-Za-z][A-Za-z .'-]*?):\s*(.*)$", line)
-        if m and m[1].strip() == mentor:
-            out.append(("mentor", m[2].strip()))
-        elif m and m[1].strip() == mentee:
-            out.append(("mentee", m[2].strip()))
-        else:
-            out.append(("other", line))
+        speaker, content = split_speaker(line, mentor, mentee)
+        out.append((speaker, content))
     return out
+
+
+def split_speaker(line: str, mentor: str, mentee: str) -> tuple[str, str]:
+    """Name-based speaker split (instrument repair 2026-09-12: the previous ASCII
+    regex missed names such as 'Jean-Aimé', turning every mentor line of those
+    dialogues into 'other' and emptying the candidate set)."""
+    for speaker, name in (("mentor", mentor), ("mentee", mentee)):
+        prefix = f"{name}:"
+        if line.startswith(prefix):
+            return speaker, line[len(prefix) :].strip()
+    return "other", line
 
 
 def mentor_sentences(dialogue: dict, s: int) -> list[dict]:
@@ -157,14 +192,8 @@ def mentor_sentences(dialogue: dict, s: int) -> list[dict]:
 def oracle_sentences(dialogue: dict, s: int, topics: dict) -> list[str]:
     """Label-derived live instruction texts at session ``s``, ordered by the session
     in which each (pivot, update) first became live."""
-    live = instruction_ids(dialogue, s)
-    first_seen = {}
-    for i in range(s + 1):
-        for pair in instruction_ids(dialogue, i):
-            first_seen.setdefault(pair, i)
-    ordered = sorted(live, key=lambda pair: (first_seen.get(pair, s), pair))
     by_id = {int(t["id"]): t for t in topics["instructions"]}
-    return [by_id[p]["text"][u] for p, u in ordered]
+    return [by_id[p]["text"][u] for p, u in live_instructions(dialogue, s)]
 
 
 # --------------------------------------------------------------------------- auto
@@ -603,12 +632,12 @@ def focus_session_messages(dialogue: dict, s: int) -> list[tuple[str, str, str]]
     for i in range(s + 1):
         out.append(("separator", "", f"\n\n Session {i} \n\n"))
         lines = dialogue["sessions"][i]["text"].split("\n")
+        mentee = dialogue["context"]["mentee"]
         for j, raw in enumerate(lines):
             rendered = raw + ("\n" if j < len(lines) - 1 else "")
-            line = raw.strip()
-            m = re.match(r"^([A-Za-z][A-Za-z .'-]*?):\s*(.*)$", line)
-            if m and m[1].strip() == mentor and m[2].strip():
-                out.append(("user", m[2].strip(), rendered))
+            speaker, content = split_speaker(raw.strip(), mentor, mentee)
+            if speaker == "mentor" and content:
+                out.append(("user", content, rendered))
             else:
                 out.append(("other", "", rendered))
     return out

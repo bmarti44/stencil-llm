@@ -119,8 +119,8 @@ def phase_long_items(args) -> dict:
 
 
 def _introduced(dialogue: dict, i: int, mc) -> list[tuple[int, int]]:
-    before = set(mc.instruction_ids(dialogue, i - 1)) if i else set()
-    return [p for p in mc.instruction_ids(dialogue, i) if p not in before]
+    """Pairs introduced or updated in session ``i`` (per-session events)."""
+    return mc.instruction_events(dialogue, i)
 
 
 def _head(text: str, n: int = 6) -> str:
@@ -186,7 +186,7 @@ def error_table(dialogue: dict, s: int, auto: dict, topics: dict, mc) -> dict:
         if "instruction-update" not in dialogue["sessions"][i]["type"]:
             continue
         for p, u in _introduced(dialogue, i, mc):
-            older = [v for q, v in mc.instruction_ids(dialogue, i - 1) if q == p]
+            older = [v for q, v in mc.live_instructions(dialogue, i - 1) if q == p]
             if not older:
                 continue
             old_head = _head(by_id[p]["text"][older[0]])
@@ -220,6 +220,8 @@ def phase_auto(args) -> dict:
     items = load_items(root=root)
     if args.limit:
         items = items[: args.limit]
+    if args.ids:
+        items = [it for it in items if it["id"] in set(args.ids)]
     totals = {"admitted": 0, "relations_applied": 0, "overflow": 0, "items": 0}
     for item in items:
         path = root / "auto" / f"item-{item['id']}.json"
@@ -444,6 +446,8 @@ def phase_run(args) -> None:
     items = load_items(args.split, root=root)[args.start :]
     if args.limit:
         items = items[: args.limit]
+    if args.ids:
+        items = [it for it in items if it["id"] in set(args.ids)]
     out_dir = _out_dir(args)
     started = args.started_at or time.monotonic()
     model = None
@@ -456,7 +460,11 @@ def phase_run(args) -> None:
                 raise SystemExit(
                     f"{path}: existing record was made under another configuration"
                 )
-        missing = [a for a in args.arms if not record or a not in record["arms"]]
+        missing = [
+            a
+            for a in args.arms
+            if not record or a not in record["arms"] or a in (args.redo_arms or [])
+        ]
         if not missing:
             continue
         # Stop STARTING items when the remaining required arms cannot finish inside
@@ -905,6 +913,16 @@ def main(argv=None) -> int:
     parser.add_argument("--deadline", type=float, default=DEADLINE)
     parser.add_argument("--budget-minutes", type=float, default=0.0)
     parser.add_argument("--force", action="store_true")
+    parser.add_argument(
+        "--redo-arms",
+        nargs="+",
+        default=None,
+        help="regenerate these arms even when the record already has them "
+        "(instrument repairs under rule D2; disclosed in the ledger)",
+    )
+    parser.add_argument(
+        "--ids", nargs="+", default=None, help="restrict run/auto to these item ids"
+    )
     args = parser.parse_args(argv)
     if args.cohort == "long" and not args.split.endswith("_long"):
         args.split = args.split + "_long"
