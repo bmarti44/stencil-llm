@@ -19,15 +19,25 @@ if [ "${1:-}" = "--exclusive" ]; then exclusive=1; shift; fi
 [ "${1:-}" = "--" ] && shift
 [ $# -gt 0 ] || { echo "gpu_reserve: no command given" >&2; exit 2; }
 touch "$RES"
-others=$(python3 - "$RES" <<'PY'
+# Others' peaks count only for the part NOT yet materialized: free memory already
+# reflects what a reserved pid currently uses (nvidia-smi per-pid usage), so the sum
+# is max(peak - used, 0) per live reservation (2026-09-12, shared with the peer).
+used_by_pid=$(nvidia-smi --query-compute-apps=pid,used_memory --format=csv,noheader,nounits 2>/dev/null || true)
+others=$(python3 - "$RES" "$used_by_pid" <<'PY'
 import json, sys
+used = {}
+for row in sys.argv[2].splitlines():
+    parts = [x.strip() for x in row.split(",")]
+    if len(parts) == 2 and parts[0].isdigit():
+        used[int(parts[0])] = float(parts[1]) / 1024.0
 total = 0.0
 for line in open(sys.argv[1]):
     line = line.strip()
     if not line:
         continue
     try:
-        total += float(json.loads(line).get("peak_gb", 0))
+        row = json.loads(line)
+        total += max(float(row.get("peak_gb", 0)) - used.get(int(row.get("pid", -1)), 0.0), 0.0)
     except Exception:
         pass
 print(total)

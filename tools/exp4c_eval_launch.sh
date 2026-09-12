@@ -46,13 +46,14 @@ PYEOF
 }
 echo "eval start N=$N t_max=$TMAX ceiling=$CEIL $(date -u +%FT%TZ)" >> $LOG/exp4c-eval.log
 final=0
-for i in $(seq 1 14); do
+for i in $(seq 1 40); do
   done_n=$(complete); [ "$done_n" -ge "$N" ] && break
   [ -f $D/BUDGET_EXHAUSTED.json ] && { echo "ceiling reached $(date -u +%FT%TZ)" >> $LOG/exp4c-eval.log; break; }
   until ! grep -q '"name":"stencil-' ~/.gb10-gpu.reservations 2>/dev/null; do sleep 30; done
   bash $R/tools/gpu_reserve.sh stencil-exp4c-eval-$i 55 32 -- $PY $R/scripts/memorycode_package_run.py --items-file $F --qualification $Q --resident-limit 3000 >> $LOG/exp4c-eval.log 2>&1
   status=$?
   echo "slice $i exit=$status $(date -u +%FT%TZ) complete=$(complete)/$N" >> $LOG/exp4c-eval.log
+  if [ $status -eq 3 ]; then echo "reservation refused (memory); waiting 120 s" >> $LOG/exp4c-eval.log; sleep 120; continue; fi
   if [ $status -ne 0 ]; then echo "runner failed (exit $status); queue stopped" >> $LOG/exp4c-eval.log; final=$status; break; fi
 done
 echo "eval queue finished $(date -u +%FT%TZ) complete=$(complete)/$N" >> $LOG/exp4c-eval.log
