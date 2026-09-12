@@ -50,17 +50,21 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 repo = "bmarti44/stencil-focus-qwen3-1.7b"
 tok = AutoTokenizer.from_pretrained(repo)
-model = AutoModelForCausalLM.from_pretrained(repo, trust_remote_code=True, device_map="cuda")
+model = AutoModelForCausalLM.from_pretrained(
+    repo, trust_remote_code=True, device_map="cuda"
+)
 
-session = model.new_session(tok)              # stencil_focus from config (default true)
+session = model.new_session(tok)  # stencil_focus from config (default true)
 session.add_message("user", "From now on, every function needs a docstring.")
 session.add_message("assistant", "Understood.")
 # ... many more turns ...
-prompt = session.build_prompt("Write a function that parses a CSV file.")  # exact prompt
+prompt = session.build_prompt(
+    "Write a function that parses a CSV file."
+)  # exact prompt
 reply = session.generate("Write a function that parses a CSV file.", max_new_tokens=512)
 session.reset()
 
-off = model.new_session(tok, stencil_focus=False)   # the identical model, plain window
+off = model.new_session(tok, stencil_focus=False)  # the identical model, plain window
 ```
 
 `add_message(role, text)` stores every message in order; only `user` messages feed

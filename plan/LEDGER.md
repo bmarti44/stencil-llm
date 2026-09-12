@@ -3631,3 +3631,16 @@ PASSES on CPU: 144/144 LONG items, both flag states, byte-identical to build_lon
 memorycode.focus_session_messages/long_request). Conservative decision: the classifier register is NOT bundled
 in v0.1 of the package (amendment 1: structurally inert on long sessions); the card points at the research repo
 and the SETUP-LONG register arm's error table. Astra Exp 4 implementation review running (pid 2509756).
+
+2026-09-11 — ASTRA EXP 4 IMPLEMENTATION REVIEW: "LAUNCH AFTER EDITS" (10 findings, 5 high). All applied before
+any LONG generation (commit 5692c7f2): REGISTRATION.md amendment 2 (supersession wording, D2 policy-revision
+label, 2,370 admissions/2,401 rows, execution matrix 48+256+16=320, timeout = terminal strict failure, excess
+formula = focus-only discordance rate, completeness → INCOMPLETE, enforced prompt equality, label wording);
+code: summary crash fixed (reference arm per cohort), completeness from frozen ids and base/focus only,
+confirmatory reading gated to screen_long/role_evicted, LONG defaults (policy role_evicted; arms per split),
+timeout column + termination reason, budget rule elapsed >= budget − n_arms×deadline with a positive budget
+required, cut_chars metadata replaces marker slicing, per-arm atomic checkpoints, configuration manifest in every
+record, failure table both directions + categories. Tests: 43 pass (new: summary consumer, marker slicing,
+cohort equality, timeout, failure excess). D2 budget: amendment 1 is policy revision 1 of 2 for the program.
+GPU order after 3b: Exp 4 pilot → BUDGET line → setup_long-role_evicted → screen_long-role_evicted chunks →
+setup_long register arm → parity_generate → 3c only if budget remains.
