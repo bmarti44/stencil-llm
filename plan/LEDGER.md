@@ -3827,3 +3827,14 @@ one result audit, HF push only on PROVEN-SCOPED. Exp 4B remains FAILED / NOT PRO
 advisory run (2026-09-12-unblock-decision-astra.md) reached the same shape with a +10 guard on 128 items; the open
 run governs. Executing: registration (REGISTRATION-4C.md) → CPU implementation + tests → Astra review →
 qualification → freeze N → evaluation → summarize once → audit → publication gate.
+
+2026-09-12 16:40Z — Exp 4C implementation review (results/reviews/2026-09-12-exp4c-impl-review-astra.md): BLOCK,
+ten findings (nine high). All ten closed before any GPU launch (closure record appended to the review file):
+effective-EOS freeze, per-call qualification receipts + sequential model release, heartbeat receipts + owned-process
+watchdog with pre-call allowance checks, durable raw outputs with attempt-log accounting, qualification-only freeze
+with a verified chain (runner/wrapper/summary), strict per-arm fingerprints, consistency-checked + re-scored records
+with finite-statistics requirement, exactly-constant-difference Hoeffding fallback, a gated release consumer +
+clean-environment verification, checker hashes + reminder source offsets (registration wording restored).
+tests/test_memorycode_4c.py: 16 pass. Conservative readings recorded: a call may start only if cumulative
+generation spending + deadline ≤ 3 t_max N; verification resident time is the clean-venv process (the venv build
+is not GPU-resident). Next: qualification launch (44 generations, receipts), freeze, evaluation.

@@ -137,7 +137,10 @@ are never enlarged.
 
 Each terminal arm saved atomically with: raw generated IDs including EOS, scored IDs with the
 terminal EOS removed, decoded text, actual stop reason, timeout/cap indicators, scores, failure
-categories, the prompt text, prompt IDs hash and count, reminder text and sentence counts,
+categories, the prompt text, prompt IDs hash and count, reminder text, sentence counts and
+reminder/source offsets (⟨binding decision wording restored 2026-09-12 per the implementation
+review, finding 10: source-message character spans, the eviction boundary and a thread digest
+are recorded per focus arm⟩),
 timing, configuration identities, package/environment hashes and item/checker hashes. Resume
 only missing work under the same frozen manifest; never overwrite or regenerate a valid
 terminal output. Missing, duplicate, mismatched, malformed or unscored required records prevent

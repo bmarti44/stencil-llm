@@ -1,16 +1,22 @@
 """Exp 4C analysis: the single summary of the package-path evaluation.
 
-Implements REGISTRATION-4C.md mechanically: record validity against the qualification
-fingerprint and the frozen item manifest; completeness (every frozen pair terminal and
-scored); budget accounting incl. interrupted attempts against 3 t_max N; the paired-t
-primary on ``fraction_required`` (Hoeffding fallback at zero variance) with the
-percentile bootstrap and sign test as companions; strict compliance with McNemar and the
-conservative paired interval; the output-failure guard (paired t on H = F_on − F_off,
-Clopper-Pearson fallback at zero variance, McNemar p) with the registered U_H ≤ 0.05
-gate; the exhaustive readings table; descriptive subset breakdowns.
+Implements REGISTRATION-4C.md mechanically (Astra implementation review applied):
+the freeze chain (registered hashes, qualification digest, timing-derived N) is
+re-verified; every record is validated for CONSISTENCY, not just presence (finite
+bounded scores, finite non-negative timing, boolean failure categories, raw-to-scored
+EOS transformation, termination/timeout/cap agreement, prompt hash/count/allocation,
+item identity against the frozen manifest, per-arm fingerprints, strict-score
+consistency) and re-scored from its saved text with the frozen checker; extra,
+duplicate, unknown-arm, malformed or misnamed files block confirmation; budget
+compliance is established from the attempt log and process receipts (generation ≤
+3 t_max N, resident overhead ≤ 2,700 s, qualification ≤ 3,600 s; unbounded accounting
+is INCOMPLETE); the paired-t primary on ``fraction_required`` takes the Hoeffding
+fallback on EXACTLY constant differences (detected by equality, before any variance
+arithmetic) and uses ``math.fsum``; the output-failure guard likewise; every positive
+decision requires finite interval endpoints.
 
-Writes <records dir>/summary-4c.json. The pure functions ``analyze`` and ``reading_4c``
-are what the tests exercise.
+Finalization: without ``--terminal`` only operational completeness and cost are
+written (progress-4c.json, no efficacy); ``--terminal`` writes summary-4c.json ONCE.
 """
 
 from __future__ import annotations
@@ -32,19 +38,37 @@ _spec = importlib.util.spec_from_file_location(
 runner = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(runner)
 screen = runner.screen
+items4c = runner.items4c
 
 MARGIN = 0.05  # registered noninferiority margin on the failure-rate difference
 FAILURE_KEYS = ("invalid", "truncated", "degenerate", "timed_out")
+ARMS = ("base", "focus")
+ITEM_KEYS = ("id", "session", "queries", "history_regex", "candidate_index")
+
+
+def _finite(x) -> bool:
+    return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x)
 
 
 # ------------------------------------------------------------------ statistics
 def paired_t(diffs: list[float]) -> dict:
     """Two-sided paired t-test of E[D] = 0 with the matching 95% interval; the
-    registered Hoeffding fallback when the sample SD is zero."""
+    registered Hoeffding fallback when the differences are EXACTLY constant (checked
+    by equality to the first value before any variance arithmetic, finding 8)."""
     from scipy.stats import t as tdist
 
     n = len(diffs)
-    mean = sum(diffs) / n
+    if n == 0 or not all(_finite(d) for d in diffs):
+        return {
+            "n": n,
+            "mean": None,
+            "sd": None,
+            "lower": None,
+            "upper": None,
+            "p": None,
+            "method": "undefined",
+        }
+    mean = math.fsum(diffs) / n
     if n < 2:
         return {
             "n": n,
@@ -53,10 +77,10 @@ def paired_t(diffs: list[float]) -> dict:
             "lower": None,
             "upper": None,
             "p": None,
+            "method": "undefined",
         }
-    var = sum((d - mean) ** 2 for d in diffs) / (n - 1)
-    sd = math.sqrt(var)
-    if sd == 0.0:
+    if all(d == diffs[0] for d in diffs):
+        mean = diffs[0]
         half = math.sqrt(2 * math.log(40) / n)
         return {
             "n": n,
@@ -67,8 +91,10 @@ def paired_t(diffs: list[float]) -> dict:
             "p": min(1.0, 2 * math.exp(-n * mean * mean / 2)),
             "method": "hoeffding-fallback (s_D = 0)",
         }
+    var = math.fsum((d - mean) ** 2 for d in diffs) / (n - 1)
+    sd = math.sqrt(var)
     se = sd / math.sqrt(n)
-    q = tdist.ppf(0.975, n - 1)
+    q = float(tdist.ppf(0.975, n - 1))
     stat = mean / se
     p = 2 * tdist.sf(abs(stat), n - 1)
     return {
@@ -77,6 +103,7 @@ def paired_t(diffs: list[float]) -> dict:
         "sd": sd,
         "se": se,
         "t": stat,
+        "t_quantile": q,
         "lower": mean - q * se,
         "upper": mean + q * se,
         "p": float(p),
@@ -84,86 +111,200 @@ def paired_t(diffs: list[float]) -> dict:
     }
 
 
-def _valid_reason(rec: dict, expect: dict, items_sha: str) -> str | None:
-    m = rec.get("manifest") or {}
-    if not m:
-        return "no manifest"
-    if not runner.fingerprint_matches(m, expect):
-        return "fingerprint mismatch"
-    if m.get("items_sha256") != items_sha:
-        return "items manifest mismatch"
-    if not all(a in rec.get("arms", {}) for a in ("base", "focus")):
-        return "missing arm"
+# ------------------------------------------------------------------ validity
+def _gen_reason(g: dict, arm: str, expect: dict, max_new: int) -> str | None:
+    if not isinstance(g, dict):
+        return f"{arm}: generation not a dict"
+    term = g.get("termination")
+    if term not in ("eos", "cap", "timeout"):
+        return f"{arm}: non-terminal"
+    raw, ids = g.get("generated_token_ids_raw"), g.get("generated_token_ids")
+    if not isinstance(raw, list) or not isinstance(ids, list):
+        return f"{arm}: raw ids missing"
+    if not all(isinstance(t, int) and not isinstance(t, bool) for t in raw + ids):
+        return f"{arm}: non-integer ids"
+    eos = expect.get("eos_token_ids") or []
+    if g.get("eos_token_ids") != eos:
+        return f"{arm}: eos set differs from the frozen effective set"
+    ended = bool(raw) and raw[-1] in eos
+    if g.get("ended_by_eos") is not ended:
+        return f"{arm}: ended_by_eos inconsistent"
+    if ids != (raw[:-1] if ended else raw):
+        return f"{arm}: scored ids are not raw minus a terminal EOS"
+    if len(raw) > max_new:
+        return f"{arm}: more than max_new raw ids"
+    truncated = (not ended) and len(raw) >= max_new
+    if g.get("truncated") is not truncated:
+        return f"{arm}: truncated flag inconsistent"
+    for k in ("timed_out",):
+        if not isinstance(g.get(k), bool):
+            return f"{arm}: {k} not boolean"
+    secs = g.get("seconds")
+    if not _finite(secs) or secs < 0:
+        return f"{arm}: seconds not finite non-negative"
+    deadline = expect["decoding"]["deadline"]
+    expected_timeout = secs > deadline or (not ended and not truncated)
+    if (
+        g["timed_out"] is not expected_timeout
+        or (term == "timeout") is not expected_timeout
+    ):
+        return f"{arm}: timeout classification inconsistent"
+    if term == "cap" and not truncated or term == "eos" and not ended:
+        return f"{arm}: termination inconsistent"
+    if g.get("n_generated") != len(ids) or g.get("n_generated_raw") != len(raw):
+        return f"{arm}: token counts inconsistent"
+    f = g.get("failures")
+    if not isinstance(f, dict) or any(
+        not isinstance(f.get(k), bool) for k in FAILURE_KEYS
+    ):
+        return f"{arm}: failure categories missing or non-boolean"
+    if f["truncated"] is not truncated or f["timed_out"] is not g["timed_out"]:
+        return f"{arm}: failure flags disagree with termination"
+    s = g.get("scores")
+    if not isinstance(s, dict) or "per_family" not in s or "fraction_required" not in s:
+        return f"{arm}: unscored"
+    fr = s["fraction_required"]
+    if fr is None:
+        return f"{arm}: inapplicable item"
+    if not _finite(fr) or not 0.0 <= fr <= 1.0:
+        return f"{arm}: fraction_required not in [0, 1]"
+    if not isinstance(s.get("strict"), bool):
+        return f"{arm}: strict not boolean"
+    if g["timed_out"] and (fr != 0.0 or s["strict"]):
+        return f"{arm}: timeout must score zero"
+    if not isinstance(g.get("prompt"), str):
+        return f"{arm}: prompt text missing"
+    w = g.get("window") or {}
+    if not isinstance(w.get("prompt_tokens"), int):
+        return f"{arm}: prompt token count missing"
+    if g.get("prompt_ids_count") != w["prompt_tokens"]:
+        return f"{arm}: prompt id count differs from window"
+    if w["prompt_tokens"] + max_new > 4096:
+        return f"{arm}: allocation exceeds 4096"
+    import hashlib
+
+    if g.get("prompt_sha256") != hashlib.sha256(g["prompt"].encode()).hexdigest():
+        return f"{arm}: prompt hash mismatch"
+    return None
+
+
+def _valid_reason(
+    rec: dict, expect: dict, item: dict | None, rescore=None, decode=None
+) -> str | None:
+    if not isinstance(rec, dict):
+        return "malformed record"
+    if item is None:
+        return "not in the frozen manifest"
+    for k in ITEM_KEYS:
+        if rec.get(k) != item.get(k):
+            return f"item identity differs on {k}"
+    arms = rec.get("arms")
+    if not isinstance(arms, dict):
+        return "arms missing"
+    if set(arms) != set(ARMS):
+        return "unknown or missing arm"
+    max_new = expect["decoding"]["max_new"]
     tokens = []
-    for arm in ("base", "focus"):
-        gens = rec["arms"][arm].get("generations") or []
+    for arm in ARMS:
+        data = arms[arm]
+        m = data.get("manifest") or {}
+        if not m:
+            return f"{arm}: no manifest"
+        if not runner.fingerprint_matches(m, expect):
+            return f"{arm}: fingerprint mismatch"
+        gens = data.get("generations") or []
         if len(gens) != 1:
             return f"{arm}: {len(gens)} generations"
         g = gens[0]
-        if g.get("termination") not in ("eos", "cap", "timeout"):
-            return f"{arm}: non-terminal"
-        if "generated_token_ids_raw" not in g or "generated_token_ids" not in g:
-            return f"{arm}: raw ids missing"
-        s = g.get("scores") or {}
-        if "per_family" not in s or "fraction_required" not in s:
-            return f"{arm}: unscored"
-        if s["fraction_required"] is None:
-            return f"{arm}: inapplicable item"
-        if not g.get("failures"):
-            return f"{arm}: failures missing"
-        tokens.append((g.get("window") or {}).get("prompt_tokens"))
-    if tokens[0] != tokens[1] or tokens[0] is None:
+        why = _gen_reason(g, arm, expect, max_new)
+        if why:
+            return why
+        if data.get("strict") is not g["scores"]["strict"]:
+            return f"{arm}: arm strict differs from scores"
+        if decode is not None and decode(g["generated_token_ids"]) != g["text"]:
+            return f"{arm}: text is not the decoded scored ids"
+        if rescore is not None:
+            scores, failures = rescore(item, g)
+            if scores != g["scores"] or failures != g["failures"]:
+                return f"{arm}: stored scores/failures differ from the frozen checker"
+        if arm == "focus" and not isinstance(data.get("reminder_sources"), dict):
+            return "focus: reminder provenance missing"
+        tokens.append(g["window"]["prompt_tokens"])
+    if tokens[0] != tokens[1]:
         return "prompt token counts differ"
     return None
 
 
 def _score(rec: dict, arm: str) -> float:
     g = rec["arms"][arm]["generations"][0]
-    if g.get("timed_out"):
-        return 0.0
-    return float(g["scores"]["fraction_required"])
+    return 0.0 if g["timed_out"] else float(g["scores"]["fraction_required"])
 
 
 def _fails(rec: dict, arm: str) -> bool:
     f = rec["arms"][arm]["generations"][0]["failures"]
-    return any(bool(f.get(k)) for k in FAILURE_KEYS)
+    return any(f[k] for k in FAILURE_KEYS)
 
 
 def analyze(
-    records: list[dict],
-    frozen_ids: list[str],
+    records: list,
+    frozen_items: list[dict],
     expect_manifest: dict,
-    items_sha: str,
     ceiling_seconds: float | None,
-    spent_seconds: float,
+    accounting: dict,
     marker_exists: bool = False,
+    rescore=None,
+    decode=None,
 ) -> dict:
-    """The registered analysis on in-memory records (pure; used by the tests)."""
-    by_id = {}
-    invalid = {}
+    """The registered analysis on in-memory records (pure; used by the tests).
+    ``records`` may contain (name, record) pairs or bare records; ``accounting``
+    carries generation/overhead/qualification seconds and an ``unbounded`` flag."""
+    items = {it["id"]: it for it in frozen_items}
+    by_id: dict[str, dict] = {}
+    invalid: dict[str, str] = {}
     duplicates = []
-    for rec in records:
-        rid = rec["id"]
-        if rid in by_id:
+    for i, entry in enumerate(records):
+        name, rec = entry if isinstance(entry, tuple) else (None, entry)
+        rid = rec.get("id") if isinstance(rec, dict) else None
+        label = rid if isinstance(rid, str) else (name or f"record-{i}")
+        if not isinstance(rec, dict) or not isinstance(rid, str):
+            invalid[label] = "malformed record"
+            continue
+        if name is not None and name != f"item-{rid}.json":
+            invalid[label] = f"filename {name} does not match id"
+            continue
+        if rid in by_id or rid in duplicates:
             duplicates.append(rid)
             continue
-        why = _valid_reason(rec, expect_manifest, items_sha)
+        why = _valid_reason(rec, expect_manifest, items.get(rid), rescore, decode)
         if why:
-            invalid[rid] = why
+            invalid[label] = why
             continue
         by_id[rid] = rec
-    frozen = list(frozen_ids)
+    frozen = [it["id"] for it in frozen_items]
     missing = [i for i in frozen if i not in by_id]
     extra = sorted(set(by_id) - set(frozen))
-    complete = not missing and not invalid and not duplicates
+    complete = not missing and not invalid and not duplicates and not extra
+    gen = accounting.get("generation_seconds")
     budget = {
         "ceiling_seconds": ceiling_seconds,
-        "spent_seconds": spent_seconds,
+        "generation_seconds": gen,
+        "overhead_seconds": accounting.get("overhead_seconds"),
+        "overhead_allowance": runner.OVERHEAD_ALLOWANCE,
+        "qualification_seconds": accounting.get("qualification_seconds"),
+        "qualification_allowance": runner.QUALIFICATION_ALLOWANCE,
+        "unbounded": bool(accounting.get("unbounded")),
         "marker": marker_exists,
-        "exhausted": marker_exists
-        or (ceiling_seconds is not None and spent_seconds > ceiling_seconds),
     }
-    technical_ok = complete and not budget["exhausted"]
+    budget["exhausted"] = (
+        marker_exists
+        or budget["unbounded"]
+        or not _finite(gen)
+        or (ceiling_seconds is not None and gen > ceiling_seconds)
+        or not _finite(budget["overhead_seconds"])
+        or budget["overhead_seconds"] > runner.OVERHEAD_ALLOWANCE
+        or not _finite(budget["qualification_seconds"])
+        or budget["qualification_seconds"] > runner.QUALIFICATION_ALLOWANCE
+    )
     ids = sorted(i for i in frozen if i in by_id)  # lexicographic (registration)
     on = [_score(by_id[i], "focus") for i in ids]
     off = [_score(by_id[i], "base") for i in ids]
@@ -171,14 +312,15 @@ def analyze(
     fon = [_fails(by_id[i], "focus") for i in ids]
     foff = [_fails(by_id[i], "base") for i in ids]
     hs = [float(a) - float(b) for a, b in zip(fon, foff)]
-    stats = {"n": len(ids)}
+    stats: dict = {"n": len(ids)}
+    finite = False
     if ids:
         stats["primary"] = paired_t(diffs)
-        stats["primary"]["mean_off"] = sum(off) / len(off)
-        stats["primary"]["mean_on"] = sum(on) / len(on)
+        stats["primary"]["mean_off"] = math.fsum(off) / len(off)
+        stats["primary"]["mean_on"] = math.fsum(on) / len(on)
         stats["bootstrap"] = screen._paired_mean_bootstrap(on, off)
-        son = [bool(by_id[i]["arms"]["focus"]["strict"]) for i in ids]
-        soff = [bool(by_id[i]["arms"]["base"]["strict"]) for i in ids]
+        son = [by_id[i]["arms"]["focus"]["strict"] for i in ids]
+        soff = [by_id[i]["arms"]["base"]["strict"] for i in ids]
         stats["strict"] = {
             "on": sum(son),
             "off": sum(soff),
@@ -190,7 +332,7 @@ def analyze(
             cp = screen._paired_interval(list(zip(fon, foff)))
             guard = {
                 "n": len(hs),
-                "mean": sum(hs) / len(hs),
+                "mean": math.fsum(hs) / len(hs),
                 "sd": 0.0,
                 "lower": cp["lower_points"] / 100,
                 "upper": cp["upper_points"] / 100,
@@ -207,57 +349,64 @@ def analyze(
                 k: sum(
                     1
                     for i in ids
-                    if by_id[i]["arms"][arm]["generations"][0]["failures"].get(k)
+                    if by_id[i]["arms"][arm]["generations"][0]["failures"][k]
                 )
                 for k in FAILURE_KEYS
             }
-            for arm in ("base", "focus")
+            for arm in ARMS
         }
         guard["margin"] = MARGIN
-        guard["gate_U_H_le_margin"] = guard["upper"] is not None and (
-            guard["upper"] <= MARGIN
+        finite = all(
+            _finite(x)
+            for x in (
+                stats["primary"]["lower"],
+                stats["primary"]["upper"],
+                guard["lower"],
+                guard["upper"],
+            )
         )
+        guard["gate_U_H_le_margin"] = finite and guard["upper"] <= MARGIN
         guard["equivalence_within_margin"] = (
-            guard["lower"] is not None
-            and guard["upper"] is not None
-            and -MARGIN <= guard["lower"]
-            and guard["upper"] <= MARGIN
+            finite and -MARGIN <= guard["lower"] and guard["upper"] <= MARGIN
         )
-        guard["demonstrated_increase"] = (
-            guard["lower"] is not None and guard["lower"] > 0
-        )
+        guard["demonstrated_increase"] = finite and guard["lower"] > 0
         stats["failure_guard"] = guard
         subsets = {}
         for name, pred in (
-            ("screen_128", lambda r: (r.get("candidate_index") or 0) < 128),
-            ("reserve", lambda r: (r.get("candidate_index") or 0) >= 128),
+            ("screen_128", lambda it: it["candidate_index"] < 128),
+            ("reserve", lambda it: it["candidate_index"] >= 128),
         ):
-            sub = [i for i in ids if pred(by_id[i])]
+            sub = [i for i in ids if pred(items[i])]
             if sub:
                 subsets[name] = {
                     "n": len(sub),
-                    "mean_off": sum(_score(by_id[i], "base") for i in sub) / len(sub),
-                    "mean_on": sum(_score(by_id[i], "focus") for i in sub) / len(sub),
+                    "mean_off": math.fsum(_score(by_id[i], "base") for i in sub)
+                    / len(sub),
+                    "mean_on": math.fsum(_score(by_id[i], "focus") for i in sub)
+                    / len(sub),
                 }
         stats["subsets_descriptive"] = subsets
     status = {
         "complete": complete,
+        "n_valid": len(by_id),
         "missing_ids": missing,
         "invalid_records": invalid,
         "duplicate_ids": duplicates,
         "extra_ids": extra,
         "budget": budget,
-        "technical_ok": technical_ok,
+        "finite_statistics": finite,
+        "technical_ok": complete and not budget["exhausted"] and finite,
     }
     return {"status": status, "stats": stats, "reading": reading_4c(status, stats)}
 
 
 def reading_4c(status: dict, stats: dict, eligible: bool = True) -> dict:
     """REGISTRATION-4C.md readings table, applied mechanically: technical status,
-    then primary efficacy, then the failure guard."""
+    then primary efficacy, then the failure guard. Non-finite statistics never reach
+    a positive decision (finding 7)."""
     if not eligible:
         verdict, publish = "INELIGIBLE; efficacy NOT PROVEN", False
-    elif not status["technical_ok"]:
+    elif not status["technical_ok"] or not status.get("finite_statistics"):
         verdict, publish = "INCOMPLETE", False
     else:
         p = stats["primary"]
@@ -274,11 +423,13 @@ def reading_4c(status: dict, stats: dict, eligible: bool = True) -> dict:
                 "POSITIVE EFFICACY / DEMONSTRATED EXCESS OUTPUT HARM; NOT PROVEN, FINAL"
             )
             publish = False
-        else:
+        elif g["upper"] <= MARGIN and p["lower"] > 0:
             verdict = (
                 "STATISTICAL GATES PASSED (pending audit and release verification)"
             )
             publish = True  # HF push only after audit + clean-environment verification
+        else:  # pragma: no cover - exhaustive above
+            verdict, publish = "INCOMPLETE", False
     return {
         "verdict": verdict,
         "statistical_gates_passed": publish,
@@ -291,55 +442,142 @@ def reading_4c(status: dict, stats: dict, eligible: bool = True) -> dict:
 
 
 # ------------------------------------------------------------------ driver
+def load_records(records_dir: Path) -> list:
+    out = []
+    for p in sorted(records_dir.glob("item-*.json")):
+        try:
+            out.append((p.name, json.loads(p.read_text())))
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            out.append((p.name, None))
+    return out
+
+
+def analysis_environment() -> dict:
+    import numpy
+    import scipy
+
+    return {
+        "python": sys.version.split()[0],
+        "numpy": numpy.__version__,
+        "scipy": scipy.__version__,
+    }
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--items-file", default=str(OUT / "items-4c.json"))
     parser.add_argument("--qualification", default=str(OUT / "qualification-4c.json"))
     parser.add_argument("--records", default=None, help="records directory")
-    parser.add_argument("--model", default="4b")
+    parser.add_argument(
+        "--hub", default=str(ROOT / "deploy/stencil_focus/build/hub-4b")
+    )
+    parser.add_argument(
+        "--terminal", action="store_true", help="write summary-4c.json once"
+    )
     args = parser.parse_args(argv)
+    from stencil import memorycode as mc
+
     frozen = json.loads(Path(args.items_file).read_text())
     qual = json.loads(Path(args.qualification).read_text())
+    problems = items4c.verify_frozen(
+        frozen, qual, screen._sha256(Path(args.qualification))
+    )
     items_sha = screen._sha256(Path(args.items_file))
-    split = frozen["items"][0]["split"]
 
     class A:
-        cohort = "long"
-        model = args.model
-        policy = "role_evicted"
-        runtime = "package"
+        cohort, model, policy, runtime = (
+            "long",
+            qual["manifest"]["model"],
+            "role_evicted",
+            "package",
+        )
+        split = frozen["items"][0]["split"]
 
-    A.split = split
     records_dir = Path(args.records) if args.records else screen._out_dir(A)
-    records = [
-        json.loads(p.read_text()) for p in sorted(records_dir.glob("item-*.json"))
-    ]
-    expect = dict(qual["manifest"])
-    expect["items_sha256"] = items_sha
-    expect["budget_tokens"] = expect.get("budget_tokens") or 256
-    n = frozen["n"]
-    t_max = frozen["t_max_seconds"] or qual["t_max_seconds"]
-    ceiling = 3 * t_max * n
-    spent = screen._generation_seconds(records_dir, ["base", "focus"])
-    spent += runner.interrupted_seconds(records_dir)
+    expect = dict(qual["manifest"], items_sha256=items_sha)
+    if expect.get("checker_sha256") != runner.checker_hashes():
+        problems.append("checker files changed since qualification")
+    ceiling = 3 * frozen["t_max_seconds"] * frozen["n"]
+    acct = runner.attempt_accounting(records_dir, expect["decoding"]["deadline"])
+    resident = runner.resident_seconds(records_dir)
+    qual_resident = runner.resident_seconds(OUT / "qualification-4c")
+    accounting = {
+        "generation_seconds": acct["generation_seconds"],
+        "attempts": acct,
+        "resident": resident,
+        "overhead_seconds": resident["overhead_seconds"],
+        "qualification_seconds": qual_resident["resident_seconds"],
+        "unbounded": acct["unbounded"]
+        or resident["unbounded"]
+        or qual_resident["unbounded"],
+    }
+    compute_score = mc.vendored_checker()
+    from tokenizers import Tokenizer
+
+    tok = Tokenizer.from_file(str(Path(args.hub) / "tokenizer.json"))
+
+    def rescore(item, g):
+        q = item["queries"][0]
+        scores = mc.score_generation(
+            g["text"],
+            item["history_regex"],
+            compute_score,
+            required=item["required"][q],
+            structure=item["structure"][q],
+        )
+        if g["timed_out"]:
+            scores["strict"] = False
+            if scores.get("fraction_required") is not None:
+                scores["fraction_required"] = 0.0
+        failures = mc.output_failures(
+            g["text"], g["generated_token_ids"], g["truncated"], g["timed_out"]
+        )
+        return scores, failures
+
+    def decode(ids):
+        return tok.decode(ids, skip_special_tokens=True)
+
     out = analyze(
-        records,
-        [it["id"] for it in frozen["items"]],
+        load_records(records_dir),
+        frozen["items"],
         expect,
-        items_sha,
         ceiling,
-        spent,
+        accounting,
         screen._ceiling_marker(records_dir).exists(),
+        rescore=rescore,
+        decode=decode,
     )
-    out["reading"] = reading_4c(out["status"], out["stats"], eligible=qual["eligible"])
-    out["registration"] = "results/memorycode-long/REGISTRATION-4C.md"
-    out["items_file"] = args.items_file
-    out["items_sha256"] = items_sha
-    out["frozen_ids_sha256"] = frozen.get("frozen_ids_sha256")
-    out["n_registered"] = n
-    out["t_max_seconds"] = t_max
-    out["git_sha"] = screen._git_sha()
-    screen._write_atomic(records_dir / "summary-4c.json", out)
+    if problems:
+        out["status"]["chain_problems"] = problems
+        out["status"]["technical_ok"] = False
+    out["reading"] = reading_4c(
+        out["status"], out["stats"], eligible=qual["eligible"] and not problems
+    )
+    out.update(
+        {
+            "registration": "results/memorycode-long/REGISTRATION-4C.md",
+            "items_file": args.items_file,
+            "items_sha256": items_sha,
+            "frozen_ids_sha256": frozen.get("frozen_ids_sha256"),
+            "qualification_sha256": screen._sha256(Path(args.qualification)),
+            "n_registered": frozen["n"],
+            "t_max_seconds": frozen["t_max_seconds"],
+            "git_sha": screen._git_sha(),
+            "analysis_environment": analysis_environment(),
+        }
+    )
+    if not args.terminal:
+        progress = {k: out[k] for k in ("registration", "n_registered")}
+        progress["status"] = {
+            k: v for k, v in out["status"].items() if k != "finite_statistics"
+        }
+        screen._write_atomic(records_dir / "progress-4c.json", progress)
+        print(json.dumps(progress["status"], indent=1))
+        return 0
+    target = records_dir / "summary-4c.json"
+    if target.exists():
+        raise SystemExit(f"{target} exists; the summary is computed once")
+    screen._write_atomic(target, out)
     print(json.dumps({"status": out["status"], "reading": out["reading"]}, indent=1))
     if "primary" in out["stats"]:
         p, g = out["stats"]["primary"], out["stats"]["failure_guard"]
@@ -349,11 +587,17 @@ def main(argv=None) -> int:
                     "n": p["n"],
                     "mean_off": p["mean_off"],
                     "mean_on": p["mean_on"],
-                    "diff_points": 100 * p["mean"],
-                    "ci_points": [100 * p["lower"], 100 * p["upper"]],
+                    "diff_points": 100 * p["mean"] if _finite(p["mean"]) else None,
+                    "ci_points": [100 * p["lower"], 100 * p["upper"]]
+                    if _finite(p["lower"])
+                    else None,
                     "p": p["p"],
-                    "failure_diff_points": 100 * g["mean"],
-                    "failure_ci_points": [100 * g["lower"], 100 * g["upper"]],
+                    "failure_diff_points": 100 * g["mean"]
+                    if _finite(g["mean"])
+                    else None,
+                    "failure_ci_points": [100 * g["lower"], 100 * g["upper"]]
+                    if _finite(g["lower"])
+                    else None,
                     "strict": [
                         out["stats"]["strict"]["off"],
                         out["stats"]["strict"]["on"],
