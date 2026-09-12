@@ -146,9 +146,12 @@ def generate_package(session, request, head, sep, max_new, deadline) -> dict:
     seconds = time.monotonic() - started
     raw = list(session.last["generated_token_ids"])
     stops = set(eos_ids(session.model))
-    ids = raw[:-1] if raw and raw[-1] in stops else list(raw)
-    timed_out = seconds > deadline
+    ended_by_eos = bool(raw) and raw[-1] in stops
+    ids = raw[:-1] if ended_by_eos else list(raw)
     truncated = len(ids) >= max_new
+    # A call that stopped on ``max_time`` (neither EOS nor the cap) is a timeout even
+    # if the wall clock reads a hair under the deadline (registration: terminal).
+    timed_out = seconds > deadline or (not ended_by_eos and not truncated)
     termination = "timeout" if timed_out else ("cap" if truncated else "eos")
     return {
         "text": session.decode(ids),
