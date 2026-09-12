@@ -82,6 +82,26 @@ def cue_packet(label: str, rules: list[str]) -> str:
     return f"For the {label} you are about to write: {body}."
 
 
+def _refeed_text(tok, removed_ids, remainder: str, indent: int, keyword: str) -> str:
+    """Text to feed after the cue so the model continues the unit at ``indent``."""
+    if keyword:
+        return " " * indent + keyword
+    if indent == 0:
+        return ""
+    boundary = len(remainder) + indent
+    prev = ""
+    for i in range(len(removed_ids)):
+        cur = tok.decode(removed_ids[: i + 1], skip_special_tokens=True)
+        if len(cur) > boundary:
+            piece = cur[len(prev) :]
+            carried = len(piece) - (len(cur) - boundary)  # indent chars in the token
+            if piece[: max(carried, 0)].strip() == "":
+                return " " * max(indent - max(carried, 0), 0)
+            break
+        prev = cur
+    return " " * indent
+
+
 def _is_dunder(name: str) -> bool:
     return len(name) > 4 and name.startswith("__") and name.endswith("__")
 
@@ -355,6 +375,15 @@ class FocalGenerator:
                 and any("decorator" in t for t in full_packet)
             ):
                 keyword = ""
+            # Re-feed text for the regenerated line.  With a keyword the text is
+            # ``indent + keyword`` (the tokenizer splits it the way the model would).
+            # Indent-only re-feeds must not include the spaces the model's first
+            # content token carries itself (``" @"``, ``" try"``): the model's own
+            # tokens of the rolled-back line say how many that is (v5 pilot: every
+            # focal arm mis-indented by one space and failed to parse).
+            keep_text = _refeed_text(
+                self.tok, ids[cut:], remainder, fired.indent, keyword
+            )
             n_before = n_gen()
             removed = len(ids) - cut
             while removed > 0:
@@ -371,7 +400,6 @@ class FocalGenerator:
 
             if self.channel == "comment":
                 block = cue_line(label, full_packet, fired.indent)
-                keep_text = " " * fired.indent + keyword
                 rem_ids = (
                     self.tok.encode(remainder, add_special_tokens=False)
                     if remainder
@@ -395,7 +423,7 @@ class FocalGenerator:
                 new_offset = len(kept_text) + len(remainder) + len(block)
             else:
                 reminders.append(cue_packet(label, full_packet))
-                prefix_text = kept_text + remainder + " " * fired.indent + keyword
+                prefix_text = kept_text + remainder + keep_text
                 prefix_ids = self.tok.encode(prefix_text, add_special_tokens=False)
                 prompt_ids = list(self.rebuild_prompt(list(reminders)))
                 self.backend.prefill(prompt_ids, prefix_ids)
@@ -403,7 +431,7 @@ class FocalGenerator:
                 pending = []
                 n_refed += len(prefix_ids) - cut if len(prefix_ids) > cut else 0
                 inserted = 0
-                new_offset = len(prefix_text) - len(" " * fired.indent + keyword)
+                new_offset = len(prefix_text) - len(keep_text)
             n_insertions += 1
             packets_done.add(key)
             any_done = any_done or bool(extra)

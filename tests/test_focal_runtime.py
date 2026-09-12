@@ -52,6 +52,23 @@ class Scripted:
         rest = self.target[len(done) :]
         if not rest:
             return self.eos
+        # behave like a real model: continue with the canonical tokenization of the
+        # target; when the visible prefix ends inside a canonical token (e.g. after
+        # four re-fed spaces where the model's own token is " def"), emit that whole
+        # token, which is what a real model does (v5 pilot: one-space mis-indents)
+        ids = self.tok.encode(self.target, add_special_tokens=False)
+        acc = ""
+        for i, t in enumerate(ids):
+            nxt = self.tok.decode(ids[: i + 1], skip_special_tokens=True)
+            if len(nxt) > len(done):
+                if len(acc) == len(done):
+                    return t
+                return (
+                    t
+                    if nxt[len(acc) :].startswith(" ")
+                    else self.tok.encode(rest, add_special_tokens=False)[0]
+                )
+            acc = nxt
         return self.tok.encode(rest, add_special_tokens=False)[0]
 
     def crop(self, n):
@@ -147,6 +164,18 @@ def test_auto_refeed_leaves_room_for_a_decorator(tok):
     r = g.generate([1, 2, 3])
     assert [e["refed_keyword"] for e in r.events] == [""]
     assert strip_spans(r.text, r.inserted_spans) == TARGET
+
+
+def test_indent_only_refeed_matches_the_models_own_tokens(tok):
+    # a decorator rule on methods: the cue is followed by an indent-only re-feed;
+    # the regenerated line must land at exactly four spaces
+    rules = [("method", "header", "add the '@retry' decorator to all methods")]
+    be = Scripted(tok, TARGET, eos=151645)
+    g = FocalGenerator(be, tok, rules=rules, eos_ids=(151645,), max_new_tokens=600)
+    r = g.generate([1, 2, 3])
+    assert [e["refed_keyword"] for e in r.events] == [""]
+    assert strip_spans(r.text, r.inserted_spans) == TARGET
+    assert "    def m(self, a):" in r.text.split("\n")
 
 
 def test_user_channel_rebuilds_prompt_and_keeps_code_clean(tok):
