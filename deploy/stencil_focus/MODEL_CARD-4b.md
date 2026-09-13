@@ -97,6 +97,17 @@ Secondary evidence (Multi-IF, Qwen3-1.7B, a different construction and trunk,
 sentences scored 66.7 aged-adherence points versus 62.5 for the untruncated prompt, n = 128.
 That is not a coding-session result and not a result for this trunk.
 
+### Immediate-instruction contract adherence (registered pre-check, 2026-09-13)
+
+On 32 registered immediate-instruction tasks across eight authored projects
+(`results/contracts/REGISTRATION-PRECHECK.md`, `precheck.jsonl`), greedy non-thinking
+generation through the unmodified trunk passed the functional tests on 24 tasks and both
+functional and contract tests on 14 (exact 95% intervals [0.57, 0.89] and [0.26, 0.62];
+the intervals are project-dependent, eight projects). The registered eligibility rule
+(J ≥ 16 and functional ≥ 20) failed, and the proposed training program stopped before
+training. All outputs parsed and none were truncated. This test does not establish
+reliable contract adherence or measure the long-session memory modification's benefit.
+
 ## Usage
 
 ```python
