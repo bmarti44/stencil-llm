@@ -27,8 +27,23 @@ not merely refusing everything. Known limitation recorded before any model
 outcome: only 4 blocks separate specificity from recency and only 2 separate
 cancellation from revival.
 
-NEXT: step 2 is freezing the rescue diagnostic and its timing/stop rules (~1 CPU
-hour). Step 3 is the first GPU spend — 64 short generations, 0.2-0.3 GPU-hours —
+STEP 2 IS DONE (CPU only, zero GPU): the rescue diagnostic is frozen in
+results/scoped/RESCUE-REGISTRATION.md with its arms, generation settings, budget
+and stop rules, measured prompt sizes and the prespecified readings in code
+(scripts/scoped_rescue.py --summarize). The runner, its sandboxed scorer
+(scripts/scoped_score_one.py, a SEPARATE process for untrusted model output) and
+tests/test_scoped_rescue.py all exist and pass; three full 64-generation pipeline
+runs with NO model verify extraction, scoring and the decision arithmetic
+(--stub-mode correct -> 16/16 both conditions, the positive control;
+--stub-mode rescue -> READING: RESCUED). Step 3 is now a single command.
+
+Registered limitation, recorded before any outcome: the development histories are
+3-7 messages and fit ENTIRELY in the 3,936-token budget in both conditions, so
+the reminder is additive (23-68 tokens) rather than displacing. The diagnostic
+measures RESOLUTION WITH EVERYTHING VISIBLE, not retrieval under eviction, and a
+rescue may not be read as evidence about eviction.
+
+NEXT: step 3 is the first GPU spend — 64 short generations, 0.2-0.3 GPU-hours —
 and is BLOCKED by the standing pause below. Prespecified thresholds (Astra, not
 to be renegotiated after seeing results): >=12/16 blocks and >=6 wins with <=1
 loss -> 28% becomes ~40%; <=8/16 or <=2 net rescued -> ~12% and stop this

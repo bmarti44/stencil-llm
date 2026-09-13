@@ -761,3 +761,86 @@ def block_digest(block: Block) -> str:
         "entering_obligations": list(block.entering_obligations),
     }, sort_keys=True)
     return hashlib.sha256(payload.encode()).hexdigest()[:16]
+
+
+# ------------------------------------------------- the oracle-reminder arm
+
+
+def resolve_events(history, path: str, kind: str):
+    """(the statement that establishes the live policy, the obligation statements).
+
+    The reminder quotes SOURCE TEXT.  Astra's constraint on the diagnostic arm:
+    "The oracle supplies the instruction, not code, expected test outputs, or a
+    gold patch."  Nothing here is derived from the answer -- for a reinstated
+    rule this returns the ORIGINAL statement, which is what the reinstatement
+    refers to.
+    """
+    live, obligations = live_state(history)
+    hits = [e for (scope, fk), e in live.items() if _matches(scope, fk, path, kind)]
+    winner = None
+    if hits:
+        best = max(_specificity(e.scope, e.fn_kind) for e in hits)
+        winner = [e for e in hits if _specificity(e.scope, e.fn_kind) == best][-1]
+    live_names = {n for n, scope in obligations if _matches(scope, None, path, kind)}
+    ob_events = [e for e in history
+                 if e.kind == "obligate" and e.name in live_names]
+    return winner, ob_events
+
+
+BASELINE_LINE = ("No instruction in this session covers this file and operation, "
+                 "so the package's documented default applies.")
+
+
+def oracle_reminder(block: Block, case: Case, history=None) -> str:
+    """The compact action cue: which instruction applies HERE, and its source."""
+    history = list(block.history if history is None else history)
+    index = {e.id: i for i, e in enumerate(history)}
+    winner, obligations = resolve_events(history, case.path, case.fn_kind)
+    lines = ["Instruction in force for this edit:"]
+    if winner is None:
+        lines.append(f"- {BASELINE_LINE}")
+    else:
+        lines.append(f'- message {index[winner.id] + 1}: "{winner.text}"')
+    for e in obligations:
+        lines.append(f'- message {index[e.id] + 1}: "{e.text}"')
+    return "\n".join(lines)
+
+
+def rescue_prompts(block: Block, case: Case, token_len, budget: int,
+                   variant: str = "revised") -> dict:
+    """Both conditions at an EQUAL total token count.
+
+    Condition `off` is ordinary recency packing.  Condition `oracle` renders the
+    reminder immediately before the request and shortens the history window by
+    exactly the reminder's token count, so the two prompts have the same size and
+    the comparison is not a context-length comparison.  `token_len` is a callable
+    so this is testable without a tokenizer.
+    """
+    history = list(history_variant(block, variant))
+    request = _request_text(case)
+    head = (f"You are editing the `rates` package.\n\n"
+            f"{FILES[case.path]}:\n```python\n{entering_project(block)[case.path]}```\n")
+    tail = f"\n{request}\nReply with the single new function and nothing else.\n"
+    reminder = oracle_reminder(block, case, history)
+
+    def pack(extra: str) -> tuple[str, list[int]]:
+        fixed = token_len(head + extra + tail)
+        kept, used = [], fixed
+        for i in range(len(history) - 1, -1, -1):
+            line = f"message {i + 1}: {history[i].text}\n"
+            cost = token_len(line)
+            if used + cost > budget:
+                break
+            used += cost
+            kept.append(i)
+        kept.reverse()
+        body = "".join(f"message {i + 1}: {history[i].text}\n" for i in kept)
+        return head + body + extra + tail, kept
+
+    off, off_kept = pack("")
+    on, on_kept = pack("\n" + reminder + "\n")
+    return {
+        "off": {"prompt": off, "kept": off_kept, "tokens": token_len(off)},
+        "oracle": {"prompt": on, "kept": on_kept, "tokens": token_len(on),
+                   "reminder": reminder},
+    }
