@@ -155,6 +155,7 @@ def test_record_close_get_count_unchanged(tmp_path):
     assert f.flight_id == "F1" and f.status == "open" and f.reviewer is None
     assert log.get("F1") is f and log.get("F9") is None
     assert log.close("F1").status == "closed"
+    assert log.get("F1").status == "closed"
     with pytest.raises(KeyError):
         log.close("F9")
     assert log.count() == 1
@@ -321,6 +322,7 @@ def test_record_close_approve_get_unchanged(tmp_path):
     with pytest.raises(KeyError):
         log.approve("F9", "ken")
     assert log.close("F1").status == "closed"
+    assert log.get("F1").status == "closed"
     with pytest.raises(KeyError):
         log.close("F9")
     assert log.count() == 1

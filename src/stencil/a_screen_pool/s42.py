@@ -153,6 +153,7 @@ def test_add_requeen_get_count_unchanged(tmp_path):
     assert h.hive_id == "H1" and h.status == "active" and h.note is None
     assert y.get("H1") is h and y.get("H9") is None
     assert y.requeen("H1", 2026).queen_year == 2026
+    assert y.get("H1").queen_year == 2026
     with pytest.raises(KeyError):
         y.requeen("H9", 2026)
     assert y.count() == 1
@@ -315,6 +316,7 @@ def test_add_requeen_treatment_get_unchanged(tmp_path):
     with pytest.raises(KeyError):
         y.record_treatment("H9", "formic strip")
     assert y.requeen("H1", 2026).queen_year == 2026
+    assert y.get("H1").queen_year == 2026
     with pytest.raises(KeyError):
         y.requeen("H9", 2026)
     assert y.count() == 1

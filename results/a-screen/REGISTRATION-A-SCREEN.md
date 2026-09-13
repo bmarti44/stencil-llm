@@ -390,11 +390,34 @@ measured overlap governs.
 
 | pool | record | sha256 (first 16) | was |
 |---|---|---|---|
-| SCREEN | `results/a-screen/screen-pool.json` | `e0867688b60e1071` | unchanged by amendment 2 |
+| SCREEN | `results/a-screen/screen-pool.json` | `eb9c5c97e2d42d61` | `e0867688b60e1071` |
 | TRAIN | `results/a-screen/train-pool.json` | `b8f504494a281858` | `f6b3d63e941e1d70` |
 
-Only the TRAIN statement wording changed session content. `tests/test_a_screen.py`: **301
+The TRAIN statement wording and the twelve regression assertions of §14.8 changed session
+content. `tests/test_a_screen.py`: **301
 passed**. Statistics re-verified independently: `mcnemar_exact` agrees with
 `2·Binom(b+c, ½)` lower tail on all 256 discordant-count cells up to 15/15, and both
 Clopper-Pearson bounds solve their defining binomial tail equations at 0.0125 per side for
 k ∈ {0, 1, 5, 12, 48} at N = 48.
+
+### 14.8 Answering the re-review's own question 3, by mutation audit
+
+The re-review framed the whole issue as "is there any remaining path by which a session can
+score J = 1 while the repository is actually wrong". Rather than reason about it, the scorer was
+mutation-audited: every dictionary `.get` lookup and every store write-back in BOTH target files
+of all 48 slots was broken one at a time in the checkpoint-2 gold, and each mutation had to be
+caught by some suite. **149 mutations, 12 undetected.** All 12 were the same class as F7 and all
+12 were in PRE-EXISTING operations whose behaviour no regression test pinned:
+
+- S17 `get_student` and S18 `get_station`: declared `-> X | None`, but no test called them with
+  an unknown id, so changing `.get(id)` to `[id]` made them raise and still scored J.
+- S38 `void`, S39 `close`, S40 `withdraw`, S41 `close`, S42 `requeen`, S43 `cancel`,
+  S44 `relocate_item`, S45 `move_singer`, S46 `cancel_ride`, S47 `retire_tool`: each regression
+  test asserted the RETURNED record's new state but never re-read the store, so deleting the
+  write-back left the operation returning a correct object that was never persisted, and the
+  session still scored J.
+
+Each of the twelve now has one added assertion that re-reads through the store's own public
+reader (or calls the lookup with an unknown id). The audit re-runs at **149 mutations, 0
+undetected**. This is why the SCREEN pool hash moves in amendment 2. The audit script is the
+standing check for this question: a new slot or a changed regression test must keep it at zero.

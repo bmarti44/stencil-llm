@@ -149,6 +149,7 @@ def test_file_close_get_count_unchanged(tmp_path):
     assert b.get("R1") is r and b.get("R9") is None
     assert b.close("R9") is None
     assert b.close("R1").status == "closed"
+    assert b.get("R1").status == "closed"
     assert b.count() == 1
     assert path.read_text().splitlines() == ["new R1 ridge loop: tree down", "closed R1"]
 """
@@ -313,6 +314,7 @@ def test_file_close_assign_get_unchanged(tmp_path):
     assert b.assign_crew("R9", "saturday crew") is None
     assert b.close("R9") is None
     assert b.close("R1").status == "closed"
+    assert b.get("R1").status == "closed"
     assert b.count() == 1
     assert path.read_text().splitlines() == [
         "new R1 ridge loop: tree down",

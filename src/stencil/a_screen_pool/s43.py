@@ -143,6 +143,7 @@ def test_add_cancel_get_on_day_unchanged(caplog):
     assert g.get("S1") is s and g.get("S9") is None
     assert g.cancel("S9") is None
     assert g.cancel("S1").status == "cancelled"
+    assert g.get("S1").status == "cancelled"
     assert [x.slot_id for x in g.on_day("mon")] == ["S1"] and g.on_day("tue") == []
     assert caplog.records == []
     g.add_slot("Breakfast Chat", "mon", 480, 30)
@@ -314,6 +315,7 @@ def test_add_cancel_assign_get_unchanged(caplog):
     assert g.assign_host("S9", "ravi") is None
     assert g.cancel("S9") is None
     assert g.cancel("S1").status == "cancelled"
+    assert g.get("S1").status == "cancelled"
     assert [x.slot_id for x in g.on_day("mon")] == ["S1"]
     assert caplog.records == []
     t = g.add_slot("Lunch Jazz", "mon", 720, 60)

@@ -124,6 +124,7 @@ def test_register_validates_and_stores():
     st = register_station(log, "HRB01", " Harbour mouth ")
     assert st == {"station_id": "HRB01", "name": "Harbour mouth"}
     assert log.get_station("HRB01") is st and log.station_count() == 1
+    assert log.get_station("nope") is None
     with pytest.raises(ValueError):
         register_station(log, "hrb01", "lower case id")
     with pytest.raises(ValueError):

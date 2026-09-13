@@ -339,6 +339,7 @@ def test_enroll_and_record_mark_unchanged():
         enroll(b, " ")
     m = record_mark(b, s.student_id, "2026-09-14", "late")
     assert b.get_mark(s.student_id, "2026-09-14") == m and m.excuse is None
+    assert b.get_student("nope") is None
     with pytest.raises(ValueError):
         record_mark(b, s.student_id, "2026-09-14", "sleeping")
     assert b.get_mark(s.student_id, "2026-09-14").status == "late"

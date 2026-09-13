@@ -147,6 +147,7 @@ def test_issue_lookup_void_count_unchanged(tmp_path):
     assert d.lookup("M1") is t and d.lookup("M9") is None
     assert d.void("M9") is None
     assert d.void("M1").status == "void"
+    assert d.lookup("M1").status == "void"
     assert d.count() == 1
     assert path.read_text().splitlines() == ["issue M1 bronze age", "void M1"]
 """
@@ -317,6 +318,7 @@ def test_issue_lookup_void_admit_unchanged(tmp_path):
     assert d.admit("M1").status == "admitted"
     assert d.admit("M9") is None
     assert d.void("M1").status == "void"
+    assert d.lookup("M1").status == "void"
     assert d.count() == 1
     assert path.read_text().splitlines() == ["issue M1 bronze age", "admit M1", "void M1"]
 """

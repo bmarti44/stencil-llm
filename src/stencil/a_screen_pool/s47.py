@@ -142,6 +142,7 @@ def test_add_find_count_retire_unchanged():
     assert s.find("T1") is t and s.find("nope") is None
     assert s.count() == 1
     assert s.retire_tool("T1").status == "retired"
+    assert s.find("T1").status == "retired"
     with pytest.raises(KeyError):
         s.retire_tool("T9")
 """

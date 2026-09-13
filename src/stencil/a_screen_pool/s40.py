@@ -153,6 +153,7 @@ def test_submit_withdraw_get_count_unchanged(tmp_path):
     assert a.app_id == "A1" and a.status == "submitted" and a.note is None
     assert reg.get("A1") is a and reg.get("A9") is None
     assert reg.withdraw("A1").status == "withdrawn"
+    assert reg.get("A1").status == "withdrawn"
     with pytest.raises(KeyError):
         reg.withdraw("A9")
     assert reg.count() == 1
@@ -314,6 +315,7 @@ def test_submit_withdraw_shortlist_get_unchanged(tmp_path):
     assert reg.shortlist("A1", "ok").status == "shortlisted"
     assert reg.shortlist("A9", "ok") is None
     assert reg.withdraw("A1").status == "withdrawn"
+    assert reg.get("A1").status == "withdrawn"
     with pytest.raises(KeyError):
         reg.withdraw("A9")
     assert reg.count() == 1

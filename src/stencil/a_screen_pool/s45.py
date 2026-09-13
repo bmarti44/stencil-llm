@@ -115,6 +115,7 @@ def test_add_find_count_move_unchanged():
     assert s.find("S1") is p and s.find("nope") is None
     assert s.count() == 1
     assert s.move_singer("S1", "bass").part == "bass"
+    assert s.find("S1").part == "bass"
     with pytest.raises(KeyError):
         s.move_singer("S9", "bass")
 """
@@ -257,6 +258,7 @@ def test_add_find_move_retire_unchanged():
     p = s.add_singer("a", "tenor")
     assert s.find("S1") is p and s.count() == 1
     assert s.move_singer("S1", "bass").part == "bass"
+    assert s.find("S1").part == "bass"
     assert s.retire_singer("S1").status == "retired"
 """
 }

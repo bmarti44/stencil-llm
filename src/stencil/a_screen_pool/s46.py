@@ -118,6 +118,7 @@ def test_offer_find_count_cancel_unchanged():
     assert s.find("R1") is r and s.find("nope") is None
     assert s.count() == 1
     assert s.cancel_ride("R1").status == "cancelled"
+    assert s.find("R1").status == "cancelled"
     assert s.cancel_ride("R9") is None
 """
 }
@@ -274,6 +275,7 @@ def test_offer_find_cancel_join_unchanged():
     assert s.find("R1") is r and s.count() == 1
     assert s.join_ride("R1", "omar").riders == ("omar",)
     assert s.cancel_ride("R1").status == "cancelled"
+    assert s.find("R1").status == "cancelled"
     assert s.cancel_ride("R9") is None
 """
 }

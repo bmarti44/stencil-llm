@@ -122,6 +122,7 @@ def test_register_find_count_relocate_unchanged():
     assert s.find("LF1") is it and s.find("nope") is None
     assert s.count() == 1
     assert s.relocate_item("LF1", "office").location == "office"
+    assert s.find("LF1").location == "office"
     assert s.relocate_item("LF9", "office") is None
 """
 }
@@ -264,6 +265,7 @@ def test_register_find_relocate_claim_unchanged():
     it = s.register_item("a", "desk")
     assert s.find("LF1") is it and s.count() == 1
     assert s.relocate_item("LF1", "office").location == "office"
+    assert s.find("LF1").location == "office"
     assert s.relocate_item("LF9", "office") is None
     assert s.claim_item("LF1", "priya").claimant == "priya"
 """
