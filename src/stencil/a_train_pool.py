@@ -99,9 +99,9 @@ DOMAINS: dict[tuple[str, str], list[dict[str, str]]] = {
         ),
         dict(
             pkg="printdesk",
-            Entity="Job",
-            entity="job",
-            Store="JobDesk",
+            Entity="Plate",
+            entity="plate",
+            Store="PlateDesk",
             Err="PrintdeskError",
             what="a print shop's job desk",
         ),

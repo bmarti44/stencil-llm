@@ -18,7 +18,7 @@ to purchase the screen's information, not a reason to continue reframing").
   `results/a-screen/screen-pool.json` (`scripts/a_screen_freeze.py`).
 - TRAIN pool (576 generated sessions, 1,152 counterfactual triples): `src/stencil/a_train_pool.py`,
   built and checked by `scripts/a_train_build.py`, freeze record `results/a-screen/train-pool.json`.
-- Self-checks: `tests/test_a_screen.py` (149 tests pass: 48 screen slots + 12 sampled train
+- Self-checks: `tests/test_a_screen.py` (241 tests pass: 48 screen slots + 12 sampled train
   sessions × 4 checks, plus a packing unit test).
 - Trainer: `scripts/a_screen_train.py` (LoRA r16/α32/dropout 0 on q,k,v,o,gate,up,down;
   AdamW 1e-4, clip 1, seed 0; micro-batch 1 × accumulation 8; `cf` = completion-mean CE +

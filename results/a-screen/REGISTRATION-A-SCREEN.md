@@ -165,3 +165,16 @@ harness before the training launch; result audit (Astra, one round) after `RESUL
 Nothing else is added. Card wording for the existing 4B package follows Astra's round-8
 paragraph (narrow factual negative from the pre-check) and is applied in the same commit
 series as this screen's RESULTS.
+
+## 12. Frozen pools (2026-09-13, before any pilot, training or evaluation generation)
+
+| pool | record | sha256 (first 16) | content |
+|---|---|---|---|
+| SCREEN | `results/a-screen/screen-pool.json` | `c0e623f4942e47af` | 48 hand-authored sessions (`src/stencil/a_screen_pool/s01.py`–`s48.py`), manifest agreement checked, 12 per lifecycle class, 6/5 per cell, no package/module/class/function name shared with TRAIN, the pre-check projects or the development projects |
+| TRAIN | `results/a-screen/train-pool.json` | `6a39f66e0510a509` | 576 generated sessions (`src/stencil/a_train_pool.py`), 36 cells × 16, precedent counterbalanced 8/8 per cell, 1,152 (prompt, chosen, rejected) triples, every executable and packing check passes |
+
+Self-checks: `tests/test_a_screen.py`, 241 passed (48 screen slots and 12 sampled train
+sessions × 4 checks, plus a packing unit test). Measured smoke: trainer ~6.5 s per `cf`
+micro-step and ~1.2 s per reference example; harness ~15 s per request. Astra
+implementation review (`results/reviews/2026-09-13-a-screen-implementation-review-astra.md`)
+precedes the timing pilot; findings are verified and resolved first (owner, 2026-09-13).
