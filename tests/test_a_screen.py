@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """Self-checks for six-family candidate-A sessions (registration §5, §6, §10).
 
 For every authored session: gold reaches every suite at both checkpoints; cross-state
@@ -14,17 +15,34 @@ from pathlib import Path
 import pytest
 
 from stencil import a_screen as A
-from stencil.a_screen_pool import available_slots, load
+from stencil.a_screen_pool import available_slots
+from stencil.a_screen_pool import load as load_screen
+from stencil.a_train_pool import make_session, train_sessions
 
 HUB = Path("deploy/stencil_focus/build/hub-4b")
 
 SLOTS = available_slots()
+# every 48th generated TRAIN session (12 of 576); scripts/a_train_build.py checks all
+TRAIN_KEYS = [
+    (s.target_family, s.support_family, s.lifecycle, int(s.id.rsplit("-", 1)[1]))
+    for s in train_sessions()[::48]
+]
+
+
+def load(slot):
+    if isinstance(slot, tuple):
+        s = make_session(*slot)
+        s.validate()
+        return s
+    return load_screen(slot)
 
 
 def _pairs():
-    out = []
-    for slot in SLOTS:
-        out.append(pytest.param(slot, id=slot))
+    out = [pytest.param(slot, id=slot) for slot in SLOTS]
+    out += [
+        pytest.param(k, id=f"T-{k[0][:3]}-{k[1][:3]}-{k[2][:3]}-{k[3]}")
+        for k in TRAIN_KEYS
+    ]
     return out
 
 
