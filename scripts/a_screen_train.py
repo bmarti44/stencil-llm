@@ -114,6 +114,19 @@ def main() -> None:
     ap.add_argument("--dpo-weight", type=float, default=0.1)
     ap.add_argument("--accum", type=int, default=8)
     ap.add_argument("--limit", type=int, default=0, help="smoke: first N sessions")
+    ap.add_argument(
+        "--max-steps",
+        type=int,
+        default=0,
+        help=(
+            "stop after this many COMPLETED optimizer steps (0 = wall clock only).  The "
+            "two objectives are not comparable at equal wall clock: cf precomputes "
+            "reference log-probs before training and then runs two forward passes per "
+            "micro-step where sft runs one, so an equal allocation gives it well under "
+            "half the updates, and a cf loss could not be told apart from cf being "
+            "undertrained.  --hours stays as the safety cap."
+        ),
+    )
     ap.add_argument("--save-every-min", type=float, default=30.0)
     a = ap.parse_args()
     budget_s = a.minutes * 60 if a.minutes else a.hours * 3600
@@ -277,6 +290,8 @@ def main() -> None:
         "final_update_loss": None,
         "loss_history": [],
         "status": "running",
+        "max_steps": a.max_steps,
+        "stopped_on": "budget",
     }
 
     save_times: list[float] = []
@@ -313,6 +328,8 @@ def main() -> None:
     last_save = time.monotonic()
     window: list[float] = []
     update: list[float] = []
+    ce_only: list[float] = []
+    margins: list[float] = []
     micro_times: list[float] = []
     step_times: list[float] = []
     stop = False
@@ -341,6 +358,11 @@ def main() -> None:
                     rc, rr = ref[i]
                     margin = a.beta * ((lp_c - rc) - (lp_r - rr))
                     loss = loss + a.dpo_weight * (-F.logsigmoid(margin))
+                    # Astra 2026-09-13: the log reported only the combined loss, so a
+                    # preference term that never moved would have been invisible and a
+                    # null uninterpretable.  Both parts are already computed here.
+                    ce_only.append(float(-lp_c / n_c))
+                    margins.append(float(margin))
             (loss / a.accum).backward()
             micro += 1
             # Round 4 F13: loss.item() synchronises with the device, so reading it AFTER the
@@ -367,6 +389,9 @@ def main() -> None:
                 opt.zero_grad(set_to_none=True)
                 step_times.append(time.monotonic() - t_step)
                 log["steps"] += 1
+                if a.max_steps and log["steps"] >= a.max_steps:
+                    log["stopped_on"] = "max_steps"
+                    stop = True
                 # re-review F6: the mean over THIS update's micro-steps.  ``window`` is the
                 # ten-update print window and clears only every tenth update, so reusing it
                 # here reported the average of up to ten updates as the final one.
@@ -375,8 +400,18 @@ def main() -> None:
                 if log["steps"] % 10 == 0:
                     avg = sum(window) / len(window)
                     log["loss_history"].append([log["steps"], avg])
+                    extra = ""
+                    if ce_only:
+                        extra = (
+                            f" ce {sum(ce_only) / len(ce_only):.4f}"
+                            f" margin {sum(margins) / len(margins):+.4f}"
+                        )
+                        log.setdefault("margin_history", []).append(
+                            [log["steps"], sum(margins) / len(margins)]
+                        )
+                        ce_only, margins = [], []
                     print(
-                        f"step {log['steps']} loss {avg:.4f} micro {micro} "
+                        f"step {log['steps']} loss {avg:.4f}{extra} micro {micro} "
                         f"{time.monotonic() - t_start:.0f}s/{budget_s:.0f}s"
                     )
                     window = []
@@ -388,6 +423,8 @@ def main() -> None:
                 ):
                     save(final=False)
                     last_save = time.monotonic()
+            if stop:
+                break
         else:
             log["epochs_completed"] += 1
     # discard any partial accumulation: the FINAL COMPLETED update is the adapter

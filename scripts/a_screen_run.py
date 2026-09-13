@@ -111,6 +111,12 @@ def main() -> None:
     ap.add_argument("--deadline", type=float, default=300.0)
     ap.add_argument("--slots", default="", help="comma-separated subset")
     ap.add_argument(
+        "--require-steps",
+        type=int,
+        default=0,
+        help="refuse the adapter unless its log shows exactly this many optimizer steps",
+    )
+    ap.add_argument(
         "--longest", type=int, default=0, help="pilot: the N longest-prompt sessions"
     )
     ap.add_argument(
@@ -223,9 +229,20 @@ def main() -> None:
         for field, want in REGISTERED_TRAIN_CONFIG.items():
             if tlog.get(field) != want:
                 problems.append(f"{field}={tlog.get(field)!r}, registered {want!r}")
-        if tlog.get("seconds", 0) < 0.5 * REGISTERED_TRAIN_SECONDS:
+        # 2026-09-13 (Astra): a minimum ELAPSED time was a proxy for "a real allocation
+        # ran", and it rejects the very adapter this screen needs.  The two objectives are
+        # not comparable at equal wall clock -- cf precomputes reference log-probs and then
+        # runs two forward passes per micro-step where sft runs one -- so sft is trained to
+        # cf's ACHIEVED step count and finishes well inside half the allocation.  What
+        # matters is that the allocation completed and made updates, which is checked
+        # directly; --require-steps pins the matched count.
+        if tlog.get("status") != "complete":
+            problems.append(f"training status {tlog.get('status')!r}, not 'complete'")
+        if not tlog.get("steps"):
+            problems.append("the allocation completed no optimizer step")
+        if a.require_steps and tlog.get("steps") != a.require_steps:
             problems.append(
-                f"ran {tlog.get('seconds')}s of a {REGISTERED_TRAIN_SECONDS}s allocation"
+                f"{tlog.get('steps')} optimizer steps, not the matched {a.require_steps}"
             )
         if problems and not a.pilot_adapter:
             ap.error(
