@@ -139,7 +139,9 @@ def score(task: Task, new_target: str | None) -> dict:
         return {"parsed": False, "functional": False, "contract": False, "J": False}
     files = {**task.files, task.target: new_target}
     f_ok, f_msg = run_tests(files, task.functional_tests)
-    c_ok, c_msg = run_tests(files, task.contract_tests) if f_ok else (False, "skipped")
+    # Astra round 8: contract tests always run so both outcomes are reported
+    # independently (J still requires both).
+    c_ok, c_msg = run_tests(files, task.contract_tests)
     return {
         "parsed": True,
         "functional": f_ok,
