@@ -998,3 +998,207 @@ All of them were run on a clean tree with no concurrent edits; the audit, the re
 self-checks read the slot modules, so nothing was edited while they ran.
 
 No arm, model, outcome unit, gate, statistic or ceiling changed in this amendment.
+
+## 18. Amendment 6 (2026-09-14, after the Astra re-review round 6, before any pilot, training or evaluation generation)
+
+Round 6 closed every scoring counterexample — "the previous scoring counterexamples are closed" —
+and left two blocking items, both in the accounting rather than the science: interrupted spend
+could still be undercharged, and an evaluation that exhausted its registered budget could still
+produce the authoritative `GATE PASSED` verdict. Its shortest list was: "1. Make unfinished-launch
+charges conservative across loading and every interval between marks. 2. Make the summary enforce
+durable budget eligibility." Both were reproduced by executing the accounting before anything was
+changed; a third, non-blocking finding about the reachability filter was reproduced and fixed too.
+No arm, model, outcome unit, gate, statistic or ceiling changed.
+
+### 18.1 A killed launch is charged from its last VERIFIED alive-timestamp (F13)
+
+The round-5 rule charged an unfinished launch the smaller of its lifetime and its last mark plus a
+bound on the work that can follow a mark. Round 6 showed the bound is not enforced anywhere it
+matters. Both halves reproduced exactly as reported:
+
+| case | true resident time | charged (round 5) |
+|---|---:|---:|
+| killed DURING model loading at 900 s, ledger read at 1,200 s | 900 s | **600 s** |
+| the pilot's gap between `model_loaded` and `suite_cost_measured` | 44 suite invocations | a bound assuming **6** |
+
+Model loading had no enforced limit — the `LOAD_BOUND_S` warning ran only *after* loading returned,
+so it could never fire on a launch that died inside it — and `--longest 4` runs 4 × 11 = 44 suite
+invocations in one gap, against a bound of one generation plus six suites.
+
+Caps that termination does not enforce are gone: `work_bound_s` and `LOAD_BOUND_S` are deleted. In
+their place the launch runs a HEARTBEAT thread (`A.ledger_tick`, `TICK_S = 60 s`), started
+immediately after the `start` mark and therefore *before* the model load, which appends a `tick`
+every minute until exit. Its first tick is written before its first wait, so even a launch killed
+in its first minute has a verified alive-timestamp. `ledger_charges` then charges
+
+- a launch that wrote `end`: its real elapsed time, as before;
+- a launch whose heartbeat is INTACT — at least one tick, and no interval from its own start to
+  its last mark wider than `TICK_SLACK_S = 3 × TICK_S` — its **last mark plus the slack**, because
+  the ticker would have written another mark had it lived longer;
+- a launch whose heartbeat is NOT intact — a hole no mark closes (a stopped process, a full disk,
+  a starved writer thread) — its **whole lifetime, uncapped**, because nothing bounds what it did
+  in the dark.
+
+The slack is three intervals rather than one so a writer thread starved under GPU load cannot
+undercharge a launch. The price of that conservatism is bounded and worth stating, because it is the
+only way this rule can harm a legitimate run: a launch that finishes cleanly writes `end` and is
+charged its real elapsed time, so the slack is paid ONLY by an interrupted launch, at most 180 s per
+interruption, and a run would have to be interrupted roughly fifteen times before the slack alone
+consumed an arm's 45-minute ceiling. An unintact heartbeat costs more, but an unintact heartbeat
+means the apparatus lost track of a resident process, which is the case that must not be cheap. Both reported cases now charge above their true resident time (1,020 s for
+the 900 s load, 1,620 s for a pilot killed at 1,500 s), the day-later read of an intact heartbeat
+is still bounded (600 + 180 s, not 86,400), and a clean finish is still charged its 900 s.
+`tests/test_a_screen_spend.py` holds each case, including the two round-6 ones by name.
+
+### 18.2 Budget eligibility is durable, and the summary enforces it (F12/F13)
+
+Round 6 executed the session loop with a mocked clock: requests starting at 2,097 s and 2,396 s,
+299 s of generation each, scoring ending at 2,701 s against a 2,700 s budget. The runner printed
+`INCOMPLETE` correctly — round 5's fix works — but that status lived only in console output, so
+complete 48-session records with that spend produced **`Verdict: GATE PASSED`**. I reproduced it
+with synthetic records at exactly that spend: `Verdict: GATE PASSED`, text and all.
+
+Three changes, because the defect was that one check existed where nothing read it:
+
+1. **A registered per-arm ceiling.** `A.ARM_BUDGET_MIN = 45.0`, and `--budget-min` now defaults to
+   it. A full screen arm is REFUSED at parse time unless `0 < --budget-min ≤ 45`; the unbudgeted
+   `0` remains available only to a `--slots`/`--longest` pilot, whose records the summary already
+   refuses by `identity.sessions`. Arithmetic: 96 requests × 15 s × 1.5 = 36.0 min of generation
+   (§15.5's 1.8 h, per arm), plus 528 suite invocations × 0.189 s = 1.7 min measured in §16.7, plus
+   the model load: 36.0 + 1.66 = 37.7 min of registered work, leaving **7.3 min** for the load and
+   any slack an interrupted launch is charged. 45 min per arm is 2.25 h for the three, which is
+   §15.5's 1.8 h of generations plus 0.45 h of loads and suites inside its 2.1 h remainder. If the registered timing pilot
+   measures a per-request cost that does not fit, §15.5's existing rule applies unchanged — "the
+   re-run reserve is given up first and the screen runs without it" — and the ceiling may be
+   raised ONCE, before any arm runs, by an amendment recording the pilot's measurement and the
+   reserve it spends. It is not raised after a run has started, and §8's INCOMPLETE is never
+   rescued.
+2. **A durable status artifact.** The runner writes `<out>.status.json` beside the records
+   (`A.write_status`): arm, launch, status, `spent_min`, `budget_min`, the registered ceiling, the
+   session list, the unstarted sessions and whether it went over. A killed launch leaves none.
+3. **The summary refuses an ineligible arm.** For each arm it reads that artifact (`A.read_status`)
+   and INDEPENDENTLY recomputes the arm's spend from its ledger (`A.ledger_spent_min`) — the status
+   is the runner's claim, the ledger is the evidence. An arm is refused when the artifact is
+   missing, unreadable, a pilot's, not `COMPLETE`, outside the registered ceiling, claims more
+   spend than its budget, covers other than the frozen 48 sessions, has a malformed ledger line, or
+   has a LEDGER charging more than its budget however little the status claims. Any refusal makes
+   the verdict `INCOMPLETE (budget eligibility: …)` and the gates are **not read at all**: §8 says
+   an exhausted ceiling is recorded INCOMPLETE and "no checkpoint is selected to rescue it", and a
+   provisional gate reading is exactly that rescue.
+
+Verified on the reproduction: the honest over-budget status, a status LYING about its spend
+(`COMPLETE`, 40 min, over a 2,701 s ledger), and no status at all are each refused by name; the
+same records with a 39-minute spend inside a 45-minute budget still read `GATE PASSED`.
+`tests/test_a_screen_spend.py` runs the real summary on those synthetic 48-session records and
+requires `INCOMPLETE`, per AGENTS.md's rule about testing the consumer's semantics.
+
+What this does and does not defend against, stated so it is not mistaken for more: the status
+artifact and the independent ledger reading defend against the apparatus's own failure modes — a
+killed launch, a run that overran, a runner whose status disagrees with what it spent — and against
+an operator who forgets. They do not defend against an author who edits the evidence, and neither
+does anything else in this registration (the pool hashes, the run identity and the adapter guard all
+assume the artifacts are what the apparatus wrote).
+
+One operational consequence, recorded rather than engineered away: because `--budget-min` is
+cumulative and the status is rewritten at the end of every launch, relaunching an arm that is
+already complete spends more of its ceiling (a model load for no new session) and can turn a
+legitimate `COMPLETE` into `INCOMPLETE`. That is honest accounting — the GPU time was spent — so
+the rule is operational: do not relaunch a finished arm. The ledger would record the spend even if
+the status did not.
+
+### 18.3 Whole-record public writers make a field reachable (F7, low, nonblocking)
+
+Round 6: `writable_fields` counted a defaulted field writable only if the project source passes it
+by keyword or reaches it positionally, which "overlooks whole-record writers". `OrderBook.save(
+order)` stores an arbitrary `Order`, so `book.save(replace(order, note="no nuts"))` sets
+`Order.note` from outside the project and a reset of it IS publicly reachable. Reproduced: S35's
+`Order` had `{paid_p, status}` writable and no `note` mutant was emitted at either checkpoint.
+
+`whole_record_writers` now finds every record class a CALLER can store whole, and every defaulted
+field of such a class counts as writable. Three conditions, all needed: the method is PUBLIC, it
+assigns an expression of that class into one of its own attributes, and that expression DERIVES
+FROM ONE OF ITS OWN PARAMETERS. The third is what makes the rule precise rather than merely wider.
+Without it, 41 of the 48 slots qualify — every public method that builds a record and stores it
+(`order = Order(f"O{n}", ...)`; `self._orders[...] = order`) looks like a writer — and 11 mutants
+come back, nine of them resets no caller can set a value for and therefore no suite can ever see.
+With it, exactly ONE slot qualifies (S35's `OrderBook.save`) and exactly the TWO mutants Astra named
+come back:
+
+| rule | slots with a writer | mutants emitted |
+|---|---:|---:|
+| keyword/positional only (round 5) | – | 959 |
+| public method stores a record | 41 | 970 |
+| ... derived from its own parameter (registered) | **1** | **961** |
+
+The parameter condition is not argued, it is measured. The loose rule's audit was run to completion
+before the rule was narrowed: **970 mutations, 9 undetected, 0 unresolved** — and the 9 undetected
+are exactly the 9 the parameter condition excludes (S01 `Recipe.tags`, S02 `Ticket.assignee`, S05
+`Member.renewals`, S14 `Bottle.status`, S29 `FuelEntry.price_cents`, S30 `WorkOrder.contractor`, S32
+`Loan.status` and `Loan.condition`, S33 `Enrolment.status`), while the 2 it keeps were both already
+detected. No suite can see a reset of a field no caller can set to anything but its default; the
+partition the rule draws is precisely the partition between detectable and undetectable, with no
+fixture written to make it so.
+
+That is also independent agreement with the review, which said the two S35 mutants were wrongly
+excluded and "the nine other exclusions have defensible reachability arguments in the frozen
+projects". Both new mutants already fail existing tests, so this was an audit omission and never a
+false J.
+`results/a-screen/AUTHORING.md` amendment 5 states the rule for authors.
+
+### 18.4 A name with two classes in one function is UNRESOLVED (Astra's soundness note)
+
+`_env` read assignments from the whole function, so `old = A(...); replace(old, …); old = B(...)`
+typed `old` as `B` while the call updates an `A`, and shared keywords passed validation. Astra found
+no instance in the frozen pool and said a general rewrite is not a launch requirement; the cheap
+half is taken anyway. A name assigned two different classes in one function is now dropped from the
+env, which makes the site UNRESOLVED — and the audit already exits non-zero on any unresolved site,
+so the failure is loud instead of a mutant naming the wrong class's field. Verified on a fixture;
+no frozen site changes.
+
+One defect in §18.3's own new code was found the same way and is recorded rather than glossed:
+`_root_name` walked a `Call` to its first ARGUMENT, so `self._rows[k] = rec.with_note(note)` resolved
+to `note` instead of `rec` and would have missed such a writer. A method call's record is its
+receiver; a plain call's is its first argument. Measured before and after on all 96 slot-checkpoints:
+the writer set and the writable-field set are IDENTICAL either way (no frozen slot stores a
+`param.with_X(...)` through a public method), so the audit below is valid for the corrected code.
+
+### 18.5 What round 6 accepted
+
+Recorded because these are the parts a later round should not have to re-derive. All 48 SCREEN and
+576 TRAIN content hashes reproduce; containment reports zero violations with the seven
+authorizations; 688 mutations across 35 slots executed with zero escapes; 77 private renames pass.
+No new demonstrated false J = 1 or false J = 0 in the executed subset — the third and fourth
+insertions and the full identity read-back test public preservation, not a private representation.
+The inventory reproduces 131 sites, 0 unresolved, and runtime instrumentation exercised 92 sites
+with zero type mismatches. S45's and S47's seed parameters are appropriate and every changed gold
+line reproduces as one of the two seed lines. The session-list identity correctly rejects subset
+pilots. All five gates and every statistic still match §7: McNemar 0.0625 for 5–0, 0.25 for 3–0,
+and ±0.0872490536 at zero discordance with N = 48.
+
+### 18.6 Pools unchanged, and self-checks
+
+This amendment touched no pool file: the instruments, the runner, the summary and the tests changed,
+and all 48 slot modules are byte-identical to `ead4b93e`. Both pools therefore keep their hashes
+rather than being re-frozen, and `scripts/a_screen_freeze.py` recomputes the SCREEN hash from the
+current sources with zero problems.
+
+| pool | record | sha256 (first 16) | was |
+|---|---|---|---|
+| SCREEN | `results/a-screen/screen-pool.json` | `fa633cceefe47562` | unchanged; recomputed and reproduces |
+| TRAIN | `results/a-screen/train-pool.json` | `b8f504494a281858` | unchanged; no TRAIN file was touched |
+
+`uv run python scripts/a_screen_mutate.py` → **961 mutations, 0 undetected, 0 unresolved sites**
+(both checkpoints; 131 update sites typed; +2 over amendment 5 from §18.3's writer rule).
+`uv run python scripts/a_screen_rename.py` → **108 renames, 0 rejected**.
+`uv run python scripts/a_screen_containment.py --ref HEAD` → **0 violations with NO authorizations**,
+48 slots untouched. The seven `--allow` entries amendment 5 needed are now stale and the check says
+so by name, which is the behaviour §16 registered for a stale authorization.
+`uv run pytest -q tests/test_a_screen.py tests/test_a_screen_spend.py
+tests/test_no_side_effect_imports.py tests/test_contracts.py` → **469 passed, 1 xfailed**
+(`tests/test_a_screen.py` alone collects **301**; `tests/test_a_screen_spend.py` grew 9 → **20**).
+`uv run ruff check .` and `ruff format --check .` → clean, 897 files.
+The mutation audit, the rename check and the self-checks read the slot modules, so nothing was
+edited while they ran; the audit was re-run from scratch after §18.3's rule was narrowed, and the
+970/9 figure quoted in §18.3 is the completed earlier run, not an extrapolation.
+
+No arm, model, outcome unit, gate, statistic or ceiling changed in this amendment.

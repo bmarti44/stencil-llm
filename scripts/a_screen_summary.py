@@ -235,6 +235,36 @@ def main() -> None:
     }
     ids = sorted(set.intersection(*(set(r) for r in runs.values())))
     missing = sorted(set(expected) - set(ids))
+    # Round 6 F12: complete records are not enough.  An evaluation that exhausted its
+    # registered budget printed INCOMPLETE to the console and nowhere else, so synthetic
+    # complete 48-session records with over-budget spend produced GATE PASSED.  Eligibility
+    # is now read from each arm's end-of-run status artifact AND recomputed independently
+    # from its spend ledger; an arm that fails either is not analysable.
+    ineligible: list[str] = []
+    for arm in ARMS:
+        base = Path(a.runs) / f"{arm}.jsonl"
+        st, refusal = A.read_status(base.with_name(base.name + ".status.json"))
+        if refusal:
+            ineligible.append(f"{arm}: {refusal}")
+        spent, malformed = A.ledger_spent_min(
+            base.with_name(base.name + ".spend.jsonl")
+        )
+        if malformed:
+            ineligible.append(
+                f"{arm}: its spend ledger has {malformed} malformed line(s), so the "
+                "run's resident time cannot be accounted"
+            )
+        elif st and spent > float(st.get("budget_min") or 0.0) > 0:
+            ineligible.append(
+                f"{arm}: its spend LEDGER charges {spent:.1f} min against a "
+                f"{float(st['budget_min']):.0f} min budget (status claims "
+                f"{float(st.get('spent_min') or 0.0):.1f})"
+            )
+        elif st and sorted(st.get("sessions") or []) != expected:
+            ineligible.append(
+                f"{arm}: its status covers {len(st.get('sessions') or [])} "
+                "sessions, not the frozen 48"
+            )
     # the three arms must differ ONLY in the adapter (re-review F15)
     shared = {
         arm: {
@@ -362,6 +392,18 @@ def main() -> None:
         verdict = (
             f"INCOMPLETE ({len(ids)}/{len(expected)} manifest sessions complete in all "
             f"three arms; missing {', '.join(missing)}); provisional: {verdict}"
+        )
+    if ineligible:
+        lines.append("\n## Budget eligibility (round 6 F12)\n")
+        lines.extend(f"- {r}" for r in ineligible)
+        # §8: an exhausted ceiling is recorded INCOMPLETE, "N is not reduced, failures are
+        # not dropped, and no checkpoint is selected to rescue it".  A provisional gate
+        # reading is exactly the rescue that rule forbids, so the gates are NOT read here;
+        # the tables above stay as description of what was spent.
+        verdict = (
+            f"INCOMPLETE (budget eligibility: {len(ineligible)} refusal(s); see above"
+            + (f"; and {len(missing)} manifest sessions incomplete" if missing else "")
+            + "). The gates are not read for an evaluation that is not eligible"
         )
     lines.append(
         f"\n**Verdict: {verdict}** (a passed gate authorises only the CONFIRM registration; no efficacy claim)."

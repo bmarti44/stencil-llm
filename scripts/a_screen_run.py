@@ -32,6 +32,7 @@ import hashlib
 import json
 import os
 import sys
+import threading
 import time
 from dataclasses import asdict
 from pathlib import Path
@@ -116,14 +117,26 @@ def main() -> None:
     ap.add_argument(
         "--budget-min",
         type=float,
-        default=0.0,
-        help="stop starting sessions after this many minutes (0 = no limit)",
+        default=A.ARM_BUDGET_MIN,
+        help=(
+            "stop starting requests after this many cumulative minutes; the registered "
+            f"per-arm ceiling is {A.ARM_BUDGET_MIN:.0f} (0 = no limit, a PILOT-only option)"
+        ),
     )
     a = ap.parse_args()
     if a.arm != "off" and not a.adapter:
         ap.error("--adapter is required for sft/cf")
     if a.arm == "off" and a.adapter:
         ap.error("off takes no adapter")
+    # Round 6 F12: the budget must be a REGISTERED one for a run the summary can read, or
+    # the summary's eligibility check has nothing to enforce.  A subset run is a pilot and
+    # the summary refuses its records anyway (identity.sessions), so it may set its own.
+    full_run = not a.slots and not a.longest
+    if full_run and not 0 < a.budget_min <= A.ARM_BUDGET_MIN:
+        ap.error(
+            f"--budget-min {a.budget_min} is not inside the registered per-arm ceiling of "
+            f"{A.ARM_BUDGET_MIN:.0f} min; a full screen arm may not run unbudgeted"
+        )
     adapter_steps = None
     if a.adapter:
         # Astra F13: the registered quantity is the adapter at the FINAL COMPLETED optimizer
@@ -222,21 +235,21 @@ def main() -> None:
     # Round 4 F13: `resident_s` only accounts for work that produced a record.  A launch
     # that dies after its last record, or before writing any, contributed GPU time that no
     # record carries.  This sidecar is a launch-level ledger: one line per checkpoint of
-    # this process, independent of the record file.  A launch with no "end" line is charged
-    # its last checkpoint PLUS one request's grace, because a checkpoint follows every
-    # request, so it can have been at most one request past its last mark.
+    # this process, independent of the record file.
+    #
+    # Round 6 F13: a killed launch is charged from its last VERIFIED alive-timestamp, not
+    # from a bound on the work a mark can follow -- model loading and the pilot's 44-suite
+    # cost measurement are both outside any such bound.  The heartbeat thread below closes
+    # every interval of this launch's life with a mark, from before the model load to exit.
     spend_path = out.with_name(out.name + ".spend.jsonl")
     launch_id = f"{int(t_start)}-{os.getpid()}"
     torn = A.ledger_repair(spend_path)
-    BOUND_S = A.work_bound_s(REGISTERED_DEADLINE_S)
 
     def mark(event: str, **extra: object) -> None:
         A.ledger_mark(spend_path, launch_id, event, t_start, **extra)
 
     def prior_launch_minutes() -> float:
-        charges, malformed = A.ledger_charges(
-            spend_path, launch_id, time.time(), BOUND_S
-        )
+        charges, malformed = A.ledger_charges(spend_path, launch_id, time.time())
         if malformed:
             ap.error(
                 f"{spend_path} has {malformed} malformed line(s): a launch's spend cannot "
@@ -244,10 +257,17 @@ def main() -> None:
             )
         return sum(charges.values()) / 60
 
-    # atexit so ANY clean exit (including a refused guard or COST-INELIGIBLE) is
-    # charged its real elapsed time; only a killed process falls back to the grace.
+    # atexit so ANY clean exit (including a refused guard or COST-INELIGIBLE) is charged its
+    # real elapsed time; a killed process is charged from its heartbeat instead.
     atexit.register(mark, "end")
     mark("start")
+    stop_tick = threading.Event()
+    atexit.register(stop_tick.set)
+    threading.Thread(
+        target=A.ledger_tick,
+        args=(spend_path, launch_id, t_start, stop_tick),
+        daemon=True,
+    ).start()
     if torn is not None:
         print(f"repaired a torn spend-ledger tail: {torn[:120]!r}")
         mark("repaired_torn_tail", torn=torn[:200])
@@ -269,14 +289,7 @@ def main() -> None:
         weights = Path(a.adapter) / "adapter_model.safetensors"
         adapter_id = sha(weights.read_bytes().hex()) if weights.exists() else "missing"
     model.eval()
-    mark("model_loaded")
-    load_s = time.time() - t_start
-    if load_s > A.LOAD_BOUND_S:
-        print(
-            f"WARNING: model load took {load_s:.0f} s, over the {A.LOAD_BOUND_S:.0f} s "
-            "bound an interrupted launch is charged before its first checkpoint"
-        )
-        mark("load_over_bound", load_s=load_s)
+    mark("model_loaded", load_s=time.time() - t_start)
 
     # Astra F4: every terminal token the shipping package declares, not just config.eos
     gen_cfg = GenerationConfig.from_pretrained(a.hub)
@@ -625,6 +638,24 @@ def main() -> None:
         + (f" not_started={','.join(incomplete)}" if incomplete else "")
         + (f" request2_not_started={','.join(partial)}" if partial else "")
         + (f" OVER_BUDGET by {spent - (a.budget_min or 0):.1f} min" if over else "")
+    )
+    # Round 6 F12: that status existed only in console output, so complete records from an
+    # over-budget evaluation produced the authoritative GATE PASSED verdict.  It is now an
+    # artifact beside the records, and the summary refuses an arm without a COMPLETE one.
+    # A killed launch leaves none, which the summary also refuses.
+    A.write_status(
+        spend_path.with_name(out.name + ".status.json"),
+        arm=a.arm,
+        launch=launch_id,
+        status=status,
+        spent_min=spent,
+        budget_min=a.budget_min,
+        registered_budget_min=A.ARM_BUDGET_MIN,
+        sessions=identity["sessions"],
+        not_started=incomplete,
+        request2_not_started=partial,
+        over_budget=over,
+        pilot=bool(a.slots or a.longest),
     )
 
 

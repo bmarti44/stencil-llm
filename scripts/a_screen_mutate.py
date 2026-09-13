@@ -194,6 +194,75 @@ def build_types(files: dict[str, str]) -> Types:
     return t
 
 
+def _root_name(node: ast.AST | None) -> str | None:
+    """The variable an expression is built from: ``replace(order, note=x)`` ->
+    ``order``."""
+    while node is not None:
+        if isinstance(node, ast.Name):
+            return node.id
+        if isinstance(node, ast.Attribute | ast.Subscript):
+            node = node.value
+        elif isinstance(node, ast.Call):
+            # a METHOD call's record is its receiver (``rec.with_note(x)`` -> ``rec``);
+            # a plain call's is its first argument (``replace(rec, note=x)`` -> ``rec``)
+            node = (
+                node.func.value
+                if isinstance(node.func, ast.Attribute)
+                else (node.args[0] if node.args else node.func)
+            )
+        else:
+            return None
+    return None
+
+
+def whole_record_writers(files: dict[str, str], names: set[str]) -> set[str]:
+    """Every record class a CALLER can store whole, so it can put a record carrying any
+    field value into the project's state.
+
+    Three conditions, all needed.  The method must be PUBLIC (a private helper is not
+    reachable from a suite); it must assign an expression of that class into one of
+    its own attributes (``self._orders[order.order_id] = order``); and that expression
+    must derive from one of the method's own PARAMETERS.  The last condition separates
+    S35's ``OrderBook.save(order)``, which stores whatever the caller hands it, from
+    the 40 slots whose public methods store a record they BUILT themselves and then
+    store it: a caller cannot choose a field value through those, so a reset of an
+    otherwise unwritten defaulted field is unobservable there.  Types come from the
+    same machinery the update sites use, so a parameter typed only by this pool's
+    naming convention still resolves.
+    """
+    t = build_types(files)
+    out: set[str] = set()
+    for src in files.values():
+        try:
+            tree = ast.parse(src)
+        except SyntaxError:
+            continue
+        for cls_name, fn in _scopes(tree):
+            if cls_name is None or fn.name.startswith("_"):
+                continue
+            env = _env(fn, cls_name, t)
+            params = set()
+            for arg in list(fn.args.args) + list(fn.args.kwonlyargs):
+                if arg.arg == "self":
+                    continue
+                params.add(arg.arg)
+                # a parameter annotated or named for a record class can be the payload
+                got = _ann_type(arg.annotation, names) or class_of(arg.arg, names)
+                if got:
+                    env.setdefault(arg.arg, got)
+            for node in ast.walk(fn):
+                if not isinstance(node, ast.Assign):
+                    continue
+                got = _expr_type(node.value, t, env)
+                if got not in names or _root_name(node.value) not in params:
+                    continue
+                for tgt in node.targets:
+                    base = tgt.value if isinstance(tgt, ast.Subscript) else tgt
+                    if _self_attr(base):
+                        out.add(got)
+    return out
+
+
 def writable_fields(
     files: dict[str, str], classes: dict[str, dict[str, str | None]]
 ) -> dict[str, set[str]]:
@@ -212,8 +281,16 @@ def writable_fields(
     A field counts as writable if any code passes it by keyword (``status=``, including
     through a ``with_status``/``with_changes`` helper) or constructs the record with
     enough positional arguments to reach it.
+
+    Round 6 F7: a class with a WHOLE-RECORD PUBLIC WRITER has every defaulted field
+    writable, whatever the project source happens to pass.  ``OrderBook.save(order)``
+    stores an arbitrary ``Order``, so ``book.save(replace(order, note="no nuts"))`` sets
+    ``Order.note`` from outside the project and a reset of it in ``ready`` IS publicly
+    reachable.  The keyword scan alone missed that and dropped two real S35 mutants.
     """
     out = {cls: set() for cls in classes}
+    for cls in whole_record_writers(files, set(classes)):
+        out[cls] = {f for f, d in classes[cls].items() if d is not None}
     for src in files.values():
         try:
             tree = ast.parse(src)
@@ -293,7 +370,14 @@ def _scopes(tree: ast.Module) -> list[tuple[str | None, ast.FunctionDef]]:
 def _env(fn: ast.FunctionDef, cls: str | None, t: Types) -> dict[str, str]:
     """Types of the locals and parameters of one function.  Three passes because
     ``ast.walk`` is breadth-first: a name assigned inside an ``if`` can be read by a
-    statement the walk reaches first."""
+    statement the walk reaches first.
+
+    Round 6, Astra's general-soundness note: the passes read assignments from the
+    WHOLE function, so ``old = A(...); replace(old, ...); old = B(...)`` typed ``old``
+    as ``B`` while the call updates an ``A``.  A name assigned TWO different classes in
+    one function is therefore dropped from the env rather than resolved to the last
+    one; the site is then UNRESOLVED and the audit fails loudly instead of mutating a
+    field of the wrong class.  No frozen site is affected (0 unresolved)."""
     env: dict[str, str] = {}
     if cls:
         env["self"] = cls
@@ -301,6 +385,7 @@ def _env(fn: ast.FunctionDef, cls: str | None, t: Types) -> dict[str, str]:
         got = _ann_type(arg.annotation, t.names)
         if got:
             env[arg.arg] = got
+    ambiguous: set[str] = set()
     for _ in range(3):
         for node in ast.walk(fn):
             target = value = None
@@ -321,8 +406,10 @@ def _env(fn: ast.FunctionDef, cls: str | None, t: Types) -> dict[str, str]:
                 continue
             got = _expr_type(value, t, env)
             if got:
+                if env.get(target, got) != got:
+                    ambiguous.add(target)
                 env[target] = got
-    return env
+    return {k: v for k, v in env.items() if k not in ambiguous}
 
 
 @dataclass

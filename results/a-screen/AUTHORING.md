@@ -259,3 +259,30 @@ mapping's annotation, a method's return annotation, a parameter annotation, then
 convention — and validates the resolution against the keywords the call already passes. An
 unresolved site is a visible failure, so a slot must not hide an update behind a form the resolver
 cannot follow; if you write one, extend the resolver rather than let the site go unmutated.
+
+## AMENDMENT 5 (2026-09-14, after Astra re-review round 6): reachability through a public writer
+
+**A class with a caller-settable whole-record writer has EVERY defaulted field in scope.** Round 5
+retired mutants that reset a defaulted field nothing in the project source ever assigns, on the
+ground that no public suite can see them. That is right only when the caller cannot supply the
+record. S35's `OrderBook.save(order)` stores whatever it is handed, so
+
+```python
+order = book.place("Dev", "cake", 1, 2400)
+book.save(replace(order, note="no nuts"))      # sets a field the project never passes
+book.ready(order.order_id)                     # a reset of Order.note here IS observable
+```
+
+and the reset of `Order.note` in `ready` and in `collect` must be caught. `whole_record_writers`
+now finds those classes: a PUBLIC method that assigns an expression derived from one of its own
+PARAMETERS into one of its attributes. A public method that stores a record it built itself
+(`order = Order(f"O{n}", ...)` then store) does not qualify — a caller cannot choose a field value
+through it, so the field stays out of scope at that checkpoint.
+
+For an author this means: if your slot's storage class takes a whole record from the caller, every
+defaulted field of that record needs a suite that pins it across every update, not only the fields
+the project's own code happens to set.
+
+**A name with two classes in one function now fails the audit.** `old = A(...)` … `old = B(...)` in
+one function leaves `old` untyped, which reports the site UNRESOLVED rather than mutating the wrong
+class's field. Do not reuse one local name for two record classes in a method that updates either.
