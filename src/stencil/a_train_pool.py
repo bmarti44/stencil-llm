@@ -116,11 +116,11 @@ DOMAINS: dict[tuple[str, str], list[dict[str, str]]] = {
             what="a greenhouse's sensor board",
         ),
         dict(
-            pkg="cellarbook",
+            pkg="ciderloft",
             Entity="Cask",
             entity="cask",
             Store="CaskBook",
-            Err="CellarbookError",
+            Err="CiderloftError",
             what="a cider cellar's cask book",
         ),
     ],
