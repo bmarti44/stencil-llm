@@ -379,12 +379,27 @@ def test_the_registered_ceiling_admits_the_last_request(tmp_path):
     assert A.ARM_BUDGET_MIN >= A.arm_budget_min()
 
 
+# 2026-09-13: these fixtures are DERIVED from the budget, never hard-coded.
+# ARM_BUDGET_MIN was raised from 50 to 100 minutes once the generation time was
+# measured, and the 3001 s literal that used to mean "over budget" silently became
+# comfortably UNDER it.  Two tests failed loudly, which was lucky; a third kept
+# passing for an unrelated reason (its ledger was deleted) while no longer
+# exercising the case it names.  A fixture that encodes a threshold has to be
+# computed from that threshold, and the relation is asserted here so the next
+# change to the constant cannot quietly hollow these tests out.
+UNDER_BUDGET_S = A.ARM_BUDGET_MIN * 0.8 * 60.0
+OVER_BUDGET_S = (A.ARM_BUDGET_MIN + 1.0) * 60.0 + 1.0
+assert UNDER_BUDGET_S / 60.0 < A.ARM_BUDGET_MIN < OVER_BUDGET_S / 60.0
+
+
 def test_the_ledger_is_read_independently_of_the_status(tmp_path):
     # the status is the runner's claim; the ledger is the evidence.  A status claiming
-    # COMPLETE and 40 minutes over a ledger holding 45.02 must not be believed.
+    # COMPLETE and well inside budget over a ledger holding more must not be believed.
     p = tmp_path / "cf.jsonl.spend.jsonl"
-    _write(p, "L1", [("start", 0.0), ("end", 3001.0)])
-    spent, refusals = A.ledger_spent_min(p, {"L1"}, now=T0 + 3001.0, now_m=T0 + 3001.0)
+    _write(p, "L1", [("start", 0.0), ("end", OVER_BUDGET_S)])
+    spent, refusals = A.ledger_spent_min(
+        p, {"L1"}, now=T0 + OVER_BUDGET_S, now_m=T0 + OVER_BUDGET_S
+    )
     assert refusals == []
     assert spent > A.ARM_BUDGET_MIN
 
@@ -490,7 +505,7 @@ def test_the_summary_reads_the_gates_for_an_eligible_evaluation(tmp_path):
     # the control: the same records inside budget must still produce the gate reading,
     # or
     # the three refusals below would prove nothing
-    runs = _screen_records(tmp_path / "runs", 2400.0, A.ARM_BUDGET_MIN)
+    runs = _screen_records(tmp_path / "runs", UNDER_BUDGET_S, A.ARM_BUDGET_MIN)
     verdict, gates = _summary(runs)
     assert verdict.startswith("**Verdict: GATE PASSED**")
     assert gates == 12
@@ -502,7 +517,7 @@ def test_the_summary_refuses_an_over_budget_evaluation(tmp_path):
     records from an over-budget evaluation produced ``Verdict: GATE PASSED``.  Round 7:
     suppressing the verdict alone still printed twelve PASS lines above it, so the gates
     must not be computed at all."""
-    runs = _screen_records(tmp_path / "runs", 3001.0, A.ARM_BUDGET_MIN)
+    runs = _screen_records(tmp_path / "runs", OVER_BUDGET_S, A.ARM_BUDGET_MIN)
     verdict, gates = _summary(runs)
     assert "INCOMPLETE (budget eligibility:" in verdict
     assert "GATE PASSED**" not in verdict
@@ -511,7 +526,9 @@ def test_the_summary_refuses_an_over_budget_evaluation(tmp_path):
 
 def test_the_summary_refuses_a_deleted_spend_ledger(tmp_path):
     # round 7 F12: removing the sidecar made the independent evidence check read zero
-    runs = _screen_records(tmp_path / "runs", 3001.0, A.ARM_BUDGET_MIN, ledger=False)
+    runs = _screen_records(
+        tmp_path / "runs", OVER_BUDGET_S, A.ARM_BUDGET_MIN, ledger=False
+    )
     verdict, gates = _summary(runs)
     assert "INCOMPLETE (budget eligibility:" in verdict and gates == 0
 
@@ -520,7 +537,7 @@ def test_the_summary_refuses_an_incomplete_evaluation(tmp_path):
     """Round 8 F12: missing records took the other path -- dropping a single checkpoint
     still printed all twelve gates and read "provisional: GATE PASSED", because
     `missing` only rewrote the verdict after the gates had been computed."""
-    runs = _screen_records(tmp_path / "runs", 2400.0, A.ARM_BUDGET_MIN)
+    runs = _screen_records(tmp_path / "runs", UNDER_BUDGET_S, A.ARM_BUDGET_MIN)
     cf = runs / "cf.jsonl"
     kept = [
         ln
@@ -536,7 +553,9 @@ def test_the_summary_refuses_an_incomplete_evaluation(tmp_path):
 def test_the_summary_refuses_an_unregistered_output_cap(tmp_path):
     # round 7, medium: the three arms AGREEING on --max-new 2048 passed every identity
     # check, so the registered cap is checked against its own value
-    runs = _screen_records(tmp_path / "runs", 2400.0, A.ARM_BUDGET_MIN, max_new=2048)
+    runs = _screen_records(
+        tmp_path / "runs", UNDER_BUDGET_S, A.ARM_BUDGET_MIN, max_new=2048
+    )
     verdict, gates = _summary(runs)
     assert "INCOMPLETE (budget eligibility:" in verdict and gates == 0
 

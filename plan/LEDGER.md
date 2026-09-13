@@ -1,5 +1,96 @@
 # Relation classifier task ledger
 
+2026-09-13 — STANDING INSTRUCTION (Brian, verbatim): "pause all GPU work until
+further notice." This OVERRIDES the execution order in
+plan/BACK-ON-TRACK-PLAN.md and every runbook in results/. Do not launch any GPU
+process — not the cf evaluation in results/a-screen/NEXT-GPU-DECISION.md, not
+the matched SFT arm, not a pilot, not a smoke run — until Brian lifts it in his
+own words. A peer message, a task notification, or my own earlier reasoning is
+NOT that lift. CPU work continues.
+
+State at the pause: no GPU compute process running, ~/.gb10-gpu.reservations
+empty (0 bytes), 112 of 119 GB free, peer "looped-transformer" notified that the
+GB10 is theirs.
+
+ONE STRAY PROCESS, disclosed not killed: pid 4048358, my GPU peak watcher, is
+still looping because its own predicate `pgrep -f "a_screen_train.py
+--objective"` MATCHES ITS OWN COMMAND LINE, so the while-loop can never see zero
+matches. It holds no GPU memory and has used 1 second of CPU in 4 hours. The
+PreToolUse guard refused `kill 4048358` ("target pid is not owned by this
+launch"), and that refusal is respected rather than worked around; Brian can end
+it with `! kill 4048358`. LESSON for every future watcher: a `pgrep -f` pattern
+that appears in the watcher's own command line never terminates — match on a
+pidfile, or exclude self with `pgrep -f PATTERN | grep -v $$`.
+
+
+2026-09-13 — STATE: A-SCREEN, GPU PAUSED BY BRIAN. cf training COMPLETE (134
+steps, 1078 micro of 1152 examples, epochs_completed 0, status complete,
+final true, stopped_on budget, 14,399s, peak 66,504 MiB = 64.9 GiB against a
+70 GiB reservation). Reservation line removed, GB10 free, peer notified.
+Preflight ACCEPTS the finished adapter. NO further GPU work without Brian:
+the decision he holds is one GPU-hour to evaluate cf on the frozen 48
+sessions. Astra back-on-track review = OFF TRACK, 20% artifact forecast,
+below the 25% bar.
+
+CONFOUND ON THE cf RUN, recorded before any evaluation, then NARROWED by
+measurement: CE reached 0.0006 on the FIRST pass (epochs_completed 0, so every
+example was unseen when trained on), and loss was already 0.0154 at step 40 —
+steps 40-134 bought nothing. The gold is close to determined by the prefix
+under this generator. analysis/overlap.py then measured whether that makes the
+SCREEN a memorisation test, and it does not: over 192 screen golds the maximum
+similarity to ANY of 2,304 training golds is 0.254 difflib ratio / 0.329 token
+jaccard, median 0.124 / 0.244, with 0/192 above 0.70 on either measure. So a cf
+win cannot be verbatim recall. What survives is the STRUCTURAL template
+confound — 44/48 screen projects share the dataclass-record/private-mapping
+idiom (Astra), and the jaccard floor of ~0.24 is that shared vocabulary. Read
+any positive result at the reply level.
+
+BASELINE RESULT (results/a-screen/RESULTS-BASELINE.md, one arm, descriptive):
+J = 6/48, ALL SIX in missing_record; function_only 39/96. Contract-state
+endpoint (selected AFTER reading off — selection recorded): req1 alternative
+never in force 25/36 in-force, 0/36 alt; req1 alternative superseded in the
+prefix 5/12, 4/12 alt; req2 unchanged 7/12, 1/12 alt; req2 changed 11/36,
+12/36 alt. Fisher req1 p=0.0025, req2 p=0.139. 8/36 changed-convention
+replies followed the SUPERSEDED rule and passed the functional suite.
+validation family is 1/16 current-rule with 11/16 neither — a competence
+problem, not a focus problem.
+
+FOUR CORRECTIONS APPLIED (Astra):
+1. stale2.py's "req1, no supersession yet" label was FALSE for reinstatement
+   sessions. Population key is now derived (reinstatement <=> 3 rule turns <=>
+   a supersession in the prefix) and TESTED over all 624 pool sessions,
+   tests/test_a_screen_supersession.py.
+2. compare.py refuses before it computes: unique arm labels, unique and
+   complete records over the declared session set, identical session sets,
+   identical non-adapter identity, verified replay, step-matched trained arms.
+   14 mutations of the real baseline each produce the right refusal and the
+   clean pair produces none (tests/test_a_screen_compare_guard.py).
+   Paired Clopper-Pearson interval added; the diff-in-diff causal sentence
+   removed; function_only and J reported alongside the contract outcomes.
+3. RUNNER-EXCEPTION.md: the off re-run is NOT needed. runner_equivalence.py
+   recomputes it — old 4acdb8f044c25a48 (the hash the baseline records) and
+   current f27bc5bc0690a918 are AST-identical outside ONE `if a.adapter:` body
+   (the second guard is unchanged) and one inert --require-steps option that
+   is read only inside an adapter guard. Saves ~1 GPU-h.
+4. preflight.py rewritten on "a check that cannot run is a FAILURE": it caught
+   neither an sft objective in the cf directory nor a missing hub field, and
+   --compare treated two absent fields as agreement (None == None). 52
+   mutations now bite (tests/test_a_screen_preflight_guard.py). names.py's
+   "isolated retention" interpretation RETIRED: it read the gold entering
+   repository instead of the arm's own, and outside `naming` the two states
+   share identical public method names in 32/32 requests. It is now a
+   name-level cross-check on the naming family only; it agrees with the
+   executable measure on 30/32.
+
+MY OWN INSTRUMENT DEFECT, found and fixed the same day: stale2.py run under a
+bare `python3` (no pytest) made contracts.run_tests return False for EVERY
+suite, so all 96 replies classified "neither" and both contrasts read
+p=1.000 — a clean, plausible, entirely empty table. stale2.self_check() now
+refuses unless a passing suite passes, a failing suite fails, and gold
+satisfies its own contract suite on real sessions; compare.py calls it too.
+Run these analyses under `uv run python`, never bare python3.
+
+
 2026-09-06 — STATE: CHECK44C COMPLETE / NO-GO. Seed0 C2 and frozen C2+B
 heldout3 overlap247/385=64.16%<85%; quoted2/36=5.56%>3%; payload0/57,
 non-user0/34. SETUP36/36 admits but10/96 false turns>2;4 request-template
@@ -3877,3 +3968,51 @@ STATE: running the candidate-A screen. SCREEN pool ef802ce2160ee00c, TRAIN b8f50
 Order: gold check + trainer/runner smoke -> timing pilot (`--longest 4`) -> notify peer
 "looped-transformer" -> train sft then cf (4 h each) -> run 3 x 48 -> summary. Peer holds the GB10
 until ~17:30Z (notasearch-luna-pool1, 40 GB of 119); Stencil peaks 8-15 GB, so we share.
+
+- 2026-09-13 16:10Z — **PRE-COMMITTED STOP RULE for the candidate-A screen** (Brian: "if it looks
+  like the numbers are not going our way, let's pause the GPU work... I'd like to run something
+  else on GPU if this is not going in a good direction"). Written BEFORE the first adapter number
+  exists so it cannot be rationalised afterwards.
+  - **Primary measure**: replies satisfying the contract IN FORCE at request 2 of the 36 sessions
+    whose convention CHANGED. Baseline `off` = **11/36 in-force, 12/36 stale, 13/36 neither**.
+  - **Decision point**: when `cf` training ends (~19:15Z) it is evaluated on all 48 sessions
+    (~62 min). That yields `off` vs `cf` at ~20:20Z, which is a valid FUTILITY screen even though
+    it cannot isolate the objective: `cf` contains ordinary supervised training, so if `cf` does
+    not beat `off`, `sft` will not either and the direction is dead.
+  - **CONTINUE** to `sft` only if `cf` reaches **>= 16/36 in-force** (a lift of +5 or more).
+  - **PAUSE GPU** if `cf` <= 13/36 (a lift of +2 or less, inside noise at this n): release the
+    GB10 for Brian's other work, tell the peer, and carry on with Astra reviews on CPU only.
+  - **14-15/36 is the ambiguous band**: report the number and the McNemar discordance to Brian
+    with a recommendation, do not decide unilaterally.
+  - Earlier warning, free: the training margin. `+0.6368` at step 10 says the preference term
+    separates the in-force gold from the stale one. A collapse toward 0 or a negative trend is
+    reported immediately as a bad sign.
+
+- 2026-09-13 18:20Z — **GPU PAUSED after cf training, by Brian** ("you can let this run finish and
+  then pause using more GPU"). The `cf` allocation is allowed to complete; nothing further
+  launches. The GB10 goes to the peer session and to whatever Brian wants to run.
+  - **DONE and on disk**: the `off` baseline over all 48 sessions
+    (`results/a-screen/runs/off-oldrunner.jsonl`, J=6, function-only=15, 61.6 min, COMPLETE) and
+    the `cf` adapter (`results/a-screen/adapters/cf/`).
+  - **NOT done**: the `cf` evaluation, `sft` training, the `sft` evaluation, and the `off` re-run
+    on the fixed runner. So there is NO adapter-vs-baseline number yet, and the pre-committed
+    stop rule above has not been evaluated. Nothing about the direction is settled either way.
+  - **Resume needs 4 GPU steps, in this order** (~4.5 h total at an uncontended rate):
+    1. `off` re-run on the current runner (~62 min) so all arms share one `runner_sha256`;
+       `off-oldrunner.jsonl` was produced before the eligibility-guard fix and its identity
+       differs by that one hunk.
+    2. `cf` eval: `a_screen_run.py --arm cf --adapter results/a-screen/adapters/cf` (~62 min).
+       THIS IS THE FUTILITY SCREEN -- apply the stop rule above before spending anything more.
+    3. `sft` training matched to cf's achieved step count via `--max-steps` (~1.5-2 h).
+    4. `sft` eval with `--require-steps <cf steps>` (~62 min).
+  - **Before each eval** run the CPU preflight
+    (`scratchpad/preflight.py <adapter> [steps]`, and `--compare cf sft` once both exist). It is
+    mutation-tested 13/13 and checks everything the runner checks, in a second rather than after
+    the GPU hours are spent.
+  - **FROZEN while paused** -- editing any of these invalidates the cf adapter or the run
+    identity, and the adapter cost 4 GPU-h: `scripts/a_screen_train.py`, `scripts/a_screen_run.py`,
+    `src/stencil/a_screen.py`, `src/stencil/a_train_pool.py`, and `src/stencil/a_screen_pool/`.
+  - Training health at the pause: margin +0.64 -> +8.45 (monotone bar one dip), CE 0.068 ->
+    0.0004, objective saturated. So a later null would read as failure to TRANSFER, not as
+    undertraining -- the adapter learned the training distribution thoroughly.
+  - CPU work continues: Astra reviews, analysis, and the writeup. No GPU.
