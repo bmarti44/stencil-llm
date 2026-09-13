@@ -144,9 +144,21 @@ def test_packing_keeps_rule_turns_and_compacts(slot, counter, tok):
     )
     # the live request carries the current content of the changed file
     assert files1_long[s.requests[0].target].strip() in m3[-1]["content"]
-    # a reply that was not applied leaves the repository as request 1 showed it
+    # a reply that was not applied leaves the repository as request 1 showed it, and the
+    # live request says so while still rendering every current file (re-review round 3 F1)
     m4 = A.session_messages(s, 2, files0, "no code here", files0)
-    assert "unchanged from the earlier request" in m4[-1]["content"]
+    assert "the last reply was not applied" in m4[-1]["content"]
+    for path, body in files0.items():
+        assert body.strip() in m4[-1]["content"], (
+            slot,
+            f"{path} missing from request 2",
+        )
+    # and with an applied reply, every CURRENT file is rendered
+    for path, body in files1_long.items():
+        assert body.strip() in m3[-1]["content"], (
+            slot,
+            f"{path} missing from request 2",
+        )
 
 
 @pytest.mark.parametrize("slot", _pairs())

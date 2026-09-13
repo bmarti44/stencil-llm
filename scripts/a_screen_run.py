@@ -37,6 +37,21 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 # registration §8: one fixed 4-hour wall-clock allocation per adapter
 REGISTERED_TRAIN_SECONDS = 4 * 3600
+# registration §4: the frozen training recipe.  An adapter whose log disagrees with ANY of
+# these was not produced by the registered intervention (re-review round 3 F13/F15).
+REGISTERED_TRAIN_CONFIG = {
+    "seed": 0,
+    "lr": 1e-4,
+    "rank": 16,
+    "alpha": 32,
+    "beta": 0.1,
+    "dpo_weight": 0.1,
+    "accum": 8,
+}
+# registration §5: the per-request generation deadline, recorded and enforced
+REGISTERED_DEADLINE_S = 300
+# plan section E: a run stops STARTING new work when its reservation has 5 minutes left
+START_MARGIN_MIN = 5
 sys.path.insert(0, str(ROOT / "src"))
 
 import stencil.determinism  # noqa: E402, F401  (sets CUBLAS workspace before torch)
@@ -52,19 +67,28 @@ def sha(text: str) -> str:
     return hashlib.sha256(text.encode()).hexdigest()[:16]
 
 
-def hub_sha(hub: Path) -> str:
-    """Re-review F15: the hub is a mutable directory, so bind its CONTENT.  Config,
-    generation config, tokenizer and the weight index are hashed in full; the multi-GB
-    weight shards by name and exact byte size, which detects any substitution without
-    reading 8 GB on every launch."""
-    parts = []
-    for name in sorted(x.name for x in hub.iterdir() if x.is_file()):
-        f = hub / name
-        if name.endswith((".json", ".py")) and f.stat().st_size < 2_000_000:
-            parts.append(f"{name}:{f.read_text()}")
-        else:
-            parts.append(f"{name}:{f.stat().st_size}")
-    return sha("\n".join(parts))
+def file_sha(path: Path) -> str:
+    """Streaming sha256 of a file's actual bytes (first 16 hex chars)."""
+    h = hashlib.sha256()
+    with path.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(8 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()[:16]
+
+
+def dir_sha(d: Path) -> str:
+    """Re-review round 3 F15: hash every file's ACTUAL BYTES, not its size.  The first
+    version hashed JSON under 2 MB in full and everything else by size, so the 11 MB
+    tokenizer, the 2.7 MB vocabulary and all three weight shards were size-only: different
+    content of the same length produced an identical fingerprint.  Reading ~8 GB once per
+    launch costs seconds against a multi-hour run."""
+    return sha(
+        "\n".join(
+            f"{p.name}:{p.stat().st_size}:{file_sha(p)}"
+            for p in sorted(d.iterdir())
+            if p.is_file()
+        )
+    )
 
 
 def repo_hash(files: dict[str, str]) -> str:
@@ -165,12 +189,25 @@ def main() -> None:
             )
         if ident.get("limit"):
             problems.append(f"trained on a --limit {ident['limit']} subset")
-        if not adapter_steps:
-            problems.append(f"{adapter_steps} completed optimizer steps")
+        if not isinstance(adapter_steps, int) or adapter_steps < 1:
+            # re-review round 3: "not adapter_steps" was a truthiness test and accepted -1
+            problems.append(f"completed optimizer steps = {adapter_steps!r}")
         if tlog.get("budget_seconds") != REGISTERED_TRAIN_SECONDS:
             problems.append(
                 f"allocation {tlog.get('budget_seconds')}s != registered "
                 f"{REGISTERED_TRAIN_SECONDS}s"
+            )
+        if ident.get("hub") != str(a.hub):
+            problems.append(
+                f"trained on trunk {ident.get('hub')!r}, evaluating on {str(a.hub)!r}"
+            )
+        # re-review round 3 F13/F15: the registered recipe, not merely a finished run
+        for field, want in REGISTERED_TRAIN_CONFIG.items():
+            if tlog.get(field) != want:
+                problems.append(f"{field}={tlog.get(field)!r}, registered {want!r}")
+        if tlog.get("seconds", 0) < 0.5 * REGISTERED_TRAIN_SECONDS:
+            problems.append(
+                f"ran {tlog.get('seconds')}s of a {REGISTERED_TRAIN_SECONDS}s allocation"
             )
         if problems and not a.pilot_adapter:
             ap.error(
@@ -222,15 +259,25 @@ def main() -> None:
         "contracts_sha256": sha((ROOT / "src/stencil/contracts.py").read_text()),
         "runner_sha256": sha(Path(__file__).read_text()),
         "hub": str(a.hub),
-        "hub_sha256": hub_sha(Path(a.hub)),
+        "hub_sha256": dir_sha(Path(a.hub)),
         "adapter": a.adapter or "none",
         "adapter_sha256": adapter_id,
         "adapter_steps": adapter_steps,
         "pilot_adapter": bool(a.pilot_adapter),
         "eos": eos,
         "max_new": a.max_new,
+        "deadline_s": a.deadline,
         "prompt_budget": A.PROMPT_BUDGET,
+        "adapter_config_sha256": (
+            file_sha(Path(a.adapter) / "adapter_config.json")
+            if a.adapter and (Path(a.adapter) / "adapter_config.json").exists()
+            else "none"
+        ),
     }
+    if not a.pilot_adapter and a.deadline != REGISTERED_DEADLINE_S:
+        ap.error(
+            f"--deadline {a.deadline} is not the registered {REGISTERED_DEADLINE_S} s"
+        )
     print("identity " + json.dumps(identity))
 
     if a.slots:
@@ -261,10 +308,19 @@ def main() -> None:
     if out.exists():
         raw = out.read_text()
         if raw and not raw.endswith("\n"):
+            # re-review round 3 F3: a COMPLETE final object that merely lacks its newline is
+            # valid data -- the first version deleted it.  Only malformed trailing bytes are
+            # discarded; either way the file ends with a newline before anything is appended.
             keep, _, tail = raw.rpartition("\n")
-            out.write_text(keep + "\n" if keep else "")
-            print(f"repaired a truncated final record ({len(tail)} bytes dropped)")
-            raw = keep + "\n" if keep else ""
+            try:
+                json.loads(tail)
+                raw = (keep + "\n" if keep else "") + tail + "\n"
+                out.write_text(raw)
+                print("completed the final record's newline")
+            except json.JSONDecodeError:
+                raw = keep + "\n" if keep else ""
+                out.write_text(raw)
+                print(f"discarded a malformed trailing record ({len(tail)} bytes)")
         want = json.dumps(identity, sort_keys=True)
         skipped = 0
         for lineno, line in enumerate(raw.splitlines(), 1):
@@ -287,11 +343,27 @@ def main() -> None:
                 raise SystemExit(f"{out}:{lineno}: duplicate record for {key}")
             done[key] = r
         # re-review F13: --budget-min is CUMULATIVE, so a relaunch cannot reset the clock
-        prior_min = sum(r.get("seconds", 0.0) for r in done.values()) / 60
-        print(
-            f"resume: {len(done)} usable records, {skipped} from another identity, "
-            f"{prior_min:.1f} min already spent"
+        # re-review round 3 F13: `seconds` times model.generate only.  The budget must count
+        # RESIDENT wall time: loading, packing, the suite subprocesses and interrupted work.
+        # Each record carries `resident_s` (wall time from process start to that record), so
+        # the prior spend is the largest resident stamp in the file.
+        prior_min = (
+            max(
+                (r.get("resident_s", r.get("seconds", 0.0)) for r in done.values()),
+                default=0.0,
+            )
+            / 60
         )
+        if skipped:
+            # re-review round 3 F3: appending this run's records beside incompatible ones
+            # produces a file the summary will reject after the GPU time is spent.  Refuse
+            # now and make the operator move the old file aside.
+            raise SystemExit(
+                f"{out}: {skipped} record(s) were produced under a different arm or "
+                "identity; appending would make the file unanalysable. Move it aside "
+                "(or point --out elsewhere) and relaunch."
+            )
+        print(f"resume: {len(done)} usable records, {prior_min:.1f} min already spent")
 
     def generate(msgs: list[dict], checkpoint: int, session) -> dict:
         packed, kept = A.pack_session(session, msgs, checkpoint, count)
@@ -343,6 +415,9 @@ def main() -> None:
         return "applied"
 
     def write(rec: dict) -> None:
+        # resident wall time including this launch's prior spend, so a resumed run's budget
+        # continues from where the last one stopped (re-review round 3 F13)
+        rec["resident_s"] = prior_min * 60 + (time.time() - t_start)
         with out.open("a") as fh:
             fh.write(json.dumps(rec) + "\n")
             fh.flush()
@@ -356,8 +431,9 @@ def main() -> None:
             continue
         # re-review F13: the guard covers EVERY session start, including one whose request 1
         # was already saved, because request 2 still has to be generated and scored.
+        # plan section E: stop STARTING sessions when the reservation has 5 minutes left
         spent = prior_min + (time.time() - t_start) / 60
-        if a.budget_min and spent >= a.budget_min:
+        if a.budget_min and spent >= a.budget_min - START_MARGIN_MIN:
             incomplete.append(s.id)
             continue
         files0 = dict(s.files)

@@ -77,9 +77,9 @@ def build_examples(tok, limit: int = 0) -> list[dict]:
         verify_frozen_train(sessions)
     for s in sessions:
         for p in A.pairs_from_session(s):
-            packed, kept = A.pack(
-                list(p.messages), count, drop_first=A.drop_first_order(2)
-            )
+            # re-review round 3: one packing policy path, shared with the harness, so the
+            # trained prompts and the evaluated prompts cannot drift apart
+            packed, kept = A.pack_session(s, list(p.messages), 2, count)
             prompt = A.render_prompt(tok, packed)
             pid = tok(prompt, add_special_tokens=False)["input_ids"]
             ch = tok(p.chosen, add_special_tokens=False)["input_ids"] + [im_end]
@@ -279,7 +279,12 @@ def main() -> None:
         log["seconds"] = time.time() - t_start
         log["save_seconds"] = log.get("save_seconds", 0.0) + save_times[-1]
         log["final"] = final
-        log["status"] = "complete" if final else "running"
+        # re-review round 3 F13: an allocation that produced no completed optimizer step is
+        # INCOMPLETE, not complete; the harness refuses either way.
+        if not final:
+            log["status"] = "running"
+        else:
+            log["status"] = "complete" if log.get("steps", 0) >= 1 else "incomplete"
         (out / "train-log.json").write_text(json.dumps(log, indent=1) + "\n")
 
     model.train()
@@ -290,6 +295,7 @@ def main() -> None:
     window: list[float] = []
     update: list[float] = []
     micro_times: list[float] = []
+    step_times: list[float] = []
     stop = False
     t_train = time.time()
     while not stop:
@@ -297,9 +303,11 @@ def main() -> None:
         for i in order:
             # Astra F13: stop BEFORE a micro-step that would cross the allocation
             elapsed = time.time() - t_start
-            est = max(micro_times[-20:], default=0.0)
-            # re-review F13: the final save must also fit inside the allocation, so reserve
-            # the longest save measured so far (60 s until one has been measured).
+            # re-review round 3 F13: the estimate covers a micro-step AND the optimizer step
+            # that may follow it; the reserve covers the final save.
+            est = max(micro_times[-20:], default=0.0) + max(
+                step_times[-20:], default=0.0
+            )
             reserve = max(save_times) if save_times else 60.0
             if elapsed + est + reserve >= budget_s:
                 stop = True
@@ -330,9 +338,11 @@ def main() -> None:
             window.append(loss.item())
             update.append(loss.item())
             if micro % a.accum == 0:
+                t_step = time.time()
                 torch.nn.utils.clip_grad_norm_(params, 1.0)
                 opt.step()
                 opt.zero_grad(set_to_none=True)
+                step_times.append(time.time() - t_step)
                 log["steps"] += 1
                 # re-review F6: the mean over THIS update's micro-steps.  ``window`` is the
                 # ten-update print window and clears only every tenth update, so reusing it
@@ -347,7 +357,12 @@ def main() -> None:
                         f"{time.time() - t_start:.0f}s/{budget_s:.0f}s"
                     )
                     window = []
-                if time.time() - last_save > a.save_every_min * 60:
+                # re-review round 3 F13: a periodic save must not consume the allowance
+                # reserved for the final one, so it only runs with room for BOTH.
+                room = budget_s - (time.time() - t_start)
+                if time.time() - last_save > a.save_every_min * 60 and room > 2 * (
+                    max(save_times) if save_times else 60.0
+                ):
                     save(final=False)
                     last_save = time.time()
         else:

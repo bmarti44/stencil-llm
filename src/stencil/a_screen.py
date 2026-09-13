@@ -142,27 +142,28 @@ def render_request2_message(
     files0: dict[str, str],
     files1: dict[str, str],
 ) -> str:
-    """Live request 2, self-contained with respect to the repository: the CURRENT content
-    of every file changed since request 1 AND of the file this request asks the model to
-    rewrite, plus a line saying the rest are unchanged.  Because the current state is
-    carried here, packing may evict the earlier request and reply for a long first reply
-    without the model losing the code it must extend (Astra F1).
+    """Live request 2, rendered with the CURRENT content of EVERY file, exactly as request 1
+    renders the repository.  Because the whole current state is carried here, packing may
+    evict the earlier request and its reply without the model losing anything it needs.
 
-    Re-review F1: rendering only the CHANGED files left request 2's own target invisible in
-    the seven slots whose two requests edit different files, so the target is now always
-    included even when the first reply did not touch it."""
+    History (Astra F1, then its two re-reviews).  The first version rendered only the files
+    CHANGED since request 1, which hid request 2's own target in the seven slots whose two
+    requests edit different files.  The second added the target, which still hid the record
+    definition the target depends on (S03: `Fine` and its ``frozen=True`` live in
+    ``model.py``, so a reply that assigns in place raises ``FrozenInstanceError`` and the
+    constraint was nowhere in the window).  Rendering every file ends the class of defect
+    instead of patching instances of it, and it fits: over all 48 slots, the required
+    messages plus every file need at most 2,383 of the 2,560-token budget.
+    """
     changed = sorted(p for p in files1 if files1[p] != files0.get(p))
-    shown = sorted(set(changed) | {request.target})
-    parts = [f"{FILES_HEADER}{_fenced({p: files1[p] for p in shown})}"]
-    if changed:
-        parts.append("All other files are unchanged from the earlier request.\n")
-    else:
-        parts.append(
-            "The repository is unchanged from the earlier request (the last reply was "
-            "not applied).\n"
-        )
+    note = (
+        "Every file above is the current content.\n"
+        if changed
+        else "Every file above is the current content; the last reply was not applied.\n"
+    )
     return (
-        "".join(parts) + f"\nTask: {request.text}\n\n"
+        f"{FILES_HEADER}{_fenced(files1)}{note}"
+        f"\nTask: {request.text}\n\n"
         f"Reply with the complete new content of `{request.target}` in a single "
         "```python fenced block and nothing else. Keep existing behaviour that the task "
         "does not change."

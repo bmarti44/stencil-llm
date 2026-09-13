@@ -105,9 +105,24 @@ def load(path: Path, arm: str, expected: set[str]) -> dict[str, dict]:
         rec = dict(r)
         rec["requests"] = [first, r]
         rec["J"] = bool(per_request[0] and per_request[1])
-        rec["function_only"] = bool(
-            first["scores"]["function_only"] and r["scores"]["function_only"]
-        )
+        # re-review round 3 F12: recompute function-only from its THREE suites.  Trusting the
+        # stored flag let a record keep a failed functional suite while declaring
+        # function_only true, which flipped gate 3 and the verdict.
+        fo = []
+        for q in (first, r):
+            sc = q["scores"]
+            want = bool(
+                sc["functional"] and sc["regression"] and sc["protected_function"]
+            )
+            if want != bool(sc.get("function_only")):
+                raise SystemExit(
+                    f"{path.name}: {session}@{q['request']} function_only="
+                    f"{sc.get('function_only')} disagrees with functional="
+                    f"{sc['functional']} regression={sc['regression']} "
+                    f"protected_function={sc['protected_function']}"
+                )
+            fo.append(want)
+        rec["function_only"] = bool(fo[0] and fo[1])
         if rec["J"] != r["J"] or rec["function_only"] != r["function_only"]:
             raise SystemExit(
                 f"{path.name}: {session} stored outcome disagrees with its suites"
@@ -148,6 +163,22 @@ def clopper_pearson(k: int, n: int, alpha: float) -> tuple[float, float]:
 
 def paired(a: dict[str, dict], b: dict[str, dict], key: str, ids: list[str]) -> dict:
     """Contrast a - b on binary ``key`` over sessions ``ids``: wins = a=1,b=0."""
+    if not ids:
+        # re-review round 3 F12: an empty stratum is REPORTED, never divided by.  One
+        # completed stable session used to raise ZeroDivisionError on the changing subset.
+        return {
+            "n": 0,
+            "wins": 0,
+            "losses": 0,
+            "ties": 0,
+            "net": 0,
+            "p_mcnemar": 1.0,
+            "rate_a": float("nan"),
+            "rate_b": float("nan"),
+            "diff": 0.0,
+            "ci95_union": (float("nan"), float("nan")),
+            "empty": True,
+        }
     w = sum(1 for s in ids if a[s][key] and not b[s][key])
     l_ = sum(1 for s in ids if b[s][key] and not a[s][key])
     t = len(ids) - w - l_
@@ -170,6 +201,8 @@ def paired(a: dict[str, dict], b: dict[str, dict], key: str, ids: list[str]) -> 
 
 
 def fmt(c: dict) -> str:
+    if c.get("empty"):
+        return "no sessions in this subset"
     lo, hi = c["ci95_union"]
     return (
         f"{c['wins']}/{c['losses']}/{c['ties']} | net {c['net']:+d} | "
@@ -203,11 +236,26 @@ def main() -> None:
         for arm in ARMS
         if runs[arm]
     }
+    for arm, got in shared.items():
+        absent = [k for k in SHARED_IDENTITY if k not in got]
+        if absent:
+            raise SystemExit(f"{arm}.jsonl: identity is missing {absent}")
     distinct = {json.dumps(v, sort_keys=True) for v in shared.values()}
     if len(distinct) > 1:
         raise SystemExit(
             "arms were run under different implementation identities; "
             + json.dumps(shared, indent=1)
+        )
+    # and that one identity must be the CURRENT freeze, not merely self-consistent
+    frozen = json.loads(
+        (
+            Path(__file__).resolve().parents[1] / "results/a-screen/screen-pool.json"
+        ).read_text()
+    )["pool_sha256"]
+    seen = next(iter(shared.values()))["pool_sha256"]
+    if seen != frozen:
+        raise SystemExit(
+            f"records were produced against SCREEN pool {seen}, frozen pool is {frozen}"
         )
     if not ids:
         # re-review F12: no complete session must read INCOMPLETE, not crash on a mean
@@ -233,7 +281,17 @@ def main() -> None:
             f"{sum(q['terminal_reason'] not in ('applied',) for q in both)} | {sum(q['seconds'] for q in both) / len(both):.1f} |"
         )
     cf, sft, off = runs["cf"], runs["sft"], runs["off"]
-    changing = [s for s in ids if cf[s]["lifecycle"] != "stable"]
+    # re-review round 3 F12: strata come from the FROZEN MANIFEST.  Taking them from CF's
+    # own records let a single edited lifecycle label turn GATE FAILED into GATE PASSED.
+    lifecycle = {r["session"]: r["lifecycle"] for r in manifest["sessions"]}
+    for arm in ARMS:
+        for sid, rec in runs[arm].items():
+            if rec["lifecycle"] != lifecycle[sid]:
+                raise SystemExit(
+                    f"{arm}.jsonl: {sid} lifecycle {rec['lifecycle']!r} disagrees with the "
+                    f"manifest's {lifecycle[sid]!r}"
+                )
+    changing = [s for s in ids if lifecycle[s] != "stable"]
     lines.append(
         "\n## Contrasts (wins/losses/ties, net, rates, diff with conservative 95% union-bound interval, two-sided exact McNemar)\n"
     )
@@ -259,11 +317,15 @@ def main() -> None:
         c = paired(x, y, "J", changing)
         lines.append(f"| {name} | J | changing-rule ({len(changing)}) | {fmt(c)} |")
         if name == "cf - off":
-            gates["4a: positive net J in changing sessions vs off"] = c["net"] > 0
+            gates["4a: positive net J in changing sessions vs off"] = (
+                c["net"] > 0 and c["n"] > 0
+            )
         if name == "cf - sft":
-            gates["4b: positive net J in changing sessions vs sft"] = c["net"] > 0
+            gates["4b: positive net J in changing sessions vs sft"] = (
+                c["net"] > 0 and c["n"] > 0
+            )
         for lc in ("stable", "replacement", "scope", "reinstatement"):
-            sub = [s for s in ids if cf[s]["lifecycle"] == lc]
+            sub = [s for s in ids if lifecycle[s] == lc]
             if not sub:
                 continue
             c = paired(x, y, "J", sub)
