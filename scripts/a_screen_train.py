@@ -117,6 +117,8 @@ def main() -> None:
     ap.add_argument("--save-every-min", type=float, default=30.0)
     a = ap.parse_args()
     budget_s = a.minutes * 60 if a.minutes else a.hours * 3600
+    out = Path(a.out)
+    out.mkdir(parents=True, exist_ok=True)
     t_start = time.time()
 
     import torch
@@ -168,7 +170,31 @@ def main() -> None:
                 # Astra F13: reference scoring lives inside the allocation and must not
                 # consume all of it; a run that cannot fit it is cost-ineligible.
                 if time.time() - t_start >= budget_s:
-                    print("COST-INELIGIBLE: reference scoring exhausted the allocation")
+                    # re-review F13: §8's reading for an exhausted allocation is INCOMPLETE.
+                    # No adapter exists yet, so the marker is the train log the harness
+                    # reads: status "incomplete" and final false both refuse evaluation.
+                    out.mkdir(parents=True, exist_ok=True)
+                    (out / "train-log.json").write_text(
+                        json.dumps(
+                            {
+                                "objective": a.objective,
+                                "status": "incomplete",
+                                "final": False,
+                                "steps": 0,
+                                "budget_seconds": budget_s,
+                                "reference_examples_scored": i,
+                                "incomplete_reason": (
+                                    "reference scoring exhausted the allocation"
+                                ),
+                            },
+                            indent=1,
+                        )
+                        + "\n"
+                    )
+                    print(
+                        "INCOMPLETE: reference scoring exhausted the allocation; "
+                        "no adapter from this allocation may be evaluated"
+                    )
                     sys.exit(3)
                 c, _ = seq_logprobs(model, e["prompt_ids"], e["chosen_ids"])
                 r, _ = seq_logprobs(model, e["prompt_ids"], e["rejected_ids"])
@@ -200,8 +226,6 @@ def main() -> None:
     params = [p for p in model.parameters() if p.requires_grad]
     opt = torch.optim.AdamW(params, lr=a.lr, weight_decay=0.0)
 
-    out = Path(a.out)
-    out.mkdir(parents=True, exist_ok=True)
     import hashlib
 
     def _sha(text: str) -> str:
@@ -246,11 +270,14 @@ def main() -> None:
         "status": "running",
     }
 
+    save_times: list[float] = []
+
     def save(final: bool) -> None:
         t_save = time.time()
         model.save_pretrained(str(out))
+        save_times.append(time.time() - t_save)
         log["seconds"] = time.time() - t_start
-        log["save_seconds"] = log.get("save_seconds", 0.0) + (time.time() - t_save)
+        log["save_seconds"] = log.get("save_seconds", 0.0) + save_times[-1]
         log["final"] = final
         log["status"] = "complete" if final else "running"
         (out / "train-log.json").write_text(json.dumps(log, indent=1) + "\n")
@@ -261,6 +288,7 @@ def main() -> None:
     micro = 0
     last_save = time.time()
     window: list[float] = []
+    update: list[float] = []
     micro_times: list[float] = []
     stop = False
     t_train = time.time()
@@ -270,7 +298,10 @@ def main() -> None:
             # Astra F13: stop BEFORE a micro-step that would cross the allocation
             elapsed = time.time() - t_start
             est = max(micro_times[-20:], default=0.0)
-            if elapsed + est >= budget_s:
+            # re-review F13: the final save must also fit inside the allocation, so reserve
+            # the longest save measured so far (60 s until one has been measured).
+            reserve = max(save_times) if save_times else 60.0
+            if elapsed + est + reserve >= budget_s:
                 stop = True
                 break
             t_micro = time.time()
@@ -297,12 +328,17 @@ def main() -> None:
                 log["chosen_tokens_seen"] + log["rejected_tokens_seen"]
             )
             window.append(loss.item())
+            update.append(loss.item())
             if micro % a.accum == 0:
                 torch.nn.utils.clip_grad_norm_(params, 1.0)
                 opt.step()
                 opt.zero_grad(set_to_none=True)
                 log["steps"] += 1
-                log["final_update_loss"] = sum(window) / len(window)
+                # re-review F6: the mean over THIS update's micro-steps.  ``window`` is the
+                # ten-update print window and clears only every tenth update, so reusing it
+                # here reported the average of up to ten updates as the final one.
+                log["final_update_loss"] = sum(update) / len(update)
+                update = []
                 if log["steps"] % 10 == 0:
                     avg = sum(window) / len(window)
                     log["loss_history"].append([log["steps"], avg])

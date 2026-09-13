@@ -28,8 +28,8 @@ def main() -> None:
         f1 = A.gold_files(s, 1)
         m2 = A.session_messages(s, 2, dict(s.files), A.gold_reply(s, 1), f1)
         per = [count([m]) for m in m2]
-        _, idx1 = A.pack(m1, count)
-        _, idx2 = A.pack(m2, count, drop_first=A.drop_first_order(2))
+        _, idx1 = A.pack_session(s, m1, 1, count)
+        _, idx2 = A.pack_session(s, m2, 2, count)
         print(
             f"{slot} total@req1={count(m1)} total@req2={count(m2)} "
             f"budget={A.PROMPT_BUDGET}"

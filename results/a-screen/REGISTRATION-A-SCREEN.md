@@ -19,7 +19,7 @@ below amends it.
   6, error surface 5, logging 4, validation 3, missing-record 2, naming 2) and the dev-set
   precedent probe. That use is recorded here; those 48 tasks and their prompts/responses are
   excluded from every fitting set and are not reused as screen or confirmation projects.
-- Three disjoint project pools with disjoint solution constructions: TRAIN (authored for the
+- Three project pools with disjoint NAMES (not disjoint constructions, see §13.3): TRAIN (authored for the
   576 pairs), SCREEN (48 projects, one session each, this document), CONFIRM (reserved,
   authored only if the gate passes, disjoint from both). Disjointness is by project name,
   module path and public class/function name, VERIFIED by `scripts/a_screen_freeze.py`; a hash
@@ -277,3 +277,124 @@ hashes move; the manifest, the 48 slots, the 36 cells and the counterbalance are
 checks, plus a packing unit test). Known record gap, not a gate: 37 SCREEN slots omit
 `support_state` from `tags`, so the freeze record's support-state balance is partly `?`; the
 support suite is scored from the session's own `support_tests` and never looks that tag up.
+
+## 14. Amendment 2 (2026-09-13, after the Astra re-review, before any pilot, training or evaluation generation)
+
+The re-review of amendment 1 read **DO NOT LAUNCH**
+(`results/reviews/2026-09-13-a-screen-rereview-astra.md`): "It can award false session
+successes, reject correct implementations, and evaluate request 2 without showing the file
+being edited." Six findings were PARTIAL and two were new. Every counterexample was reproduced
+before it was changed. **No arm, model, outcome unit, gate or ceiling changes.** The screened
+quantity is unchanged.
+
+### 14.1 The two critical partials
+
+**F1, request 2 could hide the file it asks the model to rewrite.** The self-contained
+rendering showed only the files *changed* since request 1. In the seven slots whose two
+requests edit different files (S03, S07, S11, S27, S31, S35, S47, all scoped-exception, so one
+whole gate stratum) a maximum-length first reply evicted the request-1 message and left the
+request-2 target invisible; the model was asked to replace a file whose content was nowhere in
+the window. Request 2 now always renders the current content of its own target as well as every
+changed file. A second, independent defect surfaced while fixing it: the packer evicted in
+plain index order and dropped an early rule turn while keeping later droppable chatter, even
+though S47's required messages fit the budget with 443 tokens to spare. `pack` now takes a
+`protect` set, and every call goes through one `pack_session` helper so no call site can omit
+it. All 48 slots and the sampled TRAIN sessions pass the maximum-length-reply qualification.
+
+**F7, the PROTECTED group omitted request 1's REGRESSION tests.** Verified false J: in S01,
+changing `find` from `self._recipes.get(id)` to `self._recipes[id]` makes a missing record
+raise instead of returning `None`, and every checkpoint-2 suite still passed. Request 1's
+regression tests are now protected too, and the mutation fails.
+
+### 14.2 Two new findings from the fixes themselves
+
+**F16, contract compliance had leaked into the function-only measurement.** The single
+`protected` flag mixed request 1's functional and regression tests with its contract and
+support tests, and `function_only` read that flag, so a contract miss depressed the
+function-only count that gate 3 compares. The protected group is now scored in two parts:
+`protected_function` (request 1's functional and regression tests plus the binding check) and
+`protected_contract` (its contract and support tests). `function_only` reads only the former.
+Verified: cross-state gold now reports `contract` false with `function_only` true.
+
+**F17, the AST check rejected legitimate implementations.** `api_preserved` compared AST
+definition names, so a behaviour-preserving public alias (`count = _count` in the class) failed
+while a silent behaviour change passed. It is replaced by a generated test that imports the
+module and asserts every pre-existing public name still RESOLVES. Measured before replacing it:
+all 156 possible renames of a pre-existing public method across all 48 slots are already caught
+by the executable suites once request 1's regression tests are protected, so the shape check
+added no detection. The binding check still fails deletion, and now passes an alias.
+
+### 14.3 Records, resume and adapter provenance
+
+The summary refuses, with the line number: a record labelled with another arm, a record with no
+`identity`, a second identity inside one arm, a session outside the frozen manifest, a duplicate
+record, a request 2 with no request 1, a `scores.all` that disagrees with the individual suites,
+a record that passed every suite while its terminal reason was not `applied`, and any record
+produced with `--pilot-adapter`. It requires the three arms to share every identity field except
+the adapter, and it reads INCOMPLETE instead of dividing by zero when no session is complete.
+Each refusal was verified against a synthetic dataset; the unregistered extra session that had
+supplied a fifth win and flipped the verdict to GATE PASSED is now rejected.
+
+Resume matches the COMPLETE identity rather than the adapter hash alone (an `off` record matched
+on `"none"` even when the pool or the runner had changed), refuses duplicate keys, and repairs a
+truncated final line before appending so no record is welded onto invalid JSON. The harness also
+binds the model by CONTENT (`hub_sha256`: configs, tokenizer and weight index in full, the
+multi-GB shards by name and exact size) because the hub is a mutable directory.
+
+The adapter guard now requires the registered allocation, not merely a final log: the frozen
+TRAIN pool hash, no `--limit` subset, a positive number of completed optimizer steps, and the
+registered 14,400-second wall clock. `--pilot-adapter` is the one documented opt-out, it prints
+what is wrong, it stamps `pilot_adapter: true` into every record's identity, and the summary
+refuses any record carrying that stamp. Verified against the existing smoke adapter, which the
+guard rejects on all three counts.
+
+### 14.4 Compute and the training allocation
+
+`--budget-min` is now CUMULATIVE across launches (the prior records' seconds are added, so a
+relaunch cannot reset the clock) and guards every session start including one whose request 1 is
+already saved. A session that has started finishes both requests; the guard exists to stop
+STARTING work near the reservation's end. The trainer reserves the longest measured save time so
+the final save fits inside the allocation, reports `final_update_loss` from the final update's
+own micro-steps (it had averaged the rolling ten-update print window, so two updates at 1 and 9
+reported 5), and writes §8's reading of an exhausted reference pass as `status: "incomplete"`,
+`final: false`, which the harness then refuses. Astra's accounting stands: 8.0 h training
+(reference scoring inside CF's four hours, not added again) + 1.8 h evaluation + 0.1 h pilot =
+9.9 h, 13.9 h with the one permitted re-run, against the 16 GPU-h ceiling. The 2.1 h remainder
+covers model loads, the 1,296 suite subprocess invocations that run while the model is resident,
+and checkpoint writes; §8's INCOMPLETE rule is never rescued.
+
+### 14.5 TRAIN wording (F8)
+
+The initial validation statement said "the module-level `_apply_*` helpers never validate" while
+the grandfathered operation validates in its helper (`_apply_schedule` raises `ValueError`). Both
+validation statements now say "for every operation added from now on" and "operations already in
+the file keep the arrangement they have". The 16 SCREEN validation slots were audited and already
+grandfather explicitly, naming the pre-existing operation as the consistent example.
+
+### 14.6 The claim this screen can support
+
+Adopted verbatim from the re-review, and it supersedes any broader reading:
+
+> On these 48 authored two-request sessions, the final CF adapter met the registered
+> development thresholds against both the frozen trunk and equal-time SFT, under the registered
+> rendering and decoding policy.
+
+It does not establish transfer across program architectures, autonomous long-session
+reliability, any particular internal rule-tracking mechanism, or a generally superior training
+objective across seeds. One binary outcome per session remains the registered unit; treating
+requests or individual tests as independent observations would inflate N. A pass authorises only
+the CONFIRM registration. §1's "disjoint solution constructions" phrase is deleted; §13.3's
+measured overlap governs.
+
+### 14.7 Re-frozen pools and self-checks
+
+| pool | record | sha256 (first 16) | was |
+|---|---|---|---|
+| SCREEN | `results/a-screen/screen-pool.json` | `e0867688b60e1071` | unchanged by amendment 2 |
+| TRAIN | `results/a-screen/train-pool.json` | `b8f504494a281858` | `f6b3d63e941e1d70` |
+
+Only the TRAIN statement wording changed session content. `tests/test_a_screen.py`: **301
+passed**. Statistics re-verified independently: `mcnemar_exact` agrees with
+`2·Binom(b+c, ½)` lower tail on all 256 discordant-count cells up to 15/15, and both
+Clopper-Pearson bounds solve their defining binomial tail equations at 0.0125 per side for
+k ∈ {0, 1, 5, 12, 48} at N = 48.

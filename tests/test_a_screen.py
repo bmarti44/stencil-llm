@@ -10,6 +10,7 @@ least one more before request 2.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -105,7 +106,7 @@ def test_packing_keeps_rule_turns_and_compacts(slot, counter, tok):
     s = load(slot)
     files0 = dict(s.files)
     m1 = A.session_messages(s, 1, files0)
-    kept1, idx1 = A.pack(m1, counter)
+    kept1, idx1 = A.pack_session(s, m1, 1, counter)
     assert counter(kept1) <= A.PROMPT_BUDGET
     surv1 = A.surviving_prefix_turns(idx1)
     assert set(s.rule_turns) <= surv1, (slot, 1, sorted(surv1))
@@ -113,7 +114,7 @@ def test_packing_keeps_rule_turns_and_compacts(slot, counter, tok):
     f1 = A.gold_files(s, 1)
     # gold reply: rule turns survive, more compaction than at request 1
     m2 = A.session_messages(s, 2, files0, A.gold_reply(s, 1), f1)
-    kept2, idx2 = A.pack(m2, counter, drop_first=A.drop_first_order(2))
+    kept2, idx2 = A.pack_session(s, m2, 2, counter)
     assert counter(kept2) <= A.PROMPT_BUDGET
     surv2 = A.surviving_prefix_turns(idx2)
     assert set(s.rule_turns) <= surv2, (slot, 2, sorted(surv2))
@@ -134,7 +135,7 @@ def test_packing_keeps_rule_turns_and_compacts(slot, counter, tok):
     files1_long, reason = A.apply_reply(files0, s.requests[0], long_reply)
     assert reason == "applied"
     m3 = A.session_messages(s, 2, files0, long_reply, files1_long)
-    kept3, idx3 = A.pack(m3, counter, drop_first=A.drop_first_order(2))
+    kept3, idx3 = A.pack_session(s, m3, 2, counter)
     assert counter(kept3) <= A.PROMPT_BUDGET
     assert A.required_indices(s, 2) <= set(idx3), (
         slot,
@@ -150,33 +151,60 @@ def test_packing_keeps_rule_turns_and_compacts(slot, counter, tok):
 
 @pytest.mark.parametrize("slot", _pairs())
 def test_protected_suite_guards_the_first_operation(slot):
-    """Astra F7: the checkpoint-2 PROTECTED suite re-runs request 1's functional,
-    contract (state at checkpoint 1) and support tests; the request-1 target reverted
-    to its ORIGINAL content (first operation removed) must fail it."""
+    """Astra F7 and re-review F7/F16/F17: the checkpoint-2 PROTECTED group re-runs request 1's
+    functional, REGRESSION, contract-under-state-1 and support tests plus a public-binding
+    check.  Rolling back the first operation, deleting a pre-existing public method, or
+    silently changing pre-existing behaviour must all fail; a behaviour-preserving alias must
+    not; and contract failures must stay out of ``function_only``."""
     s = load(slot)
     f2 = A.gold_files(s, 2)
     r1 = s.requests[0]
-    # (a) the first operation rolled back: the protected suite must fail
+    # (a) the first operation rolled back
     reverted = {**f2, r1.target: s.files[r1.target]}
     res = A.score_checkpoint(s, 2, reverted)
-    assert not res["protected"], (
-        slot,
-        "first operation removed but protected suite passed",
-    )
-    # (b) a pre-existing public method renamed: api_preserved must fail (Astra F7)
-    before = sorted(
+    assert not res["all"], (slot, "first operation removed but the session scored J")
+    # (b) a pre-existing public method DELETED: the binding check and the suites must fail
+    methods = sorted(
         n.split(".")[-1] for n in A.public_api(s.files[r1.target]) if "." in n
     )
-    if before:
-        victim = before[0]
-        renamed = f2[r1.target].replace(f"def {victim}(", f"def {victim}_renamed(", 1)
-        assert renamed != f2[r1.target]
-        res2 = A.score_checkpoint(s, 2, {**f2, r1.target: renamed})
-        assert not res2["api_preserved"], (
-            slot,
-            "rename of an existing method accepted",
-        )
-        assert not res2["all"], (slot, "renamed existing method still scored J")
+    assert methods, (slot, "no pre-existing public method to protect")
+    victim = methods[0]
+    block = re.search(
+        rf"\n    def {victim}\(self[^\n]*\n(?:        [^\n]*\n)+", f2[r1.target]
+    )
+    assert block, (slot, f"could not locate {victim}")
+    deleted = f2[r1.target].replace(block.group(0), "\n")
+    res_del = A.score_checkpoint(s, 2, {**f2, r1.target: deleted})
+    assert not res_del["all"], (slot, f"deleting {victim} still scored J")
+    assert not res_del["protected_function"], (
+        slot,
+        f"deleting {victim} passed protection",
+    )
+    # (c) re-review F17: the same method behind a public alias is a legitimate implementation
+    aliased = f2[r1.target].replace(
+        block.group(0),
+        block.group(0).replace(f"def {victim}(", f"def _{victim}(", 1)
+        + f"\n    {victim} = _{victim}\n",
+    )
+    res_alias = A.score_checkpoint(s, 2, {**f2, r1.target: aliased})
+    assert res_alias["protected_function"], (
+        slot,
+        f"public alias for {victim} rejected",
+        res_alias["protected_function_msg"][-300:],
+    )
+    assert res_alias["all"], (slot, "aliased implementation did not score J")
+    # (d) re-review F16: a contract miss must NOT depress function-only
+    other = A.gold_files(s, 2, state=s.other(s.state_at[1]))
+    res_x = A.score_checkpoint(s, 2, other)
+    assert not res_x["contract"], (
+        slot,
+        "cross-state gold passed the applicable contract",
+    )
+    assert res_x["function_only"], (
+        slot,
+        "a contract miss depressed function-only",
+        res_x,
+    )
 
 
 def test_pack_never_drops_system_or_final():

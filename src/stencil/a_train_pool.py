@@ -744,11 +744,11 @@ def target_statement(family: str, state: str, d: dict[str, str]) -> str:
         (
             "validation",
             "api",
-        ): f"Convention for {S}: argument validation lives in the public method itself. The module-level _apply_* helpers never validate; they apply whatever value they are given.",
+        ): f"Convention for {S}: argument validation lives in the public method itself. For every operation added from now on, the module-level _apply_* helper never validates; it applies whatever value it is given. Operations already in the file keep the arrangement they have (re-review F8: the grandfathered operation validates in its helper, so the convention must not claim that no helper validates).",
         (
             "validation",
             "storage",
-        ): f"Convention for {S}: argument validation lives in the module-level _apply_* helper, which raises ValueError. The public method does not pre-check the value; it lets the helper's ValueError propagate.",
+        ): f"Convention for {S}: argument validation lives in the module-level _apply_* helper, which raises ValueError. For every operation added from now on, the public method does not pre-check the value; it lets the helper's ValueError propagate. Operations already in the file keep the arrangement they have.",
         (
             "missing_record",
             "raise",

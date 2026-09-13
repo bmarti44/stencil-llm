@@ -13,39 +13,101 @@ import json
 from math import comb
 from pathlib import Path
 
+from stencil import a_screen as A
+
 ARMS = ("off", "sft", "cf")
 
 
-def load(path: Path) -> dict[str, dict]:
-    """Astra F12: keep BOTH requests per session, reject duplicates and mixed identities,
-    and recompute the session outcome from the stored suite results."""
+# the identity fields that must agree across all three arms: everything except the adapter
+SHARED_IDENTITY = (
+    "pool_sha256",
+    "a_screen_sha256",
+    "contracts_sha256",
+    "runner_sha256",
+    "hub",
+    "hub_sha256",
+    "eos",
+    "max_new",
+    "prompt_budget",
+)
+
+
+def load(path: Path, arm: str, expected: set[str]) -> dict[str, dict]:
+    """Load one arm's records and validate them hard before any count is taken.
+
+    Astra F12 and its re-review: keep BOTH requests per session; reject duplicates, records
+    carrying a different arm label, records with no identity, records from more than one
+    identity, a request 2 with no request 1, and any session outside the frozen manifest
+    (an unregistered extra session supplied a fifth win and flipped the verdict).  Recompute
+    every session outcome from the INDIVIDUAL suite results rather than from the stored
+    aggregate flags (``scores.all`` was trusted even when ``scores.contract`` was false)."""
     per: dict[tuple[str, int], dict] = {}
-    identities = set()
-    for line in path.read_text().splitlines():
+    identities: set[str] = set()
+    for lineno, line in enumerate(path.read_text().splitlines(), 1):
         if not line.strip():
             continue
-        r = json.loads(line)
+        try:
+            r = json.loads(line)
+        except json.JSONDecodeError as exc:
+            raise SystemExit(f"{path.name}:{lineno}: malformed record ({exc})") from exc
+        if r.get("arm") != arm:
+            raise SystemExit(
+                f"{path.name}:{lineno}: arm {r.get('arm')!r}, expected {arm!r}"
+            )
+        if r["session"] not in expected:
+            raise SystemExit(
+                f"{path.name}:{lineno}: {r['session']} is not in the frozen manifest"
+            )
+        ident = r.get("identity")
+        if not ident:
+            raise SystemExit(f"{path.name}:{lineno}: record carries no identity")
+        if ident.get("pilot_adapter"):
+            raise SystemExit(
+                f"{path.name}:{lineno}: record was produced with --pilot-adapter "
+                "(an adapter that is not the registered allocation); not analysable"
+            )
+        identities.add(json.dumps(ident, sort_keys=True))
         key = (r["session"], r["request"])
         if key in per:
-            raise SystemExit(f"{path.name}: duplicate record for {key}")
+            raise SystemExit(f"{path.name}:{lineno}: duplicate record for {key}")
         per[key] = r
-        identities.add(json.dumps(r.get("identity", {}), sort_keys=True))
     if len(identities) > 1:
         raise SystemExit(
             f"{path.name}: records from {len(identities)} different identities"
         )
     out: dict[str, dict] = {}
-    for (session, request), r in per.items():
+    for (session, request), r in sorted(per.items()):
         if request != 2:
             continue
         first = per.get((session, 1))
         if first is None:
             raise SystemExit(f"{path.name}: {session} has request 2 but no request 1")
-        s1, s2 = first["scores"], r["scores"]
+        per_request = []
+        for q in (first, r):
+            sc = q["scores"]
+            missing = [n for n in A.SUITES if n not in sc]
+            if missing:
+                raise SystemExit(
+                    f"{path.name}: {session}@{q['request']} is missing suites {missing}"
+                )
+            ok = all(bool(sc[n]) for n in A.SUITES)
+            if ok != bool(sc.get("all")):
+                raise SystemExit(
+                    f"{path.name}: {session}@{q['request']} scores.all={sc.get('all')} "
+                    f"disagrees with its suites {[(n, sc[n]) for n in A.SUITES]}"
+                )
+            if ok and q["terminal_reason"] != "applied":
+                raise SystemExit(
+                    f"{path.name}: {session}@{q['request']} passed every suite but its "
+                    f"terminal reason is {q['terminal_reason']!r}"
+                )
+            per_request.append(ok)
         rec = dict(r)
         rec["requests"] = [first, r]
-        rec["J"] = bool(s1["all"] and s2["all"])
-        rec["function_only"] = bool(s1["function_only"] and s2["function_only"])
+        rec["J"] = bool(per_request[0] and per_request[1])
+        rec["function_only"] = bool(
+            first["scores"]["function_only"] and r["scores"]["function_only"]
+        )
         if rec["J"] != r["J"] or rec["function_only"] != r["function_only"]:
             raise SystemExit(
                 f"{path.name}: {session} stored outcome disagrees with its suites"
@@ -120,15 +182,43 @@ def main() -> None:
     ap.add_argument("--runs", default="results/a-screen/runs")
     ap.add_argument("--out", default="")
     a = ap.parse_args()
-    runs = {arm: load(Path(a.runs) / f"{arm}.jsonl") for arm in ARMS}
-    ids = sorted(set.intersection(*(set(r) for r in runs.values())))
     manifest = json.loads(
         (
             Path(__file__).resolve().parents[1] / "results/a-screen/manifest.json"
         ).read_text()
     )
     expected = sorted(r["session"] for r in manifest["sessions"])
+    runs = {
+        arm: load(Path(a.runs) / f"{arm}.jsonl", arm, set(expected)) for arm in ARMS
+    }
+    ids = sorted(set.intersection(*(set(r) for r in runs.values())))
     missing = sorted(set(expected) - set(ids))
+    # the three arms must differ ONLY in the adapter (re-review F15)
+    shared = {
+        arm: {
+            k: v
+            for k, v in next(iter(runs[arm].values()))["identity"].items()
+            if k in SHARED_IDENTITY
+        }
+        for arm in ARMS
+        if runs[arm]
+    }
+    distinct = {json.dumps(v, sort_keys=True) for v in shared.values()}
+    if len(distinct) > 1:
+        raise SystemExit(
+            "arms were run under different implementation identities; "
+            + json.dumps(shared, indent=1)
+        )
+    if not ids:
+        # re-review F12: no complete session must read INCOMPLETE, not crash on a mean
+        text = (
+            f"# Candidate-A screen: gate tables\n\n**Verdict: INCOMPLETE "
+            f"(0/{len(expected)} manifest sessions complete in all three arms)**\n"
+        )
+        print(text)
+        if a.out:
+            Path(a.out).write_text(text)
+        return
     lines = [f"# Candidate-A screen: gate tables (N = {len(ids)} complete sessions)\n"]
     lines.append(
         "| arm | J | function-only | truncated | deadline | not applied | mean s/request |"

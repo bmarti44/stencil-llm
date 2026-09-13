@@ -32,7 +32,7 @@ both checkpoints.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 
 from stencil.contracts import extract_file, run_tests
@@ -47,7 +47,14 @@ SYSTEM = (
 LIFECYCLES = ("stable", "replacement", "scope", "reinstatement")
 TARGET_FAMILIES = ("naming", "validation", "missing_record")
 SUPPORT_FAMILIES = ("return_shape", "error_surface", "logging")
-SUITES = ("functional", "regression", "contract", "support", "protected")
+SUITES = (
+    "functional",
+    "regression",
+    "contract",
+    "support",
+    "protected_function",
+    "protected_contract",
+)
 
 
 @dataclass(frozen=True)
@@ -136,14 +143,18 @@ def render_request2_message(
     files1: dict[str, str],
 ) -> str:
     """Live request 2, self-contained with respect to the repository: the CURRENT content
-    of every file changed since request 1 (normally the file the first reply produced),
-    and a line saying the rest are unchanged.  Because the current state is carried here,
-    packing may evict the earlier request and reply for a long first reply without the
-    model losing the code it must extend (Astra F1)."""
+    of every file changed since request 1 AND of the file this request asks the model to
+    rewrite, plus a line saying the rest are unchanged.  Because the current state is
+    carried here, packing may evict the earlier request and reply for a long first reply
+    without the model losing the code it must extend (Astra F1).
+
+    Re-review F1: rendering only the CHANGED files left request 2's own target invisible in
+    the seven slots whose two requests edit different files, so the target is now always
+    included even when the first reply did not touch it."""
     changed = sorted(p for p in files1 if files1[p] != files0.get(p))
-    parts = []
+    shown = sorted(set(changed) | {request.target})
+    parts = [f"{FILES_HEADER}{_fenced({p: files1[p] for p in shown})}"]
     if changed:
-        parts.append(f"{FILES_HEADER}{_fenced({p: files1[p] for p in changed})}")
         parts.append("All other files are unchanged from the earlier request.\n")
     else:
         parts.append(
@@ -191,21 +202,48 @@ def pack(
     count_tokens: Callable[[list[dict[str, str]]], int],
     budget: int = PROMPT_BUDGET,
     drop_first: tuple[int, ...] = (),
+    protect: Iterable[int] = (),
 ) -> tuple[list[dict[str, str]], list[int]]:
     """Compact to ``budget`` tokens: evict the messages in ``drop_first`` (a superseded
     request and its reply, whose result the live request already carries), then the oldest
-    remaining turns.  The system line and the live request are never evicted.  Returns the
-    kept messages and their indices into ``messages``."""
+    remaining turns.  The system line and the live request are never evicted, and neither is
+    anything in ``protect``.
+
+    Re-review F1: ``protect`` carries the rule turns and the lifecycle event.  Without it the
+    packer evicted in plain index order and dropped an early rule turn while keeping later,
+    droppable prefix chatter -- the governing rule left the window even though the required
+    messages fit the budget with room to spare."""
     keep = list(range(len(messages)))
     last = len(messages) - 1
-    order = [i for i in drop_first if 0 < i < last]
-    order += [i for i in range(1, last) if i not in order]
+    kept_always = set(protect) | {0, last}
+    order = [i for i in drop_first if 0 < i < last and i not in kept_always]
+    order += [i for i in range(1, last) if i not in order and i not in kept_always]
     while count_tokens([messages[i] for i in keep]) > budget:
         droppable = [i for i in order if i in keep]
         if not droppable:
             break
         keep.remove(droppable[0])
     return [messages[i] for i in keep], keep
+
+
+def pack_session(
+    session: Session,
+    messages: list[dict[str, str]],
+    checkpoint: int,
+    count_tokens: Callable[[list[dict[str, str]]], int],
+    budget: int = PROMPT_BUDGET,
+) -> tuple[list[dict[str, str]], list[int]]:
+    """The registered packing policy for one live request: evict the superseded request and
+    reply first, never evict the system line, the live request, the rule turns or the
+    lifecycle event.  Every caller goes through this so no call site can forget an argument
+    (re-review F1)."""
+    return pack(
+        messages,
+        count_tokens,
+        budget=budget,
+        drop_first=drop_first_order(checkpoint),
+        protect=required_indices(session, checkpoint),
+    )
 
 
 def drop_first_order(checkpoint: int) -> tuple[int, ...]:
@@ -271,19 +309,45 @@ def public_api(content: str) -> set[str]:
     return names
 
 
-def api_preserved(session: Session, files: dict[str, str]) -> tuple[bool, str]:
-    """Every public name that existed before the live requests still exists in the files
-    the model may rewrite (Astra F7: renaming or deleting a pre-existing operation must
-    not pass).  New names are allowed; disappearing ones are not."""
-    targets = {r.target for r in session.requests}
-    missing: list[str] = []
-    for path in sorted(targets):
-        before = public_api(session.files.get(path, ""))
-        after = public_api(files.get(path, ""))
-        missing += [f"{path}:{n}" for n in sorted(before - after)]
-    return (not missing), (
-        "ok" if not missing else "removed/renamed " + ", ".join(missing)
-    )
+_API_TEST = '''"""Every public name bound before the live requests must still resolve."""
+
+import importlib
+
+SPEC = {spec}
+
+
+def test_public_bindings_preserved():
+    missing = []
+    for module_path, names in sorted(SPEC.items()):
+        module = importlib.import_module(module_path)
+        for name in names:
+            if "." in name:
+                holder, attr = name.split(".", 1)
+                owner = getattr(module, holder, None)
+                ok = owner is not None and hasattr(owner, attr)
+            else:
+                ok = hasattr(module, name)
+            if not ok:
+                missing.append(module_path + ":" + name)
+    assert not missing, "public bindings gone: " + repr(missing)
+'''
+
+
+def api_test(session: Session) -> dict[str, str]:
+    """A generated test asserting that every public name bound before the live requests is
+    still RESOLVABLE on the imported module (Astra F7, re-review F17).
+
+    The first implementation compared AST definition names, which rejected legitimate
+    implementations (``count = _count`` inside the class, or an inherited method) while
+    establishing nothing about behaviour.  A runtime binding check accepts any shape that
+    actually exposes the name, and deletion still fails.  Behaviour preservation is the job
+    of the PROTECTED regression and functional suites, not of this check."""
+    spec: dict[str, list[str]] = {}
+    for path in sorted({r.target for r in session.requests}):
+        names = sorted(public_api(session.files.get(path, "")))
+        if names:
+            spec[path[:-3].replace("/", ".")] = names
+    return {"test_public_api_preserved.py": _API_TEST.format(spec=repr(spec))}
 
 
 def score_checkpoint(session: Session, k: int, files: dict[str, str]) -> dict:
@@ -299,32 +363,36 @@ def score_checkpoint(session: Session, k: int, files: dict[str, str]) -> dict:
         ("contract", r.contract_tests[state]),
         ("support", r.support_tests),
     ]
+    # Re-review F16: the protected group is scored in TWO parts so that contract
+    # compliance never enters the function-only measurement.  ``protected_function`` is
+    # request 1's functional and regression tests plus the public-binding check;
+    # ``protected_contract`` is its contract and support tests.  Re-review F7: request 1's
+    # REGRESSION tests were missing, which awarded a verified false J.
     if k == 2:
         r1 = session.requests[0]
         s1 = session.state_at[0]
-        protected = {}
-        for group in (r1.functional_tests, r1.contract_tests[s1], r1.support_tests):
+        pf, pc = {}, {}
+        for group in (r1.functional_tests, r1.regression_tests, api_test(session)):
             for name, content in group.items():
-                protected[f"protected_{name}"] = content
-        suites.append(("protected", protected))
+                pf[f"protected_{name}"] = content
+        for group in (r1.contract_tests[s1], r1.support_tests):
+            for name, content in group.items():
+                pc[f"protected_{name}"] = content
+        suites.append(("protected_function", pf))
+        suites.append(("protected_contract", pc))
     else:
-        out["protected"] = True
-        out["protected_msg"] = "n/a"
+        # at checkpoint 1 only the pre-existing public bindings can already be gone
+        suites.append(("protected_function", api_test(session)))
+        out["protected_contract"] = True
+        out["protected_contract_msg"] = "n/a"
     for name, tests in suites:
         ok, msg = run_tests(files, tests)
         out[name] = ok
         out[f"{name}_msg"] = msg
-    api_ok, api_msg = api_preserved(session, files)
-    out["api_preserved"] = api_ok
-    out["api_msg"] = api_msg
-    if not api_ok:
-        out["protected"] = False
-        out["protected_msg"] = f"{out.get('protected_msg', '')} | api: {api_msg}".strip(
-            " |"
-        )
+    out["protected"] = bool(out["protected_function"] and out["protected_contract"])
     out["all"] = all(out[n] for n in SUITES)
     out["function_only"] = bool(
-        out["functional"] and out["regression"] and out["protected"]
+        out["functional"] and out["regression"] and out["protected_function"]
     )
     return out
 

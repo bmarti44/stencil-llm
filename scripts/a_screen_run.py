@@ -35,6 +35,8 @@ from dataclasses import asdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+# registration §8: one fixed 4-hour wall-clock allocation per adapter
+REGISTERED_TRAIN_SECONDS = 4 * 3600
 sys.path.insert(0, str(ROOT / "src"))
 
 import stencil.determinism  # noqa: E402, F401  (sets CUBLAS workspace before torch)
@@ -48,6 +50,21 @@ FREEZE = ROOT / "results/a-screen/screen-pool.json"
 
 def sha(text: str) -> str:
     return hashlib.sha256(text.encode()).hexdigest()[:16]
+
+
+def hub_sha(hub: Path) -> str:
+    """Re-review F15: the hub is a mutable directory, so bind its CONTENT.  Config,
+    generation config, tokenizer and the weight index are hashed in full; the multi-GB
+    weight shards by name and exact byte size, which detects any substitution without
+    reading 8 GB on every launch."""
+    parts = []
+    for name in sorted(x.name for x in hub.iterdir() if x.is_file()):
+        f = hub / name
+        if name.endswith((".json", ".py")) and f.stat().st_size < 2_000_000:
+            parts.append(f"{name}:{f.read_text()}")
+        else:
+            parts.append(f"{name}:{f.stat().st_size}")
+    return sha("\n".join(parts))
 
 
 def repo_hash(files: dict[str, str]) -> str:
@@ -81,6 +98,11 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--arm", choices=["off", "sft", "cf"], required=True)
     ap.add_argument("--adapter", default="")
+    ap.add_argument(
+        "--pilot-adapter",
+        action="store_true",
+        help="timing only: accept an adapter that is not the registered allocation",
+    )
     ap.add_argument("--out", required=True)
     ap.add_argument("--hub", default=str(ROOT / "deploy/stencil_focus/build/hub-4b"))
     ap.add_argument("--max-new", type=int, default=A.MAX_NEW_TOKENS)
@@ -112,10 +134,12 @@ def main() -> None:
                 f"{a.adapter}: no train-log.json; cannot verify the adapter is final"
             )
         tlog = json.loads(tl.read_text())
-        if not (tlog.get("final") is True and tlog.get("status") == "complete"):
+        final_ok = tlog.get("final") is True and tlog.get("status") == "complete"
+        if not final_ok and not a.pilot_adapter:
             ap.error(
                 f"{a.adapter}: train-log says final={tlog.get('final')} "
-                f"status={tlog.get('status')}; only a final adapter may be evaluated"
+                f"status={tlog.get('status')}; only a final adapter may be evaluated. "
+                "Pass --pilot-adapter to use it for timing only."
             )
         if tlog.get("objective") != a.arm:
             ap.error(
@@ -123,6 +147,41 @@ def main() -> None:
                 f"does not match arm {a.arm!r}"
             )
         adapter_steps = tlog.get("steps")
+        # re-review F13: `final=True` alone accepted a 180-second, zero-step smoke adapter
+        # trained on eight sessions from a stale pool.  A screen adapter must be the
+        # registered allocation: the full frozen TRAIN pool, no --limit, positive completed
+        # optimizer steps, and the registered wall clock.  --pilot-adapter opts out for the
+        # timing pilot, and the opt-out is recorded in every record's identity.
+        ident = tlog.get("identity", {})
+        frozen_train = json.loads(
+            (ROOT / "results/a-screen/train-pool.json").read_text()
+        )["pool_sha256"]
+        problems = []
+        if not final_ok:
+            problems.append(f"final={tlog.get('final')} status={tlog.get('status')}")
+        if ident.get("train_pool_sha256") != frozen_train:
+            problems.append(
+                f"TRAIN pool {ident.get('train_pool_sha256')} != frozen {frozen_train}"
+            )
+        if ident.get("limit"):
+            problems.append(f"trained on a --limit {ident['limit']} subset")
+        if not adapter_steps:
+            problems.append(f"{adapter_steps} completed optimizer steps")
+        if tlog.get("budget_seconds") != REGISTERED_TRAIN_SECONDS:
+            problems.append(
+                f"allocation {tlog.get('budget_seconds')}s != registered "
+                f"{REGISTERED_TRAIN_SECONDS}s"
+            )
+        if problems and not a.pilot_adapter:
+            ap.error(
+                f"{a.adapter} is not the registered allocation: "
+                + "; ".join(problems)
+                + ". Pass --pilot-adapter to use it for timing only."
+            )
+        if problems:
+            print(
+                "PILOT ADAPTER (not the registered allocation): " + "; ".join(problems)
+            )
     t_start = time.time()
 
     import torch
@@ -163,9 +222,11 @@ def main() -> None:
         "contracts_sha256": sha((ROOT / "src/stencil/contracts.py").read_text()),
         "runner_sha256": sha(Path(__file__).read_text()),
         "hub": str(a.hub),
+        "hub_sha256": hub_sha(Path(a.hub)),
         "adapter": a.adapter or "none",
         "adapter_sha256": adapter_id,
         "adapter_steps": adapter_steps,
+        "pilot_adapter": bool(a.pilot_adapter),
         "eos": eos,
         "max_new": a.max_new,
         "prompt_budget": A.PROMPT_BUDGET,
@@ -182,8 +243,8 @@ def main() -> None:
             f1 = A.gold_files(s, 1)
             m2 = A.session_messages(s, 2, dict(s.files), A.gold_reply(s, 1), f1)
             return max(
-                count(A.pack(m1, count)[0]),
-                count(A.pack(m2, count, drop_first=A.drop_first_order(2))[0]),
+                count(A.pack_session(s, m1, 1, count)[0]),
+                count(A.pack_session(s, m2, 2, count)[0]),
             )
 
         sessions = sorted(sessions, key=prompt_max, reverse=True)[: a.longest]
@@ -191,25 +252,49 @@ def main() -> None:
 
     out = Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
-    # Astra F3: resume per request, and only from records of THIS arm and identity
+    # Astra F3 and its re-review: resume per request, only from records of THIS arm whose
+    # COMPLETE identity matches (an `off` record still matches on adapter hash "none" even
+    # when the pool or the runner changed), refuse duplicate keys, and never append after a
+    # truncated final line -- the next record would be welded onto invalid JSON.
     done: dict[str, dict] = {}
+    prior_min = 0.0
     if out.exists():
-        for line in out.read_text().splitlines():
+        raw = out.read_text()
+        if raw and not raw.endswith("\n"):
+            keep, _, tail = raw.rpartition("\n")
+            out.write_text(keep + "\n" if keep else "")
+            print(f"repaired a truncated final record ({len(tail)} bytes dropped)")
+            raw = keep + "\n" if keep else ""
+        want = json.dumps(identity, sort_keys=True)
+        skipped = 0
+        for lineno, line in enumerate(raw.splitlines(), 1):
             if not line.strip():
                 continue
             try:
                 r = json.loads(line)
             except json.JSONDecodeError:
-                print("skipping a malformed record line")
-                continue
+                raise SystemExit(
+                    f"{out}:{lineno}: malformed record; refusing to resume over it"
+                ) from None
             if r.get("arm") != a.arm:
+                skipped += 1
                 continue
-            if r.get("identity", {}).get("adapter_sha256") != adapter_id:
+            if json.dumps(r.get("identity", {}), sort_keys=True) != want:
+                skipped += 1
                 continue
-            done[f"{r['session']}:{r['request']}"] = r
+            key = f"{r['session']}:{r['request']}"
+            if key in done:
+                raise SystemExit(f"{out}:{lineno}: duplicate record for {key}")
+            done[key] = r
+        # re-review F13: --budget-min is CUMULATIVE, so a relaunch cannot reset the clock
+        prior_min = sum(r.get("seconds", 0.0) for r in done.values()) / 60
+        print(
+            f"resume: {len(done)} usable records, {skipped} from another identity, "
+            f"{prior_min:.1f} min already spent"
+        )
 
     def generate(msgs: list[dict], checkpoint: int, session) -> dict:
-        packed, kept = A.pack(msgs, count, drop_first=A.drop_first_order(checkpoint))
+        packed, kept = A.pack_session(session, msgs, checkpoint, count)
         # Astra F1: required messages must be in the window before we generate
         missing = A.required_indices(session, checkpoint) - set(kept)
         assert not missing, (
@@ -269,8 +354,10 @@ def main() -> None:
         k2 = f"{s.id}:2"
         if k2 in done:
             continue
-        spent = (time.time() - t_start) / 60
-        if a.budget_min and spent >= a.budget_min and k1 not in done:
+        # re-review F13: the guard covers EVERY session start, including one whose request 1
+        # was already saved, because request 2 still has to be generated and scored.
+        spent = prior_min + (time.time() - t_start) / 60
+        if a.budget_min and spent >= a.budget_min:
             incomplete.append(s.id)
             continue
         files0 = dict(s.files)

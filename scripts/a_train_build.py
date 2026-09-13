@@ -69,7 +69,7 @@ def check_exec(key: tuple[str, str, str, int]) -> tuple[str, list[str]]:
 def check_packing(s: A.Session, count) -> list[str]:
     problems = []
     m1 = A.session_messages(s, 1, dict(s.files))
-    kept1, idx1 = A.pack(m1, count)
+    kept1, idx1 = A.pack_session(s, m1, 1, count)
     surv1 = A.surviving_prefix_turns(idx1)
     if not set(s.rule_turns) <= surv1:
         problems.append(f"rule turn dropped @1 {sorted(surv1)}")
@@ -77,7 +77,7 @@ def check_packing(s: A.Session, count) -> list[str]:
         problems.append("no compaction @1")
     f1 = A.gold_files(s, 1)
     m2 = A.session_messages(s, 2, dict(s.files), A.gold_reply(s, 1), f1)
-    kept2, idx2 = A.pack(m2, count, drop_first=A.drop_first_order(2))
+    kept2, idx2 = A.pack_session(s, m2, 2, count)
     surv2 = A.surviving_prefix_turns(idx2)
     if not set(s.rule_turns) <= surv2:
         problems.append(f"rule turn dropped @2 {sorted(surv2)}")
@@ -101,7 +101,7 @@ def check_packing(s: A.Session, count) -> list[str]:
             f1,
             event=s.irrelevant_event,
         )
-        _, idx3 = A.pack(m3, count, drop_first=A.drop_first_order(2))
+        _, idx3 = A.pack_session(s, m3, 2, count)
         if not set(s.rule_turns) <= A.surviving_prefix_turns(idx3):
             problems.append("rule turn dropped @2 (irrelevant variant)")
     return problems
