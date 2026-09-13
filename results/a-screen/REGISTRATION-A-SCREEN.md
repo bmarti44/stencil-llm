@@ -780,10 +780,28 @@ executed 57 wrong-key writes across 35 slots and all were detected — but §15.
 reasoning was too strong and is narrowed here: a wrong-key write is not generally
 indistinguishable from a deleted write-back, it is simply already covered.
 
-One compute condition is carried forward rather than closed: the pilot must exercise the
-scoring work being extrapolated. Parse and application failures skip suites, so their resident
-times cannot establish the cost of all 1,584 invocations. The registered pilot therefore charges
-the full scoring path and its planned reloads, and applies the §8 contention factor.
+Round 4's compute condition is closed by measurement rather than carried forward. Astra's point
+was sound -- resident time charges only the suites that actually ran, and a reply that fails to
+parse or apply skips them, so a pilot dominated by such replies could not establish the cost of
+all 1,584 invocations. Two things were done. The pilot now measures the FULL scoring path
+directly, on the gold, for exactly the sessions it extrapolates from, and writes
+`<out>.spend.jsonl.suite-cost.json`. And the same measurement was taken over all 48 sessions
+rather than projected from 4:
+
+| | measured |
+|---|---:|
+| sessions scored, both checkpoints | 48 |
+| suite invocations (5 at checkpoint 1, 6 at checkpoint 2) | 528 |
+| total | 99.9 s |
+| per invocation | **0.189 s** |
+| per session, all 11 suites | 2.08 s (slowest S29 2.36 s, fastest S37 1.78 s) |
+| the registered 1,584 invocations | **0.08 h** |
+| with §8's 1.5 contention factor | **0.12 h** |
+
+§15.5 computed that the 2.1 h remainder allowed at most 4.41 s per invocation. The measurement is
+0.189 s, a 23x margin, so the suite work is not a threat to the ceiling and the re-run reserve
+does not have to be given up on its account. The suites execute as CPU subprocesses; the 0.12 h
+is resident wall time held while the process owns the GPU, which is what §8 counts.
 
 ### 16.8 Re-frozen pool and self-checks
 

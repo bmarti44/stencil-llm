@@ -348,6 +348,31 @@ def main() -> None:
 
         sessions = sorted(sessions, key=prompt_max, reverse=True)[: a.longest]
         print("pilot sessions " + ",".join(s.id for s in sessions))
+        # Round 4, compute: resident time per request only charges the suites that actually
+        # ran, and a reply that fails to parse or apply skips them -- so a pilot dominated by
+        # such replies cannot establish the cost of all 1,584 registered suite invocations.
+        # Measure the FULL scoring path directly, on the gold, for exactly the sessions being
+        # extrapolated: 5 suites at checkpoint 1 and 6 at checkpoint 2 per session.
+        t_suites = time.time()
+        invocations = 0
+        for s_ in sessions:
+            for k in (1, 2):
+                A.score_checkpoint(s_, k, A.gold_files(s_, k))
+                invocations += 5 if k == 1 else 6
+        suite_s = time.time() - t_suites
+        suite_cost = {
+            "sessions": [s_.id for s_ in sessions],
+            "suite_invocations": invocations,
+            "seconds": suite_s,
+            "seconds_per_invocation": suite_s / invocations,
+            "registered_invocations": 1584,
+            "projected_hours_for_the_screen": suite_s / invocations * 1584 / 3600,
+        }
+        print("suite cost " + json.dumps(suite_cost))
+        spend_path.with_name(spend_path.name + ".suite-cost.json").write_text(
+            json.dumps(suite_cost, indent=1) + "\n"
+        )
+        mark("suite_cost_measured")
 
     # Astra F3 and its re-review: resume per request, only from records of THIS arm whose
     # COMPLETE identity matches (an `off` record still matches on adapter hash "none" even
